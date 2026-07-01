@@ -1,38 +1,57 @@
 #!/usr/bin/env bash
 # Record a single trial to a ROS2 bag.
 #
-# Usage: ./record_trial.sh <trial_name> [--with-images]
+# Usage: ./record_trial.sh <trial_name> [OPTIONS]
 #
 # Options:
-#   --with-images   Also record /downward_camera/image and
-#                   /downward_camera/camera_info (default: off —
-#                   raw images are ~0.9 MB/frame)
+#   --world NAME      Gazebo world name (default: iris_textured)
+#   --velocity M/S    Target forward velocity for the trial
+#   --altitude M      Target hover altitude for the trial
+#   --notes TEXT      Free-form notes saved to metadata.yaml
+#   --with-images     Also record /downward_camera/image and
+#                     /downward_camera/camera_info (default: off —
+#                     raw images are ~0.9 MB/frame)
 #
 # Assumes the full sim stack is running (./start_sim.sh) and that
 # ground_truth_pub.py is publishing /ground_truth/pose.
 # Stop recording with Ctrl+C.
 #
 # Output layout:
-#   ~/thesis_data/trials/<trial_name>/        — trial directory
-#   ~/thesis_data/trials/<trial_name>/bag/    — ROS2 bag (created by ros2 bag record)
+#   ~/thesis_data/trials/<trial_name>/              — trial directory
+#   ~/thesis_data/trials/<trial_name>/bag/          — ROS2 bag
+#   ~/thesis_data/trials/<trial_name>/metadata.yaml
 
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <trial_name> [--with-images]" >&2
+    echo "Usage: $0 <trial_name> [--world NAME] [--velocity M/S]" \
+         "[--altitude M] [--notes TEXT] [--with-images]" >&2
     exit 1
 fi
 
-TRIAL_NAME="$1"
-shift
-
+TRIAL_NAME=""
+WORLD="iris_textured"
+VELOCITY=""
+ALTITUDE=""
+NOTES=""
 WITH_IMAGES=false
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --with-images) WITH_IMAGES=true; shift ;;
-        *) echo "Unknown argument: $1" >&2; exit 1 ;;
+        --world)       WORLD="$2";       shift 2 ;;
+        --velocity)    VELOCITY="$2";    shift 2 ;;
+        --altitude)    ALTITUDE="$2";    shift 2 ;;
+        --notes)       NOTES="$2";       shift 2 ;;
+        --with-images) WITH_IMAGES=true; shift   ;;
+        -*)            echo "Unknown flag: $1" >&2; exit 1 ;;
+        *)             TRIAL_NAME="$1";  shift   ;;
     esac
 done
+
+if [ -z "$TRIAL_NAME" ]; then
+    echo "ERROR: trial_name is required." >&2
+    exit 1
+fi
 
 OUTPUT_DIR="$HOME/thesis_data/trials/$TRIAL_NAME"
 
@@ -80,6 +99,26 @@ if ! timeout 5 ros2 topic hz /ground_truth/pose --window 5 2>/dev/null \
 fi
 
 mkdir -p "$OUTPUT_DIR"
+
+# Write trial metadata before the bag starts so it exists even if recording
+# is interrupted early.
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+GIT_HASH=$(git -C "$HOME/thesis_ws" rev-parse HEAD 2>/dev/null || echo "unknown")
+HOST=$(hostname)
+
+cat > "$OUTPUT_DIR/metadata.yaml" << EOF
+trial_name: $TRIAL_NAME
+timestamp_utc: $TIMESTAMP
+world: $WORLD
+target_velocity_m_s: ${VELOCITY:-""}
+target_altitude_m: ${ALTITUDE:-""}
+with_images: $WITH_IMAGES
+git_commit: $GIT_HASH
+hostname: $HOST
+notes: "${NOTES:-""}"
+EOF
+
+echo "Metadata written → $OUTPUT_DIR/metadata.yaml"
 echo "Recording trial '$TRIAL_NAME' → $OUTPUT_DIR"
 echo "Arm, take off, fly, then press Ctrl+C to stop recording."
 echo ""
