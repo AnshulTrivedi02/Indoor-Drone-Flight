@@ -7,7 +7,9 @@
 # ground_truth_pub.py is publishing /ground_truth/pose.
 # Stop recording with Ctrl+C.
 #
-# Output: ~/thesis_data/trials/<trial_name>/  (contains metadata.yaml + .db3)
+# Output layout:
+#   ~/thesis_data/trials/<trial_name>/        — trial directory (metadata, logs)
+#   ~/thesis_data/trials/<trial_name>/bag/    — ROS2 bag (created by ros2 bag record)
 
 set -euo pipefail
 
@@ -25,7 +27,10 @@ if [ -d "$OUTPUT_DIR" ]; then
     exit 1
 fi
 
+# ROS setup scripts reference variables that may be unset; temporarily allow them.
+set +u
 source /opt/ros/jazzy/setup.bash
+set -u
 
 # Discover optical flow topics in case flow_tracker is publishing (future).
 FLOW_TOPICS=$(ros2 topic list 2>/dev/null \
@@ -53,7 +58,8 @@ echo ""
 ros2 bag record \
     --storage sqlite3 \
     --use-sim-time \
-    --output "$OUTPUT_DIR" \
+    --output "$OUTPUT_DIR/bag" \
+    --topics \
     /clock \
     /ground_truth/pose \
     /downward_camera/image \
