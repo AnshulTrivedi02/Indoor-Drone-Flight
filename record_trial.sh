@@ -8,9 +8,11 @@
 #   --velocity M/S    Target forward velocity for the trial
 #   --altitude M      Target hover altitude for the trial
 #   --notes TEXT      Free-form notes saved to metadata.yaml
-#   --with-images     Also record /downward_camera/image and
-#                     /downward_camera/camera_info (default: off —
-#                     raw images are ~0.9 MB/frame)
+#   --ardupilot-log-dir DIR  Directory to search for .BIN dataflash logs
+#                            (default: ~/ardupilot/ArduCopter/logs)
+#   --with-images            Also record /downward_camera/image and
+#                            /downward_camera/camera_info (default: off —
+#                            raw images are ~0.9 MB/frame)
 #
 # Assumes the full sim stack is running (./start_sim.sh) and that
 # ground_truth_pub.py is publishing /ground_truth/pose.
@@ -35,14 +37,16 @@ VELOCITY=""
 ALTITUDE=""
 NOTES=""
 WITH_IMAGES=false
+ARDUPILOT_LOG_DIR="$HOME/ardupilot/ArduCopter/logs"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --world)       WORLD="$2";       shift 2 ;;
-        --velocity)    VELOCITY="$2";    shift 2 ;;
-        --altitude)    ALTITUDE="$2";    shift 2 ;;
-        --notes)       NOTES="$2";       shift 2 ;;
-        --with-images) WITH_IMAGES=true; shift   ;;
+        --world)              WORLD="$2";              shift 2 ;;
+        --velocity)           VELOCITY="$2";           shift 2 ;;
+        --altitude)           ALTITUDE="$2";           shift 2 ;;
+        --notes)              NOTES="$2";              shift 2 ;;
+        --ardupilot-log-dir)  ARDUPILOT_LOG_DIR="$2"; shift 2 ;;
+        --with-images)        WITH_IMAGES=true;        shift   ;;
         -*)            echo "Unknown flag: $1" >&2; exit 1 ;;
         *)             TRIAL_NAME="$1";  shift   ;;
     esac
@@ -147,7 +151,7 @@ echo "Recording stopped."
 # ── ArduPilot dataflash log ───────────────────────────────────────────────────
 # Copy the most recent .BIN log alongside the bag for synchronised analysis.
 # Non-fatal — the bag is still valid without it.
-ARDUPILOT_LOG_DIR="$HOME/ardupilot/logs"
+# Override the directory with --ardupilot-log-dir if SITL is launched elsewhere.
 if [ -d "$ARDUPILOT_LOG_DIR" ]; then
     LATEST_BIN=$(find "$ARDUPILOT_LOG_DIR" -maxdepth 1 -name "*.BIN" -type f \
         -printf "%T@ %p\n" 2>/dev/null \
