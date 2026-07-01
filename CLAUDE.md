@@ -37,6 +37,11 @@ later) under nominal and degraded sensing conditions.
 | ROS2 workspace              | `~/thesis_ws`                                                        |
 | Optical flow package        | `~/thesis_ws/src/optical_flow_node/`                                 |
 | Flow node entry point       | `~/thesis_ws/src/optical_flow_node/optical_flow_node/flow_tracker.py`|
+| **Message definitions**     | `~/thesis_ws/src/optical_flow_interfaces/msg/OpticalFlow.msg`        |
+| **Ground truth publisher**  | `~/thesis_ws/ground_truth_pub.py`                                    |
+| **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
+| ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
+| Trial data output           | `~/thesis_data/trials/`                                              |
 
 ## Drone Model
 
@@ -50,13 +55,31 @@ No changes to the gimbal model beyond adding the downward camera to
 **Implication:** rotational body motion couples into pixel flow.
 Gyro decoupling is required before computing translational velocity estimates.
 
+## Ground Truth Bridging
+
+Ground truth is obtained from Gazebo's `dynamic_pose/info` topic, **not** from
+ArduPilot's EKF estimate.
+
+**Bridge type:** `gz.msgs.Pose_V → geometry_msgs/msg/PoseArray` (`[gz.msgs.Pose_V`)
+
+> **Do NOT use `tf2_msgs/TFMessage`** for this topic. In ros_gz_bridge 1.0.22,
+> the `Pose_V → TFMessage` conversion zeroes all header stamps and clears all
+> `child_frame_id` and `frame_id` fields, making it useless for ground truth.
+> The `PoseArray` conversion preserves the outer Pose_V header (sim timestamp).
+
+`ground_truth_pub.py` subscribes to `/world/<world>/dynamic_pose/info`
+(PoseArray), selects `poses[0]` — which is always the top-level model
+**`iris_with_ardupilot`** in world-frame coordinates — and republishes as
+`geometry_msgs/PoseStamped` on `/ground_truth/pose`. Verified: 57–227 Hz,
+sim-time stamps (`header.stamp` tracks `/clock`).
+
 ## Sensor Status
 
 | Sensor          | Status            | Notes                                                        |
 |-----------------|-------------------|--------------------------------------------------------------|
 | IMU             | Working           | Via ArduPilot SITL                                           |
 | Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
-| Optical flow    | Working (validated) | RANSAC tested; 60+ features on textured floor; ~145 px/s at 0.5 m/s matches theory. Needs gyro decoupling, shadow rejection, rad/s conversion |
+| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_rad`/`flow_y_rad` zero until gyro decoupling. Needs shadow rejection, rad/s conversion |
 | Downward LiDAR  | **Next priority** | Inject via MAVLink `DISTANCE_SENSOR` (not `SIM_SONAR`)       |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
 
@@ -180,9 +203,12 @@ ros2 topic echo /ground_truth/pose    # confirm position changes during flight
 
 ```bash
 cd ~/thesis_ws
-./record_trial.sh test_001
-# Ctrl+C to stop; then inspect:
-ros2 bag info ~/thesis_data/trials/test_001/
+./record_trial.sh test_001 --world iris_textured --velocity 0.5 --altitude 2.0 --notes "first clean trial"
+# Ctrl+C to stop recording; script then copies the ArduPilot .BIN log automatically.
+
+# Inspect the result:
+ros2 bag info ~/thesis_data/trials/test_001/bag/
+cat ~/thesis_data/trials/test_001/metadata.yaml
 ```
 
 ## Build Commands
@@ -190,7 +216,8 @@ ros2 bag info ~/thesis_data/trials/test_001/
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd ~/thesis_ws
-colcon build --packages-select optical_flow_node --symlink-install
+# Build message definitions first (ament_cmake), then the node (ament_python).
+colcon build --packages-select optical_flow_interfaces optical_flow_node --symlink-install
 source install/setup.bash
 ```
 
@@ -203,29 +230,95 @@ Gazebo World (iris_textured.sdf / iris_runway.sdf)
             │  gz transport
             ▼
        ros_gz_bridge
-            ├─ /downward_camera/image   (sensor_msgs/Image)
+            ├─ /downward_camera/image      (sensor_msgs/Image)
             ├─ /downward_camera/camera_info (sensor_msgs/CameraInfo)
-            ├─ /clock                   (rosgraph_msgs/Clock)  ← sim time
+            ├─ /clock                      (rosgraph_msgs/Clock)  ← sim time
             └─ /world/<world>/dynamic_pose/info (geometry_msgs/PoseArray)
                                                       │
                                                ground_truth_pub.py
                                                       │
                                                /ground_truth/pose (PoseStamped)
-            │
-            ▼
-       flow_tracker.py
-            │  OpenCV: Shi-Tomasi detection + Lucas-Kanade tracking
-            ▼
-       Pixel flow output (px/s) — logged to terminal only (no topic published yet)
+                                                      │
+            │                                         │
+            ▼                                         │
+       flow_tracker.py                                │
+            │  Shi-Tomasi + Lucas-Kanade + RANSAC     │
+            ▼                                         │
+       /optical_flow/measurement                      │
+       (optical_flow_interfaces/OpticalFlow)          │
+            │                                         │
+            └──────────────┬───────────────────────────┘
+                           ▼
+                    record_trial.sh
+                           │
+                    ~/thesis_data/trials/<name>/
+                           ├─ bag/           (ROS2 bag: clock, ground_truth, flow)
+                           ├─ metadata.yaml
+                           └─ ardupilot.bin
 ```
+
+## Data Collection
+
+### Trial directory layout
+
+```
+~/thesis_data/trials/<trial_name>/
+    bag/            ← ROS2 bag (created by ros2 bag record)
+    metadata.yaml   ← written before recording starts
+    ardupilot.bin   ← newest .BIN from ~/ardupilot/ArduCopter/logs/
+```
+
+### record_trial.sh interface
+
+```bash
+./record_trial.sh <trial_name> [OPTIONS]
+
+Options:
+  --world NAME              Gazebo world name (default: iris_textured)
+  --velocity M/S            Target forward velocity
+  --altitude M              Target hover altitude
+  --notes TEXT              Free-form notes
+  --ardupilot-log-dir DIR   Override ArduPilot log directory
+                            (default: ~/ardupilot/ArduCopter/logs)
+  --with-images             Also record /downward_camera/image and
+                            /downward_camera/camera_info
+                            (default: off — raw images ~0.9 MB/frame)
+```
+
+Topics recorded by default: `/clock`, `/ground_truth/pose`,
+`/optical_flow/measurement` (plus any topic matching `^/(flow|optical_flow)`
+found on the bus at startup).
+
+### metadata.yaml schema
+
+```yaml
+trial_name: <name>
+timestamp_utc: 2026-07-02T04:31:17Z   # ISO 8601 UTC, wall clock
+world: iris_textured
+target_velocity_m_s: 0.5
+target_altitude_m: 2.0
+with_images: false
+git_commit: <SHA of thesis_ws HEAD>
+hostname: <machine name>
+notes: "free text"
+```
+
+### Signal trap behaviour
+
+Ctrl+C sends SIGINT to the whole process group. A `trap '...' INT` in
+`record_trial.sh` intercepts the signal in the shell, allowing `ros2 bag record`
+to flush and exit cleanly before the script continues to copy the ArduPilot log.
 
 ## Known Issues (to resolve in Phase 1)
 
-1. **Gyro decoupling** not implemented — roll/pitch oscillation contaminates flow_x (dominant noise source; flow_y validated at ±145 px/s for 0.5 m/s)
+1. **Gyro decoupling** not implemented — roll/pitch oscillation contaminates flow_x (dominant noise source; flow_y validated at ±145 px/s for 0.5 m/s). `flow_x_rad`/`flow_y_rad` in `OpticalFlow.msg` are zero until this is done.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
-3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot unresolved
+3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
 5. **Downward LiDAR absent** — required for metric scale and ArduPilot EKF fusion
+6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
+7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
+8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
 
 ## Conventions
 
@@ -243,9 +336,14 @@ Completed:
 - Textured Gazebo world (`iris_textured.sdf`) — nominal baseline ✓
 - Median + RANSAC outlier rejection — tested, validated ✓
 - Optical flow validated: ~145 px/s at 0.5 m/s matches kinematic theory ✓
+- ROS2 timestamp sync via `/clock` bridge + `use_sim_time:=true` ✓
+- Ground truth bridging: `/ground_truth/pose` verified at 57–227 Hz, sim-time ✓
+- Custom `OpticalFlow.msg` + `/optical_flow/measurement` publisher ✓
+- Data collection pipeline (`record_trial.sh`) — self-contained trials ✓
 
 Remaining:
-1. Gyro decoupling — subscribe to IMU, subtract `ω × focal_length` from pixel flow
+0. Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection
+1. Gyro decoupling — subscribe to IMU (via MAVLink), subtract `ω × focal_length`; populate `flow_x_rad`/`flow_y_rad`
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf`
