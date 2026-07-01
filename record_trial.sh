@@ -123,6 +123,9 @@ echo "Recording trial '$TRIAL_NAME' → $OUTPUT_DIR"
 echo "Arm, take off, fly, then press Ctrl+C to stop recording."
 echo ""
 
+# Suspend set -e across the recorder so Ctrl+C (exit 130) does not abort
+# the script before the ArduPilot log is retrieved.
+set +e
 ros2 bag record \
     --storage sqlite3 \
     --use-sim-time \
@@ -132,3 +135,30 @@ ros2 bag record \
     /ground_truth/pose \
     $FLOW_TOPICS \
     $CAMERA_TOPICS
+set -e
+
+echo ""
+echo "Recording stopped."
+
+# ── ArduPilot dataflash log ───────────────────────────────────────────────────
+# Copy the most recent .BIN log alongside the bag for synchronised analysis.
+# Non-fatal — the bag is still valid without it.
+ARDUPILOT_LOG_DIR="$HOME/ardupilot/logs"
+if [ -d "$ARDUPILOT_LOG_DIR" ]; then
+    LATEST_BIN=$(find "$ARDUPILOT_LOG_DIR" -maxdepth 1 -name "*.BIN" -type f \
+        -printf "%T@ %p\n" 2>/dev/null \
+        | sort -n | tail -1 | cut -d' ' -f2-)
+    if [ -n "$LATEST_BIN" ]; then
+        cp "$LATEST_BIN" "$OUTPUT_DIR/ardupilot.bin"
+        echo "Copied ArduPilot log: $(basename "$LATEST_BIN") → ardupilot.bin"
+    else
+        echo "WARNING: No .BIN log files found in $ARDUPILOT_LOG_DIR" \
+             "— skipping ArduPilot log."
+    fi
+else
+    echo "WARNING: ArduPilot log directory not found ($ARDUPILOT_LOG_DIR)" \
+         "— skipping ArduPilot log."
+fi
+
+echo ""
+echo "Trial '$TRIAL_NAME' complete. Output: $OUTPUT_DIR"
