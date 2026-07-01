@@ -1,0 +1,33 @@
+# Colcon build outputs
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+.venv/
+
+# ROS2 bag files and trial data
+*.db3
+*.mcap
+*.bag
+thesis_data/
+
+# ArduPilot dataflash logs
+*.bin
+*.BIN
+logs/
+
+# Editor / OS junk
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
+# stop_sim.sh sentinel (lives in /tmp, not the repo, but guard against stray copies)
+thesis_sim_stop
