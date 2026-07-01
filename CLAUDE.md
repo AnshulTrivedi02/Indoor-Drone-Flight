@@ -138,7 +138,7 @@ ros2 run ros_gz_bridge parameter_bridge \
   /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
   /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
   /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
-  /world/iris_textured/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V
+  /world/iris_textured/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V
 ```
 
 `start_sim.sh` fills in the world name automatically from its argument.
@@ -206,7 +206,7 @@ Gazebo World (iris_textured.sdf / iris_runway.sdf)
             ├─ /downward_camera/image   (sensor_msgs/Image)
             ├─ /downward_camera/camera_info (sensor_msgs/CameraInfo)
             ├─ /clock                   (rosgraph_msgs/Clock)  ← sim time
-            └─ /world/<world>/dynamic_pose/info (tf2_msgs/TFMessage)
+            └─ /world/<world>/dynamic_pose/info (geometry_msgs/PoseArray)
                                                       │
                                                ground_truth_pub.py
                                                       │

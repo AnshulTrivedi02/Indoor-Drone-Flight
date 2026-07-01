@@ -52,6 +52,7 @@ echo ""
 
 ros2 bag record \
     --storage sqlite3 \
+    --use-sim-time \
     --output "$OUTPUT_DIR" \
     /clock \
     /ground_truth/pose \

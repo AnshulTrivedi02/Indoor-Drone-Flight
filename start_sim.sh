@@ -44,7 +44,7 @@ ros2 run ros_gz_bridge parameter_bridge \
   /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
   /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
   /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
-  /world/${WORLD%.sdf}/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V
+  /world/${WORLD%.sdf}/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 
