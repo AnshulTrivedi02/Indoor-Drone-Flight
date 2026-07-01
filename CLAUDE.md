@@ -40,10 +40,12 @@ later) under nominal and degraded sensing conditions.
 
 ## Drone Model
 
-Using `iris_with_gimbal`, which includes `iris_with_standoffs`. The gimbal joint
-limits are fixed at zero — the camera is **rigidly mounted** with no active
-stabilisation. No changes to the gimbal model beyond adding the downward camera
-to `iris_with_standoffs/model.sdf`.
+The world SDF includes `iris_with_ardupilot`, which itself includes
+`iris_with_standoffs`. The Gazebo model name (as it appears in topics like
+`dynamic_pose/info`) is **`iris_with_ardupilot`**. The gimbal joint limits are
+fixed at zero — the camera is **rigidly mounted** with no active stabilisation.
+No changes to the gimbal model beyond adding the downward camera to
+`iris_with_standoffs/model.sdf`.
 
 **Implication:** rotational body motion couples into pixel flow.
 Gyro decoupling is required before computing translational velocity estimates.
@@ -128,18 +130,24 @@ python3 ~/thesis_ws/fly_forward.py 1.0   # 1.0 m/s forward
 
 ### Terminal 3 — ROS2 Bridge
 
+Replace `iris_textured` with `iris_runway` if running the degraded world.
+
 ```bash
 source /opt/ros/jazzy/setup.bash
 ros2 run ros_gz_bridge parameter_bridge \
   /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
-  /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
+  /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
+  /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
+  /world/iris_textured/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V
 ```
+
+`start_sim.sh` fills in the world name automatically from its argument.
 
 ### Terminal 4 — Image Viewer (optional debug)
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-rqt_image_view
+ros2 run rqt_image_view rqt_image_view
 # Select /downward_camera/image
 ```
 
@@ -148,7 +156,33 @@ rqt_image_view
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ~/thesis_ws/install/setup.bash
-ros2 run optical_flow_node flow_tracker
+ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true
+```
+
+### Terminal 6 — Ground Truth Publisher
+
+Republishes Gazebo pose of `iris_with_ardupilot` as `/ground_truth/pose`.
+Run after the bridge (Terminal 3) is up.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+python3 ~/thesis_ws/ground_truth_pub.py iris_textured
+# For degraded world: python3 ~/thesis_ws/ground_truth_pub.py iris_runway
+```
+
+Verify:
+```bash
+ros2 topic hz /ground_truth/pose      # expect 50–250 Hz
+ros2 topic echo /ground_truth/pose    # confirm position changes during flight
+```
+
+### Terminal 7 — Bag Recording (one trial)
+
+```bash
+cd ~/thesis_ws
+./record_trial.sh test_001
+# Ctrl+C to stop; then inspect:
+ros2 bag info ~/thesis_data/trials/test_001/
 ```
 
 ## Build Commands
@@ -163,18 +197,26 @@ source install/setup.bash
 ## Current System Architecture
 
 ```
-Gazebo World (iris_runway.sdf)
-  └─ iris_with_gimbal model
+Gazebo World (iris_textured.sdf / iris_runway.sdf)
+  └─ iris_with_ardupilot model
        └─ Downward camera sensor (iris_with_standoffs/model.sdf)
             │  gz transport
             ▼
        ros_gz_bridge
-            │  /downward_camera/image  (sensor_msgs/Image)
+            ├─ /downward_camera/image   (sensor_msgs/Image)
+            ├─ /downward_camera/camera_info (sensor_msgs/CameraInfo)
+            ├─ /clock                   (rosgraph_msgs/Clock)  ← sim time
+            └─ /world/<world>/dynamic_pose/info (tf2_msgs/TFMessage)
+                                                      │
+                                               ground_truth_pub.py
+                                                      │
+                                               /ground_truth/pose (PoseStamped)
+            │
             ▼
        flow_tracker.py
             │  OpenCV: Shi-Tomasi detection + Lucas-Kanade tracking
             ▼
-       Pixel flow output (px/s) — logged to terminal only
+       Pixel flow output (px/s) — logged to terminal only (no topic published yet)
 ```
 
 ## Known Issues (to resolve in Phase 1)
