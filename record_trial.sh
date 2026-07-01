@@ -123,8 +123,11 @@ echo "Recording trial '$TRIAL_NAME' → $OUTPUT_DIR"
 echo "Arm, take off, fly, then press Ctrl+C to stop recording."
 echo ""
 
-# Suspend set -e across the recorder so Ctrl+C (exit 130) does not abort
-# the script before the ArduPilot log is retrieved.
+# Ctrl+C sends SIGINT to the whole foreground process group, which would kill
+# this script before the ArduPilot log copy runs.  The trap intercepts SIGINT
+# in the shell so only the recorder is terminated; the script continues.
+# set +e/set -e is kept as belt-and-braces for any other non-zero exit.
+trap 'echo "Interrupt received — stopping recorder..."' INT
 set +e
 ros2 bag record \
     --storage sqlite3 \
@@ -136,6 +139,7 @@ ros2 bag record \
     $FLOW_TOPICS \
     $CAMERA_TOPICS
 set -e
+trap - INT
 
 echo ""
 echo "Recording stopped."
