@@ -1,3 +1,5 @@
+from collections import deque
+
 import cv2
 import numpy as np
 
@@ -5,9 +7,17 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Vector3Stamped
 from cv_bridge import CvBridge
 
 from optical_flow_interfaces.msg import OpticalFlow
+
+# Camera focal length in pixels (confirmed via calibration, see CLAUDE.md).
+FOCAL_LENGTH_PX = 554.0
+
+# Angular-rate samples to retain for interpolation across a frame interval.
+# At ~50 Hz attitude / ~30 Hz images this covers a few frames of history.
+RATE_BUFFER_LEN = 100
 
 
 class FlowTracker(Node):
@@ -15,16 +25,31 @@ class FlowTracker(Node):
         super().__init__("flow_tracker")
 
         self.declare_parameter("min_valid_features", 20)
+        self.declare_parameter("enable_derotation", True)
 
         self.bridge = CvBridge()
         self.prev_gray = None
         self.prev_pts = None
         self.prev_time = None
 
+        # (timestamp_s, rollspeed, pitchspeed, yawspeed) — raw FRD body rates
+        # from attitude_bridge.py, buffered for interpolation across the
+        # LK-tracked frame interval (rates and images are on different
+        # timelines, so "latest rate seen" is not accurate enough).
+        self._rate_buffer = deque(maxlen=RATE_BUFFER_LEN)
+        self._warned_no_attitude = False
+
         self.subscription = self.create_subscription(
             Image,
             "/downward_camera/image",
             self.image_callback,
+            10,
+        )
+
+        self._attitude_sub = self.create_subscription(
+            Vector3Stamped,
+            "/attitude/angular_rates",
+            self._attitude_callback,
             10,
         )
 
@@ -53,7 +78,51 @@ class FlowTracker(Node):
 
         self.get_logger().info("Optical flow tracker started.")
         self.get_logger().info("Subscribing to /downward_camera/image")
+        self.get_logger().info("Subscribing to /attitude/angular_rates")
         self.get_logger().info("Publishing to /optical_flow/measurement")
+
+    def _attitude_callback(self, msg: Vector3Stamped) -> None:
+        t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        self._rate_buffer.append((t, msg.vector.x, msg.vector.y, msg.vector.z))
+
+    def _interp_rate_at(self, t: float):
+        """Linearly interpolate buffered (rollspeed, pitchspeed, yawspeed) at time t."""
+        if not self._rate_buffer:
+            return None
+        if t <= self._rate_buffer[0][0]:
+            return self._rate_buffer[0][1:]
+        if t >= self._rate_buffer[-1][0]:
+            return self._rate_buffer[-1][1:]
+        for (t0, *r0), (t1, *r1) in zip(self._rate_buffer, list(self._rate_buffer)[1:]):
+            if t0 <= t <= t1:
+                alpha = (t - t0) / (t1 - t0) if t1 > t0 else 0.0
+                return tuple(a + alpha * (b - a) for a, b in zip(r0, r1))
+        return self._rate_buffer[-1][1:]
+
+    def _mean_rate_over_interval(self, t0: float, t1: float):
+        """Mean (rollspeed, pitchspeed, yawspeed) over [t0, t1].
+
+        Uses buffered samples that fall inside the interval when available
+        (attitude arrives faster than images), otherwise falls back to the
+        interpolated endpoints. Returns zeros if no attitude data has been
+        received yet — a safe no-op fallback that leaves flow undecorated.
+        """
+        samples = [s[1:] for s in self._rate_buffer if t0 <= s[0] <= t1]
+        if samples:
+            n = len(samples)
+            return tuple(sum(c) / n for c in zip(*samples))
+
+        r0 = self._interp_rate_at(t0)
+        r1 = self._interp_rate_at(t1)
+        if r0 is None or r1 is None:
+            if not self._warned_no_attitude:
+                self.get_logger().warn(
+                    "No /attitude/angular_rates data received yet — "
+                    "derotation is a no-op until attitude_bridge.py is running."
+                )
+                self._warned_no_attitude = True
+            return (0.0, 0.0, 0.0)
+        return tuple((a + b) / 2.0 for a, b in zip(r0, r1))
 
     def _publish_invalid(self, img_msg: Image) -> None:
         """Publish a zero/invalid measurement using the image header stamp."""
@@ -135,7 +204,8 @@ class FlowTracker(Node):
             mean_dx = float(np.median(displacement[:, 0]))
             mean_dy = float(np.median(displacement[:, 1]))
 
-            dt = current_time - self.prev_time if self.prev_time is not None else 0.0
+            interval_start = self.prev_time
+            dt = current_time - interval_start if interval_start is not None else 0.0
 
             if dt > 0:
                 flow_x_px_s = mean_dx / dt
@@ -144,22 +214,61 @@ class FlowTracker(Node):
                 flow_x_px_s = 0.0
                 flow_y_px_s = 0.0
 
+            # --- Gyro derotation -------------------------------------------------
+            # Body rates (FRD, from MAVLink ATTITUDE via attitude_bridge.py) mapped
+            # into the downward camera's optical frame (X=right, Y=down, Z=boresight):
+            #   FRD body -> Gazebo FLU body:  (wx, -wy, -wz)   [imu_link's 180 deg
+            #       roll SDF pose confirms this FRD<->FLU convention]
+            #   FLU body -> camera mount:     Ry(90 deg) mount rotation (sensor
+            #       <pose> in iris_with_standoffs/model.sdf) -> (wz, -wy, wx)
+            #   mount (FLU-style) -> optical: X_opt=-Y_mount, Y_opt=-Z_mount,
+            #       Z_opt=X_mount -> (wy, -wx, wz) = (pitchspeed, -rollspeed, yawspeed)
+            # For small angles near the image centre, rotational pixel flow
+            # reduces to (u_rot, v_rot) = (-f*wy_cam, f*wx_cam), which combines to:
+            #     flow_x_rot = +FOCAL_LENGTH_PX * rollspeed
+            #     flow_y_rot = +FOCAL_LENGTH_PX * pitchspeed
+            # Cross-checked against the validated forward-flight result (vx ->
+            # flow_y only, never flow_x) — see CLAUDE.md. Yaw rate is dropped: a
+            # pure boresight spin nets to ~zero in the median for a roughly
+            # centred feature spread; the pure-yaw hover test is what verifies
+            # that assumption actually holds for this scene.
+            enable_derotation = self.get_parameter("enable_derotation").value
+            rollspeed, pitchspeed, _yawspeed = self._mean_rate_over_interval(
+                interval_start, current_time
+            ) if interval_start is not None else (0.0, 0.0, 0.0)
+
+            flow_x_rot = FOCAL_LENGTH_PX * rollspeed
+            flow_y_rot = FOCAL_LENGTH_PX * pitchspeed
+
+            if enable_derotation:
+                flow_x_derot = flow_x_px_s - flow_x_rot
+                flow_y_derot = flow_y_px_s - flow_y_rot
+            else:
+                flow_x_derot = flow_x_px_s
+                flow_y_derot = flow_y_px_s
+            # -----------------------------------------------------------------------
+
             self.get_logger().info(
                 f"features={tracked_count:3d}, "
-                f"mean_dx={mean_dx:+.3f}px, mean_dy={mean_dy:+.3f}px, "
-                f"flow_x={flow_x_px_s:+.3f}px/s, flow_y={flow_y_px_s:+.3f}px/s"
+                f"raw=({flow_x_px_s:+.3f},{flow_y_px_s:+.3f})px/s, "
+                f"rot=({flow_x_rot:+.3f},{flow_y_rot:+.3f})px/s, "
+                f"derot=({flow_x_derot:+.3f},{flow_y_derot:+.3f})px/s "
+                f"[derotation={'on' if enable_derotation else 'off'}]"
             )
 
             # Stamp from the incoming image — mandatory for sim-time alignment.
             out = OpticalFlow()
             out.header.stamp = msg.header.stamp
             out.header.frame_id = "downward_camera"
-            out.flow_x = flow_x_px_s
-            out.flow_y = flow_y_px_s
+            out.flow_x = flow_x_derot
+            out.flow_y = flow_y_derot
+            out.flow_x_raw = flow_x_px_s
+            out.flow_y_raw = flow_y_px_s
+            out.derotation_enabled = enable_derotation
             out.feature_count = tracked_count
             out.inlier_ratio = inlier_ratio
             out.valid = tracked_count >= min_valid
-            # rad/s fields remain 0.0 until gyro decoupling is implemented.
+            # rad/s fields remain 0.0 until Task 3 (pixel-to-radian conversion).
             out.flow_x_rad = 0.0
             out.flow_y_rad = 0.0
             self._pub.publish(out)

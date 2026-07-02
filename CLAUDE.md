@@ -80,7 +80,7 @@ sim-time stamps (`header.stamp` tracks `/clock`).
 |-----------------|-------------------|--------------------------------------------------------------|
 | IMU             | Working           | Via ArduPilot SITL                                           |
 | Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
-| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_rad`/`flow_y_rad` zero until gyro decoupling. Needs shadow rejection, rad/s conversion |
+| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. Gyro derotation implemented (`enable_derotation` param, default on) but **not yet validated** — pending pure-rotation hover test. `flow_x`/`flow_y` are derotated when enabled; `flow_x_raw`/`flow_y_raw` always carry the pre-derotation values. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
 | Downward LiDAR  | **Next priority** | Inject via MAVLink `DISTANCE_SENSOR` (not `SIM_SONAR`)       |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
 
@@ -337,7 +337,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 
 ## Known Issues (to resolve in Phase 1)
 
-1. **Gyro decoupling** not implemented — roll/pitch oscillation contaminates flow_x (dominant noise source; flow_y validated at ±145 px/s for 0.5 m/s). `flow_x_rad`/`flow_y_rad` in `OpticalFlow.msg` are zero until this is done.
+1. **Gyro decoupling implemented but not yet validated** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated) and `flow_x_raw`/`flow_y_raw` (raw) in `OpticalFlow.msg`. **Must be validated with an isolated pure-rotation hover test (pitch-only, roll-only, yaw-only) before trusting it** — see frame-mapping derivation comment in `image_callback`. `flow_x_rad`/`flow_y_rad` remain zero until Task 3 (rad/s conversion).
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
@@ -369,7 +369,7 @@ Completed:
 
 Remaining:
 0. Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection
-1. Gyro decoupling — subscribe to IMU (via MAVLink), subtract `ω × focal_length`; populate `flow_x_rad`/`flow_y_rad`
+1. Gyro decoupling — implemented (`attitude_bridge.py` + derotation in `flow_tracker.py`), **pending pure-rotation hover validation** (pitch-only / roll-only / yaw-only, isolated); populate `flow_x_rad`/`flow_y_rad` next (Task 3)
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf`
