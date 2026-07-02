@@ -37,12 +37,19 @@ OUTPUT_FIGURE   = os.path.expanduser("~/thesis_data/flow_validation.png")
 ALTITUDE_M      = 2.0    # hover altitude during all sweeps (metres)
 FOCAL_LENGTH_PX = 554.0  # camera focal length (pixels); confirmed 640×480, 60° FOV
 
-# Trim fractions applied to the full frame sequence before statistics.
-TRIM_START = 0.25   # drop first 25 % (acceleration transient)
-TRIM_END   = 0.10   # drop last  10 % (deceleration / mat edge)
-
 # Minimum feature count for a frame to be counted as a quality measurement.
 MIN_FEATURES = 30
+
+# Minimum RANSAC inlier ratio for a frame to be trusted (rejects noisy flow).
+MIN_INLIER_RATIO = 0.5
+
+# Minimum |flow_y| (px/s) for a frame to count as steady translation rather
+# than hover — trials contain hovering before and after the forward-flight
+# segment, and position-based trimming doesn't reliably remove it.
+MIN_FLOW_MAGNITUDE = 50.0
+
+# Below this many surviving frames, the steady-flight result is untrustworthy.
+MIN_FRAMES_WARNING = 20
 
 # ── Kinematic prediction ───────────────────────────────────────────────────────
 
@@ -114,30 +121,36 @@ def read_flow_bag(bag_dir: str):
 
 def steady_state_flow(records: list) -> tuple:
     """
-    Compute steady-state median |flow_y| after trimming transients and
-    filtering to quality frames.
+    Compute steady-state median |flow_y| using content-based frame selection
+    instead of position-based trimming, so hovering at the start/end of a
+    trial doesn't drag the result toward zero.
 
-    Returns (median_flow_px_s, n_frames_used, median_feature_count).
-    Returns (None, 0, 0) if no usable frames remain.
+    Selection is two-stage:
+      1. Keep quality frames: valid=True and inlier_ratio >= MIN_INLIER_RATIO.
+      2. Of those, keep moving frames: |flow_y| >= MIN_FLOW_MAGNITUDE
+         (excludes hover, which is a quality frame with near-zero flow).
+
+    Returns (median_flow_px_s, n_frames_used, n_frames_total, median_feature_count).
+    Returns (None, 0, n_frames_total, 0) if no usable frames remain.
     """
     n = len(records)
     if n == 0:
-        return None, 0, 0
+        return None, 0, 0, 0
 
-    start_idx = int(n * TRIM_START)
-    end_idx   = n - int(n * TRIM_END)
-    trimmed   = records[start_idx:end_idx]
+    quality = [
+        r for r in records
+        if r["valid"] and r["feature_count"] >= MIN_FEATURES
+        and r["inlier_ratio"] >= MIN_INLIER_RATIO
+    ]
+    moving = [r for r in quality if abs(r["flow_y"]) >= MIN_FLOW_MAGNITUDE]
 
-    # Keep only frames marked valid with sufficient feature support.
-    quality = [r for r in trimmed if r["valid"] and r["feature_count"] >= MIN_FEATURES]
+    if not moving:
+        return None, 0, n, 0
 
-    if not quality:
-        return None, 0, 0
+    flow_vals    = np.array([abs(r["flow_y"])   for r in moving])
+    feature_vals = np.array([r["feature_count"] for r in moving])
 
-    flow_vals    = np.array([abs(r["flow_y"])     for r in quality])
-    feature_vals = np.array([r["feature_count"]   for r in quality])
-
-    return float(np.median(flow_vals)), len(quality), float(np.median(feature_vals))
+    return float(np.median(flow_vals)), len(moving), n, float(np.median(feature_vals))
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -163,12 +176,18 @@ def main():
             print(f"  WARNING: no messages read from {bag_dir}, skipping.")
             continue
 
-        measured, n_frames, med_features = steady_state_flow(records)
+        measured, n_frames, n_total, med_features = steady_state_flow(records)
         predicted = predicted_flow(velocity)
 
         if measured is None:
-            print(f"  WARNING: no quality frames remain after trimming/filtering, skipping.")
+            print(f"  WARNING: no moving quality frames remain after selection, skipping.")
             continue
+
+        if n_frames < MIN_FRAMES_WARNING:
+            print(
+                f"  WARNING: only {n_frames} frames survived selection "
+                f"(< {MIN_FRAMES_WARNING}) — too little steady flight to trust this result."
+            )
 
         error_pct = (measured - predicted) / predicted * 100.0
 
@@ -179,6 +198,7 @@ def main():
             "measured":       measured,
             "error_pct":      error_pct,
             "n_frames":       n_frames,
+            "n_total":        n_total,
             "med_features":   med_features,
         })
 
@@ -189,25 +209,29 @@ def main():
     # ── Summary table ─────────────────────────────────────────────────────────
     header = (
         f"{'Velocity':>10}  {'Predicted':>12}  {'Measured':>10}  "
-        f"{'Error %':>8}  {'Frames':>8}  {'Med features':>13}"
+        f"{'Error %':>8}  {'Frames (used/total)':>20}  {'Med features':>13}"
     )
     sep = "-" * len(header)
     print()
     print(sep)
     print("Optical flow vs kinematic theory")
     print(f"  Altitude: {ALTITUDE_M} m   Focal length: {FOCAL_LENGTH_PX} px")
-    print(f"  Trim: first {TRIM_START*100:.0f}% and last {TRIM_END*100:.0f}% of frames discarded")
-    print(f"  Quality filter: valid=True and feature_count >= {MIN_FEATURES}")
+    print(
+        f"  Quality filter: valid=True, feature_count >= {MIN_FEATURES}, "
+        f"inlier_ratio >= {MIN_INLIER_RATIO}"
+    )
+    print(f"  Motion filter: |flow_y| >= {MIN_FLOW_MAGNITUDE} px/s (excludes hover)")
     print(sep)
     print(header)
     print(sep)
     for r in results:
+        frames_str = f"{r['n_frames']:d}/{r['n_total']:d}"
         print(
             f"{r['velocity']:>9.2f}  "
             f"{r['predicted']:>10.1f} px/s  "
             f"{r['measured']:>8.1f} px/s  "
             f"{r['error_pct']:>+7.1f}%  "
-            f"{r['n_frames']:>8d}  "
+            f"{frames_str:>20}  "
             f"{r['med_features']:>13.0f}"
         )
     print(sep)
