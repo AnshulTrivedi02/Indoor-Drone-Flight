@@ -8,7 +8,8 @@ for indoor UAV state estimation in GNSS-denied environments, with emphasis on
 feature-rich and feature-poor regions).
 
 Estimators will be evaluated against ground truth (Gazebo first, motion capture
-later) under nominal and degraded sensing conditions.
+later) under nominal and degraded sensing conditions, and across commanded
+velocity as a second experimental axis (see Experimental Design Notes).
 
 ## Software Stack
 
@@ -53,8 +54,9 @@ fixed at zero — the camera is **rigidly mounted** with no active stabilisation
 No changes to the gimbal model beyond adding the downward camera to
 `iris_with_standoffs/model.sdf`.
 
-**Implication:** rotational body motion couples into pixel flow.
-Gyro decoupling is required before computing translational velocity estimates.
+**Implication:** rotational body motion couples into pixel flow. Raw gyro
+rates are therefore a required input alongside raw flow for every estimator
+to derotate internally — see [Sensor Fusion Architecture](#sensor-fusion-architecture).
 
 ## Ground Truth Bridging
 
@@ -80,9 +82,45 @@ sim-time stamps (`header.stamp` tracks `/clock`).
 |-----------------|-------------------|--------------------------------------------------------------|
 | IMU             | Working           | Via ArduPilot SITL                                           |
 | Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
-| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. Gyro derotation implemented (`enable_derotation` param, default on) but **not yet validated** — pending pure-rotation hover test. `flow_x`/`flow_y` are derotated when enabled; `flow_x_raw`/`flow_y_raw` always carry the pre-derotation values. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
+| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_raw`/`flow_y_raw` are the **production values** — raw, un-derotated flow, which is what ArduPilot EKF3 and the FGO consume (see [Sensor Fusion Architecture](#sensor-fusion-architecture)). `flow_x`/`flow_y` are a manual derotation (`enable_derotation` param, default on) kept for **characterisation only**, not fed to any estimator. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
 | Downward LiDAR  | **Next priority** | Inject via MAVLink `DISTANCE_SENSOR` (not `SIM_SONAR`)       |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
+
+## Sensor Fusion Architecture
+
+Design decision (per supervisor guidance, 2026-07-02): **each estimator
+consumes raw sensor data and performs its own rotation compensation
+internally**, rather than all three being fed an identically pre-processed
+input.
+
+- **Common raw inputs across all estimators:** raw optical flow
+  (`flow_x_raw`/`flow_y_raw`) and raw gyro/IMU angular rates
+  (`/attitude/angular_rates`, and IMU generally).
+- **ArduPilot EKF3 is the fixed baseline.** It is set up exactly as
+  ArduPilot intends — native `OPTICAL_FLOW_RAD` inputs (raw flow + gyro
+  integration fields) — and derotates internally. No shortcuts, no
+  pre-processing on our side.
+- **The FGO** (GTSAM, planned) will handle rotation compensation as part of
+  its own flow-factor formulation — e.g. a factor that references
+  IMU/attitude state from within the graph — rather than consuming flow
+  that has already been pre-derotated by a separate preprocessing step.
+  This is a different mechanism to EKF3's internal derotation, and that is
+  fine: it only needs to be correctly implemented for its own architecture.
+- **UKF** (if implemented separately) follows the same principle: correct
+  for its own measurement model, not required to match EKF3's input format.
+
+**Fairness comes from each estimator being correctly implemented on its own
+terms, not from identical preprocessing.** Forcing all three onto a common
+pre-derotated flow stream would bias the comparison towards whichever
+estimator that preprocessing choice happens to suit.
+
+**Practical consequence:** the manual derotation logic in `flow_tracker.py`
+(`flow_x`/`flow_y`, `enable_derotation` param) is **not a production data
+path** for any estimator. It exists purely as a characterisation tool — to
+quantify how much rotational coupling is present in the raw signal, useful
+for the methodology write-up and for informing the FGO's factor design
+later. The values actually fed to EKF3 (and later the FGO) are
+`flow_x_raw`/`flow_y_raw` plus the raw rates on `/attitude/angular_rates`.
 
 ## Launch Sequence
 
@@ -337,7 +375,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 
 ## Known Issues (to resolve in Phase 1)
 
-1. **Gyro decoupling implemented but not yet validated** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated) and `flow_x_raw`/`flow_y_raw` (raw) in `OpticalFlow.msg`. **Must be validated with an isolated pure-rotation hover test (pitch-only, roll-only, yaw-only) before trusting it** — see frame-mapping derivation comment in `image_callback`. `flow_x_rad`/`flow_y_rad` remain zero until Task 3 (rad/s conversion).
+1. **Manual derotation is a characterisation tool, not a blocker** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated, characterisation-only) and `flow_x_raw`/`flow_y_raw` (raw, the production values) in `OpticalFlow.msg` — see [Sensor Fusion Architecture](#sensor-fusion-architecture). Isolated pure-rotation hover testing (yaw done, pitch/roll not) found only a partial 5–15% collapse, confounded by a persistent ~0.4 rad/s background sim vibration present even at idle hover. **This is deprioritised/deferred indefinitely** — it was only relevant to validating a production derotation path that is no longer needed; ArduPilot EKF3 derotates internally from raw flow + gyro, and the FGO will do its own rotation compensation in its flow factor. `flow_x_rad`/`flow_y_rad` remain zero until pixel-to-radian conversion is implemented.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
@@ -369,11 +407,26 @@ Completed:
 
 Remaining:
 0. Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection
-1. Gyro decoupling — implemented (`attitude_bridge.py` + derotation in `flow_tracker.py`), **pending pure-rotation hover validation** (pitch-only / roll-only / yaw-only, isolated); populate `flow_x_rad`/`flow_y_rad` next (Task 3)
+1. Raw flow + gyro rate publishing — done (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); manual derotation (`flow_x`/`flow_y`) kept as a characterisation tool only, not gating further work (see [Sensor Fusion Architecture](#sensor-fusion-architecture)); populate `flow_x_rad`/`flow_y_rad` next
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf`
 5. Inject `DISTANCE_SENSOR` + `OPTICAL_FLOW_RAD` to ArduPilot via MAVLink
+
+## Experimental Design Notes
+
+Two independent experimental axes for estimator evaluation:
+
+1. **Sensing degradation** — nominal (textured) vs degraded (blank/low-texture)
+   worlds, and transitions between feature-rich and feature-poor regions.
+2. **Commanded velocity** — sweep across forward speeds (e.g. 0.25–1.0 m/s).
+   Velocity-dependent optical flow error was observed growing across this
+   sweep (~+7.8% at 0.25 m/s to ~+12.5% at 1.0 m/s, `analyse_flow_sweep.py`).
+   Per supervisor guidance: this is an **expected experimental condition, not
+   a defect to fix** — "filters will start to break down at higher speeds,
+   that's kinda expected and okay — can be a test case for you." Treat
+   velocity as a planned robustness axis alongside texture degradation, not
+   an open bug to chase down.
 
 ## Not Yet Implemented / Out of Scope
 

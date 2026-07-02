@@ -23,7 +23,8 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 | Custom OpticalFlow message + publisher       | Done          | `optical_flow_interfaces` package; `flow_tracker.py` publishes `/optical_flow/measurement`; `flow_x_rad`/`flow_y_rad` reserved but zero |
 | Data collection pipeline                     | Done          | `record_trial.sh` records self-contained trials; see Data Collection section below |
 | Shadow rejection                             | Not started   | — |
-| Gyro decoupling                              | Not started   | Roll/pitch rate contaminates flow_x/flow_y; correction = `flow_measured − (ω × focal_length)` |
+| Attitude bridge (`/attitude/angular_rates`)  | Done          | `attitude_bridge.py`; raw gyro rates, required input for every estimator's own internal derotation |
+| Manual flow derotation (characterisation)    | Done          | `flow_tracker.py` `flow_x`/`flow_y`; **characterisation tool only, not a production input** — see CLAUDE.md "Sensor Fusion Architecture" |
 | Pixel-to-radian (rad/s) conversion           | Not started   | Needed for `OPTICAL_FLOW_RAD`; requires altitude scaling |
 | Downward LiDAR in model.sdf                  | Not started   | Inject via `DISTANCE_SENSOR` MAVLink message |
 | MAVLink injection (OPTICAL_FLOW_RAD)         | Not started   | — |
@@ -90,6 +91,87 @@ ArduPilot dataflash log retrieval (newest `.BIN` by mtime from
 
 ---
 
+### Session — 2026-07-02 (cont.) — Attitude bridge, derotation, and architecture reframe
+
+**Attitude bridge and manual derotation implemented.** `attitude_bridge.py`
+(new) bridges MAVLink `ATTITUDE` body rates to `/attitude/angular_rates`
+(`geometry_msgs/Vector3Stamped`, raw FRD, on a dedicated MAVLink port 14551
+so it doesn't collide with `fly_forward.py`'s port 14550).
+`flow_tracker.py` gained a manual derotation path (`enable_derotation`
+param, default on) that maps FRD body rates into the camera optical frame
+and subtracts rotational pixel flow from measured flow; `OpticalFlow.msg`
+gained `flow_x_raw`/`flow_y_raw`/`derotation_enabled` fields so raw and
+derotated flow are both available.
+
+Bugs found and fixed along the way:
+- Sign error on the roll term in derotation (correction was adding instead
+  of subtracting) — fixed, commit `cab84c1`.
+- Attitude stream rate silently decaying to ~4 Hz because MAVProxy
+  periodically re-issues its own low default stream-rate request, clobbering
+  our one-time `SET_MESSAGE_INTERVAL` — fixed with a periodic re-assert
+  timer, commit `8baa64e`.
+- `ros2 bag record` silently dropped the custom `OpticalFlow` topic when
+  only `/opt/ros/jazzy/setup.bash` was sourced (not the workspace overlay).
+- Stale duplicate `flow_tracker`/`attitude_bridge` processes from
+  incomplete prior restarts corrupted a recorded bag with mixed
+  message-definition versions — fixed by always killing stale PIDs before a
+  clean run.
+
+**Isolated pure-rotation hover validation — partial, then deprioritised.**
+Only the yaw test was completed (pitch/roll not attempted — an earlier
+attempt to isolate pitch via `ALT_HOLD` crashed the drone; `ALT_HOLD`
+interprets RC3 as a climb-rate command, not absolute throttle). Yaw result:
+flow_x median |raw| 185 px/s → |derotated| 157 px/s (15% reduction), not
+the clean collapse the pass/fail criterion called for. Investigation
+surfaced a persistent ~0.4 rad/s (23°/s) roll-rate oscillation present even
+at idle hover with zero commanded motion — real (visible camera shake,
+confirmed independently), but with ArduPilot's own `VIBRATION` and
+`EKF_STATUS_REPORT` reporting healthy/low levels, consistent with fast
+self-cancelling motor/frame buzz rather than a control-loop problem.
+
+**Design decision — supervisor guidance (Mitchell), 2026-07-02.** Each
+estimator should consume raw sensor data and perform its own rotation
+compensation on its own terms, rather than all three being fed one
+identically pre-processed input:
+- **ArduPilot EKF3** is the fixed baseline — native `OPTICAL_FLOW_RAD`
+  inputs (raw flow + gyro integration), derotates internally. No shortcuts.
+- **FGO** will do rotation compensation inside its own flow factor
+  (referencing IMU/attitude state from within the graph), not by consuming
+  a separately pre-derotated flow topic.
+- **UKF** (if implemented) follows the same principle for its own
+  measurement model.
+- Fairness comes from each estimator being correctly implemented on its own
+  terms, not identical preprocessing.
+
+**Practical consequence:** the manual derotation path built this session
+is **not a production data path** for any estimator — `flow_x_raw`/
+`flow_y_raw` (plus `/attitude/angular_rates`) are the production values.
+`flow_x`/`flow_y` (derotated) and `enable_derotation` are retained as a
+**characterisation tool** — useful for the methodology write-up and for
+informing the FGO's flow-factor design — not deleted. Chasing the
+background-vibration confound to get a clean collapse-to-zero is
+**deprioritised/deferred indefinitely**; it was only relevant to validating
+a production path that no longer exists. `analyse_derotation.py` and the
+sign-fix work remain valid characterisation tooling. See CLAUDE.md,
+"Sensor Fusion Architecture", for the full write-up.
+
+**Velocity-dependent flow error reframed as an experimental axis, not a
+bug.** `analyse_flow_sweep.py` (new this session) measured optical flow
+error growing from roughly +7.8% at 0.25 m/s to +12.5% at 1.0 m/s.
+Supervisor guidance: "filters will start to break down at higher speeds,
+that's kinda expected and okay — can be a test case for you." Commanded
+velocity is now a planned second experimental axis alongside sensing
+degradation (see CLAUDE.md, "Experimental Design Notes") — not an open
+defect to fix.
+
+**Still open / deferred (not blocking):**
+- Pitch-only and roll-only isolated hover tests — not attempted; low
+  priority now that manual derotation is characterisation-only.
+- Background sim vibration source — deferred indefinitely, no longer
+  blocking anything.
+
+---
+
 ### Session — 2026-06-28
 
 - **Tested RANSAC** in simulation on blank floor (`iris_runway.sdf`). Confirmed
@@ -132,6 +214,9 @@ ArduPilot dataflash log retrieval (newest `.BIN` by mtime from
 | `src/optical_flow_node/optical_flow_node/flow_tracker.py` | Main optical flow node — publishes `/optical_flow/measurement` |
 | `src/optical_flow_interfaces/msg/OpticalFlow.msg` | Custom flow message definition |
 | `ground_truth_pub.py` | Republishes Gazebo drone pose as `/ground_truth/pose` |
+| `attitude_bridge.py` | Republishes MAVLink `ATTITUDE` body rates as `/attitude/angular_rates` — production input for every estimator's own internal derotation |
+| `analyse_derotation.py` | Characterisation tool — quantifies rotational coupling in raw flow (not a production pipeline component) |
+| `analyse_flow_sweep.py` | Velocity-sweep flow validation — feeds the velocity experimental axis |
 | `record_trial.sh` | Records one self-contained trial (bag + metadata + ArduPilot log) |
 | `start_sim.sh` | Launch full simulation stack — `./start_sim.sh [world.sdf]` |
 | `stop_sim.sh` | Tear down stack and close terminal tabs |
@@ -148,9 +233,12 @@ ArduPilot dataflash log retrieval (newest `.BIN` by mtime from
 0. **Enlarge textured world** — current 20 m × 20 m mat is too small for
    forward-flight trials; need ≥50 m × 50 m before nominal-condition data
    collection is meaningful.
-1. **Gyro decoupling** — subscribe to IMU (MAVLink, no ROS2 IMU topic in this
-   stack), subtract rotational contribution (`ω × f`) from pixel flow; populate
-   `flow_x_rad` / `flow_y_rad` in `OpticalFlow.msg`. Dominant noise source.
+1. **Raw gyro rates + raw flow are the production inputs** — done
+   (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); each estimator
+   derotates internally on its own terms (see CLAUDE.md, "Sensor Fusion
+   Architecture"). Manual pre-derotation (`flow_x`/`flow_y`) is kept as a
+   characterisation tool only, not gating further work. Populate
+   `flow_x_rad` / `flow_y_rad` in `OpticalFlow.msg` next.
 2. **Shadow rejection** — detect and mask the drone's shadow in the downward
    camera frame before feature detection.
 3. **Pixel-to-radian conversion** — convert px/s → rad/s using camera focal
@@ -196,7 +284,13 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 
 ## Known Issues (open)
 
-1. **Gyro decoupling absent** — roll/pitch oscillation contaminates flow_x (dominant noise source)
+1. **Manual derotation partial collapse (deprioritised, not blocking)** — isolated
+   pure-rotation hover testing found only a 5–15% reduction in flow_x/flow_y
+   magnitude, not a clean collapse, confounded by a persistent ~0.4 rad/s
+   background sim vibration present even at idle hover. This no longer blocks
+   anything: manual derotation is a characterisation tool only, not a
+   production input for any estimator (see CLAUDE.md, "Sensor Fusion
+   Architecture"). Deferred indefinitely.
 2. **Drone shadow** contaminates downward flow (not yet characterised on textured floor)
 3. **No pixel-to-radian conversion** — cannot produce `OPTICAL_FLOW_RAD` yet
 4. **No LiDAR** — metric scale unavailable, ArduPilot EKF cannot fuse flow

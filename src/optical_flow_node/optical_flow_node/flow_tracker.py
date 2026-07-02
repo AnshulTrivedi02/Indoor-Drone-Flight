@@ -25,6 +25,13 @@ class FlowTracker(Node):
         super().__init__("flow_tracker")
 
         self.declare_parameter("min_valid_features", 20)
+        # Derotation output (flow_x/flow_y below) is a characterisation tool
+        # only — it quantifies rotational coupling in the raw signal for the
+        # methodology write-up and to inform the FGO's flow-factor design.
+        # It is NOT fed to any estimator: ArduPilot EKF3 takes flow_x_raw/
+        # flow_y_raw and derotates internally via its own gyro integration
+        # (that is how ArduPilot's optical flow fusion is designed to work).
+        # See CLAUDE.md, "Sensor Fusion Architecture".
         self.declare_parameter("enable_derotation", True)
 
         self.bridge = CvBridge()
@@ -231,13 +238,26 @@ class FlowTracker(Node):
             # (+f*rollspeed) after pure-rotation hover testing showed the
             # correction being added rather than subtracted from flow_x — the
             # derotated magnitude grew instead of collapsing toward zero. The
-            # pitch term has the same derivation shape and may need the same
-            # flip; not yet confirmed by an isolated pitch-only hover test.
+            # pitch term has the same derivation shape and has not been
+            # separately confirmed by an isolated pitch-only hover test; a
+            # residual background sim vibration (~0.4 rad/s, present even at
+            # idle hover) also confounds full collapse-to-zero validation.
+            # Neither is being chased further — this path is characterisation
+            # only, not a production input (see below).
             # Cross-checked against the validated forward-flight result (vx ->
             # flow_y only, never flow_x) — see CLAUDE.md. Yaw rate is dropped: a
             # pure boresight spin nets to ~zero in the median for a roughly
-            # centred feature spread; the pure-yaw hover test is what verifies
-            # that assumption actually holds for this scene.
+            # centred feature spread.
+            #
+            # PRODUCTION NOTE: flow_x/flow_y (derotated) below are for
+            # characterisation and analysis only — they are not consumed by
+            # any estimator. ArduPilot EKF3 is fed flow_x_raw/flow_y_raw plus
+            # the raw gyro rates on /attitude/angular_rates and derotates
+            # internally, as ArduPilot's optical flow fusion is designed to
+            # do. The FGO will likewise consume raw flow + attitude and do
+            # its own rotation compensation inside its flow factor, rather
+            # than requiring pre-derotated input. See CLAUDE.md, "Sensor
+            # Fusion Architecture".
             enable_derotation = self.get_parameter("enable_derotation").value
             rollspeed, pitchspeed, _yawspeed = self._mean_rate_over_interval(
                 interval_start, current_time
@@ -266,8 +286,11 @@ class FlowTracker(Node):
             out = OpticalFlow()
             out.header.stamp = msg.header.stamp
             out.header.frame_id = "downward_camera"
+            # flow_x/flow_y (derotated): characterisation only, see note above.
             out.flow_x = flow_x_derot
             out.flow_y = flow_y_derot
+            # flow_x_raw/flow_y_raw: the production values — feed these (plus
+            # /attitude/angular_rates) to ArduPilot EKF3 and the FGO.
             out.flow_x_raw = flow_x_px_s
             out.flow_y_raw = flow_y_px_s
             out.derotation_enabled = enable_derotation
