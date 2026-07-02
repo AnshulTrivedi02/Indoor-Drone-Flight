@@ -69,6 +69,12 @@ class AttitudeBridge(Node):
         # Poll for MAVLink messages faster than the requested ATTITUDE rate.
         self._timer = self.create_timer(1.0 / (ATTITUDE_STREAM_RATE_HZ * 2), self._poll)
 
+        # MAVProxy periodically re-issues its own (much lower, ~4 Hz default)
+        # stream-rate request to the autopilot, which silently overrides our
+        # one-time SET_MESSAGE_INTERVAL above. Keep re-asserting ours so the
+        # effective rate doesn't decay back down mid-session.
+        self._stream_request_timer = self.create_timer(2.0, self._request_attitude_stream)
+
         self._msg_count = 0
         self.get_logger().info('Publishing to /attitude/angular_rates')
 
