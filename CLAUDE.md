@@ -39,6 +39,7 @@ later) under nominal and degraded sensing conditions.
 | Flow node entry point       | `~/thesis_ws/src/optical_flow_node/optical_flow_node/flow_tracker.py`|
 | **Message definitions**     | `~/thesis_ws/src/optical_flow_interfaces/msg/OpticalFlow.msg`        |
 | **Ground truth publisher**  | `~/thesis_ws/ground_truth_pub.py`                                    |
+| **Attitude bridge**         | `~/thesis_ws/attitude_bridge.py`                                     |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
 | Trial data output           | `~/thesis_data/trials/`                                              |
@@ -122,8 +123,14 @@ cd ~/ardupilot/ArduCopter
   --model JSON \
   --console \
   --map \
+  --out 127.0.0.1:14551 \
   --no-rebuild
 ```
+
+The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 8) its
+own dedicated MAVLink output, separate from the default `14550` that
+`fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
+listens, so two processes cannot share one port.
 
 Once MAVProxy starts:
 
@@ -199,7 +206,26 @@ ros2 topic hz /ground_truth/pose      # expect 50–250 Hz
 ros2 topic echo /ground_truth/pose    # confirm position changes during flight
 ```
 
-### Terminal 7 — Bag Recording (one trial)
+### Terminal 7 — Attitude Bridge
+
+Republishes ArduPilot body angular rates (MAVLink ATTITUDE) as
+`/attitude/angular_rates` (`geometry_msgs/Vector3Stamped`, raw FRD rates —
+x=roll rate, y=pitch rate, z=yaw rate, rad/s). Consumed by `flow_tracker.py`
+for gyro decoupling. Run after SITL (Terminal 2) is up and streaming on
+`14551`.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/attitude_bridge.py --ros-args -p use_sim_time:=true
+```
+
+Verify:
+```bash
+ros2 topic hz /attitude/angular_rates   # expect ~50 Hz
+```
+
+### Terminal 8 — Bag Recording (one trial)
 
 ```bash
 cd ~/thesis_ws
