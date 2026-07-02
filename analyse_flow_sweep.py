@@ -26,30 +26,31 @@ import numpy as np
 
 # Each entry: (trial_name, commanded_velocity_m_s)
 TRIALS = [
-    ("sweep_v0p25", 0.25),
-    ("sweep_v0p5",  0.50),
-    ("sweep_v1p0",  1.00),
+    ("sweep_v1p25",  0.25),
+    ("sweep_v1p50",  0.50),
+    ("sweep_v1p100", 1.00),
 ]
 
 TRIAL_BASE_DIR  = os.path.expanduser("~/thesis_data/trials")
 OUTPUT_FIGURE   = os.path.expanduser("~/thesis_data/flow_validation.png")
 
+FLOW_TOPIC = "/optical_flow/measurement"
+POSE_TOPIC = "/ground_truth/pose"
+
 ALTITUDE_M      = 2.0    # hover altitude during all sweeps (metres)
 FOCAL_LENGTH_PX = 554.0  # camera focal length (pixels); confirmed 640×480, 60° FOV
 
-# Minimum feature count for a frame to be counted as a quality measurement.
+# Minimum feature count for a flow frame to be counted as a quality measurement.
 MIN_FEATURES = 30
 
-# Minimum RANSAC inlier ratio for a frame to be trusted (rejects noisy flow).
+# Minimum RANSAC inlier ratio for a flow frame to be trusted (rejects noisy flow).
 MIN_INLIER_RATIO = 0.5
 
-# Minimum |flow_y| (px/s) for a frame to count as steady translation rather
-# than hover — trials contain hovering before and after the forward-flight
-# segment, and position-based trimming doesn't reliably remove it.
-MIN_FLOW_MAGNITUDE = 50.0
-
-# Below this many surviving frames, the steady-flight result is untrustworthy.
-MIN_FRAMES_WARNING = 20
+# Minimum ground-truth horizontal speed (m/s) for the drone to be considered
+# genuinely translating. Trials contain hovering before and after the forward-
+# flight segment; this defines the "moving window" from ground truth, which is
+# independent of the flow measurement itself.
+GT_SPEED_THRESHOLD = 0.1
 
 # ── Kinematic prediction ───────────────────────────────────────────────────────
 
@@ -60,20 +61,32 @@ def predicted_flow(velocity_m_s: float) -> float:
 
 # ── Bag reading ───────────────────────────────────────────────────────────────
 
-def read_flow_bag(bag_dir: str):
-    """
-    Read all /optical_flow/measurement messages from a ROS2 bag.
+def _stamp_to_sec(stamp) -> float:
+    """Convert a builtin_interfaces/Time header stamp to seconds (sim time)."""
+    return stamp.sec + stamp.nanosec * 1e-9
 
-    Returns a list of dicts with keys: flow_y, feature_count, inlier_ratio, valid.
-    Raises ImportError if rosbag2_py is unavailable.
+
+def read_bag_records(bag_dir: str):
+    """
+    Read /optical_flow/measurement and /ground_truth/pose messages from a
+    single ROS2 bag in one pass.
+
+    Returns (flow_records, pose_records):
+      flow_records: list of dicts {t, flow_y, feature_count, inlier_ratio, valid}
+      pose_records: list of dicts {t, x, y}
+    Timestamps (t) are sim-time seconds taken from each message's header stamp,
+    not the bag's recording-time index.
+
+    Raises ImportError if rosbag2_py or the message packages are unavailable.
     """
     try:
         import rosbag2_py
         from rclpy.serialization import deserialize_message
         from optical_flow_interfaces.msg import OpticalFlow
+        from geometry_msgs.msg import PoseStamped
     except ImportError as exc:
         raise ImportError(
-            "rosbag2_py or optical_flow_interfaces not found. "
+            "rosbag2_py, optical_flow_interfaces or geometry_msgs not found. "
             "Ensure both /opt/ros/jazzy/setup.bash and "
             "~/thesis_ws/install/setup.bash are sourced."
         ) from exc
@@ -90,67 +103,144 @@ def read_flow_bag(bag_dir: str):
     reader = rosbag2_py.SequentialReader()
     reader.open(storage_options, converter_options)
 
-    # Build a map of topic → type so we can filter efficiently.
     topic_types = {
         info.name: info.type
         for info in reader.get_all_topics_and_types()
     }
 
-    if "/optical_flow/measurement" not in topic_types:
-        print(f"  WARNING: /optical_flow/measurement not found in {bag_dir}.")
-        return []
+    if FLOW_TOPIC not in topic_types:
+        print(f"  WARNING: {FLOW_TOPIC} not found in {bag_dir}.")
+    if POSE_TOPIC not in topic_types:
+        print(f"  WARNING: {POSE_TOPIC} not found in {bag_dir}.")
 
-    filter_ = rosbag2_py.StorageFilter(topics=["/optical_flow/measurement"])
+    wanted_topics = [t for t in (FLOW_TOPIC, POSE_TOPIC) if t in topic_types]
+    if not wanted_topics:
+        return [], []
+
+    filter_ = rosbag2_py.StorageFilter(topics=wanted_topics)
     reader.set_filter(filter_)
 
-    records = []
-    while reader.has_next():
-        _, data, _ = reader.read_next()
-        msg = deserialize_message(data, OpticalFlow)
-        records.append({
-            "flow_y":        msg.flow_y,
-            "feature_count": msg.feature_count,
-            "inlier_ratio":  msg.inlier_ratio,
-            "valid":         msg.valid,
-        })
+    flow_records = []
+    pose_records = []
 
-    return records
+    while reader.has_next():
+        topic, data, _ = reader.read_next()
+        if topic == FLOW_TOPIC:
+            msg = deserialize_message(data, OpticalFlow)
+            flow_records.append({
+                "t":             _stamp_to_sec(msg.header.stamp),
+                "flow_y":        msg.flow_y,
+                "feature_count": msg.feature_count,
+                "inlier_ratio":  msg.inlier_ratio,
+                "valid":         msg.valid,
+            })
+        elif topic == POSE_TOPIC:
+            msg = deserialize_message(data, PoseStamped)
+            pose_records.append({
+                "t": _stamp_to_sec(msg.header.stamp),
+                "x": msg.pose.position.x,
+                "y": msg.pose.position.y,
+            })
+
+    flow_records.sort(key=lambda r: r["t"])
+    pose_records.sort(key=lambda r: r["t"])
+
+    return flow_records, pose_records
+
+
+# ── Ground-truth motion window ─────────────────────────────────────────────────
+
+def ground_truth_speed(pose_records: list) -> tuple:
+    """
+    Differentiate consecutive ground-truth positions with respect to their
+    header timestamps to get horizontal speed.
+
+    Returns (speed_times, speeds) as numpy arrays, one entry per consecutive
+    pose pair with a positive time delta. Returns (empty, empty) if fewer than
+    two pose samples are available.
+    """
+    if len(pose_records) < 2:
+        return np.array([]), np.array([])
+
+    t = np.array([r["t"] for r in pose_records])
+    x = np.array([r["x"] for r in pose_records])
+    y = np.array([r["y"] for r in pose_records])
+
+    dt = np.diff(t)
+    dx = np.diff(x)
+    dy = np.diff(y)
+
+    # Guard against duplicate/out-of-order timestamps producing dt <= 0.
+    valid = dt > 0
+    speeds = np.sqrt(dx[valid] ** 2 + dy[valid] ** 2) / dt[valid]
+    speed_times = t[1:][valid]
+
+    return speed_times, speeds
+
+
+def nearest_neighbour(query_times: np.ndarray, sample_times: np.ndarray,
+                       sample_values: np.ndarray) -> np.ndarray:
+    """
+    For each query timestamp, return the value from sample_values whose
+    sample_times entry is closest. sample_times must be sorted ascending.
+    Used to time-align flow frames (fast) to ground-truth speed samples (slow).
+    """
+    idx = np.searchsorted(sample_times, query_times)
+    idx = np.clip(idx, 1, len(sample_times) - 1)
+    left_t  = sample_times[idx - 1]
+    right_t = sample_times[idx]
+    choose_right = (query_times - left_t) > (right_t - query_times)
+    final_idx = np.where(choose_right, idx, idx - 1)
+    return sample_values[final_idx]
 
 
 # ── Per-trial statistics ───────────────────────────────────────────────────────
 
-def steady_state_flow(records: list) -> tuple:
+def steady_state_flow(flow_records: list, pose_records: list) -> dict:
     """
-    Compute steady-state median |flow_y| using content-based frame selection
-    instead of position-based trimming, so hovering at the start/end of a
-    trial doesn't drag the result toward zero.
+    Compute steady-state median |flow_y| over the ground-truth motion window.
 
-    Selection is two-stage:
-      1. Keep quality frames: valid=True and inlier_ratio >= MIN_INLIER_RATIO.
-      2. Of those, keep moving frames: |flow_y| >= MIN_FLOW_MAGNITUDE
-         (excludes hover, which is a quality frame with near-zero flow).
+    A flow frame is kept if:
+      1. Its nearest-in-time ground-truth speed sample exceeds
+         GT_SPEED_THRESHOLD (the drone is genuinely translating), and
+      2. valid=True, feature_count >= MIN_FEATURES and
+         inlier_ratio >= MIN_INLIER_RATIO (the measurement itself is trusted).
 
-    Returns (median_flow_px_s, n_frames_used, n_frames_total, median_feature_count).
-    Returns (None, 0, n_frames_total, 0) if no usable frames remain.
+    Returns a dict with keys: measured, mean_gt_speed, n_frames. Values are
+    None (measured/mean_gt_speed) or 0 (n_frames) if no usable frames remain.
     """
-    n = len(records)
-    if n == 0:
-        return None, 0, 0, 0
+    empty = {"measured": None, "mean_gt_speed": None, "n_frames": 0}
 
-    quality = [
-        r for r in records
-        if r["valid"] and r["feature_count"] >= MIN_FEATURES
+    speed_times, speeds = ground_truth_speed(pose_records)
+    if len(speed_times) == 0 or not flow_records:
+        return empty
+
+    moving_mask = speeds > GT_SPEED_THRESHOLD
+    if not moving_mask.any():
+        return empty
+    mean_gt_speed = float(np.mean(speeds[moving_mask]))
+
+    t_flow = np.array([r["t"] for r in flow_records])
+    nearest_speed = nearest_neighbour(t_flow, speed_times, speeds)
+
+    quality_mask = np.array([
+        r["valid"] and r["feature_count"] >= MIN_FEATURES
         and r["inlier_ratio"] >= MIN_INLIER_RATIO
-    ]
-    moving = [r for r in quality if abs(r["flow_y"]) >= MIN_FLOW_MAGNITUDE]
+        for r in flow_records
+    ])
+    moving_flow_mask = (nearest_speed > GT_SPEED_THRESHOLD) & quality_mask
 
-    if not moving:
-        return None, 0, n, 0
+    if not moving_flow_mask.any():
+        return {"measured": None, "mean_gt_speed": mean_gt_speed, "n_frames": 0}
 
-    flow_vals    = np.array([abs(r["flow_y"])   for r in moving])
-    feature_vals = np.array([r["feature_count"] for r in moving])
+    flow_y = np.array([r["flow_y"] for r in flow_records])
+    measured = float(np.median(np.abs(flow_y[moving_flow_mask])))
 
-    return float(np.median(flow_vals)), len(moving), n, float(np.median(feature_vals))
+    return {
+        "measured":      measured,
+        "mean_gt_speed": mean_gt_speed,
+        "n_frames":      int(moving_flow_mask.sum()),
+    }
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -167,39 +257,37 @@ def main():
 
         print(f"Reading {trial_name} ({velocity} m/s) …")
         try:
-            records = read_flow_bag(bag_dir)
+            flow_records, pose_records = read_bag_records(bag_dir)
         except ImportError as exc:
             print(f"  ERROR: {exc}")
             sys.exit(1)
 
-        if not records:
-            print(f"  WARNING: no messages read from {bag_dir}, skipping.")
+        if not flow_records or not pose_records:
+            print(f"  WARNING: missing flow or ground-truth pose data in {bag_dir}, skipping.")
             continue
 
-        measured, n_frames, n_total, med_features = steady_state_flow(records)
-        predicted = predicted_flow(velocity)
+        stats = steady_state_flow(flow_records, pose_records)
 
-        if measured is None:
-            print(f"  WARNING: no moving quality frames remain after selection, skipping.")
+        if stats["mean_gt_speed"] is None:
+            print(f"  WARNING: no ground-truth motion window found (speed never exceeded "
+                  f"{GT_SPEED_THRESHOLD} m/s), skipping.")
             continue
 
-        if n_frames < MIN_FRAMES_WARNING:
-            print(
-                f"  WARNING: only {n_frames} frames survived selection "
-                f"(< {MIN_FRAMES_WARNING}) — too little steady flight to trust this result."
-            )
+        if stats["measured"] is None:
+            print(f"  WARNING: no quality flow frames found within the motion window, skipping.")
+            continue
 
-        error_pct = (measured - predicted) / predicted * 100.0
+        predicted = predicted_flow(stats["mean_gt_speed"])
+        error_pct = (stats["measured"] - predicted) / predicted * 100.0
 
         results.append({
             "trial":          trial_name,
             "velocity":       velocity,
+            "mean_gt_speed":  stats["mean_gt_speed"],
             "predicted":      predicted,
-            "measured":       measured,
+            "measured":       stats["measured"],
             "error_pct":      error_pct,
-            "n_frames":       n_frames,
-            "n_total":        n_total,
-            "med_features":   med_features,
+            "n_frames":       stats["n_frames"],
         })
 
     if not results:
@@ -208,38 +296,38 @@ def main():
 
     # ── Summary table ─────────────────────────────────────────────────────────
     header = (
-        f"{'Velocity':>10}  {'Predicted':>12}  {'Measured':>10}  "
-        f"{'Error %':>8}  {'Frames (used/total)':>20}  {'Med features':>13}"
+        f"{'Commanded':>10}  {'GT speed':>9}  {'Predicted':>12}  {'Measured':>10}  "
+        f"{'Error %':>8}  {'Frames':>7}"
     )
     sep = "-" * len(header)
     print()
     print(sep)
-    print("Optical flow vs kinematic theory")
+    print("Optical flow vs kinematic theory (ground-truth motion window)")
     print(f"  Altitude: {ALTITUDE_M} m   Focal length: {FOCAL_LENGTH_PX} px")
+    print(f"  Motion window: ground-truth horizontal speed > {GT_SPEED_THRESHOLD} m/s")
     print(
         f"  Quality filter: valid=True, feature_count >= {MIN_FEATURES}, "
         f"inlier_ratio >= {MIN_INLIER_RATIO}"
     )
-    print(f"  Motion filter: |flow_y| >= {MIN_FLOW_MAGNITUDE} px/s (excludes hover)")
+    print(f"  Predicted flow uses mean ground-truth speed, not commanded velocity")
     print(sep)
     print(header)
     print(sep)
     for r in results:
-        frames_str = f"{r['n_frames']:d}/{r['n_total']:d}"
         print(
             f"{r['velocity']:>9.2f}  "
+            f"{r['mean_gt_speed']:>7.2f}  "
             f"{r['predicted']:>10.1f} px/s  "
             f"{r['measured']:>8.1f} px/s  "
             f"{r['error_pct']:>+7.1f}%  "
-            f"{frames_str:>20}  "
-            f"{r['med_features']:>13.0f}"
+            f"{r['n_frames']:>7d}"
         )
     print(sep)
 
     # ── Validation figure ─────────────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(7, 5))
 
-    # Theoretical line across the velocity range.
+    # Theoretical line across the velocity range (nominal, using commanded v).
     v_range = np.linspace(0.0, max(r["velocity"] for r in results) * 1.15, 200)
     ax.plot(
         v_range,
@@ -250,27 +338,27 @@ def main():
         label=f"Theory: flow = (v / {ALTITUDE_M} m) × {FOCAL_LENGTH_PX:.0f} px",
     )
 
-    # Measured points.
+    # Measured points, plotted against actual ground-truth speed reached.
     ax.scatter(
-        [r["velocity"] for r in results],
+        [r["mean_gt_speed"] for r in results],
         [r["measured"] for r in results],
         color="darkorange",
         s=80,
         zorder=5,
-        label="Measured (median |flow_y|, quality frames)",
+        label="Measured (median |flow_y|, GT motion window)",
     )
 
     # Annotate each point with its error.
     for r in results:
         ax.annotate(
             f"{r['error_pct']:+.1f}%",
-            xy=(r["velocity"], r["measured"]),
+            xy=(r["mean_gt_speed"], r["measured"]),
             xytext=(6, 4),
             textcoords="offset points",
             fontsize=9,
         )
 
-    ax.set_xlabel("Forward velocity (m/s)")
+    ax.set_xlabel("Ground-truth horizontal speed (m/s)")
     ax.set_ylabel("Optical flow (px/s)")
     ax.set_title("Optical flow validation — velocity sweep")
     ax.legend(loc="upper left", fontsize=9)
