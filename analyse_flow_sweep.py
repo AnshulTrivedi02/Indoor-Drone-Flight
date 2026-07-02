@@ -37,7 +37,13 @@ OUTPUT_FIGURE   = os.path.expanduser("~/thesis_data/flow_validation.png")
 FLOW_TOPIC = "/optical_flow/measurement"
 POSE_TOPIC = "/ground_truth/pose"
 
-ALTITUDE_M      = 2.0    # hover altitude during all sweeps (metres)
+# Downward camera is mounted 0.25 m below base_link on the Z axis (see
+# iris_with_standoffs/model.sdf, sensor "downward_camera": <pose>0 0 -0.25 ...>).
+# /ground_truth/pose reports base_link's world-frame z, with the floor plane at
+# world z = 0, so the camera's true height above the floor is
+# base_link_z - CAMERA_Z_OFFSET, not the commanded/assumed hover altitude.
+CAMERA_Z_OFFSET = 0.25   # metres, camera below base_link origin
+
 FOCAL_LENGTH_PX = 554.0  # camera focal length (pixels); confirmed 640×480, 60° FOV
 
 # Minimum feature count for a flow frame to be counted as a quality measurement.
@@ -54,9 +60,9 @@ GT_SPEED_THRESHOLD = 0.1
 
 # ── Kinematic prediction ───────────────────────────────────────────────────────
 
-def predicted_flow(velocity_m_s: float) -> float:
+def predicted_flow(velocity_m_s: float, height_m: float) -> float:
     """Return theoretical optical flow in px/s: flow = (v / h) * f."""
-    return (velocity_m_s / ALTITUDE_M) * FOCAL_LENGTH_PX
+    return (velocity_m_s / height_m) * FOCAL_LENGTH_PX
 
 
 # ── Bag reading ───────────────────────────────────────────────────────────────
@@ -73,7 +79,7 @@ def read_bag_records(bag_dir: str):
 
     Returns (flow_records, pose_records):
       flow_records: list of dicts {t, flow_y, feature_count, inlier_ratio, valid}
-      pose_records: list of dicts {t, x, y}
+      pose_records: list of dicts {t, x, y, z}
     Timestamps (t) are sim-time seconds taken from each message's header stamp,
     not the bag's recording-time index.
 
@@ -140,6 +146,7 @@ def read_bag_records(bag_dir: str):
                 "t": _stamp_to_sec(msg.header.stamp),
                 "x": msg.pose.position.x,
                 "y": msg.pose.position.y,
+                "z": msg.pose.position.z,
             })
 
     flow_records.sort(key=lambda r: r["t"])
@@ -150,32 +157,36 @@ def read_bag_records(bag_dir: str):
 
 # ── Ground-truth motion window ─────────────────────────────────────────────────
 
-def ground_truth_speed(pose_records: list) -> tuple:
+def ground_truth_motion(pose_records: list) -> tuple:
     """
     Differentiate consecutive ground-truth positions with respect to their
-    header timestamps to get horizontal speed.
+    header timestamps to get horizontal speed, and pair each interval with
+    its mean base_link world-frame z (the midpoint of the two samples).
 
-    Returns (speed_times, speeds) as numpy arrays, one entry per consecutive
-    pose pair with a positive time delta. Returns (empty, empty) if fewer than
-    two pose samples are available.
+    Returns (speed_times, speeds, z_values) as numpy arrays, one entry per
+    consecutive pose pair with a positive time delta. Returns three empty
+    arrays if fewer than two pose samples are available.
     """
     if len(pose_records) < 2:
-        return np.array([]), np.array([])
+        return np.array([]), np.array([]), np.array([])
 
     t = np.array([r["t"] for r in pose_records])
     x = np.array([r["x"] for r in pose_records])
     y = np.array([r["y"] for r in pose_records])
+    z = np.array([r["z"] for r in pose_records])
 
     dt = np.diff(t)
     dx = np.diff(x)
     dy = np.diff(y)
+    z_mid = (z[:-1] + z[1:]) / 2.0
 
     # Guard against duplicate/out-of-order timestamps producing dt <= 0.
     valid = dt > 0
     speeds = np.sqrt(dx[valid] ** 2 + dy[valid] ** 2) / dt[valid]
     speed_times = t[1:][valid]
+    z_values = z_mid[valid]
 
-    return speed_times, speeds
+    return speed_times, speeds, z_values
 
 
 def nearest_neighbour(query_times: np.ndarray, sample_times: np.ndarray,
@@ -198,7 +209,9 @@ def nearest_neighbour(query_times: np.ndarray, sample_times: np.ndarray,
 
 def steady_state_flow(flow_records: list, pose_records: list) -> dict:
     """
-    Compute steady-state median |flow_y| over the ground-truth motion window.
+    Compute steady-state median |flow_y| over the ground-truth motion window,
+    along with the mean base_link height (world-frame z) over that same
+    window, used to derive the camera's true height above the floor.
 
     A flow frame is kept if:
       1. Its nearest-in-time ground-truth speed sample exceeds
@@ -206,12 +219,17 @@ def steady_state_flow(flow_records: list, pose_records: list) -> dict:
       2. valid=True, feature_count >= MIN_FEATURES and
          inlier_ratio >= MIN_INLIER_RATIO (the measurement itself is trusted).
 
-    Returns a dict with keys: measured, mean_gt_speed, n_frames. Values are
-    None (measured/mean_gt_speed) or 0 (n_frames) if no usable frames remain.
+    Returns a dict with keys: measured, mean_gt_speed, mean_base_link_z,
+    camera_height, n_frames. Values are None (measured/mean_gt_speed/
+    mean_base_link_z/camera_height) or 0 (n_frames) if no usable frames
+    remain.
     """
-    empty = {"measured": None, "mean_gt_speed": None, "n_frames": 0}
+    empty = {
+        "measured": None, "mean_gt_speed": None,
+        "mean_base_link_z": None, "camera_height": None, "n_frames": 0,
+    }
 
-    speed_times, speeds = ground_truth_speed(pose_records)
+    speed_times, speeds, z_values = ground_truth_motion(pose_records)
     if len(speed_times) == 0 or not flow_records:
         return empty
 
@@ -219,6 +237,8 @@ def steady_state_flow(flow_records: list, pose_records: list) -> dict:
     if not moving_mask.any():
         return empty
     mean_gt_speed = float(np.mean(speeds[moving_mask]))
+    mean_base_link_z = float(np.mean(z_values[moving_mask]))
+    camera_height = mean_base_link_z - CAMERA_Z_OFFSET
 
     t_flow = np.array([r["t"] for r in flow_records])
     nearest_speed = nearest_neighbour(t_flow, speed_times, speeds)
@@ -231,15 +251,21 @@ def steady_state_flow(flow_records: list, pose_records: list) -> dict:
     moving_flow_mask = (nearest_speed > GT_SPEED_THRESHOLD) & quality_mask
 
     if not moving_flow_mask.any():
-        return {"measured": None, "mean_gt_speed": mean_gt_speed, "n_frames": 0}
+        return {
+            "measured": None, "mean_gt_speed": mean_gt_speed,
+            "mean_base_link_z": mean_base_link_z, "camera_height": camera_height,
+            "n_frames": 0,
+        }
 
     flow_y = np.array([r["flow_y"] for r in flow_records])
     measured = float(np.median(np.abs(flow_y[moving_flow_mask])))
 
     return {
-        "measured":      measured,
-        "mean_gt_speed": mean_gt_speed,
-        "n_frames":      int(moving_flow_mask.sum()),
+        "measured":         measured,
+        "mean_gt_speed":    mean_gt_speed,
+        "mean_base_link_z": mean_base_link_z,
+        "camera_height":    camera_height,
+        "n_frames":         int(moving_flow_mask.sum()),
     }
 
 
@@ -277,39 +303,56 @@ def main():
             print(f"  WARNING: no quality flow frames found within the motion window, skipping.")
             continue
 
-        predicted = predicted_flow(stats["mean_gt_speed"])
+        predicted = predicted_flow(stats["mean_gt_speed"], stats["camera_height"])
         error_pct = (stats["measured"] - predicted) / predicted * 100.0
 
         results.append({
-            "trial":          trial_name,
-            "velocity":       velocity,
-            "mean_gt_speed":  stats["mean_gt_speed"],
-            "predicted":      predicted,
-            "measured":       stats["measured"],
-            "error_pct":      error_pct,
-            "n_frames":       stats["n_frames"],
+            "trial":            trial_name,
+            "velocity":         velocity,
+            "mean_gt_speed":    stats["mean_gt_speed"],
+            "mean_base_link_z": stats["mean_base_link_z"],
+            "camera_height":    stats["camera_height"],
+            "predicted":        predicted,
+            "measured":         stats["measured"],
+            "error_pct":        error_pct,
+            "n_frames":         stats["n_frames"],
         })
 
     if not results:
         print("\nNo valid results — nothing to plot.")
         sys.exit(1)
 
+    # Diagnostic: raw mean ground-truth base_link z for one trial, to settle
+    # whether the drone actually hovers at world z ≈ 2.0 m or ≈ 2.195 m
+    # (spawn standoff height 0.195 m + a 2 m AGL climb) during the motion
+    # window. This is the number that determines which altitude
+    # interpretation was producing the flow bias.
+    diag = results[0]
+    print(
+        f"\n[diagnostic] {diag['trial']}: raw mean GT base_link z over the "
+        f"motion window = {diag['mean_base_link_z']:.3f} m "
+        f"(world z=2.0 m ⇒ ~2.000 m; spawn 0.195 m + 2 m climb ⇒ ~2.195 m)"
+    )
+
     # ── Summary table ─────────────────────────────────────────────────────────
     header = (
-        f"{'Commanded':>10}  {'GT speed':>9}  {'Predicted':>12}  {'Measured':>10}  "
-        f"{'Error %':>8}  {'Frames':>7}"
+        f"{'Commanded':>10}  {'GT speed':>9}  {'GT z':>7}  {'Cam h':>7}  "
+        f"{'Predicted':>12}  {'Measured':>10}  {'Error %':>8}  {'Frames':>7}"
     )
     sep = "-" * len(header)
     print()
     print(sep)
     print("Optical flow vs kinematic theory (ground-truth motion window)")
-    print(f"  Altitude: {ALTITUDE_M} m   Focal length: {FOCAL_LENGTH_PX} px")
+    print(
+        f"  Camera height derived per trial as mean GT base_link z minus "
+        f"CAMERA_Z_OFFSET ({CAMERA_Z_OFFSET} m)   Focal length: {FOCAL_LENGTH_PX} px"
+    )
     print(f"  Motion window: ground-truth horizontal speed > {GT_SPEED_THRESHOLD} m/s")
     print(
         f"  Quality filter: valid=True, feature_count >= {MIN_FEATURES}, "
         f"inlier_ratio >= {MIN_INLIER_RATIO}"
     )
-    print(f"  Predicted flow uses mean ground-truth speed, not commanded velocity")
+    print(f"  Predicted flow uses mean ground-truth speed and mean GT-derived camera height")
     print(sep)
     print(header)
     print(sep)
@@ -317,6 +360,8 @@ def main():
         print(
             f"{r['velocity']:>9.2f}  "
             f"{r['mean_gt_speed']:>7.2f}  "
+            f"{r['mean_base_link_z']:>5.3f}  "
+            f"{r['camera_height']:>5.3f}  "
             f"{r['predicted']:>10.1f} px/s  "
             f"{r['measured']:>8.1f} px/s  "
             f"{r['error_pct']:>+7.1f}%  "
@@ -327,15 +372,17 @@ def main():
     # ── Validation figure ─────────────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(7, 5))
 
-    # Theoretical line across the velocity range (nominal, using commanded v).
+    # Theoretical line across the velocity range, using the mean GT-derived
+    # camera height across all sweep trials (they share one hover altitude).
+    mean_camera_height = float(np.mean([r["camera_height"] for r in results]))
     v_range = np.linspace(0.0, max(r["velocity"] for r in results) * 1.15, 200)
     ax.plot(
         v_range,
-        [predicted_flow(v) for v in v_range],
+        [predicted_flow(v, mean_camera_height) for v in v_range],
         linestyle="--",
         color="steelblue",
         linewidth=1.8,
-        label=f"Theory: flow = (v / {ALTITUDE_M} m) × {FOCAL_LENGTH_PX:.0f} px",
+        label=f"Theory: flow = (v / {mean_camera_height:.3f} m) × {FOCAL_LENGTH_PX:.0f} px",
     )
 
     # Measured points, plotted against actual ground-truth speed reached.
