@@ -37,6 +37,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14554 \
   --add-param-file \$HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file \$HOME/thesis_ws/flow_ekf.parm \
+  --add-param-file \$HOME/thesis_ws/gnss_denied.parm \
   --no-rebuild
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF

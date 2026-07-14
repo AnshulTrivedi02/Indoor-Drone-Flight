@@ -45,6 +45,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **LiDAR RNGFND1 params**    | `~/thesis_ws/lidar_rangefinder.parm`                                 |
 | **Flow EKF bridge**         | `~/thesis_ws/flow_bridge.py`                                         |
 | **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
+| **GNSS-denied params**      | `~/thesis_ws/gnss_denied.parm`                                       |
 | **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
 | **evo venv**                 | `~/venv-evo`                                                         |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
@@ -347,6 +348,95 @@ methodology as Stage A, see Known Issues):
 - At rest, `/ekf/pose` z ≈ 0.190 m vs `/ground_truth/pose` z = 0.195 m —
   consistent with Stage 1/2's already-established ground-rest geometry.
 
+### GNSS-Denied Configuration — Stage C
+
+**This is the config the thesis actually studies**, and the standing
+baseline for UKF and FGO to also use for a fair comparison — Stage B's
+sub-cm ATE reflected GPS (`EK3_SRC1_POSXY` was still GPS), not flow.
+`gnss_denied.parm` (loaded by default in `start_sim.sh`/CLAUDE.md's
+`--add-param-file` chain, after `flow_ekf.parm`) removes GPS entirely:
+
+```
+EK3_SRC1_POSXY 0   # None — see below, there is no "OpticalFlow" POSXY value
+EK3_SRC1_POSZ 2    # RangeFinder — height from the downward LiDAR, not Baro (the default) or GPS
+EK3_SRC1_VELZ 0    # None — VELZ defaults to GPS(3); this closes that gap so GPS can't contribute vertical velocity either
+SIM_GPS1_ENABLE 0  # physically disables the simulated GPS sensor, belt-and-braces beyond the EK3_SRC selections above
+```
+
+**There is no "OpticalFlow" value for `EK3_SRC1_POSXY`** (`@Values: 0:None,
+3:GPS, 4:Beacon, 6:ExternalNav` in `AP_NavEKF_Source.cpp` — only VELXY has
+`5:OpticalFlow`). Flow-based position isn't a direct POSXY source at all —
+it's **dead reckoning**. Confirmed by reading `NavEKF3_core::readyToUseGPS()`
+in `AP_NavEKF3_Control.cpp` directly: it returns `false` immediately once
+`EK3_SRC1_POSXY != GPS`, *regardless of actual GPS signal health* — this
+alone is enough to make `PV_AidingMode` fall through to `AID_RELATIVE`
+(flow dead-reckoning) once `readyToUseOptFlow()` is satisfied (already
+working since Stage A). `EK3_SRC1_VELZ` defaulting to GPS(3) was a gap
+that would have been easy to miss — confirmed by reading the same file.
+
+**Arming still works with GPS fully disabled** — tested directly (armed
+cleanly, "Arming motors", no GPS-related arming-check failure) before
+committing to the full flight tests.
+
+**Same `eeprom.bin` persistence gotcha as Stage A recurred** — `EK3_SRC1_POSXY`
+read back as `3` (GPS) instead of the `0` in `gnss_denied.parm` on first
+boot with this file, exactly like Stage A's `FLOW_TYPE`. `EK3_SRC1_POSZ`,
+`EK3_SRC1_VELZ` and `SIM_GPS1_ENABLE` all applied correctly from the same
+file — only the param whose *value happened to already match what was in
+storage from an earlier boot* got stuck. Same fix: live `PARAM_SET
+EK3_SRC1_POSXY=0` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN`. **If a value from
+a `.parm` file doesn't take, check this before assuming the file is wrong.**
+
+**Verification** (`stage_c_textured` and `stage_c_blank` trials, same
+state-gated flight profile as Stage A/B — climb to ~2 m, forward 3 m at
+0.4 m/s, stop, land — flown once over `iris_textured.sdf`, once over
+`iris_runway.sdf`, the blank/degraded world):
+
+- **Genuinely GPS-free, confirmed from the flight's own log, not just
+  param readback**: decoded the `nav_filter_status` bitfield (`XKF4.SS` in
+  the dataflash log; bit layout from `AP_Nav_Common.h`) for every sample
+  of the textured-floor flight — `using_gps` was `False` for all 1024
+  samples (100%), `horiz_pos_abs` (an absolute fix) `False` throughout,
+  `horiz_pos_rel` (relative/flow-aided position) `True` for 71% of
+  samples once airborne (the rest is the pre-takeoff/ground period, before
+  `readyToUseOptFlow()`'s preconditions are met).
+- **Both flights landed safely, no crash, no divergence** — final ground
+  truth altitude matched the known rest height (0.195 m) in both cases,
+  and `XKF5`'s innovation gate (`NI`) never once hit the ≥100 rejection
+  threshold in either flight (textured: mean 15, peak 82, 0/251 rejected;
+  blank: mean 1.3, peak 18, 0/244 rejected).
+- **ATE (evo_ape, SE(3)-aligned)**: **textured RMSE 7.7 mm** (mean 6.3 mm,
+  max 28.0 mm) vs **blank RMSE 10.0 mm** (mean 8.7 mm, max 30.7 mm) — worse
+  on blank, but only ~30%, not the dramatic collapse a first guess might
+  expect.
+- **RPE**: textured RMSE 5.4 mm vs blank RMSE 6.5 mm — same modest-not-dramatic pattern.
+- **The sensor-level story is much starker than the ATE numbers alone
+  suggest — this is the real thesis signal.** Extracted `inlier_ratio` and
+  `feature_count` directly from `/optical_flow/measurement` in each bag:
+  textured floor `inlier_ratio` mean **0.94** (median 1.0, only 4% of
+  samples below 0.5); blank floor mean **0.47** (median 0.28, **62%** of
+  samples below 0.5), `feature_count` mean dropping from 85 to 54 (min 0 —
+  some frames find *zero* trackable points). Flow quality collapses on the
+  blank floor exactly as expected; the downstream position estimate is
+  comparatively resilient over this short (~40 s) flight.
+- **Read this nuance carefully before quoting a number**: the modest ATE
+  gap does **not** mean texture doesn't matter — the `inlier_ratio`
+  collapse is unambiguous evidence it does, at the sensor level. The EKF's
+  own innovation gating and short flight duration appear to be limiting
+  how much that sensor-level degradation has propagated into position
+  error *yet*. A longer flight, or one with more aggressive dynamics,
+  would very likely show substantially more accumulated drift on the blank
+  floor as the (still-noisier, still-degraded) flow measurements integrate
+  error over more time — this hasn't been tested and is a natural
+  next experiment, not assumed.
+- One flight-to-flight difference worth noting honestly, not over-reading:
+  the blank-floor flight's climb showed a real altitude overshoot (to
+  ~3.2 m before settling at ~2.05 m) and a brief 1.3 m/s ground-truth speed
+  spike, both absent from the textured-floor climb. Altitude comes from
+  the rangefinder (`EK3_SRC1_POSZ=2`), independent of floor texture, so
+  this reads as ordinary flight-to-flight controller/physics variance, not
+  a flow-driven effect — flagged for transparency, not concluded from.
+
 ## Sensor Fusion Architecture
 
 Design decision (per supervisor guidance, 2026-07-02): **each estimator
@@ -433,6 +523,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14554 \
   --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file $HOME/thesis_ws/flow_ekf.parm \
+  --add-param-file $HOME/thesis_ws/gnss_denied.parm \
   --no-rebuild
 ```
 
@@ -443,12 +534,15 @@ own dedicated MAVLink output, `--out 127.0.0.1:14552` gives `lidar_bridge.py`
 (Terminal 10) its own — separate from the default `14550` that
 `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
 listens, so no two processes can share one port. `--add-param-file` (passed
-twice, `action="append"` in `sim_vehicle.py`) appends `lidar_rangefinder.parm`
-then `flow_ekf.parm` after the frame's own defaults
-(`copter.parm,gazebo-iris.parm`), so their values win over `gazebo-iris.parm`'s
-Analog/SIM_SONAR-based RNGFND1 block (`--add-param-file` appends to the end of
-the `--defaults` comma list, and later files override earlier ones for
-duplicate params).
+three times, `action="append"` in `sim_vehicle.py`) appends
+`lidar_rangefinder.parm`, then `flow_ekf.parm`, then `gnss_denied.parm` after
+the frame's own defaults (`copter.parm,gazebo-iris.parm`), so their values
+win over `gazebo-iris.parm`'s Analog/SIM_SONAR-based RNGFND1 block
+(`--add-param-file` appends to the end of the `--defaults` comma list, and
+later files override earlier ones for duplicate params). **`gnss_denied.parm`
+is loaded by default** — this is the standing GNSS-denied baseline config as
+of Stage C (see "GNSS-Denied Configuration — Stage C" below), not an
+opt-in extra.
 
 Once MAVProxy starts:
 
@@ -761,7 +855,10 @@ Remaining:
 6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
 7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
 8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
-9. GNSS-denied config (flow + rangefinder only, no GPS for position) — not started; needed before Stage B's ATE/RPE numbers reflect flow's actual contribution rather than SITL's GPS
+9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, now the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence
+10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — not started, flagged as a natural follow-up
+11. UKF implementation, using the `gnss_denied.parm` baseline config — not started
+12. FGO (GTSAM) implementation, using the `gnss_denied.parm` baseline config — not started
 
 ## Experimental Design Notes
 
