@@ -437,8 +437,8 @@ Options:
 ```
 
 Topics recorded by default: `/clock`, `/ground_truth/pose`,
-`/downward_lidar/range`, `/optical_flow/measurement` (plus any topic matching
-`^/(flow|optical_flow)` found on the bus at startup).
+`/downward_lidar/range`, `/attitude/angular_rates`, `/optical_flow/measurement`
+(plus any topic matching `^/(flow|optical_flow)` found on the bus at startup).
 
 ### metadata.yaml schema
 

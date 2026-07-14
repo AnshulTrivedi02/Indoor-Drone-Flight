@@ -70,8 +70,11 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 
-# No IMU topics are available on ROS2 — ArduPilot handles IMU internally
-# via MAVLink and does not bridge it to ROS2 in this stack.
+# Raw IMU is not bridged to ROS2 — ArduPilot handles it internally via
+# MAVLink. Gyro rates are available via attitude_bridge.py's republish of
+# MAVLink ATTITUDE on /attitude/angular_rates (recorded below), needed
+# alongside raw flow so every estimator can derotate internally — see
+# CLAUDE.md, Sensor Fusion Architecture.
 
 # Discover optical flow topics (catches /optical_flow/measurement and any
 # additional publishers added in future work).
@@ -141,6 +144,7 @@ ros2 bag record \
     /clock \
     /ground_truth/pose \
     /downward_lidar/range \
+    /attitude/angular_rates \
     $FLOW_TOPICS \
     $CAMERA_TOPICS
 set -e
