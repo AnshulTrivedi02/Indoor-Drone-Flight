@@ -43,6 +43,8 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Attitude bridge**         | `~/thesis_ws/attitude_bridge.py`                                     |
 | **LiDAR bridge**            | `~/thesis_ws/lidar_bridge.py`                                        |
 | **LiDAR RNGFND1 params**    | `~/thesis_ws/lidar_rangefinder.parm`                                 |
+| **Flow EKF bridge**         | `~/thesis_ws/flow_bridge.py`                                         |
+| **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
 | Trial data output           | `~/thesis_data/trials/`                                              |
@@ -84,7 +86,7 @@ sim-time stamps (`header.stamp` tracks `/clock`).
 |-----------------|-------------------|--------------------------------------------------------------|
 | IMU             | Working           | Via ArduPilot SITL                                           |
 | Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; mounted at **z = −0.25 m** relative to `base_link` origin; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
-| Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_raw`/`flow_y_raw` are the **production values** — raw, un-derotated flow, which is what ArduPilot EKF3 and the FGO consume (see [Sensor Fusion Architecture](#sensor-fusion-architecture)). `flow_x`/`flow_y` are a manual derotation (`enable_derotation` param, default on) kept for **characterisation only**, not fed to any estimator. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
+| Optical flow    | Working — publishing, fused by EKF3 (Stage A) | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_raw`/`flow_y_raw` are the **production values** — raw, un-derotated flow. `flow_x`/`flow_y` are a manual derotation (`enable_derotation` param, default on) kept for **characterisation only**, not fed to any estimator. `flow_x_rad`/`flow_y_rad` (rad/s, sensor-native camera-optical frame) are now populated (`flow_x_raw`/`FOCAL_LENGTH_PX`) and fed to ArduPilot EKF3 via `flow_bridge.py` — see "Downward Optical Flow — EKF3 Fusion (Stage A)" below. Needs shadow rejection |
 | Downward LiDAR  | Stage 1 done — SDF sensor + ROS bridge, verified | Single-beam `gpu_lidar` in `iris_with_standoffs/model.sdf`, mounted at **z = −0.12 m** relative to `base_link` origin, pointing straight down. Emits `gz.msgs.LaserScan` on gz topic `/downward_lidar/range`, bridged to ROS2 as `sensor_msgs/msg/Range` on the same topic name. Range 0.05–40 m. Verified against `/ground_truth/pose` z during a 2 m hover: sub-millimetre accuracy (383/383 samples within 5 cm, mean error 0.1 mm) once settled. `min_angle`/`max_angle` **must both be exactly 0** for a 1-sample axis — Ogre2GpuRays warns and silently ignores `max_angle` otherwise, and an earlier attempt at a small nonzero FOV was a red herring; the real fix for transient short-range noise was moving the mount from −0.05 m to −0.12 m to clear the airframe's own belly mesh (a ray originating too close to the body can graze it under small attitude jitter). `update_rate` is **30 Hz**, matching the camera/flow rate (kept at 30, not raised — see below). **The sim's real-time factor (RTF) is the actual rate bottleneck, not `update_rate`**: this machine runs the model at RTF ≈ 0.05–0.17 (measured via `gz topic -e -t /stats`), even standalone/headless with no GUI or ArduPilot attached, so the *wall-clock* topic rate (what `ros2 topic hz` reports) is roughly `update_rate × RTF` — measured ~3.6–4 Hz at 30 Hz configured, which is what looked like a "slow LiDAR" but is really just RTF. The sensor's **true sim-time rate is correct**: consecutive `sensor_msgs/Range` header stamps on `/downward_lidar/range` are spaced exactly 33.00 ms apart (100-sample check), i.e. genuine 30.3 Hz in simulated time, independent of wall-clock slowdown. Bumping `update_rate` higher (tried 50 Hz) does raise the wall-clock rate roughly proportionally, but doesn't fix the underlying RTF and wasn't kept — 30 Hz matches the camera/flow cadence, which is what actually matters for fusion. When reasoning about any sensor's "Hz" in this project, use sim-time (header-stamp deltas), not wall-clock `topic hz`, unless wall-clock behaviour specifically is what's being investigated. Stage 2 (MAVLink `DISTANCE_SENSOR` injection, not `SIM_SONAR`) done and verified — see "Downward LiDAR — Stage 2" below. |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
 
@@ -143,6 +145,139 @@ MAVLink `RANGEFINDER` + `SYS_STATUS`):
 (unconditionally — one float per message is lightweight, unlike the raw
 camera images gated behind `--with-images`).
 
+### Downward Optical Flow — EKF3 Fusion (Stage A)
+
+**Stage A proves flow velocity fusion only — it is NOT a GNSS-denied
+navigation config.** `EK3_SRC1_POSXY` is deliberately left at its default
+(GPS) throughout; only `EK3_SRC1_VELXY` switches to flow. GPS still supplies
+absolute position the whole time. Removing GPS entirely (flow + rangefinder
+for full GNSS-denied position) is a separate, later step — don't conflate
+the two when reading trial data from this stage.
+
+**`OPTICAL_FLOW_RAD` is not usable — use `OPTICAL_FLOW` instead.** Traced
+the full incoming-message dispatch in `GCS_Common.cpp::handle_message()`
+(the same switch statement handling `DISTANCE_SENSOR`, see Stage 2 above):
+there is no `case MAVLINK_MSG_ID_OPTICAL_FLOW_RAD` and no `default:` case
+either, so an injected `OPTICAL_FLOW_RAD` message is silently dropped in
+this ArduPilot build — never reaching any backend. What's actually wired up
+for `FLOW_TYPE=5` (MAVLink) is `MAVLINK_MSG_ID_OPTICAL_FLOW` (message 100,
+not 106) → `AP_OpticalFlow_MAV::handle_msg()`, which reads the message's
+`flow_rate_x`/`flow_rate_y` **extension fields** (rad/s, **instantaneous
+rate**, not integrated) in preference to the deprecated `flow_x`/`flow_y`
+int16 fields. That backend does **not** read any gyro field from the
+message — it samples `AP::ahrs().get_gyro()` internally for body-rate
+compensation — so `flow_bridge.py` sends flow only, and `FLOW_OPTIONS` must
+**not** have "Stabilised" set (our flow is raw/un-derotated; ArduPilot
+derotates with its own AHRS gyro, which is the intended behaviour).
+
+**`flow_rate_x`/`flow_rate_y` are MAVLink v2 extension fields** — absent
+from pymavlink's default v1 dialect (confirmed empirically:
+`MAVLink_optical_flow_message.fieldnames` omits them, and
+`optical_flow_send()`'s signature has no `flow_rate_x`/`flow_rate_y`
+parameter, unless `MAVLINK20=1` is set as an environment variable **before**
+`from pymavlink import mavutil` is executed, which switches the loaded
+dialect module from `dialects/v10/` to `dialects/v20/`). `flow_bridge.py`
+sets this at the top of the file. `attitude_bridge.py`/`lidar_bridge.py`
+don't need it — `ATTITUDE` and `DISTANCE_SENSOR` have no extension fields.
+
+**Axis/sign mapping** (camera optical/pixel frame → MAVLink body-relative
+frame): `flow_x_rad`/`flow_y_rad` are in the camera's optical/pixel frame
+(X=image-right, Y=image-down; see `flow_tracker.py`). Best-derived (not
+assumed) from `flow_tracker.py`'s own already-validated rotation-derotation
+formula (`flow_x_rot = -FOCAL*rollspeed`, `flow_y_rot = +FOCAL*pitchspeed`)
+compared against `OPTICAL_FLOW`'s field convention ("RH rotation about X
+induces **positive** `flow_rate_x`"; "RH rotation about Y induces
+**positive** `flow_rate_y`"): our `flow_x_rot` has the opposite sign to
+what positive roll should give under the message's own convention, so
+`flow_rate_x = -flow_x_rad`; `flow_y_rot` already matches, so
+`flow_rate_y = +flow_y_rad` (no flip). **Empirically confirmed correct**
+(see Verification below) — do not assume this transfers to a different
+camera mount without re-deriving and re-verifying.
+
+**RNGFND1/RangeFinder use:** `ground_distance` is populated from
+`/downward_lidar/range` (cached, reported as `-1`/unknown if the last
+reading is >0.5 s stale) but is **not read at all** by
+`AP_OpticalFlow_MAV::handle_msg()` — confirmed by reading the backend
+directly. It's included for completeness/other consumers, not because
+EKF3's flow fusion needs it via this field (rangefinder height comes from
+`RNGFND1` directly, see Stage 2).
+
+**Params** (`flow_ekf.parm`, `--add-param-file`, alongside
+`lidar_rangefinder.parm`):
+```
+FLOW_TYPE 5          # MAVLink — selects AP_OpticalFlow_MAV
+EK3_SRC1_VELXY 5      # OpticalFlow — required by NavEKF3_core::readyToUseOptFlow()
+EK3_FLOW_USE 1        # Navigation (not Terrain-only) — readyToUseOptFlow() hard-fails on FLOW_USE=2
+```
+Confirmed `NavEKF3_core::readyToUseOptFlow()`'s exact preconditions by
+reading `AP_NavEKF3_Control.cpp` directly: `EK3_FLOW_USE==1`,
+`EK3_SRCx_VELXY==OpticalFlow` for the active source set, flow data younger
+than 200 ms, `tiltAlignComplete`, and `delAngBiasLearned` (gyro bias
+converged) — all satisfied in verification.
+
+**Gotcha: SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`.**
+`FLOW_TYPE` initially read back as `10` (SITL) instead of the `5` in
+`flow_ekf.parm`, despite `EK3_SRC1_VELXY`/`EK3_FLOW_USE` from the *same*
+file applying correctly. Root cause: `AP_Param::configured_in_storage()` —
+once a param has *any* explicitly-stored value in the SITL vehicle's
+persisted `eeprom.bin` (`~/ardupilot/ArduCopter/eeprom.bin`, gitignored,
+carries over across SITL sessions in the same working directory),
+`--defaults`/`--add-param-file` no longer override it; defaults only apply
+to still-untouched params. Fixed **without deleting the eeprom** (that's
+destructive local state, not something to reset without asking) by a live
+`PARAM_SET FLOW_TYPE=5` over MAVLink followed by
+`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (a soft in-process SITL reboot, same
+`arducopter` PID, no relaunch needed) — `FLOW_TYPE` is `AP_PARAM_FLAG_ENABLE`
+and backends are only constructed once at boot, so the reboot is required
+either way. **If a new param ever silently doesn't take effect from a
+`.parm` file despite the file being correct, suspect this before anything
+else.**
+
+**Gotcha: flight test scripts must gate on measured state, not wall-clock
+sleep, given this machine's low RTF** (see the RTF diagnostic entry in
+Known Issues — RTF ≈ 0.05–0.17). A first verification attempt used
+`time.sleep(25)`-style wall-clock delays for climb/cruise phases; at
+RTF≈0.1 that bought only ~2.5 s of *sim* time, producing a near-empty
+7–12 s flight (dataflash log confirmed `HAGL` never left ~0.1 m). Fixed by
+polling `LOCAL_POSITION_NED` and gating each phase on the actual measured
+altitude/distance reached, with a generous wall-clock timeout as a safety
+cap rather than the primary control. Apply this to any future scripted
+flight test on this machine.
+
+**Verification** (state-gated flight: climb to ~2 m, fly pure-forward at
+0.4 m/s for ~3 m, stop, land; `ardupilot.bin` parsed via pymavlink's
+`DFReader` for the `XKF5` dataflash message — `FIX`/`FIY` are the flow
+innovations ×1000, `NI` is the normalised innovation test ratio, ≥100 means
+rejected by the gate, confirmed by reading `AP_NavEKF3_Logging.cpp`):
+- **Fusion is active, not rejected**: 251/251 airborne (`HAGL`>1.0 m) `XKF5`
+  rows show live, nonzero `FIX`/`FIY`; **0/251 rejected** (`NI` stayed
+  below 100 throughout, peak 82, mean 15).
+- **The fused state is quantitatively correct** — the cleanest possible
+  confirmation, cross-checked via `XKF1`'s `VN`/`VE`/`PN` (EKF velocity/
+  position state, from the *same* `ardupilot.bin`, since `EK3_SRC1_VELXY=5`
+  means this velocity comes from flow alone — GPS does not contribute
+  velocity in this config): during the known pure-forward segment, `VN`
+  (North velocity, ≈ body-forward since yaw stayed ≈0°) rises smoothly to a
+  stable **0.395–0.40 m/s** — matching the commanded 0.4 m/s almost
+  exactly — while `VE` (East/lateral) stayed near zero throughout. `PN`
+  correspondingly tracked 0 → +3.14 m, matching the known ~3 m forward
+  distance. This confirms the axis/sign mapping above is correct as
+  derived, not just plausible.
+- Raw per-sample `XKF5` innovations are noisier than the converged state
+  estimate (large swings on one axis, small on the other, not simply
+  attributable to "wrong axis" — the Kalman-filtered `VN`/`VE` state above
+  is the trustworthy signal, not the raw innovation magnitude alone).
+
+**Not yet done / follow-ups found during this work, not fixed (flagged for
+you to decide on):**
+- `record_trial.sh` doesn't source `~/thesis_ws/install/setup.bash`, so
+  `ros2 bag record` can't resolve the custom `optical_flow_interfaces`
+  package and silently **drops `/optical_flow/measurement` from the
+  bag** (`rosbag2_recorder` logs a `WARN` but still records everything
+  else). Not fixed as part of Stage A — flagging for a decision.
+- State extraction / `evo` comparison against ground truth — explicitly
+  out of scope until you confirm this fusion result.
+
 ## Sensor Fusion Architecture
 
 Design decision (per supervisor guidance, 2026-07-02): **each estimator
@@ -157,9 +292,11 @@ input.
   via MAVLink `DISTANCE_SENSOR` by `lidar_bridge.py`; the FGO will consume
   the same ROS topic directly).
 - **ArduPilot EKF3 is the fixed baseline.** It is set up exactly as
-  ArduPilot intends — native `OPTICAL_FLOW_RAD` inputs (raw flow + gyro
-  integration fields) — and derotates internally. No shortcuts, no
-  pre-processing on our side.
+  ArduPilot intends — native `OPTICAL_FLOW` input (**not** `OPTICAL_FLOW_RAD`,
+  which this ArduPilot build doesn't handle at all — see "Downward Optical
+  Flow — EKF3 Fusion (Stage A)" below), sending raw flow only — and
+  derotates internally using its own AHRS gyro, not gyro data we send. No
+  shortcuts, no pre-processing on our side.
 - **The FGO** (GTSAM, planned) will handle rotation compensation as part of
   its own flow-factor formulation — e.g. a factor that references
   IMU/attitude state from within the graph — rather than consuming flow
@@ -223,20 +360,24 @@ cd ~/ardupilot/ArduCopter
   --map \
   --out 127.0.0.1:14551 \
   --out 127.0.0.1:14552 \
+  --out 127.0.0.1:14553 \
   --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
+  --add-param-file $HOME/thesis_ws/flow_ekf.parm \
   --no-rebuild
 ```
 
 The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 7) its
-own dedicated MAVLink output, and `--out 127.0.0.1:14552` gives
-`lidar_bridge.py` (Terminal 8) its own — separate from the default `14550`
-that `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
-listens, so no two processes can share one port. `--add-param-file` appends
-`lidar_rangefinder.parm` after the frame's own defaults
-(`copter.parm,gazebo-iris.parm`), so its `RNGFND1_*` values win over
-`gazebo-iris.parm`'s Analog/SIM_SONAR-based RNGFND1 block (`--add-param-file`
-appends to the end of the `--defaults` comma list, and later files override
-earlier ones for duplicate params).
+own dedicated MAVLink output, `--out 127.0.0.1:14552` gives `lidar_bridge.py`
+(Terminal 8) its own, and `--out 127.0.0.1:14553` gives `flow_bridge.py`
+(Terminal 9) its own — separate from the default `14550` that
+`fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
+listens, so no two processes can share one port. `--add-param-file` (passed
+twice, `action="append"` in `sim_vehicle.py`) appends `lidar_rangefinder.parm`
+then `flow_ekf.parm` after the frame's own defaults
+(`copter.parm,gazebo-iris.parm`), so their values win over `gazebo-iris.parm`'s
+Analog/SIM_SONAR-based RNGFND1 block (`--add-param-file` appends to the end of
+the `--defaults` comma list, and later files override earlier ones for
+duplicate params).
 
 Once MAVProxy starts:
 
@@ -350,7 +491,29 @@ Verify: MAVProxy console should show `RNGFND1: healthy` (or similar) once
 readings start arriving; `rangefinder` in the MAVProxy console prints the
 current distance. Cross-check against `/ground_truth/pose` z during a hover.
 
-### Terminal 9 — Bag Recording (one trial)
+### Terminal 9 — Flow EKF Bridge
+
+Forwards `/optical_flow/measurement` to ArduPilot's EKF3 as MAVLink
+`OPTICAL_FLOW` (message 100 — **not** `OPTICAL_FLOW_RAD`, which this
+ArduPilot build does not handle), on its own dedicated port (`14553`) — see
+"Downward Optical Flow — EKF3 Fusion (Stage A)" below. Run after SITL
+(Terminal 2) is up and streaming on `14553`, and after the Optical Flow node
+(Terminal 5) so `/optical_flow/measurement` exists. Also subscribes
+`/downward_lidar/range` for the message's `ground_distance` field, so
+Terminal 8 should be up too (not required for it to start, but
+`ground_distance` reports as unknown, `-1`, until it is).
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/flow_bridge.py --ros-args -p use_sim_time:=true
+```
+
+Verify: see "Downward Optical Flow — EKF3 Fusion (Stage A)" below for the
+definitive (dataflash-log-based) verification method — a message merely
+arriving does not confirm EKF3 is fusing it.
+
+### Terminal 10 — Bag Recording (one trial)
 
 ```bash
 cd ~/thesis_ws
@@ -462,15 +625,16 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 
 ## Known Issues (to resolve in Phase 1)
 
-1. **Manual derotation is a characterisation tool, not a blocker** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated, characterisation-only) and `flow_x_raw`/`flow_y_raw` (raw, the production values) in `OpticalFlow.msg` — see [Sensor Fusion Architecture](#sensor-fusion-architecture). Isolated pure-rotation hover testing (yaw done, pitch/roll not) found only a partial 5–15% collapse, confounded by a persistent ~0.4 rad/s background sim vibration present even at idle hover. **This is deprioritised/deferred indefinitely** — it was only relevant to validating a production derotation path that is no longer needed; ArduPilot EKF3 derotates internally from raw flow + gyro, and the FGO will do its own rotation compensation in its flow factor. `flow_x_rad`/`flow_y_rad` remain zero until pixel-to-radian conversion is implemented.
+1. **Manual derotation is a characterisation tool, not a blocker** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated, characterisation-only) and `flow_x_raw`/`flow_y_raw` (raw, the production values) in `OpticalFlow.msg` — see [Sensor Fusion Architecture](#sensor-fusion-architecture). Isolated pure-rotation hover testing (yaw done, pitch/roll not) found only a partial 5–15% collapse, confounded by a persistent ~0.4 rad/s background sim vibration present even at idle hover. **This is deprioritised/deferred indefinitely** — it was only relevant to validating a production derotation path that is no longer needed; ArduPilot EKF3 derotates internally from raw flow + gyro, and the FGO will do its own rotation compensation in its flow factor.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
-4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
+4. **`record_trial.sh` silently drops `/optical_flow/measurement` from bags** — doesn't source `~/thesis_ws/install/setup.bash`, so `ros2 bag record` can't resolve the custom `optical_flow_interfaces` package for that topic (found during EKF3 flow fusion Stage A verification; not fixed, flagged for a decision).
 5. **Downward LiDAR RNGFND1 dropouts under aggressive attitude changes** — ~3% of readings during a dynamic climb briefly read near-zero instead of true altitude (steady hover is sub-cm accurate). Currently harmless since `EK3_RNG_USE_HGT=-1` keeps RNGFND1 out of the EKF's height estimate by default — see "Downward LiDAR — Stage 2" above. Revisit before ever enabling range-based height switching or surface tracking.
 6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
-9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures).
+9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures).
+10. **SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`** — once a param has any explicitly-stored value in `~/ardupilot/ArduCopter/eeprom.bin` (gitignored, persists across SITL sessions), `AP_Param::configured_in_storage()` means `--defaults`/`--add-param-file` no longer override it. Fix with a live `PARAM_SET` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (soft in-process reboot, no relaunch needed) rather than deleting the eeprom file. See "Downward Optical Flow — EKF3 Fusion (Stage A)" above for how this was found (`FLOW_TYPE` silently stuck at `10` instead of the `5` in `flow_ekf.parm`).
 
 ## Conventions
 
@@ -478,7 +642,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 - Commit to git before any multi-file change
 - Do not trust ArduPilot parameter names from memory — check against docs
 - Document all frame conventions explicitly (body / camera-optical / world / NED)
-- MAVLink injection: `OPTICAL_FLOW_RAD` for flow, `DISTANCE_SENSOR` for LiDAR
+- MAVLink injection: `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unhandled by this ArduPilot build) for flow, `DISTANCE_SENSOR` for LiDAR
 - The render-driven optical flow approach is **scientifically load-bearing** for the
   thesis — it enables deliberate control over information degradation
 
@@ -495,12 +659,14 @@ Completed:
 
 Remaining:
 0. Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection
-1. Raw flow + gyro rate publishing — done (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); manual derotation (`flow_x`/`flow_y`) kept as a characterisation tool only, not gating further work (see [Sensor Fusion Architecture](#sensor-fusion-architecture)); populate `flow_x_rad`/`flow_y_rad` next
+1. Raw flow + gyro rate publishing — done (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); manual derotation (`flow_x`/`flow_y`) kept as a characterisation tool only, not gating further work (see [Sensor Fusion Architecture](#sensor-fusion-architecture))
 2. Shadow rejection
-3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
+3. Pixel-to-radian (rad/s) conversion — done (`flow_x_rad`/`flow_y_rad` in `flow_tracker.py`); no altitude scaling needed for this — the rad/s conversion is altitude-independent by design (focal length only)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf` — done, verified (Stage 1)
-5. Inject `DISTANCE_SENSOR` (LiDAR) to ArduPilot via MAVLink — done, verified (Stage 2); `OPTICAL_FLOW_RAD` injection still pending
+5. Inject `DISTANCE_SENSOR` (LiDAR) to ArduPilot via MAVLink — done, verified (Stage 2)
 6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
+7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
+8. State extraction / `evo` comparison against ground truth — not started, out of scope until Stage A fusion result is confirmed
 
 ## Experimental Design Notes
 
