@@ -1,0 +1,25 @@
+# GNSS-denied baseline config — Stage C (see CLAUDE.md, "GNSS-Denied
+# Configuration — Stage C"). This is what the thesis actually studies:
+# position from flow-derived velocity dead-reckoning + IMU, height from the
+# downward LiDAR, no GPS contribution at all. This is the baseline config
+# that UKF and FGO must also use for a fair comparison.
+#
+# EK3_SRC1_POSXY has no "OpticalFlow" value (only VELXY does) — flow-based
+# position is dead reckoning, not a direct source. Confirmed by reading
+# NavEKF3_core::readyToUseGPS() directly: it returns false immediately once
+# EK3_SRC1_POSXY != GPS, regardless of actual GPS signal health, which drops
+# PV_AidingMode to AID_RELATIVE (flow dead-reckoning) once
+# readyToUseOptFlow() is satisfied (already working since Stage A).
+EK3_SRC1_POSXY 0
+# EK3_SRC1_POSZ=2 (RangeFinder) - height from the downward LiDAR (Stage 2),
+# not Baro (the default) or GPS. Indoor baro is imprecise at these altitudes
+# and this project already has a verified rangefinder.
+EK3_SRC1_POSZ 2
+# EK3_SRC1_VELZ defaults to GPS(3) - a gap that would let GPS still
+# contribute vertical velocity even with POSXY off. None(0) means the EKF
+# derives vertical velocity internally from IMU + the height source instead.
+EK3_SRC1_VELZ 0
+# Physically disable the simulated GPS sensor (not just its use as an EKF
+# source) - belt-and-braces to guarantee zero GPS contribution via any path,
+# not just the EK3_SRC selections above. Confirmed via SIM_GPS.cpp.
+SIM_GPS1_ENABLE 0
