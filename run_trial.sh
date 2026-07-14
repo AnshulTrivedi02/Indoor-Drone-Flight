@@ -1,0 +1,341 @@
+#!/usr/bin/env bash
+# Automated, unattended trial harness — one command runs a complete trial:
+# launch the full headless stack, arm, climb, cruise, land, record, tear
+# down, all with zero manual intervention.
+#
+# Two hard-won constraints shape every wait in this script (see CLAUDE.md,
+# Known Issues — RTF on this machine is low, roughly 0.05-0.17):
+#   1. Flight-progress waits (altitude reached, cruise duration) NEVER gate
+#      on a fixed wall-clock sleep — they poll measured state instead (see
+#      fly_trial.py, which does the actual flight). A wall-clock sleep(N)
+#      at RTF~0.1 only buys ~N*RTF seconds of sim time; an earlier attempt
+#      at this produced a near-empty 7-12s flight log because of exactly
+#      this mistake.
+#   2. Process-startup readiness waits (Gazebo up, SITL connectable, topics
+#      publishing) are NOT sim-time phenomena — they're real-world process
+#      launch latency, unrelated to RTF — so bounding them with a
+#      wall-clock cap is correct here, and they still poll the actual
+#      condition rather than assuming a fixed duration is enough.
+#
+# Usage:
+#   ./run_trial.sh --world iris_textured --velocity 0.4 --altitude 2.0 \
+#       --duration 30 [--trial-name my_trial]
+#
+# duration is cruise duration in SIM SECONDS (not wall-clock).
+# trial_name auto-increments (trial_001, trial_002, ...) if omitted.
+#
+# Output: ~/thesis_data/trials/<trial_name>/
+#   bag/            ROS2 bag (clock, ground_truth, ekf pose, lidar, attitude, flow)
+#   metadata.yaml
+#   ardupilot.bin
+#   run_trial.log   full stdout/stderr of this run
+
+set -euo pipefail
+
+# ── Argument parsing ─────────────────────────────────────────────────────
+WORLD=""
+VELOCITY=""
+ALTITUDE=""
+DURATION=""
+TRIAL_NAME=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --world)      WORLD="$2";      shift 2 ;;
+        --velocity)   VELOCITY="$2";   shift 2 ;;
+        --altitude)   ALTITUDE="$2";   shift 2 ;;
+        --duration)   DURATION="$2";   shift 2 ;;
+        --trial-name) TRIAL_NAME="$2"; shift 2 ;;
+        *) echo "Unknown flag: $1" >&2; exit 1 ;;
+    esac
+done
+
+if [ -z "$WORLD" ] || [ -z "$VELOCITY" ] || [ -z "$ALTITUDE" ] || [ -z "$DURATION" ]; then
+    echo "Usage: $0 --world NAME --velocity M/S --altitude M --duration SIM_SECONDS [--trial-name NAME]" >&2
+    exit 1
+fi
+
+if [ -z "$TRIAL_NAME" ]; then
+    n=1
+    while [ -d "$HOME/thesis_data/trials/trial_$(printf '%03d' "$n")" ]; do
+        n=$((n + 1))
+    done
+    TRIAL_NAME="trial_$(printf '%03d' "$n")"
+fi
+
+OUTPUT_DIR="$HOME/thesis_data/trials/$TRIAL_NAME"
+if [ -d "$OUTPUT_DIR" ]; then
+    echo "ERROR: Trial directory already exists: $OUTPUT_DIR" >&2
+    exit 1
+fi
+mkdir -p "$OUTPUT_DIR"
+
+LOG_DIR="$OUTPUT_DIR/logs"
+mkdir -p "$LOG_DIR"
+
+# Everything from here on is also captured to run_trial.log.
+exec > >(tee "$OUTPUT_DIR/run_trial.log") 2>&1
+
+echo "=== Trial '$TRIAL_NAME' ==="
+echo "World: $WORLD  Velocity: $VELOCITY m/s  Altitude: $ALTITUDE m  Duration: $DURATION sim-s"
+echo "Output: $OUTPUT_DIR"
+echo ""
+
+# ── PID tracking + idempotent cleanup ────────────────────────────────────
+declare -a BG_PIDS=()
+RECORD_PID=""
+CLEANED_UP=0
+
+start_bg() {
+    # start_bg <logfile> <command...> — launches detached, tracks the PID.
+    local logfile="$1"; shift
+    setsid nohup "$@" > "$logfile" 2>&1 < /dev/null &
+    disown
+    BG_PIDS+=("$!")
+}
+
+cleanup() {
+    local exit_code=$?
+    if [ "$CLEANED_UP" -eq 1 ]; then
+        return
+    fi
+    CLEANED_UP=1
+    echo ""
+    echo "=== Cleaning up (exit code $exit_code) ==="
+
+    if [ -n "$RECORD_PID" ] && kill -0 "$RECORD_PID" 2>/dev/null; then
+        echo "Stopping bag recorder (pid $RECORD_PID)..."
+        # SIGTERM, not SIGINT: once detached from a tty (setsid, stdin
+        # from /dev/null), ros2 bag record explicitly ignores SIGINT
+        # (confirmed via /proc/<pid>/status SigIgn) but still catches
+        # SIGTERM for a clean shutdown that flushes the bag and writes
+        # metadata.yaml - SIGINT here is a silent no-op, not just slow.
+        kill -TERM -- "-$RECORD_PID" 2>/dev/null || true
+        for _ in $(seq 1 20); do
+            kill -0 "$RECORD_PID" 2>/dev/null || break
+            sleep 0.5
+        done
+        kill -9 -- "-$RECORD_PID" 2>/dev/null || true
+    fi
+
+    # Each start_bg launch used setsid, so it's the leader of its own
+    # process group - kill the whole group (negative PID), not just the
+    # single tracked PID. ros2 run/ros2 bag both launch a wrapper process
+    # that then execs or forks the real binary; killing only the wrapper
+    # PID orphans the real one (found by testing this exact script).
+    for pid in "${BG_PIDS[@]:-}"; do
+        [ -n "$pid" ] && kill -9 -- "-$pid" 2>/dev/null || true
+    done
+
+    # Belt-and-braces: catch anything the PID list missed (e.g. a process
+    # that forked a child we didn't track), scoped to this trial's own
+    # world/port selection so we don't touch unrelated work.
+    pkill -9 -f "gz sim -v4 -s -r worlds/${WORLD}.sdf" 2>/dev/null || true
+    pkill -9 -f "build/sitl/bin/arducopter.*sim-address=127.0.0.1 -I0" 2>/dev/null || true
+    pkill -9 -f "mavproxy.py --daemon.*--out 127.0.0.1:14550" 2>/dev/null || true
+
+    echo "Cleanup complete."
+    exit "$exit_code"
+}
+trap cleanup EXIT INT TERM ERR
+
+# ── Readiness polling helper ─────────────────────────────────────────────
+# Polls an actual condition, not a fixed sleep. The cap here is a
+# wall-clock safety net against real process-launch latency (see header
+# comment #2), NOT a substitute for checking the condition.
+wait_for() {
+    # Each poll attempt is itself bounded (timeout 5) so a single hung
+    # attempt (gz's CLI tools have been observed to occasionally hang in
+    # this environment) can't block the whole retry loop forever - the
+    # outer cap_s is what actually decides when to give up.
+    local description="$1" check_cmd="$2" cap_s="$3"
+    local t0=$SECONDS
+    echo "Waiting for: $description (cap ${cap_s}s)..."
+    while (( SECONDS - t0 < cap_s )); do
+        if timeout 5 bash -c "$check_cmd" >/dev/null 2>&1; then
+            echo "  ready after $((SECONDS - t0))s"
+            return 0
+        fi
+        sleep 1
+    done
+    echo "ERROR: timed out waiting for: $description" >&2
+    return 1
+}
+
+# ── Launch: Gazebo (headless) ────────────────────────────────────────────
+echo ""
+echo "--- Launching Gazebo (headless) ---"
+cd ~/ardupilot_gazebo
+export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH:-}
+export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
+start_bg "$LOG_DIR/gazebo.log" gz sim -v4 -s -r "worlds/${WORLD}.sdf"
+
+wait_for "Gazebo model spawned (/downward_lidar/range on the gz bus)" \
+    "gz topic -l 2>/dev/null | grep -q /downward_lidar/range" 60
+
+# ── Launch: ArduPilot SITL ────────────────────────────────────────────────
+echo ""
+echo "--- Launching ArduPilot SITL ---"
+set +u
+source ~/venv-ardupilot/bin/activate
+set -u
+cd ~/ardupilot/ArduCopter
+start_bg "$LOG_DIR/arducopter.log" \
+    ~/ardupilot/build/sitl/bin/arducopter \
+    --model JSON --speedup 1 --slave 0 \
+    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm" \
+    --sim-address=127.0.0.1 -I0
+
+wait_for "SITL MAVLink port open (tcp 5760)" "ss -tln 2>/dev/null | grep -q ':5760 '" 60
+
+echo ""
+echo "--- Launching MAVProxy (relay for the bridge scripts' UDP ports) ---"
+start_bg "$LOG_DIR/mavproxy.log" \
+    mavproxy.py --daemon --retries 5 \
+    --out 127.0.0.1:14550 --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 \
+    --out 127.0.0.1:14551 --out 127.0.0.1:14552 --out 127.0.0.1:14553 --out 127.0.0.1:14554
+
+wait_for "MAVProxy relaying (vehicle detected)" \
+    "grep -q 'online system' '$LOG_DIR/mavproxy.log'" 60
+
+# ── Launch: ROS2 bridges + nodes ─────────────────────────────────────────
+echo ""
+echo "--- Launching ROS2 bridge + nodes ---"
+set +u
+source /opt/ros/jazzy/setup.bash
+source "$HOME/thesis_ws/install/setup.bash"
+set -u
+
+start_bg "$LOG_DIR/ros_gz_bridge.log" \
+    ros2 run ros_gz_bridge parameter_bridge \
+    /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
+    /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
+    /downward_lidar/range@sensor_msgs/msg/Range[gz.msgs.LaserScan \
+    /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
+    "/world/${WORLD}/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V"
+
+start_bg "$LOG_DIR/ground_truth_pub.log" \
+    python3 "$HOME/thesis_ws/ground_truth_pub.py" "$WORLD"
+
+wait_for "/ground_truth/pose publishing" "ros2 topic list 2>/dev/null | grep -q /ground_truth/pose" 60
+wait_for "/downward_lidar/range on ROS2" "ros2 topic list 2>/dev/null | grep -q /downward_lidar/range" 60
+
+start_bg "$LOG_DIR/attitude_bridge.log" \
+    python3 "$HOME/thesis_ws/attitude_bridge.py" --ros-args -p use_sim_time:=true
+start_bg "$LOG_DIR/lidar_bridge.log" \
+    python3 "$HOME/thesis_ws/lidar_bridge.py" --ros-args -p use_sim_time:=true
+
+wait_for "/attitude/angular_rates publishing" "ros2 topic list 2>/dev/null | grep -q /attitude/angular_rates" 60
+
+start_bg "$LOG_DIR/flow_tracker.log" \
+    ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true
+
+wait_for "/optical_flow/measurement publishing" "ros2 topic list 2>/dev/null | grep -q /optical_flow/measurement" 60
+
+start_bg "$LOG_DIR/flow_bridge.log" \
+    python3 "$HOME/thesis_ws/flow_bridge.py" --ros-args -p use_sim_time:=true
+start_bg "$LOG_DIR/ekf_bridge.log" \
+    python3 "$HOME/thesis_ws/ekf_bridge.py" --ros-args -p use_sim_time:=true
+
+wait_for "/ekf/pose publishing" "ros2 topic list 2>/dev/null | grep -q /ekf/pose" 60
+
+echo ""
+echo "--- Full stack up ---"
+
+# ── Recording ─────────────────────────────────────────────────────────────
+echo ""
+echo "--- Starting bag recording ---"
+set +e
+setsid ros2 bag record \
+    --storage sqlite3 \
+    --use-sim-time \
+    --output "$OUTPUT_DIR/bag" \
+    --topics \
+    /clock \
+    /ground_truth/pose \
+    /ekf/pose \
+    /downward_lidar/range \
+    /attitude/angular_rates \
+    /optical_flow/measurement \
+    > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
+RECORD_PID=$!
+disown
+set -e
+sleep 2
+if ! kill -0 "$RECORD_PID" 2>/dev/null; then
+    echo "ERROR: ros2 bag record exited immediately - see $LOG_DIR/ros2_bag_record.log" >&2
+    exit 1
+fi
+echo "Recording (pid $RECORD_PID) -> $OUTPUT_DIR/bag"
+
+# ── Flight (arm, climb, cruise, land — all state-gated, see fly_trial.py) ─
+echo ""
+echo "--- Flying trial ---"
+set +u
+source ~/venv-ardupilot/bin/activate
+set -u
+set +e
+python3 "$HOME/thesis_ws/fly_trial.py" \
+    --port 14550 --altitude "$ALTITUDE" --velocity "$VELOCITY" --duration "$DURATION" \
+    2>&1 | tee "$LOG_DIR/fly_trial.log"
+FLIGHT_STATUS=${PIPESTATUS[0]}
+set -e
+
+if [ "$FLIGHT_STATUS" -ne 0 ]; then
+    echo "ERROR: fly_trial.py failed (exit $FLIGHT_STATUS) - see $LOG_DIR/fly_trial.log" >&2
+    exit "$FLIGHT_STATUS"
+fi
+
+# ── Stop recording, copy ArduPilot log, write metadata ───────────────────
+echo ""
+echo "--- Stopping recording ---"
+# SIGTERM, not SIGINT: once detached from a tty, ros2 bag record ignores
+# SIGINT outright (verified via /proc/<pid>/status) but shuts down cleanly
+# on SIGTERM, flushing the bag and writing metadata.yaml. Using SIGINT
+# here previously left the recorder running forever until force-killed,
+# which skips metadata.yaml entirely and leaves the bag unreadable.
+kill -TERM -- "-$RECORD_PID" 2>/dev/null || true
+for _ in $(seq 1 20); do
+    kill -0 "$RECORD_PID" 2>/dev/null || break
+    sleep 0.5
+done
+# Fallback only - kill -9 here means metadata.yaml was NOT written and the
+# bag is unusable, so this should never fire in a healthy run; it exists
+# purely to guarantee no orphaned process, same reasoning as cleanup().
+kill -9 -- "-$RECORD_PID" 2>/dev/null || true
+RECORD_PID=""
+
+LATEST_BIN=$(find "$HOME/ardupilot/ArduCopter/logs" -maxdepth 1 -name "*.BIN" -type f \
+    -printf "%T@ %p\n" 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+if [ -n "$LATEST_BIN" ]; then
+    cp "$LATEST_BIN" "$OUTPUT_DIR/ardupilot.bin"
+    echo "Copied ArduPilot log: $(basename "$LATEST_BIN") -> ardupilot.bin"
+else
+    echo "WARNING: No .BIN log found - skipping ArduPilot log copy."
+fi
+
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+GIT_HASH=$(git -C "$HOME/thesis_ws" rev-parse HEAD 2>/dev/null || echo "unknown")
+HOST=$(hostname)
+
+cat > "$OUTPUT_DIR/metadata.yaml" << EOF
+trial_name: $TRIAL_NAME
+timestamp_utc: $TIMESTAMP
+world: $WORLD
+target_velocity_m_s: $VELOCITY
+target_altitude_m: $ALTITUDE
+target_duration_sim_s: $DURATION
+gnss_denied: true
+git_commit: $GIT_HASH
+hostname: $HOST
+harness: run_trial.sh
+EOF
+
+echo ""
+echo "=== Trial '$TRIAL_NAME' complete ==="
+echo "Bag:      $OUTPUT_DIR/bag"
+echo "ArduPilot log: $OUTPUT_DIR/ardupilot.bin"
+echo "Metadata: $OUTPUT_DIR/metadata.yaml"
+echo "Per-process logs: $LOG_DIR/"
+echo ""
+echo "Evaluate with: ./evaluate_trial.sh $TRIAL_NAME"
