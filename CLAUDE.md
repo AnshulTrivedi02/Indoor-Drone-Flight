@@ -268,15 +268,13 @@ rejected by the gate, confirmed by reading `AP_NavEKF3_Logging.cpp`):
   attributable to "wrong axis" — the Kalman-filtered `VN`/`VE` state above
   is the trustworthy signal, not the raw innovation magnitude alone).
 
-**Not yet done / follow-ups found during this work, not fixed (flagged for
-you to decide on):**
-- `record_trial.sh` doesn't source `~/thesis_ws/install/setup.bash`, so
-  `ros2 bag record` can't resolve the custom `optical_flow_interfaces`
-  package and silently **drops `/optical_flow/measurement` from the
-  bag** (`rosbag2_recorder` logs a `WARN` but still records everything
-  else). Not fixed as part of Stage A — flagging for a decision.
+**Not yet done:**
 - State extraction / `evo` comparison against ground truth — explicitly
   out of scope until you confirm this fusion result.
+
+(`record_trial.sh` not sourcing the workspace overlay, and so silently
+dropping `/optical_flow/measurement` from bags, was found during this
+work — since fixed, see Known Issues.)
 
 ## Sensor Fusion Architecture
 
@@ -628,7 +626,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 1. **Manual derotation is a characterisation tool, not a blocker** — `attitude_bridge.py` publishes body rates on `/attitude/angular_rates`; `flow_tracker.py` subtracts rotational flow (`enable_derotation` param, default on) and publishes both `flow_x`/`flow_y` (derotated, characterisation-only) and `flow_x_raw`/`flow_y_raw` (raw, the production values) in `OpticalFlow.msg` — see [Sensor Fusion Architecture](#sensor-fusion-architecture). Isolated pure-rotation hover testing (yaw done, pitch/roll not) found only a partial 5–15% collapse, confounded by a persistent ~0.4 rad/s background sim vibration present even at idle hover. **This is deprioritised/deferred indefinitely** — it was only relevant to validating a production derotation path that is no longer needed; ArduPilot EKF3 derotates internally from raw flow + gyro, and the FGO will do its own rotation compensation in its flow factor.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
-4. **`record_trial.sh` silently drops `/optical_flow/measurement` from bags** — doesn't source `~/thesis_ws/install/setup.bash`, so `ros2 bag record` can't resolve the custom `optical_flow_interfaces` package for that topic (found during EKF3 flow fusion Stage A verification; not fixed, flagged for a decision).
+4. ~~`record_trial.sh` silently dropped `/optical_flow/measurement` from bags~~ — **fixed**: it wasn't sourcing `~/thesis_ws/install/setup.bash`, so `ros2 bag record` couldn't resolve the custom `optical_flow_interfaces` package for that topic (found during EKF3 flow fusion Stage A verification).
 5. **Downward LiDAR RNGFND1 dropouts under aggressive attitude changes** — ~3% of readings during a dynamic climb briefly read near-zero instead of true altitude (steady hover is sub-cm accurate). Currently harmless since `EK3_RNG_USE_HGT=-1` keeps RNGFND1 out of the EKF's height estimate by default — see "Downward LiDAR — Stage 2" above. Revisit before ever enabling range-based height switching or surface tracking.
 6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
