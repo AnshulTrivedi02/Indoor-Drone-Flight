@@ -139,8 +139,9 @@ MAVLink `RANGEFINDER` + `SYS_STATUS`):
   affects code that *requests telemetry from* the vehicle;
   `lidar_bridge.py` itself only sends, so it isn't affected.
 
-**Not yet done:** adding `/downward_lidar/range` to `record_trial.sh`'s
-recorded topics — flagged as a follow-up, not started.
+`/downward_lidar/range` is recorded by default in `record_trial.sh` trials
+(unconditionally — one float per message is lightweight, unlike the raw
+camera images gated behind `--with-images`).
 
 ## Sensor Fusion Architecture
 
@@ -436,8 +437,8 @@ Options:
 ```
 
 Topics recorded by default: `/clock`, `/ground_truth/pose`,
-`/optical_flow/measurement` (plus any topic matching `^/(flow|optical_flow)`
-found on the bus at startup).
+`/downward_lidar/range`, `/optical_flow/measurement` (plus any topic matching
+`^/(flow|optical_flow)` found on the bus at startup).
 
 ### metadata.yaml schema
 
@@ -499,7 +500,7 @@ Remaining:
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf` — done, verified (Stage 1)
 5. Inject `DISTANCE_SENSOR` (LiDAR) to ArduPilot via MAVLink — done, verified (Stage 2); `OPTICAL_FLOW_RAD` injection still pending
-6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — follow-up, not started
+6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
 
 ## Experimental Design Notes
 

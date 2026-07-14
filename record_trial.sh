@@ -140,6 +140,7 @@ ros2 bag record \
     --topics \
     /clock \
     /ground_truth/pose \
+    /downward_lidar/range \
     $FLOW_TOPICS \
     $CAMERA_TOPICS
 set -e
