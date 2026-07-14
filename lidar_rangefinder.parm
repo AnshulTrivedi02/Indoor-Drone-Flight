@@ -1,0 +1,14 @@
+# RNGFND1 override for the downward-facing Gazebo LiDAR, injected via MAVLink
+# DISTANCE_SENSOR by lidar_bridge.py (see CLAUDE.md, Sensor Fusion Architecture).
+#
+# gazebo-iris.parm sets RNGFND1_TYPE=1 (Analog, fed by SIM_SONAR_SCALE) — the
+# render-driven-only philosophy for this project means we do NOT use that
+# path. Loaded as the last (most specific) file in sim_vehicle.py's --defaults
+# list, so these values override gazebo-iris.parm's RNGFND1_* block.
+#
+# Values match the gpu_lidar sensor's <range> block in
+# iris_with_standoffs/model.sdf (min 0.05 m, max 40 m).
+RNGFND1_TYPE 10
+RNGFND1_ORIENT 25
+RNGFND1_MIN 0.05
+RNGFND1_MAX 40
