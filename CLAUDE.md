@@ -41,6 +41,8 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Message definitions**     | `~/thesis_ws/src/optical_flow_interfaces/msg/OpticalFlow.msg`        |
 | **Ground truth publisher**  | `~/thesis_ws/ground_truth_pub.py`                                    |
 | **Attitude bridge**         | `~/thesis_ws/attitude_bridge.py`                                     |
+| **LiDAR bridge**            | `~/thesis_ws/lidar_bridge.py`                                        |
+| **LiDAR RNGFND1 params**    | `~/thesis_ws/lidar_rangefinder.parm`                                 |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
 | Trial data output           | `~/thesis_data/trials/`                                              |
@@ -83,8 +85,62 @@ sim-time stamps (`header.stamp` tracks `/clock`).
 | IMU             | Working           | Via ArduPilot SITL                                           |
 | Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; mounted at **z = −0.25 m** relative to `base_link` origin; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
 | Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_raw`/`flow_y_raw` are the **production values** — raw, un-derotated flow, which is what ArduPilot EKF3 and the FGO consume (see [Sensor Fusion Architecture](#sensor-fusion-architecture)). `flow_x`/`flow_y` are a manual derotation (`enable_derotation` param, default on) kept for **characterisation only**, not fed to any estimator. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
-| Downward LiDAR  | Stage 1 done — SDF sensor + ROS bridge, verified | Single-beam `gpu_lidar` in `iris_with_standoffs/model.sdf`, mounted at **z = −0.12 m** relative to `base_link` origin, pointing straight down. Emits `gz.msgs.LaserScan` on gz topic `/downward_lidar/range`, bridged to ROS2 as `sensor_msgs/msg/Range` on the same topic name. Range 0.05–40 m. Verified against `/ground_truth/pose` z during a 2 m hover: sub-millimetre accuracy (383/383 samples within 5 cm, mean error 0.1 mm) once settled. `min_angle`/`max_angle` **must both be exactly 0** for a 1-sample axis — Ogre2GpuRays warns and silently ignores `max_angle` otherwise, and an earlier attempt at a small nonzero FOV was a red herring; the real fix for transient short-range noise was moving the mount from −0.05 m to −0.12 m to clear the airframe's own belly mesh (a ray originating too close to the body can graze it under small attitude jitter). `update_rate` is **30 Hz**, matching the camera/flow rate (kept at 30, not raised — see below). **The sim's real-time factor (RTF) is the actual rate bottleneck, not `update_rate`**: this machine runs the model at RTF ≈ 0.05–0.17 (measured via `gz topic -e -t /stats`), even standalone/headless with no GUI or ArduPilot attached, so the *wall-clock* topic rate (what `ros2 topic hz` reports) is roughly `update_rate × RTF` — measured ~3.6–4 Hz at 30 Hz configured, which is what looked like a "slow LiDAR" but is really just RTF. The sensor's **true sim-time rate is correct**: consecutive `sensor_msgs/Range` header stamps on `/downward_lidar/range` are spaced exactly 33.00 ms apart (100-sample check), i.e. genuine 30.3 Hz in simulated time, independent of wall-clock slowdown. Bumping `update_rate` higher (tried 50 Hz) does raise the wall-clock rate roughly proportionally, but doesn't fix the underlying RTF and wasn't kept — 30 Hz matches the camera/flow cadence, which is what actually matters for fusion. When reasoning about any sensor's "Hz" in this project, use sim-time (header-stamp deltas), not wall-clock `topic hz`, unless wall-clock behaviour specifically is what's being investigated. Stage 2 (MAVLink `DISTANCE_SENSOR` injection, not `SIM_SONAR`) not yet started. |
+| Downward LiDAR  | Stage 1 done — SDF sensor + ROS bridge, verified | Single-beam `gpu_lidar` in `iris_with_standoffs/model.sdf`, mounted at **z = −0.12 m** relative to `base_link` origin, pointing straight down. Emits `gz.msgs.LaserScan` on gz topic `/downward_lidar/range`, bridged to ROS2 as `sensor_msgs/msg/Range` on the same topic name. Range 0.05–40 m. Verified against `/ground_truth/pose` z during a 2 m hover: sub-millimetre accuracy (383/383 samples within 5 cm, mean error 0.1 mm) once settled. `min_angle`/`max_angle` **must both be exactly 0** for a 1-sample axis — Ogre2GpuRays warns and silently ignores `max_angle` otherwise, and an earlier attempt at a small nonzero FOV was a red herring; the real fix for transient short-range noise was moving the mount from −0.05 m to −0.12 m to clear the airframe's own belly mesh (a ray originating too close to the body can graze it under small attitude jitter). `update_rate` is **30 Hz**, matching the camera/flow rate (kept at 30, not raised — see below). **The sim's real-time factor (RTF) is the actual rate bottleneck, not `update_rate`**: this machine runs the model at RTF ≈ 0.05–0.17 (measured via `gz topic -e -t /stats`), even standalone/headless with no GUI or ArduPilot attached, so the *wall-clock* topic rate (what `ros2 topic hz` reports) is roughly `update_rate × RTF` — measured ~3.6–4 Hz at 30 Hz configured, which is what looked like a "slow LiDAR" but is really just RTF. The sensor's **true sim-time rate is correct**: consecutive `sensor_msgs/Range` header stamps on `/downward_lidar/range` are spaced exactly 33.00 ms apart (100-sample check), i.e. genuine 30.3 Hz in simulated time, independent of wall-clock slowdown. Bumping `update_rate` higher (tried 50 Hz) does raise the wall-clock rate roughly proportionally, but doesn't fix the underlying RTF and wasn't kept — 30 Hz matches the camera/flow cadence, which is what actually matters for fusion. When reasoning about any sensor's "Hz" in this project, use sim-time (header-stamp deltas), not wall-clock `topic hz`, unless wall-clock behaviour specifically is what's being investigated. Stage 2 (MAVLink `DISTANCE_SENSOR` injection, not `SIM_SONAR`) done and verified — see "Downward LiDAR — Stage 2" below. |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
+
+### Downward LiDAR — Stage 2 (MAVLink injection)
+
+`lidar_bridge.py` subscribes to `/downward_lidar/range` and injects each
+reading into ArduPilot as `RNGFND1` via MAVLink `DISTANCE_SENSOR`, on its own
+dedicated UDP port **14552** (`14550` is `fly_forward.py`, `14551` is
+`attitude_bridge.py`) — see Terminal 8 below and Key Paths. Deliberately
+**not** using ArduPilot's built-in `SIM_SONAR`/Analog rangefinder simulation,
+consistent with this project's render-driven-sensing philosophy: the
+distance ArduPilot sees comes from the same Gazebo raycast as everything
+else, not a separate SITL physics shortcut.
+
+**RNGFND1 parameters** (`lidar_rangefinder.parm`, appended via
+`--add-param-file` so it loads *after*, and overrides, `gazebo-iris.parm`'s
+`RNGFND1_TYPE 1`/Analog/SIM_SONAR block):
+```
+RNGFND1_TYPE 10      # MAVLink
+RNGFND1_ORIENT 25    # Down / ROTATION_PITCH_270 (matches DISTANCE_SENSOR's orientation field)
+RNGFND1_MIN 0.05     # metres — matches the gpu_lidar's <range><min>
+RNGFND1_MAX 40       # metres — matches the gpu_lidar's <range><max>
+```
+Confirmed via `~/ardupilot/libraries/AP_RangeFinder/AP_RangeFinder_Params.cpp`
+(this build, `ArduPilot-4.6.0-beta1-6521-g7bac20cbcc`, already has the
+Dec-2024 `RNGFND1_MIN_CM`/`MAX_CM` → `RNGFND1_MIN`/`MAX` rename, so these are
+**metres**, not centimetres) rather than trusted from memory.
+`AP_RangeFinder_MAVLink::handle_msg` only checks
+`packet.orientation == orientation()` to accept a reading — no serial port
+wiring needed, since `DISTANCE_SENSOR` is handled generically for any
+connected MAVLink channel in `GCS_Common.cpp`.
+
+**Verified** (2 m hover, direct comparison against `/ground_truth/pose` via
+MAVLink `RANGEFINDER` + `SYS_STATUS`):
+- `SYS_STATUS` reports the rangefinder sensor bit `present=enabled=healthy=True`.
+- During steady hover: mean error **0.17 mm**, max **10 mm** (6 samples,
+  1 cm MAVLink quantisation) — matching Stage 1's raw-sensor accuracy.
+- During the dynamic climb: **~3% transient dropout rate** (occasional single
+  samples reading near-zero instead of true altitude) — same
+  self-occlusion/attitude-jitter characteristic noted in Stage 1, surfacing
+  here under more aggressive attitude excursions than Stage 1's gentle hover
+  test covered. **Currently harmless**: `EK3_SRC1_POSZ=1` (Baro) and
+  `EK3_RNG_USE_HGT=-1` (disabled) by default, so RNGFND1 isn't fused into
+  the EKF's height estimate or flight control at all in this configuration —
+  confirmed by param readback, not assumed. Worth revisiting (e.g. filtering
+  dropouts in `lidar_bridge.py`, or characterising the self-occlusion angle
+  threshold) before ever enabling `EK3_RNG_USE_HGT` or surface tracking.
+- A MAVProxy stream freshly requesting `RANGEFINDER` needs periodic
+  re-assertion (every ~2 s) to counter MAVProxy silently overriding a
+  one-shot `SET_MESSAGE_INTERVAL` with its own low default rate — the same
+  issue already fixed in `attitude_bridge.py` (see Known Issues). Only
+  affects code that *requests telemetry from* the vehicle;
+  `lidar_bridge.py` itself only sends, so it isn't affected.
+
+**Not yet done:** adding `/downward_lidar/range` to `record_trial.sh`'s
+recorded topics — flagged as a follow-up, not started.
 
 ## Sensor Fusion Architecture
 
@@ -94,8 +150,11 @@ internally**, rather than all three being fed an identically pre-processed
 input.
 
 - **Common raw inputs across all estimators:** raw optical flow
-  (`flow_x_raw`/`flow_y_raw`) and raw gyro/IMU angular rates
-  (`/attitude/angular_rates`, and IMU generally).
+  (`flow_x_raw`/`flow_y_raw`), raw gyro/IMU angular rates
+  (`/attitude/angular_rates`, and IMU generally), and downward-rangefinder
+  distance (`/downward_lidar/range`, injected into ArduPilot as `RNGFND1`
+  via MAVLink `DISTANCE_SENSOR` by `lidar_bridge.py`; the FGO will consume
+  the same ROS topic directly).
 - **ArduPilot EKF3 is the fixed baseline.** It is set up exactly as
   ArduPilot intends — native `OPTICAL_FLOW_RAD` inputs (raw flow + gyro
   integration fields) — and derotates internally. No shortcuts, no
@@ -162,13 +221,21 @@ cd ~/ardupilot/ArduCopter
   --console \
   --map \
   --out 127.0.0.1:14551 \
+  --out 127.0.0.1:14552 \
+  --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
   --no-rebuild
 ```
 
-The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 8) its
-own dedicated MAVLink output, separate from the default `14550` that
-`fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
-listens, so two processes cannot share one port.
+The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 7) its
+own dedicated MAVLink output, and `--out 127.0.0.1:14552` gives
+`lidar_bridge.py` (Terminal 8) its own — separate from the default `14550`
+that `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
+listens, so no two processes can share one port. `--add-param-file` appends
+`lidar_rangefinder.parm` after the frame's own defaults
+(`copter.parm,gazebo-iris.parm`), so its `RNGFND1_*` values win over
+`gazebo-iris.parm`'s Analog/SIM_SONAR-based RNGFND1 block (`--add-param-file`
+appends to the end of the `--defaults` comma list, and later files override
+earlier ones for duplicate params).
 
 Once MAVProxy starts:
 
@@ -264,7 +331,25 @@ Verify:
 ros2 topic hz /attitude/angular_rates   # expect ~50 Hz
 ```
 
-### Terminal 8 — Bag Recording (one trial)
+### Terminal 8 — LiDAR Bridge
+
+Forwards `/downward_lidar/range` (`sensor_msgs/Range`) to ArduPilot as
+`RNGFND1` via MAVLink `DISTANCE_SENSOR`, on its own dedicated port (`14552`)
+— see [Sensor Fusion Architecture](#sensor-fusion-architecture). Run after
+SITL (Terminal 2) is up and streaming on `14552`, and after the ROS2 Bridge
+(Terminal 3) so `/downward_lidar/range` exists.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/lidar_bridge.py --ros-args -p use_sim_time:=true
+```
+
+Verify: MAVProxy console should show `RNGFND1: healthy` (or similar) once
+readings start arriving; `rangefinder` in the MAVProxy console prints the
+current distance. Cross-check against `/ground_truth/pose` z during a hover.
+
+### Terminal 9 — Bag Recording (one trial)
 
 ```bash
 cd ~/thesis_ws
@@ -380,7 +465,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
-5. **Downward LiDAR MAVLink injection not yet done** — sensor + ROS bridge verified (Stage 1); still needed for metric scale and ArduPilot EKF fusion (Stage 2)
+5. **Downward LiDAR RNGFND1 dropouts under aggressive attitude changes** — ~3% of readings during a dynamic climb briefly read near-zero instead of true altitude (steady hover is sub-cm accurate). Currently harmless since `EK3_RNG_USE_HGT=-1` keeps RNGFND1 out of the EKF's height estimate by default — see "Downward LiDAR — Stage 2" above. Revisit before ever enabling range-based height switching or surface tracking.
 6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
@@ -413,7 +498,8 @@ Remaining:
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
 4. Add downward point LiDAR to `iris_with_standoffs/model.sdf` — done, verified (Stage 1)
-5. Inject `DISTANCE_SENSOR` (LiDAR, Stage 2) + `OPTICAL_FLOW_RAD` to ArduPilot via MAVLink
+5. Inject `DISTANCE_SENSOR` (LiDAR) to ArduPilot via MAVLink — done, verified (Stage 2); `OPTICAL_FLOW_RAD` injection still pending
+6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — follow-up, not started
 
 ## Experimental Design Notes
 

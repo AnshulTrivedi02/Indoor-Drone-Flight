@@ -32,6 +32,8 @@ cd ~/ardupilot/ArduCopter
   --console \
   --map \
   --out 127.0.0.1:14551 \
+  --out 127.0.0.1:14552 \
+  --add-param-file \$HOME/thesis_ws/lidar_rangefinder.parm \
   --no-rebuild
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
@@ -57,6 +59,16 @@ sleep 15
 source /opt/ros/jazzy/setup.bash
 source ~/venv-ardupilot/bin/activate
 python3 ~/thesis_ws/attitude_bridge.py --ros-args -p use_sim_time:=true
+while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
+EOF
+
+cat > "$SCRIPTS/lidar.sh" << EOF
+#!/usr/bin/env bash
+echo "Waiting 15 s for SITL + ROS2 clock bridge..."
+sleep 15
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/lidar_bridge.py --ros-args -p use_sim_time:=true
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 
@@ -86,5 +98,6 @@ gnome-terminal \
   --tab --title="SITL"         -e "bash $SCRIPTS/sitl.sh" \
   --tab --title="ROS2 Bridge"  -e "bash $SCRIPTS/bridge.sh" \
   --tab --title="Attitude"     -e "bash $SCRIPTS/attitude.sh" \
+  --tab --title="LiDAR"        -e "bash $SCRIPTS/lidar.sh" \
   --tab --title="Optical Flow" -e "bash $SCRIPTS/flow.sh" \
   --tab --title="Image Viewer" -e "bash $SCRIPTS/viewer.sh"
