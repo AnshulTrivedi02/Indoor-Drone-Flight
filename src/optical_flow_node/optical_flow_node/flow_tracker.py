@@ -297,9 +297,15 @@ class FlowTracker(Node):
             out.feature_count = tracked_count
             out.inlier_ratio = inlier_ratio
             out.valid = tracked_count >= min_valid
-            # rad/s fields remain 0.0 until Task 3 (pixel-to-radian conversion).
-            out.flow_x_rad = 0.0
-            out.flow_y_rad = 0.0
+            # Sensor-native angular flow (rad/s) — plain unit conversion from the
+            # raw pixel rate via focal length, same camera optical/pixel frame as
+            # flow_x_raw/flow_y_raw above. Deliberately NOT adjusted for any one
+            # downstream consumer's axis/sign convention (e.g. MAVLink
+            # OPTICAL_FLOW's flow_rate_x/y) — that mapping belongs in the
+            # consumer (flow_bridge.py), not here, so this topic stays reusable
+            # by the FGO and any other future consumer.
+            out.flow_x_rad = flow_x_px_s / FOCAL_LENGTH_PX
+            out.flow_y_rad = flow_y_px_s / FOCAL_LENGTH_PX
             self._pub.publish(out)
 
         else:
