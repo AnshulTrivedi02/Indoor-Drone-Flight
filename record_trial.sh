@@ -147,6 +147,7 @@ ros2 bag record \
     --topics \
     /clock \
     /ground_truth/pose \
+    /ekf/pose \
     /downward_lidar/range \
     /attitude/angular_rates \
     $FLOW_TOPICS \

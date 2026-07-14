@@ -22,7 +22,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | Bridge        | `ros_gz_bridge` (standard, no custom config file)             |
 | Vision        | OpenCV (Python) — Shi-Tomasi + Lucas-Kanade in `flow_tracker.py` |
 | FGO library   | GTSAM (planned, not yet integrated)                           |
-| Evaluation    | `evo` (planned) for ATE / RPE                                  |
+| Evaluation    | `evo` for ATE / RPE, venv at `~/venv-evo`, wrapped by `evaluate_trial.sh` |
 | Language      | Australian English in all comments, docs, and prose            |
 
 ## Key Paths
@@ -45,7 +45,10 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **LiDAR RNGFND1 params**    | `~/thesis_ws/lidar_rangefinder.parm`                                 |
 | **Flow EKF bridge**         | `~/thesis_ws/flow_bridge.py`                                         |
 | **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
+| **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
+| **evo venv**                 | `~/venv-evo`                                                         |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
+| **Trial evaluator**         | `~/thesis_ws/evaluate_trial.sh`                                      |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
 | Trial data output           | `~/thesis_data/trials/`                                              |
 
@@ -268,13 +271,81 @@ rejected by the gate, confirmed by reading `AP_NavEKF3_Logging.cpp`):
   attributable to "wrong axis" — the Kalman-filtered `VN`/`VE` state above
   is the trustworthy signal, not the raw innovation magnitude alone).
 
-**Not yet done:**
-- State extraction / `evo` comparison against ground truth — explicitly
-  out of scope until you confirm this fusion result.
+State extraction / `evo` comparison against ground truth — done, see
+"EKF State Estimate — Stage B" below.
 
 (`record_trial.sh` not sourcing the workspace overlay, and so silently
 dropping `/optical_flow/measurement` from bags, was found during this
 work — since fixed, see Known Issues.)
+
+### EKF State Estimate — Stage B (evo evaluation)
+
+`ekf_bridge.py` reads ArduPilot's EKF3 state estimate via MAVLink
+(`LOCAL_POSITION_NED` + `ATTITUDE_QUATERNION`, port **14554** — dedicated,
+separate from `fly_forward.py` (14550), `attitude_bridge.py` (14551),
+`lidar_bridge.py` (14552) and `flow_bridge.py` (14553)) and republishes as
+`/ekf/pose` (`geometry_msgs/PoseStamped`), transformed into the same
+ENU/FLU frame as `/ground_truth/pose` so the two are directly comparable.
+Recorded by default in `record_trial.sh` trials.
+
+**Frame transform** (ArduPilot NED/FRD → Gazebo/ROS ENU/FLU), reported and
+verified before finalising, per your instruction:
+
+- **Position** (NED → ENU) — purely definitional axis relabelling, no
+  ambiguity: `enu.x = ned.y` (East), `enu.y = ned.x` (North),
+  `enu.z = -ned.z` (Up = −Down).
+- **Orientation** — composed from two fixed quaternions (Hamilton product,
+  `q_enu_flu = q_ned2enu ⊗ q_attitude ⊗ q_frd2flu`):
+  - `q_ned2enu = (w=0, x=√2/2, y=√2/2, z=0)` — 180° about the NED axis
+    (1,1,0)/√2. Verified by explicit rotation-matrix conversion (all 9
+    matrix entries checked by hand), not assumed.
+  - `q_frd2flu = (w=0, x=1, y=0, z=0)` — 180° about body X (forward).
+    **Exactly matches** `flow_tracker.py`'s own already-empirically-validated
+    FRD↔FLU relationship (`(wx, -wy, -wz)` for angular rates, confirmed
+    against the `imu_link`'s 180° roll SDF pose) — same transform, applied
+    to a static orientation instead of a rate.
+  - This matches the standard ArduPilot/PX4↔ROS frame-conversion structure
+    (same form as mavros's `NED_ENU_Q` / `AIRCRAFT_BASELINK_Q`
+    composition), derived and verified independently rather than trusted
+    from that recollection.
+
+**`evo` reads ROS2 bags directly** (`evo_ape`/`evo_rpe`/`evo_traj bag2 <bag>
+<ref_topic> <est_topic>`, via the pure-Python `rosbags` library — no ROS
+install needed for this step) rather than requiring a manual TUM-file
+conversion. Since `/ground_truth/pose` and `/ekf/pose` are both plain
+`geometry_msgs/PoseStamped`, this is used directly instead of the manual
+TUM conversion — same ATE/RPE output, one less place for a conversion bug
+to hide. `evo` lives in its own venv (`~/venv-evo`), independent of the ROS
+Python environment (evaluation doesn't need ROS bindings at all).
+`evaluate_trial.sh <trial_name>` wraps `evo_ape`, `evo_rpe`, and `evo_traj`
+into one command, writing to `~/thesis_data/trials/<trial_name>/evo/`.
+Needs `--no_warnings` — `evo` otherwise prompts interactively to confirm
+overwriting existing plot files, which hangs a non-interactive script.
+
+**Verification** (`stage_b_verify` trial: state-gated climb to ~2 m, pure
+forward flight at 0.4 m/s for ~3 m, stop, land — same RTF-aware
+methodology as Stage A, see Known Issues):
+- **ATE** (`evo_ape`, SE(3)-aligned): RMSE **6.4 mm**, mean 5.4 mm, max
+  18.4 mm.
+- **RPE** (`evo_rpe`, consecutive-pair): RMSE **4.6 mm**, mean 2.4 mm.
+- Sub-centimetre accuracy is expected and **not yet a meaningful test of
+  flow's contribution alone** — `EK3_SRC1_POSXY` is still GPS (unchanged
+  since Stage A), and SITL's simulated GPS is near-noise-free by default.
+  This result mainly validates the pipeline end-to-end (frame transform,
+  bag extraction, `evo` tooling) rather than flow-only positioning
+  accuracy — that requires the GNSS-denied config Stage A explicitly
+  deferred.
+- `evo_traj`'s per-axis time-series plot shows `/ekf/pose` tracking
+  `/ground_truth/pose` closely on all of x/y/z, confirming the position
+  transform. Yaw reads **~90°**, not 0°, for *both* curves at rest —
+  this is not a bug: ENU's "yaw measured from East/X-axis" convention
+  means ArduPilot's yaw=0 (facing NED-North = ENU +Y) is correctly ~90°
+  in this representation. Both curves agreeing on this (offset <0.1°,
+  same noise pattern throughout the flight) is itself confirmation the
+  orientation transform is correct — a transform bug would show the two
+  diverging, not agreeing on an unexpected number.
+- At rest, `/ekf/pose` z ≈ 0.190 m vs `/ground_truth/pose` z = 0.195 m —
+  consistent with Stage 1/2's already-established ground-rest geometry.
 
 ## Sensor Fusion Architecture
 
@@ -359,6 +430,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14551 \
   --out 127.0.0.1:14552 \
   --out 127.0.0.1:14553 \
+  --out 127.0.0.1:14554 \
   --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file $HOME/thesis_ws/flow_ekf.parm \
   --no-rebuild
@@ -366,8 +438,9 @@ cd ~/ardupilot/ArduCopter
 
 The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 7) its
 own dedicated MAVLink output, `--out 127.0.0.1:14552` gives `lidar_bridge.py`
-(Terminal 8) its own, and `--out 127.0.0.1:14553` gives `flow_bridge.py`
-(Terminal 9) its own — separate from the default `14550` that
+(Terminal 8) its own, `--out 127.0.0.1:14553` gives `flow_bridge.py`
+(Terminal 9) its own, and `--out 127.0.0.1:14554` gives `ekf_bridge.py`
+(Terminal 10) its own — separate from the default `14550` that
 `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
 listens, so no two processes can share one port. `--add-param-file` (passed
 twice, `action="append"` in `sim_vehicle.py`) appends `lidar_rangefinder.parm`
@@ -511,7 +584,27 @@ Verify: see "Downward Optical Flow — EKF3 Fusion (Stage A)" below for the
 definitive (dataflash-log-based) verification method — a message merely
 arriving does not confirm EKF3 is fusing it.
 
-### Terminal 10 — Bag Recording (one trial)
+### Terminal 10 — EKF Pose Bridge
+
+Forwards ArduPilot EKF3's state estimate (MAVLink `LOCAL_POSITION_NED` +
+`ATTITUDE_QUATERNION`) to ROS2 as `/ekf/pose` (`geometry_msgs/PoseStamped`,
+ENU/FLU — transformed from ArduPilot's native NED/FRD, see "EKF State
+Estimate — Stage B" below), on its own dedicated port (`14554`). Run after
+SITL (Terminal 2) is up and streaming on `14554`.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/ekf_bridge.py --ros-args -p use_sim_time:=true
+```
+
+Verify:
+```bash
+ros2 topic hz /ekf/pose               # expect ~30 Hz sim-time (see RTF note in Known Issues)
+ros2 topic echo /ekf/pose --once      # confirm position/orientation look sane
+```
+
+### Terminal 11 — Bag Recording (one trial)
 
 ```bash
 cd ~/thesis_ws
@@ -521,6 +614,9 @@ cd ~/thesis_ws
 # Inspect the result:
 ros2 bag info ~/thesis_data/trials/test_001/bag/
 cat ~/thesis_data/trials/test_001/metadata.yaml
+
+# Evaluate the EKF estimate against ground truth (see "EKF State Estimate — Stage B"):
+./evaluate_trial.sh test_001
 ```
 
 ## Build Commands
@@ -597,7 +693,7 @@ Options:
                             (default: off — raw images ~0.9 MB/frame)
 ```
 
-Topics recorded by default: `/clock`, `/ground_truth/pose`,
+Topics recorded by default: `/clock`, `/ground_truth/pose`, `/ekf/pose`,
 `/downward_lidar/range`, `/attitude/angular_rates`, `/optical_flow/measurement`
 (plus any topic matching `^/(flow|optical_flow)` found on the bus at startup).
 
@@ -664,7 +760,8 @@ Remaining:
 5. Inject `DISTANCE_SENSOR` (LiDAR) to ArduPilot via MAVLink — done, verified (Stage 2)
 6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
 7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
-8. State extraction / `evo` comparison against ground truth — not started, out of scope until Stage A fusion result is confirmed
+8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
+9. GNSS-denied config (flow + rangefinder only, no GPS for position) — not started; needed before Stage B's ATE/RPE numbers reflect flow's actual contribution rather than SITL's GPS
 
 ## Experimental Design Notes
 

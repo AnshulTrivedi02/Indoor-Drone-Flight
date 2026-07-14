@@ -34,6 +34,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14551 \
   --out 127.0.0.1:14552 \
   --out 127.0.0.1:14553 \
+  --out 127.0.0.1:14554 \
   --add-param-file \$HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file \$HOME/thesis_ws/flow_ekf.parm \
   --no-rebuild
@@ -94,6 +95,16 @@ python3 ~/thesis_ws/flow_bridge.py --ros-args -p use_sim_time:=true
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 
+cat > "$SCRIPTS/ekf.sh" << EOF
+#!/usr/bin/env bash
+echo "Waiting 15 s for SITL + ROS2 clock bridge..."
+sleep 15
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/ekf_bridge.py --ros-args -p use_sim_time:=true
+while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
+EOF
+
 cat > "$SCRIPTS/viewer.sh" << EOF
 #!/usr/bin/env bash
 echo "Waiting 20 s for ROS2..."
@@ -113,4 +124,5 @@ gnome-terminal \
   --tab --title="LiDAR"        -e "bash $SCRIPTS/lidar.sh" \
   --tab --title="Optical Flow" -e "bash $SCRIPTS/flow.sh" \
   --tab --title="Flow EKF"     -e "bash $SCRIPTS/flow_ekf.sh" \
+  --tab --title="EKF Pose"     -e "bash $SCRIPTS/ekf.sh" \
   --tab --title="Image Viewer" -e "bash $SCRIPTS/viewer.sh"
