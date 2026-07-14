@@ -1,0 +1,16 @@
+# EKF3 optical flow fusion — Stage A of the EKF baseline (see CLAUDE.md,
+# "Downward Optical Flow — EKF3 Fusion (Stage A)"). Injected via MAVLink
+# OPTICAL_FLOW by flow_bridge.py.
+#
+# Stage A proves flow velocity fusion only - GPS stays as the POSXY source
+# (EK3_SRC1_POSXY is deliberately left untouched, GPS/3, not set here).
+# This is NOT a GNSS-denied navigation config; that is a separate later step.
+#
+# FLOW_TYPE=5 (MAVLink) selects the AP_OpticalFlow_MAV backend, which reads
+# OPTICAL_FLOW's flow_rate_x/flow_rate_y extension fields.
+FLOW_TYPE 5
+# EK3_SRC1_VELXY=5 (OpticalFlow) - required by NavEKF3_core::readyToUseOptFlow().
+EK3_SRC1_VELXY 5
+# EK3_FLOW_USE=1 (Navigation) - already the Copter default, set explicitly
+# because readyToUseOptFlow() hard-fails if this is 2 (Terrain-only).
+EK3_FLOW_USE 1
