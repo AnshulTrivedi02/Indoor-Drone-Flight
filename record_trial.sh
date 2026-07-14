@@ -68,6 +68,10 @@ fi
 # ROS setup scripts reference variables that may be unset; temporarily allow them.
 set +u
 source /opt/ros/jazzy/setup.bash
+# Workspace overlay - needed so ros2 bag record can resolve the custom
+# optical_flow_interfaces package; without it, /optical_flow/measurement is
+# silently dropped from the bag (unknown type, not a fatal error).
+source "$HOME/thesis_ws/install/setup.bash"
 set -u
 
 # Raw IMU is not bridged to ROS2 — ArduPilot handles it internally via
