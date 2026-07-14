@@ -81,9 +81,9 @@ sim-time stamps (`header.stamp` tracks `/clock`).
 | Sensor          | Status            | Notes                                                        |
 |-----------------|-------------------|--------------------------------------------------------------|
 | IMU             | Working           | Via ArduPilot SITL                                           |
-| Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
+| Downward camera | Working           | Defined in `iris_with_standoffs/model.sdf`; mounted at **z = −0.25 m** relative to `base_link` origin; publishes `/downward_camera/image` and `/downward_camera/camera_info` |
 | Optical flow    | Working — publishing | Publishes `/optical_flow/measurement` (`optical_flow_interfaces/OpticalFlow`). RANSAC tested; ~145 px/s at 0.5 m/s matches theory. `flow_x_raw`/`flow_y_raw` are the **production values** — raw, un-derotated flow, which is what ArduPilot EKF3 and the FGO consume (see [Sensor Fusion Architecture](#sensor-fusion-architecture)). `flow_x`/`flow_y` are a manual derotation (`enable_derotation` param, default on) kept for **characterisation only**, not fed to any estimator. `flow_x_rad`/`flow_y_rad` still zero pending rad/s conversion. Needs shadow rejection |
-| Downward LiDAR  | **Next priority** | Inject via MAVLink `DISTANCE_SENSOR` (not `SIM_SONAR`)       |
+| Downward LiDAR  | Stage 1 done — SDF sensor + ROS bridge, verified | Single-beam `gpu_lidar` in `iris_with_standoffs/model.sdf`, mounted at **z = −0.12 m** relative to `base_link` origin, pointing straight down. Emits `gz.msgs.LaserScan` on gz topic `/downward_lidar/range`, bridged to ROS2 as `sensor_msgs/msg/Range` on the same topic name. Range 0.05–40 m. Verified against `/ground_truth/pose` z during a 2 m hover: sub-millimetre accuracy (383/383 samples within 5 cm, mean error 0.1 mm) once settled. `min_angle`/`max_angle` **must both be exactly 0** for a 1-sample axis — Ogre2GpuRays warns and silently ignores `max_angle` otherwise, and an earlier attempt at a small nonzero FOV was a red herring; the real fix for transient short-range noise was moving the mount from −0.05 m to −0.12 m to clear the airframe's own belly mesh (a ray originating too close to the body can graze it under small attitude jitter). Stage 2 (MAVLink `DISTANCE_SENSOR` injection, not `SIM_SONAR`) not yet started. |
 | Forward camera  | Deferred          | Pending supervisor discussion                                |
 
 ## Sensor Fusion Architecture
@@ -205,6 +205,7 @@ source /opt/ros/jazzy/setup.bash
 ros2 run ros_gz_bridge parameter_bridge \
   /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
   /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
+  /downward_lidar/range@sensor_msgs/msg/Range[gz.msgs.LaserScan \
   /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
   /world/iris_textured/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V
 ```
@@ -379,7 +380,7 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 2. **Drone shadow** contaminates downward optical flow (biases toward zero)
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. **Pixel-to-radian conversion** not implemented — needed for `OPTICAL_FLOW_RAD`; focal length confirmed 554 px
-5. **Downward LiDAR absent** — required for metric scale and ArduPilot EKF fusion
+5. **Downward LiDAR MAVLink injection not yet done** — sensor + ROS bridge verified (Stage 1); still needed for metric scale and ArduPilot EKF fusion (Stage 2)
 6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
@@ -410,8 +411,8 @@ Remaining:
 1. Raw flow + gyro rate publishing — done (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); manual derotation (`flow_x`/`flow_y`) kept as a characterisation tool only, not gating further work (see [Sensor Fusion Architecture](#sensor-fusion-architecture)); populate `flow_x_rad`/`flow_y_rad` next
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion with altitude scaling (focal length = 554 px)
-4. Add downward point LiDAR to `iris_with_standoffs/model.sdf`
-5. Inject `DISTANCE_SENSOR` + `OPTICAL_FLOW_RAD` to ArduPilot via MAVLink
+4. Add downward point LiDAR to `iris_with_standoffs/model.sdf` — done, verified (Stage 1)
+5. Inject `DISTANCE_SENSOR` (LiDAR, Stage 2) + `OPTICAL_FLOW_RAD` to ArduPilot via MAVLink
 
 ## Experimental Design Notes
 

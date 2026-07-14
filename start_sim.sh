@@ -44,6 +44,7 @@ source /opt/ros/jazzy/setup.bash
 ros2 run ros_gz_bridge parameter_bridge \
   /downward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image \
   /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
+  /downward_lidar/range@sensor_msgs/msg/Range[gz.msgs.LaserScan \
   /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
   /world/${WORLD%.sdf}/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
