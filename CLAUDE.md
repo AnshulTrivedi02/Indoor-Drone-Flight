@@ -50,6 +50,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
 | **GNSS-denied params**      | `~/thesis_ws/gnss_denied.parm`                                       |
 | **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
+| **IMU bridge**               | `~/thesis_ws/imu_bridge.py`                                          |
 | **evo venv**                 | `~/venv-evo`                                                         |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | **Trial evaluator**         | `~/thesis_ws/evaluate_trial.sh`                                      |
@@ -534,10 +535,17 @@ input.
 
 - **Common raw inputs across all estimators:** raw optical flow
   (`flow_x_raw`/`flow_y_raw`), raw gyro/IMU angular rates
-  (`/attitude/angular_rates`, and IMU generally), and downward-rangefinder
+  (`/attitude/angular_rates`, and IMU generally), downward-rangefinder
   distance (`/downward_lidar/range`, injected into ArduPilot as `RNGFND1`
   via MAVLink `DISTANCE_SENSOR` by `lidar_bridge.py`; the FGO will consume
-  the same ROS topic directly).
+  the same ROS topic directly), and full IMU — accelerometer plus a second,
+  co-sampled gyro copy — on `/imu/data_raw` (`imu_bridge.py`, see "IMU
+  Bridge" below). ArduPilot EKF3 doesn't need `/imu/data_raw` itself (it
+  already has its own onboard IMU access via AHRS); this topic exists for
+  the UKF and FGO, whose process models need sensed specific force — without
+  it, roll/pitch are not observable at all (only gyro-integrable, open-loop),
+  which is not a difference EKF3 also has, so it isn't optional for a fair
+  comparison.
 - **ArduPilot EKF3 is the fixed baseline.** It is set up exactly as
   ArduPilot intends — native `OPTICAL_FLOW` input (**not** `OPTICAL_FLOW_RAD`,
   which this ArduPilot build doesn't handle at all — see "Downward Optical
@@ -565,6 +573,76 @@ quantify how much rotational coupling is present in the raw signal, useful
 for the methodology write-up and for informing the FGO's factor design
 later. The values actually fed to EKF3 (and later the FGO) are
 `flow_x_raw`/`flow_y_raw` plus the raw rates on `/attitude/angular_rates`.
+
+### IMU Bridge — accelerometer input for the UKF/FGO process model
+
+`imu_bridge.py` bridges ArduPilot SITL's accelerometer + gyro onto ROS2 as
+`sensor_msgs/Imu` on `/imu/data_raw`, on its own dedicated MAVLink port
+(`14555`, after `ekf_bridge.py`'s `14554`). This is the raw sensor no prior
+bridge provided — needed because a constant-velocity/gyro-only process
+model cannot observe roll or pitch at all (only integrate them, open-loop),
+which would silently corrupt the flow measurement model's world→body
+velocity rotation over exactly the long GNSS-denied flights the trial
+harness (`run_trial.sh`) exists to fly.
+
+**Message choice: `HIGHRES_IMU` (100), not `RAW_IMU`/`SCALED_IMU`.** Read
+`GCS_MAVLINK::send_highres_imu` directly
+(`libraries/GCS_MAVLink/GCS_Common.cpp`) rather than assumed: it populates
+`xacc`/`yacc`/`zacc` and `xgyro`/`ygyro`/`zgyro` straight from
+`AP_InertialSensor`'s calibrated `get_accel()`/`get_gyro()` as float32 SI
+units (m/s², rad/s) — no scale factor, no int16 round-trip. `RAW_IMU` and
+`SCALED_IMU` both encode accel as milli-g int16 (`RAW_IMU`:
+`accel.x * 1000.0f / GRAVITY_MSS`, `GCS_Common.cpp`), needlessly lossier.
+Confirmed compiled into this SITL build: `AP_MAVLINK_MSG_HIGHRES_IMU_ENABLED
+= (HAL_PROGRAM_SIZE_LIMIT_KB > 1024) && AP_INERTIALSENSOR_ENABLED`
+(`GCS_MAVLink/GCS_config.h`) — trivially true for SITL/Copter.
+
+**Specific force, not gravity-subtracted acceleration — confirmed
+empirically, not just asserted from the source.** `AP_InertialSensor::get_accel()`
+is the calibrated raw accelerometer reading; gravity compensation only
+happens later, inside an EKF's own state propagation. Verified against a
+recorded trial (`imu_verify`, deleted after verification — see git log for
+the commit that added this bridge): at rest (pre-arm and post-land),
+`linear_acceleration.z` (FLU, up positive) read **+9.811 m/s²** — matching
+standard gravity almost exactly, the classic "accelerometer reads +1g
+sitting on a table" result. Mid-cruise at 0.4 m/s it dropped slightly to
+**+9.670 m/s²**, consistent with the small forward pitch needed to sustain
+cruise tilting the sensed vertical component — a second, independent
+confirmation the values are physically sensible, not just non-zero.
+
+**Rate: 50 Hz**, requested via `MAV_CMD_SET_MESSAGE_INTERVAL`, matching
+`attitude_bridge.py`'s `ATTITUDE` rate — with the same periodic-reassert
+timer (every 2 s) to counter MAVProxy silently overriding it with its own
+low default (see Known Issues). Verified against a recorded bag: mean/median
+inter-message gap **20.00 ms → 50.0 Hz achieved**, not just requested.
+
+**Frame: FRD → FLU via `(x, -y, -z)`** for both `linear_acceleration` and
+`angular_velocity` — the same already-empirically-validated
+180°-about-body-X convention `flow_tracker.py` uses for gyro rates, reused
+verbatim since it's a proper rotation and applies identically to any
+body-frame vector.
+
+**`angular_velocity` is a second, deliberately re-sourced gyro copy** —
+read from this same `HIGHRES_IMU` message (not `/attitude/angular_rates`,
+which comes from a separately-polled `ATTITUDE` message), so accel and gyro
+share the exact same underlying IMU sample and timestamp. Important for a
+UKF predict step and for GTSAM's preintegrated IMU factor, both of which
+want co-sampled accel/gyro pairs. `flow_tracker.py`'s derotation is
+unaffected and keeps using `/attitude/angular_rates` as before.
+
+No orientation estimate is provided (`orientation_covariance[0] = -1`, per
+REP-145); `angular_velocity_covariance`/`linear_acceleration_covariance`
+are left at all-zero (valid data, unknown covariance, also per REP-145).
+
+**Sim-time alignment verified** against the other three estimator inputs in
+the same bag — all four topics' header-stamp spans agreed to within ~20 ms
+(`/imu/data_raw` [10.190, 56.160], `/attitude/angular_rates` [10.180,
+56.160], `/optical_flow/measurement` [10.198, 56.134], `/ground_truth/pose`
+[10.182, 56.168]) — no clock-source mismatch between MAVLink-sourced and
+Gazebo-sourced topics.
+
+Recorded by default in both `record_trial.sh` and `run_trial.sh` trials
+(`/imu/data_raw`, alongside the existing topic set).
 
 ## Launch Sequence
 
@@ -615,6 +693,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14552 \
   --out 127.0.0.1:14553 \
   --out 127.0.0.1:14554 \
+  --out 127.0.0.1:14555 \
   --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file $HOME/thesis_ws/flow_ekf.parm \
   --add-param-file $HOME/thesis_ws/gnss_denied.parm \
@@ -624,8 +703,9 @@ cd ~/ardupilot/ArduCopter
 The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 7) its
 own dedicated MAVLink output, `--out 127.0.0.1:14552` gives `lidar_bridge.py`
 (Terminal 8) its own, `--out 127.0.0.1:14553` gives `flow_bridge.py`
-(Terminal 9) its own, and `--out 127.0.0.1:14554` gives `ekf_bridge.py`
-(Terminal 10) its own — separate from the default `14550` that
+(Terminal 9) its own, `--out 127.0.0.1:14554` gives `ekf_bridge.py`
+(Terminal 10) its own, and `--out 127.0.0.1:14555` gives `imu_bridge.py`
+(Terminal 11) its own — separate from the default `14550` that
 `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
 listens, so no two processes can share one port. `--add-param-file` (passed
 three times, `action="append"` in `sim_vehicle.py`) appends
@@ -792,7 +872,26 @@ ros2 topic hz /ekf/pose               # expect ~30 Hz sim-time (see RTF note in 
 ros2 topic echo /ekf/pose --once      # confirm position/orientation look sane
 ```
 
-### Terminal 11 — Bag Recording (one trial)
+### Terminal 11 — IMU Bridge
+
+Forwards ArduPilot SITL's accelerometer + gyro (MAVLink `HIGHRES_IMU`) to
+ROS2 as `/imu/data_raw` (`sensor_msgs/Imu`, FLU — see "IMU Bridge" above),
+on its own dedicated port (`14555`). Run after SITL (Terminal 2) is up and
+streaming on `14555`.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/imu_bridge.py --ros-args -p use_sim_time:=true
+```
+
+Verify:
+```bash
+ros2 topic hz /imu/data_raw           # expect ~50 Hz sim-time
+ros2 topic echo /imu/data_raw --once  # confirm linear_acceleration.z ~= +9.8 at rest
+```
+
+### Terminal 12 — Bag Recording (one trial)
 
 ```bash
 cd ~/thesis_ws
@@ -882,8 +981,9 @@ Options:
 ```
 
 Topics recorded by default: `/clock`, `/ground_truth/pose`, `/ekf/pose`,
-`/downward_lidar/range`, `/attitude/angular_rates`, `/optical_flow/measurement`
-(plus any topic matching `^/(flow|optical_flow)` found on the bus at startup).
+`/downward_lidar/range`, `/attitude/angular_rates`, `/imu/data_raw`,
+`/optical_flow/measurement` (plus any topic matching `^/(flow|optical_flow)`
+found on the bus at startup).
 
 ### metadata.yaml schema
 

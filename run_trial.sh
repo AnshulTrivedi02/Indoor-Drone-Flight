@@ -193,7 +193,8 @@ echo "--- Launching MAVProxy (relay for the bridge scripts' UDP ports) ---"
 start_bg "$LOG_DIR/mavproxy.log" \
     mavproxy.py --daemon --retries 5 \
     --out 127.0.0.1:14550 --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 \
-    --out 127.0.0.1:14551 --out 127.0.0.1:14552 --out 127.0.0.1:14553 --out 127.0.0.1:14554
+    --out 127.0.0.1:14551 --out 127.0.0.1:14552 --out 127.0.0.1:14553 --out 127.0.0.1:14554 \
+    --out 127.0.0.1:14555
 
 wait_for "MAVProxy relaying (vehicle detected)" \
     "grep -q 'online system' '$LOG_DIR/mavproxy.log'" 60
@@ -239,6 +240,11 @@ start_bg "$LOG_DIR/ekf_bridge.log" \
 
 wait_for "/ekf/pose publishing" "ros2 topic list 2>/dev/null | grep -q /ekf/pose" 60
 
+start_bg "$LOG_DIR/imu_bridge.log" \
+    python3 "$HOME/thesis_ws/imu_bridge.py" --ros-args -p use_sim_time:=true
+
+wait_for "/imu/data_raw publishing" "ros2 topic list 2>/dev/null | grep -q /imu/data_raw" 60
+
 echo ""
 echo "--- Full stack up ---"
 
@@ -256,6 +262,7 @@ setsid ros2 bag record \
     /ekf/pose \
     /downward_lidar/range \
     /attitude/angular_rates \
+    /imu/data_raw \
     /optical_flow/measurement \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!

@@ -59,6 +59,7 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14552 \
   --out 127.0.0.1:14553 \
   --out 127.0.0.1:14554 \
+  --out 127.0.0.1:14555 \
   --add-param-file \$HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file \$HOME/thesis_ws/flow_ekf.parm \
   --add-param-file \$HOME/thesis_ws/gnss_denied.parm \
@@ -130,6 +131,16 @@ python3 ~/thesis_ws/ekf_bridge.py --ros-args -p use_sim_time:=true
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 
+cat > "$SCRIPTS/imu.sh" << EOF
+#!/usr/bin/env bash
+echo "Waiting 15 s for SITL + ROS2 clock bridge..."
+sleep 15
+source /opt/ros/jazzy/setup.bash
+source ~/venv-ardupilot/bin/activate
+python3 ~/thesis_ws/imu_bridge.py --ros-args -p use_sim_time:=true
+while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
+EOF
+
 cat > "$SCRIPTS/viewer.sh" << EOF
 #!/usr/bin/env bash
 echo "Waiting 20 s for ROS2..."
@@ -150,4 +161,5 @@ gnome-terminal \
   --tab --title="Optical Flow" -e "bash $SCRIPTS/flow.sh" \
   --tab --title="Flow EKF"     -e "bash $SCRIPTS/flow_ekf.sh" \
   --tab --title="EKF Pose"     -e "bash $SCRIPTS/ekf.sh" \
+  --tab --title="IMU"          -e "bash $SCRIPTS/imu.sh" \
   --tab --title="Image Viewer" -e "bash $SCRIPTS/viewer.sh"

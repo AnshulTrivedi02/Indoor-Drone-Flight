@@ -74,11 +74,12 @@ source /opt/ros/jazzy/setup.bash
 source "$HOME/thesis_ws/install/setup.bash"
 set -u
 
-# Raw IMU is not bridged to ROS2 — ArduPilot handles it internally via
-# MAVLink. Gyro rates are available via attitude_bridge.py's republish of
-# MAVLink ATTITUDE on /attitude/angular_rates (recorded below), needed
-# alongside raw flow so every estimator can derotate internally — see
-# CLAUDE.md, Sensor Fusion Architecture.
+# Gyro rates: attitude_bridge.py republishes MAVLink ATTITUDE on
+# /attitude/angular_rates (recorded below), needed alongside raw flow so
+# every estimator can derotate internally. Full IMU (accel + a second,
+# co-sampled gyro copy) is bridged separately by imu_bridge.py on
+# /imu/data_raw (also recorded below) — required for the UKF/FGO process
+# model's specific-force input; see CLAUDE.md, Sensor Fusion Architecture.
 
 # Discover optical flow topics (catches /optical_flow/measurement and any
 # additional publishers added in future work).
@@ -150,6 +151,7 @@ ros2 bag record \
     /ekf/pose \
     /downward_lidar/range \
     /attitude/angular_rates \
+    /imu/data_raw \
     $FLOW_TOPICS \
     $CAMERA_TOPICS
 set -e
