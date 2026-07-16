@@ -1,13 +1,37 @@
 #!/usr/bin/env bash
 # Launch the full simulation stack in five gnome-terminal tabs.
 #
+# Usage: ./start_sim.sh [WORLD.sdf]
+#
+# WORLD is a filename in ~/ardupilot_gazebo/worlds/ (default: iris_runway.sdf).
+# Available worlds:
+#   iris_runway.sdf         - degraded baseline (blank), 20 m x 20 m
+#   iris_textured.sdf       - nominal baseline (textured), 20 m x 20 m
+#   corridor_textured.sdf   - nominal, 20 m x 160 m corridor (checkerboard throughout)
+#   corridor_blank.sdf      - degraded, 20 m x 160 m corridor (featureless throughout)
+#   corridor_transition.sdf - 20 m x 160 m corridor, textured y:0-80, blank y:80-160
+#                              (boundary at y=80 m — see CLAUDE.md "Corridor Worlds")
+#
 # gnome-terminal 3.52: the `--` flag stops all option parsing, so subsequent
 # --tab flags get swallowed as arguments to the first command.  Use -e instead,
 # which is the per-terminal command flag and does not break argument parsing.
 # Commands are written to temp scripts to avoid quoting issues inside -e "...".
 
-SCRIPTS=$(mktemp -d --suffix=_sim_tabs)
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  sed -n '3,13p' "$0"
+  exit 0
+fi
+
 WORLD="${1:-iris_runway.sdf}"
+
+if [ ! -f "$HOME/ardupilot_gazebo/worlds/$WORLD" ]; then
+  echo "Error: world file not found: $HOME/ardupilot_gazebo/worlds/$WORLD" >&2
+  echo "Available worlds:" >&2
+  ls "$HOME/ardupilot_gazebo/worlds/"*.sdf 2>/dev/null | xargs -n1 basename | sed 's/^/  /' >&2
+  exit 1
+fi
+
+SCRIPTS=$(mktemp -d --suffix=_sim_tabs)
 rm -f /tmp/thesis_sim_stop
 
 cat > "$SCRIPTS/gazebo.sh" << EOF

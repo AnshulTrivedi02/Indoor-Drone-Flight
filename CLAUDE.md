@@ -34,6 +34,9 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | Worlds                      | `~/ardupilot_gazebo/worlds/`                                         |
 | **Degraded world (blank)**  | `~/ardupilot_gazebo/worlds/iris_runway.sdf`                          |
 | **Nominal world (textured)**| `~/ardupilot_gazebo/worlds/iris_textured.sdf`                        |
+| **Corridor world (nominal)**    | `~/ardupilot_gazebo/worlds/corridor_textured.sdf`                 |
+| **Corridor world (degraded)**   | `~/ardupilot_gazebo/worlds/corridor_blank.sdf`                    |
+| **Corridor world (transition)** | `~/ardupilot_gazebo/worlds/corridor_transition.sdf`               |
 | Drone SDF (primary edit)    | `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf`            |
 | ROS2 workspace              | `~/thesis_ws`                                                        |
 | Optical flow package        | `~/thesis_ws/src/optical_flow_node/`                                 |
@@ -65,6 +68,91 @@ No changes to the gimbal model beyond adding the downward camera to
 **Implication:** rotational body motion couples into pixel flow. Raw gyro
 rates are therefore a required input alongside raw flow for every estimator
 to derotate internally — see [Sensor Fusion Architecture](#sensor-fusion-architecture).
+
+## Corridor Worlds — Long-Duration Degraded-Sensing Trials
+
+`iris_textured.sdf`'s 20 m x 20 m checkerboard is too small for a full
+60-120 s forward-flight trial — the drone exits the mat mid-flight,
+contaminating "nominal" recordings with feature-poor segments (see Known
+Issues). It's also too short for dead-reckoning drift to accumulate: Stage
+C's ~40 s flights showed only a modest ATE gap between textured and blank
+floors despite a stark `inlier_ratio` collapse at the sensor level —
+position error hadn't yet caught up to the sensor degradation over that
+short a flight.
+
+Three corridor worlds in `~/ardupilot_gazebo/worlds/` address both
+problems, built from one shared template so **floor texture is the only
+variable** — dimensions, walls, lighting, and spawn are identical:
+
+- **Corridor geometry**: 20 m wide (x: −10..10 m), **160 m long**
+  (y: 0..160 m) — comfortably over the ≥100 m minimum needed for a
+  60-120 s cruise at 0.5-1.0 m/s (30-120 m) plus climb/stop margin.
+  Corridor runs along world **+Y** — the drone's spawn yaw (90°, see
+  below) points +Y, matching ArduPilot's internal yaw=0 (NED-North), which
+  is the direction `fly_forward.py`/`fly_trial.py` fly.
+- **Walls**: two static boxes at x=±10 m (model `corridor_wall`,
+  `~/ardupilot_gazebo/models/corridor_wall/`), 5 m tall, 0.2 m thick,
+  spanning y:−5..165 m. Plain grey, identical in all three worlds — the
+  downward camera only looks straight down, so the walls never enter its
+  FOV and can't confound the floor comparison.
+- **Lighting**: the same directional sun as `iris_textured.sdf`, copied
+  verbatim. A directional light has no falloff, so it's uniform along the
+  whole corridor by construction — no illumination gradient to confound
+  with the texture variable.
+- **Spawn**: `iris_with_ardupilot` at `(0, 0, 0.195)`, yaw 90°, identical
+  across all three and identical to `iris_textured.sdf`/`iris_runway.sdf`.
+
+**`corridor_textured.sdf`** (nominal): 8x unmodified `textured_ground`
+tiles (the same 20x20 m checker model `iris_textured.sdf` already uses)
+tiled along Y, giving a seamless 20x160 m checkerboard for the full
+corridor. Reusing the existing tile unmodified avoids a UV-scaling trap —
+Gazebo/Ogre2 stretches one texture image across a plane's *whole* extent
+rather than repeating it per metre, so a single 20x160 m plane with
+`checker.png` stretched over it would wash out into a handful of huge
+squares, losing exactly the fine-grained features needed. Tiling the
+already-validated 20x20 m tile sidesteps that entirely.
+
+**`corridor_blank.sdf`** (degraded): a single flat 20x160 m plane,
+`blank_floor`, using the *exact same* ambient/diffuse/specular/roughness/
+metalness values as `textured_ground`'s material but with no
+`albedo_map` — flat grey, featureless. This isolates texture as the only
+difference from `corridor_textured.sdf`, not colour or reflectance.
+
+**`corridor_transition.sdf`** (the primary research gap): textured for
+y:0-80 m (4x `textured_ground` tiles), blank for y:80-160 m (one
+`blank_floor_half` plane, same material as `corridor_blank.sdf`).
+**Boundary is exactly y = 80 m** (corridor midpoint) — record
+`/ground_truth/pose` y at the point of boundary crossing when analysing
+flight data from this world, to correlate estimator behaviour with the
+sensing-quality transition.
+
+**Verified** (gz sim headless, `ros_gz_bridge`, `flow_tracker`, drone
+teleported to altitude via `gz service .../set_pose` + a paused
+`multi_step` — the drone's rest pose sits below the floor plane at spawn
+height, `z=0.195` vs. camera offset `−0.25 m`, so a frame grabbed at rest
+shows sky, not floor, in every one of these worlds, same as
+`iris_textured.sdf`; this is a pre-existing artefact of the spawn/camera
+geometry, not something the corridor worlds introduced):
+- Spawn pose and `/world/<world_name>/dynamic_pose/info` ground truth
+  match exactly in all three worlds (note the topic's world-name segment
+  changes with the world, e.g. `/world/corridor_textured/dynamic_pose/info`).
+- Downward camera renders the intended floor in all three: full
+  checkerboard in `corridor_textured`, flat uniform grey in
+  `corridor_blank`, and a sharp textured/blank boundary exactly at the
+  frame centre when the drone is positioned at y=80 in
+  `corridor_transition`.
+- `flow_tracker`'s `feature_count` confirms the sensor-level contrast
+  numerically: ~126-183 over the textured floor vs. ~15-24 (collapsing to
+  0 under fast motion) over the blank floor — an even starker gap than
+  Stage C's original 85-vs-54 mean, as expected from a deliberately fully
+  flat (no markings at all) blank floor.
+
+**Launch**: `./start_sim.sh corridor_textured.sdf` (or `corridor_blank.sdf`
+/ `corridor_transition.sdf`) — `start_sim.sh` accepts any world filename
+in `~/ardupilot_gazebo/worlds/`, validates it exists first (listing valid
+options on a typo), and substitutes it into both the Gazebo launch and the
+ROS2 bridge's `dynamic_pose/info` topic name automatically. Manual launch
+(Terminal 1/3) works the same way — just substitute the world name.
 
 ## Ground Truth Bridging
 
@@ -491,6 +579,12 @@ Run each terminal in order. Source commands are mandatory before ROS2 tools.
 # Nominal baseline (textured checkerboard floor)
 ./start_sim.sh iris_textured.sdf
 
+# Long-duration corridor worlds (see "Corridor Worlds" below) — nominal,
+# degraded, and mid-flight transition, all 20 m x 160 m
+./start_sim.sh corridor_textured.sdf
+./start_sim.sh corridor_blank.sdf
+./start_sim.sh corridor_transition.sdf
+
 # Tear down and close all tabs
 ./stop_sim.sh
 ```
@@ -846,7 +940,7 @@ Completed:
 - Data collection pipeline (`record_trial.sh`) — self-contained trials ✓
 
 Remaining:
-0. Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection
+0. ~~Enlarge textured world (≥50 m × 50 m) before nominal-condition data collection~~ — **done**: `corridor_textured.sdf`/`corridor_blank.sdf`/`corridor_transition.sdf`, 20 m × 160 m, verified (see "Corridor Worlds — Long-Duration Degraded-Sensing Trials")
 1. Raw flow + gyro rate publishing — done (`attitude_bridge.py` + `flow_x_raw`/`flow_y_raw`); manual derotation (`flow_x`/`flow_y`) kept as a characterisation tool only, not gating further work (see [Sensor Fusion Architecture](#sensor-fusion-architecture))
 2. Shadow rejection
 3. Pixel-to-radian (rad/s) conversion — done (`flow_x_rad`/`flow_y_rad` in `flow_tracker.py`); no altitude scaling needed for this — the rad/s conversion is altitude-independent by design (focal length only)
@@ -856,7 +950,7 @@ Remaining:
 7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
 8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
 9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, now the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence
-10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — not started, flagged as a natural follow-up
+10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — infrastructure now ready (`corridor_textured.sdf`/`corridor_blank.sdf`/`corridor_transition.sdf` support 60-120 s flights), but the flight itself not yet run
 11. UKF implementation, using the `gnss_denied.parm` baseline config — not started
 12. FGO (GTSAM) implementation, using the `gnss_denied.parm` baseline config — not started
 
