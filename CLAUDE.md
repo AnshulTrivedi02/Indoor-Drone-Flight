@@ -572,6 +572,205 @@ state-gated flight profile as Stage A/B — climb to ~2 m, forward 3 m at
   this reads as ordinary flight-to-flight controller/physics variance, not
   a flow-driven effect — flagged for transparency, not concluded from.
 
+## EKF3 Prediction dt — 80 Hz, not 400 Hz (2026-07-23)
+
+**EKF3 accumulates IMU frames to a target period and predicts on the total.
+`SCHED_LOOP_RATE` sets the IMU *frame* rate, not the prediction rate.**
+Traced at pinned commit `7bac20cbcc`:
+
+| Step | Location | Fact |
+|---|---|---|
+| Target period | `AP_NavEKF3_core.h:58-59` | `EKF_TARGET_DT 0.012f`, `EKF_TARGET_DT_MS 12` |
+| Init | `AP_NavEKF3_core.cpp:35-36` | `dtEkfAvg = MAX(1/loop_rate, EKF_TARGET_DT)` → at 400 Hz, `MAX(0.0025, 0.012)` = **0.012** |
+| Accumulate | `AP_NavEKF3_Measurements.cpp:453-454,475` | frames summed into `imuDataDownSampledNew.delAngDT/delVelDT` |
+| Trigger | `AP_NavEKF3_Measurements.cpp:483-484` | fires at `delAngDT >= EKF_TARGET_DT - dtIMUavg*0.5` = 0.01075 s → 5 frames = **0.0125 s** |
+| Frame count | `AP_NavEKF3.cpp:778` | `_framesPerPrediction = round(0.012/0.0025)` = **5** (independent confirmation) |
+| dt used | `AP_NavEKF3_core.cpp:1036` | `dt = constrain(0.5*(delAngDT+delVelDT), 0.5*dtEkfAvg, 2*dtEkfAvg)` — the accumulated period |
+| Q consumption | `AP_NavEKF3_core.cpp:1049,1056` | `sq(sq(dt) * _gyroBiasProcessNoise)` — confirms the `dt²` (k=2) bias form |
+
+**Actual prediction dt = 0.0125 s (80 Hz).** Verified live: `SCHED_LOOP_RATE=400`,
+`INS_FAST_SAMPLE=1`, and all four `_NSE` params at defaults.
+
+**Caveat:** 0.0125 s is *derived* (400 Hz frames × 5), not measured — EKF3 does
+not log its `dt`. `dtEkfAvg` is a low-pass average
+(`AP_NavEKF3_Measurements.cpp:497`) with constrain bounds `[0.5×, 2×]`, so
+jitter stays well inside. Treat as solid, but state the derivation rather than
+claiming a measurement.
+
+**Consequence:** the UKF predicts at this same 0.0125 s, accumulating by
+elapsed time exactly as EKF3 does, so **EKF3's `*_NSE` values transfer
+unchanged** (scale factor exactly 1). This is a stronger position than any
+correct rescaling — there is nothing to defend.
+
+**This also exposes that ArduPilot's `_P_NSE` values are not true continuous
+noise densities** — they are rate-dependent, sitting inside discrete
+`(dt·NSE)²` expressions. That is precisely why the 400 Hz assumption bit, and
+why the GTSAM conversion below cannot be a copy-paste.
+
+## IMU Bridge — rate, aliasing, and the MAVProxy bypass (2026-07-23)
+
+### Rate raised 50 Hz → 333 Hz
+
+**333 Hz is the ceiling ArduPilot permits, not a preference.**
+`GCS_Common.cpp:268-277`'s `cap_message_interval()` enforces "no greater than
+0.8 × SCHED_LOOP_RATE"; at 400 Hz the floor is `2500/800 = 3.125 ms`, and
+`set_message_interval()` (`GCS_Common.cpp:3225`) truncates µs to integer ms, so
+a 2 ms request is rejected outright. **Measured realised rate: 333.27 Hz**
+(29665 msgs / 89.012 s; median dt 3.000 ms) — it hits the ceiling exactly.
+
+**Raising `SCHED_LOOP_RATE` to lift the ceiling is NOT an option** — it changes
+EKF3's own frame rate and INS sampling, i.e. the baseline being compared
+against.
+
+### Why: 50 Hz was aliasing, confirmed by direct observation
+
+At 333 Hz the cruise spectrum resolves what 50 Hz could not:
+
+| Axis | true peak | band holding the energy |
+|---|---|---|
+| `acc_y` | **17.41 Hz** | 99.3% in 5–25 Hz |
+| `acc_z` | **34.99 Hz** | **90.9% in 25–50 Hz** |
+
+**`acc_z`'s real tone is 35 Hz.** At 50 Hz sampling it folded to
+`50 − 34.99 = 15.01 Hz`, which is exactly the "14.84 Hz peak" the 50 Hz
+analysis reported as real. **That peak was the artefact.** 34.99 ≈ 2 × 17.41,
+so `acc_z` carries the second harmonic of `acc_y`'s fundamental — consistent
+with rotor/blade-pass content from the Gazebo model's own dynamics (ArduPilot
+synthesises none: `SIM_ACC*_RND = 0`, `SIM_VIB_* = 0`).
+
+**Aliased energy in the stream we actually receive:**
+
+| | RMS folding in | share of `acc_z` power |
+|---|---|---|
+| at 50 Hz (25–50 Hz content) | **0.154 m/s²** | 90.9% |
+| at 333 Hz (>166.6 Hz content) | **0.018 m/s²** | 1.2% |
+
+**An 8.7× reduction in aliased energy.** Residual is small but non-zero — a
+documented limitation, not an eliminated one.
+
+### Correction: `VIBE` measures a different signal
+
+The earlier "0.25 m/s² RMS above Nyquist" figure, inferred by comparing `VIBE`
+against the observable band, **conflated filtering with aliasing.**
+`AP_InertialSensor_Backend.cpp:592` passes the **pre-filter** accel to
+`calc_vibration_and_clipping`, while line 611 applies `_accel_filter`
+afterwards into `_accel_filtered` — which is what `get_accel()` and therefore
+`HIGHRES_IMU` return. **`VIBE` measures the raw 1000 Hz signal; the bridge
+receives a 20 Hz-low-passed one** (`INS_ACCEL_FILTER = INS_GYRO_FILTER = 20`).
+The large VIBE-vs-observable gap is that filter, not aliasing. The conclusion
+(raise the rate) was right; the magnitude was measured wrongly and is
+superseded by the direct 25–50 Hz figure above.
+
+The 20 Hz INS filter is only 2-pole, so 35 Hz passes at roughly −10 dB —
+attenuated but far from removed, which is why it still dominated `acc_z` and
+still aliased at 50 Hz.
+
+### Verification at the new rate (trial `imu_rate_verify`)
+
+| Check | Result |
+|---|---|
+| Achieved rate | **333.27 Hz** (29665 / 89.012 s) |
+| `‖a‖` at rest | 9.81085 m/s² (std 0.00061) |
+| `a_z` sign | **+9.81085** — positive, correct FLU specific force |
+| Structure through velocity change | ground std 0.0006 → climb 0.463 → cruise 0.162 |
+| Stamp range vs `/attitude/angular_rates` | end delta **30 ms**; **start delta 2348 ms** — see below |
+
+**Regression to be aware of:** `/imu/data_raw` now starts ~2.35 s *later* than
+the other streams (previously all four agreed within ~20 ms). Cause: SITL's
+`udpclient` only begins streaming after our `SET_MESSAGE_INTERVAL` lands — the
+bridge log shows heartbeat at +0.04 s but first `HIGHRES_IMU` at +1.75 s. There
+is **no systematic timestamp offset** (the streams end together, 30 ms apart);
+it is purely a later start, absorbed by `run_trial.sh`'s readiness wait and
+well before arming. Harmless for trials, but do not assume all four topics
+share a start instant.
+
+### MAVProxy bypass — a deliberate architectural divergence
+
+`imu_bridge.py` runs on **port 14556, fed by a dedicated SITL serial output**
+(`arducopter --serial2=udpclient:127.0.0.1:14556`), **not** a MAVProxy `--out`
+port. `run_trial.sh` no longer passes `--out 127.0.0.1:14555`.
+
+**This departs from the architecture brief's "every bridge owns a MAVLink UDP
+port via MAVProxy `--out`" pattern**, which `fly_forward.py` (14550),
+`attitude_bridge.py` (14551), `lidar_bridge.py` (14552), `flow_bridge.py`
+(14553) and `ekf_bridge.py` (14554) all still follow. Recorded here so the
+divergence is not rediscovered as a bug.
+
+**Rationale — headroom, not a demonstrated failure.** At 333 Hz MAVProxy would
+relay ~2000 msg/s of *sim-time* traffic to six outputs in single-threaded
+Python. **That figure is sim-time; at RTF ≈ 0.39 it is ~780 msg/s wall-clock,
+which MAVProxy may well have coped with.** The bypass was taken for margin and
+because it removes MAVProxy's documented stream-rate clobbering from this path
+entirely. It was not forced by a measured failure.
+
+## GTSAM IMU Preintegration — noise conversion (2026-07-23)
+
+**Derived, not deferred, because the fairness principle requires the FGO's
+process noise to be *equivalent* to EKF3's, not merely reasonable.**
+
+**GTSAM's convention, verified from library source** (not assumed):
+- `PreintegrationParams.h:27-29` — `accelerometerCovariance`, with the explicit
+  comment *"Continuous-time 'Covariance' of accelerometer. The units for stddev
+  are σ = m/s²/√Hz"*.
+- `PreintegrationCombinedParams.h:38-41` — `biasAccCovariance` /
+  `biasOmegaCovariance`, *"continuous-time 'Covariance' describing … bias
+  random walk"*.
+- `CombinedImuFactor.cpp:136-155` — the discrete propagation:
+  `D_v_v = vel_H_acc·(aCov/dt)·vel_H_accᵀ`, `D_R_R = theta_H_omega·(wCov/dt)·…`,
+  `D_a_a = dt·biasAccCovariance`, `D_g_g = dt·biasOmegaCovariance`. Since
+  `vel_H_acc` carries a `dt`, the velocity contribution is `dt·aCov`.
+
+**Derivation.** Per prediction step:
+- GTSAM adds `dt·σ_c²` (all four terms, from the propagation above).
+- EKF3 adds `(dt·NSE)² = dt²·NSE²` to velocity/attitude
+  (`AP_NavEKF3_core.cpp`, auto-generated covariance prediction).
+- Equating: `dt·σ_c² = dt²·NSE²` → **`σ_c = NSE·√dt`**.
+
+**The bias terms need one extra step, and it does *not* follow the k=2 form.**
+EKF3's bias states are in **delta** units (rad, m/s — `state_elements`), adding
+`(dt²·NSE)² = dt⁴·NSE²` per step. GTSAM's bias states are **rates** (rad/s,
+m/s²), related by `b_delta = b_rate·dt`, so `Var(b_delta) = dt²·Var(b_rate)`.
+Converting: EKF3 adds `dt⁴·NSE²/dt² = dt²·NSE²` to the *rate*-bias variance.
+Equating with GTSAM's `dt·σ_c²` gives **`σ_c = NSE·√dt` again**. All four
+collapse to the same form once the delta-vs-rate unit difference is handled —
+the k=2 exponent applies to *rate changes within EKF3's own delta-form
+parameterisation*, not to this conversion.
+
+**Values at dt = 0.0125 s** (`√dt = 0.1118034`), i.e. `covariance = NSE²·dt`:
+
+| GTSAM parameter | from | σ (continuous) | units | covariance |
+|---|---|---|---|---|
+| `accelerometerCovariance` | `ACC_P_NSE` 0.35 | 0.03913119 | m/s²/√Hz | 1.53125×10⁻³ |
+| `gyroscopeCovariance` | `GYRO_P_NSE` 0.015 | 0.001677051 | rad/s/√Hz | 2.8125×10⁻⁶ |
+| `biasAccCovariance` | `ABIAS_P_NSE` 0.02 | 0.002236068 | m/s²/√s | 5.0×10⁻⁶ |
+| `biasOmegaCovariance` | `GBIAS_P_NSE` 0.001 | 0.0001118034 | rad/s/√s | 1.25×10⁻⁸ |
+
+Units check: `ACC_P_NSE` [m/s²]·√s = m/s²/√Hz ✓; `GBIAS_P_NSE` [rad/s²]·√s =
+rad/s/√s ✓ — the standard bias-random-walk unit.
+
+**Notes:**
+- `integrationCovariance` has **no EKF3 counterpart** (GTSAM-specific position
+  integration uncertainty). Set small (~1e-8·I) and document the asymmetry
+  rather than pretending it is matched.
+- `biasAccOmegaInt` is **deprecated** in current GTSAM
+  (`PreintegrationCombinedParams.h:92`: *"no longer used. Use a prior on first
+  bias instead"*).
+- Gravity: `imu_bridge.py` publishes FLU with **+9.81 at rest**, so
+  `PreintegrationCombinedParams::MakeSharedU(9.81)` (Z-up) is the matching
+  constructor.
+- **Feed every 333 Hz sample to `integrateMeasurement()`; never decimate to
+  keyframe rate.** At ~10 Hz keyframes that is ~33 samples per factor. At the
+  old 50 Hz it would have been 5 — marginal, and it would have made the FGO
+  look worse for reasons unrelated to the estimator.
+
+**Standing caveat for all three estimators:** `HIGHRES_IMU` carries
+*instantaneous* samples, whereas EKF3 receives true delta-angles/delta-velocities
+integrated by the INS driver at 1000 Hz. Summing `a·dt` over bridged samples is
+**rectangular integration** and does not anti-alias. Good at 333 Hz, far better
+than 50 Hz, but state it in the methodology as an approximation rather than an
+exact match. No standard MAVLink message carries ArduPilot's true delta
+quantities, so this is an interface limitation, not a choice.
+
 ## Hidden Configuration Audit — Machine Migration (2026-07-22)
 
 Migrating from the ThinkPad X1 Carbon (i5-10210U, 15 W mobile) to a desktop
@@ -974,21 +1173,38 @@ Q_v_dt   = (dt · ACC_P_NSE)²       ACC_P_NSE   = 0.35 m/s²
 Q_bg_dt  = (dt² · GBIAS_P_NSE)²    GBIAS_P_NSE = 0.001 rad/s/s
 Q_ba_dt  = (dt² · ABIAS_P_NSE)²    ABIAS_P_NSE = 0.02 m/s/s/s
 ```
-EKF3's own predict step runs at `SCHED_LOOP_RATE` — confirmed **400 Hz**
-by reading it directly from a trial's own dataflash `PARM` dump, not
-assumed — while the UKF's predict step is capped at `/imu/data_raw`'s
-50 Hz. Copying these parameter values unchanged silently assumes equal
-`dt`, which is off by 8×. The dt-invariant quantity that should actually
-match is accumulated variance *per second* (`dt^(2k-1) · NSE²` for a
-`(dt^k · NSE)²` per-step term), giving `NSE_UKF = NSE_EKF3 ·
-(dt_EKF3/dt_UKF)^(k−0.5)`:
+> ## ⚠️ THE 400 Hz / 50 Hz SCALING BELOW IS SUPERSEDED — DO NOT USE IT
+>
+> **EKF3 does not predict at `SCHED_LOOP_RATE`.** It accumulates five 400 Hz
+> IMU frames and predicts on the accumulated total: **actual dt = 0.0125 s
+> (80 Hz)**. See "EKF3 Prediction dt" below for the source trace. The table
+> that followed assumed a 8× rate gap where the real gap to a 50 Hz predict
+> would be 1.6×, making its bias terms **11.18× too small**.
+>
+> **The whole table is now moot** because the resolution was to change the
+> *rate*, not rescale the constants: the UKF predicts at EKF3's own
+> **0.0125 s**, so the scale factor is exactly 1 and **EKF3's `*_NSE` values
+> are used unchanged**. Nothing to derive, nothing to defend. See "IMU
+> Bridge — rate and aliasing" for why the 50 Hz assumption was abandoned
+> independently.
 
-| Param | EKF3 value | k | Scale factor | Value at 50 Hz |
-|---|---|---|---|---|
-| `GYRO_P_NSE` | 0.015 rad/s | 1 | ×0.3536 | 0.0053 rad/s |
-| `ACC_P_NSE` | 0.35 m/s² | 1 | ×0.3536 | 0.124 m/s² |
-| `GBIAS_P_NSE` | 0.001 rad/s/s | 2 | ×0.0442 | 4.42×10⁻⁵ rad/s/s |
-| `ABIAS_P_NSE` | 0.02 m/s/s/s | 2 | ×0.0442 | 8.84×10⁻⁴ m/s/s/s |
+~~EKF3's own predict step runs at `SCHED_LOOP_RATE` — confirmed **400 Hz**
+by reading it directly from a trial's own dataflash `PARM` dump, not
+assumed~~ — **wrong, see the warning above** — while the UKF's predict step
+was assumed capped at `/imu/data_raw`'s then-50 Hz. The dt-invariant
+quantity that should match is accumulated variance *per second*
+(`dt^(2k-1) · NSE²` for a `(dt^k · NSE)²` per-step term), giving
+`NSE_UKF = NSE_EKF3 · (dt_EKF3/dt_UKF)^(k−0.5)`. **Superseded table, kept
+only to show what the error was:**
+
+| Param | EKF3 value | k | ~~Scale (400 Hz assumed)~~ | ~~Value at 50 Hz~~ | Correct scale if ever needed |
+|---|---|---|---|---|---|
+| `GYRO_P_NSE` | 0.015 rad/s | 1 | ~~×0.3536~~ | ~~0.0053~~ | ×0.7906 |
+| `ACC_P_NSE` | 0.35 m/s² | 1 | ~~×0.3536~~ | ~~0.124~~ | ×0.7906 |
+| `GBIAS_P_NSE` | 0.001 rad/s/s | 2 | ~~×0.0442~~ | ~~4.42×10⁻⁵~~ | ×0.4941 |
+| `ABIAS_P_NSE` | 0.02 m/s/s/s | 2 | ~~×0.0442~~ | ~~8.84×10⁻⁴~~ | ×0.4941 |
+
+**Use neither column. Predict at 0.0125 s and take EKF3's values as-is.**
 
 The CV scaffold's velocity process noise has **no EKF3 counterpart at
 all** (EKF3 has no undriven "velocity random walk" state) — use the

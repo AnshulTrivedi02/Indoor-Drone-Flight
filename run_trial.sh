@@ -184,6 +184,7 @@ start_bg "$LOG_DIR/arducopter.log" \
     ~/ardupilot/build/sitl/bin/arducopter \
     --model JSON --speedup 1 --slave 0 \
     --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm" \
+    --serial2=udpclient:127.0.0.1:14556 \
     --sim-address=127.0.0.1 -I0
 
 wait_for "SITL MAVLink port open (tcp 5760)" "ss -tln 2>/dev/null | grep -q ':5760 '" 60
@@ -193,8 +194,7 @@ echo "--- Launching MAVProxy (relay for the bridge scripts' UDP ports) ---"
 start_bg "$LOG_DIR/mavproxy.log" \
     mavproxy.py --daemon --retries 5 \
     --out 127.0.0.1:14550 --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 \
-    --out 127.0.0.1:14551 --out 127.0.0.1:14552 --out 127.0.0.1:14553 --out 127.0.0.1:14554 \
-    --out 127.0.0.1:14555
+    --out 127.0.0.1:14551 --out 127.0.0.1:14552 --out 127.0.0.1:14553 --out 127.0.0.1:14554
 
 wait_for "MAVProxy relaying (vehicle detected)" \
     "grep -q 'online system' '$LOG_DIR/mavproxy.log'" 240

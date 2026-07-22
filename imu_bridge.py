@@ -30,12 +30,23 @@ an EKF's own state propagation. At level rest this reads ~+9.8 m/s^2
 +1g sitting on a table" result) - verified empirically against a recorded
 hover trial, not just asserted, see CLAUDE.md.
 
-Rate: requested via MAV_CMD_SET_MESSAGE_INTERVAL at 50 Hz, matching
-attitude_bridge.py's ATTITUDE rate (a UKF/FGO prediction step needs this
-much faster than ArduPilot's own low telemetry defaults) - same
-periodic-reassert pattern as attitude_bridge.py, since MAVProxy silently
-re-issues its own low-rate stream request otherwise (see CLAUDE.md, Known
-Issues).
+Rate: requested via MAV_CMD_SET_MESSAGE_INTERVAL at a 3 ms interval - the
+fastest ArduPilot permits at SCHED_LOOP_RATE=400 (see IMU_STREAM_INTERVAL_MS
+below for the source-level reason). This was raised from an earlier 50 Hz,
+which aliased: ~0.25 m/s^2 RMS of accel-z energy sits above the 25 Hz Nyquist
+a 50 Hz stream implies (see CLAUDE.md, "IMU Aliasing"). Same
+periodic-reassert pattern as attitude_bridge.py is retained as cheap
+insurance, though the MAVProxy stream-clobbering it originally guarded
+against no longer applies on this dedicated link.
+
+Intended consumption: do NOT decimate this stream. The UKF accumulates
+samples by elapsed time to >=12.5 ms and predicts on the accumulated total,
+mirroring EKF3's own readIMUData()/CovariancePrediction() behaviour, so that
+EKF3's *_NSE process-noise values transfer unchanged. GTSAM's preintegrated
+IMU factor likewise consumes every sample between keyframes. Summing a*dt
+over these instantaneous samples is rectangular integration and is NOT
+identical to the true delta-angle/delta-velocity EKF3 gets from the INS
+driver - an approximation, documented in CLAUDE.md.
 
 Frame: HIGHRES_IMU's xacc/yacc/zacc and xgyro/ygyro/zgyro are FRD body
 frame (X-forward, Y-right, Z-down), exactly like MAVLink ATTITUDE's
@@ -59,11 +70,15 @@ orientation_covariance[0] = -1 per REP-145. angular_velocity_covariance
 and linear_acceleration_covariance are left at all-zero (valid data,
 covariance unknown), also per REP-145.
 
-Runs on a dedicated MAVLink UDP port (14555), separate from
-fly_forward.py (14550), attitude_bridge.py (14551), lidar_bridge.py
-(14552), flow_bridge.py (14553) and ekf_bridge.py (14554).
-sim_vehicle.py / run_trial.sh must be launched with an extra
-`--out 127.0.0.1:14555` for this connection to receive traffic.
+Runs on port 14556, fed by a DEDICATED SITL serial output
+(`arducopter --serial2=udpclient:127.0.0.1:14556`) rather than a MAVProxy
+`--out` port. This is a deliberate departure from the pattern every other
+bridge follows - fly_forward.py (14550), attitude_bridge.py (14551),
+lidar_bridge.py (14552), flow_bridge.py (14553) and ekf_bridge.py (14554)
+all take MAVProxy `--out` ports. Rationale and the note that it diverges
+from the architecture brief are recorded in CLAUDE.md, "IMU Bridge -
+dedicated SITL output (MAVProxy bypass)". run_trial.sh no longer passes
+`--out 127.0.0.1:14555`.
 
 Usage:
     source /opt/ros/jazzy/setup.bash
@@ -78,8 +93,26 @@ from rclpy.node import Node
 
 from sensor_msgs.msg import Imu
 
-MAVLINK_PORT = 14555
-IMU_STREAM_RATE_HZ = 50
+# Dedicated SITL SERIAL2 UDP output (arducopter --serial2=udpclient:127.0.0.1:14556),
+# NOT a MAVProxy --out port. This DEPARTS from the "every bridge owns a MAVLink UDP
+# port via MAVProxy --out" pattern every other bridge follows - see CLAUDE.md,
+# "IMU Bridge - dedicated SITL output (MAVProxy bypass)". The reason is headroom:
+# at the rate below, MAVProxy would be relaying this stream to six outputs in
+# single-threaded Python on top of everything else.
+MAVLINK_PORT = 14556
+
+# 3 ms is the FLOOR imposed by ArduPilot, not a preference. GCS_Common.cpp's
+# cap_message_interval() enforces "no greater than 0.8 * SCHED_LOOP_RATE"; at
+# SCHED_LOOP_RATE=400 the floor is 2500/800 = 3.125 ms, and set_message_interval()
+# truncates microseconds to integer ms, so a 2 ms request is rejected outright
+# ("Requested rate for message ID N too fast. Increase SCHED_LOOP_RATE").
+# Raising SCHED_LOOP_RATE is NOT an option - it changes EKF3's own frame rate and
+# INS sampling, i.e. the baseline being compared against.
+#
+# The rate is raised from the original 50 Hz because 50 Hz aliases: measured
+# ~0.25 m/s^2 RMS of accel-z energy above the 25 Hz Nyquist (inferred from VIBE,
+# which is computed on the 1000 Hz sensor stream). See CLAUDE.md, "IMU Aliasing".
+IMU_STREAM_INTERVAL_MS = 3
 
 
 class ImuBridge(Node):
@@ -89,7 +122,7 @@ class ImuBridge(Node):
 
         self._pub = self.create_publisher(Imu, '/imu/data_raw', 10)
 
-        self.get_logger().info(f'Connecting to SITL on udp:127.0.0.1:{MAVLINK_PORT} ...')
+        self.get_logger().info(f'Connecting to SITL on udpin:127.0.0.1:{MAVLINK_PORT} (dedicated SERIAL2, MAVProxy bypassed) ...')
         self.master = mavutil.mavlink_connection(f'udp:127.0.0.1:{MAVLINK_PORT}')
         self.master.wait_heartbeat()
         self.get_logger().info(
@@ -99,8 +132,10 @@ class ImuBridge(Node):
 
         self._request_imu_stream()
 
-        # Poll for MAVLink messages faster than the requested HIGHRES_IMU rate.
-        self._timer = self.create_timer(1.0 / (IMU_STREAM_RATE_HZ * 2), self._poll)
+        # Poll well above the stream rate; _poll() drains the socket in a loop, so
+        # this only bounds added latency, not throughput. 1 kHz against a nominal
+        # ~333 Hz stream.
+        self._timer = self.create_timer(0.001, self._poll)
 
         # Same MAVProxy stream-rate-clobbering issue as attitude_bridge.py -
         # keep re-asserting ours so the effective rate doesn't decay.
@@ -110,8 +145,8 @@ class ImuBridge(Node):
         self.get_logger().info('Publishing to /imu/data_raw')
 
     def _request_imu_stream(self) -> None:
-        """Ask the autopilot to send HIGHRES_IMU at IMU_STREAM_RATE_HZ."""
-        interval_us = int(1e6 / IMU_STREAM_RATE_HZ)
+        """Ask the autopilot to send HIGHRES_IMU every IMU_STREAM_INTERVAL_MS."""
+        interval_us = IMU_STREAM_INTERVAL_MS * 1000
         self.master.mav.command_long_send(
             self.master.target_system,
             self.master.target_component,
