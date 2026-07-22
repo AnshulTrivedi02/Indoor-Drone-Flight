@@ -33,10 +33,15 @@ separate discoveries that invalidate prior results.** In priority order:
    `param_audit_migration_2026-07-22.txt`; the old config is fully
    enumerable and nothing is unrecoverable.
 
-**Next**: apply the collision fix to the three corridor worlds, re-run
-`corridor_textured` end-to-end, then re-measure both the EKF3 dead-reckoning
-baseline and the no-yaw yaw drift **on the corridor** — neither is
-measurable on `iris_textured.sdf` (see Known Issue #6).
+**Corridor worlds are now usable — this unblocks the dataset flight.** All
+three fly end-to-end at RTF 0.919 with zero link flapping; `corridor_blank`
+arms for the first time. See the 2026-07-23 session entry.
+
+**Next**: re-measure the EKF3 dead-reckoning baseline and the no-yaw yaw
+drift **on the corridor** (neither is measurable on `iris_textured.sdf`, see
+Known Issue #6); build `preflight_check.sh`; then rewire `evaluate_trial.sh`
+to source EKF3 from `XKF1`, which first requires proving the `TimeUS`->sim-time
+alignment on an existing bag.
 
 Old machine (ThinkPad X1 Carbon, i5-10210U) retained for now; `~/thesis_data`
 (14 trials) and `~/ardupilot_gazebo` both transferred to the new machine.
@@ -68,7 +73,7 @@ Old machine (ThinkPad X1 Carbon, i5-10210U) retained for now; `~/thesis_data`
 | Accelerometer bridge (`/imu/data_raw`)       | Done          | `imu_bridge.py`; specific-force confirmed empirically (+9.81 m/s² at rest), 50 Hz, sim-time aligned with the other estimator inputs |
 | UKF design                                   | Confirmed, no code yet | State vector, process/measurement models, matched robustness params, Q derivation, position reference, covariance logging, validation plan all decided — see CLAUDE.md "UKF Design" |
 | No-yaw / compass-denied investigation        | Done          | Found EKF3 fusing compass outside the stated sensor suite; verified fix (`gnss_denied_nomag.parm`) not yet folded into the standing baseline — see CLAUDE.md "No-Yaw / Compass-Denied Investigation" |
-| Corridor worlds — actual flight-tested       | Blocked, TRUE root cause found | **Not a CPU limit.** 8 coincident infinite `<plane>` collision half-spaces; 1-collision variant measured **29× faster (RTF 0.0134 → 0.3934)** with all 8 tiles still rendering. Fix identified and validated in scratch copies, **not yet applied to the world files**. `corridor_blank.sdf`'s LiDAR-no-return likely a *visual*-geometry issue — `gpu_lidar` confirmed to raycast the rendering scene, not collision |
+| Corridor worlds — actual flight-tested       | **DONE, all three verified** | All three fly full 151 m trials at **RTF 0.919** (live lockstep). Collision fix: floor tiles visual-only + one `ground_collision` per world; `spawn_margin` removed. Known Issues #11 and #12 both resolved. Degradation confirmed: `inlier_ratio` textured **0.9752** vs blank **0.3101** (target 0.28), transition switches at **y=80.01 m**. Batch of 9 trials = **58 min** (was ~66 h) |
 | EKF3 accuracy vs ground truth                | **VOID — must be redone** | `/ekf/pose` is simulator truth (`AHRS_EKF_TYPE=10`), so all Stage B/C ATE/RPE figures measured truth against truth. EKF3's real solution (from `XKF1`) shows ~5% scale error over the 6 m window where flow aiding was active — honest dead reckoning, not a misconfiguration |
 | `iris_textured.sdf` usability                | **Unusable beyond ~10 m** | Mat edge starves `RNGFND1` (41.0 no-return, 100% of samples), which kills flow fusion outright via HAGL loss — not merely "feature-poor segments". See Known Issue #6 |
 | FGO (GTSAM) implementation                   | Not started   | Uses `gnss_denied.parm` baseline |
@@ -76,6 +81,61 @@ Old machine (ThinkPad X1 Carbon, i5-10210U) retained for now; `~/thesis_data`
 ---
 
 ## Work Sessions
+
+### Session — 2026-07-23 — corridor worlds fixed and verified; IMU rate raised
+
+**All three corridor worlds now fly end-to-end.** `corridor_textured` had
+never completed a reliable trial; `corridor_blank` had never armed. Both do
+now, along with `corridor_transition`.
+
+**The collision fix (Known Issue #11).** `<plane>` collision is an infinite
+half-space — `<size>` bounds only the visual — so tiling `textured_ground` 8×
+stacked 8 coincident infinite planes at z=0. Applied Option B across all three
+worlds: floor tiles are visual-only (`textured_ground_visual`,
+`blank_ground_visual`) and each world includes exactly one
+`ground_collision`. Also removed `spawn_margin`, which carried its own
+`<plane>` collision and existed in only two of three worlds — an asymmetry
+between conditions — replaced by a full tile at y=−10 applied identically
+everywhere. All three worlds now have 0 inline `<collision>` blocks, 1
+`ground_collision`, and 9 tiles at identical poses, so physics below the
+visual layer is bit-identical across conditions. That is stronger than the
+previous design, which had 8 vs 5 vs 1 collision planes.
+
+**The rendered-floor fix (Known Issue #12).** `corridor_blank` had a single
+inline 20×164 m plane and its LiDAR read the 41.0 no-return sentinel. Replaced
+with 9 `blank_ground_visual` tiles at the same poses as the checkerboard,
+differing only in material. This matters scientifically: a world with nothing
+rendered beneath the drone gives skybox — static features, deceptively HIGH
+inlier_ratio, and zero flow — which is absence of a scene, not degradation.
+
+**Verified, all of it:**
+- **LiDAR**: 0.075 m at y = 0, 80, 150 in all three worlds (9/9 probes), never
+  41.0. Exactly `base_link 0.195 − LiDAR 0.12`.
+- **RTF (live lockstep)**: textured 0.917, blank 0.912, transition 0.927 —
+  mean **0.919**, from 0.0134 pre-fix. Standalone figures (0.40–0.44) understate
+  it because standalone has no SITL and the plugin blocks on timeouts.
+- **Link health**: **0** `no link` events in all three (was 37); 0 JSON stalls.
+- **Heartbeat timeout resolved with no timeout change** — MAVProxy vehicle
+  detect went 71 s → **1 s**. It was never a separate bug: MAVProxy waits on a
+  1 Hz *sim-time* heartbeat, which at RTF 0.0134 arrived every ~75 s wall-clock.
+- **Degradation**: textured `inlier_ratio` **0.9752** (0% below 0.5, features
+  52.5, flow_y 131.6 px/s) vs blank **0.3101** (85% below 0.5, features 7.9,
+  flow_y −0.71 px/s) — against the `iris_runway` baseline of 0.28. Flat across
+  all four 40 m bands. Correct degraded signature: LOW confidence *and* zero
+  flow, not the high-confidence-zero-flow skybox failure mode.
+- **Transition boundary**: 0.9611 at y 75–80 → **0.3846 at y 80–85** → 0.3147
+  at y 85–100, crossing measured at sim t=190.3 s, ground-truth **y = 80.01 m**.
+- **Flow validated against theory**: `flow_y_raw` 137.13 px/s vs 137.1 px/s
+  predicted (`v/h·f`, v=0.4999 m/s, camera height 2.020 m, f=554) — 0.02%.
+  Note `flow_x_raw` oscillates ±182 px/s with ≈zero mean: the documented
+  ~0.4 rad/s roll vibration coupling into *un-derotated* flow, expected.
+  Report per-axis, not `hypot`, which conflates translation with rotation.
+- **Batch cost**: 386 s/trial → **58 min for 3 worlds × 3 repeats** at 320 s
+  cruise. The same batch pre-fix would have taken ~66 hours.
+
+**IMU bridge raised 50 → 333 Hz** and EKF3's prediction dt corrected to 80 Hz —
+see the CLAUDE.md sections and the preceding commit.
+
 
 ### Session — 2026-07-22 (evening) — machine migration; three invalidating discoveries
 

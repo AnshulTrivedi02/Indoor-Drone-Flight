@@ -1699,7 +1699,46 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
 9. **~~Real-time factor is low on this machine~~ — RESOLVED by the 2026-07-22 migration.** On the new desktop (i7-8700, 65 W, + Quadro P620) a full `run_trial.sh` flight measured **RTF ≈ 0.86** (10.3 s sim in 12.0 s wall-clock), against 0.05–0.17 on the ThinkPad — a 5–17× improvement. The old machine's ceiling was a 15 W throttled mobile CPU with integrated graphics sharing the same power budget; the discrete GPU also removes render contention. **The RTF-aware discipline below remains correct and must be kept** — gate on measured state, never wall-clock sleep — and `MIN_ASSUMED_RTF` stays as a safety net. Note this did NOT fix Known Issue #11, which is algorithmic, not throughput-bound. Original entry follows. — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures). **This is the reason the workstation is being migrated to a second Ubuntu 24 machine** — ROS2/Gazebo/ArduPilot still need setting up there; until that's done, this machine remains the working environment.
 10. **SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`** — once a param has any explicitly-stored value in `~/ardupilot/ArduCopter/eeprom.bin` (gitignored, persists across SITL sessions), `AP_Param::configured_in_storage()` means `--defaults`/`--add-param-file` no longer override it. Fix with a live `PARAM_SET` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (soft in-process reboot, no relaunch needed) rather than deleting the eeprom file. See "Downward Optical Flow — EKF3 Fusion (Stage A)" above for how this was found (`FLOW_TYPE` silently stuck at `10` instead of the `5` in `flow_ekf.parm`).
-11. **Gazebo↔SITL JSON lockstep stalls on `corridor_textured.sdf` — TRUE ROOT CAUSE FOUND 2026-07-22: eight coincident infinite collision planes, NOT a hardware/CPU limit.**
+11. **~~Gazebo↔SITL JSON lockstep stalls on `corridor_textured.sdf`~~ — FIXED AND VERIFIED 2026-07-23.**
+
+    **Fix applied:** all floor tiles are now visual-only
+    (`model://textured_ground_visual`, `model://blank_ground_visual`) and each
+    corridor world includes exactly one `model://ground_collision`. The
+    `spawn_margin` patch was removed — it carried its own `<plane>` collision
+    and existed in only two of the three worlds — and is replaced by a full
+    tile at y=−10 (covering y=−20…0) applied identically to all three, which
+    preserves the knife-edge protection it provided. All three worlds now have
+    **0 inline `<collision>` blocks, 1 `ground_collision`, and 9 tiles at
+    identical poses**.
+
+    **Verified end-to-end (2026-07-23), 0.5 m/s, 300 s cruise, 151 m travelled:**
+
+    | | textured | blank | transition |
+    |---|---|---|---|
+    | trial completed | ✅ | ✅ | ✅ |
+    | RTF (live lockstep) | **0.917** | 0.912 | 0.927 |
+    | `no link` / flapping events | **0** (was 37) | 0 | 0 |
+    | JSON stalls | 0 | 0 | 0 |
+    | MAVProxy vehicle detect | **1 s** (was 71 s) | 1 s | 1 s |
+
+    **`corridor_textured` has now flown a full trial end-to-end** — previously
+    "not reliably reproducible". **Live-lockstep RTF is 0.919 mean**, higher
+    than the 0.40–0.44 standalone figures (standalone has no SITL, so
+    `ArduPilotPlugin` blocks on connection timeouts).
+
+    **The heartbeat/link failures were a *consequence* of RTF, not a separate
+    bug.** MAVProxy waits for a 1 Hz **sim-time** heartbeat; at RTF 0.0134 that
+    arrived every ~75 s wall-clock, which is why detection took 71 s and
+    `PARAM_REQUEST_READ` round trips timed out. At RTF 0.919 it arrives every
+    ~1.09 s. **No timeout value was changed** — the 240 s cap is untouched.
+
+    **Batch cost, 320 s cruise @ 0.5 m/s, 3 worlds × 3 repeats:** 386 s/trial →
+    **58 minutes for 9 trials**. At the pre-fix RTF of 0.0134 the same batch
+    would have taken **~66 hours**.
+
+    Original investigation and the root-cause measurements follow.
+
+    **Root cause (2026-07-22): eight coincident infinite collision planes, NOT a hardware/CPU limit.**
 
     **`textured_ground` uses `<plane>` collision geometry, which is an infinite
     half-space — `<size>` constrains only the visual.** `corridor_textured.sdf`
@@ -1759,7 +1798,48 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
     - `--default-modules` (excluding MAVProxy's own `param` module, which auto-downloads the full parameter set on connect and was found flooding the same link) measurably reduces failure severity — confirmed via `strace`: traffic dropped ~72% (1692 → 461 `sendto` calls), and it changed hard first-attempt failures into recoverable-with-retries — but it is **not a fix**, since it doesn't address the underlying CPU bottleneck. A run with it applied still stalled indefinitely at arming with the same `"Accels inconsistent"`/link-flapping pattern.
     - **Prediction for the machine migration**: this should improve on a faster machine, but specifically needs better *single-core* performance, not just a newer/multi-core CPU — re-test `corridor_textured.sdf` directly (watch `gz sim server`'s CPU% and whether "no link" recurs) as an early validation once the new machine is set up, rather than assuming it's resolved.
     - **Open tension, not fully reconciled**: an earlier report (from a separate investigation session) claimed this stall "reproduces identically on `iris_textured.sdf`" too — that was never independently re-confirmed under a live CPU-saturation check the way the corridor-world case now has been, and doesn't sit easily next to `iris_textured.sdf`'s otherwise consistent reliability across dozens of trials this project. Possibly that observation was a different, more transient phenomenon (a single early connection-reset event, which can happen briefly on any world and normally self-heals in seconds) rather than the same sustained, CPU-bound flapping documented here for the corridor world. Not resolved — flagging honestly rather than forcing a tidy story.
-12. **`corridor_blank.sdf` fails to arm — downward LiDAR ray doesn't hit any surface at the drone's spawn point.** `/downward_lidar/range` reads `range: 41.0` (just outside the sensor's valid 0.05–40 m range), so `lidar_bridge.py` correctly drops it as invalid (mirroring a real driver's no-return handling) and `RNGFND1` never receives a single valid sample — arming fails with `"Rangefinder 1: No Data"`. Root cause not yet found; suspect a floor-geometry or spawn-pose mismatch specific to this world (its ground-plane structure differs from `corridor_textured.sdf`'s tiled floor — see "Corridor Worlds" above). **Not fixed — this world cannot currently fly a trial.**
+12. **~~`corridor_blank.sdf` fails to arm~~ — FIXED AND VERIFIED 2026-07-23. Root cause: the world had no adequately rendered floor, and `gpu_lidar` raycasts the *rendering* scene.**
+
+    `corridor_blank.sdf` previously used a single inline 20×164 m `blank_floor`
+    plane. It has been replaced by **9 visual-only `blank_ground_visual` tiles
+    at the same 9 poses as `corridor_textured`'s checkerboard**, differing
+    **only** in material (no `albedo_map`) — same geometry, same extent, same
+    ambient/diffuse/specular/roughness/metalness. Texture is therefore the only
+    variable between conditions, by construction.
+
+    **This matters scientifically, not just mechanically.** A world with
+    nothing rendered beneath the drone is *not* a degraded-sensing condition —
+    the downward camera would see skybox, giving static features, a
+    deceptively **high** `inlier_ratio`, and flow confidently reporting ≈zero
+    motion. That is absence of a scene, not low-texture degradation, and it is
+    not the phenomenon this thesis studies.
+
+    **Verified:** LiDAR reads **0.075 m at y = 0, 80 and 150 in all three
+    corridor worlds** (9/9 probes, exactly `base_link 0.195 − LiDAR 0.12`),
+    never the 41.0 no-return sentinel. `corridor_blank` **arms and flies a full
+    151 m trial**.
+
+    **Degradation confirmed against the `iris_runway` baseline of 0.28:**
+
+    | | textured | blank | transition (textured half / blank half) |
+    |---|---|---|---|
+    | `inlier_ratio` | **0.9752** | **0.3101** | 0.9737 / 0.3138 |
+    | median | 1.0000 | 0.2381 | — |
+    | % below 0.5 | 0.0% | **85.0%** | — |
+    | `feature_count` | 52.5 | **7.9** (min 0) | 53.1 / 8.0 |
+    | `flow_y_raw` | **131.6 px/s** | **−0.71 px/s** | 136.4 / −3.19 |
+
+    Both hold flat across all four 40 m bands, so neither is an edge effect.
+    **This is the correct degraded signature — low confidence AND zero flow.**
+    The skybox failure mode would show *high* confidence with zero flow.
+
+    `corridor_transition` switches exactly at the boundary: `inlier_ratio`
+    0.9611 at y 75–80, **0.3846 at y 80–85**, 0.3147 at y 85–100, with the
+    crossing measured at sim t=190.3 s, **ground-truth y = 80.01 m**.
+
+    Original diagnosis follows.
+
+    **~~`corridor_blank.sdf` fails to arm~~ — downward LiDAR ray doesn't hit any surface at the drone's spawn point.** `/downward_lidar/range` reads `range: 41.0` (just outside the sensor's valid 0.05–40 m range), so `lidar_bridge.py` correctly drops it as invalid (mirroring a real driver's no-return handling) and `RNGFND1` never receives a single valid sample — arming fails with `"Rangefinder 1: No Data"`. Root cause not yet found; suspect a floor-geometry or spawn-pose mismatch specific to this world (its ground-plane structure differs from `corridor_textured.sdf`'s tiled floor — see "Corridor Worlds" above). **Not fixed — this world cannot currently fly a trial.**
 13. **Intermittent loss of the `PARAM_REQUEST_READ`/`PARAM_VALUE` round trip in `fly_trial.py`'s `ensure_params()`** — reproduced 3/3 in one investigation session (`iris_textured.sdf`, not corridor-specific), 0/2 in a follow-up reproduction attempt with `strace -e trace=network` wrapped around `arducopter`, `mavproxy.py`, and `fly_trial.py` (both follow-up attempts succeeded cleanly, round trip <400 ms, no retries needed) — genuinely racy, not yet pinned down. **Ruled out via MAVProxy source, not assumed**: `mavfwd` (gates client→master forwarding) defaults to `True` (`MAVProxy/mavproxy.py`), and `no_fwd_types` (message types MAVProxy won't relay master→outputs) only contains `"BAD_DATA"` (`MAVProxy/modules/mavproxy_link.py`) — neither blocks this message pair by default, so it isn't a static MAVProxy configuration gate. `read_param()` now retries 5× (5 s each) as a mitigation, not a fix — if `ensure_params()` still fails outright after this, the underlying race hasn't been found yet. Worth checking whether this reproduces on the new machine too.
 
 ## Conventions
