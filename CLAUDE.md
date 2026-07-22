@@ -49,6 +49,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Flow EKF bridge**         | `~/thesis_ws/flow_bridge.py`                                         |
 | **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
 | **GNSS-denied params**      | `~/thesis_ws/gnss_denied.parm`                                       |
+| **No-yaw test params (throwaway, not the baseline)** | `~/thesis_ws/gnss_denied_nomag.parm`               |
 | **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
 | **IMU bridge**               | `~/thesis_ws/imu_bridge.py`                                          |
 | **evo venv**                 | `~/venv-evo`                                                         |
@@ -154,6 +155,23 @@ in `~/ardupilot_gazebo/worlds/`, validates it exists first (listing valid
 options on a typo), and substitutes it into both the Gazebo launch and the
 ROS2 bridge's `dynamic_pose/info` topic name automatically. Manual launch
 (Terminal 1/3) works the same way — just substitute the world name.
+
+**Not yet flown end-to-end via `run_trial.sh`/`fly_trial.py` for any
+corridor world as of this writing** — the "Verified" checks above are all
+Gazebo-level (spawn pose, rendering, `flow_tracker` feature counts), not a
+full arm/climb/cruise/land trial. Attempting one surfaced two real,
+unresolved problems — see Known Issues #11 and #12 below:
+- `corridor_textured.sdf` and `corridor_blank.sdf` both hit the
+  Gazebo↔SITL JSON lockstep stall (Known Issue #11) needing `run_trial.sh`'s
+  240 s `wait_for` cap to ride out — this turned out to **not** be
+  corridor-specific (reproduces on `iris_textured.sdf` too), so the
+  original theory that more floor tiles meant slower loading was wrong.
+- `corridor_blank.sdf` additionally fails to arm outright — the downward
+  LiDAR never returns a valid reading at the spawn point (Known Issue #12).
+  **Not usable for a real trial until this is fixed.**
+- `corridor_textured.sdf` did complete a full trial successfully once the
+  240 s cap was in place, but hasn't yet been stress-tested with a real
+  long-duration flight.
 
 ## Ground Truth Bridging
 
@@ -644,6 +662,215 @@ Gazebo-sourced topics.
 Recorded by default in both `record_trial.sh` and `run_trial.sh` trials
 (`/imu/data_raw`, alongside the existing topic set).
 
+## UKF Design (confirmed, not yet implemented)
+
+Design-first pass completed and confirmed before any filter code was
+written — this section records the confirmed decisions so implementation
+can resume without re-deriving them. **No UKF code exists yet** — the next
+step is a constant-velocity scaffold (plumbing only, not a thesis result)
+to validate multi-rate handling/gating/frames/publishing against existing
+recorded bags, then the real IMU-driven deliverable.
+
+**State vector.** 9-state scaffold: `[p_E, p_N, p_U, v_E, v_N, v_U, roll,
+pitch, yaw]`, ENU/FLU, Euler (not quaternion — `filterpy`'s vanilla
+additive-noise UKF needs a proper manifold mean for a quaternion state,
+which is real extra complexity for little benefit at this flight envelope;
+Euler's gimbal-lock risk at pitch=±90° is a non-issue for gentle
+hover/cruise flights). The IMU-driven deliverable extends this to 15
+states by adding 3-axis `gyro_bias` (rad, delta-angle-per-predict-step) and
+`accel_bias` (m/s, delta-velocity-per-predict-step) — matching EKF3's own
+`state_elements` struct (`AP_NavEKF3_core.h:574-586`) exactly, both in
+which physical states are estimated and in their units (delta/increment
+form, not a rate — see the Q derivation below for why this matters).
+`filterpy`'s `UnscentedKalmanFilter` is the recommended implementation
+(sigma-point machinery only — the process/measurement models stay fully
+owned code) but isn't installed yet; confirm it imports cleanly against
+this machine's numpy version before relying on it (it's an old,
+unmaintained package).
+
+**Position reference point.** `p_U` is base_link height above ground —
+the same physical point `/ground_truth/pose` and `/ekf/pose` already use —
+**not** LiDAR or camera height directly. Mount offsets go into the
+measurement models as lever arms instead: `h_range(x) = p_U − 0.12`
+(LiDAR), `h_cam(x) = p_U − 0.25` (camera, used inside the flow model's
+height scaling). `p_U` is initialised from the first valid LiDAR range
+sample `+ 0.12`, not `(0,0,0)` — starting from an assumed-zero height would
+eat a real transient. `roll0`/`pitch0` come from static gravity-vector
+levelling on the first few accelerometer samples (`atan2` against sensed
+`g`), not assumed level — more correct and it's exactly the sensor already
+verified for this project (see IMU Bridge above). `yaw0` is arbitrary
+(unobservable without a compass) — `evo`'s `-a` alignment absorbs a fixed
+yaw offset for ATE/RPE, but not yaw *drift*, so this only matters for the
+position metric, not for judging attitude quality directly.
+
+**Measurement models — both directly mirror EKF3's own formulation**,
+confirmed by reading `AP_NavEKF3_OptFlowFusion.cpp`/`PosVelFusion.cpp`
+rather than assumed:
+- Range: `h_range(x) = p_U − 0.12` (identity once the lever arm is
+  applied — matches EKF3's own flat-terrain assumption under
+  `EK3_SRC1_POSZ=RangeFinder`).
+- Flow: rotate world-frame velocity into the body frame via the state's
+  own attitude, exactly mirroring EKF3's `relVelSensor = prevTnb *
+  stateStruct.velocity` (`AP_NavEKF3_OptFlowFusion.cpp:331`), height-scaled
+  by `h_cam`, plus the same rotational-flow correction term
+  `flow_tracker.py`'s derotation formula already uses
+  (`rollspeed`/`pitchspeed` coefficients) — EKF3 does the structurally
+  identical thing (`flowRadXYcomp = flowRadXY + bodyRadXYZ`,
+  `AP_NavEKF3_Measurements.cpp:222-223`). Exact axis sign (`f_x`/`f_y`)
+  deliberately left to be pinned down empirically at implementation time
+  against the already-validated Stage A result ("vx → flow_y only"),
+  not re-derived from scratch.
+
+**Robustness — matched to EKF3's actual live values, confirmed from
+source, not guessed or self-derived**, so the comparison isolates filter
+formulation rather than tuning:
+
+| Param | Value (Copter default, confirmed unset in our `.parm` files) | Source |
+|---|---|---|
+| `EK3_FLOW_M_NSE` | 0.25 rad/s | `AP_NavEKF3.cpp:41,321` |
+| `EK3_FLOW_I_GATE` | 300 → NIS gate 9 (3σ) | `AP_NavEKF3.cpp:42,329` |
+| `EK3_RNG_M_NSE` | 0.5 m | `AP_NavEKF3.cpp:293` |
+| `EK3_RNG_I_GATE` | 500 → NIS gate 25 (5σ) | `AP_NavEKF3.cpp:301` |
+| `FLOW_MAX` | 2.5 rad/s hard reject | `AP_NavEKF3.cpp` (~line 305) |
+
+Gate formula confirmed exact: `testRatio = ν² / ((0.01·GATE)² · S)`,
+rejected if `> 1.0` (`AP_NavEKF3_OptFlowFusion.cpp:218,253,665`). **Quality
+(`inlier_ratio`) is a binary accept/reject gate, not continuous R-scaling**
+— traced `AP_OpticalFlow_MAV::update()`/`writeOptFlowMeas()` directly:
+EKF3 only checks `rawFlowQuality > 0`, then fuses with the fixed
+`FLOW_M_NSE` regardless of the exact quality value above zero
+(`AP_NavEKF3_Measurements.cpp:203`). Matching this (not continuous
+scaling) avoids an unmatched extra defence that would bias the comparison.
+
+**Process noise (Q) — the one place a naive "copy EKF3's parameter"
+approach is wrong, and why.** EKF3's own formulas
+(`AP_NavEKF3_core.cpp:1048,1054,1161-1163`):
+```
+Q_att_dt = (dt · GYRO_P_NSE)²      GYRO_P_NSE  = 0.015 rad/s
+Q_v_dt   = (dt · ACC_P_NSE)²       ACC_P_NSE   = 0.35 m/s²
+Q_bg_dt  = (dt² · GBIAS_P_NSE)²    GBIAS_P_NSE = 0.001 rad/s/s
+Q_ba_dt  = (dt² · ABIAS_P_NSE)²    ABIAS_P_NSE = 0.02 m/s/s/s
+```
+EKF3's own predict step runs at `SCHED_LOOP_RATE` — confirmed **400 Hz**
+by reading it directly from a trial's own dataflash `PARM` dump, not
+assumed — while the UKF's predict step is capped at `/imu/data_raw`'s
+50 Hz. Copying these parameter values unchanged silently assumes equal
+`dt`, which is off by 8×. The dt-invariant quantity that should actually
+match is accumulated variance *per second* (`dt^(2k-1) · NSE²` for a
+`(dt^k · NSE)²` per-step term), giving `NSE_UKF = NSE_EKF3 ·
+(dt_EKF3/dt_UKF)^(k−0.5)`:
+
+| Param | EKF3 value | k | Scale factor | Value at 50 Hz |
+|---|---|---|---|---|
+| `GYRO_P_NSE` | 0.015 rad/s | 1 | ×0.3536 | 0.0053 rad/s |
+| `ACC_P_NSE` | 0.35 m/s² | 1 | ×0.3536 | 0.124 m/s² |
+| `GBIAS_P_NSE` | 0.001 rad/s/s | 2 | ×0.0442 | 4.42×10⁻⁵ rad/s/s |
+| `ABIAS_P_NSE` | 0.02 m/s/s/s | 2 | ×0.0442 | 8.84×10⁻⁴ m/s/s/s |
+
+The CV scaffold's velocity process noise has **no EKF3 counterpart at
+all** (EKF3 has no undriven "velocity random walk" state) — use the
+standard discrete white-noise-acceleration form,
+`Q = σ_a² · [[dt⁴/4, dt³/2],[dt³/2, dt²]]` per axis, `σ_a ≈ 0.3–0.5 m/s²`
+as a starting point, tuned empirically (unmatched by construction, unlike
+everything above).
+
+**Covariance logging.** `/ukf/pose` should publish as
+`geometry_msgs/PoseWithCovarianceStamped`, not `PoseStamped` — confirmed
+`evo` natively supports this type (`evo/tools/file_interface.py:48-52`),
+so this is a drop-in replacement for the existing `evo_ape`/`evo_rpe`
+workflow (`/ekf/pose` stays plain `PoseStamped`; each bag topic is handled
+by its own declared type) while also carrying the 6×6 position/orientation
+covariance needed for a NEES consistency check against `/ground_truth/pose`.
+
+**Multi-rate handling.** Live, asynchronous — no fixed-rate loop.
+`/attitude/angular_rates`-equivalent (in practice, `/imu/data_raw`'s own
+co-sampled gyro, not a second poll of `/attitude/angular_rates` — see IMU
+Bridge above) drives PREDICT on arrival; `/optical_flow/measurement` and
+`/downward_lidar/range` each trigger a catch-up predict (last-known gyro
+rate, zero-order hold, `dt ≥ 0` guarded) then their own UPDATE. Publish
+after every update from any source, stamped from that message's own
+header — matches how this would run unchanged on real hardware.
+
+**Validation plan** (mirrors Stages A/B/C): scaffold plumbing check
+(replay an existing bag, confirm no divergence/crashes, not a thesis
+result) → flow-only sanity check (commanded 0.4 m/s should converge
+`v_body_x ≈ 0.4`, mirrors Stage A's own validation method) → nominal ATE
+baseline (`evo_ape`/`evo_rpe` vs `/ground_truth/pose`, compare against
+Stage B's numbers, expect worse absolute accuracy — that's fine) →
+GNSS-denied textured-vs-blank comparison with innovation/rejection stats
+(mirrors Stage C) → NEES consistency check from the logged covariance.
+
+## No-Yaw / Compass-Denied Investigation
+
+**Finding: EKF3 fuses the compass for yaw under `gnss_denied.parm`,
+outside the thesis's stated IMU+flow+LiDAR sensor suite.**
+`gnss_denied.parm` never touches `EK3_SRC1_YAW`, so it stays at its
+Copter default (`COMPASS`, confirmed via dataflash `PARM` readback:
+`EK3_SRC1_YAW = 1.0`). This is the identical category of confound as the
+accelerometer gap that motivated the IMU bridge — EKF3 gets an absolute
+yaw reference the UKF/FGO don't have at all.
+
+**Fix found and verified working — NOT applied to `gnss_denied.parm`,
+lives only in the throwaway `gnss_denied_nomag.parm` pending a decision**:
+```
+EK3_SRC1_YAW 0        # None
+COMPASS_ENABLE 1      # counter-intuitive - see below
+COMPASS_USE 0
+COMPASS_USE2 0
+COMPASS_USE3 0
+EK3_GSF_RUN_MASK 3    # = EK3_IMU_MASK default, self-documenting only
+EK3_GSF_USE_MASK 3    # (GSF is unconditionally unavailable here anyway)
+```
+`COMPASS_ENABLE=1` is required, not a mistake — `AP_Arming_Copter.cpp`'s
+`arm_checks()` has its own unconditional compass-health gate (line ~575,
+`#ifndef ALLOW_ARM_NO_COMPASS`, not defined for this SITL build) separate
+from the generic `AP_Arming::compass_checks()`. It only skips if
+`ahrs.using_noncompass_for_yaw()` is true, which (`AP_NavEKF3_Control.cpp:
+642`) requires a *recent* non-compass yaw-fusion timestamp — impossible
+with no GPS, and GSF is unconditionally gated off too
+(`runYawEstimatorPrediction()`/`Correction()`,
+`AP_NavEKF3_Control.cpp:827,850`, require `EK3_SRC1_POSXY`/`VELXY` to be
+GPS, which `gnss_denied.parm` already sets to None/OpticalFlow). With
+`COMPASS_ENABLE=0` this arming check fails outright
+(`"AP: Arm: Compass 1 not healthy"`, reproduced then fixed). Keeping the
+compass "present and healthy" while `COMPASS_USE*=0` + `EK3_SRC1_YAW=0`
+keep it out of actual fusion satisfies the arming gate without giving
+EKF3 any real yaw information.
+
+**Verified genuinely not fusing, same evidence standard as everything
+else in this project** — not just assumed from the param values: with
+this config, `XKFS.MAG_FUSION=0` for the entire flight (vs `1` in the
+compass-active baseline) and `XKF2`'s mag field states stay frozen at
+`(0,0,0)` (vs actively-evolving nonzero values normally). `XKF3.IYAW` is
+*not* all-zero — traced this to EKF3's own internal "synthetic yaw"
+mechanism (`AP_NavEKF3_MagFusion.cpp`), which fuses a zero-innovation or
+last-known-static pseudo-observation every 140 ms purely to stop yaw
+covariance from numerically blowing up (source comment: "prevent
+uncontrolled yaw variance growth... by fusing a zero innovation") — not
+real yaw information.
+
+**Long-flight result (320 s, `iris_textured.sdf`, 0.4 m/s cruise —
+corridor worlds weren't usable yet, see Known Issues #11/#12): yaw error
+vs `/ground_truth/pose` stayed essentially zero the whole flight** (±0.03°
+max, linear-fit drift rate ≈0.000 deg/min, R²≈0). **This is not evidence
+that yaw drift is a non-issue in general** — three things specific to
+this test explain it: EKF3 still estimates a full 3-axis `gyro_bias` state
+even with `EK3_SRC1_YAW=0` (its accelerometer-aided roll/pitch corrections
+constrain the joint covariance including the bias vector's yaw component);
+SITL's simulated gyro is very clean/low-bias; the flight itself is pure
+straight-line cruise with almost no actual commanded yaw rotation. A
+constant-velocity UKF scaffold with no bias estimation should be expected
+to drift measurably more than this — the IMU-driven UKF (which already
+matches EKF3's own `gyro_bias`/`accel_bias` state structure, see UKF
+Design above) is the one that should plausibly get close to this result.
+Lateral deviation from the commanded straight path stayed small (+0.28 m
+at 160 s, +0.55 m at 320 s) — fully consistent with the near-zero yaw
+error. Flow/range fusion was undisturbed by removing yaw (0/3267 rejected,
+mean NI=7.7, actually better than Stage C's mean 15); `inlier_ratio`
+stayed ~0.98 throughout, including well past the point the drone left the
+20×20 m mat — contrary to the expected confound, worth noting honestly
+rather than forcing the expected result.
+
 ## Launch Sequence
 
 Run each terminal in order. Source commands are mandatory before ROS2 tools.
@@ -1015,8 +1242,11 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
-9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures).
+9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures). **This is the reason the workstation is being migrated to a second Ubuntu 24 machine** — ROS2/Gazebo/ArduPilot still need setting up there; until that's done, this machine remains the working environment.
 10. **SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`** — once a param has any explicitly-stored value in `~/ardupilot/ArduCopter/eeprom.bin` (gitignored, persists across SITL sessions), `AP_Param::configured_in_storage()` means `--defaults`/`--add-param-file` no longer override it. Fix with a live `PARAM_SET` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (soft in-process reboot, no relaunch needed) rather than deleting the eeprom file. See "Downward Optical Flow — EKF3 Fusion (Stage A)" above for how this was found (`FLOW_TYPE` silently stuck at `10` instead of the `5` in `flow_ekf.parm`).
+11. **Gazebo↔SITL JSON lockstep can stall for ~90–110 s once a MAVLink client attaches** — confirmed via `gdb` attached to the `arducopter` process: SITL's main thread blocks in `SITL::JSON::recv_fdm()` waiting on Gazebo's next physics packet, and `arducopter.log` shows "No JSON sensor message received, resending servos" during the stall. It self-heals once Gazebo's `ArduPilotPlugin` hits its own timeout (`connectionTimeoutMaxCount`) and resets the connection (`gazebo.log`: "ArduPilot controller has reset"). **This was initially misdiagnosed as corridor-world-specific slow loading** (more `textured_ground` tiles taking longer to load) — that theory is wrong: all worlds, corridor or not, finish loading in ~5–6 s; the stall reproduces identically on `iris_textured.sdf`. `run_trial.sh`'s "MAVProxy relaying" `wait_for` cap is raised 60 s → 240 s to ride this out, and `fly_trial.py`'s `connect()` heartbeat timeout matches. Intermittent — has NOT reproduced on every run.
+12. **`corridor_blank.sdf` fails to arm — downward LiDAR ray doesn't hit any surface at the drone's spawn point.** `/downward_lidar/range` reads `range: 41.0` (just outside the sensor's valid 0.05–40 m range), so `lidar_bridge.py` correctly drops it as invalid (mirroring a real driver's no-return handling) and `RNGFND1` never receives a single valid sample — arming fails with `"Rangefinder 1: No Data"`. Root cause not yet found; suspect a floor-geometry or spawn-pose mismatch specific to this world (its ground-plane structure differs from `corridor_textured.sdf`'s tiled floor — see "Corridor Worlds" above). **Not fixed — this world cannot currently fly a trial.**
+13. **Intermittent loss of the `PARAM_REQUEST_READ`/`PARAM_VALUE` round trip in `fly_trial.py`'s `ensure_params()`** — reproduced 3/3 in one investigation session (`iris_textured.sdf`, not corridor-specific), 0/2 in a follow-up reproduction attempt with `strace -e trace=network` wrapped around `arducopter`, `mavproxy.py`, and `fly_trial.py` (both follow-up attempts succeeded cleanly, round trip <400 ms, no retries needed) — genuinely racy, not yet pinned down. **Ruled out via MAVProxy source, not assumed**: `mavfwd` (gates client→master forwarding) defaults to `True` (`MAVProxy/mavproxy.py`), and `no_fwd_types` (message types MAVProxy won't relay master→outputs) only contains `"BAD_DATA"` (`MAVProxy/modules/mavproxy_link.py`) — neither blocks this message pair by default, so it isn't a static MAVProxy configuration gate. `read_param()` now retries 5× (5 s each) as a mitigation, not a fix — if `ensure_params()` still fails outright after this, the underlying race hasn't been found yet. Worth checking whether this reproduces on the new machine too.
 
 ## Conventions
 
@@ -1049,9 +1279,9 @@ Remaining:
 6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
 7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
 8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
-9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, now the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence
-10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — infrastructure now ready (`corridor_textured.sdf`/`corridor_blank.sdf`/`corridor_transition.sdf` support 60-120 s flights), but the flight itself not yet run
-11. UKF implementation, using the `gnss_denied.parm` baseline config — not started
+9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence. **Revisit**: `gnss_denied.parm` still lets EKF3 fuse the compass for yaw — outside the thesis's stated sensor suite and a confound vs UKF/FGO's no-yaw setup; a verified fix exists (`gnss_denied_nomag.parm`) but hasn't been folded into the standing baseline — see "No-Yaw / Compass-Denied Investigation" above
+10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — corridor worlds built for this but not yet usable end-to-end (`corridor_textured.sdf`/`corridor_blank.sdf` both hit unresolved issues when actually flown, see Known Issues #11/#12). A 320 s no-yaw flight was run on `iris_textured.sdf` instead (see "No-Yaw / Compass-Denied Investigation" above) — real corridor data still pending
+11. UKF implementation — **design confirmed** (state vector, process/measurement models, matched robustness params, Q derivation, position reference, covariance logging, validation plan — see "UKF Design" above), **no code written yet**. Next step: constant-velocity scaffold (plumbing only) against existing bags
 12. FGO (GTSAM) implementation, using the `gnss_denied.parm` baseline config — not started
 
 ## Experimental Design Notes
