@@ -1,0 +1,51 @@
+# THROWAWAY test config - NOT part of the standing baseline. Loaded on top
+# of gnss_denied.parm (last in the --add-param-file chain) for a one-off
+# test of whether EKF3 can fly with no yaw source at all, matching the
+# UKF/FGO's actual sensor set. See CLAUDE.md / UKF design report for the
+# audit that found EKF3 fusing the compass (EK3_SRC1_YAW=1) despite
+# gnss_denied.parm never mentioning it - outside the thesis's stated
+# IMU+flow+LiDAR sensor suite.
+#
+# Parameter set follows ArduPilot's own documented "no yaw sensor" playbook
+# (EK3_MAG_CAL's @Description, AP_NavEKF3.cpp): disable the compass fully
+# (not just as an EKF3 source - COMPASS_ENABLE/COMPASS_USE* are a separate
+# path from EK3_SRC1_YAW, confirmed via AP_Arming_Copter.cpp's
+# compass_checks()/arm_checks() and NavEKF3_core::using_noncompass_for_yaw()),
+# and set the GSF run/use masks to match EK3_IMU_MASK (both already default
+# to 3, matching EK3_IMU_MASK's default of 3 - set explicitly here for
+# self-documentation, not because a value needs to change).
+#
+# NOTE: GSF is a documented fallback in ArduPilot's own playbook, but is
+# unconditionally unavailable in THIS config - runYawEstimatorPrediction()/
+# Correction() (AP_NavEKF3_Control.cpp) gate on EK3_SRC1_POSXY/VELXY being
+# GPS, which gnss_denied.parm already sets to None/OpticalFlow. So this
+# config genuinely has zero yaw reference, not GSF-backed - that's the
+# point of the test.
+#
+# REVISION after first test attempt failed to arm ("Compass 1 not healthy"):
+# COMPASS_ENABLE=0 was wrong. AP_Arming_Copter::arm_checks() has its OWN
+# compass-health gate (AP_Arming_Copter.cpp:575, #ifndef ALLOW_ARM_NO_COMPASS,
+# not defined for this SITL build), separate from the generic
+# AP_Arming::compass_checks(). It only skips if ahrs.using_noncompass_for_yaw()
+# is true; tracing that (NavEKF3_core::using_noncompass_for_yaw(),
+# AP_NavEKF3_Control.cpp:642) shows it requires a *recent* (<5s) non-compass
+# yaw fusion event (GPS/GSF/extnav) - none of which can ever happen in this
+# no-GPS config - so it always calls _compass.healthy(), which needs the
+# compass driver to actually exist and report healthy, i.e. COMPASS_ENABLE=1.
+# This check is unconditional - not gated behind check_enabled()/ARMING_CHECK,
+# and runs before should_skip_all_checks() - so no ARMING_CHECK bitmask
+# exclusion can bypass it either; COMPASS_ENABLE=1 is the only source-backed
+# option. EKF3 still gets zero yaw information from it: EK3_SRC1_YAW=0 means
+# setYawSource() never selects COMPASS regardless of driver health, and
+# COMPASS_USE*=0 independently keeps it out of the generic compass_checks()
+# and AP_Compass::use_for_yaw(). The compass stays "present and healthy" only
+# to satisfy this one arming-safety gate; it contributes nothing to the state
+# estimate - verified in Step 3 below (XKFS.MAG_FUSION, XKF3.IYAW, XKF2 mag
+# states, MAG message count).
+EK3_SRC1_YAW 0
+COMPASS_ENABLE 1
+COMPASS_USE 0
+COMPASS_USE2 0
+COMPASS_USE3 0
+EK3_GSF_RUN_MASK 3
+EK3_GSF_USE_MASK 3
