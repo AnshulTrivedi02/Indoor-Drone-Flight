@@ -75,7 +75,17 @@ def log(msg: str) -> None:
     print(f"[fly_trial] {msg}", flush=True)
 
 
-def connect(port: int, wait_heartbeat_timeout_s: float = 30.0):
+def connect(port: int, wait_heartbeat_timeout_s: float = 240.0):
+    # Timeout matches run_trial.sh's "MAVProxy relaying" wait_for cap, not a
+    # guess: the Gazebo<->SITL JSON lockstep channel can stall for ~90-110s
+    # real time after a MAVLink client first attaches to SERIAL0 (confirmed
+    # via gdb - SITL blocks in SITL::JSON::recv_fdm() waiting on Gazebo's next
+    # physics packet - and via ArduCopter's own "No JSON sensor message
+    # received, resending servos" retry log), independent of world choice or
+    # load time. run_trial.sh's own wait_for already waits out one such stall
+    # before this script even runs, but the relay can still be settling when
+    # this fresh connection is made, so this wait needs the same generous
+    # margin. See CLAUDE.md, Known Issues, and run_trial.sh's own comment.
     log(f"Connecting to SITL on udp:127.0.0.1:{port} ...")
     master = mavutil.mavlink_connection(f'udp:127.0.0.1:{port}', source_system=255)
     hb = master.wait_heartbeat(timeout=wait_heartbeat_timeout_s)
@@ -85,13 +95,22 @@ def connect(port: int, wait_heartbeat_timeout_s: float = 30.0):
     return master
 
 
-def read_param(master, name: str, timeout_s: float = 5.0):
-    master.mav.param_request_read_send(
-        master.target_system, master.target_component, name.encode(), -1)
-    msg = master.recv_match(type='PARAM_VALUE', blocking=True, timeout=timeout_s)
-    while msg is not None and msg.param_id.rstrip('\x00') != name:
+def read_param(master, name: str, timeout_s: float = 5.0, retries: int = 5):
+    # Retries, not a single shot: the link can still be settling for a few
+    # seconds right after the heartbeat first arrives (same Gazebo<->SITL
+    # JSON-lockstep stall connect() waits out - see its comment), so a lone
+    # PARAM_REQUEST_READ/PARAM_VALUE round trip can legitimately get lost
+    # even once heartbeats are flowing.
+    for attempt in range(retries):
+        master.mav.param_request_read_send(
+            master.target_system, master.target_component, name.encode(), -1)
         msg = master.recv_match(type='PARAM_VALUE', blocking=True, timeout=timeout_s)
-    return msg.param_value if msg is not None else None
+        while msg is not None and msg.param_id.rstrip('\x00') != name:
+            msg = master.recv_match(type='PARAM_VALUE', blocking=True, timeout=timeout_s)
+        if msg is not None:
+            return msg.param_value
+        log(f"No response reading {name} (attempt {attempt + 1}/{retries}), retrying...")
+    return None
 
 
 def set_param(master, name: str, value: float) -> None:

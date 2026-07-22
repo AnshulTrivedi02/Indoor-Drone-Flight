@@ -197,7 +197,22 @@ start_bg "$LOG_DIR/mavproxy.log" \
     --out 127.0.0.1:14555
 
 wait_for "MAVProxy relaying (vehicle detected)" \
-    "grep -q 'online system' '$LOG_DIR/mavproxy.log'" 60
+    "grep -q 'online system' '$LOG_DIR/mavproxy.log'" 240
+# Cap is 240s, not the ~60s a normal boot needs: this stage occasionally hits
+# a real (if temporary) stall in the Gazebo<->SITL JSON lockstep channel once
+# a MAVLink client (MAVProxy) attaches to SERIAL0 - confirmed via `gdb` that
+# SITL's main thread blocks in SITL::JSON::recv_fdm() waiting on Gazebo's next
+# physics packet, and confirmed via arducopter's own log
+# ("No JSON sensor message received, resending servos") that this is a stall
+# ArduPilot's SITL backend already has built-in retry logic for - it
+# self-heals once Gazebo's ArduPilotPlugin times out and resets
+# (connectionTimeoutMaxCount) and restarts the exchange, which was observed
+# taking ~90-110s wall-clock. This is NOT caused by world load time (verified:
+# every corridor world and iris_textured.sdf alike finish loading in ~5-6s,
+# gz sim itself only pegs one core - it produces no further log output during
+# the stall, it's not "busy loading") and is NOT specific to corridor
+# worlds - it reproduced identically on iris_textured.sdf in direct testing.
+# See CLAUDE.md, Known Issues, for the full investigation.
 
 # ── Launch: ROS2 bridges + nodes ─────────────────────────────────────────
 echo ""
