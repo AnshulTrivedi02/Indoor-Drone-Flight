@@ -1,0 +1,13 @@
+# Packages pip-installed into ~/venv-evo. Unlike ~/venv-ardupilot, this
+# venv is NOT --system-site-packages - it's fully isolated.
+#
+# Recreate on a new machine with:
+#   python3 -m venv ~/venv-evo
+#   source ~/venv-evo/bin/activate
+#   pip install -r requirements-evo-venv.txt
+evo==1.36.5
+matplotlib==3.11.0
+numpy==2.5.1
+pandas==3.0.3
+rosbags==0.11.3
+scipy==1.18.0

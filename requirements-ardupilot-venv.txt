@@ -1,0 +1,16 @@
+# Packages actually pip-installed into ~/venv-ardupilot, beyond what
+# --system-site-packages already pulls in from the system ROS2 Jazzy
+# install (ament/rclpy/etc. - those come from `apt install ros-jazzy-*`,
+# not from this file).
+#
+# Recreate on a new machine with:
+#   python3 -m venv --system-site-packages ~/venv-ardupilot
+#   source ~/venv-ardupilot/bin/activate
+#   pip install -r requirements-ardupilot-venv.txt
+future==1.0.0
+lxml==6.1.0
+MAVProxy==1.8.74
+numpy==2.4.4
+opencv-python==4.13.0.92
+pymavlink==2.4.49
+pyserial==3.5
