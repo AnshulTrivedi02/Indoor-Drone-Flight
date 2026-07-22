@@ -31,3 +31,11 @@ logs/
 
 # stop_sim.sh sentinel (lives in /tmp, not the repo, but guard against stray copies)
 thesis_sim_stop
+
+# Claude Code session-local state (permission settings, task locks) - not project content
+.claude/
+
+# MAVProxy-generated runtime logs/caches (regenerated every launch, not source)
+mav.tlog
+mav.tlog.raw
+mav.parm
