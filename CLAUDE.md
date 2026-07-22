@@ -156,22 +156,30 @@ options on a typo), and substitutes it into both the Gazebo launch and the
 ROS2 bridge's `dynamic_pose/info` topic name automatically. Manual launch
 (Terminal 1/3) works the same way — just substitute the world name.
 
-**Not yet flown end-to-end via `run_trial.sh`/`fly_trial.py` for any
-corridor world as of this writing** — the "Verified" checks above are all
-Gazebo-level (spawn pose, rendering, `flow_tracker` feature counts), not a
-full arm/climb/cruise/land trial. Attempting one surfaced two real,
-unresolved problems — see Known Issues #11 and #12 below:
-- `corridor_textured.sdf` and `corridor_blank.sdf` both hit the
-  Gazebo↔SITL JSON lockstep stall (Known Issue #11) needing `run_trial.sh`'s
-  240 s `wait_for` cap to ride out — this turned out to **not** be
-  corridor-specific (reproduces on `iris_textured.sdf` too), so the
-  original theory that more floor tiles meant slower loading was wrong.
-- `corridor_blank.sdf` additionally fails to arm outright — the downward
-  LiDAR never returns a valid reading at the spawn point (Known Issue #12).
-  **Not usable for a real trial until this is fixed.**
-- `corridor_textured.sdf` did complete a full trial successfully once the
-  240 s cap was in place, but hasn't yet been stress-tested with a real
-  long-duration flight.
+**Not yet flown end-to-end via `run_trial.sh`/`fly_trial.py` reliably for
+either `corridor_textured.sdf` or `corridor_blank.sdf` as of this writing**
+— the "Verified" checks above are all Gazebo-level (spawn pose, rendering,
+`flow_tracker` feature counts), not a full arm/climb/cruise/land trial.
+Attempting one surfaced two real, unresolved problems — see Known Issues
+#11 and #12 below:
+- `corridor_textured.sdf` hits a Gazebo↔SITL JSON lockstep stall (Known
+  Issue #11), traced to `gz sim server` saturating a full CPU core trying
+  to simulate this world's heavier geometry (2 walls + 8 floor tiles) on
+  this machine — confirmed in both headless (`run_trial.sh`) and GUI-mode
+  (`start_sim.sh`) launches, so it isn't a headless-vs-GUI difference. This
+  is very plausibly this machine-specific (see Known Issue #9's RTF
+  problems) rather than a bug in the world file itself — worth re-testing
+  once the machine migration is done, watching `gz sim server`'s CPU% and
+  whether MAVProxy's link stays stable through an arm attempt.
+- `corridor_blank.sdf` additionally fails to arm outright — a separate,
+  unrelated bug: the downward LiDAR never returns a valid reading at the
+  spawn point (Known Issue #12). **Not usable for a real trial until this
+  is fixed**, independent of the CPU/performance question above.
+- `corridor_textured.sdf` has completed a full short trial successfully at
+  least once with `run_trial.sh`'s 240 s cap in place, but has not been
+  reliably reproducible — expect intermittent hard failures on this
+  machine until the CPU-saturation root cause is addressed (i.e. likely
+  not until the migration).
 
 ## Ground Truth Bridging
 
@@ -1244,7 +1252,15 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
 9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures). **This is the reason the workstation is being migrated to a second Ubuntu 24 machine** — ROS2/Gazebo/ArduPilot still need setting up there; until that's done, this machine remains the working environment.
 10. **SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`** — once a param has any explicitly-stored value in `~/ardupilot/ArduCopter/eeprom.bin` (gitignored, persists across SITL sessions), `AP_Param::configured_in_storage()` means `--defaults`/`--add-param-file` no longer override it. Fix with a live `PARAM_SET` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (soft in-process reboot, no relaunch needed) rather than deleting the eeprom file. See "Downward Optical Flow — EKF3 Fusion (Stage A)" above for how this was found (`FLOW_TYPE` silently stuck at `10` instead of the `5` in `flow_ekf.parm`).
-11. **Gazebo↔SITL JSON lockstep can stall for ~90–110 s once a MAVLink client attaches** — confirmed via `gdb` attached to the `arducopter` process: SITL's main thread blocks in `SITL::JSON::recv_fdm()` waiting on Gazebo's next physics packet, and `arducopter.log` shows "No JSON sensor message received, resending servos" during the stall. It self-heals once Gazebo's `ArduPilotPlugin` hits its own timeout (`connectionTimeoutMaxCount`) and resets the connection (`gazebo.log`: "ArduPilot controller has reset"). **This was initially misdiagnosed as corridor-world-specific slow loading** (more `textured_ground` tiles taking longer to load) — that theory is wrong: all worlds, corridor or not, finish loading in ~5–6 s; the stall reproduces identically on `iris_textured.sdf`. `run_trial.sh`'s "MAVProxy relaying" `wait_for` cap is raised 60 s → 240 s to ride this out, and `fly_trial.py`'s `connect()` heartbeat timeout matches. Intermittent — has NOT reproduced on every run.
+11. **Gazebo↔SITL JSON lockstep stalls on `corridor_textured.sdf` — root cause found: Gazebo's server process can't keep up with the world's simulation load on this machine.** Chain of evidence, each link independently confirmed rather than assumed:
+    - `gdb` attached to `arducopter` showed SITL's main thread blocking in `SITL::JSON::recv_fdm()`, waiting on Gazebo's next physics packet; `arducopter.log` shows "No JSON sensor message received, resending servos" during the stall; it self-heals once Gazebo's `ArduPilotPlugin` hits its own timeout (`connectionTimeoutMaxCount`) and resets ("ArduPilot controller has reset" in `gazebo.log`).
+    - Initially misdiagnosed as slow **loading** (more `textured_ground` tiles taking longer to load) — wrong: all worlds finish *loading* in ~5–6 s regardless.
+    - Ruled out headless-vs-GUI as the cause: reproduced the identical `"no link"`/`"link 1 down"`/`"link 1 OK"` flapping in MAVProxy's console, plus a *new*, more basic prearm rejection (`"AP: Arm: System not initialised"`, alongside the previously-seen `"Accels inconsistent"`), running `corridor_textured.sdf` manually via `start_sim.sh` **with the Gazebo GUI**, not just headless via `run_trial.sh`.
+    - **The actual cause**: `ps aux` during that manual GUI run showed the `gz sim server` process pegged at **102% CPU** — saturating a full core — confirmed in both headless and GUI-mode runs. `corridor_textured.sdf` (20×160 m, 2 wall boxes + 8 floor tiles) is a genuinely heavier world to simulate *every tick*, not just to load, than `iris_textured.sdf` (single small 20×20 m plane). On a machine already known to struggle holding real-time factor even on the light world (see Known Issue #9), the heavier corridor world's steady-state CPU cost appears to push Gazebo below the responsiveness the JSON lockstep interface needs — explaining the blocking, the resets, the link flapping, and the cascading param-read/arm failures as one unified mechanism, not several unrelated bugs.
+    - The ~100% figure is on essentially **one core**, not spread across several — the bottleneck looks single-thread/single-core-bound, not something "more cores" alone would fix.
+    - `--default-modules` (excluding MAVProxy's own `param` module, which auto-downloads the full parameter set on connect and was found flooding the same link) measurably reduces failure severity — confirmed via `strace`: traffic dropped ~72% (1692 → 461 `sendto` calls), and it changed hard first-attempt failures into recoverable-with-retries — but it is **not a fix**, since it doesn't address the underlying CPU bottleneck. A run with it applied still stalled indefinitely at arming with the same `"Accels inconsistent"`/link-flapping pattern.
+    - **Prediction for the machine migration**: this should improve on a faster machine, but specifically needs better *single-core* performance, not just a newer/multi-core CPU — re-test `corridor_textured.sdf` directly (watch `gz sim server`'s CPU% and whether "no link" recurs) as an early validation once the new machine is set up, rather than assuming it's resolved.
+    - **Open tension, not fully reconciled**: an earlier report (from a separate investigation session) claimed this stall "reproduces identically on `iris_textured.sdf`" too — that was never independently re-confirmed under a live CPU-saturation check the way the corridor-world case now has been, and doesn't sit easily next to `iris_textured.sdf`'s otherwise consistent reliability across dozens of trials this project. Possibly that observation was a different, more transient phenomenon (a single early connection-reset event, which can happen briefly on any world and normally self-heals in seconds) rather than the same sustained, CPU-bound flapping documented here for the corridor world. Not resolved — flagging honestly rather than forcing a tidy story.
 12. **`corridor_blank.sdf` fails to arm — downward LiDAR ray doesn't hit any surface at the drone's spawn point.** `/downward_lidar/range` reads `range: 41.0` (just outside the sensor's valid 0.05–40 m range), so `lidar_bridge.py` correctly drops it as invalid (mirroring a real driver's no-return handling) and `RNGFND1` never receives a single valid sample — arming fails with `"Rangefinder 1: No Data"`. Root cause not yet found; suspect a floor-geometry or spawn-pose mismatch specific to this world (its ground-plane structure differs from `corridor_textured.sdf`'s tiled floor — see "Corridor Worlds" above). **Not fixed — this world cannot currently fly a trial.**
 13. **Intermittent loss of the `PARAM_REQUEST_READ`/`PARAM_VALUE` round trip in `fly_trial.py`'s `ensure_params()`** — reproduced 3/3 in one investigation session (`iris_textured.sdf`, not corridor-specific), 0/2 in a follow-up reproduction attempt with `strace -e trace=network` wrapped around `arducopter`, `mavproxy.py`, and `fly_trial.py` (both follow-up attempts succeeded cleanly, round trip <400 ms, no retries needed) — genuinely racy, not yet pinned down. **Ruled out via MAVProxy source, not assumed**: `mavfwd` (gates client→master forwarding) defaults to `True` (`MAVProxy/mavproxy.py`), and `no_fwd_types` (message types MAVProxy won't relay master→outputs) only contains `"BAD_DATA"` (`MAVProxy/modules/mavproxy_link.py`) — neither blocks this message pair by default, so it isn't a static MAVProxy configuration gate. `read_param()` now retries 5× (5 s each) as a mitigation, not a fix — if `ensure_params()` still fails outright after this, the underlying race hasn't been found yet. Worth checking whether this reproduces on the new machine too.
 

@@ -41,7 +41,7 @@ Drone-Flight.git`) specifically to support the move.
 | Accelerometer bridge (`/imu/data_raw`)       | Done          | `imu_bridge.py`; specific-force confirmed empirically (+9.81 m/s² at rest), 50 Hz, sim-time aligned with the other estimator inputs |
 | UKF design                                   | Confirmed, no code yet | State vector, process/measurement models, matched robustness params, Q derivation, position reference, covariance logging, validation plan all decided — see CLAUDE.md "UKF Design" |
 | No-yaw / compass-denied investigation        | Done          | Found EKF3 fusing compass outside the stated sensor suite; verified fix (`gnss_denied_nomag.parm`) not yet folded into the standing baseline — see CLAUDE.md "No-Yaw / Compass-Denied Investigation" |
-| Corridor worlds — actual flight-tested       | Blocked       | Both `corridor_textured.sdf` and `corridor_blank.sdf` hit unresolved issues when actually flown via `run_trial.sh` — see Known Issues below |
+| Corridor worlds — actual flight-tested       | Blocked, root-caused | `corridor_textured.sdf`: traced to `gz sim server` CPU-saturating this machine (102%, one core) — likely resolves post-migration, re-test to confirm. `corridor_blank.sdf`: separate, unrelated LiDAR-no-surface arming bug, still unfixed |
 | FGO (GTSAM) implementation                   | Not started   | Uses `gnss_denied.parm` baseline |
 
 ---
@@ -136,6 +136,76 @@ slow enough that a second Ubuntu 24 PC is being set up as the new
 workstation. Repo brought up to date and pushed to GitHub to support the
 move — ROS2/Gazebo/ArduPilot SITL setup on the new machine is a separate,
 outstanding task.
+
+---
+
+### Session — 2026-07-22 (cont.) — corridor-world instability root-caused to CPU saturation
+
+Follow-up on Known Issue #11 (the `corridor_textured.sdf` Gazebo↔SITL JSON
+lockstep stall), done jointly — user ran manual/GUI-mode tests side by
+side with automated ones, which is what actually cracked this.
+
+**Tried a partial fix first.** Live `strace` on `arducopter`, `mavproxy.py`,
+and `fly_trial.py` during a failing run caught MAVProxy's own `param`
+module auto-downloading the full ~1000+ parameter set (1229 sequential
+`PARAM_REQUEST_READ`-by-index sends) at the same time `fly_trial.py` was
+trying its own targeted named lookup — a real, contributing factor.
+Excluding it via `mavproxy.py --default-modules` (drop `param` from the
+default list) cut MAVProxy's traffic ~72% (1692 → 461 `sendto` calls) and
+changed instant hard-failures into recoverable-with-retries. **Confirmed
+not a full fix** — a run with it applied still stalled indefinitely at
+arming, showing `"Accels inconsistent"` and MAVProxy's own link
+repeatedly flapping (`"no link"` / `"link 1 down"` / `"link 1 OK"`) for
+several minutes with no improvement, until manually stopped.
+
+**The actual breakthrough: isolating headless-vs-GUI vs world-specific.**
+The user's own earlier "manual testing usually works, just slow due to
+gyros" experience turned out to have never actually used
+`corridor_textured.sdf` — it was `iris_textured.sdf`, which has always
+been reliable. Ran `corridor_textured.sdf` manually via `start_sim.sh`
+(with the Gazebo GUI, unlike the automated harness's headless launch) as
+a direct, apples-to-apples comparison. **Same failure signature showed up
+immediately** — `"no link"` flapping, plus a new, more basic rejection
+(`"AP: Arm: System not initialised"`) — ruling out headless-vs-GUI as the
+explanation. It's specific to the world, not how Gazebo is launched.
+
+**Root cause, found by checking `gz sim`'s live CPU usage during that
+manual run**: the `gz sim server` process was pegged at **102% CPU** —
+saturating a full core. `corridor_textured.sdf` (2 wall boxes + 8 floor
+tiles, 20×160 m) is a genuinely heavier world to simulate every tick than
+`iris_textured.sdf` (one small 20×20 m plane) — not just slower to load,
+which had already been ruled out. On a machine already known to struggle
+holding real-time factor on the *light* world, that extra steady-state
+load appears to push Gazebo below the responsiveness the JSON lockstep
+interface needs — explaining the SITL blocking, the ArduPilotPlugin
+resets, the link flapping, the lost param round-trips, and the arm
+failures as one unified mechanism rather than several unrelated bugs. The
+~100% figure is on essentially one core, not spread across several — this
+looks single-thread/single-core-bound, which matters for judging whether
+the new machine actually fixes it (needs better per-core performance
+specifically, not just more cores or a newer chip in general).
+
+**Prediction, not yet verified**: this should improve on the new machine,
+given it's the same underlying limitation the migration is already
+motivated by. Re-test `corridor_textured.sdf` there directly (watch
+`gz sim server`'s CPU% live, and whether an arm attempt completes without
+the link flapping) as an early, concrete validation once it's set up —
+don't assume it's resolved without checking.
+
+**One loose end, flagged rather than swept under the rug**: an earlier
+session's report claimed this same stall "reproduces identically on
+`iris_textured.sdf`" — that was never independently re-confirmed under a
+live CPU-saturation check the way the corridor-world case now has been,
+and sits awkwardly next to `iris_textured.sdf`'s otherwise unbroken
+reliability across dozens of trials this project. Possibly a different,
+more transient phenomenon (a single early connection-reset event, seen
+occasionally even in healthy runs, that normally self-heals in seconds)
+got conflated with the sustained, CPU-bound flapping documented here.
+Not resolved.
+
+`corridor_blank.sdf`'s separate arming bug (downward LiDAR never returns
+a valid reading at the spawn point) is untouched — a different root
+cause, unrelated to CPU load.
 
 ---
 
