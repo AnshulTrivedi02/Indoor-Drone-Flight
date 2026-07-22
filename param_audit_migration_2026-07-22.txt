@@ -1,0 +1,35 @@
+# Live parameter audit - machine migration 2026-07-22
+#
+# LEFT  = stage_c_textured/ardupilot.bin  (old ThinkPad X1 Carbon, i5-10210U)
+# RIGHT = smoke_test/ardupilot.bin        (new desktop, i7-8700 + Quadro P620)
+#
+# Both dumped from the dataflash PARM stream, i.e. the LIVE values in force
+# during each flight - not what the .parm files claim. 1379 params on each
+# side; no parameter present on one machine and absent on the other.
+#
+# GPS1_TYPE does NOT appear below because it was already corrected before the
+# new-machine run; it was the original discrepancy (old=0, new=1 default) and
+# is now pinned in gnss_denied.parm.
+
+PARAM                    OLD              NEW              ASSESSMENT
+----------------------------------------------------------------------------------------------------
+BARO2_GND_PRESS          101325           101323           Ground pressure captured at boot. Environmental.
+INS_GYR1_CALTEMP         25.0184          -300             Calibration temperature; -300 = uncalibrated. Cosmetic in SITL.
+INS_GYR2OFFS_X           4.8251e-05       0                as INS_GYROFFS_X
+INS_GYR2OFFS_Y           3.7756e-05       0                as INS_GYROFFS_X
+INS_GYR2OFFS_Z           1.77158e-05      0                as INS_GYROFFS_X
+INS_GYR2_CALTEMP         25.0183          -300             as INS_GYR1_CALTEMP
+INS_GYROFFS_X            2.90292e-05      0                Calibration state, SITL gyro offsets ~3e-5 rad/s. Not reproducible, negligible.
+INS_GYROFFS_Y            3.22201e-05      0                as INS_GYROFFS_X
+INS_GYROFFS_Z            2.97032e-05      0                as INS_GYROFFS_X
+MOT_THST_HOVER           0.328262         0.339847         Learned in flight, converges per-machine. Expected to differ.
+SIM_FLOW_ENABLE          1                0                INERT. FLOW_TYPE=5 selects AP_OpticalFlow_MAV only; AP_OpticalFlow_SITL is never
+STAT_BOOTCNT             56               2                Cumulative statistic. Expected.
+STAT_DISTFLWN            371.763          3.3331           Cumulative statistic. Expected.
+STAT_FLTCNT              37               1                Cumulative statistic. Expected.
+STAT_FLTTIME             28656            29               Cumulative statistic. Expected.
+STAT_RUNTIME             42154            241              Cumulative statistic. Expected.
+
+CONCLUSION: no unrecoverable configuration. The only functional difference
+(SIM_FLOW_ENABLE) is proven inert by source inspection; everything else is
+calibration state or a cumulative counter.

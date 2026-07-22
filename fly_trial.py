@@ -57,6 +57,12 @@ EXPECTED_PARAMS = {
     'EK3_SRC1_POSZ': 2,
     'EK3_SRC1_VELZ': 0,
     'SIM_GPS1_ENABLE': 0,
+    # GPS1_TYPE=0 (None) is required for arming, not just for GNSS-denial:
+    # gps_checks() rejects a configured-but-unfixed GPS with "GPS 1: Bad
+    # fix" regardless of the EK3_SRC selections. It carries
+    # AP_PARAM_FLAG_ENABLE, so it is squarely subject to the eeprom
+    # persistence gotcha this dict exists to self-heal. See gnss_denied.parm.
+    'GPS1_TYPE': 0,
 }
 
 # Minimum RTF to assume when sizing wall-clock safety-net timeouts. This

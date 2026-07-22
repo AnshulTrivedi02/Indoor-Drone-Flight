@@ -396,6 +396,19 @@ work — since fixed, see Known Issues.)
 
 ### EKF State Estimate — Stage B (evo evaluation)
 
+> ## ⚠️ THE ATE/RPE NUMBERS BELOW ARE NOT EKF3 ACCURACY
+>
+> **Do not quote Stage B's 6.4 mm ATE, or Stage C's 7.7 mm / 10.0 mm ATEs, as a
+> measurement of EKF3.** They are pipeline validation only.
+>
+> `AHRS_EKF_TYPE=10` ("Sim") means `/ekf/pose` carries **simulator ground
+> truth**, not the EKF3 estimate — so every `evo_ape`/`evo_rpe` result computed
+> from it compared ground truth against ground truth. See "Hidden Configuration
+> Audit — Machine Migration (2026-07-22)" below for the source trace and the
+> measured evidence. These numbers remain valid as confirmation that the
+> recording, frame transform, bag extraction and `evo` tooling all work
+> end-to-end — which is all this section ever actually established.
+
 `ekf_bridge.py` reads ArduPilot's EKF3 state estimate via MAVLink
 (`LOCAL_POSITION_NED` + `ATTITUDE_QUATERNION`, port **14554** — dedicated,
 separate from `fly_forward.py` (14550), `attitude_bridge.py` (14551),
@@ -524,7 +537,14 @@ state-gated flight profile as Stage A/B — climb to ~2 m, forward 3 m at
   max 28.0 mm) vs **blank RMSE 10.0 mm** (mean 8.7 mm, max 30.7 mm) — worse
   on blank, but only ~30%, not the dramatic collapse a first guess might
   expect.
+  **⚠️ VOID as an EKF3 measurement** — computed from `/ekf/pose`, which is
+  simulator ground truth under `AHRS_EKF_TYPE=10`, not the EKF3 estimate.
+  This is ground truth vs ground truth. See the Hidden Configuration Audit
+  section. **The "modest ~30% gap" puzzle below is fully explained by this**:
+  the metric could not respond to sensor degradation because it never
+  contained an estimator.
 - **RPE**: textured RMSE 5.4 mm vs blank RMSE 6.5 mm — same modest-not-dramatic pattern.
+  **⚠️ VOID as an EKF3 measurement, same reason as the ATE above.**
 - **The sensor-level story is much starker than the ATE numbers alone
   suggest — this is the real thesis signal.** Extracted `inlier_ratio` and
   `feature_count` directly from `/optical_flow/measurement` in each bag:
@@ -551,6 +571,156 @@ state-gated flight profile as Stage A/B — climb to ~2 m, forward 3 m at
   the rangefinder (`EK3_SRC1_POSZ=2`), independent of floor texture, so
   this reads as ordinary flight-to-flight controller/physics variance, not
   a flow-driven effect — flagged for transparency, not concluded from.
+
+## Hidden Configuration Audit — Machine Migration (2026-07-22)
+
+Migrating from the ThinkPad X1 Carbon (i5-10210U, 15 W mobile) to a desktop
+(i7-8700, 65 W, + Quadro P620 discrete GPU) surfaced **three separate
+configuration values that the working setup depended on but that existed in
+no committed file**. All three lived only in `~/ardupilot/ArduCopter/eeprom.bin`,
+which is gitignored and machine-local. This is Known Issue #10's persistence
+gotcha operating in reverse: instead of *blocking* a param you set, the eeprom
+was silently *supplying* one you never recorded.
+
+**Three such discoveries in two days is a pattern, not bad luck.** The
+mitigations are `preflight_check.sh` (see below) and the standing rule that
+any live `PARAM_SET` must be written into a `.parm` file in the same session.
+
+### 1. `AHRS_EKF_TYPE=10` — `/ekf/pose` is ground truth, not EKF3
+
+**This is the most consequential finding in this document.** `AHRS_EKF_TYPE`
+selects which estimator ArduPilot *reports* as the vehicle's position. `10` is
+`EKFType::SIM` — the simulator's own perfect state. EKF3 is `3`.
+
+Source path, traced at pinned commit `7bac20cbcc`:
+
+```
+ekf_bridge.py                  reads MAVLink LOCAL_POSITION_NED
+GCS_Common.cpp:3042            send_local_position()
+  -> AP_AHRS.cpp:1826          get_relative_position_NED_origin_float()
+  -> AP_AHRS.cpp:1777          get_relative_position_NED_origin()
+  -> switch (active_EKF_type())
+  -> case EKFType::SIM:        return sim.get_relative_position_NED_origin(vec)
+```
+
+`case EKFType::THREE` (which reads `EKF3.getPosNE()`/`getPosD()`) sits directly
+above and **is never taken**. So `/ekf/pose` republishes simulator truth.
+
+**Measured evidence** (`smoke_test`, 2026-07-22, `iris_textured`, 0.4 m/s
+forward, compass active — `run_trial.sh`'s chain ends at `gnss_denied.parm`,
+so `EK3_SRC1_YAW` was at its default of 1/Compass):
+
+| Source | East | North |
+|---|---|---|
+| `/ground_truth/pose` | −0.010 … 0.004 m | 0 … **4.784 m** |
+| `/ekf/pose` | −0.009 … 0.000 m | 0 … **4.787 m** |
+| `XKF1` (EKF3's own logged state) | −0.274 … **1.025 m** | −0.118 … 0.023 m |
+
+`/ekf/pose` tracks ground truth to **3 mm over a 4.78 m flight**. EKF3's own
+solution is unrelated to both — see "EKF3 Solution Diagnosis" below.
+
+**Unaffected by this finding** (all sourced from EKF3's own logging or from the
+sensor topics, never from `/ekf/pose`): `XKF5` innovation analysis, `XKF4.SS`
+`nav_filter_status` decoding (`using_gps=False`), and every `inlier_ratio` /
+`feature_count` result.
+
+**Decision (2026-07-22): keep `AHRS_EKF_TYPE=10`; evaluate EKF3 offline from
+`XKF1`.** Not merely because EKF3's current solution is too poor to fly on, but
+for a stronger methodological reason: with EKF3 in the loop, *the estimator
+under test determines the trajectory it is tested on*. The controller flies to
+make the estimate hit the setpoint, so EKF3 physically wanders by its own error
+— different flow content, different ground truth, and over a 160 m corridor
+possibly into a wall. The UKF and FGO are passive and perturb nothing. That
+asymmetry would sit directly on top of the degradation variable. Flying on
+simulator truth gives one fixed trajectory across all conditions with floor
+texture as the only variable — the controlled comparison the sensor-fairness
+argument has been building toward.
+
+Two costs, documented rather than discovered later:
+- **No closed-loop stability claim is possible** from this data. State this in
+  the methodology chapter. Term 3's real flights are necessarily in-loop, which
+  makes that a natural extension rather than a gap.
+- **Sourcing EKF3 from dataflash reintroduces clock alignment.** `XKF1`'s
+  `TimeUS` is microseconds since boot; the bags are sim-time. This must be
+  *proven* on an existing bag — cross-correlate `XKF1` height against
+  `/ground_truth/pose` z, report the residual, and overlay the aligned
+  trajectory — before `evaluate_trial.sh` is rewired. Do not assume a constant
+  offset holds.
+
+### 2. `GPS1_TYPE` — arming failure on a clean machine
+
+`SIM_GPS1_ENABLE=0` disables the *simulated GPS sensor*. `GPS1_TYPE` is a
+separate question: whether a GPS is **fitted at all**. With `GPS1_TYPE` at its
+SITL default, arming fails with `Arm: GPS 1: Bad fix`.
+
+`AP_Arming::gps_checks()` runs whenever the GPS bit (`1<<3`, i.e. 8) is set in
+`ARMING_CHECK`, **independently of the `EK3_SRC` selections**, and rejects any
+configured instance below `FIX_3D`. With `GPS1_TYPE=0` the check takes its
+`continue` branch and skips the instance entirely (`AP_Arming.cpp`, ~line 714).
+
+`ARMING_CHECK` was **not** modified on the old machine — it does not appear in
+`stage_c_textured`'s PARM dump at all. The GPS check was never disabled;
+ArduPilot was simply told no GPS is fitted. Now pinned in `gnss_denied.parm`
+and added to `fly_trial.py`'s `EXPECTED_PARAMS` (it carries
+`AP_PARAM_FLAG_ENABLE`, so it is squarely subject to the eeprom gotcha).
+
+### 3. Compass configuration — why it looks like a bug and is not
+
+`gnss_denied_nomag.parm` sets `COMPASS_ENABLE=1` alongside `COMPASS_USE*=0` and
+`EK3_SRC1_YAW=0`. **This is deliberate; do not "fix" it to `COMPASS_ENABLE=0`.**
+`AP_Arming_Copter::arm_checks()` (`AP_Arming_Copter.cpp:575`, `#ifndef
+ALLOW_ARM_NO_COMPASS`, not defined for this SITL build) has its own
+compass-health gate, separate from the generic `AP_Arming::compass_checks()`.
+It is unconditional — not gated behind `ARMING_CHECK`, and it runs before
+`should_skip_all_checks()` — so no bitmask can bypass it. It only skips when
+`ahrs.using_noncompass_for_yaw()` is true, which requires a recent (<5 s)
+non-compass yaw fusion event that cannot occur in this no-GPS config. The
+compass driver must therefore exist and report healthy. EKF3 still receives
+zero yaw information: `EK3_SRC1_YAW=0` means `setYawSource()` never selects
+COMPASS, and `COMPASS_USE*=0` keeps it out of `AP_Compass::use_for_yaw()`.
+The full reasoning is inline in `gnss_denied_nomag.parm`.
+
+### 4. Full live parameter diff
+
+`param_audit_migration_2026-07-22.txt` records a complete old-vs-new comparison,
+dumped from each flight's dataflash `PARM` stream (the *live* values, not what
+the `.parm` files claim). **1379 parameters on each side, none present on one
+machine and absent on the other, 16 value differences.** Fifteen are
+calibration state (`INS_GYR*OFFS_*`, `INS_GYR*_CALTEMP`), learned values
+(`MOT_THST_HOVER`), environmental (`BARO2_GND_PRESS`) or cumulative counters
+(`STAT_*`).
+
+The sixteenth, **`SIM_FLOW_ENABLE` (old=1, new=0)**, is proven **inert**:
+`AP_OpticalFlow::init()` instantiates exactly one backend via `switch(FLOW_TYPE)`,
+and `FLOW_TYPE=5` selects `AP_OpticalFlow_MAV` only — `AP_OpticalFlow_SITL` is
+never constructed, so SITL's simulated flow has no consumer. It is a leftover
+from when `FLOW_TYPE` was stuck at 10 (see the Stage A eeprom gotcha).
+
+**Conclusion: the old configuration is fully enumerable. Nothing is
+unrecoverable.**
+
+### Environment differences (documented, not defects)
+
+| | Old (ThinkPad X1 Carbon 7th) | New (desktop) |
+|---|---|---|
+| CPU | i5-10210U, 15 W mobile, 4C/8T | i7-8700, 65 W desktop, 6C/12T |
+| GPU | Intel integrated (shared 15 W budget) | **NVIDIA Quadro P620**, driver 535 |
+| Gazebo Sim | 8.11.0 | **8.14.0** (8.11.0 no longer in the OSRF repo) |
+| ArduPilot | `7bac20cbcc` | `7bac20cbcc` (pinned, tag `thesis-baseline`) |
+| ros_gz_bridge | 1.0.22 | 1.0.22 |
+| **Measured RTF** | **0.05 – 0.17** | **≈0.86** (10.3 s sim in 12.0 s wall-clock) |
+
+Gazebo 8.11.0 → 8.14.0 is unavoidable: the OSRF `ubuntu-stable` repo carries
+only the current point release. These are patch releases within one LTS ABI;
+`libgz-rendering8` is 8.2.3 and `libgz-sensors8` is 8.2.2. Worth re-flying a
+Stage C equivalent and checking sensor-level `inlier_ratio` lands near the
+recorded 0.94/0.47 as a cheap empirical check that the version step is a
+non-issue.
+
+**Known Issue #9 (low RTF) is effectively resolved** — ≈0.86 vs 0.05–0.17, a
+5–17× improvement. The RTF-aware discipline in `fly_trial.py`/`run_trial.sh`
+(gate on measured state, never wall-clock sleep) should nonetheless be kept:
+it is correct regardless, and `MIN_ASSUMED_RTF` remains a safety net.
 
 ## Sensor Fusion Architecture
 
@@ -857,10 +1027,26 @@ covariance from numerically blowing up (source comment: "prevent
 uncontrolled yaw variance growth... by fusing a zero innovation") — not
 real yaw information.
 
+> ## ⚠️ THE YAW-DRIFT RESULT BELOW IS VOID — DO NOT QUOTE IT
+>
+> The ±0.03° / ≈0.000 deg/min figure was measured as "EKF3 estimate vs
+> `/ground_truth/pose`, compared directly in the bag" — but the EKF3 side came
+> from `/ekf/pose`, which is **simulator ground truth** under
+> `AHRS_EKF_TYPE=10` (see Hidden Configuration Audit §1). It therefore compared
+> truth against truth and would have returned ≈zero **with or without a
+> compass**. The pass criterion "yaw drift stays bounded enough for corridor
+> experiments" was never actually tested.
+>
+> **`gnss_denied_nomag.parm` must NOT be folded into the standing baseline
+> until this is re-measured** from `XKF1`'s own yaw against ground-truth yaw on
+> the no-mag config. The elaborate mechanism discussion below (synthetic yaw,
+> gyro-bias coupling) remains valid — only the *number* is void.
+
 **Long-flight result (320 s, `iris_textured.sdf`, 0.4 m/s cruise —
 corridor worlds weren't usable yet, see Known Issues #11/#12): yaw error
 vs `/ground_truth/pose` stayed essentially zero the whole flight** (±0.03°
-max, linear-fit drift rate ≈0.000 deg/min, R²≈0). **This is not evidence
+max, linear-fit drift rate ≈0.000 deg/min, R²≈0) — **VOID, see the warning
+above; this measured truth against truth.** **This is not evidence
 that yaw drift is a non-issue in general** — three things specific to
 this test explain it: EKF3 still estimates a full 3-axis `gyro_bias` state
 even with `EK3_SRC1_YAW=0` (its accelerometer-aided roll/pitch corrections
