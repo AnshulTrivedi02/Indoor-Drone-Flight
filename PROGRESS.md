@@ -5,14 +5,41 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-07-22
+## Current Status — 2026-07-22 (evening)
 
-**Machine migration in progress.** This machine's low RTF (≈0.05–0.17,
-see Known Issues) is the reason a second Ubuntu 24 workstation is being
-set up as the new working environment. ROS2/Gazebo/ArduPilot SITL still
-need installing there — this machine remains the active one until that's
-done. Repo pushed to `origin` (`git@github.com:AnshulTrivedi02/Indoor-
-Drone-Flight.git`) specifically to support the move.
+**Machine migration COMPLETE.** The new desktop (i7-8700, 65 W, + NVIDIA
+Quadro P620) is fully provisioned and has flown trials end-to-end. **RTF
+improved from 0.05–0.17 to ≈0.86** — Known Issue #9 resolved.
+
+**But the migration's headline finding is not the speedup — it is three
+separate discoveries that invalidate prior results.** In priority order:
+
+1. **`/ekf/pose` has never carried EKF3.** `AHRS_EKF_TYPE=10` routes
+   `LOCAL_POSITION_NED` through `EKFType::SIM`, i.e. simulator ground
+   truth. **Stage B's 6.4 mm and Stage C's 7.7/10.0 mm ATEs compared
+   ground truth against ground truth** and are pipeline validation only,
+   not EKF3 accuracy. The 320 s no-yaw drift result (±0.03°) is void for
+   the same reason. See CLAUDE.md "Hidden Configuration Audit".
+2. **Known Issue #11 was never a CPU problem.** `corridor_textured.sdf`
+   contains **8 coincident infinite collision planes** (`<plane>`
+   collision is an unbounded half-space; `<size>` is visual-only).
+   Removing collision from 7 of 8 tiles gives a **29× speedup**
+   (RTF 0.0134 → 0.3934) **with all 8 tiles still rendering**. The
+   hardware upgrade could never have fixed a 30× algorithmic gap.
+3. **Three config values the working setup depended on existed in no
+   committed file** — they lived only in the gitignored `eeprom.bin`
+   (`GPS1_TYPE`, and the still-unexplained provenance of others). A full
+   1379-parameter old-vs-new audit is committed as
+   `param_audit_migration_2026-07-22.txt`; the old config is fully
+   enumerable and nothing is unrecoverable.
+
+**Next**: apply the collision fix to the three corridor worlds, re-run
+`corridor_textured` end-to-end, then re-measure both the EKF3 dead-reckoning
+baseline and the no-yaw yaw drift **on the corridor** — neither is
+measurable on `iris_textured.sdf` (see Known Issue #6).
+
+Old machine (ThinkPad X1 Carbon, i5-10210U) retained for now; `~/thesis_data`
+(14 trials) and `~/ardupilot_gazebo` both transferred to the new machine.
 
 ### Phase 1 checklist
 
@@ -41,12 +68,86 @@ Drone-Flight.git`) specifically to support the move.
 | Accelerometer bridge (`/imu/data_raw`)       | Done          | `imu_bridge.py`; specific-force confirmed empirically (+9.81 m/s² at rest), 50 Hz, sim-time aligned with the other estimator inputs |
 | UKF design                                   | Confirmed, no code yet | State vector, process/measurement models, matched robustness params, Q derivation, position reference, covariance logging, validation plan all decided — see CLAUDE.md "UKF Design" |
 | No-yaw / compass-denied investigation        | Done          | Found EKF3 fusing compass outside the stated sensor suite; verified fix (`gnss_denied_nomag.parm`) not yet folded into the standing baseline — see CLAUDE.md "No-Yaw / Compass-Denied Investigation" |
-| Corridor worlds — actual flight-tested       | Blocked, root-caused | `corridor_textured.sdf`: traced to `gz sim server` CPU-saturating this machine (102%, one core) — likely resolves post-migration, re-test to confirm. `corridor_blank.sdf`: separate, unrelated LiDAR-no-surface arming bug, still unfixed |
+| Corridor worlds — actual flight-tested       | Blocked, TRUE root cause found | **Not a CPU limit.** 8 coincident infinite `<plane>` collision half-spaces; 1-collision variant measured **29× faster (RTF 0.0134 → 0.3934)** with all 8 tiles still rendering. Fix identified and validated in scratch copies, **not yet applied to the world files**. `corridor_blank.sdf`'s LiDAR-no-return likely a *visual*-geometry issue — `gpu_lidar` confirmed to raycast the rendering scene, not collision |
+| EKF3 accuracy vs ground truth                | **VOID — must be redone** | `/ekf/pose` is simulator truth (`AHRS_EKF_TYPE=10`), so all Stage B/C ATE/RPE figures measured truth against truth. EKF3's real solution (from `XKF1`) shows ~5% scale error over the 6 m window where flow aiding was active — honest dead reckoning, not a misconfiguration |
+| `iris_textured.sdf` usability                | **Unusable beyond ~10 m** | Mat edge starves `RNGFND1` (41.0 no-return, 100% of samples), which kills flow fusion outright via HAGL loss — not merely "feature-poor segments". See Known Issue #6 |
 | FGO (GTSAM) implementation                   | Not started   | Uses `gnss_denied.parm` baseline |
 
 ---
 
 ## Work Sessions
+
+### Session — 2026-07-22 (evening) — machine migration; three invalidating discoveries
+
+**Migration.** New desktop provisioned from scratch: ROS2 Jazzy, Gazebo
+Harmonic (Sim **8.14.0** — 8.11.0 is no longer in the OSRF repo, which
+carries only the current point release), `ros_gz_bridge` 1.0.22 (same as
+the old machine), ArduPilot SITL **pinned to `7bac20cbcc`** and tagged
+`thesis-baseline` so the autopilot is a controlled constant rather than
+silently upgraded by 1070 commits of upstream master. Both venvs rebuilt
+from the committed requirements files at exact pinned versions.
+**Measured RTF ≈0.86** (10.3 s sim in 12.0 s wall-clock) vs 0.05–0.17.
+
+**Discovery 1 — `/ekf/pose` is ground truth, not EKF3.** Traced
+`ekf_bridge.py` → `LOCAL_POSITION_NED` → `send_local_position()` →
+`AP_AHRS::get_relative_position_NED_origin()` → `case EKFType::SIM`.
+`AHRS_EKF_TYPE=10` selects the simulator's own state; the `EKFType::THREE`
+branch that reads `EKF3.getPosNE()` is never taken. Measured: `/ekf/pose`
+tracks ground truth to **3 mm over a 4.78 m flight**, while `XKF1` (EKF3's
+own logged state) is unrelated to both. **This voids every ATE/RPE figure
+in Stages B and C**, and voids the no-yaw yaw-drift result, which used the
+same topic and so compared truth against truth — it would have returned
+≈zero with or without a compass. It also *explains* Stage C's previously
+unreconciled puzzle (stark sensor-level `inlier_ratio` collapse, only a
+"modest" ATE gap): the metric never contained an estimator, so it could not
+respond to sensor degradation. **Decision: keep `AHRS_EKF_TYPE=10` and
+evaluate EKF3 offline from `XKF1`** — with EKF3 in the loop the estimator
+under test would determine its own test trajectory, an asymmetry against
+the passive UKF/FGO sitting directly on top of the degradation variable.
+
+**Discovery 2 — Known Issue #11 is collision geometry, not CPU.**
+`textured_ground` uses `<plane>` collision = an infinite half-space
+(`<size>` is visual-only), and `corridor_textured.sdf` includes 8 copies.
+Standalone measurements: as-is **RTF 0.0134** / 99.5% CPU; shadows disabled
+0.0135 (ruled out); 1 tile + walls 0.3928; **8 tiles rendering with 1
+collision plane 0.3934** / 65.5%; `iris_textured` reference 0.3965. A **29×
+speedup with the full 160 m checkerboard intact** — the fix is
+scientifically free. `gpu_lidar` verified to raycast the rendering scene
+(0.076 m at rest in a collision-stripped world, matching the 0.195−0.12 m
+mount geometry). The new machine still failed a corridor trial (37 `no
+link` flapping events, one `ArduPilot controller has reset`), confirming
+hardware was never going to fix a 30× algorithmic gap.
+
+**Discovery 3 — hidden configuration.** Arming failed on the clean machine
+with `Arm: GPS 1: Bad fix`. Cause: `GPS1_TYPE` (is a GPS *fitted*) is
+distinct from `SIM_GPS1_ENABLE` (does the simulated sensor produce data);
+`AP_Arming::gps_checks()` runs on the `ARMING_CHECK` GPS bit regardless of
+the `EK3_SRC` selections. `GPS1_TYPE=0` existed only in the old machine's
+gitignored `eeprom.bin`. `ARMING_CHECK` was never modified — it is absent
+from `stage_c_textured`'s PARM dump entirely. Now pinned in
+`gnss_denied.parm` and added to `fly_trial.py`'s self-healing
+`EXPECTED_PARAMS`. A full **1379-parameter** live old-vs-new diff is
+committed: 16 differences, 15 of them calibration state or counters, and
+the 16th (`SIM_FLOW_ENABLE`) proven inert by source inspection.
+
+**Also found: `iris_textured.sdf` is unusable beyond ~10 m** (Known Issue
+#6, now with a much sharper mechanism) — past the mat edge the LiDAR
+returns the 41.0 no-return sentinel on 100% of samples, starving `RNGFND1`,
+which is the `EK3_SRC1_POSZ=2` height source, which kills flow fusion
+outright. Flow *quality* is not the mechanism: `inlier_ratio` stayed
+0.93–0.99 off the mat.
+
+**EKF3's real accuracy, measured for the first time** (over the only valid
+window — after the ~16 s `const_pos_mode` aiding transient, before the mat
+edge): **+0.307 m over 6.085 m travelled, ≈5% scale over-estimate**, smooth,
+no divergence, no axis error, 0/183 flow rejections, yaw within 0.65° of
+North. Honest dead reckoning — EKF3 is **not** misconfigured.
+
+**Not yet done**: apply the collision fix to the three corridor worlds;
+re-run `corridor_textured` end-to-end; build `preflight_check.sh`; rewire
+`evaluate_trial.sh` to source EKF3 from `XKF1` (requires proving
+`TimeUS`→sim-time alignment on an existing bag first); re-measure no-yaw
+yaw drift on the corridor.
 
 ### Session — 2026-07-22 — IMU bridge, UKF design, no-yaw investigation, corridor-world bugs, machine migration
 

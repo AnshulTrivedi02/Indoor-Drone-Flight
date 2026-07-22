@@ -39,3 +39,7 @@ thesis_sim_stop
 mav.tlog
 mav.tlog.raw
 mav.parm
+
+# Python bytecode (was previously tracked by mistake)
+__pycache__/
+*.pyc

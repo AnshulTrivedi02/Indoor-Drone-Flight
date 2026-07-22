@@ -699,6 +699,51 @@ from when `FLOW_TYPE` was stuck at 10 (see the Stage A eeprom gotcha).
 **Conclusion: the old configuration is fully enumerable. Nothing is
 unrecoverable.**
 
+### EKF3 Solution Diagnosis (2026-07-22) — not misconfigured
+
+Once `/ekf/pose` was known to be ground truth, EKF3's *actual* solution was
+read from `XKF1` for the first time. The initial reading looked alarming — 1.0 m
+East against 4.78 m North actual — but that figure is **invalid** and must not
+be quoted. It came from a 10 s cruise that never escaped EKF3's startup
+transient.
+
+**Measured properly (`ekf3_diag_60s`, `iris_textured`, 0.4 m/s, compass active),
+over the window where flow aiding was actually engaged:**
+
+| t (s) | GT north travelled | EKF3 `PN` | Error |
+|---|---|---|---|
+| 41.85 (aiding engages) | 0 (ref) | 0.000 | — |
+| 46.05 | 1.682 m | 1.755 m | +0.073 m |
+| 51.55 | 3.880 m | 4.085 m | +0.205 m |
+| 57.05 | 6.085 m | 6.392 m | **+0.307 m (≈5%)** |
+
+**That is honest flow dead reckoning** — a smooth ~5% scale over-estimate, no
+divergence, no axis error. Yaw stayed within 0.65° of North throughout
+(`XKF1.Yaw` 359.99°→0.65°; GT yaw 90.0° in ENU, the documented ENU/NED
+correspondence). Flow was never gated out: **0/183 rejections**, mean `NI` 1.97
+against the 100 threshold.
+
+**Two artefacts bound the usable measurement window, and both are properties of
+the test world rather than of EKF3:**
+
+1. **Startup transient.** `const_pos_mode` held position at *exactly* 0.000
+   until t=41.85 s — ~16 s after takeoff — because `readyToUseOptFlow()`
+   requires `delAngBiasLearned` (gyro-bias convergence). `horiz_vel` was true
+   the whole time, so velocity was estimated correctly (`VN` ≈ 0.41 m/s against
+   0.40 commanded) while position was pinned by design. **Any cruise shorter
+   than ~20 s of sim time measures nothing.** Stage C's ~40 s flights cleared
+   it (71% `horiz_pos_rel`); the 10 s smoke test did not (39.9%).
+2. **Rangefinder loss at the mat edge** — see Known Issue #6 above. Aiding
+   dropped at t=56.55 s and never returned.
+
+**Consequence: EKF3 cannot be characterised on `iris_textured.sdf` at all.**
+The usable window is bounded below by the ~16 s aiding transient and above by
+the 10 m mat edge, leaving ~6 m of valid travel. A real characterisation needs
+the corridor world (Known Issue #11's fix), which is also why the §2 no-yaw
+yaw-drift re-measurement must be flown there rather than on `iris_textured`.
+
+**No tuning was performed** to produce these numbers.
+
 ### Environment differences (documented, not defects)
 
 | | Old (ThinkPad X1 Carbon 7th) | New (desktop) |
@@ -1433,12 +1478,63 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 3. **Timestamp sync** between Gazebo sim time, ROS time, and ArduPilot: sim time resolved via `/clock` bridge + `use_sim_time:=true`; ArduPilot-to-ROS sync not yet done
 4. ~~`record_trial.sh` silently dropped `/optical_flow/measurement` from bags~~ — **fixed**: it wasn't sourcing `~/thesis_ws/install/setup.bash`, so `ros2 bag record` couldn't resolve the custom `optical_flow_interfaces` package for that topic (found during EKF3 flow fusion Stage A verification).
 5. **Downward LiDAR RNGFND1 dropouts under aggressive attitude changes** — ~3% of readings during a dynamic climb briefly read near-zero instead of true altitude (steady hover is sub-cm accurate). Currently harmless since `EK3_RNG_USE_HGT=-1` keeps RNGFND1 out of the EKF's height estimate by default — see "Downward LiDAR — Stage 2" above. Revisit before ever enabling range-based height switching or surface tracking.
-6. **Textured world too small** — 20 m × 20 m checkerboard; drone exits the mat during forward-flight trials, contaminating "nominal" recordings with feature-poor segments. Need ≥50 m × 50 m plane before collecting valid nominal-condition data.
+6. **Textured world too small — and the consequence is far worse than "feature-poor segments".** 20 m × 20 m checkerboard (spans y = −10…+10 m); drone exits the mat during forward-flight trials. **Measured 2026-07-22: the `textured_ground` plane is the ONLY ground geometry in `iris_textured.sdf`, so past the mat edge the downward LiDAR returns the 41.0 no-return sentinel on 100% of samples** (606/606 and 636/636 in two consecutive windows). `lidar_bridge.py` correctly drops them, `RNGFND1` is starved, and since `EK3_SRC1_POSZ=2` is the height source, **EKF3 loses HAGL and flow fusion stops outright** — it cannot scale pixel rates into velocity without height. `horiz_pos_rel` goes false, `const_pos_mode` returns, and the position estimate freezes. Confirmed in `ekf3_diag_60s`: aiding dropped at t=56.55 s (y≈10 m, the mat edge) and never recovered; `PN` froze at 6.5 m while the drone flew on to 24.2 m. **Flow quality is NOT the mechanism** — `inlier_ratio` stayed 0.93–0.99 off the mat and `feature_count` actually rose to 120, matching the no-yaw flight's observation. This makes `iris_textured.sdf` unusable for any trial travelling more than ~10 m, which is why the 160 m corridor worlds exist.
 7. **Feature count is a deceptive quality metric** — ~100 features reported even on featureless off-mat texture. Use `inlier_ratio` (RANSAC survivors / pre-RANSAC tracked) as the real flow-quality indicator.
 8. **TFMessage bridge broken** — `gz.msgs.Pose_V → tf2_msgs/TFMessage` in ros_gz_bridge 1.0.22 zeroes all stamps and clears all frame IDs. **Do not use it for ground truth** — see Ground Truth Bridging section above.
-9. **Real-time factor is low on this machine** — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures). **This is the reason the workstation is being migrated to a second Ubuntu 24 machine** — ROS2/Gazebo/ArduPilot still need setting up there; until that's done, this machine remains the working environment.
+9. **~~Real-time factor is low on this machine~~ — RESOLVED by the 2026-07-22 migration.** On the new desktop (i7-8700, 65 W, + Quadro P620) a full `run_trial.sh` flight measured **RTF ≈ 0.86** (10.3 s sim in 12.0 s wall-clock), against 0.05–0.17 on the ThinkPad — a 5–17× improvement. The old machine's ceiling was a 15 W throttled mobile CPU with integrated graphics sharing the same power budget; the discrete GPU also removes render contention. **The RTF-aware discipline below remains correct and must be kept** — gate on measured state, never wall-clock sleep — and `MIN_ASSUMED_RTF` stays as a safety net. Note this did NOT fix Known Issue #11, which is algorithmic, not throughput-bound. Original entry follows. — measured RTF ≈ 0.05–0.17 (`gz topic -e -t /stats`), even headless with no GUI/ArduPilot attached. All sensor `update_rate` values are sim-time periods, so the wall-clock publish rate seen by `ros2 topic hz` is roughly `update_rate × RTF` — e.g. the downward LiDAR's configured 30 Hz currently yields only ~3.6–4 Hz wall-clock, even though its true sim-time rate (header-stamp deltas) is a correct 30.3 Hz. This affects every sensor topic, not just the LiDAR; when checking whether a sensor is "running at the right rate," check sim-time stamp spacing, not `ros2 topic hz`, which conflates the two. **Also affects scripted flight tests directly** — a `time.sleep(N)`-based flight script only buys ~N×RTF seconds of sim time; gate test phases on measured state (altitude, position) instead, see "Downward Optical Flow — EKF3 Fusion (Stage A)" above. Also relevant when planning trial durations (wall-clock trial time will be much longer than the simulated flight time it captures). **This is the reason the workstation is being migrated to a second Ubuntu 24 machine** — ROS2/Gazebo/ArduPilot still need setting up there; until that's done, this machine remains the working environment.
 10. **SITL's persisted `eeprom.bin` can silently defeat `--add-param-file`** — once a param has any explicitly-stored value in `~/ardupilot/ArduCopter/eeprom.bin` (gitignored, persists across SITL sessions), `AP_Param::configured_in_storage()` means `--defaults`/`--add-param-file` no longer override it. Fix with a live `PARAM_SET` + `MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN` (soft in-process reboot, no relaunch needed) rather than deleting the eeprom file. See "Downward Optical Flow — EKF3 Fusion (Stage A)" above for how this was found (`FLOW_TYPE` silently stuck at `10` instead of the `5` in `flow_ekf.parm`).
-11. **Gazebo↔SITL JSON lockstep stalls on `corridor_textured.sdf` — root cause found: Gazebo's server process can't keep up with the world's simulation load on this machine.** Chain of evidence, each link independently confirmed rather than assumed:
+11. **Gazebo↔SITL JSON lockstep stalls on `corridor_textured.sdf` — TRUE ROOT CAUSE FOUND 2026-07-22: eight coincident infinite collision planes, NOT a hardware/CPU limit.**
+
+    **`textured_ground` uses `<plane>` collision geometry, which is an infinite
+    half-space — `<size>` constrains only the visual.** `corridor_textured.sdf`
+    includes 8 copies of that model, so the physics solver resolves 8
+    overlapping unbounded contact manifolds every tick. Measured standalone
+    (headless `gz sim`, no SITL attached, identical conditions, RTF from
+    `/clock` sim-time advance over a 25–40 s window):
+
+    | Configuration | RTF | `gz sim` CPU |
+    |---|---|---|
+    | `corridor_textured` as-is | **0.0134** | 99.5% |
+    | shadows disabled (`cast_shadows` false) | 0.0135 | 99.4% |
+    | 1 floor tile + both walls | 0.3928 | 66.0% |
+    | **all 8 tiles rendering, only 1 with collision** | **0.3934** | 65.5% |
+    | `iris_textured` (reference) | 0.3965 | 65.0% |
+
+    **A 29× speedup with the full 160 m checkerboard still rendering.** Shadows
+    ruled out. The two walls cost nothing. The tile *visuals* cost nothing. The
+    entire penalty was collision geometry.
+
+    **The fix is scientifically free**: keep all 8 tile visuals (optical flow
+    sees an identical checkerboard) and give only one tile collision. The
+    remaining plane is infinite, so ground collision still spans the whole
+    corridor. `gpu_lidar` raycasts against the *rendering* scene, not collision
+    — verified: 0.076 m at rest in a collision-stripped world, exactly matching
+    the base_link 0.195 m − LiDAR offset 0.12 m geometry, not the 41.0
+    no-return sentinel.
+
+    **The 2026-07-22 machine migration did NOT fix this** — re-tested on the
+    new desktop (i7-8700, Quadro P620) and `corridor_textured` still failed a
+    trial, with 37 `no link`/`link 1 down` flapping events and an `ArduPilot
+    controller has reset`. That is expected in hindsight: this is an
+    algorithmic blow-up in a single-threaded solver, and no realistic CPU
+    upgrade closes a 30× gap. The original "needs better single-core
+    performance" prediction was directionally right but the magnitude made a
+    hardware fix impossible.
+
+    **Caveat on the measurements**: taken standalone with no SITL attached, so
+    absolute RTF differs under a live JSON lockstep. The relative comparison is
+    sound (identical conditions throughout); a full `run_trial.sh` on a fixed
+    world is the confirming test and has not yet been run.
+
+    **Worth re-examining Known Issue #12 in this light** — now that `gpu_lidar`
+    is confirmed to use the rendering scene rather than collision,
+    `corridor_blank.sdf`'s 41.0 no-return points at its floor *visual*, not its
+    collision geometry.
+
+    The original investigation is preserved below. Its evidence chain was
+    sound; only the final attribution (machine speed) was wrong — the CPU was
+    pegged because of the redundant collision work, not because the machine was
+    too slow.
     - `gdb` attached to `arducopter` showed SITL's main thread blocking in `SITL::JSON::recv_fdm()`, waiting on Gazebo's next physics packet; `arducopter.log` shows "No JSON sensor message received, resending servos" during the stall; it self-heals once Gazebo's `ArduPilotPlugin` hits its own timeout (`connectionTimeoutMaxCount`) and resets ("ArduPilot controller has reset" in `gazebo.log`).
     - Initially misdiagnosed as slow **loading** (more `textured_ground` tiles taking longer to load) — wrong: all worlds finish *loading* in ~5–6 s regardless.
     - Ruled out headless-vs-GUI as the cause: reproduced the identical `"no link"`/`"link 1 down"`/`"link 1 OK"` flapping in MAVProxy's console, plus a *new*, more basic prearm rejection (`"AP: Arm: System not initialised"`, alongside the previously-seen `"Accels inconsistent"`), running `corridor_textured.sdf` manually via `start_sim.sh` **with the Gazebo GUI**, not just headless via `run_trial.sh`.
