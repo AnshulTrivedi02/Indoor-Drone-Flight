@@ -12,3 +12,16 @@ RNGFND1_TYPE 10
 RNGFND1_ORIENT 25
 RNGFND1_MIN 0.05
 RNGFND1_MAX 40
+# Rangefinder body-frame position offset (FRD, +Z down). LiDAR at z=-0.12 m in
+# the SDF; on centreline, X=Y=0. This is the true physical value.
+#
+# IMPORTANT: this does NOT affect the optical-flow scale error - it CANCELS out
+# of the flow terrain-height path (see the FLOW_POS_Z note in flow_ekf.parm:
+# pd cancels in heightAboveGnd = terrainState - pd, and readRangeFinder never
+# applies this offset to the range anyway). It is set to the true 0.12 for the
+# height-ESTIMATE path (EK3_SRC1_POSZ=2/RangeFinder), where it correctly refers
+# the origin height to the ground datum. Setting it does no harm to flow and
+# corrects a real geometry statement for the height source. See CLAUDE.md.
+RNGFND1_POS_X 0
+RNGFND1_POS_Y 0
+RNGFND1_POS_Z 0.12

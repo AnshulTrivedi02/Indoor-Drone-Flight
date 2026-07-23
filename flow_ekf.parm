@@ -14,3 +14,26 @@ EK3_SRC1_VELXY 5
 # EK3_FLOW_USE=1 (Navigation) - already the Copter default, set explicitly
 # because readyToUseOptFlow() hard-fails if this is 2 (Terrain-only).
 EK3_FLOW_USE 1
+# Camera body-frame position offset (FRD, +Z down). Camera is at z=-0.25 m in
+# the SDF; LiDAR at z=-0.12 m; base_link = IMU/body origin (imu_link 0 0 0).
+# On centreline, X=Y=0.
+#
+# 0.13 is NOT a physical measurement of where the camera sits (that would be
+# 0.25, camera-from-origin). It is the camera-to-RANGEFINDER offset
+# (0.25 - 0.12), set so that EKF3's optical-flow model receives the correct
+# camera height GIVEN that RNGFND1_POS_Z cancels out of that path.
+#
+# Source trace: the flow terrain height is heightAboveGnd = terrainState - pd
+# with terrainState = rng*c.z + pd (AP_NavEKF3_OptFlowFusion.cpp:112,:298), so
+# pd (origin height) CANCELS and the flow height baseline is the RAW
+# rangefinder reading, which is LiDAR-referenced - readRangeFinder
+# (AP_NavEKF3_Measurements.cpp:85-88) stores the raw distance and never applies
+# RNGFND1_POS_Z. Line :317 then subtracts FLOW_POS_Z from that LiDAR-referenced
+# range, so EKF3 computes camera_height ~= lidar_range - FLOW_POS_Z. The value
+# that yields the true camera height is therefore the camera-to-LiDAR
+# separation 0.13, not the literal camera-from-origin 0.25 (which would
+# over-correct to 1.90 m, -5.9%). The validation trial's empirical residual is
+# the arbiter (pre-registered: |residual| <= 2% accept). See CLAUDE.md.
+FLOW_POS_X 0
+FLOW_POS_Y 0
+FLOW_POS_Z 0.13
