@@ -20,11 +20,12 @@ cache; committing it here is the point of this file. Attribution convention:
 - **`[RESOLVED]`** — something the plan left as an open action that has since
   been closed in the repo (chiefly the lever-arm `.parm` work, commit
   `2f34efd`); folded in here with the resolving evidence.
-- **`[OPEN]` / `[INFERRED]`** — flagged issues and my proposed resolutions that
-  are *not* yet decided or committed. Collected in
-  [§9 Outstanding issues](#9-outstanding-issues--open-refinements). Treat these
-  as design questions to settle before or during week-9 coding, not as settled
-  fact.
+- **`[DECIDED]`** — a design question that was open in the prior pass and is now
+  settled with user sign-off. The three items in
+  [§9 Resolved design decisions](#9-resolved-design-decisions) are all `[DECIDED]`
+  as of this pass; where a decision conflicts with earlier §1/§8 prose, the §9
+  decision governs (cross-referenced inline). (`[OPEN]`/`[INFERRED]` was the
+  earlier status of these items — retained in git history, no longer present.)
 
 Governing principle throughout, unchanged from the plan: **sensor inputs must
 match across estimators; formulation may differ.** The FGO sits alongside
@@ -162,7 +163,13 @@ other than the IMU chain. Flow is a *velocity* measurement, so absolute
 horizontal position is unobservable and drifts — exactly as for EKF3 and the
 UKF. That is expected, not a defect.
 
-### Keyframe strategy — measurement-triggered at the flow cadence (~30 Hz)
+### Keyframe strategy — measurement-triggered at the flow cadence (~30 Hz) `[SUPERSEDED — see §9.1]`
+
+> **Superseded by the §9.1 decision:** keyframes are **IMU-clock-driven at a
+> fixed cadence, not flow-triggered.** The flow-cadence prose below is retained
+> for its measurement-attachment and midpoint-timing detail (still valid), but
+> keyframe *timing* is now the IMU clock, and flow attaches to the nearest
+> keyframe (§9.1). Read §9.1 first.
 
 **One keyframe per `/optical_flow/measurement` message**, placed at the flow
 interval **midpoint** `t_k − dt_k/2`, where `dt_k = t_k − t_{k−1}` from
@@ -197,10 +204,9 @@ Why measurement-triggered and **not** motion-triggered:
 > m/s velocity change) — a documented *formulation* approximation, not a
 > discarded sample.
 
-> **`[OPEN]` Note:** the update sequence in the plan gated *keyframe creation*
-> on flow validity. That is wrong and is corrected in §9.1 — a keyframe is
-> created at the flow cadence regardless of flow validity; only the flow
-> *factor* is gated. Read §9.1 before implementing the sequence in §8.
+> **Note:** the plan gated *keyframe creation* on flow validity. That is wrong
+> and is decided in §9.1 — keyframes are created on the IMU clock regardless of
+> whether flow arrives or is valid; only the flow *factor* is gated. §9.1 governs.
 
 ### Mapping onto the UKF's 15-state vector
 
@@ -668,18 +674,19 @@ keyframe within ±16.5 ms. Vertical velocity ≲0.1 m/s → ≤1.7 mm against
 range samples map to one keyframe (jitter), keep the temporally nearest and
 count the drop.
 
-**Update sequence per flow message** — corrected per §9.1 (keyframe creation is
-decoupled from flow validity):
+**Update sequence per keyframe** — driven by the IMU-clock cadence (§9.1), not
+per flow message:
 
-1. **Create the keyframe** at `t_k − dt_k/2` (flow cadence). Do this
-   **regardless** of flow validity.
+1. **Create the keyframe** on the fixed IMU-clock tick (§9.1), independent of
+   whether flow or range arrived this interval.
 2. `pim.integrateMeasurement(...)` for every buffered IMU sample up to the new
    keyframe time. If the IMU gap > 0.2 s, skip the keyframe and warn (below).
 3. Predict `X(k), V(k), B(k)` via `pim.predict(NavState(X(k−1), V(k−1)),
    B(k−1))` as the initial value.
-4. Always build `CombinedImuFactor`. Build `RangeFactor` if a range associates.
-   Build `FlowFactor` **only if** the flow validity gates (§4) pass; on an
-   invalid flow sample, omit only the flow factor (§9.1).
+4. Always build `CombinedImuFactor`. Attach a `RangeFactor` if a range
+   associates to this keyframe, and a `FlowFactor` if a valid flow sample
+   associates (§4 gates) — each measurement to its nearest keyframe (§9.1). A
+   missing or invalid measurement simply contributes no factor this step.
 5. NIS-gate each measurement factor before insertion using the **predictive**
    covariance (§9.2), **per axis** for flow (§9.3); drop and count on failure.
 6. `smoother.update(newFactors, newValues, newTimestamps)`; timestamp = keyframe
@@ -735,45 +742,58 @@ deployable unchanged):
 
 ---
 
-## 9. Outstanding issues — open refinements `[OPEN]`
+## 9. Resolved design decisions
 
-Three items flagged in the prior design session that were **never committed**
-and are not yet closed. Each is a concrete correction to the plan's first draft.
-The EKF3 behaviour each must match is source-verified this session; the proposed
-FGO resolution is `[INFERRED]` and needs sign-off before coding.
+Three items the prior design pass flagged as open are **now decided** (user
+sign-off, this pass). Each is a concrete correction to the plan's first draft;
+the EKF3 behaviour each matches is source-verified. Where these decisions
+conflict with the earlier §1/§8 prose, **these govern** (cross-referenced inline).
 
-### 9.1 Keyframe creation must be decoupled from flow validity
+### 9.1 Keyframe cadence — IMU-clock-driven, independent of flow `[DECIDED]`
 
-**The hole.** The plan's update sequence gated *keyframe creation* on flow
-validity ("Validity gates → reject → no keyframe, log, return"). That ties the
-existence of a state node to the flow sensor being healthy. During a flow
-dropout — e.g. `corridor_blank.sdf` where `inlier_ratio` collapses, or a
-corrupt-data-clamp trip — no keyframe would be created, which means:
+**Decision.** Keyframes are created on a **fixed cadence driven by the IMU
+clock**, independent of flow entirely. Every measurement — flow, range, anything
+else — attaches as a factor to whichever keyframe is current at its timestamp; a
+measurement's absence at a given step simply means no factor is added that step.
+Keyframe *creation* is never triggered by, or gated on, any measurement. This
+supersedes §1's "measurement-triggered at the flow cadence" and subsumes the
+earlier partial fix (decouple keyframe creation from flow *validity*): keyframes
+are now decoupled from flow *arrival* as well.
 
-- the IMU preintegration interval keeps growing past the keyframe cadence,
-  degrading the bias linearisation the short-interval argument in §1 depends on;
-- range measurements in that interval have no keyframe to attach to, so **range
-  fusion stops exactly when flow is unavailable** — the worst time to lose it;
-- the graph stops advancing and `/fgo/pose` stalls.
+**Why.**
 
-**What EKF3 does** `[VERIFIED]` — EKF3 does not stop when flow is bad. Flow
-fusion is one path (`FuseOptFlow`, gated by `rawFlowQuality > 0` at
-`Measurements.cpp:203`); the height/velocity prediction and rangefinder height
-fusion continue independently. Only the flow *update* is skipped.
+- **Matches EKF3.** EKF3 advances its state on the IMU every step regardless of
+  whether flow arrives (`FuseOptFlow` is one optional fusion path gated by
+  `rawFlowQuality > 0`, `Measurements.cpp:203`); flow and range only correct an
+  already-advancing state. IMU-clock keyframes make the FGO's graph advance the
+  same way — on the IMU chain, always.
+- **Prevents a fabricated "FGO diverges under degradation."** Under
+  `corridor_blank` (inlier_ratio collapse) or any flow outage, flow-triggered
+  keyframing stops creating nodes: the smoother stalls and `/fgo/pose` freezes.
+  The trajectory error that follows would be misread as the *smoother* failing
+  under degraded sensing when the truth is the *graph stopped advancing* — a
+  result attributable to the harness, not the estimator. IMU-clock keyframes keep
+  the graph advancing on IMU + range through the entire outage, so what is
+  measured is the estimator's real behaviour.
+- **Bounds the preintegration interval by construction.** A fixed cadence caps
+  every preintegration interval at the keyframe period, so the short-interval
+  bias-linearisation argument holds unconditionally — no longer contingent on
+  flow arriving.
+- **Closes the old §9.1 open question.** "What triggers a keyframe if flow stops
+  entirely?" is moot: nothing about a keyframe depends on flow.
 
-**Resolution `[INFERRED]`.** Create a keyframe at the flow cadence
-**regardless** of flow validity. On an invalid flow sample still add the
-`CombinedImuFactor` and (if associated) the `RangeFactor`; **omit only the
-`FlowFactor`.** Gate the flow *factor*, never the keyframe. This preserves the
-IMU chain and range fusion through flow dropouts and keeps input parity with
-EKF3. Reflected in §8's corrected update sequence (steps 1 and 4).
+**Cadence and attachment.** Fixed period matched to the ~30 Hz measurement rate
+(≈ every 11 IMU samples at 333 Hz), so flow/range attach to the nearest keyframe
+with ≤ half-period time offset. Flow-to-keyframe association is the
+nearest-keyframe zero-order-hold that §1 previously listed only as a real-time
+*fallback* — it is now the **standard** mechanism, since keyframe times no longer
+coincide with flow stamps. EKF3's flow-midpoint back-dating (old §1) is preserved
+as a per-sample timestamp correction applied when associating a flow measurement
+to its keyframe, not as a keyframe-placement rule.
 
-**Residual open question.** Keyframe cadence is defined by *flow message
-arrival* (§1). If flow messages stop arriving entirely (not merely invalid),
-there is nothing to trigger a keyframe. Needs a fallback trigger — most likely
-keyframe on the range cadence, or a max-interval timer bounded by the 0.2 s IMU
-gap guard — so the preintegration interval cannot run away. **Decide before
-coding.**
+**Still true from the earlier fix.** Only the flow *factor* is gated on flow
+validity (§4); on an invalid or missing flow sample the keyframe is still created
+and still carries its `CombinedImuFactor` and any associated `RangeFactor`.
 
 ### 9.2 NIS-gate ordering hole — `marginalCovariance` before the variable is in the graph
 
@@ -794,7 +814,7 @@ preintegration — `pim.predict(...)` propagates the NavState and
 `PreintegratedCombinedMeasurements` carries `preintMeasCov`, giving exactly the
 a-priori covariance of the new keyframe before any flow/range factor is added.
 
-**Resolution `[INFERRED]`.** Build `S` from the IMU-preintegration predictive
+**Decision `[DECIDED]`.** Build `S` from the IMU-preintegration predictive
 covariance of the connected variables, not from `marginalCovariance` on a
 not-yet-inserted key. This both fixes the ordering hole *and* matches EKF3's
 a-priori-`P` innovation test more faithfully than a marginal-after-insertion
@@ -826,7 +846,7 @@ So EKF3 can **accept one axis while rejecting the other**. A joint 2-DOF gate
 would reject *both* axes whenever one is bad, discarding good data — an
 asymmetry in the FGO's disfavour (would-be asymmetry C, §7).
 
-**Resolution `[INFERRED]`.** Gate each flow axis independently with a scalar
+**Decision `[DECIDED]`.** Gate each flow axis independently with a scalar
 test, `testRatio_i = ν_i² / ((0.01·GATE)²·S_ii) > 1 → reject axis i`, and let
 each axis's contribution be dropped independently. Cleanest implementation:
 **two 1-DOF `FlowFactor`s** (one per optical-frame axis), each with
