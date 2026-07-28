@@ -34,6 +34,15 @@ class FlowTracker(Node):
         # See CLAUDE.md, "Sensor Fusion Architecture".
         self.declare_parameter("enable_derotation", True)
 
+        # Fixed RANSAC seed. cv2.estimateAffinePartial2D(method=RANSAC) draws
+        # random minimal sample sets; seeding OpenCV's RNG makes flow processing
+        # (inlier_ratio, surviving flow) reproducible across re-flights. The
+        # value is recorded in metadata.yaml by run_trial.sh. See METHODOLOGY.md.
+        self.declare_parameter("ransac_seed", 42)
+        ransac_seed = int(self.get_parameter("ransac_seed").value)
+        cv2.setRNGSeed(ransac_seed)
+        self.get_logger().info(f"OpenCV RNG seeded: ransac_seed={ransac_seed}")
+
         self.bridge = CvBridge()
         self.prev_gray = None
         self.prev_pts = None

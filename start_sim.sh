@@ -63,6 +63,7 @@ cd ~/ardupilot/ArduCopter
   --add-param-file \$HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file \$HOME/thesis_ws/flow_ekf.parm \
   --add-param-file \$HOME/thesis_ws/gnss_denied.parm \
+  --add-param-file \$HOME/thesis_ws/sim_noise.parm \
   --no-rebuild
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
@@ -107,7 +108,7 @@ echo "Waiting 15 s for ROS2 bridge..."
 sleep 15
 source /opt/ros/jazzy/setup.bash
 source ~/thesis_ws/install/setup.bash
-ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true
+ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true -p ransac_seed:=42
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 

@@ -32,6 +32,10 @@
 
 set -euo pipefail
 
+# Fixed OpenCV RANSAC seed for flow_tracker — makes flow processing reproducible
+# across re-flights (recorded in metadata.yaml). See METHODOLOGY.md.
+RANSAC_SEED=42
+
 # ── Argument parsing ─────────────────────────────────────────────────────
 WORLD=""
 VELOCITY=""
@@ -183,7 +187,7 @@ cd ~/ardupilot/ArduCopter
 start_bg "$LOG_DIR/arducopter.log" \
     ~/ardupilot/build/sitl/bin/arducopter \
     --model JSON --speedup 1 --slave 0 \
-    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm" \
+    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/sim_noise.parm" \
     --serial2=udpclient:127.0.0.1:14556 \
     --sim-address=127.0.0.1 -I0
 
@@ -244,7 +248,7 @@ start_bg "$LOG_DIR/lidar_bridge.log" \
 wait_for "/attitude/angular_rates publishing" "ros2 topic list 2>/dev/null | grep -q /attitude/angular_rates" 60
 
 start_bg "$LOG_DIR/flow_tracker.log" \
-    ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true
+    ros2 run optical_flow_node flow_tracker --ros-args -p use_sim_time:=true -p ransac_seed:="$RANSAC_SEED"
 
 wait_for "/optical_flow/measurement publishing" "ros2 topic list 2>/dev/null | grep -q /optical_flow/measurement" 60
 
@@ -351,7 +355,32 @@ gnss_denied: true
 git_commit: $GIT_HASH
 hostname: $HOST
 harness: run_trial.sh
+flow_ransac_seed: $RANSAC_SEED
 EOF
+
+# Append the live SITL noise/drift params (authoritative — read from the flight
+# .BIN's PARM stream) so the noise realisation is self-documented in metadata.
+# Best-effort: on failure the params still live in ardupilot.bin.
+if [ -f "$OUTPUT_DIR/ardupilot.bin" ]; then
+    "$HOME/venv-ardupilot/bin/python3" - "$OUTPUT_DIR/ardupilot.bin" \
+        >> "$OUTPUT_DIR/metadata.yaml" 2>/dev/null \
+        <<'PYEOF' || echo "WARNING: SIM_* metadata dump failed (params remain in ardupilot.bin)"
+import sys
+from pymavlink import mavutil
+m = mavutil.mavlink_connection(sys.argv[1])
+want = ["SIM_DRIFT_SPEED","SIM_DRIFT_TIME","SIM_ACC1_RND","SIM_ACC2_RND",
+        "SIM_GYR1_RND","SIM_GYR2_RND","SIM_BARO_RND","SIM_SONAR_RND","SIM_FLOW_RND"]
+got = {}
+while True:
+    p = m.recv_match(type="PARM")
+    if p is None: break
+    if p.Name in want: got[p.Name] = p.Value
+print("sim_noise:")
+for k in want:
+    v = got.get(k)
+    print(f"  {k}: {v if v is not None else 'null'}")
+PYEOF
+fi
 
 echo ""
 echo "=== Trial '$TRIAL_NAME' complete ==="

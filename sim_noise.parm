@@ -1,0 +1,35 @@
+# SITL sensor noise / gyro-drift model — PINNED for dataset reproducibility.
+#
+# Rationale (see METHODOLOGY.md, "Sensor noise & gyro drift"): SITL's noise
+# config is otherwise ArduPilot's implicit defaults, invisible to git and to
+# metadata.yaml. This file versions it under git_commit so every recorded trial
+# is reproducible, and fly_trial.py's EXPECTED_PARAMS verifies it live (eeprom
+# persistence gotcha, Known Issue #10).
+#
+# The gyro drift is DETERMINISTIC, not a random draw. SIM_DRIFT_* is a fixed
+# periodic model (SITL.h:213-214: DRIFT_SPEED in deg/s/minute, DRIFT_TIME =
+# period in minutes; SITL.cpp:73,77), so every trial sees the identical drift
+# profile as a function of sim time. All random sensor noise below is zeroed,
+# and SITL has no PRNG seed to set (no srand/srandom anywhere) — so with these
+# zeroed, SITL sensor output is deterministic. The +5.32 deg/min yaw drift
+# measured in nomag_corridor_baseline is this deterministic drift and reproduces
+# identically on any re-fly.
+#
+# Flow-pipeline randomness (OpenCV RANSAC in flow_tracker) is seeded separately
+# and recorded — see flow_tracker.py `ransac_seed` and metadata.yaml.
+#
+# NOTE: SIM_FLOW_RND is inert here (FLOW_TYPE=5/MAVLink uses flow_tracker, not
+# SITL's flow backend) but zeroed for self-documentation.
+
+# Deterministic gyro drift (retained at ArduPilot defaults, pinned explicit).
+SIM_DRIFT_SPEED 0.05
+SIM_DRIFT_TIME 5
+
+# All random sensor noise disabled (accel, gyro x2 IMUs, baro, sonar, flow).
+SIM_ACC1_RND 0
+SIM_ACC2_RND 0
+SIM_GYR1_RND 0
+SIM_GYR2_RND 0
+SIM_BARO_RND 0
+SIM_SONAR_RND 0
+SIM_FLOW_RND 0

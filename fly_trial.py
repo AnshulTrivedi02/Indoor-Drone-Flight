@@ -63,6 +63,19 @@ EXPECTED_PARAMS = {
     # AP_PARAM_FLAG_ENABLE, so it is squarely subject to the eeprom
     # persistence gotcha this dict exists to self-heal. See gnss_denied.parm.
     'GPS1_TYPE': 0,
+    # SITL noise/drift model, pinned for reproducibility (see sim_noise.parm,
+    # METHODOLOGY.md). Deterministic gyro drift retained; all random sensor
+    # noise zeroed. Non-integer expected values (SIM_DRIFT_SPEED=0.05) are why
+    # the check below is float-tolerant, not round()-based.
+    'SIM_DRIFT_SPEED': 0.05,
+    'SIM_DRIFT_TIME': 5,
+    'SIM_ACC1_RND': 0,
+    'SIM_ACC2_RND': 0,
+    'SIM_GYR1_RND': 0,
+    'SIM_GYR2_RND': 0,
+    'SIM_BARO_RND': 0,
+    'SIM_SONAR_RND': 0,
+    'SIM_FLOW_RND': 0,
 }
 
 # Minimum RTF to assume when sizing wall-clock safety-net timeouts. This
@@ -135,7 +148,7 @@ def ensure_params(master, port: int):
         actual = read_param(master, name)
         if actual is None:
             raise TrialFailure(f"No response reading {name}")
-        if round(actual) != expected:
+        if abs(actual - expected) > 1e-4:
             mismatched[name] = expected
 
     if not mismatched:
@@ -156,7 +169,7 @@ def ensure_params(master, port: int):
     still_wrong = {}
     for name, expected in mismatched.items():
         actual = read_param(master, name)
-        if actual is None or round(actual) != expected:
+        if actual is None or abs(actual - expected) > 1e-4:
             still_wrong[name] = (actual, expected)
     if still_wrong:
         raise TrialFailure(f"Params still wrong after fix-and-reboot: {still_wrong}")
