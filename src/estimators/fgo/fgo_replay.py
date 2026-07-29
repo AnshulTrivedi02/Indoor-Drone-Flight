@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
+from measurement_models import h_flow_pose
 
 TRIAL = sys.argv[1]
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
@@ -58,6 +59,7 @@ omega = np.zeros(3); t_prev_imu = None
 flow_pend = None; rng_pend = None
 t_kf_next = t_init + fgo.kf_dt
 step_ns = []; n_kf = 0
+vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
 for tt, kind, d in ev:
     if tt < t_init:
         if kind == "att": omega = d
@@ -83,6 +85,13 @@ for tt, kind, d in ev:
             rpy = pose.rotation().rpy()          # [roll, pitch, yaw]
             bgz = fgo.prev_bias.gyroscope()[2]
             traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2], bgz))
+            # diag (read-only): |V(k)| and the flow-factor residual at the converged state
+            vmag.append((t_lat, float(np.linalg.norm(vel))))
+            if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0 \
+                    and abs(flow_pend[0][0]) < 4.2 and abs(flow_pend[0][1]) < 4.2:
+                om = omega - fgo.prev_bias.gyroscope()
+                pred = h_flow_pose(pose.rotation().matrix(), vel, pose.translation()[2], om)
+                fresid.append((t_lat, pred[0]-flow_pend[0][0], pred[1]-flow_pend[0][1]))
             flow_pend = None; rng_pend = None
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
@@ -129,6 +138,12 @@ print(f"[timing] per-keyframe update: median={np.median(step_ms):.1f}ms  p99={np
 print(f"[yaw] drift = {yaw_drift:+.2f} deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)")
 print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min")
 print(f"[result] along-track = {along:.1f} m (true {true_travel:.1f})  cross-track = {cross:+.1f} m  ATE = {ate:.2f} m")
+vmag = np.array(vmag); fresid = np.array(fresid)
+vw = (vmag[:, 0] > t_u[bi]) & (vmag[:, 0] < t_u[bj-1])
+fw = (fresid[:, 0] > t_u[bi]) & (fresid[:, 0] < t_u[bj-1])
+print(f"[scale] cruise |V(k)| median = {np.median(vmag[vw,1]):.4f} m/s   (true ~0.50; EKF3 ~0.556)")
+print(f"[flow resid] cruise median (pred-meas): x={np.median(fresid[fw,1]):+.4f}  y={np.median(fresid[fw,2]):+.4f} rad/s "
+      f"(systematic != 0 => FGO not tracking flow)")
 print(f"[out] {OUTDIR}/fgo_traj.tum")
 with open(f"{OUTDIR}/metrics.txt", "w") as f:
     f.write(f"along_pN={duN[-1]:.3f}\ntrue_travel={true_travel:.3f}\ncross_track={cross:.3f}\n"

@@ -744,7 +744,7 @@ deployable unchanged):
 
 ## 9. Resolved design decisions
 
-§9.1–9.4 are **decided** (user sign-off); §9.5 is **open** (user to rule). Each
+§9.1–9.5 are all **decided** (user sign-off; §9.5 ruled 2026-07-30). Each
 is a concrete correction to the plan's first draft; the EKF3 behaviour each
 matches/documents is source-verified. Where a decision conflicts with the earlier
 §1/§8 prose, **it governs** (cross-referenced inline). §9.4–9.5 were added during
@@ -882,26 +882,42 @@ the smoother's yaw marginal is bounded and does not free-drift. Equivalent to th
 UKF pseudo-yaw and EKF3's PREDICTED yaw; without it the FGO's yaw would be better-
 or worse-controlled than the baselines by implementation accident.
 
-### 9.5 Behaviour when flow aiding is lost — `[OPEN — user to rule]`
+### 9.5 Behaviour when flow aiding is lost — `[DECIDED — do NOT replicate const_pos]`
 
 **The question.** When flow is gated out (e.g. `corridor_blank`, where the NIS
 gate rejected ~87% of flow — measured on the UKF), what happens to horizontal
 position?
 
-**What EKF3 does.** It drops to constant-position mode (`PV_AidingMode` →
-`AID_NONE` / `const_pos_mode`, `AP_NavEKF3_Control.cpp` `setAidingMode`):
-horizontal position is **frozen** at the last aided value, not dead-reckoned.
-Measured: EKF3 held ~1.5 m over a 145 m blank flight.
+**What EKF3 does** `[VERIFIED, file:line]`. After flow fusion times out (flow
+rejected > 5000 ms) it transitions `AID_RELATIVE → AID_NONE`
+(`AP_NavEKF3_Control.cpp:304-315`, the `flowFusionTimeout` branch at `:313-314`;
+also entered on critical attitude-data loss, `:392-393`). In `AID_NONE` it
+**fuses a synthetic constant-position + zero-velocity measurement** to constrain
+tilt (`:414-417`) and **freezes** the reported horizontal position at the value
+captured when aiding was lost — `lastKnownPositionNE = stateStruct.position`
+(`:424-425`), reported as `lastKnownPositionNE + posOffsetNED`
+(`AP_NavEKF3_Outputs.cpp:369-370`; the EKF position states themselves sit at the
+origin in this mode, `Outputs.cpp:259-267`). `status.flags.const_pos_mode`
+(`Control.cpp:808`) flags it. Measured: EKF3 held ~1.5 m over a 145 m blank flight;
+on the nomag `dsn_blank` batch its `XKF1` PN froze near the origin (final PN ≈ −5 m
+against 151 m travelled).
 
-**What the FGO would do by default.** Under §9.1 the FGO advances keyframes on the
-IMU clock and adds no flow factor when flow is absent/gated — so it
-**dead-reckons on IMU + range** through the outage (the UKF baseline does the same
-and drifted to 231 m on blank). The FGO has **no natural const_pos analogue** —
-freezing a smoother's position mid-window is not a factor-graph operation.
+**What the UKF and FGO do.** The UKF dead-reckons on IMU + range through the outage
+(measured on `dsn_blank`: PN diverged to ≈ −270 m). The FGO under §9.1 advances
+keyframes on the IMU clock and adds no flow factor when flow is gated, so it
+**dead-reckons on IMU + range** likewise. A factor graph has **no natural const_pos
+analogue** — freezing a smoother's position mid-window is not a graph operation.
 
-**Open.** Is replicating EKF3's freeze a fairness requirement, or is "dead-reckon
-on IMU when flow is lost" a legitimate formulation difference? Deferred until the
-FGO design has a position; user to rule.
+**Ruling (user, 2026-07-30): do NOT replicate `const_pos` in the UKF or the FGO.**
+What an estimator does when aiding is lost is a **legitimate formulation
+difference**, not a sensor-input asymmetry — the same (gated) data reaches all
+three. Replicating EKF3's `AID_NONE` state machine in the other two would make them
+**EKF3 imitations rather than genuine alternatives**, defeating the comparison.
+EKF3 freezes (const_pos); the UKF and FGO dead-reckon on IMU + range. This is a
+**characterised distinction**, documented here with EKF3's exact mechanism
+(file:line above) so it does not read as an oversight, and it is a headline axis of
+the degraded-sensing (`corridor_blank`, transition) results — how each formulation
+behaves once its only horizontal aiding is gone. `[DECIDED]`, §9.5 closed.
 
 ## Files this creates
 
