@@ -22,9 +22,16 @@ drift silently.
   `SIM_DRIFT_TIME=5` minutes (`SITL.h:213-214`, `SITL.cpp:73,77`) — a fixed
   function of sim time. SITL has no PRNG seed to set (no `srand`/`srandom`
   anywhere), so with the random noise zeroed its sensor output is deterministic.
-  The **+5.32 deg/min** yaw drift measured in `nomag_corridor_baseline` is this
-  deterministic drift and reproduces identically — same magnitude, same sign —
-  on any re-fly. It must be described as **controlled**, not **sampled**.
+  The **physical yaw drift is +9.8 deg/min** — measured by integrating the raw
+  gyro-z (`IMU.GyrZ`) over the cruise (true yaw, `SIM.Yaw`, drifts +0.01 deg/min,
+  confirming straight flight so the whole 9.8 is gyro bias). It is near-identical
+  across every `dsn_*` bag (9.81–9.84, deterministic) and reproduces on any
+  re-fly — **controlled**, not **sampled**. (Do not confuse this with an
+  estimator's *residual* drift: `nomag_corridor_baseline` earlier reported EKF3's
+  own residual yaw drift of +5.32 deg/min, i.e. what was left after EKF3 corrected
+  ~40% of the bias on that particular trial. That 40% is trial-specific — on the
+  `dsn_*` batch EKF3 corrects only ~14–33%, XKF1 yaw drifting +6.6…+11.1 deg/min,
+  mean ~8.1 — so EKF3 too drifts near the physical rate under no yaw source.)
 
 - **Robustness across drift realisations is explicitly out of scope.** The study
   uses one controlled drift profile, identical in every trial, so drift is *not*
@@ -164,36 +171,50 @@ only when `P[6,6]+P[7,7]+P[8,8] > 0.04` — rather than firing unconditionally a
 7 Hz. **Firing unconditionally is rejected on the same principle as `FLOW_FXSCALER`:
 it produces a better ATE by doing something EKF3 does not do.**
 
-**The 0.04 threshold is verified, not assumed.** (i) The quaternion→Euler factor
-is *exact* to first order at any nominal attitude: the quaternion error Jacobian
-`G` (`δq = ½·G·δθ`) has `GᵀG = I`, so `trace(P[0..3]) = ¼·trace(Cov(δθ))` — EKF3's
-`0.01` maps to attitude-trace `0.04`, independent of heading (not a small-angle
-approximation). (ii) EKF3's own cruise tilt variance is `XKF4.errRP² ≈ 1×10⁻⁴ rad²`
-(textured and blank, `dsn_*`), negligible against the 0.01 gate, so EKF3's cap is
-effectively a **pure yaw-variance gate** tripping at Euler yaw variance ≈ 0.04 rad²
-(σ ≈ 11°) — exactly the UKF's operating point. No reflight or printf was needed;
-the check was resolved from the quaternion algebra plus the logged tilt variance.
+**The 0.04 threshold is verified, not assumed** — three independent ways.
+(i) The quaternion→Euler factor is *exact* to first order at any nominal attitude:
+the quaternion error Jacobian `G` (`δq = ½·G·δθ`) has `GᵀG = I`, so
+`trace(P[0..3]) = ¼·trace(Cov(δθ))` — EKF3's `0.01` maps to attitude-trace `0.04`,
+independent of heading (not a small-angle approximation). (ii) EKF3's own cruise
+tilt variance is `XKF4.errRP² ≈ 1×10⁻⁴ rad²` (`dsn_*`), negligible against the
+0.01 gate, so EKF3's cap is effectively a **pure yaw-variance gate**. (iii) EKF3's
+own logged quaternion covariance (`XKV1.V00..V03 = P[0][0..3]`) sits at **median
+0.0093, max 0.01001 — pinned just under its 0.01 gate on all nine bags**,
+confirming the gate value directly from EKF3's operating state. No reflight or
+printf was needed.
 
-### OPEN FINDING (not a defect) — UKF gyro-z bias overshoots when unclamped
+### The firing rates differ — but the threshold is right; the cause is upstream
 
-With the cap relaxed to EKF3's actual (rare) firing, the UKF's gyro-z bias does
-**not** converge better — it **overshoots to ~153% of the physical SIM_DRIFT**
-(`+13.6` vs ~`8.9` deg/min) while EKF3 converges to ~40%, and the trajectory
-diverges (ds_tex_r1 ATE, evo `-a`: 8.6 → 19.9 m). So the earlier "over-capping
-suppresses bias observability" hypothesis is **half-confirmed and its implied fix
-refuted**: the cap *was* clamping the bias near zero (13% → 153% when released),
-but releasing it does not help — at 0.5 m/s the flow observes gyro-z bias too
-weakly to pin it, so unclamped it runs to a wrong value. The frequent cap was
-*masking* an inaccurate-bias problem, not causing it.
+EKF3's `P[0..3]` is *pinned at* its gate → EKF3 fires the zero-innovation yaw cap
+at essentially **every 140 ms opportunity** to hold it there. The UKF, with the
+*same* threshold, fires only **~1%** — because its own attitude-cov trace sits at
+Euler **0.029** (quaternion-equivalent 0.0072), **below** the 0.04 gate, so it
+rarely trips. This is not a mis-specified threshold (verified three ways above):
+the UKF's yaw covariance is **suppressed below EKF3's operating point by the flow
+updates themselves**, whereas EKF3's yaw covariance rises to the gate. So the UKF
+is simultaneously **over-confident in yaw** (covariance lower than EKF3's) *and*
+**drifting faster** (yaw drift 12–32 vs EKF3's ~8 deg/min) — a filter-consistency
+failure localised to how the flow measurement couples into the yaw / gyro-z-bias
+states, *not* to the yaw cap.
 
-This looks like a **genuine structural difference** in how bias uncertainty
-couples to attitude — EKF3's accel-constrained tilt covariance constrains the
-joint gyro-bias vector (including its yaw component) in a way this UKF's
-formulation does not. It **may be part of the result** (a real EKF-vs-UKF
-distinction under no yaw source), not something to tune away. **Deferred:** do
-not investigate before the FGO exists — the three-way coupling comparison is the
-right frame. **Cost estimate when taken up:** ~1 day — instrument the UKF's
-`P[yaw, gyro_z_bias]` cross-covariance over a cruise, compare against EKF3's
-equivalent from a rebuilt SITL printf (EKF3 does not log state cross-covariances),
-and check whether an explicit tilt-anchored bias prior closes the gap. n=1 bag so
-far; confirm the overshoot reproduces across the `dsn_*` batch first (cheap).
+### OPEN FINDING (not a defect) — UKF flow over-couples into yaw / gyro-z bias
+
+Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
+see the sensor-noise section). Against it, the unclamped UKF gyro-z bias
+**overshoots to ~220–450%** across the `dsn_tex` batch (reproduced on three bags,
+not one), while EKF3's own bias correction is a small, stable ~14–33%. The cap
+was *masking* this — clamping the bias near zero (13% when firing 100%) rather
+than fixing it; at 0.5 m/s the flow observes gyro-z bias too weakly to pin it, so
+released it runs to a wrong value and the trajectory diverges (ds_tex_r1 ATE,
+evo `-a`: 8.6 → 19.9 m). The measured signature (yaw over-confidence + mean drift)
+points to the **flow→yaw/gyro-bias coupling**, i.e. the flow measurement model /
+its sigma-point cross-covariance is attributing flow residuals to yaw and gyro-z
+bias with too much weight — expected to be weak at 0.5 m/s. Whether that coupling
+is a modelling error (a bug in the flow Jacobian / per-axis sequential update) or
+a genuine UKF-vs-EKF distinction is **the finding-vs-bug question, and it is not
+the yaw gate** (verified correct). **Deferred** to after the FGO has a position on
+the flow factor — the three-way frame is the right place to settle it. **Cost when
+taken up:** ~1 day — probe the flow update's yaw/gyro-z sensitivity on a static
+straight cruise (does a flow residual move yaw?), compare to EKF3's flow fusion
+(`AP_NavEKF3_OptFlowFusion.cpp`), and check whether it is the sequential per-axis
+gating vs a joint 2-DOF update.
