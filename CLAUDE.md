@@ -30,15 +30,28 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | Item                        | Path                                                                 |
 |-----------------------------|----------------------------------------------------------------------|
 | ArduPilot SITL              | `~/ardupilot`                                                        |
-| Gazebo plugin / models      | `~/ardupilot_gazebo`                                                 |
-| Worlds                      | `~/ardupilot_gazebo/worlds/`                                         |
-| **Degraded world (blank)**  | `~/ardupilot_gazebo/worlds/iris_runway.sdf`                          |
-| **Nominal world (textured)**| `~/ardupilot_gazebo/worlds/iris_textured.sdf`                        |
-| **Corridor world (nominal)**    | `~/ardupilot_gazebo/worlds/corridor_textured.sdf`                 |
-| **Corridor world (degraded)**   | `~/ardupilot_gazebo/worlds/corridor_blank.sdf`                    |
-| **Corridor world (transition)** | `~/ardupilot_gazebo/worlds/corridor_transition.sdf`               |
-| Drone SDF (primary edit)    | `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf`            |
+| Gazebo plugin + iris/runway meshes | `~/ardupilot_gazebo` (upstream base `082a0fe`; ArduPilotPlugin + meshes) |
+| **Worlds (tracked — run from here)** | `~/thesis_ws/sim/worlds/`                                       |
+| **Degraded world (blank)**  | `~/thesis_ws/sim/worlds/iris_runway.sdf`                             |
+| **Nominal world (textured)**| `~/thesis_ws/sim/worlds/iris_textured.sdf`                           |
+| **Corridor world (nominal)**    | `~/thesis_ws/sim/worlds/corridor_textured.sdf`                   |
+| **Corridor world (degraded)**   | `~/thesis_ws/sim/worlds/corridor_blank.sdf`                      |
+| **Corridor world (transition)** | `~/thesis_ws/sim/worlds/corridor_transition.sdf`                 |
+| Custom floor/wall models (tracked) | `~/thesis_ws/sim/models/`                                        |
+| Drone SDF (edit + mirror)   | `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf` → mirror to `sim/reference/` |
 | ROS2 workspace              | `~/thesis_ws`                                                        |
+
+> **Sim assets are vendored (2026-07-29).** The worlds and custom floor/wall
+> models live in and **run from** `~/thesis_ws/sim/` — `run_trial.sh`/`start_sim.sh`
+> prepend `sim/models` to `GZ_SIM_RESOURCE_PATH` and load worlds by absolute path
+> from `sim/worlds/`, so a `thesis_ws` commit pins the environment (each trial's
+> `metadata.yaml` also records the live `ardupilot_gazebo_commit` +
+> `ardupilot_gazebo_upstream_base` for the un-vendored meshes). **Edit worlds and
+> floor/wall models in `sim/`, not `~/ardupilot_gazebo`** — the latter's copies
+> are shadowed and silently ignored. **One exception — the iris drone:** it still
+> resolves from `~/ardupilot_gazebo` (22 MB meshes), so edit its sensors in
+> `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf` **and** mirror to
+> `sim/reference/iris_with_standoffs.model.sdf`. See `sim/README.md`.
 | Optical flow package        | `~/thesis_ws/src/optical_flow_node/`                                 |
 | Flow node entry point       | `~/thesis_ws/src/optical_flow_node/optical_flow_node/flow_tracker.py`|
 | **Message definitions**     | `~/thesis_ws/src/optical_flow_interfaces/msg/OpticalFlow.msg`        |

@@ -345,6 +345,10 @@ fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 GIT_HASH=$(git -C "$HOME/thesis_ws" rev-parse HEAD 2>/dev/null || echo "unknown")
+# ardupilot_gazebo supplies the iris/runway meshes (not vendored) — record its
+# live commit and the upstream base so mesh provenance is explicit (sim/README.md).
+AG_COMMIT=$(git -C "$HOME/ardupilot_gazebo" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+AG_BASE=$(git -C "$HOME/ardupilot_gazebo" merge-base HEAD origin/main 2>/dev/null | cut -c1-7 || echo "unknown")
 HOST=$(hostname)
 
 cat > "$OUTPUT_DIR/metadata.yaml" << EOF
@@ -359,6 +363,8 @@ git_commit: $GIT_HASH
 hostname: $HOST
 harness: run_trial.sh
 flow_ransac_seed: $RANSAC_SEED
+ardupilot_gazebo_commit: $AG_COMMIT
+ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 
 # Append the live SITL noise/drift params (authoritative — read from the flight

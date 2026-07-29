@@ -94,3 +94,33 @@ gauge-fixed, **no** yaw/SE(3) alignment.
 with its n=3 spread but is **not** used as a primary discriminator between
 conditions (noisy, overlapping ranges). Figures: `plots/alongtrack_vs_travel.png`,
 `plots/textured_crosstrack.png`, `plots/textured_yaw.png`.
+
+## Simulation environment provenance
+
+The thesis sim environment — corridor worlds + custom floor/wall models + iris
+sensor config — is vendored under `sim/` and committed at `7be3672`. From that
+commit the harness runs from the tracked files (`sim/worlds`, `sim/models`), so a
+trial's `git_commit` pins the environment. See `sim/README.md`.
+
+**Mesh provenance (not vendored).** The iris drone (~22 MB) and runway (~28 MB)
+meshes are supplied by `~/ardupilot_gazebo`, a clone of
+`ArduPilot/ardupilot_gazebo` at **upstream base `082a0fe`** ("Iris: improve
+collisions") plus three thesis commits: `d1eaad3` (iris downward camera +
+gpu_lidar — mirrored in `sim/reference/iris_with_standoffs.model.sdf`),
+`e0359c2` (corridor worlds), `81e6b10` (visual-only floor tiles + ground
+collision). Every trial records the live `ardupilot_gazebo_commit` and
+`ardupilot_gazebo_upstream_base` in its `metadata.yaml`, so the mesh source is
+explicit per trial even though the meshes are not in git.
+
+**The nine dataset trials predate vendoring.** `ds_{tex,blank,trans}_r{1,2,3}`
+were flown from `~/ardupilot_gazebo` **before** the `sim/` vendoring commit
+(`7be3672`) — *not* from the tracked `sim/` path. Equivalence rests primarily on
+a **byte-identical `diff`**: the vendored worlds and models match the
+`~/ardupilot_gazebo` originals that flew the dataset exactly (0 differences), so
+any flight difference is run-to-run noise by definition. A verify flight
+(`vendor_verify_full`, corridor_textured flown from `sim/worlds/`) corroborates
+this — it matched tightly on **along-track PN** (154.04 m, inside the `ds_tex`
+0.48 m reproducible band), while cross-track (9.37 m) fell within run-to-run
+variability, below the n=3 observed band ([19.82, 39.22] m) that three samples do
+not bound on that noise-dominated channel. Stated as honest provenance, not a
+retroactive claim the dataset was flown from the tracked path.
