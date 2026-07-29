@@ -337,6 +337,22 @@ EKF3's/UKF's ~7 Hz — more frequent, but zero-innovation so it injects no headi
 it only holds the yaw marginal slightly tighter. Matching the rate exactly is a
 refinement, not a fairness violation.)
 
+**Scale sanity-check — the 5.10 m is NOT a 5× win over EKF3; it is on par.** The
+5.10 m is `evo -a` (SE3-aligned); EKF3's 24.3 m (apparatus floor) is *unaligned*.
+On the **same metric** (`evo -a`, `dsn_tex_r1`): **EKF3 4.79 m vs FGO 5.10 m** —
+essentially equal, FGO marginally worse. The apparent 5× improvement was a
+metric mismatch (aligned vs unaligned), not a result. The FGO's *unaligned* ATE is
+139 m, dominated by the ~90° init-yaw gauge offset (no compass → arbitrary heading),
+which `evo -a` removes. **Not a bug and not smoothing-magic:** instrumented, the FGO
+tracks the flow (cruise flow-factor residual ≈ 0: x −0.0007, y −0.0012 rad/s) and
+its cruise velocity is `|V(k)| = 0.517 m/s`, **+4.7 %** over true — so it *does*
+inherit a flow scale error, merely smaller than EKF3's `0.556 m/s` (+12.6 %) on this
+bag (n=1; the smaller inheritance is unexplained and not leaned on). The along-track
+147.5 m looking "too good" vs true 151.1 was coincidence: the +4.7 % speed offset is
+cancelled in *displacement* by the −9.24 deg/min yaw-drift curvature. Flow is the
+only horizontal-velocity observation, so the FGO could not have avoided the scale —
+and it didn't.
+
 **Flow_x partition (re-checked).** The controlled single-update partition is
 anchor-independent — Euler-UKF and SO(3)-FGO still both 69 % velocity / 31 % yaw.
 The fair-anchor full run confirms the accumulated consequence: yaw drifts once the
