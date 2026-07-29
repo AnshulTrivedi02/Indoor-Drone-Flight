@@ -134,7 +134,7 @@ cleanup() {
     # Belt-and-braces: catch anything the PID list missed (e.g. a process
     # that forked a child we didn't track), scoped to this trial's own
     # world/port selection so we don't touch unrelated work.
-    pkill -9 -f "gz sim -v4 -s -r worlds/${WORLD}.sdf" 2>/dev/null || true
+    pkill -9 -f "sim/worlds/${WORLD}.sdf" 2>/dev/null || true
     pkill -9 -f "build/sitl/bin/arducopter.*sim-address=127.0.0.1 -I0" 2>/dev/null || true
     pkill -9 -f "mavproxy.py --daemon.*--out 127.0.0.1:14550" 2>/dev/null || true
 
@@ -170,9 +170,12 @@ wait_for() {
 echo ""
 echo "--- Launching Gazebo (headless) ---"
 cd ~/ardupilot_gazebo
-export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH:-}
+# Vendored thesis sim assets (sim/models, sim/worlds) take precedence; the iris
+# drone (iris_with_ardupilot/iris_with_standoffs + 22 MB meshes) and runway
+# resolve from ~/ardupilot_gazebo. See sim/README.md.
+export GZ_SIM_RESOURCE_PATH=$HOME/thesis_ws/sim/models:$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH:-}
 export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
-start_bg "$LOG_DIR/gazebo.log" gz sim -v4 -s -r "worlds/${WORLD}.sdf"
+start_bg "$LOG_DIR/gazebo.log" gz sim -v4 -s -r "$HOME/thesis_ws/sim/worlds/${WORLD}.sdf"
 
 wait_for "Gazebo model spawned (/downward_lidar/range on the gz bus)" \
     "gz topic -l 2>/dev/null | grep -q /downward_lidar/range" 60

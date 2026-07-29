@@ -1,0 +1,227 @@
+<?xml version="1.0" ?>
+<!--
+  Corridor world — transition condition (the primary research gap).
+
+  Common corridor template shared with corridor_textured.sdf and
+  corridor_blank.sdf: 20 m wide (x: -10..10), 160 m long (y: 0..160),
+  walls at x=+-10 m, spawn at the y=0 end facing +Y (yaw 90 deg,
+  matching iris_textured.sdf/iris_runway.sdf). The three worlds are
+  identical except for floor texture — see CLAUDE.md.
+
+  Floor here: textured (checker) for y:0..80, blank (featureless) for
+  y:80..160. BOUNDARY IS EXACTLY y = 80 m (corridor midpoint) — record
+  ground-truth y at boundary crossing when analysing flight data from
+  this world.
+
+  A full extra tile at y=-10 (covering y=-20..0) backfills behind the
+  spawn. A tile at y=10 alone would start exactly at y=0, which is
+  precisely where the drone spawns, and the downward LiDAR's single
+  vertical ray was found to occasionally miss geometry entirely right on
+  that knife-edge (`inf`/no hit at y=0, valid one metre forward). This
+  replaces the earlier "spawn_margin" patch, now removed: it carried its
+  own <plane> collision (an infinite half-space), so it was part of the
+  Known Issue #11 collision problem, and it existed in only two of the
+  three worlds, making it an asymmetry between conditions. All three
+  worlds now tile the identical 9 poses. See CLAUDE.md, Known Issues.
+-->
+<sdf version="1.9">
+  <world name="corridor_transition">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.363262</latitude_deg>
+      <longitude_deg>149.165237</longitude_deg>
+      <elevation>584</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="axes">
+      <static>1</static>
+      <link name="link">
+        <visual name="r">
+          <cast_shadows>0</cast_shadows>
+          <pose>5 0 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>10 0.01 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 0.8</ambient>
+            <diffuse>1 0 0 0.8</diffuse>
+            <emissive>1 0 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="g">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 5 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 10 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <emissive>0 1 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="b">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 0 5.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.01 10</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 0.8</ambient>
+            <diffuse>0 0 1 0.8</diffuse>
+            <emissive>0 0 1 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- Spawn margin pad: fills the knife-edge at y=0 where the drone
+         spawns exactly on floor_tile_0's near boundary — the downward
+         LiDAR's single ray occasionally missed geometry entirely at that
+         exact edge (reproducible: `ranges: inf` at y=0, valid at y=1, see
+         CLAUDE.md Known Issues). Extends the floor 4 m behind spawn
+         (y=-4..0) plus 1 m of overlap with floor_tile_0 (y=0..1), so
+         there's always solid, well-margined floor under the spawn point
+         regardless of sub-mm pose jitter. Same checker material as
+         textured_ground (texture reused via its model:// URI, not
+         duplicated), 1 mm below floor_tile_0's surface (z=-0.001) so the
+         overlap always resolves to floor_tile_0's texture, not a
+         z-fighting flicker. -->
+
+    <!-- Textured half: y:0..80, 4x 20x20 m textured_ground tiles -->
+    <include>
+      <name>floor_tile_0</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 -10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_1</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_2</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 30 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_3</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 50 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_4</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 70 0 0 0 0</pose>
+    </include>
+
+    <!-- Blank half: y:80..160, 4x 20x20 m visual-only blank tiles - same tiling
+         and geometry as the textured half, differing ONLY in material.
+         BOUNDARY y = 80 m exactly. -->
+    <include>
+      <name>floor_tile_5</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 90 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_6</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_7</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 130 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_8</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 150 0 0 0 0</pose>
+    </include>
+
+    <!-- Corridor walls: x=+-10 m, spanning y:-5..165 -->
+
+    <!-- Physics-only ground, included identically by all three corridor worlds.
+         Floor tiles above are visual-only. See model://ground_collision. -->
+    <include>
+      <uri>model://ground_collision</uri>
+    </include>
+
+    <include>
+      <name>wall_east</name>
+      <uri>model://corridor_wall</uri>
+      <pose>10 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>wall_west</name>
+      <uri>model://corridor_wall</uri>
+      <pose>-10 80 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://iris_with_ardupilot</uri>
+      <pose degrees="true">0 0 0.195 0 0 90</pose>
+    </include>
+
+  </world>
+</sdf>

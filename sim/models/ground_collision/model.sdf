@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Physics-only ground. NO visual: this model exists solely to provide
+       the corridor worlds' ground contact, decoupled from whatever is
+       rendered above it.
+
+       Why this exists (2026-07-23): a <plane> collision shape is an INFINITE
+       half-space - <size> bounds only a visual, never the collision extent.
+       The corridor worlds previously tiled model://textured_ground 8x to build
+       a 160 m checkerboard, which stacked 8 exactly-coincident infinite
+       collision planes at z=0. Contact solving over coincident surfaces is
+       degenerate and cost grows superlinearly: measured RTF 0.3965 (1 plane)
+       -> 0.0432 (5 planes) -> 0.0134 (8 planes), with gz sim pegging one core.
+       That was the true root cause of Known Issue #11, previously misattributed
+       to machine speed.
+
+       All three corridor worlds include THIS model, identically, exactly once,
+       and their floor tiles are visual-only. That guarantees the physics below
+       the visual layer is bit-identical across textured / blank / transition,
+       so floor texture really is the only variable - which the previous design
+       did not achieve (it had 8 vs 5 vs 1 collision planes).
+
+       <size> is present for schema completeness only and is ignored for
+       collision; the half-space spans the whole world regardless. -->
+  <model name="ground_collision">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>20 170</size>
+          </plane>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

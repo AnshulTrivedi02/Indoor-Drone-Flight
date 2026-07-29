@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Visual-only checkerboard tile. Geometry and material are byte-identical
+       to model://textured_ground; the ONLY difference is that the <collision>
+       block is absent - see model://ground_collision for why.
+
+       Tiled 8x by corridor_textured.sdf (and 4x by corridor_transition.sdf).
+       Reusing the already-validated 20x20 m tile rather than stretching one
+       texture over 20x160 m avoids the Ogre2 UV trap documented in CLAUDE.md:
+       a plane's texture is stretched across its whole extent rather than
+       repeated per metre, so a single long plane would wash out into a handful
+       of huge squares and lose exactly the fine features flow needs. -->
+  <model name="textured_ground_visual">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>20 20</size>
+          </plane>
+        </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr>
+            <metal>
+              <albedo_map>model://textured_ground/materials/textures/checker.png</albedo_map>
+              <roughness>0.8</roughness>
+              <metalness>0</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

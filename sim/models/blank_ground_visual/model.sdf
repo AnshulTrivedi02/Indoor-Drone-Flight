@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Visual-only featureless tile: the DEGRADED-condition floor.
+
+       Identical to model://textured_ground_visual in every respect - same
+       20x20 m plane geometry, same tiling, same ambient/diffuse/specular,
+       same roughness and metalness - EXCEPT that it has no <albedo_map>.
+       Texture is therefore the only variable between the nominal and degraded
+       conditions; not colour, not reflectance, not extent, not geometry.
+
+       This must be a REAL RENDERED SURFACE, not an absent one. A world with
+       nothing rendered beneath the drone is not a degraded-sensing condition:
+       the downward camera would see skybox, giving static features, a
+       deceptively high inlier_ratio and flow confidently reporting ~zero
+       motion. That is absence of a scene, not low-texture degradation, and it
+       is not the phenomenon this thesis studies. The degraded baseline to
+       reproduce is iris_runway.sdf's measured inlier_ratio ~0.28, which came
+       from an actual rendered blank surface. See CLAUDE.md, "Corridor Worlds". -->
+  <model name="blank_ground_visual">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>20 20</size>
+          </plane>
+        </geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr>
+            <metal>
+              <roughness>0.8</roughness>
+              <metalness>0</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

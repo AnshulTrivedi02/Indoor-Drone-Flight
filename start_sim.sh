@@ -24,10 +24,17 @@ fi
 
 WORLD="${1:-iris_runway.sdf}"
 
-if [ ! -f "$HOME/ardupilot_gazebo/worlds/$WORLD" ]; then
-  echo "Error: world file not found: $HOME/ardupilot_gazebo/worlds/$WORLD" >&2
+# Vendored thesis worlds (tracked in sim/worlds) take precedence; fall back to
+# upstream ~/ardupilot_gazebo for non-thesis worlds. See sim/README.md.
+if [ -f "$HOME/thesis_ws/sim/worlds/$WORLD" ]; then
+  WORLD_PATH="$HOME/thesis_ws/sim/worlds/$WORLD"
+elif [ -f "$HOME/ardupilot_gazebo/worlds/$WORLD" ]; then
+  WORLD_PATH="$HOME/ardupilot_gazebo/worlds/$WORLD"
+else
+  echo "Error: world file not found: $WORLD" >&2
   echo "Available worlds:" >&2
-  ls "$HOME/ardupilot_gazebo/worlds/"*.sdf 2>/dev/null | xargs -n1 basename | sed 's/^/  /' >&2
+  ls "$HOME/thesis_ws/sim/worlds/"*.sdf "$HOME/ardupilot_gazebo/worlds/"*.sdf 2>/dev/null \
+    | xargs -n1 basename | sort -u | sed 's/^/  /' >&2
   exit 1
 fi
 
@@ -37,9 +44,9 @@ rm -f /tmp/thesis_sim_stop
 cat > "$SCRIPTS/gazebo.sh" << EOF
 #!/usr/bin/env bash
 cd ~/ardupilot_gazebo
-export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
+export GZ_SIM_RESOURCE_PATH=\$HOME/thesis_ws/sim/models:\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
 export GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_PLUGIN_PATH
-gz sim -v4 -r worlds/$WORLD
+gz sim -v4 -r $WORLD_PATH
 while ! [ -f /tmp/thesis_sim_stop ]; do sleep 0.3; done
 EOF
 
