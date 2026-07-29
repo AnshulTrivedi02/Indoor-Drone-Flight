@@ -124,3 +124,24 @@ this — it matched tightly on **along-track PN** (154.04 m, inside the `ds_tex`
 variability, below the n=3 observed band ([19.82, 39.22] m) that three samples do
 not bound on that noise-dominated channel. Stated as honest provenance, not a
 retroactive claim the dataset was flown from the tracked path.
+
+## Comparison dataset — nomag (no yaw source)
+
+The three-way EKF3 / UKF / FGO comparison uses trials flown under
+`gnss_denied_nomag.parm` (`EK3_SRC1_YAW=0`, compass unused) — the **`dsn_*`
+batch** (3 corridor worlds × 3 repeats).
+
+**Why not the compass-active `ds_*` trials.** The nine `ds_{tex,blank,trans}_r*`
+trials were flown under `gnss_denied.parm`, which leaves EKF3 fusing the compass
+for yaw. That is a **yaw source the UKF and FGO structurally cannot have** — the
+thesis sensor suite is IMU + flow + LiDAR, and no compass topic is even recorded.
+So on `ds_*`, EKF3 holds a correct heading while the no-compass UKF/FGO yaw drifts
+at the physical gyro rate — an **information asymmetry that invalidates the
+comparison**, not a formulation difference. (Confirmed during UKF bring-up: the
+UKF's yaw tracks the raw gyro drift ~9 deg/min; EKF3-with-compass does not.)
+
+**The `ds_*` trials are retained, not deleted**, as (a) the run-to-run
+noise-floor characterisation (above) and (b) the EKF3-with-yaw-source reference.
+They are **superseded for the three-way comparison** by the nomag `dsn_*` batch,
+in which all three estimators face the same no-yaw condition and EKF3's own yaw
+drifts too (~5 deg/min under the deterministic SIM_DRIFT).

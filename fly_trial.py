@@ -76,6 +76,17 @@ EXPECTED_PARAMS = {
     'SIM_BARO_RND': 0,
     'SIM_SONAR_RND': 0,
     'SIM_FLOW_RND': 0,
+    # No-yaw config (gnss_denied_nomag.parm) — the UKF/FGO sensor suite has no
+    # yaw source, so EKF3 must not fuse the compass either. EK3_SRC1_YAW=0 and
+    # COMPASS_USE*=0 carry AP_PARAM_FLAG_ENABLE / are eeprom-persistent, so they
+    # go through this self-heal. COMPASS_ENABLE=1 stays (arming gate only).
+    'EK3_SRC1_YAW': 0,
+    'COMPASS_ENABLE': 1,
+    'COMPASS_USE': 0,
+    'COMPASS_USE2': 0,
+    'COMPASS_USE3': 0,
+    'EK3_GSF_RUN_MASK': 3,
+    'EK3_GSF_USE_MASK': 3,
 }
 
 # Minimum RTF to assume when sizing wall-clock safety-net timeouts. This

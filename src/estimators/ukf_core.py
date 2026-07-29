@@ -158,6 +158,17 @@ def update_yaw_pseudo(x, P, p):
     lets yaw variance grow unbounded would differ by omission, not formulation.
     R = EK3_YAW_M_NSE^2 (AP_NavEKF3.cpp:446, 0.5 rad floored to 0.05).
 
+    KNOWN RESIDUAL DIFFERENCE (identified, not a formulation result). EKF3 fires
+    fuseEulerYaw(PREDICTED) ONLY when attitude covariance grows
+    (MagFusion.cpp:274: `onGround || AID_NONE || P[0..3] > 0.01`) — intermittent,
+    letting yaw variance grow between fires so flow can inject gyro-z-bias
+    correction. This harness fires it every YAW_DT (140 ms) unconditionally, which
+    over-caps yaw variance and suppresses that weak observability: measured, the
+    UKF's gyro-z bias converged to ~13% of the physical SIM_DRIFT (-1.17 vs -8.9
+    deg/min) so the UKF drifts at ~the raw gyro rate (9.5 deg/min), whereas EKF3
+    estimates ~40% of it and drifts 5.3 deg/min. To match EKF3, gate this fire on
+    a yaw-variance threshold instead of a fixed rate. Not yet done — flagged.
+
     THE FGO MUST MATCH THIS: attach a weak yaw prior (soft anchor) factor to each
     keyframe's Pose3 rotation with the same 0.5 rad sigma on the yaw DOF, so the
     smoother's yaw marginal is likewise bounded and doesn't free-drift. Documented
