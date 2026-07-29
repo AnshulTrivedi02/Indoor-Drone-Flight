@@ -297,7 +297,57 @@ instead of a fixed reference, then re-run — the expected outcome, given the
 identical partition, is that the FGO drifts comparably to the UKF, making the yaw
 leak a **genuine, parameterisation-independent** phenomenon under weak yaw
 observability (controlled only by the capping mechanism), not an Euler artifact.
-`h_flow` correctness stands. Timing: batch 101 ms/step median (over the 33 ms
-deployability budget); incremental 0.2 ms (under budget) but unstable over long runs
-(iSAM2 + Python `CustomFactor` marginalisation cascades after ~590 keyframes — to
-resolve). §9.5 stays open.
+`h_flow` correctness stands. §9.5 stays open.
+
+### The real first FGO result — fair (zero-innovation) yaw anchor
+
+The yaw cap now anchors each keyframe to its IMU-**predicted** yaw
+(`Xk.rotation().yaw()`), so the error is ~0 at the linearisation point — a genuine
+zero-innovation cap matching EKF3's `fuseEulerYaw(PREDICTED)` (`innovYaw = 0.0f`,
+`AP_NavEKF3_MagFusion.cpp:1062-1064`, against `yawAngPredicted` = current state yaw,
+`:970`). Re-run `dsn_tex_r1`, n=1, batch:
+
+| metric | fixed anchor (artefact) | **fair anchor (result)** |
+|---|---|---|
+| ATE, evo `-a` | 0.49 m ⚠️void | **5.10 m** |
+| ATE, unaligned | 128 m | 139 m |
+| along-track | 151.8 m | 147.5 m (true 151.1) |
+| cross-track | +151.7 m | +139.8 m |
+| **yaw drift** | −0.04 deg/min | **−9.24 deg/min** |
+| gyro-z bias | −4.88 | +0.13 deg/min |
+
+**The prediction held: with a fair cap the FGO's yaw drifts (−9.24 deg/min), and the
+0.49 m artefact is gone.** Stated plainly and as a *result*, not a failure:
+
+> **The yaw leak under an unobservable heading is independent of the attitude
+> parameterisation AND of filtering-vs-smoothing — it is controlled only by the
+> yaw-capping mechanism.** All four configurations drift near the physical
+> +9.8 deg/min and none recovers yaw from flow: EKF3 (quaternion filter) **8.4**,
+> FGO (SO(3) smoother) **9.24**, UKF-Euler unconditional-cap **9.52**, UKF-Euler
+> gated-cap **12.7**. The spread is explained entirely by **capping frequency**:
+> EKF3, the FGO and the unconditional UKF cap yaw often (EKF3 ~7 Hz with `P` pinned
+> at its gate; FGO every keyframe ~30 Hz; UKF-uncond 7 Hz) and drift near physical
+> with a stable bias; only the UKF's *variance-gated* cap fires ~1 %, letting flow
+> corrupt the gyro-z bias (overshoot ~220–450 %) and drift *above* physical. Neither
+> the Euler↔SO(3) chart nor filter↔smoother changes this — the estimator's only
+> lever on yaw under no yaw source is how often it caps the variance.
+
+(One documented formulation detail: the FGO caps every keyframe, ~30 Hz, vs
+EKF3's/UKF's ~7 Hz — more frequent, but zero-innovation so it injects no heading;
+it only holds the yaw marginal slightly tighter. Matching the rate exactly is a
+refinement, not a fairness violation.)
+
+**Flow_x partition (re-checked).** The controlled single-update partition is
+anchor-independent — Euler-UKF and SO(3)-FGO still both 69 % velocity / 31 % yaw.
+The fair-anchor full run confirms the accumulated consequence: yaw drifts once the
+cap no longer over-constrains it.
+
+**Computational cost — goes in the results regardless of accuracy.** Batch smoother
+**101 ms/step median, p99 167 ms — 3–5× over the 33 ms deployability budget**. The
+incremental (iSAM2) solver is 0.2 ms/step (well under budget) but **cascades after
+~590 keyframes**. The cascade is isolated to the incremental marginalisation layer,
+not our estimator logic: the *same* factors and core run to completion under batch
+(10047 keyframes, 0 failures), so it is a GTSAM iSAM2 + Python-`CustomFactor` +
+fixed-lag interaction. Whether it is inherent to that combination or an
+implementation artefact is not yet root-caused; batch is the robust path meanwhile.
+This is the measured version of FGO's main known weakness (compute).
