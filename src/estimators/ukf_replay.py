@@ -172,3 +172,12 @@ print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min "
       f"({bgz_frac:.0f}% of the ~{PHYS_DRIFT:.1f} deg/min physical drift)")
 print(f"[result] along-track = {along:.1f} m  (true {true_travel:.1f} m)   ATE = {ate:.2f} m")
 print(f"[out] {OUTDIR}/ukf_traj.tum")
+
+# machine-readable summary for the batch driver (apparatus, cruise-window, gauge-fixed)
+cross_track = float((duE - dgE)[-1])         # final east (perpendicular) error vs truth
+along_pN = float(duN[-1])                     # UKF north displacement over window
+with open(f"{OUTDIR}/metrics.txt", "w") as f:
+    f.write(f"along_pN={along_pN:.3f}\ntrue_travel={true_travel:.3f}\n"
+            f"cross_track={cross_track:.3f}\nate_apparatus={ate:.3f}\n"
+            f"yaw_drift={yaw_drift:.3f}\nbgz_mean={bgz_mean:.3f}\nbgz_pct={bgz_frac:.1f}\n"
+            f"yaw_fire={n_yaw_fire}\nyaw_check={n_yaw_check}\n")
