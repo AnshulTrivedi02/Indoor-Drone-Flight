@@ -59,3 +59,38 @@ intended fairness property — but any experiment that would require *re-derivin
 flow with different processing needs a **new dataset flight**, not a reprocessing
 of the existing bags. This is an accepted, deliberate limitation of the recording
 design, not an oversight.
+
+## Run-to-run noise floor (n=3 per condition)
+
+The GNSS-denied dataset is three corridor conditions — textured, blank,
+transition — each flown as **three identical-config repeats** (0.5 m/s, 2.0 m,
+300 s, ~145 m, RANSAC seed 42). **All figures below are n=3.**
+
+Repeats are not identical. Even with the gyro drift deterministic (above) and
+the RANSAC seed fixed, the live pipeline (Gazebo→ROS2 camera-frame capture/drops
+and scheduling) produces run-to-run variation; that variation *is* the
+measurement noise floor, and it is characterised here before any condition is
+interpreted. All metrics are XKF1-vs-SIM over the aided window, origin
+gauge-fixed, **no** yaw/SE(3) alignment.
+
+- **Within-condition ATE range is 2.81–10.90 m** (blank 2.81, transition 8.15,
+  textured 10.90) against a **~68 m between-condition separation** (textured
+  mean ATE 17.8 m vs blank mean ATE 85.8 m).
+- **Cross-track (east) is a noisy channel.** Within-condition ranges are
+  7.0–22.9 m and the ranges **overlap across conditions**, so cross-track error
+  alone does not separate them.
+- **The cross-track variation is not heading divergence.** Yaw error (XKF1−SIM)
+  is reproducible to **0.263° at 300 s** (spread across the three textured
+  repeats) — far too small to account for the ~15 m cross-track spread. Yaw is
+  compass-aided and consistent run-to-run; the spread originates in the flow
+  channel, not in heading.
+- **Along-track distance is reproducible and boundary-sharp.** Final XKF1 PN
+  varies ≤1.15 m within a condition (textured 0.48, transition 0.53, blank
+  1.15); in the transition world all three repeats stop accumulating PN at true
+  y = 81.7 m (range 0.2 m), tracking the y=80 m texture boundary to ~1.7 m with
+  a ~1.4 m transition width.
+
+**Primary metrics: ATE and along-track distance.** Cross-track error is reported
+with its n=3 spread but is **not** used as a primary discriminator between
+conditions (noisy, overlapping ranges). Figures: `plots/alongtrack_vs_travel.png`,
+`plots/textured_crosstrack.png`, `plots/textured_yaw.png`.
