@@ -66,6 +66,8 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
 | **IMU bridge**               | `~/thesis_ws/imu_bridge.py`                                          |
 | **evo venv**                 | `~/venv-evo`                                                         |
+| **FGO venv (GTSAM)**         | `~/venv-fgo` (gtsam 4.2.1 + rosbags; numpy 1.26 — kept separate from `venv-evo`'s numpy 2.x) |
+| **Estimators (UKF + FGO)**  | `~/thesis_ws/src/estimators/` (`ukf_core.py`, `measurement_models.py`, `fgo/`) |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | **Trial evaluator**         | `~/thesis_ws/evaluate_trial.sh`                                      |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
@@ -1888,8 +1890,8 @@ Remaining:
 8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
 9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence. **Revisit**: `gnss_denied.parm` still lets EKF3 fuse the compass for yaw — outside the thesis's stated sensor suite and a confound vs UKF/FGO's no-yaw setup; a verified fix exists (`gnss_denied_nomag.parm`) but hasn't been folded into the standing baseline — see "No-Yaw / Compass-Denied Investigation" above
 10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — corridor worlds built for this but not yet usable end-to-end (`corridor_textured.sdf`/`corridor_blank.sdf` both hit unresolved issues when actually flown, see Known Issues #11/#12). A 320 s no-yaw flight was run on `iris_textured.sdf` instead (see "No-Yaw / Compass-Denied Investigation" above) — real corridor data still pending
-11. UKF implementation — **design confirmed** (state vector, process/measurement models, matched robustness params, Q derivation, position reference, covariance logging, validation plan — see "UKF Design" above), **no code written yet**. Next step: constant-velocity scaffold (plumbing only) against existing bags
-12. FGO (GTSAM) implementation, using the `gnss_denied.parm` baseline config — not started
+11. UKF implementation — **built and producing numbers** (`src/estimators/ukf_core.py` + `ukf_replay.py`, Euler 15-state, shared `measurement_models.py`, gated pseudo-yaw matching EKF3's variance-gated `fuseEulerYaw`). Runs on the nomag `dsn_*` batch. See METHODOLOGY.md for the yaw-cap verification and the flow→yaw coupling finding.
+12. FGO (GTSAM) implementation — **first pass built and producing numbers** (`src/estimators/fgo/`, batch fixed-lag smoother, shared `h_flow`, custom flow/range/yaw-prior factors, runs in `~/venv-fgo` = gtsam 4.2.1 + rosbags). Acceptance on `dsn_tex_r1`: ATE evo `-a` 0.49 m. **Open**: the yaw prior is an over-strong absolute anchor, not a zero-innovation cap (FGO_DESIGN §9.4) — fix proposed not applied; incremental (iSAM2) solver cascades over long runs (batch used meanwhile, ~101 ms/step). See METHODOLOGY.md "FINDING" + FGO_DESIGN.md. Uses the nomag comparison config, not `gnss_denied.parm` (compass-active) as originally planned.
 
 ## Experimental Design Notes
 
@@ -1914,7 +1916,7 @@ Two independent experimental axes for estimator evaluation:
 - Ground velocity estimation
 - ArduPilot EKF fusion of custom flow + range
 - `evo` evaluation harness
-- GTSAM / FGO implementation
+- FGO ROS2 node (`fgo_node.py`) + full validation (fair yaw-anchor, §9 gating checks, window sweep, NEES) — core built & running offline, node + validation pending
 - Forward-facing camera / visual odometry
 - Loop closure detection
 - Motion capture (Term 3)

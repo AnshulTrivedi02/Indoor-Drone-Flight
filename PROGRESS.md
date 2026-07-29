@@ -5,6 +5,40 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-07-30
+
+**All three estimators now produce numbers offline on the recorded bags.** EKF3
+(from `XKF1`), the UKF (`src/estimators`, Euler 15-state, filterpy-free), and a
+first FGO (`src/estimators/fgo`, GTSAM batch fixed-lag smoother in `venv-fgo`).
+Shared `h_flow`/`h_range` (`measurement_models.py`) is imported by both UKF and
+FGO — fairness made structural.
+
+**Comparison dataset is nomag (`dsn_*`, 3 worlds × 3 repeats).** Flown under
+`gnss_denied_nomag.parm` so EKF3 also has no yaw source; the compass-active `ds_*`
+are retained as the noise floor + EKF3-with-yaw reference. Both datasets carry a
+`yaw_source:` block in metadata (labelled positively). Physical yaw drift is
+**+9.8 deg/min** (raw gyro-z; corrected from an earlier 8.9). Under no yaw source
+EKF3 itself corrects only **14–33%** of it — both estimators struggle with
+unobservable heading; that framing, not an accuracy race, is the interesting axis.
+
+**Flow-coupling diagnosis (METHODOLOGY "FINDING").** The UKF's yaw drifts more than
+physical because its flow update leaks ~31% of a `flow_x` residual into yaw. `h_flow`
+is verified correct (injecting true flow removes the leak). A controlled test shows
+the Euler-UKF and SO(3)-FGO partition a `flow_x` residual **identically** (69% vel /
+31% yaw) — so attitude parameterisation is **not** the cause (this refuted an earlier
+Euler-vs-SO(3) hypothesis). The real discriminator is **yaw-capping frequency**
+(EKF3 caps ~every 140 ms, UKF ~1%).
+
+**FGO first acceptance run** (`dsn_tex_r1`, n=1, batch): ATE evo `-a` **0.49 m**,
+along-track 151.8 m (true 151.1). Timing: batch 101 ms/step (over the 33 ms
+deployability budget); the incremental (iSAM2) solver is 0.2 ms but cascades after
+~590 keyframes — to resolve. **Open issue:** the per-keyframe yaw prior is currently
+an over-strong *absolute* anchor (yaw→0), not the *zero-innovation* cap EKF3/UKF use
+(FGO_DESIGN §9.4 conflated them); its non-drift is an artifact. Fair-anchor fix
+(anchor to predicted yaw) **proposed, not applied**. §9.5 (aiding-lost freeze) open.
+
+---
+
 ## Current Status — 2026-07-22 (evening)
 
 **Machine migration COMPLETE.** The new desktop (i7-8700, 65 W, + NVIDIA
