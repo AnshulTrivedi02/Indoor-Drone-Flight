@@ -254,18 +254,29 @@ built by the process model's `v += R(att)·dv` coupling and is exactly where the
 Euler `∂R/∂[r,p,y]` parameterisation and the quaternion `∂R/∂q` diverge. The
 sigma-point UKF propagates the Euler nonlinearity; EKF3 linearises in quaternion.
 
-**Verdict: a formulation difference (Euler-UKF vs quaternion/SO(3)-EKF3), not an
-`h_flow` error — confidence ~70–75%.** The real flow-sensor residual is the shared
-*trigger*, but where it *lands* (yaw in the UKF, velocity in EKF3) is set by the
-attitude representation's cross-covariance, not by `h_flow` (correct-signed, verified)
-nor by the diagonal uncertainty (equal). This is the kind of estimator-formulation
-distinction the thesis studies — a **result**, not a bug to remove. Residual
-uncertainty: EKF3's cross-covariances are in quaternion space and not logged
-(`XKV1` is diagonals only), so the attribution rests on "equal diagonals + equal
-`H` + opposite partition ⟹ the cross-covariance/parameterisation differs," which is
-strong but circumstantial. What would settle it definitively: an SO(3)-tangent
-re-parameterisation of the UKF attitude (does the leak vanish?) — but that is the
-reformulation itself, not a diagnosis.
+**Qualified claim (not a settled conclusion), confidence ~70–75%.** The defensible
+statement is: *the difference localises to the attitude↔velocity cross-covariance,
+which is where the Euler and quaternion parameterisations diverge.* The real
+flow-sensor residual is the shared *trigger*; where it *lands* (yaw in the UKF,
+velocity in EKF3) is set by that cross-covariance, not by `h_flow` (correct-signed,
+verified) nor by the diagonal uncertainty (equal in both). If this holds it is an
+estimator-formulation distinction — the kind the thesis studies — rather than a bug.
+**It is stated as qualified because the evidence is circumstantial:** EKF3's
+cross-covariances live in quaternion space and are **not logged** (`XKV1` records
+diagonals `P[0..11]` only, no off-diagonals), so the attribution rests on the
+inference "equal diagonals + equal `H` + opposite partition ⟹ the differing term is
+the cross-covariance/parameterisation." That inference is strong but not a direct
+measurement.
+
+**Falsifying test — chosen NOT to run (scoped out).** The experiment that would
+confirm or refute this: re-parameterise the UKF's attitude on the **SO(3) tangent**
+(rotation-vector error state) instead of Euler angles, keep everything else fixed,
+and re-run `dsn_tex_r1` — if the yaw leak vanishes, the attribution is confirmed; if
+it persists, the cause is elsewhere. **This is deliberately not done**, because it is
+a *reformulation of one estimator*, not a diagnosis, and the thesis is a three-way
+comparison of three distinct formulations (EKF3 / Euler-UKF / SO(3)-FGO) — rebuilding
+the UKF onto SO(3) would collapse two of the three arms and change what is being
+compared. Recorded here so "what would disprove this claim" has a specific answer.
 
 ### Does the FGO inherit this? — No (sequencing: it does not gate the FGO)
 
