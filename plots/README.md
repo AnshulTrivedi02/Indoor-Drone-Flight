@@ -9,11 +9,13 @@ From the 9-trial GNSS-denied dataset (`ds_{tex,blank,trans}_r{1,2,3}`, 0.5 m/s,
 
 | File | Shows |
 |---|---|
+| `ate_by_condition.png` | ATE and cross-track error by condition, each as its 3 repeats + mean/range. ATE separates conditions (~68 m, tight clusters); cross-track overlaps (noisy channel). |
+| `pn_vs_truey.png` | EKF along-track estimate (XKF1 PN) vs true y, all 9 trials: textured tracks the ideal (slightly above, +6% scale), transition flattens at y≈80 m, blank frozen at ~0. Repeats overlap per condition. |
 | `alongtrack_vs_travel.png` | Final EKF along-track estimate (XKF1 PN) vs true travel, all 9 trials grouped by condition: textured ~154 m (near ideal), transition ~80 m (stops at the y=80 m boundary), blank ~0 (frozen). |
 | `textured_crosstrack.png` | Cross-track error vs time, 3 corridor_textured repeats (identical config). Spread widens 3.5 m (60 s) → 6.1 m (150 s) → 15.0 m (300 s). |
 | `textured_yaw.png` | Yaw error (XKF1−SIM) vs time, 3 corridor_textured repeats. Spread ≤0.26° at 300 s. |
 
-Regenerate (venv-ardupilot): `alongtrack.py`, `textured_repeats.py`, `noise_floor.py`.
+Regenerate (venv-ardupilot): `result_plots.py`, `alongtrack.py`, `textured_repeats.py`, `noise_floor.py`.
 See `METHODOLOGY.md`, "Run-to-run noise floor" for the characterisation.
 
 ## Characterisation figures (n=1)
