@@ -272,18 +272,22 @@ a measurement-model bug and not a parameterisation effect.
 ### Does the FGO inherit this? — Yes in principle; its yaw behaviour is set by the anchor, not by SO(3)
 
 Earlier this section concluded "No — SO(3) makes the FGO immune, fix-before-FGO
-does not apply." **That is now retracted.** The FGO acceptance run (`dsn_tex_r1`,
-n=1, `BatchFixedLagSmoother`): ATE evo `-a` **0.49 m**, unaligned 128 m (a ~90°
-init-yaw gauge offset — no estimator has an absolute heading, so `evo -a` is the
-fair metric), along-track 151.8 m (true 151.1), 10047 keyframes, 9716 flow / 9871
-range factors. Its yaw did **not** drift (−0.04 deg/min) — but that is an
-**artifact of the yaw-prior implementation, not SO(3) immunity**: the prior anchors
-each keyframe's yaw to a *fixed* reference (yaw→0, 0.5 rad), which repeated per
-keyframe accumulates into a ~5° effective **absolute heading anchor** — stronger
-than, and mechanically different from, EKF3's/UKF's *zero-innovation* cap (bounds
-variance without injecting absolute heading). FGO_DESIGN §9.4 conflated "weak yaw
-prior" with "zero-innovation cap"; they are not equivalent, and the pinned yaw also
-flatters the aligned ATE (no drift to accumulate).
+does not apply." **That is now retracted.**
+
+> ## ⚠️ THE FIRST FGO ATE (0.49 m aligned) IS AN ARTEFACT — DO NOT QUOTE IT AS AN FGO RESULT
+>
+> The first FGO run (`dsn_tex_r1`, n=1, `BatchFixedLagSmoother`) gave ATE evo `-a`
+> **0.49 m** (unaligned 128 m; a ~90° init-yaw gauge offset), along-track 151.8 m
+> (true 151.1), 10047 keyframes. **This number is void as an estimator result.** It
+> came from a yaw prior that anchors each keyframe's yaw to a *fixed* reference
+> (yaw→0, 0.5 rad), which repeated per keyframe accumulates into a ~5° effective
+> **absolute heading anchor** — stronger than, and mechanically different from,
+> EKF3's/UKF's *zero-innovation* cap. That pinned the yaw (drift −0.04 deg/min) and
+> flattered the aligned ATE. **A 50× improvement over EKF3's 24.3 m on the same
+> condition is not credible** and is entirely explained by the over-constrained yaw,
+> not by smoothing. FGO_DESIGN §9.4 conflated "weak yaw prior" with "zero-innovation
+> cap"; they are not equivalent. Kept only as the before/after evidence for why the
+> anchor was wrong. The fair-anchor re-run (below) is the real first FGO result.
 
 **Corrected conclusion.** The FGO does not get yaw-drift immunity for free from
 SO(3); the per-update partition is identical to the UKF's, so its yaw behaviour is

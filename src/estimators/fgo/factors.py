@@ -58,11 +58,19 @@ def range_factor(noise, key_x, range_meas):
     return CustomFactor(noise, [key_x], efun)
 
 
-# ---------- weak yaw prior: 1-DOF soft anchor on yaw(X(k)) (FGO §9.4) ----------
+# ---------- weak yaw cap: 1-DOF zero-innovation anchor on yaw(X(k)) (FGO §9.4) ----------
 def yaw_prior_factor(noise, key_x, yaw_ref):
-    """Weak (0.5 rad) soft anchor on the yaw DOF only — bounds the yaw marginal so
-    it does not free-drift, matching the UKF pseudo-yaw / EKF3 fuseEulerYaw(PREDICTED).
-    Anchors to yaw_ref (the gauge-fixed init yaw); wrapped, 1-DOF."""
+    """Weak (0.5 rad) yaw cap on the yaw DOF only — bounds the yaw marginal so it
+    does not free-drift, matching EKF3's fuseEulerYaw(PREDICTED). EKF3 sets the yaw
+    innovation to EXACTLY ZERO for the PREDICTED method
+    (AP_NavEKF3_MagFusion.cpp:1062-1064: `case PREDICTED: innovYaw = 0.0f`) against
+    `yawAngPredicted` = the current *propagated* state yaw (:970), so it caps
+    variance WITHOUT injecting absolute heading. To match, the caller passes
+    yaw_ref = the keyframe's IMU-PREDICTED yaw (from pim.predict), NOT a fixed
+    gauge value — so the error is ~0 at the linearisation point (zero innovation)
+    and this factor bounds the yaw marginal rather than anchoring it absolutely.
+    (An absolute anchor to a fixed yaw would be stronger than EKF3/UKF and inject
+    heading — see METHODOLOGY.) Wrapped, 1-DOF, R = EK3_YAW_M_NSE 0.5 rad."""
     def err(pose, vel, bias):
         return np.array([_wrap(pose.rotation().yaw() - yaw_ref)])
 
