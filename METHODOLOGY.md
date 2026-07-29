@@ -4,6 +4,19 @@ Reproducibility and scope decisions that feed the thesis methodology chapter.
 Facts here are pinned in the harness/config (referenced inline) so they cannot
 drift silently.
 
+## STANDING RULE — every ATE states its metric wherever it is quoted
+
+An ATE number is meaningless without its alignment and windowing. **Always label
+which of these it is:** `evo -a` (SE3-aligned — removes a constant pose offset *and*
+the arbitrary yaw gauge, the fair cross-estimator metric under no compass), `evo`
+unaligned (origin only — penalises the yaw gauge, so it is dominated by heading
+offset for any no-compass estimator), or **apparatus** (cruise-window, origin
+gauge-fixed, **no** yaw alignment — used for the EKF3/UKF noise floor because
+`XKF1` is already in the true NED frame). **Never compare across metrics.** This
+rule exists because a real near-miss happened: the FGO's `evo -a` 5.10 m read as a
+5× win over EKF3's *apparatus* 24.3 m; on the same metric (`evo -a`) it is EKF3
+4.79 m vs FGO 5.10 m — on par. Same-metric-only, always.
+
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
 - **All three estimators see one identical noise/drift realisation.** EKF3, the

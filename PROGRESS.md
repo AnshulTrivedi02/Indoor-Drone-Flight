@@ -21,21 +21,36 @@ are retained as the noise floor + EKF3-with-yaw reference. Both datasets carry a
 EKF3 itself corrects only **14–33%** of it — both estimators struggle with
 unobservable heading; that framing, not an accuracy race, is the interesting axis.
 
-**Flow-coupling diagnosis (METHODOLOGY "FINDING").** The UKF's yaw drifts more than
-physical because its flow update leaks ~31% of a `flow_x` residual into yaw. `h_flow`
-is verified correct (injecting true flow removes the leak). A controlled test shows
-the Euler-UKF and SO(3)-FGO partition a `flow_x` residual **identically** (69% vel /
-31% yaw) — so attitude parameterisation is **not** the cause (this refuted an earlier
-Euler-vs-SO(3) hypothesis). The real discriminator is **yaw-capping frequency**
-(EKF3 caps ~every 140 ms, UKF ~1%).
+**HEADLINE FINDING — yaw leak under unobservable heading is a capping-frequency
+effect, NOT a parameterisation or filter-vs-smoother effect.** Four configurations,
+all drift near the physical +9.8 deg/min and **none recovers yaw from flow**:
+EKF3 (quaternion filter) **8.4**, FGO (SO(3) smoother) **9.24**, UKF-Euler
+unconditional-cap **9.52**, UKF-Euler gated-cap **12.7**. The spread is explained
+*only* by how often each caps yaw variance (EKF3/FGO/UKF-uncond cap often → drift
+near physical, stable bias; UKF-gated caps ~1% → flow corrupts gyro-z bias, overshoot
+~220–450%, drifts above physical). `h_flow` verified correct (injecting true flow
+removes the leak).
 
-**FGO first acceptance run** (`dsn_tex_r1`, n=1, batch): ATE evo `-a` **0.49 m**,
-along-track 151.8 m (true 151.1). Timing: batch 101 ms/step (over the 33 ms
-deployability budget); the incremental (iSAM2) solver is 0.2 ms but cascades after
-~590 keyframes — to resolve. **Open issue:** the per-keyframe yaw prior is currently
-an over-strong *absolute* anchor (yaw→0), not the *zero-innovation* cap EKF3/UKF use
-(FGO_DESIGN §9.4 conflated them); its non-drift is an artifact. Fair-anchor fix
-(anchor to predicted yaw) **proposed, not applied**. §9.5 (aiding-lost freeze) open.
+**Euler-vs-SO(3) negative result.** A controlled single-`flow_x`-residual test:
+Euler-UKF and SO(3)-FGO partition **identically** — both **69% velocity / 31% yaw**.
+So the attitude chart does not change the partition. This was run because the earlier
+"Euler-vs-SO(3) formulation difference" attribution was only held at ~70–75% and
+qualified; the direct test **refuted** it. See METHODOLOGY "FINDING".
+
+**FGO first result** (`dsn_tex_r1`, n=1, batch, fair zero-innovation yaw anchor to
+the IMU-predicted yaw — matches EKF3 `fuseEulerYaw(PREDICTED)`, `MagFusion.cpp:1062-1064`):
+yaw drifts **−9.24 deg/min** (as predicted). **On par with EKF3, not better** — same
+metric (`evo -a`): EKF3 **4.79 m** vs FGO **5.10 m**. (An earlier 0.49 m from an
+over-strong *absolute* yaw anchor is VOID — labelled in METHODOLOGY.) **Metric-mismatch
+near-miss:** the 5.10 m (`evo -a`) almost read as a 5× win over EKF3's 24.3 m
+(apparatus/unaligned) — different metrics. **Standing rule: every ATE states its
+metric wherever quoted.** Scale check (instrumented): FGO tracks flow (residual ≈ 0),
+`|V(k)|`=0.517 (+4.7%) so it *does* inherit the flow scale — smaller than EKF3's
++12.6% (open n=1 question: why, on the same flow through the same `h_flow_pose`).
+Timing: **batch 101 ms/step median, p99 167 ms — 3–5× over the 33 ms budget**;
+incremental (iSAM2) 0.2 ms but cascades after ~590 keyframes (isolated to the solver
+layer — same factors run clean under batch). §9.5 **closed**: UKF/FGO dead-reckon on
+aiding loss, do NOT replicate EKF3's `const_pos` (formulation difference).
 
 ---
 

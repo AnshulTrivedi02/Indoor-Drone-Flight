@@ -882,6 +882,26 @@ the smoother's yaw marginal is bounded and does not free-drift. Equivalent to th
 UKF pseudo-yaw and EKF3's PREDICTED yaw; without it the FGO's yaw would be better-
 or worse-controlled than the baselines by implementation accident.
 
+> **⚠️ IMPLEMENTATION CORRECTION (2026-07-30) — "anchor" must be to the PREDICTED
+> yaw, not a fixed value.** The first build read "soft anchor on the yaw DOF"
+> literally and anchored each keyframe's yaw to a *fixed* reference (yaw→0). Repeated
+> per keyframe that accumulates into a ~5° effective **absolute heading anchor** —
+> stronger than, and mechanically different from, a zero-innovation cap: it injects
+> absolute heading the baselines do not have. It pinned yaw (drift −0.04 deg/min) and
+> produced a **VOID** 0.49 m ATE. **Fix (in `fgo_core.py`):** anchor to each
+> keyframe's IMU-**predicted** yaw (`Xk.rotation().yaw()`), so the error is ~0 at the
+> linearisation point — a genuine zero-innovation cap matching EKF3's
+> `fuseEulerYaw(PREDICTED)`: `innovYaw = 0.0f` (`AP_NavEKF3_MagFusion.cpp:1062-1064`)
+> against `yawAngPredicted` = current state yaw (`:970`). With the fix the FGO yaw
+> drifts −9.24 deg/min (near physical 9.8, like EKF3 8.4 / UKF 12.7).
+>
+> **And a result this exposed:** a controlled single-`flow_x`-residual test shows the
+> Euler-UKF and SO(3)-FGO partition **identically** (69% velocity / 31% yaw), so the
+> yaw leak under an unobservable heading is **independent of the attitude
+> parameterisation and of filtering-vs-smoothing — controlled only by the yaw-capping
+> frequency**. This refuted an earlier ~70–75%-confidence "Euler-vs-SO(3) formulation
+> difference" attribution. Full write-up in METHODOLOGY.md "FINDING".
+
 ### 9.5 Behaviour when flow aiding is lost — `[DECIDED — do NOT replicate const_pos]`
 
 **The question.** When flow is gated out (e.g. `corridor_blank`, where the NIS
