@@ -209,7 +209,7 @@ is simultaneously **over-confident in yaw** (covariance lower than EKF3's) *and*
 failure localised to how the flow measurement couples into the yaw / gyro-z-bias
 states, *not* to the yaw cap.
 
-### FINDING — the UKF drift is predominantly a flow-sensor-residual coupling (modelling), diagnosed before the FGO
+### FINDING — the UKF yaw drift is an Euler-vs-SO(3) formulation difference (a result), diagnosed before the FGO
 
 Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
 raw `IMU.GyrZ`, see the sensor-noise section). Against it the unclamped UKF
@@ -241,15 +241,45 @@ the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1 ATE evo `
    **where EKF3 confines the same residual to velocity** (giving its +6.5% velocity
    scale) and does not let yaw drift.
 
-**Verdict: predominantly a modelling / robustness issue (confidence ~70%), not a
-fundamental UKF limitation** — EKF3 handles the identical observability and the
-same flow error without yaw drift, the isolated flow model is correct-signed, and
-clean flow removes the amplification. A **secondary** gyro-z-bias conditioning
-weakness persists even with true flow (yaw still drifts, bias still overshoots) —
-that part may be a genuine Euler-UKF-vs-quaternion-EKF3 distinction and is not yet
-settled. **Because the FGO imports the same `h_flow`, this is diagnosed before the
-FGO consumes it** (per the standing instruction). What would settle the remainder:
-(a) why a `flow_x` residual partitions to yaw in the UKF but to velocity in EKF3
-(compare the velocity/yaw information split); (b) the persistent-bias-with-true-
-flow behaviour; (c) whether a fix lives inside the locked constraints. **No fix
-proposed here — reported for a decision.**
+**The partition is decided by the attitude parameterisation, not the diagonal
+uncertainty.** A `flow_x` residual splits between velocity and yaw in proportion to
+`(P·Hᵀ)`. Measured at cruise: EKF3 and the UKF have **near-identical velocity/yaw
+variance ratios** — EKF3 `P[vE]/σ²_yaw = 0.0212/0.0371 = 0.571`, UKF
+`P[vE]/P[yaw] = 0.0157/0.0280 = 0.560` — same `H`, same relative diagonal
+uncertainty. Yet EKF3's flow *corrects* yaw (its drift 8.4 < physical 9.8) while
+the UKF's flow *amplifies* it (+3.69). With the diagonals and `H` equal, the
+difference lives in the **attitude↔velocity cross-covariance** (UKF cruise medians
+`P[yaw,vN]=+0.012`, `P[yaw,vE]=−0.007`, comparable to the diagonals) — which is
+built by the process model's `v += R(att)·dv` coupling and is exactly where the
+Euler `∂R/∂[r,p,y]` parameterisation and the quaternion `∂R/∂q` diverge. The
+sigma-point UKF propagates the Euler nonlinearity; EKF3 linearises in quaternion.
+
+**Verdict: a formulation difference (Euler-UKF vs quaternion/SO(3)-EKF3), not an
+`h_flow` error — confidence ~70–75%.** The real flow-sensor residual is the shared
+*trigger*, but where it *lands* (yaw in the UKF, velocity in EKF3) is set by the
+attitude representation's cross-covariance, not by `h_flow` (correct-signed, verified)
+nor by the diagonal uncertainty (equal). This is the kind of estimator-formulation
+distinction the thesis studies — a **result**, not a bug to remove. Residual
+uncertainty: EKF3's cross-covariances are in quaternion space and not logged
+(`XKV1` is diagonals only), so the attribution rests on "equal diagonals + equal
+`H` + opposite partition ⟹ the cross-covariance/parameterisation differs," which is
+strong but circumstantial. What would settle it definitively: an SO(3)-tangent
+re-parameterisation of the UKF attitude (does the leak vanish?) — but that is the
+reformulation itself, not a diagnosis.
+
+### Does the FGO inherit this? — No (sequencing: it does not gate the FGO)
+
+The FGO imports exactly one thing from this analysis — `h_flow` — and `h_flow` is
+verified correct (true-flow test: correct sign, no leak with clean inputs). The
+leak is **not** in `h_flow`; it is in how the *Euler filter* routes a flow residual
+through its attitude↔velocity cross-covariance. GTSAM works in `Pose3` on the
+**SO(3)** manifold and re-linearises over a window — the same rotation-manifold
+family as EKF3's quaternion (which routes the residual to velocity and does **not**
+drift yaw), and unlike the UKF's Euler state. So the FGO is expected to partition
+like EKF3, not like the Euler UKF, and does **not** structurally inherit the yaw
+drift. Only a genuine `h_flow` error would transfer, and there is none. **Therefore
+"fix before FGO" does not apply** — the UKF stays as-is with the behaviour
+documented as a formulation result, and the FGO proceeds. Caveat: this rests on the
+EKF3 (SO(3)) analogy, strong but not run; **verify empirically once the FGO exists**
+(check a `flow_x` residual lands in velocity, not yaw) rather than assuming it.
+No fix proposed. §9.5 stays open.
