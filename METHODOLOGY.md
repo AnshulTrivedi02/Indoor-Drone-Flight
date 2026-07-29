@@ -159,6 +159,18 @@ so a downstream script distinguishes them **positively**, not by inference from
 absence — `dsn_*` carry `EK3_SRC1_YAW=0`/`COMPASS_USE=0`, `ds_*` carry `1`/`1`.
 The nine of each were backfilled after the field was added.
 
+**Framing for the results: both estimators struggle under unobservable yaw.**
+Against the physical drift of +9.8 deg/min, EKF3's own yaw (`XKF1.Yaw`) drifts
++6.6…+11.1 (mean ~8.1) across the nine `dsn_*` bags — it corrects only **14–33%**
+of the bias. This is *not* "UKF diverges, EKF3 fine": with no yaw source, EKF3 too
+runs near the physical rate, because yaw is weakly observable from downward flow
+at 0.5 m/s (∂flow/∂yaw = v/h ≈ 0.29 rad/s per rad, against 0.25 rad/s measurement
+noise). The interesting axis of the comparison is therefore *how each estimator
+fails* under an unobservable heading — a fairer and more informative framing than
+an accuracy race. (The UKF's *additional* failure — a diverging gyro-z-bias state
+that amplifies the drift rather than tracking near the physical rate — is the open
+finding below.)
+
 ## UKF pseudo-yaw cap — variance-gated to match EKF3 (fairness)
 
 The UKF fuses a zero-innovation yaw pseudo-measurement to bound yaw variance in
@@ -197,24 +209,47 @@ is simultaneously **over-confident in yaw** (covariance lower than EKF3's) *and*
 failure localised to how the flow measurement couples into the yaw / gyro-z-bias
 states, *not* to the yaw cap.
 
-### OPEN FINDING (not a defect) — UKF flow over-couples into yaw / gyro-z bias
+### FINDING — the UKF drift is predominantly a flow-sensor-residual coupling (modelling), diagnosed before the FGO
 
 Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
-see the sensor-noise section). Against it, the unclamped UKF gyro-z bias
-**overshoots to ~220–450%** across the `dsn_tex` batch (reproduced on three bags,
-not one), while EKF3's own bias correction is a small, stable ~14–33%. The cap
-was *masking* this — clamping the bias near zero (13% when firing 100%) rather
-than fixing it; at 0.5 m/s the flow observes gyro-z bias too weakly to pin it, so
-released it runs to a wrong value and the trajectory diverges (ds_tex_r1 ATE,
-evo `-a`: 8.6 → 19.9 m). The measured signature (yaw over-confidence + mean drift)
-points to the **flow→yaw/gyro-bias coupling**, i.e. the flow measurement model /
-its sigma-point cross-covariance is attributing flow residuals to yaw and gyro-z
-bias with too much weight — expected to be weak at 0.5 m/s. Whether that coupling
-is a modelling error (a bug in the flow Jacobian / per-axis sequential update) or
-a genuine UKF-vs-EKF distinction is **the finding-vs-bug question, and it is not
-the yaw gate** (verified correct). **Deferred** to after the FGO has a position on
-the flow factor — the three-way frame is the right place to settle it. **Cost when
-taken up:** ~1 day — probe the flow update's yaw/gyro-z sensitivity on a static
-straight cruise (does a flow residual move yaw?), compare to EKF3's flow fusion
-(`AP_NavEKF3_OptFlowFusion.cpp`), and check whether it is the sequential per-axis
-gating vs a joint 2-DOF update.
+raw `IMU.GyrZ`, see the sensor-noise section). Against it the unclamped UKF
+gyro-z bias overshoots to **~220–450%** across the `dsn_tex` batch (three bags),
+the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1 ATE evo `-a`:
+8.6 → 19.9 m). Diagnosed (half-day box, no fixes applied):
+
+1. **Yaw is weakly observable from downward flow at 0.5 m/s** — `∂flow/∂yaw = v/h ≈
+   0.286` rad/s per rad (numerical Jacobian), against `FLOW_M_NSE = 0.25`; a 5.7°
+   yaw error moves flow only 0.029 rad/s (SNR ≈ 0.11). Per-update the UKF moves yaw
+   only ~0.024°, so the movement is not *excessive in magnitude* — the problem is a
+   systematic *wrong-direction* bias.
+2. **Not attributing to states EKF3 doesn't; not a sign error.** EKF3's flow `H`
+   is nonzero only on quaternion (0–3) + velocity (4–6)
+   (`AP_NavEKF3_OptFlowFusion.cpp:342-348,504-510`), fuses X then Y sequentially
+   (`:327-328`), and updates gyro bias (10–12) via cross-covariance once
+   `!inhibitDelAngBiasStates` (`:470-473`, un-inhibited after tilt align,
+   `AP_NavEKF3_Control.cpp:172`) — structurally identical to the UKF (attitude+
+   velocity observation, per-axis sequential, gyro-bias via cross-cov). A
+   controlled single-update test confirms `h_flow`'s yaw coupling has the **correct
+   sign** (flow moves a drifted yaw *toward* truth in isolation).
+3. **The driver is the real flow sensor's residual, not the filter machinery.**
+   Decomposing yaw by source over cruise, the *measured*-flow update **adds** +3.69
+   deg/min to the drift (predict +9.00, NET +12.70). Re-running with **true flow
+   injected from ground truth** (velocity from `d(GT pos)/dt`, GT attitude — no
+   sensor scale/derotation/noise), flow's contribution flips to **−0.66** (it now
+   correctly *reduces* drift). So the real flow error (the documented ~+6.5% scale,
+   plus derotation/noise) is what leaks into yaw via the measurement model —
+   **where EKF3 confines the same residual to velocity** (giving its +6.5% velocity
+   scale) and does not let yaw drift.
+
+**Verdict: predominantly a modelling / robustness issue (confidence ~70%), not a
+fundamental UKF limitation** — EKF3 handles the identical observability and the
+same flow error without yaw drift, the isolated flow model is correct-signed, and
+clean flow removes the amplification. A **secondary** gyro-z-bias conditioning
+weakness persists even with true flow (yaw still drifts, bias still overshoots) —
+that part may be a genuine Euler-UKF-vs-quaternion-EKF3 distinction and is not yet
+settled. **Because the FGO imports the same `h_flow`, this is diagnosed before the
+FGO consumes it** (per the standing instruction). What would settle the remainder:
+(a) why a `flow_x` residual partitions to yaw in the UKF but to velocity in EKF3
+(compare the velocity/yaw information split); (b) the persistent-bias-with-true-
+flow behaviour; (c) whether a fix lives inside the locked constraints. **No fix
+proposed here — reported for a decision.**

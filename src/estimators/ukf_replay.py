@@ -153,7 +153,8 @@ yaw_drift = math.degrees(yaw_slope) * 60.0                # deg/min
 # SIM_DRIFT the raw gyro carries (~8.9 deg/min, measured in the yaw diagnosis).
 bgz_rate = np.degrees(traj[w, 7] / p['dt']) * 60.0        # deg/min, per-sample
 bgz_mean = float(np.mean(bgz_rate))
-PHYS_DRIFT = 8.9                                          # deg/min (raw gyro-z, both bags)
+PHYS_DRIFT = 9.8                                          # deg/min, raw gyro-z integrated (IMU.GyrZ),
+                                                         # verified ~identical across dsn_* (9.81-9.84)
 bgz_frac = 100.0 * abs(bgz_mean) / PHYS_DRIFT
 
 print(f"[run] {len(traj)} predict steps (80 Hz), window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s")
