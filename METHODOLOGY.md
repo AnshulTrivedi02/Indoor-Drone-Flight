@@ -209,7 +209,7 @@ is simultaneously **over-confident in yaw** (covariance lower than EKF3's) *and*
 failure localised to how the flow measurement couples into the yaw / gyro-z-bias
 states, *not* to the yaw cap.
 
-### FINDING — the UKF yaw drift is an Euler-vs-SO(3) formulation difference (a result), diagnosed before the FGO
+### FINDING — the UKF yaw drift is a yaw-capping-frequency effect, NOT a parameterisation difference (diagnosed + FGO-tested)
 
 Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
 raw `IMU.GyrZ`, see the sensor-noise section). Against it the unclamped UKF
@@ -241,56 +241,59 @@ the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1 ATE evo `
    **where EKF3 confines the same residual to velocity** (giving its +6.5% velocity
    scale) and does not let yaw drift.
 
-**The partition is decided by the attitude parameterisation, not the diagonal
-uncertainty.** A `flow_x` residual splits between velocity and yaw in proportion to
-`(P·Hᵀ)`. Measured at cruise: EKF3 and the UKF have **near-identical velocity/yaw
-variance ratios** — EKF3 `P[vE]/σ²_yaw = 0.0212/0.0371 = 0.571`, UKF
-`P[vE]/P[yaw] = 0.0157/0.0280 = 0.560` — same `H`, same relative diagonal
-uncertainty. Yet EKF3's flow *corrects* yaw (its drift 8.4 < physical 9.8) while
-the UKF's flow *amplifies* it (+3.69). With the diagonals and `H` equal, the
-difference lives in the **attitude↔velocity cross-covariance** (UKF cruise medians
-`P[yaw,vN]=+0.012`, `P[yaw,vE]=−0.007`, comparable to the diagonals) — which is
-built by the process model's `v += R(att)·dv` coupling and is exactly where the
-Euler `∂R/∂[r,p,y]` parameterisation and the quaternion `∂R/∂q` diverge. The
-sigma-point UKF propagates the Euler nonlinearity; EKF3 linearises in quaternion.
+**The partition is the SAME across Euler and SO(3) — parameterisation is NOT the
+cause** `[direct test, supersedes the earlier "formulation difference" hypothesis]`.
+A `flow_x` residual splits between velocity and yaw in proportion to `(P·Hᵀ)`, and
+all three estimators share the velocity/yaw diagonal ratio (~0.57). A controlled
+single-update test — one `flow_x` residual, UKF-matched diagonal priors — settles
+the parameterisation question directly:
 
-**Qualified claim (not a settled conclusion), confidence ~70–75%.** The defensible
-statement is: *the difference localises to the attitude↔velocity cross-covariance,
-which is where the Euler and quaternion parameterisations diverge.* The real
-flow-sensor residual is the shared *trigger*; where it *lands* (yaw in the UKF,
-velocity in EKF3) is set by that cross-covariance, not by `h_flow` (correct-signed,
-verified) nor by the diagonal uncertainty (equal in both). If this holds it is an
-estimator-formulation distinction — the kind the thesis studies — rather than a bug.
-**It is stated as qualified because the evidence is circumstantial:** EKF3's
-cross-covariances live in quaternion space and are **not logged** (`XKV1` records
-diagonals `P[0..11]` only, no off-diagonals), so the attribution rests on the
-inference "equal diagonals + equal `H` + opposite partition ⟹ the differing term is
-the cross-covariance/parameterisation." That inference is strong but not a direct
-measurement.
+| estimator | Δyaw | Δv_E | residual lands in |
+|---|---|---|---|
+| UKF (Euler) | +0.328° | +0.0064 m/s | velocity 69% / yaw 31% |
+| FGO (SO(3), `Pose3`) | +0.317° | +0.0062 m/s | velocity 69% / yaw 31% |
 
-**Falsifying test — chosen NOT to run (scoped out).** The experiment that would
-confirm or refute this: re-parameterise the UKF's attitude on the **SO(3) tangent**
-(rotation-vector error state) instead of Euler angles, keep everything else fixed,
-and re-run `dsn_tex_r1` — if the yaw leak vanishes, the attribution is confirmed; if
-it persists, the cause is elsewhere. **This is deliberately not done**, because it is
-a *reformulation of one estimator*, not a diagnosis, and the thesis is a three-way
-comparison of three distinct formulations (EKF3 / Euler-UKF / SO(3)-FGO) — rebuilding
-the UKF onto SO(3) would collapse two of the three arms and change what is being
-compared. Recorded here so "what would disprove this claim" has a specific answer.
+They partition **identically**. So the attitude representation (Euler vs SO(3))
+does **not** change where a `flow_x` residual lands — this **refutes** the earlier
+hypothesis (in prior git revisions of this section) that the leak was an
+Euler-vs-quaternion formulation difference. The SO(3) re-parameterisation that was
+recorded as the "falsifying test" is effectively run: the FGO *is* an SO(3)
+estimator, and it leaks to yaw the same 31% as the Euler UKF.
 
-### Does the FGO inherit this? — No (sequencing: it does not gate the FGO)
+**The real discriminator is the yaw-capping frequency, not the parameterisation.**
+The ~31%-per-update yaw leak is common to all three. What differs is how often the
+accumulated yaw is re-constrained: EKF3 fires `fuseEulerYaw(PREDICTED)` at ~every
+140 ms opportunity (its `P[0..3]` pinned at the 0.01 gate), while the UKF's
+variance-gated pseudo-yaw fires ~1% (its trace sits just below the gate) — so the
+UKF lets the leak accumulate into drift while EKF3 caps it continuously. `h_flow`
+is verified correct (true-flow test); this is a capping-mechanism distinction, not
+a measurement-model bug and not a parameterisation effect.
 
-The FGO imports exactly one thing from this analysis — `h_flow` — and `h_flow` is
-verified correct (true-flow test: correct sign, no leak with clean inputs). The
-leak is **not** in `h_flow`; it is in how the *Euler filter* routes a flow residual
-through its attitude↔velocity cross-covariance. GTSAM works in `Pose3` on the
-**SO(3)** manifold and re-linearises over a window — the same rotation-manifold
-family as EKF3's quaternion (which routes the residual to velocity and does **not**
-drift yaw), and unlike the UKF's Euler state. So the FGO is expected to partition
-like EKF3, not like the Euler UKF, and does **not** structurally inherit the yaw
-drift. Only a genuine `h_flow` error would transfer, and there is none. **Therefore
-"fix before FGO" does not apply** — the UKF stays as-is with the behaviour
-documented as a formulation result, and the FGO proceeds. Caveat: this rests on the
-EKF3 (SO(3)) analogy, strong but not run; **verify empirically once the FGO exists**
-(check a `flow_x` residual lands in velocity, not yaw) rather than assuming it.
-No fix proposed. §9.5 stays open.
+### Does the FGO inherit this? — Yes in principle; its yaw behaviour is set by the anchor, not by SO(3)
+
+Earlier this section concluded "No — SO(3) makes the FGO immune, fix-before-FGO
+does not apply." **That is now retracted.** The FGO acceptance run (`dsn_tex_r1`,
+n=1, `BatchFixedLagSmoother`): ATE evo `-a` **0.49 m**, unaligned 128 m (a ~90°
+init-yaw gauge offset — no estimator has an absolute heading, so `evo -a` is the
+fair metric), along-track 151.8 m (true 151.1), 10047 keyframes, 9716 flow / 9871
+range factors. Its yaw did **not** drift (−0.04 deg/min) — but that is an
+**artifact of the yaw-prior implementation, not SO(3) immunity**: the prior anchors
+each keyframe's yaw to a *fixed* reference (yaw→0, 0.5 rad), which repeated per
+keyframe accumulates into a ~5° effective **absolute heading anchor** — stronger
+than, and mechanically different from, EKF3's/UKF's *zero-innovation* cap (bounds
+variance without injecting absolute heading). FGO_DESIGN §9.4 conflated "weak yaw
+prior" with "zero-innovation cap"; they are not equivalent, and the pinned yaw also
+flatters the aligned ATE (no drift to accumulate).
+
+**Corrected conclusion.** The FGO does not get yaw-drift immunity for free from
+SO(3); the per-update partition is identical to the UKF's, so its yaw behaviour is
+decided entirely by the anchor mechanism. **Proposed (not applied):** anchor the
+yaw prior to each keyframe's IMU-*predicted* yaw (zero-innovation, matching EKF3)
+instead of a fixed reference, then re-run — the expected outcome, given the
+identical partition, is that the FGO drifts comparably to the UKF, making the yaw
+leak a **genuine, parameterisation-independent** phenomenon under weak yaw
+observability (controlled only by the capping mechanism), not an Euler artifact.
+`h_flow` correctness stands. Timing: batch 101 ms/step median (over the 33 ms
+deployability budget); incremental 0.2 ms (under budget) but unstable over long runs
+(iSAM2 + Python `CustomFactor` marginalisation cascades after ~590 keyframes — to
+resolve). §9.5 stays open.

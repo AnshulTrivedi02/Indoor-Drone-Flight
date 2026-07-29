@@ -50,18 +50,28 @@ def h_range(x):
     return np.array([x[2] - RANGE_LEVER])
 
 
-def h_flow(x, omega_body):
-    """Predicted RAW angular flow (rad/s), 2-vector (flow_x, flow_y).
+def h_flow_pose(R_wb, v_world, p_U, omega_body):
+    """Predicted RAW angular flow (rad/s), 2-vector (flow_x, flow_y) — the single
+    shared geometric model, in the pose form the FGO factor needs.
 
-    x: 15-state. omega_body: measured FLU body rates (rollspeed, pitchspeed,
-    yawspeed) at the flow instant — the raw rate estimators derotate against.
+    R_wb: 3x3 world<-body (FLU) rotation.  v_world: ENU velocity (3,).
+    p_U: base_link height (m).  omega_body: FLU body rates the flow derotates
+    against. The caller decides bias handling: the UKF passes the RAW measured
+    rate (its gyro bias is applied in predict); the FGO passes the bias-CORRECTED
+    rate omega_meas - B(k).gyroscope() (FGO §2, difference #5/#8) so flow can
+    inform gyro bias through this term. The geometry below is identical either way.
     """
-    R = R_world_body(x[6], x[7], x[8])
-    v_body = R.T @ x[V_SLICE]                          # world velocity into FLU
+    v_body = R_wb.T @ v_world                          # world velocity into FLU
     v_s = v_body + np.cross(omega_body, FLOW_LEVER_ARM_BODY)
-    h_cam = max(x[2] - CAM_OFFSET, H_MIN)
+    h_cam = max(p_U - CAM_OFFSET, H_MIN)
     flow_x_trans = SIGN_X * (v_s[1] / h_cam)          # lateral  -> flow_x
     flow_y_trans = SIGN_Y * (v_s[0] / h_cam)          # forward  -> flow_y (Stage A)
     flow_x_rot = -omega_body[0]                        # -rollspeed
     flow_y_rot = +omega_body[1]                        # +pitchspeed
     return np.array([flow_x_trans + flow_x_rot, flow_y_trans + flow_y_rot])
+
+
+def h_flow(x, omega_body):
+    """UKF entry point: predicted RAW angular flow from the 15-state vector.
+    Thin wrapper over the shared h_flow_pose so there is ONE geometric model."""
+    return h_flow_pose(R_world_body(x[6], x[7], x[8]), x[V_SLICE], x[2], omega_body)
