@@ -67,10 +67,12 @@ def euler_to_quat(r, pch, y):
     cr, sr = np.cos(r/2), np.sin(r/2); cp, sp = np.cos(pch/2), np.sin(pch/2); cy, sy = np.cos(y/2), np.sin(y/2)
     return (sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*sy)
 
-traj = []                       # (t, pE, pN, pU, roll,pitch,yaw)
+traj = []                       # (t, pE, pN, pU, roll,pitch,yaw, bg_z)
 omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
 n_flow_acc = [0, 0]; n_flow_rej = [0, 0]; n_rng_acc = n_rng_rej = 0
+n_yaw_check = n_yaw_fire = 0     # pseudo-yaw: opportunities checked vs actually fused
+att_tr = []                      # attitude-cov trace (P[6..8]) at each yaw check, vs ATT_VAR_GATE
 for t, kind, d in ev:
     if t < t_init:
         if kind == "att":
@@ -85,10 +87,12 @@ for t, kind, d in ev:
         da += d[1]*dt_i; dv += d[0]*dt_i; acc_dt += dt_i
         if acc_dt >= p['dt']:
             x, P = U.predict(x, P, da, dv, p)
-            if t - t_yaw >= p['YAW_DT']:              # EKF3-matched yaw variance cap (~7 Hz)
-                x, P = U.update_yaw_pseudo(x, P, p)
+            if t - t_yaw >= p['YAW_DT']:              # check opportunity ~7 Hz (EKF3's 140 ms)
+                att_tr.append((P[6, 6] + P[7, 7], P[8, 8]))  # (tilt, yaw) cov at each check
+                x, P, fired = U.update_yaw_pseudo(x, P, p)   # variance-gated fire (MagFusion.cpp:274)
+                n_yaw_check += 1; n_yaw_fire += fired
                 t_yaw = t
-            traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8]))
+            traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8], x[U.BG_SLICE.start+2]))
             da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
     elif kind == "rng":
         x, P, acc = U.update_range(x, P, d, p)
@@ -107,7 +111,7 @@ def write_tum(path, T, XYZ, Q):
             f.write(f"{T[i]:.6f} {XYZ[i,0]:.6f} {XYZ[i,1]:.6f} {XYZ[i,2]:.6f} "
                     f"{Q[i][0]:.6f} {Q[i][1]:.6f} {Q[i][2]:.6f} {Q[i][3]:.6f}\n")
 
-quats = [euler_to_quat(r, pch, y) for _, _, _, _, r, pch, y in traj]
+quats = [euler_to_quat(row[4], row[5], row[6]) for row in traj]
 write_tum(f"{OUTDIR}/ukf_traj.tum", traj[:, 0], traj[:, 1:4], quats)
 qid = [(0, 0, 0, 1)]*len(gt)
 write_tum(f"{OUTDIR}/ground_truth.tum", gt[:, 0], gt[:, 1:4], qid)
@@ -137,9 +141,34 @@ ate = float(np.sqrt(np.mean((duE-dgE)**2 + (duN-dgN)**2)))
 along = float(math.hypot(duE[-1], duN[-1]))
 true_travel = float(math.hypot(dgE[-1], dgN[-1]))
 
+# yaw drift rate: slope of unwrapped UKF yaw over the cruise window (true heading
+# is ~constant along the corridor, so the slope IS the drift). deg/min.
+yaw_w = np.unwrap(traj[w, 6])
+tt_w = traj[w, 0]
+yaw_slope = np.polyfit(tt_w - tt_w[0], yaw_w, 1)[0]        # rad/s
+yaw_drift = math.degrees(yaw_slope) * 60.0                # deg/min
+
+# gyro-z bias convergence: state is delta-form (rad per predict step); as a rate
+# = delta / dt. Report the cruise-window mean, and as a fraction of the physical
+# SIM_DRIFT the raw gyro carries (~8.9 deg/min, measured in the yaw diagnosis).
+bgz_rate = np.degrees(traj[w, 7] / p['dt']) * 60.0        # deg/min, per-sample
+bgz_mean = float(np.mean(bgz_rate))
+PHYS_DRIFT = 8.9                                          # deg/min (raw gyro-z, both bags)
+bgz_frac = 100.0 * abs(bgz_mean) / PHYS_DRIFT
+
 print(f"[run] {len(traj)} predict steps (80 Hz), window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s")
 print(f"[flow] axis-X accept {n_flow_acc[0]}/{n_flow_acc[0]+n_flow_rej[0]}  "
       f"axis-Y accept {n_flow_acc[1]}/{n_flow_acc[1]+n_flow_rej[1]}   "
       f"[range] accept {n_rng_acc}/{n_rng_acc+n_rng_rej}")
+att_tr = np.array(att_tr)                    # columns: (tilt cov, yaw cov)
+tilt_c, yaw_c = att_tr[:, 0], att_tr[:, 1]
+print(f"[pseudo-yaw] fired {n_yaw_fire}/{n_yaw_check} checks "
+      f"({100.0*n_yaw_fire/max(n_yaw_check,1):.0f}% — variance-gated, was 100%)")
+print(f"[att-cov] tilt(P66+P77) median={np.median(tilt_c):.5f}  "
+      f"yaw(P88) median={np.median(yaw_c):.4f} rad^2   "
+      f"gate={p['ATT_VAR_GATE']} (EKF3 0.01 x4; EKF3 tilt var ~1e-4, yaw-dominated)")
+print(f"[yaw] drift rate = {yaw_drift:+.2f} deg/min")
+print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min "
+      f"({bgz_frac:.0f}% of the ~{PHYS_DRIFT:.1f} deg/min physical drift)")
 print(f"[result] along-track = {along:.1f} m  (true {true_travel:.1f} m)   ATE = {ate:.2f} m")
 print(f"[out] {OUTDIR}/ukf_traj.tum")

@@ -32,7 +32,8 @@ def make_params(dt=0.0125):
     return dict(dt=dt, Q=Q,
                 FLOW_M_NSE=0.25, FLOW_GATE=300, FLOW_MAX=2.5,
                 RNG_M_NSE=0.5, RNG_GATE=500, RNG_MIN=0.05, RNG_MAX=40.0,
-                YAW_M_NSE=max(0.5, 0.05), YAW_DT=0.14,   # EK3_YAW_M_NSE 0.5, 7 Hz cap
+                YAW_M_NSE=max(0.5, 0.05), YAW_DT=0.14,   # EK3_YAW_M_NSE 0.5, 7 Hz check
+                ATT_VAR_GATE=0.04,                       # see update_yaw_pseudo (derived from EKF3's 0.01)
                 alpha=1e-3, beta=2.0, kappa=0.0)
 
 
@@ -158,21 +159,33 @@ def update_yaw_pseudo(x, P, p):
     lets yaw variance grow unbounded would differ by omission, not formulation.
     R = EK3_YAW_M_NSE^2 (AP_NavEKF3.cpp:446, 0.5 rad floored to 0.05).
 
-    KNOWN RESIDUAL DIFFERENCE (identified, not a formulation result). EKF3 fires
-    fuseEulerYaw(PREDICTED) ONLY when attitude covariance grows
-    (MagFusion.cpp:274: `onGround || AID_NONE || P[0..3] > 0.01`) — intermittent,
-    letting yaw variance grow between fires so flow can inject gyro-z-bias
-    correction. This harness fires it every YAW_DT (140 ms) unconditionally, which
-    over-caps yaw variance and suppresses that weak observability: measured, the
-    UKF's gyro-z bias converged to ~13% of the physical SIM_DRIFT (-1.17 vs -8.9
-    deg/min) so the UKF drifts at ~the raw gyro rate (9.5 deg/min), whereas EKF3
-    estimates ~40% of it and drifts 5.3 deg/min. To match EKF3, gate this fire on
-    a yaw-variance threshold instead of a fixed rate. Not yet done — flagged.
+    VARIANCE-GATED FIRING (matches EKF3, not a fixed rate). EKF3 checks this fire
+    opportunity every 140 ms (MagFusion.cpp:263) but only actually fuses when the
+    attitude covariance has grown past a threshold (MagFusion.cpp:274):
+        `onGround || PV_AidingMode == AID_NONE || (P[0][0]+P[1][1]+P[2][2]+P[3][3] > 0.01f)`
+    i.e. the trace of the quaternion (states 0-3) covariance exceeds 0.01 rad^2.
+    Between fires yaw variance is allowed to grow, which is what lets the flow
+    updates inject gyro-z-bias observability. Firing unconditionally every 140 ms
+    (the previous behaviour) over-caps yaw variance and suppresses that weak
+    observability.
+
+    Threshold conversion, quaternion -> Euler (derived, not tuned). For a small
+    attitude error the quaternion vector part is dq_vec ~= 0.5*dtheta and the
+    scalar part q0 is constant to first order, so trace(P_quat[0..3]) ~=
+    0.25*(sigma_roll^2 + sigma_pitch^2 + sigma_yaw^2) = 0.25*trace(P_att). EKF3's
+    `> 0.01` therefore maps to trace(P_att) > 0.04 rad^2 on this UKF's Euler
+    attitude block (states 6,7,8) — that is ATT_VAR_GATE. Roll/pitch stay small
+    (accel-constrained), so in practice the gate triggers on yaw growth, exactly
+    as intended. AID_NONE / onGround are airborne-aided here, so only the
+    covariance term is active. The 140 ms cadence stays in the harness; this
+    function decides whether to fuse. Returns (x, P, fired).
 
     THE FGO MUST MATCH THIS: attach a weak yaw prior (soft anchor) factor to each
     keyframe's Pose3 rotation with the same 0.5 rad sigma on the yaw DOF, so the
     smoother's yaw marginal is likewise bounded and doesn't free-drift. Documented
     in FGO_DESIGN.md."""
+    if P[6, 6] + P[7, 7] + P[8, 8] <= p['ATT_VAR_GATE']:
+        return x, P, False                               # attitude cov still tight — let yaw grow
     sig, Wm, Wc = _sigma_points(x, P, p)
     # measure yaw relative to the current mean -> z_rel = 0 (zero innovation),
     # linear residual (no angle wrap), mean preserved, only the covariance shrinks.
@@ -186,7 +199,7 @@ def update_yaw_pseudo(x, P, p):
     xn = x + K*(0.0 - zpred)                          # z_rel = 0
     xn[6], xn[7], xn[8] = _wrap(xn[6]), _wrap(xn[7]), _wrap(xn[8])
     Pn = P - np.outer(K, K)*S
-    return xn, 0.5*(Pn+Pn.T)
+    return xn, 0.5*(Pn+Pn.T), True
 
 
 def update_flow(x, P, flow_xy, omega_body, valid, inlier_ratio, p):

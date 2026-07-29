@@ -377,15 +377,25 @@ if [ -f "$OUTPUT_DIR/ardupilot.bin" ]; then
 import sys
 from pymavlink import mavutil
 m = mavutil.mavlink_connection(sys.argv[1])
-want = ["SIM_DRIFT_SPEED","SIM_DRIFT_TIME","SIM_ACC1_RND","SIM_ACC2_RND",
-        "SIM_GYR1_RND","SIM_GYR2_RND","SIM_BARO_RND","SIM_SONAR_RND","SIM_FLOW_RND"]
+sim = ["SIM_DRIFT_SPEED","SIM_DRIFT_TIME","SIM_ACC1_RND","SIM_ACC2_RND",
+       "SIM_GYR1_RND","SIM_GYR2_RND","SIM_BARO_RND","SIM_SONAR_RND","SIM_FLOW_RND"]
+# Yaw-source config — the exact axis on which the nomag (dsn_*) and compass-active
+# (ds_*) datasets differ. Recorded so a downstream script can tell them apart from
+# metadata alone, not just from the live .BIN PARM stream. EK3_SRC1_YAW=0 +
+# COMPASS_USE=0 == no yaw source (nomag); EK3_SRC1_YAW=1 == compass-aided yaw.
+yaw = ["EK3_SRC1_YAW","COMPASS_USE"]
+want = sim + yaw
 got = {}
 while True:
     p = m.recv_match(type="PARM")
     if p is None: break
     if p.Name in want: got[p.Name] = p.Value
 print("sim_noise:")
-for k in want:
+for k in sim:
+    v = got.get(k)
+    print(f"  {k}: {v if v is not None else 'null'}")
+print("yaw_source:")
+for k in yaw:
     v = got.get(k)
     print(f"  {k}: {v if v is not None else 'null'}")
 PYEOF
