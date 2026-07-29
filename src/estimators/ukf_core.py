@@ -32,6 +32,7 @@ def make_params(dt=0.0125):
     return dict(dt=dt, Q=Q,
                 FLOW_M_NSE=0.25, FLOW_GATE=300, FLOW_MAX=2.5,
                 RNG_M_NSE=0.5, RNG_GATE=500, RNG_MIN=0.05, RNG_MAX=40.0,
+                YAW_M_NSE=max(0.5, 0.05), YAW_DT=0.14,   # EK3_YAW_M_NSE 0.5, 7 Hz cap
                 alpha=1e-3, beta=2.0, kappa=0.0)
 
 
@@ -146,6 +147,35 @@ def update_range(x, P, rng, p):
     x, P, acc, _ = _update_scalar(x, P, rng, lambda s: h_range(s)[0],
                                   p['RNG_M_NSE']**2, gate_c, p)
     return x, P, acc
+
+
+def update_yaw_pseudo(x, P, p):
+    """Zero-innovation yaw pseudo-measurement — caps yaw variance WITHOUT
+    injecting any heading information, matching EKF3's fuseEulerYaw(PREDICTED)
+    (AP_NavEKF3_MagFusion.cpp:275-277): "prevent uncontrolled yaw variance growth
+    that can destabilise the covariance matrix by fusing a zero innovation."
+    Fairness, not a fix: EKF3 caps yaw this way in the no-mag case, so a UKF that
+    lets yaw variance grow unbounded would differ by omission, not formulation.
+    R = EK3_YAW_M_NSE^2 (AP_NavEKF3.cpp:446, 0.5 rad floored to 0.05).
+
+    THE FGO MUST MATCH THIS: attach a weak yaw prior (soft anchor) factor to each
+    keyframe's Pose3 rotation with the same 0.5 rad sigma on the yaw DOF, so the
+    smoother's yaw marginal is likewise bounded and doesn't free-drift. Documented
+    in FGO_DESIGN.md."""
+    sig, Wm, Wc = _sigma_points(x, P, p)
+    # measure yaw relative to the current mean -> z_rel = 0 (zero innovation),
+    # linear residual (no angle wrap), mean preserved, only the covariance shrinks.
+    Zr = np.array([_wrap(s[8] - x[8]) for s in sig])
+    zpred = Wm @ Zr
+    S = Wc @ ((Zr - zpred)**2) + p['YAW_M_NSE']**2
+    Pxz = np.zeros(N)
+    for i in range(2*N+1):
+        Pxz += Wc[i]*_state_residual(sig[i], x)*(Zr[i] - zpred)
+    K = Pxz / S
+    xn = x + K*(0.0 - zpred)                          # z_rel = 0
+    xn[6], xn[7], xn[8] = _wrap(xn[6]), _wrap(xn[7]), _wrap(xn[8])
+    Pn = P - np.outer(K, K)*S
+    return xn, 0.5*(Pn+Pn.T)
 
 
 def update_flow(x, P, flow_xy, omega_body, valid, inlier_ratio, p):

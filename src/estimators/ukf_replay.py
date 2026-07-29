@@ -68,7 +68,7 @@ def euler_to_quat(r, pch, y):
     return (sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*sy)
 
 traj = []                       # (t, pE, pN, pU, roll,pitch,yaw)
-omega = np.zeros(3); t_prev = t_init
+omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
 n_flow_acc = [0, 0]; n_flow_rej = [0, 0]; n_rng_acc = n_rng_rej = 0
 for t, kind, d in ev:
@@ -85,6 +85,9 @@ for t, kind, d in ev:
         da += d[1]*dt_i; dv += d[0]*dt_i; acc_dt += dt_i
         if acc_dt >= p['dt']:
             x, P = U.predict(x, P, da, dv, p)
+            if t - t_yaw >= p['YAW_DT']:              # EKF3-matched yaw variance cap (~7 Hz)
+                x, P = U.update_yaw_pseudo(x, P, p)
+                t_yaw = t
             traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8]))
             da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
     elif kind == "rng":

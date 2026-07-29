@@ -744,10 +744,11 @@ deployable unchanged):
 
 ## 9. Resolved design decisions
 
-Three items the prior design pass flagged as open are **now decided** (user
-sign-off, this pass). Each is a concrete correction to the plan's first draft;
-the EKF3 behaviour each matches is source-verified. Where these decisions
-conflict with the earlier §1/§8 prose, **these govern** (cross-referenced inline).
+§9.1–9.4 are **decided** (user sign-off); §9.5 is **open** (user to rule). Each
+is a concrete correction to the plan's first draft; the EKF3 behaviour each
+matches/documents is source-verified. Where a decision conflicts with the earlier
+§1/§8 prose, **it governs** (cross-referenced inline). §9.4–9.5 were added during
+UKF bring-up, where the corresponding EKF3 behaviour was exercised on real data.
 
 ### 9.1 Keyframe cadence — IMU-clock-driven, independent of flow `[DECIDED]`
 
@@ -863,6 +864,44 @@ gate value. Record this as a bounded, documented formulation difference (it is
 difference #6 in §7, refined), not a silent divergence.
 
 ---
+
+### 9.4 Yaw variance cap — zero-innovation pseudo-yaw `[DECIDED]`
+
+**Decision (fairness, not a fix).** Yaw is unobservable from IMU + flow + range,
+so its variance grows unbounded and the flow update can rotate it freely. The UKF
+caps this with a **zero-innovation yaw pseudo-measurement** (R = `EK3_YAW_M_NSE`²
+= 0.5 rad², ~7 Hz), matching EKF3's `fuseEulerYaw(PREDICTED)`
+(`AP_NavEKF3_MagFusion.cpp:275-277`: *"prevent uncontrolled yaw variance growth …
+by fusing a zero innovation"*; noise `AP_NavEKF3.cpp:446`). Without it the UKF yaw
+drifted **~50 deg/min** (measured, ds_tex_r1) vs EKF3's ~5 deg/min — a difference
+by *omission*, not formulation.
+
+**The FGO must match this.** Attach a **weak yaw-prior factor** to each keyframe's
+`Pose3` rotation — a soft anchor on the yaw DOF with the same 0.5 rad sigma — so
+the smoother's yaw marginal is bounded and does not free-drift. Equivalent to the
+UKF pseudo-yaw and EKF3's PREDICTED yaw; without it the FGO's yaw would be better-
+or worse-controlled than the baselines by implementation accident.
+
+### 9.5 Behaviour when flow aiding is lost — `[OPEN — user to rule]`
+
+**The question.** When flow is gated out (e.g. `corridor_blank`, where the NIS
+gate rejected ~87% of flow — measured on the UKF), what happens to horizontal
+position?
+
+**What EKF3 does.** It drops to constant-position mode (`PV_AidingMode` →
+`AID_NONE` / `const_pos_mode`, `AP_NavEKF3_Control.cpp` `setAidingMode`):
+horizontal position is **frozen** at the last aided value, not dead-reckoned.
+Measured: EKF3 held ~1.5 m over a 145 m blank flight.
+
+**What the FGO would do by default.** Under §9.1 the FGO advances keyframes on the
+IMU clock and adds no flow factor when flow is absent/gated — so it
+**dead-reckons on IMU + range** through the outage (the UKF baseline does the same
+and drifted to 231 m on blank). The FGO has **no natural const_pos analogue** —
+freezing a smoother's position mid-window is not a factor-graph operation.
+
+**Open.** Is replicating EKF3's freeze a fairness requirement, or is "dead-reckon
+on IMU when flow is lost" a legitimate formulation difference? Deferred until the
+FGO design has a position; user to rule.
 
 ## Files this creates
 
