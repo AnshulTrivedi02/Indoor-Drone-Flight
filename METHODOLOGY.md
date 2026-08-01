@@ -81,8 +81,32 @@ under the flip while the estimator degrades, and the EKF3/UKF derotation relatio
 is more subtle (different fusion structure + the `flow_bridge.py:123` path flip).
 **No prior result is retracted or marked provisional** on this basis: the premise
 (a fixable handicap that disadvantaged the UKF/FGO) did not hold. The four-estimator
-yaw finding **stands**. **Parked** as a characterised open question for the thesis:
-common-mode across UKF and FGO (shared `h_flow`), non-blocking.
+yaw finding **stands**. **Parked** as a characterised open question for the thesis,
+non-blocking.
+
+**Derotation architecture (code-path verified — `[VERIFIED file:line]`).** All three
+estimators receive **identical raw, un-compensated flow**: `flow_bridge.py:126-137`
+sends the flow rates only (`flow_rate_x = −flow_x_rad`, `flow_rate_y = +flow_y_rad`),
+with **no gyro fields** (`flow_x/y` and `flow_comp_m_x/y` are zero; OPTICAL_FLOW carries
+no vehicle-gyro field). Each estimator then derotates internally, but on a **different
+side of the residual**: EKF3 derotates on the **measurement side** using its own AHRS
+gyro — `bodyRadXYZ = gyro − flowGyroBias`, `flowRadXYcomp = flowRadXY + bodyRadXYZ`,
+and the fusion uses the compensated `flowRadXYcomp` (`AP_NavEKF3_Measurements.cpp:206-228`,
+`AP_NavEKF3_OptFlowFusion.cpp:458,619`); it is **active** in this config (`FLOW_OPTIONS = 0`,
+so the `Stabilised` bit that would zero `bodyRate` at `AP_OpticalFlow_MAV.cpp:71` is
+unset). The UKF and FGO derotate on the **prediction side**, inside `h_flow` (the
+`flow_x_rot = −rollspeed` term). Same job, two code paths. **EKF3 is not pre-derotated
+externally, and its compensation is not disabled to level it down.**
+
+**Scope of the parked residual (corrected).** The −2.07·rollspeed lateral residual is
+**confirmed common-mode across the UKF and FGO** — they import the identical `h_flow`.
+Whether **EKF3** carries an equivalent residual is **NOT established**: it depends on
+whether EKF3's measurement-side `+bodyRadXYZ` compensation is equivalent to `h_flow`'s
+prediction-side `−rollspeed` — the same sign/coefficient question the failed sign-flip
+did not resolve. **State it as open, not as common-mode across all three.** (The earlier
+innovation-correlation evidence, EKF3 +0.03 vs UKF +0.71, is *not* relied on here — it
+compares a post-derotation innovation to a full-model one and does not establish
+equivalence; see the reverted sign-fix above.)
 
 **METHODOLOGICAL CONTROL — the empirical re-run gate.** The sign fix was supported by
 **three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
