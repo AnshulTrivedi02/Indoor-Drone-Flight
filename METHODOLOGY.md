@@ -81,9 +81,29 @@ under the flip while the estimator degrades, and the EKF3/UKF derotation relatio
 is more subtle (different fusion structure + the `flow_bridge.py:123` path flip).
 **No prior result is retracted or marked provisional** on this basis: the premise
 (a fixable handicap that disadvantaged the UKF/FGO) did not hold. The four-estimator
-yaw finding **stands**. Methodological lesson recorded: a plausible state-vs-time
-diagnostic finding is not established until its fix survives the re-run; the re-run
-gate caught a fix that all the offline evidence had supported.
+yaw finding **stands**. **Parked** as a characterised open question for the thesis:
+common-mode across UKF and FGO (shared `h_flow`), non-blocking.
+
+**METHODOLOGICAL CONTROL — the empirical re-run gate.** The sign fix was supported by
+**three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
+acceleration coupling, and EKF3's +0.03 vs the UKF's +0.71 innovation correlation — and
+was still **wrong**: applied, it degraded the UKF (ATE `-a` 11.7→16.3, drift 12.4→19.3,
+overshoot 245%→336%) and its innovation flipped (+0.71→−0.69) rather than zeroing. The
+control that caught it: **gate every measurement-model change on a from-scratch
+estimator re-run, and revert if the outcome metric degrades** — offline residual
+diagnostics and innovation correlations are necessary evidence but not sufficient,
+because a filter's state adapts to whatever model it is given. Adopt this as a standing
+rule for `h_flow`/gate/noise changes, not a one-off.
+
+**Lateral-vs-forward asymmetry — motion profile, not structural (settled).** `h_flow`'s
+two axes are structurally near-symmetric: translational sensitivity is identical
+(`∂flow/∂v = 0.571` both), rotational sensitivity differs only 1.3× (`∂flow_x/∂rollspeed
+= −1.14` vs `∂flow_y/∂pitchspeed = +0.86`, from the `ω×lever` term × the `SIGN_X/Y`
+convention). The 27× lateral-noise excess is **the corridor motion profile**: cruise
+**rollspeed std 0.399 rad/s vs pitchspeed std 0.013 — 31×** (forward flight commands
+large oscillatory roll for lateral position control, near-zero oscillatory pitch), so
+the lateral rotational-flow term is ~40× the forward one. Expected and documented; not
+a structural defect in the measurement model.
 
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
