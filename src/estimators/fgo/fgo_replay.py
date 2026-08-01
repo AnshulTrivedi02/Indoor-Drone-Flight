@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
-from measurement_models import h_flow_pose
+from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift
 
 TRIAL = sys.argv[1]
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
@@ -58,6 +58,8 @@ print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 # run: integrate every IMU sample; create a keyframe on the fixed IMU-clock cadence
 traj = []                       # (t, pE, pN, pU, roll, pitch, yaw, bgz_rate)
 omega = np.zeros(3); t_prev_imu = None
+gyro_avg = FlowFrameGyroAverager(t_init)     # interval-avg gyro for h_flow derotation (FINDING 4)
+flow_omega = np.zeros(3)
 flow_pend = None; rng_pend = None
 t_kf_next = t_init + fgo.kf_dt
 step_ns = []; n_kf = 0
@@ -72,14 +74,16 @@ for tt, kind, d in ev:
         rng_pend = d
     elif kind == "flow":
         flow_pend = d
+        flow_omega = gyro_avg.average(tt, omega)   # interval-avg over the flow frame (FINDING 4)
     elif kind == "imu":
+        gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
         if t_prev_imu is not None:
             fgo.integrate_imu(d[0], d[1], tt - t_prev_imu)
         t_prev_imu = tt
         while tt >= t_kf_next:
             t0 = time.perf_counter_ns()
             try:
-                fgo.keyframe(t_kf_next, flow=flow_pend, omega=omega, rng=rng_pend)
+                fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend)
             except Exception as e:
                 print(f"[warn] keyframe at {t_kf_next:.3f} failed: {type(e).__name__}: {e}")
             step_ns.append(time.perf_counter_ns() - t0); n_kf += 1
@@ -91,7 +95,7 @@ for tt, kind, d in ev:
             vmag.append((t_lat, float(np.linalg.norm(vel))))
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0 \
                     and abs(flow_pend[0][0]) < 4.2 and abs(flow_pend[0][1]) < 4.2:
-                om = omega - fgo.prev_bias.gyroscope()
+                om = flow_omega - fgo.prev_bias.gyroscope()
                 pred = h_flow_pose(pose.rotation().matrix(), vel, pose.translation()[2], om)
                 fresid.append((t_lat, pred[0]-flow_pend[0][0], pred[1]-flow_pend[0][1]))
             flow_pend = None; rng_pend = None
@@ -130,7 +134,19 @@ along = float(math.hypot(duE[-1], duN[-1])); true_travel = float(math.hypot(dgE[
 cross = float((duE-dgE)[-1])
 yaw_w = np.unwrap(traj[w, 6]); tt_w = traj[w, 0]
 yaw_drift = math.degrees(np.polyfit(tt_w-tt_w[0], yaw_w, 1)[0]) * 60.0
-bgz_mean = math.degrees(np.mean(traj[w, 7])) * 60.0        # B is a rate (rad/s) -> deg/min
+# gyro-z bias vs INSTANTANEOUS true bias (triangle wave, sitl_gyro_drift; NOT the old
+# constant 9.8). B is a rate (rad/s) -> deg/min. Report bias% + ramp-tracking.
+bgz_series = np.degrees(traj[w, 7]) * 60.0                 # est bias per keyframe, deg/min (FLU)
+bgz_mean = float(np.mean(bgz_series))
+tt_bmin = (traj[w, 0] - traj[w, 0][0]) / 60.0
+true_bias = sitl_gyro_drift(traj[w, 0])                    # instantaneous true |bias| deg/min
+true_mean = float(np.mean(true_bias))
+bgz_frac = 100.0 * abs(bgz_mean) / true_mean
+est_slope = float(np.polyfit(tt_bmin, np.abs(bgz_series), 1)[0])   # ramp d|b|/dt, deg/min per min
+true_slope = float(np.polyfit(tt_bmin, true_bias, 1)[0])
+np.savetxt(f"{OUTDIR}/bgz_series.txt",
+           np.column_stack([traj[w, 0], np.abs(bgz_series), true_bias]),
+           header="t_sec  est_bias_absdpm  true_bias_dpm", comments="# ")
 step_ms = np.array(step_ns)/1e6
 
 print(f"[run] {n_kf} keyframes, window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s   "
@@ -138,7 +154,8 @@ print(f"[run] {n_kf} keyframes, window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s   "
 print(f"[timing] per-keyframe update: median={np.median(step_ms):.1f}ms  p99={np.percentile(step_ms,99):.1f}ms  "
       f"(deployability budget 33ms)")
 print(f"[yaw] drift = {yaw_drift:+.2f} deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)")
-print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min")
+print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min  ({bgz_frac:.0f}% of true mean "
+      f"{true_mean:.1f})   ramp d|b|/dt = {est_slope:+.2f} vs true {true_slope:+.2f} deg/min/min (ideal 3.00)")
 print(f"[result] along-track = {along:.1f} m (true {true_travel:.1f})  cross-track = {cross:+.1f} m  ATE = {ate:.2f} m")
 vmag = np.array(vmag); fresid = np.array(fresid)
 vw = (vmag[:, 0] > t_u[bi]) & (vmag[:, 0] < t_u[bj-1])
@@ -150,5 +167,6 @@ print(f"[out] {OUTDIR}/fgo_traj.tum")
 with open(f"{OUTDIR}/metrics.txt", "w") as f:
     f.write(f"along_pN={duN[-1]:.3f}\ntrue_travel={true_travel:.3f}\ncross_track={cross:.3f}\n"
             f"ate_apparatus={ate:.3f}\nyaw_drift={yaw_drift:.3f}\nbgz_mean={bgz_mean:.3f}\n"
+            f"bgz_pct={bgz_frac:.1f}\ntrue_bias_mean={true_mean:.3f}\nbgz_ramp={est_slope:.3f}\ntrue_ramp={true_slope:.3f}\n"
             f"n_flow={fgo.n_flow}\nn_range={fgo.n_range}\nn_kf={n_kf}\n"
             f"step_median_ms={np.median(step_ms):.3f}\nstep_p99_ms={np.percentile(step_ms,99):.3f}\n")

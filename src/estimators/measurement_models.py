@@ -81,3 +81,56 @@ def h_flow(x, omega_body):
     """UKF entry point: predicted RAW angular flow from the 15-state vector.
     Thin wrapper over the shared h_flow_pose so there is ONE geometric model."""
     return h_flow_pose(R_world_body(x[6], x[7], x[8]), x[V_SLICE], x[2], omega_body)
+
+
+class FlowFrameGyroAverager:
+    """Interval-averaged gyro for flow derotation — the omega passed to h_flow.
+
+    The raw optical flow's rotational content is the body rate INTEGRATED over the
+    camera frame then divided by dt (flow_tracker.py:223-227, flow rate = mean_dx/dt,
+    dt = current_frame - prev_frame), i.e. the gyro AVERAGED over (prev_frame,
+    current_frame]. Feeding h_flow the instantaneous rate leaves a roll-rate-coupled
+    residual EKF3 does not carry; EKF3 cancels it with the same interval-average
+    (OF bodyRate = gyro_sum/gyro_sum_count, AP_OpticalFlow_MAV.cpp:38-42,76; fused as
+    flowRadXYcomp, AP_NavEKF3_Measurements.cpp:206,227). This averager reproduces that
+    on the prediction side. The flow message stamp IS the capture time
+    (flow_tracker.py:296), so the window has no offset. Applied 2026-08-01 — the
+    geometrically-correct, EKF3-faithful derotation; see METHODOLOGY FINDING 4 (it
+    also raises gate acceptance and, under unobservable yaw, the flow->yaw leak).
+
+    SHARED by the UKF and FGO so both derotate with the identical rate (fairness).
+    Feed it the co-sampled /imu/data_raw gyro (333 Hz); call average() at each flow.
+    """
+    def __init__(self, t_init):
+        self._buf = []            # (t, gx, gy, gz) since the last flow frame
+        self._t_prev = t_init
+
+    def push(self, t, gyro):
+        self._buf.append((t, gyro[0], gyro[1], gyro[2]))
+
+    def average(self, t_flow, fallback):
+        """Mean gyro over (prev_flow, t_flow]; `fallback` (latest omega) if empty."""
+        win = [g for g in self._buf if g[0] > self._t_prev]
+        if win:
+            om = np.array([np.mean([g[1] for g in win]),
+                           np.mean([g[2] for g in win]),
+                           np.mean([g[3] for g in win])])
+        else:
+            om = np.asarray(fallback, float)
+        self._t_prev = t_flow
+        self._buf = [g for g in self._buf if g[0] > t_flow]     # drop consumed window
+        return om
+
+
+def sitl_gyro_drift(t_sec):
+    """Instantaneous TRUE gyro-z bias magnitude (deg/min) from SITL's drift model
+    (AP_InertialSensor_SITL.cpp:390-402): a triangle wave, period = 2*SIM_DRIFT_TIME
+    = 10 min, ramping 0 -> ~15 -> 0 at slope radians(SIM_DRIFT_SPEED=0.05)/min =
+    3.00 deg/min per minute. NOT the constant 9.8 the old code assumed — that was a
+    cruise-window MEAN of this ramp. Validated against recorded /imu/data_raw gyro-z
+    (matches within ~0.2 deg/min across the flight). t_sec = bag/sim stamp (seconds
+    since boot, phase-aligned to the drift cycle). Vectorised; returns |bias| deg/min
+    (the sign is +FRD / -FLU; use magnitudes to compare across estimator conventions)."""
+    m = np.fmod(np.asarray(t_sec, float)/60.0, 10.0)
+    d = np.where(m < 5.0, m, 10.0 - m) * np.radians(0.05)   # rad/s
+    return np.degrees(d)*60.0                               # deg/min, magnitude

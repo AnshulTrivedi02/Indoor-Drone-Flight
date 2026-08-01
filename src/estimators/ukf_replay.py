@@ -12,7 +12,7 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 
 import ukf_core as U
-from measurement_models import R_world_body
+from measurement_models import R_world_body, FlowFrameGyroAverager, sitl_gyro_drift
 
 TRIAL = sys.argv[1]
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
@@ -69,6 +69,7 @@ def euler_to_quat(r, pch, y):
 
 traj = []                       # (t, pE, pN, pU, roll,pitch,yaw, bg_z)
 omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
+gyro_avg = FlowFrameGyroAverager(t_init)     # interval-avg gyro for h_flow derotation (FINDING 4)
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
 n_flow_acc = [0, 0]; n_flow_rej = [0, 0]; n_rng_acc = n_rng_rej = 0
 n_yaw_check = n_yaw_fire = 0     # pseudo-yaw: opportunities checked vs actually fused
@@ -81,6 +82,7 @@ for t, kind, d in ev:
     if kind == "att":
         omega = d
     elif kind == "imu":
+        gyro_avg.push(t, d[1])                # co-sampled gyro, for the flow-frame average
         dt_i = t - t_prev; t_prev = t
         if dt_i <= 0 or dt_i > 0.2:
             continue
@@ -99,7 +101,8 @@ for t, kind, d in ev:
         n_rng_acc += acc; n_rng_rej += (not acc)
     elif kind == "flow":
         flow_xy, valid, inlier = d
-        x, P, (ax, ay) = U.update_flow(x, P, flow_xy, omega, valid, inlier, p)
+        omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
+        x, P, (ax, ay) = U.update_flow(x, P, flow_xy, omega_flow, valid, inlier, p)
         for i, a in enumerate((ax, ay)):
             n_flow_acc[i] += a; n_flow_rej[i] += (not a)
 traj = np.array(traj)
@@ -148,14 +151,21 @@ tt_w = traj[w, 0]
 yaw_slope = np.polyfit(tt_w - tt_w[0], yaw_w, 1)[0]        # rad/s
 yaw_drift = math.degrees(yaw_slope) * 60.0                # deg/min
 
-# gyro-z bias convergence: state is delta-form (rad per predict step); as a rate
-# = delta / dt. Report the cruise-window mean, and as a fraction of the physical
-# SIM_DRIFT the raw gyro carries (~8.9 deg/min, measured in the yaw diagnosis).
-bgz_rate = np.degrees(traj[w, 7] / p['dt']) * 60.0        # deg/min, per-sample
+# gyro-z bias vs the INSTANTANEOUS true bias. SITL's gyro-z drift is a triangle
+# wave (sitl_gyro_drift: slope 3.0 deg/min per min, 0->~15->0, validated vs recorded
+# gyro-z), NOT the constant 9.8 the old code assumed (that was a window mean of the
+# ramp). Recompute bias% against the instantaneous true bias; report ramp-tracking.
+bgz_rate = np.degrees(traj[w, 7] / p['dt']) * 60.0        # est bias, deg/min per-sample (FLU)
+tt_min = (traj[w, 0] - traj[w, 0][0]) / 60.0             # minutes into the cruise window
+true_bias = sitl_gyro_drift(traj[w, 0])                  # instantaneous true |bias| deg/min
 bgz_mean = float(np.mean(bgz_rate))
-PHYS_DRIFT = 9.8                                          # deg/min, raw gyro-z integrated (IMU.GyrZ),
-                                                         # verified ~identical across dsn_* (9.81-9.84)
-bgz_frac = 100.0 * abs(bgz_mean) / PHYS_DRIFT
+true_mean = float(np.mean(true_bias))
+bgz_frac = 100.0 * abs(bgz_mean) / true_mean             # vs instantaneous-true window mean
+est_slope = float(np.polyfit(tt_min, np.abs(bgz_rate), 1)[0])   # ramp: d|b|/dt, deg/min per min
+true_slope = float(np.polyfit(tt_min, true_bias, 1)[0])        # windowed true ramp (~3.0 if sub-peak)
+np.savetxt(f"{OUTDIR}/bgz_series.txt",                    # time series for ramp-tracking comparison
+           np.column_stack([traj[w, 0], np.abs(bgz_rate), true_bias]),
+           header="t_sec  est_bias_absdpm  true_bias_dpm", comments="# ")
 
 print(f"[run] {len(traj)} predict steps (80 Hz), window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s")
 print(f"[flow] axis-X accept {n_flow_acc[0]}/{n_flow_acc[0]+n_flow_rej[0]}  "
@@ -170,7 +180,8 @@ print(f"[att-cov] tilt(P66+P77) median={np.median(tilt_c):.5f}  "
       f"gate={p['ATT_VAR_GATE']} (EKF3 0.01 x4; EKF3 tilt var ~1e-4, yaw-dominated)")
 print(f"[yaw] drift rate = {yaw_drift:+.2f} deg/min")
 print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min "
-      f"({bgz_frac:.0f}% of the ~{PHYS_DRIFT:.1f} deg/min physical drift)")
+      f"({bgz_frac:.0f}% of instantaneous true mean {true_mean:.1f})   "
+      f"ramp d|b|/dt = {est_slope:+.2f} vs true {true_slope:+.2f} deg/min/min (ideal 3.00)")
 print(f"[result] along-track = {along:.1f} m  (true {true_travel:.1f} m)   ATE = {ate:.2f} m")
 print(f"[out] {OUTDIR}/ukf_traj.tum")
 
@@ -181,4 +192,5 @@ with open(f"{OUTDIR}/metrics.txt", "w") as f:
     f.write(f"along_pN={along_pN:.3f}\ntrue_travel={true_travel:.3f}\n"
             f"cross_track={cross_track:.3f}\nate_apparatus={ate:.3f}\n"
             f"yaw_drift={yaw_drift:.3f}\nbgz_mean={bgz_mean:.3f}\nbgz_pct={bgz_frac:.1f}\n"
+            f"true_bias_mean={true_mean:.3f}\nbgz_ramp={est_slope:.3f}\ntrue_ramp={true_slope:.3f}\n"
             f"yaw_fire={n_yaw_fire}\nyaw_check={n_yaw_check}\n")

@@ -47,7 +47,7 @@ EKF3's here, and a re-linearising smoother (FGO) is expected to differ again. NE
 against ground truth would quantify it directly. Figures:
 `plots/{ekf3,ukf}_diag_2_consistency.png`.
 
-## Lateral-flow derotation coupling — real anomaly, proposed fix FAILED and reverted
+## Lateral-flow derotation coupling — characterised; two fixes refuted by the empirical gate; leak mechanism quantified (acceptance-driven, unobservable-yaw); nomag ordering null
 
 **What is real.** The shared `h_flow`'s lateral-flow prediction carries a large
 roll-rate-coupled residual against the measured flow: `lateral_residual =
@@ -74,15 +74,32 @@ discipline that saved the result):**
    is a *full-model* innovation, so EKF3's is naturally less roll-coupled by
    construction. It does **not** establish that EKF3 derotates "more correctly."
 
-**Status.** The sign flip is **reverted** (`measurement_models.py` unchanged from
-baseline). The rollspeed coupling in the GT residual is real but its correct treatment
-is not a sign flip and is **not yet understood** — the sensor-model residual improves
-under the flip while the estimator degrades, and the EKF3/UKF derotation relationship
-is more subtle (different fusion structure + the `flow_bridge.py:123` path flip).
-**No prior result is retracted or marked provisional** on this basis: the premise
-(a fixable handicap that disadvantaged the UKF/FGO) did not hold. The four-estimator
-yaw finding **stands**. **Parked** as a characterised open question for the thesis,
-non-blocking.
+**Status — correction APPLIED 2026-08-01, by decision.** The interval-averaged gyro is
+now fed to `h_flow` in **both** the UKF and FGO (shared `FlowFrameGyroAverager` in
+`measurement_models.py`; the `h_flow` math is unchanged — only the ω it derotates against
+is now the flow-frame average). The sign flip stays **reverted**. The mechanism is
+quantified (FINDING 4): the correct, EKF3-faithful derotation whose estimator payoff,
+under unobservable yaw, is dominated by an **acceptance-driven flow→yaw leak** that scales
+with flow volume (~71–75% of its nomag textured degradation is the extra flow its correct,
+smaller innovations let past the gate, not the ω values). No admissible measurement-side
+lever removes that leak (the gate and `R` are EKF3-matched; tuning them is the fairness
+violation) — the only admissible avenue is a filter-formulation change to the unobservable
+direction (OC-UKF/FEJ), a research direction.
+
+**DECISION — apply the correction (reasoning, for the record).** Applied despite it
+degrading nominal (flow-rich) nomag evo −a, because keeping a known-incorrect derotation
+because it produces better numbers is not defensible; the correct implementation is.
+Three grounds: (1) it is the **geometrically correct** derotation (FINDING 1: it takes the
+lateral residual roll-coupling from −2.09 toward EKF3's −0.15); (2) it **restores
+EKF3-consistent gating** — the baseline rejects ~29% of lateral flow where EKF3 rejects
+7.5% (`XKF5 NI≥100`) and the corrected UKF ~2%, so the baseline was the divergence, not the
+fix; (3) it **touches no tuned parameter** — `FLOW_GATE` stays at EKF3's 300; acceptance
+rises only because correct innovations are smaller. **Honest cost, re-measured across nine
+bags (n=1 each):** textured (the tracking regime) UKF **16.44 → 19.96** evo −a, FGO
+4.87 → 5.46 — the fix degrades both flow-rich cases, as FINDING 4 predicts. Also bundled
+in: **PHYS_DRIFT corrected** — SITL's gyro-z drift is a triangle wave (slope 3.0 deg/min
+per min, `sitl_gyro_drift`), not the constant 9.8 (a window mean); bias % now against the
+instantaneous true bias.
 
 **Derotation architecture (code-path verified — `[VERIFIED file:line]`).** All three
 estimators receive **identical raw, un-compensated flow**: `flow_bridge.py:126-137`
@@ -98,15 +115,149 @@ unset). The UKF and FGO derotate on the **prediction side**, inside `h_flow` (th
 `flow_x_rot = −rollspeed` term). Same job, two code paths. **EKF3 is not pre-derotated
 externally, and its compensation is not disabled to level it down.**
 
-**Scope of the parked residual (corrected).** The −2.07·rollspeed lateral residual is
-**confirmed common-mode across the UKF and FGO** — they import the identical `h_flow`.
-Whether **EKF3** carries an equivalent residual is **NOT established**: it depends on
-whether EKF3's measurement-side `+bodyRadXYZ` compensation is equivalent to `h_flow`'s
-prediction-side `−rollspeed` — the same sign/coefficient question the failed sign-flip
-did not resolve. **State it as open, not as common-mode across all three.** (The earlier
-innovation-correlation evidence, EKF3 +0.03 vs UKF +0.71, is *not* relied on here — it
-compares a post-derotation innovation to a full-model one and does not establish
-equivalence; see the reverted sign-fix above.)
+**FINDING 1 — the residual asymmetry is real and established (like-for-like, EKF3 vs
+`h_flow`).** The earlier innovation-based comparison (EKF3 `FIX` +0.03 vs UKF ν +0.71)
+was **not** like-for-like — a post-derotation innovation against a full-model one — and
+is not relied on. The settling test reconstructs both estimators' lateral derotation
+residual against a **common GT reference** (`residual = derotated-flow − translational-
+flow(GT)`) on `dsn_tex_r1`:
+
+| | roll-rate corr | slope vs rollspeed | std |
+|---|---|---|---|
+| **EKF3** (`flowRadXYcomp − losPred(GT)`) | **−0.09** | **−0.15** | 0.48 |
+| **`h_flow`** (UKF/FGO) | **−0.95** | **−2.09** | 0.60 |
+
+EKF3's lateral residual is **roll-decoupled**; `h_flow`'s is strongly roll-coupled — so
+the residual is common-mode across the UKF and FGO (identical `h_flow`) but **NOT** shared
+by EKF3. **Mechanism:** the raw flow's rotational content is the body rate *integrated
+over the camera frame* then divided by `dt` (`flow_tracker.py:223-227`, `flow_x_px_s =
+mean_dx/dt`), i.e. the gyro **averaged over the frame interval**. EKF3 cancels it with the
+same interval-average — `bodyRadXYZ` from `rawGyroRates = gyro_sum/gyro_sum_count`
+(`AP_OpticalFlow_MAV.cpp:38-42,76`), fused as `flowRadXYcomp` (`Measurements.cpp:206,227`);
+`h_flow` used the **instantaneous** rate. Roll oscillates faster than the 30 Hz frame rate
+(cruise rollspeed std 0.40 rad/s), so the two are not equivalent and the instantaneous
+rate leaves the coupling. EKF3's `flowGyroBias` LP (`Measurements.cpp:193`, ±0.1 rad/s,
+~3 s constant) touches only the mean, not the fast coupling. (EKF3's residual **std** 0.48
+is not itself small — a shared lateral noise floor both carry — and is partly inflated by
+GT-reference differentiation in the reconstruction; the roll-rate **coupling** is the
+robust diagnostic, not the absolute std.)
+
+**FINDING 2 — but it does not disadvantage the UKF/FGO; removing it degraded the UKF
+(empirical gate, a substantive result).** Feeding `h_flow` the interval-averaged gyro
+(co-sampled `/imu/data_raw`, 333 Hz, averaged over the exact frame window `(prev,current]`
+— no free offset: the flow stamp *is* the capture time, `flow_tracker.py:296`) drops the
+offline residual slope −2.09 → −1.24 (std 0.60 → 0.40). Gated on a from-scratch UKF
+re-run (`dsn_tex_r1`, n=1), it **degraded every outcome metric**:
+
+| | instantaneous ω (baseline) | interval-averaged ω |
+|---|---|---|
+| ATE (evo `-a`) | **11.69** | 21.58 |
+| yaw drift (deg/min) | **+12.4** | +32.9 |
+| gyro-z overshoot (% of 9.8) | **222%** | 494% |
+| lateral (X) flow acceptance | 71% | **98%** |
+
+**Mechanism — gating under unobservable yaw.** The instantaneous-ω residual is roll-
+coupled and noisy (std 0.60), so the innovation gate was **rejecting ~29% of lateral
+flow**. Interval-averaging makes it model-consistent (std 0.40), so lateral-flow
+acceptance rises **71% → 98%** (the forward axis was already ~98% and unchanged). With
+**no yaw source**, a lateral-flow discrepancy has no observable home and **leaks into
+yaw** (the `flow_x`→yaw partition, §"FINDING — the UKF yaw drift…"): so *more* lateral
+flow → *more* yaw drift and gyro-z overshoot. The gate was **incidentally protecting the
+filter from its own flow→yaw leak** by rejecting the coupled flow; removing the coupling
+removed the protection. This is the **OC-UKF / FEJ failure mode** — spurious information
+gain in a weakly/unobservable direction — surfacing as a *gating* effect: a cleaner, more
+self-consistent measurement is *worse* when the estimator cannot observe where its
+discrepancy belongs. (Connects to the measured overconfidence result, §"Filter
+consistency".)
+
+**FINDING 3 — effect on the comparison is null.** The three-way ordering **stands** and
+the headline ("formulation differences wash out under degraded sensing") does **not** need
+re-establishing. The EKF3-vs-UKF/FGO residual asymmetry is geometrically real but does
+**not** disadvantage the UKF/FGO: on nomag the instantaneous-ω result is the UKF's *better*
+case, the "fair" interval-averaged version its worse one (this **reverses** on the
+compass-active `ds_tex_r1` — see FINDING 4). The UKF's dominant error is the
+**unobservable-yaw leak, not the derotation residual**. (n=1, `dsn_tex_r1`, UKF, at the
+time this was written; the correction has **since been applied and re-run across all nine
+bags** — the qualitative ordering holds (textured EKF3≈FGO with the UKF worse; degraded
+conditions all diverge), see Status/DECISION and the updated three-way table.)
+
+**FINDING 4 — mechanism quantified: the leak is acceptance-driven, the correction is
+geometrically sound but flight-dependent, and no admissible gate lever fixes it.** *Method
+— the matched-acceptance decomposition* (the tool the two failed fixes lacked). The
+interval-average bundles two changes: the ω values in `h_flow`, and — because smaller
+innovations pass the χ² gate more often — a higher flow-acceptance rate. Config B isolates
+the second: it loosens the gate with the *baseline* (instantaneous) ω until acceptance
+matches the fix, changing derotation not at all.
+
+*`dsn_tex_r1` (evo −a; config A reproduces the committed baseline exactly — harness validated):*
+
+| # | ω | acc_X | evo −a | yaw drift |
+|---|---|---|---|---|
+| A baseline | instantaneous | 72.5% | 11.69 | +12.4 |
+| B *more-flow only* | **instantaneous** | 99.6% | 18.70 | +27.7 |
+| C fix | interval-avg | 99.6% | 21.58 | +32.9 |
+
+**~71% of the evo −a loss and ~75% of the yaw-drift loss is the additional accepted flow
+at unchanged derotation (A→B); the ω values add only the remaining ~25–29% (B→C).** Leak
+path confirmed, not inferred: acc_Y (forward) stays pinned at 100% in every config — only
+acc_X (lateral) moves — and the cumulative **absolute per-update yaw correction on the X
+channel** rises 196° → 362° (A→B) while the Y channel's stays flat (88° → 76°). So the
+extra accepted flow is entirely lateral and it is the lateral channel that pumps yaw.
+(196→362° is a cumulative |Δyaw| *magnitude* — how hard the X updates push yaw — not net drift.)
+
+*The correction is geometrically sound but flight-dependent — the compass-active `ds_tex_r1`
+inverts the SIGN of its effect:*
+
+| # | ω | acc_X | evo −a | yaw drift |
+|---|---|---|---|---|
+| A baseline | instantaneous | 76.2% | 19.90 | −23.4 |
+| B *more-flow only* | **instantaneous** | 99.9% | 31.94 | +50.1 |
+| C fix | interval-avg | 99.9% | **8.72** | −5.8 |
+
+Isolating the ω correction at matched acceptance (B→C): on `dsn` slightly harmful (+2.9
+evo −a), on `ds` a large benefit (−23.2). **More acceptance hurts both flights (+7 dsn,
++12 ds — the leak is on both); the correction itself helps `ds`, is ~neutral on `dsn`.**
+So the correction is *not wrong on its own terms* — it is the right derotation whose
+estimator payoff, under unobservable yaw, is set by a flight-specific accident: the
+*uncorrected* roll-coupled residual biases yaw drift by a flight-dependent sign (hurting
+`ds`, mildly helping `dsn`). (n=1 per flight; `ds_tex_r1` runs in a high-error regime;
+B→C acceptance matches to ~0.4%.)
+
+**The corrected config is MORE faithful to EKF3 at the gate, not less** — this inverts the
+intuition that applying the correction breaks the EKF3 match. The correction never touches
+the gate threshold (`FLOW_GATE`=300, EKF3's value, identical in A and C); acceptance rises
+only because the correct derotation shrinks the innovations, and a χ² gate *should* accept
+a more model-consistent measurement. Measured on the same `dsn_tex_r1` `.BIN`: **EKF3's own
+nomag flow rejection is 7.5%** (`XKF5 NI≥100`, 236/3153 airborne; mean 43, p99 150). The
+corrected UKF rejects ~2% (lateral); the **baseline ~29% (lateral) is the outlier** — its
+high lateral rejection is a *divergence* from EKF3 caused by the roll-coupled residual
+inflating its lateral innovations. The correction *restores* EKF3-consistent gate behaviour;
+the baseline is right-for-the-wrong-reason on nomag. (Caveat: EKF3's `NI` is a combined
+2-axis ratio vs the UKF's per-axis gate, so the percentages aren't directly comparable —
+but the ordering baseline 29% ≫ EKF3 7.5% > corrected 2% is robust.)
+
+**No admissible lever removes the nomag degradation.** Clawing acceptance back means
+tightening the gate below EKF3's 300 or inflating `R` below `FLOW_M_NSE`=0.25 — both
+EKF3-matched, so tuning either *is* the fairness violation. The only admissible way to
+handle the flow→yaw leak is a *filter-formulation* change to the unobservable direction
+(observability-constrained / FEJ update) — legitimate under §9.5 as a formulation
+difference, but a research direction and itself an EKF3 divergence, not a measurement-model
+tweak. Whatever is decided propagates to the FGO through the shared `h_flow` and the same
+no-yaw gate, unassessable without a re-run.
+
+**Metric arbiter — evo −a, not apparatus.** More flow *improves* apparatus ATE
+(81.8 → 46.4 → 40.8, A→B→C) while *worsening* evo −a (11.7 → 21.6) and yaw drift
+(12.4 → 32.9). The disagreement is real. evo −a arbitrates: (1) the three-way is reported
+in evo −a and the STANDING RULE forbids mixing metrics, so any change must be judged in it
+to be comparable; (2) under nomag the *constant* yaw offset is unobservable (arbitrary
+yaw0) — apparatus penalizes it, evo −a aligns it out but retains yaw *drift*, the real
+error. Decomposing the apparatus gain (RMS error, `dsn`): along-track (N, travel)
+54.8 → 33.9 → 33.7 **and** cross-track (E) 60.7 → 31.7 → 23.1 — *both* shrink, so the gain
+is a genuine absolute-position improvement (more flow → better velocity scale), *not* an
+along-vs-cross artifact. But it rides on a worse SE(3)-aligned *shape*: **the fix trades
+heading for position**, and evo −a — which cannot align out drifting yaw — is the metric
+that reflects the heading failure the nomag comparison is about. Apparatus measures a real
+position gain; it is simply the wrong arbiter for nomag estimator *quality*.
 
 **METHODOLOGICAL CONTROL — the empirical re-run gate.** The sign fix was supported by
 **three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
@@ -118,6 +269,16 @@ estimator re-run, and revert if the outcome metric degrades** — offline residu
 diagnostics and innovation correlations are necessary evidence but not sufficient,
 because a filter's state adapts to whatever model it is given. Adopt this as a standing
 rule for `h_flow`/gate/noise changes, not a one-off.
+
+**This gate has now caught TWO offline-evidenced changes — it has earned its place
+twice.** (1) the sign flip (three offline lines), and (2) the interval-averaged gyro (a
+correct geometric fix matching EKF3's *own* mechanism, residual slope −2.09 → −1.24,
+FINDING 2 above) — **both refuted by the from-scratch re-run** (each degraded ATE, yaw
+drift, and gyro-z overshoot on `dsn_tex_r1`). A measurement-model change that is provably
+right offline can still degrade the estimator, because the filter's state **and its
+innovation gate** adapt to whatever model they are given — and under an unobservable
+direction (no-yaw), a more self-consistent measurement can feed a leak the gate was
+otherwise suppressing. Two independent refutations, same control: it is not a one-off.
 
 **Lateral-vs-forward asymmetry — motion profile, not structural (settled).** `h_flow`'s
 two axes are structurally near-symmetric: translational sensitivity is identical
@@ -136,28 +297,87 @@ under no compass; it removes the arbitrary init-yaw gauge the UKF/FGO carry but 
 in its true NED frame, does not). EKF3 from `XKF1`-vs-`SIM`; UKF/FGO from their TUM
 trajectories vs `/ground_truth/pose`.
 
-| condition | EKF3 | UKF (gated) | FGO (0.25 s) |
+**Corrected `h_flow` (interval-averaged ω, 2026-08-01) — re-run across all nine bags:**
+
+| condition (regime) | EKF3 | UKF (gated) | FGO (0.25 s) |
 |---|---|---|---|
-| **textured** | 4.97 (rng 2.33) | 16.44 | **4.87 (rng 1.19)** |
-| **transition** | 23.41 (rng 0.52) | 27.11 | 24.55 (rng 1.84) |
-| **blank** | 37.79 (rng 2.79) | 39.84 | 43.28 (rng 6.02) |
+| **textured** *(tracks)* | 4.97 | 19.96 (rng 15.0) | **5.46 (rng 0.4)** |
+| **transition** *(under-travel)* | 23.41 | 17.48 (rng 18.8) | 28.93 (rng 0.4) |
+| **blank** *(diverges)* | 37.79 | 16.05 (rng 0.9) | 30.48 (rng 1.3) |
 
-(mean of 3 repeats, evo `-a` RMSE in m.) Yaw drift (deg/min): EKF3 ~8, FGO ~−8,
-UKF 12–32; gyro-z bias stable for EKF3 (corrects 14–33%) and FGO (~0), overshoots
-for the UKF (220–450%).
+(mean of 3 repeats, evo `-a` RMSE in m. EKF3 unchanged — the correction is prediction-side,
+UKF/FGO only. Uncorrected values were UKF 16.44/27.11/39.84, FGO 4.87/24.55/43.28 —
+**superseded**.) Yaw drift (deg/min): EKF3 ~8, **FGO −9 in every condition** (anchor-locked),
+**UKF now flow-dependent** — textured +14…+41, blank −1…−7 (the FINDING-4 leak scaling with
+accepted flow). The FGO's position metrics *did* move (textured 4.87→5.46, blank 43→30), so
+the flat FGO yaw is its per-keyframe anchor dominating, not a no-op.
 
-- **Textured: EKF3 ≈ FGO (~4.9 m); the UKF is ~3× worse (16.4 m)** — its gyro-z-bias
-  overshoot, a UKF-gated pathology the smoother does not share.
-- **Transition and blank: all three comparable** — degraded sensing dominates and the
-  formulation differences wash out (all drift near the physical rate, all lose the
-  along-track under flow starvation).
-- **evo `-a` is the only fair cross-estimator metric here.** Unaligned is NOT
-  comparable across EKF3 (true frame; unaligned 26/93/34 m) vs UKF/FGO (init-yaw gauge;
-  unaligned 69–250 / 96–137 m dominated by the ~90° arbitrary heading offset).
+- **Read by regime — displacement magnitude vs true 151 m, frame-independent:** textured
+  is the **tracking** regime (FGO 0.98, EKF3 tracks; UKF 0.58 — yaw-drift *curving* the
+  path, the leak); transition **under-travels** (0.6–1.0, loses the blank half); blank
+  **diverges** — all three *over-travel* (UKF 200 m, FGO 247 m vs true 151) on garbage
+  starved flow. **The old "formulation differences wash out under degraded sensing" is
+  restated: all three DIVERGE under flow starvation.**
+- **Do NOT read the blank/transition evo −a as a quality ranking.** UKF blank 16 < EKF3 38
+  is "diverges *less far* after SE(3) alignment," not a quality win — every estimator has
+  failed there. Only the **textured** row is a tracking-regime comparison: **EKF3 ≈ FGO
+  (~5 m); the UKF is ~4× worse (20 m)** — the flow→yaw leak, worse than before (16.4→20.0)
+  under the correct derotation, exactly as FINDING 4 predicts for a flow-rich case.
+- **The UKF is unstable across repeats on flow-bearing conditions** (textured range 15,
+  transition range 19) while the **FGO is tight everywhere** (ranges ≤1.3) — the leak makes
+  the UKF's evo −a repeat-sensitive; the smoother's anchor does not.
+- **evo `-a` is the only fair cross-estimator metric**, and even it is not a clean quality
+  metric in the divergence regime. Unaligned is NOT comparable (EKF3 true frame vs UKF/FGO
+  ~90° init-yaw gauge).
 
-**Caveats.** n=1 per bag. UKF is the variance-gated-cap baseline; the four-estimator
-yaw result (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7) still governs the
-yaw interpretation. This is a first pass, not the final comparison.
+**Caveats.** n=1 per bag. Under the corrected `h_flow` the neat four-estimator yaw
+clustering (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7, all near physical
+9.8) **no longer holds for the UKF** — the corrected UKF drifts +14…+41 on textured (the
+amplified leak). The FGO and EKF3 still sit near physical; the UKF now separates. This is
+a first pass, not the final comparison.
+
+### Gyro-z bias ramp-tracking — the bias is effectively unobservable under no yaw (a result)
+
+SITL's gyro-z drift is a **triangle wave** (`sitl_gyro_drift`, slope 3.0 deg/min per min,
+validated vs recorded gyro-z to ~0.2 deg/min), so the right test is whether each estimator
+**tracks the ramp**: `d|bias|/dt` vs the true ~2.8 deg/min per min (windowed; 3.0 ideal).
+Across all nine bags:
+
+| estimator | d\|bias\|/dt (deg/min/min) | |bias| vs true | reads as |
+|---|---|---|---|
+| EKF3 | 0.1–0.3 | 4–29% of true | barely tracks; holds bias ~0 |
+| FGO | ≈0 (±0.06) | 0–7% | does **not** track; bias pinned ~0 |
+| UKF | +1.5…+2.1 tex, **−0.5…−0.7 blank** | 34–650% | "tracks" on textured but by the leak — overshoots 3–6×, **ramps the wrong way on blank** |
+
+**Read:** the gyro-z bias is effectively **unobservable under no yaw** for all three. EKF3
+and the FGO leave it near zero (so their yaw drifts at ~the physical rate, EKF3 ~8 / FGO
+−9); the UKF's bias is **not an observation but the flow→yaw/bias leak** — it moves with
+accepted flow (chases the ramp on textured, ramps *backwards* on blank), which is why its
+magnitude overshoots and its yaw drift scatters. None of the three genuinely observes the
+drift ramp.
+
+### Parameterisation-independence — re-established under the corrected `h_flow` (three-part verdict)
+
+The headline finding (yaw leak is **capping-controlled, not a parameterisation effect**)
+was measured with the uncorrected model; re-checked against the correction:
+
+1. **The 69/31 partition (Euler-UKF = SO(3)-FGO) SURVIVES.** The correction changes ω (an
+   input), and the flow Jacobian columns that set the velocity/yaw partition are
+   **ω-invariant to machine precision** (only the `p_U`/height column moves, via the
+   lever-arm ÷ h_cam coupling). So the partition is unchanged, for both parameterisations
+   (same `h_flow_pose`). *Measured* on the UKF Euler side; *argued* on the FGO side (shared
+   model), not separately re-measured.
+2. **"All drift near physical 9.8" does NOT survive** for the corrected UKF — it drifts
+   +14…+41 on textured (the amplified leak). The tidy four-estimator clustering breaks; the
+   FGO (−9 everywhere) and EKF3 (~8) still cluster, the UKF no longer does.
+3. **The capping attribution SURVIVES and strengthens** — distinct from (1). The *same*
+   geometric correction, applied identically to both, hits the weakly-capped UKF hard
+   (yaw +12→+33 textured) and the per-keyframe-anchored FGO not at all (−9.24→−9.31). If
+   parameterisation drove yaw, an identical geometric change would affect both alike; it
+   does not, so the discriminator is the **capping mechanism** (UKF rare variance-gated cap
+   vs FGO per-keyframe weak prior), not Euler-vs-SO(3). Net: the parameterisation-
+   independence finding holds; only the incidental "near-physical" numerical coincidence
+   for the UKF is lost.
 
 ### FGO configuration — window is a declared config choice, not a default
 
@@ -198,11 +418,16 @@ ATE (4.23)** over 10047 keyframes — so the cap is not a truncated approximatio
   `SIM_DRIFT_TIME=5` minutes (`SITL.h:213-214`, `SITL.cpp:73,77`) — a fixed
   function of sim time. SITL has no PRNG seed to set (no `srand`/`srandom`
   anywhere), so with the random noise zeroed its sensor output is deterministic.
-  The **physical yaw drift is +9.8 deg/min** — measured by integrating the raw
-  gyro-z (`IMU.GyrZ`) over the cruise (true yaw, `SIM.Yaw`, drifts +0.01 deg/min,
-  confirming straight flight so the whole 9.8 is gyro bias). It is near-identical
-  across every `dsn_*` bag (9.81–9.84, deterministic) and reproduces on any
-  re-fly — **controlled**, not **sampled**. (Do not confuse this with an
+  The drift is a **triangle wave, NOT a constant** (corrected 2026-08-01;
+  `AP_InertialSensor_SITL.cpp:390-402`): period `2·DRIFT_TIME = 10` min, ramping
+  0 → ~15 → 0 at slope `radians(DRIFT_SPEED=0.05)/min` = **3.00 deg/min per minute**.
+  Over a cruise window it sweeps the instantaneous bias from **~1.6 to ~14.8 deg/min**;
+  the "+9.8 deg/min physical drift" quoted throughout is the **window MEAN** of that ramp
+  (≈8.9–9.8 depending on the window — integrating raw `IMU.GyrZ`; true yaw `SIM.Yaw`
+  drifts +0.01 deg/min, confirming straight flight so it is all gyro bias). Deterministic
+  and reproducible — **controlled**, not **sampled**. Bias % and ramp-tracking are now
+  computed against the **instantaneous** true bias `sitl_gyro_drift(t)` (validated vs
+  recorded gyro-z to ~0.2 deg/min), not the constant — see the ramp-tracking finding. (Do not confuse this with an
   estimator's *residual* drift: `nomag_corridor_baseline` earlier reported EKF3's
   own residual yaw drift of +5.32 deg/min, i.e. what was left after EKF3 corrected
   ~40% of the bias on that particular trial. That 40% is trial-specific — on the
