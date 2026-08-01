@@ -297,38 +297,60 @@ under no compass; it removes the arbitrary init-yaw gauge the UKF/FGO carry but 
 in its true NED frame, does not). EKF3 from `XKF1`-vs-`SIM`; UKF/FGO from their TUM
 trajectories vs `/ground_truth/pose`.
 
-**Corrected `h_flow` (interval-averaged ω, 2026-08-01) — re-run across all nine bags:**
+**Corrected `h_flow` (interval-averaged ω, 2026-08-01) — re-run across all nine bags.**
+The correction splits the conditions into **two regimes that must be reported separately**:
+only **textured** is a tracking regime where evo −a means accuracy; **transition and blank
+are failure regimes** where all three estimators diverge and evo −a is *not* a quality metric
+(UKF blank 16 < EKF3 38 is "diverges *less far* after alignment," not a quality win). The old
+"formulation differences wash out under degraded sensing" is restated as: **all three fail
+under flow starvation, by different failure modes.**
 
-| condition (regime) | EKF3 | UKF (gated) | FGO (0.25 s) |
+**(1) Textured — the tracking-regime quality comparison** (evo −a RMSE, m; the only
+cross-estimator ranking that holds):
+
+| estimator | per repeat | mean | range |
 |---|---|---|---|
-| **textured** *(tracks)* | 4.97 | 19.96 (rng 15.0) | **5.46 (rng 0.4)** |
-| **transition** *(under-travel)* | 23.41 | 17.48 (rng 18.8) | 28.93 (rng 0.4) |
-| **blank** *(diverges)* | 37.79 | 16.05 (rng 0.9) | 30.48 (rng 1.3) |
+| EKF3 | 4.6 / 3.5 / 5.8 | **4.97** | 2.3 |
+| FGO (0.25 s) | 5.6 / 5.6 / 5.2 | **5.46** | **0.4** |
+| UKF (gated) | 11.7 / 21.6 / 26.7 | **19.96** | **15.0** |
 
-(mean of 3 repeats, evo `-a` RMSE in m. EKF3 unchanged — the correction is prediction-side,
-UKF/FGO only. Uncorrected values were UKF 16.44/27.11/39.84, FGO 4.87/24.55/43.28 —
-**superseded**.) Yaw drift (deg/min): EKF3 ~8, **FGO −9 in every condition** (anchor-locked),
-**UKF now flow-dependent** — textured +14…+41, blank −1…−7 (the FINDING-4 leak scaling with
-accepted flow). The FGO's position metrics *did* move (textured 4.87→5.46, blank 43→30), so
-the flat FGO yaw is its per-keyframe anchor dominating, not a no-op.
+**EKF3 ≈ FGO (~5 m); the UKF is ~4× worse** — and *worse than uncorrected* (16.4 → 20.0),
+because the correct derotation degrades the flow-rich case (FINDING 4). **The UKF is
+genuinely unstable across repeats** (range 15 vs EKF3 2.3, FGO 0.4) — *not* one outlier (two
+of three > 21) — the flow→yaw leak makes its evo −a repeat-sensitive; the smoother's anchor
+does not.
 
-- **Read by regime — displacement magnitude vs true 151 m, frame-independent:** textured
-  is the **tracking** regime (FGO 0.98, EKF3 tracks; UKF 0.58 — yaw-drift *curving* the
-  path, the leak); transition **under-travels** (0.6–1.0, loses the blank half); blank
-  **diverges** — all three *over-travel* (UKF 200 m, FGO 247 m vs true 151) on garbage
-  starved flow. **The old "formulation differences wash out under degraded sensing" is
-  restated: all three DIVERGE under flow starvation.**
-- **Do NOT read the blank/transition evo −a as a quality ranking.** UKF blank 16 < EKF3 38
-  is "diverges *less far* after SE(3) alignment," not a quality win — every estimator has
-  failed there. Only the **textured** row is a tracking-regime comparison: **EKF3 ≈ FGO
-  (~5 m); the UKF is ~4× worse (20 m)** — the flow→yaw leak, worse than before (16.4→20.0)
-  under the correct derotation, exactly as FINDING 4 predicts for a flow-rich case.
-- **The UKF is unstable across repeats on flow-bearing conditions** (textured range 15,
-  transition range 19) while the **FGO is tight everywhere** (ranges ≤1.3) — the leak makes
-  the UKF's evo −a repeat-sensitive; the smoother's anchor does not.
-- **evo `-a` is the only fair cross-estimator metric**, and even it is not a clean quality
-  metric in the divergence regime. Unaligned is NOT comparable (EKF3 true frame vs UKF/FGO
-  ~90° init-yaw gauge).
+**(2) Transition & blank — degraded-sensing FAILURE analysis** (evo −a meaningless; failure
+metrics instead — final displacement magnitude vs true travel 151 m, and the true-y at which
+the estimate departs GT by > 15 m):
+
+| condition | metric | EKF3 | UKF | FGO |
+|---|---|---|---|---|
+| **transition** | \|disp\| / true | 0.57 | 0.83 | 0.74 |
+| | divergence onset (true-y) | 102 m | 78 m | 95 m |
+| **blank** | \|disp\| / true | **0.20** | **1.30** | **1.60** |
+| | divergence onset (true-y) | 18 m | 50 m | 24 m |
+
+**The failure MODES differ — the §9.5 formulation difference, now empirically visible:**
+- **EKF3 FREEZES** (`const_pos` on aiding loss): blank displacement **0.20× true** — it stops
+  (~30 m) where flow starves while GT travels on.
+- **UKF and FGO DEAD-RECKON** (no `const_pos`, by the §9.5 decision): blank **1.30× / 1.60×**
+  — they integrate garbage starved-flow and over-travel (197 m / 242 m vs 151).
+
+**(3) The degradation gradient survives as a WITHIN-estimator result.** The *between*-estimator
+comparison does not hold on transition/blank (different failure modes), but each estimator
+degrades monotonically as flow degrades, read on **divergence onset**: **EKF3** tracks textured
+(no divergence) → transition 102 m (past the y=80 boundary) → blank 18 m (early); **FGO** tracks
+→ 95 m → 24 m — both monotonic (later onset = better sensing). The **UKF**'s gradient is muddied
+— it already "diverges" at 69 m *on textured* (the leak-driven yaw drift, not aiding loss), so
+its onset (69 → 78 → 50 m) is not clean. **So the texture→transition→blank gradient survives
+within EKF3 and the FGO** (failure onset moves earlier as flow degrades); the UKF's own tracking
+is corrupted by the leak before the sensing even degrades.
+
+- **evo `-a` remains the only fair cross-estimator metric, and only in the textured regime.**
+  Unaligned is not comparable (EKF3 true frame vs UKF/FGO ~90° init-yaw gauge). Yaw drift:
+  EKF3 ~8, **FGO −9 in every condition** (anchor-locked), UKF flow-dependent (+14…+41 textured);
+  the FGO's *position* did move (4.87→5.46, 43→30), so its flat yaw is the anchor, not a no-op.
 
 **Caveats.** n=1 per bag. Under the corrected `h_flow` the neat four-estimator yaw
 clustering (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7, all near physical
