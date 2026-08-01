@@ -692,6 +692,39 @@ UKF lets the leak accumulate into drift while EKF3 caps it continuously. `h_flow
 is verified correct (true-flow test); this is a capping-mechanism distinction, not
 a measurement-model bug and not a parameterisation effect.
 
+### Lateral drift — EKF3's east-velocity bias is yaw rotation, not the measurement or the gate (CLOSED)
+
+EKF3 carries a sustained **+0.194 m/s east-velocity bias** on `dsn_tex_r3` (→ +55.9 m
+cross-track), yet the flow measurement is **unbiased in the body frame** — the accepted
+lateral flow innovations mean **0.0089 rad/s** (`XKF5.FIX`, ×1000). Resolved by three
+checks (`plots/lateral_checks.py`, diagnosis only):
+
+1. **Not gating.** The raw lateral innovations *do* carry a +0.238 rad/s mean (positive
+   roll-coupled spikes), but the gate **removes** it (rejects positive 91.6% vs negative
+   95.7%), leaving accepted mean 0.0089 rad/s ≈ 0.016 m/s of velocity. Gating *reduces* the
+   innovation bias; it does not create the velocity bias. (EKF3's `NI` is a combined 2-axis
+   ratio, so per-axis accept is approximate.)
+2. **Yaw rotation is the mechanism.** Yaw has drifted (+9.5 deg/min → +48°), so the
+   correctly-estimated **body-forward** velocity rotates into an apparent world-East
+   component: `slope(errVE vs spd·sin(yawErr)) = +1.10` — the exact geometric relationship.
+   The filter is **self-consistent in its drifted frame** (the lateral flow correctly drives
+   *body*-lateral velocity to ~0), which is why zero-mean innovations coexist with a biased
+   *world*-frame velocity: **the bias lives in the unobservable yaw direction, not in the
+   measurement or the gate.**
+3. **Attribution is a REAL decomposition, not double-counting.** ~**74%** of the
+   east-velocity bias is heading-driven (`vE_head` +0.143 of +0.194 m/s; cross-track 45.6 m
+   of 62 m); the ~**26%** remainder (~0.05 m/s, ~16 m) is **uncorrelated with yaw error
+   (−0.23)** — a genuinely separate lateral-velocity bias, source not established (not the
+   gate — ≤0.016 m/s — and not the heading term reappearing). **Open residual, magnitude
+   stated; not worth further investigation** — uncorrelated with everything tested, small
+   vs the heading term, and common-mode across estimators (shared `h_flow` geometry).
+
+**The t≈200 s regime change is motion-profile, not a filter event.** The drone decelerates
+near the corridor end (GT speed 0.50 → 0.44 m/s); translational flow shrinks so the
+roll-coupled residual becomes a larger share of the lateral channel (mean |FIX| 449 → 1055).
+Altitude (2.1 m), roll amplitude (0.26°), and flow acceptance (~6.5%) are unchanged. So the
+"oscillate-then-settle" transition is the speed profile, not gating/altitude/roll.
+
 ### Does the FGO inherit this? — Yes in principle; its yaw behaviour is set by the anchor, not by SO(3)
 
 Earlier this section concluded "No — SO(3) makes the FGO immune, fix-before-FGO
