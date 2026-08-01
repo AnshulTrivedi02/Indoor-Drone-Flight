@@ -47,6 +47,44 @@ EKF3's here, and a re-linearising smoother (FGO) is expected to differ again. NE
 against ground truth would quantify it directly. Figures:
 `plots/{ekf3,ukf}_diag_2_consistency.png`.
 
+## Lateral-flow derotation coupling — real anomaly, proposed fix FAILED and reverted
+
+**What is real.** The shared `h_flow`'s lateral-flow prediction carries a large
+roll-rate-coupled residual against the measured flow: `lateral_residual =
+−2.07·rollspeed` (stable ±0.02 across `dsn_tex_r1/r2/r3`, corr −0.94), tracking roll
+*rate* not roll *acceleration* (so not a timestamp offset). The lateral flow channel
+is `h_flow`'s noisiest by far (residual std 0.60 vs 0.007 forward). Found by the
+state-vs-time diagnostic (`plots/ekf3_diag_4`, `diag_flow_residual.py`), not by
+hypothesis-testing.
+
+**What FAILED.** I concluded this was a *sign error* in `flow_x_rot` (h_flow uses
+`−rollspeed`; the value was flipped from the original `+rollspeed` derivation after a
+hover test that CLAUDE.md Known Issue #1 flags as confounded), and that EKF3 had the
+correct sign while the UKF/FGO were disadvantaged — motivated by EKF3's own flow-X
+innovation correlating +0.03 with roll rate vs the UKF's +0.71. **That conclusion was
+wrong on two counts, caught by gating the fix on a re-run (do this — it is the
+discipline that saved the result):**
+1. Flipping the sign **made the UKF worse**, not better: ATE evo `-a` 11.7 → 16.3 m,
+   yaw drift +12.4 → +19.3 deg/min, gyro-z overshoot 245% → 336% (`dsn_tex_r1`). The
+   UKF's flow-X innovation flipped +0.71 → −0.69 rather than dropping to ~0 — because
+   the UKF's velocity *adapts* to absorb flow, so its innovation reflects the
+   prediction term, not the sensor residual.
+2. The EKF3-vs-UKF innovation comparison (+0.03 vs +0.71) that motivated it was
+   **not apples-to-apples**: EKF3's `FIX` is a *post-derotation* innovation; the UKF's
+   is a *full-model* innovation, so EKF3's is naturally less roll-coupled by
+   construction. It does **not** establish that EKF3 derotates "more correctly."
+
+**Status.** The sign flip is **reverted** (`measurement_models.py` unchanged from
+baseline). The rollspeed coupling in the GT residual is real but its correct treatment
+is not a sign flip and is **not yet understood** — the sensor-model residual improves
+under the flip while the estimator degrades, and the EKF3/UKF derotation relationship
+is more subtle (different fusion structure + the `flow_bridge.py:123` path flip).
+**No prior result is retracted or marked provisional** on this basis: the premise
+(a fixable handicap that disadvantaged the UKF/FGO) did not hold. The four-estimator
+yaw finding **stands**. Methodological lesson recorded: a plausible state-vs-time
+diagnostic finding is not established until its fix survives the re-run; the re-run
+gate caught a fix that all the offline evidence had supported.
+
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
 - **All three estimators see one identical noise/drift realisation.** EKF3, the

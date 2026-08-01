@@ -66,7 +66,13 @@ def h_flow_pose(R_wb, v_world, p_U, omega_body):
     h_cam = max(p_U - CAM_OFFSET, H_MIN)
     flow_x_trans = SIGN_X * (v_s[1] / h_cam)          # lateral  -> flow_x
     flow_y_trans = SIGN_Y * (v_s[0] / h_cam)          # forward  -> flow_y (Stage A)
-    flow_x_rot = -omega_body[0]                        # -rollspeed
+    # NOTE (2026-08-01): a proposed sign flip of flow_x_rot (-> +rollspeed) was tested and
+    # REVERTED — it failed its confirmation (UKF ATE -a 11.7 -> 16.3, yaw drift 12.4 -> 19.3,
+    # gyro-z overshoot 245% -> 336%). The GT-residual rollspeed coupling did drop, but the
+    # estimator got worse and the UKF innovation flipped (+0.71 -> -0.69) rather than
+    # zeroing. The EKF3-vs-UKF innovation comparison that motivated it was flawed (EKF3's
+    # FIX is post-derotation, the UKF's nu is full-model — not comparable). See METHODOLOGY.
+    flow_x_rot = -omega_body[0]                        # -rollspeed (unchanged; see note)
     flow_y_rot = +omega_body[1]                        # +pitchspeed
     return np.array([flow_x_trans + flow_x_rot, flow_y_trans + flow_y_rot])
 
