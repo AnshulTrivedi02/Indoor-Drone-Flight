@@ -105,6 +105,57 @@ large oscillatory roll for lateral position control, near-zero oscillatory pitch
 the lateral rotational-flow term is ~40× the forward one. Expected and documented; not
 a structural defect in the measurement model.
 
+## Three-way comparison — first same-metric results (nomag `dsn_*`, n=1 per bag)
+
+All three estimators on **evo `-a`** (SE3-aligned — the fair cross-estimator metric
+under no compass; it removes the arbitrary init-yaw gauge the UKF/FGO carry but EKF3,
+in its true NED frame, does not). EKF3 from `XKF1`-vs-`SIM`; UKF/FGO from their TUM
+trajectories vs `/ground_truth/pose`.
+
+| condition | EKF3 | UKF (gated) | FGO (0.25 s) |
+|---|---|---|---|
+| **textured** | 4.97 (rng 2.33) | 16.44 | **4.87 (rng 1.19)** |
+| **transition** | 23.41 (rng 0.52) | 27.11 | 24.55 (rng 1.84) |
+| **blank** | 37.79 (rng 2.79) | 39.84 | 43.28 (rng 6.02) |
+
+(mean of 3 repeats, evo `-a` RMSE in m.) Yaw drift (deg/min): EKF3 ~8, FGO ~−8,
+UKF 12–32; gyro-z bias stable for EKF3 (corrects 14–33%) and FGO (~0), overshoots
+for the UKF (220–450%).
+
+- **Textured: EKF3 ≈ FGO (~4.9 m); the UKF is ~3× worse (16.4 m)** — its gyro-z-bias
+  overshoot, a UKF-gated pathology the smoother does not share.
+- **Transition and blank: all three comparable** — degraded sensing dominates and the
+  formulation differences wash out (all drift near the physical rate, all lose the
+  along-track under flow starvation).
+- **evo `-a` is the only fair cross-estimator metric here.** Unaligned is NOT
+  comparable across EKF3 (true frame; unaligned 26/93/34 m) vs UKF/FGO (init-yaw gauge;
+  unaligned 69–250 / 96–137 m dominated by the ~90° arbitrary heading offset).
+
+**Caveats.** n=1 per bag. UKF is the variance-gated-cap baseline; the four-estimator
+yaw result (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7) still governs the
+yaw interpretation. This is a first pass, not the final comparison.
+
+### FGO configuration — window is a declared config choice, not a default
+
+**The FGO's fixed-lag window (0.25 s) is a deliberately-set config value, declared as
+such** — unlike EKF3, which runs at literal ArduPilot defaults. It was **not** chosen
+for accuracy. Sequence: FGO_DESIGN §6 pre-registered 1.0 s, which measured 96 ms/step
+and **violates the pre-registered 33 ms deployability budget**; the window sweep
+{1.0, 0.5, 0.25} s was then run and **0.25 s selected as the largest window meeting
+that budget** (0.5 s = 48 ms is over). Cherry-picking is ruled out because **ATE is
+window-independent** — evo `-a` 5.10 / 5.07 / 4.23 m at 1.0 / 0.5 / 0.25 s, so the FGO
+is ~equally accurate at any window and 0.25 s merely also happens to be (mildly) best.
+
+**Solver + timing (reported honestly).** The primary solver is `BatchFixedLagSmoother`
+(iSAM2-incremental is unusable — GTSAM `marginalizeLeaves` cascades on the Python flow
+`CustomFactor`, FGO_DESIGN §6). Step-time scales ~O(window): **96 / 48 / 27 ms** at
+1.0 / 0.5 / 0.25 s. **The FGO meets the 33 ms deployability budget ONLY in its
+short-window (0.25 s) configuration — a real result, not a footnote:** a Python-bound
+`CustomFactor` FGO is budget-compliant only at a short window; larger windows spend
+compute for no accuracy gain. LM iterations are capped at 2 (warm-started); verified
+against full-LM at 0.25 s — max position difference 0.11 m, **RMS 0.029 m, identical
+ATE (4.23)** over 10047 keyframes — so the cap is not a truncated approximation.
+
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
 - **All three estimators see one identical noise/drift realisation.** EKF3, the

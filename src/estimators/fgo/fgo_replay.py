@@ -50,7 +50,8 @@ acc_lvl = [d[0] for t, k, d in ev if k == "imu" and t <= t_imu0 + 0.5]
 first_rng = next(d for t, k, d in ev if k == "rng" and 0.05 <= d <= 40.0)
 t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
-fgo = FGO(window=WINDOW, kf_dt=1.0/30.0)
+LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
+fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS)
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init)
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 

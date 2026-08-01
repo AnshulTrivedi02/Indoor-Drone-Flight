@@ -5,6 +5,34 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-08-01
+
+**Critical path cleared: all three estimators produce numbers on all nine `dsn_*`
+bags, and the first same-metric three-way is in.** On evo `-a` (fair metric under no
+compass): **textured EKF3 4.97 ≈ FGO 4.87, UKF-gated 16.4** (the UKF's gyro-z overshoot);
+transition (23.4 / 27.1 / 24.6) and blank (37.8 / 39.8 / 43.3) all comparable — degraded
+sensing dominates. Details + the unaligned/gauge caveat in METHODOLOGY "Three-way comparison".
+
+**FGO now deployable and affordable.** The iSAM2 `IncrementalFixedLagSmoother` is
+UNUSABLE — GTSAM `marginalizeLeaves` cascades on the Python flow `CustomFactor` (diagnosed
+4 ways; not our logic; FGO_DESIGN §6). Primary solver is `BatchFixedLagSmoother`; the cost
+knob is the **window**. Sweep: ATE window-independent (5.10/5.07/4.23 at 1.0/0.5/0.25 s),
+step-time 96/48/27 ms. **0.25 s is the primary config — the largest window meeting the 33 ms
+deployability budget — declared as a config choice (not a default, not tuned for ATE).** The
+FGO meets the budget only in this short-window config: a real "compute is FGO's weakness"
+result. 9-bag run ~40 min (was 2.4 h at 1.0 s). LM capped at 2 iters, verified vs full-LM
+(RMS 0.029 m, identical ATE).
+
+**A derotation-sign investigation, and the methodological control that caught it.** State-
+vs-time diagnostics (EKF3/UKF, `plots/*_diag_*`) localised the lateral drift to the lateral
+optical-flow channel and a real roll-*rate* coupling in `h_flow` (slope −2.07, stable). A
+sign fix was evidenced **three ways offline** and still **wrong** — the re-run degraded the
+UKF (ATE 11.7→16.3), so it was reverted. **The empirical re-run gate is now a standing
+control** (METHODOLOGY): gate every measurement-model change on a from-scratch estimator
+re-run. No prior result retracted; the four-estimator yaw finding stands.
+
+---
+
 ## Current Status — 2026-07-30
 
 **All three estimators now produce numbers offline on the recorded bags.** EKF3
