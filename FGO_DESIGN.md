@@ -544,29 +544,45 @@ Derived from EKF3 source, not chosen.
 
 ## 6. Fixed-lag window, marginalisation, solver
 
-### Solver: `IncrementalFixedLagSmoother`
+### Solver: `BatchFixedLagSmoother` (incremental is UNUSABLE — GTSAM limitation)
 
-Wraps iSAM2 and adds timestamp-keyed marginalisation of variables that fall out
-of the lag — exactly the fixed-lag semantics required, which bare iSAM2 does not
-provide (`marginalizeLeaves` needs the caller to identify leaves manually and is
-fragile against a per-keyframe bias chain). Incremental relinearisation means
-only the affected clique re-evaluates the Python `CustomFactor` callbacks.
+> **⚠️ CORRECTION 2026-08-01 — `IncrementalFixedLagSmoother` cannot be used here.**
+> The plan intended iSAM2-backed incremental as the primary (fast) solver. **It
+> cascades unrecoverably** whenever a Python flow `CustomFactor` is in the graph:
+> `IndexError: variable 'x…' not in this VectorValues` at the first lag-boundary
+> marginalisation (~keyframe 589 at a 1.0 s lag), after which every step fails.
+> Diagnosed four ways: (a) removing the flow factor (IMU+range+yaw only) runs all
+> 10047 keyframes cleanly → the flow `CustomFactor` is the trigger; (b) `update()`
+> succeeds, only `calculateEstimate()`/typed single-key accessors throw → the
+> marginalisation corrupts the iSAM2 delta; (c) ISAM2Params (QR factorisation,
+> `cacheLinearizedFactors=False`, `findUnusedFactorSlots`), typed accessors, and
+> disabling relinearisation **all fail identically**; (d) `BatchFixedLagSmoother`
+> re-solves rather than marginalising and handles the same factors fine. It is a
+> GTSAM `marginalizeLeaves`-vs-Python-`CustomFactor` limitation, not our logic.
+>
+> **Primary solver is therefore `BatchFixedLagSmoother`**, made affordable by (i)
+> capping LM to 2 warm-started iterations (each step is near-converged; ATE
+> unchanged, but timing barely moved — the cost is GTSAM's re-solve/marginalise
+> machinery, not the LM iterations) and (ii) the **window length**, which sets the
+> factor count per re-solve and dominates the step time (see below). Incremental is
+> kept behind `solver="incremental"` only for the flow-free correctness cross-check.
 
-Keep `BatchFixedLagSmoother` behind a `--solver batch` flag: identical
-`update(newFactors, newValues, newTimestamps)` API, re-solves the whole window
-with Levenberg–Marquardt each step (slower, no relinearisation heuristics).
-Running both on the same bag and checking agreement to numerical tolerance is a
-cheap, strong correctness check on the custom factors and their numerical
-Jacobians — one flag, not a second implementation.
+### Window length — the primary cost knob; the sweep is a real result
 
-### Window length: **1.0 s**, with a sweep as a reported result
+~30 keyframes at 1.0 s / 30 Hz. With no loop closure the window buys smoothing of
+IMU bias and attitude against flow/range history and nothing else; its value
+saturates once it spans several bias-correlation times. Accel bias is observable
+only through attitude coupling and the flow/range constraints, both sub-second at
+this envelope.
 
-~30 keyframes, ~450 variable dims at 30 Hz. With no loop closure the window buys
-smoothing of IMU bias and attitude against flow/range history and nothing else;
-its value saturates once it spans several bias-correlation times. Accel bias is
-observable only through attitude coupling and the flow/range constraints, both
-sub-second at this envelope. 1.0 s smooths across ~30 flow and ~30 range
-measurements and leaves real-time headroom.
+**Measured (`dsn_tex_r1`, batch):** the ATE is nearly window-independent — evo `-a`
+**5.10 m at 1.0 s, 5.07 m at 0.5 s** — confirming the saturation above, so the window
+is chosen for *cost*, not accuracy. Batch step-time scales ~O(window): **median 96 /
+48 / ~29 ms at 1.0 / 0.5 / 0.25 s**. The 33 ms deployability budget is met only at
+≈0.25 s; a 1.0 s window is neither deployable nor affordable (2.4 h per 9-bag run) for
+a Python-bound `CustomFactor` FGO. **The 9-bag comparison therefore runs at a shorter
+window (0.5 s ≈ 1.2 h, or 0.25 s ≈ 44 min, both under-budget-or-close), with the full
+`{0.25,0.5,1.0,2.0,4.0}` s sweep on one bag as the §8.3 cost/accuracy result.**
 
 Sweep `{0.25, 0.5, 1.0, 2.0, 4.0}` s on one bag and report the curve in §8.3
 (FGO-specific — the filters have no equivalent knob). Expected shape: ATE

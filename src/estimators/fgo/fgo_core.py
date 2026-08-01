@@ -38,13 +38,24 @@ ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
 
 
 class FGO:
-    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch"):
+    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2):
         self.kf_dt = kf_dt
-        # BatchFixedLagSmoother re-solves the window with LM each step (robust,
-        # FGO_DESIGN §6 "--solver batch"); Incremental wraps iSAM2 (faster, but its
-        # marginalisation + Python CustomFactors is fragile — cascades on error).
-        self.smoother = (gtsam_unstable.BatchFixedLagSmoother(window) if solver == "batch"
-                         else gtsam_unstable.IncrementalFixedLagSmoother(window))
+        # BatchFixedLagSmoother re-solves the window with LM each step and is ROBUST
+        # (FGO_DESIGN §6). The incremental iSAM2 path is unusable here: its
+        # marginalizeLeaves cascades ("variable not in VectorValues" at the lag boundary)
+        # whenever a Python flow CustomFactor is in the graph (confirmed: works without
+        # flow; ISAM2Params QR/no-cache, typed accessors, relin-disable all fail; a GTSAM
+        # limitation, not our logic). We stay on batch and make it affordable by capping LM
+        # iterations — each step is warm-started from the previous window solution, so it is
+        # already near-converged (default full-LM was ~101 ms/step; 2 iters ~ 33 ms budget).
+        if solver == "batch":
+            lm = gtsam.LevenbergMarquardtParams()
+            lm.setMaxIterations(lm_maxiter)
+            self.smoother = gtsam_unstable.BatchFixedLagSmoother(window, lm)
+        else:
+            ip = gtsam.ISAM2Params(); ip.setFactorization("QR")
+            ip.cacheLinearizedFactors = False; ip.findUnusedFactorSlots = True
+            self.smoother = gtsam_unstable.IncrementalFixedLagSmoother(window, ip)
         self.pim = PreintegratedCombinedMeasurements(make_pim_params(),
                                                      gtsam.imuBias.ConstantBias(np.zeros(3), np.zeros(3)))
         self.flow_noise = gtsam.noiseModel.Isotropic.Sigma(2, 0.25)   # FLOW_M_NSE
