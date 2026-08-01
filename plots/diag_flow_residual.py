@@ -76,5 +76,17 @@ print(f"  y (forward) = {rows[w,2].mean():+.4f} +/- {rows[w,2].std():.4f} rad/s"
 print(f"  GT roll cruise mean = {math.degrees(rows[w,5].mean()):+.3f} deg   pitch = {math.degrees(rows[w,6].mean()):+.3f} deg")
 cc_ang = np.corrcoef(rows[w, 5], rows[w, 1])[0, 1]
 cc_rate = np.corrcoef(rows[w, 8], rows[w, 1])[0, 1]
+slope, intercept = np.polyfit(rows[w, 8], rows[w, 1], 1)      # lateral residual vs rollspeed (rad/s per rad/s)
 print(f"  corr(lateral residual, roll ANGLE)={cc_ang:+.3f}   corr(lateral residual, roll RATE)={cc_rate:+.3f}")
+print(f"  FIT lateral_residual = {slope:+.3f}*rollspeed {intercept:+.4f}   "
+      f"(slope 0 => derotation correct; -1 => term fully uncancelled/scale, -2 => sign error)")
+# what a derotation-sign fix would recover: change flow_x_rot from -rollspeed to +C*rollspeed
+# => new residual = old + (C+1)*rollspeed.  rollspeed = om[0] stored as rows[:,8]
+rsp = rows[w, 8]; res = rows[w, 1]
+std_now = res.std()
+std_signflip = (res + 2*rsp).std()           # C=+1 (pure sign flip)
+std_bestfit = (res + (-slope)*rsp).std()      # C = -slope-1 (sign + scale, zeroes the rollspeed coupling)
+print(f"  residual std: now={std_now:.4f}  after sign-flip(+rollspeed)={std_signflip:.4f}  "
+      f"after sign+scale fit={std_bestfit:.4f} rad/s   (forward-channel floor ~0.007)")
+print(f"  n_valid_flow_cruise={w.sum()}")
 print(f"saved {OUT}")

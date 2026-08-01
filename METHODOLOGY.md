@@ -17,6 +17,36 @@ rule exists because a real near-miss happened: the FGO's `evo -a` 5.10 m read as
 5× win over EKF3's *apparatus* 24.3 m; on the same metric (`evo -a`) it is EKF3
 4.79 m vs FGO 5.10 m — on par. Same-metric-only, always.
 
+## Filter consistency — measured overconfidence in the weakly-observable directions (a result)
+
+Direct consistency check: each estimator's error (vs ground truth) against **its own
+±3σ** from the logged covariance, `dsn_tex_r1`, n=1. Where the error leaves the band
+the filter is overconfident — reporting a tighter covariance than its actual error.
+
+- **EKF3** (from `XKV1/XKV2/XKF4`): **cross-track position (Pos E) is outside ±3σ 39%**
+  of the flight (from t=44 s; error grows to ~55 m while the band grows far slower);
+  lateral velocity (Vel E) 16%; yaw 10% (last 30 s only). Along-track, height, roll,
+  pitch, gyro-Z all consistent.
+- **UKF** (logs its own covariance directly, ENU/Euler): **far worse — Pos E 91%,
+  Pos N 65%, Vel N 51%, Vel E 33%, yaw 58%.** Both horizontal position axes, both
+  horizontal velocity axes, and yaw all overconfident; height, tilt, vertical
+  consistent. (Accel-Z bias diverges to ~2 m/s², outside its band throughout —
+  flagged, truth-0 assumed.)
+
+Both filters report covariances **far tighter than their actual horizontal/heading
+error**, and precisely in the directions that are unobservable or weakly observable
+from IMU + downward-flow + range with **no yaw source** (global horizontal position
+and heading). This is the textbook symptom addressed by the **observability-consistency
+literature** — First-Estimates-Jacobian (FEJ; Huang, Mourikis & Roumeliotis 2008/2010),
+Observability-Constrained EKF / OC-VINS, and OC-UKF: a filter that re-linearises at
+successive state estimates injects **spurious information into the unobservable
+subspace**, artificially shrinking the covariance there and producing exactly this
+overconfidence. It is **a result in its own right** and a discriminating axis for the
+comparison: the UKF's sigma-point linearisation is markedly more overconfident than
+EKF3's here, and a re-linearising smoother (FGO) is expected to differ again. NEES
+against ground truth would quantify it directly. Figures:
+`plots/{ekf3,ukf}_diag_2_consistency.png`.
+
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
 - **All three estimators see one identical noise/drift realisation.** EKF3, the
