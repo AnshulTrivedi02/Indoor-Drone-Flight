@@ -1806,3 +1806,45 @@ forward-camera yaw injected into the replayed arm. A separate live flight for th
 "with" arm would bring back exactly the latency confound characterised above (a
 different run, different latency and a different trajectory realisation). **It needs
 a separate ruling.**
+
+## Phase 2 — `fwd_*` dataset: pre-registration (2026-09-24, before any `fwd_*` data exists)
+
+**Dataset.** `fwd_{tex,trans,blank}_r{1,2,3}`: the three `corridor_*_fwd` worlds × 3
+repeats, 300 s, 0.5 m/s, 2.0 m, no compass (`gnss_denied_nomag.parm`),
+`sim_noise.parm`, RANSAC seed 42, `run_trial.sh`. Everything matches `dsn_*` except:
+- **By design:** the forward camera (`iris_fwd`), the line-textured walls and the
+  end wall.
+- **Recording deviations, all additive:**
+  - `/forward_camera/image` and `camera_info` (needed by Phase 3);
+  - `/imu/time_ref` (HIGHRES_IMU `time_usec`; OI-2 infrastructure; first flight
+    verifies it);
+  - `forward_camera: true` in `metadata.yaml`.
+
+**Flight order is interleaved** (tex r1, trans r1, blank r1, tex r2, …), so any drift
+in machine state over the session is spread across worlds rather than aliased onto
+one. Replays use the current baseline estimators (OI-2 dejitter). Evaluation uses
+`eval/three_way_eval.py`, `eval/input_timing.py` (clock map) and
+`eval/flow_quality.py`.
+
+**PRIMARY** (judged per trial; a miss that could change a conclusion stops the phase):
+
+| # | criterion | band and basis |
+|---|---|---|
+| P1 | estimator-input header timing | As in Phase 1: flow and lidar at 30.30 Hz ± 0.1% with ≤ 0.5% of gaps above 1.5×; IMU mean gap 3.0005 ± 0.003 ms, p99 ≤ 10 ms. |
+| P3 | downward-flow conditions vs same-world `dsn` n=3 | As in Phase 1: inlier ±0.01, % below 0.5 within ±3 pp, features ±5%, `flow_y_raw` ±2% (±5 px/s on blank), transition switch in the 80–82 m bin with levels ±0.01, GT \|x\| ≤ 0.05 m. |
+| P4 | EKF3 outcome, unchanged by OI-2 | Textured evo -a (cruise) [1.26, 8.13]. Transition ratio [0.51, 0.63], onset [96, 108] m. Blank ratio [0.12, 0.27], onset [13, 24] m. Basis as in Phase 1. |
+| P4 | FGO outcome, **rebased on the dejittered `dsn` baseline** | **Textured evo -a (cruise) [4.17, 5.14]:** the n=3 range 4.57–4.74 ± max(range 0.17, **0.40 m**). The 0.40 m floor is the *measured* sensitivity of FGO evo -a to IMU-timestamp treatment (per-repeat moves up to 0.39 m across the OI-2 variants); a one-range margin of 0.17 m would sit below the pipeline's own known sensitivity. **Transition:** ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m. **Blank:** ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m. Basis as in Phase 1. |
+
+**DIAGNOSTIC** (reported, never a gate):
+- **P2**, flow → EKF3 latency against the same-world `dsn` mean + 12.5 ms, reported per
+  trial and as the n=3 mean (ruling above);
+- RTF; topic receive rates; the forward-image rate;
+- `/imu/time_ref` presence and rate;
+- every UKF metric;
+- evo -a (cruise) on transition and blank.
+
+**Why a primary miss would indicate the confound.**
+- P1 and P3: the forward-camera setup would be altering the shared inputs.
+- P4: estimator behaviour would differ from `dsn_*` through those inputs. Without
+  forward-camera measurements fused, the bags should be `dsn_*`-equivalent for every
+  estimator.
