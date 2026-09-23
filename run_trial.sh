@@ -81,6 +81,15 @@ if [[ "$WORLD" == *_fwd ]]; then
         /forward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
     )
     FWD_RECORD_TOPICS=(/forward_camera/image /forward_camera/camera_info)
+    # DIAGNOSTIC ONLY (Phase 1 RTF diagnosis, METHODOLOGY): FWD_DIAG=no_record keeps
+    # the bridge but drops the forward topics from the bag; FWD_DIAG=no_bridge also
+    # drops them from the bridge (camera still rendered). Unset = the normal path.
+    case "${FWD_DIAG:-}" in
+        "") ;;
+        no_record) FWD_RECORD_TOPICS=() ;;
+        no_bridge) FWD_RECORD_TOPICS=(); FWD_BRIDGE_ARGS=() ;;
+        *) echo "ERROR: unknown FWD_DIAG='${FWD_DIAG}'" >&2; exit 1 ;;
+    esac
 fi
 
 OUTPUT_DIR="$HOME/thesis_data/trials/$TRIAL_NAME"
@@ -386,6 +395,9 @@ ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 if [ "$FWD_CAMERA" = true ]; then
     echo "forward_camera: true" >> "$OUTPUT_DIR/metadata.yaml"
+    if [ -n "${FWD_DIAG:-}" ]; then
+        echo "fwd_diag: ${FWD_DIAG}   # DIAGNOSTIC run, not a dataset trial" >> "$OUTPUT_DIR/metadata.yaml"
+    fi
 fi
 
 # Append the live SITL noise/drift params (authoritative — read from the flight
