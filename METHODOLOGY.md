@@ -52,6 +52,35 @@ The only change from the historical per-estimator windows is that the boxcar is 
 defined in time rather than in samples. The resulting numbers match the earlier
 per-clock cruise values to ≤ 0.051 m (EKF3 only; UKF/FGO are unchanged).
 
+**Threshold justification and sensitivity (2026-09-24).** Measured on the GT speed
+profile of `dsn_{tex,trans,blank}_r1`:
+- **Pre-cruise horizontal speed** (hover, climb) is ≤ 0.001 m/s.
+- **In-cruise smoothed speed** has median 0.500 m/s and 1st percentile 0.497 m/s. The
+  raw speed std is 0.005 m/s.
+- **Acceleration** from 0.1 to 0.45 m/s takes ~0.56 s, and the stop is similar.
+
+So any threshold strictly between hover and cruise selects the same flight segment,
+differing only by where it cuts the ~0.6 s ramps. **0.30 m/s** is 60% of the commanded
+0.5 m/s: well clear of hover (300× the hover speed) and of the cruise floor (0.497).
+The **0.42 s boxcar** does not denoise a noisy signal (the raw speed is already clean).
+It guards the "largest contiguous run" rule against a single-sample spike from
+differentiation splitting the run. It is shorter than the ~0.56 s ramp, so it does
+not blur the window edges materially. It keeps the historical value (25 samples at
+~59 Hz) for continuity with the apparatus metrics.
+
+**Sensitivity:** thresholds of 0.20 and 0.40 m/s on all nine bags
+(`eval/results/threshold_{0.20,0.40}.json`), compared with 0.30:
+
+| | window edges | max \|Δ evo -a (cruise)\| EKF3 / UKF / FGO, m | max \|Δ disp ratio\| | max \|Δ onset\| |
+|---|---|---|---|---|
+| 0.20 m/s | ±0.13–0.15 s wider | textured 0.005 / 0.038 / 0.009; trans ≤ 0.027; blank ≤ 0.046 | ≤ 0.002 | ≤ 0.4 m |
+| 0.40 m/s | ±0.13–0.17 s narrower | textured 0.008 / 0.043 / 0.011; trans ≤ 0.034; blank ≤ 0.037 | ≤ 0.003 | ≤ 0.8 m |
+
+**No conclusion moves.** The textured means stay EKF3 4.65–4.66 / FGO 4.80–4.82 / UKF
+17.04–17.10, and the EKF3–FGO gap stays 0.15–0.16 m. Every failure-mode category and
+onset ordering is unchanged. The window is set by the flight profile, not by the
+threshold.
+
 **Clock sensitivity — bounded, not proven.** EKF3's TUMs come from dataflash `TimeUS`.
 The UKF/FGO TUMs and the window come from bag sim-time. Applying one interval to both
 assumes the two clocks share an epoch. Rather than prove this formally, the check
@@ -505,8 +534,8 @@ window (`eval/results/phase0_cruise_pinned.json`).
 - **UKF and FGO DEAD-RECKON** (no `const_pos`, by the §9.5 decision): blank **1.30× / 1.60×**
   — they integrate garbage starved-flow and over-travel (197 m / 242 m vs 151).
 
-> **FLAGGED, not investigated (2026-09-24): before the `h_flow` correction, the FGO froze
-> on blank.** Re-running the pre-correction code (`08bc2eb`, all nine bags, reproducing
+> **FLAGGED, not investigated (2026-09-24), tracked as OPEN ITEM OI-1 below: before the
+> `h_flow` correction, the FGO froze on blank.** Re-running the pre-correction code (`08bc2eb`, all nine bags, reproducing
 > the historical full-window means exactly) gives these results:
 > - **Blank:** pre-correction FGO displacement ratio **0.06 / 0.18 / 0.04**, onset 17–26 m.
 >   That is EKF3-like stopping, although the FGO has no `const_pos`. The corrected FGO
@@ -527,6 +556,37 @@ window (`eval/results/phase0_cruise_pinned.json`).
 >
 > The historical full-window figures were transition 27.11 → 17.48 / 24.55 → 28.93 and
 > blank 39.84 → 16.05 / 43.28 → 30.48 (`eval/results/precorr_vs_corr.json`).
+
+> ### OPEN ITEM OI-1 — FGO blank-floor failure mode changed with the `h_flow` correction
+>
+> **Must be resolved (half-day time-box) before the failure-mode analysis is written up.
+> Not investigated yet, by decision (2026-09-24).**
+>
+> **Observation.** On `dsn_blank_r{1,2,3}`, the pre-correction FGO (`08bc2eb`,
+> instantaneous ω in `h_flow`) **freezes**: displacement ratio 0.06 / 0.18 / 0.04, onset
+> 17–26 m, like EKF3's `const_pos` behaviour even though the FGO has no `const_pos`. The
+> corrected FGO (interval-averaged ω, current) **dead-reckons** at 1.58–1.64×. The
+> transition ratio moves from 0.51–0.55 to 0.73–0.75. Nothing else changed between the
+> two runs: same bags, same window, same factors apart from the ω fed to `h_flow`.
+>
+> **Candidate hypotheses:**
+> - **H1 — the gate decides what reaches velocity.** Under starved blank-floor flow, the
+>   roll-coupled instantaneous-ω residual inflates lateral innovations, so the χ² gate
+>   rejects most flow. With no accepted flow, the smoother's velocity is held near its
+>   prior or zero, and position stops. The correction makes innovations consistent
+>   (FINDING 4: acceptance 71% → 98% on textured), so starved, near-zero-mean garbage
+>   flow is accepted and integrated. Test: flow acceptance per axis on blank, pre vs
+>   post correction.
+> - **H2 — near-zero measured flow is being read as motion.** Blank-floor flow has
+>   ~zero translational content (`flow_y_raw` −0.71 px/s). The corrected `h_flow` now
+>   subtracts the frame-averaged rotational term, so if that term is biased relative to
+>   the measured (rotation-only) flow, the remainder reads as a velocity. That would
+>   explain the over-travel beyond 1×. Test: the sign and magnitude of the implied
+>   velocity from accepted blank-floor flow, against GT.
+>
+> **Why it matters.** The current text attributes "UKF/FGO dead-reckon" to §9.5 alone.
+> If H1 holds, the failure mode is partly a *gating* consequence of the derotation
+> model, not only a formulation choice, and the failure-mode analysis has to say so.
 
 **(3) The degradation gradient survives as a WITHIN-estimator result.** The *between*-estimator
 comparison does not hold on transition/blank (different failure modes), but each estimator
