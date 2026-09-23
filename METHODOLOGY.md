@@ -1714,3 +1714,31 @@ possibility is flagged now, before any Phase 2 data exists.
   1. Is P2 judged per trial or on the n=3 mean?
   2. Does the 12.5 ms band have to absorb the latency measurement's own uncertainty,
      about ±5 ms from the clock map? If so, it becomes an explicit stated margin.
+
+### RULING (user, 2026-09-24): P2 is DIAGNOSTIC for Phase 2 (recorded before any `fwd_*` data exists)
+
+**Reasoning, as ruled.**
+- The forward camera's added EKF3 flow latency (~5–10 ms median) is now
+  **characterised**.
+- Phase 5 compares each estimator **with and without** the forward-camera
+  measurements **on the same bags**, so both arms share that latency. It cannot
+  confound the hypothesis test.
+
+**Therefore, for Phase 2:**
+- **P2 (flow → EKF3 latency) is DIAGNOSTIC.** Its band is unchanged: same-world `dsn`
+  mean + 12.5 ms, on the corrected (offset + rate) clock map. It is reported **per
+  trial and as the n=3 mean**.
+- **Stays PRIMARY:** EKF3 evo -a (cruise) on textured, EKF3 failure metrics on
+  transition and blank, and P1, P3 and the FGO's P4.
+
+**STANDING RULE: EKF3 on `fwd_*` is never compared with EKF3 on `dsn_*` without stating
+the flow-latency difference** (median and p95, per world, from `eval/input_timing.py`).
+
+### Phase 4 design note (recorded now, no action)
+
+EKF3's with- and without-forward-camera arms **must come from the same sensor logs**.
+**The default is ArduPilot Replay** of the `fwd_*` dataflash logs, with the external
+forward-camera yaw injected into the replayed arm. A separate live flight for the
+"with" arm would bring back exactly the latency confound characterised above (a
+different run, different latency and a different trajectory realisation). **It needs
+a separate ruling.**
