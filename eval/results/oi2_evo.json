@@ -1,0 +1,101 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "dsn_tex_r1_oi2": {
+   "window_s": [
+    29.964,
+    332.452
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 93.3909670129537,
+      "true_travel": 151.15549012218193,
+      "disp_ratio": 0.6178470060033145,
+      "onset_gt_dist": 83.00187927510079
+     },
+     "ate_a_cruise": {
+      "+0.00": 18.83436
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 150.13009787065695,
+      "true_travel": 151.15031256911746,
+      "disp_ratio": 0.9932503302102403,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.686723
+     }
+    }
+   }
+  },
+  "dsn_tex_r2_oi2": {
+   "window_s": [
+    29.807,
+    332.897
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 140.03690921459048,
+      "true_travel": 151.45530701501767,
+      "disp_ratio": 0.9246087969747077,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 11.7105
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 151.09904448738914,
+      "true_travel": 151.45191934220844,
+      "disp_ratio": 0.9976700535962045,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.516215
+     }
+    }
+   }
+  },
+  "dsn_tex_r3_oi2": {
+   "window_s": [
+    30.316,
+    333.064
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 65.84606256757178,
+      "true_travel": 151.28080177714259,
+      "disp_ratio": 0.4352572289018674,
+      "onset_gt_dist": 56.33405122733604
+     },
+     "ate_a_cruise": {
+      "+0.00": 22.640366
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 150.44537208066922,
+      "true_travel": 151.27224456273015,
+      "disp_ratio": 0.9945338784094128,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.341642
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,101 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "dsn_tex_r1_oi2dj": {
+   "window_s": [
+    29.964,
+    332.452
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 94.05561287527188,
+      "true_travel": 151.15210317865453,
+      "disp_ratio": 0.622258049324677,
+      "onset_gt_dist": 67.53892978351193
+     },
+     "ate_a_cruise": {
+      "+0.00": 16.977329
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 149.10205473901692,
+      "true_travel": 151.1502846066235,
+      "disp_ratio": 0.9864490505397512,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.627852
+     }
+    }
+   }
+  },
+  "dsn_tex_r2_oi2dj": {
+   "window_s": [
+    29.807,
+    332.897
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 119.8032776724484,
+      "true_travel": 151.45383057429484,
+      "disp_ratio": 0.7910217735541497,
+      "onset_gt_dist": 81.37079594761589
+     },
+     "ate_a_cruise": {
+      "+0.00": 9.960298
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 149.037449394906,
+      "true_travel": 151.45189663690914,
+      "disp_ratio": 0.984057992698556,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.743568
+     }
+    }
+   }
+  },
+  "dsn_tex_r3_oi2dj": {
+   "window_s": [
+    30.316,
+    333.064
+   ],
+   "est": {
+    "UKF": {
+     "failure": {
+      "final_disp": 77.17446153189526,
+      "true_travel": 151.28585952638892,
+      "disp_ratio": 0.5101234297342486,
+      "onset_gt_dist": 63.0146030442467
+     },
+     "ate_a_cruise": {
+      "+0.00": 20.709771
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 149.29643622681257,
+      "true_travel": 151.2722470945374,
+      "disp_ratio": 0.9869387088135867,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.573347
+     }
+    }
+   }
+  }
+ }
+}

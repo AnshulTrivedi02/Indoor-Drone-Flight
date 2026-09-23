@@ -1082,3 +1082,139 @@ not our estimator logic: the *same* factors and core run to completion under bat
 fixed-lag interaction. Whether it is inherent to that combination or an
 implementation artefact is not yet root-caused; batch is the robust path meanwhile.
 This is the measured version of FGO's main known weakness (compute).
+
+## PRE-REGISTRATION RULE (standing, from 2026-09-24)
+
+Two errors in one phase (forward-camera Phase 1, branch `fwd-camera`: the ground-truth pose-rate band and the IMU gap-share band)
+came from one habit: bands taken from the bare observed range with zero margin, and
+diagnostic metrics used as pass/fail gates. From now on:
+
+1. **Each criterion is labelled PRIMARY** (it tests the confound directly) **or
+   DIAGNOSTIC** (reported, never a gate).
+2. **No band uses the bare observed range.** Each states its margin and the basis for
+   it: a physical tolerance, or the n=3 range widened by a stated factor. It also says
+   why a value outside the band would indicate the confound.
+3. **Only primary criteria can stop a phase.**
+
+## OPEN ITEM OI-2 — IMU timestamp asymmetry between estimators (fairness)
+
+EKF3 integrates the IMU on **true sensor time** (inside SITL). The UKF and FGO replay
+`/imu/data_raw` on its **header stamp**, which `imu_bridge.py:169` sets to the ROS sim
+clock at *receipt*. Those stamps scatter 0–9 ms around the true 3 ms sampling, with an
+exact mean of 3.0005 ms. This is common to every bag, so it cannot bias a comparison
+**between conditions**. It is an **asymmetry between estimators** in a framework whose
+premise is matched inputs, so it has to be quantified, not asserted small.
+
+**Plan** (offline only, half-day time-box, no estimator or `dsn` result changes): on
+`dsn_tex_r1..r3`, re-run the UKF and FGO with IMU samples timed on sensor time mapped
+to the sim clock. Report the change in evo -a (cruise) and yaw drift. The user then
+rules on whether a correction goes through the re-run gate.
+
+## FINDING — the SITL dataflash clock runs ~0.02% slow against Gazebo sim time (2026-09-24)
+
+Found while building OI-2. `TimeUS` (SITL, dataflash) and the bag's sim clock differ
+in **rate**, not just offset. Fitting the `SIM`-vs-`/ground_truth/pose` alignment
+separately early (takeoff, cruise start) and late (cruise stop, landing) gives:
+- offset ≈ −6 to −9 ms early and −52 to −68 ms late on every bag;
+- SITL slow by **0.016–0.022%**;
+- the same drift appears independently in the IMU, where receipt stamps drift 52 ms
+  against dataflash IMU time over the flight.
+
+`eval/input_timing.py` now maps TimeUS → sim time with `clock_map()` (offset **and**
+rate).
+
+**Consequences:**
+- **Clock-sensitivity item (Hidden Configuration Audit §1).** It stays "bounded, not
+  proven". The drift, ≤ ~60 ms over a flight, is well inside the ±0.5 s shift that was
+  shown to move no conclusion. EKF3's evo -a is unaffected: `XKF1` and `SIM` share
+  `TimeUS`.
+- **The forward-camera Phase 1 flow→EKF3 latency figures (branch `fwd-camera`) used a single whole-flight offset**,
+  which smeared each distribution by about ±25 ms. That produced the spurious "negative
+  p5" and the "transition medians up to 32 ms". They are **superseded** by the
+  linear-map values below (`eval/results/input_timing_linmap.json`). The distributions
+  are now positive (p5 ≥ 8 ms) and about 15 ms wide.
+- **Did not work (recorded):** the first linear-map run silently reused the name `t1`
+  for both the clock-fit anchor and the cruise-window end. That cropped the latency
+  statistics to the first ~300 frames and produced a spurious P2 failure for
+  `p1_fwd_trans`. It was caught by the valid-frame count (≈ 300 against ≈ 9000),
+  fixed, and re-run before anything was concluded.
+
+## OI-2 result — IMU sensor time vs receipt time (offline, 2026-09-24)
+
+**Method** (`eval/oi2_imu_time.py`; estimators and `dsn` results untouched):
+- **Anchors.** Sensor time is reconstructed from the dataflash `IMU` records (25 Hz,
+  instance 0) matched by value to bag samples. 6722–6823 anchors, ≈ 81% of dataflash
+  samples. That is the expected 333/400 overlap, since `HIGHRES_IMU` is sent on 5 of
+  every 6 loop ticks.
+- **Clock.** Anchors are mapped to sim time with `clock_map()`.
+- **Model.** t = a + b·i, fitted to the anchors. The period is 3.0005 ms (equal to the
+  receipt mean), with residual std **0.82 ms** and max 1.89 ms, consistent with the
+  2.5 ms loop grid (±1.25 ms).
+- **Check.** Receipt minus sensor time is stationary, with a median of 5–9 ms from start
+  to end. The p5 of −1 to −2 ms is within the ±2–3 ms accuracy of the grid plus clock
+  map.
+- **Run.** Clones `dsn_tex_r{1,2,3}_oi2` are identical except for the IMU header
+  stamps. The **unchanged** UKF/FGO replays run on them. Results:
+  `eval/results/oi2_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean | Δ mean |
+|---|---|---|---|---|---|
+| UKF, receipt → sensor | 18.57 → 18.83 | 10.11 → 11.71 | 22.53 → 22.64 | 17.07 → 17.73 | +0.66 (mixed sign across repeats) |
+| FGO, receipt → sensor | 4.96 → 4.69 | 4.91 → 4.52 | 4.57 → 4.34 | **4.81 → 4.52** | **−0.30 (−6%, same sign on all three)** |
+
+| yaw drift, deg/min | r1 | r2 | r3 |
+|---|---|---|---|
+| UKF | 32.9 → 33.2 | 13.9 → 10.5 | 40.9 → 42.0 |
+| FGO | −9.31 → −9.16 | −9.71 → −9.18 | −9.26 → −8.62 |
+
+**Reading.**
+- **FGO:** a small, consistent improvement (0.23–0.39 m on every repeat), comparable to
+  its own n=3 range (0.39). It **reverses the sign of the EKF3–FGO gap** (EKF3 4.66;
+  FGO 4.81 → 4.52). That gap was already inside "on par", so no textured
+  conclusion changes, but the fine ordering depends on OI-2.
+- **UKF:** no consistent direction; the changes are small against its 12.4 m range.
+- **Yaw drift:** barely moves for either estimator (FGO −9.3 → −9.0 on average), so
+  receipt jitter is not a driver of the yaw leak.
+- **The asymmetry is real but second-order.** It does not touch UKF ≪ {EKF3, FGO}. It
+  does decide the sign of the EKF3–FGO difference.
+
+**Awaiting the user's ruling** on whether a sensor-time IMU correction goes through the
+re-run gate. Implementing it properly means recording `time_usec` in `imu_bridge.py`
+for new bags and reconstructing it (as here) for the existing `dsn_*` bags.
+
+### OI-2 decomposition — dejitter vs shift (control, 2026-09-24)
+
+The sensor-time clone changes **two** things: it removes the 0–9 ms receipt jitter, and
+it moves every IMU sample 5–9 ms **earlier** relative to the flow and lidar capture
+stamps. The shift depends on the clock map. The within-flight drift of the
+receipt-minus-sensor median (r2 +0.6 → +6.0 ms, r3 +2.2 → −2.3 ms) shows that the
+**reconstruction is accurate to about ±5 ms, not ±2–3 ms** as stated above.
+
+A control, `dsn_tex_r*_oi2dj` (`oi2_imu_time.py --dejitter`), fits a line to the
+**receipt** stamps themselves. That removes the jitter and keeps the mean latency, so
+there is no shift. Results: `eval/results/oi2dj_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean |
+|---|---|---|---|---|
+| UKF, receipt (current) | 18.57 | 10.11 | 22.53 | 17.07 |
+| UKF, **dejitter only** | 16.98 | 9.96 | 20.71 | **15.88 (better on all three)** |
+| UKF, sensor (dejitter + shift) | 18.83 | 11.71 | 22.64 | 17.73 |
+| FGO, receipt (current) | 4.96 | 4.91 | 4.57 | 4.81 |
+| FGO, **dejitter only** | 4.63 | 4.74 | 4.57 | **4.65 (2 of 3 better, 1 unchanged)** |
+| FGO, sensor (dejitter + shift) | 4.69 | 4.52 | 4.34 | 4.52 |
+
+Yaw drift, deg/min (receipt → dejitter): UKF 32.9 → 29.5, 13.9 → 13.2, 40.9 → 37.2;
+FGO −9.31 → −9.19, −9.71 → −9.41, −9.26 → −8.92.
+
+**Reading.**
+- **Removing the jitter is a robust improvement for both estimators.** It needs no
+  clock map and is well determined.
+- **The IMU-vs-flow shift acts as an estimator-dependent tuning lever.** It helps the
+  FGO further and undoes the UKF's gain. It is known only to about ±5 ms. Adopting it
+  from the reconstruction would amount to choosing a time offset, which is exactly
+  what the fairness rules forbid.
+- A defensible correction is therefore either **dejitter only**, or **true
+  sensor time recorded at source** (`time_usec` in `imu_bridge.py` for new bags). The
+  second fixes the shift by measurement rather than by fit.
+- Either way it goes through the re-run gate on the full `dsn` set. That ruling is the
+  user's.

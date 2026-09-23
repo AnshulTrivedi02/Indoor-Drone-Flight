@@ -866,6 +866,12 @@ Two costs, documented rather than discovered later:
   0.103 m (transition) and at most 0.015 m on textured, far below the
   between-estimator gaps. See METHODOLOGY "Cruise window — pinned definition and clock
   sensitivity".
+  **Update, same day: the clocks also differ in RATE.** SITL's `TimeUS` runs about
+  0.02% slow against Gazebo sim time, so the offset drifts from about −7 ms to about
+  −60 ms over a flight. That is still well inside the ±0.5 s bound, so the item stays
+  "bounded, not proven". Any TimeUS-vs-bag comparison must use `eval/input_timing.py`
+  `clock_map()` (offset and rate). See METHODOLOGY "FINDING — the SITL dataflash clock
+  runs ~0.02% slow".
 
 ### 2. `GPS1_TYPE` — arming failure on a clean machine
 
