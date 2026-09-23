@@ -1434,3 +1434,10 @@ on these receipt stamps, which carry 0–9 ms jitter around the true 3 ms sampli
 `HIGHRES_IMU` `time_usec` is not used). It is common to every bag, so it does not bias
 the comparison between conditions, but it is a property of the replay inputs. Logged
 for the methodology.
+
+**Note for Phase 3 (no action yet).** The end wall fills the forward view by y ≈ 150 m
+(`plots/fwd_camera/p1_fwd_tex_forward_frames.png`), so the vanishing point, and the
+wall lines that define it, disappear at the corridor end. The heading-from-structure
+measurement therefore needs a per-frame confidence that goes to "no measurement" as
+the VP leaves the frame or the converging-line support collapses. It must not report
+a confident heading from the end-wall texture.
