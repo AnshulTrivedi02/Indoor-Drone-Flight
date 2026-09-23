@@ -5,7 +5,30 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-09-23 — forward-camera workstream, Phase 0 (stopped at gate a)
+## Current Status — 2026-09-24 — forward-camera workstream, Phase 0 COMPLETE
+
+**Metric ruling: evo -a (cruise) is the primary cross-estimator metric.** It uses one
+window defined from ground truth (speed > 0.30 m/s, 0.42 s centred boxcar, largest
+contiguous run), applied to all three estimators, with the SE3 alignment fitted on
+cruise only. The window is pinned in `eval/three_way_eval.py`.
+- **Clock sensitivity** (±0.5 s): at most 0.015 m on textured, so the Hidden
+  Configuration Audit §1 clock item is closed as *bounded, not proven*.
+- **Textured, restated:** EKF3 **4.66** ≈ FGO **4.81** ≪ UKF **17.07**, with ranges
+  2.29 / 0.39 / 12.42.
+- **Every quoted ATE was audited.** Each historical run was re-run from its original
+  commit, reproduced exactly on the full window, then restated on cruise. All
+  conclusions survive.
+- **Flagged:** before the `h_flow` correction, the FGO *froze* on blank (displacement
+  ratio 0.04–0.18) rather than dead-reckoning. The attribution of the failure mode to
+  §9.5 alone is qualified.
+- **Smoke test (b) PASS** (`p0_smoke_tex`): FGO 4.81, EKF3 5.74, UKF 19.36; topic rates
+  within ±2%; parameters verified.
+- The METHODOLOGY, eval and CLAUDE.md corrections are cherry-picked to `master`.
+
+**Next:** Phase 1 (forward-camera model variant and corridor worlds with textured
+walls), waiting on go.
+
+## Status — 2026-09-23 — forward-camera workstream, Phase 0 (stopped at gate a)
 
 Branch `fwd-camera`, from `master` at `5b14ce3`. **Phase 0 (a), the reproducibility
 gate, stopped with a finding.** `eval/three_way_eval.py` is the new single evaluation
@@ -26,7 +49,8 @@ the smoke test (b).
 
 **Critical path cleared: all three estimators produce numbers on all nine `dsn_*`
 bags, and the first same-metric three-way is in.** On evo `-a` (fair metric under no
-compass): **textured EKF3 4.97 ≈ FGO 5.46, UKF-gated 19.96** (evo `-a`, mean of n=3).
+compass): **textured EKF3 4.97 ≈ FGO 5.46, UKF-gated 19.96** (evo `-a`, full-window, mean of n=3;
+on the now-primary **evo -a (cruise)**: EKF3 4.66 ≈ FGO 4.81, UKF 17.07 — see 2026-09-24).
 *(Superseded: this block originally read FGO 4.87 / UKF 16.4, from before the corrected-`h_flow`
 nine-bag re-run; the transition/blank figures it quoted are superseded too — those conditions
 are failure regimes where evo `-a` is not a quality metric, see METHODOLOGY "Three-way comparison".)*
