@@ -9,9 +9,10 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 **Critical path cleared: all three estimators produce numbers on all nine `dsn_*`
 bags, and the first same-metric three-way is in.** On evo `-a` (fair metric under no
-compass): **textured EKF3 4.97 ≈ FGO 4.87, UKF-gated 16.4** (the UKF's gyro-z overshoot);
-transition (23.4 / 27.1 / 24.6) and blank (37.8 / 39.8 / 43.3) all comparable — degraded
-sensing dominates. Details + the unaligned/gauge caveat in METHODOLOGY "Three-way comparison".
+compass): **textured EKF3 4.97 ≈ FGO 5.46, UKF-gated 19.96** (evo `-a`, mean of n=3).
+*(Superseded: this block originally read FGO 4.87 / UKF 16.4, from before the corrected-`h_flow`
+nine-bag re-run; the transition/blank figures it quoted are superseded too — those conditions
+are failure regimes where evo `-a` is not a quality metric, see METHODOLOGY "Three-way comparison".)*
 
 **FGO now deployable and affordable.** The iSAM2 `IncrementalFixedLagSmoother` is
 UNUSABLE — GTSAM `marginalizeLeaves` cascades on the Python flow `CustomFactor` (diagnosed
