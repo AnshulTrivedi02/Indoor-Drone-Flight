@@ -134,6 +134,7 @@ def analyse(trial):
         s = s[(s >= t0) & (s <= t1)]
         d = np.diff(s)
         out["inputs"][k] = {"n": int(len(s)), "rate_hz": float((len(s) - 1) / (s[-1] - s[0])),
+                            "gap_mean_ms": float(1e3 * np.mean(d)),
                             "gap_median_ms": float(1e3 * np.median(d)), "gap_p99_ms": float(1e3 * np.percentile(d, 99)),
                             "pct_gap_gt_1.5x": float(100 * (d > 1.5 * np.median(d)).mean())}
     off, off_cost = clock_offset(sim_truth(trial), gt)

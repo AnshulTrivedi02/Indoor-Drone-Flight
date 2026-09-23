@@ -1441,3 +1441,88 @@ wall lines that define it, disappear at the corridor end. The heading-from-struc
 measurement therefore needs a per-frame confidence that goes to "no measurement" as
 the VP leaves the frame or the converging-line support collapses. It must not report
 a confident heading from the end-wall texture.
+
+### RULING (user, 2026-09-24): the IMU gap-share miss is benign
+
+Recorded as the user's ruling, **not a re-score**: *"the IMU gap-share miss is benign.
+It measures bridge receipt jitter, not sensor timing; the deviation is towards more
+regular gaps; the mean-gap check (3.0005 ms) and every direct confound check pass on
+both trials. Replace the gap-share check with the mean-gap check plus p99 gap."*
+
+The desktop-apps diagnostic run is skipped, because the cause is identified.
+
+**Infrastructure note for later phases that add sensors.** Bridging a 640×480 30 Hz
+image costs ~40% of a core inside the `gz sim` process. That process paces the
+Gazebo↔SITL lockstep, so on this machine the cost shows up as a ~20% RTF drop. Any
+further camera will cost roughly the same. Budget for it, and test estimator-input
+timing directly rather than RTF.
+
+## PRE-REGISTRATION RULE (standing, from 2026-09-24)
+
+Two errors in one phase (the ground-truth pose-rate band and the IMU gap-share band)
+came from one habit: bands taken from the bare observed range with zero margin, and
+diagnostic metrics used as pass/fail gates. From now on:
+
+1. **Each criterion is labelled PRIMARY** (it tests the confound directly) **or
+   DIAGNOSTIC** (reported, never a gate).
+2. **No band uses the bare observed range.** Each states its margin and the basis for
+   it: a physical tolerance, or the n=3 range widened by a stated factor. It also says
+   why a value outside the band would indicate the confound.
+3. **Only primary criteria can stop a phase.**
+
+### Phase 1 criterion — REVISED after the observed failures (pre-registered before `p1_fwd_blank` / `p1_fwd_trans`)
+
+**Why it was revised.** The original gate (a) was RTF ≥ 0.92 plus ±2% topic rates.
+RTF was a **proxy** for "the estimator inputs keep their `dsn_*` sim-time timing".
+- It failed on `p1_fwd_tex` (0.768).
+- The diagnosis traced the loss to bridging the forward image.
+- The direct test, `p1rtf_dsn_tex` (the unchanged `dsn` world throttled to RTF 0.762),
+  showed that lowering RTF leaves input timing, EKF3 flow latency and estimator outcome
+  inside tolerance.
+- The ±2% receive-rate band failed on the wall-clock-driven ground-truth topic, which
+  is not an input.
+
+The revised criterion therefore tests the confound directly. **It is a revision made
+after seeing failures, and is stated as such.** RTF, receive rates and the IMU gap-share
+become diagnostics. Baselines are the same-world `dsn_*` n=3 values
+(`eval/results/{input_timing_baseline,phase0_cruise_pinned,flow_quality_dsn}.json`).
+
+**PRIMARY**
+
+| # | criterion | band and basis | why a miss would mean the confound |
+|---|---|---|---|
+| P1 | flow and lidar header timing (cruise) | rate 30.30 Hz ± 0.1%; ≤ 0.5% of gaps above 1.5 periods. `dsn` is exact (0.00%); 0.5% is one dropped frame per ~6.6 s, a negligible loss of information. | Dropped or late downward frames would mean the added load starves the downward pipeline. |
+| P1 | IMU header timing (cruise) | mean gap 3.0005 ± 0.003 ms (0.1% = one lost sample in 1000; `dsn` is exact to 0.0001 ms); p99 gap ≤ 10 ms (the `dsn` maximum of 7 ms plus one 3 ms period, at most one extra late sample at the 99th percentile). | Lost or late IMU samples. |
+| P2 | flow → EKF3 latency (median and p95) | ≤ same-world `dsn` mean + **12.5 ms** (one EKF3 prediction step, its own time resolution; `AP_NavEKF3_Measurements.cpp:232-234`). Matched frames ≥ same-world `dsn` minimum − 5 pp (`dsn` blank spreads 7 pp). | EKF3 would fuse flow at a different effective time than in `dsn_*`. |
+| P3 | downward flow conditions (unchanged from the original (b)) | inlier mean ±0.01 of the `dsn` mean (8× the textured n=3 range, ~1.5% of the textured–blank gap); % below 0.5 within ±3 pp; features ±5%; `flow_y_raw` ±2% (textured, transition; ≈ 1 cm of height or 1 cm/s of speed) or ±5 px/s (blank); transition switch in the same 2 m bin (the metric's resolution), levels ±0.01; GT \|x\| ≤ 0.05 m. | The downward image content or geometry changed. |
+| P4 | outcome, **textured** | evo -a (cruise) within the n=3 range widened by one range-width each side: **FGO [4.18, 5.35]**, **EKF3 [1.26, 8.13]**. | The forward-camera setup changed estimator behaviour through the shared inputs. |
+| P4 | outcome, **transition / blank** (failure metrics, cruise) | For **EKF3 and the FGO**: displacement ratio within the n=3 range ± max(range, 0.05), where 0.05 is the window-sensitivity bound. Onset within the n=3 range ± max(range, 5 m), a third of the 15 m divergence threshold. Transition: EKF3 ratio [0.51, 0.63], onset [96, 108] m; FGO ratio [0.68, 0.80], onset [90, 101] m. Blank: EKF3 ratio [0.12, 0.27], onset [13, 24] m; FGO ratio [1.52, 1.70], onset [17, 30] m. | Same as above. |
+
+**DIAGNOSTIC** (reported, never a gate):
+- RTF, and topic receive rates (`topic_rates.py`), including `/ground_truth/pose`,
+  `/attitude/angular_rates` and `/ekf/pose`
+- the IMU ">1.5× gap" share
+- every UKF metric (its n=3 range is too wide to gate on)
+- evo -a (cruise) on transition and blank (a failure regime, not a quality metric)
+- the forward-image rate (30.30 Hz expected)
+
+**`p1_fwd_tex` re-scored under the revised criterion: PASS.**
+- **P1:** flow and lidar exact; IMU mean gap 3.0005 ms, p99 7 ms.
+- **P2:** latency median 19.8 / p95 51.5 ms, against ≤ 23.4 / ≤ 55.2; 100% matched.
+- **P3:** pass (above).
+- **P4:** FGO 4.55, EKF3 4.07.
+- Diagnostics: RTF 0.768, UKF 12.58.
+
+## OPEN ITEM OI-2 — IMU timestamp asymmetry between estimators (fairness)
+
+EKF3 integrates the IMU on **true sensor time** (inside SITL). The UKF and FGO replay
+`/imu/data_raw` on its **header stamp**, which `imu_bridge.py:169` sets to the ROS sim
+clock at *receipt*. Those stamps scatter 0–9 ms around the true 3 ms sampling, with an
+exact mean of 3.0005 ms. This is common to every bag, so it cannot bias a comparison
+**between conditions**. It is an **asymmetry between estimators** in a framework whose
+premise is matched inputs, so it has to be quantified, not asserted small.
+
+**Plan** (offline only, half-day time-box, no estimator or `dsn` result changes): on
+`dsn_tex_r1..r3`, re-run the UKF and FGO with IMU samples timed on sensor time mapped
+to the sim clock. Report the change in evo -a (cruise) and yaw drift. The user then
+rules on whether a correction goes through the re-run gate.
