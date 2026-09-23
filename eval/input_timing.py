@@ -13,7 +13,8 @@ threshold was a proxy for.
     `OF` record that logged it, by value: `flow_bridge.py` sends
     `flow_rate_x = -flow_x_rad`, `flow_rate_y = +flow_y_rad`, and `OF.flowX` /
     `OF.flowY` log exactly those rates. Latency = (`OF.TimeUS` - clock offset) -
-    frame header stamp. The two clocks do NOT share an epoch exactly: the first
+    frame header stamp, with TimeUS mapped to the sim clock by clock_map() (offset
+    AND rate, fitted early and late in the flight). The two clocks do NOT share an epoch exactly: the first
     attempt, without an offset, gave a median of -19.9 ms, i.e. `OF` apparently logged
     before the frame existed. So the offset (dataflash TimeUS minus bag sim time) is
     estimated per trial by aligning SITL's `SIM` truth with `/ground_truth/pose` on
@@ -101,6 +102,28 @@ def clock_offset(sim, gt):
     return float(fine[np.argmin(cs)]), float(cs.min())
 
 
+EARLY_WIN, LATE_WIN = (0.0, 70.0), (290.0, 1e9)     # TimeUS seconds
+
+
+def clock_map(sim, gt):
+    """Linear map TimeUS -> bag sim clock: offset(t) = o1 + (o2 - o1)(t - t1)/(t2 - t1).
+
+    The two clocks differ in RATE as well as offset: SITL's TimeUS runs ~0.017% slow
+    against Gazebo sim time (dsn_tex_r1..r3: offset -7 ms early, -52 to -60 ms late).
+    A single whole-flight offset would therefore smear any TimeUS-vs-bag comparison by
+    up to about +-25 ms. Offsets are fitted (clock_offset) separately in an early window
+    (takeoff, cruise start) and a late window (cruise stop, landing), each at its mean
+    TimeUS. Returns (to_sim(t_us_array), o1, o2, t1, t2)."""
+    fits = []
+    for lo, hi in (EARLY_WIN, LATE_WIN):
+        w = sim[(sim[:, 0] >= lo) & (sim[:, 0] <= hi)]
+        o, _ = clock_offset(w, gt)
+        fits.append((float(np.mean(w[:, 0])), o))
+    (t1, o1), (t2, o2) = fits
+    to_sim = lambda t: t - (o1 + (o2 - o1) * (t - t1) / (t2 - t1))
+    return to_sim, o1, o2, t1, t2
+
+
 def of_records(trial):
     p = f"{TRIALS_DIR}/{trial}/ekf3/of.npy"
     if not os.path.exists(p):
@@ -137,9 +160,10 @@ def analyse(trial):
                             "gap_mean_ms": float(1e3 * np.mean(d)),
                             "gap_median_ms": float(1e3 * np.median(d)), "gap_p99_ms": float(1e3 * np.percentile(d, 99)),
                             "pct_gap_gt_1.5x": float(100 * (d > 1.5 * np.median(d)).mean())}
-    off, off_cost = clock_offset(sim_truth(trial), gt)
-    out["clock_offset_ms"] = 1e3 * off                 # TimeUS clock minus bag sim clock
-    out["clock_offset_fit_mse"] = off_cost
+    to_sim, o1, o2, ta, tb = clock_map(sim_truth(trial), gt)
+    out["clock_offset_ms"] = 1e3 * (o1 + o2) / 2       # mean TimeUS-minus-sim offset (diagnostic)
+    out["clock_offset_early_late_ms"] = [1e3 * o1, 1e3 * o2]
+    out["clock_rate_diff_pct"] = 100 * (o2 - o1) / (tb - ta)
     of = of_records(trial)
     key = lambda fx, fy: (np.float32(fx).tobytes(), np.float32(fy).tobytes())
     of_t = {}
@@ -147,7 +171,7 @@ def analyse(trial):
         of_t.setdefault(key(fx, fy), t)             # first log of that sample
     fl = np.array(flow)
     fl = fl[(fl[:, 0] >= t0) & (fl[:, 0] <= t1)]
-    lat = [of_t[key(-fx, fy)] - off - t for t, fx, fy in fl if key(-fx, fy) in of_t]
+    lat = [to_sim(of_t[key(-fx, fy)]) - t for t, fx, fy in fl if key(-fx, fy) in of_t]
     lat = 1e3 * np.array(lat)
     out["flow_to_ekf3"] = {"valid_frames": int(len(fl)), "matched_pct": float(100 * len(lat) / len(fl)),
                            "lat_median_ms": float(np.median(lat)), "lat_p5_ms": float(np.percentile(lat, 5)),
@@ -164,7 +188,7 @@ if __name__ == "__main__":
     res = {t: analyse(t) for t in a.trials}
     for t, r in res.items():
         f = r["flow_to_ekf3"]
-        print(f"{t:22} clock offset {r['clock_offset_ms']:+7.2f} ms (fit mse {r['clock_offset_fit_mse']:.2e})")
+        print(f"{t:22} clock offset early/late {r['clock_offset_early_late_ms'][0]:+7.2f}/{r['clock_offset_early_late_ms'][1]:+7.2f} ms (rate {r['clock_rate_diff_pct']:+.4f}%)")
         print(f"{'':22} flow->EKF3 matched {f['matched_pct']:5.1f}%  latency median {f['lat_median_ms']:6.1f} "
               f"p5 {f['lat_p5_ms']:6.1f} p95 {f['lat_p95_ms']:6.1f} p99 {f['lat_p99_ms']:6.1f} max {f['lat_max_ms']:6.1f} ms")
         for k, v in r["inputs"].items():

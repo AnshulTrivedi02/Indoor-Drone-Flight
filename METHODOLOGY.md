@@ -1560,3 +1560,96 @@ Frames: `plots/fwd_camera/p1_forward_frames_all.png`.
 
 **Phase 1 complete.** Phase 2 (`fwd_*`: 3 worlds × 3 repeats) is gated on the user's
 go, and will apply this same revised criterion to all nine bags.
+
+## FINDING — the SITL dataflash clock runs ~0.02% slow against Gazebo sim time (2026-09-24)
+
+Found while building OI-2. `TimeUS` (SITL, dataflash) and the bag's sim clock differ
+in **rate**, not just offset. Fitting the `SIM`-vs-`/ground_truth/pose` alignment
+separately early (takeoff, cruise start) and late (cruise stop, landing) gives:
+- offset ≈ −6 to −9 ms early and −52 to −68 ms late on every bag;
+- SITL slow by **0.016–0.022%**;
+- the same drift appears independently in the IMU, where receipt stamps drift 52 ms
+  against dataflash IMU time over the flight.
+
+`eval/input_timing.py` now maps TimeUS → sim time with `clock_map()` (offset **and**
+rate).
+
+**Consequences:**
+- **Clock-sensitivity item (Hidden Configuration Audit §1).** It stays "bounded, not
+  proven". The drift, ≤ ~60 ms over a flight, is well inside the ±0.5 s shift that was
+  shown to move no conclusion. EKF3's evo -a is unaffected: `XKF1` and `SIM` share
+  `TimeUS`.
+- **The Phase 1 flow→EKF3 latency figures above used a single whole-flight offset**,
+  which smeared each distribution by about ±25 ms. That produced the spurious "negative
+  p5" and the "transition medians up to 32 ms". They are **superseded** by the
+  linear-map values below (`eval/results/input_timing_linmap.json`). The distributions
+  are now positive (p5 ≥ 8 ms) and about 15 ms wide.
+- **Did not work (recorded):** the first linear-map run silently reused the name `t1`
+  for both the clock-fit anchor and the cruise-window end. That cropped the latency
+  statistics to the first ~300 frames and produced a spurious P2 failure for
+  `p1_fwd_trans`. It was caught by the valid-frame count (≈ 300 against ≈ 9000),
+  fixed, and re-run before anything was concluded.
+
+**P2 re-checked on the corrected measurement.** The limit is the same-world `dsn` mean
+plus 12.5 ms. `dsn` medians / p95: textured 14.5–17.6 / 23.7–24.9, transition
+15.2–20.5 / 24.8–27.7, blank 16.4–18.9 / 24.9–27.0.
+
+| trial | median (limit) | p95 (limit) | verdict |
+|---|---|---|---|
+| `p1_fwd_tex` | 20.7 (≤ 28.1) | 31.5 (≤ 36.7) | pass |
+| `p1_fwd_trans` | 27.7 (≤ 30.4) | **37.2 (≤ 38.3)** | pass |
+| `p1_fwd_blank` | 27.4 (≤ 29.9) | **37.9 (≤ 38.2)** | pass, 0.3 ms margin |
+| `p1rtf_dsn_tex` | 19.9 (≤ 28.1) | 28.6 (≤ 36.7) | pass |
+
+**All still pass, but the tighter measurement exposes a real, systematic effect.** The
+forward camera adds **~5–10 ms median and ~8–13 ms p95** of flow→EKF3 latency. RTF
+alone (`p1rtf`) adds ~4 ms median.
+
+EKF3 assumes ~10 ms plus half a frame (`EK3_FLOW_DELAY`). Its flow time-alignment error
+therefore grows from ~5 ms (`dsn`) to ~11–18 ms (`fwd`), up to ~1.4 EKF3 prediction
+steps. It is an input to **EKF3 only**; the UKF/FGO replay on capture stamps. The
+margins on transition and blank p95 are thin, so **Phase 2's n=3 may cross P2**. That
+possibility is flagged now, before any Phase 2 data exists.
+
+## OI-2 result — IMU sensor time vs receipt time (offline, 2026-09-24; awaiting ruling)
+
+**Method** (`eval/oi2_imu_time.py`; estimators and `dsn` results untouched):
+- **Anchors.** Sensor time is reconstructed from the dataflash `IMU` records (25 Hz,
+  instance 0) matched by value to bag samples. 6722–6823 anchors, ≈ 81% of dataflash
+  samples. That is the expected 333/400 overlap, since `HIGHRES_IMU` is sent on 5 of
+  every 6 loop ticks.
+- **Clock.** Anchors are mapped to sim time with `clock_map()`.
+- **Model.** t = a + b·i, fitted to the anchors. The period is 3.0005 ms (equal to the
+  receipt mean), with residual std **0.82 ms** and max 1.89 ms, consistent with the
+  2.5 ms loop grid (±1.25 ms).
+- **Check.** Receipt minus sensor time is stationary, with a median of 5–9 ms from start
+  to end. The p5 of −1 to −2 ms is within the ±2–3 ms accuracy of the grid plus clock
+  map.
+- **Run.** Clones `dsn_tex_r{1,2,3}_oi2` are identical except for the IMU header
+  stamps. The **unchanged** UKF/FGO replays run on them. Results:
+  `eval/results/oi2_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean | Δ mean |
+|---|---|---|---|---|---|
+| UKF, receipt → sensor | 18.57 → 18.83 | 10.11 → 11.71 | 22.53 → 22.64 | 17.07 → 17.73 | +0.66 (mixed sign across repeats) |
+| FGO, receipt → sensor | 4.96 → 4.69 | 4.91 → 4.52 | 4.57 → 4.34 | **4.81 → 4.52** | **−0.30 (−6%, same sign on all three)** |
+
+| yaw drift, deg/min | r1 | r2 | r3 |
+|---|---|---|---|
+| UKF | 32.9 → 33.2 | 13.9 → 10.5 | 40.9 → 42.0 |
+| FGO | −9.31 → −9.16 | −9.71 → −9.18 | −9.26 → −8.62 |
+
+**Reading.**
+- **FGO:** a small, consistent improvement (0.23–0.39 m on every repeat), comparable to
+  its own n=3 range (0.39). It **reverses the sign of the EKF3–FGO gap** (EKF3 4.66;
+  FGO 4.81 → 4.52). That gap was already inside "on par", so no textured
+  conclusion changes, but the fine ordering depends on OI-2.
+- **UKF:** no consistent direction; the changes are small against its 12.4 m range.
+- **Yaw drift:** barely moves for either estimator (FGO −9.3 → −9.0 on average), so
+  receipt jitter is not a driver of the yaw leak.
+- **The asymmetry is real but second-order.** It does not touch UKF ≪ {EKF3, FGO}. It
+  does decide the sign of the EKF3–FGO difference.
+
+**Awaiting the user's ruling** on whether a sensor-time IMU correction goes through the
+re-run gate. Implementing it properly means recording `time_usec` in `imu_bridge.py`
+for new bags and reconstructing it (as here) for the existing `dsn_*` bags.

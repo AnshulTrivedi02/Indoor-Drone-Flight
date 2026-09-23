@@ -7,6 +7,21 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ## Current Status — 2026-09-24 (night) — forward-camera Phase 1 COMPLETE under the revised criterion
 
+**Update — OI-2 done, plus a clock finding.**
+- **Clock rate.** SITL's dataflash clock runs ~0.02% slow against Gazebo sim time.
+  With `TimeUS` mapped by offset and rate, the flow→EKF3 latencies are superseded:
+  they are now positive and tight.
+  - All three fwd worlds still pass P2, but transition and blank have thin p95
+    margins (0.3–1.1 ms).
+  - The forward camera adds ~5–10 ms of median EKF3 flow latency. That is real, and
+    flagged for Phase 2.
+- **OI-2** (IMU sensor time vs receipt time, offline on `dsn_tex_r1..r3`):
+  - FGO evo -a (cruise) 4.81 → 4.52 (−6%, all three repeats), which flips the tiny
+    EKF3–FGO gap;
+  - UKF 17.07 → 17.73 (mixed);
+  - yaw drift essentially unchanged.
+- **Awaiting a ruling** on OI-2 and the go for Phase 2.
+
 - **User ruling:** the IMU gap-share miss is benign.
 - **New standing pre-registration rule:** each criterion is labelled PRIMARY or
   DIAGNOSTIC, no band uses a bare observed range, and only primary criteria can gate.
