@@ -471,9 +471,44 @@ after alignment," not a quality win). The old
 "formulation differences wash out under degraded sensing" is restated as: **all three fail
 under flow starvation, by different failure modes.**
 
-**(1) Textured — the tracking-regime quality comparison.** Metric: **evo -a
-(cruise)**, RMSE in m, from `eval/three_way_eval.py`. This is the only cross-estimator
-ranking that holds.
+**(1) Textured — the tracking-regime quality comparison. CURRENT BASELINE (OI-2
+dejitter, 2026-09-24).** Metric: **evo -a (cruise)**, RMSE in m. UKF and FGO are re-run
+with the OI-2 dejittered IMU stamps (`src/estimators/imu_timing.py`, master `cb4c845`,
+all nine bags; `eval/results/dsn_dejitter_baseline.json`). EKF3 is unchanged.
+
+| estimator | r1 / r2 / r3 | mean | range |
+|---|---|---|---|
+| EKF3 | 4.58 / 3.55 / 5.84 | **4.66** | 2.29 |
+| FGO (0.25 s) | 4.63 / 4.74 / 4.57 | **4.65** | 0.17 |
+| UKF (gated) | 16.98 / 9.96 / 20.71 | **15.88** | 10.75 |
+
+**EKF3 and the FGO are indistinguishable at n=3.** The thesis claims no ordering
+between them. That ordering **flips under the IMU-timestamp variants**: FGO 4.81
+(receipt stamps) / 4.65 (dejittered) / 4.52 (reconstructed sensor time) against EKF3
+4.66. The UKF remains ~3.4× worse and unstable across repeats (range 10.75 against
+2.29 and 0.17).
+
+**Why the correction was made — fairness, not ATE.** EKF3 integrates the IMU on SITL's
+regular internal sensor time. The UKF and FGO had been integrating on bridge receipt
+stamps with ±12 ms jitter. Dejittering gives them **equally regular IMU timing** (OI-2).
+The ATE change is a *consequence*, reported here, not the reason: UKF 17.07 → 15.88 and
+FGO 4.81 → 4.65, both better. **The reconstructed 5–9 ms sensor-time shift was NOT
+adopted**: it would be an IMU–flow time offset fitted to a ±5 ms reconstruction, and
+it moves the two estimators in opposite directions (OI-2 decomposition).
+
+**Re-run gate.** The shared implementation reproduces the offline `oi2dj` control
+exactly on all three textured bags (UKF 16.98 / 9.96 / 20.71, FGO 4.63 / 4.74 / 4.57),
+so the implementation is the correction that was tested.
+
+> **Superseded (kept for the record): the receipt-stamp cruise table below, and every
+> UKF/FGO number elsewhere in this file computed on receipt stamps.** Only the textured
+> table is restated. Per the batching ruling, all other UKF/FGO tables (transition and
+> blank failure metrics, FINDING 2 and 4, ramp tracking, consistency) are restated
+> **once**, in the consolidated re-run before the results chapter. The dejittered
+> transition and blank values are already in `dsn_dejitter_baseline.json`; they are not
+> yet interpreted here.
+
+*Receipt-stamp cruise table (superseded 2026-09-24):*
 
 | estimator | r1 / r2 / r3 | mean | range |
 |---|---|---|---|
@@ -1095,6 +1130,35 @@ diagnostic metrics used as pass/fail gates. From now on:
    it: a physical tolerance, or the n=3 range widened by a stated factor. It also says
    why a value outside the band would indicate the confound.
 3. **Only primary criteria can stop a phase.**
+
+## STANDING RULE — scope control (user, 2026-09-24)
+
+**Before starting any work that is not in the phase brief, ask:**
+- **(a)** does it change a thesis claim?
+- **(b)** would a reviewer's objection stand without it?
+
+**If both are no,** add one line to the open-items list below and move on.
+
+**Only primary criteria that could change a conclusion stop a phase.** Diagnostics
+are reported, never investigated on the spot.
+
+## BASELINE CORRECTIONS ARE BATCHED (user, 2026-09-24)
+
+The OI-2 dejitter re-run (below) is the **current `dsn` baseline**. From now on,
+further corrections to the `dsn` baseline are **batched into one consolidated re-run
+before the results chapter**, not restated one at a time. **Dejitter applies to all new
+data from Phase 2 onwards.**
+
+### Open-items list (logged, not being worked)
+
+- **OI-1:** the FGO's blank-floor failure mode changed with the `h_flow` correction
+  (Three-way comparison section). Resolve before the failure-mode write-up.
+- **OI-2 residual:** the sensor-time IMU shift is not adopted. `/imu/time_ref`
+  (recorded from Phase 2 on) allows true sensor time to be used in the consolidated
+  re-run if ruled.
+- **Tables not yet restated on the dejittered baseline** (deferred to the consolidated
+  re-run): transition and blank evo -a and failure metrics; the FINDING 2 and 4
+  tables; the gyro-z ramp-tracking table; the consistency percentages.
 
 ## OPEN ITEM OI-2 — IMU timestamp asymmetry between estimators (fairness)
 
