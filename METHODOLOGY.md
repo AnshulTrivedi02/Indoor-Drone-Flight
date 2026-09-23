@@ -1320,3 +1320,76 @@ candidates are:
 - the `ros_gz_bridge` image conversion;
 - the bag writer (~9 MB/s sim of images);
 - interaction with the background desktop load.
+
+### Phase 1 follow-up — RTF diagnosis, and a direct test of whether RTF matters (2026-09-24)
+
+**Diagnosis** (four 60 s cruise runs, one load removed at a time, same session;
+diagnostic only, no configuration change). The runs use the `FWD_DIAG` switch in
+`run_trial.sh`, which is unset by default.
+
+| run | RTF | `gz sim` CPU | GPU |
+|---|---|---|---|
+| `p1diag_control_tex` (no forward camera) | **0.957** | ~130% | 28% |
+| `p1diag_fwd_full` | **0.759** | ~170% | 27% |
+| `p1diag_fwd_norecord` (bridged, not recorded) | **0.761** | ~170% | 26% |
+| `p1diag_fwd_nobridge` (in the model, not bridged) | **0.958** | ~130% | 29% |
+
+- **Rendering backend: hardware.** Ogre2 runs OpenGL 4.5 on the Quadro P620 (NVIDIA
+  driver, EGL headless, `~/.gz/rendering/ogre2.log`), not the Mesa software device.
+- **Recording costs nothing.** The **whole ~20% RTF loss appears once the forward image
+  is consumed (bridged)**, as ~40% more CPU in the `gz sim` process, with GPU
+  utilisation unchanged.
+- **Caveat:** gz-sensors is understood to skip rendering a camera that has no
+  subscribers, so "not bridged" probably also means "not rendered". The diagnosis
+  therefore isolates "forward image produced" from "absent", but not rendering from
+  bridge conversion. Either way the cost is CPU work inside the single `gz sim`
+  process that paces the lockstep.
+- **Not done:** the "desktop apps closed" run. It needs the user's desktop
+  applications closed (Firefox ~70–110% CPU).
+
+**Why RTF was only a proxy.** The confound that matters is whether the **estimator
+inputs keep their `dsn_*` sim-time timing**. The UKF and FGO replay the bags offline
+on header stamps, so they are affected only through those stamps. EKF3 is the one
+estimator fed live, by wall-clock ROS nodes over MAVLink. So the questions are:
+(a) the inputs' sim-time timing, (b) the flow delivery latency into EKF3 in sim time,
+and (c) the outcome itself. RTF was a stand-in for all three.
+
+**Direct test (pre-registered before flying).** One 300 s flight of the
+**unchanged** `corridor_textured` world (the original iris, `dsn_*` settings), with RTF
+lowered to ~0.77 by Gazebo's runtime `set_physics` service (`real_time_factor 0.77`,
+`max_step_size 0.001` as in the world file). No file changes. This isolates RTF
+itself. The forward camera's actual mechanism, CPU contention inside `gz sim`, is
+covered by re-scoring `p1_fwd_tex` on the same three checks. The trial is
+`p1rtf_dsn_tex`.
+
+The baseline is `eval/results/input_timing_baseline.json`: all nine `dsn_*` bags, the
+smoke test and the controls, from `eval/input_timing.py`.
+- **(a) Estimator-input sim-time timing.** Measured on header stamps over the cruise
+  window. Every baseline bag, **including `p1_fwd_tex` at RTF 0.768**, shows:
+  - `/optical_flow/measurement` and `/downward_lidar/range` at 30.30 Hz, median and
+    p99 gap 33.0 ms, 0.00% of gaps above 1.5 periods;
+  - `/imu/data_raw` at 333.27–333.28 Hz, median gap 3.0 ms, p99 6–7 ms, and
+    18.4–18.7% of gaps above 1.5× (a fixed alternation from receipt stamping).
+
+  **Pass** if flow and lidar match exactly (30.30 Hz, 33.0 / 33.0 ms, 0.00%), and the
+  IMU is within 333.27–333.28 Hz, p99 ≤ 7 ms, and 18.4–18.7%.
+- **(b) Flow → EKF3 latency** (sim time; per-trial clock offset from `SIM` vs GT,
+  METHODOLOGY `input_timing.py`).
+  - **Tolerance: one EKF3 prediction step, 12.5 ms.** EKF3 time-stamps flow as
+    receipt − `EK3_FLOW_DELAY` (10 ms) − half the frame interval − half its step
+    (`AP_NavEKF3_Measurements.cpp:232-234`), so a latency shift below one step is
+    below EKF3's own time resolution.
+  - Baseline: the `dsn_tex` mean has median 10.9 ms and p95 42.7 ms, with 100% of
+    valid frames matched.
+  - **Pass** if the median is ≤ 23.4 ms, the p95 is ≤ 55.2 ms, and matching stays
+    ≥ 99.5%.
+  - **Stated openly:** `p1_fwd_tex`'s latency (median 19.8, p95 51.5) and the `dsn`
+    world-to-world spread (transition medians up to 32.0 ms at RTF ~0.98) were seen
+    before this tolerance was set. The tolerance comes from EKF3's time resolution,
+    not from those numbers.
+- **(c) evo -a (cruise)** within the smoke-test bands: **FGO [4.18, 5.35]** (the
+  sensitive indicator), EKF3 [1.26, 8.13], UKF [0, 34.95] (sanity only).
+
+**Decision rule.** If (a)–(c) pass on `p1rtf_dsn_tex`, **and** on `p1_fwd_tex`
+re-scored the same way, a revised Phase 1 criterion replaces the RTF threshold. It is
+written up as revised after the observed failure. If any check fails: stop and report.

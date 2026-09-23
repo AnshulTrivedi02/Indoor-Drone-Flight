@@ -1,0 +1,482 @@
+{
+ "dsn_tex_r1": {
+  "cruise_s": [
+   29.964,
+   332.452
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100812,
+    "rate_hz": 333.27713201359404,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.503933102538415
+   },
+   "/optical_flow/measurement": {
+    "n": 9167,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9167,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -31.750000000020616,
+  "clock_offset_fit_mse": 0.002510131797171606,
+  "flow_to_ekf3": {
+   "valid_frames": 9046,
+   "matched_pct": 100.0,
+   "lat_median_ms": 11.8190000000169,
+   "lat_p5_ms": -6.879999999966913,
+   "lat_p95_ms": 44.424000000027775,
+   "lat_p99_ms": 47.71870000001495,
+   "lat_max_ms": 60.42400000002601
+  }
+ },
+ "dsn_tex_r2": {
+  "cruise_s": [
+   29.807,
+   332.897
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 101013,
+    "rate_hz": 333.27614422214015,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.44731319051202
+   },
+   "/optical_flow/measurement": {
+    "n": 9184,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9184,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -26.750000000020723,
+  "clock_offset_fit_mse": 0.0022413206524535215,
+  "flow_to_ekf3": {
+   "valid_frames": 9063,
+   "matched_pct": 100.0,
+   "lat_median_ms": 10.172000000011394,
+   "lat_p5_ms": -11.880000000019209,
+   "lat_p95_ms": 40.424000000022886,
+   "lat_p99_ms": 43.424000000023,
+   "lat_max_ms": 55.424000000023455
+  }
+ },
+ "dsn_tex_r3": {
+  "cruise_s": [
+   30.316,
+   333.064
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100898,
+    "rate_hz": 333.27717990896537,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.591236607629565
+   },
+   "/optical_flow/measurement": {
+    "n": 9174,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9174,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -29.500000000020727,
+  "clock_offset_fit_mse": 0.0023156888537141447,
+  "flow_to_ekf3": {
+   "valid_frames": 9053,
+   "matched_pct": 100.0,
+   "lat_median_ms": 10.847000000012486,
+   "lat_p5_ms": -9.12999999997055,
+   "lat_p95_ms": 43.174000000021806,
+   "lat_p99_ms": 46.174000000014814,
+   "lat_max_ms": 52.17400000002215
+  }
+ },
+ "dsn_trans_r1": {
+  "cruise_s": [
+   29.783,
+   332.447
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100872,
+    "rate_hz": 333.27826658693,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.558356713029514
+   },
+   "/optical_flow/measurement": {
+    "n": 9172,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9172,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -35.75000000002056,
+  "clock_offset_fit_mse": 0.0026563922010465666,
+  "flow_to_ekf3": {
+   "valid_frames": 5178,
+   "matched_pct": 98.53225183468521,
+   "lat_median_ms": 32.02400000002115,
+   "lat_p5_ms": 12.347200000004932,
+   "lat_p95_ms": 48.49090000001297,
+   "lat_p99_ms": 51.42400000002567,
+   "lat_max_ms": 61.60700000000929
+  }
+ },
+ "dsn_trans_r2": {
+  "cruise_s": [
+   29.931,
+   332.831
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100949,
+    "rate_hz": 333.2750076758766,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.60066568926576
+   },
+   "/optical_flow/measurement": {
+    "n": 9179,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9179,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -27.250000000020723,
+  "clock_offset_fit_mse": 0.0020729725057375644,
+  "flow_to_ekf3": {
+   "valid_frames": 5210,
+   "matched_pct": 98.79078694817659,
+   "lat_median_ms": 20.599000000032675,
+   "lat_p5_ms": 2.6347000000157554,
+   "lat_p95_ms": 42.92400000002772,
+   "lat_p99_ms": 45.924000000020726,
+   "lat_max_ms": 51.92400000002095
+  }
+ },
+ "dsn_trans_r3": {
+  "cruise_s": [
+   30.184,
+   332.68
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100815,
+    "rate_hz": 333.274930164135,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000000227,
+    "pct_gap_gt_1.5x": 18.577776896066023
+   },
+   "/optical_flow/measurement": {
+    "n": 9167,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9167,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -34.50000000002056,
+  "clock_offset_fit_mse": 0.0023947604995102818,
+  "flow_to_ekf3": {
+   "valid_frames": 5196,
+   "matched_pct": 98.69130100076983,
+   "lat_median_ms": 29.914500000025157,
+   "lat_p5_ms": 11.449849999996792,
+   "lat_p95_ms": 48.174000000024364,
+   "lat_p99_ms": 51.17400000002448,
+   "lat_max_ms": 73.17400000002294
+  }
+ },
+ "dsn_blank_r1": {
+  "cruise_s": [
+   30.405,
+   332.775
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100774,
+    "rate_hz": 333.27821304432666,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.566481101088588
+   },
+   "/optical_flow/measurement": {
+    "n": 9163,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9163,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -32.50000000002062,
+  "clock_offset_fit_mse": 0.0023381242710786465,
+  "flow_to_ekf3": {
+   "valid_frames": 833,
+   "matched_pct": 84.3937575030012,
+   "lat_median_ms": 14.856000000037284,
+   "lat_p5_ms": -10.130000000003747,
+   "lat_p95_ms": 47.17400000001959,
+   "lat_p99_ms": 50.23280000002096,
+   "lat_max_ms": 56.17400000001993
+  }
+ },
+ "dsn_blank_r2": {
+  "cruise_s": [
+   30.1,
+   332.904
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100918,
+    "rate_hz": 333.2782916833167,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.651961512926466
+   },
+   "/optical_flow/measurement": {
+    "n": 9175,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9175,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -31.500000000020616,
+  "clock_offset_fit_mse": 0.0028458408059251865,
+  "flow_to_ekf3": {
+   "valid_frames": 771,
+   "matched_pct": 77.43190661478599,
+   "lat_median_ms": 16.962000000006583,
+   "lat_p5_ms": -6.130000000041491,
+   "lat_p95_ms": 48.174000000024364,
+   "lat_p99_ms": 50.208520000026596,
+   "lat_max_ms": 52.17400000002215
+  }
+ },
+ "dsn_blank_r3": {
+  "cruise_s": [
+   30.012,
+   332.9
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100945,
+    "rate_hz": 333.2761057038338,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.650935171976542
+   },
+   "/optical_flow/measurement": {
+    "n": 9178,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9178,
+    "rate_hz": 30.3030303030303,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -29.50000000002067,
+  "clock_offset_fit_mse": 0.0022411179477531003,
+  "flow_to_ekf3": {
+   "valid_frames": 835,
+   "matched_pct": 82.9940119760479,
+   "lat_median_ms": 14.765000000039663,
+   "lat_p5_ms": -11.129999999923257,
+   "lat_p95_ms": 45.174000000017145,
+   "lat_p99_ms": 48.174000000024364,
+   "lat_max_ms": 51.258000000032666
+  }
+ },
+ "p0_smoke_tex": {
+  "cruise_s": [
+   30.535,
+   332.732
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100715,
+    "rate_hz": 333.2781807592524,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.999999999990791,
+    "pct_gap_gt_1.5x": 18.7123935103362
+   },
+   "/optical_flow/measurement": {
+    "n": 9157,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9157,
+    "rate_hz": 30.303030303030305,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -33.50000000002062,
+  "clock_offset_fit_mse": 0.0026496253044205453,
+  "flow_to_ekf3": {
+   "valid_frames": 9036,
+   "matched_pct": 100.0,
+   "lat_median_ms": 14.892000000031658,
+   "lat_p5_ms": -8.129999999994197,
+   "lat_p95_ms": 46.174000000014814,
+   "lat_p99_ms": 50.1740000000126,
+   "lat_max_ms": 65.17400000002027
+  }
+ },
+ "p1_control_tex": {
+  "cruise_s": [
+   30.274,
+   332.542
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100738,
+    "rate_hz": 333.2781933494563,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.999999999990791,
+    "pct_gap_gt_1.5x": 18.655508899411338
+   },
+   "/optical_flow/measurement": {
+    "n": 9160,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9160,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -32.75000000002062,
+  "clock_offset_fit_mse": 0.0025773287023631644,
+  "flow_to_ekf3": {
+   "valid_frames": 9039,
+   "matched_pct": 100.0,
+   "lat_median_ms": 13.633000000027096,
+   "lat_p5_ms": -8.879999999976462,
+   "lat_p95_ms": 44.424000000027775,
+   "lat_p99_ms": 48.42400000002556,
+   "lat_max_ms": 60.42400000002601
+  }
+ },
+ "p1_fwd_tex": {
+  "cruise_s": [
+   29.91,
+   331.969
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100670,
+    "rate_hz": 333.2770527514583,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.999999999990791,
+    "pct_gap_gt_1.5x": 18.417785018228056
+   },
+   "/optical_flow/measurement": {
+    "n": 9153,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9153,
+    "rate_hz": 30.303030303030308,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -33.25000000002062,
+  "clock_offset_fit_mse": 0.0026760016757846456,
+  "flow_to_ekf3": {
+   "valid_frames": 9032,
+   "matched_pct": 100.0,
+   "lat_median_ms": 19.787000000022203,
+   "lat_p5_ms": -5.3799999999455395,
+   "lat_p95_ms": 51.46670000002373,
+   "lat_p99_ms": 57.924000000028286,
+   "lat_max_ms": 65.92400000002385
+  }
+ }
+}
