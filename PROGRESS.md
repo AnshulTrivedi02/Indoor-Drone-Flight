@@ -5,6 +5,23 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-23 — forward-camera workstream, Phase 0 (stopped at gate a)
+
+Branch `fwd-camera`, from `master` at `5b14ce3`. **Phase 0 (a), the reproducibility
+gate, stopped with a finding.** `eval/three_way_eval.py` is the new single evaluation
+entry point. It now writes EKF3's TUMs to `<trial>/ekf3/`, which were never stored
+before. It shows that the published three-way table **mixes windows**:
+- Every mean and every UKF/FGO per-repeat value reproduces on the **full** window.
+- The EKF3 textured per-repeat values (4.6/3.5/5.8) reproduce only on **cruise**.
+- The UKF r1 and r2 values are transposed in the table.
+
+The ordering EKF3 ≈ FGO ≪ UKF holds on both windows. Full is not a common window
+(EKF3 starts 2.6–4 s later). Cruise agrees across clocks to ≤ 0.34 s. See METHODOLOGY
+"WINDOW PENDING RULING". **Waiting on a window ruling** before pinning it and running
+the smoke test (b).
+
+---
+
 ## Current Status — 2026-08-01
 
 **Critical path cleared: all three estimators produce numbers on all nine `dsn_*`
