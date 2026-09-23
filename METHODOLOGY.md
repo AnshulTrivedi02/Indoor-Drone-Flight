@@ -1653,3 +1653,62 @@ possibility is flagged now, before any Phase 2 data exists.
 **Awaiting the user's ruling** on whether a sensor-time IMU correction goes through the
 re-run gate. Implementing it properly means recording `time_usec` in `imu_bridge.py`
 for new bags and reconstructing it (as here) for the existing `dsn_*` bags.
+
+### OI-2 decomposition — dejitter vs shift (control, 2026-09-24)
+
+The sensor-time clone changes **two** things: it removes the 0–9 ms receipt jitter, and
+it moves every IMU sample 5–9 ms **earlier** relative to the flow and lidar capture
+stamps. The shift depends on the clock map. The within-flight drift of the
+receipt-minus-sensor median (r2 +0.6 → +6.0 ms, r3 +2.2 → −2.3 ms) shows that the
+**reconstruction is accurate to about ±5 ms, not ±2–3 ms** as stated above.
+
+A control, `dsn_tex_r*_oi2dj` (`oi2_imu_time.py --dejitter`), fits a line to the
+**receipt** stamps themselves. That removes the jitter and keeps the mean latency, so
+there is no shift. Results: `eval/results/oi2dj_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean |
+|---|---|---|---|---|
+| UKF, receipt (current) | 18.57 | 10.11 | 22.53 | 17.07 |
+| UKF, **dejitter only** | 16.98 | 9.96 | 20.71 | **15.88 (better on all three)** |
+| UKF, sensor (dejitter + shift) | 18.83 | 11.71 | 22.64 | 17.73 |
+| FGO, receipt (current) | 4.96 | 4.91 | 4.57 | 4.81 |
+| FGO, **dejitter only** | 4.63 | 4.74 | 4.57 | **4.65 (2 of 3 better, 1 unchanged)** |
+| FGO, sensor (dejitter + shift) | 4.69 | 4.52 | 4.34 | 4.52 |
+
+Yaw drift, deg/min (receipt → dejitter): UKF 32.9 → 29.5, 13.9 → 13.2, 40.9 → 37.2;
+FGO −9.31 → −9.19, −9.71 → −9.41, −9.26 → −8.92.
+
+**Reading.**
+- **Removing the jitter is a robust improvement for both estimators.** It needs no
+  clock map and is well determined.
+- **The IMU-vs-flow shift acts as an estimator-dependent tuning lever.** It helps the
+  FGO further and undoes the UKF's gain. It is known only to about ±5 ms. Adopting it
+  from the reconstruction would amount to choosing a time offset, which is exactly
+  what the fairness rules forbid.
+- A defensible correction is therefore either **dejitter only**, or **true
+  sensor time recorded at source** (`time_usec` in `imu_bridge.py` for new bags). The
+  second fixes the shift by measurement rather than by fit.
+- Either way it goes through the re-run gate on the full `dsn` set. That ruling is the
+  user's.
+
+### Framing corrections to the Phase 1 P2 results (2026-09-24)
+
+- **`p1_fwd_tex` re-score limits.** The "≤ 23.4 / ≤ 55.2 ms" limits in the revised-
+  criterion re-score came from the single-offset clock and are **superseded** by the
+  linear-map table in the clock-rate FINDING (limits ≤ 28.1 / ≤ 36.7; 20.7 / 31.5,
+  pass).
+- **Blank p95 margin.** 37.9 against a 38.2 limit is **at the limit, within measurement
+  uncertainty**. The clock map is good to a few ms, not 0.3 ms. It is reported as a
+  pass under the criterion as written, but not as a clean pass. Transition (1.1 ms
+  margin) is similar.
+- **Scope of the latency effect.** The extra 5–10 ms of flow→EKF3 latency affects EKF3
+  only.
+  - It does **not** confound the Phase 5 hypothesis test, which compares with and
+    without the forward-camera measurements on the same `fwd_*` bags.
+  - It **does** confound any comparison of EKF3 on `fwd_*` against EKF3 on `dsn_*`.
+    That comparison must carry this caveat or be avoided.
+- **Open before Phase 2, to be ruled before any `fwd_*` data exists** (pre-registration
+  rule):
+  1. Is P2 judged per trial or on the n=3 mean?
+  2. Does the 12.5 ms band have to absorb the latency measurement's own uncertainty,
+     about ±5 ms from the clock map? If so, it becomes an explicit stated margin.

@@ -20,7 +20,9 @@
     The unchanged replay scripts then run on the clone. Estimators and the original
     trial are untouched.
 
-Usage (venv-evo): python3 eval/oi2_imu_time.py TRIAL [TRIAL...]
+Usage (venv-evo): python3 eval/oi2_imu_time.py [--dejitter] TRIAL [TRIAL...]
+  --dejitter: control clone `<trial>_oi2dj`, a linear fit to the receipt stamps (jitter
+              removed, mean latency kept, so no IMU-vs-flow shift).
 """
 import os, subprocess, sys
 import numpy as np
@@ -48,7 +50,7 @@ def f32(v):
     return np.float32(v).tobytes()
 
 
-def build(trial):
+def build(trial, mode="sensor"):
     src = f"{TRIALS_DIR}/{trial}"
     p = f"{src}/ekf3/imu25.npy"
     if not os.path.exists(p):
@@ -77,6 +79,12 @@ def build(trial):
     b, a = np.polyfit(anc[:, 0], anc[:, 1], 1)
     res = anc[:, 1] - (a + b * anc[:, 0])
     t_new = a + b * np.arange(len(imu))
+    if mode == "dejitter":
+        # CONTROL: a linear fit to the RECEIPT stamps themselves. It removes the 0-9 ms
+        # jitter but keeps the mean receipt latency, i.e. NO shift of the IMU against
+        # the flow/lidar capture stamps. Separates "dejitter" from "shift".
+        bb, aa = np.polyfit(np.arange(len(imu)), imu[:, 0], 1)
+        t_new = aa + bb * np.arange(len(imu))
     rec = imu[:, 0] - t_new                                  # receipt minus sensor time
     stats = {"anchors": len(anc), "anchor_pct": 100 * len(anc) / len(df), "period_ms": 1e3 * b,
              "fit_resid_std_ms": 1e3 * res.std(), "fit_resid_maxabs_ms": 1e3 * np.abs(res).max(),
@@ -84,7 +92,7 @@ def build(trial):
              "p95": 1e3 * np.percentile(rec, 95),
              "rec_first30s_med_ms": 1e3 * np.median(rec[:10000]), "rec_last30s_med_ms": 1e3 * np.median(rec[-10000:])}
     # --- clone the bag with only the IMU header stamps replaced ---
-    dst = f"{TRIALS_DIR}/{trial}_oi2"
+    dst = f"{TRIALS_DIR}/{trial}_oi2" + ("dj" if mode == "dejitter" else "")
     os.makedirs(dst, exist_ok=False)
     for f in ("ardupilot.bin", "metadata.yaml"):
         os.symlink(f"{src}/{f}", f"{dst}/{f}")
@@ -104,8 +112,9 @@ def build(trial):
 
 
 if __name__ == "__main__":
-    for tr in sys.argv[1:]:
-        s = build(tr)
+    mode = "dejitter" if "--dejitter" in sys.argv else "sensor"
+    for tr in [a for a in sys.argv[1:] if not a.startswith("--")]:
+        s = build(tr, mode)
         print(f"{tr}: anchors {s['anchors']} ({s['anchor_pct']:.1f}% of dataflash IMU), period {s['period_ms']:.5f} ms, "
               f"fit resid std {s['fit_resid_std_ms']:.3f} max {s['fit_resid_maxabs_ms']:.3f} ms; "
               f"receipt-sensor median {s['receipt_minus_sensor_med_ms']:.2f} [p5 {s['p5']:.2f}, p95 {s['p95']:.2f}] ms; "
