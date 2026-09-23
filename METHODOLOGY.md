@@ -15,7 +15,107 @@ gauge-fixed, **no** yaw alignment — used for the EKF3/UKF noise floor because
 `XKF1` is already in the true NED frame). **Never compare across metrics.** This
 rule exists because a real near-miss happened: the FGO's `evo -a` 5.10 m read as a
 5× win over EKF3's *apparatus* 24.3 m; on the same metric (`evo -a`) it is EKF3
-4.79 m vs FGO 5.10 m — on par. Same-metric-only, always.
+4.79 m vs FGO 5.10 m — on par (full-window, historical; on **evo -a (cruise)**, EKF3 4.58
+vs FGO 4.47 — still on par). Same-metric-only, always.
+
+**Amended 2026-09-24: the label also names the window.** The primary cross-estimator
+metric is **evo -a (cruise)**. It is computed only by `eval/three_way_eval.py`, over
+one pinned window (next section). A second near-miss of the same kind prompted this.
+The published three-way table had mixed windows: EKF3's textured per-repeat values
+came from the cruise window, while every other figure came from the full recording.
+The Phase 0 reproducibility gate caught it (see the three-way comparison section).
+Figures quoted without "(cruise)" are **full-window, historical**, and are labelled as
+such where they appear.
+
+## Cruise window — pinned definition and clock sensitivity (2026-09-24)
+
+**Definition** (`eval/three_way_eval.py`, `cruise_window()`). The window is defined
+once per trial, from ground truth. The same interval is then applied to all three
+estimators.
+- **Source:** `/ground_truth/pose` from the bag (Gazebo truth, sim-time clock), read
+  from `<trial>/ukf/ground_truth.tum`.
+- **Speed:** horizontal ground speed `|d(x,y)/dt|` (`np.gradient`), smoothed by a
+  **centred 0.42 s moving average**. This is the historical 25-sample boxcar at the
+  ~59 Hz GT rate (dt 15–19 ms), now defined in time so it does not depend on the
+  sample rate.
+- **Criterion:** smoothed speed **> 0.30 m/s**. The window is the **largest contiguous
+  run**, `[t0, t1]` inclusive. On the nine `dsn_*` bags it is ~30.0 → ~332.8 s
+  (about 302 s of the 300 s commanded cruise, including the acceleration and
+  deceleration tails above 0.30 m/s).
+- **Application:** the same `[t0, t1]` in seconds is cropped out of every estimator's
+  estimate **and** reference TUM.
+- **Alignment:** `evo_ape -a` (Umeyama SE3, no scale) is **fitted over the cropped
+  cruise span only**. Pre-arm, climb and landing are excluded from both the fit and
+  the RMSE.
+
+The only change from the historical per-estimator windows is that the boxcar is now
+defined in time rather than in samples. The resulting numbers match the earlier
+per-clock cruise values to ≤ 0.051 m (EKF3 only; UKF/FGO are unchanged).
+
+**Clock sensitivity — bounded, not proven.** EKF3's TUMs come from dataflash `TimeUS`.
+The UKF/FGO TUMs and the window come from bag sim-time. Applying one interval to both
+assumes the two clocks share an epoch. Rather than prove this formally, the check
+shifts the whole window by ±0.25 s and ±0.5 s (a clock offset of that size) on all
+nine bags and records the largest change in evo -a (cruise). The results
+(`eval/results/phase0_cruise_pinned.json`):
+
+| max \|Δ evo -a (cruise)\|, m | EKF3 | UKF | FGO |
+|---|---|---|---|
+| textured (3 bags) | 0.002–0.009 | 0.007–0.009 | 0.014–0.015 |
+| transition | 0.085–0.103 | 0.004–0.016 | 0.006–0.007 |
+| blank | 0.001–0.013 | 0.002–0.009 | 0.005–0.006 |
+
+On textured, the largest change (0.015 m) is **~10× smaller than the smallest
+between-estimator gap** (EKF3–FGO mean gap 0.16 m). Every UKF gap is metres. The transition maximum (0.10 m) sits in a failure
+regime where the gaps are metres. The two clocks' independently computed cruise
+windows already agreed to within 0.14–0.34 s. **Result: a clock offset of up to
+0.5 s cannot move any cross-estimator conclusion.** This closes the Hidden
+Configuration Audit §1 clock item (CLAUDE.md) as **bounded, not proven**.
+
+**ATE window audit (2026-09-24).** Every ATE quoted in this file and in PROGRESS was
+checked for which window it used.
+- **Restated on cruise** (the historical full-window value is kept alongside; each
+  re-run first reproduced its published full-window number exactly, and only then was
+  cropped):
+  - the three-way table
+  - the corrected-`h_flow` before/after, all nine bags (re-run from `08bc2eb`)
+  - FINDING 2 and the FINDING 4 A/B/C tables (stored `dc_*` / `dd_*` trajectories)
+  - the refuted sign flip (re-run from `51aaeba^` with `+rollspeed`)
+  - the FGO window sweep (re-run from `08bc2eb` at 1.0 / 0.5 s)
+  - the first fair-anchor FGO vs EKF3 comparison
+  - the `ds_tex_r1` unconditional → gated yaw-cap pair (re-run from `6f953b2`)
+- **Every qualitative conclusion survives on cruise.** The fixes that degraded the UKF
+  still degrade it. The correction still degrades both flow-rich cases. FINDING 4's
+  71% split is unchanged, and so is its `ds` sign inversion. The FGO is still
+  window-independent and still on par with EKF3.
+- **Not restated:**
+  - The full-LM half of the "capped vs full-LM, identical ATE 4.23" pair. That
+    trajectory was never stored; the capped run alone is 3.72 cruise.
+  - The void 0.49 m artefact.
+  - Apparatus-metric figures (the `ds_*` noise floor, the `ukf_replay`/`fgo_replay`
+    `ate_apparatus`). The apparatus metric is cruise-windowed by definition and is a
+    different metric.
+  - The Stage B/C mm-level figures, already void.
+- **Also found:** before the correction, the FGO froze on blank rather than
+  dead-reckoning (flagged in the three-way section).
+
+**The n=3 ranges are not a noise floor.** With three repeats, a fourth run lands
+outside the observed range with probability 2/(n+1) = 50% (under exchangeability). The
+per-estimator ranges in the three-way table describe the data; they do not bound it. A
+`dsn_*` evo -a (cruise) noise floor is **still an open item**.
+
+**Phase 0 smoke test (b) — acceptance, pre-registered before flying.** One new
+textured trial, flown with `run_trial.sh` on the unchanged `dsn_*` configuration
+(`corridor_textured`, 0.5 m/s, 2.0 m, 300 s, nomag). It passes if all of the following
+hold:
+1. The pipeline completes: bag, `ardupilot.bin` and `metadata.yaml` are written, and
+   `fly_trial.py` verifies `EXPECTED_PARAMS`.
+2. Every recorded topic's sim-time rate (`eval/topic_rates.py`) is within ±2% of the
+   `dsn_tex` mean.
+3. evo -a (cruise) falls within the n=3 range widened by one range-width on each side:
+   - **FGO** [4.18, 5.35] — the sensitive indicator.
+   - **EKF3** [1.26, 8.13].
+   - **UKF** [0, 34.95] — a sanity check only.
 
 ## Filter consistency — measured overconfidence in the weakly-observable directions (a result)
 
@@ -64,7 +164,8 @@ correct sign while the UKF/FGO were disadvantaged — motivated by EKF3's own fl
 innovation correlating +0.03 with roll rate vs the UKF's +0.71. **That conclusion was
 wrong on two counts, caught by gating the fix on a re-run (do this — it is the
 discipline that saved the result):**
-1. Flipping the sign **made the UKF worse**, not better: ATE evo `-a` 11.7 → 16.3 m,
+1. Flipping the sign **made the UKF worse**, not better: ATE evo `-a` 11.7 → 16.3 m
+   (full-window, historical; **evo -a (cruise) 10.49 → 14.22**, re-run 2026-09-24),
    yaw drift +12.4 → +19.3 deg/min, gyro-z overshoot 245% → 336% (`dsn_tex_r1`). The
    UKF's flow-X innovation flipped +0.71 → −0.69 rather than dropping to ~0 — because
    the UKF's velocity *adapts* to absorb flow, so its innovation reflects the
@@ -95,8 +196,12 @@ EKF3-consistent gating** — the baseline rejects ~29% of lateral flow where EKF
 7.5% (`XKF5 NI≥100`) and the corrected UKF ~2%, so the baseline was the divergence, not the
 fix; (3) it **touches no tuned parameter** — `FLOW_GATE` stays at EKF3's 300; acceptance
 rises only because correct innovations are smaller. **Honest cost, re-measured across nine
-bags (n=1 each):** textured (the tracking regime) UKF **16.44 → 19.96** evo −a, FGO
-4.87 → 5.46 — the fix degrades both flow-rich cases, as FINDING 4 predicts. Also bundled
+bags (n=1 each):** textured (the tracking regime), **evo -a (cruise)**: UKF **14.09 → 17.07**, FGO
+**4.32 → 4.81** — the fix degrades both flow-rich cases, as FINDING 4 predicts. (Full-window,
+historical: UKF 16.44 → 19.96, FGO 4.87 → 5.46. The pre-correction side was re-run from
+commit `08bc2eb` on 2026-09-24 and reproduced 16.44 / 4.87 exactly before the cruise
+values were taken; per repeat, cruise, UKF 10.49/13.76/18.03 → 18.57/10.11/22.53, FGO
+3.72/4.84/4.39 → 4.96/4.91/4.57.) Also bundled
 in: **PHYS_DRIFT corrected** — SITL's gyro-z drift is a triangle wave (slope 3.0 deg/min
 per min, `sitl_gyro_drift`), not the constant 9.8 (a window mean); bias % now against the
 instantaneous true bias.
@@ -151,7 +256,8 @@ re-run (`dsn_tex_r1`, n=1), it **degraded every outcome metric**:
 
 | | instantaneous ω (baseline) | interval-averaged ω |
 |---|---|---|
-| ATE (evo `-a`) | **11.69** | 21.58 |
+| ATE, evo -a (cruise) | **10.49** | 18.57 |
+| *ATE, evo `-a` full-window (historical)* | *11.69* | *21.58* |
 | yaw drift (deg/min) | **+12.4** | +32.9 |
 | gyro-z overshoot (% of 9.8) | **222%** | 494% |
 | lateral (X) flow acceptance | 71% | **98%** |
@@ -189,15 +295,15 @@ innovations pass the χ² gate more often — a higher flow-acceptance rate. Con
 the second: it loosens the gate with the *baseline* (instantaneous) ω until acceptance
 matches the fix, changing derotation not at all.
 
-*`dsn_tex_r1` (evo −a; config A reproduces the committed baseline exactly — harness validated):*
+*`dsn_tex_r1` (config A reproduces the committed baseline exactly — harness validated):*
 
-| # | ω | acc_X | evo −a | yaw drift |
-|---|---|---|---|---|
-| A baseline | instantaneous | 72.5% | 11.69 | +12.4 |
-| B *more-flow only* | **instantaneous** | 99.6% | 18.70 | +27.7 |
-| C fix | interval-avg | 99.6% | 21.58 | +32.9 |
+| # | ω | acc_X | evo -a (cruise) | *evo −a full (hist.)* | yaw drift |
+|---|---|---|---|---|---|
+| A baseline | instantaneous | 72.5% | 10.49 | *11.69* | +12.4 |
+| B *more-flow only* | **instantaneous** | 99.6% | 16.23 | *18.70* | +27.7 |
+| C fix | interval-avg | 99.6% | 18.57 | *21.58* | +32.9 |
 
-**~71% of the evo −a loss and ~75% of the yaw-drift loss is the additional accepted flow
+**~71% of the evo −a loss (cruise: A→B 5.74 of 8.08 m = 71%; full: 71%) and ~75% of the yaw-drift loss is the additional accepted flow
 at unchanged derotation (A→B); the ω values add only the remaining ~25–29% (B→C).** Leak
 path confirmed, not inferred: acc_Y (forward) stays pinned at 100% in every config — only
 acc_X (lateral) moves — and the cumulative **absolute per-update yaw correction on the X
@@ -208,15 +314,15 @@ extra accepted flow is entirely lateral and it is the lateral channel that pumps
 *The correction is geometrically sound but flight-dependent — the compass-active `ds_tex_r1`
 inverts the SIGN of its effect:*
 
-| # | ω | acc_X | evo −a | yaw drift |
-|---|---|---|---|---|
-| A baseline | instantaneous | 76.2% | 19.90 | −23.4 |
-| B *more-flow only* | **instantaneous** | 99.9% | 31.94 | +50.1 |
-| C fix | interval-avg | 99.9% | **8.72** | −5.8 |
+| # | ω | acc_X | evo -a (cruise) | *evo −a full (hist.)* | yaw drift |
+|---|---|---|---|---|---|
+| A baseline | instantaneous | 76.2% | 17.43 | *19.90* | −23.4 |
+| B *more-flow only* | **instantaneous** | 99.9% | 27.13 | *31.94* | +50.1 |
+| C fix | interval-avg | 99.9% | **7.88** | ***8.72*** | −5.8 |
 
-Isolating the ω correction at matched acceptance (B→C): on `dsn` slightly harmful (+2.9
-evo −a), on `ds` a large benefit (−23.2). **More acceptance hurts both flights (+7 dsn,
-+12 ds — the leak is on both); the correction itself helps `ds`, is ~neutral on `dsn`.**
+Isolating the ω correction at matched acceptance (B→C): on `dsn` slightly harmful (+2.3
+evo -a (cruise); full +2.9), on `ds` a large benefit (−19.3 cruise; full −23.2). **More
+acceptance hurts both flights (cruise +5.7 dsn, +9.7 ds; full +7 / +12 — the leak is on both); the correction itself helps `ds`, is ~neutral on `dsn`.**
 So the correction is *not wrong on its own terms* — it is the right derotation whose
 estimator payoff, under unobservable yaw, is set by a flight-specific accident: the
 *uncorrected* roll-coupled residual biases yaw drift by a flight-dependent sign (hurting
@@ -246,7 +352,7 @@ tweak. Whatever is decided propagates to the FGO through the shared `h_flow` and
 no-yaw gate, unassessable without a re-run.
 
 **Metric arbiter — evo −a, not apparatus.** More flow *improves* apparatus ATE
-(81.8 → 46.4 → 40.8, A→B→C) while *worsening* evo −a (11.7 → 21.6) and yaw drift
+(81.8 → 46.4 → 40.8, A→B→C) while *worsening* evo −a (cruise 10.5 → 18.6; full 11.7 → 21.6) and yaw drift
 (12.4 → 32.9). The disagreement is real. evo −a arbitrates: (1) the three-way is reported
 in evo −a and the STANDING RULE forbids mixing metrics, so any change must be judged in it
 to be comparable; (2) under nomag the *constant* yaw offset is unobservable (arbitrary
@@ -262,7 +368,7 @@ position gain; it is simply the wrong arbiter for nomag estimator *quality*.
 **METHODOLOGICAL CONTROL — the empirical re-run gate.** The sign fix was supported by
 **three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
 acceleration coupling, and EKF3's +0.03 vs the UKF's +0.71 innovation correlation — and
-was still **wrong**: applied, it degraded the UKF (ATE `-a` 11.7→16.3, drift 12.4→19.3,
+was still **wrong**: applied, it degraded the UKF (ATE evo -a (cruise) 10.49→14.22; full 11.7→16.3, drift 12.4→19.3,
 overshoot 245%→336%) and its innovation flipped (+0.71→−0.69) rather than zeroing. The
 control that caught it: **gate every measurement-model change on a from-scratch
 estimator re-run, and revert if the outcome metric degrades** — offline residual
@@ -301,64 +407,60 @@ trajectories vs `/ground_truth/pose`.
 The correction splits the conditions into **two regimes that must be reported separately**:
 only **textured** is a tracking regime where evo −a means accuracy; **transition and blank
 are failure regimes** where all three estimators diverge and evo −a is *not* a quality metric
-(UKF blank 16 < EKF3 38 is "diverges *less far* after alignment," not a quality win). The old
+(UKF blank 14.4 < EKF3 34.8, evo -a (cruise) — full-window, historical, 16 < 38 — is "diverges *less far*
+after alignment," not a quality win). The old
 "formulation differences wash out under degraded sensing" is restated as: **all three fail
 under flow starvation, by different failure modes.**
 
-> ## ⚠️ WINDOW PENDING RULING (2026-09-23) — the table below mixes evaluation windows
->
-> Reproduced from the stored trajectories by `eval/three_way_eval.py`
-> (`eval/results/phase0_window_check.json`). **Every mean in this section, and every UKF
-> and FGO per-repeat value, reproduces on the FULL-recording window.** The **EKF3
-> textured per-repeat values (4.6 / 3.5 / 5.8) reproduce only on the CRUISE window**, so
-> the EKF3 row's per-repeat values and its mean (4.97, full) come from different windows.
-> Also, **the UKF row's r1 and r2 are transposed**: r1 = 21.58, r2 = 11.65. The mean is
-> unaffected.
->
-> | evo −a (m) | EKF3 r1/r2/r3 → mean | UKF r1/r2/r3 → mean | FGO r1/r2/r3 → mean |
-> |---|---|---|---|
-> | **full** | 4.79 / 3.89 / 6.21 → **4.97** | 21.58 / 11.65 / 26.65 → **19.96** | 5.58 / 5.60 / 5.21 → **5.46** |
-> | **cruise** | 4.57 / 3.54 / 5.83 → **4.65** | 18.57 / 10.11 / 22.53 → **17.07** | 4.96 / 4.91 / 4.57 → **4.81** |
->
-> On full, the other means are transition 23.41 / 17.48 / 28.93 and blank
-> 37.79 / 16.05 / 30.48 (EKF3 / UKF / FGO).
->
-> **The ordering EKF3 ≈ FGO ≪ UKF holds on both windows**, so no textured conclusion
-> flips. The EKF3–FGO gap narrows on cruise (0.49 → 0.16 m). "Two of three > 21" for
-> the UKF holds on full only.
->
-> **Common-window property.**
-> - **Full** is *not* common. Each estimator's file has its own start: EKF3 `XKF1`
->   begins 2.6–4.0 s after the UKF/FGO start (e.g. 16.0 vs 13.4 s, `dsn_tex_r1`).
-> - **Cruise** is common in practice. It is computed from each estimator's reference on
->   its own clock (TimeUS for EKF3, bag sim-time for UKF/FGO). The two windows agree to
->   0.14–0.21 s at the start and 0.17–0.34 s at the end on all nine bags (< 0.2 % of a
->   ~302 s cruise). A formal TimeUS↔sim-time alignment proof is still owed (CLAUDE.md,
->   Hidden Configuration Audit §1).
->
-> The window will be pinned in `three_way_eval.py` and the table restated once one
-> window is chosen. Until then, quote the reproduction table above, not the table below.
-> Future ATE labels should name the window as well as the alignment, e.g.
-> "evo −a (cruise)".
+**(1) Textured — the tracking-regime quality comparison.** Metric: **evo -a
+(cruise)**, RMSE in m, from `eval/three_way_eval.py`. This is the only cross-estimator
+ranking that holds.
 
-**(1) Textured — the tracking-regime quality comparison** (evo −a RMSE, m; the only
-cross-estimator ranking that holds):
-
-| estimator | per repeat | mean | range |
+| estimator | r1 / r2 / r3 | mean | range |
 |---|---|---|---|
-| EKF3 | 4.6 / 3.5 / 5.8 | **4.97** | 2.3 |
-| FGO (0.25 s) | 5.6 / 5.6 / 5.2 | **5.46** | **0.4** |
-| UKF (gated) | 11.7 / 21.6 / 26.7 | **19.96** | **15.0** |
+| EKF3 | 4.58 / 3.55 / 5.84 | **4.66** | 2.29 |
+| FGO (0.25 s) | 4.96 / 4.91 / 4.57 | **4.81** | **0.39** |
+| UKF (gated) | 18.57 / 10.11 / 22.53 | **17.07** | **12.42** |
+| *supplementary, full-window (historical): EKF3 / FGO / UKF* | *4.79/3.89/6.21 · 5.58/5.60/5.21 · 21.58/11.65/26.65* | *4.97 · 5.46 · 19.96* | *2.32 · 0.39 · 15.00* |
 
-**EKF3 ≈ FGO (~5 m); the UKF is ~4× worse** — and *worse than uncorrected* (16.4 → 20.0),
-because the correct derotation degrades the flow-rich case (FINDING 4). **The UKF is
-genuinely unstable across repeats** (range 15 vs EKF3 2.3, FGO 0.4) — *not* one outlier (two
-of three > 21) — the flow→yaw leak makes its evo −a repeat-sensitive; the smoother's anchor
-does not.
+**EKF3 ≈ FGO (~4.7–4.8 m, gap 0.16 m); the UKF is ~3.6× worse.** It is also worse
+than before the correction (14.09 → 17.07, cruise), because the correct derotation
+degrades the flow-rich case (FINDING 4). **The UKF is unstable across repeats.** Its
+range is 12.4 m against EKF3's 2.3 m and the FGO's 0.4 m, and its worst repeat is
+2.2× its best. The flow→yaw leak makes its evo -a sensitive to the particular flight.
+The smoother's anchor does not.
+
+> **Superseded — the mixed-window table (how it was found).** Until 2026-09-24 this
+> table read EKF3 4.6 / 3.5 / 5.8 (mean 4.97), FGO 5.6 / 5.6 / 5.2 (5.46), UKF
+> 11.7 / 21.6 / 26.7 (19.96), with prose saying "two of three > 21". That table mixed
+> windows.
+> - EKF3's per-repeat values came from `plots/failure_analysis.py`, a 2-D SE(2)
+>   Umeyama fit over the cruise window.
+> - Every mean, and all UKF/FGO per-repeat values, came from evo -a on the full
+>   recording (`plots/rerun_batch.py`).
+> - The UKF's r1 and r2 were transposed (r1 = 21.58, r2 = 11.65).
+> - "Full" was also not a common window: EKF3's `XKF1` trajectory starts 2.6–4.0 s
+>   after the UKF/FGO trajectories.
+>
+> It was caught by the **forward-camera Phase 0 reproducibility gate**: regenerate
+> every published figure from stored data with one committed script before building on
+> it (`eval/results/phase0_window_check.json`). Neither window alone reproduced the
+> EKF3 column. The ruling was cruise, applied as one GT-defined window to all
+> estimators (pinned-window section above). **No textured conclusion changed**: the
+> ordering EKF3 ≈ FGO ≪ UKF holds on both windows. The EKF3–FGO gap narrows from
+> 0.49 m (full) to 0.16 m (cruise). "Two of three > 21" held on full only and is
+> dropped.
 
 **(2) Transition & blank — degraded-sensing FAILURE analysis** (evo −a meaningless; failure
 metrics instead — final displacement magnitude vs true travel 151 m, and the true-y at which
-the estimate departs GT by > 15 m):
+the estimate departs GT by > 15 m).
+
+*Window:* these metrics are measured over the cruise window, with the origin at the
+cruise start. Until 2026-09-24 each estimator's cruise window was computed on its own
+clock; they now use the pinned common window. **They do not depend on the window.** On
+all nine bags, recomputing them over the full recording moves the displacement ratio by
+≤ 0.05 and the onset by ≤ 1 m. The values below reproduce exactly under the pinned
+window (`eval/results/phase0_cruise_pinned.json`).
 
 | condition | metric | EKF3 | UKF | FGO |
 |---|---|---|---|---|
@@ -373,6 +475,29 @@ the estimate departs GT by > 15 m):
 - **UKF and FGO DEAD-RECKON** (no `const_pos`, by the §9.5 decision): blank **1.30× / 1.60×**
   — they integrate garbage starved-flow and over-travel (197 m / 242 m vs 151).
 
+> **FLAGGED, not investigated (2026-09-24): before the `h_flow` correction, the FGO froze
+> on blank.** Re-running the pre-correction code (`08bc2eb`, all nine bags, reproducing
+> the historical full-window means exactly) gives these results:
+> - **Blank:** pre-correction FGO displacement ratio **0.06 / 0.18 / 0.04**, onset 17–26 m.
+>   That is EKF3-like stopping, although the FGO has no `const_pos`. The corrected FGO
+>   over-travels at 1.58–1.64×.
+> - **Transition:** the pre-correction FGO ratio is 0.51–0.55, against 0.73–0.75 corrected.
+>
+> So the "UKF and FGO DEAD-RECKON" failure mode below is **not solely** the §9.5 decision
+> (no `const_pos`). For the FGO it appears with the corrected derotation. The mechanism
+> is not established; a plausible candidate is that the wider lateral-flow acceptance
+> (FINDING 4) lets starved flow drive velocity. **The comparison's claim that the
+> failure modes differ still stands**, since it is measured on the corrected
+> (committed) estimators. Only the attribution to §9.5 alone is qualified.
+>
+> Cruise-window before/after on the degraded conditions, evo -a (cruise), which is *not*
+> a quality metric here:
+> - Transition: UKF 24.68 → 16.04, FGO 22.33 → 26.08.
+> - Blank: UKF 36.02 → 14.42, FGO 39.64 → 27.68.
+>
+> The historical full-window figures were transition 27.11 → 17.48 / 24.55 → 28.93 and
+> blank 39.84 → 16.05 / 43.28 → 30.48 (`eval/results/precorr_vs_corr.json`).
+
 **(3) The degradation gradient survives as a WITHIN-estimator result.** The *between*-estimator
 comparison does not hold on transition/blank (different failure modes), but each estimator
 degrades monotonically as flow degrades, read on **divergence onset**: **EKF3** tracks textured
@@ -386,7 +511,8 @@ is corrupted by the leak before the sensing even degrades.
 - **evo `-a` remains the only fair cross-estimator metric, and only in the textured regime.**
   Unaligned is not comparable (EKF3 true frame vs UKF/FGO ~90° init-yaw gauge). Yaw drift:
   EKF3 ~8, **FGO −9 in every condition** (anchor-locked), UKF flow-dependent (+14…+41 textured);
-  the FGO's *position* did move (4.87→5.46, 43→30), so its flat yaw is the anchor, not a no-op.
+  the FGO's *position* did move (evo -a (cruise) textured 4.32→4.81, blank 39.6→27.7;
+  full-window, historical, 4.87→5.46, 43→30), so its flat yaw is the anchor, not a no-op.
 
 **Caveats.** n=1 per bag. Under the corrected `h_flow` the neat four-estimator yaw
 clustering (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7, all near physical
@@ -445,7 +571,9 @@ for accuracy. Sequence: FGO_DESIGN §6 pre-registered 1.0 s, which measured 96 m
 and **violates the pre-registered 33 ms deployability budget**; the window sweep
 {1.0, 0.5, 0.25} s was then run and **0.25 s selected as the largest window meeting
 that budget** (0.5 s = 48 ms is over). Cherry-picking is ruled out because **ATE is
-window-independent** — evo `-a` 5.10 / 5.07 / 4.23 m at 1.0 / 0.5 / 0.25 s, so the FGO
+window-independent** — **evo -a (cruise) 4.47 / 4.44 / 3.72 m** at 1.0 / 0.5 / 0.25 s
+(full-window, historical: 5.10 / 5.07 / 4.23; `dsn_tex_r1`, pre-correction code `08bc2eb`, all
+three re-run 2026-09-24 and reproduced exactly before cropping), so the FGO
 is ~equally accurate at any window and 0.25 s merely also happens to be (mildly) best.
 
 **Solver + timing (reported honestly).** The primary solver is `BatchFixedLagSmoother`
@@ -456,7 +584,8 @@ short-window (0.25 s) configuration — a real result, not a footnote:** a Pytho
 `CustomFactor` FGO is budget-compliant only at a short window; larger windows spend
 compute for no accuracy gain. LM iterations are capped at 2 (warm-started); verified
 against full-LM at 0.25 s — max position difference 0.11 m, **RMS 0.029 m, identical
-ATE (4.23)** over 10047 keyframes — so the cap is not a truncated approximation.
+ATE (4.23, full-window, historical; the full-LM trajectory was not stored, so this pair is
+not restated on cruise — the capped run alone is 3.72 cruise)** over 10047 keyframes — so the cap is not a truncated approximation.
 
 ## Sensor noise & gyro drift — controlled, deterministic, single realisation
 
@@ -673,8 +802,9 @@ states, *not* to the yaw cap.
 Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
 raw `IMU.GyrZ`, see the sensor-noise section). Against it the unclamped UKF
 gyro-z bias overshoots to **~220–450%** across the `dsn_tex` batch (three bags),
-the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1 ATE evo `-a`:
-8.6 → 19.9 m). Diagnosed (half-day box, no fixes applied):
+the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1, unconditional → gated cap,
+evo -a (cruise) 7.73 → 17.43 m; full-window, historical 8.6 → 19.9 — re-run from `6f953b2`
+2026-09-24, reproduced 8.64). Diagnosed (half-day box, no fixes applied):
 
 1. **Yaw is weakly observable from downward flow at 0.5 m/s** — `∂flow/∂yaw = v/h ≈
    0.286` rad/s per rad (numerical Jacobian), against `FLOW_M_NSE = 0.25`; a 5.7°
@@ -801,7 +931,8 @@ zero-innovation cap matching EKF3's `fuseEulerYaw(PREDICTED)` (`innovYaw = 0.0f`
 
 | metric | fixed anchor (artefact) | **fair anchor (result)** |
 |---|---|---|
-| ATE, evo `-a` | 0.49 m ⚠️void | **5.10 m** |
+| ATE, evo `-a` (full, hist.) | 0.49 m ⚠️void | **5.10 m** |
+| ATE, evo -a (cruise) | — | **4.47 m** |
 | ATE, unaligned | 128 m | 139 m |
 | along-track | 151.8 m | 147.5 m (true 151.1) |
 | cross-track | +151.7 m | +139.8 m |
@@ -832,7 +963,9 @@ refinement, not a fairness violation.)
 **Scale sanity-check — the 5.10 m is NOT a 5× win over EKF3; it is on par.** The
 5.10 m is `evo -a` (SE3-aligned); EKF3's 24.3 m (apparatus floor) is *unaligned*.
 On the **same metric** (`evo -a`, `dsn_tex_r1`): **EKF3 4.79 m vs FGO 5.10 m** —
-essentially equal, FGO marginally worse. The apparent 5× improvement was a
+essentially equal, FGO marginally worse (full-window, historical). On **evo -a (cruise)** it
+is EKF3 4.58 vs FGO 4.47 — still essentially equal, the 0.1 m ordering now reversed; "on par"
+is the finding on both windows, neither "better" is. The apparent 5× improvement was a
 metric mismatch (aligned vs unaligned), not a result. The FGO's *unaligned* ATE is
 139 m, dominated by the ~90° init-yaw gauge offset (no compass → arbitrary heading),
 which `evo -a` removes. **Not a bug and not smoothing-magic:** instrumented, the FGO

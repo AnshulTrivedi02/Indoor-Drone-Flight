@@ -860,6 +860,12 @@ Two costs, documented rather than discovered later:
   `/ground_truth/pose` z, report the residual, and overlay the aligned
   trajectory — before `evaluate_trial.sh` is rewired. Do not assume a constant
   offset holds.
+  **CLOSED 2026-09-24 as "bounded, not proven".** No formal alignment proof was
+  done. Instead, a sensitivity check shifts the pinned cruise window by ±0.25 s and
+  ±0.5 s on all nine `dsn_*` bags. The largest change in EKF3's evo -a (cruise) is
+  0.103 m (transition) and at most 0.015 m on textured, far below the
+  between-estimator gaps. See METHODOLOGY "Cruise window — pinned definition and clock
+  sensitivity".
 
 ### 2. `GPS1_TYPE` — arming failure on a clean machine
 
@@ -1859,6 +1865,12 @@ to flush and exit cleanly before the script continues to copy the ArduPilot log.
 
 ## Conventions
 
+- **Branches:** `master` is the working branch, and all project history is on it.
+  `main` is an unrelated root commit that GitHub auto-created (a one-line README). It
+  has no common ancestor with `master`, and it is left alone. Workstreams branch from
+  `master` (e.g. `fwd-camera`).
+- **ATE metric:** cross-estimator results use **evo -a (cruise)**, computed by
+  `eval/three_way_eval.py`, which pins the window. See METHODOLOGY's STANDING RULE.
 - Use `gz` commands only — Gazebo Harmonic syntax (`gz sim`, `gz topic`)
 - Commit to git before any multi-file change
 - Do not trust ArduPilot parameter names from memory — check against docs
@@ -1891,7 +1903,7 @@ Remaining:
 9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence. **Revisit**: `gnss_denied.parm` still lets EKF3 fuse the compass for yaw — outside the thesis's stated sensor suite and a confound vs UKF/FGO's no-yaw setup; a verified fix exists (`gnss_denied_nomag.parm`) but hasn't been folded into the standing baseline — see "No-Yaw / Compass-Denied Investigation" above
 10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — corridor worlds built for this but not yet usable end-to-end (`corridor_textured.sdf`/`corridor_blank.sdf` both hit unresolved issues when actually flown, see Known Issues #11/#12). A 320 s no-yaw flight was run on `iris_textured.sdf` instead (see "No-Yaw / Compass-Denied Investigation" above) — real corridor data still pending
 11. UKF implementation — **built and producing numbers** (`src/estimators/ukf_core.py` + `ukf_replay.py`, Euler 15-state, shared `measurement_models.py`, gated pseudo-yaw matching EKF3's variance-gated `fuseEulerYaw`). Runs on the nomag `dsn_*` batch. See METHODOLOGY.md for the yaw-cap verification and the flow→yaw coupling finding.
-12. FGO (GTSAM) implementation — **first pass built and producing numbers** (`src/estimators/fgo/`, batch fixed-lag smoother, shared `h_flow`, custom flow/range/yaw-prior factors, runs in `~/venv-fgo` = gtsam 4.2.1 + rosbags). First result on `dsn_tex_r1` (n=1, fair zero-innovation yaw anchor to the IMU-predicted yaw, matching EKF3 `fuseEulerYaw(PREDICTED)` `MagFusion.cpp:1062-1064`): **on par with EKF3, not better** — same metric (`evo -a`) EKF3 4.79 m vs FGO 5.10 m; yaw drifts −9.24 deg/min. (An earlier 0.49 m from an over-strong *absolute* anchor is VOID; the 5.10-vs-24.3 "5× win" was an `evo -a`-vs-apparatus metric mismatch — see the STANDING RULE in METHODOLOGY.) FGO tracks flow (residual ≈ 0), inherits +4.7% velocity scale (EKF3 +12.6%, open n=1 question). **Solver:** batch used (~101 ms/step, 3–5× over the 33 ms budget); incremental (iSAM2) is 0.2 ms but cascades after ~590 keyframes — isolated to the solver layer (same factors run clean under batch). See METHODOLOGY.md "FINDING" + FGO_DESIGN.md (§9.4 yaw-anchor correction, §9.5 closed). Uses the nomag comparison config, not `gnss_denied.parm`.
+12. FGO (GTSAM) implementation — **first pass built and producing numbers** (`src/estimators/fgo/`, batch fixed-lag smoother, shared `h_flow`, custom flow/range/yaw-prior factors, runs in `~/venv-fgo` = gtsam 4.2.1 + rosbags). First result on `dsn_tex_r1` (n=1, fair zero-innovation yaw anchor to the IMU-predicted yaw, matching EKF3 `fuseEulerYaw(PREDICTED)` `MagFusion.cpp:1062-1064`): **on par with EKF3, not better** — same metric (`evo -a`, full-window, historical) EKF3 4.79 m vs FGO 5.10 m — evo -a (cruise) 4.58 vs 4.47; yaw drifts −9.24 deg/min. (An earlier 0.49 m from an over-strong *absolute* anchor is VOID; the 5.10-vs-24.3 "5× win" was an `evo -a`-vs-apparatus metric mismatch — see the STANDING RULE in METHODOLOGY.) FGO tracks flow (residual ≈ 0), inherits +4.7% velocity scale (EKF3 +12.6%, open n=1 question). **Solver:** batch used (~101 ms/step, 3–5× over the 33 ms budget); incremental (iSAM2) is 0.2 ms but cascades after ~590 keyframes — isolated to the solver layer (same factors run clean under batch). See METHODOLOGY.md "FINDING" + FGO_DESIGN.md (§9.4 yaw-anchor correction, §9.5 closed). Uses the nomag comparison config, not `gnss_denied.parm`.
 
 ## Experimental Design Notes
 
