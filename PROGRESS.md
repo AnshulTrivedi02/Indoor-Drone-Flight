@@ -5,7 +5,26 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-09-24 — forward-camera Phase 1 STOPPED at confound check (a)
+## Current Status — 2026-09-24 (late) — Phase 1 RTF follow-up: stopped on one sub-criterion
+
+**RTF diagnosis** (60 s runs):
+- The whole ~20% loss appears once the forward image is **bridged**: 0.957 without it,
+  0.759–0.761 with it. Recording is free.
+- Rendering is **hardware** (Quadro P620, EGL).
+- The desktop-apps-closed run was not done; it needs the user.
+
+**Direct test**, `p1rtf_dsn_tex` (the unchanged `dsn` world with the Gazebo RTF target
+throttled to 0.762):
+- Flow and lidar sim-time timing are identical to `dsn_*`.
+- Flow → EKF3 latency and evo -a (cruise) pass: FGO 4.80, EKF3 3.90, UKF 7.75.
+- **The IMU ">1.5× gap" share, 18.24%, fell just outside a zero-margin band
+  (18.4–18.7%) on the benign side**: the IMU receipt stamps are more regular at the
+  lower RTF.
+
+`p1_fwd_tex` re-scored on the same checks passes everything (FGO 4.55). **Stopped per
+the decision rule; awaiting a ruling.** See METHODOLOGY "Direct-test result".
+
+## Status — 2026-09-24 — forward-camera Phase 1 STOPPED at confound check (a)
 
 Before Phase 1, the cruise thresholds were justified, and a threshold-sensitivity check
 (0.20 and 0.40 m/s) changed no conclusion (≤ 0.046 m). OI-1 (the FGO blank-floor

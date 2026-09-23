@@ -1,0 +1,93 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "p1rtf_dsn_tex": {
+   "window_s": [
+    30.087,
+    331.967
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 157.5902250970238,
+      "true_travel": 150.83791,
+      "disp_ratio": 1.0447653716298761,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 3.900373
+     }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 125.08174842349537,
+      "true_travel": 150.84549768809322,
+      "disp_ratio": 0.8292043868762318,
+      "onset_gt_dist": 88.59488574621544
+     },
+     "ate_a_cruise": {
+      "+0.00": 7.750427
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 148.43843630952145,
+      "true_travel": 150.84692884302592,
+      "disp_ratio": 0.9840335328536202,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.799722
+     }
+    }
+   }
+  },
+  "p1_fwd_tex": {
+   "window_s": [
+    29.91,
+    331.969
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 157.42423065773835,
+      "true_travel": 150.938097272993,
+      "disp_ratio": 1.0429721422353315,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.069321
+     }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 111.05614897306597,
+      "true_travel": 150.93704063807087,
+      "disp_ratio": 0.7357779674464763,
+      "onset_gt_dist": 76.5157683645951
+     },
+     "ate_a_cruise": {
+      "+0.00": 12.578611
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 148.9334674911174,
+      "true_travel": 150.92195909163192,
+      "disp_ratio": 0.9868243719304809,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.553638
+     }
+    }
+   }
+  }
+ }
+}

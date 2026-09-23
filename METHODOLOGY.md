@@ -1393,3 +1393,44 @@ smoke test and the controls, from `eval/input_timing.py`.
 **Decision rule.** If (a)–(c) pass on `p1rtf_dsn_tex`, **and** on `p1_fwd_tex`
 re-scored the same way, a revised Phase 1 criterion replaces the RTF threshold. It is
 written up as revised after the observed failure. If any check fails: stop and report.
+
+**Direct-test result — one pre-registered sub-criterion FAILED; stopped per the
+decision rule (2026-09-24).** `p1rtf_dsn_tex` was flown at `e37fd46` with the Gazebo
+RTF target at 0.77, applied at runtime. Measured cruise RTF: **0.762**. `p1_fwd_tex`
+was re-scored on the same checks. Results:
+`eval/results/{input_timing_p1rtf,p1_rtf_test_evo}.json`.
+
+| check | `p1rtf_dsn_tex` (RTF 0.762) | `p1_fwd_tex` (RTF 0.768) | band |
+|---|---|---|---|
+| (a) flow and lidar sim-time timing | 30.30 Hz, 33.0 / 33.0 ms, 0.00% | same | exact match: **pass** / **pass** |
+| (a) IMU rate, p99 gap | 333.28 Hz, 6 ms | 333.28 Hz, 7 ms | **pass** / **pass** |
+| (a) IMU % gaps above 1.5× | **18.24%** | 18.42% | 18.4–18.7%: **FAIL** / pass |
+| (b) flow → EKF3 latency, median / p95 | 16.1 / 48.4 ms, 100% matched | 19.8 / 51.5 ms, 100% | ≤ 23.4 / ≤ 55.2 ms, ≥ 99.5%: **pass** / **pass** |
+| (c) evo -a (cruise), FGO / EKF3 / UKF | **4.80** / 3.90 / 7.75 | **4.55** / 4.07 / 12.58 | [4.18, 5.35] / [1.26, 8.13] / [0, 34.95]: **pass** / **pass** |
+
+**What the failed sub-criterion measures.** `/imu/data_raw` is stamped at *receipt*
+by `imu_bridge.py` (ROS sim clock, `imu_bridge.py:169`). So its header gaps scatter
+from 0 to ~9 ms around a mean that is **exactly 3.0005 ms in every trial**.
+
+| trial | gaps of 2–3 ms | gaps of 0 ms | gaps ≥ 6 ms |
+|---|---|---|---|
+| `dsn_tex_r1` | 64.0% | 2.6% | 3.7% |
+| `p1_control_tex` | 60.6% | 3.9% | 4.5% |
+| `p1_fwd_tex` | 58.4% | 4.4% | 5.1% |
+| `p1rtf_dsn_tex` | **70.0%** | **0.8%** | **2.2%** |
+
+The throttled flight is **more regular** than `dsn_*`: the wall-clock bridge gets more
+wall time per sim millisecond. Its lower ">1.5×" share is on the benign side. The
+failure is nonetheless real against the band as pre-registered, and that band was
+itself a **criterion-design error**: the exact observed n=12 range, with no margin.
+This is the second such error after the ground-truth rate band. Not re-scored.
+
+Per the decision rule, **the revised Phase 1 criterion is NOT written, and
+`p1_fwd_blank` / `p1_fwd_trans` are NOT flown, pending a ruling.** `p1_fwd_tex` itself
+passes every pre-registered (a)–(c) check.
+
+**Side finding, independent of the forward camera.** The UKF and FGO integrate the IMU
+on these receipt stamps, which carry 0–9 ms jitter around the true 3 ms sampling (the
+`HIGHRES_IMU` `time_usec` is not used). It is common to every bag, so it does not bias
+the comparison between conditions, but it is a property of the replay inputs. Logged
+for the methodology.
