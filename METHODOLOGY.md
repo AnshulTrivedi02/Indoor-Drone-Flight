@@ -117,6 +117,36 @@ hold:
    - **EKF3** [1.26, 8.13].
    - **UKF** [0, 34.95] — a sanity check only.
 
+**Result — PASS (trial `p0_smoke_tex`, flown 2026-09-24 at `42193a5`).**
+1. The pipeline completed and `fly_trial.py` reported "All baseline params correct".
+   Metadata confirms `EK3_SRC1_YAW=0`, `COMPASS_USE=0` and the `sim_noise` block,
+   identical to `dsn_*`.
+2. Topic rates, as the deviation from the `dsn_tex` mean:
+
+   | topic | deviation |
+   |---|---|
+   | `/optical_flow/measurement` | +0.01% |
+   | `/downward_lidar/range` | 0.00% |
+   | `/imu/data_raw` | −0.25% |
+   | `/attitude/angular_rates` | +0.33% |
+   | `/ekf/pose` | −0.37% |
+   | `/clock` | 0.00% |
+   | `/ground_truth/pose` | +1.89% |
+
+   `/ground_truth/pose` is the only one outside the `dsn` spread (60.92 Hz against
+   59.65–59.89). It is Gazebo's published pose rate. It feeds no estimator, and the
+   cruise-window boxcar is defined in seconds, so the rate does not affect the window.
+   Noted, not a failure.
+3. evo -a (cruise):
+   - **FGO 4.81**, inside [4.18, 5.35] and equal to the n=3 mean.
+   - **EKF3 5.74**, inside [1.26, 8.13] and inside the raw n=3 range.
+   - **UKF 19.36**, which passes the sanity check.
+
+   The largest change under a ±0.5 s clock shift is 0.014 m. The failure metrics match
+   `dsn_tex`: EKF3 ratio 1.06, FGO 0.98, and the UKF's leak-driven onset at 65 m.
+
+The `dsn_*` pipeline reproduces end to end on the current code.
+
 ## Filter consistency — measured overconfidence in the weakly-observable directions (a result)
 
 Direct consistency check: each estimator's error (vs ground truth) against **its own
