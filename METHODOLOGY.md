@@ -305,6 +305,42 @@ are failure regimes** where all three estimators diverge and evo −a is *not* a
 "formulation differences wash out under degraded sensing" is restated as: **all three fail
 under flow starvation, by different failure modes.**
 
+> ## ⚠️ WINDOW PENDING RULING (2026-09-23) — the table below mixes evaluation windows
+>
+> Reproduced from the stored trajectories by `eval/three_way_eval.py`
+> (`eval/results/phase0_window_check.json`). **Every mean in this section, and every UKF
+> and FGO per-repeat value, reproduces on the FULL-recording window.** The **EKF3
+> textured per-repeat values (4.6 / 3.5 / 5.8) reproduce only on the CRUISE window**, so
+> the EKF3 row's per-repeat values and its mean (4.97, full) come from different windows.
+> Also, **the UKF row's r1 and r2 are transposed**: r1 = 21.58, r2 = 11.65. The mean is
+> unaffected.
+>
+> | evo −a (m) | EKF3 r1/r2/r3 → mean | UKF r1/r2/r3 → mean | FGO r1/r2/r3 → mean |
+> |---|---|---|---|
+> | **full** | 4.79 / 3.89 / 6.21 → **4.97** | 21.58 / 11.65 / 26.65 → **19.96** | 5.58 / 5.60 / 5.21 → **5.46** |
+> | **cruise** | 4.57 / 3.54 / 5.83 → **4.65** | 18.57 / 10.11 / 22.53 → **17.07** | 4.96 / 4.91 / 4.57 → **4.81** |
+>
+> On full, the other means are transition 23.41 / 17.48 / 28.93 and blank
+> 37.79 / 16.05 / 30.48 (EKF3 / UKF / FGO).
+>
+> **The ordering EKF3 ≈ FGO ≪ UKF holds on both windows**, so no textured conclusion
+> flips. The EKF3–FGO gap narrows on cruise (0.49 → 0.16 m). "Two of three > 21" for
+> the UKF holds on full only.
+>
+> **Common-window property.**
+> - **Full** is *not* common. Each estimator's file has its own start: EKF3 `XKF1`
+>   begins 2.6–4.0 s after the UKF/FGO start (e.g. 16.0 vs 13.4 s, `dsn_tex_r1`).
+> - **Cruise** is common in practice. It is computed from each estimator's reference on
+>   its own clock (TimeUS for EKF3, bag sim-time for UKF/FGO). The two windows agree to
+>   0.14–0.21 s at the start and 0.17–0.34 s at the end on all nine bags (< 0.2 % of a
+>   ~302 s cruise). A formal TimeUS↔sim-time alignment proof is still owed (CLAUDE.md,
+>   Hidden Configuration Audit §1).
+>
+> The window will be pinned in `three_way_eval.py` and the table restated once one
+> window is chosen. Until then, quote the reproduction table above, not the table below.
+> Future ATE labels should name the window as well as the alignment, e.g.
+> "evo −a (cruise)".
+
 **(1) Textured — the tracking-regime quality comparison** (evo −a RMSE, m; the only
 cross-estimator ranking that holds):
 
