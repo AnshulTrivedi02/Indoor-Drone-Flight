@@ -1526,3 +1526,37 @@ premise is matched inputs, so it has to be quantified, not asserted small.
 `dsn_tex_r1..r3`, re-run the UKF and FGO with IMU samples timed on sensor time mapped
 to the sim clock. Report the change in evo -a (cruise) and yaw drift. The user then
 rules on whether a correction goes through the re-run gate.
+
+### Phase 1 result under the revised criterion — ALL THREE fwd worlds PASS (2026-09-24)
+
+`p1_fwd_blank` and `p1_fwd_trans` were flown at `cc588df`. Results:
+`eval/results/{input_timing_p1fwd,flow_quality_p1fwd,p1_fwd_evo}.json`.
+Frames: `plots/fwd_camera/p1_forward_frames_all.png`.
+
+| | `p1_fwd_tex` | `p1_fwd_trans` | `p1_fwd_blank` |
+|---|---|---|---|
+| **P1** flow and lidar (30.30 Hz, 33 / 33 ms, 0%) | pass | pass | pass |
+| **P1** IMU mean gap / p99 | 3.0005 / 7 ms | 3.0005 / 6 ms | 3.0005 / 6 ms |
+| **P2** latency median (limit) | 19.8 (≤ 23.4) | **38.4 (≤ 40.0)** | 21.1 (≤ 28.0) |
+| **P2** latency p95 (limit) | 51.5 (≤ 55.2) | 57.7 (≤ 59.0) | 53.2 (≤ 59.3) |
+| **P2** matched (floor) | 100% (≥ 95.0) | 99.0% (≥ 93.5) | 82.0% (≥ 72.4) |
+| **P3** inlier mean (`dsn` mean) | 0.9741 (0.9733) | 0.6654 (0.6645) | 0.3132 (0.3139) |
+| **P3** % below 0.5 / features / `flow_y_raw` | 0.0 / 53.0 / 136.05 | 39.5 / 31.6 / 72.29 (+1.2%) | 84.5 / 8.0 / −2.30 |
+| **P3** transition switch, levels | — | 80–82 m bin; 0.974 / 0.313 | — |
+| **P4** EKF3 | evo -a (cruise) 4.07 | ratio 0.56, onset 101 m | ratio 0.21, onset 20 m |
+| **P4** FGO | evo -a (cruise) 4.55 | ratio 0.71, onset 94 m | ratio 1.58, onset 24 m |
+| *diag.* RTF | 0.768 | 0.752 | 0.743 |
+| *diag.* UKF | 12.58 | ratio 0.76, onset 53 m | ratio 1.30, onset 54 m |
+| *diag.* forward image rate | 30.30 Hz | 30.30 Hz | 30.30 Hz |
+
+**Every primary criterion passes in all three worlds.**
+- **Closest to its limit:** the transition latency median, 38.4 against 40.0. The
+  `dsn` transition medians already span 20.6–32.0 at RTF ~0.98, so latency on that
+  world is the least stable quantity. It is flagged for Phase 2, where it gets n=3.
+- **Downward flow is indistinguishable from `dsn_*`** in every world, on every P3
+  metric. The texture boundary still falls in the same 2 m bin.
+- **Diagnostic observation:** the UKF's transition onset was 53 m (`dsn` 69–82). It is
+  not a gate, since the UKF is unstable across repeats.
+
+**Phase 1 complete.** Phase 2 (`fwd_*`: 3 worlds × 3 repeats) is gated on the user's
+go, and will apply this same revised criterion to all nine bags.

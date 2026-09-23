@@ -168,7 +168,7 @@ if __name__ == "__main__":
         print(f"{'':22} flow->EKF3 matched {f['matched_pct']:5.1f}%  latency median {f['lat_median_ms']:6.1f} "
               f"p5 {f['lat_p5_ms']:6.1f} p95 {f['lat_p95_ms']:6.1f} p99 {f['lat_p99_ms']:6.1f} max {f['lat_max_ms']:6.1f} ms")
         for k, v in r["inputs"].items():
-            print(f"{'':22}   {k:28} {v['rate_hz']:8.2f} Hz  gap med {v['gap_median_ms']:6.2f} "
+            print(f"{'':22}   {k:28} {v['rate_hz']:8.2f} Hz  gap mean {v['gap_mean_ms']:7.4f} med {v['gap_median_ms']:6.2f} "
                   f"p99 {v['gap_p99_ms']:6.2f} ms  >1.5x {v['pct_gap_gt_1.5x']:5.2f}%")
     if a.json:
         json.dump(res, open(a.json, "w"), indent=1)

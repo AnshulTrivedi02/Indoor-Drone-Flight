@@ -5,7 +5,25 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-09-24 (late) — Phase 1 RTF follow-up: stopped on one sub-criterion
+## Current Status — 2026-09-24 (night) — forward-camera Phase 1 COMPLETE under the revised criterion
+
+- **User ruling:** the IMU gap-share miss is benign.
+- **New standing pre-registration rule:** each criterion is labelled PRIMARY or
+  DIAGNOSTIC, no band uses a bare observed range, and only primary criteria can gate.
+- **Revised Phase 1 criterion**, stated as revised after the failures, testing the
+  confound directly:
+  - input sim-time timing
+  - flow → EKF3 latency (one EKF3 step, 12.5 ms)
+  - downward-flow conditions
+  - outcome (textured evo -a (cruise); failure metrics on the degraded worlds)
+- **`p1_fwd_tex`, `p1_fwd_trans` and `p1_fwd_blank` all pass every primary check.**
+  - RTF, now a diagnostic, was 0.74–0.77.
+  - The transition latency median, 38.4 against ≤ 40.0, is the closest call.
+
+**OI-2 opened:** IMU timestamp asymmetry. EKF3 integrates on sensor time, the UKF/FGO
+on bridge receipt time. Offline quantification is next.
+
+## Status — 2026-09-24 (late) — Phase 1 RTF follow-up: stopped on one sub-criterion
 
 **RTF diagnosis** (60 s runs):
 - The whole ~20% loss appears once the forward image is **bridged**: 0.957 without it,
