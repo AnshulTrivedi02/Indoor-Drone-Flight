@@ -1,0 +1,58 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "p0_smoke_tex": {
+   "window_s": [
+    30.535,
+    332.732
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 159.60377660059015,
+      "true_travel": 150.99375700000002,
+      "disp_ratio": 1.0570223549082902,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 5.73887,
+      "-0.50": 5.739983,
+      "+0.50": 5.736734
+     }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 82.74746828881126,
+      "true_travel": 151.00875643598374,
+      "disp_ratio": 0.5479647024567739,
+      "onset_gt_dist": 65.32838885564146
+     },
+     "ate_a_cruise": {
+      "+0.00": 19.361276,
+      "-0.50": 19.363316,
+      "+0.50": 19.355623
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 148.72681880890167,
+      "true_travel": 151.00381533159984,
+      "disp_ratio": 0.9849209338340362,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.807769,
+      "-0.50": 4.794418,
+      "+0.50": 4.821579
+     }
+    }
+   }
+  }
+ }
+}
