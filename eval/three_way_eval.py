@@ -61,15 +61,18 @@ def write_tum(path, a):
     np.savetxt(path, a, fmt="%.6f")
 
 
-def cruise_window(trial):
-    """Pinned cruise window [t0, t1] (s, sim-time) from the bag ground truth."""
+def cruise_window(trial, speed=None):
+    """Pinned cruise window [t0, t1] (s, sim-time) from the bag ground truth.
+
+    `speed` overrides CRUISE_SPEED for the threshold-sensitivity check only."""
+    speed = CRUISE_SPEED if speed is None else speed
     g = np.loadtxt(f"{TRIALS_DIR}/{trial}/{GT_SUB}/ground_truth.tum")
     t, x, y = g[:, 0], g[:, 1], g[:, 2]
     sp = np.hypot(np.gradient(x, t), np.gradient(y, t))
     c = np.r_[0.0, np.cumsum(sp)]
     lo = np.searchsorted(t, t - CRUISE_BOXCAR_S / 2, "left")
     hi = np.searchsorted(t, t + CRUISE_BOXCAR_S / 2, "right")
-    cr = (c[hi] - c[lo]) / (hi - lo) > CRUISE_SPEED
+    cr = (c[hi] - c[lo]) / (hi - lo) > speed
     bi = bj = i = 0
     while i < len(cr):
         if cr[i]:
@@ -144,9 +147,9 @@ def failure_metrics(ref, est, t0, t1):
             "disp_ratio": float(d_est[-1] / d_gt[-1]), "onset_gt_dist": onset}
 
 
-def evaluate(trial, shifts, tmp, estimators, pool):
+def evaluate(trial, shifts, tmp, estimators, pool, speed=None):
     ekf3_tums(trial)
-    t0, t1 = cruise_window(trial)
+    t0, t1 = cruise_window(trial, speed)
     res = {"window_s": [t0, t1], "est": {}}
     jobs = {}
     for name, (sub, est_f) in estimators.items():
@@ -174,6 +177,8 @@ def main():
     ap.add_argument("--est", action="append", default=[],
                     help="extra estimator LABEL=subdir/traj.tum")
     ap.add_argument("--only", help="comma list of estimator labels to evaluate")
+    ap.add_argument("--cruise-speed", type=float, default=None,
+                    help=f"threshold-sensitivity override (default {CRUISE_SPEED} m/s; not for results)")
     ap.add_argument("--json", help="write results here")
     a = ap.parse_args()
     shifts = [float(s) for s in a.shifts.split(",")]
@@ -189,7 +194,7 @@ def main():
     out = {}
     with tempfile.TemporaryDirectory() as tmp, ThreadPoolExecutor(8) as pool:
         for tr in a.trials:
-            out[tr] = evaluate(tr, shifts, tmp, ests, pool)
+            out[tr] = evaluate(tr, shifts, tmp, ests, pool, a.cruise_speed)
             r = out[tr]
             print(f"{tr:18} cruise [{r['window_s'][0]:.2f}, {r['window_s'][1]:.2f}] s  " +
                   "  ".join(f"{n} {v['ate_a_cruise']['+0.00']:.2f}" for n, v in r["est"].items()),
@@ -216,7 +221,7 @@ def main():
     if a.json:
         os.makedirs(os.path.dirname(os.path.abspath(a.json)), exist_ok=True)
         json.dump({"window_def": {"source": f"{GT_SUB}/ground_truth.tum",
-                                  "speed_mps": CRUISE_SPEED, "boxcar_s": CRUISE_BOXCAR_S,
+                                  "speed_mps": a.cruise_speed or CRUISE_SPEED, "boxcar_s": CRUISE_BOXCAR_S,
                                   "rule": "largest contiguous run", "metric": "evo -a (cruise)"},
                    "trials": out}, open(a.json, "w"), indent=1)
         print(f"\n[out] {a.json}")
