@@ -39,13 +39,12 @@ import argparse, json, math, os, re, subprocess, tempfile
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from pymavlink import mavutil
+from cruise_window import CRUISE_SPEED, CRUISE_BOXCAR_S, cruise_bounds
 
 HOME = os.path.expanduser("~")
 TRIALS_DIR = f"{HOME}/thesis_data/trials"
 EVO_APE = f"{HOME}/venv-evo/bin/evo_ape"
 T_MAX_DIFF = "0.05"
-CRUISE_SPEED = 0.30      # m/s
-CRUISE_BOXCAR_S = 0.42   # s, centred moving average
 GT_SUB = "ukf"           # the bag-GT TUM that defines the window
 DIVERGE_M = 15.0
 DIVERGE_SUSTAIN = 40     # samples
@@ -65,26 +64,8 @@ def cruise_window(trial, speed=None):
     """Pinned cruise window [t0, t1] (s, sim-time) from the bag ground truth.
 
     `speed` overrides CRUISE_SPEED for the threshold-sensitivity check only."""
-    speed = CRUISE_SPEED if speed is None else speed
     g = np.loadtxt(f"{TRIALS_DIR}/{trial}/{GT_SUB}/ground_truth.tum")
-    t, x, y = g[:, 0], g[:, 1], g[:, 2]
-    sp = np.hypot(np.gradient(x, t), np.gradient(y, t))
-    c = np.r_[0.0, np.cumsum(sp)]
-    lo = np.searchsorted(t, t - CRUISE_BOXCAR_S / 2, "left")
-    hi = np.searchsorted(t, t + CRUISE_BOXCAR_S / 2, "right")
-    cr = (c[hi] - c[lo]) / (hi - lo) > speed
-    bi = bj = i = 0
-    while i < len(cr):
-        if cr[i]:
-            j = i
-            while j < len(cr) and cr[j]:
-                j += 1
-            if j - i > bj - bi:
-                bi, bj = i, j
-            i = j
-        else:
-            i += 1
-    return float(t[bi]), float(t[bj - 1])
+    return cruise_bounds(g[:, 0], g[:, 1], g[:, 2], speed)
 
 
 def ekf3_tums(trial):

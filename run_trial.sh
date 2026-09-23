@@ -67,6 +67,22 @@ if [ -z "$TRIAL_NAME" ]; then
     TRIAL_NAME="trial_$(printf '%03d' "$n")"
 fi
 
+# Forward-camera worlds (fwd-camera workstream): any world named *_fwd carries the
+# iris_fwd model's forward camera. Opt-in and name-driven: for every other world
+# both arrays stay EMPTY, so the bridge and recorder argument lists are exactly the
+# pre-fwd ones (METHODOLOGY, "Forward camera — harness").
+declare -a FWD_BRIDGE_ARGS=()
+declare -a FWD_RECORD_TOPICS=()
+FWD_CAMERA=false
+if [[ "$WORLD" == *_fwd ]]; then
+    FWD_CAMERA=true
+    FWD_BRIDGE_ARGS=(
+        /forward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image
+        /forward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
+    )
+    FWD_RECORD_TOPICS=(/forward_camera/image /forward_camera/camera_info)
+fi
+
 OUTPUT_DIR="$HOME/thesis_data/trials/$TRIAL_NAME"
 if [ -d "$OUTPUT_DIR" ]; then
     echo "ERROR: Trial directory already exists: $OUTPUT_DIR" >&2
@@ -235,7 +251,8 @@ start_bg "$LOG_DIR/ros_gz_bridge.log" \
     /downward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo \
     /downward_lidar/range@sensor_msgs/msg/Range[gz.msgs.LaserScan \
     /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
-    "/world/${WORLD}/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V"
+    "/world/${WORLD}/dynamic_pose/info@geometry_msgs/msg/PoseArray[gz.msgs.Pose_V" \
+    "${FWD_BRIDGE_ARGS[@]}"
 
 start_bg "$LOG_DIR/ground_truth_pub.log" \
     python3 "$HOME/thesis_ws/ground_truth_pub.py" "$WORLD"
@@ -286,6 +303,7 @@ setsid ros2 bag record \
     /attitude/angular_rates \
     /imu/data_raw \
     /optical_flow/measurement \
+    "${FWD_RECORD_TOPICS[@]}" \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!
 disown
@@ -366,6 +384,9 @@ flow_ransac_seed: $RANSAC_SEED
 ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
+if [ "$FWD_CAMERA" = true ]; then
+    echo "forward_camera: true" >> "$OUTPUT_DIR/metadata.yaml"
+fi
 
 # Append the live SITL noise/drift params (authoritative — read from the flight
 # .BIN's PARM stream) so the noise realisation is self-documented in metadata.

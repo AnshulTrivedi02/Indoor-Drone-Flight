@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Far end wall of the forward-camera corridor worlds (fwd-camera workstream).
+       STATIC, so it never enters dynamic_pose/info and cannot displace poses[0].
+       19.8 x 0.2 x 5 m, placed by the world at y = 165 between the side walls' inner
+       faces. The sun's direction has a +y component, so its shadow falls beyond the
+       corridor (y > 165), never on the flown floor (the drone stops near y = 153).
+       Texture: sim/tools/make_wall_textures.py (non-periodic rectangles + the same
+       horizontal lines). -->
+  <model name="corridor_end_wall">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 2.5 0 0 0</pose>
+      <collision name="collision">
+        <geometry><box><size>19.8 0.2 5</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>19.8 0.2 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_end_wall/materials/textures/end_wall.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

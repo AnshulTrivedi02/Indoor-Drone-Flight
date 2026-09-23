@@ -1082,3 +1082,185 @@ not our estimator logic: the *same* factors and core run to completion under bat
 fixed-lag interaction. Whether it is inherent to that combination or an
 implementation artefact is not yet root-caused; batch is the robust path meanwhile.
 This is the measured version of FGO's main known weakness (compute).
+
+## Forward-camera workstream (branch `fwd-camera`) — hypothesis, sensor, worlds, Phase 1 pre-registration (2026-09-24)
+
+### Hypothesis (stated before any forward-camera result exists)
+
+With no compass, absolute yaw is unobservable. On `dsn_tex_r3`, **74%** of EKF3's
+east-velocity error is heading-driven: `errVE` against speed × sin(yaw error) has a
+slope of 1.10. The remaining **26%** (~0.05 m/s) is uncorrelated with yaw error
+(§"Lateral drift", CLOSED).
+
+**Hypothesis:** a forward camera supplies two things:
+- an **absolute heading cue relative to the corridor** (the vanishing point, or the
+  dominant wall-line direction);
+- through horizontal forward flow, **observability of the gyro-z bias**.
+
+Together these reduce the heading-driven share of lateral drift.
+
+**Prediction:** the heading-driven share falls, and the 26% residual stays roughly
+unchanged. If the residual also moves, that is a finding, not a failure. The residual's
+source was never established, so any movement would say something about it.
+
+The test is Phase 5: each estimator with and without the forward-camera measurements,
+on the same `fwd_*` bags, reading the heading-driven/residual decomposition, yaw
+drift, gyro-z bias tracking and ±3σ consistency.
+
+### Sensor design — `iris_fwd` (vendored in `sim/models/`)
+
+`iris_fwd_standoffs` is a copy of `~/ardupilot_gazebo/models/iris_with_standoffs`.
+`diff` against the original shows **only** the inserted `forward_camera` sensor block,
+so the downward camera, the gpu_lidar and the IMU are byte-identical to the `dsn_*`
+model.
+
+`iris_fwd` is a copy of `iris_with_ardupilot`. Its `diff` shows only the model name and
+the include: `model://iris_fwd_standoffs`, with `<name>iris_with_standoffs</name>`
+kept. Every scoped reference (joint parents, lift-drag links, `ArduPilotPlugin
+imuName`) therefore resolves unchanged. The meshes still resolve from
+`model://iris_with_standoffs`. The worlds instantiate it as `iris_with_ardupilot`, so
+tooling that names the model is unchanged.
+
+**The flights run on simulator truth (`AHRS_EKF_TYPE=10`), so the physical heading is
+fixed.** Cruise GT yaw is 90.01°, std 0.017°. The vanishing point therefore sits at the
+image centre whatever an estimator's yaw does. The FOV does not need to cover
+estimator heading error; that only matters in closed-loop flight (Term 3), where the
+physical heading can wander. The design is set by corridor geometry and measured
+attitude. Cruise attitude from `dsn_tex_r1` / `dsn_blank_r1` GT:
+- roll: mean 0.00°, std 0.26°, max 0.53°
+- pitch: mean +0.02°, std 0.17°, max 5.2° (the acceleration transients)
+- base_link height: 2.29 m
+
+| parameter | value | justification |
+|---|---|---|
+| HFOV | **60°** (1.047 rad), VFOV ±23.4° | Same intrinsics as the downward camera; `camera_info` confirms f = 554.38 px. Side walls at ±10 m enter the frame 17.3 m ahead, where the wall base is at −7.5° and the wall top at +8.9°, well inside ±23.4°. Angular resolution is 0.094°/px. A wider lens would lose resolution with no gain, since the heading is fixed (above). |
+| resolution | **640 × 480** | Same sensor as the downward camera. |
+| rate | **30 Hz** (sim-time) | Matches the downward camera, flow and LiDAR cadence. At 30 Hz the rotation between frames stays small for the forward-flow yaw-rate measurement. |
+| format | **mono (L8 → `mono8`)** | Every Phase 3 algorithm (line/VP extraction, LK flow) is greyscale. The bag data rate is one third of RGB: ~9 MB/s sim against ~28 MB/s. The L8 → `mono8` bridge conversion was **tested** in the render check. |
+| mount | **0.15 m forward of base_link, level (0 pitch, 0 roll)**, looking along body +x, rigid | Cruise pitch mean +0.02° (std 0.17°) puts the vanishing point at the image centre to within ~3 px. The render check shows no body or propeller occlusion. |
+| clip | near 0.05 m, **far 200 m** | The corridor is 165 m long. The downward camera's 20 m far clip would cut the corridor off before the vanishing point. |
+
+### Worlds — `corridor_{textured,blank,transition}_fwd.sdf` (vendored in `sim/worlds/`)
+
+`diff` against each original shows exactly these changes:
+- the `<world name>` (it must equal the filename stem, because `run_trial.sh` builds
+  the `dynamic_pose/info` topic from it);
+- the two side walls use `model://corridor_wall_lined` in place of `corridor_wall`;
+- a static `corridor_end_wall` at y = 165;
+- the drone include is `model://iris_fwd`, with the instance named
+  `iris_with_ardupilot`.
+
+The floor tiles, `ground_collision`, lighting, spawn and physics are identical. The
+originals and every `dsn_*` dependency are untouched.
+
+- **`corridor_wall_lined`:** its collision box is byte-identical to `corridor_wall`
+  (0.2 × 170 × 5 m, link at z = 2.5 m). The one grey visual is replaced by 17 visual
+  segments of 0.2 × 10 × 5 m that tile the same volume, so the geometry and the shadows
+  it casts are identical and only the surface material differs. Segments are used
+  because Ogre2 stretches one texture over a whole face, the same UV trap documented
+  for the floor tiles.
+- **Texture** (`sim/tools/make_wall_textures.py`, seeded, three variants cycling every
+  30 m):
+  - horizontal black lines every 0.5 m, 8 cm thick, on a white base; they run parallel
+    to the corridor axis, so they converge on the vanishing point;
+  - non-periodic vertical bars (random width, height, grey level and spacing), which
+    give horizontal flow 2-D texture (stripes alone have the aperture problem) and
+    avoid a regular spacing that could alias the LK tracker or RANSAC.
+- **Did not work: texture v1.** Grey 160 base with 25 lines, 4 cm thick. It rendered
+  the wall at ~20–40 grey, with the lines only ~15 levels darker, which is too faint:
+  the inner faces receive little direct sun. v2 (above) renders the walls at mean
+  75–106, std 35–45. Found by the render check before any flight.
+- **End wall:** static, so it never enters `dynamic_pose/info` and cannot displace
+  `poses[0]`. The sun's +y component throws its shadow beyond the corridor. It is
+  19.8 × 0.2 × 5 m and textured with non-periodic rectangles plus the same lines.
+
+**Design decision: the walls are textured in all three worlds.** The question is
+whether a forward heading cue **compensates for floor degradation**. So the forward cue
+must be present, and identical, in every floor condition, with floor texture remaining
+the only variable between worlds. A **blank-wall variant** (forward camera present,
+walls untextured) is deferred as a later ablation. It would separate "the forward
+camera sees structure" from "the forward camera is present".
+
+### Recording and harness
+
+- **Raw forward images are recorded** (`/forward_camera/image` and `camera_info`), the
+  opposite of downward flow, which is fixed at record time (§"Flow processing is baked
+  in"). Phase 3 builds its measurements offline, so its processing choices stay open.
+  Cost is ~3 GB per 300 s trial.
+- **`run_trial.sh` is opt-in and name-driven.** A world named `*_fwd` fills two arrays
+  (bridge arguments, record topics) and adds `forward_camera: true` to
+  `metadata.yaml`. For every other world the arrays are empty; under `set -u` in bash
+  5.2 an empty `"${arr[@]}"` expands to **no** argument, so the default bridge and
+  recorder command lines are unchanged. This is verified from `/proc/<pid>/cmdline` on
+  the control flight (below).
+- **Trial names:** Phase 1 uses `p1_*`; `fwd_*` is reserved for the Phase 2 dataset.
+
+### Phase 1 plan and confound-check acceptance (pre-registered before flying)
+
+Four flights, back to back, in one session, all at the `dsn_*` settings (0.5 m/s,
+2.0 m, 300 s, nomag, `sim_noise.parm`, RANSAC seed 42):
+
+| trial | world |
+|---|---|
+| `p1_control_tex` | `corridor_textured`, no forward camera (same-session control) |
+| `p1_fwd_tex` | `corridor_textured_fwd` |
+| `p1_fwd_blank` | `corridor_blank_fwd` |
+| `p1_fwd_trans` | `corridor_transition_fwd` |
+
+The control flight exists because the desktop was under measurable background load
+(Firefox ~110% CPU plus gnome-shell; ~12–23% GPU at idle). That load is the likely
+reason the smoke test's RTF (0.954) was below the `dsn_*` flights' (0.975–0.981). The
+control measures that same-session baseline, so any drop can be attributed to the
+second camera. It is used for diagnosis, not tuning.
+
+**(a) RTF and topic rates.**
+- **RTF method:** 300 s of cruise sim time over the cruise wall time in
+  `fly_trial.log`. On the same method, `dsn_*` measured 0.975–0.981 and the smoke test
+  0.954. The 0.92 floor is the 2026-07-23 lockstep figure. **Pass** if each `p1_fwd_*`
+  flight has RTF ≥ 0.92 **and** ≥ (control RTF − 0.03). **If it fails: stop and report;
+  no tuning.**
+- **Rates** (`eval/topic_rates.py`, sim-time):
+  - every `dsn_*` topic, including `/optical_flow/measurement`, which would expose
+    dropped downward frames, must be within ±2% of the `dsn_tex` mean (the smoke-test
+    band);
+  - `/forward_camera/image` and `/forward_camera/camera_info` must be within ±2% of
+    30.30 Hz (the 33 ms sim period; a slow bag writer would show up here as missing
+    frames).
+
+**(b) Downward-flow conditions unchanged** (`eval/flow_quality.py`, cruise window).
+The baseline is the `dsn_*` n=3 cruise-window values, which share the pipeline,
+config and window definition:
+- textured inlier_ratio 0.9729–0.9741
+- blank 0.3130–0.3153
+- transition switch in the absolute 80–82 m bin, with levels 0.972–0.974 (y < 75) and
+  0.312–0.315 (y > 85)
+
+These differ slightly from the 0.9752 / 0.3101 quoted from the 2026-07-23
+verification trials, which were different flights and used whole-flight statistics
+from an earlier script. The n=3 cruise-window values are the like-for-like baseline.
+
+Pass if all of the following hold, per world against its `dsn` counterpart:
+
+| check | band |
+|---|---|
+| inlier_ratio mean | within ±0.01 of the `dsn` mean |
+| % of frames below 0.5 | within ±3 percentage points |
+| feature_count mean | within ±5% |
+| `flow_y_raw` mean | textured and transition within ±2%; blank within ±5 px/s absolute (its mean is ~0) |
+| transition | switch in the 80–82 m bin; y < 75 and y > 85 levels within ±0.01 |
+| GT lateral x | within ±0.05 m |
+
+**(c) The wall texture cannot enter the downward camera's view** (geometry, confirmed
+from the flight):
+- The downward camera sits ≈ 2.04 m above the floor (base_link 2.29 m, camera offset
+  −0.25 m).
+- Its worst-case half-footprint is 2.04 · tan(30° + 5.2° max tilt) ≈ **1.44 m**. The
+  30° is the half-HFOV; the half-VFOV is 23.4°, which is smaller.
+- GT |x| ≤ 0.01 m during cruise, so the footprint stays within |x| ≤ 1.45 m, against
+  the walls' inner faces at |x| = 9.9 m.
+- Along the corridor the drone stops at GT y ≤ 151.6 m, so the footprint reaches at
+  most ~153 m, against the end wall's inner face at 164.9 m.
+- The walls' shadows fall where they fell in `dsn_*` (identical geometry), and the
+  end wall's shadow falls at y > 165.
+
+The flights must reproduce GT |x| ≤ 0.05 m and y_max ≤ 153 m for (c) to hold.

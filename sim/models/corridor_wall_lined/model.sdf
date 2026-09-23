@@ -1,0 +1,265 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Corridor side wall with a forward-camera line texture (fwd-camera workstream).
+
+       The collision box is byte-identical to model://corridor_wall (0.2 x 170 x 5 m,
+       link at z = 2.5). The single grey visual is replaced by 17 visual segments of
+       0.2 x 10 x 5 m that tile exactly the same volume, so the rendered geometry and
+       the shadows it casts are identical; only the surface material differs. Segments
+       are used, not one 170 m box, because Ogre2 stretches one texture over a whole
+       face rather than repeating it (the UV trap documented for the floor tiles).
+       Textures: sim/tools/make_wall_textures.py (horizontal lines every 0.5 m, which
+       converge on the corridor vanishing point, plus non-periodic vertical bars),
+       cycling over three variants. -->
+  <model name="corridor_wall_lined">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 2.5 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>0.2 170 5</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="segment_00">
+        <pose>0 -80 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_01">
+        <pose>0 -70 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_02">
+        <pose>0 -60 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_2.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_03">
+        <pose>0 -50 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_04">
+        <pose>0 -40 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_05">
+        <pose>0 -30 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_2.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_06">
+        <pose>0 -20 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_07">
+        <pose>0 -10 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_08">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_2.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_09">
+        <pose>0 10 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_10">
+        <pose>0 20 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_11">
+        <pose>0 30 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_2.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_12">
+        <pose>0 40 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_13">
+        <pose>0 50 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_14">
+        <pose>0 60 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_2.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_15">
+        <pose>0 70 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_0.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="segment_16">
+        <pose>0 80 0 0 0 0</pose>
+        <geometry><box><size>0.2 10 5</size></box></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.8 0.8 0.8 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://corridor_wall_lined/materials/textures/wall_1.png</albedo_map>
+            <roughness>0.8</roughness>
+            <metalness>0</metalness>
+          </metal></pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
