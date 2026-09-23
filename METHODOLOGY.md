@@ -1264,3 +1264,59 @@ from the flight):
   end wall's shadow falls at y > 165.
 
 The flights must reproduce GT |x| ≤ 0.05 m and y_max ≤ 153 m for (c) to hold.
+
+### Phase 1 result — confound check (a) FAILED; flights stopped (2026-09-24)
+
+Flown at `c89d05a`: `p1_control_tex`, then `p1_fwd_tex`. `p1_fwd_blank` was aborted
+mid-cruise when (a) failed, and its directory is marked `ABORTED.txt` (not a valid
+trial). `p1_fwd_trans` was not flown.
+
+**(a) RTF: FAIL.**
+- `p1_control_tex` ran at **0.954**, the same as the smoke test.
+- `p1_fwd_tex` ran at **0.768**, below both the 0.92 floor and control − 0.03 = 0.924.
+  Adding the forward camera costs about 19% RTF on this machine.
+- Per the pre-registration: stop and report; no tuning.
+
+**Rates**, as deviation from the `dsn_tex` mean:
+
+| topic | `p1_fwd_tex` | `p1_control_tex` | in ±2% band? |
+|---|---|---|---|
+| `/downward_lidar/range` | 0.00% | — | yes |
+| `/clock` | −0.10% | — | yes |
+| `/optical_flow/measurement` | −0.43% | — | yes |
+| `/imu/data_raw` | −0.50% | — | yes |
+| `/forward_camera/image`, `camera_info` | 30.30 Hz (no frame loss) | — | yes |
+| `/attitude/angular_rates` | **−2.64%** | +0.36% | no (fwd) |
+| `/ekf/pose` | **−3.10%** | +0.06% | no (fwd) |
+| `/ground_truth/pose` | **+13.2%** | **+2.55%** | no (both) |
+
+The control's own ground-truth rate is also outside ±2%. Across flights, that rate
+scales with 1/RTF (smoke 0.954 → +1.9%, control 0.954 → +2.55%, fwd 0.768 → +13.2%):
+it is a **wall-clock-driven topic** (Gazebo's scene broadcaster), so a ±2% band was
+the wrong criterion for it. Recorded as a criterion defect, not re-scored. The
+MAVLink-sourced `/attitude/angular_rates` and `/ekf/pose` also lose ~3% of messages
+at the lower RTF. Neither is an estimator input: the UKF/FGO consume `/imu/data_raw`,
+flow and range, and EKF3 is read from the dataflash log.
+
+**(b) Downward flow: PASS on `p1_fwd_tex`** (`eval/results/flow_quality_p1.json`):
+- inlier_ratio 0.9741 (the `dsn` mean is 0.9733), 0.0% of frames below 0.5;
+- features 53.0 against 52.8;
+- `flow_y_raw` 136.05 against 136.45 px/s (−0.3%);
+- GT x within ±0.01 m.
+
+The second camera and the lower RTF leave the downward-flow conditions unchanged, as
+expected: Gazebo↔SITL lockstep keeps sensor timing in sim time.
+
+**(c) Geometry: holds.** GT |x| ≤ 0.01 m. Forward frames:
+`plots/fwd_camera/p1_fwd_tex_forward_frames.png`.
+
+**Harness: verified.** On `p1_control_tex`, `/proc/<pid>/cmdline` for the bridge and
+the recorder are exactly the pre-fwd argument lists. On `p1_fwd_tex` they add only the
+two forward topics.
+
+**Open (awaiting a ruling).** The cause of the RTF loss was not isolated. The
+candidates are:
+- rendering the second camera on the 2 GB Quadro P620;
+- the `ros_gz_bridge` image conversion;
+- the bag writer (~9 MB/s sim of images);
+- interaction with the background desktop load.

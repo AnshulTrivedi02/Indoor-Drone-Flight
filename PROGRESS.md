@@ -5,7 +5,30 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-09-24 — forward-camera workstream, Phase 0 COMPLETE
+## Current Status — 2026-09-24 — forward-camera Phase 1 STOPPED at confound check (a)
+
+Before Phase 1, the cruise thresholds were justified, and a threshold-sensitivity check
+(0.20 and 0.40 m/s) changed no conclusion (≤ 0.046 m). OI-1 (the FGO blank-floor
+failure mode changed with the correction) was logged as an open item.
+
+The Phase 1 build is committed at `c89d05a`:
+- **Model:** `iris_fwd` adds a level forward camera: 60°, 640×480, 30 Hz, mono.
+- **Worlds:** `corridor_*_fwd`, with line-textured walls in all three plus an end wall.
+- **Harness:** an opt-in, name-driven path in `run_trial.sh`.
+- **Pre-registration:** the acceptance criteria were committed before flying.
+
+**Result:**
+- The forward camera costs ~19% RTF: `p1_fwd_tex` ran at **0.768**, against
+  **0.954** for the same-session control. That fails the pre-registered (a). Flights
+  were stopped, with no tuning; `p1_fwd_blank` was aborted and `p1_fwd_trans` not flown.
+- Downward-flow conditions (b) **pass**.
+- The forward images are good and complete (30.30 Hz).
+- The ground-truth pose rate turned out to be wall-clock-driven, so the ±2% band was
+  the wrong test for it.
+
+**Awaiting a ruling** on how to proceed. See METHODOLOGY "Phase 1 result".
+
+## Status — 2026-09-24 — forward-camera workstream, Phase 0 COMPLETE
 
 **Metric ruling: evo -a (cruise) is the primary cross-estimator metric.** It uses one
 window defined from ground truth (speed > 0.30 m/s, 0.42 s centred boxcar, largest
