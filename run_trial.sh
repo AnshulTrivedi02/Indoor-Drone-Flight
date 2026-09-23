@@ -285,6 +285,7 @@ setsid ros2 bag record \
     /downward_lidar/range \
     /attitude/angular_rates \
     /imu/data_raw \
+    /imu/time_ref \
     /optical_flow/measurement \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!

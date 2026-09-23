@@ -91,7 +91,7 @@ from pymavlink import mavutil
 import rclpy
 from rclpy.node import Node
 
-from sensor_msgs.msg import Imu
+from sensor_msgs.msg import Imu, TimeReference
 
 # Dedicated SITL SERIAL2 UDP output (arducopter --serial2=udpclient:127.0.0.1:14556),
 # NOT a MAVProxy --out port. This DEPARTS from the "every bridge owns a MAVLink UDP
@@ -121,6 +121,10 @@ class ImuBridge(Node):
         super().__init__('imu_bridge')
 
         self._pub = self.create_publisher(Imu, '/imu/data_raw', 10)
+        # OI-2 (METHODOLOGY): per-sample SITL sensor time alongside the receipt time, so
+        # the SITL<->Gazebo clock map can always be rebuilt. header.stamp = the same receipt
+        # stamp as the /imu/data_raw message; time_ref = HIGHRES_IMU.time_usec (SITL clock).
+        self._tref_pub = self.create_publisher(TimeReference, '/imu/time_ref', 10)
 
         self.get_logger().info(f'Connecting to SITL on udpin:127.0.0.1:{MAVLINK_PORT} (dedicated SERIAL2, MAVProxy bypassed) ...')
         self.master = mavutil.mavlink_connection(f'udp:127.0.0.1:{MAVLINK_PORT}')
@@ -167,6 +171,11 @@ class ImuBridge(Node):
     def _publish(self, msg) -> None:
         out = Imu()
         out.header.stamp = self.get_clock().now().to_msg()
+        tref = TimeReference()
+        tref.header.stamp = out.header.stamp
+        tref.time_ref.sec = int(msg.time_usec // 1_000_000)
+        tref.time_ref.nanosec = int(msg.time_usec % 1_000_000) * 1000
+        tref.source = 'HIGHRES_IMU.time_usec'
         out.header.frame_id = 'base_link_flu'
 
         # No orientation estimate provided - REP-145.
@@ -182,6 +191,7 @@ class ImuBridge(Node):
         out.linear_acceleration.z = float(-msg.zacc)
 
         self._pub.publish(out)
+        self._tref_pub.publish(tref)
 
         self._msg_count += 1
         if self._msg_count == 1:
