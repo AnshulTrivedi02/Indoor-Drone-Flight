@@ -43,6 +43,14 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
     a primary miss, reported.** 2 of 8 ceiling-world transition flights exceed the
     band, against 0 of 8 without a ceiling. Awaiting a ruling.
 
+- **Ruling:** `fwdc_trans_r1` is run-to-run variability.
+  - Effect size: ceiling vs no-ceiling transition forward flow +0.43 px/s (+0.6%),
+    p = 0.31. The textured half is unchanged; the blank half is more variable.
+  - Standing rule: state this when comparing the ceiling datasets with `dsn` on the
+    transition world.
+- **Ceiling datasets COMPLETE:** `fwdc` 8/9 (one recorded miss), `fwdplainc` 9/9.
+- **Next:** Phase 3, forward-camera measurements.
+
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
 - **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected

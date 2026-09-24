@@ -2554,3 +2554,48 @@ so far:
 - Every transition flight has the switch in the same 81 m bin and the same levels
   (0.970–0.975 / 0.312–0.316).
 - Textured and blank `flow_y_raw` pass in all 18.
+
+### RULING (user, 2026-09-24): `fwdc_trans_r1` P3 miss recorded as run-to-run variability — characterised effect size
+
+**The miss (73.57 against ≤ 72.86) stays recorded.** It is treated as run-to-run
+variability, as for `p1c_fwdplainc_trans`. One bounded quantification was run (data on
+disk only; no mechanism investigation, no flights, no lighting changes):
+`eval/ceiling_flow_effect.py` → `eval/results/ceiling_flow_effect.json`.
+
+**Method.** Transition-world `flow_y_raw` over cruise, with the same frame selection as
+`flow_quality.py`. It is split into the textured half (GT y < 75 m) and the blank half
+(GT y > 85 m), flow_quality's own level windows. Groups:
+- 8 ceiling flights: `p1c_*_trans`, `fwdc_trans_r*`, `fwdplainc_trans_r*`;
+- 8 no-ceiling flights: `dsn_trans_r*`, `fwd_trans_r*`, `p1_fwd_trans`,
+  `p1plain_trans`.
+
+Test: Welch's two-sample t, two-sided.
+
+| window | ceiling mean (sd) | no-ceiling mean (sd) | difference | Welch t (df) | p |
+|---|---|---|---|---|---|
+| whole cruise | 71.87 (1.00) | 71.44 (0.58) | **+0.43 px/s (+0.6%)** | 1.06 (11.2) | 0.31 |
+| textured half | 136.08 (0.55) | 135.98 (0.41) | +0.10 px/s (+0.07%) | 0.39 (13.0) | 0.70 |
+| blank half | −2.08 (2.43) | −2.39 (0.85) | +0.31 px/s | 0.34 (8.7) | 0.74 |
+
+**Characterised effect: a +0.43 px/s (+0.6%) difference in transition forward flow,
+not distinguishable from zero at n = 8 + 8 (p = 0.31).**
+- The textured half is unchanged to within 0.1 px/s.
+- The blank half has the larger spread under the ceiling: sd 2.43 against 0.85, a
+  variance ratio of 8.1 (Levene p = 0.17, not significant).
+- **Both over-band flights have the highest blank-half means:** `p1c_fwdplainc_trans`
+  +0.87 and `fwdc_trans_r1` +1.30, against −6.40 to −1.34 for the other 14.
+- Recorded as a fact, not interpreted.
+
+**STANDING RULE: no comparison between the ceiling datasets (`fwdc_*`, `fwdplainc_*`)
+and `dsn_*` on the transition world without stating this effect size.** It does not
+affect Phase 5, which compares with and without the forward measurements on the same
+bags.
+
+## Ceiling datasets — COMPLETE (2026-09-24)
+
+- **`fwdc_*` (textured walls = upper bound): 8/9 pass every primary criterion.** The one
+  recorded miss is `fwdc_trans_r1` P3 `flow_y_raw` (run-to-run variability, above).
+- **`fwdplainc_*` (plain walls = featureless case): 9/9 pass.**
+- The render check passes on all 18. The extended IMU timing rule trimmed 3 bags; none
+  is unusable.
+- **These two datasets are the forward-camera datasets for Phases 3–5.**
