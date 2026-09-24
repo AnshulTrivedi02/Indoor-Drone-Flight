@@ -2713,3 +2713,37 @@ from textured walls (`fwdc`) to plain walls (`fwdplainc`).
 **Time-box.** If the simple method has not produced a validated measurement within one
 working session, the work stops and what is known is reported; the method is not
 escalated.
+
+### Phase 3 calibration — result (p1c_* only; parameters FROZEN before validation)
+
+`eval/fwd_eval.py --calibrate` → `eval/results/fwd_calibration.json`, applying the
+pre-registered selection rule.
+
+**Frozen:** inlier tolerance **0.5°**, S_MIN **200 px**, yaw-rate box half-size **80 px**,
+N_MIN **5**. Measurement noise for Phase 4 (robust σ over valid calibration errors):
+
+| | σ_ψ | σ_ω |
+|---|---|---|
+| `fwdc` | 0.097° | 0.106 deg/s |
+| `fwdplainc` | 0.026° | 2.07 deg/s |
+
+**Calibration bags against the bar:**
+
+| bag | heading (avail / bias / sd / outliers) | yaw rate (avail / bias / sd / outliers) |
+|---|---|---|
+| `p1c_fwdc_tex` | 96.8% / −0.005° / 0.21° / 0.1% **pass** | 99.9% / +0.006 / 0.20 / 0.0% **pass** |
+| `p1c_fwdc_trans` | 96.7% / −0.012 / 0.13 / 0.0% **pass** | 97.4% / +0.008 / 0.21 / 0.0% **pass** |
+| `p1c_fwdc_blank` | 96.7% / −0.016 / 0.10 / 0.0% **pass** | 97.4% / +0.003 / 0.14 / 0.0% **pass** |
+| `p1c_fwdplainc_tex` | 60.2% / +0.22 / 0.71 / 11.3% fail | 89.8% / +0.038 / 1.48 / 15.1% fail |
+| `p1c_fwdplainc_trans` | 87.3% / +0.03 / 0.39 / 2.9% **pass** | 85.9% / +0.092 / 1.43 / 15.6% fail |
+| `p1c_fwdplainc_blank` | 95.4% / −0.03 / 0.12 / 0.1% **pass** | 87.3% / −0.061 / 1.35 / 23.7% fail |
+
+- **Heading: 5/6.** The fail is plain walls over a checkerboard floor, as flagged
+  before calibration.
+- **Yaw rate: 3/6.** It passes with textured walls and fails with plain walls, where
+  there are too few trackable corners near the VP (noise ~1.4 deg/s, 15–24%
+  outliers).
+- **End-wall dropout works as designed:** heading availability for GT y > 145 m is
+  0–19%.
+- **The validation runner** uses `fwd_run.py --frozen`, verified identical to the grid
+  run on 600 frames (t, ψ, support, ω, n_trk all equal).

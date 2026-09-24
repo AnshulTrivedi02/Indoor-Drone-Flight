@@ -9,7 +9,13 @@ calibrated choice among these (METHODOLOGY, Phase 3) is applied at evaluation ti
 
 Output: <trial>/fwd_meas/meas.npz
 
-Usage (venv-fwd: rosbags + OpenCV): python3 eval/fwd_run.py TRIAL
+--frozen restricts both grids to the calibrated values in eval/results/fwd_calibration.json
+(validation runs). Per frame it computes exactly the same numbers as the full grid for
+those values: the same segments, the same per-frame seed, and each tolerance's VP chain
+is independent of the others. Output: fwd_meas/meas_frozen.npz. --max-frames N is for
+identity checks only.
+
+Usage (venv-fwd: rosbags + OpenCV): python3 eval/fwd_run.py TRIAL [--frozen] [--max-frames N]
 """
 import os, sys
 import numpy as np
@@ -24,7 +30,12 @@ TD = os.path.expanduser("~/thesis_data/trials")
 ts = get_typestore(Stores.ROS2_JAZZY)
 
 
-def main(trial):
+def main(trial, frozen=False, max_frames=None, tag=None):
+    global INLIER_GRID, BOX_GRID
+    if frozen:
+        import json
+        c = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", "fwd_calibration.json")))["frozen"]
+        INLIER_GRID, BOX_GRID = (c["inlier_deg"],), (c["box_half_px"],)
     out_dir = f"{TD}/{trial}/fwd_meas"; os.makedirs(out_dir, exist_ok=True)
     ni, nb = len(INLIER_GRID), len(BOX_GRID)
     T, PSI, U, V, SUP, NIN, OM, NTR = [], [], [], [], [], [], [], []
@@ -32,6 +43,8 @@ def main(trial):
     with Reader(f"{TD}/{trial}/bag") as r:
         conns = [c for c in r.connections if c.topic == "/forward_camera/image"]
         for k, (con, _, raw) in enumerate(r.messages(connections=conns)):
+            if max_frames is not None and k >= max_frames:
+                break
             m = ts.deserialize_cdr(raw, con.msgtype)
             assert m.encoding == "mono8"
             img = np.frombuffer(m.data, np.uint8).reshape(m.height, m.step)[:, :m.width].copy()
@@ -52,11 +65,16 @@ def main(trial):
             T.append(t); PSI.append(psi); U.append(u); V.append(v); SUP.append(sup); NIN.append(nin)
             OM.append(om); NTR.append(ntr)
             prev, prev_t = img, t
-    np.savez_compressed(f"{out_dir}/meas.npz", t=np.array(T), psi=np.array(PSI), u=np.array(U), v=np.array(V),
+    name = tag or ("meas_frozen.npz" if frozen else "meas.npz")
+    np.savez_compressed(f"{out_dir}/{name}", t=np.array(T), psi=np.array(PSI), u=np.array(U), v=np.array(V),
                         support=np.array(SUP), n_inl=np.array(NIN), omega=np.array(OM), n_trk=np.array(NTR),
                         inlier_grid=np.array(INLIER_GRID), box_grid=np.array(BOX_GRID))
-    print(f"{trial}: {len(T)} frames -> {out_dir}/meas.npz")
+    print(f"{trial}: {len(T)} frames -> {out_dir}/{name}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    import argparse
+    ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--frozen", action="store_true")
+    ap.add_argument("--max-frames", type=int); ap.add_argument("--tag")
+    a = ap.parse_args()
+    main(a.trial, a.frozen, a.max_frames, a.tag)
