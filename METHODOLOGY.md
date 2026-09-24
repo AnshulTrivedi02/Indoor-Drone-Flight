@@ -2432,3 +2432,36 @@ adjusted.** Recorded facts only, not investigated:
 
 **The ceiling datasets (`fwdc_*`, `fwdplainc_*`) are NOT flown** pending the user's
 ruling.
+
+### RULINGS (user, 2026-09-24) on the Phase 1c result — recorded before applying or flying
+
+**Ruling 1 — `p1c_fwdplainc_trans` P3 forward-flow miss (73.01 against ≤ 72.86).**
+- **The miss stays recorded.** The ceiling-dataset batch proceeds.
+- **Decision rule, fixed before flying:**
+  - **If 2 or more of the 3 `fwdplainc_trans_r*` dataset trials fail** the P3
+    `flow_y_raw` criterion: stop and report, for investigation of the world.
+  - **Otherwise** the check-flight miss is recorded as **run-to-run variability**,
+    noting that:
+    - every other P3 metric on that flight passed;
+    - its textured-wall twin `p1c_fwdc_trans` gave 71.38;
+    - the walls are outside the downward camera's view (Phase 1).
+- **The ±2% band is not changed.** Note: the transition world's historical spread of
+  this metric (70.52–72.29 across `dsn`, `fwd_trans`, `p1_fwd_trans` and
+  `p1plain_trans`) sits close to the band (70.00–72.86 around the `dsn` mean of 71.43).
+  The transition mean mixes a textured level (~136 px/s) and a blank level (~−3 px/s),
+  so it has less headroom than the textured or blank values.
+
+**Ruling 2 — IMU timing rule EXTENDED** (supersedes "RULE — IMU gaps and the replay
+estimators").
+- **Irregularity:** any IMU timing irregularity the timing correction cannot process.
+  Either:
+  - a **gap**: a step of more than 10 ms in `/imu/time_ref` sensor time, or
+  - a **receipt bunch**: samples whose receipt stamp is displaced by more than 25 ms
+    from the linear map of receipt against sensor time. 25 ms is the dejitter guard's
+    own limit, i.e. exactly what the correction cannot process.
+- **Before arming:** the replay starts at the first clean sample after the last
+  irregularity, **provided at least 10 s of stationary data remains before arming**.
+- **Less than 10 s remains, or the irregularity is after arming:** the bag is
+  **unusable for UKF/FGO**, and reported as such. EKF3 is still scored.
+- **Applied to** `p1c_fwdc_trans` and to **every dataset bag**, via
+  `eval/imu_gap_check.py` → `<trial>/imu_gaps.json`.
