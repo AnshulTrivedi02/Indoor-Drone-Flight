@@ -63,7 +63,7 @@ def main():
     ap.add_argument("--flow", default="flow_quality_p2fwd.json")
     ap.add_argument("--evo", default="phase2_fwd_evo.json")
     a = ap.parse_args()
-    trials = a.trials.split(",") if "," in a.trials else \
+    trials = [x for x in a.trials.split(",") if x] if "," in a.trials else \
         [f"{a.trials}_{w}_r{r}" for r in (1, 2, 3) for w in WORLDS]
 
     it, it_dsn = load(a.timing), load("input_timing_linmap.json")
@@ -175,7 +175,7 @@ def main():
             print(f"  {k:32} {str(v):>14}  {b:24} {tag}")
 
     overall = "MISS(ES)" if any_primary_fail else ("INCOMPLETE" if any_pending else "ALL PASS")
-    print(f"\nPhase 2 primary criteria: {overall}")
+    print(f"\nPrimary criteria ({len(trials)} trials): {overall}")
     if a.json:
         json.dump({"overall": overall, "trials": out}, open(a.json, "w"), indent=1)
 
