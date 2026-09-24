@@ -2229,3 +2229,65 @@ metric, and evo -a (cruise) on transition and blank.
     outcome-dependent selection.
 - **A trial that fails to complete** (run_trial error or failed validation) is
   re-flown by the runner once. That is a recording failure, not an outcome.
+
+### Plain-wall Phase 1 — result: ALL PRIMARY PASS (2026-09-24)
+
+`p1plain_{tex,trans,blank}`, flown 10:56–11:18 with `run_resumable_batch.sh`, 3/3
+complete.
+- **Provenance:** the batch started at `23d9423`. The trial metadata records `3aa80aa`,
+  because `run_trial.sh` reads HEAD at the end of a trial and an eval-only commit
+  landed mid-batch. Commits are held while flying from now on.
+- **Evaluation:** `eval/run_set_eval.sh p1plain …`; results
+  `eval/results/{input_timing,flow_quality}_p1plain.json`, `p1plain_{evo,score}.json`.
+- **IMU-gap rule:** `p1plain_blank` had two pre-arm gaps (22 and 25 ms at 12.4 and
+  13.2 s; arming at 24.7 s). The replay starts at 13.19 s, leaving 15.0 s stationary
+  (GT speed 0).
+
+| | `p1plain_tex` | `p1plain_trans` | `p1plain_blank` |
+|---|---|---|---|
+| P1 flow, lidar, IMU | pass | pass | pass |
+| P3 downward flow | pass (inlier 0.9735) | pass (switch 80–82 m bin; levels 0.973 / 0.314) | pass (inlier 0.3137) |
+| P4 EKF3 | 4.46 | 0.545 / 100 m | 0.205 / 18 m |
+| P4 FGO | 4.69 | 0.710 / 95 m | 1.533 / 37 m |
+| *diag.* P2 median / p95 (ms) | 21.1 / 31.5 | 22.1 / 32.5 | 28.5 / 38.2 (limit 38.2) |
+| *diag.* RTF; UKF | 0.82; 36.4 | 0.76; 9.18 | 0.78; 13.3 |
+
+**Gate met on the pre-registered criteria.** However, the batch is **HELD** for the
+finding below.
+
+### FINDING (render check, 2026-09-24) — the forward camera sees a textured SKY; `fwdplain_*` held pending a ruling
+
+Frames: `plots/fwd_camera/p1plain/`.
+- **The plain walls render as intended:** uniform grey faces; only the wall–floor
+  junctions, the end wall's outline and the shading between faces are visible.
+- **The problem is above them.** **No corridor world has a ceiling**, and every world
+  declares `<sky></sky>` (Gazebo's cloud skybox).
+  - The forward camera sees textured clouds across **~46% of the frame height** on the
+    centre line for most of the flight (rows 0–~225 of 480). That falls to ~29% near
+    the end wall.
+  - The same holds in `fwd_*` (`plots/fwd_camera/p1_fwd_blank_forward_frames.png`).
+- **Why it matters.** Clouds at effectively infinite range are a near-ideal
+  **rotation/heading reference**: pure rotation, no parallax. A forward heading cue
+  could lock onto the sky rather than the corridor. In `fwdplain_*` that would make
+  the "featureless case" not featureless, which would change the thesis claim it
+  exists to support.
+- **For `fwd_*` as the upper bound,** the sky only adds cue, so the upper-bound framing
+  holds. It must be stated that the upper bound includes a far-field sky cue that a
+  real indoor corridor does not have.
+- **Options, for the user's ruling:**
+  - **(a) Recommended:** a plain, non-shadow-casting ceiling at z = 5 m (the wall top)
+    in the `_fwdplain` worlds.
+    - It matches the design intent ("normal wall/floor/ceiling geometry") and a real
+      indoor corridor, and adds only wall–ceiling edges.
+    - With `cast_shadows` off, the sun still lights the floor, so downward-flow
+      conditions should be unchanged.
+    - The plain-wall Phase 1 check is re-flown on the modified worlds, since P3 is the
+      test that the floor lighting is unchanged.
+  - **(b)** Remove `<sky>` in the `_fwdplain` worlds, giving the uniform 0.8 grey
+    background. There is no geometry change, but it is not physically an indoor scene.
+    The check is again re-flown.
+  - **(c)** Keep the sky in both datasets and document it as a shared far-field cue.
+    `fwdplain_*` is then "plain walls under an open, textured sky", not featureless.
+  - Under (a) or (b), `fwd_*` and `fwdplain_*` differ in wall texture **and** in the
+    sky. Isolating wall texture alone would need the same change and a re-flight of
+    `fwd_*`; that is also the user's call.

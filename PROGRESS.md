@@ -15,6 +15,14 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 - **Phase 2 COMPLETE:** P1 and P3 pass 9/9, P4 passes 8/9.
 - **Next:** the plain-wall dataset `fwdplain_*` (featureless case; textured walls are
   the upper bound).
+- **Plain-wall work:**
+  - Reframing, design and pre-registration recorded.
+  - Worlds built; the plain-wall Phase 1 check passes every primary criterion (3/3).
+  - **The `fwdplain_*` batch is HELD.** The render check shows the forward camera sees
+    a textured cloud skybox: no world has a ceiling, and the sky fills ~46% of the
+    frame. So the "featureless" case has a far-field heading cue.
+  - Awaiting a ruling: (a) a plain ceiling [recommended], (b) no sky, or (c) keep the
+    sky and document it.
 
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
