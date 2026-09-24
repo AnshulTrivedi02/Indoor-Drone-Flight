@@ -49,17 +49,18 @@ def apply_gap_rule(ev, trial):
 
     Reads `<trial>/imu_gaps.json` from eval/imu_gap_check.py. No file (every bag without
     /imu/time_ref, and any fwd bag not yet checked) or verdict "ok" returns ev
-    unchanged. "trim" drops every event stamped before replay_start_s, the first IMU
-    sample after a pre-arm gap. "unusable" (a gap after arming) refuses the replay."""
+    unchanged. "trim" drops every event stamped before replay_start_s, the first clean IMU
+    sample after a pre-arm irregularity (gap or receipt bunch). "unusable" (an
+    irregularity after arming, or < 10 s left before arming) refuses the replay."""
     p = os.path.expanduser(f"~/thesis_data/trials/{trial}/imu_gaps.json")
     if not os.path.exists(p):
         return ev
     g = json.load(open(p))
     if g["verdict"] == "unusable":
-        raise SystemExit(f"{trial}: IMU gap after arming -> unusable for the replay estimators (imu_gaps.json)")
+        raise SystemExit(f"{trial}: unusable for the replay estimators ({g.get('reason') or 'IMU gap after arming'}; imu_gaps.json)")
     if g["verdict"] == "trim":
         t0 = g["replay_start_s"]
         n = len(ev)
         ev = [e for e in ev if e[0] >= t0]
-        print(f"[imu] gap rule: pre-arm gap, replay starts at {t0:.3f} s ({n - len(ev)} events dropped)")
+        print(f"[imu] timing rule: pre-arm irregularity, replay starts at {t0:.3f} s ({n - len(ev)} events dropped)")
     return ev

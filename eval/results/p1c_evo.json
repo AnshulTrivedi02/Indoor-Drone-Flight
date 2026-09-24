@@ -228,9 +228,31 @@
      "ate_a_cruise": {
       "+0.00": 21.970264
      }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 119.77901700035477,
+      "true_travel": 150.7909902714322,
+      "disp_ratio": 0.79433802234965,
+      "onset_gt_dist": 82.69706469512104
+     },
+     "ate_a_cruise": {
+      "+0.00": 17.760613
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 105.47723410602826,
+      "true_travel": 150.78502712637382,
+      "disp_ratio": 0.6995206096798137,
+      "onset_gt_dist": 94.86456839644903
+     },
+     "ate_a_cruise": {
+      "+0.00": 26.212748
+     }
     }
    }
   }
  },
- "note": "p1c_fwdc_trans: EKF3 only; UKF/FGO replay refused by the dejitter guard (92 IMU samples bunched at one receipt stamp, 288 ms, t=12.48 s, pre-arm; no sensor-time gap), pending a ruling."
+ "note": "p1c_fwdc_trans: UKF/FGO replayed under the extended IMU timing rule (pre-arm receipt bunch, 89 samples at t=12.48 s; replay from 12.775 s, 12.2 s before arming)."
 }

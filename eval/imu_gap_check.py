@@ -11,12 +11,21 @@ ARMING is the first dataflash `ARM` record with ArmState = 1. `time_usec` and da
 `TimeUS` are the same clock (both `AP_HAL::micros64()`: GCS_Common.cpp:2298 and the
 logger), so gaps are placed against arming exactly, with no clock mapping.
 
-Rule, per bag:
-  no gap                      -> "ok"; the replay runs unchanged.
-  gaps only before arming     -> "trim"; the replay starts at the first IMU sample after
-                                 the last gap (`replay_start_s`, bag header clock).
-  any gap after arming        -> "unusable"; UKF/FGO are not run and the bag is reported
-                                 as unusable for the replay estimators.
+A RECEIPT BUNCH (rule extended by the user's 2026-09-24 ruling) is a set of samples
+whose receipt (header) stamp sits more than BUNCH_MS from the linear map of receipt
+against sensor time: samples delivered late together, with no sensor-time gap.
+BUNCH_MS is the dejitter guard's own limit (imu_timing.MAX_ABS_RESID_S), i.e. exactly
+what the timing correction cannot process.
+
+Rule, per bag (gaps and bunches are both "irregularities"):
+  none                           -> "ok"; the replay runs unchanged.
+  only before arming, and at least MIN_STATIONARY_S between the first clean sample
+  after the last irregularity and arming
+                                 -> "trim"; the replay starts at that sample
+                                    (`replay_start_s`, bag header clock).
+  any after arming, or less than MIN_STATIONARY_S before arming
+                                 -> "unusable"; UKF/FGO are not run, and the bag is
+                                    reported as unusable for the replay estimators.
 The verdict is written to `<trial>/imu_gaps.json`, which the replays read (see
 `imu_timing.replay_start`). Bags without /imu/time_ref (all dsn_*) get no file, and
 their replays are unchanged.
@@ -36,6 +45,8 @@ from rosbags.typesys import Stores, get_typestore
 TRIALS_DIR = os.path.expanduser("~/thesis_data/trials")
 PY_AP = os.path.expanduser("~/venv-ardupilot/bin/python3")
 GAP_MS = 10.0
+BUNCH_MS = 25.0
+MIN_STATIONARY_S = 10.0
 _ARM = """
 import sys
 from pymavlink import mavutil
@@ -79,12 +90,26 @@ def check(trial):
     b, a = np.polyfit(sen / 1e6, hdr, 1)
     arm_hdr = a + b * arm / 1e6
     lat = hdr - (a + b * sen / 1e6)
-    if not gaps:
+    # receipt bunches: contiguous runs of samples displaced by more than BUNCH_MS
+    bi = np.where(np.abs(lat) * 1e3 > BUNCH_MS)[0]
+    runs = np.split(bi, np.where(np.diff(bi) > 1)[0] + 1) if len(bi) else []
+    bunches = [{"header_s": float(hdr[r[0]]), "n_samples": int(len(r)),
+                "max_displacement_ms": float(1e3 * np.abs(lat[r]).max()),
+                "before_arm": bool(sen[r[-1]] < arm)} for r in runs]
+    # first clean sample after each irregularity (index into the sensor-ordered stream)
+    after = [i + 1 for i in gi] + [int(r[-1]) + 1 for r in runs]
+    reason = None
+    if not after:
         verdict, start = "ok", None
-    elif all(g["before_arm"] for g in gaps):
-        verdict, start = "trim", float(hdr[gi[-1] + 1])
+    elif not all(x["before_arm"] for x in gaps + bunches):
+        verdict, start, reason = "unusable", None, "irregularity after arming"
     else:
-        verdict, start = "unusable", None
+        start = float(hdr[max(after)])
+        if arm_hdr - start >= MIN_STATIONARY_S:
+            verdict = "trim"
+        else:
+            verdict, reason = "unusable", f"only {arm_hdr - start:.1f} s before arming after the last irregularity (< {MIN_STATIONARY_S:.0f} s)"
+            start = None
     # takeoff: first GT height 5 cm above the resting height
     z0 = np.median(gt[gt[:, 0] < arm_hdr, 3])
     takeoff = float(gt[np.argmax(gt[:, 3] > z0 + 0.05), 0])
@@ -92,7 +117,8 @@ def check(trial):
     w = (gt[:, 0] >= t_from) & (gt[:, 0] <= takeoff - 0.5)
     v = np.hypot(np.gradient(gt[w, 1], gt[w, 0]), np.gradient(gt[w, 2], gt[w, 0]))
     return {
-        "trial": trial, "verdict": verdict, "gap_ms": GAP_MS, "gaps": gaps,
+        "trial": trial, "verdict": verdict, "reason": reason, "gap_ms": GAP_MS, "gaps": gaps,
+        "bunch_ms": BUNCH_MS, "bunches": bunches, "min_stationary_s": MIN_STATIONARY_S,
         "replay_start_s": start, "arm_timeus_s": arm / 1e6, "arm_header_s": float(arm_hdr),
         "takeoff_header_s": takeoff, "imu_first_header_s": float(hdr[0]),
         "stationary_s": takeoff - t_from, "stationary_to_arm_s": float(arm_hdr - t_from),

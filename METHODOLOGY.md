@@ -2465,3 +2465,21 @@ estimators").
   **unusable for UKF/FGO**, and reported as such. EKF3 is still scored.
 - **Applied to** `p1c_fwdc_trans` and to **every dataset bag**, via
   `eval/imu_gap_check.py` → `<trial>/imu_gaps.json`.
+
+**Extended timing rule applied to `p1c_fwdc_trans`.**
+- An 89-sample receipt bunch at t = 12.48 s (max displacement 288 ms), pre-arm.
+- The replay starts at 12.775 s, leaving 12.2 s before arming (≥ 10 s). The dejitter
+  residual max is then 11.75 ms.
+- **It now passes every primary criterion:** FGO ratio 0.700 [0.67, 0.78], onset
+  94.9 m [90, 101]; EKF3 0.55 / 100.6 m. UKF (diagnostic): 17.76, ratio 0.794, onset
+  82.7 m.
+- **Phase 1c status:**
+  - five of six pass every primary criterion;
+  - the one miss (`p1c_fwdplainc_trans` P3 `flow_y_raw`) is recorded, with Ruling 1's
+    decision rule to be applied on the dataset;
+  - render check R passes on all six.
+- **The extended rule leaves every earlier verdict unchanged** (re-checked on
+  `fwd_trans_r1`, `fwd_trans_r3`, `fwd_tex_r2` and `p1plain_blank`).
+- **Note:** even clean bags carry only 11.5–13.8 s of IMU data before arming, because
+  the IMU stream starts after `SET_MESSAGE_INTERVAL` lands. So the 10 s floor leaves
+  room only for irregularities in the first ~1.5–3.8 s of the stream.
