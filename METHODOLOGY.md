@@ -2121,3 +2121,111 @@ All nine `fwd_*` bags are in the dataset.
 - **IMU-gap rule:** `fwd_trans_r1` and `fwd_trans_r3` were replayed under it.
 - **Diagnostic, no action:** `fwd_blank_r1` P2 p95 (39.4 against 38.2 ms).
 - **Results:** `eval/results/{input_timing_p2fwd,flow_quality_p2fwd,phase2_fwd_evo,phase2_score}.json`.
+
+## Scope reframing — textured walls are the UPPER BOUND (user, 2026-09-24)
+
+**The thesis is about featureless environments.** Line-textured walls give the forward
+camera close to best-case conditions.
+- **The `fwd_*` dataset (textured walls) is the upper bound for a forward heading
+  cue.** It shows what a forward cue can do when the walls give it rich structure.
+- **No claim that a forward cue works in featureless environments is made from
+  `fwd_*`.**
+- The featureless case is the **plain-wall** dataset `fwdplain_*` below. It is promoted
+  from "a later ablation" (Forward camera — worlds, design decision) into the **main
+  experiment**.
+- **Phases 3–5 run on both datasets:** `fwd_*` as the upper bound, `fwdplain_*` as the
+  featureless case.
+
+### Design decision — `corridor_{textured,blank,transition}_fwdplain.sdf` (recorded before building or flying)
+
+**Construction.** Each is the corresponding `_fwd` world with these changes only:
+- the `<world name>`;
+- the side walls use `model://corridor_wall` (plain grey, the `dsn` walls) in place of
+  `corridor_wall_lined`;
+- the end wall uses `model://corridor_end_wall_plain`: the same 19.8 × 0.2 × 5 m box and
+  pose as `corridor_end_wall`, with `corridor_wall`'s untextured material.
+
+The floor tiles, `ground_collision`, lighting, spawn, physics and the `iris_fwd` drone
+are identical to `_fwd`. Equivalently, each plain world is its `dsn` world plus the
+forward camera and the plain end wall.
+
+**Reasoning.**
+- **The only forward-visible structure is geometric:** the wall–floor junctions, the
+  end wall's outline, and the shading differences between faces under the fixed sun.
+  Those structural edges are all a forward camera would have in a featureless
+  corridor.
+- **The geometry and lighting stay normal**, so the scene is not made artificially
+  empty.
+- **No ceiling exists** in any corridor world (`dsn`, `_fwd`). None is added: it would
+  change the geometry and the lighting relative to both reference datasets.
+- **The end wall is kept, but made plain.** Removing it would change the geometry
+  against `_fwd`. Keeping it textured would leave a texture cue.
+- **The floor is unchanged,** so downward-flow conditions should match `dsn` and
+  `fwd`, and floor texture stays the only variable between the three worlds.
+
+**Harness.** `run_trial.sh` enables the forward-camera bridge and recording for world
+names matching `*_fwd` **or** `*_fwdplain`. Every other world's bridge and recorder
+argument lists are unchanged (the same empty-array mechanism as `_fwd`).
+
+### Plain-wall Phase 1 — confound check, pre-registered before flying
+
+**Flights.** One flight per plain world: `p1plain_{tex,trans,blank}`, at the
+`dsn`/`fwd` settings (0.5 m/s, 2.0 m, 300 s, no compass, `sim_noise.parm`, RANSAC seed
+42). Flown with `run_resumable_batch.sh` in tmux, in the order tex, trans, blank.
+
+**Criteria.** These are the Phase 1 primary checks under the revised criterion, with
+the Phase 2 bands. Baseline: the same-world `dsn` n=3 values.
+
+| # | criterion | band | status |
+|---|---|---|---|
+| P1 | estimator-input header timing | flow and lidar 30.30 Hz ± 0.1%, ≤ 0.5% of gaps above 1.5×; IMU mean gap 3.0005 ± 0.003 ms, p99 ≤ 10 ms | PRIMARY |
+| P3 | downward-flow conditions | inlier ±0.01, % below 0.5 within ±3 pp, features ±5%, `flow_y_raw` ±2% (±5 px/s on blank), transition switch in the 80–82 m bin with levels ±0.01, GT \|x\| ≤ 0.05 m | PRIMARY |
+| P4 | EKF3 outcome | textured evo -a (cruise) [1.26, 8.13]; transition ratio [0.51, 0.63], onset [96, 108] m; blank ratio [0.12, 0.27], onset [13, 24] m | PRIMARY |
+| P4 | FGO outcome (dejittered baseline) | textured [4.17, 5.14]; transition ratio [0.67, 0.78], onset [90, 101] m; blank ratio [1.45, 1.60], onset [28, 42] m | PRIMARY |
+| P2 | flow → EKF3 latency against same-world `dsn` mean + 12.5 ms | as Phase 2 | DIAGNOSTIC (the 2026-09-24 ruling's reasoning applies unchanged: Phase 5 compares with and without the forward cue on the same bags) |
+| — | RTF, topic rates, forward-image rate, `/imu/time_ref`, every UKF metric, evo -a (cruise) on transition and blank | report | DIAGNOSTIC |
+
+**Why a miss would mean the confound.** It is the same reasoning as Phases 1 and 2.
+P1 and P3 test whether the forward camera's load, or the new walls, alter the shared
+inputs. P4 tests whether estimator behaviour changes through them.
+
+**Handling.**
+- The IMU-gap rule applies: pre-arm gap → trim; post-arm gap → UKF/FGO unusable and
+  reported, so FGO P4 is then NOT EVALUATED for that flight.
+- **Gate:** the `fwdplain_*` batch starts only if every evaluated primary criterion
+  passes on all three flights. A primary miss stops the work and is reported to the
+  user.
+- The Phase 1 check flights are not part of the `fwdplain_*` dataset.
+
+## Phase 2b — `fwdplain_*` dataset: pre-registration (2026-09-24, before any plain-wall data exists)
+
+**Dataset.** `fwdplain_{tex,trans,blank}_r{1,2,3}`: the three `_fwdplain` worlds × 3
+repeats.
+- **Settings:** the same as `fwd_*` (300 s, 0.5 m/s, 2.0 m, no compass,
+  `sim_noise.parm`, RANSAC seed 42, `run_trial.sh`).
+- **Recording:** the same as `fwd_*`, including the forward images and
+  `/imu/time_ref`.
+- **Order:** interleaved (tex r1, trans r1, blank r1, tex r2, …).
+- **Runner:** `run_resumable_batch.sh` in tmux, crash-safe and resumable.
+- **Replays:** the current baseline estimators (OI-2 dejitter, FGO window 0.25 s,
+  IMU-gap rule).
+- **Evaluation:** `eval/three_way_eval.py`, `eval/input_timing.py`,
+  `eval/flow_quality.py` and `eval/imu_gap_check.py`, scored by `eval/phase2_score.py`.
+
+**Criteria.** Identical to the Phase 2 table: **PRIMARY** P1, P3, and P4 for EKF3 and
+the FGO, with the same bands and the same `dsn` n=3 baseline, judged per trial.
+**DIAGNOSTIC:** P2, RTF, topic and forward-image rates, `/imu/time_ref`, every UKF
+metric, and evo -a (cruise) on transition and blank.
+
+**Handling, fixed now.**
+- **A primary miss:** reported to the user, as in Phase 2. It is not re-scored or
+  waived on the spot.
+- **Bags are excluded only for an input defect** (Ruling 1's standard). A poor
+  estimator result alone never excludes a bag.
+- **IMU-gap rule:**
+  - pre-arm gap → trim;
+  - post-arm gap → the bag is reported as unusable for UKF/FGO, EKF3 is still scored,
+    and UKF/FGO in that world are reported at n=2. No re-flight, which avoids
+    outcome-dependent selection.
+- **A trial that fails to complete** (run_trial error or failed validation) is
+  re-flown by the runner once. That is a recording failure, not an outcome.
