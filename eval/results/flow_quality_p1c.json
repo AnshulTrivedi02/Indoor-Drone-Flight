@@ -1,0 +1,104 @@
+{
+ "p1c_fwdc_tex": {
+  "cruise_s": [
+   30.642,
+   332.444
+  ],
+  "n_frames": 9146,
+  "inlier_mean": 0.9723702654564061,
+  "inlier_median": 1.0,
+  "inlier_pct_below_0.5": 0.0,
+  "features_mean": 52.9113273562213,
+  "flow_y_raw_mean": 136.0821437694768,
+  "gt_x_range": [
+   -0.010289908871710617,
+   0.0033867736912844915
+  ]
+ },
+ "p1c_fwdplainc_tex": {
+  "cruise_s": [
+   30.362,
+   332.363
+  ],
+  "n_frames": 9151,
+  "inlier_mean": 0.9735339298490766,
+  "inlier_median": 1.0,
+  "inlier_pct_below_0.5": 0.0,
+  "features_mean": 52.86897606818927,
+  "flow_y_raw_mean": 136.08313935556745,
+  "gt_x_range": [
+   -0.005230988605253853,
+   0.009657341677429503
+  ]
+ },
+ "p1c_fwdc_trans": {
+  "cruise_s": [
+   30.725,
+   332.494
+  ],
+  "n_frames": 9144,
+  "inlier_mean": 0.6666111730709732,
+  "inlier_median": 0.8902439024390244,
+  "inlier_pct_below_0.5": 39.40288713910761,
+  "features_mean": 31.574693788276466,
+  "flow_y_raw_mean": 71.37720412118802,
+  "gt_x_range": [
+   -0.005496196387654686,
+   0.009731141243613893
+  ],
+  "switch_gt_y": 81.0,
+  "inlier_y<75": 0.9737401768494581,
+  "inlier_y>85": 0.3157928402182122
+ },
+ "p1c_fwdplainc_trans": {
+  "cruise_s": [
+   29.917,
+   331.339
+  ],
+  "n_frames": 9134,
+  "inlier_mean": 0.6647426433469253,
+  "inlier_median": 0.8888888888888888,
+  "inlier_pct_below_0.5": 39.489818261440774,
+  "features_mean": 31.641340048171667,
+  "flow_y_raw_mean": 73.01017854300216,
+  "gt_x_range": [
+   -0.009858786804612394,
+   0.004559155635891952
+  ],
+  "switch_gt_y": 81.0,
+  "inlier_y<75": 0.971955766626973,
+  "inlier_y>85": 0.31179888945666934
+ },
+ "p1c_fwdc_blank": {
+  "cruise_s": [
+   30.494,
+   332.197
+  ],
+  "n_frames": 9142,
+  "inlier_mean": 0.31333178910050574,
+  "inlier_median": 0.23809523809523808,
+  "inlier_pct_below_0.5": 84.5548020126887,
+  "features_mean": 7.94290089695909,
+  "flow_y_raw_mean": -3.0148681930743453,
+  "gt_x_range": [
+   -0.005449761469276298,
+   0.009776932904412967
+  ]
+ },
+ "p1c_fwdplainc_blank": {
+  "cruise_s": [
+   29.9,
+   332.065
+  ],
+  "n_frames": 9156,
+  "inlier_mean": 0.3124555944806821,
+  "inlier_median": 0.23529411764705882,
+  "inlier_pct_below_0.5": 84.8514635211883,
+  "features_mean": 7.963958060288335,
+  "flow_y_raw_mean": -1.8793427114231616,
+  "gt_x_range": [
+   -0.010190182540684644,
+   0.004225144761937875
+  ]
+ }
+}

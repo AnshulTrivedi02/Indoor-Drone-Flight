@@ -2384,3 +2384,51 @@ n=3 baseline as Phase 2):
   - IMU-gap rule: pre-arm gap → trim; post-arm gap → UKF/FGO unusable for that bag,
     reported at n=2, no re-flight;
   - a trial that fails to record is re-flown once by the runner.
+
+### Phase 1c ceiling check flights — result: STOPPED on a P3 miss (2026-09-24)
+
+`p1c_{fwdc,fwdplainc}_{tex,trans,blank}` were flown 11:33–12:20 at `4a7ab90`, 6/6
+complete. Results: `eval/results/{input_timing,flow_quality}_p1c.json`,
+`p1c_{evo,score}.json`; frames in `plots/fwd_camera/p1c_frames/`.
+
+| | fwdc tex | fwdplainc tex | fwdc trans | fwdplainc trans | fwdc blank | fwdplainc blank |
+|---|---|---|---|---|---|---|
+| P1 | pass | pass | pass | pass | pass | pass |
+| P3 | pass | pass | pass (`flow_y_raw` 71.38) | **FAIL: `flow_y_raw` 73.01 against 71.43 ± 2% (≤ 72.86)** | pass | pass |
+| P4 EKF3 | 3.92 | 4.49 | 0.55 / 101 m | 0.555 / 101 m | 0.208 / 20 m | 0.195 / 18 m |
+| P4 FGO | 4.60 | 4.53 | **not evaluated** (below) | 0.712 / 95 m | 1.529 / 37 m | 1.496 / 38 m |
+| R (no sky) | pass | pass | pass | pass | pass | pass |
+
+**Render check R: PASS.**
+- Before flight: 18 frames (six worlds × y = 0, 80, 160).
+- In flight: 42 frames (six flights × seven positions).
+- Everything above the walls is the uniform ceiling in every frame, with no sky
+  anywhere.
+
+**P3 miss, as the pre-registration requires: stop and report; lighting is not
+adjusted.** Recorded facts only, not investigated:
+- `p1c_fwdplainc_trans` `flow_y_raw` = 73.01 px/s, which is +2.2% against the `dsn`
+  n=3 mean of 71.43.
+- Every other P3 metric on that flight passes: inlier mean 0.6647, % below 0.5 39.49,
+  features 31.64, switch in the 80–82 m bin, levels 0.972 / 0.312, GT |x| 0.0099 m.
+- Its P1 and P4 pass. Its ceiling-world sibling `p1c_fwdc_trans` gives 71.38.
+- Reference values for the same metric on transition:
+  - `dsn` 70.89 / 71.73 / 71.67;
+  - superseded `fwd_trans` 71.14 / 70.52 / 71.90, `p1_fwd_trans` 72.29,
+    `p1plain_trans` 71.37.
+- `flow_y_raw` passes on textured (136.08 twice, against 136.45 ± 2%) and on blank, in
+  both ceiling datasets.
+
+**Also pending:** `p1c_fwdc_trans` UKF/FGO replay was refused by the dejitter guard
+(residual 289 ms).
+- **Cause:** 92 IMU samples arrived with **one receipt stamp** at t = 12.48 s, after a
+  292 ms delivery pause. `/clock` also paused for 170 ms at t = 12.28 s.
+- This was at IMU stream start, pre-arm (arming 24.93 s), with **no sensor-time gap**
+  (sensor steps are all normal, so no samples were lost).
+- Flow and lidar never gap above 33 ms. P1 (cruise) passes.
+- The IMU-gap rule defines a gap on sensor time, so it does not cover a receipt
+  bunching. The rule is **not extended without a ruling**. FGO P4 for this flight is
+  NOT EVALUATED, and EKF3 is scored.
+
+**The ceiling datasets (`fwdc_*`, `fwdplainc_*`) are NOT flown** pending the user's
+ruling.

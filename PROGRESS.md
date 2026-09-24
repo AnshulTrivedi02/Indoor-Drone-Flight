@@ -24,6 +24,16 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
   - Awaiting a ruling: (a) a plain ceiling [recommended], (b) no sky, or (c) keep the
     sky and document it.
 
+- **Ceiling ruling applied:**
+  - Six ceiling worlds `*_fwdc` / `*_fwdplainc` built; the sky-visible worlds and
+    `fwd_*` are superseded.
+  - Six check flights: the render check passes (no sky); P1 passes everywhere.
+  - **P3 FAILS on `p1c_fwdplainc_trans`** (`flow_y_raw` 73.01 against ≤ 72.86), so
+    the work STOPPED per the pre-registration.
+  - Also pending: `p1c_fwdc_trans` UKF/FGO. A pre-arm IMU receipt bunching (92 samples
+    at one stamp, no sensor-time gap) is not covered by the gap rule.
+  - The datasets are not flown; awaiting a ruling.
+
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
 - **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected
