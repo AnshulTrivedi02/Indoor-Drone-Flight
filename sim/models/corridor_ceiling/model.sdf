@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Plain ceiling for the ceiling forward-camera worlds (*_fwdc, *_fwdplainc; user
+       ruling 2026-09-24). Without it the forward camera saw the cloud skybox, a
+       near-ideal heading/yaw-rate cue that no indoor corridor has.
+       Slab 20.2 x 170 x 0.1 m. The world places the model at (0, 80, 0); the link
+       pose puts the slab's bottom face at z = 5.0 m (the wall tops), spanning
+       x = -10.1..10.1 (the walls' outer faces) and y = -5..165 (the walls' extent).
+       VISUAL ONLY (no collision: the drone flies at 2 m, and redundant collision
+       geometry was the lockstep hazard, Known Issue #11). NON-SHADOW-CASTING, so the
+       directional sun still lights the floor exactly as before. Material:
+       corridor_wall's plain grey. STATIC: never in dynamic_pose/info. -->
+  <model name="corridor_ceiling">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 5.05 0 0 0</pose>
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry><box><size>20.2 170 0.1</size></box></geometry>
+        <material>
+          <ambient>0.6 0.6 0.6 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

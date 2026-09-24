@@ -1,0 +1,245 @@
+<?xml version="1.0" ?>
+<!--
+  CEILING VARIANT (user ruling 2026-09-24) of corridor_blank_fwd.sdf. The only differences
+  from it are the world name and an included model://corridor_ceiling (plain, visual-only,
+  non-shadow-casting, bottom face at z = 5.0 m), so the forward camera sees no sky.
+  METHODOLOGY "Design — ceiling worlds".
+-->
+<!--
+  Corridor world — degraded (featureless) condition.
+
+  Common corridor template shared with corridor_textured.sdf and
+  corridor_transition.sdf: 20 m wide (x: -10..10), 160 m long
+  (y: 0..160), walls at x=+-10 m, spawn at the y=0 end facing +Y
+  (yaw 90 deg, matching iris_textured.sdf/iris_runway.sdf). The three
+  worlds are identical except for floor texture — see CLAUDE.md.
+
+  Floor here: 9 visual-only 20x20 m tiles (model://blank_ground_visual)
+  tiled exactly as corridor_textured.sdf, using the exact
+  same ambient/diffuse/specular/roughness/metalness values as
+  textured_ground's material but with no albedo_map — i.e. texture is
+  the only thing that differs from corridor_textured.sdf, not colour
+  or reflectance.
+
+  The floor's near edge extends to y=-4 (4 m before the documented y=0
+  spawn/corridor start) rather than sitting exactly at y=0 — the far
+  edge stays at y=160, unchanged. Found via the downward LiDAR reading
+  `inf` (no hit) exactly at spawn while reading correctly one metre
+  forward: the drone spawns precisely on the floor plane's edge, a
+  knife-edge the renderer's single vertical ray can miss under
+  sub-millimetre pose jitter. See CLAUDE.md, Known Issues.
+-->
+<!--
+  FORWARD-CAMERA VARIANT (fwd-camera workstream, 2026-09-24) of corridor_blank.sdf.
+  Differences from the original, and nothing else: the world name; the side walls
+  use corridor_wall_lined (same collision box and volume, line-textured surface);
+  a static textured end wall at y = 165; and the drone is iris_fwd (adds a forward
+  camera). The floor, lighting, spawn and physics are identical, so downward-flow
+  conditions are unchanged; confound check (b) in METHODOLOGY verifies this.
+-->
+<sdf version="1.9">
+  <world name="corridor_blank_fwdc">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.363262</latitude_deg>
+      <longitude_deg>149.165237</longitude_deg>
+      <elevation>584</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="axes">
+      <static>1</static>
+      <link name="link">
+        <visual name="r">
+          <cast_shadows>0</cast_shadows>
+          <pose>5 0 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>10 0.01 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 0.8</ambient>
+            <diffuse>1 0 0 0.8</diffuse>
+            <emissive>1 0 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="g">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 5 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 10 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <emissive>0 1 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="b">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 0 5.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.01 10</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 0.8</ambient>
+            <diffuse>0 0 1 0.8</diffuse>
+            <emissive>0 0 1 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- Floor: 9x 20x20 m visual-only blank tiles spanning y:-20..160 - the same
+         tiling and geometry as corridor_textured.sdf, differing ONLY in material
+         (no albedo_map). A real rendered surface, not an absent one. The y=-10
+         tile puts 20 m of floor behind the y=0 spawn so the drone never sits on
+         a plane edge (see the knife-edge note in this file's header). -->
+    <include>
+      <name>floor_tile_0</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 -10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_1</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_2</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 30 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_3</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 50 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_4</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 70 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_5</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 90 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_6</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_7</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 130 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_tile_8</name>
+      <uri>model://blank_ground_visual</uri>
+      <pose>0 150 0 0 0 0</pose>
+    </include>
+
+    <!-- Corridor walls: x=+-10 m, spanning y:-5..165 -->
+
+    <!-- Physics-only ground, included identically by all three corridor worlds.
+         Floor tiles above are visual-only. See model://ground_collision. -->
+    <include>
+      <uri>model://ground_collision</uri>
+    </include>
+
+    <include>
+      <name>wall_east</name>
+      <uri>model://corridor_wall_lined</uri>
+      <pose>10 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>wall_west</name>
+      <uri>model://corridor_wall_lined</uri>
+      <pose>-10 80 0 0 0 0</pose>
+    </include>
+
+    <!-- fwd-camera workstream: textured far end wall (static). -->
+    <!-- ceiling variant: plain, visual-only, non-shadow-casting ceiling at wall-top height. -->
+    <include>
+      <name>ceiling</name>
+      <uri>model://corridor_ceiling</uri>
+      <pose>0 80 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <name>wall_end</name>
+      <uri>model://corridor_end_wall</uri>
+      <pose>0 165 0 0 0 0</pose>
+    </include>
+
+    <!-- fwd-camera workstream: iris_fwd = iris_with_ardupilot + a level forward camera.
+         The instance keeps the name iris_with_ardupilot, so topics and tooling that
+         name the model are unchanged. -->
+    <include>
+      <name>iris_with_ardupilot</name>
+      <uri>model://iris_fwd</uri>
+      <pose degrees="true">0 0 0.195 0 0 90</pose>
+    </include>
+
+  </world>
+</sdf>

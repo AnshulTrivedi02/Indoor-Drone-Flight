@@ -94,7 +94,7 @@ validate_trial() {
     [ -f "$dir/bag/metadata.yaml" ] || { echo "bag not closed cleanly (no bag/metadata.yaml)"; return 1; }
     local topics=(/clock /ground_truth/pose /ekf/pose /downward_lidar/range
                   /attitude/angular_rates /imu/data_raw /imu/time_ref /optical_flow/measurement)
-    [[ "$world" == *_fwd || "$world" == *_fwdplain ]] && topics+=(/forward_camera/image /forward_camera/camera_info)
+    [[ "$world" == *_fwd || "$world" == *_fwdplain || "$world" == *_fwdc || "$world" == *_fwdplainc ]] && topics+=(/forward_camera/image /forward_camera/camera_info)
     python3 - "$dir/bag/metadata.yaml" "${topics[@]}" <<'PYEOF'
 import sys, yaml
 info = yaml.safe_load(open(sys.argv[1]))["rosbag2_bagfile_information"]

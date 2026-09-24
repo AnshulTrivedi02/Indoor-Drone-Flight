@@ -51,7 +51,7 @@ def inband(x, lo, hi):
 
 
 def world(trial):
-    return trial.split("_")[1]
+    return next(x for x in trial.split("_") if x in WORLDS)
 
 
 def main():

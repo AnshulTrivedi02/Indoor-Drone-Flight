@@ -68,14 +68,15 @@ if [ -z "$TRIAL_NAME" ]; then
 fi
 
 # Forward-camera worlds (fwd-camera workstream): any world named *_fwd (textured walls)
-# or *_fwdplain (plain walls, METHODOLOGY "Design decision — *_fwdplain") carries the
+# or *_fwdplain (plain walls), and their ceiling versions *_fwdc / *_fwdplainc
+# (METHODOLOGY "Design — ceiling worlds"; the no-ceiling ones are superseded), carries the
 # iris_fwd model's forward camera. Opt-in and name-driven: for every other world
 # both arrays stay EMPTY, so the bridge and recorder argument lists are exactly the
 # pre-fwd ones (METHODOLOGY, "Forward camera — harness").
 declare -a FWD_BRIDGE_ARGS=()
 declare -a FWD_RECORD_TOPICS=()
 FWD_CAMERA=false
-if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain ]]; then
+if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WORLD" == *_fwdplainc ]]; then
     FWD_CAMERA=true
     FWD_BRIDGE_ARGS=(
         /forward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image
