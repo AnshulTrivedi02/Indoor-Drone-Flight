@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Plain far end wall for the plain-wall corridor worlds (*_fwdplain, 2026-09-24).
+       The same box and pose as corridor_end_wall (19.8 x 0.2 x 5 m, link at z = 2.5 m,
+       placed by the world at y = 165), but with corridor_wall's untextured material, so
+       every wall in the plain worlds matches the dsn side walls. STATIC: it never
+       enters dynamic_pose/info. See METHODOLOGY "Design decision — *_fwdplain". -->
+  <model name="corridor_end_wall_plain">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 2.5 0 0 0</pose>
+      <collision name="collision">
+        <geometry><box><size>19.8 0.2 5</size></box></geometry>
+      </collision>
+      <visual name="visual">
+        <geometry><box><size>19.8 0.2 5</size></box></geometry>
+        <material>
+          <ambient>0.6 0.6 0.6 1</ambient>
+          <diffuse>0.6 0.6 0.6 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

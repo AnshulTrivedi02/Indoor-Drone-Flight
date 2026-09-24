@@ -15,7 +15,13 @@ Inputs (all already computed; this script only applies bands):
   eval/results/phase2_fwd_evo.json       eval/three_way_eval.py on the nine fwd bags
   <trial>/logs/fly_trial.log, <trial>/bag/metadata.yaml   RTF and topic rates
 
-Usage (any python3 with PyYAML): python3 eval/phase2_score.py [--json OUT]
+Also scores the plain-wall sets (METHODOLOGY Phase 2b and its Phase 1 check) with the
+same bands: --trials picks the trials, and --timing / --flow / --evo the result files.
+
+Usage (any python3 with PyYAML):
+  python3 eval/phase2_score.py [--json OUT]                               (Phase 2, fwd_*)
+  python3 eval/phase2_score.py --trials fwdplain --timing input_timing_fwdplain.json \
+      --flow flow_quality_fwdplain.json --evo fwdplain_evo.json [--json OUT]
 """
 import argparse, json, os, re, statistics as st
 import yaml
@@ -24,7 +30,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "results")
 TRIALS_DIR = os.path.expanduser("~/thesis_data/trials")
 WORLDS = ("tex", "trans", "blank")
-TRIALS = [f"fwd_{w}_r{r}" for r in (1, 2, 3) for w in WORLDS]   # flight order
 
 # P4 bands, verbatim from the Phase 2 pre-registration table.
 P4 = {
@@ -52,17 +57,24 @@ def world(trial):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json")
+    ap.add_argument("--trials", default="fwd",
+                    help="dataset prefix (<p>_{tex,trans,blank}_r{1,2,3}, flight order) or a comma list of trial names")
+    ap.add_argument("--timing", default="input_timing_p2fwd.json")
+    ap.add_argument("--flow", default="flow_quality_p2fwd.json")
+    ap.add_argument("--evo", default="phase2_fwd_evo.json")
     a = ap.parse_args()
+    trials = a.trials.split(",") if "," in a.trials else \
+        [f"{a.trials}_{w}_r{r}" for r in (1, 2, 3) for w in WORLDS]
 
-    it, it_dsn = load("input_timing_p2fwd.json"), load("input_timing_linmap.json")
-    fq, fq_dsn = load("flow_quality_p2fwd.json"), load("flow_quality_dsn.json")
-    evo = load("phase2_fwd_evo.json")["trials"]
+    it, it_dsn = load(a.timing), load("input_timing_linmap.json")
+    fq, fq_dsn = load(a.flow), load("flow_quality_dsn.json")
+    evo = load(a.evo)["trials"]
 
     def dsn_mean(src, w, key):
         return st.mean(src[f"dsn_{w}_r{r}"][key] for r in (1, 2, 3))
 
     out, any_primary_fail, any_pending = {}, False, False
-    for t in TRIALS:
+    for t in trials:
         w = world(t)
         chk = {}   # name -> (value, band text, pass, primary?)
 

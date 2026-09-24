@@ -37,6 +37,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Corridor world (nominal)**    | `~/thesis_ws/sim/worlds/corridor_textured.sdf`                   |
 | **Corridor world (degraded)**   | `~/thesis_ws/sim/worlds/corridor_blank.sdf`                      |
 | **Corridor world (transition)** | `~/thesis_ws/sim/worlds/corridor_transition.sdf`                 |
+| **Forward-camera corridor worlds** | `sim/worlds/corridor_{textured,blank,transition}_fwd.sdf` (line-textured walls = UPPER BOUND) and `..._fwdplain.sdf` (plain walls = featureless case); `run_trial.sh` enables forward-camera recording for `*_fwd`/`*_fwdplain` — see METHODOLOGY |
 | Custom floor/wall models (tracked) | `~/thesis_ws/sim/models/`                                        |
 | Drone SDF (edit + mirror)   | `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf` → mirror to `sim/reference/` |
 | ROS2 workspace              | `~/thesis_ws`                                                        |
