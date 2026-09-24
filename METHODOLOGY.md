@@ -2747,3 +2747,78 @@ N_MIN **5**. Measurement noise for Phase 4 (robust σ over valid calibration err
   0–19%.
 - **The validation runner** uses `fwd_run.py --frozen`, verified identical to the grid
   run on 600 frames (t, ψ, support, ω, n_trk all equal).
+
+### Phase 3 validation — result (18 dataset bags, frozen parameters, no re-tuning)
+
+`eval/fwd_eval.py --validate` → `eval/results/fwd_validation.json`. Static sweep:
+`eval/fwd_sweep_eval.py` → `eval/results/fwd_yaw_sweep.json`, with renders in
+`~/thesis_data/phase3_yaw_sweep/`. Bias and noise are computed on the non-outlier valid
+errors; the all-valid mean is also in the JSON. Values are means over the three
+repeats; every bag's own values are in the JSON.
+
+**Heading ψ (vanishing point).**
+
+| dataset / world | availability | bias | noise sd | robust σ | outliers | bar |
+|---|---|---|---|---|---|---|
+| `fwdc` tex | 96.8% | −0.006° | 0.20° | 0.13° | 0.09% | **3/3** |
+| `fwdc` trans | 96.8% | −0.014° | 0.13° | 0.09° | 0.00% | **3/3** |
+| `fwdc` blank | 96.8% | −0.018° | 0.11° | 0.08° | 0.00% | **3/3** |
+| `fwdplainc` tex | 60.0% | +0.206° | 0.68° | 0.33° | 11.9% | **0/3** |
+| `fwdplainc` trans | 87.6% | +0.035° | 0.39° | 0.02° | 3.0% | **3/3** |
+| `fwdplainc` blank | 95.5% | −0.027° | 0.12° | 0.01° | 0.14% | **3/3** |
+
+**Yaw rate ω (horizontal flow near the VP).**
+
+| dataset / world | availability | bias | noise sd | outliers | bar |
+|---|---|---|---|---|---|
+| `fwdc` tex / trans / blank | 99.9 / 97.4 / 97.4% | +0.006 / +0.009 / +0.002 deg/s | 0.19 / 0.21 / 0.13 deg/s | 0.0% | **9/9** |
+| `fwdplainc` tex / trans / blank | 89.7 / 86.1 / 87.5% | +0.053 / +0.080 / −0.066 deg/s | 1.48 / 1.43 / 1.36 deg/s | 15.4 / 15.7 / 23.7% | **0/9** |
+
+**The validation reproduces the calibration** to within a few hundredths in every
+metric: the split held, and nothing was re-tuned.
+
+**End-wall dropout.** Heading availability for GT y > 145 m:
+- `fwdc`: 14–20%;
+- `fwdplainc`: 0–10%.
+
+The output goes to "no measurement", as designed.
+
+**Degradation from textured to plain walls.**
+- **Heading:**
+  - It holds on blank and transition floors: noise 0.12° and 0.39°, against 0.11°
+    and 0.13° with textured walls.
+  - On the blank floor, plain walls give the lowest robust σ of all (0.01°). The four
+    junction lines are clean.
+  - It **fails on the checkerboard floor**: availability 97% → 60%, outliers 0.1% →
+    12%. With plain walls, the only corridor-parallel structure is 3–4 junction
+    segments, and floor aliasing outvotes them. **This is floor texture defeating the
+    method, not wall texture helping it.**
+- **Yaw rate:** it **fails everywhere with plain walls**. Noise 0.13–0.21 → 1.36–1.48
+  deg/s, outliers 0% → 15–24%. Plain walls give no trackable corners near the VP, and
+  line junctions have the aperture problem.
+
+**Static heading response (supplementary, pre-registered bar: slope 1 ± 0.05, every
+|residual| ≤ 0.5°): 1/6 worlds pass** (`blank_fwdc`). **The bar stands as failed.**
+- **Near the end wall** (y = 140 m, 25 m from it) with ±5–10° offsets, several wrong
+  VPs clear S_MIN: for example, a true +10° is reported as −17.2° (`textured_fwdc`).
+- **Plain walls over a checkerboard floor** show errors of up to 2.3–3.2°.
+- **Descriptive only, not the bar:** at y = 20 and 100 m, every textured-wall world and
+  `blank_fwdplainc` respond with slope 1.00–1.01 and max |residual| ≤ 0.32°. The
+  plain-wall checkerboard worlds show slope 1.03–1.05 and residuals up to 2.5°.
+
+**Phase 3 conclusion (validated measurements, and where they fail).**
+- **Heading is validated** (flight bar) on 15/18 bags:
+  - every textured-wall bag;
+  - plain walls on blank and transition floors.
+- **Heading fails** on plain walls over a checkerboard floor.
+- **Its response to heading changes is confirmed only away from the end wall.** Within
+  ~25 m of it, large offsets produce confident wrong outputs. The flight data (true
+  heading ≈ 0) does not exercise this. **Phase 4 must treat heading near the end wall
+  with suspicion, or gate it out.**
+- **Yaw rate is validated only with textured walls.** With plain walls, horizontal flow
+  near the VP is not a usable measurement.
+- **Measurement noise for Phase 4** comes from the calibration set:
+  - `fwdc`: σ_ψ 0.097°, σ_ω 0.106 deg/s;
+  - `fwdplainc`: σ_ψ 0.026°. There is no σ_ω, because it failed validation.
+- **The method was not escalated** (time-box and guardrail). Three priors were added on
+  calibration frames and are stated above.

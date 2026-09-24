@@ -51,6 +51,17 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 - **Ceiling datasets COMPLETE:** `fwdc` 8/9 (one recorded miss), `fwdplainc` 9/9.
 - **Next:** Phase 3, forward-camera measurements.
 
+- **Phase 3 (forward-camera measurements) DONE within the time-box.**
+  - **Method:** LSD + RANSAC vanishing point for heading; median LK flow near the VP
+    for yaw rate. Calibrated on `p1c_*` and validated on the 18 dataset bags without
+    re-tuning.
+  - **Heading:** textured walls 9/9 (noise 0.1–0.2°). Plain walls pass on blank and
+    transition floors but fail on the checkerboard floor, where floor aliasing
+    outvotes the junctions.
+  - **Yaw rate:** textured walls 9/9 (0.13–0.21 deg/s); plain walls 0/9.
+  - **Static response bar: 1/6 fail-stands.** It is linear and unit-slope away from the
+    end wall, but wrong near it.
+
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
 - **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected
