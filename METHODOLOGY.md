@@ -2599,3 +2599,117 @@ bags.
 - The render check passes on all 18. The extended IMU timing rule trimmed 3 bags; none
   is unusable.
 - **These two datasets are the forward-camera datasets for Phases 3–5.**
+
+## Phase 3 — forward-camera measurements: pre-registration (2026-09-24, before calibration or validation runs)
+
+**Scope.** Two measurements from `/forward_camera/image`, validated before any fusion:
+- **Heading** ψ: yaw relative to the corridor axis, with a per-frame confidence.
+- **Yaw rate** ω: from horizontal forward-image flow.
+
+Guardrails as ruled:
+- the simplest standard methods first;
+- no features added to the worlds;
+- **no ground truth inside the measurement pipeline** (`src/forward_camera/fwd_measure.py`
+  and `eval/fwd_run.py` read only the forward image);
+- a time-box of one working session.
+
+### Method (frozen now)
+
+**Heading.**
+- LSD line segments (OpenCV defaults). Segments are discarded if shorter than 15 px, or
+  within 5° of horizontal or vertical.
+- RANSAC vanishing point: 300 iterations, length-weighted pair sampling, seeded per
+  frame. It is refined by length-weighted least squares on the inliers.
+- ψ = atan((u_vp − cx)/fx). Positive means the nose is to the left, matching ENU yaw.
+  Roll and pitch are not compensated (cruise pitch ~0.02°), stated as a limitation.
+- **Three priors, all added after they failed on CALIBRATION frames (`p1c_*`, stated
+  openly):**
+  - **(i) the VP must lie inside the image**, i.e. |ψ| < 30°, the half-FOV. This
+    rejects the checkerboard floor's diagonal families near ±45°.
+  - **(ii) the VP must lie within ±5° of the horizon row** (level mount, cruise pitch
+    ~0.02°). This rejects aliasing families about 11° below it.
+  - **(iii) RANSAC scores by balanced two-sided support,** 2 × min(left, right inlier
+    length). A corridor VP is supported by both walls; the checker families are
+    one-sided.
+- **Known failure before calibration:** plain walls over a checkerboard floor. The
+  three or four junction segments are detected and point at the true VP to within
+  0.2–0.25°, but on 3–5 of 10 sampled calibration frames the floor's aliasing segments
+  still win, by +2.4 to +4.4°. **No further method changes are made. This is reported,
+  not engineered away.**
+
+**Validity (confidence).**
+- A heading is valid iff support ≥ S_MIN; otherwise the output is **"no measurement"**.
+- Support = the balanced inlier length in px, and doubles as the per-frame confidence.
+- This is also the **end-wall dropout**: near y ≈ 150 m the junctions shorten and
+  vanish, support collapses, and the output is "no measurement".
+
+**Yaw rate.**
+- Shi-Tomasi corners (up to 100) inside a box of half-size B px around the **previous
+  frame's VP**. They are tracked by pyramidal LK into the current frame.
+- ω = median(Δu)/fx/Δt, in deg/s, positive anticlockwise. It is valid iff the previous
+  frame had a VP, and at least N_MIN corners were tracked.
+- **Parallax limitation:** forward flight adds radial flow from the focus of expansion
+  (≈ the VP), with horizontal component (u − u_foe)·V/Z. The box keeps |u − u_foe|
+  small and Z large, and the median over a roughly symmetric box cancels it to first
+  order. It is **not removed**: residual parallax is a bias that depends on the feature
+  layout.
+
+### Calibration / validation split
+
+- **Calibration: the six `p1c_*` check flights only.** The calibrated values are:
+  - the inlier tolerance, from {0.5, 1.0, 1.5}°;
+  - S_MIN, from {0, 200, 400, 600, 800, 1000} px;
+  - the box half-size B, from {40, 80, 160} px;
+  - N_MIN, from {5, 10, 20};
+  - the measurement noise σ_ψ and σ_ω (1.4826 × MAD of valid-output errors, pooled per
+    dataset type) for Phase 4.
+- **Selection rule, fixed now.** Among the grid:
+  - pick the combination for which the most calibration bags meet the accuracy bar
+    below;
+  - break ties by mean availability.
+  - Heading (tolerance, S_MIN) is chosen first; then yaw rate (B, N_MIN), using that
+    tolerance's VPs.
+  - One parameter set is used for both datasets.
+- **Validation: the 18 dataset bags (`fwdc_*`, `fwdplainc_*`),** with the frozen
+  parameters. **No re-tuning after validation starts.**
+
+### Ground truth (evaluation only)
+
+- ψ_true = GT ENU yaw − 90° (the corridor runs along +Y).
+- ω_true = the finite difference of GT yaw between the same two frame stamps.
+- Both are interpolated from `/ground_truth/pose` at the frame stamps.
+- Cruise window: `eval/cruise_window.py` from GT.
+- **Limitation:** in these flights the true heading is nearly constant (GT yaw span
+  ≈ 0.1° over cruise) and the true yaw rate is ≈ 0. **The validation therefore tests
+  bias, noise, outliers and availability at near-zero heading and yaw rate, not the
+  response to heading changes.**
+- A supplementary **static yaw sweep** tests the heading response. It uses rendered
+  frames, not flights: each of the six worlds at y = 20, 100 and 140 m, z = 2.3 m, yaw
+  offsets of {−10, −5, −2, 0, +2, +5, +10}°. **Its bar:** fitted slope 1 ± 0.05, and
+  every |residual| ≤ 0.5°, where a valid output exists. It is run after the main
+  validation, if the time-box allows.
+
+### Accuracy bar (per bag, over cruise; pre-registered)
+
+| measurement | availability (% of cruise frames valid) | \|bias\| (mean error) | noise (sd of non-outlier errors) | outlier rate |
+|---|---|---|---|---|
+| heading ψ | ≥ 70% | ≤ 0.5° | ≤ 1.0° | ≤ 5% (\|error\| > 3°) |
+| yaw rate ω | ≥ 70% | ≤ 0.05 deg/s | ≤ 1.0 deg/s | ≤ 5% (\|error\| > 3 deg/s) |
+
+**Basis for the bar.**
+- **Heading:** the replay estimators' unobservable yaw drifts by ~45° over a 300 s
+  cruise (FGO; the UKF more). A measurement with sub-degree bias and noise, available
+  for most frames, bounds that drift by more than an order of magnitude.
+- **Yaw rate:** the true SITL gyro bias averages 8.9 deg/min = 0.148 deg/s over cruise.
+  A yaw-rate measurement must be unbiased to about a third of that (0.05 deg/s) to help
+  observe it. 1 deg/s per-frame noise averages to ~0.18 deg/s over 1 s at 30 Hz.
+- 70% availability allows for the end-wall dropout (~3% of cruise) and occasional
+  frame losses.
+
+**Reported per bag, and aggregated per world and per dataset:** bias, noise, robust σ,
+outlier rate, availability (overall, and for y > 145 m separately), and the degradation
+from textured walls (`fwdc`) to plain walls (`fwdplainc`).
+
+**Time-box.** If the simple method has not produced a validated measurement within one
+working session, the work stops and what is known is reported; the method is not
+escalated.
