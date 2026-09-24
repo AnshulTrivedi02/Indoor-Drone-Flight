@@ -2291,3 +2291,96 @@ Frames: `plots/fwd_camera/p1plain/`.
   - Under (a) or (b), `fwd_*` and `fwdplain_*` differ in wall texture **and** in the
     sky. Isolating wall texture alone would need the same change and a re-flight of
     `fwd_*`; that is also the user's call.
+
+## RULING (user, 2026-09-24): CEILING in both forward-camera datasets — option (a), applied to both
+
+**Reasoning, as ruled.**
+- **The sky is a near-ideal heading and yaw-rate cue.** Clouds at infinity show pure
+  rotation with no parallax.
+- **It would contaminate both measurements** the forward camera exists for: heading
+  from structure, and yaw rate from forward flow. It would do so in both datasets,
+  with a cue no real indoor corridor has.
+- **The textured-wall upper bound must not include it either.**
+- **The ceiling is therefore added to both datasets,** so wall texture is the only
+  difference between them.
+
+### Design — ceiling worlds `corridor_{textured,transition,blank}_{fwdc,fwdplainc}.sdf` (recorded before building or flying)
+
+**Construction.**
+- Six new worlds. `_fwdc` is built from `_fwd` (line-textured walls); `_fwdplainc` is
+  built from `_fwdplain` (plain walls). The source worlds are **not modified**.
+- **The one change:** each includes `model://corridor_ceiling`, plus its own world name.
+- **`corridor_ceiling`:**
+  - a static slab, 20.2 × 170 × 0.1 m;
+  - bottom face at z = 5.0 m, the wall-top height, spanning x = −10.1…10.1 (the walls'
+    outer faces) and y = −5…165 (the walls' extent). So it closes the corridor
+    exactly, including over the end wall (y = 164.9–165.1);
+  - plain, untextured, with `corridor_wall`'s material;
+  - **non-shadow-casting** (`<cast_shadows>false</cast_shadows>`), so the directional
+    sun still lights the floor as before;
+  - **visual-only, no collision.** The drone flies at 2 m. Known Issue #11 showed that
+    redundant collision geometry is the lockstep hazard. `gpu_lidar` raycasts the
+    rendering scene, but points straight down, never up.
+- Everything else is identical to the source world: floor, walls, end wall, lighting,
+  spawn, physics, and `iris_fwd`.
+
+### Superseded (kept, labelled, not analysed further)
+
+Superseded because the forward view includes the sky:
+- the worlds `corridor_*_fwd.sdf` and `corridor_*_fwdplain.sdf`;
+- the `fwd_*` dataset;
+- the check flights `p1_fwd_*` and `p1plain_*`.
+
+They are kept on disk (`SUPERSEDED.txt` in each trial directory) and **not analysed
+further**. Their Phase 1/2 results above remain as the record of what was run.
+`fwd_tex_r1`'s Phase 5 high-heading-drift flag is **not carried across.** It applies
+to whichever ceiling-dataset bag shows high heading drift.
+
+### Ceiling datasets — pre-registration (2026-09-24, before any ceiling data exists; supersedes the Phase 2b plan for `fwdplain_*`)
+
+**Check flights (Phase 1c).** One per ceiling world, six in all:
+`p1c_{fwdc,fwdplainc}_{tex,trans,blank}`.
+- Flown in one resumable tmux batch (`run_resumable_batch.sh`), interleaved by dataset
+  within each world.
+- Same settings as `dsn`/`fwd`: 0.5 m/s, 2.0 m, 300 s, no compass, `sim_noise.parm`,
+  RANSAC seed 42.
+
+**Datasets.** `fwdc_*` (textured walls = upper bound) and `fwdplainc_*` (plain walls =
+featureless case).
+- Each is three worlds × three repeats, same settings.
+- Flown in one resumable tmux batch, interleaved as tex r1 fwdc, tex r1 fwdplainc,
+  trans r1 fwdc, trans r1 fwdplainc, blank r1 fwdc, blank r1 fwdplainc, then r2, r3.
+- **No commits while flights are running.**
+
+**Criteria** (checks and datasets alike; judged per trial; same bands and same `dsn`
+n=3 baseline as Phase 2):
+
+| # | criterion | status |
+|---|---|---|
+| P1 | estimator-input header timing (Phase 2 bands) | PRIMARY |
+| P3 | downward-flow conditions (Phase 2 bands) — **the key check that the ceiling did not alter floor lighting** | PRIMARY |
+| P4 | EKF3 and FGO outcome (Phase 2 bands; FGO on the dejittered baseline) | PRIMARY |
+| R | **render check: no sky visible anywhere in the forward view**, from sample frames (below) | PRIMARY |
+| P2 | flow → EKF3 latency (same-world `dsn` mean + 12.5 ms) | DIAGNOSTIC |
+| — | RTF, topic and forward-image rates, `/imu/time_ref`, every UKF metric, evo -a (cruise) on transition and blank | DIAGNOSTIC |
+
+**Render check R.** It is applied at two points.
+- **Before any flight:** `sim/tools/render_check.sh` on each of the six worlds, at y
+  = 0, 80 and 160 (z = 2.3 m).
+- **After each check flight:** forward frames extracted at y = 0.5, 10, 40, 80, 120 and
+  150 m, and 153 m (the cruise end).
+- **Pass:** in every sampled frame, everything above the walls is the plain ceiling,
+  with no sky pixels anywhere.
+
+**Gate and handling.**
+- **P3 fails anywhere in the check flights:** stop and report. **Lighting is not
+  adjusted to make it pass.**
+- **Any other primary miss in the check flights:** also stop and report.
+- **The datasets are flown only if all six check flights pass every evaluated primary
+  criterion.**
+- **Dataset handling is the same as fixed for Phase 2b:**
+  - a primary miss is reported, not re-scored or waived;
+  - bags are excluded only for an input defect;
+  - IMU-gap rule: pre-arm gap → trim; post-arm gap → UKF/FGO unusable for that bag,
+    reported at n=2, no re-flight;
+  - a trial that fails to record is re-flown once by the runner.
