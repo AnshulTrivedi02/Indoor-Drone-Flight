@@ -1948,3 +1948,61 @@ displacement ratio / onset.
 - `fwd_trans_r3`'s UKF/FGO needs a handling ruling before it is computed. No
   provisional number was produced, so the rule comes before the result.
 - Everything else passes every primary criterion.
+
+### RULE — IMU gaps and the replay estimators (user ruling, 2026-09-24; recorded before any result under it)
+
+**Rule.**
+- **A gap before arming:** the UKF/FGO replay starts at the first IMU sample after
+  the (last) gap.
+- **Any gap after arming:** the bag is **unusable for the replay estimators**
+  (UKF/FGO). It is reported as such, and EKF3 is still scored.
+
+**Definitions** (`eval/imu_gap_check.py`; verdict written to `<trial>/imu_gaps.json`,
+read by the replays):
+- **Gap.** A step in `/imu/time_ref` sensor time (HIGHRES_IMU `time_usec`) larger than
+  **10 ms**.
+  - In all nine `fwd_*` bags the normal steps are only 2, 3, 5 and 6 ms. The 333 Hz
+    stream is sampled off SITL's 400 Hz loop, so steps alternate while averaging
+    3.0005 ms.
+  - The two real dropouts found are 20 and 30 ms. So 10 ms sits above every normal
+    step and below both.
+- **Arming.** The first dataflash `ARM` record with ArmState = 1.
+  - `time_usec` and `TimeUS` are the same clock (`AP_HAL::micros64()`,
+    GCS_Common.cpp:2298), so no clock mapping is involved.
+- **Replay start.** The replay drops every event (all sensors) before the start
+  stamp, so the estimator initialises on the stationary data after it. Its
+  initialisation (range height, levelling from gravity) only needs stationary data.
+- **Scope.** Bags without `/imu/time_ref` (all `dsn_*`) cannot be checked, and their
+  replays are unchanged. They passed the dejitter validity check (residuals within
+  ±13 ms, no dropped-sample step).
+
+**Applying the rule to all nine `fwd_*` bags catches two, not one:**
+- `fwd_trans_r3`: a 30 ms gap at t = 6.16 s (arming 24.09 s). This is the bag the
+  dejitter guard refused.
+- **`fwd_trans_r1`: a 20 ms gap at t = 14.04 s (arming 24.13 s).** The guard did not
+  catch it, because its residual (21.8 ms) is under the 25 ms limit. Its UKF/FGO
+  result reported above was computed with the pre-gap samples mis-timed by ~17 ms. It
+  is re-replayed under the rule, and any change is reported.
+- The other seven have no gap.
+
+### RULING 1 — `fwd_tex_r1` FGO primary miss (user, 2026-09-24; recorded before the check)
+
+**The miss stands as recorded.** Before the user rules on the bag's use, there is
+**one bounded check, time-boxed to one hour**, reading only what is on disk or cheap
+to compute:
+1. UKF and FGO yaw error over the cruise window, r1 against r2/r3.
+2. Simulated gyro drift over the cruise window, per bag: arming time within the
+   triangle-wave cycle, and the true bias ramp during cruise.
+3. Any IMU-stream difference between r1 and r2/r3 beyond the gap check: dejitter
+   residual statistics, and `time_ref` against receipt timing.
+
+**Decision rule** (recorded now):
+- **If the cause is a property of the flight** (for example the drift phase): the bag
+  is kept, with the miss recorded.
+- **If it is an input defect:** the bag is excluded, and one replacement trial is flown
+  at the end of the batch, with the order break documented.
+- **If nothing explains it within the hour:** that is reported and not investigated
+  further.
+
+**`fwd_blank_r1` P2 p95 (39.4 against 38.2 ms):** diagnostic under the
+reclassification. Recorded; no action.
