@@ -34,6 +34,15 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
     at one stamp, no sensor-time gap) is not covered by the gap rule.
   - The datasets are not flown; awaiting a ruling.
 
+- **Ceiling datasets flown:** 18/18 in 140.9 min.
+  - The render check passes (no sky).
+  - The timing rule trimmed 3 bags; none is unusable.
+  - `fwdplainc_*` passes 9/9, so under Ruling 1 the check-flight miss is run-to-run
+    variability.
+  - **`fwdc_*` passes 8/9. `fwdc_trans_r1` P3 `flow_y_raw` is 73.57 against ≤ 72.86:
+    a primary miss, reported.** 2 of 8 ceiling-world transition flights exceed the
+    band, against 0 of 8 without a ceiling. Awaiting a ruling.
+
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
 - **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected

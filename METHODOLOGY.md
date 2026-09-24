@@ -2483,3 +2483,74 @@ estimators").
 - **Note:** even clean bags carry only 11.5–13.8 s of IMU data before arming, because
   the IMU stream starts after `SET_MESSAGE_INTERVAL` lands. So the 10 s floor leaves
   room only for irregularities in the first ~1.5–3.8 s of the stream.
+
+## Ceiling datasets `fwdc_*` / `fwdplainc_*` — result (2026-09-24): one primary miss, reported
+
+**Flown.** 18/18 trials completed first time, with no aborts, at `2f3dbf1`.
+- Tmux batch `ceiling_datasets`, 12:38:40–14:59:33 (140.9 min), interleaved as
+  pre-registered.
+- No commits during flights.
+- Evaluation: `eval/run_set_eval.sh`; results
+  `eval/results/{input_timing,flow_quality}_{fwdc,fwdplainc}.json`,
+  `{fwdc,fwdplainc}_{evo,score}.json`.
+- Frames: `plots/fwd_camera/ceiling_dataset_frames/`.
+
+**Extended IMU timing rule, applied to all 18.** 15 bags are `ok` and 3 are `trim`. None
+is unusable, so UKF/FGO are evaluated on all 18.
+
+| trial | pre-arm irregularity | left before arming |
+|---|---|---|
+| `fwdc_tex_r1` | receipt bunches of 60 and 1 samples | 12.2 s |
+| `fwdc_tex_r2` | a 2-sample bunch | 10.7 s |
+| `fwdplainc_trans_r2` | a 30 ms gap | 12.4 s |
+
+**Render check R: PASS on all 18.** In 7 sampled positions per bag, only the uniform
+ceiling is above the walls; there is no sky.
+
+**Primary results.**
+- **`fwdplainc_*`: 9/9 pass every primary criterion.**
+- **`fwdc_*`: 8/9 pass.** **`fwdc_trans_r1` FAILS P3 `flow_y_raw`: 73.57 against
+  71.43 ± 2% (≤ 72.86).** Everything else on it passes: inlier mean 0.6654, switch in
+  the 80–82 m bin, levels 0.975 / 0.312, EKF3 0.564 / 101 m, FGO 0.713 / 95 m.
+
+| | tex r1 / r2 / r3 (EKF3; FGO evo -a (cruise)) | trans r1 / r2 / r3 `flow_y_raw` | blank |
+|---|---|---|---|
+| `fwdc` | 3.44 / 3.98 / 3.99; 4.68 / 4.42 / 4.97 | **73.57** / 71.58 / 72.00 | all pass |
+| `fwdplainc` | 3.88 / 4.26 / 4.15; 4.67 / 4.82 / 4.64 | 71.66 / 71.38 / 70.40 | all pass |
+
+- **Transition P4:** EKF3 ratio 0.547–0.564, onset 100–101 m; FGO ratio 0.691–0.725,
+  onset 94.5–95.2 m. All pass, in both datasets.
+- **Blank P4:** EKF3 ratio 0.181–0.223, onset 17–20 m; FGO ratio 1.506–1.529, onset
+  34–38 m. All pass.
+- **Diagnostics:**
+  - P2 is within its limits on all 18 (p95 at most 36.4 ms).
+  - RTF 0.72–0.77.
+  - UKF (textured): `fwdc` 14.6 / 20.9 / 7.3, `fwdplainc` 15.8 / 10.0 / 8.7.
+    `fwdplainc_trans_r2` UKF 31.55.
+
+**Ruling 1's decision rule, applied as recorded.** 0 of 3 `fwdplainc_trans_r*` fail the
+forward-flow criterion. So **the `p1c_fwdplainc_trans` check-flight miss is recorded as
+run-to-run variability**:
+- every other P3 metric on it passed;
+- its textured-wall twin gave 71.38;
+- the walls are outside the downward camera's view.
+
+**New primary miss, reported for a ruling** (the decision rule covered only
+`fwdplainc_trans`). Facts only, not investigated. Transition `flow_y_raw`, all flights
+so far:
+
+| group | values | above 72.86 |
+|---|---|---|
+| no ceiling: `dsn` | 70.89 / 71.73 / 71.67 | 0 |
+| no ceiling: `fwd_trans` | 71.14 / 70.52 / 71.90 | 0 |
+| no ceiling: `p1_fwd_trans` | 72.29 | 0 |
+| no ceiling: `p1plain_trans` | 71.37 | 0 |
+| ceiling: `p1c_fwdc_trans` / `p1c_fwdplainc_trans` | 71.38 / **73.01** | 1 |
+| ceiling: `fwdc_trans` | **73.57** / 71.58 / 72.00 | 1 |
+| ceiling: `fwdplainc_trans` | 71.66 / 71.38 / 70.40 | 0 |
+
+- **2 of 8 ceiling-world transition flights exceed the band; 0 of 8 without a
+  ceiling.**
+- Every transition flight has the switch in the same 81 m bin and the same levels
+  (0.970–0.975 / 0.312–0.316).
+- Textured and blank `flow_y_raw` pass in all 18.
