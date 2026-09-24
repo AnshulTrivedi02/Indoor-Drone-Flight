@@ -280,13 +280,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 8.658,
+     "value": 7.979,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "0.959 / 70.4",
+     "value": "0.963 / 68.7",
      "band": "report",
      "pass": null,
      "primary": false
@@ -298,7 +298,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 25.849,
+     "value": 25.84,
      "band": "report",
      "pass": null,
      "primary": false
@@ -1049,11 +1049,9 @@
    }
   },
   "fwd_trans_r3": {
-   "primary": "INCOMPLETE",
+   "primary": "PASS",
    "primary_fails": [],
-   "not_evaluated": [
-    "FGO"
-   ],
+   "not_evaluated": [],
    "checks": {
     "P1 /optical_flow/measurement rate": {
      "value": 30.303,
@@ -1151,10 +1149,16 @@
      "pass": true,
      "primary": true
     },
-    "P4 FGO": {
-     "value": "\u2014",
-     "band": "NOT EVALUATED (pending ruling)",
-     "pass": null,
+    "P4 FGO ratio": {
+     "value": 0.716,
+     "band": "[0.67, 0.78]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 95.1,
+     "band": "[90, 101] m",
+     "pass": true,
      "primary": true
     },
     "P2 latency median": {
@@ -1193,14 +1197,26 @@
      "pass": null,
      "primary": false
     },
-    "diag UKF": {
-     "value": "\u2014",
-     "band": "NOT EVALUATED (pending ruling)",
+    "diag UKF evo -a (cruise)": {
+     "value": 8.95,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "0.957 / 71.1",
+     "band": "report",
      "pass": null,
      "primary": false
     },
     "diag EKF3 evo -a (cruise)": {
      "value": 22.038,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 25.892,
      "band": "report",
      "pass": null,
      "primary": false

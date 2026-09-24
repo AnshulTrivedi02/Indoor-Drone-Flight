@@ -18,6 +18,8 @@ breaks these assumptions rather than silently mis-timing it. Offline replay only
 fit uses the whole flight. A live estimator would use HIGHRES_IMU time_usec, which new
 bags record on /imu/time_ref.
 """
+import json, os
+
 import numpy as np
 
 MAX_ABS_RESID_S = 0.025
@@ -40,3 +42,24 @@ def dejitter_imu(ev):
     for k, tn in zip(idx, fit):
         new[k] = (float(tn), ev[k][1], ev[k][2])
     return new, {"period_ms": 1e3 * b, "resid_std_ms": 1e3 * res.std(), "resid_maxabs_ms": 1e3 * np.abs(res).max()}
+
+
+def apply_gap_rule(ev, trial):
+    """IMU-gap rule (METHODOLOGY "RULE — IMU gaps and the replay estimators").
+
+    Reads `<trial>/imu_gaps.json` from eval/imu_gap_check.py. No file (every bag without
+    /imu/time_ref, and any fwd bag not yet checked) or verdict "ok" returns ev
+    unchanged. "trim" drops every event stamped before replay_start_s, the first IMU
+    sample after a pre-arm gap. "unusable" (a gap after arming) refuses the replay."""
+    p = os.path.expanduser(f"~/thesis_data/trials/{trial}/imu_gaps.json")
+    if not os.path.exists(p):
+        return ev
+    g = json.load(open(p))
+    if g["verdict"] == "unusable":
+        raise SystemExit(f"{trial}: IMU gap after arming -> unusable for the replay estimators (imu_gaps.json)")
+    if g["verdict"] == "trim":
+        t0 = g["replay_start_s"]
+        n = len(ev)
+        ev = [e for e in ev if e[0] >= t0]
+        print(f"[imu] gap rule: pre-arm gap, replay starts at {t0:.3f} s ({n - len(ev)} events dropped)")
+    return ev

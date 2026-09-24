@@ -12,7 +12,7 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 
 import ukf_core as U
-from imu_timing import dejitter_imu
+from imu_timing import dejitter_imu, apply_gap_rule
 from measurement_models import R_world_body, FlowFrameGyroAverager, sitl_gyro_drift
 
 TRIAL = sys.argv[1]
@@ -50,6 +50,7 @@ with Reader(BAG) as r:
             ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
         elif con.topic == "/ground_truth/pose":
             gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
+ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
 ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
 ev.sort(key=lambda e: e[0]); gt.sort(key=lambda e: e[0])

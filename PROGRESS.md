@@ -23,6 +23,17 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
       pre-arm IMU dropout; options are in METHODOLOGY.
 - **Diagnostics:** P2 blank_r1 p95 is 39.4 against 38.2; the UKF on tex_r1 is 42.73.
 - See METHODOLOGY "Phase 2 result — STOPPED pending ruling".
+- **Update, same day.**
+  - Ruling 2 was recorded as a general IMU-gap rule and applied: a pre-arm gap means
+    the replay trims to after the gap; a post-arm gap makes the bag unusable for the
+    UKF/FGO.
+  - It caught `fwd_trans_r1` too (a 20 ms gap, missed by the guard). Its result is
+    essentially unchanged.
+  - `fwd_trans_r3` now passes, so 8/9 pass.
+  - The Ruling 1 check on `fwd_tex_r1` localises the miss to larger UKF/FGO yaw drift.
+    Drift phase and the IMU stream are identical, so nothing explains it; that is
+    reported and the user rules.
+  - Plain-wall (`fwdplain_*`) work waits for that ruling.
 
 ## Current Status — 2026-09-24 (night) — forward-camera Phase 1 COMPLETE under the revised criterion
 

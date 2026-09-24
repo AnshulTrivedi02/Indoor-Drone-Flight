@@ -2006,3 +2006,82 @@ to compute:
 
 **`fwd_blank_r1` P2 p95 (39.4 against 38.2 ms):** diagnostic under the
 reclassification. Recorded; no action.
+
+### IMU-gap rule applied (2026-09-24)
+
+`imu_timing.apply_gap_rule`, called by both replays before the dejitter, reads
+`<trial>/imu_gaps.json`.
+- **Unchanged where no rule applies.** Re-running with the rule in place reproduced
+  the stored UKF and FGO trajectories **byte for byte** on `dsn_tex_r1` (no file) and
+  `fwd_tex_r2` (verdict "ok").
+- **Remaining pre-arm stationary period**, from replay start to takeoff (first GT
+  height 5 cm above rest). Over both periods the GT horizontal speed is 0.0 m/s and the
+  height span is 0.0 m.
+
+| trial | gap | replay start | arming | takeoff | stationary (of which before arming) |
+|---|---|---|---|---|---|
+| `fwd_trans_r1` | 20 ms at 14.04 s | 14.062 s | 24.13 s | 27.61 s | 13.5 s (10.1 s) |
+| `fwd_trans_r3` | 30 ms at 6.16 s | 6.190 s | 24.09 s | 27.56 s | 21.4 s (17.9 s) |
+
+**Results** (`eval/results/phase2_fwd_evo.json`; `fwd_trans_r1`'s pre-rule result is
+kept under `superseded`, and its old replay folders are renamed `*_pregaprule`):
+- **`fwd_trans_r3`:** now evaluated, and **passes every primary criterion.**
+  - FGO: ratio 0.716 [0.67, 0.78], onset 95.1 m [90, 101].
+  - EKF3 unchanged: 0.55 / 100.5 m.
+  - UKF (diagnostic): 8.95, ratio 0.957, onset 71.1 m.
+- **`fwd_trans_r1`:** the rule changes almost nothing.
+  - FGO evo -a (cruise) 25.849 → 25.840, with ratio 0.724 and onset 95.5 m unchanged.
+  - UKF (diagnostic) 8.66 → 7.98, ratio 0.959 → 0.963, onset 70.4 → 68.7 m.
+  - Still passes.
+- **Phase 2 primary status:** eight of nine pass. The only miss is `fwd_tex_r1` FGO
+  (Ruling 1).
+
+### Ruling 1 bounded check — result (2026-09-24, well inside the one-hour box)
+
+Textured cruise windows; reference = the other five textured bags (`fwd` r2/r3, `dsn`
+r1–r3).
+
+**(1) Yaw error against GT heading.** Change from cruise start to the 25/50/75/100%
+points, in degrees:
+
+| bag | FGO Δ at 100% | FGO RMS Δ | UKF Δ at 100% |
+|---|---|---|---|
+| `fwd_tex_r1` | **−49.4** | 23.7 | **+451.5** |
+| `fwd_tex_r2` / `r3` | −45.6 / −44.8 | 21.7 / 21.1 | +25.7 / +50.7 |
+| `dsn_tex_r1` / `r2` / `r3` | −45.6 / −46.6 / −44.0 | 21.5 / 22.1 / 20.6 | +152.0 / +64.8 / +184.5 |
+
+- The FGO's heading error on r1 ends ~4° beyond the other five, which span −44.0 to
+  −46.6.
+- The UKF's heading runs away (yaw drift 89.6 deg/min; gyro-bias estimate −116 deg/min
+  against a true 8.9).
+- **Both replay estimators drift further in yaw on this bag.** That localises the
+  higher UKF/FGO scores to heading error. It does not say why the heading drifts more.
+
+**(2) Simulated gyro drift: identical across all six bags.**
+- Cruise starts 29.8–30.4 s after boot. The triangle-wave true bias runs from
+  1.49–1.52 to 13.35–13.41 deg/min over cruise, with a mean of 8.87–8.90.
+- The phase and ramp are the same to within ~0.5 s, so the drift phase **does not**
+  distinguish r1.
+
+**(3) IMU stream: no difference.**
+- Beyond the gap check, which found no gap on r1, measured from `/imu/data_raw`
+  against GT yaw rate over cruise:
+
+  | quantity | r1 | other five |
+  |---|---|---|
+  | gyro-z bias mean (deg/min) | −8.890 | −8.877 to −8.913 |
+  | gyro-z bias ramp (deg/min/min) | −2.841 | −2.812 to −2.829 |
+  | 10 s-bin std (deg/min) | 4.12 | 4.09–4.11 |
+  | gyro x/y means | same | same |
+  | GT yaw span (°) | 0.12 | 0.12–0.14 |
+
+- Dejitter residual std / max, in ms: r1 3.35 / 11.8; r2 3.40 / 10.9; r3 3.41 / 12.8.
+- `time_ref` against receipt timing (header minus a linear fit on sensor time), std /
+  max in ms: r1 3.25 / 11.0; r2 3.30 / 11.1; r3 3.31 / 12.1.
+
+**Conclusion under the pre-recorded decision rule: none of the three explains it.**
+- Neither the drift phase (a flight property) nor an IMU-stream defect (an input
+  defect) differs on r1.
+- The check localises the miss to larger estimator heading drift on identical IMU
+  input. Its cause was not found within the box, and is **not investigated further**.
+- The bag's use is the user's ruling.

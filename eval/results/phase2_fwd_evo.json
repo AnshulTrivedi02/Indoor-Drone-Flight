@@ -149,24 +149,24 @@
     },
     "UKF": {
      "failure": {
-      "final_disp": 144.65614673735232,
-      "true_travel": 150.85903143504888,
-      "disp_ratio": 0.9588829078465404,
-      "onset_gt_dist": 70.44772276150398
+      "final_disp": 145.2150150073416,
+      "true_travel": 150.85891991462887,
+      "disp_ratio": 0.9625881922628032,
+      "onset_gt_dist": 68.65467856094439
      },
      "ate_a_cruise": {
-      "+0.00": 8.657729
+      "+0.00": 7.979459
      }
     },
     "FGO": {
      "failure": {
-      "final_disp": 109.2630448722936,
-      "true_travel": 150.85228939620814,
-      "disp_ratio": 0.7243048501923502,
-      "onset_gt_dist": 95.48217609507063
+      "final_disp": 109.28555150748726,
+      "true_travel": 150.85239039852632,
+      "disp_ratio": 0.7244535616490626,
+      "onset_gt_dist": 95.52944701596152
      },
      "ate_a_cruise": {
-      "+0.00": 25.848887
+      "+0.00": 25.840218
      }
     }
    }
@@ -351,9 +351,74 @@
      "ate_a_cruise": {
       "+0.00": 22.037525
      }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 144.28216319881278,
+      "true_travel": 150.77224181895204,
+      "disp_ratio": 0.9569544198465088,
+      "onset_gt_dist": 71.13326039457141
+     },
+     "ate_a_cruise": {
+      "+0.00": 8.949961
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 107.98662034879555,
+      "true_travel": 150.76981716971306,
+      "disp_ratio": 0.7162350023097867,
+      "onset_gt_dist": 95.09689751601739
+     },
+     "ate_a_cruise": {
+      "+0.00": 25.891784
+     }
     }
    }
   }
  },
- "note": "fwd_trans_r3: EKF3 only. UKF/FGO replay refused by the imu_timing dejitter guard (one 29.99 ms IMU dropout at stream start, t~6.16 s, pre-arm); pending the user's ruling. Its ukf/ground_truth.tum is from eval/extract_gt_tum.py (byte-identical method, verified on fwd_trans_r2)."
+ "note": "IMU-gap rule applied (METHODOLOGY 2026-09-24): fwd_trans_r1 and fwd_trans_r3 UKF/FGO replayed from the first IMU sample after a pre-arm gap. fwd_trans_r1's earlier (pre-rule) result is kept under 'superseded'.",
+ "superseded": {
+  "fwd_trans_r1_pre_gap_rule": {
+   "window_s": [
+    29.95,
+    331.85
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 82.95927913982058,
+      "true_travel": 150.849042,
+      "disp_ratio": 0.5499489956311462,
+      "onset_gt_dist": 100.822062
+     },
+     "ate_a_cruise": {
+      "+0.00": 21.917574
+     }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 144.65614673735232,
+      "true_travel": 150.85903143504888,
+      "disp_ratio": 0.9588829078465404,
+      "onset_gt_dist": 70.44772276150398
+     },
+     "ate_a_cruise": {
+      "+0.00": 8.657729
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 109.2630448722936,
+      "true_travel": 150.85228939620814,
+      "disp_ratio": 0.7243048501923502,
+      "onset_gt_dist": 95.48217609507063
+     },
+     "ate_a_cruise": {
+      "+0.00": 25.848887
+     }
+    }
+   }
+  }
+ }
 }
