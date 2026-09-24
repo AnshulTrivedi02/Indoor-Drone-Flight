@@ -2085,3 +2085,39 @@ points, in degrees:
 - The check localises the miss to larger estimator heading drift on identical IMU
   input. Its cause was not found within the box, and is **not investigated further**.
 - The bag's use is the user's ruling.
+
+### RULING (user, 2026-09-24): `fwd_tex_r1` is KEPT; the P4 miss stays recorded
+
+**The bag is kept. Its P4 primary miss (FGO evo -a (cruise) 5.158 against a band of
+[4.17, 5.14]) stays recorded as a miss.** It is not re-scored and not waived.
+
+**Reasoning, as ruled.**
+- **No defect, so no exclusion.** The decision rule allowed exclusion only for an input
+  defect, and the bounded check found none: identical drift phase, identical IMU
+  statistics, no gap. Excluding or re-flying a bag because an estimator performed
+  badly on it, without a defect, would be **selection bias**.
+- **The excess error is heading drift in the unobservable direction.** The UKF runaway
+  (+451°) is the documented consistency failure ("Filter consistency — measured
+  overconfidence in the weakly-observable directions") at a larger magnitude.
+  - This is **run-to-run variability in an unobservable state**, which n=3 bands
+    cannot fully capture.
+  - It links to the open `dsn` noise-floor item ("The n=3 ranges are not a noise
+    floor"). No new work on that now.
+- **The world did not introduce the confound.**
+  - EKF3 is normal (4.37).
+  - P3 passes.
+  - The FGO n=3 mean (4.80) is in band.
+  - Together these indicate the new world did not introduce the confound P4 guards
+    against.
+- **Flagged for Phase 5 as the high-heading-drift case.** `fwd_tex_r1` is reported
+  **individually as well as in the means**.
+
+## Phase 2 — COMPLETE (2026-09-24), one recorded primary miss
+
+All nine `fwd_*` bags are in the dataset.
+- **Primary:** P1 and P3 pass in all nine. P4 passes in eight.
+- **The one miss:** `fwd_tex_r1` FGO evo -a (cruise), kept per the ruling above and
+  flagged for Phase 5.
+- **IMU-gap rule:** `fwd_trans_r1` and `fwd_trans_r3` were replayed under it.
+- **Diagnostic, no action:** `fwd_blank_r1` P2 p95 (39.4 against 38.2 ms).
+- **Results:** `eval/results/{input_timing_p2fwd,flow_quality_p2fwd,phase2_fwd_evo,phase2_score}.json`.

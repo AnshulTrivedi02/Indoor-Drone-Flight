@@ -5,7 +5,18 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
-## Current Status — 2026-09-24 (morning) — Phase 2 flown (9/9); STOPPED pending two rulings
+## Current Status — 2026-09-24 — Phase 2 COMPLETE (one recorded miss); plain-wall dataset started
+
+- **Ruling:** `fwd_tex_r1` is kept.
+  - Its P4 FGO miss (5.158 against ≤ 5.14) stays recorded.
+  - Excluding it without an input defect would be selection bias.
+  - The excess error is unobservable-heading drift.
+  - It is flagged for Phase 5 and reported individually.
+- **Phase 2 COMPLETE:** P1 and P3 pass 9/9, P4 passes 8/9.
+- **Next:** the plain-wall dataset `fwdplain_*` (featureless case; textured walls are
+  the upper bound).
+
+### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
 
 - **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected
   (xhci NULL dereference, recovered from pstore). It was not disk, memory or OOM, and
