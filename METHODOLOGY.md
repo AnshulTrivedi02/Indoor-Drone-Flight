@@ -1848,3 +1848,103 @@ one. Replays use the current baseline estimators (OI-2 dejitter). Evaluation use
 - P4: estimator behaviour would differ from `dsn_*` through those inputs. Without
   forward-camera measurements fused, the bags should be `dsn_*`-equivalent for every
   estimator.
+
+### Phase 2 result — STOPPED pending ruling (2026-09-24)
+
+**Flown.** All nine `fwd_*` trials completed first time, with no aborts. Commit
+`7967a39`, run by `run_resumable_batch.sh` in tmux. Interleaved order, 09:10:46–10:19:45:
+69.0 min against the 70 min estimated from the Phase 1 fwd wall-clock times.
+- Per-trial event log: `~/thesis_data/batches/phase2_fwd/trials.log`.
+- Crash-safety: the runner exists because a kernel panic (rt2800usb Wi-Fi dongle
+  disconnect → xhci NULL dereference, recovered from pstore) froze the machine
+  before the batch. The Wi-Fi stayed on.
+- `/imu/time_ref` is present in every bag at 332.4–333.3 Hz, matching the IMU. This is
+  the first-flight verification the pre-registration asked for.
+
+**Replays.** UKF and FGO (window 0.25 s) with the OI-2 dejitter, exactly as the `dsn`
+baseline: re-running `dsn_tex_r1` reproduced both stored trajectories byte for byte.
+Results: `eval/results/{input_timing_p2fwd,flow_quality_p2fwd,phase2_fwd_evo,phase2_score}.json`.
+Scorer: `eval/phase2_score.py`, which applies the pre-registered bands verbatim.
+
+| trial | P1 | P3 | P4 EKF3 | P4 FGO | primary |
+|---|---|---|---|---|---|
+| `fwd_tex_r1` | pass | pass | 4.37 | **5.158 (> 5.14)** | **FAIL** |
+| `fwd_tex_r2` | pass | pass | 4.15 | 4.71 | pass |
+| `fwd_tex_r3` | pass | pass | 4.41 | 4.53 | pass |
+| `fwd_trans_r1` | pass | pass | 0.55 / 101 m | 0.72 / 95 m | pass |
+| `fwd_trans_r2` | pass | pass | 0.56 / 101 m | 0.72 / 95 m | pass |
+| `fwd_trans_r3` | pass | pass | 0.55 / 100 m | **not evaluated** | **incomplete** |
+| `fwd_blank_r1` | pass | pass | 0.19 / 19 m | 1.51 / 36 m | pass |
+| `fwd_blank_r2` | pass | pass | 0.20 / 19 m | 1.51 / 36 m | pass |
+| `fwd_blank_r3` | pass | pass | 0.22 / 20 m | 1.52 / 32 m | pass |
+
+P4 textured cells are evo -a (cruise) in m. Transition and blank cells are
+displacement ratio / onset.
+- **P1:** flow and lidar are exactly 30.30 Hz with 0% late gaps in all nine. IMU mean
+  gap is 3.0005 ms and p99 is 6 ms in all nine.
+- **P3:** every metric is inside its band in all nine. The transition switch falls in
+  the 80–82 m bin in all three.
+
+**Primary miss 1: `fwd_tex_r1` FGO evo -a (cruise) = 5.158, band [4.17, 5.14].**
+- It is over by 0.018 m. The band's 0.40 m floor is already the measured IMU-timing
+  sensitivity, so the miss is not argued away as noise.
+- Under the standing rule, whether it could change a conclusion is **the user's
+  ruling**. It was not investigated.
+- Facts already on disk, stated without analysis:
+  - The FGO n=3 mean is 4.80, inside the band; r2 and r3 are 4.71 and 4.53.
+  - EKF3 on the same bag is normal (4.37). EKF3 does not use the bridged IMU stream.
+  - The **UKF on the same bag is 42.73** (diagnostic), against a `dsn` range of
+    9.96–20.71, with displacement ratio 0.15 and onset 43 m. Its r2 and r3 are 7.67
+    and 9.31.
+  - So the two replays driven by the bridged IMU both sit high on this bag.
+  - Its dejitter stats are unremarkable: residual std 3.35 ms, max 11.84 ms.
+
+**Incomplete: `fwd_trans_r3` UKF/FGO replay refused by the dejitter guard**
+(`imu_timing.py`, residual 30.2 ms > 25 ms).
+- **Cause, from `/imu/time_ref`:** one real IMU dropout. A single 29.99 ms step in
+  SITL sensor time means about 9 samples never arrived. It happened at t ≈ 6.16 s, in
+  the first 0.65 s of the IMU stream: on the ground, pre-arm, about 24 s before the
+  cruise window.
+- No other bag has one. With the first 2 s excluded, this bag's residual max is
+  11.2 ms and the fit moves 0.23 ms.
+- The guard behaved as designed and has **not** been changed.
+- EKF3 is unaffected, since it runs live in SITL. It is scored from a
+  `ukf/ground_truth.tum` written by `eval/extract_gt_tum.py`. That method was verified
+  byte-identical on `fwd_trans_r2`. **That `ukf/` folder holds ground truth only, with
+  no UKF trajectory.**
+- **Options for the ruling:**
+  - **(a), recommended:** start this bag's replay at the first IMU sample after the
+    single dropout. That trims only the pre-arm, on-ground segment (t < 6.17 s) and
+    leaves the cruise window untouched.
+  - **(b)** Accept n=2 for UKF/FGO on transition.
+  - **(c)** Fly an extra trial. It breaks the interleaved order, gives a new
+    trajectory realisation, and the dropout could recur.
+  - **Not an option:** using `/imu/time_ref` sensor time for this one bag. That is the
+    OI-2 residual option, batched for the consolidated re-run, and it would make this
+    bag inconsistent with the other eight.
+
+**Diagnostics (reported, never a gate).**
+- **P2 flow → EKF3 latency** (median / p95 ms):
+  - textured 24.9/34.4, 22.7/33.5, 19.7/29.6 (n=3 mean 22.4/32.5; limits ≤ 28.1/36.7)
+  - transition 21.4/31.5, 25.7/35.9, 22.6/35.7 (mean 23.2/34.4; limits ≤ 30.4/38.2)
+  - blank 29.2/39.4, 24.1/33.9, 25.1/36.1 (mean 26.1/36.5; limits ≤ 29.9/38.2)
+  - **`fwd_blank_r1` p95 exceeds its limit: 39.4 against 38.2.** Phase 1 flagged this
+    possibility in advance.
+  - Matched frames: textured 100%, transition 98.7–98.8%, blank 80–82%, all above
+    their floors.
+  - This is the flow-latency difference the STANDING RULE requires to be stated
+    alongside any EKF3 `fwd` vs `dsn` comparison, including P4 above.
+- **RTF:** 0.73–0.81. Forward image 30.29–30.30 Hz.
+- **IMU dejitter residual max** (ms): 11.8, 10.9, 12.8 (textured); 21.8, 13.5, refused
+  (transition); 11.0, 12.1, 11.8 (blank). The `dsn` validity was ±13 ms.
+  `fwd_trans_r1`'s 21.8 is under the guard but outside that range.
+- **UKF evo -a (cruise):** 42.73 / 7.67 / 9.31 (textured).
+- **evo -a (cruise) on transition and blank:**
+  - EKF3: 21.9 / 21.7 / 22.0 (transition); 34.8 / 34.9 / 34.0 (blank)
+  - FGO: 25.8 / 26.3 / — (transition); 25.6 / 25.7 / 26.0 (blank)
+
+**Status.** Phase 2 is **not** declared passed.
+- `fwd_tex_r1`'s primary miss needs a ruling.
+- `fwd_trans_r3`'s UKF/FGO needs a handling ruling before it is computed. No
+  provisional number was produced, so the rule comes before the result.
+- Everything else passes every primary criterion.

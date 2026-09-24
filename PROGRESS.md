@@ -5,6 +5,25 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-24 (morning) — Phase 2 flown (9/9); STOPPED pending two rulings
+
+- **Freeze diagnosed:** a kernel panic when the rt2800usb Wi-Fi dongle disconnected
+  (xhci NULL dereference, recovered from pstore). It was not disk, memory or OOM, and
+  no trial was running at the time.
+- **New `run_resumable_batch.sh`:** a crash-safe runner that runs in tmux.
+  - Keeps a per-trial `trials.log` and writes DONE and FAILED markers.
+  - Gives any partial trial `ABORTED.txt` and resumes from it.
+  - Uses no network inside the loop.
+- **Phase 2 `fwd_*`:** 9/9 complete first time in 69.0 min (estimate 70).
+- **Primary results:**
+  - P1 and P3 pass in all nine.
+  - P4 passes except:
+    - **`fwd_tex_r1` FGO 5.158 > 5.14:** a primary miss; the user rules.
+    - **`fwd_trans_r3` UKF/FGO:** not evaluated. The dejitter guard caught one real
+      pre-arm IMU dropout; options are in METHODOLOGY.
+- **Diagnostics:** P2 blank_r1 p95 is 39.4 against 38.2; the UKF on tex_r1 is 42.73.
+- See METHODOLOGY "Phase 2 result — STOPPED pending ruling".
+
 ## Current Status — 2026-09-24 (night) — forward-camera Phase 1 COMPLETE under the revised criterion
 
 **Update — OI-2 done, plus a clock finding.**

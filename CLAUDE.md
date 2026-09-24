@@ -70,6 +70,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Estimators (UKF + FGO)**  | `~/thesis_ws/src/estimators/` (`ukf_core.py`, `measurement_models.py`, `fgo/`) |
 | **Trial recorder**          | `~/thesis_ws/record_trial.sh`                                        |
 | **Trial evaluator**         | `~/thesis_ws/evaluate_trial.sh`                                      |
+| **Resumable batch runner (use for datasets)** | `~/thesis_ws/run_resumable_batch.sh <conf> <batch>` — run in tmux; state in `~/thesis_data/batches/<batch>/` (`trials.log`, `STATUS`, `DONE`/`FAILED`); re-run the same command after a crash to resume (partial trial → `ABORTED.txt`, renamed aside) |
 | ArduPilot dataflash logs    | `~/ardupilot/ArduCopter/logs/` (`.BIN` files, written by SITL)      |
 | Trial data output           | `~/thesis_data/trials/`                                              |
 

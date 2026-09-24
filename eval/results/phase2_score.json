@@ -1,0 +1,1368 @@
+{
+ "overall": "MISS(ES)",
+ "trials": {
+  "fwd_tex_r1": {
+   "primary": "FAIL",
+   "primary_fails": [
+    "P4 FGO evo -a (cruise)"
+   ],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.9738,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 0.0,
+     "band": "0.01 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 52.81,
+     "band": "52.83 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 136.03,
+     "band": "136.45 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0097,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 evo -a (cruise)": {
+     "value": 4.37,
+     "band": "[1.26, 8.13] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO evo -a (cruise)": {
+     "value": 5.158,
+     "band": "[4.17, 5.14] m",
+     "pass": false,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 24.9,
+     "band": "\u2264 28.1 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 34.4,
+     "band": "\u2264 36.7 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 100.0,
+     "band": "\u2265 95.0%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.777,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.27,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 42.73,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_trans_r1": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.6657,
+     "band": "0.6645 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 39.37,
+     "band": "39.49 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 31.61,
+     "band": "31.73 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 71.14,
+     "band": "71.43 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0099,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 switch bin": {
+     "value": 81.0,
+     "band": "80\u201382 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y<75": {
+     "value": 0.9721,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y>85": {
+     "value": 0.3158,
+     "band": "0.3136 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.55,
+     "band": "[0.51, 0.63]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 100.8,
+     "band": "[96, 108] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO ratio": {
+     "value": 0.724,
+     "band": "[0.67, 0.78]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 95.5,
+     "band": "[90, 101] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 21.4,
+     "band": "\u2264 30.4 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 31.5,
+     "band": "\u2264 38.2 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 98.7,
+     "band": "\u2265 93.5%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.768,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.25,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 8.658,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "0.959 / 70.4",
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 21.918,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 25.849,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_blank_r1": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.3148,
+     "band": "0.3139 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 84.37,
+     "band": "84.35 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 7.94,
+     "band": "7.97 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": -3.46,
+     "band": "-2.45 \u00b1 5 px/s",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0096,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.192,
+     "band": "[0.12, 0.27]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 19.3,
+     "band": "[13, 24] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO ratio": {
+     "value": 1.505,
+     "band": "[1.45, 1.6]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 36.0,
+     "band": "[28, 42] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 29.2,
+     "band": "\u2264 29.9 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 39.4,
+     "band": "\u2264 38.2 ms",
+     "pass": false,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 80.1,
+     "band": "\u2265 72.4%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.73,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.13,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 12.569,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "1.240 / 70.0",
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 34.829,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 25.591,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_tex_r2": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.974,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 0.01,
+     "band": "0.01 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 52.91,
+     "band": "52.83 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 135.36,
+     "band": "136.45 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0098,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 evo -a (cruise)": {
+     "value": 4.152,
+     "band": "[1.26, 8.13] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO evo -a (cruise)": {
+     "value": 4.707,
+     "band": "[4.17, 5.14] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 22.7,
+     "band": "\u2264 28.1 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 33.5,
+     "band": "\u2264 36.7 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 100.0,
+     "band": "\u2265 95.0%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.796,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.29,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 332.42,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 7.672,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_trans_r2": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.6652,
+     "band": "0.6645 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 39.34,
+     "band": "39.49 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 31.87,
+     "band": "31.73 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 70.52,
+     "band": "71.43 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0103,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 switch bin": {
+     "value": 81.0,
+     "band": "80\u201382 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y<75": {
+     "value": 0.9739,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y>85": {
+     "value": 0.3142,
+     "band": "0.3136 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.563,
+     "band": "[0.51, 0.63]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 101.1,
+     "band": "[96, 108] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO ratio": {
+     "value": 0.716,
+     "band": "[0.67, 0.78]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 94.6,
+     "band": "[90, 101] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 25.7,
+     "band": "\u2264 30.4 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 35.9,
+     "band": "\u2264 38.2 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 98.8,
+     "band": "\u2265 93.5%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.789,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.27,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 15.0,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "0.868 / 81.6",
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 21.671,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 26.325,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_blank_r2": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.3128,
+     "band": "0.3139 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 84.65,
+     "band": "84.35 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 7.95,
+     "band": "7.97 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": -3.13,
+     "band": "-2.45 \u00b1 5 px/s",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0098,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.199,
+     "band": "[0.12, 0.27]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 19.4,
+     "band": "[13, 24] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO ratio": {
+     "value": 1.51,
+     "band": "[1.45, 1.6]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 36.1,
+     "band": "[28, 42] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 24.1,
+     "band": "\u2264 29.9 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 33.9,
+     "band": "\u2264 38.2 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 81.9,
+     "band": "\u2265 72.4%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.733,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.27,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 12.364,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "1.240 / 73.3",
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 34.899,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 25.745,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_tex_r3": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.9727,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 0.0,
+     "band": "0.01 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 53.01,
+     "band": "52.83 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 136.04,
+     "band": "136.45 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0098,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 evo -a (cruise)": {
+     "value": 4.412,
+     "band": "[1.26, 8.13] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO evo -a (cruise)": {
+     "value": 4.533,
+     "band": "[4.17, 5.14] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 19.7,
+     "band": "\u2264 28.1 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 29.6,
+     "band": "\u2264 36.7 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 100.0,
+     "band": "\u2265 95.0%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.811,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.27,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 9.308,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_trans_r3": {
+   "primary": "INCOMPLETE",
+   "primary_fails": [],
+   "not_evaluated": [
+    "FGO"
+   ],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.6655,
+     "band": "0.6645 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 39.4,
+     "band": "39.49 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 31.73,
+     "band": "31.73 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": 71.9,
+     "band": "71.43 \u00b1 2%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0099,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 switch bin": {
+     "value": 81.0,
+     "band": "80\u201382 m",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y<75": {
+     "value": 0.972,
+     "band": "0.9733 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 level inlier_y>85": {
+     "value": 0.3144,
+     "band": "0.3136 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.55,
+     "band": "[0.51, 0.63]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 100.5,
+     "band": "[96, 108] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO": {
+     "value": "\u2014",
+     "band": "NOT EVALUATED (pending ruling)",
+     "pass": null,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 22.6,
+     "band": "\u2264 30.4 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 35.7,
+     "band": "\u2264 38.2 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 98.7,
+     "band": "\u2265 93.5%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.765,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.25,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF": {
+     "value": "\u2014",
+     "band": "NOT EVALUATED (pending ruling)",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 22.038,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  },
+  "fwd_blank_r3": {
+   "primary": "PASS",
+   "primary_fails": [],
+   "not_evaluated": [],
+   "checks": {
+    "P1 /optical_flow/measurement rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /optical_flow/measurement >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range rate": {
+     "value": 30.303,
+     "band": "30.30 Hz \u00b1 0.1%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 /downward_lidar/range >1.5x": {
+     "value": 0.0,
+     "band": "\u2264 0.5%",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap mean": {
+     "value": 3.0005,
+     "band": "3.0005 \u00b1 0.003 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P1 IMU gap p99": {
+     "value": 6.0,
+     "band": "\u2264 10 ms",
+     "pass": true,
+     "primary": true
+    },
+    "P3 inlier mean": {
+     "value": 0.3134,
+     "band": "0.3139 \u00b1 0.01",
+     "pass": true,
+     "primary": true
+    },
+    "P3 % below 0.5": {
+     "value": 84.75,
+     "band": "84.35 \u00b1 3 pp",
+     "pass": true,
+     "primary": true
+    },
+    "P3 features": {
+     "value": 7.94,
+     "band": "7.97 \u00b1 5%",
+     "pass": true,
+     "primary": true
+    },
+    "P3 flow_y_raw": {
+     "value": -2.84,
+     "band": "-2.45 \u00b1 5 px/s",
+     "pass": true,
+     "primary": true
+    },
+    "P3 GT |x|": {
+     "value": 0.0097,
+     "band": "\u2264 0.05 m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 ratio": {
+     "value": 0.217,
+     "band": "[0.12, 0.27]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 EKF3 onset": {
+     "value": 19.7,
+     "band": "[13, 24] m",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO ratio": {
+     "value": 1.52,
+     "band": "[1.45, 1.6]",
+     "pass": true,
+     "primary": true
+    },
+    "P4 FGO onset": {
+     "value": 31.7,
+     "band": "[28, 42] m",
+     "pass": true,
+     "primary": true
+    },
+    "P2 latency median": {
+     "value": 25.1,
+     "band": "\u2264 29.9 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 latency p95": {
+     "value": 36.1,
+     "band": "\u2264 38.2 ms",
+     "pass": true,
+     "primary": false
+    },
+    "P2 matched": {
+     "value": 82.3,
+     "band": "\u2265 72.4%",
+     "pass": true,
+     "primary": false
+    },
+    "diag RTF (cruise)": {
+     "value": 0.738,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag forward image rate": {
+     "value": 30.3,
+     "band": "30.30 Hz expected",
+     "pass": null,
+     "primary": false
+    },
+    "diag /imu/time_ref rate": {
+     "value": 333.23,
+     "band": "present, \u2248 IMU rate",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF evo -a (cruise)": {
+     "value": 12.974,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag UKF ratio / onset": {
+     "value": "1.240 / 64.5",
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag EKF3 evo -a (cruise)": {
+     "value": 34.036,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    },
+    "diag FGO evo -a (cruise)": {
+     "value": 26.048,
+     "band": "report",
+     "pass": null,
+     "primary": false
+    }
+   }
+  }
+ }
+}
