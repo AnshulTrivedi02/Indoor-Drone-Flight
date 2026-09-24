@@ -59,7 +59,7 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
     transition floors but fail on the checkerboard floor, where floor aliasing
     outvotes the junctions.
   - **Yaw rate:** textured walls 9/9 (0.13–0.21 deg/s); plain walls 0/9.
-  - **Static response bar: 1/6 fail-stands.** It is linear and unit-slope away from the
+  - **Static response bar: 1/6 pass; it stands as failed.** It is linear and unit-slope away from the
     end wall, but wrong near it.
 
 ### Earlier the same day — Phase 2 flown (9/9); stopped pending two rulings
