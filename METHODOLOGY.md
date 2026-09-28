@@ -1798,14 +1798,17 @@ possibility is flagged now, before any Phase 2 data exists.
 **STANDING RULE: EKF3 on `fwd_*` is never compared with EKF3 on `dsn_*` without stating
 the flow-latency difference** (median and p95, per world, from `eval/input_timing.py`).
 
-### Phase 4 design note (recorded now, no action)
+### Phase 4 design note (updated 2026-09-29 by the EKF3 ruling below)
 
-EKF3's with- and without-forward-camera arms **must come from the same sensor logs**.
-**The default is ArduPilot Replay** of the `fwd_*` dataflash logs, with the external
-forward-camera yaw injected into the replayed arm. A separate live flight for the
-"with" arm would bring back exactly the latency confound characterised above (a
-different run, different latency and a different trajectory realisation). **It needs
-a separate ruling.**
+Any estimator's with- and without-forward-camera arms **must come from the same sensor
+logs**. The datasets are `fwdc_*` and `fwdplainc_*`; the earlier `fwd_*` is superseded.
+
+**EKF3: RULED (user, 2026-09-29). See "RULING — EKF3 in the offline forward-camera
+comparison".**
+- For the offline comparison, EKF3 is the fixed no-yaw-source baseline.
+- Only the UKF and the FGO get forward-camera arms.
+- ArduPilot Replay was the intended route, but it is **not available on the recorded
+  logs**: they were flown with `LOG_REPLAY=0` and hold no replay records.
 
 ## Phase 2 — `fwd_*` dataset: pre-registration (2026-09-24, before any `fwd_*` data exists)
 
@@ -2822,3 +2825,98 @@ The output goes to "no measurement", as designed.
   - `fwdplainc`: σ_ψ 0.026°. There is no σ_ω, because it failed validation.
 - **The method was not escalated** (time-box and guardrail). Three priors were added on
   calibration frames and are stated above.
+
+## SCOPE CHANGE — supervisor direction (2026-09-29; details pending the supervisor's reply)
+
+Direction received from the supervisor:
+- **Real indoor flights with motion-capture ground truth are in scope.**
+- **The UKF and FGO should ideally run ONLINE, onboard the ArduPilot flight
+  controller.** Each would be a **drop-in replacement for EKF3**, the estimator the
+  vehicle flies on.
+- **The forward camera is included in the real flights only if it is first implemented
+  and verified in simulation.**
+
+**Consequences, as recorded by the user:**
+- **The Python UKF and FGO become the reference implementations.** Onboard versions
+  will be validated against them on the same data.
+- **Offline Phases 4 and 5 are the simulation verification** the supervisor requires
+  before the forward camera goes on the real vehicle.
+- **All current flights are flown on simulator truth** (`AHRS_EKF_TYPE=10`, Hidden
+  Configuration Audit §1).
+  - No estimator, EKF3 included, influences the trajectory. All three are **offline
+    observers**.
+  - **Closed-loop flight**, with each estimator flying the vehicle, is now planned
+    under the onboard direction.
+- **For all future flights, simulated closed-loop and real:** ArduPilot logs with
+  **`LOG_REPLAY=1` and `LOG_DISARMED=1` from the first flight**, so any flight can be
+  replayed.
+
+## RULING — EKF3 in the offline forward-camera comparison (user, 2026-09-29)
+
+**Adopted: option 3.**
+- **EKF3 is the fixed no-yaw-source baseline** (`EK3_SRC1_YAW=0`).
+- **Only the UKF and FGO get forward-camera arms.**
+
+**Option 2 (live injection) is rejected for the offline comparison:**
+- it reintroduces the separate-run latency confound;
+- the `VISO_YAW_M_NSE` floor (≥ 0.05 rad) would force EKF3 to under-trust the heading
+  relative to the UKF and FGO.
+
+**Option 1 (re-record with `LOG_REPLAY=1` plus `REPH` injection) is a deferred
+extension.**
+- It is reconsidered after Phase 5, and only if the heading arm shows a clear effect
+  on the UKF and FGO.
+- **Open items:**
+  - a tool that writes `REPH` records;
+  - a replay-fidelity check against live EKF3;
+  - whether injected `REPH` records bypass the yaw noise clamp. The clamp is applied
+    in `AP_VisualOdom_MAV`, upstream of `AP_DAL::writeExtNavData`, and that is
+    unverified.
+- **This ruling will be revisited under the onboard plan.** There, EKF3 heading via
+  ExternalNav may become the natural route.
+
+**Evidence** (ArduPilot source at the pinned commit `7bac20cbcc`; our logs):
+- **One downward optical-flow sensor only.**
+  - `AP_OpticalFlow` holds a single backend (`OpticalFlow_backend *backend;`,
+    `AP_OpticalFlow.h:134`).
+  - Its parameters have no instance index (`FLOW_TYPE`), and the only orientation
+    parameter is `FLOW_ORIENT_YAW` (`AP_OpticalFlow.cpp:51-53`).
+  - EKF3's flow model predicts range as height above ground over the vertical-axis
+    cosine, i.e. a flat floor below (`AP_NavEKF3_OptFlowFusion.cpp:116,174`). It gates
+    on tilt (`prevTnb.c.z > DCM33FlowMin`, line 44).
+  - **A forward camera is not a second flow sensor for EKF3.**
+- **ExternalNav yaw exists live, with two constraints.**
+  - `EK3_SRC1_YAW` accepts `6:ExternalNav` (`AP_NavEKF_Source.cpp:58`).
+  - The path: `VISION_POSITION_ESTIMATE` / `ODOMETRY` / `ATT_POS_MOCAP`
+    (`GCS_Common.cpp:4562-4581`) → `AP_VisualOdom`, which needs `VISO_TYPE=1`
+    (`AP_VisualOdom.cpp:34,154`) → `writeExtNavData`, with yaw extracted at
+    `AP_NavEKF3_Measurements.cpp:1112-1117` → `fuseEulerYaw(EXTNAV)`
+    (`AP_NavEKF3_MagFusion.cpp:366-374`).
+  - Position is fused only if `EK3_SRC1_POSXY=ExternalNav`
+    (`AP_NavEKF3_Control.cpp:617`).
+  - **Constraint: each message needs a position.** A NaN position or position error
+    drops the whole sample, yaw included (`AP_NavEKF3_Measurements.cpp:1076`).
+  - **Constraint: a noise floor.** `angErr` is clamped to at least `VISO_YAW_M_NSE`
+    (`AP_VisualOdom_MAV.cpp:43`): default 0.2 rad, documented range 0.05–1.0 rad
+    (`AP_VisualOdom.cpp:101-107`). The static-sweep heading residuals are well below
+    that.
+  - **There is no EKF3 input for an external yaw-rate measurement.**
+    `bodyOdmDataNew.angRate` is written (`AP_NavEKF3_Measurements.cpp:133`) and read
+    nowhere else in EKF3.
+- **Our logs lack replay records.**
+  - Replay supports ExternalNav via the DAL `REPH` record (`AP_DAL.cpp:359-371`;
+    `Tools/Replay/LogReader.cpp:119`, `LR_MsgHandler.cpp:286`).
+  - But it needs `LOG_REPLAY=1` and `LOG_DISARMED=1` or `2` at recording
+    (`AP_Logger.cpp:114-124`).
+  - `fwdc_tex_r1`'s log has `LOG_REPLAY=0` and `LOG_DISARMED=0`, and no DAL records
+    (no `RFRH`/`RFRN`/`RISH`/`REPH`).
+
+**Consequence for Phase 5.**
+- **The prediction is tested within the UKF and within the FGO:** each with and
+  without heading, on the same bags.
+- **EKF3 appears only as the no-heading reference.** No claim is made about EKF3 with
+  heading.
+- Which measurement is which:
+  - the **vanishing-point heading** is an external heading measurement, not optical
+    flow;
+  - the **forward yaw rate** is used only by our own estimators.

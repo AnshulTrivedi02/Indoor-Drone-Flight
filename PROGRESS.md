@@ -5,6 +5,28 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-29 — SCOPE CHANGE (supervisor) + EKF3 ruling; Phase 4 starting
+
+- **Supervisor direction, scope change** (details pending the supervisor's reply):
+  - real indoor flights with motion-capture ground truth are in scope;
+  - the UKF and FGO should ideally run **online, onboard ArduPilot**, as drop-in
+    replacements for EKF3;
+  - the forward camera goes on the real vehicle only once verified in simulation.
+- **Consequences:**
+  - The Python UKF and FGO are now the reference implementations.
+  - Offline Phases 4 and 5 are the simulation verification.
+  - Current flights fly on simulator truth, so all three estimators are offline
+    observers. Closed-loop flight is planned.
+  - All future flights log with `LOG_REPLAY=1` and `LOG_DISARMED=1`.
+- **EKF3 ruling (option 3):**
+  - EKF3 is the fixed no-yaw-source baseline; only the UKF and FGO get forward arms.
+  - Live injection is rejected (separate-run confound; the `VISO_YAW_M_NSE` floor).
+  - Re-recording for Replay plus `REPH` injection is deferred until after Phase 5.
+  - Reason: our logs have `LOG_REPLAY=0`, so Replay is not possible on them.
+- **Next:**
+  - Phase 4, offline fusion in the UKF and FGO only;
+  - Part C, an onboard-feasibility investigation (read-only, one day).
+
 ## Current Status — 2026-09-24 — Phase 2 COMPLETE (one recorded miss); plain-wall dataset started
 
 - **Ruling:** `fwd_tex_r1` is kept.
