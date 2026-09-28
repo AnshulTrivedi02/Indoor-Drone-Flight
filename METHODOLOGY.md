@@ -3196,3 +3196,29 @@ the source:
 - the not-yet-implemented list.
 
 In PROGRESS.md, the old Known Issues and Next Priorities blocks got banners.
+
+### Phase 4 run note — thread oversubscription found and fixed (2026-09-29)
+
+**The problem.** The first launch of the 90 replays (01:02, six in parallel) ran with
+default numerical-library threading.
+- Each FGO process ran 12 threads, and the load average reached ~43 on 12 logical CPUs.
+- The FGO forward-arm replays took over 80 minutes each and had not finished.
+
+**The fix.**
+- **Stopped at 02:28**, with the user's approval. The 11 completed jobs were kept; the 6
+  in progress were redone.
+- **Restarted at 02:34** with `OPENBLAS_NUM_THREADS=OMP_NUM_THREADS=MKL_NUM_THREADS=NUMEXPR_NUM_THREADS=1`.
+
+**Identity check first (on `fwdc_tex_r2`, which the batch had not reached).** With the
+thread limit, each of these is **byte-identical** to its default-threading counterpart:
+- the FGO baseline, against the stored `fgo/`;
+- the FGO heading + yaw-rate arm;
+- the UKF heading + yaw-rate arm.
+
+**Threading therefore changes no result.** The 11 jobs completed before the restart are
+kept as valid.
+
+**It changes timing only (DIAGNOSTIC).** The FGO forward-arm step fell from ~101 ms (the
+earlier two-in-parallel test, already oversubscribed) to **35 ms median** single-threaded.
+The baseline step is 27.6 ms. Phase 4 timing is reported from the restarted, thread-limited
+runs, with the thread setting stated.

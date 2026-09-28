@@ -4,9 +4,14 @@ Companion to `methodology_index.md`. Every value is copied verbatim from its sou
 has been recomputed or re-rounded.
 
 - **Sources:** `M:L123` / `C:L123` / `P:L123` are line numbers in the snapshot
-  `docs/thesis/export_2026-09-29_d89a902/` (METHODOLOGY.md, CLAUDE.md, PROGRESS.md; snapshot
-  commit `d89a902`). `json:<file>:<key>` is a file in `eval/results/`. `code:<path>:<line>`
-  is the file at `d89a902`.
+  `docs/thesis/export_2026-09-29_563a989/` (METHODOLOGY.md, CLAUDE.md, PROGRESS.md; snapshot
+  commit `563a989`). `C(d89a902):L123` points into the earlier snapshot
+  `docs/thesis/export_2026-09-29_d89a902/`, kept for reference, where a value no longer
+  appears in the current files. `json:<file>:<key>` is a file in `eval/results/`.
+  `code:<path>:<line>` is the file at `563a989` (unchanged since `d89a902`).
+- **Flag resolutions:** the discrepancies flagged in the first version of this file are
+  resolved in METHODOLOGY "Source-pack flag resolutions (2026-09-29, documentation only)"
+  (M:L3114-L3198, §1–§6), and applied here as recorded.
 - **Status:**
   - CURRENT: the standing value.
   - DIAGNOSTIC: reported but never a gate, or a descriptive record.
@@ -14,11 +19,11 @@ has been recomputed or re-rounded.
   - CURRENT (pre-registered): a pre-registered band or setting.
 - **Superseded values** appear only in the last section, each with what superseded it.
 - **Receipt-stamp UKF/FGO values.** METHODOLOGY supersedes every UKF/FGO number computed on
-  receipt stamps (M:L503-L509), pending one consolidated re-run. Such numbers are therefore
+  receipt stamps (M:L505-L511), pending one consolidated re-run. Such numbers are therefore
   in the superseded section even when the finding they support is current. EKF3 values
   are not affected by the IMU-stamp treatment.
 - **Discrepancies** between sources are flagged with ⚑ in the quantity cell and collected in the second-last
-  section.
+  section (now split into resolved and remaining).
 
 ---
 
@@ -26,92 +31,92 @@ has been recomputed or re-rounded.
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| Corridor width | 20 m wide (x: −10..10 m) | m | CURRENT | C:L106 |
-| Corridor length | 160 m long | m | CURRENT | C:L106 |
-| Walls: height, thickness | 5 m tall, 0.2 m thick | m | CURRENT | C:L113 |
-| Transition texture boundary | y = 80 m | m | CURRENT | C:L143 |
-| Measured boundary crossing (verification trial) | ground-truth y = 80.01 m | m | CURRENT | C:L1876 |
-| Spawn pose | `(0, 0, 0.195)`, yaw 90° | m, deg | CURRENT | C:L121 |
-| Downward camera mount | z = −0.25 m | m (rel. base_link) | CURRENT | C:L224 |
-| Downward LiDAR mount | z = −0.12 m | m (rel. base_link) | CURRENT | C:L226 |
-| LiDAR range | 0.05–40 m | m | CURRENT | C:L226 |
-| LiDAR reading at rest, corridor worlds | 0.075 m at y = 0, 80 and 150 | m | CURRENT | C:L1855 |
-| Flight profile (all datasets) | 0.5 m/s, 2.0 m, 300 s | m/s, m, s | CURRENT | M:L786-L787 |
-| Flow RANSAC seed | 42 | — | CURRENT | M:L787 |
-| True travel per trial | 151 | m | CURRENT | M:L549 |
+| Corridor width | 20 m wide (x = −10…10 m) | m | CURRENT | C:L99 |
+| Corridor length | 160 m long (y = 0…160 m) | m | CURRENT | C:L99 |
+| Walls: height, thickness | 5 m tall and 0.2 m thick | m | CURRENT | C:L100 |
+| Transition texture boundary | y = 80 m | m | CURRENT | C:L119 |
+| Measured boundary crossing (verification trial) | ground-truth y = 80.01 m | m | CURRENT | C:L1814 |
+| Spawn pose | (0, 0, 0.195), yaw 90° | m, deg | CURRENT | C:L102 |
+| Downward camera mount | z = −0.25 m | m (rel. base_link) | CURRENT | C:L153 |
+| Downward LiDAR mount | z = −0.12 m | m (rel. base_link) | CURRENT | C:L155 |
+| LiDAR range | 0.05–40 m | m | CURRENT | C:L155 |
+| LiDAR reading at rest, corridor worlds | 0.075 m at y = 0, 80 and 150 | m | CURRENT | C:L1793 |
+| Flight profile (all datasets) | 0.5 m/s, 2.0 m, 300 s | m/s, m, s | CURRENT | M:L790-L791 |
+| Flow RANSAC seed | 42 | — | CURRENT | M:L791 |
+| True travel per trial | 151 | m | CURRENT | M:L551 |
 | Cruise window on the nine `dsn_*` bags | ~30.0 → ~332.8 s | s | CURRENT | M:L42-L43 |
-| Forward camera HFOV | 60° (1.047 rad) | deg | CURRENT | M:L1336 |
-| Forward camera VFOV | ±23.4° | deg | CURRENT | M:L1336 |
-| Forward camera focal length | f = 554.38 px | px | CURRENT | M:L1336 |
-| Forward camera angular resolution | 0.094°/px | deg/px | CURRENT | M:L1336 |
-| Forward camera resolution / rate | 640 × 480 / 30 Hz | px / Hz | CURRENT | M:L1337-L1338 |
-| Forward camera mount | 0.15 m forward of base_link, level | m | CURRENT | M:L1340 |
-| Forward camera far clip | far 200 m | m | CURRENT | M:L1341 |
-| Cruise GT yaw (forward-camera design) | 90.01°, std 0.017° | deg | CURRENT | M:L1325-L1326 |
-| Cruise roll | mean 0.00°, std 0.26°, max 0.53° | deg | CURRENT | M:L1330 |
-| Cruise pitch | mean +0.02°, std 0.17°, max 5.2° | deg | CURRENT | M:L1331 |
-| Cruise base_link height | 2.29 m | m | CURRENT | M:L1332 |
-| Ceiling slab | 20.2 × 170 × 0.1 m | m | CURRENT | M:L2317 |
-| Ceiling bottom face | z = 5.0 m | m | CURRENT | M:L2318 |
-| Sky share of forward frame height (no-ceiling worlds) | ~46% | % | CURRENT (finding) | M:L2268 |
-| Sky share near the end wall | ~29% | % | CURRENT (finding) | M:L2269 |
-| RTF, old machine | 0.05 – 0.17 | — | CURRENT (historical) | C:L993 |
-| RTF, new machine (pre-fix) | ≈0.86 | — | CURRENT (historical) | C:L993 |
-| RTF, corridor collision root cause (as-is) | 0.0134 | — | CURRENT (finding) | C:L1790 |
-| RTF, 8 tiles rendering, 1 with collision | 0.3934 | — | CURRENT (finding) | C:L1793 |
-| RTF, live lockstep after fix (tex / blank / trans) | 0.917 / 0.912 / 0.927 | — | CURRENT | C:L1757 |
-| RTF, live lockstep mean | 0.919 | — | CURRENT | C:L1763 |
-| RTF, `dsn_*` flights (cruise method) | 0.975–0.981 | — | CURRENT | M:L1418 |
-| Batch cost, 9 corridor trials | 58 minutes for 9 trials | min | CURRENT | C:L1774 |
-| Phase 2 `fwd_*` batch duration | 69.0 min | min | DIAGNOSTIC | M:L1859 |
-| Ceiling datasets batch duration | 140.9 min | min | DIAGNOSTIC | M:L2493 |
-| Forward camera RTF cost: control / fwd | 0.954 / 0.768 | — | DIAGNOSTIC | M:L1475-L1476 |
-| RTF diagnosis: control / full / norecord / nobridge | 0.957 / 0.759 / 0.761 / 0.958 | — | DIAGNOSTIC | M:L1532-L1535 |
-| Cost of bridging one 640×480 30 Hz image | ~40% of a core | — | CURRENT | M:L1654-L1655 |
-| RTF, Phase 2 `fwd_*` | 0.73–0.81 | — | DIAGNOSTIC | M:L1940 |
-| RTF, ceiling datasets | 0.72–0.77 | — | DIAGNOSTIC | M:L2530 |
-| Live parameter audit | 1379 parameters on each side … 16 value differences | — | CURRENT | C:L924-L925 |
+| Forward camera HFOV | 60° (1.047 rad) | deg | CURRENT | M:L1348 |
+| Forward camera VFOV | ±23.4° | deg | CURRENT | M:L1348 |
+| Forward camera focal length | f = 554.38 px | px | CURRENT | M:L1348 |
+| Forward camera angular resolution | 0.094°/px | deg/px | CURRENT | M:L1348 |
+| Forward camera resolution / rate | 640 × 480 / 30 Hz | px / Hz | CURRENT | M:L1349-L1350 |
+| Forward camera mount | 0.15 m forward of base_link, level | m | CURRENT | M:L1352 |
+| Forward camera far clip | far 200 m | m | CURRENT | M:L1353 |
+| Cruise GT yaw (forward-camera design) | 90.01°, std 0.017° | deg | CURRENT | M:L1337-L1338 |
+| Cruise roll | mean 0.00°, std 0.26°, max 0.53° | deg | CURRENT | M:L1342 |
+| Cruise pitch | mean +0.02°, std 0.17°, max 5.2° | deg | CURRENT | M:L1343 |
+| Cruise base_link height | 2.29 m | m | CURRENT | M:L1344 |
+| Ceiling slab | 20.2 × 170 × 0.1 m | m | CURRENT | M:L2329 |
+| Ceiling bottom face | z = 5.0 m | m | CURRENT | M:L2330 |
+| Sky share of forward frame height (no-ceiling worlds) | ~46% | % | CURRENT (finding) | M:L2280 |
+| Sky share near the end wall | ~29% | % | CURRENT (finding) | M:L2281 |
+| RTF, old machine | 0.05 – 0.17 | — | CURRENT (historical) | C:L922 |
+| RTF, new machine (pre-fix) | ≈0.86 | — | CURRENT (historical) | C:L922 |
+| RTF, corridor collision root cause (as-is) | 0.0134 | — | CURRENT (finding) | C:L1728 |
+| RTF, 8 tiles rendering, 1 with collision | 0.3934 | — | CURRENT (finding) | C:L1731 |
+| RTF, live lockstep after fix (tex / blank / trans) | 0.917 / 0.912 / 0.927 | — | CURRENT | C:L1695 |
+| RTF, live lockstep mean | 0.919 | — | CURRENT | C:L1701 |
+| RTF, `dsn_*` flights (cruise method) | 0.975–0.981 | — | CURRENT | M:L1430 |
+| Batch cost, 9 corridor trials | 58 minutes for 9 trials | min | CURRENT | C:L1712 |
+| Phase 2 `fwd_*` batch duration | 69.0 min | min | DIAGNOSTIC | M:L1871 |
+| Ceiling datasets batch duration | 140.9 min | min | DIAGNOSTIC | M:L2505 |
+| Forward camera RTF cost: control / fwd | 0.954 / 0.768 | — | DIAGNOSTIC | M:L1487-L1488 |
+| RTF diagnosis: control / full / norecord / nobridge | 0.957 / 0.759 / 0.761 / 0.958 | — | DIAGNOSTIC | M:L1544-L1547 |
+| Cost of bridging one 640×480 30 Hz image | ~40% of a core | — | CURRENT | M:L1666-L1667 |
+| RTF, Phase 2 `fwd_*` | 0.73–0.81 | — | DIAGNOSTIC | M:L1952 |
+| RTF, ceiling datasets | 0.72–0.77 | — | DIAGNOSTIC | M:L2542 |
+| Live parameter audit | 1379 parameters on each side … 16 value differences | — | CURRENT | C:L853-L854 |
 
 ## 2. Sensor rates and timing
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| IMU bridge realised rate | 333.27 Hz | Hz | CURRENT | C:L635 |
-| IMU rate evidence | 29665 msgs / 89.012 s; median dt 3.000 ms | — | CURRENT | C:L636 |
-| IMU rate ceiling (0.8 × SCHED_LOOP_RATE) | `2500/800 = 3.125 ms` | ms | CURRENT | C:L633 |
-| IMU at rest ‖a‖ | 9.81085 m/s² (std 0.00061) | m/s² | CURRENT | C:L690 |
-| IMU stream late start | ~2.35 s | s | CURRENT | C:L695 |
-| IMU header mean gap (every bag) | 3.0005 ms | ms | CURRENT | M:L1168 |
-| IMU receipt-stamp scatter | 0–9 ms | ms | CURRENT | M:L1167 |
-| IMU rate per bag, `dsn` baseline | 333.27–333.28 Hz | Hz | CURRENT | M:L1571 |
-| Flow and LiDAR header rate | 30.30 Hz | Hz | CURRENT | M:L1569 |
-| Flow and LiDAR median and p99 gap | 33.0 ms | ms | CURRENT | M:L1570 |
-| LiDAR sim-time period (Stage 1) | 33.00 ms | ms | CURRENT | C:L226 |
+| IMU bridge realised rate | 333.27 Hz | Hz | CURRENT | C:L564 |
+| IMU rate evidence | 29665 msgs / 89.012 s; median dt 3.000 ms | — | CURRENT | C:L565 |
+| IMU rate ceiling (0.8 × SCHED_LOOP_RATE) | `2500/800 = 3.125 ms` | ms | CURRENT | C:L562 |
+| IMU at rest ‖a‖ | 9.81085 m/s² (std 0.00061) | m/s² | CURRENT | C:L619 |
+| IMU stream late start | ~2.35 s | s | CURRENT | C:L624 |
+| IMU header mean gap (every bag) | 3.0005 ms | ms | CURRENT | M:L1180 |
+| IMU receipt-stamp scatter | 0–9 ms | ms | CURRENT | M:L1179 |
+| IMU rate per bag, `dsn` baseline | 333.27–333.28 Hz | Hz | CURRENT | M:L1583 |
+| Flow and LiDAR header rate | 30.30 Hz | Hz | CURRENT | M:L1581 |
+| Flow and LiDAR median and p99 gap | 33.0 ms | ms | CURRENT | M:L1582 |
+| LiDAR sim-time period (Stage 1) | 33.00 ms | ms | CURRENT | C:L155 |
 | Ground-truth pose rate, `dsn` spread | 59.65–59.89 | Hz | DIAGNOSTIC | M:L166 |
-| Ground-truth pose rate, verified range | 57–227 Hz | Hz | CURRENT | C:L216 |
-| Normal IMU sensor-time steps | 2, 3, 5 and 6 ms | ms | CURRENT | M:L1967 |
-| IMU gap threshold | 10 ms | ms | CURRENT | M:L1966 |
-| Real dropouts found (`fwd_*`) | 20 and 30 ms | ms | CURRENT | M:L1970 |
-| Receipt-bunch threshold | 25 ms | ms | CURRENT | M:L2463 |
-| Minimum stationary data before arming after a trim | 10 s | s | CURRENT | M:L2466 |
-| IMU data before arming, clean bags | 11.5–13.8 s | s | CURRENT | M:L2486 |
-| Dejitter validity range, `dsn` | ±13 ms | ms | CURRENT | M:L1942 |
-| Dejitter guard limit | 25 ms | ms | CURRENT | M:L1906 |
-| OI-2 anchors per bag | 6722–6823 anchors, ≈ 81% | — | DIAGNOSTIC | M:L1210 |
-| OI-2 sensor-time model residual | std **0.82 ms** and max 1.89 ms | ms | DIAGNOSTIC | M:L1215 |
-| Receipt minus sensor time, median | 5–9 ms | ms | DIAGNOSTIC | M:L1217 |
-| Sensor-time reconstruction accuracy | about ±5 ms | ms | CURRENT | M:L1255 |
-| SITL `TimeUS` rate vs sim time | slow by **0.016–0.022%** | % | CURRENT | M:L1183 |
-| TimeUS offset early / late | −6 to −9 ms early and −52 to −68 ms late | ms | CURRENT | M:L1182 |
-| TimeUS offset drift (CLAUDE summary) ⚑ | about −7 ms to about −60 ms | ms | CURRENT | C:L881-L882 |
-| EKF3 flow delay assumption | `EK3_FLOW_DELAY` (10 ms) | ms | CURRENT | M:L1579 |
-| Latency tolerance (one EKF3 step) | 12.5 ms | ms | CURRENT | M:L1578 |
-| `dsn` flow → EKF3 latency, textured (median / p95, linear map) | 14.5–17.6 / 23.7–24.9 | ms | CURRENT | M:L1740 |
-| `dsn` latency, transition | 15.2–20.5 / 24.8–27.7 | ms | CURRENT | M:L1741 |
-| `dsn` latency, blank | 16.4–18.9 / 24.9–27.0 | ms | CURRENT | M:L1741 |
-| Forward camera added latency | ~5–10 ms median and ~8–13 ms p95 | ms | CURRENT | M:L1751 |
-| RTF alone added latency (`p1rtf`) | ~4 ms median | ms | CURRENT | M:L1752 |
-| EKF3 flow alignment error, `dsn` → `fwd` | ~5 ms … ~11–18 ms | ms | CURRENT | M:L1755 |
+| Ground-truth pose rate, verified range | 57–227 Hz | Hz | CURRENT | C:L145 |
+| Normal IMU sensor-time steps | 2, 3, 5 and 6 ms | ms | CURRENT | M:L1979 |
+| IMU gap threshold | 10 ms | ms | CURRENT | M:L1978 |
+| Real dropouts found (`fwd_*`) | 20 and 30 ms | ms | CURRENT | M:L1982 |
+| Receipt-bunch threshold | 25 ms | ms | CURRENT | M:L2475 |
+| Minimum stationary data before arming after a trim | 10 s | s | CURRENT | M:L2478 |
+| IMU data before arming, clean bags | 11.5–13.8 s | s | CURRENT | M:L2498 |
+| Dejitter validity range, `dsn` | ±13 ms | ms | CURRENT | M:L1954 |
+| Dejitter guard limit | 25 ms | ms | CURRENT | M:L1918 |
+| OI-2 anchors per bag | 6722–6823 anchors, ≈ 81% | — | DIAGNOSTIC | M:L1222 |
+| OI-2 sensor-time model residual | std **0.82 ms** and max 1.89 ms | ms | DIAGNOSTIC | M:L1227 |
+| Receipt minus sensor time, median | 5–9 ms | ms | DIAGNOSTIC | M:L1229 |
+| Sensor-time reconstruction accuracy | about ±5 ms | ms | CURRENT | M:L1267 |
+| SITL `TimeUS` rate vs sim time | slow by **0.016–0.022%** | % | CURRENT | M:L1195 |
+| TimeUS offset early / late | −6 to −9 ms early and −52 to −68 ms late | ms | CURRENT | M:L1194 |
+| TimeUS offset drift (CLAUDE summary) ⚑ | about −7 ms to about −60 ms | ms | CURRENT | C:L810-L811 |
+| EKF3 flow delay assumption | `EK3_FLOW_DELAY` (10 ms) | ms | CURRENT | M:L1591 |
+| Latency tolerance (one EKF3 step) | 12.5 ms | ms | CURRENT | M:L1590 |
+| `dsn` flow → EKF3 latency, textured (median / p95, linear map) | 14.5–17.6 / 23.7–24.9 | ms | CURRENT | M:L1752 |
+| `dsn` latency, transition | 15.2–20.5 / 24.8–27.7 | ms | CURRENT | M:L1753 |
+| `dsn` latency, blank | 16.4–18.9 / 24.9–27.0 | ms | CURRENT | M:L1753 |
+| Forward camera added latency | ~5–10 ms median and ~8–13 ms p95 | ms | CURRENT | M:L1763 |
+| RTF alone added latency (`p1rtf`) | ~4 ms median | ms | CURRENT | M:L1764 |
+| EKF3 flow alignment error, `dsn` → `fwd` | ~5 ms … ~11–18 ms | ms | CURRENT | M:L1767 |
 | Clock-shift sensitivity check | ±0.25 s and ±0.5 s | s | CURRENT | M:L87-L88 |
 | Max Δ evo -a (cruise) under clock shift, textured EKF3 / UKF / FGO | 0.002–0.009 / 0.007–0.009 / 0.014–0.015 | m | CURRENT | M:L93 |
 | Same, transition | 0.085–0.103 / 0.004–0.016 / 0.006–0.007 | m | CURRENT | M:L94 |
@@ -122,52 +127,52 @@ has been recomputed or re-rounded.
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| `GYRO_P_NSE` | 0.015 | rad/s | CURRENT | C:L1209 |
-| `ACC_P_NSE` | 0.35 | m/s² | CURRENT | C:L1210 |
-| `GBIAS_P_NSE` | 0.001 | rad/s/s | CURRENT | C:L1211 |
-| `ABIAS_P_NSE` | 0.02 | m/s/s/s | CURRENT | C:L1212 |
-| `EK3_FLOW_M_NSE` | 0.25 rad/s | rad/s | CURRENT | C:L1190 |
-| `EK3_FLOW_I_GATE` | 300 → NIS gate 9 (3σ) | — | CURRENT | C:L1191 |
-| `EK3_RNG_M_NSE` | 0.5 m | m | CURRENT | C:L1192 |
-| `EK3_RNG_I_GATE` | 500 → NIS gate 25 (5σ) | — | CURRENT | C:L1193 |
-| `FLOW_MAX` | 2.5 rad/s hard reject | rad/s | CURRENT | C:L1194 |
-| GTSAM conversion rule | `σ_c = NSE·√dt` | — | CURRENT | C:L745 |
-| √dt at dt = 0.0125 s | 0.1118034 | √s | CURRENT | C:L756 |
-| `accelerometerCovariance` σ / covariance | 0.03913119 / 1.53125×10⁻³ | m/s²/√Hz | CURRENT | C:L760 |
-| `gyroscopeCovariance` σ / covariance | 0.001677051 / 2.8125×10⁻⁶ | rad/s/√Hz | CURRENT | C:L761 |
-| `biasAccCovariance` σ / covariance | 0.002236068 / 5.0×10⁻⁶ | m/s²/√s | CURRENT | C:L762 |
-| `biasOmegaCovariance` σ / covariance | 0.0001118034 / 1.25×10⁻⁸ | rad/s/√s | CURRENT | C:L763 |
-| `integrationCovariance` (no EKF3 counterpart) | ~1e-8·I | — | CURRENT | C:L770 |
-| EKF3 pseudo-yaw opportunity interval | every 140 ms | ms | CURRENT | M:L891 |
-| EKF3 pseudo-yaw gate (quaternion trace) | 0.01 | — | CURRENT | M:L894 |
-| UKF pseudo-yaw gate (Euler attitude trace) | 0.04 | rad² | CURRENT | M:L895 |
-| EKF3 cruise tilt variance | `XKF4.errRP² ≈ 1×10⁻⁴ rad²` | rad² | CURRENT | M:L904 |
-| EKF3 `XKV1` quaternion covariance | median 0.0093, max 0.01001 | — | CURRENT | M:L907 |
-| UKF attitude-cov trace / firing rate | Euler **0.029** (quaternion-equivalent 0.0072) / ~1% | — | CURRENT | M:L915-L916 |
-| EKF3 nomag flow rejection | 7.5% (236/3153 airborne) | % | CURRENT | M:L396 |
-| Yaw observability from flow | `∂flow/∂yaw = v/h ≈ 0.286` rad/s per rad | rad/s/rad | CURRENT | M:L934-L935 |
-| Same (framing section) | ≈ 0.29 rad/s per rad | rad/s/rad | CURRENT | M:L880 |
-| `h_flow` translational sensitivity | `∂flow/∂v = 0.571` | — | CURRENT | M:L450 |
-| Cruise rollspeed / pitchspeed std | 0.399 rad/s vs … 0.013 — 31× | rad/s | CURRENT | M:L453 |
-| SITL gyro drift parameters | `SIM_DRIFT_SPEED=0.05` deg/s/minute … `SIM_DRIFT_TIME=5` minutes | — | CURRENT | M:L729-L730 |
-| Drift triangle-wave period | `2·DRIFT_TIME = 10` min | min | CURRENT | M:L734 |
-| Drift ramp slope | 3.00 deg/min per minute | deg/min/min | CURRENT | M:L735 |
-| Instantaneous bias over cruise | ~1.6 to ~14.8 deg/min | deg/min | CURRENT | M:L736 |
-| Physical drift (window mean) ⚑ | +9.8 deg/min | deg/min | CURRENT | M:L737 |
-| Window-mean range | ≈8.9–9.8 | deg/min | CURRENT | M:L738 |
-| True bias over cruise, textured bags (Ruling 1 check) ⚑ | 1.49–1.52 to 13.35–13.41 … mean of 8.87–8.90 | deg/min | CURRENT | M:L2065 |
-| True bias mean (Phase 3 basis) ⚑ | 8.9 deg/min = 0.148 deg/s | deg/min | CURRENT | M:L2706 |
+| `GYRO_P_NSE` | 0.015 | rad/s | CURRENT | C:L1140 |
+| `ACC_P_NSE` | 0.35 | m/s² | CURRENT | C:L1141 |
+| `GBIAS_P_NSE` | 0.001 | rad/s/s | CURRENT | C:L1142 |
+| `ABIAS_P_NSE` | 0.02 | m/s/s/s | CURRENT | C:L1143 |
+| `EK3_FLOW_M_NSE` | 0.25 rad/s | rad/s | CURRENT | C:L1121 |
+| `EK3_FLOW_I_GATE` | 300 → NIS gate 9 (3σ) | — | CURRENT | C:L1122 |
+| `EK3_RNG_M_NSE` | 0.5 m | m | CURRENT | C:L1123 |
+| `EK3_RNG_I_GATE` | 500 → NIS gate 25 (5σ) | — | CURRENT | C:L1124 |
+| `FLOW_MAX` | 2.5 rad/s hard reject | rad/s | CURRENT | C:L1125 |
+| GTSAM conversion rule | `σ_c = NSE·√dt` | — | CURRENT | C:L674 |
+| √dt at dt = 0.0125 s | 0.1118034 | √s | CURRENT | C:L685 |
+| `accelerometerCovariance` σ / covariance | 0.03913119 / 1.53125×10⁻³ | m/s²/√Hz | CURRENT | C:L689 |
+| `gyroscopeCovariance` σ / covariance | 0.001677051 / 2.8125×10⁻⁶ | rad/s/√Hz | CURRENT | C:L690 |
+| `biasAccCovariance` σ / covariance | 0.002236068 / 5.0×10⁻⁶ | m/s²/√s | CURRENT | C:L691 |
+| `biasOmegaCovariance` σ / covariance | 0.0001118034 / 1.25×10⁻⁸ | rad/s/√s | CURRENT | C:L692 |
+| `integrationCovariance` (no EKF3 counterpart) | ~1e-8·I | — | CURRENT | C:L699 |
+| EKF3 pseudo-yaw opportunity interval | every 140 ms | ms | CURRENT | M:L898 |
+| EKF3 pseudo-yaw gate (quaternion trace) | 0.01 | — | CURRENT | M:L901 |
+| UKF pseudo-yaw gate (Euler attitude trace) | 0.04 | rad² | CURRENT | M:L902 |
+| EKF3 cruise tilt variance | `XKF4.errRP² ≈ 1×10⁻⁴ rad²` | rad² | CURRENT | M:L911 |
+| EKF3 `XKV1` quaternion covariance | median 0.0093, max 0.01001 | — | CURRENT | M:L914 |
+| UKF attitude-cov trace / firing rate | Euler **0.029** (quaternion-equivalent 0.0072) / ~1% | — | CURRENT | M:L922-L923 |
+| EKF3 nomag flow rejection | 7.5% (236/3153 airborne) | % | CURRENT | M:L398 |
+| Yaw observability from flow | `∂flow/∂yaw = v/h ≈ 0.286` rad/s per rad | rad/s/rad | CURRENT | M:L941-L942 |
+| Same (framing section) | ≈ 0.29 rad/s per rad | rad/s/rad | CURRENT | M:L887 |
+| `h_flow` translational sensitivity | `∂flow/∂v = 0.571` | — | CURRENT | M:L452 |
+| Cruise rollspeed / pitchspeed std | 0.399 rad/s vs … 0.013 — 31× | rad/s | CURRENT | M:L455 |
+| SITL gyro drift parameters | `SIM_DRIFT_SPEED=0.05` deg/s/minute … `SIM_DRIFT_TIME=5` minutes | — | CURRENT | M:L733-L734 |
+| Drift triangle-wave period | `2·DRIFT_TIME = 10` min | min | CURRENT | M:L738 |
+| Drift ramp slope | 3.00 deg/min per minute | deg/min/min | CURRENT | M:L739 |
+| Instantaneous bias over cruise | ~1.6 to ~14.8 deg/min | deg/min | CURRENT | M:L740 |
+| Physical drift (window mean) ⚑ | +9.8 deg/min | deg/min | CURRENT | M:L741 |
+| Window-mean range | ≈8.9–9.8 | deg/min | CURRENT | M:L742 |
+| True bias over cruise, textured bags (Ruling 1 check) ⚑ | 1.49–1.52 to 13.35–13.41 … mean of 8.87–8.90 | deg/min | CURRENT | M:L2077 |
+| True bias mean (Phase 3 basis) ⚑ | 8.9 deg/min = 0.148 deg/s | deg/min | CURRENT | M:L2718 |
 
 ## 4. EKF3 prediction dt
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| `EKF_TARGET_DT` | 0.012f | s | CURRENT | C:L600 |
-| Frames per prediction | 5 frames = **0.0125 s** | — | CURRENT | C:L603 |
-| Actual prediction dt | 0.0125 s (80 Hz) (derived, not logged) | s | CURRENT | C:L608 |
-| `SCHED_LOOP_RATE` | 400 | Hz | CURRENT | C:L608 |
-| UKF predict dt | 0.0125 s | s | CURRENT | C:L617 |
-| NSE scale factor UKF vs EKF3 | exactly 1 | — | CURRENT | C:L619 |
+| `EKF_TARGET_DT` | 0.012f | s | CURRENT | C:L529 |
+| Frames per prediction | 5 frames = **0.0125 s** | — | CURRENT | C:L532 |
+| Actual prediction dt | 0.0125 s (80 Hz) (derived, not logged) | s | CURRENT | C:L537 |
+| `SCHED_LOOP_RATE` | 400 | Hz | CURRENT | C:L537 |
+| UKF predict dt | 0.0125 s | s | CURRENT | C:L546 |
+| NSE scale factor UKF vs EKF3 | exactly 1 | — | CURRENT | C:L548 |
 
 ## 5. Evaluation window and metric parameters
 
@@ -186,10 +191,10 @@ has been recomputed or re-rounded.
 | Sensitivity thresholds tested | 0.20 and 0.40 m/s | m/s | CURRENT | M:L71 |
 | 0.20 m/s: max Δ evo -a (cruise), textured EKF3 / UKF / FGO | 0.005 / 0.038 / 0.009 | m | CURRENT | M:L76 |
 | 0.40 m/s: same | 0.008 / 0.043 / 0.011 | m | CURRENT | M:L77 |
-| Divergence onset threshold | > 15 m | m | CURRENT | M:L550 |
-| Failure metrics vs window (full vs cruise) | ratio by ≤ 0.05 and the onset by ≤ 1 m | — | CURRENT | M:L555-L556 |
+| Divergence onset threshold | > 15 m | m | CURRENT | M:L552 |
+| Failure metrics vs window (full vs cruise) | ratio by ≤ 0.05 and the onset by ≤ 1 m | — | CURRENT | M:L557-L558 |
 | n=3 exceedance probability | 2/(n+1) = 50% | — | CURRENT | M:L132 |
-| FGO deployability budget | 33 ms | ms | CURRENT | M:L696 |
+| FGO deployability budget | 33 ms | ms | CURRENT | M:L698 |
 
 ## 6. Baseline results
 
@@ -197,55 +202,55 @@ has been recomputed or re-rounded.
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| EKF3 r1 / r2 / r3 | 4.58 / 3.55 / 5.84 | m | CURRENT | M:L481 |
-| EKF3 mean / range | 4.66 / 2.29 | m | CURRENT | M:L481 |
-| FGO (0.25 s) r1 / r2 / r3 | 4.63 / 4.74 / 4.57 | m | CURRENT | M:L482 |
-| FGO mean / range | 4.65 / 0.17 | m | CURRENT | M:L482 |
-| UKF (gated) r1 / r2 / r3 | 16.98 / 9.96 / 20.71 | m | CURRENT | M:L483 |
-| UKF mean / range | 15.88 / 10.75 | m | CURRENT | M:L483 |
+| EKF3 r1 / r2 / r3 | 4.58 / 3.55 / 5.84 | m | CURRENT | M:L483 |
+| EKF3 mean / range | 4.66 / 2.29 | m | CURRENT | M:L483 |
+| FGO (0.25 s) r1 / r2 / r3 | 4.63 / 4.74 / 4.57 | m | CURRENT | M:L484 |
+| FGO mean / range | 4.65 / 0.17 | m | CURRENT | M:L484 |
+| UKF (gated) r1 / r2 / r3 | 16.98 / 9.96 / 20.71 | m | CURRENT | M:L485 |
+| UKF mean / range | 15.88 / 10.75 | m | CURRENT | M:L485 |
 | Cross-check (JSON), EKF3 r1 | 4.575016 | m | CURRENT | json:dsn_dejitter_baseline.json:trials.dsn_tex_r1.est.EKF3.ate_a_cruise.+0.00 |
 | Cross-check (JSON), UKF r1 | 16.977329 | m | CURRENT | json:dsn_dejitter_baseline.json:trials.dsn_tex_r1.est.UKF.ate_a_cruise.+0.00 |
-| UKF vs EKF3/FGO factor | ~3.4× worse | — | CURRENT | M:L488 |
+| UKF vs EKF3/FGO factor | ~3.4× worse | — | CURRENT | M:L490 |
 
 ### 6.2 Transition and blank failure metrics (cruise), EKF3 (current)
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| EKF3 transition \|disp\|/true | 0.57 | — | CURRENT | M:L561 |
-| EKF3 transition onset (true y) | 102 m | m | CURRENT | M:L562 |
-| EKF3 blank \|disp\|/true | 0.20 | — | CURRENT | M:L563 |
-| EKF3 blank onset (true y) | 18 m | m | CURRENT | M:L564 |
-| EKF3 blank stop distance | ~30 m | m | CURRENT | M:L568 |
+| EKF3 transition \|disp\|/true | 0.57 | — | CURRENT | M:L563 |
+| EKF3 transition onset (true y) | 102 m | m | CURRENT | M:L564 |
+| EKF3 blank \|disp\|/true | 0.20 | — | CURRENT | M:L565 |
+| EKF3 blank onset (true y) | 18 m | m | CURRENT | M:L566 |
+| EKF3 blank stop distance | ~30 m | m | CURRENT | M:L570 |
 | EKF3 textured displacement ratio (smoke test and `dsn_tex`) | 1.06 | — | CURRENT | M:L175 |
 
 UKF/FGO failure metrics on transition and blank are receipt-stamp values, pending the
 consolidated re-run. They are in the superseded section. The dejittered values exist in
-`json:dsn_dejitter_baseline.json` but are not interpreted in METHODOLOGY (M:L508-L509).
+`json:dsn_dejitter_baseline.json` but are not interpreted in METHODOLOGY (M:L510-L511).
 The Phase 2 FGO bands (section 7) were derived from them.
 
 ### 6.3 Other current estimator results (EKF3 or estimator-independent)
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| EKF3 `XKF1.Yaw` drift across nine `dsn_*` ⚑ | +6.6…+11.1 (mean ~8.1) | deg/min | CURRENT | M:L877 |
-| EKF3 share of bias corrected | 14–33% | % | CURRENT | M:L877 |
-| EKF3 east-velocity bias, `dsn_tex_r3` | +0.194 m/s | m/s | CURRENT | M:L988 |
-| Heading-driven share | ~**74%** | % | CURRENT | M:L1005 |
-| Geometric slope `errVE vs spd·sin(yawErr)` | +1.10 | — | CURRENT | M:L1000 |
-| Residual (non-heading) share | ~**26%** (~0.05 m/s, ~16 m) | % | CURRENT | M:L1007-L1008 |
-| FINDING 1 lateral residual, EKF3: roll-rate corr / slope / std | −0.09 / −0.15 / 0.48 | — | CURRENT | M:L291 |
-| FINDING 1, `h_flow` (instantaneous ω) | −0.95 / −2.09 / 0.60 | — | CURRENT | M:L292 |
-| Interval-averaged ω residual slope / std | −2.09 → −1.24 (std 0.60 → 0.40) | — | CURRENT | M:L313 |
-| Flow residual partition (single update) | velocity 69% / yaw 31% | % | CURRENT | M:L967-L968 |
-| Gyro-z ramp-tracking, EKF3 | 0.1–0.3 | deg/min/min | CURRENT | M:L657 |
+| EKF3 `XKF1.Yaw` drift, n = 9 `dsn_*` (window not stated in the record) | +6.6…+11.1 deg/min, mean ~8.1 | deg/min | CURRENT | M:L3142-L3145 |
+| EKF3 share of bias corrected | 14–33% | % | CURRENT | M:L884 |
+| EKF3 east-velocity bias, `dsn_tex_r3` | +0.194 m/s | m/s | CURRENT | M:L995 |
+| Heading-driven share | ~**74%** | % | CURRENT | M:L1012 |
+| Geometric slope `errVE vs spd·sin(yawErr)` | +1.10 | — | CURRENT | M:L1007 |
+| Residual (non-heading) share | ~**26%** (~0.05 m/s, ~16 m) | % | CURRENT | M:L1014-L1015 |
+| FINDING 1 lateral residual, EKF3: roll-rate corr / slope / std | −0.09 / −0.15 / 0.48 | — | CURRENT | M:L293 |
+| FINDING 1, `h_flow` (instantaneous ω) | −0.95 / −2.09 / 0.60 | — | CURRENT | M:L294 |
+| Interval-averaged ω residual slope / std | −2.09 → −1.24 (std 0.60 → 0.40) | — | CURRENT | M:L315 |
+| Flow residual partition (single update) | velocity 69% / yaw 31% | % | CURRENT | M:L974-L975 |
+| Gyro-z ramp-tracking, EKF3 | 0.1–0.3 | deg/min/min | CURRENT | M:L659 |
 | Filter consistency, EKF3 Pos E outside ±3σ | 39% | % | CURRENT | M:L185 |
 | Filter consistency, EKF3 Vel E / yaw | 16% / 10% | % | CURRENT | M:L187 |
-| Noise floor `ds_*` (compass-active, apparatus): within-condition ATE range | 2.81–10.90 m | m | CURRENT (`ds_*` only) | M:L796 |
-| Same: textured vs blank mean ATE | 17.8 m vs … 85.8 m | m | CURRENT (`ds_*` only) | M:L798 |
-| Same: yaw reproducibility at 300 s | 0.263° | deg | CURRENT (`ds_*` only) | M:L803 |
-| Same: transition PN stop | y = 81.7 m (range 0.2 m) | m | CURRENT (`ds_*` only) | M:L810 |
-| Vendor verify flight along-track PN | 154.04 m | m | DIAGNOSTIC | M:L842 |
-| Flow velocity-axis error growth | ~+7.8% at 0.25 m/s to ~+12.5% at 1.0 m/s | % | CURRENT | C:L1933 |
+| Noise floor `ds_*` (compass-active, apparatus): within-condition ATE range | 2.81–10.90 m | m | CURRENT (`ds_*` only) | M:L800 |
+| Same: textured vs blank mean ATE | 17.8 m vs … 85.8 m | m | CURRENT (`ds_*` only) | M:L802 |
+| Same: yaw reproducibility at 300 s | 0.263° | deg | CURRENT (`ds_*` only) | M:L807 |
+| Same: transition PN stop | y = 81.7 m (range 0.2 m) | m | CURRENT (`ds_*` only) | M:L814 |
+| Vendor verify flight along-track PN | 154.04 m | m | DIAGNOSTIC | M:L846 |
+| Flow velocity-axis error growth | ~+7.8% at 0.25 m/s to ~+12.5% at 1.0 m/s | % | CURRENT | C:L1871 |
 | Flow validation vs theory | 137.13 px/s vs 137.1 px/s predicted | px/s | CURRENT | P:L440-L441 |
 
 ### 6.4 Smoke test `p0_smoke_tex` (EKF3) and forward-camera datasets (current)
@@ -253,99 +258,113 @@ The Phase 2 FGO bands (section 7) were derived from them.
 | quantity | value | units | status | source |
 |---|---|---|---|---|
 | Smoke test EKF3 evo -a (cruise) | 5.74 | m | DIAGNOSTIC (gate record) | M:L171 |
-| Ceiling `fwdc` textured EKF3 r1 / r2 / r3 | 3.44 / 3.98 / 3.99 | m | CURRENT | M:L2521 |
-| Ceiling `fwdc` textured FGO r1 / r2 / r3 | 4.68 / 4.42 / 4.97 | m | CURRENT | M:L2521 |
-| Ceiling `fwdplainc` textured EKF3 r1 / r2 / r3 | 3.88 / 4.26 / 4.15 | m | CURRENT | M:L2522 |
-| Ceiling `fwdplainc` textured FGO r1 / r2 / r3 | 4.67 / 4.82 / 4.64 | m | CURRENT | M:L2522 |
-| Ceiling transition EKF3 ratio / onset | 0.547–0.564, onset 100–101 m | —, m | CURRENT | M:L2524 |
-| Ceiling transition FGO ratio / onset | 0.691–0.725, onset 94.5–95.2 m | —, m | CURRENT | M:L2524-L2525 |
-| Ceiling blank EKF3 ratio / onset | 0.181–0.223, onset 17–20 m | —, m | CURRENT | M:L2526 |
-| Ceiling blank FGO ratio / onset | 1.506–1.529, onset 34–38 m | —, m | CURRENT | M:L2526-L2527 |
-| Ceiling UKF textured (`fwdc` / `fwdplainc`) | `fwdc` 14.6 / 20.9 / 7.3, `fwdplainc` 15.8 / 10.0 / 8.7 | m | DIAGNOSTIC | M:L2531 |
-| Ceiling P2 latency p95 max | at most 36.4 ms | ms | DIAGNOSTIC | M:L2529 |
-| Phase 1c P4 EKF3 (fwdc tex / fwdplainc tex) | 3.92 / 4.49 | m | CURRENT | M:L2401 |
-| Phase 1c P4 FGO (fwdc tex / fwdplainc tex) | 4.60 / 4.53 | m | CURRENT | M:L2402 |
-| `p1c_fwdc_trans` after the extended rule: FGO ratio / onset | 0.700 … 94.9 m | —, m | CURRENT | M:L2476-L2477 |
+| Ceiling `fwdc` textured EKF3 r1 / r2 / r3 | 3.44 / 3.98 / 3.99 | m | CURRENT | M:L2533 |
+| Ceiling `fwdc` textured FGO r1 / r2 / r3 | 4.68 / 4.42 / 4.97 | m | CURRENT | M:L2533 |
+| Ceiling `fwdplainc` textured EKF3 r1 / r2 / r3 | 3.88 / 4.26 / 4.15 | m | CURRENT | M:L2534 |
+| Ceiling `fwdplainc` textured FGO r1 / r2 / r3 | 4.67 / 4.82 / 4.64 | m | CURRENT | M:L2534 |
+| Ceiling transition EKF3 ratio / onset | 0.547–0.564, onset 100–101 m | —, m | CURRENT | M:L2536 |
+| Ceiling transition FGO ratio / onset | 0.691–0.725, onset 94.5–95.2 m | —, m | CURRENT | M:L2536-L2537 |
+| Ceiling blank EKF3 ratio / onset | 0.181–0.223, onset 17–20 m | —, m | CURRENT | M:L2538 |
+| Ceiling blank FGO ratio / onset | 1.506–1.529, onset 34–38 m | —, m | CURRENT | M:L2538-L2539 |
+| Ceiling UKF textured (`fwdc` / `fwdplainc`) | `fwdc` 14.6 / 20.9 / 7.3, `fwdplainc` 15.8 / 10.0 / 8.7 | m | DIAGNOSTIC | M:L2543 |
+| Ceiling P2 latency p95 max | at most 36.4 ms | ms | DIAGNOSTIC | M:L2541 |
+| Phase 1c P4 EKF3 (fwdc tex / fwdplainc tex) | 3.92 / 4.49 | m | CURRENT | M:L2413 |
+| Phase 1c P4 FGO (fwdc tex / fwdplainc tex) | 4.60 / 4.53 | m | CURRENT | M:L2414 |
+| `p1c_fwdc_trans` after the extended rule: FGO ratio / onset | 0.700 … 94.9 m | —, m | CURRENT | M:L2488-L2489 |
+
+### 6.5 Resolved definitions and scale (flag resolutions §3, §4)
+
+| quantity | value | units | status | source |
+|---|---|---|---|---|
+| UKF gyro-z overshoot, definition A ("% of 9.8": \|mean bias\| ÷ constant 9.8 deg/min), `dsn_tex_r1` baseline / sign-flip | **222.4%** … **336.0%** | % | DIAGNOSTIC (definition record; pre-correction runs) | M:L3152-L3157 |
+| UKF gyro-z overshoot, definition B (÷ window mean of the true bias ≈ 8.88 deg/min), baseline / sign-flip | **245.3%** … **≈ 370.7%** | % | DIAGNOSTIC (definition record; pre-correction runs) | M:L3158-L3162 |
+| Definition used by the thesis | definition B | — | CURRENT | M:L3165 |
+| Consistent pairs | A: 222% → 336% … B: 245% → ~371% | % | CURRENT | M:L3164 |
+| Distance scale, EKF3 (n = 9, derived, Part C item 9 row A) | +5.7…+9.6% | % | CURRENT | M:L3170-L3171 |
+| Distance scale, FGO (n = 9, same basis) | +0.9…+1.1% | % | CURRENT | M:L3172 |
+| Scale basis | path-length ratio … 20 s resampling | — | CURRENT | M:L3173 |
+| Corroborating `disp_ratio`, 12 textured bags | EKF3 1.04–1.06, FGO 0.98–0.99 | — | CURRENT | M:L3175 |
+| Scale-cause check ("bounded check 5a") | PENDING; not yet defined in the record | — | CURRENT (open) | M:L3178-L3179 |
 
 ## 7. Pre-registered bands
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
 | Smoke test band FGO / EKF3 / UKF | [4.18, 5.35] / [1.26, 8.13] / [0, 34.95] | m | CURRENT (pre-registered) | M:L145-L147 |
-| P1 flow/LiDAR timing | 30.30 Hz ± 0.1%; ≤ 0.5% of gaps above 1.5 periods | — | CURRENT (pre-registered) | M:L1681 |
-| P1 IMU timing | mean gap 3.0005 ± 0.003 ms … p99 gap ≤ 10 ms | ms | CURRENT (pre-registered) | M:L1682 |
-| P2 latency | ≤ same-world `dsn` mean + **12.5 ms** | ms | DIAGNOSTIC (pre-registered; diagnostic from Phase 2) | M:L1683 |
-| P3 inlier mean | ±0.01 of the `dsn` mean | — | CURRENT (pre-registered) | M:L1684 |
-| P3 % below 0.5 / features / `flow_y_raw` | within ±3 pp; features ±5%; `flow_y_raw` ±2% … or ±5 px/s (blank) | — | CURRENT (pre-registered) | M:L1684 |
-| P3 GT lateral | \|x\| ≤ 0.05 m | m | CURRENT (pre-registered) | M:L1684 |
-| P4 EKF3 textured | [1.26, 8.13] | m | CURRENT (pre-registered) | M:L1838 |
-| P4 EKF3 transition ratio / onset | [0.51, 0.63], onset [96, 108] m | —, m | CURRENT (pre-registered) | M:L1838 |
-| P4 EKF3 blank ratio / onset | [0.12, 0.27], onset [13, 24] m | —, m | CURRENT (pre-registered) | M:L1838 |
-| P4 FGO textured (dejittered) | [4.17, 5.14] | m | CURRENT (pre-registered) | M:L1839 |
-| P4 FGO textured band basis | 4.57–4.74 ± max(range 0.17, **0.40 m**) | m | CURRENT (pre-registered) | M:L1839 |
-| P4 FGO transition | ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m | —, m | CURRENT (pre-registered) | M:L1839 |
-| P4 FGO blank | ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m | —, m | CURRENT (pre-registered) | M:L1839 |
-| `dsn` P3 baseline, textured inlier | 0.9729–0.9741 | — | CURRENT | M:L1433 |
-| `dsn` P3 baseline, blank inlier | 0.3130–0.3153 | — | CURRENT | M:L1434 |
-| `dsn` `flow_y_raw` mean, textured | 136.45 | px/s | CURRENT | M:L1504 |
-| `dsn` `flow_y_raw` mean, transition (band) | 71.43 ± 2% (≤ 72.86) | px/s | CURRENT | M:L2400 |
-| Transition `flow_y_raw` historical spread | 70.52–72.29 | px/s | CURRENT | M:L2452 |
-| Ruling 1 decision rule (`fwdplainc_trans`) | 2 or more of the 3 | — | CURRENT (pre-registered) | M:L2444 |
+| P1 flow/LiDAR timing | 30.30 Hz ± 0.1%; ≤ 0.5% of gaps above 1.5 periods | — | CURRENT (pre-registered) | M:L1693 |
+| P1 IMU timing | mean gap 3.0005 ± 0.003 ms … p99 gap ≤ 10 ms | ms | CURRENT (pre-registered) | M:L1694 |
+| P2 latency | ≤ same-world `dsn` mean + **12.5 ms** | ms | DIAGNOSTIC (pre-registered; diagnostic from Phase 2) | M:L1695 |
+| P3 inlier mean | ±0.01 of the `dsn` mean | — | CURRENT (pre-registered) | M:L1696 |
+| P3 % below 0.5 / features / `flow_y_raw` | within ±3 pp; features ±5%; `flow_y_raw` ±2% … or ±5 px/s (blank) | — | CURRENT (pre-registered) | M:L1696 |
+| P3 GT lateral | \|x\| ≤ 0.05 m | m | CURRENT (pre-registered) | M:L1696 |
+| P4 EKF3 textured | [1.26, 8.13] | m | CURRENT (pre-registered) | M:L1850 |
+| P4 EKF3 transition ratio / onset | [0.51, 0.63], onset [96, 108] m | —, m | CURRENT (pre-registered) | M:L1850 |
+| P4 EKF3 blank ratio / onset | [0.12, 0.27], onset [13, 24] m | —, m | CURRENT (pre-registered) | M:L1850 |
+| P4 FGO textured (dejittered) | [4.17, 5.14] | m | CURRENT (pre-registered) | M:L1851 |
+| P4 FGO textured band basis | 4.57–4.74 ± max(range 0.17, **0.40 m**) | m | CURRENT (pre-registered) | M:L1851 |
+| P4 FGO transition | ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m | —, m | CURRENT (pre-registered) | M:L1851 |
+| P4 FGO blank | ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m | —, m | CURRENT (pre-registered) | M:L1851 |
+| `dsn` P3 baseline, textured inlier | 0.9729–0.9741 | — | CURRENT | M:L1445 |
+| `dsn` P3 baseline, blank inlier | 0.3130–0.3153 | — | CURRENT | M:L1446 |
+| `dsn` `flow_y_raw` mean, textured | 136.45 | px/s | CURRENT | M:L1516 |
+| `dsn` `flow_y_raw` mean, transition (band) | 71.43 ± 2% (≤ 72.86) | px/s | CURRENT | M:L2412 |
+| Transition `flow_y_raw` historical spread | 70.52–72.29 | px/s | CURRENT | M:L2464 |
+| Ruling 1 decision rule (`fwdplainc_trans`) | 2 or more of the 3 | — | CURRENT (pre-registered) | M:L2456 |
 
 ## 8. Dataset pass/fail counts
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| `dsn_*` comparison batch | 3 corridor worlds × 3 repeats | — | CURRENT | M:L852 |
-| Phase 1c ceiling checks | five of six pass every primary criterion | — | CURRENT | M:L2480 |
-| Render check R (checks: pre-flight / in flight) | 18 frames … 42 frames | — | CURRENT | M:L2406-L2407 |
-| Ceiling datasets flown | 18/18 trials completed first time | — | CURRENT | M:L2492 |
-| Extended IMU rule on 18 bags | 15 bags are `ok` and 3 are `trim` | — | CURRENT | M:L2501 |
-| `fwdplainc_*` primary | 9/9 pass | — | CURRENT | M:L2514 |
-| `fwdc_*` primary | 8/9 pass | — | CURRENT | M:L2515 |
-| Render check R on datasets | PASS on all 18 | — | CURRENT | M:L2510 |
-| Ceiling transition flights above `flow_y_raw` band | 2 of 8 … 0 of 8 without a ceiling | — | CURRENT | M:L2555-L2556 |
-| Phase 3 calibration heading / yaw rate | Heading: 5/6 / Yaw rate: 3/6 | — | CURRENT | M:L2744-L2746 |
-| Phase 3 validation heading | 15/18 | — | CURRENT | M:L2813 |
-| Phase 3 validation yaw rate `fwdc` / `fwdplainc` | 9/9 / 0/9 | — | CURRENT | M:L2777-L2778 |
-| Static heading response bar | 1/6 worlds pass | — | CURRENT | M:L2804 |
+| `dsn_*` comparison batch | 3 corridor worlds × 3 repeats | — | CURRENT | M:L856 |
+| Phase 1c ceiling checks | five of six pass every primary criterion | — | CURRENT | M:L2492 |
+| Render check R (checks: pre-flight / in flight) | 18 frames … 42 frames | — | CURRENT | M:L2418-L2419 |
+| Ceiling datasets flown | 18/18 trials completed first time | — | CURRENT | M:L2504 |
+| Extended IMU rule on 18 bags | 15 bags are `ok` and 3 are `trim` | — | CURRENT | M:L2513 |
+| `fwdplainc_*` primary | 9/9 pass | — | CURRENT | M:L2526 |
+| `fwdc_*` primary | 8/9 pass | — | CURRENT | M:L2527 |
+| Render check R on datasets | PASS on all 18 | — | CURRENT | M:L2522 |
+| Ceiling transition flights above `flow_y_raw` band | 2 of 8 … 0 of 8 without a ceiling | — | CURRENT | M:L2567-L2568 |
+| Phase 3 calibration heading / yaw rate | Heading: 5/6 / Yaw rate: 3/6 | — | CURRENT | M:L2756-L2758 |
+| Phase 3 validation heading | 15/18 | — | CURRENT | M:L2825 |
+| Phase 3 validation yaw rate `fwdc` / `fwdplainc` | 9/9 / 0/9 | — | CURRENT | M:L2789-L2790 |
+| Static heading response bar | 1/6 worlds pass | — | CURRENT | M:L2816 |
 
 ## 9. Forward-camera measurement: frozen parameters and results
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| LSD minimum segment length | 15 px | px | CURRENT | M:L2622 |
-| Segment angle exclusion | within 5° of horizontal or vertical | deg | CURRENT | M:L2623 |
-| RANSAC iterations | 300 | — | CURRENT | M:L2624 |
-| Prior (i) | \|ψ\| < 30° | deg | CURRENT | M:L2630 |
-| Prior (ii) | within ±5° of the horizon row | deg | CURRENT | M:L2632 |
-| Yaw-rate corners | up to 100 | — | CURRENT | M:L2650 |
-| Frozen inlier tolerance | 0.5° | deg | CURRENT | M:L2725 |
-| Frozen S_MIN | 200 px | px | CURRENT | M:L2725 |
-| Frozen yaw-rate box half-size | 80 px | px | CURRENT | M:L2725 |
-| Frozen N_MIN | 5 | — | CURRENT | M:L2726 |
+| LSD minimum segment length | 15 px | px | CURRENT | M:L2634 |
+| Segment angle exclusion | within 5° of horizontal or vertical | deg | CURRENT | M:L2635 |
+| RANSAC iterations | 300 | — | CURRENT | M:L2636 |
+| Prior (i) | \|ψ\| < 30° | deg | CURRENT | M:L2642 |
+| Prior (ii) | within ±5° of the horizon row | deg | CURRENT | M:L2644 |
+| Yaw-rate corners | up to 100 | — | CURRENT | M:L2662 |
+| Frozen inlier tolerance | 0.5° | deg | CURRENT | M:L2737 |
+| Frozen S_MIN | 200 px | px | CURRENT | M:L2737 |
+| Frozen yaw-rate box half-size | 80 px | px | CURRENT | M:L2737 |
+| Frozen N_MIN | 5 | — | CURRENT | M:L2738 |
 | Cross-check (JSON) frozen set | inlier_deg 0.5, s_min 200, box_half_px 80, n_min 5 | — | CURRENT | json:fwd_calibration.json:frozen |
-| Calibration σ_ψ `fwdc` / `fwdplainc` | 0.097° / 0.026° | deg | CURRENT | M:L2730-L2731 |
-| Calibration σ_ω `fwdc` | 0.106 deg/s | deg/s | CURRENT | M:L2730 |
-| Calibration σ_ω `fwdplainc` (not used: failed validation) | 2.07 deg/s | deg/s | DIAGNOSTIC | M:L2731 |
-| Accuracy bar, heading | ≥ 70% / ≤ 0.5° / ≤ 1.0° / ≤ 5% (\|error\| > 3°) | — | CURRENT (pre-registered) | M:L2699 |
-| Accuracy bar, yaw rate | ≥ 70% / ≤ 0.05 deg/s / ≤ 1.0 deg/s / ≤ 5% (\|error\| > 3 deg/s) | — | CURRENT (pre-registered) | M:L2700 |
-| Static sweep bar | slope 1 ± 0.05, and every \|residual\| ≤ 0.5° | — | CURRENT (pre-registered) | M:L2691-L2692 |
-| Static sweep offsets | {−10, −5, −2, 0, +2, +5, +10}° | deg | CURRENT (pre-registered) | M:L2691 |
-| Validation heading `fwdc` tex (avail / bias / sd / robust σ / outliers) | 96.8% / −0.006° / 0.20° / 0.13° / 0.09% | — | CURRENT | M:L2766 |
-| Validation heading `fwdc` trans | 96.8% / −0.014° / 0.13° / 0.09° / 0.00% | — | CURRENT | M:L2767 |
-| Validation heading `fwdc` blank | 96.8% / −0.018° / 0.11° / 0.08° / 0.00% | — | CURRENT | M:L2768 |
-| Validation heading `fwdplainc` tex | 60.0% / +0.206° / 0.68° / 0.33° / 11.9% | — | CURRENT | M:L2769 |
-| Validation heading `fwdplainc` trans | 87.6% / +0.035° / 0.39° / 0.02° / 3.0% | — | CURRENT | M:L2770 |
-| Validation heading `fwdplainc` blank | 95.5% / −0.027° / 0.12° / 0.01° / 0.14% | — | CURRENT | M:L2771 |
-| Validation yaw rate `fwdc` (avail) | 99.9 / 97.4 / 97.4% | % | CURRENT | M:L2777 |
-| Validation yaw rate `fwdc` (bias) | +0.006 / +0.009 / +0.002 deg/s | deg/s | CURRENT | M:L2777 |
-| Validation yaw rate `fwdc` (noise sd) | 0.19 / 0.21 / 0.13 deg/s | deg/s | CURRENT | M:L2777 |
-| Validation yaw rate `fwdplainc` (avail) | 89.7 / 86.1 / 87.5% | % | CURRENT | M:L2778 |
-| Validation yaw rate `fwdplainc` (noise sd / outliers) | 1.48 / 1.43 / 1.36 deg/s … 15.4 / 15.7 / 23.7% | — | CURRENT | M:L2778 |
-| End-wall heading availability (GT y > 145 m) | `fwdc`: 14–20%; `fwdplainc`: 0–10% | % | CURRENT | M:L2784-L2785 |
-| Static sweep, near end wall example | a true +10° is reported as −17.2° | deg | CURRENT | M:L2806 |
-| Static sweep descriptive, y = 20 and 100 m | slope 1.00–1.01 and max \|residual\| ≤ 0.32° | — | DIAGNOSTIC | M:L2809-L2810 |
+| Calibration σ_ψ `fwdc` / `fwdplainc` | 0.097° / 0.026° | deg | CURRENT | M:L2742-L2743 |
+| Calibration σ_ω `fwdc` | 0.106 deg/s | deg/s | CURRENT | M:L2742 |
+| Calibration σ_ω `fwdplainc` (not used: failed validation) | 2.07 deg/s | deg/s | DIAGNOSTIC | M:L2743 |
+| Accuracy bar, heading | ≥ 70% / ≤ 0.5° / ≤ 1.0° / ≤ 5% (\|error\| > 3°) | — | CURRENT (pre-registered) | M:L2711 |
+| Accuracy bar, yaw rate | ≥ 70% / ≤ 0.05 deg/s / ≤ 1.0 deg/s / ≤ 5% (\|error\| > 3 deg/s) | — | CURRENT (pre-registered) | M:L2712 |
+| Static sweep bar | slope 1 ± 0.05, and every \|residual\| ≤ 0.5° | — | CURRENT (pre-registered) | M:L2703-L2704 |
+| Static sweep offsets | {−10, −5, −2, 0, +2, +5, +10}° | deg | CURRENT (pre-registered) | M:L2703 |
+| Validation heading `fwdc` tex (avail / bias / sd / robust σ / outliers) | 96.8% / −0.006° / 0.20° / 0.13° / 0.09% | — | CURRENT | M:L2778 |
+| Validation heading `fwdc` trans | 96.8% / −0.014° / 0.13° / 0.09° / 0.00% | — | CURRENT | M:L2779 |
+| Validation heading `fwdc` blank | 96.8% / −0.018° / 0.11° / 0.08° / 0.00% | — | CURRENT | M:L2780 |
+| Validation heading `fwdplainc` tex | 60.0% / +0.206° / 0.68° / 0.33° / 11.9% | — | CURRENT | M:L2781 |
+| Validation heading `fwdplainc` trans | 87.6% / +0.035° / 0.39° / 0.02° / 3.0% | — | CURRENT | M:L2782 |
+| Validation heading `fwdplainc` blank | 95.5% / −0.027° / 0.12° / 0.01° / 0.14% | — | CURRENT | M:L2783 |
+| Validation yaw rate `fwdc` (avail) | 99.9 / 97.4 / 97.4% | % | CURRENT | M:L2789 |
+| Validation yaw rate `fwdc` (bias) | +0.006 / +0.009 / +0.002 deg/s | deg/s | CURRENT | M:L2789 |
+| Validation yaw rate `fwdc` (noise sd) | 0.19 / 0.21 / 0.13 deg/s | deg/s | CURRENT | M:L2789 |
+| Validation yaw rate `fwdplainc` (avail) | 89.7 / 86.1 / 87.5% | % | CURRENT | M:L2790 |
+| Validation yaw rate `fwdplainc` (noise sd / outliers) | 1.48 / 1.43 / 1.36 deg/s … 15.4 / 15.7 / 23.7% | — | CURRENT | M:L2790 |
+| End-wall heading availability (GT y > 145 m) | `fwdc`: 14–20%; `fwdplainc`: 0–10% | % | CURRENT | M:L2796-L2797 |
+| Static sweep, near end wall example | a true +10° is reported as −17.2° | deg | CURRENT | M:L2818 |
+| Static sweep descriptive, y = 20 and 100 m | slope 1.00–1.01 and max \|residual\| ≤ 0.32° | — | DIAGNOSTIC | M:L2821-L2822 |
 | Static sweep, pooled slope `textured_fwdc` (all y, JSON) ⚑ | 0.6240513705473866 | — | DIAGNOSTIC | json:fwd_yaw_sweep.json:textured_fwdc.slope |
 | Static sweep, pooled slope `blank_fwdc` (JSON) | 1.0071911784543726 | — | DIAGNOSTIC | json:fwd_yaw_sweep.json:blank_fwdc.slope |
 | Transition segment breakdown, `fwdc_trans_r{1,2,3}` | ψ and ω `pass` true in both halves | — | DIAGNOSTIC | json:fwd_transition_segments.json:fwdc_trans_r*/{checker_y<80,blank_y>80}.{psi,omega}.pass |
@@ -358,31 +377,31 @@ was prepared. Only pre-registered values are listed.
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| Arms, `fwdc_*` | baseline / +heading / +heading+yaw rate | — | CURRENT (pre-registered) | M:L2937 |
-| Arms, `fwdplainc_*` | baseline / +heading | — | CURRENT (pre-registered) | M:L2938 |
-| Replay runs | 90 replay runs | — | CURRENT (pre-registered) | M:L2940 |
-| Heading validity | support ≥ S_MIN = 200 px | px | CURRENT (pre-registered) | M:L2948 |
-| Yaw-rate validity | ≥ N_MIN = 5 tracked corners | — | CURRENT (pre-registered) | M:L2948 |
-| σ_ψ `fwdc` / `fwdplainc` (static sweep) | **`fwdc` 0.148°**, **`fwdplainc` 0.126°** | deg | CURRENT (pre-registered) | M:L2968 |
-| σ_ω `fwdc` (derived) | 0.106 × (0.148/0.097) = 0.162 deg/s | deg/s | CURRENT (pre-registered) | M:L2974 |
-| χ² gate | ν²/S ≤ 9 | — | CURRENT (pre-registered) | M:L2978 |
+| Arms, `fwdc_*` | baseline / +heading / +heading+yaw rate | — | CURRENT (pre-registered) | M:L2949 |
+| Arms, `fwdplainc_*` | baseline / +heading | — | CURRENT (pre-registered) | M:L2950 |
+| Replay runs | 90 replay runs | — | CURRENT (pre-registered) | M:L2952 |
+| Heading validity | support ≥ S_MIN = 200 px | px | CURRENT (pre-registered) | M:L2960 |
+| Yaw-rate validity | ≥ N_MIN = 5 tracked corners | — | CURRENT (pre-registered) | M:L2960 |
+| σ_ψ `fwdc` / `fwdplainc` (static sweep) | **`fwdc` 0.148°**, **`fwdplainc` 0.126°** | deg | CURRENT (pre-registered) | M:L2980 |
+| σ_ω `fwdc` (derived) | 0.106 × (0.148/0.097) = 0.162 deg/s | deg/s | CURRENT (pre-registered) | M:L2986 |
+| χ² gate | ν²/S ≤ 9 | — | CURRENT (pre-registered) | M:L2990 |
 | Implemented gate (code) | `FWD_CHI2_GATE = 9.0` | — | CURRENT (matches the pre-registration) | code:src/estimators/measurement_models.py:L146 |
 | Implemented σ (code) | `np.radians(0.148)`, `np.radians(0.162)`; `np.radians(0.126)`, `None` | rad | CURRENT (matches the pre-registration) | code:src/estimators/measurement_models.py:L151-L152 |
-| FGO gate-recursion information matrix | 30-dimensional | — | CURRENT (pre-registered) | M:L2985 |
-| Timing periods: UKF predict / FGO keyframe | 80 Hz, period 12.5 ms / 30 Hz, period 33.3 ms | ms | DIAGNOSTIC (pre-registered) | M:L2993-L2994 |
+| FGO gate-recursion information matrix | 30-dimensional | — | CURRENT (pre-registered) | M:L2997 |
+| Timing periods: UKF predict / FGO keyframe | 80 Hz, period 12.5 ms / 30 Hz, period 33.3 ms | ms | DIAGNOSTIC (pre-registered) | M:L3005-L3006 |
 
 ## 11. Ceiling effect size (transition `flow_y_raw`, ceiling n = 8 vs no-ceiling n = 8)
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| Whole cruise: ceiling / no-ceiling mean (sd) | 71.87 (1.00) / 71.44 (0.58) | px/s | CURRENT | M:L2579 |
-| Whole cruise: difference, Welch t (df), p | **+0.43 px/s (+0.6%)**, 1.06 (11.2), 0.31 | px/s | CURRENT | M:L2579 |
-| Textured half: difference, t (df), p | +0.10 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2580 |
-| Blank half: ceiling / no-ceiling mean (sd) | −2.08 (2.43) / −2.39 (0.85) | px/s | CURRENT | M:L2581 |
-| Blank half: difference, t (df), p | +0.31 px/s, 0.34 (8.7), 0.74 | px/s | CURRENT | M:L2581 |
-| Blank-half variance ratio (Levene p) | 8.1 (Levene p = 0.17 | — | CURRENT | M:L2587 |
+| Whole cruise: ceiling / no-ceiling mean (sd) | 71.87 (1.00) / 71.44 (0.58) | px/s | CURRENT | M:L2591 |
+| Whole cruise: difference, Welch t (df), p | **+0.43 px/s (+0.6%)**, 1.06 (11.2), 0.31 | px/s | CURRENT | M:L2591 |
+| Textured half: difference, t (df), p | +0.10 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2592 |
+| Blank half: ceiling / no-ceiling mean (sd) | −2.08 (2.43) / −2.39 (0.85) | px/s | CURRENT | M:L2593 |
+| Blank half: difference, t (df), p | +0.31 px/s, 0.34 (8.7), 0.74 | px/s | CURRENT | M:L2593 |
+| Blank-half variance ratio (Levene p) | 8.1 (Levene p = 0.17 | — | CURRENT | M:L2599 |
 | Cross-check (JSON) difference | 0.4331935635006232 | px/s | CURRENT | json:ceiling_flow_effect.json:groups.all.difference |
-| Over-band flights' blank-half means | +0.87 … +1.30, against −6.40 to −1.34 | px/s | CURRENT | M:L2589 |
+| Over-band flights' blank-half means | +0.87 … +1.30, against −6.40 to −1.34 | px/s | CURRENT | M:L2601 |
 
 p-values and the Levene test appear only in METHODOLOGY; the JSON stores means, sd, the
 difference, Welch t and df.
@@ -391,86 +410,97 @@ difference, Welch t and df.
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| ExternalNav yaw floor inside EKF3 | `yawAngErr = MAX(angErr, radians(5))` | deg | CURRENT | M:L3094 |
-| `VISO_YAW_M_NSE` default | 0.2 rad | rad | CURRENT | M:L2900 |
-| `VISO_YAW_M_NSE` documented range | 0.05–1.0 rad | rad | CURRENT | M:L2900 |
-| `VISO_YAW_M_NSE` floor (ruling wording) | ≥ 0.05 rad | rad | CURRENT | M:L2862 |
-| UKF/FGO heading noise quoted against the floor | 0.13–0.15° | deg | CURRENT | M:L3099 |
-| `AHRS_EKF_TYPE` default injection | `SIM_JSON.cpp:410-413` … `set_default_by_name("AHRS_EKF_TYPE", 10)` | — | CURRENT | M:L3086-L3087 |
-| Model flag | `<no_time_sync>1</no_time_sync>` (`model.sdf:789`) | — | CURRENT | M:L3088 |
-| Recorded logs | `LOG_REPLAY=0` and `LOG_DISARMED=0` | — | CURRENT | M:L2911 |
-| Future flights | `LOG_REPLAY=1` and `LOG_DISARMED=1` | — | CURRENT | M:L2851 |
-| ArduPilot pinned commit | `7bac20cbcc` | — | CURRENT | M:L2878 |
+| ExternalNav yaw floor inside EKF3 | `yawAngErr = MAX(angErr, radians(5))` | deg | CURRENT | M:L3106 |
+| `VISO_YAW_M_NSE` default | 0.2 rad | rad | CURRENT | M:L2912 |
+| `VISO_YAW_M_NSE` documented range | 0.05–1.0 rad | rad | CURRENT | M:L2912 |
+| `VISO_YAW_M_NSE` floor (ruling wording) | ≥ 0.05 rad | rad | CURRENT | M:L2874 |
+| UKF/FGO heading noise quoted against the floor | 0.13–0.15° | deg | CURRENT | M:L3111 |
+| `AHRS_EKF_TYPE` default injection | `SIM_JSON.cpp:410-413` … `set_default_by_name("AHRS_EKF_TYPE", 10)` | — | CURRENT | M:L3098-L3099 |
+| Model flag | `<no_time_sync>1</no_time_sync>` (`model.sdf:789`) | — | CURRENT | M:L3100 |
+| Recorded logs | `LOG_REPLAY=0` and `LOG_DISARMED=0` | — | CURRENT | M:L2923 |
+| Future flights | `LOG_REPLAY=1` and `LOG_DISARMED=1` | — | CURRENT | M:L2863 |
+| ArduPilot pinned commit | `7bac20cbcc` | — | CURRENT | M:L2890 |
 
 ## 13. Part C (onboard feasibility) — estimates
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| Target flight controller | STM32H743 flight controller** (2 MB flash, ~1 MB RAM) | — | CURRENT (supervisor) | M:L3022 |
-| UKF onboard flash | ~25–50 kB flash | kB | ESTIMATE | M:L3051 |
-| UKF onboard RAM | < 16 kB RAM | kB | ESTIMATE | M:L3051 |
-| UKF onboard CPU | ~2–8% CPU | % | ESTIMATE | M:L3051 |
-| Free flash on current builds | About 270–325 kB | kB | ESTIMATE (from published `.apj`) | M:L3051-L3052 |
-| `EKF3.*` call sites in `AP_AHRS` | 86 | — | CURRENT (source count) | M:L3055 |
-| `EKFType` switch arms needed | about 52 | — | ESTIMATE | M:L3058 |
-| Shadow-run evidence, `dsn_tex_r1` | 6654 `XKF1` rows, 2 lanes | — | CURRENT | M:L3060 |
-| QuadPlane loop rate | 300 Hz | Hz | CURRENT | M:L3061 |
-| FGO Python step (Part C) ⚑ | 29 ms/step | ms | DIAGNOSTIC | M:L3069 |
-| Camera pipeline (Python, i7, under load) | ≤ 61 ms/frame | ms | DIAGNOSTIC | M:L3070 |
-| Wall contact from GT | \|x\| ≥ 9.58 m | m | CURRENT | M:L3076 |
-| Distance scale, EKF3 vs FGO (n = 9) ⚑ | EKF3 +6–10% against the FGO's ~+1% | % | CURRENT (candidate) | M:L3079 |
-| Effort | ~18–30 person-weeks (estimate), plus 4–6 if route (b) is built | person-weeks | ESTIMATE | M:L3082 |
+| Target flight controller | STM32H743 flight controller** (2 MB flash, ~1 MB RAM) | — | CURRENT (supervisor) | M:L3034 |
+| UKF onboard flash | ~25–50 kB flash | kB | ESTIMATE | M:L3063 |
+| UKF onboard RAM | < 16 kB RAM | kB | ESTIMATE | M:L3063 |
+| UKF onboard CPU | ~2–8% CPU | % | ESTIMATE | M:L3063 |
+| Free flash on current builds | About 270–325 kB | kB | ESTIMATE (from published `.apj`) | M:L3063-L3064 |
+| `EKF3.*` call sites in `AP_AHRS` | 86 | — | CURRENT (source count) | M:L3067 |
+| `EKFType` switch arms needed | about 52 | — | ESTIMATE | M:L3070 |
+| Shadow-run evidence, `dsn_tex_r1` | 6654 `XKF1` rows, 2 lanes | — | CURRENT | M:L3072 |
+| QuadPlane loop rate | 300 Hz | Hz | CURRENT | M:L3073 |
+| FGO Python step (Part C, textured) | 29 ms/step | ms | DIAGNOSTIC (workstation) | M:L3081 |
+| Camera pipeline (Python, i7, under load) | ≤ 61 ms/frame | ms | DIAGNOSTIC | M:L3082 |
+| Wall contact from GT | \|x\| ≥ 9.58 m | m | CURRENT | M:L3088 |
+| Distance scale, EKF3 vs FGO (n = 9; Part C summary, rounded) | EKF3 +6–10% against the FGO's ~+1% | % | CURRENT (candidate; exact values in §6.5) | M:L3091 |
+| Effort | ~18–30 person-weeks (estimate), plus 4–6 if route (b) is built | person-weeks | ESTIMATE | M:L3094 |
 
 ## 14. Timing figures
 
+All timing figures are **DIAGNOSTIC (workstation)**: measured in Python on the workstation,
+with parallel jobs and load not recorded; they say nothing directly about onboard feasibility
+(M:L3137-L3139). The FGO step time is world-dependent and must state its world (M:L3131-L3132).
+
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| FGO step time at 1.0 / 0.5 / 0.25 s window ⚑ | 96 / 48 / 27 ms | ms | CURRENT | M:L706 |
-| LM iterations cap | capped at 2 (warm-started) | — | CURRENT | M:L710 |
-| Capped vs full LM | max position difference 0.11 m, **RMS 0.029 m** | m | CURRENT | M:L711 |
-| Keyframes, `dsn_tex_r1` | 10047 | — | CURRENT | M:L713 |
-| iSAM2 step time / cascade point | 0.2 ms/step … after ~590 keyframes | ms | CURRENT | M:L1113-L1114 |
-| 9-bag FGO run time at 0.25 s vs 1.0 s | ~40 min (was 2.4 h at 1.0 s) | — | CURRENT | P:L258 |
+| FGO step time, 0.25 s window, textured (current figure) | ~29 ms median on textured bags | ms | DIAGNOSTIC (workstation; current) | M:L3121 |
+| FGO stored medians, textured (`dsn`/`fwdc`/`fwdplainc`), n = 9 | 26.9–29.2 | ms | DIAGNOSTIC (workstation) | M:L3126 |
+| FGO stored medians, transition, n = 9 | 15.1–15.7 | ms | DIAGNOSTIC (workstation) | M:L3127 |
+| FGO stored medians, blank, n = 9 | 4.0–4.3 | ms | DIAGNOSTIC (workstation) | M:L3128 |
+| FGO window sweep step time at 1.0 / 0.5 / 0.25 s (`dsn_tex_r1`, 2026-08-01, `04426d2`) | 96 / 48 / 27 ms | ms | DIAGNOSTIC (workstation; that sweep's result, not the current figure) | M:L710 |
+| LM iterations cap | capped at 2 (warm-started) | — | CURRENT | M:L714 |
+| Capped vs full LM | max position difference 0.11 m, **RMS 0.029 m** | m | CURRENT | M:L715 |
+| Keyframes, `dsn_tex_r1` | 10047 | — | CURRENT | M:L717 |
+| iSAM2 step time / cascade point | 0.2 ms/step … after ~590 keyframes | ms | DIAGNOSTIC (workstation) | M:L1125-L1126 |
+| 9-bag FGO run time at 0.25 s vs 1.0 s | ~40 min (was 2.4 h at 1.0 s) | — | DIAGNOSTIC (workstation) | P:L258 |
 
-The window-sweep ATEs (M:L699), which are the evidence that ATE does not depend on the window,
+The window-sweep ATEs (M:L701), which are the evidence that ATE does not depend on the window,
 are pre-correction, receipt-stamp values and are listed in the superseded section.
 
 ---
 
-## Discrepancies and flags (⚑)
+## Flags: resolved and remaining
 
-1. **FGO step time at 0.25 s:** 27 ms (M:L706) against "29 ms/step" in Part C (M:L3069).
-   Not reconciled in the snapshot. Part C may be a different measurement or code version.
-2. **FGO timing in CLAUDE.md:** C:L1923 says "batch used (~101 ms/step, 3–5× over the 33 ms
-   budget)". That is the pre-window-configuration figure (M:L1112). It is superseded by the
-   0.25 s configuration (M:L706-L709).
-3. **EKF3 residual yaw drift under nomag:** "~5 deg/min" (M:L867) against "+6.6…+11.1 (mean
-   ~8.1)" across the nine `dsn_*` bags (M:L877, M:L746). A third figure, +5.32 deg/min
-   (M:L744), comes from `nomag_corridor_baseline` and is labelled trial-specific. The
-   nine-bag figure is the later, more specific one.
-4. **Physical drift denominator:** 9.8 deg/min (M:L737, M:L927) against 8.9 deg/min
-   (M:L2706) and 8.87–8.90 (M:L2065). M:L737-L738 explains that the value is a window mean,
-   ≈8.9–9.8 depending on the window. So this is a window difference, not a contradiction.
-   The earlier "8.9" denominator was corrected to 9.8 for the bias-% figures (M:L927).
-5. **UKF gyro-z overshoot for the same baseline:** 245% (M:L228, M:L431) against 222%
-   (M:L321). The ratio matches the 8.9 → 9.8 denominator change (item 4). Not stated in the
-   source; inferred, so treat it as unconfirmed.
-6. **EKF3 velocity/distance scale:** +12.6% (0.556 m/s, `dsn_tex_r1`, n=1, M:L1099);
-   "~+6.5% scale" (M:L953); "+6–10%" (n=9, M:L3079); ~5% on `iris_textured` (C:L955). The
-   FGO: +4.7% (n=1, M:L1098) against "~+1%" (n=9, M:L3079). The sample and quantity differ
-   (velocity vs distance, n=1 vs n=9); none is marked superseded.
-7. **Clock offset drift:** M:L1182 "−6 to −9 ms early and −52 to −68 ms late" against
-   C:L881-L882 "about −7 ms to about −60 ms". This is a summary rounding, not a conflict.
-8. **Static sweep slope:** the JSON's pooled slope (e.g. `textured_fwdc` 0.624, all y
+**Resolved** (METHODOLOGY "Source-pack flag resolutions", M:L3114-L3198; applied above):
+1. **FGO step time (§1):** current ~29 ms median on textured bags; stored medians are
+   world-dependent (textured 26.9–29.2, transition 15.1–15.7, blank 4.0–4.3 ms, n = 9 each);
+   27 ms is the 2026-08-01 window-sweep result; 101 ms/step is superseded (1.0 s window,
+   pre-LM-cap). All DIAGNOSTIC (workstation). CLAUDE item 12 (C:L1861) now agrees.
+2. **EKF3 yaw drift with no compass (§2):** current +6.6…+11.1 deg/min, mean ~8.1, n = 9
+   `dsn_*`; the window is not stated in the record. "~5 deg/min" is superseded (single-trial
+   +5.32 residual).
+3. **UKF overshoot (§3):** two definitions, A (% of the constant 9.8) and B (% of the window
+   mean of the true bias, ≈ 8.88). Stored values A 222.4% / 336.0%, B 245.3% / ≈ 370.7%. The
+   thesis uses B. The "245% → 336%" pair mixes the two and is superseded.
+4. **Distance scale (§4):** current n = 9 values EKF3 +5.7…+9.6%, FGO +0.9…+1.1%; the n = 1
+   +12.6% / +4.7% are superseded. The scale-cause check ("bounded check 5a") is PENDING and not
+   yet defined in the record.
+5. **OI-2 commit (§5):** cite `9b0f5d9` (on `master` and `fwd-camera`); `cc588df` is the first
+   recording (fwd-camera only), same opening text.
+
+**Remaining:**
+1. **Physical drift denominator ⚑:** 9.8 deg/min (M:L741) against 8.9 deg/min (M:L2718) and
+   8.87–8.90 (M:L2077). M:L741-L742 explains the value is a window mean, ≈8.9–9.8 depending
+   on the window; §3 records ≈ 8.88 as the true-bias window mean. A window difference, not a
+   contradiction.
+2. **EKF3 velocity scale on other samples:** "~+6.5% scale" (M:L960) and ~5% on
+   `iris_textured` (C:L884) are different samples/quantities, not addressed by §4.
+3. **Clock offset drift ⚑:** M:L1194 "−6 to −9 ms early and −52 to −68 ms late" against
+   C:L810-L811 "about −7 ms to about −60 ms". Summary rounding, not a conflict.
+4. **Static sweep slope ⚑:** the JSON's pooled slope (e.g. `textured_fwdc` 0.624, all y
    positions) is a different quantity from METHODOLOGY's descriptive "slope 1.00–1.01" at y =
-   20 and 100 m only (M:L2808-L2810). Do not present them as the same number.
-9. **Transition segment breakdown:** present only in `eval/results/fwd_transition_segments.json`
-   (commit `938fdb6`). Its METHODOLOGY range is NOT FOUND.
-10. **Phase 4 regression result:** the byte-identical baseline claim is only in the `938fdb6`
-    commit message. The snapshot records no regression result.
-11. **Phase 1 flow → EKF3 latency baseline:** "median 10.9 ms and p95 42.7 ms" (M:L1582) was
-    measured with the single-offset clock and is superseded by the linear-map `dsn` values
-    (M:L1740-L1741). Listed below.
+   20 and 100 m only (M:L2820-L2822). Do not present them as the same number.
+5. **Transition segment breakdown:** NOT IN METHODOLOGY. Present only in
+   `eval/results/fwd_transition_segments.json` (commit `938fdb6`).
+6. **Phase 4 regression result:** the byte-identical baseline claim is only in the `938fdb6`
+   commit message; the snapshot records no regression result. Phase 4 has no results yet.
+7. **Phase 1 flow → EKF3 latency baseline:** "median 10.9 ms and p95 42.7 ms" (M:L1594) used
+   the single-offset clock; superseded by the linear-map `dsn` values (M:L1752-L1753).
 
 ---
 
@@ -478,50 +508,53 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
 
 | quantity | value | units | status | source | superseded by |
 |---|---|---|---|---|---|
-| Stage B ATE / RPE (`/ekf/pose`) | RMSE **6.4 mm** / RMSE **4.6 mm** | mm | SUPERSEDED (VOID) | C:L474, C:L476 | `/ekf/pose` was simulator truth (`AHRS_EKF_TYPE=10`), C:L416-L427 |
-| Stage C ATE textured / blank | 7.7 mm / 10.0 mm | mm | SUPERSEDED (VOID) | C:L418 | Same reason (C:L557-L562) |
-| Stage C RPE textured / blank | 5.4 mm vs blank RMSE 6.5 mm | mm | SUPERSEDED (VOID) | C:L563 | Same reason (C:L564) |
-| No-yaw 320 s yaw drift | ±0.03° / ≈0.000 deg/min | deg, deg/min | SUPERSEDED (VOID) | C:L1331 | Truth vs truth (C:L1329-L1344); nomag EKF3 drift re-measured from `XKF1` at M:L877 |
-| Textured receipt-stamp table, FGO r1/r2/r3; mean; range | 4.96 / 4.91 / 4.57; 4.81; 0.39 | m | SUPERSEDED | M:L516 | Dejittered baseline, M:L482 |
-| Textured receipt-stamp table, UKF r1/r2/r3; mean; range | 18.57 / 10.11 / 22.53; 17.07; 12.42 | m | SUPERSEDED | M:L517 | Dejittered baseline, M:L483 |
-| Textured full-window (historical) means EKF3 / FGO / UKF | 4.97 · 5.46 · 19.96 | m | SUPERSEDED | M:L518 | evo -a (cruise), M:L481-L483 |
-| Mixed-window table (EKF3 / FGO / UKF means) | (mean 4.97) … (5.46) … (19.96) | m | SUPERSEDED | M:L528-L529 | Pinned cruise window (M:L527-L546) |
-| First FGO vs EKF3 (full window) | EKF3 4.79 m vs FGO 5.10 m | m | SUPERSEDED | M:L1090 | evo -a (cruise), EKF3 4.58 vs FGO 4.47 (M:L1092), itself receipt-stamp and pre-correction |
-| FGO fixed-anchor ATE | 0.49 m | m | SUPERSEDED (VOID) | M:L1027 | Artefact (M:L1024-L1037); fair anchor (M:L1049-L1119) |
-| FGO window sweep ATE at 1.0 / 0.5 / 0.25 s, evo -a (cruise), `dsn_tex_r1` | 4.47 / 4.44 / 3.72 m | m | SUPERSEDED (pre-correction, receipt stamps) | M:L699 | Correction and dejitter; kept only as the evidence that ATE does not depend on the window (M:L697-L702) |
-| Pre-correction textured (cruise) UKF / FGO | UKF **14.09 → 17.07**, FGO **4.32 → 4.81** | m | SUPERSEDED | M:L258-L259 | `h_flow` correction, then the dejittered baseline |
-| UKF / FGO transition ratio; onset | 0.83 / 0.74; 78 m / 95 m | —; m | SUPERSEDED (pending restatement) | M:L561-L562 | Receipt-stamp; consolidated re-run (M:L503-L509, L1159-L1161) |
-| UKF / FGO blank ratio; onset | **1.30** / **1.60**; 50 m / 24 m | —; m | SUPERSEDED (pending restatement) | M:L563-L564 | Same |
-| Pre-correction FGO blank ratio (OI-1 evidence) | 0.06 / 0.18 / 0.04 | — | SUPERSEDED (retained as OI-1 evidence) | M:L575 | `h_flow` correction |
-| FINDING 2 table, UKF ATE cruise instantaneous / interval-avg | 10.49 / 18.57 | m | SUPERSEDED (pending restatement) | M:L318 | Receipt-stamp; consolidated re-run |
-| FINDING 4 `dsn` A / B / C (evo -a cruise) | 10.49 / 16.23 / 18.57 | m | SUPERSEDED (pending restatement) | M:L361-L363 | Same |
-| FINDING 4 `ds` A / B / C | 17.43 / 27.13 / **7.88** | m | SUPERSEDED (pending restatement) | M:L378-L380 | Same |
-| UKF ramp-tracking | +1.5…+2.1 tex, **−0.5…−0.7 blank** | deg/min/min | SUPERSEDED (pending restatement) | M:L659 | Same |
+| Stage B ATE / RPE (`/ekf/pose`) | RMSE **6.4 mm** / RMSE **4.6 mm** | mm | SUPERSEDED (VOID) | C:L403, C:L405 | `/ekf/pose` was simulator truth (`AHRS_EKF_TYPE=10`), C:L345-L356 |
+| Stage C ATE textured / blank | 7.7 mm / 10.0 mm | mm | SUPERSEDED (VOID) | C:L347 | Same reason (C:L486-L491) |
+| Stage C RPE textured / blank | 5.4 mm vs blank RMSE 6.5 mm | mm | SUPERSEDED (VOID) | C:L492 | Same reason (C:L493) |
+| No-yaw 320 s yaw drift | ±0.03° / ≈0.000 deg/min | deg, deg/min | SUPERSEDED (VOID) | C:L1264 | Truth vs truth (C:L1262-L1279); nomag EKF3 drift re-measured from `XKF1` at M:L884 |
+| Textured receipt-stamp table, FGO r1/r2/r3; mean; range | 4.96 / 4.91 / 4.57; 4.81; 0.39 | m | SUPERSEDED | M:L518 | Dejittered baseline, M:L484 |
+| Textured receipt-stamp table, UKF r1/r2/r3; mean; range | 18.57 / 10.11 / 22.53; 17.07; 12.42 | m | SUPERSEDED | M:L519 | Dejittered baseline, M:L485 |
+| Textured full-window (historical) means EKF3 / FGO / UKF | 4.97 · 5.46 · 19.96 | m | SUPERSEDED | M:L520 | evo -a (cruise), M:L483-L485 |
+| Mixed-window table (EKF3 / FGO / UKF means) | (mean 4.97) … (5.46) … (19.96) | m | SUPERSEDED | M:L530-L531 | Pinned cruise window (M:L529-L548) |
+| First FGO vs EKF3 (full window) | EKF3 4.79 m vs FGO 5.10 m | m | SUPERSEDED | M:L1097 | evo -a (cruise), EKF3 4.58 vs FGO 4.47 (M:L1099), itself receipt-stamp and pre-correction |
+| FGO fixed-anchor ATE | 0.49 m | m | SUPERSEDED (VOID) | M:L1034 | Artefact (M:L1031-L1044); fair anchor (M:L1056-L1131) |
+| FGO window sweep ATE at 1.0 / 0.5 / 0.25 s, evo -a (cruise), `dsn_tex_r1` | 4.47 / 4.44 / 3.72 m | m | SUPERSEDED (pre-correction, receipt stamps) | M:L701 | Correction and dejitter; kept only as the evidence that ATE does not depend on the window (M:L699-L704) |
+| Pre-correction textured (cruise) UKF / FGO | UKF **14.09 → 17.07**, FGO **4.32 → 4.81** | m | SUPERSEDED | M:L260-L261 | `h_flow` correction, then the dejittered baseline |
+| UKF / FGO transition ratio; onset | 0.83 / 0.74; 78 m / 95 m | —; m | SUPERSEDED (pending restatement) | M:L563-L564 | Receipt-stamp; consolidated re-run (M:L505-L511, L1171-L1173) |
+| UKF / FGO blank ratio; onset | **1.30** / **1.60**; 50 m / 24 m | —; m | SUPERSEDED (pending restatement) | M:L565-L566 | Same |
+| Pre-correction FGO blank ratio (OI-1 evidence) | 0.06 / 0.18 / 0.04 | — | SUPERSEDED (retained as OI-1 evidence) | M:L577 | `h_flow` correction |
+| FINDING 2 table, UKF ATE cruise instantaneous / interval-avg | 10.49 / 18.57 | m | SUPERSEDED (pending restatement) | M:L320 | Receipt-stamp; consolidated re-run |
+| FINDING 4 `dsn` A / B / C (evo -a cruise) | 10.49 / 16.23 / 18.57 | m | SUPERSEDED (pending restatement) | M:L363-L365 | Same |
+| FINDING 4 `ds` A / B / C | 17.43 / 27.13 / **7.88** | m | SUPERSEDED (pending restatement) | M:L380-L382 | Same |
+| UKF ramp-tracking | +1.5…+2.1 tex, **−0.5…−0.7 blank** | deg/min/min | SUPERSEDED (pending restatement) | M:L661 | Same |
 | UKF consistency Pos E / Pos N / yaw | Pos E 91%, Pos N 65% … yaw 58% | % | SUPERSEDED (pending restatement) | M:L189-L190 | Same |
-| Four-estimator yaw clustering (UKF values) | UKF-uncond 9.52 / UKF-gated 12.7 | deg/min | SUPERSEDED | M:L643 | No longer holds for the corrected UKF (M:L642-L646) |
+| Four-estimator yaw clustering (UKF values) | UKF-uncond 9.52 / UKF-gated 12.7 | deg/min | SUPERSEDED | M:L645 | No longer holds for the corrected UKF (M:L644-L648) |
 | Smoke test FGO / UKF (receipt stamps) | FGO 4.81 / UKF 19.36 | m | SUPERSEDED | M:L170, M:L172 | Receipt-stamp; the gate verdict (PASS) stands |
-| OI-2 receipt → sensor, FGO mean | **4.81 → 4.52** | m | SUPERSEDED (evidence for the dejitter ruling) | M:L1227 | Dejitter only adopted (M:L474-L501) |
-| OI-2 decomposition, FGO sensor (dejitter + shift) mean | 4.52 | m | SUPERSEDED (evidence for the dejitter ruling) | M:L1268 | Shift not adopted |
-| 400 Hz / 50 Hz Q scaling | ×0.3536, ×0.0442; 0.0053, 0.124, 4.42×10⁻⁵, 8.84×10⁻⁴ | — | SUPERSEDED | C:L1240-L1243 | Predict at 0.0125 s, NSE unchanged (C:L592-L625) |
-| IMU bridge rate (old) | 20.00 ms → 50.0 Hz achieved | ms, Hz | SUPERSEDED | C:L1095 | 333.27 Hz (C:L635) |
-| 50 Hz aliasing artefact peak | "14.84 Hz peak" | Hz | SUPERSEDED | C:L652 | Real tone 34.99 Hz (C:L649) |
-| 50 Hz aliased energy | 0.154 m/s² | m/s² | SUPERSEDED | C:L662 | 333 Hz: 0.018 m/s² (C:L663) |
-| VIBE-based aliasing magnitude | 0.25 m/s² RMS above Nyquist | m/s² | SUPERSEDED | C:L670 | Direct 25–50 Hz figure (C:L668-L683) |
-| Phase 1 single-offset latency, `dsn_tex` baseline | median 10.9 ms and p95 42.7 ms | ms | SUPERSEDED | M:L1582 | Linear clock map (M:L1740-L1741) |
-| Phase 1 single-offset limits | ≤ 23.4 / ≤ 55.2 ms | ms | SUPERSEDED | M:L1762 | ≤ 28.1 / ≤ 36.7 (M:L1764) |
-| Phase 1 single-offset `p1_fwd_tex` latency | median 19.8, p95 51.5 | ms | SUPERSEDED | M:L1586 | 20.7 / 31.5 (M:L1745) |
-| Transition medians (single offset) | up to 32.0 ms | ms | SUPERSEDED | M:L1587 | Linear map (M:L1195-L1199) |
-| IMU ">1.5× gap" band | 18.4–18.7% | % | SUPERSEDED | M:L1575 | Mean-gap check plus p99 gap (M:L1645-L1651) |
-| RTF gate | RTF ≥ 0.92 | — | SUPERSEDED | M:L1420 | Revised Phase 1 criterion (M:L1660-L1701) |
-| Phase 1 `_fwd` worlds (revised criterion) | ALL THREE fwd worlds PASS | — | SUPERSEDED (recorded) | M:L1703 | Ceiling worlds; sky visible (M:L2330-L2337) |
-| Phase 1 `_fwd` P4 (tex / trans / blank), EKF3 | 4.07; ratio 0.56, onset 101 m; ratio 0.21, onset 20 m | m; —, m | SUPERSEDED (recorded) | M:L1719 | Same |
-| Phase 1 `_fwd` P4, FGO | 4.55; ratio 0.71, onset 94 m; ratio 1.58, onset 24 m | m; —, m | SUPERSEDED (recorded) | M:L1720 | Same |
-| `fwd_*` flown | All nine … completed first time | — | SUPERSEDED (recorded) | M:L1857 | Same |
-| `fwd_*` primary: P1 and P3 / P4 | P1 and P3 pass in all nine. P4 passes in eight. | — | SUPERSEDED (recorded) | M:L2121 | Same |
-| Phase 2 `fwd_*` P4 textured EKF3 / FGO | 4.37 / **5.158 (> 5.14)**; 4.15 / 4.71; 4.41 / 4.53 | m | SUPERSEDED (recorded; `fwd_tex_r1` miss kept) | M:L1874-L1876 | Same |
-| Phase 2 `fwd_*` UKF textured (diagnostic) | 42.73 / 7.67 / 9.31 | m | SUPERSEDED (recorded) | M:L1944 | Same |
-| Plain-wall Phase 1 | 3/3 complete; all primary pass | — | SUPERSEDED (recorded) | M:L2238 | Same |
-| Plain-wall Phase 1 P4 EKF3 / FGO | 4.46 … 4.69 | m | SUPERSEDED (recorded) | M:L2253-L2254 | Same |
-| FGO batch timing (1.0 s-era) | **101 ms/step median, p99 167 ms** | ms | SUPERSEDED | M:L1112 | 0.25 s window, 27 ms (M:L706) |
-| PHYS_DRIFT as a constant | the constant 9.8 (a window mean) | deg/min | SUPERSEDED | M:L265 | Triangle-wave `sitl_gyro_drift(t)` (M:L733-L742) |
-| Old corridor-world feature counts (Gazebo-level check) | ~126-183 … ~15-24 | — | SUPERSEDED | C:L164 | Fixed worlds' verification (C:L1864-L1868) |
+| OI-2 receipt → sensor, FGO mean | **4.81 → 4.52** | m | SUPERSEDED (evidence for the dejitter ruling) | M:L1239 | Dejitter only adopted (M:L476-L503) |
+| OI-2 decomposition, FGO sensor (dejitter + shift) mean | 4.52 | m | SUPERSEDED (evidence for the dejitter ruling) | M:L1280 | Shift not adopted |
+| 400 Hz / 50 Hz Q scaling | ×0.3536, ×0.0442; 0.0053, 0.124, 4.42×10⁻⁵, 8.84×10⁻⁴ | — | SUPERSEDED | C:L1171-L1174 | Predict at 0.0125 s, NSE unchanged (C:L521-L554) |
+| IMU bridge rate (old) | 20.00 ms → 50.0 Hz achieved | ms, Hz | SUPERSEDED | C(d89a902):L1095 | 333.27 Hz (C:L564); CLAUDE rewritten, C:L1022-L1026 |
+| 50 Hz aliasing artefact peak | "14.84 Hz peak" | Hz | SUPERSEDED | C:L581 | Real tone 34.99 Hz (C:L578) |
+| 50 Hz aliased energy | 0.154 m/s² | m/s² | SUPERSEDED | C:L591 | 333 Hz: 0.018 m/s² (C:L592) |
+| VIBE-based aliasing magnitude | 0.25 m/s² RMS above Nyquist | m/s² | SUPERSEDED | C:L599 | Direct 25–50 Hz figure (C:L597-L612) |
+| Phase 1 single-offset latency, `dsn_tex` baseline | median 10.9 ms and p95 42.7 ms | ms | SUPERSEDED | M:L1594 | Linear clock map (M:L1752-L1753) |
+| Phase 1 single-offset limits | ≤ 23.4 / ≤ 55.2 ms | ms | SUPERSEDED | M:L1774 | ≤ 28.1 / ≤ 36.7 (M:L1776) |
+| Phase 1 single-offset `p1_fwd_tex` latency | median 19.8, p95 51.5 | ms | SUPERSEDED | M:L1598 | 20.7 / 31.5 (M:L1757) |
+| Transition medians (single offset) | up to 32.0 ms | ms | SUPERSEDED | M:L1599 | Linear map (M:L1207-L1211) |
+| IMU ">1.5× gap" band | 18.4–18.7% | % | SUPERSEDED | M:L1587 | Mean-gap check plus p99 gap (M:L1657-L1663) |
+| RTF gate | RTF ≥ 0.92 | — | SUPERSEDED | M:L1432 | Revised Phase 1 criterion (M:L1672-L1713) |
+| Phase 1 `_fwd` worlds (revised criterion) | ALL THREE fwd worlds PASS | — | SUPERSEDED (recorded) | M:L1715 | Ceiling worlds; sky visible (M:L2342-L2349) |
+| Phase 1 `_fwd` P4 (tex / trans / blank), EKF3 | 4.07; ratio 0.56, onset 101 m; ratio 0.21, onset 20 m | m; —, m | SUPERSEDED (recorded) | M:L1731 | Same |
+| Phase 1 `_fwd` P4, FGO | 4.55; ratio 0.71, onset 94 m; ratio 1.58, onset 24 m | m; —, m | SUPERSEDED (recorded) | M:L1732 | Same |
+| `fwd_*` flown | All nine … completed first time | — | SUPERSEDED (recorded) | M:L1869 | Same |
+| `fwd_*` primary: P1 and P3 / P4 | P1 and P3 pass in all nine. P4 passes in eight. | — | SUPERSEDED (recorded) | M:L2133 | Same |
+| Phase 2 `fwd_*` P4 textured EKF3 / FGO | 4.37 / **5.158 (> 5.14)**; 4.15 / 4.71; 4.41 / 4.53 | m | SUPERSEDED (recorded; `fwd_tex_r1` miss kept) | M:L1886-L1888 | Same |
+| Phase 2 `fwd_*` UKF textured (diagnostic) | 42.73 / 7.67 / 9.31 | m | SUPERSEDED (recorded) | M:L1956 | Same |
+| Plain-wall Phase 1 | 3/3 complete; all primary pass | — | SUPERSEDED (recorded) | M:L2250 | Same |
+| Plain-wall Phase 1 P4 EKF3 / FGO | 4.46 … 4.69 | m | SUPERSEDED (recorded) | M:L2265-L2266 | Same |
+| FGO batch timing (1.0 s window, pre-LM-cap) | **101 ms/step median, p99 167 ms** | ms | SUPERSEDED | M:L1124 | Current 0.25 s configuration, ~29 ms median on textured bags (M:L3121, L3136) |
+| PHYS_DRIFT as a constant | the constant 9.8 (a window mean) | deg/min | SUPERSEDED | M:L267 | Triangle-wave `sitl_gyro_drift(t)` (M:L737-L746) |
+| Old corridor-world feature counts (Gazebo-level check) | ~126-183 … ~15-24 | — | SUPERSEDED | C(d89a902):L164 | Fixed worlds' verification (C:L1802-L1806) |
+| EKF3 yaw drift with no compass, early figure | ~5 deg/min | deg/min | SUPERSEDED | M:L871 | n = 9 `dsn_*` value +6.6…+11.1, mean ~8.1 (M:L3142); origin is the single-trial residual +5.32 on `nomag_corridor_baseline` (M:L3146-L3148) |
+| UKF overshoot pair in the sign-flip paragraphs | 245% → 336% | % | SUPERSEDED (mixed denominators) | M:L228 | 245 is definition B, 336 is A; consistent pairs A 222% → 336%, B 245% → ~371% (M:L3163-L3164) |
+| EKF3 / FGO velocity scale, `dsn_tex_r1` (n = 1) | `0.556 m/s` (+12.6 %) … +4.7 % | % | SUPERSEDED | M:L1105-L1106 | n = 9 distance scale EKF3 +5.7…+9.6%, FGO +0.9…+1.1% (M:L3170-L3177); the n = 1 figure was speed-magnitude based and pre-correction |

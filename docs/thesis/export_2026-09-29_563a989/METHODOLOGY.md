@@ -1,0 +1,3198 @@
+# Methodology notes
+
+Reproducibility and scope decisions that feed the thesis methodology chapter.
+Facts here are pinned in the harness/config (referenced inline) so they cannot
+drift silently.
+
+## STANDING RULE — every ATE states its metric wherever it is quoted
+
+An ATE number is meaningless without its alignment and windowing. **Always label
+which of these it is:** `evo -a` (SE3-aligned — removes a constant pose offset *and*
+the arbitrary yaw gauge, the fair cross-estimator metric under no compass), `evo`
+unaligned (origin only — penalises the yaw gauge, so it is dominated by heading
+offset for any no-compass estimator), or **apparatus** (cruise-window, origin
+gauge-fixed, **no** yaw alignment — used for the EKF3/UKF noise floor because
+`XKF1` is already in the true NED frame). **Never compare across metrics.** This
+rule exists because a real near-miss happened: the FGO's `evo -a` 5.10 m read as a
+5× win over EKF3's *apparatus* 24.3 m; on the same metric (`evo -a`) it is EKF3
+4.79 m vs FGO 5.10 m — on par (full-window, historical; on **evo -a (cruise)**, EKF3 4.58
+vs FGO 4.47 — still on par). Same-metric-only, always.
+
+**Amended 2026-09-24: the label also names the window.** The primary cross-estimator
+metric is **evo -a (cruise)**. It is computed only by `eval/three_way_eval.py`, over
+one pinned window (next section). A second near-miss of the same kind prompted this.
+The published three-way table had mixed windows: EKF3's textured per-repeat values
+came from the cruise window, while every other figure came from the full recording.
+The Phase 0 reproducibility gate caught it (see the three-way comparison section).
+Figures quoted without "(cruise)" are **full-window, historical**, and are labelled as
+such where they appear.
+
+## Cruise window — pinned definition and clock sensitivity (2026-09-24)
+
+**Definition** (`eval/three_way_eval.py`, `cruise_window()`). The window is defined
+once per trial, from ground truth. The same interval is then applied to all three
+estimators.
+- **Source:** `/ground_truth/pose` from the bag (Gazebo truth, sim-time clock), read
+  from `<trial>/ukf/ground_truth.tum`.
+- **Speed:** horizontal ground speed `|d(x,y)/dt|` (`np.gradient`), smoothed by a
+  **centred 0.42 s moving average**. This is the historical 25-sample boxcar at the
+  ~59 Hz GT rate (dt 15–19 ms), now defined in time so it does not depend on the
+  sample rate.
+- **Criterion:** smoothed speed **> 0.30 m/s**. The window is the **largest contiguous
+  run**, `[t0, t1]` inclusive. On the nine `dsn_*` bags it is ~30.0 → ~332.8 s
+  (about 302 s of the 300 s commanded cruise, including the acceleration and
+  deceleration tails above 0.30 m/s).
+- **Application:** the same `[t0, t1]` in seconds is cropped out of every estimator's
+  estimate **and** reference TUM.
+- **Alignment:** `evo_ape -a` (Umeyama SE3, no scale) is **fitted over the cropped
+  cruise span only**. Pre-arm, climb and landing are excluded from both the fit and
+  the RMSE.
+
+The only change from the historical per-estimator windows is that the boxcar is now
+defined in time rather than in samples. The resulting numbers match the earlier
+per-clock cruise values to ≤ 0.051 m (EKF3 only; UKF/FGO are unchanged).
+
+**Threshold justification and sensitivity (2026-09-24).** Measured on the GT speed
+profile of `dsn_{tex,trans,blank}_r1`:
+- **Pre-cruise horizontal speed** (hover, climb) is ≤ 0.001 m/s.
+- **In-cruise smoothed speed** has median 0.500 m/s and 1st percentile 0.497 m/s. The
+  raw speed std is 0.005 m/s.
+- **Acceleration** from 0.1 to 0.45 m/s takes ~0.56 s, and the stop is similar.
+
+So any threshold strictly between hover and cruise selects the same flight segment,
+differing only by where it cuts the ~0.6 s ramps. **0.30 m/s** is 60% of the commanded
+0.5 m/s: well clear of hover (300× the hover speed) and of the cruise floor (0.497).
+The **0.42 s boxcar** does not denoise a noisy signal (the raw speed is already clean).
+It guards the "largest contiguous run" rule against a single-sample spike from
+differentiation splitting the run. It is shorter than the ~0.56 s ramp, so it does
+not blur the window edges materially. It keeps the historical value (25 samples at
+~59 Hz) for continuity with the apparatus metrics.
+
+**Sensitivity:** thresholds of 0.20 and 0.40 m/s on all nine bags
+(`eval/results/threshold_{0.20,0.40}.json`), compared with 0.30:
+
+| | window edges | max \|Δ evo -a (cruise)\| EKF3 / UKF / FGO, m | max \|Δ disp ratio\| | max \|Δ onset\| |
+|---|---|---|---|---|
+| 0.20 m/s | ±0.13–0.15 s wider | textured 0.005 / 0.038 / 0.009; trans ≤ 0.027; blank ≤ 0.046 | ≤ 0.002 | ≤ 0.4 m |
+| 0.40 m/s | ±0.13–0.17 s narrower | textured 0.008 / 0.043 / 0.011; trans ≤ 0.034; blank ≤ 0.037 | ≤ 0.003 | ≤ 0.8 m |
+
+**No conclusion moves.** The textured means stay EKF3 4.65–4.66 / FGO 4.80–4.82 / UKF
+17.04–17.10, and the EKF3–FGO gap stays 0.15–0.16 m. Every failure-mode category and
+onset ordering is unchanged. The window is set by the flight profile, not by the
+threshold.
+
+**Clock sensitivity — bounded, not proven.** EKF3's TUMs come from dataflash `TimeUS`.
+The UKF/FGO TUMs and the window come from bag sim-time. Applying one interval to both
+assumes the two clocks share an epoch. Rather than prove this formally, the check
+shifts the whole window by ±0.25 s and ±0.5 s (a clock offset of that size) on all
+nine bags and records the largest change in evo -a (cruise). The results
+(`eval/results/phase0_cruise_pinned.json`):
+
+| max \|Δ evo -a (cruise)\|, m | EKF3 | UKF | FGO |
+|---|---|---|---|
+| textured (3 bags) | 0.002–0.009 | 0.007–0.009 | 0.014–0.015 |
+| transition | 0.085–0.103 | 0.004–0.016 | 0.006–0.007 |
+| blank | 0.001–0.013 | 0.002–0.009 | 0.005–0.006 |
+
+On textured, the largest change (0.015 m) is **~10× smaller than the smallest
+between-estimator gap** (EKF3–FGO mean gap 0.16 m). Every UKF gap is metres. The transition maximum (0.10 m) sits in a failure
+regime where the gaps are metres. The two clocks' independently computed cruise
+windows already agreed to within 0.14–0.34 s. **Result: a clock offset of up to
+0.5 s cannot move any cross-estimator conclusion.** This closes the Hidden
+Configuration Audit §1 clock item (CLAUDE.md) as **bounded, not proven**.
+
+**ATE window audit (2026-09-24).** Every ATE quoted in this file and in PROGRESS was
+checked for which window it used.
+- **Restated on cruise** (the historical full-window value is kept alongside; each
+  re-run first reproduced its published full-window number exactly, and only then was
+  cropped):
+  - the three-way table
+  - the corrected-`h_flow` before/after, all nine bags (re-run from `08bc2eb`)
+  - FINDING 2 and the FINDING 4 A/B/C tables (stored `dc_*` / `dd_*` trajectories)
+  - the refuted sign flip (re-run from `51aaeba^` with `+rollspeed`)
+  - the FGO window sweep (re-run from `08bc2eb` at 1.0 / 0.5 s)
+  - the first fair-anchor FGO vs EKF3 comparison
+  - the `ds_tex_r1` unconditional → gated yaw-cap pair (re-run from `6f953b2`)
+- **Every qualitative conclusion survives on cruise.** The fixes that degraded the UKF
+  still degrade it. The correction still degrades both flow-rich cases. FINDING 4's
+  71% split is unchanged, and so is its `ds` sign inversion. The FGO is still
+  window-independent and still on par with EKF3.
+- **Not restated:**
+  - The full-LM half of the "capped vs full-LM, identical ATE 4.23" pair. That
+    trajectory was never stored; the capped run alone is 3.72 cruise.
+  - The void 0.49 m artefact.
+  - Apparatus-metric figures (the `ds_*` noise floor, the `ukf_replay`/`fgo_replay`
+    `ate_apparatus`). The apparatus metric is cruise-windowed by definition and is a
+    different metric.
+  - The Stage B/C mm-level figures, already void.
+- **Also found:** before the correction, the FGO froze on blank rather than
+  dead-reckoning (flagged in the three-way section).
+
+**The n=3 ranges are not a noise floor.** With three repeats, a fourth run lands
+outside the observed range with probability 2/(n+1) = 50% (under exchangeability). The
+per-estimator ranges in the three-way table describe the data; they do not bound it. A
+`dsn_*` evo -a (cruise) noise floor is **still an open item**.
+
+**Phase 0 smoke test (b) — acceptance, pre-registered before flying.** One new
+textured trial, flown with `run_trial.sh` on the unchanged `dsn_*` configuration
+(`corridor_textured`, 0.5 m/s, 2.0 m, 300 s, nomag). It passes if all of the following
+hold:
+1. The pipeline completes: bag, `ardupilot.bin` and `metadata.yaml` are written, and
+   `fly_trial.py` verifies `EXPECTED_PARAMS`.
+2. Every recorded topic's sim-time rate (`eval/topic_rates.py`) is within ±2% of the
+   `dsn_tex` mean.
+3. evo -a (cruise) falls within the n=3 range widened by one range-width on each side:
+   - **FGO** [4.18, 5.35] — the sensitive indicator.
+   - **EKF3** [1.26, 8.13].
+   - **UKF** [0, 34.95] — a sanity check only.
+
+**Result — PASS (trial `p0_smoke_tex`, flown 2026-09-24 at `42193a5`).**
+1. The pipeline completed and `fly_trial.py` reported "All baseline params correct".
+   Metadata confirms `EK3_SRC1_YAW=0`, `COMPASS_USE=0` and the `sim_noise` block,
+   identical to `dsn_*`.
+2. Topic rates, as the deviation from the `dsn_tex` mean:
+
+   | topic | deviation |
+   |---|---|
+   | `/optical_flow/measurement` | +0.01% |
+   | `/downward_lidar/range` | 0.00% |
+   | `/imu/data_raw` | −0.25% |
+   | `/attitude/angular_rates` | +0.33% |
+   | `/ekf/pose` | −0.37% |
+   | `/clock` | 0.00% |
+   | `/ground_truth/pose` | +1.89% |
+
+   `/ground_truth/pose` is the only one outside the `dsn` spread (60.92 Hz against
+   59.65–59.89). It is Gazebo's published pose rate. It feeds no estimator, and the
+   cruise-window boxcar is defined in seconds, so the rate does not affect the window.
+   Noted, not a failure.
+3. evo -a (cruise):
+   - **FGO 4.81**, inside [4.18, 5.35] and equal to the n=3 mean.
+   - **EKF3 5.74**, inside [1.26, 8.13] and inside the raw n=3 range.
+   - **UKF 19.36**, which passes the sanity check.
+
+   The largest change under a ±0.5 s clock shift is 0.014 m. The failure metrics match
+   `dsn_tex`: EKF3 ratio 1.06, FGO 0.98, and the UKF's leak-driven onset at 65 m.
+
+The `dsn_*` pipeline reproduces end to end on the current code.
+
+## Filter consistency — measured overconfidence in the weakly-observable directions (a result)
+
+Direct consistency check: each estimator's error (vs ground truth) against **its own
+±3σ** from the logged covariance, `dsn_tex_r1`, n=1. Where the error leaves the band
+the filter is overconfident — reporting a tighter covariance than its actual error.
+
+- **EKF3** (from `XKV1/XKV2/XKF4`): **cross-track position (Pos E) is outside ±3σ 39%**
+  of the flight (from t=44 s; error grows to ~55 m while the band grows far slower);
+  lateral velocity (Vel E) 16%; yaw 10% (last 30 s only). Along-track, height, roll,
+  pitch, gyro-Z all consistent.
+- **UKF** (logs its own covariance directly, ENU/Euler): **far worse — Pos E 91%,
+  Pos N 65%, Vel N 51%, Vel E 33%, yaw 58%.** Both horizontal position axes, both
+  horizontal velocity axes, and yaw all overconfident; height, tilt, vertical
+  consistent. (Accel-Z bias diverges to ~2 m/s², outside its band throughout —
+  flagged, truth-0 assumed.)
+
+Both filters report covariances **far tighter than their actual horizontal/heading
+error**, and precisely in the directions that are unobservable or weakly observable
+from IMU + downward-flow + range with **no yaw source** (global horizontal position
+and heading). This is the textbook symptom addressed by the **observability-consistency
+literature** — First-Estimates-Jacobian (FEJ; Huang, Mourikis & Roumeliotis 2008/2010),
+Observability-Constrained EKF / OC-VINS, and OC-UKF: a filter that re-linearises at
+successive state estimates injects **spurious information into the unobservable
+subspace**, artificially shrinking the covariance there and producing exactly this
+overconfidence. It is **a result in its own right** and a discriminating axis for the
+comparison: the UKF's sigma-point linearisation is markedly more overconfident than
+EKF3's here, and a re-linearising smoother (FGO) is expected to differ again. NEES
+against ground truth would quantify it directly. Figures:
+`plots/{ekf3,ukf}_diag_2_consistency.png`.
+
+## Lateral-flow derotation coupling — characterised; two fixes refuted by the empirical gate; leak mechanism quantified (acceptance-driven, unobservable-yaw); nomag ordering null
+
+**What is real.** The shared `h_flow`'s lateral-flow prediction carries a large
+roll-rate-coupled residual against the measured flow: `lateral_residual =
+−2.07·rollspeed` (stable ±0.02 across `dsn_tex_r1/r2/r3`, corr −0.94), tracking roll
+*rate* not roll *acceleration* (so not a timestamp offset). The lateral flow channel
+is `h_flow`'s noisiest by far (residual std 0.60 vs 0.007 forward). Found by the
+state-vs-time diagnostic (`plots/ekf3_diag_4`, `diag_flow_residual.py`), not by
+hypothesis-testing.
+
+**What FAILED.** I concluded this was a *sign error* in `flow_x_rot` (h_flow uses
+`−rollspeed`; the value was flipped from the original `+rollspeed` derivation after a
+hover test that CLAUDE.md Known Issue #1 flags as confounded), and that EKF3 had the
+correct sign while the UKF/FGO were disadvantaged — motivated by EKF3's own flow-X
+innovation correlating +0.03 with roll rate vs the UKF's +0.71. **That conclusion was
+wrong on two counts, caught by gating the fix on a re-run (do this — it is the
+discipline that saved the result):**
+1. Flipping the sign **made the UKF worse**, not better: ATE evo `-a` 11.7 → 16.3 m
+   (full-window, historical; **evo -a (cruise) 10.49 → 14.22**, re-run 2026-09-24),
+   yaw drift +12.4 → +19.3 deg/min, gyro-z overshoot 245% → 336% (`dsn_tex_r1`) *(mixed
+denominators; under one definition the pair is 245% → ~371% or 222% → 336%; see "Source-pack
+flag resolutions (2026-09-29)" §3)*. The
+   UKF's flow-X innovation flipped +0.71 → −0.69 rather than dropping to ~0 — because
+   the UKF's velocity *adapts* to absorb flow, so its innovation reflects the
+   prediction term, not the sensor residual.
+2. The EKF3-vs-UKF innovation comparison (+0.03 vs +0.71) that motivated it was
+   **not apples-to-apples**: EKF3's `FIX` is a *post-derotation* innovation; the UKF's
+   is a *full-model* innovation, so EKF3's is naturally less roll-coupled by
+   construction. It does **not** establish that EKF3 derotates "more correctly."
+
+**Status — correction APPLIED 2026-08-01, by decision.** The interval-averaged gyro is
+now fed to `h_flow` in **both** the UKF and FGO (shared `FlowFrameGyroAverager` in
+`measurement_models.py`; the `h_flow` math is unchanged — only the ω it derotates against
+is now the flow-frame average). The sign flip stays **reverted**. The mechanism is
+quantified (FINDING 4): the correct, EKF3-faithful derotation whose estimator payoff,
+under unobservable yaw, is dominated by an **acceptance-driven flow→yaw leak** that scales
+with flow volume (~71–75% of its nomag textured degradation is the extra flow its correct,
+smaller innovations let past the gate, not the ω values). No admissible measurement-side
+lever removes that leak (the gate and `R` are EKF3-matched; tuning them is the fairness
+violation) — the only admissible avenue is a filter-formulation change to the unobservable
+direction (OC-UKF/FEJ), a research direction.
+
+**DECISION — apply the correction (reasoning, for the record).** Applied despite it
+degrading nominal (flow-rich) nomag evo −a, because keeping a known-incorrect derotation
+because it produces better numbers is not defensible; the correct implementation is.
+Three grounds: (1) it is the **geometrically correct** derotation (FINDING 1: it takes the
+lateral residual roll-coupling from −2.09 toward EKF3's −0.15); (2) it **restores
+EKF3-consistent gating** — the baseline rejects ~29% of lateral flow where EKF3 rejects
+7.5% (`XKF5 NI≥100`) and the corrected UKF ~2%, so the baseline was the divergence, not the
+fix; (3) it **touches no tuned parameter** — `FLOW_GATE` stays at EKF3's 300; acceptance
+rises only because correct innovations are smaller. **Honest cost, re-measured across nine
+bags (n=1 each):** textured (the tracking regime), **evo -a (cruise)**: UKF **14.09 → 17.07**, FGO
+**4.32 → 4.81** — the fix degrades both flow-rich cases, as FINDING 4 predicts. (Full-window,
+historical: UKF 16.44 → 19.96, FGO 4.87 → 5.46. The pre-correction side was re-run from
+commit `08bc2eb` on 2026-09-24 and reproduced 16.44 / 4.87 exactly before the cruise
+values were taken; per repeat, cruise, UKF 10.49/13.76/18.03 → 18.57/10.11/22.53, FGO
+3.72/4.84/4.39 → 4.96/4.91/4.57.) Also bundled
+in: **PHYS_DRIFT corrected** — SITL's gyro-z drift is a triangle wave (slope 3.0 deg/min
+per min, `sitl_gyro_drift`), not the constant 9.8 (a window mean); bias % now against the
+instantaneous true bias.
+
+**Derotation architecture (code-path verified — `[VERIFIED file:line]`).** All three
+estimators receive **identical raw, un-compensated flow**: `flow_bridge.py:126-137`
+sends the flow rates only (`flow_rate_x = −flow_x_rad`, `flow_rate_y = +flow_y_rad`),
+with **no gyro fields** (`flow_x/y` and `flow_comp_m_x/y` are zero; OPTICAL_FLOW carries
+no vehicle-gyro field). Each estimator then derotates internally, but on a **different
+side of the residual**: EKF3 derotates on the **measurement side** using its own AHRS
+gyro — `bodyRadXYZ = gyro − flowGyroBias`, `flowRadXYcomp = flowRadXY + bodyRadXYZ`,
+and the fusion uses the compensated `flowRadXYcomp` (`AP_NavEKF3_Measurements.cpp:206-228`,
+`AP_NavEKF3_OptFlowFusion.cpp:458,619`); it is **active** in this config (`FLOW_OPTIONS = 0`,
+so the `Stabilised` bit that would zero `bodyRate` at `AP_OpticalFlow_MAV.cpp:71` is
+unset). The UKF and FGO derotate on the **prediction side**, inside `h_flow` (the
+`flow_x_rot = −rollspeed` term). Same job, two code paths. **EKF3 is not pre-derotated
+externally, and its compensation is not disabled to level it down.**
+
+**FINDING 1 — the residual asymmetry is real and established (like-for-like, EKF3 vs
+`h_flow`).** The earlier innovation-based comparison (EKF3 `FIX` +0.03 vs UKF ν +0.71)
+was **not** like-for-like — a post-derotation innovation against a full-model one — and
+is not relied on. The settling test reconstructs both estimators' lateral derotation
+residual against a **common GT reference** (`residual = derotated-flow − translational-
+flow(GT)`) on `dsn_tex_r1`:
+
+| | roll-rate corr | slope vs rollspeed | std |
+|---|---|---|---|
+| **EKF3** (`flowRadXYcomp − losPred(GT)`) | **−0.09** | **−0.15** | 0.48 |
+| **`h_flow`** (UKF/FGO) | **−0.95** | **−2.09** | 0.60 |
+
+EKF3's lateral residual is **roll-decoupled**; `h_flow`'s is strongly roll-coupled — so
+the residual is common-mode across the UKF and FGO (identical `h_flow`) but **NOT** shared
+by EKF3. **Mechanism:** the raw flow's rotational content is the body rate *integrated
+over the camera frame* then divided by `dt` (`flow_tracker.py:223-227`, `flow_x_px_s =
+mean_dx/dt`), i.e. the gyro **averaged over the frame interval**. EKF3 cancels it with the
+same interval-average — `bodyRadXYZ` from `rawGyroRates = gyro_sum/gyro_sum_count`
+(`AP_OpticalFlow_MAV.cpp:38-42,76`), fused as `flowRadXYcomp` (`Measurements.cpp:206,227`);
+`h_flow` used the **instantaneous** rate. Roll oscillates faster than the 30 Hz frame rate
+(cruise rollspeed std 0.40 rad/s), so the two are not equivalent and the instantaneous
+rate leaves the coupling. EKF3's `flowGyroBias` LP (`Measurements.cpp:193`, ±0.1 rad/s,
+~3 s constant) touches only the mean, not the fast coupling. (EKF3's residual **std** 0.48
+is not itself small — a shared lateral noise floor both carry — and is partly inflated by
+GT-reference differentiation in the reconstruction; the roll-rate **coupling** is the
+robust diagnostic, not the absolute std.)
+
+**FINDING 2 — but it does not disadvantage the UKF/FGO; removing it degraded the UKF
+(empirical gate, a substantive result).** Feeding `h_flow` the interval-averaged gyro
+(co-sampled `/imu/data_raw`, 333 Hz, averaged over the exact frame window `(prev,current]`
+— no free offset: the flow stamp *is* the capture time, `flow_tracker.py:296`) drops the
+offline residual slope −2.09 → −1.24 (std 0.60 → 0.40). Gated on a from-scratch UKF
+re-run (`dsn_tex_r1`, n=1), it **degraded every outcome metric**:
+
+| | instantaneous ω (baseline) | interval-averaged ω |
+|---|---|---|
+| ATE, evo -a (cruise) | **10.49** | 18.57 |
+| *ATE, evo `-a` full-window (historical)* | *11.69* | *21.58* |
+| yaw drift (deg/min) | **+12.4** | +32.9 |
+| gyro-z overshoot (% of 9.8; definition A, see 2026-09-29 flag resolutions §3) | **222%** | 494% |
+| lateral (X) flow acceptance | 71% | **98%** |
+
+**Mechanism — gating under unobservable yaw.** The instantaneous-ω residual is roll-
+coupled and noisy (std 0.60), so the innovation gate was **rejecting ~29% of lateral
+flow**. Interval-averaging makes it model-consistent (std 0.40), so lateral-flow
+acceptance rises **71% → 98%** (the forward axis was already ~98% and unchanged). With
+**no yaw source**, a lateral-flow discrepancy has no observable home and **leaks into
+yaw** (the `flow_x`→yaw partition, §"FINDING — the UKF yaw drift…"): so *more* lateral
+flow → *more* yaw drift and gyro-z overshoot. The gate was **incidentally protecting the
+filter from its own flow→yaw leak** by rejecting the coupled flow; removing the coupling
+removed the protection. This is the **OC-UKF / FEJ failure mode** — spurious information
+gain in a weakly/unobservable direction — surfacing as a *gating* effect: a cleaner, more
+self-consistent measurement is *worse* when the estimator cannot observe where its
+discrepancy belongs. (Connects to the measured overconfidence result, §"Filter
+consistency".)
+
+**FINDING 3 — effect on the comparison is null.** The three-way ordering **stands** and
+the headline ("formulation differences wash out under degraded sensing") does **not** need
+re-establishing. The EKF3-vs-UKF/FGO residual asymmetry is geometrically real but does
+**not** disadvantage the UKF/FGO: on nomag the instantaneous-ω result is the UKF's *better*
+case, the "fair" interval-averaged version its worse one (this **reverses** on the
+compass-active `ds_tex_r1` — see FINDING 4). The UKF's dominant error is the
+**unobservable-yaw leak, not the derotation residual**. (n=1, `dsn_tex_r1`, UKF, at the
+time this was written; the correction has **since been applied and re-run across all nine
+bags** — the qualitative ordering holds (textured EKF3≈FGO with the UKF worse; degraded
+conditions all diverge), see Status/DECISION and the updated three-way table.)
+
+**FINDING 4 — mechanism quantified: the leak is acceptance-driven, the correction is
+geometrically sound but flight-dependent, and no admissible gate lever fixes it.** *Method
+— the matched-acceptance decomposition* (the tool the two failed fixes lacked). The
+interval-average bundles two changes: the ω values in `h_flow`, and — because smaller
+innovations pass the χ² gate more often — a higher flow-acceptance rate. Config B isolates
+the second: it loosens the gate with the *baseline* (instantaneous) ω until acceptance
+matches the fix, changing derotation not at all.
+
+*`dsn_tex_r1` (config A reproduces the committed baseline exactly — harness validated):*
+
+| # | ω | acc_X | evo -a (cruise) | *evo −a full (hist.)* | yaw drift |
+|---|---|---|---|---|---|
+| A baseline | instantaneous | 72.5% | 10.49 | *11.69* | +12.4 |
+| B *more-flow only* | **instantaneous** | 99.6% | 16.23 | *18.70* | +27.7 |
+| C fix | interval-avg | 99.6% | 18.57 | *21.58* | +32.9 |
+
+**~71% of the evo −a loss (cruise: A→B 5.74 of 8.08 m = 71%; full: 71%) and ~75% of the yaw-drift loss is the additional accepted flow
+at unchanged derotation (A→B); the ω values add only the remaining ~25–29% (B→C).** Leak
+path confirmed, not inferred: acc_Y (forward) stays pinned at 100% in every config — only
+acc_X (lateral) moves — and the cumulative **absolute per-update yaw correction on the X
+channel** rises 196° → 362° (A→B) while the Y channel's stays flat (88° → 76°). So the
+extra accepted flow is entirely lateral and it is the lateral channel that pumps yaw.
+(196→362° is a cumulative |Δyaw| *magnitude* — how hard the X updates push yaw — not net drift.)
+
+*The correction is geometrically sound but flight-dependent — the compass-active `ds_tex_r1`
+inverts the SIGN of its effect:*
+
+| # | ω | acc_X | evo -a (cruise) | *evo −a full (hist.)* | yaw drift |
+|---|---|---|---|---|---|
+| A baseline | instantaneous | 76.2% | 17.43 | *19.90* | −23.4 |
+| B *more-flow only* | **instantaneous** | 99.9% | 27.13 | *31.94* | +50.1 |
+| C fix | interval-avg | 99.9% | **7.88** | ***8.72*** | −5.8 |
+
+Isolating the ω correction at matched acceptance (B→C): on `dsn` slightly harmful (+2.3
+evo -a (cruise); full +2.9), on `ds` a large benefit (−19.3 cruise; full −23.2). **More
+acceptance hurts both flights (cruise +5.7 dsn, +9.7 ds; full +7 / +12 — the leak is on both); the correction itself helps `ds`, is ~neutral on `dsn`.**
+So the correction is *not wrong on its own terms* — it is the right derotation whose
+estimator payoff, under unobservable yaw, is set by a flight-specific accident: the
+*uncorrected* roll-coupled residual biases yaw drift by a flight-dependent sign (hurting
+`ds`, mildly helping `dsn`). (n=1 per flight; `ds_tex_r1` runs in a high-error regime;
+B→C acceptance matches to ~0.4%.)
+
+**The corrected config is MORE faithful to EKF3 at the gate, not less** — this inverts the
+intuition that applying the correction breaks the EKF3 match. The correction never touches
+the gate threshold (`FLOW_GATE`=300, EKF3's value, identical in A and C); acceptance rises
+only because the correct derotation shrinks the innovations, and a χ² gate *should* accept
+a more model-consistent measurement. Measured on the same `dsn_tex_r1` `.BIN`: **EKF3's own
+nomag flow rejection is 7.5%** (`XKF5 NI≥100`, 236/3153 airborne; mean 43, p99 150). The
+corrected UKF rejects ~2% (lateral); the **baseline ~29% (lateral) is the outlier** — its
+high lateral rejection is a *divergence* from EKF3 caused by the roll-coupled residual
+inflating its lateral innovations. The correction *restores* EKF3-consistent gate behaviour;
+the baseline is right-for-the-wrong-reason on nomag. (Caveat: EKF3's `NI` is a combined
+2-axis ratio vs the UKF's per-axis gate, so the percentages aren't directly comparable —
+but the ordering baseline 29% ≫ EKF3 7.5% > corrected 2% is robust.)
+
+**No admissible lever removes the nomag degradation.** Clawing acceptance back means
+tightening the gate below EKF3's 300 or inflating `R` below `FLOW_M_NSE`=0.25 — both
+EKF3-matched, so tuning either *is* the fairness violation. The only admissible way to
+handle the flow→yaw leak is a *filter-formulation* change to the unobservable direction
+(observability-constrained / FEJ update) — legitimate under §9.5 as a formulation
+difference, but a research direction and itself an EKF3 divergence, not a measurement-model
+tweak. Whatever is decided propagates to the FGO through the shared `h_flow` and the same
+no-yaw gate, unassessable without a re-run.
+
+**Metric arbiter — evo −a, not apparatus.** More flow *improves* apparatus ATE
+(81.8 → 46.4 → 40.8, A→B→C) while *worsening* evo −a (cruise 10.5 → 18.6; full 11.7 → 21.6) and yaw drift
+(12.4 → 32.9). The disagreement is real. evo −a arbitrates: (1) the three-way is reported
+in evo −a and the STANDING RULE forbids mixing metrics, so any change must be judged in it
+to be comparable; (2) under nomag the *constant* yaw offset is unobservable (arbitrary
+yaw0) — apparatus penalizes it, evo −a aligns it out but retains yaw *drift*, the real
+error. Decomposing the apparatus gain (RMS error, `dsn`): along-track (N, travel)
+54.8 → 33.9 → 33.7 **and** cross-track (E) 60.7 → 31.7 → 23.1 — *both* shrink, so the gain
+is a genuine absolute-position improvement (more flow → better velocity scale), *not* an
+along-vs-cross artifact. But it rides on a worse SE(3)-aligned *shape*: **the fix trades
+heading for position**, and evo −a — which cannot align out drifting yaw — is the metric
+that reflects the heading failure the nomag comparison is about. Apparatus measures a real
+position gain; it is simply the wrong arbiter for nomag estimator *quality*.
+
+**METHODOLOGICAL CONTROL — the empirical re-run gate.** The sign fix was supported by
+**three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
+acceleration coupling, and EKF3's +0.03 vs the UKF's +0.71 innovation correlation — and
+was still **wrong**: applied, it degraded the UKF (ATE evo -a (cruise) 10.49→14.22; full 11.7→16.3, drift 12.4→19.3,
+overshoot 245%→336%, mixed denominators, see §3 of the 2026-09-29 flag resolutions) and its innovation flipped (+0.71→−0.69) rather than zeroing. The
+control that caught it: **gate every measurement-model change on a from-scratch
+estimator re-run, and revert if the outcome metric degrades** — offline residual
+diagnostics and innovation correlations are necessary evidence but not sufficient,
+because a filter's state adapts to whatever model it is given. Adopt this as a standing
+rule for `h_flow`/gate/noise changes, not a one-off.
+
+**This gate has now caught TWO offline-evidenced changes — it has earned its place
+twice.** (1) the sign flip (three offline lines), and (2) the interval-averaged gyro (a
+correct geometric fix matching EKF3's *own* mechanism, residual slope −2.09 → −1.24,
+FINDING 2 above) — **both refuted by the from-scratch re-run** (each degraded ATE, yaw
+drift, and gyro-z overshoot on `dsn_tex_r1`). A measurement-model change that is provably
+right offline can still degrade the estimator, because the filter's state **and its
+innovation gate** adapt to whatever model they are given — and under an unobservable
+direction (no-yaw), a more self-consistent measurement can feed a leak the gate was
+otherwise suppressing. Two independent refutations, same control: it is not a one-off.
+
+**Lateral-vs-forward asymmetry — motion profile, not structural (settled).** `h_flow`'s
+two axes are structurally near-symmetric: translational sensitivity is identical
+(`∂flow/∂v = 0.571` both), rotational sensitivity differs only 1.3× (`∂flow_x/∂rollspeed
+= −1.14` vs `∂flow_y/∂pitchspeed = +0.86`, from the `ω×lever` term × the `SIGN_X/Y`
+convention). The 27× lateral-noise excess is **the corridor motion profile**: cruise
+**rollspeed std 0.399 rad/s vs pitchspeed std 0.013 — 31×** (forward flight commands
+large oscillatory roll for lateral position control, near-zero oscillatory pitch), so
+the lateral rotational-flow term is ~40× the forward one. Expected and documented; not
+a structural defect in the measurement model.
+
+## Three-way comparison — first same-metric results (nomag `dsn_*`, n=1 per bag)
+
+All three estimators on **evo `-a`** (SE3-aligned — the fair cross-estimator metric
+under no compass; it removes the arbitrary init-yaw gauge the UKF/FGO carry but EKF3,
+in its true NED frame, does not). EKF3 from `XKF1`-vs-`SIM`; UKF/FGO from their TUM
+trajectories vs `/ground_truth/pose`.
+
+**Corrected `h_flow` (interval-averaged ω, 2026-08-01) — re-run across all nine bags.**
+The correction splits the conditions into **two regimes that must be reported separately**:
+only **textured** is a tracking regime where evo −a means accuracy; **transition and blank
+are failure regimes** where all three estimators diverge and evo −a is *not* a quality metric
+(UKF blank 14.4 < EKF3 34.8, evo -a (cruise) — full-window, historical, 16 < 38 — is "diverges *less far*
+after alignment," not a quality win). The old
+"formulation differences wash out under degraded sensing" is restated as: **all three fail
+under flow starvation, by different failure modes.**
+
+**(1) Textured — the tracking-regime quality comparison. CURRENT BASELINE (OI-2
+dejitter, 2026-09-24).** Metric: **evo -a (cruise)**, RMSE in m. UKF and FGO are re-run
+with the OI-2 dejittered IMU stamps (`src/estimators/imu_timing.py`, master `cb4c845`,
+all nine bags; `eval/results/dsn_dejitter_baseline.json`). EKF3 is unchanged.
+
+| estimator | r1 / r2 / r3 | mean | range |
+|---|---|---|---|
+| EKF3 | 4.58 / 3.55 / 5.84 | **4.66** | 2.29 |
+| FGO (0.25 s) | 4.63 / 4.74 / 4.57 | **4.65** | 0.17 |
+| UKF (gated) | 16.98 / 9.96 / 20.71 | **15.88** | 10.75 |
+
+**EKF3 and the FGO are indistinguishable at n=3.** The thesis claims no ordering
+between them. That ordering **flips under the IMU-timestamp variants**: FGO 4.81
+(receipt stamps) / 4.65 (dejittered) / 4.52 (reconstructed sensor time) against EKF3
+4.66. The UKF remains ~3.4× worse and unstable across repeats (range 10.75 against
+2.29 and 0.17).
+
+**Why the correction was made — fairness, not ATE.** EKF3 integrates the IMU on SITL's
+regular internal sensor time. The UKF and FGO had been integrating on bridge receipt
+stamps with ±12 ms jitter. Dejittering gives them **equally regular IMU timing** (OI-2).
+The ATE change is a *consequence*, reported here, not the reason: UKF 17.07 → 15.88 and
+FGO 4.81 → 4.65, both better. **The reconstructed 5–9 ms sensor-time shift was NOT
+adopted**: it would be an IMU–flow time offset fitted to a ±5 ms reconstruction, and
+it moves the two estimators in opposite directions (OI-2 decomposition).
+
+**Re-run gate.** The shared implementation reproduces the offline `oi2dj` control
+exactly on all three textured bags (UKF 16.98 / 9.96 / 20.71, FGO 4.63 / 4.74 / 4.57),
+so the implementation is the correction that was tested.
+
+> **Superseded (kept for the record): the receipt-stamp cruise table below, and every
+> UKF/FGO number elsewhere in this file computed on receipt stamps.** Only the textured
+> table is restated. Per the batching ruling, all other UKF/FGO tables (transition and
+> blank failure metrics, FINDING 2 and 4, ramp tracking, consistency) are restated
+> **once**, in the consolidated re-run before the results chapter. The dejittered
+> transition and blank values are already in `dsn_dejitter_baseline.json`; they are not
+> yet interpreted here.
+
+*Receipt-stamp cruise table (superseded 2026-09-24):*
+
+| estimator | r1 / r2 / r3 | mean | range |
+|---|---|---|---|
+| EKF3 | 4.58 / 3.55 / 5.84 | **4.66** | 2.29 |
+| FGO (0.25 s) | 4.96 / 4.91 / 4.57 | **4.81** | **0.39** |
+| UKF (gated) | 18.57 / 10.11 / 22.53 | **17.07** | **12.42** |
+| *supplementary, full-window (historical): EKF3 / FGO / UKF* | *4.79/3.89/6.21 · 5.58/5.60/5.21 · 21.58/11.65/26.65* | *4.97 · 5.46 · 19.96* | *2.32 · 0.39 · 15.00* |
+
+**EKF3 ≈ FGO (~4.7–4.8 m, gap 0.16 m); the UKF is ~3.6× worse.** It is also worse
+than before the correction (14.09 → 17.07, cruise), because the correct derotation
+degrades the flow-rich case (FINDING 4). **The UKF is unstable across repeats.** Its
+range is 12.4 m against EKF3's 2.3 m and the FGO's 0.4 m, and its worst repeat is
+2.2× its best. The flow→yaw leak makes its evo -a sensitive to the particular flight.
+The smoother's anchor does not.
+
+> **Superseded — the mixed-window table (how it was found).** Until 2026-09-24 this
+> table read EKF3 4.6 / 3.5 / 5.8 (mean 4.97), FGO 5.6 / 5.6 / 5.2 (5.46), UKF
+> 11.7 / 21.6 / 26.7 (19.96), with prose saying "two of three > 21". That table mixed
+> windows.
+> - EKF3's per-repeat values came from `plots/failure_analysis.py`, a 2-D SE(2)
+>   Umeyama fit over the cruise window.
+> - Every mean, and all UKF/FGO per-repeat values, came from evo -a on the full
+>   recording (`plots/rerun_batch.py`).
+> - The UKF's r1 and r2 were transposed (r1 = 21.58, r2 = 11.65).
+> - "Full" was also not a common window: EKF3's `XKF1` trajectory starts 2.6–4.0 s
+>   after the UKF/FGO trajectories.
+>
+> It was caught by the **forward-camera Phase 0 reproducibility gate**: regenerate
+> every published figure from stored data with one committed script before building on
+> it (`eval/results/phase0_window_check.json`). Neither window alone reproduced the
+> EKF3 column. The ruling was cruise, applied as one GT-defined window to all
+> estimators (pinned-window section above). **No textured conclusion changed**: the
+> ordering EKF3 ≈ FGO ≪ UKF holds on both windows. The EKF3–FGO gap narrows from
+> 0.49 m (full) to 0.16 m (cruise). "Two of three > 21" held on full only and is
+> dropped.
+
+**(2) Transition & blank — degraded-sensing FAILURE analysis** (evo −a meaningless; failure
+metrics instead — final displacement magnitude vs true travel 151 m, and the true-y at which
+the estimate departs GT by > 15 m).
+
+*Window:* these metrics are measured over the cruise window, with the origin at the
+cruise start. Until 2026-09-24 each estimator's cruise window was computed on its own
+clock; they now use the pinned common window. **They do not depend on the window.** On
+all nine bags, recomputing them over the full recording moves the displacement ratio by
+≤ 0.05 and the onset by ≤ 1 m. The values below reproduce exactly under the pinned
+window (`eval/results/phase0_cruise_pinned.json`).
+
+| condition | metric | EKF3 | UKF | FGO |
+|---|---|---|---|---|
+| **transition** | \|disp\| / true | 0.57 | 0.83 | 0.74 |
+| | divergence onset (true-y) | 102 m | 78 m | 95 m |
+| **blank** | \|disp\| / true | **0.20** | **1.30** | **1.60** |
+| | divergence onset (true-y) | 18 m | 50 m | 24 m |
+
+**The failure MODES differ — the §9.5 formulation difference, now empirically visible:**
+- **EKF3 FREEZES** (`const_pos` on aiding loss): blank displacement **0.20× true** — it stops
+  (~30 m) where flow starves while GT travels on.
+- **UKF and FGO DEAD-RECKON** (no `const_pos`, by the §9.5 decision): blank **1.30× / 1.60×**
+  — they integrate garbage starved-flow and over-travel (197 m / 242 m vs 151).
+
+> **FLAGGED, not investigated (2026-09-24), tracked as OPEN ITEM OI-1 below: before the
+> `h_flow` correction, the FGO froze on blank.** Re-running the pre-correction code (`08bc2eb`, all nine bags, reproducing
+> the historical full-window means exactly) gives these results:
+> - **Blank:** pre-correction FGO displacement ratio **0.06 / 0.18 / 0.04**, onset 17–26 m.
+>   That is EKF3-like stopping, although the FGO has no `const_pos`. The corrected FGO
+>   over-travels at 1.58–1.64×.
+> - **Transition:** the pre-correction FGO ratio is 0.51–0.55, against 0.73–0.75 corrected.
+>
+> So the "UKF and FGO DEAD-RECKON" failure mode below is **not solely** the §9.5 decision
+> (no `const_pos`). For the FGO it appears with the corrected derotation. The mechanism
+> is not established; a plausible candidate is that the wider lateral-flow acceptance
+> (FINDING 4) lets starved flow drive velocity. **The comparison's claim that the
+> failure modes differ still stands**, since it is measured on the corrected
+> (committed) estimators. Only the attribution to §9.5 alone is qualified.
+>
+> Cruise-window before/after on the degraded conditions, evo -a (cruise), which is *not*
+> a quality metric here:
+> - Transition: UKF 24.68 → 16.04, FGO 22.33 → 26.08.
+> - Blank: UKF 36.02 → 14.42, FGO 39.64 → 27.68.
+>
+> The historical full-window figures were transition 27.11 → 17.48 / 24.55 → 28.93 and
+> blank 39.84 → 16.05 / 43.28 → 30.48 (`eval/results/precorr_vs_corr.json`).
+
+> ### OPEN ITEM OI-1 — FGO blank-floor failure mode changed with the `h_flow` correction
+>
+> **Must be resolved (half-day time-box) before the failure-mode analysis is written up.
+> Not investigated yet, by decision (2026-09-24).**
+>
+> **Observation.** On `dsn_blank_r{1,2,3}`, the pre-correction FGO (`08bc2eb`,
+> instantaneous ω in `h_flow`) **freezes**: displacement ratio 0.06 / 0.18 / 0.04, onset
+> 17–26 m, like EKF3's `const_pos` behaviour even though the FGO has no `const_pos`. The
+> corrected FGO (interval-averaged ω, current) **dead-reckons** at 1.58–1.64×. The
+> transition ratio moves from 0.51–0.55 to 0.73–0.75. Nothing else changed between the
+> two runs: same bags, same window, same factors apart from the ω fed to `h_flow`.
+>
+> **Candidate hypotheses:**
+> - **H1 — the gate decides what reaches velocity.** Under starved blank-floor flow, the
+>   roll-coupled instantaneous-ω residual inflates lateral innovations, so the χ² gate
+>   rejects most flow. With no accepted flow, the smoother's velocity is held near its
+>   prior or zero, and position stops. The correction makes innovations consistent
+>   (FINDING 4: acceptance 71% → 98% on textured), so starved, near-zero-mean garbage
+>   flow is accepted and integrated. Test: flow acceptance per axis on blank, pre vs
+>   post correction.
+> - **H2 — near-zero measured flow is being read as motion.** Blank-floor flow has
+>   ~zero translational content (`flow_y_raw` −0.71 px/s). The corrected `h_flow` now
+>   subtracts the frame-averaged rotational term, so if that term is biased relative to
+>   the measured (rotation-only) flow, the remainder reads as a velocity. That would
+>   explain the over-travel beyond 1×. Test: the sign and magnitude of the implied
+>   velocity from accepted blank-floor flow, against GT.
+>
+> **Why it matters.** The current text attributes "UKF/FGO dead-reckon" to §9.5 alone.
+> If H1 holds, the failure mode is partly a *gating* consequence of the derotation
+> model, not only a formulation choice, and the failure-mode analysis has to say so.
+
+**(3) The degradation gradient survives as a WITHIN-estimator result.** The *between*-estimator
+comparison does not hold on transition/blank (different failure modes), but each estimator
+degrades monotonically as flow degrades, read on **divergence onset**: **EKF3** tracks textured
+(no divergence) → transition 102 m (past the y=80 boundary) → blank 18 m (early); **FGO** tracks
+→ 95 m → 24 m — both monotonic (later onset = better sensing). The **UKF**'s gradient is muddied
+— it already "diverges" at 69 m *on textured* (the leak-driven yaw drift, not aiding loss), so
+its onset (69 → 78 → 50 m) is not clean. **So the texture→transition→blank gradient survives
+within EKF3 and the FGO** (failure onset moves earlier as flow degrades); the UKF's own tracking
+is corrupted by the leak before the sensing even degrades.
+
+- **evo `-a` remains the only fair cross-estimator metric, and only in the textured regime.**
+  Unaligned is not comparable (EKF3 true frame vs UKF/FGO ~90° init-yaw gauge). Yaw drift:
+  EKF3 ~8, **FGO −9 in every condition** (anchor-locked), UKF flow-dependent (+14…+41 textured);
+  the FGO's *position* did move (evo -a (cruise) textured 4.32→4.81, blank 39.6→27.7;
+  full-window, historical, 4.87→5.46, 43→30), so its flat yaw is the anchor, not a no-op.
+
+**Caveats.** n=1 per bag. Under the corrected `h_flow` the neat four-estimator yaw
+clustering (EKF3 8.4 / FGO 9.24 / UKF-uncond 9.52 / UKF-gated 12.7, all near physical
+9.8) **no longer holds for the UKF** — the corrected UKF drifts +14…+41 on textured (the
+amplified leak). The FGO and EKF3 still sit near physical; the UKF now separates. This is
+a first pass, not the final comparison.
+
+### Gyro-z bias ramp-tracking — the bias is effectively unobservable under no yaw (a result)
+
+SITL's gyro-z drift is a **triangle wave** (`sitl_gyro_drift`, slope 3.0 deg/min per min,
+validated vs recorded gyro-z to ~0.2 deg/min), so the right test is whether each estimator
+**tracks the ramp**: `d|bias|/dt` vs the true ~2.8 deg/min per min (windowed; 3.0 ideal).
+Across all nine bags:
+
+| estimator | d\|bias\|/dt (deg/min/min) | |bias| vs true | reads as |
+|---|---|---|---|
+| EKF3 | 0.1–0.3 | 4–29% of true | barely tracks; holds bias ~0 |
+| FGO | ≈0 (±0.06) | 0–7% | does **not** track; bias pinned ~0 |
+| UKF | +1.5…+2.1 tex, **−0.5…−0.7 blank** | 34–650% | "tracks" on textured but by the leak — overshoots 3–6×, **ramps the wrong way on blank** |
+
+**Read:** the gyro-z bias is effectively **unobservable under no yaw** for all three. EKF3
+and the FGO leave it near zero (so their yaw drifts at ~the physical rate, EKF3 ~8 / FGO
+−9); the UKF's bias is **not an observation but the flow→yaw/bias leak** — it moves with
+accepted flow (chases the ramp on textured, ramps *backwards* on blank), which is why its
+magnitude overshoots and its yaw drift scatters. None of the three genuinely observes the
+drift ramp.
+
+### Parameterisation-independence — re-established under the corrected `h_flow` (three-part verdict)
+
+The headline finding (yaw leak is **capping-controlled, not a parameterisation effect**)
+was measured with the uncorrected model; re-checked against the correction:
+
+1. **The 69/31 partition (Euler-UKF = SO(3)-FGO) SURVIVES.** The correction changes ω (an
+   input), and the flow Jacobian columns that set the velocity/yaw partition are
+   **ω-invariant to machine precision** (only the `p_U`/height column moves, via the
+   lever-arm ÷ h_cam coupling). So the partition is unchanged, for both parameterisations
+   (same `h_flow_pose`). *Measured* on the UKF Euler side; *argued* on the FGO side (shared
+   model), not separately re-measured.
+2. **"All drift near physical 9.8" does NOT survive** for the corrected UKF — it drifts
+   +14…+41 on textured (the amplified leak). The tidy four-estimator clustering breaks; the
+   FGO (−9 everywhere) and EKF3 (~8) still cluster, the UKF no longer does.
+3. **The capping attribution SURVIVES and strengthens** — distinct from (1). The *same*
+   geometric correction, applied identically to both, hits the weakly-capped UKF hard
+   (yaw +12→+33 textured) and the per-keyframe-anchored FGO not at all (−9.24→−9.31). If
+   parameterisation drove yaw, an identical geometric change would affect both alike; it
+   does not, so the discriminator is the **capping mechanism** (UKF rare variance-gated cap
+   vs FGO per-keyframe weak prior), not Euler-vs-SO(3). Net: the parameterisation-
+   independence finding holds; only the incidental "near-physical" numerical coincidence
+   for the UKF is lost.
+
+### FGO configuration — window is a declared config choice, not a default
+
+**The FGO's fixed-lag window (0.25 s) is a deliberately-set config value, declared as
+such** — unlike EKF3, which runs at literal ArduPilot defaults. It was **not** chosen
+for accuracy. Sequence: FGO_DESIGN §6 pre-registered 1.0 s, which measured 96 ms/step
+and **violates the pre-registered 33 ms deployability budget**; the window sweep
+{1.0, 0.5, 0.25} s was then run and **0.25 s selected as the largest window meeting
+that budget** (0.5 s = 48 ms is over). Cherry-picking is ruled out because **ATE is
+window-independent** — **evo -a (cruise) 4.47 / 4.44 / 3.72 m** at 1.0 / 0.5 / 0.25 s
+(full-window, historical: 5.10 / 5.07 / 4.23; `dsn_tex_r1`, pre-correction code `08bc2eb`, all
+three re-run 2026-09-24 and reproduced exactly before cropping), so the FGO
+is ~equally accurate at any window and 0.25 s merely also happens to be (mildly) best.
+
+**Solver + timing (reported honestly).** The primary solver is `BatchFixedLagSmoother`
+(iSAM2-incremental is unusable — GTSAM `marginalizeLeaves` cascades on the Python flow
+`CustomFactor`, FGO_DESIGN §6). *(Step times below: DIAGNOSTIC, workstation Python, window sweep
+on `dsn_tex_r1`, 2026-08-01, `04426d2`. The current 0.25 s figure is ~29 ms on textured bags;
+see "Source-pack flag resolutions (2026-09-29)" §1.)* Step-time scales ~O(window): **96 / 48 / 27 ms** at
+1.0 / 0.5 / 0.25 s. **The FGO meets the 33 ms deployability budget ONLY in its
+short-window (0.25 s) configuration — a real result, not a footnote:** a Python-bound
+`CustomFactor` FGO is budget-compliant only at a short window; larger windows spend
+compute for no accuracy gain. LM iterations are capped at 2 (warm-started); verified
+against full-LM at 0.25 s — max position difference 0.11 m, **RMS 0.029 m, identical
+ATE (4.23, full-window, historical; the full-LM trajectory was not stored, so this pair is
+not restated on cruise — the capped run alone is 3.72 cruise)** over 10047 keyframes — so the cap is not a truncated approximation.
+
+## Sensor noise & gyro drift — controlled, deterministic, single realisation
+
+- **All three estimators see one identical noise/drift realisation.** EKF3, the
+  UKF and the FGO are all evaluated **offline on the same recorded bag** (EKF3
+  from `ardupilot.bin` `XKF1`; UKF/FGO from the bag's `/imu/data_raw`,
+  `/optical_flow/measurement`, `/downward_lidar/range`). They therefore consume
+  the *same* recorded sensor stream — the gyro the FGO integrates is byte-for-byte
+  the gyro EKF3 saw. Fairness on this axis is guaranteed by the replay
+  architecture, not by any random-seed matching.
+
+- **The gyro drift is deterministic and reproducible, NOT a random draw.** SITL
+  injects no random gyro bias in this configuration: `INS_GYROFFS=0`,
+  `SIM_GYR*_BIAS=0`, `SIM_GYR*_RND=0`, and all other random sensor noise is
+  zeroed (`sim_noise.parm`). The gyro drift comes solely from SITL's
+  **deterministic periodic** drift model, `SIM_DRIFT_SPEED=0.05` deg/s/minute and
+  `SIM_DRIFT_TIME=5` minutes (`SITL.h:213-214`, `SITL.cpp:73,77`) — a fixed
+  function of sim time. SITL has no PRNG seed to set (no `srand`/`srandom`
+  anywhere), so with the random noise zeroed its sensor output is deterministic.
+  The drift is a **triangle wave, NOT a constant** (corrected 2026-08-01;
+  `AP_InertialSensor_SITL.cpp:390-402`): period `2·DRIFT_TIME = 10` min, ramping
+  0 → ~15 → 0 at slope `radians(DRIFT_SPEED=0.05)/min` = **3.00 deg/min per minute**.
+  Over a cruise window it sweeps the instantaneous bias from **~1.6 to ~14.8 deg/min**;
+  the "+9.8 deg/min physical drift" quoted throughout is the **window MEAN** of that ramp
+  (≈8.9–9.8 depending on the window — integrating raw `IMU.GyrZ`; true yaw `SIM.Yaw`
+  drifts +0.01 deg/min, confirming straight flight so it is all gyro bias). Deterministic
+  and reproducible — **controlled**, not **sampled**. Bias % and ramp-tracking are now
+  computed against the **instantaneous** true bias `sitl_gyro_drift(t)` (validated vs
+  recorded gyro-z to ~0.2 deg/min), not the constant — see the ramp-tracking finding. (Do not confuse this with an
+  estimator's *residual* drift: `nomag_corridor_baseline` earlier reported EKF3's
+  own residual yaw drift of +5.32 deg/min, i.e. what was left after EKF3 corrected
+  ~40% of the bias on that particular trial. That 40% is trial-specific — on the
+  `dsn_*` batch EKF3 corrects only ~14–33%, XKF1 yaw drifting +6.6…+11.1 deg/min,
+  mean ~8.1 — so EKF3 too drifts near the physical rate under no yaw source.)
+
+- **Robustness across drift realisations is explicitly out of scope.** The study
+  uses one controlled drift profile, identical in every trial, so drift is *not*
+  a confound between worlds or estimators — it is held fixed while floor texture
+  (and the estimator) varies. Because it is a single realisation (n=1 in
+  drift-space), no claim is made about robustness to *different* drift
+  realisations; that is a **Term 3 extension** (real flights, in-loop, with
+  varied/real IMU drift), not a gap in this comparison.
+
+- **Pinned & recorded.** `sim_noise.parm` versions the drift/noise params under
+  `git_commit`; `fly_trial.py`'s `EXPECTED_PARAMS` verifies them live each trial
+  (eeprom-persistence gotcha); and `run_trial.sh` dumps the live `SIM_*` values
+  from each flight's `.BIN` into `metadata.yaml` (`sim_noise:` block). The
+  flow-pipeline RANSAC seed is fixed (`ransac_seed=42`, `flow_tracker.py`) and
+  recorded (`flow_ransac_seed` in `metadata.yaml`).
+
+## Flow processing is baked in at record time — irreversible from the bags
+
+The dataset bags record the **processed** optical-flow output
+(`/optical_flow/measurement`: `flow_x_raw/y_raw`, `flow_x_rad/y_rad`,
+`inlier_ratio`, `valid`, `feature_count`), **not** the raw camera frames. Raw
+`/downward_camera/image` and `/downward_camera/camera_info` are bridged live for
+`flow_tracker` but deliberately kept off the record list (bag-size cost).
+
+**Consequence — state this in the methodology:** all optical-flow processing
+choices are **fixed at the dataset flight and cannot be varied afterward from
+these bags**. This includes the RANSAC parameters (reprojection threshold,
+model, `ransac_seed`), the camera **focal length** used for the pixel→angular
+conversion (`flow_x_raw/FOCAL_LENGTH_PX → flow_x_rad`), and the derotation
+handling. Every estimator consumes the *same* frozen flow stream — which is the
+intended fairness property — but any experiment that would require *re-deriving*
+flow with different processing needs a **new dataset flight**, not a reprocessing
+of the existing bags. This is an accepted, deliberate limitation of the recording
+design, not an oversight.
+
+## Run-to-run noise floor (n=3 per condition)
+
+The GNSS-denied dataset is three corridor conditions — textured, blank,
+transition — each flown as **three identical-config repeats** (0.5 m/s, 2.0 m,
+300 s, ~145 m, RANSAC seed 42). **All figures below are n=3.**
+
+Repeats are not identical. Even with the gyro drift deterministic (above) and
+the RANSAC seed fixed, the live pipeline (Gazebo→ROS2 camera-frame capture/drops
+and scheduling) produces run-to-run variation; that variation *is* the
+measurement noise floor, and it is characterised here before any condition is
+interpreted. All metrics are XKF1-vs-SIM over the aided window, origin
+gauge-fixed, **no** yaw/SE(3) alignment.
+
+- **Within-condition ATE range is 2.81–10.90 m** (blank 2.81, transition 8.15,
+  textured 10.90) against a **~68 m between-condition separation** (textured
+  mean ATE 17.8 m vs blank mean ATE 85.8 m).
+- **Cross-track (east) is a noisy channel.** Within-condition ranges are
+  7.0–22.9 m and the ranges **overlap across conditions**, so cross-track error
+  alone does not separate them.
+- **The cross-track variation is not heading divergence.** Yaw error (XKF1−SIM)
+  is reproducible to **0.263° at 300 s** (spread across the three textured
+  repeats) — far too small to account for the ~15 m cross-track spread. Yaw is
+  compass-aided and consistent run-to-run; the spread originates in the flow
+  channel, not in heading.
+- **Along-track distance is reproducible and boundary-sharp.** Final XKF1 PN
+  varies ≤1.15 m within a condition (textured 0.48, transition 0.53, blank
+  1.15); in the transition world all three repeats stop accumulating PN at true
+  y = 81.7 m (range 0.2 m), tracking the y=80 m texture boundary to ~1.7 m with
+  a ~1.4 m transition width.
+
+**Primary metrics: ATE and along-track distance.** Cross-track error is reported
+with its n=3 spread but is **not** used as a primary discriminator between
+conditions (noisy, overlapping ranges). Figures: `plots/alongtrack_vs_travel.png`,
+`plots/textured_crosstrack.png`, `plots/textured_yaw.png`.
+
+## Simulation environment provenance
+
+The thesis sim environment — corridor worlds + custom floor/wall models + iris
+sensor config — is vendored under `sim/` and committed at `7be3672`. From that
+commit the harness runs from the tracked files (`sim/worlds`, `sim/models`), so a
+trial's `git_commit` pins the environment. See `sim/README.md`.
+
+**Mesh provenance (not vendored).** The iris drone (~22 MB) and runway (~28 MB)
+meshes are supplied by `~/ardupilot_gazebo`, a clone of
+`ArduPilot/ardupilot_gazebo` at **upstream base `082a0fe`** ("Iris: improve
+collisions") plus three thesis commits: `d1eaad3` (iris downward camera +
+gpu_lidar — mirrored in `sim/reference/iris_with_standoffs.model.sdf`),
+`e0359c2` (corridor worlds), `81e6b10` (visual-only floor tiles + ground
+collision). Every trial records the live `ardupilot_gazebo_commit` and
+`ardupilot_gazebo_upstream_base` in its `metadata.yaml`, so the mesh source is
+explicit per trial even though the meshes are not in git.
+
+**The nine dataset trials predate vendoring.** `ds_{tex,blank,trans}_r{1,2,3}`
+were flown from `~/ardupilot_gazebo` **before** the `sim/` vendoring commit
+(`7be3672`) — *not* from the tracked `sim/` path. Equivalence rests primarily on
+a **byte-identical `diff`**: the vendored worlds and models match the
+`~/ardupilot_gazebo` originals that flew the dataset exactly (0 differences), so
+any flight difference is run-to-run noise by definition. A verify flight
+(`vendor_verify_full`, corridor_textured flown from `sim/worlds/`) corroborates
+this — it matched tightly on **along-track PN** (154.04 m, inside the `ds_tex`
+0.48 m reproducible band), while cross-track (9.37 m) fell within run-to-run
+variability, below the n=3 observed band ([19.82, 39.22] m) that three samples do
+not bound on that noise-dominated channel. Stated as honest provenance, not a
+retroactive claim the dataset was flown from the tracked path.
+
+## Comparison dataset — nomag (no yaw source)
+
+The three-way EKF3 / UKF / FGO comparison uses trials flown under
+`gnss_denied_nomag.parm` (`EK3_SRC1_YAW=0`, compass unused) — the **`dsn_*`
+batch** (3 corridor worlds × 3 repeats).
+
+**Why not the compass-active `ds_*` trials.** The nine `ds_{tex,blank,trans}_r*`
+trials were flown under `gnss_denied.parm`, which leaves EKF3 fusing the compass
+for yaw. That is a **yaw source the UKF and FGO structurally cannot have** — the
+thesis sensor suite is IMU + flow + LiDAR, and no compass topic is even recorded.
+So on `ds_*`, EKF3 holds a correct heading while the no-compass UKF/FGO yaw drifts
+at the physical gyro rate — an **information asymmetry that invalidates the
+comparison**, not a formulation difference. (Confirmed during UKF bring-up: the
+UKF's yaw tracks the raw gyro drift ~9 deg/min; EKF3-with-compass does not.)
+
+**The `ds_*` trials are retained, not deleted**, as (a) the run-to-run
+noise-floor characterisation (above) and (b) the EKF3-with-yaw-source reference.
+They are **superseded for the three-way comparison** by the nomag `dsn_*` batch,
+in which all three estimators face the same no-yaw condition and EKF3's own yaw
+drifts too (~5 deg/min under the deterministic SIM_DRIFT). *(SUPERSEDED: ~5 deg/min is the
+single-trial residual +5.32 deg/min from `nomag_corridor_baseline` (`257204d`). The current
+figure is +6.6…+11.1, mean ~8.1 deg/min, n = 9 `dsn_*` bags (`ca4c474`); see "Source-pack flag
+resolutions (2026-09-29)" §2.)*
+
+Both datasets are labelled by a `yaw_source:` block in `metadata.yaml`
+(`EK3_SRC1_YAW`, `COMPASS_USE`, read from each flight `.BIN` by `run_trial.sh`),
+so a downstream script distinguishes them **positively**, not by inference from
+absence — `dsn_*` carry `EK3_SRC1_YAW=0`/`COMPASS_USE=0`, `ds_*` carry `1`/`1`.
+The nine of each were backfilled after the field was added.
+
+**Framing for the results: both estimators struggle under unobservable yaw.**
+Against the physical drift of +9.8 deg/min, EKF3's own yaw (`XKF1.Yaw`) drifts
++6.6…+11.1 (mean ~8.1) across the nine `dsn_*` bags — it corrects only **14–33%**
+of the bias. This is *not* "UKF diverges, EKF3 fine": with no yaw source, EKF3 too
+runs near the physical rate, because yaw is weakly observable from downward flow
+at 0.5 m/s (∂flow/∂yaw = v/h ≈ 0.29 rad/s per rad, against 0.25 rad/s measurement
+noise). The interesting axis of the comparison is therefore *how each estimator
+fails* under an unobservable heading — a fairer and more informative framing than
+an accuracy race. (The UKF's *additional* failure — a diverging gyro-z-bias state
+that amplifies the drift rather than tracking near the physical rate — is the open
+finding below.)
+
+## UKF pseudo-yaw cap — variance-gated to match EKF3 (fairness)
+
+The UKF fuses a zero-innovation yaw pseudo-measurement to bound yaw variance in
+the no-mag case, matching EKF3's `fuseEulerYaw(PREDICTED)`. EKF3 does **not** do
+this every cycle: it checks the opportunity every 140 ms
+(`AP_NavEKF3_MagFusion.cpp:263`) but only fuses when attitude covariance has
+grown past a threshold (`MagFusion.cpp:274`,
+`P[0][0]+P[1][1]+P[2][2]+P[3][3] > 0.01`). The UKF now gates the same way — fire
+only when `P[6,6]+P[7,7]+P[8,8] > 0.04` — rather than firing unconditionally at
+7 Hz. **Firing unconditionally is rejected on the same principle as `FLOW_FXSCALER`:
+it produces a better ATE by doing something EKF3 does not do.**
+
+**The 0.04 threshold is verified, not assumed** — three independent ways.
+(i) The quaternion→Euler factor is *exact* to first order at any nominal attitude:
+the quaternion error Jacobian `G` (`δq = ½·G·δθ`) has `GᵀG = I`, so
+`trace(P[0..3]) = ¼·trace(Cov(δθ))` — EKF3's `0.01` maps to attitude-trace `0.04`,
+independent of heading (not a small-angle approximation). (ii) EKF3's own cruise
+tilt variance is `XKF4.errRP² ≈ 1×10⁻⁴ rad²` (`dsn_*`), negligible against the
+0.01 gate, so EKF3's cap is effectively a **pure yaw-variance gate**. (iii) EKF3's
+own logged quaternion covariance (`XKV1.V00..V03 = P[0][0..3]`) sits at **median
+0.0093, max 0.01001 — pinned just under its 0.01 gate on all nine bags**,
+confirming the gate value directly from EKF3's operating state. No reflight or
+printf was needed.
+
+### The firing rates differ — but the threshold is right; the cause is upstream
+
+EKF3's `P[0..3]` is *pinned at* its gate → EKF3 fires the zero-innovation yaw cap
+at essentially **every 140 ms opportunity** to hold it there. The UKF, with the
+*same* threshold, fires only **~1%** — because its own attitude-cov trace sits at
+Euler **0.029** (quaternion-equivalent 0.0072), **below** the 0.04 gate, so it
+rarely trips. This is not a mis-specified threshold (verified three ways above):
+the UKF's yaw covariance is **suppressed below EKF3's operating point by the flow
+updates themselves**, whereas EKF3's yaw covariance rises to the gate. So the UKF
+is simultaneously **over-confident in yaw** (covariance lower than EKF3's) *and*
+**drifting faster** (yaw drift 12–32 vs EKF3's ~8 deg/min) — a filter-consistency
+failure localised to how the flow measurement couples into the yaw / gyro-z-bias
+states, *not* to the yaw cap.
+
+### FINDING — the UKF yaw drift is a yaw-capping-frequency effect, NOT a parameterisation difference (diagnosed + FGO-tested)
+
+Denominator corrected: physical drift is **9.8 deg/min** (not the earlier 8.9;
+raw `IMU.GyrZ`, see the sensor-noise section). Against it the unclamped UKF
+gyro-z bias overshoots to **~220–450%** across the `dsn_tex` batch (three bags),
+the yaw drifts 12–32 deg/min, and the trajectory diverges (ds_tex_r1, unconditional → gated cap,
+evo -a (cruise) 7.73 → 17.43 m; full-window, historical 8.6 → 19.9 — re-run from `6f953b2`
+2026-09-24, reproduced 8.64). Diagnosed (half-day box, no fixes applied):
+
+1. **Yaw is weakly observable from downward flow at 0.5 m/s** — `∂flow/∂yaw = v/h ≈
+   0.286` rad/s per rad (numerical Jacobian), against `FLOW_M_NSE = 0.25`; a 5.7°
+   yaw error moves flow only 0.029 rad/s (SNR ≈ 0.11). Per-update the UKF moves yaw
+   only ~0.024°, so the movement is not *excessive in magnitude* — the problem is a
+   systematic *wrong-direction* bias.
+2. **Not attributing to states EKF3 doesn't; not a sign error.** EKF3's flow `H`
+   is nonzero only on quaternion (0–3) + velocity (4–6)
+   (`AP_NavEKF3_OptFlowFusion.cpp:342-348,504-510`), fuses X then Y sequentially
+   (`:327-328`), and updates gyro bias (10–12) via cross-covariance once
+   `!inhibitDelAngBiasStates` (`:470-473`, un-inhibited after tilt align,
+   `AP_NavEKF3_Control.cpp:172`) — structurally identical to the UKF (attitude+
+   velocity observation, per-axis sequential, gyro-bias via cross-cov). A
+   controlled single-update test confirms `h_flow`'s yaw coupling has the **correct
+   sign** (flow moves a drifted yaw *toward* truth in isolation).
+3. **The driver is the real flow sensor's residual, not the filter machinery.**
+   Decomposing yaw by source over cruise, the *measured*-flow update **adds** +3.69
+   deg/min to the drift (predict +9.00, NET +12.70). Re-running with **true flow
+   injected from ground truth** (velocity from `d(GT pos)/dt`, GT attitude — no
+   sensor scale/derotation/noise), flow's contribution flips to **−0.66** (it now
+   correctly *reduces* drift). So the real flow error (the documented ~+6.5% scale,
+   plus derotation/noise) is what leaks into yaw via the measurement model —
+   **where EKF3 confines the same residual to velocity** (giving its +6.5% velocity
+   scale) and does not let yaw drift.
+
+**The partition is the SAME across Euler and SO(3) — parameterisation is NOT the
+cause** `[direct test, supersedes the earlier "formulation difference" hypothesis]`.
+A `flow_x` residual splits between velocity and yaw in proportion to `(P·Hᵀ)`, and
+all three estimators share the velocity/yaw diagonal ratio (~0.57). A controlled
+single-update test — one `flow_x` residual, UKF-matched diagonal priors — settles
+the parameterisation question directly:
+
+| estimator | Δyaw | Δv_E | residual lands in |
+|---|---|---|---|
+| UKF (Euler) | +0.328° | +0.0064 m/s | velocity 69% / yaw 31% |
+| FGO (SO(3), `Pose3`) | +0.317° | +0.0062 m/s | velocity 69% / yaw 31% |
+
+They partition **identically**. So the attitude representation (Euler vs SO(3))
+does **not** change where a `flow_x` residual lands — this **refutes** the earlier
+hypothesis (in prior git revisions of this section) that the leak was an
+Euler-vs-quaternion formulation difference. The SO(3) re-parameterisation that was
+recorded as the "falsifying test" is effectively run: the FGO *is* an SO(3)
+estimator, and it leaks to yaw the same 31% as the Euler UKF.
+
+**The real discriminator is the yaw-capping frequency, not the parameterisation.**
+The ~31%-per-update yaw leak is common to all three. What differs is how often the
+accumulated yaw is re-constrained: EKF3 fires `fuseEulerYaw(PREDICTED)` at ~every
+140 ms opportunity (its `P[0..3]` pinned at the 0.01 gate), while the UKF's
+variance-gated pseudo-yaw fires ~1% (its trace sits just below the gate) — so the
+UKF lets the leak accumulate into drift while EKF3 caps it continuously. `h_flow`
+is verified correct (true-flow test); this is a capping-mechanism distinction, not
+a measurement-model bug and not a parameterisation effect.
+
+### Lateral drift — EKF3's east-velocity bias is yaw rotation, not the measurement or the gate (CLOSED)
+
+EKF3 carries a sustained **+0.194 m/s east-velocity bias** on `dsn_tex_r3` (→ +55.9 m
+cross-track), yet the flow measurement is **unbiased in the body frame** — the accepted
+lateral flow innovations mean **0.0089 rad/s** (`XKF5.FIX`, ×1000). Resolved by three
+checks (`plots/lateral_checks.py`, diagnosis only):
+
+1. **Not gating.** The raw lateral innovations *do* carry a +0.238 rad/s mean (positive
+   roll-coupled spikes), but the gate **removes** it (rejects positive 91.6% vs negative
+   95.7%), leaving accepted mean 0.0089 rad/s ≈ 0.016 m/s of velocity. Gating *reduces* the
+   innovation bias; it does not create the velocity bias. (EKF3's `NI` is a combined 2-axis
+   ratio, so per-axis accept is approximate.)
+2. **Yaw rotation is the mechanism.** Yaw has drifted (+9.5 deg/min → +48°), so the
+   correctly-estimated **body-forward** velocity rotates into an apparent world-East
+   component: `slope(errVE vs spd·sin(yawErr)) = +1.10` — the exact geometric relationship.
+   The filter is **self-consistent in its drifted frame** (the lateral flow correctly drives
+   *body*-lateral velocity to ~0), which is why zero-mean innovations coexist with a biased
+   *world*-frame velocity: **the bias lives in the unobservable yaw direction, not in the
+   measurement or the gate.**
+3. **Attribution is a REAL decomposition, not double-counting.** ~**74%** of the
+   east-velocity bias is heading-driven (`vE_head` +0.143 of +0.194 m/s; cross-track 45.6 m
+   of 62 m); the ~**26%** remainder (~0.05 m/s, ~16 m) is **uncorrelated with yaw error
+   (−0.23)** — a genuinely separate lateral-velocity bias, source not established (not the
+   gate — ≤0.016 m/s — and not the heading term reappearing). **Open residual, magnitude
+   stated; not worth further investigation** — uncorrelated with everything tested, small
+   vs the heading term, and common-mode across estimators (shared `h_flow` geometry).
+
+**The t≈200 s regime change is motion-profile, not a filter event.** The drone decelerates
+near the corridor end (GT speed 0.50 → 0.44 m/s); translational flow shrinks so the
+roll-coupled residual becomes a larger share of the lateral channel (mean |FIX| 449 → 1055).
+Altitude (2.1 m), roll amplitude (0.26°), and flow acceptance (~6.5%) are unchanged. So the
+"oscillate-then-settle" transition is the speed profile, not gating/altitude/roll.
+
+### Does the FGO inherit this? — Yes in principle; its yaw behaviour is set by the anchor, not by SO(3)
+
+Earlier this section concluded "No — SO(3) makes the FGO immune, fix-before-FGO
+does not apply." **That is now retracted.**
+
+> ## ⚠️ THE FIRST FGO ATE (0.49 m aligned) IS AN ARTEFACT — DO NOT QUOTE IT AS AN FGO RESULT
+>
+> The first FGO run (`dsn_tex_r1`, n=1, `BatchFixedLagSmoother`) gave ATE evo `-a`
+> **0.49 m** (unaligned 128 m; a ~90° init-yaw gauge offset), along-track 151.8 m
+> (true 151.1), 10047 keyframes. **This number is void as an estimator result.** It
+> came from a yaw prior that anchors each keyframe's yaw to a *fixed* reference
+> (yaw→0, 0.5 rad), which repeated per keyframe accumulates into a ~5° effective
+> **absolute heading anchor** — stronger than, and mechanically different from,
+> EKF3's/UKF's *zero-innovation* cap. That pinned the yaw (drift −0.04 deg/min) and
+> flattered the aligned ATE. **A 50× improvement over EKF3's 24.3 m on the same
+> condition is not credible** and is entirely explained by the over-constrained yaw,
+> not by smoothing. FGO_DESIGN §9.4 conflated "weak yaw prior" with "zero-innovation
+> cap"; they are not equivalent. Kept only as the before/after evidence for why the
+> anchor was wrong. The fair-anchor re-run (below) is the real first FGO result.
+
+**Corrected conclusion.** The FGO does not get yaw-drift immunity for free from
+SO(3); the per-update partition is identical to the UKF's, so its yaw behaviour is
+decided entirely by the anchor mechanism. **Proposed (not applied):** anchor the
+yaw prior to each keyframe's IMU-*predicted* yaw (zero-innovation, matching EKF3)
+instead of a fixed reference, then re-run — the expected outcome, given the
+identical partition, is that the FGO drifts comparably to the UKF, making the yaw
+leak a **genuine, parameterisation-independent** phenomenon under weak yaw
+observability (controlled only by the capping mechanism), not an Euler artifact.
+`h_flow` correctness stands. §9.5 stays open.
+
+### The real first FGO result — fair (zero-innovation) yaw anchor
+
+The yaw cap now anchors each keyframe to its IMU-**predicted** yaw
+(`Xk.rotation().yaw()`), so the error is ~0 at the linearisation point — a genuine
+zero-innovation cap matching EKF3's `fuseEulerYaw(PREDICTED)` (`innovYaw = 0.0f`,
+`AP_NavEKF3_MagFusion.cpp:1062-1064`, against `yawAngPredicted` = current state yaw,
+`:970`). Re-run `dsn_tex_r1`, n=1, batch:
+
+| metric | fixed anchor (artefact) | **fair anchor (result)** |
+|---|---|---|
+| ATE, evo `-a` (full, hist.) | 0.49 m ⚠️void | **5.10 m** |
+| ATE, evo -a (cruise) | — | **4.47 m** |
+| ATE, unaligned | 128 m | 139 m |
+| along-track | 151.8 m | 147.5 m (true 151.1) |
+| cross-track | +151.7 m | +139.8 m |
+| **yaw drift** | −0.04 deg/min | **−9.24 deg/min** |
+| gyro-z bias | −4.88 | +0.13 deg/min |
+
+**The prediction held: with a fair cap the FGO's yaw drifts (−9.24 deg/min), and the
+0.49 m artefact is gone.** Stated plainly and as a *result*, not a failure:
+
+> **The yaw leak under an unobservable heading is independent of the attitude
+> parameterisation AND of filtering-vs-smoothing — it is controlled only by the
+> yaw-capping mechanism.** All four configurations drift near the physical
+> +9.8 deg/min and none recovers yaw from flow: EKF3 (quaternion filter) **8.4**,
+> FGO (SO(3) smoother) **9.24**, UKF-Euler unconditional-cap **9.52**, UKF-Euler
+> gated-cap **12.7**. The spread is explained entirely by **capping frequency**:
+> EKF3, the FGO and the unconditional UKF cap yaw often (EKF3 ~7 Hz with `P` pinned
+> at its gate; FGO every keyframe ~30 Hz; UKF-uncond 7 Hz) and drift near physical
+> with a stable bias; only the UKF's *variance-gated* cap fires ~1 %, letting flow
+> corrupt the gyro-z bias (overshoot ~220–450 %) and drift *above* physical. Neither
+> the Euler↔SO(3) chart nor filter↔smoother changes this — the estimator's only
+> lever on yaw under no yaw source is how often it caps the variance.
+
+(One documented formulation detail: the FGO caps every keyframe, ~30 Hz, vs
+EKF3's/UKF's ~7 Hz — more frequent, but zero-innovation so it injects no heading;
+it only holds the yaw marginal slightly tighter. Matching the rate exactly is a
+refinement, not a fairness violation.)
+
+**Scale sanity-check — the 5.10 m is NOT a 5× win over EKF3; it is on par.** The
+5.10 m is `evo -a` (SE3-aligned); EKF3's 24.3 m (apparatus floor) is *unaligned*.
+On the **same metric** (`evo -a`, `dsn_tex_r1`): **EKF3 4.79 m vs FGO 5.10 m** —
+essentially equal, FGO marginally worse (full-window, historical). On **evo -a (cruise)** it
+is EKF3 4.58 vs FGO 4.47 — still essentially equal, the 0.1 m ordering now reversed; "on par"
+is the finding on both windows, neither "better" is. The apparent 5× improvement was a
+metric mismatch (aligned vs unaligned), not a result. The FGO's *unaligned* ATE is
+139 m, dominated by the ~90° init-yaw gauge offset (no compass → arbitrary heading),
+which `evo -a` removes. **Not a bug and not smoothing-magic:** instrumented, the FGO
+tracks the flow (cruise flow-factor residual ≈ 0: x −0.0007, y −0.0012 rad/s) and
+its cruise velocity is `|V(k)| = 0.517 m/s`, **+4.7 %** over true — so it *does*
+inherit a flow scale error, merely smaller than EKF3's `0.556 m/s` (+12.6 %) *(SUPERSEDED,
+n = 1: the current nine-flight values are EKF3 +5.7…+9.6 %, FGO +0.9…+1.1 %; see "Source-pack flag
+resolutions (2026-09-29)" §4)* on this
+bag (n=1; the smaller inheritance is unexplained and not leaned on). The along-track
+147.5 m looking "too good" vs true 151.1 was coincidence: the +4.7 % speed offset is
+cancelled in *displacement* by the −9.24 deg/min yaw-drift curvature. Flow is the
+only horizontal-velocity observation, so the FGO could not have avoided the scale —
+and it didn't.
+
+**Flow_x partition (re-checked).** The controlled single-update partition is
+anchor-independent — Euler-UKF and SO(3)-FGO still both 69 % velocity / 31 % yaw.
+The fair-anchor full run confirms the accumulated consequence: yaw drifts once the
+cap no longer over-constrains it.
+
+**Computational cost — goes in the results regardless of accuracy.** *(SUPERSEDED as the
+FGO's cost: this is the 1.0 s-window, pre-LM-cap configuration of 2026-08-01. The current
+0.25 s configuration is ~29 ms/step on textured bags. See "Source-pack flag resolutions
+(2026-09-29)" §1.)* Batch smoother
+**101 ms/step median, p99 167 ms — 3–5× over the 33 ms deployability budget**. The
+incremental (iSAM2) solver is 0.2 ms/step (well under budget) but **cascades after
+~590 keyframes**. The cascade is isolated to the incremental marginalisation layer,
+not our estimator logic: the *same* factors and core run to completion under batch
+(10047 keyframes, 0 failures), so it is a GTSAM iSAM2 + Python-`CustomFactor` +
+fixed-lag interaction. Whether it is inherent to that combination or an
+implementation artefact is not yet root-caused; batch is the robust path meanwhile.
+This is the measured version of FGO's main known weakness (compute).
+
+## PRE-REGISTRATION RULE (standing, from 2026-09-24)
+
+Two errors in one phase (forward-camera Phase 1, branch `fwd-camera`: the ground-truth pose-rate band and the IMU gap-share band)
+came from one habit: bands taken from the bare observed range with zero margin, and
+diagnostic metrics used as pass/fail gates. From now on:
+
+1. **Each criterion is labelled PRIMARY** (it tests the confound directly) **or
+   DIAGNOSTIC** (reported, never a gate).
+2. **No band uses the bare observed range.** Each states its margin and the basis for
+   it: a physical tolerance, or the n=3 range widened by a stated factor. It also says
+   why a value outside the band would indicate the confound.
+3. **Only primary criteria can stop a phase.**
+
+## STANDING RULE — scope control (user, 2026-09-24)
+
+**Before starting any work that is not in the phase brief, ask:**
+- **(a)** does it change a thesis claim?
+- **(b)** would a reviewer's objection stand without it?
+
+**If both are no,** add one line to the open-items list below and move on.
+
+**Only primary criteria that could change a conclusion stop a phase.** Diagnostics
+are reported, never investigated on the spot.
+
+## BASELINE CORRECTIONS ARE BATCHED (user, 2026-09-24)
+
+The OI-2 dejitter re-run (below) is the **current `dsn` baseline**. From now on,
+further corrections to the `dsn` baseline are **batched into one consolidated re-run
+before the results chapter**, not restated one at a time. **Dejitter applies to all new
+data from Phase 2 onwards.**
+
+### Open-items list (logged, not being worked)
+
+- **OI-1:** the FGO's blank-floor failure mode changed with the `h_flow` correction
+  (Three-way comparison section). Resolve before the failure-mode write-up.
+- **OI-2 residual:** the sensor-time IMU shift is not adopted. `/imu/time_ref`
+  (recorded from Phase 2 on) allows true sensor time to be used in the consolidated
+  re-run if ruled.
+- **Tables not yet restated on the dejittered baseline** (deferred to the consolidated
+  re-run): transition and blank evo -a and failure metrics; the FINDING 2 and 4
+  tables; the gyro-z ramp-tracking table; the consistency percentages.
+
+## OPEN ITEM OI-2 — IMU timestamp asymmetry between estimators (fairness)
+
+EKF3 integrates the IMU on **true sensor time** (inside SITL). The UKF and FGO replay
+`/imu/data_raw` on its **header stamp**, which `imu_bridge.py:169` sets to the ROS sim
+clock at *receipt*. Those stamps scatter 0–9 ms around the true 3 ms sampling, with an
+exact mean of 3.0005 ms. This is common to every bag, so it cannot bias a comparison
+**between conditions**. It is an **asymmetry between estimators** in a framework whose
+premise is matched inputs, so it has to be quantified, not asserted small.
+
+**Plan** (offline only, half-day time-box, no estimator or `dsn` result changes): on
+`dsn_tex_r1..r3`, re-run the UKF and FGO with IMU samples timed on sensor time mapped
+to the sim clock. Report the change in evo -a (cruise) and yaw drift. The user then
+rules on whether a correction goes through the re-run gate.
+
+## FINDING — the SITL dataflash clock runs ~0.02% slow against Gazebo sim time (2026-09-24)
+
+Found while building OI-2. `TimeUS` (SITL, dataflash) and the bag's sim clock differ
+in **rate**, not just offset. Fitting the `SIM`-vs-`/ground_truth/pose` alignment
+separately early (takeoff, cruise start) and late (cruise stop, landing) gives:
+- offset ≈ −6 to −9 ms early and −52 to −68 ms late on every bag;
+- SITL slow by **0.016–0.022%**;
+- the same drift appears independently in the IMU, where receipt stamps drift 52 ms
+  against dataflash IMU time over the flight.
+
+`eval/input_timing.py` now maps TimeUS → sim time with `clock_map()` (offset **and**
+rate).
+
+**Consequences:**
+- **Clock-sensitivity item (Hidden Configuration Audit §1).** It stays "bounded, not
+  proven". The drift, ≤ ~60 ms over a flight, is well inside the ±0.5 s shift that was
+  shown to move no conclusion. EKF3's evo -a is unaffected: `XKF1` and `SIM` share
+  `TimeUS`.
+- **The forward-camera Phase 1 flow→EKF3 latency figures (branch `fwd-camera`) used a single whole-flight offset**,
+  which smeared each distribution by about ±25 ms. That produced the spurious "negative
+  p5" and the "transition medians up to 32 ms". They are **superseded** by the
+  linear-map values below (`eval/results/input_timing_linmap.json`). The distributions
+  are now positive (p5 ≥ 8 ms) and about 15 ms wide.
+- **Did not work (recorded):** the first linear-map run silently reused the name `t1`
+  for both the clock-fit anchor and the cruise-window end. That cropped the latency
+  statistics to the first ~300 frames and produced a spurious P2 failure for
+  `p1_fwd_trans`. It was caught by the valid-frame count (≈ 300 against ≈ 9000),
+  fixed, and re-run before anything was concluded.
+
+## OI-2 result — IMU sensor time vs receipt time (offline, 2026-09-24)
+
+**Method** (`eval/oi2_imu_time.py`; estimators and `dsn` results untouched):
+- **Anchors.** Sensor time is reconstructed from the dataflash `IMU` records (25 Hz,
+  instance 0) matched by value to bag samples. 6722–6823 anchors, ≈ 81% of dataflash
+  samples. That is the expected 333/400 overlap, since `HIGHRES_IMU` is sent on 5 of
+  every 6 loop ticks.
+- **Clock.** Anchors are mapped to sim time with `clock_map()`.
+- **Model.** t = a + b·i, fitted to the anchors. The period is 3.0005 ms (equal to the
+  receipt mean), with residual std **0.82 ms** and max 1.89 ms, consistent with the
+  2.5 ms loop grid (±1.25 ms).
+- **Check.** Receipt minus sensor time is stationary, with a median of 5–9 ms from start
+  to end. The p5 of −1 to −2 ms is within the ±2–3 ms accuracy of the grid plus clock
+  map.
+- **Run.** Clones `dsn_tex_r{1,2,3}_oi2` are identical except for the IMU header
+  stamps. The **unchanged** UKF/FGO replays run on them. Results:
+  `eval/results/oi2_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean | Δ mean |
+|---|---|---|---|---|---|
+| UKF, receipt → sensor | 18.57 → 18.83 | 10.11 → 11.71 | 22.53 → 22.64 | 17.07 → 17.73 | +0.66 (mixed sign across repeats) |
+| FGO, receipt → sensor | 4.96 → 4.69 | 4.91 → 4.52 | 4.57 → 4.34 | **4.81 → 4.52** | **−0.30 (−6%, same sign on all three)** |
+
+| yaw drift, deg/min | r1 | r2 | r3 |
+|---|---|---|---|
+| UKF | 32.9 → 33.2 | 13.9 → 10.5 | 40.9 → 42.0 |
+| FGO | −9.31 → −9.16 | −9.71 → −9.18 | −9.26 → −8.62 |
+
+**Reading.**
+- **FGO:** a small, consistent improvement (0.23–0.39 m on every repeat), comparable to
+  its own n=3 range (0.39). It **reverses the sign of the EKF3–FGO gap** (EKF3 4.66;
+  FGO 4.81 → 4.52). That gap was already inside "on par", so no textured
+  conclusion changes, but the fine ordering depends on OI-2.
+- **UKF:** no consistent direction; the changes are small against its 12.4 m range.
+- **Yaw drift:** barely moves for either estimator (FGO −9.3 → −9.0 on average), so
+  receipt jitter is not a driver of the yaw leak.
+- **The asymmetry is real but second-order.** It does not touch UKF ≪ {EKF3, FGO}. It
+  does decide the sign of the EKF3–FGO difference.
+
+**Awaiting the user's ruling** on whether a sensor-time IMU correction goes through the
+re-run gate. Implementing it properly means recording `time_usec` in `imu_bridge.py`
+for new bags and reconstructing it (as here) for the existing `dsn_*` bags.
+
+### OI-2 decomposition — dejitter vs shift (control, 2026-09-24)
+
+The sensor-time clone changes **two** things: it removes the 0–9 ms receipt jitter, and
+it moves every IMU sample 5–9 ms **earlier** relative to the flow and lidar capture
+stamps. The shift depends on the clock map. The within-flight drift of the
+receipt-minus-sensor median (r2 +0.6 → +6.0 ms, r3 +2.2 → −2.3 ms) shows that the
+**reconstruction is accurate to about ±5 ms, not ±2–3 ms** as stated above.
+
+A control, `dsn_tex_r*_oi2dj` (`oi2_imu_time.py --dejitter`), fits a line to the
+**receipt** stamps themselves. That removes the jitter and keeps the mean latency, so
+there is no shift. Results: `eval/results/oi2dj_evo.json`.
+
+| evo -a (cruise), m | r1 | r2 | r3 | mean |
+|---|---|---|---|---|
+| UKF, receipt (current) | 18.57 | 10.11 | 22.53 | 17.07 |
+| UKF, **dejitter only** | 16.98 | 9.96 | 20.71 | **15.88 (better on all three)** |
+| UKF, sensor (dejitter + shift) | 18.83 | 11.71 | 22.64 | 17.73 |
+| FGO, receipt (current) | 4.96 | 4.91 | 4.57 | 4.81 |
+| FGO, **dejitter only** | 4.63 | 4.74 | 4.57 | **4.65 (2 of 3 better, 1 unchanged)** |
+| FGO, sensor (dejitter + shift) | 4.69 | 4.52 | 4.34 | 4.52 |
+
+Yaw drift, deg/min (receipt → dejitter): UKF 32.9 → 29.5, 13.9 → 13.2, 40.9 → 37.2;
+FGO −9.31 → −9.19, −9.71 → −9.41, −9.26 → −8.92.
+
+**Reading.**
+- **Removing the jitter is a robust improvement for both estimators.** It needs no
+  clock map and is well determined.
+- **The IMU-vs-flow shift acts as an estimator-dependent tuning lever.** It helps the
+  FGO further and undoes the UKF's gain. It is known only to about ±5 ms. Adopting it
+  from the reconstruction would amount to choosing a time offset, which is exactly
+  what the fairness rules forbid.
+- A defensible correction is therefore either **dejitter only**, or **true
+  sensor time recorded at source** (`time_usec` in `imu_bridge.py` for new bags). The
+  second fixes the shift by measurement rather than by fit.
+- Either way it goes through the re-run gate on the full `dsn` set. That ruling is the
+  user's.
+
+## Forward-camera workstream (branch `fwd-camera`) — hypothesis, sensor, worlds, Phase 1 pre-registration (2026-09-24)
+
+### Hypothesis (stated before any forward-camera result exists)
+
+With no compass, absolute yaw is unobservable. On `dsn_tex_r3`, **74%** of EKF3's
+east-velocity error is heading-driven: `errVE` against speed × sin(yaw error) has a
+slope of 1.10. The remaining **26%** (~0.05 m/s) is uncorrelated with yaw error
+(§"Lateral drift", CLOSED).
+
+**Hypothesis:** a forward camera supplies two things:
+- an **absolute heading cue relative to the corridor** (the vanishing point, or the
+  dominant wall-line direction);
+- through horizontal forward flow, **observability of the gyro-z bias**.
+
+Together these reduce the heading-driven share of lateral drift.
+
+**Prediction:** the heading-driven share falls, and the 26% residual stays roughly
+unchanged. If the residual also moves, that is a finding, not a failure. The residual's
+source was never established, so any movement would say something about it.
+
+The test is Phase 5: each estimator with and without the forward-camera measurements,
+on the same `fwd_*` bags, reading the heading-driven/residual decomposition, yaw
+drift, gyro-z bias tracking and ±3σ consistency.
+
+### Sensor design — `iris_fwd` (vendored in `sim/models/`)
+
+`iris_fwd_standoffs` is a copy of `~/ardupilot_gazebo/models/iris_with_standoffs`.
+`diff` against the original shows **only** the inserted `forward_camera` sensor block,
+so the downward camera, the gpu_lidar and the IMU are byte-identical to the `dsn_*`
+model.
+
+`iris_fwd` is a copy of `iris_with_ardupilot`. Its `diff` shows only the model name and
+the include: `model://iris_fwd_standoffs`, with `<name>iris_with_standoffs</name>`
+kept. Every scoped reference (joint parents, lift-drag links, `ArduPilotPlugin
+imuName`) therefore resolves unchanged. The meshes still resolve from
+`model://iris_with_standoffs`. The worlds instantiate it as `iris_with_ardupilot`, so
+tooling that names the model is unchanged.
+
+**The flights run on simulator truth (`AHRS_EKF_TYPE=10`), so the physical heading is
+fixed.** Cruise GT yaw is 90.01°, std 0.017°. The vanishing point therefore sits at the
+image centre whatever an estimator's yaw does. The FOV does not need to cover
+estimator heading error; that only matters in closed-loop flight (Term 3), where the
+physical heading can wander. The design is set by corridor geometry and measured
+attitude. Cruise attitude from `dsn_tex_r1` / `dsn_blank_r1` GT:
+- roll: mean 0.00°, std 0.26°, max 0.53°
+- pitch: mean +0.02°, std 0.17°, max 5.2° (the acceleration transients)
+- base_link height: 2.29 m
+
+| parameter | value | justification |
+|---|---|---|
+| HFOV | **60°** (1.047 rad), VFOV ±23.4° | Same intrinsics as the downward camera; `camera_info` confirms f = 554.38 px. Side walls at ±10 m enter the frame 17.3 m ahead, where the wall base is at −7.5° and the wall top at +8.9°, well inside ±23.4°. Angular resolution is 0.094°/px. A wider lens would lose resolution with no gain, since the heading is fixed (above). |
+| resolution | **640 × 480** | Same sensor as the downward camera. |
+| rate | **30 Hz** (sim-time) | Matches the downward camera, flow and LiDAR cadence. At 30 Hz the rotation between frames stays small for the forward-flow yaw-rate measurement. |
+| format | **mono (L8 → `mono8`)** | Every Phase 3 algorithm (line/VP extraction, LK flow) is greyscale. The bag data rate is one third of RGB: ~9 MB/s sim against ~28 MB/s. The L8 → `mono8` bridge conversion was **tested** in the render check. |
+| mount | **0.15 m forward of base_link, level (0 pitch, 0 roll)**, looking along body +x, rigid | Cruise pitch mean +0.02° (std 0.17°) puts the vanishing point at the image centre to within ~3 px. The render check shows no body or propeller occlusion. |
+| clip | near 0.05 m, **far 200 m** | The corridor is 165 m long. The downward camera's 20 m far clip would cut the corridor off before the vanishing point. |
+
+### Worlds — `corridor_{textured,blank,transition}_fwd.sdf` (vendored in `sim/worlds/`)
+
+`diff` against each original shows exactly these changes:
+- the `<world name>` (it must equal the filename stem, because `run_trial.sh` builds
+  the `dynamic_pose/info` topic from it);
+- the two side walls use `model://corridor_wall_lined` in place of `corridor_wall`;
+- a static `corridor_end_wall` at y = 165;
+- the drone include is `model://iris_fwd`, with the instance named
+  `iris_with_ardupilot`.
+
+The floor tiles, `ground_collision`, lighting, spawn and physics are identical. The
+originals and every `dsn_*` dependency are untouched.
+
+- **`corridor_wall_lined`:** its collision box is byte-identical to `corridor_wall`
+  (0.2 × 170 × 5 m, link at z = 2.5 m). The one grey visual is replaced by 17 visual
+  segments of 0.2 × 10 × 5 m that tile the same volume, so the geometry and the shadows
+  it casts are identical and only the surface material differs. Segments are used
+  because Ogre2 stretches one texture over a whole face, the same UV trap documented
+  for the floor tiles.
+- **Texture** (`sim/tools/make_wall_textures.py`, seeded, three variants cycling every
+  30 m):
+  - horizontal black lines every 0.5 m, 8 cm thick, on a white base; they run parallel
+    to the corridor axis, so they converge on the vanishing point;
+  - non-periodic vertical bars (random width, height, grey level and spacing), which
+    give horizontal flow 2-D texture (stripes alone have the aperture problem) and
+    avoid a regular spacing that could alias the LK tracker or RANSAC.
+- **Did not work: texture v1.** Grey 160 base with 25 lines, 4 cm thick. It rendered
+  the wall at ~20–40 grey, with the lines only ~15 levels darker, which is too faint:
+  the inner faces receive little direct sun. v2 (above) renders the walls at mean
+  75–106, std 35–45. Found by the render check before any flight.
+- **End wall:** static, so it never enters `dynamic_pose/info` and cannot displace
+  `poses[0]`. The sun's +y component throws its shadow beyond the corridor. It is
+  19.8 × 0.2 × 5 m and textured with non-periodic rectangles plus the same lines.
+
+**Design decision: the walls are textured in all three worlds.** The question is
+whether a forward heading cue **compensates for floor degradation**. So the forward cue
+must be present, and identical, in every floor condition, with floor texture remaining
+the only variable between worlds. A **blank-wall variant** (forward camera present,
+walls untextured) is deferred as a later ablation. It would separate "the forward
+camera sees structure" from "the forward camera is present".
+
+### Recording and harness
+
+- **Raw forward images are recorded** (`/forward_camera/image` and `camera_info`), the
+  opposite of downward flow, which is fixed at record time (§"Flow processing is baked
+  in"). Phase 3 builds its measurements offline, so its processing choices stay open.
+  Cost is ~3 GB per 300 s trial.
+- **`run_trial.sh` is opt-in and name-driven.** A world named `*_fwd` fills two arrays
+  (bridge arguments, record topics) and adds `forward_camera: true` to
+  `metadata.yaml`. For every other world the arrays are empty; under `set -u` in bash
+  5.2 an empty `"${arr[@]}"` expands to **no** argument, so the default bridge and
+  recorder command lines are unchanged. This is verified from `/proc/<pid>/cmdline` on
+  the control flight (below).
+- **Trial names:** Phase 1 uses `p1_*`; `fwd_*` is reserved for the Phase 2 dataset.
+
+### Phase 1 plan and confound-check acceptance (pre-registered before flying)
+
+Four flights, back to back, in one session, all at the `dsn_*` settings (0.5 m/s,
+2.0 m, 300 s, nomag, `sim_noise.parm`, RANSAC seed 42):
+
+| trial | world |
+|---|---|
+| `p1_control_tex` | `corridor_textured`, no forward camera (same-session control) |
+| `p1_fwd_tex` | `corridor_textured_fwd` |
+| `p1_fwd_blank` | `corridor_blank_fwd` |
+| `p1_fwd_trans` | `corridor_transition_fwd` |
+
+The control flight exists because the desktop was under measurable background load
+(Firefox ~110% CPU plus gnome-shell; ~12–23% GPU at idle). That load is the likely
+reason the smoke test's RTF (0.954) was below the `dsn_*` flights' (0.975–0.981). The
+control measures that same-session baseline, so any drop can be attributed to the
+second camera. It is used for diagnosis, not tuning.
+
+**(a) RTF and topic rates.**
+- **RTF method:** 300 s of cruise sim time over the cruise wall time in
+  `fly_trial.log`. On the same method, `dsn_*` measured 0.975–0.981 and the smoke test
+  0.954. The 0.92 floor is the 2026-07-23 lockstep figure. **Pass** if each `p1_fwd_*`
+  flight has RTF ≥ 0.92 **and** ≥ (control RTF − 0.03). **If it fails: stop and report;
+  no tuning.**
+- **Rates** (`eval/topic_rates.py`, sim-time):
+  - every `dsn_*` topic, including `/optical_flow/measurement`, which would expose
+    dropped downward frames, must be within ±2% of the `dsn_tex` mean (the smoke-test
+    band);
+  - `/forward_camera/image` and `/forward_camera/camera_info` must be within ±2% of
+    30.30 Hz (the 33 ms sim period; a slow bag writer would show up here as missing
+    frames).
+
+**(b) Downward-flow conditions unchanged** (`eval/flow_quality.py`, cruise window).
+The baseline is the `dsn_*` n=3 cruise-window values, which share the pipeline,
+config and window definition:
+- textured inlier_ratio 0.9729–0.9741
+- blank 0.3130–0.3153
+- transition switch in the absolute 80–82 m bin, with levels 0.972–0.974 (y < 75) and
+  0.312–0.315 (y > 85)
+
+These differ slightly from the 0.9752 / 0.3101 quoted from the 2026-07-23
+verification trials, which were different flights and used whole-flight statistics
+from an earlier script. The n=3 cruise-window values are the like-for-like baseline.
+
+Pass if all of the following hold, per world against its `dsn` counterpart:
+
+| check | band |
+|---|---|
+| inlier_ratio mean | within ±0.01 of the `dsn` mean |
+| % of frames below 0.5 | within ±3 percentage points |
+| feature_count mean | within ±5% |
+| `flow_y_raw` mean | textured and transition within ±2%; blank within ±5 px/s absolute (its mean is ~0) |
+| transition | switch in the 80–82 m bin; y < 75 and y > 85 levels within ±0.01 |
+| GT lateral x | within ±0.05 m |
+
+**(c) The wall texture cannot enter the downward camera's view** (geometry, confirmed
+from the flight):
+- The downward camera sits ≈ 2.04 m above the floor (base_link 2.29 m, camera offset
+  −0.25 m).
+- Its worst-case half-footprint is 2.04 · tan(30° + 5.2° max tilt) ≈ **1.44 m**. The
+  30° is the half-HFOV; the half-VFOV is 23.4°, which is smaller.
+- GT |x| ≤ 0.01 m during cruise, so the footprint stays within |x| ≤ 1.45 m, against
+  the walls' inner faces at |x| = 9.9 m.
+- Along the corridor the drone stops at GT y ≤ 151.6 m, so the footprint reaches at
+  most ~153 m, against the end wall's inner face at 164.9 m.
+- The walls' shadows fall where they fell in `dsn_*` (identical geometry), and the
+  end wall's shadow falls at y > 165.
+
+The flights must reproduce GT |x| ≤ 0.05 m and y_max ≤ 153 m for (c) to hold.
+
+### Phase 1 result — confound check (a) FAILED; flights stopped (2026-09-24)
+
+Flown at `c89d05a`: `p1_control_tex`, then `p1_fwd_tex`. `p1_fwd_blank` was aborted
+mid-cruise when (a) failed, and its directory is marked `ABORTED.txt` (not a valid
+trial). `p1_fwd_trans` was not flown.
+
+**(a) RTF: FAIL.**
+- `p1_control_tex` ran at **0.954**, the same as the smoke test.
+- `p1_fwd_tex` ran at **0.768**, below both the 0.92 floor and control − 0.03 = 0.924.
+  Adding the forward camera costs about 19% RTF on this machine.
+- Per the pre-registration: stop and report; no tuning.
+
+**Rates**, as deviation from the `dsn_tex` mean:
+
+| topic | `p1_fwd_tex` | `p1_control_tex` | in ±2% band? |
+|---|---|---|---|
+| `/downward_lidar/range` | 0.00% | — | yes |
+| `/clock` | −0.10% | — | yes |
+| `/optical_flow/measurement` | −0.43% | — | yes |
+| `/imu/data_raw` | −0.50% | — | yes |
+| `/forward_camera/image`, `camera_info` | 30.30 Hz (no frame loss) | — | yes |
+| `/attitude/angular_rates` | **−2.64%** | +0.36% | no (fwd) |
+| `/ekf/pose` | **−3.10%** | +0.06% | no (fwd) |
+| `/ground_truth/pose` | **+13.2%** | **+2.55%** | no (both) |
+
+The control's own ground-truth rate is also outside ±2%. Across flights, that rate
+scales with 1/RTF (smoke 0.954 → +1.9%, control 0.954 → +2.55%, fwd 0.768 → +13.2%):
+it is a **wall-clock-driven topic** (Gazebo's scene broadcaster), so a ±2% band was
+the wrong criterion for it. Recorded as a criterion defect, not re-scored. The
+MAVLink-sourced `/attitude/angular_rates` and `/ekf/pose` also lose ~3% of messages
+at the lower RTF. Neither is an estimator input: the UKF/FGO consume `/imu/data_raw`,
+flow and range, and EKF3 is read from the dataflash log.
+
+**(b) Downward flow: PASS on `p1_fwd_tex`** (`eval/results/flow_quality_p1.json`):
+- inlier_ratio 0.9741 (the `dsn` mean is 0.9733), 0.0% of frames below 0.5;
+- features 53.0 against 52.8;
+- `flow_y_raw` 136.05 against 136.45 px/s (−0.3%);
+- GT x within ±0.01 m.
+
+The second camera and the lower RTF leave the downward-flow conditions unchanged, as
+expected: Gazebo↔SITL lockstep keeps sensor timing in sim time.
+
+**(c) Geometry: holds.** GT |x| ≤ 0.01 m. Forward frames:
+`plots/fwd_camera/p1_fwd_tex_forward_frames.png`.
+
+**Harness: verified.** On `p1_control_tex`, `/proc/<pid>/cmdline` for the bridge and
+the recorder are exactly the pre-fwd argument lists. On `p1_fwd_tex` they add only the
+two forward topics.
+
+**Open (awaiting a ruling).** The cause of the RTF loss was not isolated. The
+candidates are:
+- rendering the second camera on the 2 GB Quadro P620;
+- the `ros_gz_bridge` image conversion;
+- the bag writer (~9 MB/s sim of images);
+- interaction with the background desktop load.
+
+### Phase 1 follow-up — RTF diagnosis, and a direct test of whether RTF matters (2026-09-24)
+
+**Diagnosis** (four 60 s cruise runs, one load removed at a time, same session;
+diagnostic only, no configuration change). The runs use the `FWD_DIAG` switch in
+`run_trial.sh`, which is unset by default.
+
+| run | RTF | `gz sim` CPU | GPU |
+|---|---|---|---|
+| `p1diag_control_tex` (no forward camera) | **0.957** | ~130% | 28% |
+| `p1diag_fwd_full` | **0.759** | ~170% | 27% |
+| `p1diag_fwd_norecord` (bridged, not recorded) | **0.761** | ~170% | 26% |
+| `p1diag_fwd_nobridge` (in the model, not bridged) | **0.958** | ~130% | 29% |
+
+- **Rendering backend: hardware.** Ogre2 runs OpenGL 4.5 on the Quadro P620 (NVIDIA
+  driver, EGL headless, `~/.gz/rendering/ogre2.log`), not the Mesa software device.
+- **Recording costs nothing.** The **whole ~20% RTF loss appears once the forward image
+  is consumed (bridged)**, as ~40% more CPU in the `gz sim` process, with GPU
+  utilisation unchanged.
+- **Caveat:** gz-sensors is understood to skip rendering a camera that has no
+  subscribers, so "not bridged" probably also means "not rendered". The diagnosis
+  therefore isolates "forward image produced" from "absent", but not rendering from
+  bridge conversion. Either way the cost is CPU work inside the single `gz sim`
+  process that paces the lockstep.
+- **Not done:** the "desktop apps closed" run. It needs the user's desktop
+  applications closed (Firefox ~70–110% CPU).
+
+**Why RTF was only a proxy.** The confound that matters is whether the **estimator
+inputs keep their `dsn_*` sim-time timing**. The UKF and FGO replay the bags offline
+on header stamps, so they are affected only through those stamps. EKF3 is the one
+estimator fed live, by wall-clock ROS nodes over MAVLink. So the questions are:
+(a) the inputs' sim-time timing, (b) the flow delivery latency into EKF3 in sim time,
+and (c) the outcome itself. RTF was a stand-in for all three.
+
+**Direct test (pre-registered before flying).** One 300 s flight of the
+**unchanged** `corridor_textured` world (the original iris, `dsn_*` settings), with RTF
+lowered to ~0.77 by Gazebo's runtime `set_physics` service (`real_time_factor 0.77`,
+`max_step_size 0.001` as in the world file). No file changes. This isolates RTF
+itself. The forward camera's actual mechanism, CPU contention inside `gz sim`, is
+covered by re-scoring `p1_fwd_tex` on the same three checks. The trial is
+`p1rtf_dsn_tex`.
+
+The baseline is `eval/results/input_timing_baseline.json`: all nine `dsn_*` bags, the
+smoke test and the controls, from `eval/input_timing.py`.
+- **(a) Estimator-input sim-time timing.** Measured on header stamps over the cruise
+  window. Every baseline bag, **including `p1_fwd_tex` at RTF 0.768**, shows:
+  - `/optical_flow/measurement` and `/downward_lidar/range` at 30.30 Hz, median and
+    p99 gap 33.0 ms, 0.00% of gaps above 1.5 periods;
+  - `/imu/data_raw` at 333.27–333.28 Hz, median gap 3.0 ms, p99 6–7 ms, and
+    18.4–18.7% of gaps above 1.5× (a fixed alternation from receipt stamping).
+
+  **Pass** if flow and lidar match exactly (30.30 Hz, 33.0 / 33.0 ms, 0.00%), and the
+  IMU is within 333.27–333.28 Hz, p99 ≤ 7 ms, and 18.4–18.7%.
+- **(b) Flow → EKF3 latency** (sim time; per-trial clock offset from `SIM` vs GT,
+  METHODOLOGY `input_timing.py`).
+  - **Tolerance: one EKF3 prediction step, 12.5 ms.** EKF3 time-stamps flow as
+    receipt − `EK3_FLOW_DELAY` (10 ms) − half the frame interval − half its step
+    (`AP_NavEKF3_Measurements.cpp:232-234`), so a latency shift below one step is
+    below EKF3's own time resolution.
+  - Baseline: the `dsn_tex` mean has median 10.9 ms and p95 42.7 ms, with 100% of
+    valid frames matched.
+  - **Pass** if the median is ≤ 23.4 ms, the p95 is ≤ 55.2 ms, and matching stays
+    ≥ 99.5%.
+  - **Stated openly:** `p1_fwd_tex`'s latency (median 19.8, p95 51.5) and the `dsn`
+    world-to-world spread (transition medians up to 32.0 ms at RTF ~0.98) were seen
+    before this tolerance was set. The tolerance comes from EKF3's time resolution,
+    not from those numbers.
+- **(c) evo -a (cruise)** within the smoke-test bands: **FGO [4.18, 5.35]** (the
+  sensitive indicator), EKF3 [1.26, 8.13], UKF [0, 34.95] (sanity only).
+
+**Decision rule.** If (a)–(c) pass on `p1rtf_dsn_tex`, **and** on `p1_fwd_tex`
+re-scored the same way, a revised Phase 1 criterion replaces the RTF threshold. It is
+written up as revised after the observed failure. If any check fails: stop and report.
+
+**Direct-test result — one pre-registered sub-criterion FAILED; stopped per the
+decision rule (2026-09-24).** `p1rtf_dsn_tex` was flown at `e37fd46` with the Gazebo
+RTF target at 0.77, applied at runtime. Measured cruise RTF: **0.762**. `p1_fwd_tex`
+was re-scored on the same checks. Results:
+`eval/results/{input_timing_p1rtf,p1_rtf_test_evo}.json`.
+
+| check | `p1rtf_dsn_tex` (RTF 0.762) | `p1_fwd_tex` (RTF 0.768) | band |
+|---|---|---|---|
+| (a) flow and lidar sim-time timing | 30.30 Hz, 33.0 / 33.0 ms, 0.00% | same | exact match: **pass** / **pass** |
+| (a) IMU rate, p99 gap | 333.28 Hz, 6 ms | 333.28 Hz, 7 ms | **pass** / **pass** |
+| (a) IMU % gaps above 1.5× | **18.24%** | 18.42% | 18.4–18.7%: **FAIL** / pass |
+| (b) flow → EKF3 latency, median / p95 | 16.1 / 48.4 ms, 100% matched | 19.8 / 51.5 ms, 100% | ≤ 23.4 / ≤ 55.2 ms, ≥ 99.5%: **pass** / **pass** |
+| (c) evo -a (cruise), FGO / EKF3 / UKF | **4.80** / 3.90 / 7.75 | **4.55** / 4.07 / 12.58 | [4.18, 5.35] / [1.26, 8.13] / [0, 34.95]: **pass** / **pass** |
+
+**What the failed sub-criterion measures.** `/imu/data_raw` is stamped at *receipt*
+by `imu_bridge.py` (ROS sim clock, `imu_bridge.py:169`). So its header gaps scatter
+from 0 to ~9 ms around a mean that is **exactly 3.0005 ms in every trial**.
+
+| trial | gaps of 2–3 ms | gaps of 0 ms | gaps ≥ 6 ms |
+|---|---|---|---|
+| `dsn_tex_r1` | 64.0% | 2.6% | 3.7% |
+| `p1_control_tex` | 60.6% | 3.9% | 4.5% |
+| `p1_fwd_tex` | 58.4% | 4.4% | 5.1% |
+| `p1rtf_dsn_tex` | **70.0%** | **0.8%** | **2.2%** |
+
+The throttled flight is **more regular** than `dsn_*`: the wall-clock bridge gets more
+wall time per sim millisecond. Its lower ">1.5×" share is on the benign side. The
+failure is nonetheless real against the band as pre-registered, and that band was
+itself a **criterion-design error**: the exact observed n=12 range, with no margin.
+This is the second such error after the ground-truth rate band. Not re-scored.
+
+Per the decision rule, **the revised Phase 1 criterion is NOT written, and
+`p1_fwd_blank` / `p1_fwd_trans` are NOT flown, pending a ruling.** `p1_fwd_tex` itself
+passes every pre-registered (a)–(c) check.
+
+**Side finding, independent of the forward camera.** The UKF and FGO integrate the IMU
+on these receipt stamps, which carry 0–9 ms jitter around the true 3 ms sampling (the
+`HIGHRES_IMU` `time_usec` is not used). It is common to every bag, so it does not bias
+the comparison between conditions, but it is a property of the replay inputs. Logged
+for the methodology.
+
+**Note for Phase 3 (no action yet).** The end wall fills the forward view by y ≈ 150 m
+(`plots/fwd_camera/p1_fwd_tex_forward_frames.png`), so the vanishing point, and the
+wall lines that define it, disappear at the corridor end. The heading-from-structure
+measurement therefore needs a per-frame confidence that goes to "no measurement" as
+the VP leaves the frame or the converging-line support collapses. It must not report
+a confident heading from the end-wall texture.
+
+### RULING (user, 2026-09-24): the IMU gap-share miss is benign
+
+Recorded as the user's ruling, **not a re-score**: *"the IMU gap-share miss is benign.
+It measures bridge receipt jitter, not sensor timing; the deviation is towards more
+regular gaps; the mean-gap check (3.0005 ms) and every direct confound check pass on
+both trials. Replace the gap-share check with the mean-gap check plus p99 gap."*
+
+The desktop-apps diagnostic run is skipped, because the cause is identified.
+
+**Infrastructure note for later phases that add sensors.** Bridging a 640×480 30 Hz
+image costs ~40% of a core inside the `gz sim` process. That process paces the
+Gazebo↔SITL lockstep, so on this machine the cost shows up as a ~20% RTF drop. Any
+further camera will cost roughly the same. Budget for it, and test estimator-input
+timing directly rather than RTF.
+
+### Phase 1 criterion — REVISED after the observed failures (pre-registered before `p1_fwd_blank` / `p1_fwd_trans`)
+
+**Why it was revised.** The original gate (a) was RTF ≥ 0.92 plus ±2% topic rates.
+RTF was a **proxy** for "the estimator inputs keep their `dsn_*` sim-time timing".
+- It failed on `p1_fwd_tex` (0.768).
+- The diagnosis traced the loss to bridging the forward image.
+- The direct test, `p1rtf_dsn_tex` (the unchanged `dsn` world throttled to RTF 0.762),
+  showed that lowering RTF leaves input timing, EKF3 flow latency and estimator outcome
+  inside tolerance.
+- The ±2% receive-rate band failed on the wall-clock-driven ground-truth topic, which
+  is not an input.
+
+The revised criterion therefore tests the confound directly. **It is a revision made
+after seeing failures, and is stated as such.** RTF, receive rates and the IMU gap-share
+become diagnostics. Baselines are the same-world `dsn_*` n=3 values
+(`eval/results/{input_timing_baseline,phase0_cruise_pinned,flow_quality_dsn}.json`).
+
+**PRIMARY**
+
+| # | criterion | band and basis | why a miss would mean the confound |
+|---|---|---|---|
+| P1 | flow and lidar header timing (cruise) | rate 30.30 Hz ± 0.1%; ≤ 0.5% of gaps above 1.5 periods. `dsn` is exact (0.00%); 0.5% is one dropped frame per ~6.6 s, a negligible loss of information. | Dropped or late downward frames would mean the added load starves the downward pipeline. |
+| P1 | IMU header timing (cruise) | mean gap 3.0005 ± 0.003 ms (0.1% = one lost sample in 1000; `dsn` is exact to 0.0001 ms); p99 gap ≤ 10 ms (the `dsn` maximum of 7 ms plus one 3 ms period, at most one extra late sample at the 99th percentile). | Lost or late IMU samples. |
+| P2 | flow → EKF3 latency (median and p95) | ≤ same-world `dsn` mean + **12.5 ms** (one EKF3 prediction step, its own time resolution; `AP_NavEKF3_Measurements.cpp:232-234`). Matched frames ≥ same-world `dsn` minimum − 5 pp (`dsn` blank spreads 7 pp). | EKF3 would fuse flow at a different effective time than in `dsn_*`. |
+| P3 | downward flow conditions (unchanged from the original (b)) | inlier mean ±0.01 of the `dsn` mean (8× the textured n=3 range, ~1.5% of the textured–blank gap); % below 0.5 within ±3 pp; features ±5%; `flow_y_raw` ±2% (textured, transition; ≈ 1 cm of height or 1 cm/s of speed) or ±5 px/s (blank); transition switch in the same 2 m bin (the metric's resolution), levels ±0.01; GT \|x\| ≤ 0.05 m. | The downward image content or geometry changed. |
+| P4 | outcome, **textured** | evo -a (cruise) within the n=3 range widened by one range-width each side: **FGO [4.18, 5.35]**, **EKF3 [1.26, 8.13]**. | The forward-camera setup changed estimator behaviour through the shared inputs. |
+| P4 | outcome, **transition / blank** (failure metrics, cruise) | For **EKF3 and the FGO**: displacement ratio within the n=3 range ± max(range, 0.05), where 0.05 is the window-sensitivity bound. Onset within the n=3 range ± max(range, 5 m), a third of the 15 m divergence threshold. Transition: EKF3 ratio [0.51, 0.63], onset [96, 108] m; FGO ratio [0.68, 0.80], onset [90, 101] m. Blank: EKF3 ratio [0.12, 0.27], onset [13, 24] m; FGO ratio [1.52, 1.70], onset [17, 30] m. | Same as above. |
+
+**DIAGNOSTIC** (reported, never a gate):
+- RTF, and topic receive rates (`topic_rates.py`), including `/ground_truth/pose`,
+  `/attitude/angular_rates` and `/ekf/pose`
+- the IMU ">1.5× gap" share
+- every UKF metric (its n=3 range is too wide to gate on)
+- evo -a (cruise) on transition and blank (a failure regime, not a quality metric)
+- the forward-image rate (30.30 Hz expected)
+
+**`p1_fwd_tex` re-scored under the revised criterion: PASS.**
+- **P1:** flow and lidar exact; IMU mean gap 3.0005 ms, p99 7 ms.
+- **P2:** latency median 19.8 / p95 51.5 ms, against ≤ 23.4 / ≤ 55.2; 100% matched.
+- **P3:** pass (above).
+- **P4:** FGO 4.55, EKF3 4.07.
+- Diagnostics: RTF 0.768, UKF 12.58.
+
+### Phase 1 result under the revised criterion — ALL THREE fwd worlds PASS (2026-09-24)
+
+`p1_fwd_blank` and `p1_fwd_trans` were flown at `cc588df`. Results:
+`eval/results/{input_timing_p1fwd,flow_quality_p1fwd,p1_fwd_evo}.json`.
+Frames: `plots/fwd_camera/p1_forward_frames_all.png`.
+
+| | `p1_fwd_tex` | `p1_fwd_trans` | `p1_fwd_blank` |
+|---|---|---|---|
+| **P1** flow and lidar (30.30 Hz, 33 / 33 ms, 0%) | pass | pass | pass |
+| **P1** IMU mean gap / p99 | 3.0005 / 7 ms | 3.0005 / 6 ms | 3.0005 / 6 ms |
+| **P2** latency median (limit) | 19.8 (≤ 23.4) | **38.4 (≤ 40.0)** | 21.1 (≤ 28.0) |
+| **P2** latency p95 (limit) | 51.5 (≤ 55.2) | 57.7 (≤ 59.0) | 53.2 (≤ 59.3) |
+| **P2** matched (floor) | 100% (≥ 95.0) | 99.0% (≥ 93.5) | 82.0% (≥ 72.4) |
+| **P3** inlier mean (`dsn` mean) | 0.9741 (0.9733) | 0.6654 (0.6645) | 0.3132 (0.3139) |
+| **P3** % below 0.5 / features / `flow_y_raw` | 0.0 / 53.0 / 136.05 | 39.5 / 31.6 / 72.29 (+1.2%) | 84.5 / 8.0 / −2.30 |
+| **P3** transition switch, levels | — | 80–82 m bin; 0.974 / 0.313 | — |
+| **P4** EKF3 | evo -a (cruise) 4.07 | ratio 0.56, onset 101 m | ratio 0.21, onset 20 m |
+| **P4** FGO | evo -a (cruise) 4.55 | ratio 0.71, onset 94 m | ratio 1.58, onset 24 m |
+| *diag.* RTF | 0.768 | 0.752 | 0.743 |
+| *diag.* UKF | 12.58 | ratio 0.76, onset 53 m | ratio 1.30, onset 54 m |
+| *diag.* forward image rate | 30.30 Hz | 30.30 Hz | 30.30 Hz |
+
+**Every primary criterion passes in all three worlds.**
+- **Closest to its limit:** the transition latency median, 38.4 against 40.0. The
+  `dsn` transition medians already span 20.6–32.0 at RTF ~0.98, so latency on that
+  world is the least stable quantity. It is flagged for Phase 2, where it gets n=3.
+- **Downward flow is indistinguishable from `dsn_*`** in every world, on every P3
+  metric. The texture boundary still falls in the same 2 m bin.
+- **Diagnostic observation:** the UKF's transition onset was 53 m (`dsn` 69–82). It is
+  not a gate, since the UKF is unstable across repeats.
+
+**Phase 1 complete.** Phase 2 (`fwd_*`: 3 worlds × 3 repeats) is gated on the user's
+go, and will apply this same revised criterion to all nine bags.
+
+### Phase 1 P2 re-checked on the corrected (offset + rate) clock map (2026-09-24)
+
+**P2 re-checked on the corrected measurement.** The limit is the same-world `dsn` mean
+plus 12.5 ms. `dsn` medians / p95: textured 14.5–17.6 / 23.7–24.9, transition
+15.2–20.5 / 24.8–27.7, blank 16.4–18.9 / 24.9–27.0.
+
+| trial | median (limit) | p95 (limit) | verdict |
+|---|---|---|---|
+| `p1_fwd_tex` | 20.7 (≤ 28.1) | 31.5 (≤ 36.7) | pass |
+| `p1_fwd_trans` | 27.7 (≤ 30.4) | **37.2 (≤ 38.3)** | pass |
+| `p1_fwd_blank` | 27.4 (≤ 29.9) | **37.9 (≤ 38.2)** | pass, 0.3 ms margin |
+| `p1rtf_dsn_tex` | 19.9 (≤ 28.1) | 28.6 (≤ 36.7) | pass |
+
+**All still pass, but the tighter measurement exposes a real, systematic effect.** The
+forward camera adds **~5–10 ms median and ~8–13 ms p95** of flow→EKF3 latency. RTF
+alone (`p1rtf`) adds ~4 ms median.
+
+EKF3 assumes ~10 ms plus half a frame (`EK3_FLOW_DELAY`). Its flow time-alignment error
+therefore grows from ~5 ms (`dsn`) to ~11–18 ms (`fwd`), up to ~1.4 EKF3 prediction
+steps. It is an input to **EKF3 only**; the UKF/FGO replay on capture stamps. The
+margins on transition and blank p95 are thin, so **Phase 2's n=3 may cross P2**. That
+possibility is flagged now, before any Phase 2 data exists.
+
+### Framing corrections to the Phase 1 P2 results (2026-09-24)
+
+- **`p1_fwd_tex` re-score limits.** The "≤ 23.4 / ≤ 55.2 ms" limits in the revised-
+  criterion re-score came from the single-offset clock and are **superseded** by the
+  linear-map table in the clock-rate FINDING (limits ≤ 28.1 / ≤ 36.7; 20.7 / 31.5,
+  pass).
+- **Blank p95 margin.** 37.9 against a 38.2 limit is **at the limit, within measurement
+  uncertainty**. The clock map is good to a few ms, not 0.3 ms. It is reported as a
+  pass under the criterion as written, but not as a clean pass. Transition (1.1 ms
+  margin) is similar.
+- **Scope of the latency effect.** The extra 5–10 ms of flow→EKF3 latency affects EKF3
+  only.
+  - It does **not** confound the Phase 5 hypothesis test, which compares with and
+    without the forward-camera measurements on the same `fwd_*` bags.
+  - It **does** confound any comparison of EKF3 on `fwd_*` against EKF3 on `dsn_*`.
+    That comparison must carry this caveat or be avoided.
+- **Open before Phase 2, to be ruled before any `fwd_*` data exists** (pre-registration
+  rule):
+  1. Is P2 judged per trial or on the n=3 mean?
+  2. Does the 12.5 ms band have to absorb the latency measurement's own uncertainty,
+     about ±5 ms from the clock map? If so, it becomes an explicit stated margin.
+
+### RULING (user, 2026-09-24): P2 is DIAGNOSTIC for Phase 2 (recorded before any `fwd_*` data exists)
+
+**Reasoning, as ruled.**
+- The forward camera's added EKF3 flow latency (~5–10 ms median) is now
+  **characterised**.
+- Phase 5 compares each estimator **with and without** the forward-camera
+  measurements **on the same bags**, so both arms share that latency. It cannot
+  confound the hypothesis test.
+
+**Therefore, for Phase 2:**
+- **P2 (flow → EKF3 latency) is DIAGNOSTIC.** Its band is unchanged: same-world `dsn`
+  mean + 12.5 ms, on the corrected (offset + rate) clock map. It is reported **per
+  trial and as the n=3 mean**.
+- **Stays PRIMARY:** EKF3 evo -a (cruise) on textured, EKF3 failure metrics on
+  transition and blank, and P1, P3 and the FGO's P4.
+
+**STANDING RULE: EKF3 on `fwd_*` is never compared with EKF3 on `dsn_*` without stating
+the flow-latency difference** (median and p95, per world, from `eval/input_timing.py`).
+
+### Phase 4 design note (updated 2026-09-29 by the EKF3 ruling below)
+
+Any estimator's with- and without-forward-camera arms **must come from the same sensor
+logs**. The datasets are `fwdc_*` and `fwdplainc_*`; the earlier `fwd_*` is superseded.
+
+**EKF3: RULED (user, 2026-09-29). See "RULING — EKF3 in the offline forward-camera
+comparison".**
+- For the offline comparison, EKF3 is the fixed no-yaw-source baseline.
+- Only the UKF and the FGO get forward-camera arms.
+- ArduPilot Replay was the intended route, but it is **not available on the recorded
+  logs**: they were flown with `LOG_REPLAY=0` and hold no replay records.
+
+## Phase 2 — `fwd_*` dataset: pre-registration (2026-09-24, before any `fwd_*` data exists)
+
+**Dataset.** `fwd_{tex,trans,blank}_r{1,2,3}`: the three `corridor_*_fwd` worlds × 3
+repeats, 300 s, 0.5 m/s, 2.0 m, no compass (`gnss_denied_nomag.parm`),
+`sim_noise.parm`, RANSAC seed 42, `run_trial.sh`. Everything matches `dsn_*` except:
+- **By design:** the forward camera (`iris_fwd`), the line-textured walls and the
+  end wall.
+- **Recording deviations, all additive:**
+  - `/forward_camera/image` and `camera_info` (needed by Phase 3);
+  - `/imu/time_ref` (HIGHRES_IMU `time_usec`; OI-2 infrastructure; first flight
+    verifies it);
+  - `forward_camera: true` in `metadata.yaml`.
+
+**Flight order is interleaved** (tex r1, trans r1, blank r1, tex r2, …), so any drift
+in machine state over the session is spread across worlds rather than aliased onto
+one. Replays use the current baseline estimators (OI-2 dejitter). Evaluation uses
+`eval/three_way_eval.py`, `eval/input_timing.py` (clock map) and
+`eval/flow_quality.py`.
+
+**PRIMARY** (judged per trial; a miss that could change a conclusion stops the phase):
+
+| # | criterion | band and basis |
+|---|---|---|
+| P1 | estimator-input header timing | As in Phase 1: flow and lidar at 30.30 Hz ± 0.1% with ≤ 0.5% of gaps above 1.5×; IMU mean gap 3.0005 ± 0.003 ms, p99 ≤ 10 ms. |
+| P3 | downward-flow conditions vs same-world `dsn` n=3 | As in Phase 1: inlier ±0.01, % below 0.5 within ±3 pp, features ±5%, `flow_y_raw` ±2% (±5 px/s on blank), transition switch in the 80–82 m bin with levels ±0.01, GT \|x\| ≤ 0.05 m. |
+| P4 | EKF3 outcome, unchanged by OI-2 | Textured evo -a (cruise) [1.26, 8.13]. Transition ratio [0.51, 0.63], onset [96, 108] m. Blank ratio [0.12, 0.27], onset [13, 24] m. Basis as in Phase 1. |
+| P4 | FGO outcome, **rebased on the dejittered `dsn` baseline** | **Textured evo -a (cruise) [4.17, 5.14]:** the n=3 range 4.57–4.74 ± max(range 0.17, **0.40 m**). The 0.40 m floor is the *measured* sensitivity of FGO evo -a to IMU-timestamp treatment (per-repeat moves up to 0.39 m across the OI-2 variants); a one-range margin of 0.17 m would sit below the pipeline's own known sensitivity. **Transition:** ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m. **Blank:** ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m. Basis as in Phase 1. |
+
+**DIAGNOSTIC** (reported, never a gate):
+- **P2**, flow → EKF3 latency against the same-world `dsn` mean + 12.5 ms, reported per
+  trial and as the n=3 mean (ruling above);
+- RTF; topic receive rates; the forward-image rate;
+- `/imu/time_ref` presence and rate;
+- every UKF metric;
+- evo -a (cruise) on transition and blank.
+
+**Why a primary miss would indicate the confound.**
+- P1 and P3: the forward-camera setup would be altering the shared inputs.
+- P4: estimator behaviour would differ from `dsn_*` through those inputs. Without
+  forward-camera measurements fused, the bags should be `dsn_*`-equivalent for every
+  estimator.
+
+### Phase 2 result — STOPPED pending ruling (2026-09-24)
+
+**Flown.** All nine `fwd_*` trials completed first time, with no aborts. Commit
+`7967a39`, run by `run_resumable_batch.sh` in tmux. Interleaved order, 09:10:46–10:19:45:
+69.0 min against the 70 min estimated from the Phase 1 fwd wall-clock times.
+- Per-trial event log: `~/thesis_data/batches/phase2_fwd/trials.log`.
+- Crash-safety: the runner exists because a kernel panic (rt2800usb Wi-Fi dongle
+  disconnect → xhci NULL dereference, recovered from pstore) froze the machine
+  before the batch. The Wi-Fi stayed on.
+- `/imu/time_ref` is present in every bag at 332.4–333.3 Hz, matching the IMU. This is
+  the first-flight verification the pre-registration asked for.
+
+**Replays.** UKF and FGO (window 0.25 s) with the OI-2 dejitter, exactly as the `dsn`
+baseline: re-running `dsn_tex_r1` reproduced both stored trajectories byte for byte.
+Results: `eval/results/{input_timing_p2fwd,flow_quality_p2fwd,phase2_fwd_evo,phase2_score}.json`.
+Scorer: `eval/phase2_score.py`, which applies the pre-registered bands verbatim.
+
+| trial | P1 | P3 | P4 EKF3 | P4 FGO | primary |
+|---|---|---|---|---|---|
+| `fwd_tex_r1` | pass | pass | 4.37 | **5.158 (> 5.14)** | **FAIL** |
+| `fwd_tex_r2` | pass | pass | 4.15 | 4.71 | pass |
+| `fwd_tex_r3` | pass | pass | 4.41 | 4.53 | pass |
+| `fwd_trans_r1` | pass | pass | 0.55 / 101 m | 0.72 / 95 m | pass |
+| `fwd_trans_r2` | pass | pass | 0.56 / 101 m | 0.72 / 95 m | pass |
+| `fwd_trans_r3` | pass | pass | 0.55 / 100 m | **not evaluated** | **incomplete** |
+| `fwd_blank_r1` | pass | pass | 0.19 / 19 m | 1.51 / 36 m | pass |
+| `fwd_blank_r2` | pass | pass | 0.20 / 19 m | 1.51 / 36 m | pass |
+| `fwd_blank_r3` | pass | pass | 0.22 / 20 m | 1.52 / 32 m | pass |
+
+P4 textured cells are evo -a (cruise) in m. Transition and blank cells are
+displacement ratio / onset.
+- **P1:** flow and lidar are exactly 30.30 Hz with 0% late gaps in all nine. IMU mean
+  gap is 3.0005 ms and p99 is 6 ms in all nine.
+- **P3:** every metric is inside its band in all nine. The transition switch falls in
+  the 80–82 m bin in all three.
+
+**Primary miss 1: `fwd_tex_r1` FGO evo -a (cruise) = 5.158, band [4.17, 5.14].**
+- It is over by 0.018 m. The band's 0.40 m floor is already the measured IMU-timing
+  sensitivity, so the miss is not argued away as noise.
+- Under the standing rule, whether it could change a conclusion is **the user's
+  ruling**. It was not investigated.
+- Facts already on disk, stated without analysis:
+  - The FGO n=3 mean is 4.80, inside the band; r2 and r3 are 4.71 and 4.53.
+  - EKF3 on the same bag is normal (4.37). EKF3 does not use the bridged IMU stream.
+  - The **UKF on the same bag is 42.73** (diagnostic), against a `dsn` range of
+    9.96–20.71, with displacement ratio 0.15 and onset 43 m. Its r2 and r3 are 7.67
+    and 9.31.
+  - So the two replays driven by the bridged IMU both sit high on this bag.
+  - Its dejitter stats are unremarkable: residual std 3.35 ms, max 11.84 ms.
+
+**Incomplete: `fwd_trans_r3` UKF/FGO replay refused by the dejitter guard**
+(`imu_timing.py`, residual 30.2 ms > 25 ms).
+- **Cause, from `/imu/time_ref`:** one real IMU dropout. A single 29.99 ms step in
+  SITL sensor time means about 9 samples never arrived. It happened at t ≈ 6.16 s, in
+  the first 0.65 s of the IMU stream: on the ground, pre-arm, about 24 s before the
+  cruise window.
+- No other bag has one. With the first 2 s excluded, this bag's residual max is
+  11.2 ms and the fit moves 0.23 ms.
+- The guard behaved as designed and has **not** been changed.
+- EKF3 is unaffected, since it runs live in SITL. It is scored from a
+  `ukf/ground_truth.tum` written by `eval/extract_gt_tum.py`. That method was verified
+  byte-identical on `fwd_trans_r2`. **That `ukf/` folder holds ground truth only, with
+  no UKF trajectory.**
+- **Options for the ruling:**
+  - **(a), recommended:** start this bag's replay at the first IMU sample after the
+    single dropout. That trims only the pre-arm, on-ground segment (t < 6.17 s) and
+    leaves the cruise window untouched.
+  - **(b)** Accept n=2 for UKF/FGO on transition.
+  - **(c)** Fly an extra trial. It breaks the interleaved order, gives a new
+    trajectory realisation, and the dropout could recur.
+  - **Not an option:** using `/imu/time_ref` sensor time for this one bag. That is the
+    OI-2 residual option, batched for the consolidated re-run, and it would make this
+    bag inconsistent with the other eight.
+
+**Diagnostics (reported, never a gate).**
+- **P2 flow → EKF3 latency** (median / p95 ms):
+  - textured 24.9/34.4, 22.7/33.5, 19.7/29.6 (n=3 mean 22.4/32.5; limits ≤ 28.1/36.7)
+  - transition 21.4/31.5, 25.7/35.9, 22.6/35.7 (mean 23.2/34.4; limits ≤ 30.4/38.2)
+  - blank 29.2/39.4, 24.1/33.9, 25.1/36.1 (mean 26.1/36.5; limits ≤ 29.9/38.2)
+  - **`fwd_blank_r1` p95 exceeds its limit: 39.4 against 38.2.** Phase 1 flagged this
+    possibility in advance.
+  - Matched frames: textured 100%, transition 98.7–98.8%, blank 80–82%, all above
+    their floors.
+  - This is the flow-latency difference the STANDING RULE requires to be stated
+    alongside any EKF3 `fwd` vs `dsn` comparison, including P4 above.
+- **RTF:** 0.73–0.81. Forward image 30.29–30.30 Hz.
+- **IMU dejitter residual max** (ms): 11.8, 10.9, 12.8 (textured); 21.8, 13.5, refused
+  (transition); 11.0, 12.1, 11.8 (blank). The `dsn` validity was ±13 ms.
+  `fwd_trans_r1`'s 21.8 is under the guard but outside that range.
+- **UKF evo -a (cruise):** 42.73 / 7.67 / 9.31 (textured).
+- **evo -a (cruise) on transition and blank:**
+  - EKF3: 21.9 / 21.7 / 22.0 (transition); 34.8 / 34.9 / 34.0 (blank)
+  - FGO: 25.8 / 26.3 / — (transition); 25.6 / 25.7 / 26.0 (blank)
+
+**Status.** Phase 2 is **not** declared passed.
+- `fwd_tex_r1`'s primary miss needs a ruling.
+- `fwd_trans_r3`'s UKF/FGO needs a handling ruling before it is computed. No
+  provisional number was produced, so the rule comes before the result.
+- Everything else passes every primary criterion.
+
+### RULE — IMU gaps and the replay estimators (user ruling, 2026-09-24; recorded before any result under it)
+
+**Rule.**
+- **A gap before arming:** the UKF/FGO replay starts at the first IMU sample after
+  the (last) gap.
+- **Any gap after arming:** the bag is **unusable for the replay estimators**
+  (UKF/FGO). It is reported as such, and EKF3 is still scored.
+
+**Definitions** (`eval/imu_gap_check.py`; verdict written to `<trial>/imu_gaps.json`,
+read by the replays):
+- **Gap.** A step in `/imu/time_ref` sensor time (HIGHRES_IMU `time_usec`) larger than
+  **10 ms**.
+  - In all nine `fwd_*` bags the normal steps are only 2, 3, 5 and 6 ms. The 333 Hz
+    stream is sampled off SITL's 400 Hz loop, so steps alternate while averaging
+    3.0005 ms.
+  - The two real dropouts found are 20 and 30 ms. So 10 ms sits above every normal
+    step and below both.
+- **Arming.** The first dataflash `ARM` record with ArmState = 1.
+  - `time_usec` and `TimeUS` are the same clock (`AP_HAL::micros64()`,
+    GCS_Common.cpp:2298), so no clock mapping is involved.
+- **Replay start.** The replay drops every event (all sensors) before the start
+  stamp, so the estimator initialises on the stationary data after it. Its
+  initialisation (range height, levelling from gravity) only needs stationary data.
+- **Scope.** Bags without `/imu/time_ref` (all `dsn_*`) cannot be checked, and their
+  replays are unchanged. They passed the dejitter validity check (residuals within
+  ±13 ms, no dropped-sample step).
+
+**Applying the rule to all nine `fwd_*` bags catches two, not one:**
+- `fwd_trans_r3`: a 30 ms gap at t = 6.16 s (arming 24.09 s). This is the bag the
+  dejitter guard refused.
+- **`fwd_trans_r1`: a 20 ms gap at t = 14.04 s (arming 24.13 s).** The guard did not
+  catch it, because its residual (21.8 ms) is under the 25 ms limit. Its UKF/FGO
+  result reported above was computed with the pre-gap samples mis-timed by ~17 ms. It
+  is re-replayed under the rule, and any change is reported.
+- The other seven have no gap.
+
+### RULING 1 — `fwd_tex_r1` FGO primary miss (user, 2026-09-24; recorded before the check)
+
+**The miss stands as recorded.** Before the user rules on the bag's use, there is
+**one bounded check, time-boxed to one hour**, reading only what is on disk or cheap
+to compute:
+1. UKF and FGO yaw error over the cruise window, r1 against r2/r3.
+2. Simulated gyro drift over the cruise window, per bag: arming time within the
+   triangle-wave cycle, and the true bias ramp during cruise.
+3. Any IMU-stream difference between r1 and r2/r3 beyond the gap check: dejitter
+   residual statistics, and `time_ref` against receipt timing.
+
+**Decision rule** (recorded now):
+- **If the cause is a property of the flight** (for example the drift phase): the bag
+  is kept, with the miss recorded.
+- **If it is an input defect:** the bag is excluded, and one replacement trial is flown
+  at the end of the batch, with the order break documented.
+- **If nothing explains it within the hour:** that is reported and not investigated
+  further.
+
+**`fwd_blank_r1` P2 p95 (39.4 against 38.2 ms):** diagnostic under the
+reclassification. Recorded; no action.
+
+### IMU-gap rule applied (2026-09-24)
+
+`imu_timing.apply_gap_rule`, called by both replays before the dejitter, reads
+`<trial>/imu_gaps.json`.
+- **Unchanged where no rule applies.** Re-running with the rule in place reproduced
+  the stored UKF and FGO trajectories **byte for byte** on `dsn_tex_r1` (no file) and
+  `fwd_tex_r2` (verdict "ok").
+- **Remaining pre-arm stationary period**, from replay start to takeoff (first GT
+  height 5 cm above rest). Over both periods the GT horizontal speed is 0.0 m/s and the
+  height span is 0.0 m.
+
+| trial | gap | replay start | arming | takeoff | stationary (of which before arming) |
+|---|---|---|---|---|---|
+| `fwd_trans_r1` | 20 ms at 14.04 s | 14.062 s | 24.13 s | 27.61 s | 13.5 s (10.1 s) |
+| `fwd_trans_r3` | 30 ms at 6.16 s | 6.190 s | 24.09 s | 27.56 s | 21.4 s (17.9 s) |
+
+**Results** (`eval/results/phase2_fwd_evo.json`; `fwd_trans_r1`'s pre-rule result is
+kept under `superseded`, and its old replay folders are renamed `*_pregaprule`):
+- **`fwd_trans_r3`:** now evaluated, and **passes every primary criterion.**
+  - FGO: ratio 0.716 [0.67, 0.78], onset 95.1 m [90, 101].
+  - EKF3 unchanged: 0.55 / 100.5 m.
+  - UKF (diagnostic): 8.95, ratio 0.957, onset 71.1 m.
+- **`fwd_trans_r1`:** the rule changes almost nothing.
+  - FGO evo -a (cruise) 25.849 → 25.840, with ratio 0.724 and onset 95.5 m unchanged.
+  - UKF (diagnostic) 8.66 → 7.98, ratio 0.959 → 0.963, onset 70.4 → 68.7 m.
+  - Still passes.
+- **Phase 2 primary status:** eight of nine pass. The only miss is `fwd_tex_r1` FGO
+  (Ruling 1).
+
+### Ruling 1 bounded check — result (2026-09-24, well inside the one-hour box)
+
+Textured cruise windows; reference = the other five textured bags (`fwd` r2/r3, `dsn`
+r1–r3).
+
+**(1) Yaw error against GT heading.** Change from cruise start to the 25/50/75/100%
+points, in degrees:
+
+| bag | FGO Δ at 100% | FGO RMS Δ | UKF Δ at 100% |
+|---|---|---|---|
+| `fwd_tex_r1` | **−49.4** | 23.7 | **+451.5** |
+| `fwd_tex_r2` / `r3` | −45.6 / −44.8 | 21.7 / 21.1 | +25.7 / +50.7 |
+| `dsn_tex_r1` / `r2` / `r3` | −45.6 / −46.6 / −44.0 | 21.5 / 22.1 / 20.6 | +152.0 / +64.8 / +184.5 |
+
+- The FGO's heading error on r1 ends ~4° beyond the other five, which span −44.0 to
+  −46.6.
+- The UKF's heading runs away (yaw drift 89.6 deg/min; gyro-bias estimate −116 deg/min
+  against a true 8.9).
+- **Both replay estimators drift further in yaw on this bag.** That localises the
+  higher UKF/FGO scores to heading error. It does not say why the heading drifts more.
+
+**(2) Simulated gyro drift: identical across all six bags.**
+- Cruise starts 29.8–30.4 s after boot. The triangle-wave true bias runs from
+  1.49–1.52 to 13.35–13.41 deg/min over cruise, with a mean of 8.87–8.90.
+- The phase and ramp are the same to within ~0.5 s, so the drift phase **does not**
+  distinguish r1.
+
+**(3) IMU stream: no difference.**
+- Beyond the gap check, which found no gap on r1, measured from `/imu/data_raw`
+  against GT yaw rate over cruise:
+
+  | quantity | r1 | other five |
+  |---|---|---|
+  | gyro-z bias mean (deg/min) | −8.890 | −8.877 to −8.913 |
+  | gyro-z bias ramp (deg/min/min) | −2.841 | −2.812 to −2.829 |
+  | 10 s-bin std (deg/min) | 4.12 | 4.09–4.11 |
+  | gyro x/y means | same | same |
+  | GT yaw span (°) | 0.12 | 0.12–0.14 |
+
+- Dejitter residual std / max, in ms: r1 3.35 / 11.8; r2 3.40 / 10.9; r3 3.41 / 12.8.
+- `time_ref` against receipt timing (header minus a linear fit on sensor time), std /
+  max in ms: r1 3.25 / 11.0; r2 3.30 / 11.1; r3 3.31 / 12.1.
+
+**Conclusion under the pre-recorded decision rule: none of the three explains it.**
+- Neither the drift phase (a flight property) nor an IMU-stream defect (an input
+  defect) differs on r1.
+- The check localises the miss to larger estimator heading drift on identical IMU
+  input. Its cause was not found within the box, and is **not investigated further**.
+- The bag's use is the user's ruling.
+
+### RULING (user, 2026-09-24): `fwd_tex_r1` is KEPT; the P4 miss stays recorded
+
+**The bag is kept. Its P4 primary miss (FGO evo -a (cruise) 5.158 against a band of
+[4.17, 5.14]) stays recorded as a miss.** It is not re-scored and not waived.
+
+**Reasoning, as ruled.**
+- **No defect, so no exclusion.** The decision rule allowed exclusion only for an input
+  defect, and the bounded check found none: identical drift phase, identical IMU
+  statistics, no gap. Excluding or re-flying a bag because an estimator performed
+  badly on it, without a defect, would be **selection bias**.
+- **The excess error is heading drift in the unobservable direction.** The UKF runaway
+  (+451°) is the documented consistency failure ("Filter consistency — measured
+  overconfidence in the weakly-observable directions") at a larger magnitude.
+  - This is **run-to-run variability in an unobservable state**, which n=3 bands
+    cannot fully capture.
+  - It links to the open `dsn` noise-floor item ("The n=3 ranges are not a noise
+    floor"). No new work on that now.
+- **The world did not introduce the confound.**
+  - EKF3 is normal (4.37).
+  - P3 passes.
+  - The FGO n=3 mean (4.80) is in band.
+  - Together these indicate the new world did not introduce the confound P4 guards
+    against.
+- **Flagged for Phase 5 as the high-heading-drift case.** `fwd_tex_r1` is reported
+  **individually as well as in the means**.
+
+## Phase 2 — COMPLETE (2026-09-24), one recorded primary miss
+
+All nine `fwd_*` bags are in the dataset.
+- **Primary:** P1 and P3 pass in all nine. P4 passes in eight.
+- **The one miss:** `fwd_tex_r1` FGO evo -a (cruise), kept per the ruling above and
+  flagged for Phase 5.
+- **IMU-gap rule:** `fwd_trans_r1` and `fwd_trans_r3` were replayed under it.
+- **Diagnostic, no action:** `fwd_blank_r1` P2 p95 (39.4 against 38.2 ms).
+- **Results:** `eval/results/{input_timing_p2fwd,flow_quality_p2fwd,phase2_fwd_evo,phase2_score}.json`.
+
+## Scope reframing — textured walls are the UPPER BOUND (user, 2026-09-24)
+
+**The thesis is about featureless environments.** Line-textured walls give the forward
+camera close to best-case conditions.
+- **The `fwd_*` dataset (textured walls) is the upper bound for a forward heading
+  cue.** It shows what a forward cue can do when the walls give it rich structure.
+- **No claim that a forward cue works in featureless environments is made from
+  `fwd_*`.**
+- The featureless case is the **plain-wall** dataset `fwdplain_*` below. It is promoted
+  from "a later ablation" (Forward camera — worlds, design decision) into the **main
+  experiment**.
+- **Phases 3–5 run on both datasets:** `fwd_*` as the upper bound, `fwdplain_*` as the
+  featureless case.
+
+### Design decision — `corridor_{textured,blank,transition}_fwdplain.sdf` (recorded before building or flying)
+
+**Construction.** Each is the corresponding `_fwd` world with these changes only:
+- the `<world name>`;
+- the side walls use `model://corridor_wall` (plain grey, the `dsn` walls) in place of
+  `corridor_wall_lined`;
+- the end wall uses `model://corridor_end_wall_plain`: the same 19.8 × 0.2 × 5 m box and
+  pose as `corridor_end_wall`, with `corridor_wall`'s untextured material.
+
+The floor tiles, `ground_collision`, lighting, spawn, physics and the `iris_fwd` drone
+are identical to `_fwd`. Equivalently, each plain world is its `dsn` world plus the
+forward camera and the plain end wall.
+
+**Reasoning.**
+- **The only forward-visible structure is geometric:** the wall–floor junctions, the
+  end wall's outline, and the shading differences between faces under the fixed sun.
+  Those structural edges are all a forward camera would have in a featureless
+  corridor.
+- **The geometry and lighting stay normal**, so the scene is not made artificially
+  empty.
+- **No ceiling exists** in any corridor world (`dsn`, `_fwd`). None is added: it would
+  change the geometry and the lighting relative to both reference datasets.
+- **The end wall is kept, but made plain.** Removing it would change the geometry
+  against `_fwd`. Keeping it textured would leave a texture cue.
+- **The floor is unchanged,** so downward-flow conditions should match `dsn` and
+  `fwd`, and floor texture stays the only variable between the three worlds.
+
+**Harness.** `run_trial.sh` enables the forward-camera bridge and recording for world
+names matching `*_fwd` **or** `*_fwdplain`. Every other world's bridge and recorder
+argument lists are unchanged (the same empty-array mechanism as `_fwd`).
+
+### Plain-wall Phase 1 — confound check, pre-registered before flying
+
+**Flights.** One flight per plain world: `p1plain_{tex,trans,blank}`, at the
+`dsn`/`fwd` settings (0.5 m/s, 2.0 m, 300 s, no compass, `sim_noise.parm`, RANSAC seed
+42). Flown with `run_resumable_batch.sh` in tmux, in the order tex, trans, blank.
+
+**Criteria.** These are the Phase 1 primary checks under the revised criterion, with
+the Phase 2 bands. Baseline: the same-world `dsn` n=3 values.
+
+| # | criterion | band | status |
+|---|---|---|---|
+| P1 | estimator-input header timing | flow and lidar 30.30 Hz ± 0.1%, ≤ 0.5% of gaps above 1.5×; IMU mean gap 3.0005 ± 0.003 ms, p99 ≤ 10 ms | PRIMARY |
+| P3 | downward-flow conditions | inlier ±0.01, % below 0.5 within ±3 pp, features ±5%, `flow_y_raw` ±2% (±5 px/s on blank), transition switch in the 80–82 m bin with levels ±0.01, GT \|x\| ≤ 0.05 m | PRIMARY |
+| P4 | EKF3 outcome | textured evo -a (cruise) [1.26, 8.13]; transition ratio [0.51, 0.63], onset [96, 108] m; blank ratio [0.12, 0.27], onset [13, 24] m | PRIMARY |
+| P4 | FGO outcome (dejittered baseline) | textured [4.17, 5.14]; transition ratio [0.67, 0.78], onset [90, 101] m; blank ratio [1.45, 1.60], onset [28, 42] m | PRIMARY |
+| P2 | flow → EKF3 latency against same-world `dsn` mean + 12.5 ms | as Phase 2 | DIAGNOSTIC (the 2026-09-24 ruling's reasoning applies unchanged: Phase 5 compares with and without the forward cue on the same bags) |
+| — | RTF, topic rates, forward-image rate, `/imu/time_ref`, every UKF metric, evo -a (cruise) on transition and blank | report | DIAGNOSTIC |
+
+**Why a miss would mean the confound.** It is the same reasoning as Phases 1 and 2.
+P1 and P3 test whether the forward camera's load, or the new walls, alter the shared
+inputs. P4 tests whether estimator behaviour changes through them.
+
+**Handling.**
+- The IMU-gap rule applies: pre-arm gap → trim; post-arm gap → UKF/FGO unusable and
+  reported, so FGO P4 is then NOT EVALUATED for that flight.
+- **Gate:** the `fwdplain_*` batch starts only if every evaluated primary criterion
+  passes on all three flights. A primary miss stops the work and is reported to the
+  user.
+- The Phase 1 check flights are not part of the `fwdplain_*` dataset.
+
+## Phase 2b — `fwdplain_*` dataset: pre-registration (2026-09-24, before any plain-wall data exists)
+
+**Dataset.** `fwdplain_{tex,trans,blank}_r{1,2,3}`: the three `_fwdplain` worlds × 3
+repeats.
+- **Settings:** the same as `fwd_*` (300 s, 0.5 m/s, 2.0 m, no compass,
+  `sim_noise.parm`, RANSAC seed 42, `run_trial.sh`).
+- **Recording:** the same as `fwd_*`, including the forward images and
+  `/imu/time_ref`.
+- **Order:** interleaved (tex r1, trans r1, blank r1, tex r2, …).
+- **Runner:** `run_resumable_batch.sh` in tmux, crash-safe and resumable.
+- **Replays:** the current baseline estimators (OI-2 dejitter, FGO window 0.25 s,
+  IMU-gap rule).
+- **Evaluation:** `eval/three_way_eval.py`, `eval/input_timing.py`,
+  `eval/flow_quality.py` and `eval/imu_gap_check.py`, scored by `eval/phase2_score.py`.
+
+**Criteria.** Identical to the Phase 2 table: **PRIMARY** P1, P3, and P4 for EKF3 and
+the FGO, with the same bands and the same `dsn` n=3 baseline, judged per trial.
+**DIAGNOSTIC:** P2, RTF, topic and forward-image rates, `/imu/time_ref`, every UKF
+metric, and evo -a (cruise) on transition and blank.
+
+**Handling, fixed now.**
+- **A primary miss:** reported to the user, as in Phase 2. It is not re-scored or
+  waived on the spot.
+- **Bags are excluded only for an input defect** (Ruling 1's standard). A poor
+  estimator result alone never excludes a bag.
+- **IMU-gap rule:**
+  - pre-arm gap → trim;
+  - post-arm gap → the bag is reported as unusable for UKF/FGO, EKF3 is still scored,
+    and UKF/FGO in that world are reported at n=2. No re-flight, which avoids
+    outcome-dependent selection.
+- **A trial that fails to complete** (run_trial error or failed validation) is
+  re-flown by the runner once. That is a recording failure, not an outcome.
+
+### Plain-wall Phase 1 — result: ALL PRIMARY PASS (2026-09-24)
+
+`p1plain_{tex,trans,blank}`, flown 10:56–11:18 with `run_resumable_batch.sh`, 3/3
+complete.
+- **Provenance:** the batch started at `23d9423`. The trial metadata records `3aa80aa`,
+  because `run_trial.sh` reads HEAD at the end of a trial and an eval-only commit
+  landed mid-batch. Commits are held while flying from now on.
+- **Evaluation:** `eval/run_set_eval.sh p1plain …`; results
+  `eval/results/{input_timing,flow_quality}_p1plain.json`, `p1plain_{evo,score}.json`.
+- **IMU-gap rule:** `p1plain_blank` had two pre-arm gaps (22 and 25 ms at 12.4 and
+  13.2 s; arming at 24.7 s). The replay starts at 13.19 s, leaving 15.0 s stationary
+  (GT speed 0).
+
+| | `p1plain_tex` | `p1plain_trans` | `p1plain_blank` |
+|---|---|---|---|
+| P1 flow, lidar, IMU | pass | pass | pass |
+| P3 downward flow | pass (inlier 0.9735) | pass (switch 80–82 m bin; levels 0.973 / 0.314) | pass (inlier 0.3137) |
+| P4 EKF3 | 4.46 | 0.545 / 100 m | 0.205 / 18 m |
+| P4 FGO | 4.69 | 0.710 / 95 m | 1.533 / 37 m |
+| *diag.* P2 median / p95 (ms) | 21.1 / 31.5 | 22.1 / 32.5 | 28.5 / 38.2 (limit 38.2) |
+| *diag.* RTF; UKF | 0.82; 36.4 | 0.76; 9.18 | 0.78; 13.3 |
+
+**Gate met on the pre-registered criteria.** However, the batch is **HELD** for the
+finding below.
+
+### FINDING (render check, 2026-09-24) — the forward camera sees a textured SKY; `fwdplain_*` held pending a ruling
+
+Frames: `plots/fwd_camera/p1plain/`.
+- **The plain walls render as intended:** uniform grey faces; only the wall–floor
+  junctions, the end wall's outline and the shading between faces are visible.
+- **The problem is above them.** **No corridor world has a ceiling**, and every world
+  declares `<sky></sky>` (Gazebo's cloud skybox).
+  - The forward camera sees textured clouds across **~46% of the frame height** on the
+    centre line for most of the flight (rows 0–~225 of 480). That falls to ~29% near
+    the end wall.
+  - The same holds in `fwd_*` (`plots/fwd_camera/p1_fwd_blank_forward_frames.png`).
+- **Why it matters.** Clouds at effectively infinite range are a near-ideal
+  **rotation/heading reference**: pure rotation, no parallax. A forward heading cue
+  could lock onto the sky rather than the corridor. In `fwdplain_*` that would make
+  the "featureless case" not featureless, which would change the thesis claim it
+  exists to support.
+- **For `fwd_*` as the upper bound,** the sky only adds cue, so the upper-bound framing
+  holds. It must be stated that the upper bound includes a far-field sky cue that a
+  real indoor corridor does not have.
+- **Options, for the user's ruling:**
+  - **(a) Recommended:** a plain, non-shadow-casting ceiling at z = 5 m (the wall top)
+    in the `_fwdplain` worlds.
+    - It matches the design intent ("normal wall/floor/ceiling geometry") and a real
+      indoor corridor, and adds only wall–ceiling edges.
+    - With `cast_shadows` off, the sun still lights the floor, so downward-flow
+      conditions should be unchanged.
+    - The plain-wall Phase 1 check is re-flown on the modified worlds, since P3 is the
+      test that the floor lighting is unchanged.
+  - **(b)** Remove `<sky>` in the `_fwdplain` worlds, giving the uniform 0.8 grey
+    background. There is no geometry change, but it is not physically an indoor scene.
+    The check is again re-flown.
+  - **(c)** Keep the sky in both datasets and document it as a shared far-field cue.
+    `fwdplain_*` is then "plain walls under an open, textured sky", not featureless.
+  - Under (a) or (b), `fwd_*` and `fwdplain_*` differ in wall texture **and** in the
+    sky. Isolating wall texture alone would need the same change and a re-flight of
+    `fwd_*`; that is also the user's call.
+
+## RULING (user, 2026-09-24): CEILING in both forward-camera datasets — option (a), applied to both
+
+**Reasoning, as ruled.**
+- **The sky is a near-ideal heading and yaw-rate cue.** Clouds at infinity show pure
+  rotation with no parallax.
+- **It would contaminate both measurements** the forward camera exists for: heading
+  from structure, and yaw rate from forward flow. It would do so in both datasets,
+  with a cue no real indoor corridor has.
+- **The textured-wall upper bound must not include it either.**
+- **The ceiling is therefore added to both datasets,** so wall texture is the only
+  difference between them.
+
+### Design — ceiling worlds `corridor_{textured,transition,blank}_{fwdc,fwdplainc}.sdf` (recorded before building or flying)
+
+**Construction.**
+- Six new worlds. `_fwdc` is built from `_fwd` (line-textured walls); `_fwdplainc` is
+  built from `_fwdplain` (plain walls). The source worlds are **not modified**.
+- **The one change:** each includes `model://corridor_ceiling`, plus its own world name.
+- **`corridor_ceiling`:**
+  - a static slab, 20.2 × 170 × 0.1 m;
+  - bottom face at z = 5.0 m, the wall-top height, spanning x = −10.1…10.1 (the walls'
+    outer faces) and y = −5…165 (the walls' extent). So it closes the corridor
+    exactly, including over the end wall (y = 164.9–165.1);
+  - plain, untextured, with `corridor_wall`'s material;
+  - **non-shadow-casting** (`<cast_shadows>false</cast_shadows>`), so the directional
+    sun still lights the floor as before;
+  - **visual-only, no collision.** The drone flies at 2 m. Known Issue #11 showed that
+    redundant collision geometry is the lockstep hazard. `gpu_lidar` raycasts the
+    rendering scene, but points straight down, never up.
+- Everything else is identical to the source world: floor, walls, end wall, lighting,
+  spawn, physics, and `iris_fwd`.
+
+### Superseded (kept, labelled, not analysed further)
+
+Superseded because the forward view includes the sky:
+- the worlds `corridor_*_fwd.sdf` and `corridor_*_fwdplain.sdf`;
+- the `fwd_*` dataset;
+- the check flights `p1_fwd_*` and `p1plain_*`.
+
+They are kept on disk (`SUPERSEDED.txt` in each trial directory) and **not analysed
+further**. Their Phase 1/2 results above remain as the record of what was run.
+`fwd_tex_r1`'s Phase 5 high-heading-drift flag is **not carried across.** It applies
+to whichever ceiling-dataset bag shows high heading drift.
+
+### Ceiling datasets — pre-registration (2026-09-24, before any ceiling data exists; supersedes the Phase 2b plan for `fwdplain_*`)
+
+**Check flights (Phase 1c).** One per ceiling world, six in all:
+`p1c_{fwdc,fwdplainc}_{tex,trans,blank}`.
+- Flown in one resumable tmux batch (`run_resumable_batch.sh`), interleaved by dataset
+  within each world.
+- Same settings as `dsn`/`fwd`: 0.5 m/s, 2.0 m, 300 s, no compass, `sim_noise.parm`,
+  RANSAC seed 42.
+
+**Datasets.** `fwdc_*` (textured walls = upper bound) and `fwdplainc_*` (plain walls =
+featureless case).
+- Each is three worlds × three repeats, same settings.
+- Flown in one resumable tmux batch, interleaved as tex r1 fwdc, tex r1 fwdplainc,
+  trans r1 fwdc, trans r1 fwdplainc, blank r1 fwdc, blank r1 fwdplainc, then r2, r3.
+- **No commits while flights are running.**
+
+**Criteria** (checks and datasets alike; judged per trial; same bands and same `dsn`
+n=3 baseline as Phase 2):
+
+| # | criterion | status |
+|---|---|---|
+| P1 | estimator-input header timing (Phase 2 bands) | PRIMARY |
+| P3 | downward-flow conditions (Phase 2 bands) — **the key check that the ceiling did not alter floor lighting** | PRIMARY |
+| P4 | EKF3 and FGO outcome (Phase 2 bands; FGO on the dejittered baseline) | PRIMARY |
+| R | **render check: no sky visible anywhere in the forward view**, from sample frames (below) | PRIMARY |
+| P2 | flow → EKF3 latency (same-world `dsn` mean + 12.5 ms) | DIAGNOSTIC |
+| — | RTF, topic and forward-image rates, `/imu/time_ref`, every UKF metric, evo -a (cruise) on transition and blank | DIAGNOSTIC |
+
+**Render check R.** It is applied at two points.
+- **Before any flight:** `sim/tools/render_check.sh` on each of the six worlds, at y
+  = 0, 80 and 160 (z = 2.3 m).
+- **After each check flight:** forward frames extracted at y = 0.5, 10, 40, 80, 120 and
+  150 m, and 153 m (the cruise end).
+- **Pass:** in every sampled frame, everything above the walls is the plain ceiling,
+  with no sky pixels anywhere.
+
+**Gate and handling.**
+- **P3 fails anywhere in the check flights:** stop and report. **Lighting is not
+  adjusted to make it pass.**
+- **Any other primary miss in the check flights:** also stop and report.
+- **The datasets are flown only if all six check flights pass every evaluated primary
+  criterion.**
+- **Dataset handling is the same as fixed for Phase 2b:**
+  - a primary miss is reported, not re-scored or waived;
+  - bags are excluded only for an input defect;
+  - IMU-gap rule: pre-arm gap → trim; post-arm gap → UKF/FGO unusable for that bag,
+    reported at n=2, no re-flight;
+  - a trial that fails to record is re-flown once by the runner.
+
+### Phase 1c ceiling check flights — result: STOPPED on a P3 miss (2026-09-24)
+
+`p1c_{fwdc,fwdplainc}_{tex,trans,blank}` were flown 11:33–12:20 at `4a7ab90`, 6/6
+complete. Results: `eval/results/{input_timing,flow_quality}_p1c.json`,
+`p1c_{evo,score}.json`; frames in `plots/fwd_camera/p1c_frames/`.
+
+| | fwdc tex | fwdplainc tex | fwdc trans | fwdplainc trans | fwdc blank | fwdplainc blank |
+|---|---|---|---|---|---|---|
+| P1 | pass | pass | pass | pass | pass | pass |
+| P3 | pass | pass | pass (`flow_y_raw` 71.38) | **FAIL: `flow_y_raw` 73.01 against 71.43 ± 2% (≤ 72.86)** | pass | pass |
+| P4 EKF3 | 3.92 | 4.49 | 0.55 / 101 m | 0.555 / 101 m | 0.208 / 20 m | 0.195 / 18 m |
+| P4 FGO | 4.60 | 4.53 | **not evaluated** (below) | 0.712 / 95 m | 1.529 / 37 m | 1.496 / 38 m |
+| R (no sky) | pass | pass | pass | pass | pass | pass |
+
+**Render check R: PASS.**
+- Before flight: 18 frames (six worlds × y = 0, 80, 160).
+- In flight: 42 frames (six flights × seven positions).
+- Everything above the walls is the uniform ceiling in every frame, with no sky
+  anywhere.
+
+**P3 miss, as the pre-registration requires: stop and report; lighting is not
+adjusted.** Recorded facts only, not investigated:
+- `p1c_fwdplainc_trans` `flow_y_raw` = 73.01 px/s, which is +2.2% against the `dsn`
+  n=3 mean of 71.43.
+- Every other P3 metric on that flight passes: inlier mean 0.6647, % below 0.5 39.49,
+  features 31.64, switch in the 80–82 m bin, levels 0.972 / 0.312, GT |x| 0.0099 m.
+- Its P1 and P4 pass. Its ceiling-world sibling `p1c_fwdc_trans` gives 71.38.
+- Reference values for the same metric on transition:
+  - `dsn` 70.89 / 71.73 / 71.67;
+  - superseded `fwd_trans` 71.14 / 70.52 / 71.90, `p1_fwd_trans` 72.29,
+    `p1plain_trans` 71.37.
+- `flow_y_raw` passes on textured (136.08 twice, against 136.45 ± 2%) and on blank, in
+  both ceiling datasets.
+
+**Also pending:** `p1c_fwdc_trans` UKF/FGO replay was refused by the dejitter guard
+(residual 289 ms).
+- **Cause:** 92 IMU samples arrived with **one receipt stamp** at t = 12.48 s, after a
+  292 ms delivery pause. `/clock` also paused for 170 ms at t = 12.28 s.
+- This was at IMU stream start, pre-arm (arming 24.93 s), with **no sensor-time gap**
+  (sensor steps are all normal, so no samples were lost).
+- Flow and lidar never gap above 33 ms. P1 (cruise) passes.
+- The IMU-gap rule defines a gap on sensor time, so it does not cover a receipt
+  bunching. The rule is **not extended without a ruling**. FGO P4 for this flight is
+  NOT EVALUATED, and EKF3 is scored.
+
+**The ceiling datasets (`fwdc_*`, `fwdplainc_*`) are NOT flown** pending the user's
+ruling.
+
+### RULINGS (user, 2026-09-24) on the Phase 1c result — recorded before applying or flying
+
+**Ruling 1 — `p1c_fwdplainc_trans` P3 forward-flow miss (73.01 against ≤ 72.86).**
+- **The miss stays recorded.** The ceiling-dataset batch proceeds.
+- **Decision rule, fixed before flying:**
+  - **If 2 or more of the 3 `fwdplainc_trans_r*` dataset trials fail** the P3
+    `flow_y_raw` criterion: stop and report, for investigation of the world.
+  - **Otherwise** the check-flight miss is recorded as **run-to-run variability**,
+    noting that:
+    - every other P3 metric on that flight passed;
+    - its textured-wall twin `p1c_fwdc_trans` gave 71.38;
+    - the walls are outside the downward camera's view (Phase 1).
+- **The ±2% band is not changed.** Note: the transition world's historical spread of
+  this metric (70.52–72.29 across `dsn`, `fwd_trans`, `p1_fwd_trans` and
+  `p1plain_trans`) sits close to the band (70.00–72.86 around the `dsn` mean of 71.43).
+  The transition mean mixes a textured level (~136 px/s) and a blank level (~−3 px/s),
+  so it has less headroom than the textured or blank values.
+
+**Ruling 2 — IMU timing rule EXTENDED** (supersedes "RULE — IMU gaps and the replay
+estimators").
+- **Irregularity:** any IMU timing irregularity the timing correction cannot process.
+  Either:
+  - a **gap**: a step of more than 10 ms in `/imu/time_ref` sensor time, or
+  - a **receipt bunch**: samples whose receipt stamp is displaced by more than 25 ms
+    from the linear map of receipt against sensor time. 25 ms is the dejitter guard's
+    own limit, i.e. exactly what the correction cannot process.
+- **Before arming:** the replay starts at the first clean sample after the last
+  irregularity, **provided at least 10 s of stationary data remains before arming**.
+- **Less than 10 s remains, or the irregularity is after arming:** the bag is
+  **unusable for UKF/FGO**, and reported as such. EKF3 is still scored.
+- **Applied to** `p1c_fwdc_trans` and to **every dataset bag**, via
+  `eval/imu_gap_check.py` → `<trial>/imu_gaps.json`.
+
+**Extended timing rule applied to `p1c_fwdc_trans`.**
+- An 89-sample receipt bunch at t = 12.48 s (max displacement 288 ms), pre-arm.
+- The replay starts at 12.775 s, leaving 12.2 s before arming (≥ 10 s). The dejitter
+  residual max is then 11.75 ms.
+- **It now passes every primary criterion:** FGO ratio 0.700 [0.67, 0.78], onset
+  94.9 m [90, 101]; EKF3 0.55 / 100.6 m. UKF (diagnostic): 17.76, ratio 0.794, onset
+  82.7 m.
+- **Phase 1c status:**
+  - five of six pass every primary criterion;
+  - the one miss (`p1c_fwdplainc_trans` P3 `flow_y_raw`) is recorded, with Ruling 1's
+    decision rule to be applied on the dataset;
+  - render check R passes on all six.
+- **The extended rule leaves every earlier verdict unchanged** (re-checked on
+  `fwd_trans_r1`, `fwd_trans_r3`, `fwd_tex_r2` and `p1plain_blank`).
+- **Note:** even clean bags carry only 11.5–13.8 s of IMU data before arming, because
+  the IMU stream starts after `SET_MESSAGE_INTERVAL` lands. So the 10 s floor leaves
+  room only for irregularities in the first ~1.5–3.8 s of the stream.
+
+## Ceiling datasets `fwdc_*` / `fwdplainc_*` — result (2026-09-24): one primary miss, reported
+
+**Flown.** 18/18 trials completed first time, with no aborts, at `2f3dbf1`.
+- Tmux batch `ceiling_datasets`, 12:38:40–14:59:33 (140.9 min), interleaved as
+  pre-registered.
+- No commits during flights.
+- Evaluation: `eval/run_set_eval.sh`; results
+  `eval/results/{input_timing,flow_quality}_{fwdc,fwdplainc}.json`,
+  `{fwdc,fwdplainc}_{evo,score}.json`.
+- Frames: `plots/fwd_camera/ceiling_dataset_frames/`.
+
+**Extended IMU timing rule, applied to all 18.** 15 bags are `ok` and 3 are `trim`. None
+is unusable, so UKF/FGO are evaluated on all 18.
+
+| trial | pre-arm irregularity | left before arming |
+|---|---|---|
+| `fwdc_tex_r1` | receipt bunches of 60 and 1 samples | 12.2 s |
+| `fwdc_tex_r2` | a 2-sample bunch | 10.7 s |
+| `fwdplainc_trans_r2` | a 30 ms gap | 12.4 s |
+
+**Render check R: PASS on all 18.** In 7 sampled positions per bag, only the uniform
+ceiling is above the walls; there is no sky.
+
+**Primary results.**
+- **`fwdplainc_*`: 9/9 pass every primary criterion.**
+- **`fwdc_*`: 8/9 pass.** **`fwdc_trans_r1` FAILS P3 `flow_y_raw`: 73.57 against
+  71.43 ± 2% (≤ 72.86).** Everything else on it passes: inlier mean 0.6654, switch in
+  the 80–82 m bin, levels 0.975 / 0.312, EKF3 0.564 / 101 m, FGO 0.713 / 95 m.
+
+| | tex r1 / r2 / r3 (EKF3; FGO evo -a (cruise)) | trans r1 / r2 / r3 `flow_y_raw` | blank |
+|---|---|---|---|
+| `fwdc` | 3.44 / 3.98 / 3.99; 4.68 / 4.42 / 4.97 | **73.57** / 71.58 / 72.00 | all pass |
+| `fwdplainc` | 3.88 / 4.26 / 4.15; 4.67 / 4.82 / 4.64 | 71.66 / 71.38 / 70.40 | all pass |
+
+- **Transition P4:** EKF3 ratio 0.547–0.564, onset 100–101 m; FGO ratio 0.691–0.725,
+  onset 94.5–95.2 m. All pass, in both datasets.
+- **Blank P4:** EKF3 ratio 0.181–0.223, onset 17–20 m; FGO ratio 1.506–1.529, onset
+  34–38 m. All pass.
+- **Diagnostics:**
+  - P2 is within its limits on all 18 (p95 at most 36.4 ms).
+  - RTF 0.72–0.77.
+  - UKF (textured): `fwdc` 14.6 / 20.9 / 7.3, `fwdplainc` 15.8 / 10.0 / 8.7.
+    `fwdplainc_trans_r2` UKF 31.55.
+
+**Ruling 1's decision rule, applied as recorded.** 0 of 3 `fwdplainc_trans_r*` fail the
+forward-flow criterion. So **the `p1c_fwdplainc_trans` check-flight miss is recorded as
+run-to-run variability**:
+- every other P3 metric on it passed;
+- its textured-wall twin gave 71.38;
+- the walls are outside the downward camera's view.
+
+**New primary miss, reported for a ruling** (the decision rule covered only
+`fwdplainc_trans`). Facts only, not investigated. Transition `flow_y_raw`, all flights
+so far:
+
+| group | values | above 72.86 |
+|---|---|---|
+| no ceiling: `dsn` | 70.89 / 71.73 / 71.67 | 0 |
+| no ceiling: `fwd_trans` | 71.14 / 70.52 / 71.90 | 0 |
+| no ceiling: `p1_fwd_trans` | 72.29 | 0 |
+| no ceiling: `p1plain_trans` | 71.37 | 0 |
+| ceiling: `p1c_fwdc_trans` / `p1c_fwdplainc_trans` | 71.38 / **73.01** | 1 |
+| ceiling: `fwdc_trans` | **73.57** / 71.58 / 72.00 | 1 |
+| ceiling: `fwdplainc_trans` | 71.66 / 71.38 / 70.40 | 0 |
+
+- **2 of 8 ceiling-world transition flights exceed the band; 0 of 8 without a
+  ceiling.**
+- Every transition flight has the switch in the same 81 m bin and the same levels
+  (0.970–0.975 / 0.312–0.316).
+- Textured and blank `flow_y_raw` pass in all 18.
+
+### RULING (user, 2026-09-24): `fwdc_trans_r1` P3 miss recorded as run-to-run variability — characterised effect size
+
+**The miss (73.57 against ≤ 72.86) stays recorded.** It is treated as run-to-run
+variability, as for `p1c_fwdplainc_trans`. One bounded quantification was run (data on
+disk only; no mechanism investigation, no flights, no lighting changes):
+`eval/ceiling_flow_effect.py` → `eval/results/ceiling_flow_effect.json`.
+
+**Method.** Transition-world `flow_y_raw` over cruise, with the same frame selection as
+`flow_quality.py`. It is split into the textured half (GT y < 75 m) and the blank half
+(GT y > 85 m), flow_quality's own level windows. Groups:
+- 8 ceiling flights: `p1c_*_trans`, `fwdc_trans_r*`, `fwdplainc_trans_r*`;
+- 8 no-ceiling flights: `dsn_trans_r*`, `fwd_trans_r*`, `p1_fwd_trans`,
+  `p1plain_trans`.
+
+Test: Welch's two-sample t, two-sided.
+
+| window | ceiling mean (sd) | no-ceiling mean (sd) | difference | Welch t (df) | p |
+|---|---|---|---|---|---|
+| whole cruise | 71.87 (1.00) | 71.44 (0.58) | **+0.43 px/s (+0.6%)** | 1.06 (11.2) | 0.31 |
+| textured half | 136.08 (0.55) | 135.98 (0.41) | +0.10 px/s (+0.07%) | 0.39 (13.0) | 0.70 |
+| blank half | −2.08 (2.43) | −2.39 (0.85) | +0.31 px/s | 0.34 (8.7) | 0.74 |
+
+**Characterised effect: a +0.43 px/s (+0.6%) difference in transition forward flow,
+not distinguishable from zero at n = 8 + 8 (p = 0.31).**
+- The textured half is unchanged to within 0.1 px/s.
+- The blank half has the larger spread under the ceiling: sd 2.43 against 0.85, a
+  variance ratio of 8.1 (Levene p = 0.17, not significant).
+- **Both over-band flights have the highest blank-half means:** `p1c_fwdplainc_trans`
+  +0.87 and `fwdc_trans_r1` +1.30, against −6.40 to −1.34 for the other 14.
+- Recorded as a fact, not interpreted.
+
+**STANDING RULE: no comparison between the ceiling datasets (`fwdc_*`, `fwdplainc_*`)
+and `dsn_*` on the transition world without stating this effect size.** It does not
+affect Phase 5, which compares with and without the forward measurements on the same
+bags.
+
+## Ceiling datasets — COMPLETE (2026-09-24)
+
+- **`fwdc_*` (textured walls = upper bound): 8/9 pass every primary criterion.** The one
+  recorded miss is `fwdc_trans_r1` P3 `flow_y_raw` (run-to-run variability, above).
+- **`fwdplainc_*` (plain walls = featureless case): 9/9 pass.**
+- The render check passes on all 18. The extended IMU timing rule trimmed 3 bags; none
+  is unusable.
+- **These two datasets are the forward-camera datasets for Phases 3–5.**
+
+## Phase 3 — forward-camera measurements: pre-registration (2026-09-24, before calibration or validation runs)
+
+**Scope.** Two measurements from `/forward_camera/image`, validated before any fusion:
+- **Heading** ψ: yaw relative to the corridor axis, with a per-frame confidence.
+- **Yaw rate** ω: from horizontal forward-image flow.
+
+Guardrails as ruled:
+- the simplest standard methods first;
+- no features added to the worlds;
+- **no ground truth inside the measurement pipeline** (`src/forward_camera/fwd_measure.py`
+  and `eval/fwd_run.py` read only the forward image);
+- a time-box of one working session.
+
+### Method (frozen now)
+
+**Heading.**
+- LSD line segments (OpenCV defaults). Segments are discarded if shorter than 15 px, or
+  within 5° of horizontal or vertical.
+- RANSAC vanishing point: 300 iterations, length-weighted pair sampling, seeded per
+  frame. It is refined by length-weighted least squares on the inliers.
+- ψ = atan((u_vp − cx)/fx). Positive means the nose is to the left, matching ENU yaw.
+  Roll and pitch are not compensated (cruise pitch ~0.02°), stated as a limitation.
+- **Three priors, all added after they failed on CALIBRATION frames (`p1c_*`, stated
+  openly):**
+  - **(i) the VP must lie inside the image**, i.e. |ψ| < 30°, the half-FOV. This
+    rejects the checkerboard floor's diagonal families near ±45°.
+  - **(ii) the VP must lie within ±5° of the horizon row** (level mount, cruise pitch
+    ~0.02°). This rejects aliasing families about 11° below it.
+  - **(iii) RANSAC scores by balanced two-sided support,** 2 × min(left, right inlier
+    length). A corridor VP is supported by both walls; the checker families are
+    one-sided.
+- **Known failure before calibration:** plain walls over a checkerboard floor. The
+  three or four junction segments are detected and point at the true VP to within
+  0.2–0.25°, but on 3–5 of 10 sampled calibration frames the floor's aliasing segments
+  still win, by +2.4 to +4.4°. **No further method changes are made. This is reported,
+  not engineered away.**
+
+**Validity (confidence).**
+- A heading is valid iff support ≥ S_MIN; otherwise the output is **"no measurement"**.
+- Support = the balanced inlier length in px, and doubles as the per-frame confidence.
+- This is also the **end-wall dropout**: near y ≈ 150 m the junctions shorten and
+  vanish, support collapses, and the output is "no measurement".
+
+**Yaw rate.**
+- Shi-Tomasi corners (up to 100) inside a box of half-size B px around the **previous
+  frame's VP**. They are tracked by pyramidal LK into the current frame.
+- ω = median(Δu)/fx/Δt, in deg/s, positive anticlockwise. It is valid iff the previous
+  frame had a VP, and at least N_MIN corners were tracked.
+- **Parallax limitation:** forward flight adds radial flow from the focus of expansion
+  (≈ the VP), with horizontal component (u − u_foe)·V/Z. The box keeps |u − u_foe|
+  small and Z large, and the median over a roughly symmetric box cancels it to first
+  order. It is **not removed**: residual parallax is a bias that depends on the feature
+  layout.
+
+### Calibration / validation split
+
+- **Calibration: the six `p1c_*` check flights only.** The calibrated values are:
+  - the inlier tolerance, from {0.5, 1.0, 1.5}°;
+  - S_MIN, from {0, 200, 400, 600, 800, 1000} px;
+  - the box half-size B, from {40, 80, 160} px;
+  - N_MIN, from {5, 10, 20};
+  - the measurement noise σ_ψ and σ_ω (1.4826 × MAD of valid-output errors, pooled per
+    dataset type) for Phase 4.
+- **Selection rule, fixed now.** Among the grid:
+  - pick the combination for which the most calibration bags meet the accuracy bar
+    below;
+  - break ties by mean availability.
+  - Heading (tolerance, S_MIN) is chosen first; then yaw rate (B, N_MIN), using that
+    tolerance's VPs.
+  - One parameter set is used for both datasets.
+- **Validation: the 18 dataset bags (`fwdc_*`, `fwdplainc_*`),** with the frozen
+  parameters. **No re-tuning after validation starts.**
+
+### Ground truth (evaluation only)
+
+- ψ_true = GT ENU yaw − 90° (the corridor runs along +Y).
+- ω_true = the finite difference of GT yaw between the same two frame stamps.
+- Both are interpolated from `/ground_truth/pose` at the frame stamps.
+- Cruise window: `eval/cruise_window.py` from GT.
+- **Limitation:** in these flights the true heading is nearly constant (GT yaw span
+  ≈ 0.1° over cruise) and the true yaw rate is ≈ 0. **The validation therefore tests
+  bias, noise, outliers and availability at near-zero heading and yaw rate, not the
+  response to heading changes.**
+- A supplementary **static yaw sweep** tests the heading response. It uses rendered
+  frames, not flights: each of the six worlds at y = 20, 100 and 140 m, z = 2.3 m, yaw
+  offsets of {−10, −5, −2, 0, +2, +5, +10}°. **Its bar:** fitted slope 1 ± 0.05, and
+  every |residual| ≤ 0.5°, where a valid output exists. It is run after the main
+  validation, if the time-box allows.
+
+### Accuracy bar (per bag, over cruise; pre-registered)
+
+| measurement | availability (% of cruise frames valid) | \|bias\| (mean error) | noise (sd of non-outlier errors) | outlier rate |
+|---|---|---|---|---|
+| heading ψ | ≥ 70% | ≤ 0.5° | ≤ 1.0° | ≤ 5% (\|error\| > 3°) |
+| yaw rate ω | ≥ 70% | ≤ 0.05 deg/s | ≤ 1.0 deg/s | ≤ 5% (\|error\| > 3 deg/s) |
+
+**Basis for the bar.**
+- **Heading:** the replay estimators' unobservable yaw drifts by ~45° over a 300 s
+  cruise (FGO; the UKF more). A measurement with sub-degree bias and noise, available
+  for most frames, bounds that drift by more than an order of magnitude.
+- **Yaw rate:** the true SITL gyro bias averages 8.9 deg/min = 0.148 deg/s over cruise.
+  A yaw-rate measurement must be unbiased to about a third of that (0.05 deg/s) to help
+  observe it. 1 deg/s per-frame noise averages to ~0.18 deg/s over 1 s at 30 Hz.
+- 70% availability allows for the end-wall dropout (~3% of cruise) and occasional
+  frame losses.
+
+**Reported per bag, and aggregated per world and per dataset:** bias, noise, robust σ,
+outlier rate, availability (overall, and for y > 145 m separately), and the degradation
+from textured walls (`fwdc`) to plain walls (`fwdplainc`).
+
+**Time-box.** If the simple method has not produced a validated measurement within one
+working session, the work stops and what is known is reported; the method is not
+escalated.
+
+### Phase 3 calibration — result (p1c_* only; parameters FROZEN before validation)
+
+`eval/fwd_eval.py --calibrate` → `eval/results/fwd_calibration.json`, applying the
+pre-registered selection rule.
+
+**Frozen:** inlier tolerance **0.5°**, S_MIN **200 px**, yaw-rate box half-size **80 px**,
+N_MIN **5**. Measurement noise for Phase 4 (robust σ over valid calibration errors):
+
+| | σ_ψ | σ_ω |
+|---|---|---|
+| `fwdc` | 0.097° | 0.106 deg/s |
+| `fwdplainc` | 0.026° | 2.07 deg/s |
+
+**Calibration bags against the bar:**
+
+| bag | heading (avail / bias / sd / outliers) | yaw rate (avail / bias / sd / outliers) |
+|---|---|---|
+| `p1c_fwdc_tex` | 96.8% / −0.005° / 0.21° / 0.1% **pass** | 99.9% / +0.006 / 0.20 / 0.0% **pass** |
+| `p1c_fwdc_trans` | 96.7% / −0.012 / 0.13 / 0.0% **pass** | 97.4% / +0.008 / 0.21 / 0.0% **pass** |
+| `p1c_fwdc_blank` | 96.7% / −0.016 / 0.10 / 0.0% **pass** | 97.4% / +0.003 / 0.14 / 0.0% **pass** |
+| `p1c_fwdplainc_tex` | 60.2% / +0.22 / 0.71 / 11.3% fail | 89.8% / +0.038 / 1.48 / 15.1% fail |
+| `p1c_fwdplainc_trans` | 87.3% / +0.03 / 0.39 / 2.9% **pass** | 85.9% / +0.092 / 1.43 / 15.6% fail |
+| `p1c_fwdplainc_blank` | 95.4% / −0.03 / 0.12 / 0.1% **pass** | 87.3% / −0.061 / 1.35 / 23.7% fail |
+
+- **Heading: 5/6.** The fail is plain walls over a checkerboard floor, as flagged
+  before calibration.
+- **Yaw rate: 3/6.** It passes with textured walls and fails with plain walls, where
+  there are too few trackable corners near the VP (noise ~1.4 deg/s, 15–24%
+  outliers).
+- **End-wall dropout works as designed:** heading availability for GT y > 145 m is
+  0–19%.
+- **The validation runner** uses `fwd_run.py --frozen`, verified identical to the grid
+  run on 600 frames (t, ψ, support, ω, n_trk all equal).
+
+### Phase 3 validation — result (18 dataset bags, frozen parameters, no re-tuning)
+
+`eval/fwd_eval.py --validate` → `eval/results/fwd_validation.json`. Static sweep:
+`eval/fwd_sweep_eval.py` → `eval/results/fwd_yaw_sweep.json`, with renders in
+`~/thesis_data/phase3_yaw_sweep/`. Bias and noise are computed on the non-outlier valid
+errors; the all-valid mean is also in the JSON. Values are means over the three
+repeats; every bag's own values are in the JSON.
+
+**Heading ψ (vanishing point).**
+
+| dataset / world | availability | bias | noise sd | robust σ | outliers | bar |
+|---|---|---|---|---|---|---|
+| `fwdc` tex | 96.8% | −0.006° | 0.20° | 0.13° | 0.09% | **3/3** |
+| `fwdc` trans | 96.8% | −0.014° | 0.13° | 0.09° | 0.00% | **3/3** |
+| `fwdc` blank | 96.8% | −0.018° | 0.11° | 0.08° | 0.00% | **3/3** |
+| `fwdplainc` tex | 60.0% | +0.206° | 0.68° | 0.33° | 11.9% | **0/3** |
+| `fwdplainc` trans | 87.6% | +0.035° | 0.39° | 0.02° | 3.0% | **3/3** |
+| `fwdplainc` blank | 95.5% | −0.027° | 0.12° | 0.01° | 0.14% | **3/3** |
+
+**Yaw rate ω (horizontal flow near the VP).**
+
+| dataset / world | availability | bias | noise sd | outliers | bar |
+|---|---|---|---|---|---|
+| `fwdc` tex / trans / blank | 99.9 / 97.4 / 97.4% | +0.006 / +0.009 / +0.002 deg/s | 0.19 / 0.21 / 0.13 deg/s | 0.0% | **9/9** |
+| `fwdplainc` tex / trans / blank | 89.7 / 86.1 / 87.5% | +0.053 / +0.080 / −0.066 deg/s | 1.48 / 1.43 / 1.36 deg/s | 15.4 / 15.7 / 23.7% | **0/9** |
+
+**The validation reproduces the calibration** to within a few hundredths in every
+metric: the split held, and nothing was re-tuned.
+
+**End-wall dropout.** Heading availability for GT y > 145 m:
+- `fwdc`: 14–20%;
+- `fwdplainc`: 0–10%.
+
+The output goes to "no measurement", as designed.
+
+**Degradation from textured to plain walls.**
+- **Heading:**
+  - It holds on blank and transition floors: noise 0.12° and 0.39°, against 0.11°
+    and 0.13° with textured walls.
+  - On the blank floor, plain walls give the lowest robust σ of all (0.01°). The four
+    junction lines are clean.
+  - It **fails on the checkerboard floor**: availability 97% → 60%, outliers 0.1% →
+    12%. With plain walls, the only corridor-parallel structure is 3–4 junction
+    segments, and floor aliasing outvotes them. **This is floor texture defeating the
+    method, not wall texture helping it.**
+- **Yaw rate:** it **fails everywhere with plain walls**. Noise 0.13–0.21 → 1.36–1.48
+  deg/s, outliers 0% → 15–24%. Plain walls give no trackable corners near the VP, and
+  line junctions have the aperture problem.
+
+**Static heading response (supplementary, pre-registered bar: slope 1 ± 0.05, every
+|residual| ≤ 0.5°): 1/6 worlds pass** (`blank_fwdc`). **The bar stands as failed.**
+- **Near the end wall** (y = 140 m, 25 m from it) with ±5–10° offsets, several wrong
+  VPs clear S_MIN: for example, a true +10° is reported as −17.2° (`textured_fwdc`).
+- **Plain walls over a checkerboard floor** show errors of up to 2.3–3.2°.
+- **Descriptive only, not the bar:** at y = 20 and 100 m, every textured-wall world and
+  `blank_fwdplainc` respond with slope 1.00–1.01 and max |residual| ≤ 0.32°. The
+  plain-wall checkerboard worlds show slope 1.03–1.05 and residuals up to 2.5°.
+
+**Phase 3 conclusion (validated measurements, and where they fail).**
+- **Heading is validated** (flight bar) on 15/18 bags:
+  - every textured-wall bag;
+  - plain walls on blank and transition floors.
+- **Heading fails** on plain walls over a checkerboard floor.
+- **Its response to heading changes is confirmed only away from the end wall.** Within
+  ~25 m of it, large offsets produce confident wrong outputs. The flight data (true
+  heading ≈ 0) does not exercise this. **Phase 4 must treat heading near the end wall
+  with suspicion, or gate it out.**
+- **Yaw rate is validated only with textured walls.** With plain walls, horizontal flow
+  near the VP is not a usable measurement.
+- **Measurement noise for Phase 4** comes from the calibration set:
+  - `fwdc`: σ_ψ 0.097°, σ_ω 0.106 deg/s;
+  - `fwdplainc`: σ_ψ 0.026°. There is no σ_ω, because it failed validation.
+- **The method was not escalated** (time-box and guardrail). Three priors were added on
+  calibration frames and are stated above.
+
+## SCOPE CHANGE — supervisor direction (2026-09-29; details pending the supervisor's reply)
+
+Direction received from the supervisor:
+- **Real indoor flights with motion-capture ground truth are in scope.**
+- **The UKF and FGO should ideally run ONLINE, onboard the ArduPilot flight
+  controller.** Each would be a **drop-in replacement for EKF3**, the estimator the
+  vehicle flies on.
+- **The forward camera is included in the real flights only if it is first implemented
+  and verified in simulation.**
+
+**Consequences, as recorded by the user:**
+- **The Python UKF and FGO become the reference implementations.** Onboard versions
+  will be validated against them on the same data.
+- **Offline Phases 4 and 5 are the simulation verification** the supervisor requires
+  before the forward camera goes on the real vehicle.
+- **All current flights are flown on simulator truth** (`AHRS_EKF_TYPE=10`, Hidden
+  Configuration Audit §1).
+  - No estimator, EKF3 included, influences the trajectory. All three are **offline
+    observers**.
+  - **Closed-loop flight**, with each estimator flying the vehicle, is now planned
+    under the onboard direction.
+- **For all future flights, simulated closed-loop and real:** ArduPilot logs with
+  **`LOG_REPLAY=1` and `LOG_DISARMED=1` from the first flight**, so any flight can be
+  replayed.
+
+## RULING — EKF3 in the offline forward-camera comparison (user, 2026-09-29)
+
+**Adopted: option 3.**
+- **EKF3 is the fixed no-yaw-source baseline** (`EK3_SRC1_YAW=0`).
+- **Only the UKF and FGO get forward-camera arms.**
+
+**Option 2 (live injection) is rejected for the offline comparison:**
+- it reintroduces the separate-run latency confound;
+- the `VISO_YAW_M_NSE` floor (≥ 0.05 rad) would force EKF3 to under-trust the heading
+  relative to the UKF and FGO.
+
+**Option 1 (re-record with `LOG_REPLAY=1` plus `REPH` injection) is a deferred
+extension.**
+- It is reconsidered after Phase 5, and only if the heading arm shows a clear effect
+  on the UKF and FGO.
+- **Open items:**
+  - a tool that writes `REPH` records;
+  - a replay-fidelity check against live EKF3;
+  - whether injected `REPH` records bypass the yaw noise clamp. The clamp is applied
+    in `AP_VisualOdom_MAV`, upstream of `AP_DAL::writeExtNavData`, and that is
+    unverified.
+- **This ruling will be revisited under the onboard plan.** There, EKF3 heading via
+  ExternalNav may become the natural route.
+
+**Evidence** (ArduPilot source at the pinned commit `7bac20cbcc`; our logs):
+- **One downward optical-flow sensor only.**
+  - `AP_OpticalFlow` holds a single backend (`OpticalFlow_backend *backend;`,
+    `AP_OpticalFlow.h:134`).
+  - Its parameters have no instance index (`FLOW_TYPE`), and the only orientation
+    parameter is `FLOW_ORIENT_YAW` (`AP_OpticalFlow.cpp:51-53`).
+  - EKF3's flow model predicts range as height above ground over the vertical-axis
+    cosine, i.e. a flat floor below (`AP_NavEKF3_OptFlowFusion.cpp:116,174`). It gates
+    on tilt (`prevTnb.c.z > DCM33FlowMin`, line 44).
+  - **A forward camera is not a second flow sensor for EKF3.**
+- **ExternalNav yaw exists live, with two constraints.**
+  - `EK3_SRC1_YAW` accepts `6:ExternalNav` (`AP_NavEKF_Source.cpp:58`).
+  - The path: `VISION_POSITION_ESTIMATE` / `ODOMETRY` / `ATT_POS_MOCAP`
+    (`GCS_Common.cpp:4562-4581`) → `AP_VisualOdom`, which needs `VISO_TYPE=1`
+    (`AP_VisualOdom.cpp:34,154`) → `writeExtNavData`, with yaw extracted at
+    `AP_NavEKF3_Measurements.cpp:1112-1117` → `fuseEulerYaw(EXTNAV)`
+    (`AP_NavEKF3_MagFusion.cpp:366-374`).
+  - Position is fused only if `EK3_SRC1_POSXY=ExternalNav`
+    (`AP_NavEKF3_Control.cpp:617`).
+  - **Constraint: each message needs a position.** A NaN position or position error
+    drops the whole sample, yaw included (`AP_NavEKF3_Measurements.cpp:1076`).
+  - **Constraint: a noise floor.** `angErr` is clamped to at least `VISO_YAW_M_NSE`
+    (`AP_VisualOdom_MAV.cpp:43`): default 0.2 rad, documented range 0.05–1.0 rad
+    (`AP_VisualOdom.cpp:101-107`). The static-sweep heading residuals are well below
+    that.
+  - **There is no EKF3 input for an external yaw-rate measurement.**
+    `bodyOdmDataNew.angRate` is written (`AP_NavEKF3_Measurements.cpp:133`) and read
+    nowhere else in EKF3.
+- **Our logs lack replay records.**
+  - Replay supports ExternalNav via the DAL `REPH` record (`AP_DAL.cpp:359-371`;
+    `Tools/Replay/LogReader.cpp:119`, `LR_MsgHandler.cpp:286`).
+  - But it needs `LOG_REPLAY=1` and `LOG_DISARMED=1` or `2` at recording
+    (`AP_Logger.cpp:114-124`).
+  - `fwdc_tex_r1`'s log has `LOG_REPLAY=0` and `LOG_DISARMED=0`, and no DAL records
+    (no `RFRH`/`RFRN`/`RISH`/`REPH`).
+
+**Consequence for Phase 5.**
+- **The prediction is tested within the UKF and within the FGO:** each with and
+  without heading, on the same bags.
+- **EKF3 appears only as the no-heading reference.** No claim is made about EKF3 with
+  heading.
+- Which measurement is which:
+  - the **vanishing-point heading** is an external heading measurement, not optical
+    flow;
+  - the **forward yaw rate** is used only by our own estimators.
+
+## Phase 4 — offline forward-camera fusion, UKF and FGO only: pre-registration (2026-09-29, before any fusion code or run)
+
+**Scope.**
+- Fuse the Phase 3 forward-camera measurements into the Python UKF and FGO.
+- **EKF3 is the fixed no-yaw-source baseline** (ruling above).
+- Offline, on all 18 ceiling-dataset bags.
+- **Phase 4 builds and runs the arms. The hypothesis test and its interpretation are
+  Phase 5.**
+
+**Arms (per estimator, per bag):**
+
+| dataset | arms |
+|---|---|
+| `fwdc_*` (textured walls) | baseline / +heading / +heading+yaw rate |
+| `fwdplainc_*` (plain walls) | baseline / +heading (yaw rate failed Phase 3 validation) |
+
+That is 18 bags × 2 estimators, giving 90 replay runs, all from scratch. The
+**baseline arm must reproduce the existing ceiling-dataset UKF/FGO trajectories byte
+for byte** (a regression check on the refactor). If it does not, stop and report.
+
+**Measurements.**
+- The frozen Phase 3 outputs (`<trial>/fwd_meas/meas_frozen.npz`), stamped at the
+  forward-image header (sim time).
+- **Validity is measurement-intrinsic only**, from Phase 3: heading valid iff
+  support ≥ S_MIN = 200 px; yaw rate valid iff ≥ N_MIN = 5 tracked corners.
+- **No ground truth, estimated position or world knowledge enters any gating.** This
+  includes the end wall: there is no position-based gate. The end-wall weakness found
+  in Phase 3 is left to the intrinsic confidence and the χ² gate, and reported.
+
+**Measurement models (shared code, `src/estimators/measurement_models.py`).**
+- **Heading:** h_ψ(x) = yaw, with the innovation wrapped.
+  - The navigation frame's yaw reference is the corridor axis. Both estimators already
+    initialise yaw = 0 at spawn, facing along the corridor, so this is the same frame.
+  - This is the ExternalNav convention: the external heading source defines the yaw
+    reference.
+- **Yaw rate:** h_ω(x) = ω̄_z − b_g,z.
+  - ω̄_z is the co-sampled gyro-z averaged over the forward-frame interval
+    (t_{k−1}, t_k], using a second instance of the shared `FlowFrameGyroAverager`.
+  - b_g,z is the gyro-z bias state in rate units (UKF: delta-form bias / dt).
+  - Roll and pitch coupling is neglected (cruise tilt ≈ 0.02°).
+
+**Noise (from the static-sweep residuals, not the smaller flight values).**
+- **σ_ψ** = robust σ (1.4826 × MAD) of (ψ − commanded offset) over every valid sweep
+  frame, pooled per dataset (`eval/results/fwd_yaw_sweep.json`):
+  - **`fwdc` 0.148°**, **`fwdplainc` 0.126°**;
+  - against flight calibration values of 0.097° and 0.026°.
+- **σ_ω: the sweep contains no yaw-rate measurement**, so σ_ω cannot come from it
+  directly.
+  - **Rule:** the flight-calibration σ_ω scaled by the same sweep/flight inflation as
+    σ_ψ for that dataset.
+  - **`fwdc`: 0.106 × (0.148/0.097) = 0.162 deg/s.** Yaw rate is not used on `fwdplainc`.
+  - A derived choice, flagged for the user.
+
+**Gate (identical in both estimators).**
+- χ² test on the scalar innovation: **ν²/S ≤ 9** (3σ; EKF3's flow gate 300 → (0.01 ×
+  300)² = 9). Rejected measurements are not fused.
+- S = H P⁻ Hᵀ + σ², with P⁻ each estimator's own predicted covariance:
+  - **UKF:** its sigma-point prediction (the existing `_update_scalar` path).
+  - **FGO:** the Python `BatchFixedLagSmoother` exposes no marginal covariance. So a
+    **filtering covariance recursion** runs alongside it: per keyframe, the previous
+    posterior marginal of (X, V, B) acts as a prior; the keyframe's factors are
+    linearised at the current estimates; and the 30-dimensional information matrix is
+    inverted.
+    - This gives P⁻ (IMU factor only) for the gate, and the posterior for the next
+      step.
+    - It is used **for gating only**; the smoother's solution is untouched.
+
+**Timing (DIAGNOSTIC only).**
+- Per-update wall-clock is logged in every arm:
+  - UKF: each predict step (80 Hz, period 12.5 ms) and each forward update;
+  - FGO: each keyframe step (30 Hz, period 33.3 ms), including the gate recursion in
+    forward arms.
+- Reported as median, p95, max and ratio to the sensor period.
+- **Python timing on the workstation says nothing directly about flight-controller
+  feasibility. It must not change any Phase 4 setting or stop the phase.**
+
+**Runner.** A crash-safe, resumable job runner in tmux
+(`eval/run_jobs_resumable.sh`). Each job writes a DONE marker; a re-run skips done jobs
+and redoes incomplete ones.
+
+**Outputs, per arm and bag** (reported, not judged; judging is Phase 5):
+- evo -a (cruise);
+- transition and blank failure metrics;
+- yaw error against GT over cruise;
+- gyro-z bias against the SITL truth ramp;
+- forward-measurement acceptance (valid, gated, fused);
+- NIS statistics;
+- timing.
+
+### Supervisor answers (2026-09-29, received after the scope-change brief)
+
+- **One firmware build with parameter selection is preferred**, if feasible.
+- **Real hardware flights are expected for full marks.**
+  - SITL-only is an acceptable fallback **only if** the drone flights are delayed by
+    circumstances outside our control.
+  - **Real flights are planned as the main result.**
+- **The offline comparison stays and is written up.** It carries less weight once
+  real-world results exist.
+- **Target hardware: likely an STM32H743 flight controller** (2 MB flash, ~1 MB RAM) on
+  a **VTOL: ArduPlane quadplane, flown in multirotor mode indoors.**
+- **The UKF runs onboard as a drop-in replacement for EKF3.**
+- **The FGO may run online with GTSAM on a companion computer** (e.g. a Raspberry Pi),
+  provided it is shown working and beating EKF3.
+  - **If EKF3 is what flies, the FGO must show a clear benefit over standard EKF3 in a
+    clear case.**
+
+**Part C (onboard feasibility) was adjusted accordingly:**
+- the FGO's off-board routes to driving flight: EKF3 via ExternalNav, or
+  `AP_ExternalAHRS`;
+- the H743 flash budget for Plane quadplane and Copter;
+- companion-computer compute for FGO plus forward camera together;
+- a new item 9: candidate scenarios where the FGO could show a clear, fair benefit over
+  EKF3, from existing results only.
+- **The item 9 instruction arrived truncated** ("…consistency of the"). It was
+  interpreted as estimate consistency (NEES and uncertainty reporting), to be
+  confirmed by the user.
+
+## Part C — onboard feasibility investigation (2026-09-29): result
+
+Full report, read-only (nothing built or modified), with citations at `7bac20cbcc`:
+**`docs/partC_onboard_feasibility.md`**. Spot-checked here:
+- `SIM_JSON.cpp:410-413`
+- `iris_with_ardupilot/model.sdf:789`
+- `AP_NavEKF3_Measurements.cpp:1118`
+
+**Key conclusions.**
+- **The UKF onboard is feasible on the H743, for Copter and QuadPlane.**
+  - Estimated ~25–50 kB flash, < 16 kB RAM, ~2–8% CPU. About 270–325 kB of flash is
+    free on current CubeOrange/Pixhawk6X builds (from published `.apj` files; our own
+    commit's size was not measured).
+  - EKF3 runs in double precision on the H7, so the UKF should too.
+  - The interface spec: 86 `EKF3.*` call sites in `AP_AHRS`. The semantics matter
+    (for example, `get_variances()` returns normalised test ratios), and so do the
+    reset reports.
+  - A new `EKFType` needs about 52 switch arms in `AP_AHRS.cpp`.
+  - **Shadow running already works:** `dsn_tex_r1` flew on SIM and still logged EKF3
+    (6654 `XKF1` rows, 2 lanes).
+  - **QuadPlane loops at 300 Hz**, so EKF3's prediction dt differs from Copter's.
+    The UKF must match it per vehicle.
+- **The FGO off-board:**
+  - **(a) ExtNav works today**, but what flies is EKF3 re-filtering the FGO output:
+    the IMU is double-counted, and a 5° yaw floor applies.
+  - **(b) There is no MAVLink or companion External-AHRS backend** at this commit, and
+    External AHRS is compiled out on 2 MB boards.
+  - **Fairness:** route (a) is "EKF3 fusing the FGO", not the FGO flying.
+- **Companion compute:** the FGO (Python, 29 ms/step) and the camera pipeline
+  (Python, ≤ 61 ms/frame on the i7, measured under load) need C++ ports to run
+  together on a Pi 4/5. A resolution or rate change would break the frozen Phase 3
+  calibration.
+- **Replay:** no existing trial is replayable (`LOG_REPLAY=0`). A new DAL backend also
+  needs log-format changes.
+- **Closed loop:** under SIM the EKF failsafes never fire, and `crash_check` won't
+  catch a wall scrape. Wall contact from GT is |x| ≥ 9.58 m. Current blank-floor
+  behaviour would not survive in a 20 m corridor.
+- **Where the FGO could fairly beat EKF3 (item 9):** nothing on disk shows it on ATE.
+  - The candidates are **distance scale** (EKF3 +6–10% against the FGO's ~+1%, n = 9)
+    and **consistency/NEES**, since the FGO's covariance has never been logged.
+  - A forward-heading gain is only fair if EKF3 also gets that heading.
+- **Effort:** ~18–30 person-weeks (estimate), plus 4–6 if route (b) is built.
+
+**CORRECTION 1: where `AHRS_EKF_TYPE=10` comes from.**
+- The Hidden Configuration Audit put it down to eeprom. It is (also) **injected as a
+  default by SITL**: `SIM_JSON.cpp:410-413` calls
+  `set_default_by_name("AHRS_EKF_TYPE", 10)` when the model sends `no_time_sync`. Our
+  iris model sends `<no_time_sync>1</no_time_sync>` (`model.sdf:789`).
+- ArduPilot's comment: without time sync the "EKF is likely to diverge".
+- **Before any closed-loop run:** set `AHRS_EKF_TYPE` explicitly in a `.parm` file,
+  confirm it from the log's PARM dump, and settle the time-sync question.
+
+**CORRECTION 2: the ExternalNav yaw floor is 5°, set inside EKF3.**
+- `NavEKF3_core::writeExtNavData` sets `yawAngErr = MAX(angErr, radians(5))`
+  (`AP_NavEKF3_Measurements.cpp:1118`). This comes on top of the `VISO_YAW_M_NSE`
+  clamp cited in the EKF3 ruling.
+- **Replay's `REPH` records re-enter through the same function**, so injected heading
+  cannot bypass it. This answers one of Option 1's open items: **EKF3 cannot be told
+  that heading is better than 5°**, against the UKF/FGO's 0.13–0.15°.
+
+
+## Source-pack flag resolutions (2026-09-29, documentation only)
+
+Resolves the discrepancies flagged in `docs/thesis/numbers.md`. **Rule:** the later
+measurement over more flights is current; the other moves to the superseded section with
+a one-line reason. Where the rule does not settle it, that is said, and nothing is chosen.
+
+**§1 FGO step time (window 0.25 s).**
+- **Current: ~29 ms median on textured bags** (Part C, 2026-09-29).
+- The stored 0.25 s runs give medians of:
+
+  | world | n | median step (ms) |
+  |---|---|---|
+  | textured (`dsn`/`fwdc`/`fwdplainc`) | 9 | 26.9–29.2 |
+  | transition | 9 | 15.1–15.7 |
+  | blank | 9 | 4.0–4.3 |
+
+  Source: `<trial>/fgo/metrics.txt` `step_median_ms`, runs of 2026-09-24.
+- **The step time is world-dependent:** it scales with the number of flow factors in the
+  window. Any single FGO step-time figure must state its world.
+- **27 ms** is the textured-world figure from the 2026-08-01 window sweep on
+  `dsn_tex_r1` (`04426d2`). It is kept as the sweep's own result, not as the current
+  figure.
+- **101 ms/step** is the superseded 1.0 s-window, pre-LM-cap configuration.
+- **All of these are DIAGNOSTICS measured in Python on the workstation**, with parallel
+  jobs and load not recorded. They say nothing directly about onboard feasibility.
+  Phase 4's forward arms add a gating recursion, and their timing is reported separately.
+
+**§2 EKF3 yaw drift with no compass.**
+- **Current: +6.6…+11.1 deg/min, mean ~8.1, from `XKF1.Yaw`, n = 9 `dsn_*` bags**
+  (`ca4c474`, 2026-07-29).
+- **The window is not stated in the record** (commit `ca4c474` or the text). It is to be
+  stated if the figure is re-derived.
+- **Superseded: "~5 deg/min"** (`6f953b2`). Its origin is the single-trial residual
+  **+5.32 deg/min** on `nomag_corridor_baseline` (`257204d`). That is one trial, and not
+  representative of `dsn_*`, where EKF3 corrects only ~14–33%.
+
+**§3 UKF gyro-z bias overshoot, `dsn_tex_r1` baseline.** There are two definitions in
+the source:
+- **Definition A, "% of 9.8":** |mean estimated gyro-z bias over the cruise window| ÷ the
+  constant physical drift of 9.8 deg/min (raw gyro-z integrated).
+  - This is the code up to `51aaeba`: `bgz_frac = 100*|bgz_mean|/PHYS_DRIFT`,
+    `PHYS_DRIFT = 9.8`.
+  - Stored runs (re-run 2026-09-24): baseline (`ukf_precorr`) `bgz_mean` −21.793 →
+    **222.4%**; sign-flip (`ukf_signflip`) −32.929 → **336.0%**.
+- **Definition B, "% of the instantaneous true mean":** the same numerator ÷ the window
+  mean of the true SITL triangle-wave bias, `sitl_gyro_drift(t)`, ≈ 8.88 deg/min.
+  - This is the code since `51e1bb9`: `bgz_frac = 100*|bgz_mean|/true_mean`.
+  - Same runs: baseline **245.3%**; sign-flip **≈ 370.7%**, using 8.884. That run did not
+    store its own window mean.
+- **The "245% → 336%" pair in the sign-flip paragraphs mixes the two:** 245 is B, 336 is
+  A. Consistent pairs are **A: 222% → 336%** and **B: 245% → ~371%**.
+- **The thesis uses definition B**, the current harness definition. It is measured
+  against the true, time-varying bias, as recorded in the ramp-tracking finding.
+- A is kept only where the source table labels it ("% of 9.8").
+
+**§4 Distance / velocity scale.**
+- **Current (n = 9, derived in Part C, item 9 row A):**
+  - EKF3 **+5.7…+9.6%**;
+  - FGO **+0.9…+1.1%**;
+  - basis: path-length ratio of estimate to GT over cruise, with 20 s resampling, on
+    `dsn_tex`, `fwdc_tex` and `fwdplainc_tex`.
+- Corroborated by `disp_ratio`: EKF3 1.04–1.06, FGO 0.98–0.99 on 12 textured bags.
+- **Superseded: +12.6% (EKF3) / +4.7% (FGO).** That was n = 1 (`dsn_tex_r1`),
+  speed-magnitude based and pre-`h_flow`-correction.
+- **The scale-cause check ("bounded check 5a") is still PENDING.** It is not yet defined
+  anywhere in this record, so its scope needs to be written down before it is run.
+
+**§5 OI-2 commit.**
+- `cc588df` (fwd-camera, 03:39) and `9b0f5d9` (master, 08:18) record **the same OI-2
+  opening**. Their text is identical except that `9b0f5d9` adds one line ("…rules on
+  whether a correction goes through the re-run gate.").
+- `9b0f5d9` is the consolidated dsn-record commit on `master`, merged into `fwd-camera`
+  via `54b9bce`.
+- **Cite `9b0f5d9`**: it is on both branches, including `fwd-camera`, where the thesis
+  results are. `cc588df` is noted as the first recording.
+
+**§6 Stale working-file sections** were brought in line with this record in CLAUDE.md:
+- the corridor worlds;
+- the IMU bridge rate and port, plus the manual Terminal 2 and Terminal 11;
+- the UKF "not yet implemented" header;
+- the nomag "throwaway" label;
+- the FGO step time;
+- the not-yet-implemented list.
+
+In PROGRESS.md, the old Known Issues and Next Priorities blocks got banners.
