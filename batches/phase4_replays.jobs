@@ -1,0 +1,91 @@
+# Phase 4 offline forward-camera fusion replays (METHODOLOGY Phase 4 pre-registration)
+fgo__fwdc_tex_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 baseline
+ukf__fwdc_tex_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 baseline
+fgo__fwdc_tex_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+ukf__fwdc_tex_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+fgo__fwdc_tex_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading_yawrate
+ukf__fwdc_tex_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading_yawrate
+fgo__fwdc_trans_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 baseline
+ukf__fwdc_trans_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 baseline
+fgo__fwdc_trans_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 heading
+ukf__fwdc_trans_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading
+fgo__fwdc_trans_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 heading_yawrate
+ukf__fwdc_trans_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading_yawrate
+fgo__fwdc_blank_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 baseline
+ukf__fwdc_blank_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 baseline
+fgo__fwdc_blank_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading
+ukf__fwdc_blank_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading
+fgo__fwdc_blank_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading_yawrate
+ukf__fwdc_blank_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading_yawrate
+fgo__fwdc_tex_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 baseline
+ukf__fwdc_tex_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 baseline
+fgo__fwdc_tex_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+ukf__fwdc_tex_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+fgo__fwdc_tex_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading_yawrate
+ukf__fwdc_tex_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading_yawrate
+fgo__fwdc_trans_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 baseline
+ukf__fwdc_trans_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 baseline
+fgo__fwdc_trans_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 heading
+ukf__fwdc_trans_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading
+fgo__fwdc_trans_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 heading_yawrate
+ukf__fwdc_trans_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading_yawrate
+fgo__fwdc_blank_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 baseline
+ukf__fwdc_blank_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 baseline
+fgo__fwdc_blank_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 heading
+ukf__fwdc_blank_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading
+fgo__fwdc_blank_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 heading_yawrate
+ukf__fwdc_blank_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading_yawrate
+fgo__fwdc_tex_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 baseline
+ukf__fwdc_tex_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 baseline
+fgo__fwdc_tex_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+ukf__fwdc_tex_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+fgo__fwdc_tex_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading_yawrate
+ukf__fwdc_tex_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading_yawrate
+fgo__fwdc_trans_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 baseline
+ukf__fwdc_trans_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 baseline
+fgo__fwdc_trans_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 heading
+ukf__fwdc_trans_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading
+fgo__fwdc_trans_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 heading_yawrate
+ukf__fwdc_trans_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading_yawrate
+fgo__fwdc_blank_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 baseline
+ukf__fwdc_blank_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 baseline
+fgo__fwdc_blank_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 heading
+ukf__fwdc_blank_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading
+fgo__fwdc_blank_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 heading_yawrate
+ukf__fwdc_blank_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading_yawrate
+fgo__fwdplainc_tex_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r1 0.25 2 baseline
+ukf__fwdplainc_tex_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 baseline
+fgo__fwdplainc_tex_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r1 0.25 2 heading
+ukf__fwdplainc_tex_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 heading
+fgo__fwdplainc_trans_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r1 0.25 2 baseline
+ukf__fwdplainc_trans_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 baseline
+fgo__fwdplainc_trans_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r1 0.25 2 heading
+ukf__fwdplainc_trans_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 heading
+fgo__fwdplainc_blank_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r1 0.25 2 baseline
+ukf__fwdplainc_blank_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 baseline
+fgo__fwdplainc_blank_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r1 0.25 2 heading
+ukf__fwdplainc_blank_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 heading
+fgo__fwdplainc_tex_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r2 0.25 2 baseline
+ukf__fwdplainc_tex_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 baseline
+fgo__fwdplainc_tex_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r2 0.25 2 heading
+ukf__fwdplainc_tex_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 heading
+fgo__fwdplainc_trans_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r2 0.25 2 baseline
+ukf__fwdplainc_trans_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 baseline
+fgo__fwdplainc_trans_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r2 0.25 2 heading
+ukf__fwdplainc_trans_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 heading
+fgo__fwdplainc_blank_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r2 0.25 2 baseline
+ukf__fwdplainc_blank_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 baseline
+fgo__fwdplainc_blank_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r2 0.25 2 heading
+ukf__fwdplainc_blank_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 heading
+fgo__fwdplainc_tex_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r3 0.25 2 baseline
+ukf__fwdplainc_tex_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 baseline
+fgo__fwdplainc_tex_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r3 0.25 2 heading
+ukf__fwdplainc_tex_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 heading
+fgo__fwdplainc_trans_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r3 0.25 2 baseline
+ukf__fwdplainc_trans_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 baseline
+fgo__fwdplainc_trans_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r3 0.25 2 heading
+ukf__fwdplainc_trans_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 heading
+fgo__fwdplainc_blank_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r3 0.25 2 baseline
+ukf__fwdplainc_blank_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 baseline
+fgo__fwdplainc_blank_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r3 0.25 2 heading
+ukf__fwdplainc_blank_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 heading

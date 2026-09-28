@@ -134,3 +134,72 @@ def sitl_gyro_drift(t_sec):
     m = np.fmod(np.asarray(t_sec, float)/60.0, 10.0)
     d = np.where(m < 5.0, m, 10.0 - m) * np.radians(0.05)   # rad/s
     return np.degrees(d)*60.0                               # deg/min, magnitude
+
+
+# ---------------------------------------------------------------------------
+# Forward camera (Phase 4, METHODOLOGY "Phase 4 — offline forward-camera fusion").
+# SHARED by the UKF and the FGO: the same models, noise, gate and inputs.
+# ---------------------------------------------------------------------------
+import json as _json
+import os as _os
+
+FWD_CHI2_GATE = 9.0      # nu^2 / S <= 9 (3 sigma; EKF3 flow gate 300 -> (0.01*300)^2)
+# Noise from the static-sweep residuals (pre-registered): sigma_psi = robust sigma of
+# (psi - commanded offset) over all valid sweep frames per dataset; sigma_omega = the
+# flight-calibration value scaled by the same sweep/flight inflation (the sweep has no
+# yaw-rate measurement). Yaw rate is not used on plain walls (failed Phase 3).
+FWD_SIGMA = {"fwdc": {"psi": np.radians(0.148), "omega": np.radians(0.162)},
+             "fwdplainc": {"psi": np.radians(0.126), "omega": None}}
+FWD_ARMS = ("baseline", "heading", "heading_yawrate")
+
+
+def wrap_angle(a):
+    return (a + np.pi) % (2 * np.pi) - np.pi
+
+
+def h_heading(yaw):
+    """Heading relative to the corridor axis. The navigation frame's yaw reference is
+    the corridor axis (both estimators initialise yaw = 0 facing along it; the
+    ExternalNav convention, where the external heading source defines the reference)."""
+    return yaw
+
+
+def h_yawrate(gyro_z_avg, bg_z_rate):
+    """Body yaw rate seen by the forward camera over the frame interval: the
+    interval-averaged co-sampled gyro-z minus the gyro-z bias (rad/s, FLU). Roll/pitch
+    coupling is neglected (cruise tilt ~0.02 deg)."""
+    return gyro_z_avg - bg_z_rate
+
+
+def fwd_dataset(trial):
+    tok = trial.split("_")
+    return "fwdplainc" if "fwdplainc" in tok else ("fwdc" if "fwdc" in tok else None)
+
+
+def forward_events(trial, arm):
+    """Forward-camera measurement events for an arm, from the frozen Phase 3 outputs.
+
+    Returns [(t, "fwd", (psi_rad | None, omega_rad | None))]. Validity is
+    measurement-intrinsic only (Phase 3 frozen S_MIN / N_MIN): no ground truth,
+    position or world knowledge. "baseline" returns []."""
+    if arm in (None, "baseline"):
+        return []
+    ds = fwd_dataset(trial)
+    if ds is None:
+        raise ValueError(f"{trial}: not a forward-camera dataset bag")
+    use_w = arm == "heading_yawrate"
+    if use_w and FWD_SIGMA[ds]["omega"] is None:
+        raise ValueError(f"{trial}: yaw-rate arm not defined for {ds} (failed Phase 3 validation)")
+    here = _os.path.dirname(_os.path.abspath(__file__))
+    cal = _json.load(open(_os.path.join(here, "..", "..", "eval", "results", "fwd_calibration.json")))["frozen"]
+    d = np.load(_os.path.expanduser(f"~/thesis_data/trials/{trial}/fwd_meas/meas_frozen.npz"))
+    assert float(d["inlier_grid"][0]) == cal["inlier_deg"] and int(d["box_grid"][0]) == cal["box_half_px"]
+    t, psi, sup = d["t"], d["psi"][:, 0], d["support"][:, 0]
+    om, ntr = d["omega"][:, 0, 0], d["n_trk"][:, 0, 0]
+    out = []
+    for k in range(len(t)):
+        p = float(np.radians(psi[k])) if (np.isfinite(psi[k]) and sup[k] >= cal["s_min"]) else None
+        w = float(np.radians(om[k])) if (use_w and np.isfinite(om[k]) and ntr[k] >= cal["n_min"]) else None
+        if p is not None or w is not None:
+            out.append((float(t[k]), "fwd", (p, w)))
+    return out

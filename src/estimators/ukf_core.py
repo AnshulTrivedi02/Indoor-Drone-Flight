@@ -238,3 +238,40 @@ def init_state(accel_body_mean, first_range, dt=0.0125):
                  bg0**2, bg0**2, bg0**2,             # gyro bias (delta form)
                  ba0**2, ba0**2, ba0**2])            # accel bias (delta form)
     return x, P
+
+
+# ---------- forward camera (Phase 4): heading and yaw-rate updates ----------
+def update_heading(x, P, psi, sigma, gate, p):
+    """Scalar heading update, h = yaw (measurement_models.h_heading), with the
+    innovation wrapped (sigma points taken relative to the mean yaw, as in
+    update_yaw_pseudo). chi-square gate nu^2/S <= gate, identical to the FGO's.
+    Returns (x, P, accepted, nis)."""
+    sig, Wm, Wc = _sigma_points(x, P, p)
+    Zr = np.array([_wrap(s[8] - x[8]) for s in sig])
+    zpred = Wm @ Zr
+    dz = Zr - zpred
+    S = Wc @ (dz * dz) + sigma ** 2
+    nu = _wrap(psi - x[8]) - zpred
+    nis = nu * nu / S
+    if not np.isfinite(nis) or nis > gate:
+        return x, P, False, float(nis)
+    Pxz = np.zeros(N)
+    for i in range(2 * N + 1):
+        Pxz += Wc[i] * _state_residual(sig[i], x) * dz[i]
+    K = Pxz / S
+    xn = x + K * nu
+    xn[6], xn[7], xn[8] = _wrap(xn[6]), _wrap(xn[7]), _wrap(xn[8])
+    Pn = P - np.outer(K, K) * S
+    return xn, 0.5 * (Pn + Pn.T), True, float(nis)
+
+
+def update_yawrate(x, P, omega_meas, gyro_z_avg, sigma, gate, p):
+    """Scalar yaw-rate update, h = gyro_z_avg - bg_z/dt (measurement_models.h_yawrate;
+    the bias state is delta-form per predict step). Same chi-square gate.
+    Returns (x, P, accepted, nis)."""
+    from measurement_models import h_yawrate
+    bz = BG_SLICE.start + 2
+    xn, Pn, acc, test = _update_scalar(x, P, omega_meas,
+                                       lambda s: h_yawrate(gyro_z_avg, s[bz] / p['dt']),
+                                       sigma ** 2, gate, p)
+    return xn, Pn, acc, float(test * gate)

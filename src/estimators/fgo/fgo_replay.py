@@ -14,11 +14,17 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
 from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift
+from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
+import json
 from imu_timing import dejitter_imu, apply_gap_rule
 
 TRIAL = sys.argv[1]
+# Phase 4 arm (argv[4]; METHODOLOGY): none = legacy run into fgo/ (unchanged); otherwise one
+# of baseline / heading / heading_yawrate, written to fgo_<arm>/.
+ARM = sys.argv[4] if len(sys.argv) > 4 else None
+assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/fgo")
+OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/fgo" + ("" if ARM is None else f"_{ARM}"))
 os.makedirs(OUTDIR, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -43,6 +49,7 @@ with Reader(BAG) as r:
             ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
         elif con.topic == "/ground_truth/pose":
             gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
+ev += forward_events(TRIAL, ARM)    # Phase 4 forward-camera measurements ([] for baseline/legacy)
 ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
 ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
@@ -55,7 +62,8 @@ first_rng = next(d for t, k, d in ev if k == "rng" and 0.05 <= d <= 40.0)
 t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
-fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS)
+sig_fwd = FWD_SIGMA[fwd_dataset(TRIAL)] if ARM not in (None, "baseline") else None
+fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd, fwd_gate=FWD_CHI2_GATE)
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init)
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 
@@ -64,7 +72,8 @@ traj = []                       # (t, pE, pN, pU, roll, pitch, yaw, bgz_rate)
 omega = np.zeros(3); t_prev_imu = None
 gyro_avg = FlowFrameGyroAverager(t_init)     # interval-avg gyro for h_flow derotation (FINDING 4)
 flow_omega = np.zeros(3)
-flow_pend = None; rng_pend = None
+flow_pend = None; rng_pend = None; fwd_pend = None
+fwd_avg = FlowFrameGyroAverager(t_init)      # gyro over the forward-frame interval (Phase 4 h_yawrate)
 t_kf_next = t_init + fgo.kf_dt
 step_ns = []; n_kf = 0
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
@@ -79,15 +88,18 @@ for tt, kind, d in ev:
     elif kind == "flow":
         flow_pend = d
         flow_omega = gyro_avg.average(tt, omega)   # interval-avg over the flow frame (FINDING 4)
+    elif kind == "fwd":
+        fwd_pend = (d[0], d[1], float(fwd_avg.average(tt, omega)[2]))   # latest forward frame
     elif kind == "imu":
         gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
+        fwd_avg.push(tt, d[1])
         if t_prev_imu is not None:
             fgo.integrate_imu(d[0], d[1], tt - t_prev_imu)
         t_prev_imu = tt
         while tt >= t_kf_next:
             t0 = time.perf_counter_ns()
             try:
-                fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend)
+                fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend, fwd=fwd_pend)
             except Exception as e:
                 print(f"[warn] keyframe at {t_kf_next:.3f} failed: {type(e).__name__}: {e}")
             step_ns.append(time.perf_counter_ns() - t0); n_kf += 1
@@ -102,9 +114,15 @@ for tt, kind, d in ev:
                 om = flow_omega - fgo.prev_bias.gyroscope()
                 pred = h_flow_pose(pose.rotation().matrix(), vel, pose.translation()[2], om)
                 fresid.append((t_lat, pred[0]-flow_pend[0][0], pred[1]-flow_pend[0][1]))
-            flow_pend = None; rng_pend = None
+            flow_pend = None; rng_pend = None; fwd_pend = None
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
+fl = np.array(fgo.fwd_log).reshape(-1, 4)
+np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl)
+cnt = {"psi_valid": int((fl[:, 1] == 0).sum()), "psi_fused": int(((fl[:, 1] == 0) & (fl[:, 3] > 0)).sum()),
+       "omega_valid": int((fl[:, 1] == 1).sum()), "omega_fused": int(((fl[:, 1] == 1) & (fl[:, 3] > 0)).sum())}
+json.dump({"arm": ARM, "counts": cnt, "sigma": sig_fwd and {k: (None if v is None else float(v)) for k, v in sig_fwd.items()},
+           "gate": FWD_CHI2_GATE}, open(f"{OUTDIR}/fwd_stats.json", "w"), indent=1)
 
 # write TUM (ENU, euler->quat)
 def euler_to_quat(r, pch, y):

@@ -14,10 +14,16 @@ from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 import ukf_core as U
 from imu_timing import dejitter_imu, apply_gap_rule
 from measurement_models import R_world_body, FlowFrameGyroAverager, sitl_gyro_drift
+from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
+import time, json
 
 TRIAL = sys.argv[1]
+# Phase 4 arm (METHODOLOGY): none = legacy run into ukf/ (unchanged); otherwise one of
+# baseline / heading / heading_yawrate, written to ukf_<arm>/.
+ARM = sys.argv[2] if len(sys.argv) > 2 else None
+assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf")
+OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}"))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -50,6 +56,7 @@ with Reader(BAG) as r:
             ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
         elif con.topic == "/ground_truth/pose":
             gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
+ev += forward_events(TRIAL, ARM)    # Phase 4 forward-camera measurements ([] for baseline/legacy)
 ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
 ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
@@ -74,6 +81,11 @@ def euler_to_quat(r, pch, y):
 traj = []                       # (t, pE, pN, pU, roll,pitch,yaw, bg_z)
 omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
 gyro_avg = FlowFrameGyroAverager(t_init)     # interval-avg gyro for h_flow derotation (FINDING 4)
+fwd_avg = FlowFrameGyroAverager(t_init)      # same, over the forward-frame interval (Phase 4 h_yawrate)
+sig_fwd = FWD_SIGMA.get(fwd_dataset(TRIAL) or "", {}) if ARM not in (None, "baseline") else {}
+fwd_n = {"psi_valid": 0, "psi_fused": 0, "omega_valid": 0, "omega_fused": 0}
+nis_psi, nis_om = [], []
+tim = {"predict": [], "range": [], "flow": [], "fwd": []}     # wall-clock ns per call (DIAGNOSTIC)
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
 n_flow_acc = [0, 0]; n_flow_rej = [0, 0]; n_rng_acc = n_rng_rej = 0
 n_yaw_check = n_yaw_fire = 0     # pseudo-yaw: opportunities checked vs actually fused
@@ -87,12 +99,15 @@ for t, kind, d in ev:
         omega = d
     elif kind == "imu":
         gyro_avg.push(t, d[1])                # co-sampled gyro, for the flow-frame average
+        fwd_avg.push(t, d[1])
         dt_i = t - t_prev; t_prev = t
         if dt_i <= 0 or dt_i > 0.2:
             continue
         da += d[1]*dt_i; dv += d[0]*dt_i; acc_dt += dt_i
         if acc_dt >= p['dt']:
+            _t0 = time.perf_counter_ns()
             x, P = U.predict(x, P, da, dv, p)
+            tim["predict"].append(time.perf_counter_ns() - _t0)
             if t - t_yaw >= p['YAW_DT']:              # check opportunity ~7 Hz (EKF3's 140 ms)
                 att_tr.append((P[6, 6] + P[7, 7], P[8, 8]))  # (tilt, yaw) cov at each check
                 x, P, fired = U.update_yaw_pseudo(x, P, p)   # variance-gated fire (MagFusion.cpp:274)
@@ -101,15 +116,36 @@ for t, kind, d in ev:
             traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8], x[U.BG_SLICE.start+2]))
             da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
     elif kind == "rng":
+        _t0 = time.perf_counter_ns()
         x, P, acc = U.update_range(x, P, d, p)
+        tim["range"].append(time.perf_counter_ns() - _t0)
         n_rng_acc += acc; n_rng_rej += (not acc)
     elif kind == "flow":
         flow_xy, valid, inlier = d
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
+        _t0 = time.perf_counter_ns()
         x, P, (ax, ay) = U.update_flow(x, P, flow_xy, omega_flow, valid, inlier, p)
+        tim["flow"].append(time.perf_counter_ns() - _t0)
         for i, a in enumerate((ax, ay)):
             n_flow_acc[i] += a; n_flow_rej[i] += (not a)
+    elif kind == "fwd":
+        psi_m, om_m = d
+        gz = fwd_avg.average(t, omega)[2]     # gyro-z averaged over the forward-frame interval
+        _t0 = time.perf_counter_ns()
+        if psi_m is not None:
+            fwd_n["psi_valid"] += 1
+            x, P, a, nis = U.update_heading(x, P, psi_m, sig_fwd["psi"], FWD_CHI2_GATE, p)
+            fwd_n["psi_fused"] += a; nis_psi.append((t, nis, a))
+        if om_m is not None:
+            fwd_n["omega_valid"] += 1
+            x, P, a, nis = U.update_yawrate(x, P, om_m, gz, sig_fwd["omega"], FWD_CHI2_GATE, p)
+            fwd_n["omega_fused"] += a; nis_om.append((t, nis, a))
+        tim["fwd"].append(time.perf_counter_ns() - _t0)
 traj = np.array(traj)
+np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", **{f"t_{k}_ns": np.array(v, np.int64) for k, v in tim.items()},
+                    nis_psi=np.array(nis_psi).reshape(-1, 3), nis_omega=np.array(nis_om).reshape(-1, 3))
+json.dump({"arm": ARM, "counts": fwd_n, "sigma": {k: (None if v is None else float(v)) for k, v in sig_fwd.items()},
+           "gate": FWD_CHI2_GATE}, open(f"{OUTDIR}/fwd_stats.json", "w"), indent=1)
 
 # ---------- write TUM (UKF + ground truth), ENU ----------
 def write_tum(path, T, XYZ, Q):

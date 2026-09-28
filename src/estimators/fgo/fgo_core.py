@@ -38,8 +38,12 @@ ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
 
 
 class FGO:
-    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2):
+    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0):
         self.kf_dt = kf_dt
+        # Phase 4 forward camera: None = baseline (no forward factors, no gate recursion).
+        self.fwd_sigma, self.fwd_gate = fwd_sigma, fwd_gate
+        self.fwd_log = []          # (t, kind, nis, accepted)
+        self.cov_prev = None       # gate-only filtering covariance of (X, V, B) at the last keyframe
         # BatchFixedLagSmoother re-solves the window with LM each step and is ROBUST
         # (FGO_DESIGN §6). The incremental iSAM2 path is unusable here: its
         # marginalizeLeaves cascades ("variable not in VectorValues" at the lag boundary)
@@ -61,6 +65,10 @@ class FGO:
         self.flow_noise = gtsam.noiseModel.Isotropic.Sigma(2, 0.25)   # FLOW_M_NSE
         self.range_noise = gtsam.noiseModel.Isotropic.Sigma(1, 0.5)   # RNG_M_NSE
         self.yaw_noise = gtsam.noiseModel.Isotropic.Sigma(1, 0.5)     # EK3_YAW_M_NSE, §9.4
+        if fwd_sigma is not None:
+            self.heading_noise = gtsam.noiseModel.Isotropic.Sigma(1, fwd_sigma["psi"])
+            self.yawrate_noise = (gtsam.noiseModel.Isotropic.Sigma(1, fwd_sigma["omega"])
+                                  if fwd_sigma.get("omega") is not None else None)
         self.k = 0
         self.prev_pose = self.prev_vel = self.prev_bias = None
         self.t_last = None
@@ -84,6 +92,8 @@ class FGO:
         g.add(PriorFactorConstantBias(B(0), bias0, gtsam.noiseModel.Diagonal.Sigmas(bias_sig)))
         vals.insert(X(0), pose0); vals.insert(V(0), vel0); vals.insert(B(0), bias0)
         self.smoother.update(g, vals, _tsmap({X(0): t0, V(0): t0, B(0): t0}))
+        if self.fwd_sigma is not None:
+            self.cov_prev = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
         self.prev_pose, self.prev_vel, self.prev_bias = pose0, vel0, bias0
         self.t_last = t0; self.yaw_ref = 0.0
         self.last = (t0, pose0, vel0)
@@ -93,9 +103,10 @@ class FGO:
             self.pim.integrateMeasurement(np.asarray(accel, float), np.asarray(gyro, float), dt)
             self.n_imu += 1
 
-    def keyframe(self, t, flow=None, omega=None, rng=None):
+    def keyframe(self, t, flow=None, omega=None, rng=None, fwd=None):
         """Create keyframe k on the IMU clock. flow=(flow_xy, valid, inlier),
-        omega = FLU rates for the flow factor, rng = range or None."""
+        omega = FLU rates for the flow factor, rng = range or None,
+        fwd = (psi | None, omega_meas | None, gyro_z_avg) forward-camera measurements."""
         if self.pim.deltaTij() <= 0:
             return                                    # no IMU since last keyframe — skip (§8)
         km1, k = self.k, self.k + 1
@@ -114,9 +125,13 @@ class FGO:
             flow_xy, valid, inlier = flow
             if valid and inlier > 0.0 and abs(flow_xy[0]) < 4.2 and abs(flow_xy[1]) < 4.2:
                 g.add(F.flow_factor(self.flow_noise, X(k), V(k), B(k), flow_xy, omega)); self.n_flow += 1
+        if self.fwd_sigma is not None:
+            self._forward_factors(g, vals, t, km1, k, Xk, fwd)
         ts = {X(k): t, V(k): t, B(k): t}
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
+        if self.fwd_sigma is not None:
+            self.cov_prev = self._posterior_cov(g, est, km1, k)
         self.prev_pose = est.atPose3(X(k)); self.prev_vel = est.atVector(V(k)); self.prev_bias = est.atConstantBias(B(k))
         self.pim.resetIntegrationAndSetBias(self.prev_bias)
         self.k = k; self.t_last = t
@@ -124,3 +139,68 @@ class FGO:
 
     def latest(self):
         return self.last
+
+    # ---------- Phase 4: chi-square gate via a gate-only filtering covariance ----------
+    # The Python BatchFixedLagSmoother exposes no marginal covariance, so the predicted
+    # covariance for the gate comes from a recursion alongside the smoother: the previous
+    # keyframe's marginal of (X, V, B) as a Gaussian prior, plus this keyframe's factors
+    # linearised at the current values, over the 30-dim (X,V,B)_{k-1} + (X,V,B)_k space.
+    # It is used ONLY to gate; the smoother's solution is untouched.
+    _DIMS = (6, 3, 6)
+
+    def _info(self, factors, values, km1, k):
+        keys = [X(km1), V(km1), B(km1), X(k), V(k), B(k)]
+        off, o = {}, 0
+        for key, dm in zip(keys, self._DIMS * 2):
+            off[key] = (o, dm); o += dm
+        L = np.zeros((o, o))
+        L[:15, :15] = np.linalg.inv(self.cov_prev)
+        for i in range(factors.size()):
+            jf = factors.at(i).linearize(values)
+            A = jf.jacobian()[0]
+            fk = list(jf.keys())
+            idx = np.concatenate([np.arange(off[key][0], off[key][0] + off[key][1]) for key in fk])
+            L[np.ix_(idx, idx)] += A.T @ A
+        return L
+
+    def _values(self, km1, k, pose_k, vel_k, bias_k, src=None):
+        v = gtsam.Values()
+        if src is None:
+            v.insert(X(km1), self.prev_pose); v.insert(V(km1), self.prev_vel); v.insert(B(km1), self.prev_bias)
+        else:
+            v.insert(X(km1), src.atPose3(X(km1)) if src.exists(X(km1)) else self.prev_pose)
+            v.insert(V(km1), src.atVector(V(km1)) if src.exists(V(km1)) else self.prev_vel)
+            v.insert(B(km1), src.atConstantBias(B(km1)) if src.exists(B(km1)) else self.prev_bias)
+        v.insert(X(k), pose_k); v.insert(V(k), vel_k); v.insert(B(k), bias_k)
+        return v
+
+    def _forward_factors(self, g, vals, t, km1, k, Xk, fwd):
+        if fwd is None:
+            return
+        psi, om, gz = fwd
+        Vk = vals.atVector(V(k))
+        cov = np.linalg.inv(self._info(g, self._values(km1, k, Xk, Vk, self.prev_bias), km1, k))
+        cXX, cBB = cov[15:21, 15:21], cov[24:30, 24:30]
+        if psi is not None:
+            f = F.heading_factor(self.heading_noise, X(k), psi)
+            e = F._wrap(Xk.rotation().yaw() - psi)
+            Hx = F._jac_pose(lambda p_, v_, b_: np.array([F._wrap(p_.rotation().yaw() - psi)]), Xk, None, None, 1)
+            S = float(Hx @ cXX @ Hx.T) + self.fwd_sigma["psi"] ** 2
+            nis = e * e / S
+            ok = bool(np.isfinite(nis) and nis <= self.fwd_gate)
+            if ok:
+                g.add(f)
+            self.fwd_log.append((t, 0, float(nis), ok))
+        if om is not None:
+            e = (gz - self.prev_bias.gyroscope()[2]) - om
+            S = float(cBB[5, 5]) + self.fwd_sigma["omega"] ** 2
+            nis = e * e / S
+            ok = bool(np.isfinite(nis) and nis <= self.fwd_gate)
+            if ok:
+                g.add(F.yawrate_factor(self.yawrate_noise, B(k), om, gz))
+            self.fwd_log.append((t, 1, float(nis), ok))
+
+    def _posterior_cov(self, g, est, km1, k):
+        v = self._values(km1, k, est.atPose3(X(k)), est.atVector(V(k)), est.atConstantBias(B(k)), src=est)
+        cov = np.linalg.inv(self._info(g, v, km1, k))[15:30, 15:30]
+        return 0.5 * (cov + cov.T)

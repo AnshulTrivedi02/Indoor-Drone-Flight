@@ -10,7 +10,7 @@ import gtsam
 from gtsam import CustomFactor
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from measurement_models import h_flow_pose, CAM_OFFSET, RANGE_LEVER, H_MIN
+from measurement_models import h_flow_pose, CAM_OFFSET, RANGE_LEVER, H_MIN, h_heading, h_yawrate
 
 EPS = 1e-6
 
@@ -81,6 +81,37 @@ def yaw_prior_factor(noise, key_x, yaw_ref):
             H[0] = _jac_pose(err, pose, None, None, 1)
         return e
     return CustomFactor(noise, [key_x], efun)
+
+
+# ---------- forward camera (Phase 4): heading on X(k), yaw rate on B(k) ----------
+def heading_factor(noise, key_x, psi_meas):
+    """Forward-camera heading relative to the corridor axis: wrap(h_heading(yaw) - psi),
+    the SAME shared model the UKF uses (measurement_models.h_heading)."""
+    def err(pose, vel, bias):
+        return np.array([_wrap(h_heading(pose.rotation().yaw()) - psi_meas)])
+
+    def efun(this, values, H):
+        pose = values.atPose3(key_x)
+        e = err(pose, None, None)
+        if H is not None:
+            H[0] = _jac_pose(err, pose, None, None, 1)
+        return e
+    return CustomFactor(noise, [key_x], efun)
+
+
+def yawrate_factor(noise, key_b, omega_meas, gyro_z_avg):
+    """Forward-camera yaw rate: h_yawrate(gyro_z_avg, b_gz) - omega, on the bias key
+    (GTSAM bias is rate form, FLU). SAME shared model as the UKF."""
+    def err(pose, vel, bias):
+        return np.array([h_yawrate(gyro_z_avg, bias.gyroscope()[2]) - omega_meas])
+
+    def efun(this, values, H):
+        bias = values.atConstantBias(key_b)
+        e = err(None, None, bias)
+        if H is not None:
+            H[0] = _jac_bias(err, None, None, bias, 1)
+        return e
+    return CustomFactor(noise, [key_b], efun)
 
 
 # ---------- numerical Jacobians on the manifold (central differences) ----------
