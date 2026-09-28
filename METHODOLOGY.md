@@ -3222,3 +3222,103 @@ kept as valid.
 earlier two-in-parallel test, already oversubscribed) to **35 ms median** single-threaded.
 The baseline step is 27.6 ms. Phase 4 timing is reported from the restarted, thread-limited
 runs, with the thread setting stated.
+
+## Phase 4 — result (2026-09-29): all 90 replays done; reported, not judged (judging is Phase 5)
+
+**Completeness.**
+- **90/90 replays completed**, with 0 failures. Runner log:
+  `~/thesis_data/batches/phase4_replays/jobs.log`.
+- **Pre-registered regression check passes: 36/36 baseline trajectories (UKF and FGO,
+  all 18 bags) are byte-identical** to the stored ceiling-dataset runs.
+- Results: `eval/results/phase4_{fwdc,fwdplainc}_{evo,arms}.json`, produced by
+  `eval/phase4_eval.py`.
+- Values below are the **mean of 3 repeats, with the [min–max] range**. EKF3 is the fixed
+  no-heading reference.
+
+**Textured-floor world, evo -a (cruise) in m:**
+
+| | EKF3 | UKF baseline | UKF +heading | UKF +heading+yaw rate | FGO baseline | FGO +heading | FGO +heading+yaw rate |
+|---|---|---|---|---|---|---|---|
+| `fwdc` (textured walls) | 3.80 [3.44–3.99] | 14.28 [7.30–20.94] | 6.62 [6.61–6.63] | 6.62 | 4.69 [4.42–4.97] | **0.47 [0.46–0.49]** | 0.47 |
+| `fwdplainc` (plain walls) | 4.10 [3.88–4.26] | 11.49 [8.71–15.81] | 6.64 [6.61–6.67] | — | 4.71 [4.64–4.82] | **0.54 [0.52–0.57]** | — |
+
+**Yaw error against GT over cruise (RMS, degrees):**
+
+| world | baseline UKF / FGO | +heading UKF / FGO |
+|---|---|---|
+| textured walls, textured floor | 68.2 / 21.8 | 0.08 / 0.18 |
+| **plain walls, textured floor** | — | **1.59 / 1.97** (heading acceptance 69% / 79%) |
+| every other world and dataset | 8–77 / 19–23 | 0.08–0.56 / 0.11–0.38 |
+
+**Transition world.**
+
+| | EKF3 evo | FGO baseline → +heading | UKF baseline → +heading |
+|---|---|---|---|
+| `fwdc` | 21.75 | evo 26.04 → **20.70**; ratio 0.71 → 0.91; onset 95 → 110 m | evo 15.50 [7.97–25.67] → 19.61 [19.47–19.74]; ratio 0.81 → 0.76 |
+| `fwdplainc` | 21.76 | evo 26.06 → 20.77; onset 95 → 109 m | 17.12 [7.40–31.55] → 19.79 |
+
+**Blank world.** Heading removes the yaw error (RMS 0.08–0.19° with heading) but leaves
+position essentially unchanged:
+
+| | EKF3 | FGO baseline → +heading | UKF baseline → +heading |
+|---|---|---|---|
+| `fwdc` evo | 34.62 | 26.24 → 26.37 | 13.00 → 13.82 |
+| `fwdc` ratio | — | 1.52 → 1.56 | 1.23 → 1.28 |
+| `fwdplainc` evo | 34.94 | 25.73 → 25.84 | 12.54 → 13.51 |
+
+**Yaw rate on top of heading (`fwdc` only).**
+- **evo -a is unchanged to 0.01 m** in every world.
+- **It changes the gyro-z bias estimate** (|cruise-mean estimate| ÷ true instantaneous
+  mean; definition B):
+
+  | | heading only | + yaw rate |
+  |---|---|---|
+  | FGO | 55–56% | 86–95% |
+  | UKF | 118–120% | 97–109% |
+
+- Yaw-rate gate acceptance is 72–75%, as flagged: the pre-registered σ_ω is tighter than
+  the observed innovations. Heading acceptance is 96–100% on `fwdc`.
+
+**Observations for Phase 5 (recorded, not interpreted).**
+1. **With heading, the UKF's textured error collapses to one value, 6.61–6.67 m in both
+   datasets,** with displacement ratio 0.85: a ~15% along-track under-travel. The FGO with
+   heading has ratio 1.01.
+2. **The FGO-with-heading textured result (~0.5 m) beats EKF3's 3.8–4.1 m. This is not a
+   like-for-like comparison:** EKF3 has no heading, by ruling (information asymmetry). The
+   Phase 5 claim is within-estimator only.
+3. **On plain walls over a textured floor, heading is weaker, but the position gain holds**
+   (FGO 0.54 m). This matches the Phase 3 finding that floor aliasing, not wall texture,
+   is what degrades heading there.
+4. **On blank floors, fixing yaw does not fix position:** flow starvation dominates.
+
+**Plain-wall transition, Phase 3 heading by segment**
+(`eval/results/fwd_transition_segments.json`; previously in the JSON only):
+
+| segment | availability | noise sd | outliers |
+|---|---|---|---|
+| checkerboard half (y < 80 m) | 84.9–85.0% | 0.50–0.52° | 5.2–5.9% |
+| blank half (y > 80 m) | 90.1–91.1% | 0.18–0.21° | 0.1–0.2% |
+
+- **The plain-wall heading weakness is confined to the checkerboard half.**
+- Yaw rate fails on both halves (outliers 5.3–5.5% checker, **30.7–31.6% blank**).
+- With textured walls, both halves pass: heading sd 0.12–0.14°, 0% outliers.
+
+**Timing (DIAGNOSTIC; workstation Python, single-threaded numerical libraries, 6 jobs in
+parallel).**
+- Only the 79 restarted jobs are used. The 11 pre-restart jobs ran oversubscribed: their
+  results are valid (identity-checked) but their timing is not comparable. So n = 2–3 per
+  cell.
+- **UKF:** predict step 1.5–1.6 ms median (p95 ≤ 2.1 ms), 0.12–0.13 of the 12.5 ms period.
+  Forward update 0.25 ms (heading) / 0.49 ms (heading + yaw rate), against a 33 ms period.
+- **FGO keyframe step, median / p95 ms (period 33.3 ms):**
+
+  | | textured | transition | blank |
+  |---|---|---|---|
+  | baseline | 32.7–32.9 / 37–38 | 17–18 / 33–37 | 4.5 / 16–18 |
+  | +heading | 37–40 / 44–46 | 23–35 / 44 | 11–12 / 19–23 |
+  | +heading+yaw rate | 42 / 49 | 27 / 46 | 12.5 / 25 |
+
+- The added cost is the Python gate-covariance recursion (numerical Jacobians). **Textured
+  forward arms run ~1.1–1.3× over the 33 ms period.**
+- **This says nothing directly about flight-controller or companion feasibility, and
+  changes no Phase 4 setting.**

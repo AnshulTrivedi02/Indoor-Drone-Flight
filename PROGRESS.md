@@ -5,6 +5,23 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-29 (later) — Phase 4 DONE (90/90), reported for Phase 5
+
+- **Phase 4 offline forward fusion (UKF/FGO):** 90/90 replays done. The baselines are
+  byte-identical to the stored runs (36/36).
+- **Heading cuts yaw error** from 20–120° RMS to 0.1–0.4° (1.6–2.0° on plain walls over a
+  checker floor).
+- **Textured evo -a (cruise):**
+  - FGO 4.7 → **0.47 m** (textured walls) and 0.54 m (plain walls);
+  - UKF 14.3 → 6.6 m, with ratio 0.85, a ~15% under-travel;
+  - EKF3 3.8 m, with no heading by ruling, so not like-for-like.
+- **Transition:** FGO 26.0 → 20.7 m, onset 95 → 110 m.
+- **Blank:** yaw fixed, position unchanged.
+- **Yaw rate** adds nothing to ATE but improves gyro-bias tracking (FGO 55% → ~90%).
+- **Timing is diagnostic:** UKF 1.6 ms; FGO 33 → 40 ms textured.
+- **Found and fixed:** thread oversubscription in the batch (identity-checked).
+- **Next:** Phase 5, the hypothesis test.
+
 ## Current Status — 2026-09-29 — SCOPE CHANGE (supervisor) + EKF3 ruling; Phase 4 starting
 
 - **Supervisor direction, scope change** (details pending the supervisor's reply):
