@@ -3037,3 +3037,63 @@ and redoes incomplete ones.
 - **The item 9 instruction arrived truncated** ("…consistency of the"). It was
   interpreted as estimate consistency (NEES and uncertainty reporting), to be
   confirmed by the user.
+
+## Part C — onboard feasibility investigation (2026-09-29): result
+
+Full report, read-only (nothing built or modified), with citations at `7bac20cbcc`:
+**`docs/partC_onboard_feasibility.md`**. Spot-checked here:
+- `SIM_JSON.cpp:410-413`
+- `iris_with_ardupilot/model.sdf:789`
+- `AP_NavEKF3_Measurements.cpp:1118`
+
+**Key conclusions.**
+- **The UKF onboard is feasible on the H743, for Copter and QuadPlane.**
+  - Estimated ~25–50 kB flash, < 16 kB RAM, ~2–8% CPU. About 270–325 kB of flash is
+    free on current CubeOrange/Pixhawk6X builds (from published `.apj` files; our own
+    commit's size was not measured).
+  - EKF3 runs in double precision on the H7, so the UKF should too.
+  - The interface spec: 86 `EKF3.*` call sites in `AP_AHRS`. The semantics matter
+    (for example, `get_variances()` returns normalised test ratios), and so do the
+    reset reports.
+  - A new `EKFType` needs about 52 switch arms in `AP_AHRS.cpp`.
+  - **Shadow running already works:** `dsn_tex_r1` flew on SIM and still logged EKF3
+    (6654 `XKF1` rows, 2 lanes).
+  - **QuadPlane loops at 300 Hz**, so EKF3's prediction dt differs from Copter's.
+    The UKF must match it per vehicle.
+- **The FGO off-board:**
+  - **(a) ExtNav works today**, but what flies is EKF3 re-filtering the FGO output:
+    the IMU is double-counted, and a 5° yaw floor applies.
+  - **(b) There is no MAVLink or companion External-AHRS backend** at this commit, and
+    External AHRS is compiled out on 2 MB boards.
+  - **Fairness:** route (a) is "EKF3 fusing the FGO", not the FGO flying.
+- **Companion compute:** the FGO (Python, 29 ms/step) and the camera pipeline
+  (Python, ≤ 61 ms/frame on the i7, measured under load) need C++ ports to run
+  together on a Pi 4/5. A resolution or rate change would break the frozen Phase 3
+  calibration.
+- **Replay:** no existing trial is replayable (`LOG_REPLAY=0`). A new DAL backend also
+  needs log-format changes.
+- **Closed loop:** under SIM the EKF failsafes never fire, and `crash_check` won't
+  catch a wall scrape. Wall contact from GT is |x| ≥ 9.58 m. Current blank-floor
+  behaviour would not survive in a 20 m corridor.
+- **Where the FGO could fairly beat EKF3 (item 9):** nothing on disk shows it on ATE.
+  - The candidates are **distance scale** (EKF3 +6–10% against the FGO's ~+1%, n = 9)
+    and **consistency/NEES**, since the FGO's covariance has never been logged.
+  - A forward-heading gain is only fair if EKF3 also gets that heading.
+- **Effort:** ~18–30 person-weeks (estimate), plus 4–6 if route (b) is built.
+
+**CORRECTION 1: where `AHRS_EKF_TYPE=10` comes from.**
+- The Hidden Configuration Audit put it down to eeprom. It is (also) **injected as a
+  default by SITL**: `SIM_JSON.cpp:410-413` calls
+  `set_default_by_name("AHRS_EKF_TYPE", 10)` when the model sends `no_time_sync`. Our
+  iris model sends `<no_time_sync>1</no_time_sync>` (`model.sdf:789`).
+- ArduPilot's comment: without time sync the "EKF is likely to diverge".
+- **Before any closed-loop run:** set `AHRS_EKF_TYPE` explicitly in a `.parm` file,
+  confirm it from the log's PARM dump, and settle the time-sync question.
+
+**CORRECTION 2: the ExternalNav yaw floor is 5°, set inside EKF3.**
+- `NavEKF3_core::writeExtNavData` sets `yawAngErr = MAX(angErr, radians(5))`
+  (`AP_NavEKF3_Measurements.cpp:1118`). This comes on top of the `VISO_YAW_M_NSE`
+  clamp cited in the EKF3 ruling.
+- **Replay's `REPH` records re-enter through the same function**, so injected heading
+  cannot bypass it. This answers one of Option 1's open items: **EKF3 cannot be told
+  that heading is better than 5°**, against the UKF/FGO's 0.13–0.15°.

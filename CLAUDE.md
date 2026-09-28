@@ -804,6 +804,15 @@ any live `PARAM_SET` must be written into a `.parm` file in the same session.
 
 ### 1. `AHRS_EKF_TYPE=10` — `/ekf/pose` is ground truth, not EKF3
 
+> **Correction (2026-09-29, verified in source):** the value is also **injected as a
+> default by SITL itself**. `SIM_JSON.cpp:410-413` calls
+> `set_default_by_name("AHRS_EKF_TYPE", 10)` whenever the model sends `no_time_sync`,
+> and our iris model does (`iris_with_ardupilot/model.sdf:789`: `<no_time_sync>1</no_time_sync>`).
+> ArduPilot warns that without time sync the "EKF is likely to diverge".
+> **Before any closed-loop flight:** set `AHRS_EKF_TYPE` explicitly in a `.parm` file,
+> confirm it from the log's PARM dump, and settle the time-sync question. See
+> METHODOLOGY "Part C" and `docs/partC_onboard_feasibility.md`.
+
 **This is the most consequential finding in this document.** `AHRS_EKF_TYPE`
 selects which estimator ArduPilot *reports* as the vehicle's position. `10` is
 `EKFType::SIM` — the simulator's own perfect state. EKF3 is `3`.
