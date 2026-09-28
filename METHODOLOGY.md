@@ -2920,3 +2920,92 @@ extension.**
   - the **vanishing-point heading** is an external heading measurement, not optical
     flow;
   - the **forward yaw rate** is used only by our own estimators.
+
+## Phase 4 — offline forward-camera fusion, UKF and FGO only: pre-registration (2026-09-29, before any fusion code or run)
+
+**Scope.**
+- Fuse the Phase 3 forward-camera measurements into the Python UKF and FGO.
+- **EKF3 is the fixed no-yaw-source baseline** (ruling above).
+- Offline, on all 18 ceiling-dataset bags.
+- **Phase 4 builds and runs the arms. The hypothesis test and its interpretation are
+  Phase 5.**
+
+**Arms (per estimator, per bag):**
+
+| dataset | arms |
+|---|---|
+| `fwdc_*` (textured walls) | baseline / +heading / +heading+yaw rate |
+| `fwdplainc_*` (plain walls) | baseline / +heading (yaw rate failed Phase 3 validation) |
+
+That is 18 bags × 2 estimators, giving 90 replay runs, all from scratch. The
+**baseline arm must reproduce the existing ceiling-dataset UKF/FGO trajectories byte
+for byte** (a regression check on the refactor). If it does not, stop and report.
+
+**Measurements.**
+- The frozen Phase 3 outputs (`<trial>/fwd_meas/meas_frozen.npz`), stamped at the
+  forward-image header (sim time).
+- **Validity is measurement-intrinsic only**, from Phase 3: heading valid iff
+  support ≥ S_MIN = 200 px; yaw rate valid iff ≥ N_MIN = 5 tracked corners.
+- **No ground truth, estimated position or world knowledge enters any gating.** This
+  includes the end wall: there is no position-based gate. The end-wall weakness found
+  in Phase 3 is left to the intrinsic confidence and the χ² gate, and reported.
+
+**Measurement models (shared code, `src/estimators/measurement_models.py`).**
+- **Heading:** h_ψ(x) = yaw, with the innovation wrapped.
+  - The navigation frame's yaw reference is the corridor axis. Both estimators already
+    initialise yaw = 0 at spawn, facing along the corridor, so this is the same frame.
+  - This is the ExternalNav convention: the external heading source defines the yaw
+    reference.
+- **Yaw rate:** h_ω(x) = ω̄_z − b_g,z.
+  - ω̄_z is the co-sampled gyro-z averaged over the forward-frame interval
+    (t_{k−1}, t_k], using a second instance of the shared `FlowFrameGyroAverager`.
+  - b_g,z is the gyro-z bias state in rate units (UKF: delta-form bias / dt).
+  - Roll and pitch coupling is neglected (cruise tilt ≈ 0.02°).
+
+**Noise (from the static-sweep residuals, not the smaller flight values).**
+- **σ_ψ** = robust σ (1.4826 × MAD) of (ψ − commanded offset) over every valid sweep
+  frame, pooled per dataset (`eval/results/fwd_yaw_sweep.json`):
+  - **`fwdc` 0.148°**, **`fwdplainc` 0.126°**;
+  - against flight calibration values of 0.097° and 0.026°.
+- **σ_ω: the sweep contains no yaw-rate measurement**, so σ_ω cannot come from it
+  directly.
+  - **Rule:** the flight-calibration σ_ω scaled by the same sweep/flight inflation as
+    σ_ψ for that dataset.
+  - **`fwdc`: 0.106 × (0.148/0.097) = 0.162 deg/s.** Yaw rate is not used on `fwdplainc`.
+  - A derived choice, flagged for the user.
+
+**Gate (identical in both estimators).**
+- χ² test on the scalar innovation: **ν²/S ≤ 9** (3σ; EKF3's flow gate 300 → (0.01 ×
+  300)² = 9). Rejected measurements are not fused.
+- S = H P⁻ Hᵀ + σ², with P⁻ each estimator's own predicted covariance:
+  - **UKF:** its sigma-point prediction (the existing `_update_scalar` path).
+  - **FGO:** the Python `BatchFixedLagSmoother` exposes no marginal covariance. So a
+    **filtering covariance recursion** runs alongside it: per keyframe, the previous
+    posterior marginal of (X, V, B) acts as a prior; the keyframe's factors are
+    linearised at the current estimates; and the 30-dimensional information matrix is
+    inverted.
+    - This gives P⁻ (IMU factor only) for the gate, and the posterior for the next
+      step.
+    - It is used **for gating only**; the smoother's solution is untouched.
+
+**Timing (DIAGNOSTIC only).**
+- Per-update wall-clock is logged in every arm:
+  - UKF: each predict step (80 Hz, period 12.5 ms) and each forward update;
+  - FGO: each keyframe step (30 Hz, period 33.3 ms), including the gate recursion in
+    forward arms.
+- Reported as median, p95, max and ratio to the sensor period.
+- **Python timing on the workstation says nothing directly about flight-controller
+  feasibility. It must not change any Phase 4 setting or stop the phase.**
+
+**Runner.** A crash-safe, resumable job runner in tmux
+(`eval/run_jobs_resumable.sh`). Each job writes a DONE marker; a re-run skips done jobs
+and redoes incomplete ones.
+
+**Outputs, per arm and bag** (reported, not judged; judging is Phase 5):
+- evo -a (cruise);
+- transition and blank failure metrics;
+- yaw error against GT over cruise;
+- gyro-z bias against the SITL truth ramp;
+- forward-measurement acceptance (valid, gated, fused);
+- NIS statistics;
+- timing.
