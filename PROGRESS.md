@@ -992,6 +992,9 @@ ArduPilot dataflash log retrieval (newest `.BIN` by mtime from
 
 ## Next Priorities (Phase 1 remainder → Phase 2)
 
+> **SUPERSEDED (stale), 2026-09-29.** This block is kept as the historical log. It still lists the corridor worlds as unflyable (#11), low RTF, and the Stage C ATE gap. All of these are resolved or VOID (CLAUDE.md Known Issues; METHODOLOGY). The current status and priorities are in "Current Status" at the top of this file.
+
+
 0. **Set up ROS2/Gazebo/ArduPilot SITL on the new Ubuntu 24 machine** —
    migration motivated by this machine's low RTF (0.05–0.17); this
    machine remains primary until the new one is ready.
@@ -1070,6 +1073,9 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 ---
 
 ## Known Issues (open)
+
+> **SUPERSEDED (stale), 2026-09-29.** This block is kept as the historical log. It still lists the corridor worlds as unflyable (#11), low RTF, and the Stage C ATE gap. All of these are resolved or VOID (CLAUDE.md Known Issues; METHODOLOGY). The current status and priorities are in "Current Status" at the top of this file.
+
 
 1. **Manual derotation partial collapse (deprioritised, not blocking)** — isolated
    pure-rotation hover testing found only a 5–15% reduction in flow_x/flow_y

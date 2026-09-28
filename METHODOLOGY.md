@@ -225,7 +225,9 @@ wrong on two counts, caught by gating the fix on a re-run (do this — it is the
 discipline that saved the result):**
 1. Flipping the sign **made the UKF worse**, not better: ATE evo `-a` 11.7 → 16.3 m
    (full-window, historical; **evo -a (cruise) 10.49 → 14.22**, re-run 2026-09-24),
-   yaw drift +12.4 → +19.3 deg/min, gyro-z overshoot 245% → 336% (`dsn_tex_r1`). The
+   yaw drift +12.4 → +19.3 deg/min, gyro-z overshoot 245% → 336% (`dsn_tex_r1`) *(mixed
+denominators; under one definition the pair is 245% → ~371% or 222% → 336%; see "Source-pack
+flag resolutions (2026-09-29)" §3)*. The
    UKF's flow-X innovation flipped +0.71 → −0.69 rather than dropping to ~0 — because
    the UKF's velocity *adapts* to absorb flow, so its innovation reflects the
    prediction term, not the sensor residual.
@@ -318,7 +320,7 @@ re-run (`dsn_tex_r1`, n=1), it **degraded every outcome metric**:
 | ATE, evo -a (cruise) | **10.49** | 18.57 |
 | *ATE, evo `-a` full-window (historical)* | *11.69* | *21.58* |
 | yaw drift (deg/min) | **+12.4** | +32.9 |
-| gyro-z overshoot (% of 9.8) | **222%** | 494% |
+| gyro-z overshoot (% of 9.8; definition A, see 2026-09-29 flag resolutions §3) | **222%** | 494% |
 | lateral (X) flow acceptance | 71% | **98%** |
 
 **Mechanism — gating under unobservable yaw.** The instantaneous-ω residual is roll-
@@ -428,7 +430,7 @@ position gain; it is simply the wrong arbiter for nomag estimator *quality*.
 **three independent offline lines** — the −2.07 GT-residual slope, roll-*rate*-not-
 acceleration coupling, and EKF3's +0.03 vs the UKF's +0.71 innovation correlation — and
 was still **wrong**: applied, it degraded the UKF (ATE evo -a (cruise) 10.49→14.22; full 11.7→16.3, drift 12.4→19.3,
-overshoot 245%→336%) and its innovation flipped (+0.71→−0.69) rather than zeroing. The
+overshoot 245%→336%, mixed denominators, see §3 of the 2026-09-29 flag resolutions) and its innovation flipped (+0.71→−0.69) rather than zeroing. The
 control that caught it: **gate every measurement-model change on a from-scratch
 estimator re-run, and revert if the outcome metric degrades** — offline residual
 diagnostics and innovation correlations are necessary evidence but not sufficient,
@@ -703,7 +705,9 @@ is ~equally accurate at any window and 0.25 s merely also happens to be (mildly)
 
 **Solver + timing (reported honestly).** The primary solver is `BatchFixedLagSmoother`
 (iSAM2-incremental is unusable — GTSAM `marginalizeLeaves` cascades on the Python flow
-`CustomFactor`, FGO_DESIGN §6). Step-time scales ~O(window): **96 / 48 / 27 ms** at
+`CustomFactor`, FGO_DESIGN §6). *(Step times below: DIAGNOSTIC, workstation Python, window sweep
+on `dsn_tex_r1`, 2026-08-01, `04426d2`. The current 0.25 s figure is ~29 ms on textured bags;
+see "Source-pack flag resolutions (2026-09-29)" §1.)* Step-time scales ~O(window): **96 / 48 / 27 ms** at
 1.0 / 0.5 / 0.25 s. **The FGO meets the 33 ms deployability budget ONLY in its
 short-window (0.25 s) configuration — a real result, not a footnote:** a Python-bound
 `CustomFactor` FGO is budget-compliant only at a short window; larger windows spend
@@ -864,7 +868,10 @@ UKF's yaw tracks the raw gyro drift ~9 deg/min; EKF3-with-compass does not.)
 noise-floor characterisation (above) and (b) the EKF3-with-yaw-source reference.
 They are **superseded for the three-way comparison** by the nomag `dsn_*` batch,
 in which all three estimators face the same no-yaw condition and EKF3's own yaw
-drifts too (~5 deg/min under the deterministic SIM_DRIFT).
+drifts too (~5 deg/min under the deterministic SIM_DRIFT). *(SUPERSEDED: ~5 deg/min is the
+single-trial residual +5.32 deg/min from `nomag_corridor_baseline` (`257204d`). The current
+figure is +6.6…+11.1, mean ~8.1 deg/min, n = 9 `dsn_*` bags (`ca4c474`); see "Source-pack flag
+resolutions (2026-09-29)" §2.)*
 
 Both datasets are labelled by a `yaw_source:` block in `metadata.yaml`
 (`EK3_SRC1_YAW`, `COMPASS_USE`, read from each flight `.BIN` by `run_trial.sh`),
@@ -1096,7 +1103,9 @@ metric mismatch (aligned vs unaligned), not a result. The FGO's *unaligned* ATE 
 which `evo -a` removes. **Not a bug and not smoothing-magic:** instrumented, the FGO
 tracks the flow (cruise flow-factor residual ≈ 0: x −0.0007, y −0.0012 rad/s) and
 its cruise velocity is `|V(k)| = 0.517 m/s`, **+4.7 %** over true — so it *does*
-inherit a flow scale error, merely smaller than EKF3's `0.556 m/s` (+12.6 %) on this
+inherit a flow scale error, merely smaller than EKF3's `0.556 m/s` (+12.6 %) *(SUPERSEDED,
+n = 1: the current nine-flight values are EKF3 +5.7…+9.6 %, FGO +0.9…+1.1 %; see "Source-pack flag
+resolutions (2026-09-29)" §4)* on this
 bag (n=1; the smaller inheritance is unexplained and not leaned on). The along-track
 147.5 m looking "too good" vs true 151.1 was coincidence: the +4.7 % speed offset is
 cancelled in *displacement* by the −9.24 deg/min yaw-drift curvature. Flow is the
@@ -1108,7 +1117,10 @@ anchor-independent — Euler-UKF and SO(3)-FGO still both 69 % velocity / 31 % y
 The fair-anchor full run confirms the accumulated consequence: yaw drifts once the
 cap no longer over-constrains it.
 
-**Computational cost — goes in the results regardless of accuracy.** Batch smoother
+**Computational cost — goes in the results regardless of accuracy.** *(SUPERSEDED as the
+FGO's cost: this is the 1.0 s-window, pre-LM-cap configuration of 2026-08-01. The current
+0.25 s configuration is ~29 ms/step on textured bags. See "Source-pack flag resolutions
+(2026-09-29)" §1.)* Batch smoother
 **101 ms/step median, p99 167 ms — 3–5× over the 33 ms deployability budget**. The
 incremental (iSAM2) solver is 0.2 ms/step (well under budget) but **cascades after
 ~590 keyframes**. The cascade is isolated to the incremental marginalisation layer,
@@ -3097,3 +3109,90 @@ Full report, read-only (nothing built or modified), with citations at `7bac20cbc
 - **Replay's `REPH` records re-enter through the same function**, so injected heading
   cannot bypass it. This answers one of Option 1's open items: **EKF3 cannot be told
   that heading is better than 5°**, against the UKF/FGO's 0.13–0.15°.
+
+
+## Source-pack flag resolutions (2026-09-29, documentation only)
+
+Resolves the discrepancies flagged in `docs/thesis/numbers.md`. **Rule:** the later
+measurement over more flights is current; the other moves to the superseded section with
+a one-line reason. Where the rule does not settle it, that is said, and nothing is chosen.
+
+**§1 FGO step time (window 0.25 s).**
+- **Current: ~29 ms median on textured bags** (Part C, 2026-09-29).
+- The stored 0.25 s runs give medians of:
+
+  | world | n | median step (ms) |
+  |---|---|---|
+  | textured (`dsn`/`fwdc`/`fwdplainc`) | 9 | 26.9–29.2 |
+  | transition | 9 | 15.1–15.7 |
+  | blank | 9 | 4.0–4.3 |
+
+  Source: `<trial>/fgo/metrics.txt` `step_median_ms`, runs of 2026-09-24.
+- **The step time is world-dependent:** it scales with the number of flow factors in the
+  window. Any single FGO step-time figure must state its world.
+- **27 ms** is the textured-world figure from the 2026-08-01 window sweep on
+  `dsn_tex_r1` (`04426d2`). It is kept as the sweep's own result, not as the current
+  figure.
+- **101 ms/step** is the superseded 1.0 s-window, pre-LM-cap configuration.
+- **All of these are DIAGNOSTICS measured in Python on the workstation**, with parallel
+  jobs and load not recorded. They say nothing directly about onboard feasibility.
+  Phase 4's forward arms add a gating recursion, and their timing is reported separately.
+
+**§2 EKF3 yaw drift with no compass.**
+- **Current: +6.6…+11.1 deg/min, mean ~8.1, from `XKF1.Yaw`, n = 9 `dsn_*` bags**
+  (`ca4c474`, 2026-07-29).
+- **The window is not stated in the record** (commit `ca4c474` or the text). It is to be
+  stated if the figure is re-derived.
+- **Superseded: "~5 deg/min"** (`6f953b2`). Its origin is the single-trial residual
+  **+5.32 deg/min** on `nomag_corridor_baseline` (`257204d`). That is one trial, and not
+  representative of `dsn_*`, where EKF3 corrects only ~14–33%.
+
+**§3 UKF gyro-z bias overshoot, `dsn_tex_r1` baseline.** There are two definitions in
+the source:
+- **Definition A, "% of 9.8":** |mean estimated gyro-z bias over the cruise window| ÷ the
+  constant physical drift of 9.8 deg/min (raw gyro-z integrated).
+  - This is the code up to `51aaeba`: `bgz_frac = 100*|bgz_mean|/PHYS_DRIFT`,
+    `PHYS_DRIFT = 9.8`.
+  - Stored runs (re-run 2026-09-24): baseline (`ukf_precorr`) `bgz_mean` −21.793 →
+    **222.4%**; sign-flip (`ukf_signflip`) −32.929 → **336.0%**.
+- **Definition B, "% of the instantaneous true mean":** the same numerator ÷ the window
+  mean of the true SITL triangle-wave bias, `sitl_gyro_drift(t)`, ≈ 8.88 deg/min.
+  - This is the code since `51e1bb9`: `bgz_frac = 100*|bgz_mean|/true_mean`.
+  - Same runs: baseline **245.3%**; sign-flip **≈ 370.7%**, using 8.884. That run did not
+    store its own window mean.
+- **The "245% → 336%" pair in the sign-flip paragraphs mixes the two:** 245 is B, 336 is
+  A. Consistent pairs are **A: 222% → 336%** and **B: 245% → ~371%**.
+- **The thesis uses definition B**, the current harness definition. It is measured
+  against the true, time-varying bias, as recorded in the ramp-tracking finding.
+- A is kept only where the source table labels it ("% of 9.8").
+
+**§4 Distance / velocity scale.**
+- **Current (n = 9, derived in Part C, item 9 row A):**
+  - EKF3 **+5.7…+9.6%**;
+  - FGO **+0.9…+1.1%**;
+  - basis: path-length ratio of estimate to GT over cruise, with 20 s resampling, on
+    `dsn_tex`, `fwdc_tex` and `fwdplainc_tex`.
+- Corroborated by `disp_ratio`: EKF3 1.04–1.06, FGO 0.98–0.99 on 12 textured bags.
+- **Superseded: +12.6% (EKF3) / +4.7% (FGO).** That was n = 1 (`dsn_tex_r1`),
+  speed-magnitude based and pre-`h_flow`-correction.
+- **The scale-cause check ("bounded check 5a") is still PENDING.** It is not yet defined
+  anywhere in this record, so its scope needs to be written down before it is run.
+
+**§5 OI-2 commit.**
+- `cc588df` (fwd-camera, 03:39) and `9b0f5d9` (master, 08:18) record **the same OI-2
+  opening**. Their text is identical except that `9b0f5d9` adds one line ("…rules on
+  whether a correction goes through the re-run gate.").
+- `9b0f5d9` is the consolidated dsn-record commit on `master`, merged into `fwd-camera`
+  via `54b9bce`.
+- **Cite `9b0f5d9`**: it is on both branches, including `fwd-camera`, where the thesis
+  results are. `cc588df` is noted as the first recording.
+
+**§6 Stale working-file sections** were brought in line with this record in CLAUDE.md:
+- the corridor worlds;
+- the IMU bridge rate and port, plus the manual Terminal 2 and Terminal 11;
+- the UKF "not yet implemented" header;
+- the nomag "throwaway" label;
+- the FGO step time;
+- the not-yet-implemented list.
+
+In PROGRESS.md, the old Known Issues and Next Priorities blocks got banners.

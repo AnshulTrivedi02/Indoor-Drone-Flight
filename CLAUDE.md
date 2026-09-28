@@ -63,7 +63,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Flow EKF bridge**         | `~/thesis_ws/flow_bridge.py`                                         |
 | **Flow EKF3 params**        | `~/thesis_ws/flow_ekf.parm`                                          |
 | **GNSS-denied params**      | `~/thesis_ws/gnss_denied.parm`                                       |
-| **No-yaw test params (throwaway, not the baseline)** | `~/thesis_ws/gnss_denied_nomag.parm`               |
+| **No-yaw comparison params (used by `run_trial.sh` for all `dsn_*` and forward-camera datasets)** | `~/thesis_ws/gnss_denied_nomag.parm` (+ `sim_noise.parm`) — the three-way comparison config (METHODOLOGY "Comparison dataset — nomag") |
 | **EKF pose bridge**         | `~/thesis_ws/ekf_bridge.py`                                          |
 | **IMU bridge**               | `~/thesis_ws/imu_bridge.py`                                          |
 | **evo venv**                 | `~/venv-evo`                                                         |
@@ -90,113 +90,42 @@ to derotate internally — see [Sensor Fusion Architecture](#sensor-fusion-archi
 
 ## Corridor Worlds — Long-Duration Degraded-Sensing Trials
 
-`iris_textured.sdf`'s 20 m x 20 m checkerboard is too small for a full
-60-120 s forward-flight trial — the drone exits the mat mid-flight,
-contaminating "nominal" recordings with feature-poor segments (see Known
-Issues). It's also too short for dead-reckoning drift to accumulate: Stage
-C's ~40 s flights showed only a modest ATE gap between textured and blank
-floors despite a stark `inlier_ratio` collapse at the sensor level —
-position error hadn't yet caught up to the sensor degradation over that
-short a flight.
+*(Section rewritten 2026-09-29 to match METHODOLOGY. The original 2026-07 text, including
+the investigation of the now-fixed Known Issues #11/#12, is in git history and in
+`docs/thesis/export_2026-09-29_d89a902/CLAUDE.md`.)*
 
-Three corridor worlds in `~/ardupilot_gazebo/worlds/` address both
-problems, built from one shared template so **floor texture is the only
-variable** — dimensions, walls, lighting, and spawn are identical:
+**All worlds live in, and run from, `~/thesis_ws/sim/worlds/`** (vendored; see the Key
+Paths note). Geometry is common to all of them:
+- **Corridor:** 20 m wide (x = −10…10 m) and 160 m long (y = 0…160 m), along world +Y.
+- **Walls:** 5 m tall and 0.2 m thick at x = ±10 m, spanning y = −5…165 m.
+- **Lighting:** the same directional sun as `iris_textured.sdf`.
+- **Spawn:** `iris_with_ardupilot` at (0, 0, 0.195), yaw 90°. That is ArduPilot yaw 0,
+  NED-North, and the flight direction.
+- **Floor:** 9 visual-only tiles (y = −20…160 m) plus **exactly one
+  `model://ground_collision`**. This is the Known Issue #11 fix: coincident infinite
+  collision planes had cut RTF 30×.
+- **Blank floors:** they use visual `blank_ground_visual` tiles with the same material
+  minus the albedo map (the Known Issue #12 fix: `gpu_lidar` raycasts the *rendered*
+  scene).
+- **Floor texture is the only variable between the three floor conditions.**
 
-- **Corridor geometry**: 20 m wide (x: −10..10 m), **160 m long**
-  (y: 0..160 m) — comfortably over the ≥100 m minimum needed for a
-  60-120 s cruise at 0.5-1.0 m/s (30-120 m) plus climb/stop margin.
-  Corridor runs along world **+Y** — the drone's spawn yaw (90°, see
-  below) points +Y, matching ArduPilot's internal yaw=0 (NED-North), which
-  is the direction `fly_forward.py`/`fly_trial.py` fly.
-- **Walls**: two static boxes at x=±10 m (model `corridor_wall`,
-  `~/ardupilot_gazebo/models/corridor_wall/`), 5 m tall, 0.2 m thick,
-  spanning y:−5..165 m. Plain grey, identical in all three worlds — the
-  downward camera only looks straight down, so the walls never enter its
-  FOV and can't confound the floor comparison.
-- **Lighting**: the same directional sun as `iris_textured.sdf`, copied
-  verbatim. A directional light has no falloff, so it's uniform along the
-  whole corridor by construction — no illumination gradient to confound
-  with the texture variable.
-- **Spawn**: `iris_with_ardupilot` at `(0, 0, 0.195)`, yaw 90°, identical
-  across all three and identical to `iris_textured.sdf`/`iris_runway.sdf`.
+| world set | floor conditions | walls / ceiling / camera | status |
+|---|---|---|---|
+| `corridor_{textured,blank,transition}.sdf` | textured / blank / transition (textured y < 80 m, blank y > 80 m) | plain grey walls, no ceiling, downward sensors only | **CURRENT**: `dsn_*` baseline datasets |
+| `corridor_*_fwdc.sdf` | same three | **line-textured walls + plain ceiling**, `iris_fwd` forward camera | **CURRENT**: `fwdc_*` (upper bound) |
+| `corridor_*_fwdplainc.sdf` | same three | **plain walls + plain ceiling**, `iris_fwd` | **CURRENT**: `fwdplainc_*` (featureless case) |
+| `corridor_*_fwd.sdf`, `corridor_*_fwdplain.sdf` | same three | no ceiling, so the forward camera **sees the cloud skybox** | **SUPERSEDED** (kept, not analysed) |
 
-**`corridor_textured.sdf`** (nominal): 8x unmodified `textured_ground`
-tiles (the same 20x20 m checker model `iris_textured.sdf` already uses)
-tiled along Y, giving a seamless 20x160 m checkerboard for the full
-corridor. Reusing the existing tile unmodified avoids a UV-scaling trap —
-Gazebo/Ogre2 stretches one texture image across a plane's *whole* extent
-rather than repeating it per metre, so a single 20x160 m plane with
-`checker.png` stretched over it would wash out into a handful of huge
-squares, losing exactly the fine-grained features needed. Tiling the
-already-validated 20x20 m tile sidesteps that entirely.
-
-**`corridor_blank.sdf`** (degraded): a single flat 20x160 m plane,
-`blank_floor`, using the *exact same* ambient/diffuse/specular/roughness/
-metalness values as `textured_ground`'s material but with no
-`albedo_map` — flat grey, featureless. This isolates texture as the only
-difference from `corridor_textured.sdf`, not colour or reflectance.
-
-**`corridor_transition.sdf`** (the primary research gap): textured for
-y:0-80 m (4x `textured_ground` tiles), blank for y:80-160 m (one
-`blank_floor_half` plane, same material as `corridor_blank.sdf`).
-**Boundary is exactly y = 80 m** (corridor midpoint) — record
-`/ground_truth/pose` y at the point of boundary crossing when analysing
-flight data from this world, to correlate estimator behaviour with the
-sensing-quality transition.
-
-**Verified** (gz sim headless, `ros_gz_bridge`, `flow_tracker`, drone
-teleported to altitude via `gz service .../set_pose` + a paused
-`multi_step` — the drone's rest pose sits below the floor plane at spawn
-height, `z=0.195` vs. camera offset `−0.25 m`, so a frame grabbed at rest
-shows sky, not floor, in every one of these worlds, same as
-`iris_textured.sdf`; this is a pre-existing artefact of the spawn/camera
-geometry, not something the corridor worlds introduced):
-- Spawn pose and `/world/<world_name>/dynamic_pose/info` ground truth
-  match exactly in all three worlds (note the topic's world-name segment
-  changes with the world, e.g. `/world/corridor_textured/dynamic_pose/info`).
-- Downward camera renders the intended floor in all three: full
-  checkerboard in `corridor_textured`, flat uniform grey in
-  `corridor_blank`, and a sharp textured/blank boundary exactly at the
-  frame centre when the drone is positioned at y=80 in
-  `corridor_transition`.
-- `flow_tracker`'s `feature_count` confirms the sensor-level contrast
-  numerically: ~126-183 over the textured floor vs. ~15-24 (collapsing to
-  0 under fast motion) over the blank floor — an even starker gap than
-  Stage C's original 85-vs-54 mean, as expected from a deliberately fully
-  flat (no markings at all) blank floor.
-
-**Launch**: `./start_sim.sh corridor_textured.sdf` (or `corridor_blank.sdf`
-/ `corridor_transition.sdf`) — `start_sim.sh` accepts any world filename
-in `~/ardupilot_gazebo/worlds/`, validates it exists first (listing valid
-options on a typo), and substitutes it into both the Gazebo launch and the
-ROS2 bridge's `dynamic_pose/info` topic name automatically. Manual launch
-(Terminal 1/3) works the same way — just substitute the world name.
-
-**Not yet flown end-to-end via `run_trial.sh`/`fly_trial.py` reliably for
-either `corridor_textured.sdf` or `corridor_blank.sdf` as of this writing**
-— the "Verified" checks above are all Gazebo-level (spawn pose, rendering,
-`flow_tracker` feature counts), not a full arm/climb/cruise/land trial.
-Attempting one surfaced two real, unresolved problems — see Known Issues
-#11 and #12 below:
-- `corridor_textured.sdf` hits a Gazebo↔SITL JSON lockstep stall (Known
-  Issue #11), traced to `gz sim server` saturating a full CPU core trying
-  to simulate this world's heavier geometry (2 walls + 8 floor tiles) on
-  this machine — confirmed in both headless (`run_trial.sh`) and GUI-mode
-  (`start_sim.sh`) launches, so it isn't a headless-vs-GUI difference. This
-  is very plausibly this machine-specific (see Known Issue #9's RTF
-  problems) rather than a bug in the world file itself — worth re-testing
-  once the machine migration is done, watching `gz sim server`'s CPU% and
-  whether MAVProxy's link stays stable through an arm attempt.
-- `corridor_blank.sdf` additionally fails to arm outright — a separate,
-  unrelated bug: the downward LiDAR never returns a valid reading at the
-  spawn point (Known Issue #12). **Not usable for a real trial until this
-  is fixed**, independent of the CPU/performance question above.
-- `corridor_textured.sdf` has completed a full short trial successfully at
-  least once with `run_trial.sh`'s 240 s cap in place, but has not been
-  reliably reproducible — expect intermittent hard failures on this
-  machine until the CPU-saturation root cause is addressed (i.e. likely
-  not until the migration).
+- **The transition boundary is at y = 80 m.** Flow `inlier_ratio` switches in the 80–82 m
+  bin in every flight.
+- **Verified end to end:** all worlds fly full 300 s trials at RTF ≈ 0.74–0.92, and
+  LiDAR reads the floor everywhere.
+- **Launch:** `./run_trial.sh --world <name> ...` (harness), or `./start_sim.sh <world>.sdf`
+  (manual).
+- The ceiling is `corridor_ceiling` (visual-only, non-shadow-casting, underside at 5 m).
+  The ceiling vs no-ceiling transition-flow effect size (+0.43 px/s, p = 0.31) must be
+  stated in any ceiling-vs-`dsn` comparison on the transition world (METHODOLOGY standing
+  rule).
 
 ## Ground Truth Bridging
 
@@ -1055,8 +984,10 @@ later. The values actually fed to EKF3 (and later the FGO) are
 ### IMU Bridge — accelerometer input for the UKF/FGO process model
 
 `imu_bridge.py` bridges ArduPilot SITL's accelerometer + gyro onto ROS2 as
-`sensor_msgs/Imu` on `/imu/data_raw`, on its own dedicated MAVLink port
-(`14555`, after `ekf_bridge.py`'s `14554`). This is the raw sensor no prior
+`sensor_msgs/Imu` on `/imu/data_raw`, on its own MAVLink link **port 14556, fed by a
+dedicated SITL serial output** (`--serial2=udpclient:127.0.0.1:14556`, bypassing MAVProxy;
+see "IMU Bridge — rate, aliasing, and the MAVProxy bypass"). It was originally 14555 via
+MAVProxy. This is the raw sensor no prior
 bridge provided — needed because a constant-velocity/gyro-only process
 model cannot observe roll or pitch at all (only integrate them, open-loop),
 which would silently corrupt the flow measurement model's world→body
@@ -1088,11 +1019,11 @@ sitting on a table" result. Mid-cruise at 0.4 m/s it dropped slightly to
 cruise tilting the sensed vertical component — a second, independent
 confirmation the values are physically sensible, not just non-zero.
 
-**Rate: 50 Hz**, requested via `MAV_CMD_SET_MESSAGE_INTERVAL`, matching
-`attitude_bridge.py`'s `ATTITUDE` rate — with the same periodic-reassert
-timer (every 2 s) to counter MAVProxy silently overriding it with its own
-low default (see Known Issues). Verified against a recorded bag: mean/median
-inter-message gap **20.00 ms → 50.0 Hz achieved**, not just requested.
+**Rate: 333 Hz** (the ceiling ArduPilot permits at `SCHED_LOOP_RATE=400`), requested via
+`MAV_CMD_SET_MESSAGE_INTERVAL`. Measured 333.27 Hz. See "IMU Bridge — rate, aliasing, and the
+MAVProxy bypass" above, including why 50 Hz aliased. **The original 50 Hz rate is
+superseded.** The bridge also publishes `/imu/time_ref` (HIGHRES_IMU `time_usec`, the SITL
+clock) for all bags recorded after `cb4c845`.
 
 **Frame: FRD → FLU via `(x, -y, -z)`** for both `linear_acceleration` and
 `angular_velocity` — the same already-empirically-validated
@@ -1122,14 +1053,14 @@ Gazebo-sourced topics.
 Recorded by default in both `record_trial.sh` and `run_trial.sh` trials
 (`/imu/data_raw`, alongside the existing topic set).
 
-## UKF Design (confirmed, not yet implemented)
+## UKF Design (design record; the UKF is IMPLEMENTED)
 
-Design-first pass completed and confirmed before any filter code was
-written — this section records the confirmed decisions so implementation
-can resume without re-deriving them. **No UKF code exists yet** — the next
-step is a constant-velocity scaffold (plumbing only, not a thesis result)
-to validate multi-rate handling/gating/frames/publishing against existing
-recorded bags, then the real IMU-driven deliverable.
+*(Status 2026-09-29: the UKF is implemented as the 15-state IMU-driven filter: `src/estimators/ukf_core.py`
+and `ukf_replay.py`, shared `measurement_models.py`, predicting at 0.0125 s with EKF3's
+`*_NSE` values unchanged, the OI-2 dejitter and the IMU-gap rule. The Phase 4 forward-camera
+heading and yaw-rate updates are in `ukf_core.py`. The design notes below were written
+before implementation. The 9-state constant-velocity scaffold and the 400/50 Hz Q scaling
+are superseded; see METHODOLOGY.)*
 
 **State vector.** 9-state scaffold: `[p_E, p_N, p_U, v_E, v_N, v_U, roll,
 pitch, yaw]`, ENU/FLU, Euler (not quaternion — `filterpy`'s vanilla
@@ -1287,8 +1218,10 @@ Copter default (`COMPASS`, confirmed via dataflash `PARM` readback:
 accelerometer gap that motivated the IMU bridge — EKF3 gets an absolute
 yaw reference the UKF/FGO don't have at all.
 
-**Fix found and verified working — NOT applied to `gnss_denied.parm`,
-lives only in the throwaway `gnss_denied_nomag.parm` pending a decision**:
+**Fix found and verified working.** It lives in `gnss_denied_nomag.parm`, which **is now the
+three-way comparison configuration**: `run_trial.sh` loads it for every `dsn_*` and
+forward-camera trial (METHODOLOGY "Comparison dataset — nomag"). `gnss_denied.parm` itself is
+unchanged, and the compass-active `ds_*` trials are retained as a reference:
 ```
 EK3_SRC1_YAW 0        # None
 COMPASS_ENABLE 1      # counter-intuitive - see below
@@ -1336,9 +1269,11 @@ real yaw information.
 > compass**. The pass criterion "yaw drift stays bounded enough for corridor
 > experiments" was never actually tested.
 >
-> **`gnss_denied_nomag.parm` must NOT be folded into the standing baseline
-> until this is re-measured** from `XKF1`'s own yaw against ground-truth yaw on
-> the no-mag config. The elaborate mechanism discussion below (synthetic yaw,
+> *(Status 2026-09-29: re-measured, and the parameter file adopted.)* EKF3's own no-compass
+> yaw drift from `XKF1.Yaw` is **+6.6…+11.1 deg/min (mean ~8.1), n = 9 `dsn_*` bags**
+> (METHODOLOGY, source-pack flag resolutions §2). `gnss_denied_nomag.parm` is now the
+> comparison configuration for all three estimators. The original caveat was: "must NOT be
+> folded into the standing baseline until re-measured from `XKF1`'s own yaw". The elaborate mechanism discussion below (synthetic yaw,
 > gyro-bias coupling) remains valid — only the *number* is void.
 
 **Long-flight result (320 s, `iris_textured.sdf`, 0.4 m/s cruise —
@@ -1413,10 +1348,12 @@ cd ~/ardupilot/ArduCopter
   --out 127.0.0.1:14552 \
   --out 127.0.0.1:14553 \
   --out 127.0.0.1:14554 \
-  --out 127.0.0.1:14555 \
+  -A "--serial2=udpclient:127.0.0.1:14556" \
   --add-param-file $HOME/thesis_ws/lidar_rangefinder.parm \
   --add-param-file $HOME/thesis_ws/flow_ekf.parm \
   --add-param-file $HOME/thesis_ws/gnss_denied.parm \
+  --add-param-file $HOME/thesis_ws/gnss_denied_nomag.parm \
+  --add-param-file $HOME/thesis_ws/sim_noise.parm \
   --no-rebuild
 ```
 
@@ -1424,8 +1361,9 @@ The extra `--out 127.0.0.1:14551` gives `attitude_bridge.py` (Terminal 7) its
 own dedicated MAVLink output, `--out 127.0.0.1:14552` gives `lidar_bridge.py`
 (Terminal 8) its own, `--out 127.0.0.1:14553` gives `flow_bridge.py`
 (Terminal 9) its own, `--out 127.0.0.1:14554` gives `ekf_bridge.py`
-(Terminal 10) its own, and `--out 127.0.0.1:14555` gives `imu_bridge.py`
-(Terminal 11) its own — separate from the default `14550` that
+(Terminal 10) its own, and `imu_bridge.py` (Terminal 11) is fed directly by SITL serial 2 on
+`14556` (`-A` passes `--serial2=udpclient:127.0.0.1:14556` to the SITL binary, as
+`run_trial.sh` does), bypassing MAVProxy — all separate from the default `14550` that
 `fly_forward.py` connects to — pymavlink's plain `udp:` scheme binds and
 listens, so no two processes can share one port. `--add-param-file` (passed
 three times, `action="append"` in `sim_vehicle.py`) appends
@@ -1595,9 +1533,9 @@ ros2 topic echo /ekf/pose --once      # confirm position/orientation look sane
 ### Terminal 11 — IMU Bridge
 
 Forwards ArduPilot SITL's accelerometer + gyro (MAVLink `HIGHRES_IMU`) to
-ROS2 as `/imu/data_raw` (`sensor_msgs/Imu`, FLU — see "IMU Bridge" above),
-on its own dedicated port (`14555`). Run after SITL (Terminal 2) is up and
-streaming on `14555`.
+ROS2 as `/imu/data_raw` (`sensor_msgs/Imu`, FLU — see "IMU Bridge" above) and
+`/imu/time_ref`, on port `14556`, fed directly by SITL serial 2 (see Terminal 2). Run after SITL
+(Terminal 2) is up.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -1607,7 +1545,7 @@ python3 ~/thesis_ws/imu_bridge.py --ros-args -p use_sim_time:=true
 
 Verify:
 ```bash
-ros2 topic hz /imu/data_raw           # expect ~50 Hz sim-time
+ros2 topic hz /imu/data_raw           # expect ~333 Hz sim-time (wall-clock = 333 x RTF)
 ros2 topic echo /imu/data_raw --once  # confirm linear_acceleration.z ~= +9.8 at rest
 ```
 
@@ -1917,10 +1855,10 @@ Remaining:
 6. Add `/downward_lidar/range` to `record_trial.sh`'s recorded topics — done
 7. Inject optical flow to ArduPilot EKF3 via MAVLink `OPTICAL_FLOW` (not `OPTICAL_FLOW_RAD` — unusable in this build) — done, verified (Stage A); GPS still POSXY source, not yet a GNSS-denied config
 8. State extraction / `evo` comparison against ground truth — done, verified (Stage B); `ekf_bridge.py` + `evaluate_trial.sh`. ATE RMSE 6.4 mm, RPE RMSE 4.6 mm on a nominal trial — validates the pipeline (frame transform, extraction, tooling), not flow-only accuracy, since GPS is still the position source
-9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`, the standing baseline for UKF/FGO too. Textured floor ATE RMSE 7.7 mm vs blank floor 10.0 mm — a modest gap, but `inlier_ratio` (0.94 vs 0.47 mean) confirms the expected sharp sensor-level texture-quality difference; EKF stayed stable in both, no rejection, no divergence. **Revisit**: `gnss_denied.parm` still lets EKF3 fuse the compass for yaw — outside the thesis's stated sensor suite and a confound vs UKF/FGO's no-yaw setup; a verified fix exists (`gnss_denied_nomag.parm`) but hasn't been folded into the standing baseline — see "No-Yaw / Compass-Denied Investigation" above
-10. Longer-duration / more aggressive GNSS-denied flight test, to see whether blank-floor drift accumulates more starkly over time than the ~40 s Stage C flights showed — corridor worlds built for this but not yet usable end-to-end (`corridor_textured.sdf`/`corridor_blank.sdf` both hit unresolved issues when actually flown, see Known Issues #11/#12). A 320 s no-yaw flight was run on `iris_textured.sdf` instead (see "No-Yaw / Compass-Denied Investigation" above) — real corridor data still pending
+9. GNSS-denied config (flow + rangefinder only, no GPS for position) — done, verified (Stage C); `gnss_denied.parm`. **The Stage C ATE figures (7.7 / 10.0 mm) are VOID**: `/ekf/pose` was simulator truth (`AHRS_EKF_TYPE=10`; see the Hidden Configuration Audit). The sensor-level `inlier_ratio` result (0.94 vs 0.47) stands. The compass question is resolved: `gnss_denied_nomag.parm` is the comparison config for all `dsn_*` and forward-camera datasets.
+10. Longer-duration GNSS-denied flights — **done**: the 160 m corridor worlds fly full 300 s trials (Known Issues #11/#12 fixed 2026-07-23); the `dsn_*` batch (3 worlds × 3 repeats) is the three-way baseline; the forward-camera ceiling datasets `fwdc_*`/`fwdplainc_*` are recorded (see "Corridor Worlds" and METHODOLOGY).
 11. UKF implementation — **built and producing numbers** (`src/estimators/ukf_core.py` + `ukf_replay.py`, Euler 15-state, shared `measurement_models.py`, gated pseudo-yaw matching EKF3's variance-gated `fuseEulerYaw`). Runs on the nomag `dsn_*` batch. See METHODOLOGY.md for the yaw-cap verification and the flow→yaw coupling finding.
-12. FGO (GTSAM) implementation — **first pass built and producing numbers** (`src/estimators/fgo/`, batch fixed-lag smoother, shared `h_flow`, custom flow/range/yaw-prior factors, runs in `~/venv-fgo` = gtsam 4.2.1 + rosbags). First result on `dsn_tex_r1` (n=1, fair zero-innovation yaw anchor to the IMU-predicted yaw, matching EKF3 `fuseEulerYaw(PREDICTED)` `MagFusion.cpp:1062-1064`): **on par with EKF3, not better** — same metric (`evo -a`, full-window, historical) EKF3 4.79 m vs FGO 5.10 m — evo -a (cruise) 4.58 vs 4.47; yaw drifts −9.24 deg/min. (An earlier 0.49 m from an over-strong *absolute* anchor is VOID; the 5.10-vs-24.3 "5× win" was an `evo -a`-vs-apparatus metric mismatch — see the STANDING RULE in METHODOLOGY.) FGO tracks flow (residual ≈ 0), inherits +4.7% velocity scale (EKF3 +12.6%, open n=1 question). **Solver:** batch used (~101 ms/step, 3–5× over the 33 ms budget); incremental (iSAM2) is 0.2 ms but cascades after ~590 keyframes — isolated to the solver layer (same factors run clean under batch). See METHODOLOGY.md "FINDING" + FGO_DESIGN.md (§9.4 yaw-anchor correction, §9.5 closed). Uses the nomag comparison config, not `gnss_denied.parm`.
+12. FGO (GTSAM) implementation — **built and producing numbers** (`src/estimators/fgo/`, `BatchFixedLagSmoother`, window 0.25 s (a declared config choice), LM capped at 2 iterations, shared `h_flow`, custom flow/range/yaw-prior factors, IMU dejitter and gap rule, Phase 4 forward heading/yaw-rate factors; runs in `~/venv-fgo`). Current comparison: see METHODOLOGY (dejittered `dsn` baseline, textured evo -a (cruise) FGO 4.65 vs EKF3 4.66, indistinguishable at n=3). **Step time (DIAGNOSTIC, workstation Python): ~29 ms median on textured bags, ~15 ms transition, ~4 ms blank** (world-dependent). The old "~101 ms/step" was the 1.0 s-window configuration and is superseded. Distance scale over n=9 textured bags: EKF3 +5.7…+9.6 %, FGO +0.9…+1.1 % (the n=1 +12.6 %/+4.7 % is superseded); the scale-cause check is pending. iSAM2 is unusable (a marginalisation cascade with Python `CustomFactor`). See METHODOLOGY and FGO_DESIGN.md.
 
 ## Experimental Design Notes
 
@@ -1943,8 +1881,6 @@ Two independent experimental axes for estimator evaluation:
 - Startup automation script
 - Camera calibration
 - Ground velocity estimation
-- ArduPilot EKF fusion of custom flow + range
-- `evo` evaluation harness
 - FGO ROS2 node (`fgo_node.py`) + full validation (fair yaw-anchor, §9 gating checks, window sweep, NEES) — core built & running offline, node + validation pending
 - Forward-camera fusion in the estimators (Phase 4, offline UKF/FGO; in progress) — visual odometry beyond heading/yaw rate is out of scope
 - Onboard (flight-controller) UKF/FGO as EKF3 drop-in replacements — supervisor direction 2026-09-29, feasibility being investigated
