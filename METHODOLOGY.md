@@ -3009,3 +3009,31 @@ and redoes incomplete ones.
 - forward-measurement acceptance (valid, gated, fused);
 - NIS statistics;
 - timing.
+
+### Supervisor answers (2026-09-29, received after the scope-change brief)
+
+- **One firmware build with parameter selection is preferred**, if feasible.
+- **Real hardware flights are expected for full marks.**
+  - SITL-only is an acceptable fallback **only if** the drone flights are delayed by
+    circumstances outside our control.
+  - **Real flights are planned as the main result.**
+- **The offline comparison stays and is written up.** It carries less weight once
+  real-world results exist.
+- **Target hardware: likely an STM32H743 flight controller** (2 MB flash, ~1 MB RAM) on
+  a **VTOL: ArduPlane quadplane, flown in multirotor mode indoors.**
+- **The UKF runs onboard as a drop-in replacement for EKF3.**
+- **The FGO may run online with GTSAM on a companion computer** (e.g. a Raspberry Pi),
+  provided it is shown working and beating EKF3.
+  - **If EKF3 is what flies, the FGO must show a clear benefit over standard EKF3 in a
+    clear case.**
+
+**Part C (onboard feasibility) was adjusted accordingly:**
+- the FGO's off-board routes to driving flight: EKF3 via ExternalNav, or
+  `AP_ExternalAHRS`;
+- the H743 flash budget for Plane quadplane and Copter;
+- companion-computer compute for FGO plus forward camera together;
+- a new item 9: candidate scenarios where the FGO could show a clear, fair benefit over
+  EKF3, from existing results only.
+- **The item 9 instruction arrived truncated** ("…consistency of the"). It was
+  interpreted as estimate consistency (NEES and uncertainty reporting), to be
+  confirmed by the user.

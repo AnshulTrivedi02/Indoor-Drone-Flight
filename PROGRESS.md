@@ -26,6 +26,15 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 - **Next:**
   - Phase 4, offline fusion in the UKF and FGO only;
   - Part C, an onboard-feasibility investigation (read-only, one day).
+- **Supervisor answers (same day):**
+  - One build with parameter selection is preferred.
+  - **Real flights are the main result** (SITL-only only if delayed by outside
+    circumstances).
+  - The offline comparison is written up with less weight.
+  - Target: H743 flight controller on an ArduPlane quadplane, flown in multirotor mode.
+  - The UKF runs onboard as an EKF3 drop-in.
+  - The FGO may run with GTSAM on a companion computer, if shown working and beating
+    EKF3. If EKF3 flies, the FGO must show a clear benefit in a clear case.
 
 ## Current Status — 2026-09-24 — Phase 2 COMPLETE (one recorded miss); plain-wall dataset started
 
