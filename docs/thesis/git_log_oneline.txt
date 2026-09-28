@@ -1,0 +1,153 @@
+d89a902 Part C onboard feasibility report (docs/) + summary; corrections: AHRS_EKF_TYPE=10 injected by SIM_JSON (no_time_sync), EKF3 ExtNav yaw floor 5 deg inside writeExtNavData (REPH cannot bypass); phase4_eval.py
+938fdb6 Phase 4 code: shared forward-camera models (h_heading, h_yawrate, forward_events, sigmas, chi2 gate), UKF heading/yaw-rate updates, FGO heading/yaw-rate factors + gate-only filtering covariance recursion, arms in both replays (baseline byte-identical to stored runs), timing logs; resumable job runner; transition segment breakdown
+8dff5e1 Supervisor answers (29 Sep): real flights main result, H743 quadplane target, UKF onboard drop-in, FGO on companion via GTSAM if it beats EKF3; Part C adjusted
+2e23099 Phase 4 pre-registration (offline UKF/FGO forward fusion: arms, sweep-derived sigmas, identical chi2 gate, shared models, regression check, diagnostic timing) — before any code or run
+294fcdc SCOPE CHANGE (supervisor, 2026-09-29): onboard UKF/FGO as EKF3 drop-ins, real mocap flights, forward camera after sim verification; EKF3 ruling (option 3, fixed no-yaw baseline) with ArduPilot source evidence; LOG_REPLAY=1 for all future flights; CLAUDE.md forward camera updated
+9572b97 PROGRESS: wording
+e67b3ff Phase 3 validation: heading 15/18 (fails plain walls over checker floor), yaw rate 9/18 (textured walls only), static response bar 1/6; results + Phase 4 noise values
+f4462b6 Phase 3 calibration on p1c_*: parameters frozen (tol 0.5 deg, S_MIN 200, box 80, N_MIN 5); heading 5/6, yaw rate 3/6 on calibration; frozen validation runner (identity-checked); yaw-sweep tool
+6f290e8 Phase 3 pre-registration (method frozen incl. three priors added on calibration frames; calibration p1c_* / validation 18 dataset bags; selection rule; accuracy bar); fwd_measure + fwd_run
+60a1060 Ceiling vs no-ceiling transition forward-flow effect size (+0.43 px/s, p=0.31) + standing rule; ceiling datasets COMPLETE (fwdc 8/9, fwdplainc 9/9)
+9fd5610 Ceiling datasets flown 18/18 and scored: render check passes; fwdplainc 9/9 (Ruling 1 -> check miss = run-to-run variability); fwdc 8/9, fwdc_trans_r1 P3 flow_y_raw 73.57 > 72.86 reported for a ruling
+2f3dbf1 Extended IMU timing rule implemented (receipt bunch; >=10 s before arming) and applied: p1c_fwdc_trans passes; Phase 1c 5/6 pass + the ruled P3 miss
+15b960c RULINGS: p1c P3 miss recorded + decision rule for fwdplainc_trans (>=2/3 fail -> stop); IMU timing rule extended (receipt bunch; >=10 s stationary before arming) — recorded before applying or flying
+b5f1080 Phase 1c ceiling check: render check passes (no sky), P3 FAILS on p1c_fwdplainc_trans (flow_y_raw 73.01 > 72.86) -> stopped per pre-registration; p1c_fwdc_trans UKF/FGO pending (pre-arm IMU receipt bunching, not covered by the gap rule)
+4a7ab90 Ceiling worlds (*_fwdc, *_fwdplainc; corridor_ceiling visual-only, non-shadow-casting); harness enables forward camera for them; pre-flight render check: no sky in any of 18 frames; superseded trials labelled; p1c + ceiling-dataset configs
+f5f5db8 RULING: ceiling in both forward-camera datasets; ceiling-world design, supersession of sky-visible worlds/datasets, and pre-registration for p1c checks + fwdc/fwdplainc datasets (recorded before building or flying)
+2d50ab2 Plain-wall Phase 1 check: all primary pass (3/3); FINDING: forward camera sees a textured skybox (no ceiling in any corridor world), fwdplain_* batch held pending a ruling
+3aa80aa eval/run_set_eval.sh: one-command set evaluation (gap rule, replays, timing, flow, three-way, score)
+23d9423 Plain-wall worlds corridor_*_fwdplain (+ corridor_end_wall_plain); harness enables forward camera for *_fwdplain; scorer generalised (Phase 2 output byte-identical); p1plain + fwdplain batch configs
+4855dcc METHODOLOGY: reframe fwd_* as the upper bound; plain-wall (_fwdplain) design decision; plain-wall Phase 1 check + fwdplain_* pre-registration (recorded before building or flying)
+22eee2a RULING: fwd_tex_r1 kept (P4 miss stays recorded; no input defect -> exclusion would be selection bias; flagged for Phase 5). Phase 2 COMPLETE with one recorded miss.
+9f2fa40 IMU-gap rule applied (fwd_trans_r1, fwd_trans_r3 trimmed pre-arm; byte-identical elsewhere); trans_r3 passes (8/9); Ruling 1 bounded check: miss localised to UKF/FGO yaw drift, drift phase and IMU stream identical -> unexplained, user rules
+061facc METHODOLOGY: IMU-gap rule for replay estimators (pre-arm trim / post-arm unusable) and Ruling 1 bounded-check decision rule, recorded before any result; eval/imu_gap_check.py
+8d31667 Phase 2 (fwd_*) flown 9/9 and scored: STOPPED pending two rulings
+7967a39 Crash-safe resumable batch runner + Phase 2 fwd_* config (interleaved)
+3a960ed METHODOLOGY: Phase 2 pre-registration (fwd_* dataset; primary P1/P3/P4 with FGO bands rebased on dejittered baseline, P2 diagnostic)
+42d5ef2 Merge branch 'master' into fwd-camera
+a733654 OI-2 re-run gate done (nine dsn bags): dejittered baseline; textured table restated (EKF3 4.66 ~ FGO 4.65, indistinguishable at n=3; UKF 15.88); scope rule + batching of further baseline corrections
+b0f0fbf METHODOLOGY: rulings — P2 diagnostic for Phase 2 (both arms share the latency), standing EKF3 fwd-vs-dsn latency rule; Phase 4 note (ArduPilot Replay default)
+cb4c845 OI-2 correction: dejitter IMU replay stamps (UKF+FGO, shared imu_timing.py); imu_bridge records HIGHRES_IMU time_usec on /imu/time_ref (new bags)
+54b9bce Merge branch 'master' into fwd-camera
+4d2cc6d METHODOLOGY: restructure — dsn-record sections before the fwd-camera section (matches master), P2 re-check moved into fwd section
+9b0f5d9 dsn record: pre-registration rule, SITL clock-rate finding, OI-2 (IMU timestamp asymmetry) + dejitter control
+e7e22f9 METHODOLOGY: OI-2 dejitter-vs-shift control (dejitter robust for both; shift is a lever); P2 framing (blank at limit within uncertainty), latency scope, pre-Phase-2 questions; CLAUDE: clock rate drift
+b9766d3 METHODOLOGY: SITL clock-rate finding (0.02% slow) -> latency re-measured (P2 still passes, thin margins; fwd camera adds 5-10 ms); OI-2 result (FGO -6% with sensor-time IMU, UKF mixed)
+6bb1586 fwd-camera Phase 1 COMPLETE: all three fwd worlds pass every primary criterion (revised); frames + results
+cc588df METHODOLOGY: user ruling (IMU gap-share benign); standing pre-registration rule; revised Phase 1 criterion (primary/diagnostic, stated margins) — p1_fwd_tex passes; OI-2 IMU timestamp asymmetry
+44f671a METHODOLOGY: Phase 3 note — heading confidence must handle the VP vanishing at the corridor end
+0f3e8c1 METHODOLOGY: RTF direct test — (b),(c) pass; IMU gap-share sub-criterion fails (benign side, zero-margin band) -> stopped per decision rule
+e37fd46 METHODOLOGY: Phase 1 RTF diagnosis (bridged forward image = whole loss; recording free) + pre-registered direct test of whether RTF matters
+bb02b09 run_trial.sh: FWD_DIAG diagnostic switch (no_record / no_bridge) for the Phase 1 RTF diagnosis; unset = unchanged
+2d3bcd1 fwd-camera Phase 1: confound check (a) FAILED (RTF 0.768 vs control 0.954) — stopped; (b) passes
+c89d05a fwd-camera Phase 1: iris_fwd model, corridor_*_fwd worlds, opt-in harness, pre-registered confound checks
+df5c818 METHODOLOGY: cruise-threshold justification + sensitivity (0.20/0.40 m/s, no conclusion moves); OPEN ITEM OI-1 (FGO blank freeze->dead-reckon)
+26c46c1 METHODOLOGY: cruise-threshold justification + sensitivity (0.20/0.40 m/s, no conclusion moves); OPEN ITEM OI-1 (FGO blank freeze->dead-reckon)
+759faf8 METHODOLOGY: Phase 0 smoke test (b) PASS — p0_smoke_tex
+1541773 PROGRESS: Phase 0 complete (cruise-window ruling, ATE audit, smoke test PASS)
+94fa543 METHODOLOGY: Phase 0 smoke test (b) PASS — p0_smoke_tex
+17df652 eval+METHODOLOGY: pin evo -a (cruise) as primary metric; restate + audit every ATE
+3a271cf METHODOLOGY/PROGRESS: three-way table mixes evo -a windows (Phase 0 gate a) — pending ruling
+655df4d eval: three_way_eval.py — pinned-source evo -a for EKF3/UKF/FGO, full + cruise windows
+42193a5 eval+METHODOLOGY: pin evo -a (cruise) as primary metric; restate + audit every ATE
+4c25091 METHODOLOGY/PROGRESS: three-way table mixes evo -a windows (Phase 0 gate a) — pending ruling
+63948cf eval: three_way_eval.py — pinned-source evo -a for EKF3/UKF/FGO, full + cruise windows
+5b14ce3 PROGRESS: 2026-08-01 status — textured numbers to corrected-h_flow re-run (METHODOLOGY)
+6cc229d plots: lateral-drift per-state diagnostics (9 dsn bags), yaw-drift scripts, re-run results
+0cfdd69 METHODOLOGY: close lateral-drift finding — EKF3 east-velocity bias is yaw rotation
+e2b45bd METHODOLOGY: split three-way into textured quality vs degraded failure analysis
+51e1bb9 estimators: apply interval-averaged gyro to shared h_flow (UKF+FGO); fix PHYS_DRIFT
+08bc2eb METHODOLOGY: record derotation architecture (code-path) + correct residual scope
+04426d2 docs: record first three-way comparison, FGO window config, capped-LM verification
+5cb3a38 plots: FGO 9-bag comparison driver (window 0.25s, deployable batch)
+e79ab8e FGO: incremental cascade is a GTSAM limitation; batch made affordable via window length
+36cc78c METHODOLOGY: lateral asymmetry = motion profile (roll 31x pitch); re-run gate as standing control
+51aaeba REVERT the derotation sign flip — it failed its confirmation (UKF worse)
+cfad39f diag: decisive fairness check — EKF3 derotates flow correctly, UKF (h_flow) does not
+6953e74 diag: derotation residual = flow_x_rot SIGN error (not timestamp); consistency->METHODOLOGY
+db89191 plots: UKF full state-vs-time diagnostic (dsn_tex_r1) — states, consistency, innovations
+aa0baee plots: EKF3 full state-vs-time diagnostic (dsn_tex_r1) — states, consistency, innovations, flow residual
+360a794 docs: bring METHODOLOGY/CLAUDE/PROGRESS/FGO_DESIGN current with the FGO landing
+d0306d2 METHODOLOGY: FGO scale sanity-check resolved — on par with EKF3, not 5x, not a bug
+08d5c69 FGO_DESIGN §9.5 CLOSED (user ruling): do NOT replicate const_pos in UKF/FGO
+67ef203 METHODOLOGY: real first FGO result (fair anchor) — yaw drifts -9.24, leak is capping-only
+c575baf FGO: fair yaw cap — anchor to IMU-predicted yaw (zero-innovation, EKF3 MagFusion.cpp:1062-1064)
+a94ba5c docs: record FGO first pass + SO(3) finding in CLAUDE.md/PROGRESS.md
+8f44e6d FGO: first implementation (batch fixed-lag smoother) + SO(3) partition finding
+8d6d541 METHODOLOGY: qualify the formulation claim (~70-75%); record SO(3)-tangent UKF as the falsifying test, scoped out with reason
+9a6527a METHODOLOGY: yaw leak is Euler-vs-SO(3) formulation (result); FGO does not inherit
+4a023df METHODOLOGY: bias% denominator 9.8; results framing (EKF3 also 14-33%); flow-coupling diagnosis
+ca4c474 METHODOLOGY: correct drift denominator (9.8 not 8.9); resolve firing-rate question
+e7ea07a ukf_replay: write metrics.txt for the batch driver (apparatus along/cross/ATE, yaw drift, bias%)
+9f0e2ff UKF: variance-gate the pseudo-yaw to match EKF3; record yaw_source in metadata
+6f953b2 Switch harness to nomag config; document yaw-cap residual + dataset supersession
+7e78316 UKF: zero-innovation pseudo-yaw cap (EKF3-matched); FGO_DESIGN §9.4/§9.5
+a19196a Add baseline UKF: pure core + offline replay harness
+78da9a9 Record ardupilot_gazebo provenance; document vendoring in METHODOLOGY + CLAUDE
+7be3672 Vendor thesis sim assets into sim/ and run from there (reproducibility)
+e9a30c9 Add two result figures: ATE-by-condition and PN-vs-true-y (n=3)
+f29d614 Add dataset noise-floor plots + characterisation (n=3 per condition)
+257204d Pin & record sim noise/drift + seed RANSAC for dataset reproducibility
+19c5454 FGO_DESIGN §9: mark all three items DECIDED; keyframes IMU-clock-driven
+ba1bb7e Add nomag-baseline and texture-transition plots (n=1, from existing trials)
+a17c767 Commit the week-9 FGO design as FGO_DESIGN.md so it survives session loss
+2f34efd Set flow/rangefinder body-frame position offsets to correct the EKF3 lever-arm scale error
+ba35071 Fix corridor world collision geometry and blank floor; all three now fly
+ca120e6 Raise IMU bridge to 333 Hz; correct EKF3 prediction dt; derive GTSAM noise conversion
+ef7673d Root-cause Known Issue #11 (collision geometry, not CPU) and record migration findings
+bdd7d5b Audit hidden configuration exposed by the machine migration
+1e7d337 Capture venv-ardupilot/venv-evo pip dependencies for the machine migration
+5a32655 Root-cause the corridor_textured.sdf instability to CPU saturation
+ce2a367 Bring CLAUDE.md and PROGRESS.md up to date before machine migration
+696afdb Add analyse_derotation.py and dump_flow.py to the repo
+87ced37 Add gnss_denied_nomag.parm - verified fix for EKF3's compass-yaw confound
+931239b Ride out the Gazebo<->SITL JSON lockstep stall with longer timeouts
+dd42cfe Exclude Claude Code session state and MAVProxy runtime logs from git
+c5924cc Wire imu_bridge.py into launch/recording; document verified rate + frame
+8d2ff6e Add imu_bridge.py - accelerometer bridge for the UKF/FGO process model
+e2624ef Document corridor worlds; make start_sim.sh accept and validate them
+197c0ba Add run_batch_trials.sh - unattended batch trial runner
+f0fa64a Add run_trial.sh - unattended, headless single-trial harness
+0dae4f8 Add fly_trial.py - parameterised, state-gated flight controller
+3e48fe2 Wire gnss_denied.parm into launch; document Stage C verification
+c943ead Add GNSS-denied EK3 config (Stage C baseline)
+722ca82 Wire ekf_bridge.py into launch/recording; document Stage B evaluation
+2b990cd Add evaluate_trial.sh to run evo ATE/RPE evaluation on trials
+996d9c9 Add ekf_bridge.py to bridge ArduPilot EKF3 state estimate to ROS2
+33d5a71 Mark record_trial.sh overlay bug as fixed in CLAUDE.md
+80d2fb5 Fix record_trial.sh to source workspace overlay for custom flow message
+dfc2cda Wire flow_bridge.py into start_sim.sh; document Stage A flow fusion
+3ec8dec Add EK3 params for optical flow fusion (Stage A)
+f3a5559 Add flow_bridge.py to inject optical flow into ArduPilot EKF3
+a25d3c4 Populate flow_x_rad/flow_y_rad with pixel-to-radian conversion
+3ee69cf Add attitude angular rates to trial recording
+ee0ad90 Add LiDAR range to trial recording
+ea939ab Wire lidar_bridge.py into start_sim.sh; document Stage 2 verification
+81e9dbd Add lidar_bridge.py to inject downward LiDAR range into ArduPilot
+e244965 Add RNGFND1 override params for MAVLink-injected downward LiDAR
+405a802 Document downward LiDAR update rate is RTF-limited, not misconfigured
+3a5e3cb Bridge downward LiDAR into ROS2 and document Stage 1 verification
+5787b04 Reframe derotation as characterisation tool; adopt raw-input-per-estimator architecture per supervisor guidance
+8baa64e Fix attitude stream rate decaying to ~4 Hz
+cab84c1 Fix derotation sign on roll term
+005f854 Implement gyro derotation in flow_tracker.py (Task 2)
+bf1de5d Add MAVLink attitude bridge for gyro decoupling (Task 1)
+6785f24 Correct flow prediction using GT-derived camera height
+b0886b1 Segment flow validation by ground-truth motion window
+62ea2ae Fix flow sweep analysis: select moving frames by inlier ratio and flow magnitude
+d4ae862 Add optical flow velocity-sweep validation script
+1165455 Update CLAUDE.md and PROGRESS.md: data pipeline Sessions 1-2 complete
+2e71c4a Session 2 complete: lightweight recording, custom flow message, metadata, ArduPilot log retrieval
+fc7bd8e Fix ArduPilot log path to ArduCopter/logs
+47c85b1 Fix record_trial.sh to survive Ctrl+C via SIGINT trap
+b32b55b Task 5: retrieve ArduPilot dataflash log after recording stops
+bd0f9b3 Task 4: trial metadata — optional args, write metadata.yaml before recording
+b8add9d Task 3: lightweight trial recording — drop raw images, add --with-images flag
+02c8454 Task 2: publish OpticalFlow message from flow_tracker
+f8c8925 Task 1: add optical_flow_interfaces package with OpticalFlow.msg
+e4d2f59 Fix record_trial.sh: set -u ROS sourcing, bag subfolder, --topics flag
+156d359 Fix ground truth bridge: use PoseArray not TFMessage; add --use-sim-time to bag record
+e2bebc1 Add .gitignore for colcon builds, data, and OS junk
+4cd7fc2 Initial commit
+a271e3f Session 1: ground truth bridging and bag recording
+f839e4c Initial commit: optical flow node and simulation launch scripts
