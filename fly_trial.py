@@ -378,6 +378,18 @@ def main() -> int:
         if healed is not None:
             master = healed
         wait_ready_to_arm(master)
+        # Optional GROUND_TEST=<sim seconds> (closed-loop Part 1 SITL ground test only; unset for
+        # every flight = unchanged): stay on the ground armed for that long, then disarm. No take-off.
+        if os.environ.get("GROUND_TEST"):
+            hold = float(os.environ["GROUND_TEST"])
+            log(f"GROUND_TEST: holding armed on the ground for {hold:.0f} s sim, no take-off")
+            t_start = sim_time_now_s(master)
+            while sim_time_now_s(master) - t_start < hold:
+                time.sleep(0.2)
+            master.mav.command_long_send(master.target_system, master.target_component,
+                                         mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0, 0, 0, 0, 0, 0, 0, 0)
+            log("GROUND_TEST: disarm requested; ground test complete.")
+            return 0
         wait_altitude(master, args.altitude)
         cruise(master, args.velocity, args.duration)
         stop(master)

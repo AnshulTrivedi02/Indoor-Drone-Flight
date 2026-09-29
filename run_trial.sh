@@ -120,6 +120,18 @@ declare -a BG_PIDS=()
 RECORD_PID=""
 CLEANED_UP=0
 
+# Optional HEADING_BRIDGE=1 (closed-loop Part 1 only; unset for every dataset = unchanged):
+# SITL SERIAL1 -> udpclient 127.0.0.1:14557 for heading_bridge.py (live frozen Phase 3 heading
+# -> VISION_POSITION_ESTIMATE -> EKF3 ExternalNav yaw). Needs a forward-camera world. The node
+# runs on the Phase 3 stack (system python: OpenCV 4.6.0, numpy 1.26; NOT venv-ardupilot's
+# OpenCV 5) with pymavlink from a path shim. HEADING_SIGMA_DEG / HEADING_EVERY_N set its params.
+declare -a SERIAL1_ARG=()
+if [ -n "${HEADING_BRIDGE:-}" ]; then
+    [ "$FWD_CAMERA" = true ] || { echo "ERROR: HEADING_BRIDGE needs a forward-camera world" >&2; exit 1; }
+    : "${HEADING_SIGMA_DEG:?HEADING_SIGMA_DEG required with HEADING_BRIDGE}" "${HEADING_EVERY_N:?HEADING_EVERY_N required with HEADING_BRIDGE}"
+    SERIAL1_ARG=(--serial1=udpclient:127.0.0.1:14557)
+fi
+
 start_bg() {
     # start_bg <logfile> <command...> — launches detached, tracks the PID.
     local logfile="$1"; shift
@@ -221,7 +233,7 @@ start_bg "$LOG_DIR/arducopter.log" \
     ~/ardupilot/build/sitl/bin/arducopter \
     --model JSON --speedup 1 --slave 0 \
     --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm","$HOME/thesis_ws/roll_rate_gains.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
-    --serial2=udpclient:127.0.0.1:14556 \
+    --serial2=udpclient:127.0.0.1:14556 "${SERIAL1_ARG[@]}" \
     --sim-address=127.0.0.1 -I0
 
 wait_for "SITL MAVLink port open (tcp 5760)" "ss -tln 2>/dev/null | grep -q ':5760 '" 60
@@ -297,6 +309,16 @@ start_bg "$LOG_DIR/imu_bridge.log" \
     python3 "$HOME/thesis_ws/imu_bridge.py" --ros-args -p use_sim_time:=true
 
 wait_for "/imu/data_raw publishing" "ros2 topic list 2>/dev/null | grep -q /imu/data_raw" 60
+
+if [ -n "${HEADING_BRIDGE:-}" ]; then
+    SHIM="$HOME/.cache/thesis_pyshim"; mkdir -p "$SHIM"
+    ln -sfn "$(ls -d "$HOME"/venv-ardupilot/lib/python3*/site-packages)/pymavlink" "$SHIM/pymavlink"
+    start_bg "$LOG_DIR/heading_bridge.log" \
+        env PYTHONPATH="$SHIM:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 /usr/bin/python3 "$HOME/thesis_ws/heading_bridge.py" \
+        --ros-args -p use_sim_time:=true -p sigma_psi_deg:="$HEADING_SIGMA_DEG" -p every_n:="$HEADING_EVERY_N" \
+        -p log_path:="$LOG_DIR/heading_bridge.csv"
+    wait_for "heading_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/heading_bridge.log'" 60
+fi
 
 echo ""
 echo "--- Full stack up ---"
@@ -400,6 +422,10 @@ ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
+if [ -n "${HEADING_BRIDGE:-}" ]; then
+    printf 'heading_bridge:\n  sigma_psi_deg: %s\n  every_n: %s\n  serial1: udpclient 127.0.0.1:14557\n' \
+        "$HEADING_SIGMA_DEG" "$HEADING_EVERY_N" >> "$OUTPUT_DIR/metadata.yaml"
+fi
 if [ "$FWD_CAMERA" = true ]; then
     echo "forward_camera: true" >> "$OUTPUT_DIR/metadata.yaml"
     if [ -n "${FWD_DIAG:-}" ]; then
