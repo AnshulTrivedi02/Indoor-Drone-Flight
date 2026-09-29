@@ -6068,3 +6068,39 @@ identical to Phase 3's `meas_frozen.npz`); `eval/results/heading_cpp_equivalence
 - **The C++ path is NOT used in any flight until the user rules on switching.** The next step is a
   SITL ground test, `gt_heading_cpp` (`HEADING_IMPL=cpp`, `every_n` 4, 330 s armed hold,
   otherwise as run 3), for latency. DIAGNOSTIC; G1–G5 reported for comparison with run 3.
+
+### C++ heading path — SITL ground test `gt_heading_cpp` (DIAGNOSTIC; `HEADING_IMPL=cpp`, `every_n` 4, 330 s armed hold, otherwise as run 3)
+
+`eval/results/ground_test_gt_heading_cpp.json`; metadata records `impl: cpp`.
+
+| | Python (run 3) | **C++** |
+|---|---|---|
+| per-frame processing, wall clock, in the node under simulation load | 143–166 ms | **19.1 ms median** (p95 22.3, max 30.2) |
+| capture → sent latency | min 107, median 141, p95 153 ms | **min 40, median 47, p95 49, max 55 ms** |
+| of which capture → node receipt (image transport) | 28–33 ms | 33 ms (unchanged) |
+| drops | 0.07% | **0** |
+| latency slope | 0.012 ms/s | 0.0006 ms/s |
+| G1–G3 | pass | pass |
+
+**Consequence: the latency is now INSIDE the 60 ms horizon, so `VISO_DELAY_MS` takes effect.**
+- The residual r (fusion time − capture) at D = 60 is **−22 … +3 ms, median −13 ms**. The heading
+  is fused slightly before its capture time (over-delayed), where Python's was 82 ms after.
+- The residual × 0.93 deg/s is < 0.02° either way.
+- If the user switches to C++, the delay would be re-measured by the ORIGINAL G4 rule (D = the
+  minimum latency, here about 40 ms, which is now ≤ the horizon), and G5 re-checked. This is
+  **QUEUED as a decision.**
+
+**Raspberry Pi per-frame time: an ESTIMATE, not measured (no ARM hardware on this machine).**
+- Workstation (i7-8700, single-threaded): 15.3 ms isolated, 19 ms in the node under simulation
+  load.
+- Scaling by approximate single-thread performance ratios for image and floating-point kernels
+  (from general published CPU benchmarks, recalled, not checked here):
+  - **Pi 5 (Cortex-A76, 2.4 GHz): about 2–3× slower → roughly 30–60 ms per frame.**
+  - **Pi 4 (Cortex-A72, 1.8 GHz): about 5–7× slower → roughly 75–135 ms per frame.**
+- On a Pi 4 that is at or over the 133 ms budget at `every_n` 4 (30 Hz camera); a Pi 5 would fit
+  `every_n` 2–3.
+- These ratios are uncertain by roughly ±50%. **A benchmark on the target board is required before
+  any rate is chosen for hardware.** The same `libheading.so` source builds with the board's
+  OpenCV 4.6 (`build.sh`).
+- The equivalence of an ARM build must be re-tested with the same harness. Floating-point results
+  can differ across architectures (C2's tolerance covers that; C1 would show any decision flip).
