@@ -95,9 +95,16 @@ else:
                "diag_y_gt_140": ({"p95": float(np.percentile(np.abs(err[we & (ye > 140)]), 95)), "max": float(np.abs(err[we & (ye > 140)]).max())}
                                  if (we & (ye > 140)).any() else None)}
     B["B3"]["pass"] = B["B3"]["p95_deg"] <= 1.0 and B["B3"]["max_deg"] <= 2.0
-    dt = np.median(np.diff(t)); k = max(1, int(round(1.0 / dt)))
-    vx = np.gradient(np.convolve(x, np.ones(k) / k, "same"), t)
-    B["B4"] = {"max_abs_lat_speed_mps": float(np.abs(vx[w]).max())}; B["B4"]["pass"] = B["B4"]["max_abs_lat_speed_mps"] <= 0.25
+    # "1 s-smoothed": a 1 s TIME window. GT stamps are irregular (occasional samples 1 ms apart), so
+    # x is resampled on a uniform 100 Hz grid, boxcar-smoothed over 1 s (100 samples), then
+    # differentiated. (The first version used a sample-count boxcar + np.gradient on the raw stamps,
+    # which a 1 ms stamp gap amplified ~16x: 0.333 m/s on cl_b_tex_r1 against 0.033 m/s. METHODOLOGY.)
+    tg = np.arange(c0, c1, 0.01); xg = np.interp(tg, t, x)
+    xs = np.convolve(xg, np.ones(100) / 100, "valid"); tv = tg[50:50 + len(xs)]
+    vx = np.gradient(xs, 0.01)
+    B["B4"] = {"max_abs_lat_speed_mps": float(np.abs(vx).max()), "rms_mps": float(np.sqrt(np.mean(vx ** 2))),
+               "t_rel_cruise_of_max_s": float(tv[np.argmax(np.abs(vx))] - c0)}
+    B["B4"]["pass"] = B["B4"]["max_abs_lat_speed_mps"] <= 0.25
     vy = np.convolve(np.gradient(y, t), np.ones(51) / 51, "same"); tc = t[vy > 0.3]; r0, r1 = tc[0], tc[-1]
     sel = (imu[:, 0] > r0 + 5) & (imu[:, 0] < r1 - 5)
     g = {nm: float(imu[sel, ax].std()) for ax, nm in ((1, "roll"), (2, "pitch"), (3, "yaw"))}

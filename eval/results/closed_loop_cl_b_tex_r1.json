@@ -1,0 +1,63 @@
+{
+ "trial": "cl_b_tex_r1",
+ "set": "b",
+ "cruise_s": [
+  33.662,
+  335.381
+ ],
+ "cruise_len_s": 301.719,
+ "clock_map": {
+  "offset_ms_start": 3.26069807502438,
+  "rate_ppm": 188.92819953423236
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.3734517046719354,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.27004447990886754,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.3600000000002829,
+   "max_deg": 0.5400000000002717,
+   "mean_deg": 0.22223069274141047,
+   "diag_y_le_140": {
+    "p95": 0.3500000000002836,
+    "max": 0.5400000000002717
+   },
+   "diag_y_gt_140": {
+    "p95": 0.4460000000002775,
+    "max": 0.4700000000002761
+   },
+   "pass": true
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.03289330802972376,
+   "rms_mps": 0.003060808848116701,
+   "t_rel_cruise_of_max_s": 3.009999999999401,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.0020521322726775315,
+    "pitch": 0.0016717358439821953,
+    "yaw": 0.0027196961967518763
+   },
+   "pass": true
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2286,
+  "sent_q_ge_50": 2196,
+  "VISP_cruise": 2286,
+  "VISP_ignored": 90
+ }
+}

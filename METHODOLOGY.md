@@ -5984,3 +5984,34 @@ Armed 29.63 s → disarmed 362.95 s. Results: `eval/results/ground_test_gt_headi
 - The open-loop drift model (`rgs_check_tex`: yaw drift → lateral velocity → East error)
   therefore predicted the closed-loop outcome closely. In closed loop, EKF3's heading error
   steers the vehicle physically into the wall on the side the estimate drifts away from.
+
+### Closed-loop set (b) r1, `cl_b_tex_r1` (EKF3 + live camera heading, `every_n` 4): all B1–B5 PASS, after a scorer bug fix (QUEUED for the user's confirmation)
+
+| criterion | result | band |
+|---|---|---|
+| B1 | completed the full mission and landed; no breach; max \|x\| over the flight 0.37 m | < 9.58 m |
+| B2 | max \|x\| in cruise **0.27 m** (set (a): wall contact at +186 s) | ≤ 6.0 m |
+| B3 | EKF3 yaw error p95 **0.36°**, max **0.54°**, mean 0.22°; y ≤ 140 m: 0.35 / 0.54°; y > 140 m: 0.45 / 0.47° | p95 ≤ 1.0°, max ≤ 2.0° |
+| B4 | **0.033 m/s** max (rms 0.003), 1 s time window | ≤ 0.25 m/s |
+| B5 | gyro rms roll 0.0021, pitch 0.0017, yaw 0.0027 rad/s | 0.05 / 0.0108 / 0.02 |
+
+- **Diagnostics:** 2,286 headings sent in cruise, 2,196 with quality ≥ 50; `VISP` 2,286; ignored 90
+  (the quality < 50 ones, which `VISO_QUAL_MIN` rejects).
+- The B3 prediction written before flying was p95 ≤ 0.28° and max ≤ 0.46° (at every 3rd frame).
+  **Measured p95 0.36° and max 0.54°**: slightly above the prediction, as expected at 7.5 Hz and
+  with the omitted flow→yaw coupling, and well inside the bands.
+
+**B4 scorer bug (found on this flight; the flight is unchanged).**
+- `closed_loop_score.py` was written tonight, after the bands were fixed. Its first version
+  smoothed with a sample-count boxcar (62 samples ≈ 1 s at the median 16 ms spacing) and
+  differentiated with `np.gradient` on the raw GT stamps.
+- GT has occasional samples 1 ms apart. Across one such gap the smoothed series still steps by
+  about 16 ms of motion, so the "speed" is inflated about 16×.
+- Result: **0.333 m/s at cruise +0.49 s** (2 samples > 0.25), a false B4 failure.
+- **Fix:** resample GT x on a uniform 100 Hz grid, apply a 1 s boxcar, then differentiate. That is
+  a literal "1 s-smoothed" lateral speed. It gives **0.033 m/s**.
+- The band (0.25 m/s) and its wording are unchanged. Only the implementation of the smoothing
+  changed, and it now matches the wording.
+- **QUEUED for the user:** confirm that this is an implementation fix, not a re-scoring. I treated
+  it that way and did not stop the set. If ruled otherwise, r1 is recorded as a B4 failure as first
+  scored, and r2/r3 remain as data.
