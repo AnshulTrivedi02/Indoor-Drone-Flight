@@ -66,6 +66,16 @@ def yaw_of(q):
     return np.arctan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
 
 
+def validity(core):
+    v = np.array(core.valid_log, dtype=float).reshape(-1, 2)
+    if not len(v):
+        return None
+    w = (v[:, 0] >= c0) & (v[:, 0] <= c1)
+    ch = np.where(np.diff(v[:, 1]) != 0)[0]
+    return {"valid_pct_cruise": float(100 * v[w, 1].mean()),
+            "changes_rel_cruise_s": [(round(float(v[i + 1, 0] - c0), 2), int(v[i + 1, 1])) for i in ch[:10]]}
+
+
 def compare(core, name):
     tr = np.array(core.traj)
     n = min(len(tr), len(ref))
@@ -100,7 +110,8 @@ def compare(core, name):
             "dyaw_deg": {"max": float(dy.max()), "end": float(dy[-1])},
             "dyaw_deg_node_rpy_vs_offline_quat": {"max": float(dy_rpy.max())},
             "step_ms": {"median": float(np.median(sm)), "p95": float(np.percentile(sm, 95)), "p99": float(np.percentile(sm, 99))},
-            "reinits": core.reinits, "valid_end": core.valid, "dbgz_deg_per_min_max": fe4}
+            "reinits": core.reinits, "valid_end": core.valid, "dbgz_deg_per_min_max": fe4,
+            "validity": validity(core)}
 
 
 def run(events, name, **kw):

@@ -6647,3 +6647,26 @@ recorded because the first scores were shown.
 - Environment note: the node runs in `~/venv-fgo` with ROS 2 via a one-package shim for PyYAML
   (`~/.cache/thesis_yamlshim`), so that the venv's own numpy (the one the equivalence tests used) is
   loaded, not the system copy.
+
+### FGO validity signal (ruling D7) — implemented in the node core; the estimates are untouched (step 2 re-passes)
+
+- **Rule** (`FgoNodeCore.valid_now`, published on `/fgo/valid` at each keyframe). The FGO is
+  **INVALID** if either holds:
+  - **(a)** a post-take-off IMU gap occurred (the IMU-gap rule's causal form; invalid for the rest of
+    the flight);
+  - **(b)** no flow factor has been fused for more than **5 s**, EKF3's own relative-aiding timeout
+    (`flowFusionTimeout`), as in the UKF port's rule.
+  - Before the first fused flow it is valid only on the ground.
+- **What is omitted, stated.** The UKF's second condition (velocity 1σ > 0.5 m/s) has no FGO
+  counterpart: the batch smoother exposes no marginal covariance, and the gate-only recursion is a
+  gating approximation, not a covariance to trust.
+- **Tests (the node core on the offline stream):**
+  - `dsn_blank_r1`: **invalid from cruise +3.84 s**, which is the pre-registered flow-loss point
+    (−1.17 s, case A) + 5 s. Valid again at +316 s, after the cruise, when flow is fused near landing.
+  - `dsn_tex_r2`: **valid 100% of cruise.**
+  - FGO step 2 re-run on both logs: **still PASS** (8.4e-7 m; the rule does not touch the estimate).
+- **The same limitation as the UKF and EKF3:** heading drift is invisible to a flow-timeout rule. The
+  FGO drifts about 9 deg/min without heading (`fgo_replay` yaw drift on `dsn_tex_r2` −8.5 deg/min).
+
+**Open, queued:** the speed-up build route (D11) and the external-estimator backend route (D12). The
+real-time test under simulation load is scheduled with the next simulation run.

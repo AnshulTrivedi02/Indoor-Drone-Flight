@@ -101,3 +101,24 @@ evidence are in METHODOLOGY (section named per item).
 - Options: **(a) fix the writer and re-derive only the numbers that read FGO yaw from TUM files**
   (Phase 4 yaw errors); (b) leave it and state the bound (≤ 1% of those values).
 - **Recommendation: (a).** It is a one-token fix, and the affected numbers are cheap to re-derive.
+
+## D11. FGO speed-up route (FGO step 2 must re-pass with the same bands)
+- The pip GTSAM 4.2.1 wheel ships no C++ headers. A C++ flow/range/yaw factor with the SAME
+  finite-difference Jacobians (so step 2's 1e-6 bands can hold) needs GTSAM 4.2.1 **and its Python
+  wrapper** built from source, since the extension must share the library instance: hours at -j2,
+  and the whole FGO then re-passes step 2 on the new build.
+- Current timing without simulation load: step p99 36 ms, 1.9% of keyframes over 33 ms, absorbed by
+  the queue (lag flat at 117 ms).
+- Options: **(a) measure under simulation load first** (next simulation run), and build from source
+  only if the lag creeps or the p99 grows; (b) build from source now; (c) analytic Jacobians in Python
+  (faster, but different numerics, so the step 2 bands would need re-registering).
+- **Recommendation: (a).** The source build is needed for Pi hardware anyway (the onboard C++ route),
+  so it is worth doing once, for that, if SITL does not force it sooner.
+
+## D12. External-estimator backend for the FGO
+- **Route (a), exists today:** EKF3 fuses the FGO pose/velocity as ExternalNav. No firmware; the caveat
+  is "EKF3 re-filtering the FGO", with double-counted IMU.
+- **Route (b):** a new MAVLink External-AHRS backend (4–6 pw). There is none for MAVLink at
+  `7bac20cbcc`.
+- **Recommendation: (a) for SITL.** It reuses the ExtNav path already validated for the heading
+  (G1–G5), with the double-counting stated. (b) only if the thesis needs the FGO to fly unfiltered.

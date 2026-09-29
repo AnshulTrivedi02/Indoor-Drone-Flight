@@ -28,6 +28,7 @@ from measurement_models import FlowFrameGyroAverager
 
 GAP_S = 0.010          # the IMU-gap rule's gap (METHODOLOGY "RULE — IMU gaps and the replay estimators")
 AIRBORNE_DZ = 0.30     # "left the ground": range above the initial range by more than this (m)
+FLOW_TIMEOUT_S = 5.0   # EKF3's relative-aiding timeout (flowFusionTimeout, AP_NavEKF3_Control.cpp:306), as the UKF rule
 
 
 class FgoNodeCore:
@@ -39,7 +40,10 @@ class FgoNodeCore:
         # running dejitter fit (index -> stamp)
         self._n = 0; self._mx = self._my = self._cxx = self._cxy = 0.0
         self._tref_prev = None
-        self.valid = True
+        self.valid = True                      # validity signal: see valid_now()
+        self._gap_invalid = False              # a post-take-off IMU gap (the IMU-gap rule): invalid for good
+        self._t_last_flow_fused = None         # keyframe time of the last keyframe that fused a flow factor
+        self.valid_log = []                    # (keyframe t, valid) - one per keyframe
         self.traj = []                         # (t, pE, pN, pU, roll, pitch, yaw, bgz_rate)
         self.step_ns = []                      # per-keyframe processing time
         self.lag = []                          # (event stamp, wall-clock seconds from push to processing) for keyframes
@@ -78,11 +82,25 @@ class FgoNodeCore:
                 self._reset_filter()           # the rule's trim: start again after the gap
                 self._n = 0; self._mx = self._my = self._cxx = self._cxy = 0.0
             else:
-                self.valid = False             # the rule's "unusable": invalid for the rest of the flight
+                self._gap_invalid = True       # the rule's "unusable": invalid for the rest of the flight
+                self.valid = False
         self._tref_prev = t_sensor
 
     def _airborne(self):
         return self._first_rng is not None and self._last_rng is not None and self._last_rng > self._first_rng + AIRBORNE_DZ
+
+    def valid_now(self, t):
+        """VALIDITY RULE (FGO; the UKF port's rule translated, METHODOLOGY): INVALID if a post-take-off
+        IMU gap occurred, or if no flow factor has been fused for more than FLOW_TIMEOUT_S (EKF3's own
+        relative-aiding timeout). Before the first fused flow the estimate counts as valid only on the
+        ground (no horizontal aiding is needed there). The UKF's second condition (velocity 1-sigma >
+        0.5 m/s) has no FGO counterpart: the smoother exposes no marginal covariance (the gate-only
+        recursion is a gating approximation, not a covariance to trust), so it is not used."""
+        if self._gap_invalid:
+            return False
+        if self._t_last_flow_fused is None:
+            return not self._airborne()
+        return (t - self._t_last_flow_fused) <= FLOW_TIMEOUT_S
 
     def _release(self, upto):
         while self._q and self._q[0][0] <= upto:
@@ -151,6 +169,12 @@ class FgoNodeCore:
                 except Exception as e:
                     print(f"[warn] keyframe at {self.t_kf_next:.3f} failed: {type(e).__name__}: {e}")
                 self.step_ns.append(time.perf_counter_ns() - t0)
+                # validity (does not touch the estimate): a flow factor fused at this keyframe?
+                if self.fgo.n_flow > getattr(self, "_n_flow_prev", 0):
+                    self._t_last_flow_fused = self.t_kf_next
+                self._n_flow_prev = self.fgo.n_flow
+                self.valid = self.valid_now(self.t_kf_next)
+                self.valid_log.append((self.t_kf_next, self.valid))
                 t_lat, pose, vel = self.fgo.latest()
                 rpy = pose.rotation().rpy()
                 self.traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2], self.fgo.prev_bias.gyroscope()[2]))

@@ -32,14 +32,18 @@
    "max": 0.0015700100231230325
   },
   "step_ms": {
-   "median": 15.2661515,
-   "p95": 16.631076099999998,
-   "p99": 27.933819669999988
+   "median": 15.148356,
+   "p95": 15.959574150000002,
+   "p99": 28.12207404999999
   },
   "reinits": 0,
   "valid_end": true,
   "dbgz_deg_per_min_max": 0.0,
-  "wall_s": 157.6355901939678,
+  "validity": {
+   "valid_pct_cruise": 100.0,
+   "changes_rel_cruise_s": []
+  },
+  "wall_s": 155.82610929204384,
   "FE1": true,
   "FE2": true,
   "FE4": true,
