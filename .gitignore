@@ -43,3 +43,4 @@ mav.parm
 # Python bytecode (was previously tracked by mistake)
 __pycache__/
 *.pyc
+src/forward_camera/cpp/libheading.so
