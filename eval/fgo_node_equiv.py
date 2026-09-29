@@ -71,19 +71,36 @@ def compare(core, name):
     n = min(len(tr), len(ref))
     same_t = bool(len(tr) == len(ref) and np.allclose(tr[:, 0], ref[:, 0], atol=1e-6))
     # compare at the offline keyframe times (interpolate the node when grids differ)
-    px = np.c_[[np.interp(ref[:, 0], tr[:, 0], tr[:, i]) for i in (1, 2, 3)]].T
-    yw = np.interp(ref[:, 0], tr[:, 0], np.unwrap(tr[:, 6]))
+    # identical keyframe grid -> compare ROW BY ROW (interpolating at the reference file's %.6f-rounded
+    # stamps adds speed x 5e-7 s, ~1e-4 m in a blank runaway: an artefact found on dsn_blank_r1)
+    if same_t:
+        px = tr[:, 1:4]
+    else:
+        px = np.c_[[np.interp(ref[:, 0], tr[:, 0], tr[:, i]) for i in (1, 2, 3)]].T
+    yw = np.unwrap(tr[:, 6]) if same_t else np.interp(ref[:, 0], tr[:, 0], np.unwrap(tr[:, 6]))
+    # "as written": the node's attitude through fgo_replay.py's OWN TUM writer (its euler_to_quat has a
+    # w-component typo, sr*sp*cy for sr*sp*sy, giving a non-unit quaternion) and %.6f rounding, so both
+    # sides are compared in the same representation (FE2)
+    r_, p_, y_ = tr[:, 4], tr[:, 5], tr[:, 6]
+    cr, sr, cp, sp, cy, sy = np.cos(r_/2), np.sin(r_/2), np.cos(p_/2), np.sin(p_/2), np.cos(y_/2), np.sin(y_/2)
+    qw = np.round(np.c_[sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*cy], 6)
+    yw_written = np.unwrap(yaw_of(qw)) if same_t else np.interp(ref[:, 0], tr[:, 0], np.unwrap(yaw_of(qw)))
+    # FE4: gyro-z bias against the offline bgz_series.txt (|b| deg/min per keyframe in its apparatus window)
+    bz = np.loadtxt(f"{D}/fgo/bgz_series.txt")
+    fe4 = float(np.max(np.abs(np.interp(bz[:, 0], tr[:, 0], np.abs(np.degrees(tr[:, 7]) * 60)) - bz[:, 1]))) if same_t else None
     w = (ref[:, 0] >= c0) & (ref[:, 0] <= c1)
     dp = np.linalg.norm(px - ref[:, 1:4], axis=1)[w]
-    dy = np.degrees(np.abs((yw - yaw_of(ref[:, 4:8]) + math.pi) % (2 * math.pi) - math.pi))[w]
+    dy_rpy = np.degrees(np.abs((yw - yaw_of(ref[:, 4:8]) + math.pi) % (2 * math.pi) - math.pi))[w]
+    dy = np.degrees(np.abs((yw_written - yaw_of(ref[:, 4:8]) + math.pi) % (2 * math.pi) - math.pi))[w]
     bgz = np.degrees(tr[:, 7]) * 60
     sm = np.array(core.step_ns) / 1e6
     return {"variant": name, "keyframes": len(tr), "keyframes_offline": int(m_off["n_kf"]), "same_keyframe_times": same_t,
             "n_flow": core.fgo.n_flow, "n_flow_offline": int(m_off["n_flow"]), "n_range": core.fgo.n_range, "n_range_offline": int(m_off["n_range"]),
             "dpos_m": {"max": float(dp.max()), "rms": float(np.sqrt(np.mean(dp ** 2))), "end": float(dp[-1])},
             "dyaw_deg": {"max": float(dy.max()), "end": float(dy[-1])},
+            "dyaw_deg_node_rpy_vs_offline_quat": {"max": float(dy_rpy.max())},
             "step_ms": {"median": float(np.median(sm)), "p95": float(np.percentile(sm, 95)), "p99": float(np.percentile(sm, 99))},
-            "reinits": core.reinits, "valid_end": core.valid}
+            "reinits": core.reinits, "valid_end": core.valid, "dbgz_deg_per_min_max": fe4}
 
 
 def run(events, name, **kw):
@@ -93,6 +110,8 @@ def run(events, name, **kw):
         core.push(*e)
     core.flush()
     res = compare(core, name); res["wall_s"] = time.perf_counter() - t0
+    if os.environ.get("SAVE_TRAJ"):
+        np.save(os.environ["SAVE_TRAJ"] + f"_{name}.npy", np.array(core.traj))
     print(name, json.dumps(res), flush=True)
     return res
 
@@ -102,8 +121,9 @@ if a.mode == "step2":
     r2 = run(off, "step2_offline_stream", dejitter="none", gap="off", horizon_s=0.10)
     r2["FE1"] = r2["dpos_m"]["max"] <= 1e-6
     r2["FE2"] = r2["dyaw_deg"]["max"] <= 1e-6
+    r2["FE4"] = r2["dbgz_deg_per_min_max"] is not None and r2["dbgz_deg_per_min_max"] <= 1e-9
     r2["FE3"] = (r2["keyframes"] == r2["keyframes_offline"] and r2["n_flow"] == r2["n_flow_offline"] and r2["n_range"] == r2["n_range_offline"])
-    out["step2"] = r2; out["pass"] = bool(r2["FE1"] and r2["FE2"] and r2["FE3"])
+    out["step2"] = r2; out["pass"] = bool(r2["FE1"] and r2["FE2"] and r2["FE3"] and r2["FE4"])
 else:
     trim = json.load(open(f"{D}/imu_gaps.json")) if os.path.exists(f"{D}/imu_gaps.json") else {"verdict": "ok"}
     t_trim = trim.get("replay_start_s") if trim["verdict"] == "trim" else None

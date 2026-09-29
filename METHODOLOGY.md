@@ -6575,3 +6575,75 @@ Results: `eval/results/closed_loop_cl_bcpp_tex_r{1,2,3}.json`.
 - **Step 3 after D5, the remaining input-path cost:** 5.06 m against the offline UKF on
   `dsn_tex_r2`, almost all of it flow timing (D8). The full Replay port on that flight scores 2.79 m
   evo -a equivalent (offline UKF 2.28).
+
+### FGO step 2 RESULT: the node core PASSES FE1–FE4 on both pre-registered logs
+
+`eval/fgo_node_equiv.py --mode step2`; `eval/results/fgo_node_step2_dsn_{tex_r2,blank_r1}.json`.
+The node core (`fgo_node_core.FgoNodeCore`) is driven through its queue (0.10 s horizon) with the
+offline replay's own event stream.
+
+| | `dsn_tex_r2` | `dsn_blank_r1` |
+|---|---|---|
+| FE1 position | **8.4e-7 m** max (= the reference TUM's `%.6f` print rounding) | **8.4e-7 m** |
+| FE2 yaw (same representation) | **0** | **0** |
+| FE3 counts: keyframes / flow / range | 10,144 / 9,952 / 10,143, all identical | 10,048 / 501 / 10,047, all identical |
+| FE4 gyro-z bias | **0** | **0** |
+
+**Two comparison artefacts, found and fixed in the comparison, not in the node.** Both are
+recorded because the first scores were shown.
+- **Yaw representation.** `fgo_replay.py`'s TUM writer `euler_to_quat` has a **w-component typo**:
+  `sr*sp*cy` where it should be `sr*sp*sy` (`ukf_replay.py` has it right). It writes a slightly
+  non-unit quaternion (norm about 0.999997), so the yaw extracted from the offline FGO's TUM files
+  is off by ~1e-4 to 2e-3°. The first FE2 score compared the node's exact yaw with that, giving
+  0.0016°. **FE2 is now scored with the node's attitude passed through the same writer: 0.**
+  - **Finding:** every offline FGO TUM orientation carries this ~0.002° error. Positions, and so
+    every evo -a (cruise) ATE, are unaffected. Yaw read from FGO TUM files (for example Phase 4
+    yaw errors, ~0.18°) is affected at ≤ 1% of those values. **Not corrected in the offline code
+    without a ruling (D10).**
+- **Rounded timestamps.** The first blank-log FE1 score (1.36e-4 m) came from interpolating the node
+  at the reference file's `%.6f`-rounded keyframe times. At blank-runaway speeds of hundreds of m/s,
+  5e-7 s is about 1e-4 m. With the keyframe grids identical, the comparison is now row by row: the
+  node rounded to 6 dp equals the reference exactly on every row.
+- **Determinism checked:** two node runs on identical input are bit-identical (no GTSAM threading).
+
+### FGO step 3 REPORT (the node on its causal inputs) and the real-time report
+
+`eval/fgo_node_equiv.py --mode step3`; `eval/results/fgo_node_step3_dsn_{tex_r2,blank_r1}.json`.
+
+| variant | `dsn_tex_r2`: Δ from offline, max / end | Δ yaw max | **SE(3)-aligned RMSE against GT** (offline 4.298 m) | `dsn_blank_r1` Δ max |
+|---|---|---|---|---|
+| (ii) arrival order through the 0.10 s queue | **0.000 m** | 0.000° | 4.298 m | 0.000 m |
+| (i) causal (running-fit) dejitter | 1.345 / 1.345 m | 1.01° | **4.199 m** | 702 m (in a 20 km runaway) |
+| (i)+(ii) | 1.345 / 1.345 m | 1.01° | 4.199 m | 702 m |
+| (i)+(ii)+(iii), all raw events, causal gap detection, no trim | 0.030 / 0.025 m | 0.03° | 4.296 m | 702 m |
+
+**Reading.**
+- **The queue reproduces the offline stamp order exactly.** The only cost is the causal dejitter.
+- The dejitter's distance from the offline FGO (up to 1.35 m / 1°) is mostly gauge. Against truth
+  every variant is within **0.1 m** of the offline FGO (4.20–4.30 m), **below the FGO noise floor
+  (SD 0.13 m)**. So the node's input path cannot change any claim resolved at that level.
+- The size of the distance depends on the running fit's start-up transient, which anchors the
+  initialisation and the keyframe grid: 1.35 m with the trim, 0.03 m from the first raw sample.
+- **(iii)'s causal gap detection** uses sensor-time gaps (> 10 ms). It does NOT see the receipt
+  "bunches" that the offline rule also treats as irregularities (`dsn_tex_r2`'s trim was a bunch:
+  99 samples, 319 ms). No re-initialisation happened, and it did no harm here.
+  - Stated as a gap between the offline rule and its causal form: a bunch after take-off would not
+    set `valid = false`.
+- **Blank:** the causal dejitter changes the unaided runaway by up to 702 m in 20 km (~3%). Both are
+  meaningless as positions.
+
+**Real-time report** (`src/estimators/fgo/fgo_node.py`, live ROS 2 node, `ros2 bag play` of
+`dsn_tex_r2` at 1×, **no simulation load**; stats in the node's npz):
+- **All 10,145 keyframes processed**, valid throughout, no re-initialisation.
+- **Keyframe step time: median 15.4 ms, p95 26.6, p99 36.3, max 53.4 ms; 1.9% of keyframes over
+  the 33 ms interval.** The queue absorbs them.
+- **Queue lag (push → processed, wall): median 117 ms (the 100 ms horizon + processing), p95 129,
+  max 170 ms; flat, 117–118 ms in every 60 s block, slope 0.003 ms/s.** No creep.
+- **Live node against GT: 4.296 m** (offline 4.298 m).
+- **Under simulation load: not yet measured** (needs a concurrent SITL run). It is scheduled with the
+  next simulation run, and it is a prerequisite for any FGO flight.
+- **Speed-up (next, as ruled):** C++ factors in place of the Python `CustomFactor` callbacks. The
+  p99 of 36 ms has no margin under a simulation's load. **Any speed-up must re-pass FGO step 2.**
+- Environment note: the node runs in `~/venv-fgo` with ROS 2 via a one-package shim for PyYAML
+  (`~/.cache/thesis_yamlshim`), so that the venv's own numpy (the one the equivalence tests used) is
+  loaded, not the system copy.

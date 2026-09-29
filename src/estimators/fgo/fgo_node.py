@@ -9,6 +9,7 @@ Run: python3 fgo_node.py --ros-args -p use_sim_time:=true [-p horizon_s:=0.10]  
 import glob, math, os, sys
 import numpy as np
 import rclpy
+import rclpy.executors
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from geometry_msgs.msg import PoseStamped, Vector3Stamped
@@ -34,6 +35,7 @@ class FgoNode(Node):
         self.declare_parameter("horizon_s", 0.10)
         self.declare_parameter("window_s", 0.25)
         self.declare_parameter("lm_iters", 2)
+        self.declare_parameter("stats_path", "")          # on shutdown: per-keyframe step time and queue lag (npz)
         self.core = FgoNodeCore(window=float(self.get_parameter("window_s").value), lm_iters=int(self.get_parameter("lm_iters").value),
                                 horizon_s=float(self.get_parameter("horizon_s").value), dejitter="causal", gap="causal")
         self._n_pub = 0
@@ -80,8 +82,16 @@ def main():
     n = FgoNode()
     try:
         rclpy.spin(n)
+    except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):
+        pass
     finally:
-        n.destroy_node(); rclpy.shutdown()
+        sp = n.get_parameter("stats_path").value
+        if sp:
+            np.savez(sp, step_ns=np.array(n.core.step_ns, np.int64), lag=np.array(n.core.lag).reshape(-1, 2),
+                     traj=np.array(n.core.traj), valid=n.core.valid, reinits=n.core.reinits)
+        n.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == "__main__":

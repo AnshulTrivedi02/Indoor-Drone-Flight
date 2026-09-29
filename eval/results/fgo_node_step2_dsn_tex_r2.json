@@ -1,0 +1,49 @@
+{
+ "trial": "dsn_tex_r2",
+ "mode": "step2",
+ "window_s": [
+  30.556,
+  333.044
+ ],
+ "offline_dejitter": {
+  "period_ms": 3.0005684606476883,
+  "resid_std_ms": 3.3931968196447597,
+  "resid_maxabs_ms": 12.810498845453822
+ },
+ "step2": {
+  "variant": "step2_offline_stream",
+  "keyframes": 10144,
+  "keyframes_offline": 10144,
+  "same_keyframe_times": true,
+  "n_flow": 9952,
+  "n_flow_offline": 9952,
+  "n_range": 10143,
+  "n_range_offline": 10143,
+  "dpos_m": {
+   "max": 8.398803238703714e-07,
+   "rms": 5.008238003946134e-07,
+   "end": 4.2754545690775676e-07
+  },
+  "dyaw_deg": {
+   "max": 0.0,
+   "end": 0.0
+  },
+  "dyaw_deg_node_rpy_vs_offline_quat": {
+   "max": 0.0015700100231230325
+  },
+  "step_ms": {
+   "median": 15.2661515,
+   "p95": 16.631076099999998,
+   "p99": 27.933819669999988
+  },
+  "reinits": 0,
+  "valid_end": true,
+  "dbgz_deg_per_min_max": 0.0,
+  "wall_s": 157.6355901939678,
+  "FE1": true,
+  "FE2": true,
+  "FE4": true,
+  "FE3": true
+ },
+ "pass": true
+}

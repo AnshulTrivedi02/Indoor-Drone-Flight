@@ -94,3 +94,10 @@ evidence are in METHODOLOGY (section named per item).
   pre-registered from the drift above; (c) both, (b) first.
 - **Recommendation: (c)**, because (b) is cheap (it reuses the set (a) machinery) and gives the UKF's
   own set (a); then (a). Both need a ruling.
+
+## D10. `fgo_replay.py` TUM quaternion typo
+- `euler_to_quat` writes `sr*sp*cy` for `sr*sp*sy` in w: a non-unit quaternion, ~0.002° yaw error in
+  the offline FGO's TUM orientations. Positions and all ATEs are unaffected.
+- Options: **(a) fix the writer and re-derive only the numbers that read FGO yaw from TUM files**
+  (Phase 4 yaw errors); (b) leave it and state the bound (≤ 1% of those values).
+- **Recommendation: (a).** It is a one-token fix, and the affected numbers are cheap to re-derive.
