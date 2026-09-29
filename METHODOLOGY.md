@@ -4362,3 +4362,157 @@ The overall yaw drift is 9.2 deg/min, within the `dsn` range of 6.6–11.1.
 - **Flight:** `cl_ekf3_tex_2`, the same settings as `cl_ekf3_tex` plus the sign fix. It is
   launched by `sim/tools/closed_loop_run.sh` with the rewritten watcher, with no retry, and
   it is not part of any dataset.
+
+### Check 2c — result (`cl_ekf3_tex_2`, flown 2026-09-29): PASS on both restated criteria
+
+**Settings from the PARM dump:** `AHRS_EKF_TYPE 3`, `FLOW_POS_Z 0.25`, `LOG_REPLAY 1`,
+`EK3_SRC1_YAW 0`, with the sign fix. Cruise start (GT forward speed first > 0.3 m/s) was at
+`TimeUS` 30.66 s.
+
+| cruise + | 30 s | 60 s | 90 s | 100 s | 120 s | 140 s | 160 s |
+|---|---|---|---|---|---|---|---|
+| GT East (m) | −0.49 | −0.44 | −2.17 | −2.52 | −4.48 | −6.60 | −9.14 |
+| EKF3 `PE` (m) | −0.03 | +0.04 | −0.14 | −0.02 | −0.16 | −0.00 | −0.05 |
+| EKF3 yaw error (°) | +2.0 | +3.5 | +6.2 | +7.4 | +9.2 | +12.1 | +15.1 |
+
+1. **No wall contact before cruise +100 s: PASS.** At +100 s, x = −2.52 m. The maximum GT
+   lateral speed before contact was 0.57 m/s, against about 3.6 m/s in `cl_ekf3_tex`. **The
+   fast runaway is gone.**
+2. **Contact on the west wall between +140 and +200 s, y ≈ 70–100 m: PASS.** Contact came at
+   **cruise +164.2 s, x = −9.58, GT y (N) = 80.9 m**. The written prediction was about +161 s
+   and y ≈ 80 m.
+
+- **Mechanism, as predicted:** EKF3's East estimate stayed at 0 ± 0.16 m (the controller
+  holds it on the centreline) while the true track arced west with the yaw error. It was a
+  slow, heading-driven arc.
+- **Yaw drift in flight: +5.8 deg/min**, against the 9.2 deg/min used for the prediction. The
+  prediction's curve came from `lfs_check_tex`, which included the sideways step's ~5° yaw
+  jump. The contact time still landed within 3 s of the point prediction. With drift that
+  much slower, that agreement is partly coincidence and is **not claimed as quantitative
+  validation of the first-order model.**
+- **EKF3 flow innovations:** airborne |FIX| 320 (the same as open loop) and rejections 0.48%.
+- **Stop path (rewritten watcher) worked in a real flight.** On the breach it sent SIGTERM to
+  `fly_trial.py` and `run_trial.sh` by PID. run_trial's own cleanup stopped the recorder, so
+  the bag is flushed and its `metadata.yaml` written. No process remained after 1 s, and the
+  watcher exited 0 (`STOP_LOG.txt`).
+- **Diagnostic record, not a dataset.** There is no trial `metadata.yaml`, because run_trial
+  writes it only at a normal exit. `ardupilot.bin` was hand-copied from `logs/00000084.BIN`,
+  which matches `LASTLOG.TXT` and the flight time.
+
+## EKF3 flow-derotation timing — bounded investigation (ruling 2, 2026-09-29; about 1.5 h of a half-day box)
+
+**Nothing that reaches EKF3 was changed.** All numbers below are reconstructions from
+existing logs.
+
+### (a) Our message path against a real sensor (source at `7bac20cbcc`)
+
+**What we send.** MAVLink `OPTICAL_FLOW` (msg 100) with only the rate extension fields
+`flow_rate_x/y` (rad/s, instantaneous), with `quality` and `ground_distance`, via MAVProxy
+`--out` on 14553. `OPTICAL_FLOW_RAD` (msg 106), which carries `integrated_x/y`,
+`integrated_xgyro/ygyro` and `integration_time_us`, is not handled by this build (Stage A).
+
+**Receiver: `AP_OpticalFlow_MAV`.**
+- `handle_msg` stamps the message at **arrival**: `latest_frame_us = AP_HAL::micros64()`,
+  with the source comment "ToDo: add jitter correction" (`AP_OpticalFlow_MAV.cpp:105-107`).
+  Our `time_usec` is ignored.
+- `update()` runs at 200 Hz (`ArduCopter/Copter.cpp:158`). It sums the **AHRS gyro**
+  (`AP::ahrs().get_gyro()`, the INS-filtered gyro) on every call (`:36-43`).
+- When a message has arrived it outputs `bodyRate = gyro_sum/gyro_sum_count` (`:76`) and
+  resets the sum (`:94-96`). **So the body rate is averaged over the interval between the
+  `update()` calls that saw messages arrive, not over the camera's exposure interval.**
+- The frontend passes (flow, bodyRate) to EKF3 (`AP_OpticalFlow.cpp:275-280`). EKF3 forms
+  `comp = −flow + bodyRate − flowGyroBias`
+  (`AP_NavEKF3_Measurements.cpp:193-194,206-207,221,227-228`) and dates it arrival −
+  `EK3_FLOW_DELAY` (10 ms) − half the average interval − half a filter step (`:232-234`).
+- **Our measured flow → EKF3 latency:** median 10.9 ms, p95 42.7 ms (`dsn_tex`; METHODOLOGY
+  "Input timing").
+
+**Real sensors.**
+- **PX4Flow** (I²C) sends its own **gyro integral over the same integration timespan** as the
+  flow integral, and `bodyRate = gyro_rate_integral / timespan`
+  (`AP_OpticalFlow_PX4Flow.cpp:120-128`).
+- **HereFlow** (DroneCAN) does the same: `flow_integral`, `rate_gyro_integral`,
+  `integration_interval` (`AP_OpticalFlow_HereFlow.cpp:52-54,76-82`).
+- **Pixart** (SPI on the flight controller) integrates AHRS gyro × dt over each burst,
+  synchronously with the flow sample (`AP_OpticalFlow_Pixart.cpp:288-303,356`).
+- **UPFLOW and MSP** use the same arrival-window AHRS-gyro averaging as the MAV backend
+  (`AP_OpticalFlow_UPFLOW.cpp:101-109,177`; `AP_OpticalFlow_MSP.cpp:39-44,71`).
+
+### (b) Genuine property or bridge artefact? Mostly neither: the vehicle's roll limit cycle meets the gyro filter
+
+- **Arrival-window pairing is a genuine ArduPilot property of the MAVLink path.** Any real
+  MAVLink flow source, such as companion-computer flow, gets it too. Its cost scales with
+  latency and jitter times the frequency of the body motion.
+- **Stated separately: which gyro is used matters more than when.** The same logs give three
+  reconstructions (`lfs_check_tex`, 9396/10130 fused frames matched to their bag frames by
+  value; the method reproduces the logged |FIX| 321 as 307):
+
+| pairing | reconstructed \|FIX\| |
+|---|---|
+| A: current (arrival window, AHRS filtered gyro) | **307** |
+| B: bridge derotates with the co-sampled `HIGHRES_IMU` gyro averaged over the camera frame, plus `FLOW_OPTIONS` Stabilised | **355** (no better) |
+| C: derotation with the TRUE frame-integrated body rotation (GT quaternions), plus Stabilised | **67** |
+
+- **The flow is correct.** It tracks the true roll rotation with slope 1.19.
+- **The problem is that every available gyro is the 20 Hz 2-pole INS-filtered gyro**
+  (`INS_GYRO_FILTER 20`; the AHRS gyro and `HIGHRES_IMU` both return `_gyro_filtered`). At the
+  17.5 Hz roll tone that filter attenuates the gyro to about 0.7× (hence the flow/gyro
+  "magnitude" of 1.4–1.5) and delays it by about 80° (hence the −16 ms best lag).
+- **No filtered-gyro pairing, arrival-aligned or frame-aligned, cancels it.** Correct timing
+  (B) does not help.
+- A real integrating sensor avoids this only because it uses its own higher-bandwidth gyro.
+- **Fairness consequence:** the UKF and FGO derotate with the same filtered gyro (via
+  `HIGHRES_IMU` and `FlowFrameGyroAverager`), so the uncancellable roll content is
+  **common-mode across all three estimators**. EKF3 additionally carries the arrival-pairing
+  jitter.
+
+### (c) Minimal bridge change: none admissible
+
+- **B** is the "behave like a real sensor" change available with the data we have: derotate
+  in the bridge over the frame interval, send it as stabilised, and let EKF3 subtract only its
+  learned `flowGyroBias`. It makes |FIX| worse (355), so **it is not proposed**.
+- **C** works (67) only because it uses simulator truth for rotation. That would feed truth
+  into EKF3's input alone, which is **inadmissible** on fairness grounds.
+- `OPTICAL_FLOW_RAD` would carry a sensor gyro, but it is unhandled in this build.
+- A timing-only fix (regular messages, lower latency) cannot beat the filter's ~13–16 ms
+  phase lag at 17.5 Hz.
+- **Conclusion: no bridge change is recommended.**
+
+### (d) The ~17.5 Hz roll tone is a simulation artefact: a roll-axis rate-loop limit cycle
+
+- **It is absent with motors off.** Gyro-x rms is 0.0003 rad/s on the ground before takeoff,
+  0.40 rad/s from the first 20 s airborne onwards (peak 17.5 Hz), and 0.40 in cruise.
+  Pitch is 0.005–0.04.
+- **It is in the whole roll control loop** (dataflash, aliased by the 10 Hz / 25 Hz logging to
+  2.5 / 7.5 Hz):
+  - `RATE.R` 22.8 deg/s rms, against a desired `RATE.RDes` of 2.2 deg/s rms;
+  - roll PID D-term 0.11 rms and `RATE.ROut` 0.16 rms;
+  - **motor PWM oscillating about ±67 µs rms**;
+  - on pitch, `RATE.P` is 1.05 deg/s rms.
+- **The cause is consistent with the plant.** The iris model has **Ixx = 0.008, Iyy = 0.015**
+  and rotor arms of ±0.22 m (roll) and ±0.13 m (pitch). Roll authority per inertia is
+  0.22/0.008 ≈ 27.5 against 0.13/0.015 ≈ 8.7, which is **about 3.2× the roll loop gain**.
+- The roll and pitch rate gains are identical **firmware defaults** (P 0.135, I 0.135,
+  D 0.0036). Neither `copter.parm` nor `gazebo-iris.parm` sets them, so they were never tuned
+  for this airframe.
+- A sustained 0.4 rad/s rms body oscillation at 17.5 Hz, next to the gyro filter corner,
+  would be visible and removed by tuning (for example AutoTune) on a real vehicle. Real
+  vibration sits at motor and propeller frequencies, far above the filter, where it causes
+  negligible flow.
+- **It is not claimed to be proven** that retuning removes it. That needs a check flight.
+
+### Options for the ruling (none applied)
+
+1. **Leave everything as is and document it.** The tone is a common-mode simulation
+   artefact that affects all three estimators' lateral channel. EKF3's extra arrival-pairing
+   jitter is a genuine property of ArduPilot's MAVLink flow path. The re-fly proceeds now.
+2. **Remove the limit cycle at the source** with roll rate gains for this airframe (for
+   example, pinned from a SITL AutoTune run, or scaled by the roll/pitch authority ratio),
+   pinned in a `.parm` file and applied to every re-flown dataset.
+   - This changes the vehicle, not any estimator input path. It is realistic (tuned
+     vehicles).
+   - It needs a pre-registered check flight: tone gone, |FIX| falling toward C's 67, pitch
+     unchanged.
+   - It adds one parameter change to the re-run and must be stated as a simulation-model
+     correction.
+3. The bridge changes B and C are not recommended (B does not help; C is inadmissible).
