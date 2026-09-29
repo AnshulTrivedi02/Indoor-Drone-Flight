@@ -35,3 +35,19 @@ evidence are in METHODOLOGY (section named per item).
 ## D4. Rebuild of the port's SITL binary and Replay tool (information, no ruling needed)
 - The shadow-UKF SITL result predates the step-2 fix. The binaries are rebuilt after the `dsn`
   batch. Any future shadow run uses the fixed port.
+
+## D5. UKF port input path (step 3 report; METHODOLOGY "UKF port validation STEP 3")
+- On `dsn_tex_r2` the port on ArduPilot's inputs differs from the offline UKF by 5.1 m / 3.8°
+  (end of cruise), from three sources:
+  - flow fused at arrival: 4.8 m alone;
+  - the IMU path: 3.2 m alone;
+  - the flow-gyro pairing: 1.5 m alone.
+- The full post-fix Replay port scores about 3.4 m evo -a (cruise), between the offline UKF (2.3) and
+  EKF3 (3.9).
+- Options: **(a) add a flow delay buffer to the port** (fuse at the measurement time, as EKF3 does
+  with `EK3_FLOW_DELAY`), keeping ArduPilot's IMU and gyro inputs; (b) keep the port as is (pure
+  arrival-time fusion); (c) also reproduce the offline IMU/gyro inputs (not possible onboard, so not
+  a drop-in).
+- **Recommendation: (a).** It matches EKF3's own treatment of flow latency, so it is fair to EKF3.
+  The remaining IMU/gyro differences are properties of the onboard input path, and they are
+  reported, not hidden.

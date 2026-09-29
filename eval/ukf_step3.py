@@ -81,12 +81,13 @@ for k in np.where(tI >= t_start)[0]:
 fl_idx = np.where(typ == 2)[0]
 fq = Fr[Fr[:, 2] > 0]; tfq = tF[Fr[:, 2] > 0]
 match = {}
-j0 = 0
-for n_, k in enumerate(fl_idx):
+fq32 = fq[:, 3:5].astype(np.float32)
+for k in fl_idx:                  # exact float32 value match, arrival within [capture - 10 ms, capture + 300 ms]
+    lo, hi = np.searchsorted(tfq, tpy[k] - 0.01), np.searchsorted(tfq, tpy[k] + 0.3)
     fx, fy = np.float32(inp[k, 0]), np.float32(inp[k, 1])
-    for j in range(j0, min(j0 + 40, len(fq))):
-        if np.float32(fq[j, 3]) == fx and np.float32(fq[j, 4]) == fy and tfq[j] >= tpy[k] - 0.01:
-            match[k] = j; j0 = j + 1; break
+    hit = np.where((fq32[lo:hi, 0] == fx) & (fq32[lo:hi, 1] == fy))[0]
+    if len(hit):
+        match[k] = lo + int(hit[0])
 lat = np.array([tfq[j] - tpy[k] for k, j in match.items()])
 
 

@@ -6173,3 +6173,51 @@ identical to Phase 3's `meas_frozen.npz`); `eval/results/heading_cpp_equivalence
 
 My recommendation is **(a) with (b) as supporting evidence**. Step 3 (the input-path cost report)
 does not depend on this ruling and proceeds.
+
+### UKF port validation STEP 3 — input-path cost REPORT (`dsn_tex_r2`; not pass/fail; nothing changed to hide it)
+
+**Method.**
+- The port was rebuilt with the step-2 fix and a **Replay-only input dump** (`ukf_inputs.csv`):
+  every `update()` call's INS deltas and range, and every flow message as delivered (quality, raw
+  rates, AHRS-paired gyro).
+- Replay of `dsn_tex_r2` then gives the port's own inputs. They are mapped to the bag clock with
+  the `/imu/time_ref` envelope (offset −6.3 ms, 226 ppm).
+- Delivered flow was matched to bag frames by exact float32 value: 10,058 matched out of 10,154
+  delivered.
+- **Flow arrival − capture: median 14.5 ms, p95 26.8 ms.**
+- `eval/ukf_step3.py` swaps ONE input path at a time into the step-2 stream (all variants start
+  from the offline UKF's initial state) and drives the port harness. Results:
+  `eval/results/ukf_step3_dsn_tex_r2.json`.
+
+**Difference from the offline UKF over the pinned cruise window:**
+
+| variant (the one input changed) | Δ position +60 s / +150 s / end | Δ yaw end | accepted flow / range / yaw fires |
+|---|---|---|---|
+| V0: none (step-2 stream) | 1.4e-6 / 9.8e-6 / 5.0e-5 m | 2.3e-5° | 10,050 / 10,246 / 96 |
+| **V1: IMU path** (DAL INS deltas, 1 kHz-integrated, accumulated to EKF3's 12 ms target: 27,079 predicts, against 22,539 × 15 ms) | 0.21 / 0.91 / **3.15 m** | **2.28°** | 10,050 / 10,246 / 111 |
+| **V2: flow gyro** (ArduPilot's arrival-window AHRS gyro, against the frame-averaged IMU gyro) | 0.09 / 0.41 / **1.47 m** | **1.08°** | unchanged |
+| **V3: flow fused at arrival** (no delay buffer) | 0.28 / 1.34 / **4.80 m** | **3.56°** | unchanged |
+| V4: the port's range sampling (cm-quantised, ≥ 33 ms) | 0.02 / 0.09 / 0.32 m | 0.23° | 10,050 / 9,677 / 96 |
+| V5: V1 + V2 + V3 + V4 | 0.32 / 1.46 / **5.13 m** | **3.75°** | 10,050 / 9,677 / 111 |
+
+**The full post-fix Replay port** (its own initialisation and yaw-pseudo cadence as well), against
+GT (`eval/results/ukf_shadow_replay_dsn_tex_r2_postfix.json`):
+- valid 100% of cruise;
+- error from cruise start, along / cross: −0.73 / −0.58 m at +60 s, −7.7 / +19.2 m at the end.
+  **The pre-fix Replay was 66 m cross-track on this flight.**
+- An evo -a (cruise) equivalent (SE(3) Umeyama on the pinned window; my own alignment, not
+  `three_way_eval`, so DIAGNOSTIC) gives **3.37 m**. On the same flight: offline UKF 2.28, EKF3
+  3.86, FGO 4.30 m.
+
+**Reading.**
+- The three suspected causes are all real, of the same order, and **not additive**: V5 is 5.1 m,
+  against the sum of 9.7 m.
+- **Flow fused at arrival** (no delay buffer; median 14.5 ms late) is the largest single cost, then
+  the **IMU path** (EKF3's own 12 ms INS deltas against the bridged 333 Hz samples), then the
+  **flow gyro pairing**.
+- All three are costs of **using ArduPilot's inputs as EKF3 receives them**. EKF3 itself
+  compensates only the flow timing, with its delay buffer (`EK3_FLOW_DELAY` 10 ms). The port has
+  no buffer.
+- **The choice** is between ArduPilot's inputs as they are (fair to EKF3, the drop-in case) and
+  adding a delay buffer so flow is fused at its measurement time (which EKF3 also does). **It is
+  the user's, and is queued (D5).** Adding a buffer changes the port only, never the offline UKF.
