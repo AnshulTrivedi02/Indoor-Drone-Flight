@@ -6475,3 +6475,51 @@ before): **2.79 m with D5**, 3.37 m without it; offline UKF 2.28, EKF3 3.86, FGO
   offline UKF is about the same: it moves along a different error direction.
 - **Live SITL shadow yaw drift with D5:** after the set (b) re-fly (one simulation at a time).
   Reported before any UKF flight.
+
+### FGO track (ruling D7) — the ROS-node route: equivalence plan and bands PRE-REGISTERED (2026-09-30, before the node is written)
+
+**Design (the offline FGO stays untouched).**
+- `fgo_node` is a thin causal wrapper around the unchanged `fgo_core.FGO`, like the UKF port.
+- **Its only intended differences from `fgo_replay.py` are the causal forms of three non-causal
+  offline steps:**
+  - **(i) IMU dejitter:** a running linear fit of receipt stamp against sample index (Welford
+    co-moments), in place of the whole-flight fit;
+  - **(ii) event order:** a stamp-ordered queue processed up to a fusion horizon (arrival order in,
+    stamp order out), in place of sorting the whole bag;
+  - **(iii) the IMU-gap rule:** detected online. A pre-arm gap re-initialises; a post-arm gap sets the
+    validity signal false for good. This replaces reading the post-hoc `imu_gaps.json`.
+- **Input difference measured BEFORE any node code (inputs only):** causal against global dejitter
+  stamps differ by **≤ 5.1 ms** after 10 s (`dsn_tex_r2` 4.4 ms, `dsn_blank_r1` 5.1 ms), and the
+  period by ~1e-4 relative after 30 s. That can move an IMU sample across a keyframe boundary, so the
+  causal node is **not** expected to be bit-exact.
+
+**FGO step 2: EQUIVALENCE of the node core, PASS/FAIL.**
+- The node core is driven through its queue, horizon and callbacks with the offline replay's own
+  event stream (global dejitter, the same gap trim, the same events), on `dsn_tex_r2` and
+  `dsn_blank_r1`, over the pinned cruise window.
+- **Bands** (the same Python/GTSAM code on identical inputs; the only permissible difference is
+  none):
+  - **FE1:** max 3-D position difference **≤ 1e-6 m** on both logs;
+  - **FE2:** max yaw difference **≤ 1e-6°**;
+  - **FE3:** keyframe count, and flow/range factor counts, **identical**;
+  - **FE4:** the gyro-z bias difference ≤ 1e-9 deg/min.
+- Basis: identical code and inputs are deterministic (single-threaded BLAS), so any difference is a
+  wrapper bug (event association, ordering, keyframe cadence). The tolerances only absorb printing
+  and round-off, not behaviour.
+
+**FGO step 3: the input-path cost, a REPORT, not pass/fail** (as the UKF's).
+- The node on its own causal inputs, deterministic mode (the bag read in receipt order, no wall-clock
+  pacing), against the offline FGO.
+- Attributed by switching (i), (ii) and (iii) one at a time.
+- **Reported against the FGO noise floor** (flight-to-flight SD 0.13 m, textured). A cost below it
+  cannot change any claim resolved at that level.
+
+**Real-time budget, a REPORT.**
+- The per-keyframe step time in the node (median, p95, p99) against the 33 ms keyframe interval,
+  under a real-time bag play (1×) with the simulation stack's CPU load absent and present.
+- The queue lag (stamp → processed) over a full flight, with no creep allowed (as G5.3).
+- Speed-up comes AFTER equivalence: C++ factors in place of the Python `CustomFactor` callbacks, the
+  known cost (FGO_DESIGN §6). **Any speed-up must re-pass FGO step 2** (the same bands) before use.
+
+**Then the external-estimator backend and the validity signal.** Same gates as the UKF before any
+flight: step 2 passes, step 3 is ruled on, and a shadow run is reported first.
