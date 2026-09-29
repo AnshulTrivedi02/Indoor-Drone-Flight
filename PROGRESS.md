@@ -5,6 +5,22 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-29 (afternoon) — queue items 1–3 done
+
+- **Heading share restated:** 74% → 69% (`dsn_tex_r3`, pinned window); batched correction
+  (iii).
+- **UKF checkerboard r2:** terminal gate lockout; the onset during degraded measurements at
+  y 125–140 m is not separable.
+- **Consistency (5b),** 72 identity-checked replays:
+  - EKF3 cross-track is consistent on textured and transition, overconfident on blank.
+  - UKF and FGO baselines are overconfident everywhere. With heading they are consistent on
+    textured only.
+  - The FGO's wider heading acceptance comes from a ~9× larger predicted yaw σ (0.48° vs
+    0.05°): conservative on textured floors, closer to consistent than the UKF on the
+    checkerboard.
+  - At the end wall the FGO accepted wrong headings while its estimate was already ~3° off.
+  - The FGO covariance is a gate-only approximation.
+
 ## Current Status — 2026-09-29 — distance-scale check DONE: two baseline corrections queued
 
 - **EKF3 reads +7% (textured):** `FLOW_POS_Z = 0.13` is wrong in practice. The logged HAGL

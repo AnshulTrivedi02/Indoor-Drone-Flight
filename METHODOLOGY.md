@@ -3684,3 +3684,80 @@ acceptance per 5 s; GT y).
 - **Relevant to the UKF correction (ii):** the under-scaled position integration and the
   gravity-absorbing accelerometer-bias state are present in this run. Whether the lockout
   recurs after the correction is a question for the corrected re-run.
+
+## Phase 5b — consistency (NEES) and the heading innovation covariance (2026-09-29)
+
+**Replays.** 72 sandbox replays: UKF and FGO, baseline and heading, all 18 ceiling bags.
+- Logging-only instrumentation, identity-checked.
+- **All 72 trajectories are byte-identical to the Phase 4 outputs.**
+- Analysis: `eval/phase5b_consistency.py` → `eval/results/phase5b_consistency.json`.
+
+**Can the gating covariance be reused? Yes, as an approximation.**
+- The FGO covariance used here is the gate-only **two-keyframe filtering recursion** (logged
+  via `FGO_COV_LOG`, in any arm). It is **not the smoother's true marginal**, which the
+  Python `BatchFixedLagSmoother` does not expose.
+- UKF: its own P. EKF3: `XKV1` V08, as in `plots/ekf3_state_diagnostic.py`.
+- **Caveat:** the UKF's lateral error carries the position under-integration found by the
+  scale check (correction (ii)). UKF numbers are provisional until the corrected re-run.
+
+**Cross-track consistency** (pinned cruise window; each estimator's own frame). Means over 3
+repeats: % of samples outside ±3σ / mean 1-D NEES (consistent ≈ 1).
+
+| dataset / world | EKF3 | UKF baseline | UKF +heading | FGO baseline | FGO +heading |
+|---|---|---|---|---|---|
+| `fwdc` tex | **0.0% / 0.44** | 57.6% / 153 | **0.0% / 1.19** | 62.4% / 167 | **0.0% / 0.28** |
+| `fwdc` trans | 2.1% / 1.36 | 56.7% / 39 | 44.7% / 173 | 63.4% / 338 | 44.9% / 462 |
+| `fwdc` blank | 63.3% / 12.5 | 98.7% / 752 | 98.8% / 857 | 98.8% / 2989 | 98.9% / 4682 |
+| `fwdplainc` tex | **0.0% / 0.71** | 71.5% / 110 | **0.8% / 0.68** | 63.4% / 168 | **0.0% / 0.16** |
+| `fwdplainc` trans | 0.0% / 1.35 | 66.9% / 137 | 44.2% / 169 | 63.0% / 351 | 44.7% / 476 |
+| `fwdplainc` blank | 67.5% / 12.3 | 98.9% / 754 | 99.0% / 862 | 99.0% / 3173 | 99.3% / 4470 |
+
+Median σ, cross-track: EKF3 4–8 m; UKF baseline 3.3–4.1 m and with heading ~1.0 m; FGO
+1.1–1.2 m in textured and transition, 2.0–2.1 m in blank.
+
+**What the data show.**
+- **EKF3 is consistent in cross-track on textured and transition floors, and overconfident on
+  blank.** This differs from the earlier `dsn_tex_r1` result (39% outside ±3σ; n = 1,
+  whole flight from t = 44 s, pre-ceiling dataset). The two are not reconciled here; the
+  window and dataset differ.
+- **Both baseline replay estimators are overconfident in cross-track everywhere.**
+- **With heading, both become consistent on textured floors** (FGO conservative, NEES
+  0.16–0.28). **They stay overconfident on transition and blank.**
+- **Consequence for Part C item 9 (candidate "B, consistency"):** these data do not show the
+  FGO (baseline) more consistent than EKF3. The FGO baseline is overconfident where EKF3 is
+  consistent. As usual, subject to the FGO covariance approximation.
+
+**Heading innovation covariance S.** S = the estimator's predicted yaw variance + σ_ψ²
+(0.148° `fwdc`, 0.126° `fwdplainc`). Medians:
+
+| points | est. | √S | predicted yaw σ | \|est. yaw error\| | yaw NEES of the prediction (mean) |
+|---|---|---|---|---|---|
+| all headings, `fwdc` tex | UKF | 0.157° | 0.053° | 0.044° | 1.7 |
+| | FGO | **0.499°** | **0.476°** | 0.085° | **0.25** (conservative) |
+| all headings, `fwdplainc` tex (checkerboard, plain walls) | UKF | 0.139° | 0.058° | 0.186° | **184** (overconfident) |
+| | FGO | **0.489°** | **0.472°** | 0.218° | 3.4 |
+| end wall, wrong > 3°, `fwdc` | UKF (47, all rejected) | 0.198° | 0.131° | 0.171° | 3.0 |
+| | FGO **accepted** (30) | 0.499° | 0.476° | **2.98°** | **33** |
+| | FGO rejected (18) | 0.499° | 0.476° | 0.46° | 1.2 |
+| end wall, wrong > 3°, `fwdplainc` | UKF (59, all rejected) | 0.136° | 0.052° | 0.107° | 4.6 |
+| | FGO (2 accepted / 55 rejected) | 0.488° | 0.471° | 1.57° / 0.15° | 21 / 0.6 |
+
+**What the data show.**
+- **The FGO's wider heading acceptance comes from a larger innovation covariance.** Its
+  predicted yaw σ is ~0.47–0.48°, **about 8–9× the UKF's** 0.05–0.06°. The measurement term
+  is the same in both.
+- **Against the actual yaw error, this makes the FGO:**
+  - **conservative on textured floors** (NEES 0.25), where the UKF is roughly consistent
+    (1.7);
+  - **closer to consistent on the checkerboard floor with plain walls** (3.4), where the UKF
+    is strongly overconfident (184). That matches the UKF r2 lockout above.
+- **At the end wall,** the FGO accepted wrong headings (> 3°) at moments when its own estimate
+  was already ~3° off (median 2.98°) while still reporting a 0.48° predicted σ: NEES 33.
+  - These wrong outputs arrive in runs (Phase 5). The data are consistent with earlier
+    accepted measurements, within the ~1.5° 3σ window, having moved the estimate toward
+    them.
+  - The mechanism is not established beyond that.
+- **The end-wall counts differ by one from Phase 5** (FGO 30/48 here, against 29/47). That
+  comes from the frame-to-keyframe mapping: here, the latest valid frame at or before each
+  keyframe. It is recorded, not reconciled.
+- **The FGO's predicted yaw σ comes from the gate-only covariance approximation.**
