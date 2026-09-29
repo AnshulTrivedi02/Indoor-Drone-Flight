@@ -1,0 +1,96 @@
+{
+ "tsx_off_tex": {
+  "cruise_s": [
+   30.544,
+   331.439
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100282,
+    "rate_hz": 333.2768350316058,
+    "gap_mean_ms": 3.0005085709157266,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000000227,
+    "pct_gap_gt_1.5x": 18.40827275356249
+   },
+   "/optical_flow/measurement": {
+    "n": 9118,
+    "rate_hz": 30.303030303030305,
+    "gap_mean_ms": 33.0,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9118,
+    "rate_hz": 30.303030303030305,
+    "gap_mean_ms": 33.0,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -36.25000000002054,
+  "clock_offset_early_late_ms": [
+   -7.000000000021153,
+   -65.50000000001994
+  ],
+  "clock_rate_diff_pct": -0.020682353569776487,
+  "flow_to_ekf3": {
+   "valid_frames": 8998,
+   "matched_pct": 100.0,
+   "lat_median_ms": 22.607404284713084,
+   "lat_p5_ms": 16.143966709584845,
+   "lat_p95_ms": 33.55983599769665,
+   "lat_p99_ms": 38.31010392344815,
+   "lat_max_ms": 47.85241179456534
+  }
+ },
+ "tsx_on_tex": {
+  "cruise_s": [
+   29.787,
+   332.048
+  ],
+  "inputs": {
+   "/imu/data_raw": {
+    "n": 100737,
+    "rate_hz": 333.2759875603785,
+    "gap_mean_ms": 3.0005162007623887,
+    "gap_median_ms": 2.999999999985903,
+    "gap_p99_ms": 6.000000000028649,
+    "pct_gap_gt_1.5x": 18.31023665819568
+   },
+   "/optical_flow/measurement": {
+    "n": 9160,
+    "rate_hz": 30.3030303030303,
+    "gap_mean_ms": 33.0,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   },
+   "/downward_lidar/range": {
+    "n": 9160,
+    "rate_hz": 30.3030303030303,
+    "gap_mean_ms": 33.0,
+    "gap_median_ms": 33.00000000000125,
+    "gap_p99_ms": 33.00000000001546,
+    "pct_gap_gt_1.5x": 0.0
+   }
+  },
+  "clock_offset_ms": -35.00000000002057,
+  "clock_offset_early_late_ms": [
+   -7.000000000021153,
+   -63.00000000001999
+  ],
+  "clock_rate_diff_pct": -0.019833552005545683,
+  "flow_to_ekf3": {
+   "valid_frames": 9039,
+   "matched_pct": 100.0,
+   "lat_median_ms": 21.554487347628992,
+   "lat_p5_ms": 14.718834137906356,
+   "lat_p95_ms": 32.48130223734336,
+   "lat_p99_ms": 37.277846816075176,
+   "lat_max_ms": 44.704806672562825
+  }
+ }
+}

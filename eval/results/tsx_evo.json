@@ -1,0 +1,49 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "tsx_off_tex": {
+   "window_s": [
+    30.544,
+    331.439
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 148.24262670002125,
+      "true_travel": 150.34810427406427,
+      "disp_ratio": 0.985995981896752,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 3.220539
+     }
+    }
+   }
+  },
+  "tsx_on_tex": {
+   "window_s": [
+    29.787,
+    332.048
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 149.66734504530646,
+      "true_travel": 151.004889,
+      "disp_ratio": 0.9911423798027259,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.498458
+     }
+    }
+   }
+  }
+ }
+}

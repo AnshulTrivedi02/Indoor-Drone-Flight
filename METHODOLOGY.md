@@ -3832,3 +3832,40 @@ condition.
   **0.99–1.03** (the flow sensor itself reads 1.009).
 - Also check that `XKF5.HAGL` − 0.25 equals the true camera height.
 - All four re-run parameters are confirmed from each log's PARM dump.
+
+### Steps 2–3: result (flown 12:26–12:40; `tsx_off_tex`, `tsx_on_tex`; `eval/results/tsx_{evo,timing}.json`)
+
+**Configuration confirmed from each log's PARM dump:** `FLOW_POS_Z 0.25`, `AHRS_EKF_TYPE 10`,
+`LOG_REPLAY 1`, `LOG_DISARMED 1`, `EK3_SRC1_YAW 0`. Replay records (`RFRH`, `RFRF`, `RFRN`,
+`RISH`, `RISI`) are present, so **these logs are replayable**. `fly_trial.py` found every
+parameter already correct, so no reboot was needed.
+
+**Step 3, `FLOW_POS_Z = 0.25`: PASS on both flights.**
+
+| | time sync off | time sync on | band |
+|---|---|---|---|
+| HAGL − `FLOW_POS_Z` / true camera height | 0.998 | 0.995 | — |
+| EKF3 speed ratio | 1.019 | 1.022 | 0.99–1.03 |
+| EKF3 displacement ratio | 0.99 | 0.99 | 1.00 ± 0.02 |
+
+This compares with 1.068–1.070 speed ratio on the dataset flights (`FLOW_POS_Z = 0.13`).
+**Correction (i) does what it was predicted to.**
+
+**Step 2, time-sync A/B (n = 1 per condition).**
+
+| | time sync off | time sync on | difference | proposed "material" threshold |
+|---|---|---|---|---|
+| EKF3 evo -a (cruise) | 3.22 m | 2.50 m | **0.72 m** | > 0.55 m: **exceeded** |
+| EKF3 displacement ratio | 0.99 | 0.99 | 0.00 | > 0.02: not exceeded |
+| EKF3 speed ratio | 1.019 | 1.022 | 0.003 | — |
+| flow → EKF3 latency median / p95 | 22.6 / 33.6 ms | 21.6 / 32.5 ms | 1.0 / 1.1 ms | > 5 ms: not exceeded |
+| RTF (cruise) | 0.839 | 0.836 | — | report only |
+
+- P1 input timing is identical on both flights (flow and lidar 30.30 Hz with 0% late gaps;
+  IMU mean gap 3.0005 ms).
+- **Only EKF3 evo -a crosses its proposed threshold,** and that comparison is n = 1 against
+  n = 1.
+- For scale, EKF3's textured run-to-run spread (n = 3) was 0.55 m on `fwdc` and **2.29 m on
+  `dsn`** (both under the old `FLOW_POS_Z`). **The 0.72 m difference is inside the `dsn`
+  spread.** These data cannot separate a time-sync effect from run-to-run variation.
+- **Decision: the user's.**
