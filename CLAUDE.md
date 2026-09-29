@@ -40,6 +40,7 @@ velocity as a second experimental axis (see Experimental Design Notes).
 | **Forward-camera corridor worlds** | **USE** `sim/worlds/corridor_{textured,blank,transition}_fwdc.sdf` (line-textured walls = UPPER BOUND) and `..._fwdplainc.sdf` (plain walls = featureless case), both with a plain ceiling (`corridor_ceiling`). The no-ceiling `_fwd`/`_fwdplain` worlds and the `fwd_*` dataset are **SUPERSEDED** (sky visible; kept, not analysed). `run_trial.sh` enables forward-camera recording for all four suffixes — see METHODOLOGY |
 | Custom floor/wall models (tracked) | `~/thesis_ws/sim/models/`                                        |
 | Drone SDF (edit + mirror)   | `~/ardupilot_gazebo/models/iris_with_standoffs/model.sdf` → mirror to `sim/reference/` |
+| **Drone model with time sync (2026-09-29)** | `sim/models/iris_with_ardupilot/` — vendored copy of the upstream model, identical except `<no_time_sync>0</no_time_sync>` (line 789); it SHADOWS `~/ardupilot_gazebo/models/iris_with_ardupilot` for every world. `sim/models/iris_fwd/` (forward-camera drone) has the same one-line change. With time sync on, SITL no longer injects `AHRS_EKF_TYPE=10`, so `consolidated_rerun.parm` sets it explicitly |
 | ROS2 workspace              | `~/thesis_ws`                                                        |
 
 > **Sim assets are vendored (2026-07-29).** The worlds and custom floor/wall

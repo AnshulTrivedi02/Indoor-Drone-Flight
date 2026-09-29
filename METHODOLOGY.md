@@ -3869,3 +3869,42 @@ This compares with 1.068–1.070 speed ratio on the dataset flights (`FLOW_POS_Z
   `dsn`** (both under the old `FLOW_POS_Z`). **The 0.72 m difference is inside the `dsn`
   spread.** These data cannot separate a time-sync effect from run-to-run variation.
 - **Decision: the user's.**
+
+### RULING (user, 2026-09-29): time sync ON for every re-flown dataset
+
+**Decided on correctness, not on the one-vs-one error difference** (which cannot separate an
+effect from run-to-run spread). The reasons, as ruled:
+- ArduPilot warns that EKF3 "is likely to diverge" without time sync
+  (`SIM_JSON.cpp:410-413`).
+- Closed-loop flight needs it.
+- Real hardware is time-synchronised.
+- It costs nothing measurable: RTF 0.839 → 0.836, flow latency 22.6 → 21.6 ms.
+
+The two check flights (`tsx_off_tex`, `tsx_on_tex`) are **supporting data only**.
+
+**Where time sync is set** (`<no_time_sync>0</no_time_sync>` in the drone model's
+`ArduPilotPlugin`):
+- **`dsn` worlds.** A vendored copy of the upstream `iris_with_ardupilot` lives at
+  **`sim/models/iris_with_ardupilot/`**. It shadows `~/ardupilot_gazebo/models/iris_with_ardupilot`
+  because `sim/models` comes first in `GZ_SIM_RESOURCE_PATH`. No world file changes.
+  - Proof: `diff -r ~/ardupilot_gazebo/models/iris_with_ardupilot sim/models/iris_with_ardupilot`
+    (upstream at `ardupilot_gazebo` `81e6b10`) shows **one line, 789:
+    `<no_time_sync>1` → `<no_time_sync>0`**. The model name is unchanged.
+- **Ceiling worlds.** Our vendored `sim/models/iris_fwd/model.sdf` gets the same one-line
+  change (git diff: 1 insertion, 1 deletion).
+- `iris_fwd_ts` / `corridor_tson_fwdc` are kept only as the record of the A/B. `iris_fwd_ts` now
+  differs from `iris_fwd` only in its model name.
+- **`AHRS_EKF_TYPE` stays 10** for all dataset flights, set explicitly in
+  `consolidated_rerun.parm`, because SITL no longer injects it once time sync is on. **The
+  dataset flights stay on simulator truth**, with every estimator an offline observer.
+
+### RULING (user, 2026-09-29): re-fly scope and order
+
+- **Order:** `p1c_*` (pass checks) → `dsn_*` → `fwdc_*` → `fwdplainc_*` → `ds_*`, about 4.9 h.
+  `sweep_v*` is skipped.
+- **The Phase 3 camera parameters stay frozen.** The re-flown `p1c_*` are check flights and a
+  second validation, not a recalibration.
+- **Every flight:** tmux, crash-safe runner, `LOG_REPLAY=1`, `LOG_DISARMED=1`,
+  `FLOW_POS_Z=0.25`, time sync on, the same missions and worlds, and the IMU-gap rule.
+- **Pass bands** are recomputed from the re-flown `dsn` baseline with the pre-registered
+  formula.
