@@ -13,5 +13,6 @@ VISO_QUAL_MIN 50
 # Ruling 2026-09-29: the documented minimum. angErr (0.148 deg) is clamped up to 0.05 rad, then
 # EKF3's hard 5 deg floor applies (AP_NavEKF3_Measurements.cpp:1118): effective sigma 5.00 deg.
 VISO_YAW_M_NSE 0.05
-# PLACEHOLDER (ArduPilot default): set from the measured minimum capture-to-receipt latency before flying
-VISO_DELAY_MS 10
+# Ruling 2026-09-29 (ground test run 1, G4 stop -> option 1): the largest value inside the 60 ms horizon
+# (EK3_HGT_DELAY 60), so EKF3's fusion horizon is unchanged. Measured min latency 100-104 ms; see METHODOLOGY.
+VISO_DELAY_MS 60

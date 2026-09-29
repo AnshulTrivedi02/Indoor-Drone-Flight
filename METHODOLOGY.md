@@ -5780,3 +5780,92 @@ receipt lag".**
   the minimum receipt lag) assumed the minimum-lag convention without the virtual-baud term.
 - This is recorded as a fact about the rule's premise. **It is not used to change the rule or the
   verdict.**
+
+### Rulings (user, 2026-09-29) on ground test run 1, and G5 re-worded BEFORE run 2
+
+**1. `VISO_DELAY_MS 60` (option 1)**, the largest value inside the 60 ms horizon, so EKF3's fusion
+horizon is unchanged. `SERIAL1_BAUD` stays at its default (57). Why the other options were not
+taken:
+- **Option 2 (`VISO_DELAY_MS 104`)** raises EKF3's fusion horizon for every sensor. That departs
+  from the open-loop configuration the datasets use.
+- **Option 3 (a faster node)** is being done in parallel (the C++ port, below). It is not a
+  precondition for these flights.
+- **Option 4 (raise `SERIAL1_BAUD`)** on its own does not remove the need for a longer delay.
+
+**The SITL simulated transmit-time term is recorded** (run 1 section above).
+- `UARTDriver::receive_time_constraint_us` subtracts 10 bits/byte ÷ baud × (packet + buffered
+  bytes), about 40 ms at 57,600 baud.
+- `JitterCorrection` works from that earlier time. ArduPilot's corrected ExtNav time therefore
+  sits 47–73 ms after capture instead of at the minimum receipt lag (≥ 91 ms).
+- It is a SITL artefact of the virtual serial link. A real companion link would have its own
+  (different) transport term.
+
+**2. G4 method deviation accepted.** On a stationary vehicle, the clock map is built from
+`/imu/time_ref`: ROS receipt stamp against HIGHRES_IMU `time_usec`, with a linear fit to the per-5 s
+minima. Justification: the pre-registered motion-based map needs vehicle motion, and this map is an
+upper bound on the offset by only the loopback transport lag (envelope residual ≤ 1.9 ms).
+
+**FINDING, from source and run 1, before run 2 — `VISO_DELAY_MS` is almost inert while latency
+exceeds the horizon.**
+- EKF3 sets the fusion time to `MAX(TS − delay − 6, imuDataDelayed.time_ms)`
+  (`AP_NavEKF3_Measurements.cpp:1101-1105`). `imuDataDelayed.time_ms` is about receipt minus the
+  60 ms horizon.
+- Counterfactual on run 1: the heading is clamped to the horizon on 98% of samples at D = 10, and
+  on 100% at D = 60.
+- **So the effective fusion time is receipt − 60 ms, whatever the delay setting.**
+- **Effective residual** r = fusion time − capture (SITL clock): min 34, median 67, p95 134,
+  max 181 ms (run 1, the same at D = 10 and D = 60).
+
+**3. Cruise yaw rate, open loop.** From `fwdc_tex_r1..r3` and `p1c_fwdc_tex`, over the pinned
+cruise window:
+
+| measure | rms | p95 | p99 | max |
+|---|---|---|---|---|
+| GT yaw rate, differenced at 0.1 s (the heading cadence), deg/s | 0.028–0.032 | 0.057–0.067 | 0.077–0.090 | 0.114–0.138 |
+| gyro z (`/imu/data_raw`), deg/s; includes the ~15 Hz vibration tone, so a conservative upper bound | 0.22–0.23 | — | 0.53–0.56 | 0.72–0.93 |
+
+**Original G5 SUPERSEDED (recorded before run 2).** Reason: G4 stopped the test before G5 was
+scored. Its time-alignment tolerance (median ≤ 6 ms, p95 ≤ 12.5 ms against the capture time)
+presumed a delay that the horizon can absorb; the finding above shows the fusion time is set by the
+horizon clamp instead. The original text stays in the "SITL ground test" section.
+
+**G5 (re-worded; pre-registered before run 2, `gt_heading_2`, D = 60).** All must hold:
+- **G5.1, the delay setting.**
+  - Every `REPH.D` = 60.
+  - The horizon from the PARM dump, `max(EK3_HGT_DELAY, EK3_FLOW_DELAY, VISO_DELAY_MS)`, is ≥ 60.
+  - XKF5 flow innovations are present while ExtNav is fused.
+- **G5.2, heading misalignment (residual timing × measured cruise yaw rate).**
+  - r = `max(TS − D − 6, VISP receipt − horizon)` − capture (SITL clock via the `/imu/time_ref`
+    map).
+  - **Pass if p95(r) × 0.93 deg/s ≤ 0.25°**, i.e. p95(r) ≤ 269 ms.
+  - Basis: 0.93 deg/s is the largest gyro-z rate in any open-loop `fwdc_tex` cruise, including
+    vibration, so it is conservative. 0.25° is 5% of the 5° heading σ that EKF3 applies.
+  - The margin over run 1 (p95 134 ms, giving 0.125°) is 2×.
+  - Also reported: the same product at the realistic GT p99 rate (0.09 deg/s). For run 1 that is
+    0.012°.
+- **G5.3, latency stability over a full-length run.**
+  - Run 2 holds armed for **330 s of sim time** (`GROUND_TEST=330`), the length of a flight's
+    cruise.
+  - **(L1)** The linear-fit slope of per-frame latency (sent − capture) against capture time,
+    from arming + 5 s to disarm, has |slope| ≤ 0.1 ms/s. That is 33 ms over 330 s, one camera
+    frame period.
+  - **(L2)** Every 30 s block median latency is ≤ 200 ms. Basis: the largest run-1 block median
+    was 175 ms (around arming), plus one camera frame.
+  - **(L3)** Dropped selected frames are ≤ 5% (run 1: 0.75%).
+
+**4. Frame queueing.**
+- The node already uses a **latest-frame policy**:
+  - the ROS callback only copies the selected frame into a single slot;
+  - one worker thread processes it;
+  - a newer selected frame overwrites a waiting one and is counted as dropped;
+  - nothing queues (`heading_bridge.py` `_on_image` / `_worker`).
+- Run 1: 6 drops out of 797 processed frames. Processing takes about 97 ms of sim time against the
+  99 ms budget at `every_n` 3, so it runs at the limit, but it is bounded by design.
+- **Choice: keep `every_n` 3 (10 Hz, as pre-registered) for run 2. If G5.3 fails, switch to
+  `every_n` 4** (7.5 Hz, the same per-frame method and frozen parameters, above the documented
+  4 Hz minimum) and repeat run 2.
+
+**6. Shadow UKF, live SITL.** The result (port yaw drift about 21 deg/min against EKF3's
+about 8 deg/min on the same flight) is further evidence that **the port is not yet equivalent**.
+Step 2 of the UKF validation (the equivalence harness) uses **the port's own start time**, since
+Replay starts 155 ms later and the heading error integrates the difference.
