@@ -4336,3 +4336,29 @@ The overall yaw drift is 9.2 deg/min, within the `dsn` range of 6.6–11.1.
   FAIL**, because of heading drift, now that the sign-driven runaway is removed.
 - The expected sequence is a slow, yaw-driven arc into the wall, not the fast (~3.6 m/s)
   lateral runaway seen in `cl_ekf3_tex`.
+
+### Rulings on 2b and 2c (user, 2026-09-29)
+
+- **2b criterion 1 (|FIX| ≤ 150) is recorded as FAILED as worded, and not re-scored.** Its
+  basis, once worked out, predicted the failure before flying (reconstructed 250–380; flown
+  321). **Criteria 3 and 4 are the direct tests of the sign, and both passed.** The sign fix
+  is **accepted**.
+- **The ~5° EKF3 yaw jump during the 2b sideways step is an observation only.**
+- **Before any re-fly:** a bounded investigation of EKF3's flow-derotation timing
+  (half-day time-box). Nothing that reaches EKF3 is changed without a ruling. **The batch
+  stays on hold.**
+
+**Check 2c: criterion restated BEFORE flying.**
+- The original criterion, "|x| < 9.58 m for the whole corridor", is **SUPERSEDED**. The
+  sign-driven runaway is fixed, and heading drift with no absolute heading source is
+  predicted to cause wall contact (the prediction above).
+- **New pass criteria, fixed before flying.** Cruise time is referenced as in the
+  prediction: cruise start = GT forward speed (smoothed) first > 0.3 m/s.
+  1. no wall contact before cruise +100 s (no fast runaway);
+  2. if wall contact occurs, it is on the **west** wall (x ≤ −9.58) between cruise +140 and
+     +200 s, with GT y ≈ 70–100 m, consistent with the written prediction.
+- **Reported:** the outcome against the prediction, and EKF3's in-flight yaw drift rate
+  against the 9.2 deg/min used for the prediction.
+- **Flight:** `cl_ekf3_tex_2`, the same settings as `cl_ekf3_tex` plus the sign fix. It is
+  launched by `sim/tools/closed_loop_run.sh` with the rewritten watcher, with no retry, and
+  it is not part of any dataset.
