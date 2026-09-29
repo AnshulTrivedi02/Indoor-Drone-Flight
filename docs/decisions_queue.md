@@ -10,6 +10,8 @@ evidence are in METHODOLOGY (section named per item).
 - Options: **(a) accept it as an implementation fix** (then set (b) passes 3/3); (b) count r1 as a
   B4 failure as first scored.
 - **Recommendation: (a).**
+- Extra evidence: under the ORIGINAL scorer r2 / r3 give 0.099 / 0.100 m/s (pass). So (b) passes at
+  least 2/3 either way, and 3/3 with the fix.
 
 ## D2. Switch the live heading node to the C++ computation? (METHODOLOGY "C++ heading port")
 - Equivalence passes all pre-registered bands. The SITL latency falls from a median of 141 ms to
@@ -21,16 +23,11 @@ evidence are in METHODOLOGY (section named per item).
 - **Recommendation: (a)** for any further closed-loop flights. Set (b)'s results stand as flown
   with Python.
 
-## D3. UKF step 2, E2 on `dsn_blank_r1` (METHODOLOGY "UKF port validation STEP 2")
-- One porting bug was found and fixed: a float `asin` inside the sigma propagation.
-- `dsn_tex_r2` then passes E1–E5 at about 1e-3 of the bands.
-- `dsn_blank_r1` passes E3–E5 but fails E2 as worded: ratio 1.19, on 0.6% of events. That comes
-  only after two E5-permitted yaw-gate flips (the ratio is ≤ 0.674 before them), in a 14 km
-  unaided runaway.
-- Options: **(a) accept step 2 as passed, with the E2 exceedance recorded as flip-driven round-off**;
-  (b) run a further diagnostic (the harness follows Python's yaw-gate decisions; needs a
-  diagnostic-only gate bypass); (c) re-register E2 for another blank log.
-- **Recommendation: (a), with (b) as supporting evidence if wanted.**
+## D3. WITHDRAWN (2026-09-30): UKF step 2 now PASSES on both logs
+- A second porting bug was found: ArduPilot's `-fsingle-precision-constant` made every constant in
+  the port a float. It is fixed.
+- `dsn_blank_r1` E2 ratio is 0.80 (was 1.19), and the gate flips are gone. The earlier "flip-driven
+  round-off" reading was wrong. No ruling is needed; listed so you can see the correction.
 
 ## D4. Rebuild of the port's SITL binary and Replay tool (information, no ruling needed)
 - The shadow-UKF SITL result predates the step-2 fix. The binaries are rebuilt after the `dsn`
@@ -61,3 +58,14 @@ evidence are in METHODOLOGY (section named per item).
   otherwise (b).
 - **Resolved by that rule:** the conservative verdict is "EKF3 lower" (both criteria), so **(b)**: no
   replacement flight is needed. Listed for your confirmation only.
+
+## D7. Next FGO track (none is registered yet)
+- Candidates:
+  - (a) the `fgo_node.py` ROS 2 node plus its pending validation (fair yaw anchor, §9 gating checks,
+    window sweep, NEES);
+  - (b) the C++ GTSAM companion port for Part C route (a), where EKF3 fuses the FGO as ExtNav
+    (5–8 pw);
+  - (c) proper FGO covariance logging for NEES (it is a gate-only approximation now).
+- **Recommendation: (a) then (c).** (a) is the prerequisite for any live or onboard use, and it
+  reuses the validated offline core. (c) is small and removes a caveat on every FGO consistency
+  claim. (b) is only worth starting after (a) runs live. I did not start any of them without a ruling.

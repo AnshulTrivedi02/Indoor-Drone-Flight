@@ -22,8 +22,10 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
   Pi times are estimates only.
 - **UKF port:**
   - Shadow SITL run: healthy and valid, but about 21 deg/min yaw drift.
-  - Step 2 found a bug (float `asin` amplified by the sigma weights) and fixed it. `dsn_tex_r2` then
-    passes E1–E5; `dsn_blank_r1` fails E2 as worded, after two permitted gate flips (D3).
+  - Step 2 found two porting bugs and fixed both: a float `asin` in the Euler extraction, and
+    every constant float-rounded by ArduPilot's `-fsingle-precision-constant`. After the fixes it
+    PASSES E1–E5 on both logs (blank E2 ratio 0.80). The live yaw drift (about 22 deg/min) persists
+    after the fixes, so it comes from the input path.
   - Step 3: input-path cost 5.1 m (flow at arrival 4.8, IMU path 3.2, gyro pairing 1.5); the
     post-fix port scores about 3.4 m evo-a equivalent (D5).
 - **Confirmatory `dsn_tex_r4..r10`: EKF3 lower than the FGO on the textured floor.**
@@ -33,8 +35,7 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
   - The UKF is poor on 6 of 9 textured flights (median 17.5 m).
 - **`numbers.md` restated** from the re-run; the old sections are superseded, not edited.
 - **Queued decisions:** `docs/decisions_queue.md` (D1–D6).
-- **Next open track:** the FGO companion C++ port (Part C route (a), 5–8 pw). Not started; it
-  needs scoping.
+- **Next open track:** the FGO (D7: node and validation, then covariance logging). Not started.
 
 ## Current Status — 2026-09-29 (afternoon) — queue items 1–3 done
 

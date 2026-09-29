@@ -117,6 +117,22 @@ def w_yaw(x, P, p):
 
 U.init_state, U.predict, U.update_range, U.update_flow, U.update_yaw_pseudo = w_init, w_predict, w_range, w_flow, w_yaw
 
+# diagnostics (no effect on results): how often Python's Cholesky fails and ukf_core falls back to eigh
+_chol = np.linalg.cholesky
+chol_stats = {"calls": 0, "fallbacks": 0}
+
+
+def counting_cholesky(A, *args, **kw):
+    chol_stats["calls"] += 1
+    try:
+        return _chol(A, *args, **kw)
+    except np.linalg.LinAlgError:
+        chol_stats["fallbacks"] += 1
+        raise
+
+
+np.linalg.cholesky = counting_cholesky
+
 # ---- redirect the replay's outputs away from <trial>/ukf ----
 real_trial = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}")
 scratch = os.path.abspath(OUT + "_replay_out")
@@ -144,5 +160,6 @@ with open(OUT + ".bin", "wb") as f:                      # C++ harness input
     f.write(struct.pack("<Q", len(ev)))
     for t_, i_ in zip(typ, inp):
         f.write(struct.pack("<b7d", int(t_), *i_))
+print(f"[export] python cholesky calls {chol_stats['calls']}, eigh fallbacks {chol_stats['fallbacks']}")
 print(f"[export] {len(ev)} events: predict {int((typ == 0).sum())}, range {int((typ == 1).sum())}, "
       f"flow {int((typ == 2).sum())}, yaw-check {int((typ == 3).sum())} -> {OUT}.npz / .bin")

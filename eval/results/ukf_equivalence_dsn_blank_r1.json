@@ -8,21 +8,21 @@
  "events_in_window": 40262,
  "dt_step_s": 0.01500275969329735,
  "E1_E2": {
-  "max_m": 1.2621303140356557,
-  "rms_m": 0.34591382901207085,
-  "at_end_m": 0.9261470119754748,
+  "max_m": 0.8414617450045679,
+  "rms_m": 0.22996210931184527,
+  "at_end_m": 0.6142868579374793,
   "band": "diff <= 0.05 + 1e-4 x offline displacement from cruise start (per event)",
-  "worst_margin_ratio": 1.194031565613989,
+  "worst_margin_ratio": 0.7958675271032086,
   "offline_disp_end_m": 14411.806076082275,
-  "pass": false
+  "pass": true
  },
  "E3": {
-  "max_deg": 0.0002679382803096352,
+  "max_deg": 0.0001327778999243654,
   "pass": true
  },
  "E4": {
-  "max_gyro_z_bias_deg_per_min": 0.00017862511425405966,
-  "max_accel_bias_mps2": 1.3693680727916743e-05,
+  "max_gyro_z_bias_deg_per_min": 0.00011931290579107329,
+  "max_accel_bias_mps2": 9.148814632310937e-06,
   "pass": true
  },
  "E5": {
@@ -49,7 +49,7 @@
   },
   "yaw_pseudo": {
    "n": 2004,
-   "identical_frac": 0.999001996007984,
+   "identical_frac": 1.0,
    "accepted_python": 444,
    "accepted_port": 444,
    "count_rel_diff": 0.0
@@ -57,15 +57,15 @@
   "pass": true
  },
  "diag_first_divergence": {
-  "event": 4237,
+  "event": 4295,
   "type": 0,
-  "t": 45.300945,
-  "dpos_m": 1.00255280297343e-06,
-  "dyaw_deg": 9.396900461952802e-08
+  "t": 45.736028,
+  "dpos_m": 1.000283173644631e-06,
+  "dyaw_deg": 5.646146114971487e-08
  },
  "diag_first_event_diff": {
-  "dpos_m": 1.1186784831994674e-10,
-  "dyaw_deg": 1.3558577384891713e-09
+  "dpos_m": 5.72981662117012e-11,
+  "dyaw_deg": 1.3557305163019127e-09
  },
- "pass": false
+ "pass": true
 }

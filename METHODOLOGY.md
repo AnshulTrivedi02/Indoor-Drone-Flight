@@ -6288,3 +6288,76 @@ GT (`eval/results/ukf_shadow_replay_dsn_tex_r2_postfix.json`):
   r10 counted against.
 - The set-eval phase2 score line ("Primary criteria: INCOMPLETE") scores against the Phase 2 bands.
   It is not part of this pre-registration and is not used.
+
+### CORRECTION to UKF step 2 (2026-09-30): a SECOND porting bug, float-rounded constants — after the fix BOTH logs PASS E1–E5; the earlier "round-off plus flips" reading of E2 is WITHDRAWN
+
+**Cholesky fallbacks ruled out first.** The two sides' fallbacks differ by design (Python: `eigh`
+with clipping; port: larger jitter, then skip the predict). Counted on both logs: the port had
+**0 retries and 0 failures**; Python had **33,949 Cholesky calls and 0 `eigh` fallbacks** on
+`dsn_blank_r1`. Neither side ever took its fallback.
+
+**The bug.**
+- ArduPilot compiles with **`-fsingle-precision-constant`** (`Tools/ardupilotwaf/boards.py:340`,
+  "force const vals to be float, not double"). Every unsuffixed floating literal in the port was
+  therefore a float:
+  - α = 1e-3 became 0.0010000000475 (it sets the ~1e6 sigma weights);
+  - the `_NSE` values, `RANGE_LEVER` 0.12, `H_MIN` 0.1 and `RNG_MIN` were float-rounded;
+  - gravity (`GRAVITY_MSS` is itself `9.80665f`) was 9.8066501617;
+  - the gate constants `0.01 × GATE` became 5.0000000745 and 3.0000000447.
+- The first attempted fix (writing `9.80665`) produced **byte-identical** output, which exposed the
+  flag. It was verified with a two-line test program built with and without the flag.
+- **Fix:** every constant is written as a ratio of exactly representable integers evaluated in double
+  (`D(n, d)`), π comes from `acos(-1.0)`, and the harness's own gate constants are exact.
+  `~/ardupilot_ukf` `c1f30c42ad`.
+
+**Results after both fixes** (`eval/results/ukf_equivalence_dsn_*.json`):
+
+| | `dsn_tex_r2` | `dsn_blank_r1` |
+|---|---|---|
+| E1/E2 | **PASS**: max 1.7e-5 m, rms 7.9e-6 m | **PASS**: max 0.84 m; worst diff/allowance **0.80** (was 1.19) |
+| E3 | PASS: 1.3e-5° | PASS: 1.3e-4° |
+| E4 | PASS: 3.4e-6 deg/min; 2.6e-7 m/s² | PASS: 1.2e-4 deg/min; 9.1e-6 m/s² |
+| E5 | PASS: all identical | PASS: all identical, **including the yaw gate (the two flips are gone)** |
+
+- **Step 2 therefore PASSES on both pre-registered logs, after two porting bugs were found and fixed.**
+  This is the pre-registered procedure ("a failure is a porting bug: find it, fix it, report each fix,
+  and re-run").
+- **D3 is withdrawn.** My earlier reading, "round-off amplified by the runaway plus E5-permitted
+  flips", was wrong. The flips and most of the gap were caused by the float constants.
+- The remaining blank-log difference (ratio 0.80, against Python-vs-Python 0.02–0.10 under
+  operation-order changes) is stated as it is. It is inside the pre-registered band, and it is not
+  investigated further.
+
+**Consequences, re-checked with the rebuilt port (SITL and Replay binaries):**
+- **Step 3 is unchanged:** V1–V5 are the same to 3–4 digits, and V0 is now 1.9e-5 m. The full Replay
+  port on `dsn_tex_r2` is still **3.37 m** evo -a (cruise) equivalent (DIAGNOSTIC), valid 100%.
+- **The live-SITL shadow flight (`ukf_shadow_sitl_tex`), replayed through the fixed port:** the yaw
+  error against SIM is +13.2° at 60 s, +51.0° at 180 s and +114.5° at 330 s, **about 22.5 deg/min,
+  essentially unchanged** from the pre-fix live run (+11.4 / +45.2 / +103.7°).
+  - **The ~21 deg/min figure recorded under ruling 6 was the pre-fix port.** The post-fix figure is
+    ~22.5 deg/min, so the drift was **not** caused by either bug.
+  - It is consistent with step 3's input-path costs (IMU path, flow gyro pairing, arrival-time
+    fusion). EKF3 drifted about 8 deg/min on the same flight.
+
+### Additions (2026-09-30)
+
+- **D1 (B4 scorer), extra evidence.** Under the ORIGINAL sample-count scorer, `cl_b_tex_r2` and
+  `r3` give **0.099 and 0.100 m/s**, both passing, although they have the same 1 ms GT stamp
+  gaps. Only r1's gap fell where the gradient spiked (0.333). So set (b) passes **at least 2/3 under
+  either scorer, and 3/3 with the fix**.
+- **`dsn_tex_r6` (EKF3 3.11 m, the outlier) is a normal flight:**
+  - pinned window 29.9–332.8 s;
+  - flow inlier 0.983, 51.7 features;
+  - EKF3 `horiz_pos_rel` 100% of cruise, 0% flow rejections.
+  - **Its EKF3 yaw drift was lower, 6.14 deg/min, against 8.17 / 8.15 on r5 / r7.** Since about 90%
+    of EKF3's lateral drift is heading-driven (heading share ~0.90), this explains the lower ATE.
+  - It stays in the noise floor as pre-registered. It is not removed post hoc, and it is the main
+    contributor to EKF3's SD of 0.31 m.
+- **Harness changes between r1–r3 and r4–r10.** The pre-registration said "same settings as the
+  re-flown batch". The r1–r3 batch ran at `7a90e81` (`rerun2_main/trials.log`); r4–r10
+  ran at `651c6a4`. The harness diff between them is:
+  - the `HEADING_IMPL` passthrough and the `heading_bridge` metadata (`run_trial.sh`; only active
+    with `HEADING_BRIDGE=1`);
+  - `groundtest.parm` and its `closed_loop_run.sh` hook (only with `GROUND_TEST`);
+  - the closed-loop runner and scorer.
+  - **All are inert for `dsn` flights.** r4's PARM dump confirms no leaked value.
