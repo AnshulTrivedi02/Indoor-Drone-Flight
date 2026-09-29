@@ -4280,3 +4280,59 @@ truth.
 - **`sweep_v*`:** not cited for anything on the lateral axis. `analyse_flow_sweep.py` uses
   median |`flow_y`| (forward), and METHODOLOGY cites `sweep_v*` only as skipped. It **stays
   skipped.**
+
+### Check 2b — result (`lfs_check_tex`, flown 2026-09-29): FAIL on criterion 1 (as predicted); criteria 2–4 PASS
+
+**Settings confirmed from the PARM dump:** `AHRS_EKF_TYPE 10`, `FLOW_POS_Z 0.25`,
+`LOG_REPLAY 1`, `LOG_DISARMED 1`, `EK3_SRC1_YAW 0`. Replay records are present (`RFRH`
+137497, `RISH` 1). The flight completed normally. The step reached a peak GT lateral speed of
++0.50 / −0.49 m/s and a peak offset of +2.96 m East, with GT |vE| > 0.1 from 91.7 to 104.7 s.
+
+| criterion | result | band | verdict |
+|---|---|---|---|
+| 1. airborne mean \|FIX\| | **321** (\|FIY\| 10, n = 3147) | ≤ 150 | **FAIL**; predicted 250–380 before flying |
+| 2. XKF5 rejections | 0.22% (NI mean 22.3) | ≤ 1% | PASS |
+| 3. EKF3 VE on GT VE over the step window | **OLS slope +0.910** (intercept +0.045; through origin +0.917; corr +0.935; n = 161) | 0.8–1.2 | PASS |
+| 4. measured `flow_x_rad` against the fixed `h_flow_pose` (2a method, 9-frame smoothing) | **slope +0.884**, corr +0.835, n = 444 | 0.8–1.2 | PASS |
+
+- **The sign is confirmed.** EKF3 now follows the commanded sideways step with the correct
+  sign, and the fixed shared model tracks the measured lateral flow. Before the fix, both had
+  the opposite sign.
+- **Criterion 1 fails for the pre-registered reason:** EKF3's roll derotation is
+  phase-incoherent against the ~17 Hz roll tone (gyro averaged over the message *arrival*
+  interval), and a sign fix cannot change that. The |FIX| of 321 falls inside the predicted
+  250–380. **Per ruling 3, nothing about the rotation term was changed; this is reported
+  first.**
+- **Criterion 4 without smoothing:** slope +0.18, corr +0.14. Frame by frame, the raw
+  `flow_x` is dominated by the same unmodelled roll tone (about 0.3 rad/s against about
+  0.28 rad/s of step translation). The pre-registered 2a method (0.3 s smoothing) passes.
+  The unsmoothed figure is stated so that it is not hidden.
+- **Observation, not concluded from:** EKF3's yaw error jumped from +2.3° to +7.5° across the
+  step (cruise +60 s to +90 s), against a background drift of about 9 deg/min. Lateral
+  excitation couples into EKF3's no-heading yaw.
+- **Per the ruling, "if anything fails, stop and report":** check 2c was not flown and the
+  re-fly batch was not started.
+
+### Check 2c — prediction written down (NOT flown; held with 2b's failure)
+
+**Basis.** The open-loop EKF3 East error from `lfs_check_tex`, referenced to the start of
+cruise. In closed loop the controller holds EKF3's estimate on the centreline, so the
+physical cross-track ≈ −(open-loop EKF3 East error). This holds to first order; the
+trajectories differ once the error grows.
+
+| cruise + | 60 s | 90 s | 120 s | 150 s | 180 s | 240 s | 300 s |
+|---|---|---|---|---|---|---|---|
+| EKF3 East error (m) | −0.29 | +1.64 | +4.26 | +7.82 | +12.56 | +25.99 | +44.13 |
+| yaw error (°) | +2.3 | +7.5 | +10.6 | +14.6 | +19.3 | +30.6 | +44.5 |
+
+The overall yaw drift is 9.2 deg/min, within the `dsn` range of 6.6–11.1.
+
+**Prediction:**
+- **EKF3 with no heading source reaches the WEST wall (x ≤ −9.58 m)** at about cruise
+  +160 s (open-loop |error| first ≥ 9.58 m at +161 s), with GT y ≈ 80 m.
+- Allowing for the step's yaw jump, which a closed-loop smoke-test mission would not have,
+  and first-order error: **contact between cruise +140 s and +200 s, y ≈ 70–100 m.**
+- The 2c pass criterion (|x| < 9.58 m over the whole corridor) is therefore **predicted to
+  FAIL**, because of heading drift, now that the sign-driven runaway is removed.
+- The expected sequence is a slow, yaw-driven arc into the wall, not the fast (~3.6 m/s)
+  lateral runaway seen in `cl_ekf3_tex`.
