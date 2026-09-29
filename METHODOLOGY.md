@@ -5416,3 +5416,64 @@ position):
 - **Consequence:** the UKF port **does not fly** until it has been validated against the offline
   UKF on replayed logs, with a pre-registered agreement criterion. That validation is the next
   Part 4 step, together with the `AP_AHRS` selection wiring.
+
+### UKF port — validation plan (user ruling, 2026-09-29; replay only; behind the pipeline, the ground test and closed-loop sets (a)/(b))
+
+**The UKF does not fly until step 2 passes and step 3 is ruled on.**
+
+**Step 5. The rangefinder quantisation bug is recorded; the offline UKF and EKF3 are UNAFFECTED
+(evidence).**
+- **The bug.** It affected the C++ port only (see "Part 4 — the UKF drop-in's health and
+  validity"). The port took a new range sample only when the value changed. ArduPilot's range
+  comes from MAVLink `DISTANCE_SENSOR` in integer cm, so repeated readings were dropped. It is
+  fixed with time-based 30 Hz sampling.
+- **Quantisation on the ArduPilot side, measured** (`dsn_tex_r2`): the dataflash `RFND` record
+  (ArduPilot's rangefinder) has **97.8% consecutive exact repeats and only 116 distinct values**
+  in the flight. The bag's `/downward_lidar/range` (Gazebo float) has 6.0% repeats, mostly while
+  stationary on the ground.
+- **Offline UKF: unaffected.**
+  - It consumes the bag's float ranges, one update per message, with no value comparison
+    (`ukf_replay.py:51-52,135-137`).
+  - It never sees the cm-quantised MAVLink value.
+  - Measured on `dsn_tex_r2`: **10,246 of 10,247 range messages accepted** (replay log
+    `eval_rerun_dsn/ukf_dsn_tex_r2.log`).
+- **EKF3: unaffected.** `NavEKF3_core::readRangeFinder` samples on a time interval,
+  `(imuSampleTime_ms − lastRngMeasTime_ms) > sensorIntervalMin_ms`, and fuses the median of
+  three fresh samples. It never compares values (`AP_NavEKF3_Measurements.cpp`,
+  `readRangeFinder`).
+- **The FGO** uses the same bag ranges as the offline UKF, so it is also unaffected.
+
+**Step 4. Validity rules cannot detect heading drift (the port and EKF3).**
+- **The port:** on the textured shadow replays it stays valid and confident (σ_vh 0.16–0.17 m/s)
+  while it drifts **66 m** (`dsn_tex_r2`) and **99 m** (`dsn_tex_r1`) cross-track.
+- **EKF3:** in the same nomag configuration, its position flags stay valid through its own
+  heading drift. It drifts 36–44 m cross-track open loop over the cruise (`rgs_check_tex`,
+  `lfs_check_tex`), and in closed loop it hit the west wall at cruise +164 s with `horiz_pos_rel`
+  valid (`cl_ekf3_tex_2`).
+- **Why:** yaw is unobservable without a heading source. A heading error rotates a
+  well-estimated velocity, so the velocity covariance stays small, and neither rule (flow
+  timeout, velocity σ) can see it. Detecting it needs an absolute heading reference (the
+  forward camera), not a covariance bound.
+
+**Step 1. Agreement criterion, PRE-REGISTERED before any equivalence test.**
+- **The test (step 2).** The C++ port and the offline Python UKF run on the IDENTICAL event
+  stream, exported from `ukf_replay.py`: the same dejittered IMU samples and accumulated steps,
+  the same flow values with the same frame-averaged gyro, the same range samples, the same
+  yaw-pseudo cadence and the same timestamps. The logs are `dsn_tex_r2` and `dsn_blank_r1`,
+  compared over the pinned cruise window.
+
+| # | metric | band | basis |
+|---|---|---|---|
+| E1 | 3-D position difference, `dsn_tex_r2` | **max ≤ 0.05 m, rms ≤ 0.01 m** | Same algorithm, both in double precision. The only difference expected is floating-point operation order (~1e-15 relative per operation), amplified by the filter. 0.05 m is < 0.04% of the 150 m travel and at least 10× below the smallest cross-estimator difference interpreted (~0.5 m), so it cannot change any conclusion. |
+| E2 | 3-D position difference, `dsn_blank_r1` (unbounded inertial divergence amplifies any difference) | **max ≤ 0.05 m + 1e-4 × the offline UKF's displacement from cruise start** | The same round-off basis; the relative term allows the exponential amplification of an unaided inertial solution while still catching any modelling difference, which would diverge at O(1). |
+| E3 | yaw difference | **max ≤ 0.05°** (both logs) | Same basis. 0.05° is < 1% of the smallest yaw effect interpreted (the ~5° end-wall transients). |
+| E4 | gyro-z bias (rate form) and accelerometer bias | **\|Δ\| ≤ 0.1 deg/min and ≤ 0.001 m/s²** | ≤ 1% of the smallest bias magnitudes discussed (gyro drift 6.6–11.1 deg/min; the corrected accel-z bias 0.008 m/s²). |
+| E5 | gate decisions (flow X/Y, range, yaw-pseudo firings) | **≥ 99.9% identical**; accepted counts equal to within 0.1% | Decisions compare a test ratio with 1, so a round-off-level difference can flip only near-threshold ties. |
+
+- **Pass:** E1–E5 on both logs. A failure is a porting bug: find it, fix it, report each fix, and
+  re-run.
+- **Step 3 (input-path cost) is a REPORT, not a pass/fail.** The port runs on ArduPilot's normal
+  inputs (`AP_DAL` INS deltas, arrival-window AHRS gyro pairing for flow, no delay buffer). The
+  report gives the difference from step 2, attributed to the three suspected causes by swapping
+  one input at a time. **Nothing is changed to hide it.** The choice between ArduPilot's inputs
+  as they are (fair to EKF3) and adding a delay buffer is the user's, and is recorded.
