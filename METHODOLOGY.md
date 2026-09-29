@@ -6670,3 +6670,42 @@ recorded because the first scores were shown.
 
 **Open, queued:** the speed-up build route (D11) and the external-estimator backend route (D12). The
 real-time test under simulation load is scheduled with the next simulation run.
+
+### FGO live shadow runs under simulation load (the real-time report's second half), and a node defect found and fixed
+
+Four open-loop textured flights (`fgo_shadow_sitl_tex{,2,3,4}`). The vehicle flew on simulator truth,
+and the FGO node subscribed to the live topics in shadow; nothing it publishes is consumed. Stats are
+in `~/thesis_data/batches/fgo_shadow{,2,3,4}/`.
+
+| run | node design | messages vs bag | false IMU gaps | valid in cruise | step median / p99 / > 33 ms | queue lag | live vs GT (offline, same bag) |
+|---|---|---|---|---|---|---|---|
+| 1 | FGO step inside the callbacks | — (not logged) | ≥ 1 (a re-init) | not logged; ended invalid | 27.7 / 53.8 ms / 5.6% | flat, median 119 ms | 4.58 m (offline 4.61) |
+| 2 | same, with diagnostics | **IMU 110,354 of 111,947 (−1.4%)** | **163 gaps (13–31 ms) after take-off** | **0%** | 27.7 / 48.4 / 3.1% | flat | — |
+| 3 | a worker THREAD | none lost | 0 | 100% (partial) | **47.6** / 77.2 / 99.7% | **grows about 0.43 s/s: falls behind** | not comparable (about 71% processed) |
+| **4** | **a separate core PROCESS (final)** | **IMU 112,907 of 112,960 (the node started 0.16 s after the bag)** | **0** | **100%** | **29.7 / 49.4 ms / 5.8%** | **flat, median 135 ms** (60 s blocks 134–141; a start-up backlog in the first minute, p95 1.6 s) | **4.61 m** |
+
+**The defect.**
+- **Cause.** With the FGO step (about 28 ms under load) run inside the subscription callbacks, the
+  single-threaded executor was blocked. At 333 Hz about 1.4% of the IMU and `/imu/time_ref` messages
+  were lost at the node.
+- **Consequences:**
+  - the missing IMU samples were never integrated;
+  - the missing `time_ref` messages looked like 13–31 ms sensor gaps, so the causal IMU-gap rule set
+    the FGO **falsely invalid** for the whole cruise.
+- **Why a thread didn't work.** A worker thread removed the loss, but the Python GIL, shared with the
+  333 Hz callbacks, slowed the step to about 48 ms and the node fell behind.
+- **Fix:** the core runs in its own process (`multiprocessing`, spawn), fed through a queue. The ROS
+  process only receives, forwards and publishes.
+- **The offline equivalence is unaffected:** it drives `FgoNodeCore` directly, and the core is
+  unchanged.
+
+**Reading.**
+- Under full simulation load on this workstation, the process-based node keeps real time: bounded
+  lag, no loss, correct validity. Its live accuracy matches the offline FGO on the same flight.
+- 5.8% of keyframes exceed the 33 ms interval, absorbed by the queue. **There is no margin for slower
+  hardware.** D11 (the C++ speed-up) stays relevant for any Pi deployment.
+- **FGO gates before any flight** (as the UKF's):
+  - step 2 PASSED;
+  - step 3 reported (the node's inputs cost < 0.1 m against truth);
+  - the shadow run is reported here.
+  - Awaiting D12 (backend route) and a flight ruling.

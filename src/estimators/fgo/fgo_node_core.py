@@ -40,6 +40,8 @@ class FgoNodeCore:
         # running dejitter fit (index -> stamp)
         self._n = 0; self._mx = self._my = self._cxx = self._cxy = 0.0
         self._tref_prev = None
+        self.gaps_seen = []                    # (sensor t, gap s, airborne) - diagnostics
+        self.n_pushed = {}                     # message counts by kind - diagnostics
         self.valid = True                      # validity signal: see valid_now()
         self._gap_invalid = False              # a post-take-off IMU gap (the IMU-gap rule): invalid for good
         self._t_last_flow_fused = None         # keyframe time of the last keyframe that fused a flow factor
@@ -52,6 +54,7 @@ class FgoNodeCore:
 
     # ---------------- inputs (arrival order) ----------------
     def push(self, t, kind, payload, t_wall=None):
+        self.n_pushed[kind] = self.n_pushed.get(kind, 0) + 1
         if kind == "imu" and self.dejitter == "causal":
             t = self._dejitter(t)
         if kind == "tref":                   # (sensor time s,) - gap detection only, never queued
@@ -77,6 +80,7 @@ class FgoNodeCore:
         if self.gap != "causal":
             return
         if self._tref_prev is not None and t_sensor - self._tref_prev > GAP_S:
+            self.gaps_seen.append((t_sensor, t_sensor - self._tref_prev, self._airborne()))
             if not self._airborne():
                 self.reinits += 1
                 self._reset_filter()           # the rule's trim: start again after the gap
