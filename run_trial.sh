@@ -125,6 +125,11 @@ CLEANED_UP=0
 # -> VISION_POSITION_ESTIMATE -> EKF3 ExternalNav yaw). Needs a forward-camera world. The node
 # runs on the Phase 3 stack (system python: OpenCV 4.6.0, numpy 1.26; NOT venv-ardupilot's
 # OpenCV 5) with pymavlink from a path shim. HEADING_SIGMA_DEG / HEADING_EVERY_N set its params.
+# Optional ARDUPILOT_TREE (Part 4 shadow-UKF runs only; unset for every dataset = ~/ardupilot):
+# the ArduPilot tree whose SITL binary, working directory (and so eeprom.bin) and log directory
+# are used. ~/ardupilot_ukf keeps the shadow UKF's new AHRS_UKF_* parameter out of the stock
+# build's eeprom.
+AP_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot}"
 declare -a SERIAL1_ARG=()
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     [ "$FWD_CAMERA" = true ] || { echo "ERROR: HEADING_BRIDGE needs a forward-camera world" >&2; exit 1; }
@@ -228,9 +233,9 @@ echo "--- Launching ArduPilot SITL ---"
 set +u
 source ~/venv-ardupilot/bin/activate
 set -u
-cd ~/ardupilot/ArduCopter
+cd "$AP_TREE/ArduCopter"
 start_bg "$LOG_DIR/arducopter.log" \
-    ~/ardupilot/build/sitl/bin/arducopter \
+    "$AP_TREE/build/sitl/bin/arducopter" \
     --model JSON --speedup 1 --slave 0 \
     --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm","$HOME/thesis_ws/roll_rate_gains.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
     --serial2=udpclient:127.0.0.1:14556 "${SERIAL1_ARG[@]}" \
@@ -389,7 +394,7 @@ done
 kill -9 -- "-$RECORD_PID" 2>/dev/null || true
 RECORD_PID=""
 
-LATEST_BIN=$(find "$HOME/ardupilot/ArduCopter/logs" -maxdepth 1 -name "*.BIN" -type f \
+LATEST_BIN=$(find "$AP_TREE/ArduCopter/logs" -maxdepth 1 -name "*.BIN" -type f \
     -printf "%T@ %p\n" 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
 if [ -n "$LATEST_BIN" ]; then
     cp "$LATEST_BIN" "$OUTPUT_DIR/ardupilot.bin"
@@ -422,6 +427,7 @@ ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
+[ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     printf 'heading_bridge:\n  sigma_psi_deg: %s\n  every_n: %s\n  serial1: udpclient 127.0.0.1:14557\n' \
         "$HEADING_SIGMA_DEG" "$HEADING_EVERY_N" >> "$OUTPUT_DIR/metadata.yaml"

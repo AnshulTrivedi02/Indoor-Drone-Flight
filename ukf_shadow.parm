@@ -1,0 +1,3 @@
+# Part 4: run the thesis UKF (AP_NavUKF, ~/ardupilot_ukf branch ukf-port) in SHADOW alongside EKF3.
+# Logging only (XUKF/XUKS); it never drives the vehicle. Use with ARDUPILOT_TREE=~/ardupilot_ukf.
+AHRS_UKF_ENABLE 1
