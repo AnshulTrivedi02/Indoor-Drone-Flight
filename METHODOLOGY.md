@@ -5230,3 +5230,35 @@ pairs; `eval/flow_quality.py` definitions plus the cruise `valid` share):
 `AP_NavUKF` (`waf copter`, exit 0) after two compile fixes: a non-const `AP::dal()` reference and
 `is_equal` for the float comparison. **Running it in shadow is a SITL run, so it waits until
 after the pipeline.**
+
+### Rulings (user, 2026-09-29) after the post-batch checks
+
+1. **The pipeline re-run proceeds, with the blank floor as a "no flow" condition for all three
+   estimators.** `min_valid_features` stays frozen at 20, and there are no parameter changes
+   beyond the listed corrections.
+   - The old sparse blank-floor flow (~9% valid frames) was partly produced by the removed
+     17.5 Hz roll oscillation. With a steady camera the tracker finds no valid frames, which is
+     **the physically consistent behaviour of a flow sensor over a featureless floor.**
+   - **The old blank results are SUPERSEDED as dependent on a simulation artefact.**
+2. **Blank-floor results (and the blank half of the transition world) are reported as behaviour
+   under total loss of flow aiding, not as accuracy rankings.** For each estimator, the report
+   covers what it does when flow disappears:
+   - EKF3's aiding-mode changes and position-validity flags (`XKF4.SS`);
+   - the UKF/FGO dead-reckoning growth.
+
+   The old-vs-new direction flags are reported as planned. **OI-1 (the FGO blank-floor freeze)
+   is reviewed against the new behaviour.**
+3. **Latency:** `ds_tex_r1` and `fwdc_tex_r3` are recorded as marginally out of band (diagnostic
+   only; no action). **Latency is undefined on the blank-floor trials because no flow is fused.**
+   `eval/phase2_score.py` now reports P2 as "undefined (no flow fused)" there, instead of failing.
+4. **Closed-loop plan change: set (c) is DROPPED as a "flying well" test** (EKF3 with the camera
+   heading, plain walls over the blank floor).
+   - With no flow, EKF3 has no velocity aiding.
+   - **No plain-wall world provides both valid flow and valid heading:** the blank floor gives no
+     flow, and on the checkerboard floor the plain-wall heading fails Phase 3 validation.
+   - **The week's "flying well" goal is sets (a) and (b), on textured walls.**
+   - A plain-wall closed-loop flight may be flown later only as a **pre-registered failure
+     demonstration** (the failsafe or failure mode predicted first), and not without the
+     user's ruling.
+5. **Order:** the pipeline re-run → the shadow UKF SITL run → the ground test → closed-loop sets
+   (a) and (b).

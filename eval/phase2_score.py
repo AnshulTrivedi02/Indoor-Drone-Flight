@@ -144,12 +144,17 @@ def main():
         # ── DIAGNOSTICS (never gate) ──
         lat = it[t]["flow_to_ekf3"]
         dl = [it_dsn[f"dsn_{w}_r{r}"]["flow_to_ekf3"] for r in (1, 2, 3)]
-        lim_med = st.mean(x["lat_median_ms"] for x in dl) + 12.5
-        lim_p95 = st.mean(x["lat_p95_ms"] for x in dl) + 12.5
-        lim_match = min(x["matched_pct"] for x in dl) - 5
-        chk["P2 latency median"] = (round(lat["lat_median_ms"], 1), f"≤ {lim_med:.1f} ms", lat["lat_median_ms"] <= lim_med, False)
-        chk["P2 latency p95"] = (round(lat["lat_p95_ms"], 1), f"≤ {lim_p95:.1f} ms", lat["lat_p95_ms"] <= lim_p95, False)
-        chk["P2 matched"] = (round(lat["matched_pct"], 1), f"≥ {lim_match:.1f}%", lat["matched_pct"] >= lim_match, False)
+        if lat["lat_median_ms"] is None or any(x["lat_median_ms"] is None for x in dl):
+            # consolidated re-run: on the blank floor no frame is flow_tracker-valid, so no flow is fused
+            # and the latency is undefined (METHODOLOGY "FINDING - the roll-gain correction changes ...")
+            chk["P2 latency"] = ("undefined", "no flow fused (no valid frames)", None, False)
+        else:
+            lim_med = st.mean(x["lat_median_ms"] for x in dl) + 12.5
+            lim_p95 = st.mean(x["lat_p95_ms"] for x in dl) + 12.5
+            lim_match = min(x["matched_pct"] for x in dl) - 5
+            chk["P2 latency median"] = (round(lat["lat_median_ms"], 1), f"≤ {lim_med:.1f} ms", lat["lat_median_ms"] <= lim_med, False)
+            chk["P2 latency p95"] = (round(lat["lat_p95_ms"], 1), f"≤ {lim_p95:.1f} ms", lat["lat_p95_ms"] <= lim_p95, False)
+            chk["P2 matched"] = (round(lat["matched_pct"], 1), f"≥ {lim_match:.1f}%", lat["matched_pct"] >= lim_match, False)
         m = re.search(r"Cruise complete - ([\d.]+)s sim time elapsed \(([\d.]+)s wall-clock\)",
                       open(f"{TRIALS_DIR}/{t}/logs/fly_trial.log").read())
         chk["diag RTF (cruise)"] = (round(float(m[1]) / float(m[2]), 3), "report", None, False)
