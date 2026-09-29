@@ -1,0 +1,5 @@
+# Closed-loop Part 1 SITL ground test ONLY (appended by sim/tools/closed_loop_run.sh when GROUND_TEST
+# is set; never loaded for a flight). ArduCopter auto-disarms a landed vehicle after DISARM_DELAY s
+# (default 10): run 1 disarmed 10 s after arming. 0 disables the auto-disarm so the armed hold lasts
+# the full GROUND_TEST period.
+DISARM_DELAY 0

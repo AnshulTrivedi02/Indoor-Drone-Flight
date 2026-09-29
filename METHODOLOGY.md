@@ -5869,3 +5869,13 @@ horizon clamp instead. The original text stays in the "SITL ground test" section
 about 8 deg/min on the same flight) is further evidence that **the port is not yet equivalent**.
 Step 2 of the UKF validation (the equivalence harness) uses **the port's own start time**, since
 Replay starts 155 ms later and the heading error integrates the difference.
+
+**Run-1 correction, found before run 2: the "60 s armed hold" was 10 s armed.**
+- ArduCopter auto-disarmed the landed vehicle `DISARM_DELAY` (10 s) after arming: ARM at 25.57 s,
+  disarm at 35.52 s, method 17 (auto-disarm).
+- **G1–G3 are unaffected.** ExtNav yaw alignment (14.43 s) and fusion ran independently of the arm
+  state, and G2 needs only a successful arm with the offset already locked.
+- Run 1's latency statistics therefore mostly come from a disarmed vehicle.
+- **For run 2, `groundtest.parm` sets `DISARM_DELAY 0`.** `closed_loop_run.sh` appends and enforces
+  it **only when `GROUND_TEST` is set**, never for a flight. Sets (a) and (b) will be checked for
+  `DISARM_DELAY` 10 in their PARM dumps (eeprom persistence).

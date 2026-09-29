@@ -22,6 +22,11 @@ if [ -n "${HEADING:-}" ]; then
     export HEADING_BRIDGE=1 HEADING_SIGMA_DEG HEADING_EVERY_N
     WATCH=(--watch-process heading_bridge.py)
 fi
+# GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
+if [ -n "${GROUND_TEST:-}" ]; then
+    EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/groundtest.parm"
+    EXPECT_OVERRIDE="$EXPECT_OVERRIDE,DISARM_DELAY=0"
+fi
 echo "EXTRA_PARM_FILES=$EXTRA_PARM_FILES" > "$OUT/launch.txt"; echo "EXPECT_OVERRIDE=$EXPECT_OVERRIDE" >> "$OUT/launch.txt"
 setsid "$HOME/thesis_ws/run_trial.sh" --world "$WORLD" --velocity 0.5 --altitude 2.0 --duration 300 --trial-name "$NAME" &
 RT=$!
