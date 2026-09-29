@@ -5291,7 +5291,7 @@ analysis runs; the same numbers come from `eval/blank_behaviour.py`):
 | world | trials | case | `t_loss` − cruise start | GT y at loss | valid frames airborne | EKF3 `OF` records airborne | flow fused airborne? |
 |---|---|---|---|---|---|---|---|
 | transition | all 14 (`dsn`, `ds`, `fwdc`, `fwdplainc`, `p1c`) | **B** | **+161.05 … +161.09 s** | **80.5–80.6 m** (the boundary) | 4,858–4,874 (textured half) | 4,859–4,879 | yes, until the boundary |
-| blank | 13 of 14… see below | **A** | **−0.30 … −1.43 s** (during the climb) | 0.0 m | **1–4** (take-off only) | 1–7 | **only a few take-off frames; none in cruise** |
+| blank | 13 of 14 (listed below) | **A** | **−0.30 … −1.43 s** (during the climb) | 0.0 m | **1–4** (take-off only) | 1–7 | **only a few take-off frames; none in cruise** |
 | blank | `ds_blank_r2` | **C** | take-off (−1.84 s) | 0.0 m | **0** (never valid airborne) | 3 | only arrivals of frames captured just before take-off |
 
 - **Blank, case A:** `ds_blank_r1`, `ds_blank_r3`, `dsn_blank_r1..r3`, `fwdc_blank_r1..r3`,
