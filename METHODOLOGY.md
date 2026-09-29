@@ -3322,3 +3322,51 @@ parallel).**
   forward arms run ~1.1–1.3× over the 33 ms period.**
 - **This says nothing directly about flight-controller or companion feasibility, and
   changes no Phase 4 setting.**
+
+## RULINGS (user, 2026-09-29) after Phase 4
+
+**1. The post-hoc yaw-rate sensitivity arm is cancelled.**
+- **Two-question rule:** once heading is fused, yaw rate changes evo -a (cruise) by
+  < 0.01 m in every world. So the pre-registered σ_ω cannot change a position claim.
+- **Reported as observed, with no further arm:**
+  - the gate rejects **25–28%** of valid yaw-rate measurements (acceptance 72–75%), because
+    the pre-registered σ_ω (0.162 deg/s) is tighter than the observed innovations;
+  - yaw rate **improves gyro-z bias tracking**: FGO **55–56% → 86–95%** of the true bias
+    (definition B), and UKF 118–120% → 97–109%.
+
+**2. The superseding rule is applied to the "~+6.5%" scale figure** (the lateral-drift
+mechanism paragraph).
+- It first appears in `4a023df` (2026-07-29) as "the documented ~+6.5% scale", but **its
+  source measurement is not documented anywhere in the record**. It predates the `h_flow`
+  correction and is at most a single-flight figure.
+- **Current:** EKF3 +5.7…+9.6% (n = 9, derived; flag resolutions §4).
+
+**3. Timing measured before the thread-limit fix is marked as such. Only post-fix timing
+is current.**
+- **Marked "before the fix":**
+  - the 27 ms FGO step (window sweep, 2026-08-01);
+  - the 29 ms textured and the 26.9–29.2 / 15.1–15.7 / 4.0–4.3 ms stored medians
+    (2026-09-24 runs);
+  - Part C's 29 ms/step and ≤ 61 ms/frame camera figures;
+  - the 101 ms/step superseded 1.0 s figure.
+- **Current (post-fix, single-threaded numerical libraries, Phase 4):**
+
+  | | median | p95 | conditions |
+  |---|---|---|---|
+  | FGO baseline, textured | 32.7–32.9 ms | 37–38 ms | 6 jobs in parallel |
+  | FGO baseline, `fwdc_tex_r2` | 27.6 ms | — | identity check, 3 jobs in parallel |
+  | FGO +heading, textured | 37–40 ms | — | |
+  | FGO +heading+yaw rate, textured | 42 ms | — | |
+  | FGO baseline / +heading, transition | 17–18 / 23–35 ms | — | |
+  | FGO baseline / +heading, blank | 4.5 / 11–12.5 ms | — | |
+  | UKF predict | 1.5–1.6 ms | — | |
+  | UKF forward update | 0.25–0.49 ms | — | |
+
+- **Observation, recorded as data:**
+  - the post-fix FGO **baseline** figures are not lower than the pre-fix ones (27.6 ms at 3
+    in parallel; 32.7–32.9 ms at 6 in parallel, against 26.9–29.2 ms pre-fix), so these
+    data show no inflation of the pre-fix baseline figures;
+  - the inflation was large for the forward arms' gate recursion: 101 ms before the fix,
+    35–42 ms after.
+- The camera pipeline has no post-fix measurement. Its ≤ 61 ms stays marked pre-fix, with
+  no current value.

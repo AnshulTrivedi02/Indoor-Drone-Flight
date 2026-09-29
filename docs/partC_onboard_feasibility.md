@@ -1,5 +1,8 @@
 # Part C: Feasibility of running the UKF and FGO onboard as ArduPilot estimators
 
+> **Timing note (added 2026-09-29, user ruling):** the workstation timing figures in this report (FGO 29 ms/step, camera ≤ 61 ms/frame) were measured **before** the thread-limit fix and may be inflated by thread oversubscription. The current post-fix figures are in METHODOLOGY, "RULINGS (user, 2026-09-29) after Phase 4" §3.
+
+
 **Scope.** This is a read-only investigation. No files in `~/ardupilot`, `~/ardupilot_gazebo` or `~/thesis_ws` were modified and nothing was built.
 
 **Scope (supervisor answers, 29 Sep).**

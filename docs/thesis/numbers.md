@@ -434,8 +434,8 @@ difference, Welch t and df.
 | `EKFType` switch arms needed | about 52 | — | ESTIMATE | M:L3070 |
 | Shadow-run evidence, `dsn_tex_r1` | 6654 `XKF1` rows, 2 lanes | — | CURRENT | M:L3072 |
 | QuadPlane loop rate | 300 Hz | Hz | CURRENT | M:L3073 |
-| FGO Python step (Part C, textured) | 29 ms/step | ms | DIAGNOSTIC (workstation) | M:L3081 |
-| Camera pipeline (Python, i7, under load) | ≤ 61 ms/frame | ms | DIAGNOSTIC | M:L3082 |
+| FGO Python step (Part C, textured) | 29 ms/step | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3081 |
+| Camera pipeline (Python, i7, under load) | ≤ 61 ms/frame | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3082 |
 | Wall contact from GT | \|x\| ≥ 9.58 m | m | CURRENT | M:L3088 |
 | Distance scale, EKF3 vs FGO (n = 9; Part C summary, rounded) | EKF3 +6–10% against the FGO's ~+1% | % | CURRENT (candidate; exact values in §6.5) | M:L3091 |
 | Effort | ~18–30 person-weeks (estimate), plus 4–6 if route (b) is built | person-weeks | ESTIMATE | M:L3094 |
@@ -448,11 +448,17 @@ with parallel jobs and load not recorded; they say nothing directly about onboar
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| FGO step time, 0.25 s window, textured (current figure) | ~29 ms median on textured bags | ms | DIAGNOSTIC (workstation; current) | M:L3121 |
-| FGO stored medians, textured (`dsn`/`fwdc`/`fwdplainc`), n = 9 | 26.9–29.2 | ms | DIAGNOSTIC (workstation) | M:L3126 |
-| FGO stored medians, transition, n = 9 | 15.1–15.7 | ms | DIAGNOSTIC (workstation) | M:L3127 |
-| FGO stored medians, blank, n = 9 | 4.0–4.3 | ms | DIAGNOSTIC (workstation) | M:L3128 |
-| FGO window sweep step time at 1.0 / 0.5 / 0.25 s (`dsn_tex_r1`, 2026-08-01, `04426d2`) | 96 / 48 / 27 ms | ms | DIAGNOSTIC (workstation; that sweep's result, not the current figure) | M:L710 |
+| FGO step time, 0.25 s window, textured (pre-fix figure) | ~29 ms median on textured bags | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3121 |
+| FGO stored medians, textured (`dsn`/`fwdc`/`fwdplainc`), n = 9 | 26.9–29.2 | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3126 |
+| FGO stored medians, transition, n = 9 | 15.1–15.7 | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3127 |
+| FGO stored medians, blank, n = 9 | 4.0–4.3 | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L3128 |
+| FGO window sweep step time at 1.0 / 0.5 / 0.25 s (`dsn_tex_r1`, 2026-08-01, `04426d2`) | 96 / 48 / 27 ms | ms | DIAGNOSTIC (workstation; measured BEFORE the thread-limit fix, may be inflated; not current) | M:L710 |
+| FGO step, post-fix, baseline textured (6 jobs parallel, 1 thread) | 32.7–32.9 median / 37–38 p95 | ms | DIAGNOSTIC (workstation; CURRENT, post-fix) | M: "RULINGS (user, 2026-09-29) after Phase 4" §3; eval/results/phase4_*_arms.json |
+| FGO step, post-fix, baseline `fwdc_tex_r2` (identity check, 3 parallel) | 27.6 | ms | DIAGNOSTIC (workstation; CURRENT, post-fix) | M: "Phase 4 run note" |
+| FGO step, post-fix, +heading / +heading+yaw rate, textured | 37–40 / 42 median | ms | DIAGNOSTIC (CURRENT, post-fix) | M: Phase 4 result, timing |
+| FGO step, post-fix, transition baseline / +heading | 17–18 / 23–35 median | ms | DIAGNOSTIC (CURRENT, post-fix) | M: Phase 4 result, timing |
+| FGO step, post-fix, blank baseline / +heading | 4.5 / 11–12.5 median | ms | DIAGNOSTIC (CURRENT, post-fix) | M: Phase 4 result, timing |
+| UKF predict / forward update, post-fix | 1.5–1.6 / 0.25–0.49 median | ms | DIAGNOSTIC (CURRENT, post-fix) | M: Phase 4 result, timing |
 | LM iterations cap | capped at 2 (warm-started) | — | CURRENT | M:L714 |
 | Capped vs full LM | max position difference 0.11 m, **RMS 0.029 m** | m | CURRENT | M:L715 |
 | Keyframes, `dsn_tex_r1` | 10047 | — | CURRENT | M:L717 |
@@ -552,7 +558,7 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
 | Phase 2 `fwd_*` UKF textured (diagnostic) | 42.73 / 7.67 / 9.31 | m | SUPERSEDED (recorded) | M:L1956 | Same |
 | Plain-wall Phase 1 | 3/3 complete; all primary pass | — | SUPERSEDED (recorded) | M:L2250 | Same |
 | Plain-wall Phase 1 P4 EKF3 / FGO | 4.46 … 4.69 | m | SUPERSEDED (recorded) | M:L2265-L2266 | Same |
-| FGO batch timing (1.0 s window, pre-LM-cap) | **101 ms/step median, p99 167 ms** | ms | SUPERSEDED | M:L1124 | Current 0.25 s configuration, ~29 ms median on textured bags (M:L3121, L3136) |
+| FGO batch timing (1.0 s window, pre-LM-cap) | **101 ms/step median, p99 167 ms** | ms | SUPERSEDED | M:L1124 | Post-fix 0.25 s figures (M: "RULINGS … after Phase 4" §3) |
 | PHYS_DRIFT as a constant | the constant 9.8 (a window mean) | deg/min | SUPERSEDED | M:L267 | Triangle-wave `sitl_gyro_drift(t)` (M:L737-L746) |
 | Old corridor-world feature counts (Gazebo-level check) | ~126-183 … ~15-24 | — | SUPERSEDED | C(d89a902):L164 | Fixed worlds' verification (C:L1802-L1806) |
 | EKF3 yaw drift with no compass, early figure | ~5 deg/min | deg/min | SUPERSEDED | M:L871 | n = 9 `dsn_*` value +6.6…+11.1, mean ~8.1 (M:L3142); origin is the single-trial residual +5.32 on `nomag_corridor_baseline` (M:L3146-L3148) |
