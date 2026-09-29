@@ -4516,3 +4516,102 @@ existing logs.
    - It adds one parameter change to the re-run and must be stated as a simulation-model
      correction.
 3. The bridge changes B and C are not recommended (B does not help; C is inadmissible).
+
+## Rulings (user, 2026-09-29): check 2c accepted; the roll oscillation is removed at its source
+
+**Check 2c accepted.** Both restated criteria passed.
+- **Caveat on the prediction match:** EKF3's in-flight yaw drift was 5.8 deg/min, against the
+  9.2 deg/min in the prediction, so the close timing (+164.2 s against about +161 s) is
+  **partly luck**.
+- **`cl_ekf3_tex_2` is flagged as a candidate thesis figure.** EKF3's East estimate stays near
+  zero while the true track arcs into the west wall.
+
+**Derotation: option 2. The 17.5 Hz roll oscillation is removed at its source before the
+re-fly.** Reasoning:
+- it is a simulation artefact from untuned roll gains;
+- it degrades every flow-based estimate;
+- it likely penalises EKF3 more, because it interacts with ArduPilot's arrival-time jitter;
+- fixing it changes the vehicle, not any estimator's input.
+
+**Recorded as findings:**
+- **EKF3's arrival-time pairing on the MAVLink path is a genuine ArduPilot property**
+  (`AP_OpticalFlow_MAV.cpp:105-107,36-43,76`).
+- **No bridge change is admissible.** Evidence, as reconstructed |FIX|: current pairing
+  **307**, frame-aligned filtered-gyro derotation **355**, true-rotation derotation **67**.
+
+**History (kept, not rewritten).**
+- **The roll oscillation was first observed in July** (PROGRESS, 2026-07-02, `5787b04`),
+  during the flow-derotation work. The record reads: "a persistent ~0.4 rad/s (23°/s)
+  roll-rate oscillation present even at idle hover … real (visible camera shake …), but with
+  ArduPilot's own VIBRATION and EKF_STATUS_REPORT reporting healthy/low levels, consistent
+  with fast self-cancelling motor/frame buzz rather than a control-loop problem."
+  - The user recalls it as a ~50 Hz buzz; **the written record gives no frequency**.
+  - It was then accepted as a characterised noise floor ("background sim vibration source —
+    deferred indefinitely"), **on the assumption that it affected all estimators equally.
+    That assumption is now refuted:** it interacts with EKF3's arrival-time pairing.
+  - It was also a control-loop limit cycle (at 17.5 Hz), not a buzz.
+- **The roll derotation sign was flagged in July as validated only indirectly.** The same
+  entry says "Pitch-only and roll-only isolated hover tests — not attempted", and the roll
+  term's sign had been flipped after a hover test confounded by this oscillation. **That is
+  the lateral sign error now fixed.**
+
+### Roll rate gains: choice, basis and values (step a)
+
+- **Basis: scale the roll rate gains so the roll loop gain matches pitch.** This is the
+  simplest defensible basis, and SITL AutoTune was not needed (see the selection flight).
+  - Full-body inertia from the flown model's SDF (`iris_with_standoffs`, identical in
+    `iris_fwd_standoffs`), including the rotor masses by the parallel-axis theorem:
+    **Ixx = 0.01252, Iyy = 0.01743 kg m²** (total mass 1.75 kg). The earlier 0.008 / 0.015
+    was the base link only and is corrected here.
+  - Rotor arms: 0.210 m (roll, mean |y|) and 0.130 m (pitch, mean |x|).
+  - Torque authority per inertia: roll 0.210/0.01252 = 16.77, pitch 0.130/0.01743 = 7.46.
+    **The ratio is 2.249**, which the identical gains turned into 2.25× the roll loop gain.
+- **Values (`roll_rate_gains.parm`, in `run_trial.sh`'s defaults for every flight, and
+  enforced in `fly_trial.py` `EXPECTED_PARAMS`):** P, I and D scaled by 1/2.249 = 0.4447.
+
+  | parameter | old | new |
+  |---|---|---|
+  | `ATC_RAT_RLL_P` | 0.135 | 0.06003 |
+  | `ATC_RAT_RLL_I` | 0.135 | 0.06003 |
+  | `ATC_RAT_RLL_D` | 0.0036 | 0.0016 |
+
+  Pitch, yaw, the filters, FF and the angle loops are unchanged.
+- **Gain-selection flight** (`rgs_select_tex`: 60 s cruise, part of step a, not the check
+  flight; **seen before this pre-registration and stated openly**):
+  - cruise gyro-x rms **0.0017 rad/s**, against 0.398 with the old gains, and the 17.5 Hz
+    peak is gone;
+  - gyro-y rms 0.0034 and gyro-z rms 0.0027.
+  - Scaling was sufficient, so SITL AutoTune was not used. **The bands below do not derive
+    from these values.**
+
+### Check flight `rgs_check_tex`: pre-registration (step b, before flying)
+
+**Flight.** World `corridor_textured_fwdc`, the standard dataset mission (arm, climb to 2 m,
+300 s of 0.5 m/s cruise, land) with **no** sideways step. Flown open loop on simulator truth
+(`AHRS_EKF_TYPE 10`), with the final settings: sign fix, `FLOW_POS_Z 0.25`, time sync on,
+`LOG_REPLAY 1`, `LOG_DISARMED 1`, and the new roll gains.
+
+**References.**
+- Old gains, standard mission: `fwdc_tex_r1..r3` (`eval/results/rgs_reference_fwdc_tex_oldgains.json`,
+  `eval/rgs_profile.py`):
+  - take-off (GT liftoff > 0.3 m to ≥ 1.8 m) 1.484–1.502 s;
+  - climb peak z 2.233–2.242 m;
+  - cruise GT height 2.290–2.299 m and speed 0.4999 m/s;
+  - cruise gyro rms x 0.398, y 0.0054, z 0.0100 rad/s;
+  - 15–20 Hz band rms on x 0.396.
+- The P3 references are the existing same-world `dsn` n=3 means from `flow_quality_dsn.json`
+  (textured: inlier_mean 0.9733 / inlier_pct_below_0.5 0.0073 / features_mean 52.8268 / flow_y_raw_mean 136.4536).
+- Cruise is the span where GT forward speed exceeds 0.3 m/s, trimmed by 5 s at each end.
+
+| # | criterion | band | basis and margin | class |
+|---|---|---|---|---|
+| R1 | roll oscillation removed | cruise gyro-x rms **≤ 0.05 rad/s** AND 15–20 Hz band rms **≤ 0.040 rad/s** | Pitch runs at the same effective loop gain at 0.0054 rms; allowing roll 10× pitch for lateral-control activity gives 0.05. The band condition is ≥ 20 dB (×10 amplitude) below the old 0.396. | PRIMARY |
+| R2 | \|FIX\| toward the true-rotation floor | airborne mean \|FIX\| **≤ 150** | The floor is 67 (true-rotation reconstruction). The excess over it (240–254) is the uncancelled roll tone, which scales with its amplitude, so R1's ≥ 10× reduction leaves ≤ ~25: **predicted ≤ ~95**. The ×1.6 margin to 150 covers non-tone roll content and arrival jitter. | PRIMARY |
+| R3 | pitch unchanged | cruise gyro-y rms within **[0.0027, 0.0108]** (0.5×–2× the old 0.0054) | Pitch gains are unchanged, so the expectation is equality. ±6 dB covers any change in roll→pitch coupling once the limit cycle is gone. | PRIMARY |
+| R4 | take-off, hover and cruise profile | take-off 1.484–1.502 s ± max(range, 0.1 s) → **[1.384, 1.602] s**; climb peak ± max(range, 0.046 m) → **[2.187, 2.288] m**; cruise height ± 0.046 m → **[2.244, 2.345] m**; cruise speed **[0.4899, 0.5099] m/s**; GT \|x\| ≤ 0.05 m; the P1 timing bands and P3 downward-flow bands as in Phase 2 | 0.1 s is one `fly_trial` command period. 0.046 m is P3's "±2% ≈ 1 cm/s or 1 cm" basis applied to height (2% of 2.3 m). ±0.01 m/s is P3's speed-equivalent resolution. P1 and P3 are the existing dataset bands. | PRIMARY |
+| R5 | no new oscillation on any axis | cruise gyro-y rms ≤ 0.0108 and gyro-z rms ≤ 0.0200 (2× old); on every axis the largest spectral peak's ±0.5 Hz band rms **≤ 0.02 rad/s** | A single tone above 0.02 would be ≥ 2× all of the old non-roll rotational activity (y and z total rms ≤ 0.010). | PRIMARY |
+| D | diagnostics, not gating | XKF5 rejections, \|FIY\|, dataflash RATE/RCOU rms (aliased at 10 Hz), EKF3/UKF/FGO evo -a (cruise), P2 latency | The Phase 2 P4 outcome bands are **not applicable**: they are pre-sign-fix and pre-`FLOW_POS_Z`, and are recomputed from the re-flown `dsn`. | DIAGNOSTIC |
+
+**Decision.** All PRIMARY criteria pass → the gain change is added to the batched corrections
+as a simulation-model correction, and the re-fly batch starts. Any PRIMARY failure → stop and
+report.
