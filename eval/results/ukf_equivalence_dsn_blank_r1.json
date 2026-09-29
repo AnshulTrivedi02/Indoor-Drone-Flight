@@ -1,0 +1,71 @@
+{
+ "log": "blank",
+ "events": 44854,
+ "window_s": [
+  30.409,
+  331.031
+ ],
+ "events_in_window": 40262,
+ "dt_step_s": 0.01500275969329735,
+ "E1_E2": {
+  "max_m": 1.2621303140356557,
+  "rms_m": 0.34591382901207085,
+  "at_end_m": 0.9261470119754748,
+  "band": "diff <= 0.05 + 1e-4 x offline displacement from cruise start (per event)",
+  "worst_margin_ratio": 1.194031565613989,
+  "offline_disp_end_m": 14411.806076082275,
+  "pass": false
+ },
+ "E3": {
+  "max_deg": 0.0002679382803096352,
+  "pass": true
+ },
+ "E4": {
+  "max_gyro_z_bias_deg_per_min": 0.00017862511425405966,
+  "max_accel_bias_mps2": 1.3693680727916743e-05,
+  "pass": true
+ },
+ "E5": {
+  "flow_x": {
+   "n": 9110,
+   "identical_frac": 1.0,
+   "accepted_python": 0,
+   "accepted_port": 0,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 9110,
+   "identical_frac": 1.0,
+   "accepted_python": 0,
+   "accepted_port": 0,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 9110,
+   "identical_frac": 1.0,
+   "accepted_python": 9110,
+   "accepted_port": 9110,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 2004,
+   "identical_frac": 0.999001996007984,
+   "accepted_python": 444,
+   "accepted_port": 444,
+   "count_rel_diff": 0.0
+  },
+  "pass": true
+ },
+ "diag_first_divergence": {
+  "event": 4237,
+  "type": 0,
+  "t": 45.300945,
+  "dpos_m": 1.00255280297343e-06,
+  "dyaw_deg": 9.396900461952802e-08
+ },
+ "diag_first_event_diff": {
+  "dpos_m": 1.1186784831994674e-10,
+  "dyaw_deg": 1.3558577384891713e-09
+ },
+ "pass": false
+}

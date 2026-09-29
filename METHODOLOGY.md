@@ -6104,3 +6104,72 @@ identical to Phase 3's `meas_frozen.npz`); `eval/results/heading_cpp_equivalence
   OpenCV 4.6 (`build.sh`).
 - The equivalence of an ARM build must be re-tested with the same harness. Floating-point results
   can differ across architectures (C2's tolerance covers that; C1 would show any decision flip).
+
+### UKF port validation STEP 2 — equivalence harness RESULT (2026-09-30): one porting bug found and fixed; `dsn_tex_r2` PASSES E1–E5; `dsn_blank_r1` passes E3–E5, FAILS E2 AS WORDED (queued)
+
+**Harness (the identical event stream, as pre-registered).**
+- `eval/ukf_event_export.py` runs the **unmodified** `ukf_replay.py` (runpy) with recording wrappers
+  around its `ukf_core` calls. The replay outputs are redirected, so `<trial>/ukf/` is never
+  touched. **The wrapped run's `ukf_traj.tum` is byte-identical to the official one** on both logs.
+- Every call's inputs and the Python state after it are exported. The ENU/FLU → NED/FRD conversion
+  is checked on 1,000 random attitudes against both sides' rotation conventions.
+- `~/ardupilot_ukf` `libraries/AP_NavUKF/examples/UKF_Equiv` drives the port's own
+  `predict` / `update_scalar` / `yaw_pseudo`, unchanged, through that sequence. The only header
+  change is a `friend` declaration.
+- `eval/ukf_equivalence.py` scores E1–E5 on the pinned cruise window.
+- Results: `eval/results/ukf_equivalence_dsn_{tex_r2,blank_r1}.json`.
+
+**Porting bug found and fixed.**
+- **Symptom (first run, `dsn_tex_r2`):** position 6.7 m, yaw 5.0°, gyro-z bias 1.5 deg/min, 7% of
+  yaw-gate decisions differ. The difference appeared at the **first predict step**: pitch
+  2.5e-7 rad, far above double round-off.
+- **Cause:** the port's `process()` used `Matrix3d::to_euler`. Its pitch comes from `safe_asin()`,
+  which **casts to float and calls `asinf` even for double matrices** (`AP_Math.cpp:49-63`).
+  Inside the sigma-point propagation, the Van der Merwe weights (α = 1e-3, magnitude ~1e6)
+  amplified that float rounding about 1e6×.
+- **Checked not to be the cause:**
+  - `sq`, `wrap_PI` and the trig macros are double in this build (`HAL_WITH_EKF_DOUBLE`);
+  - the port's float storage of flow rate/gyro: rounding the Python flow inputs to float32
+    changes the Python run by 0.000 m;
+  - numpy 2.5.1 `sin`, `cos` and `arctan2` are bit-identical to glibc on 1e5 samples.
+- **Fix:** Euler extraction in double inside `process()` (`atan2`, `asin(constrain_double(...))`),
+  the same formula as `to_euler`. `~/ardupilot_ukf` branch `ukf-port`.
+- **The SITL copter binary predates the fix.** It is rebuilt after the `dsn_tex_r4..r10` batch (CPU),
+  and the shadow SITL result above predates it.
+
+**Results after the fix:**
+
+| | `dsn_tex_r2` | `dsn_blank_r1` |
+|---|---|---|
+| E1/E2 position | **PASS**: max 4.7e-5 m, rms 2.1e-5 m (band 0.05 / 0.01) | **FAIL as worded**: max 1.26 m; worst diff/allowance **1.19**; > 1 on **0.6%** of window events (offline runaway 14.4 km) |
+| E3 yaw | PASS: 2.2e-5° | PASS: 2.7e-4° |
+| E4 biases | PASS: 6.4e-6 deg/min; 4.2e-7 m/s² | PASS: 1.8e-4 deg/min; 1.4e-5 m/s² |
+| E5 gates | PASS: all identical (flow 9,045/9,045 each axis, range 9,166, yaw 73/73) | PASS: range identical; no flow accepted on either side; yaw 99.90% identical (2 flips), 444/444 |
+
+**`dsn_blank_r1` E2: evidence (not a verdict change).**
+- The difference grows smoothly with the unaided runaway: 2e-7 m at +10 s, 5e-4 m at +60 s,
+  0.06 m at +150 s, 0.21 m at +200 s.
+- **Up to the two yaw-gate flips (+246.8 s) the ratio is ≤ 0.674.** The flips are one
+  yaw-pseudo firing moved by one 140 ms check: the port fires at +246.8 s where Python fires at
+  +247.0 s. **E5 explicitly allows such flips.** All exceedances (max 1.19) come after them.
+- Every filter path the blank log uses (predict, range, yaw-pseudo) is also exercised on
+  `dsn_tex_r2`, where the port agrees to 4.7e-5 m. No model path is unique to the blank log.
+- Python against itself under operation-order changes alone:
+  - another OpenBLAS kernel (Prescott, no FMA): worst ratio 0.024, 0.026 m;
+  - 1-ulp `dv` perturbations: 0.104, 0.11 m;
+  - no flips in either.
+- The port differs from Python in more arithmetic than those tests change: Cholesky (naive
+  against LAPACK), Rodrigues against the rotation-vector form, and summation order. So the gap
+  is larger, but it is of the same kind.
+- **Reading:** round-off amplified by an unbounded inertial solution, plus one gate firing shifted
+  at a near-threshold covariance. The E2 relative term (1e-4 × displacement) did not allow for
+  the consequence of an E5-permitted flip.
+
+**QUEUED for the user (E2 is not re-scored; the band is not changed). Options:**
+- **(a)** Accept step 2 as passed, with E2's exceedance recorded as flip-driven round-off.
+- **(b)** A further diagnostic before ruling, which I would run on request: make the harness follow
+  Python's yaw-gate decisions. This needs a diagnostic-only gate bypass in the port.
+- **(c)** Re-register E2 for a new test on another blank log.
+
+My recommendation is **(a) with (b) as supporting evidence**. Step 3 (the input-path cost report)
+does not depend on this ruling and proceeds.
