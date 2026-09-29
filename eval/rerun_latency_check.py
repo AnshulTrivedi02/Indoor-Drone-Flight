@@ -28,14 +28,21 @@ print(f"reference: {ref_path}")
 for w, b in band.items():
     print(f"  band {w}: median <= {b['median_max']:.1f} ms, p95 <= {b['p95_max']:.1f} ms, matched >= {b['matched_min']:.1f}%")
 nout = 0
+nund = 0
+fmt = lambda x, w=5: "n/a".rjust(w) if x is None else f"{x:{w}.1f}"
 for t, v in sorted(it.items()):
-    f = v["flow_to_ekf3"]; b = band[world(t)]
-    ok = f["lat_median_ms"] <= b["median_max"] and f["lat_p95_ms"] <= b["p95_max"] and f["matched_pct"] >= b["matched_min"]
-    nout += not ok
+    f = v["flow_to_ekf3"]; q = v.get("flow_to_ekf3_quality_gt0", {}); b = band[world(t)]
     flag = "  <-- flagged (RTF dip)" if t in ("dsn_trans_r1", "dsn_trans_r2") else ""
-    print(f"{t:22} median {f['lat_median_ms']:5.1f}  p95 {f['lat_p95_ms']:5.1f}  matched {f['matched_pct']:5.1f}%  "
-          f"{'in band' if ok else 'OUTSIDE BAND'}{flag}")
-    out["trials"][t] = {**{k: f[k] for k in ("lat_median_ms", "lat_p95_ms", "matched_pct")}, "in_band": ok}
+    if f["lat_median_ms"] is None:
+        ok = None; nund += 1; verdict = f"UNDEFINED (0 of {f['valid_frames']} valid frames in cruise)"
+    else:
+        ok = f["lat_median_ms"] <= b["median_max"] and f["lat_p95_ms"] <= b["p95_max"] and f["matched_pct"] >= b["matched_min"]
+        nout += not ok; verdict = "in band" if ok else "OUTSIDE BAND"
+    print(f"{t:22} [valid] median {fmt(f['lat_median_ms'])}  p95 {fmt(f['lat_p95_ms'])}  matched {fmt(f['matched_pct'])}%  {verdict}{flag}"
+          f"   | [quality>0, n {q.get('valid_frames', 0)}] median {fmt(q.get('lat_median_ms'))} p95 {fmt(q.get('lat_p95_ms'))}")
+    out["trials"][t] = {"valid": {k: f[k] for k in ("lat_median_ms", "lat_p95_ms", "matched_pct", "valid_frames")}, "in_band": ok,
+                        "quality_gt0": {k: q.get(k) for k in ("lat_median_ms", "lat_p95_ms", "matched_pct", "valid_frames")}}
+print(f"{nund} trial(s) with P2 undefined (no valid frames)")
 print(f"{nout} trial(s) outside band (DIAGNOSTIC)")
 if a.json:
     json.dump(out, open(a.json, "w"), indent=1)

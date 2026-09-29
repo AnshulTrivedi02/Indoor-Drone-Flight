@@ -5165,3 +5165,68 @@ The ABORTED attempt is the only log with a hook reference (1) and no exit-0 clea
 **Conclusion:** no completed dataset trial executed the edited script. **Nothing is marked for
 re-flight.** The same log check is repeated on the remaining trials when the batch ends, before
 the pipeline re-run uses any of them.
+
+## Consolidated re-fly — post-batch checks (2026-09-29, before the pipeline re-run)
+
+**Batch complete.** `rerun2_main` is 33/33 (18:14) and `rerun2_ds` is 9/9 (19:09). The only
+abort is the recorded `p1c_fwdplainc_blank` attempt 1.
+- **Harness log check on all 42 re-flown trials:** each has `git_commit 7a90e81`, a clean
+  exit-0 cleanup, no heading-hook trace in `run_trial.log` or `metadata.yaml`, and no
+  `SIDESTEP`. **0 anomalies.**
+- `ds_*` record `EK3_SRC1_YAW 1` / `COMPASS_USE 1` with `compass_active.parm`; `dsn_*`,
+  `fwdc_*` and `fwdplainc_*` record 0 / 0.
+
+**EKF3 flow latency (DIAGNOSTIC).** Tool: `eval/input_timing.py` → `rerun_latency_check.py`;
+`eval/results/{input_timing_rerun_all,rerun_latency_check}.json`. The band is the pre-registered
+P2 (same-world OLD `dsn` mean + 12.5 ms; matched ≥ min − 5 pp): textured median ≤ 28.1 / p95
+≤ 36.7 ms, transition ≤ 30.4 / 38.2, blank ≤ 29.9 / 38.2.
+- **Flagged trials, both IN BAND:**
+  - `dsn_trans_r1` (RTF 0.956): median 20.6 ms, p95 30.8 ms, 100% matched;
+  - `dsn_trans_r2` (RTF 0.931): 27.6 / 36.9 ms, 100%.
+- **Outside band (just):**
+  - `ds_tex_r1`: p95 37.7 against 36.7;
+  - `fwdc_tex_r3`: median 28.9 against 28.1, p95 37.7 against 36.7.
+
+  Both are diagnostic only.
+- **All other textured and transition trials are in band.**
+- **Blank floor (14 trials): P2 is UNDEFINED.** No cruise frame is flow_tracker-`valid`, so there
+  is nothing to match; the tool previously crashed on this and now reports it explicitly.
+- A second, labelled column (the latency over quality > 0 frames) is added. It is identical to
+  the `valid` column wherever frames exist.
+
+### FINDING — the roll-gain correction changes the blank-floor flow condition (all blank data)
+
+Cruise-window flow statistics, re-flown against the pre-re-run bags of the same names (all 42
+pairs; `eval/flow_quality.py` definitions plus the cruise `valid` share):
+
+| floor | `valid` share (flow_tracker, ≥ 20 tracked features) | inlier mean | % inlier < 0.5 | features | `flow_y_raw` |
+|---|---|---|---|---|---|
+| **blank** (15 bags) | **8.4–9.1% → 0.0%** | 0.31 → 0.24 | 84% → 99.7% | 8.0 → 5.8 | −0.6…−4.5 → **−9.9…−13.5 px/s** |
+| transition (12) | 56–57% → 52–53% | 0.665 → 0.634 | 39.5% → 46.5% | 31.7 → 30.5 | ~71.5 → ~66.3 px/s |
+| textured (15) | 98.7% → 98.7% | 0.973 → 0.983 | 0 → 0 | 52.8 → 52.5 | ~136 → ~134 px/s (−1.5%) |
+
+- **Mechanism.** `flow_tracker` marks a frame valid only if ≥ 20 features are tracked
+  (`min_valid_features`, `flow_tracker.py:27,313`). The old 17.5 Hz roll oscillation shook the
+  camera over the featureless floor, and about 9% of frames reached 20 tracked features. With a
+  steady camera, no cruise frame does.
+- **Consequence 1, EKF3.** `flow_bridge.py:123` forwards only `valid` frames, so **on the re-flown
+  blank floor EKF3 receives NO optical flow during cruise.** `dsn_blank_r1`: 701 `OF` records,
+  all outside cruise, against 1,196 before.
+- **Consequence 2, UKF/FGO.** Their flow update also requires `valid` (`ukf_core.update_flow`),
+  so **all three estimators get no flow on the blank floor.** The blank condition changes from
+  "sparse flow, ~9% of frames" to **"no flow"**, identically for all three. The same holds for
+  the blank half of the transition world.
+- **Assessment.** The old blank-floor flow was partly produced by the simulation artefact the
+  correction removes, so the new condition is the physically consistent one.
+- **But this changes the meaning of the blank condition**, and every blank result (failure
+  metrics, onset, blank-world bands and references) will change. Some are likely to change
+  direction.
+- **No parameter was changed** (`min_valid_features` stays 20, the frozen flow-tracker setting).
+- **Reported to the user before the pipeline re-run uses these bags.**
+
+### Part 4 — shadow UKF builds in SITL
+
+`~/ardupilot_ukf` (branch `ukf-port`, from `7bac20cbcc`) builds `bin/arducopter` with
+`AP_NavUKF` (`waf copter`, exit 0) after two compile fixes: a non-const `AP::dal()` reference and
+`is_equal` for the float comparison. **Running it in shadow is a SITL run, so it waits until
+after the pipeline.**

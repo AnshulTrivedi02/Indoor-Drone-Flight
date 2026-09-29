@@ -25,7 +25,7 @@ threshold was a proxy for.
 Usage (venv-evo; the dataflash log is read through ~/venv-ardupilot):
   python3 eval/input_timing.py TRIAL [TRIAL...] [--json OUT]
 """
-import argparse, glob, json, os, subprocess
+import argparse, math, glob, json, os, subprocess
 import numpy as np
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
@@ -148,8 +148,8 @@ def analyse(trial):
                 gt.append((stamp(m.header), m.pose.position.x, m.pose.position.y, m.pose.position.z))
                 continue
             stamps[con.topic].append(stamp(m.header))
-            if con.topic == "/optical_flow/measurement" and m.valid:
-                flow.append((stamp(m.header), m.flow_x_rad, m.flow_y_rad))
+            if con.topic == "/optical_flow/measurement" and math.isfinite(m.flow_x_rad) and math.isfinite(m.flow_y_rad):
+                flow.append((stamp(m.header), m.flow_x_rad, m.flow_y_rad, float(m.valid), m.inlier_ratio))
     gt = np.array(sorted(gt))
     t0, t1 = cruise_bounds(gt[:, 0], gt[:, 1], gt[:, 2])
     out = {"cruise_s": [t0, t1], "inputs": {}}
@@ -170,19 +170,26 @@ def analyse(trial):
     of_t = {}
     for t, fx, fy in of:
         of_t.setdefault(key(fx, fy), t)             # first log of that sample
-    fl = np.array(flow)
-    fl = fl[(fl[:, 0] >= t0) & (fl[:, 0] <= t1)]
+    fl_all = np.array(flow)
+    fl_all = fl_all[(fl_all[:, 0] >= t0) & (fl_all[:, 0] <= t1)]
+    fl = fl_all[fl_all[:, 3] > 0][:, :3]           # flow_tracker `valid` frames (the pre-registered P2 set)
+    flq = fl_all[fl_all[:, 4] > 0][:, :3]          # quality > 0: what EKF3 accepts (added 2026-09-29, labelled separately)
     # The bridge's X sign changed on 2026-09-29 (lateral-sign fix: -flow_x_rad -> +flow_x_rad).
     # Use whichever sign actually matches this trial's OF log, and record it.
-    n_by = {sx: sum(key(sx * fx, fy) in of_t for _, fx, fy in fl) for sx in (-1.0, 1.0)}
+    n_by = {sx: sum(key(sx * fx, fy) in of_t for _, fx, fy in flq) for sx in (-1.0, 1.0)}
     sx = max(n_by, key=n_by.get)
     out["bridge_flow_x_sign"] = sx
-    lat = [to_sim(of_t[key(sx * fx, fy)]) - t for t, fx, fy in fl if key(sx * fx, fy) in of_t]
-    lat = 1e3 * np.array(lat)
-    out["flow_to_ekf3"] = {"valid_frames": int(len(fl)), "matched_pct": float(100 * len(lat) / len(fl)),
-                           "lat_median_ms": float(np.median(lat)), "lat_p5_ms": float(np.percentile(lat, 5)),
-                           "lat_p95_ms": float(np.percentile(lat, 95)), "lat_p99_ms": float(np.percentile(lat, 99)),
-                           "lat_max_ms": float(lat.max())}
+    def lat_stats(frames):
+        lat = 1e3 * np.array([to_sim(of_t[key(sx * fx, fy)]) - t for t, fx, fy in frames if key(sx * fx, fy) in of_t])
+        if len(frames) == 0 or len(lat) == 0:     # e.g. the blank floor after the roll-gain correction: no valid frames
+            return {"valid_frames": int(len(frames)), "matched_pct": None, "lat_median_ms": None, "lat_p5_ms": None,
+                    "lat_p95_ms": None, "lat_p99_ms": None, "lat_max_ms": None}
+        return {"valid_frames": int(len(frames)), "matched_pct": float(100 * len(lat) / len(frames)),
+                "lat_median_ms": float(np.median(lat)), "lat_p5_ms": float(np.percentile(lat, 5)),
+                "lat_p95_ms": float(np.percentile(lat, 95)), "lat_p99_ms": float(np.percentile(lat, 99)),
+                "lat_max_ms": float(lat.max())}
+    out["flow_to_ekf3"] = lat_stats(fl)            # pre-registered P2 definition (flow_tracker valid frames)
+    out["flow_to_ekf3_quality_gt0"] = lat_stats(flq)   # frames EKF3 accepts (quality > 0)
     return out
 
 
@@ -195,8 +202,10 @@ if __name__ == "__main__":
     for t, r in res.items():
         f = r["flow_to_ekf3"]
         print(f"{t:22} clock offset early/late {r['clock_offset_early_late_ms'][0]:+7.2f}/{r['clock_offset_early_late_ms'][1]:+7.2f} ms (rate {r['clock_rate_diff_pct']:+.4f}%)")
-        print(f"{'':22} flow->EKF3 matched {f['matched_pct']:5.1f}%  latency median {f['lat_median_ms']:6.1f} "
-              f"p5 {f['lat_p5_ms']:6.1f} p95 {f['lat_p95_ms']:6.1f} p99 {f['lat_p99_ms']:6.1f} max {f['lat_max_ms']:6.1f} ms")
+        g = lambda d, k, w=6: ("n/a".rjust(w) if d[k] is None else f"{d[k]:{w}.1f}")
+        for lab, d in (("valid", f), ("quality>0", r["flow_to_ekf3_quality_gt0"])):
+            print(f"{'':22} flow->EKF3 [{lab:9}] n {d['valid_frames']:5d} matched {g(d, 'matched_pct', 5)}%  latency median {g(d, 'lat_median_ms')} "
+                  f"p5 {g(d, 'lat_p5_ms')} p95 {g(d, 'lat_p95_ms')} p99 {g(d, 'lat_p99_ms')} max {g(d, 'lat_max_ms')} ms")
         for k, v in r["inputs"].items():
             print(f"{'':22}   {k:28} {v['rate_hz']:8.2f} Hz  gap mean {v['gap_mean_ms']:7.4f} med {v['gap_median_ms']:6.2f} "
                   f"p99 {v['gap_p99_ms']:6.2f} ms  >1.5x {v['pct_gap_gt_1.5x']:5.2f}%")
