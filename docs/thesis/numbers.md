@@ -211,7 +211,10 @@ The former values are in the superseded section ("Former sections 6–9").
 | FGO (0.25 s) r1 / r2 / r3 | 4.62 / 4.30 / 4.64 | m | CURRENT | same |
 | FGO mean / range | 4.52 / 0.34 | m | CURRENT | same |
 | UKF r1 / r2 / r3 | 17.45 / 2.28 / 4.30 | m | CURRENT (r1 = the recorded instability case) | same |
-| EKF3 vs FGO (claim wording, ruling) | "EKF3 lower on all three repeats (4.00 vs 4.52 m mean)"; no general ordering until `dsn_tex_r4..r10` | — | CURRENT (wording) | M: "Rulings (user, 2026-09-29) on the re-run results" |
+| EKF3 vs FGO (claim wording) | now CONFIRMED by the pre-registered test (row below); the earlier interim wording "EKF3 lower on all three repeats" is superseded | — | CURRENT (wording) | M: "Rulings (user, 2026-09-29) on the re-run results" |
+| **Confirmatory test, EKF3 vs FGO** (r4–r10, pre-registered; r10 unusable for FGO) | **EKF3 lower**: d < 0 on 6/7, mean d −0.69 m, 95% CI [−1.20, −0.19] | m | CURRENT | json:dsn_paired_test.json |
+| Noise floor SD (re-flown `dsn_tex`): EKF3 (n = 10) / FGO (n = 9) / d (n = 9) | 0.31 [0.22, 0.57] / 0.13 [0.09, 0.24] / 0.39 [0.26, 0.75] | m | CURRENT | same |
+| UKF r1–r9 (usable): median / range | 17.5 / 2.3–35.9; ≤ 4.3 m on 3 of 9 flights only | m | CURRENT | same |
 | Compass-active `ds_*` EKF3, textured r1 / r2 / r3 | 0.66 / 0.69 / 0.07 | m | CURRENT (reference; EKF3 with an absolute heading) | json:rerun_ds_evo.json |
 
 ### 6.2 Transition and blank: behaviour under total loss of flow aiding (not accuracy)

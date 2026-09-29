@@ -6243,3 +6243,48 @@ GT (`eval/results/ukf_shadow_replay_dsn_tex_r2_postfix.json`):
   have n = 9 (χ² df 8).
 - **Queued (D6):** whether to fly a replacement `dsn_tex_r11`, with the rule applied to it as well,
   so the test has 7 usable flights. Not flown without a ruling.
+
+### RESULT — pre-registered confirmatory test: **EKF3 lower than the FGO on the textured floor** (both criteria met)
+
+`eval/dsn_paired_test.py` → `eval/results/dsn_paired_test.json`. The r4–r10 pipeline is
+`eval/run_set_eval.sh dsn_extra` (IMU-gap rule, UKF/FGO replays, `three_way_eval` pinned window) →
+`eval/results/dsn_extra_evo.json`.
+
+| flight | EKF3 | FGO | d = EKF3 − FGO | UKF |
+|---|---|---|---|---|
+| r4 | 4.10 | 4.61 | −0.51 | 35.94 |
+| r5 | 4.12 | 4.60 | −0.48 | 2.99 |
+| r6 | 3.11 | 4.79 | −1.67 | 20.56 |
+| r7 | 4.11 | 4.61 | −0.49 | 20.99 |
+| r8 | 4.11 | 4.61 | −0.51 | 13.37 |
+| r9 | 4.09 | 4.58 | −0.49 | 25.11 |
+| r10 | 4.11 | — (IMU-gap rule) | — (counts against (a)) | — |
+
+- **(a)** d < 0 on **6 of 7** (all 6 usable; r10 counted against). One-sided sign test p = 0.0625.
+- **(b)** Mean d **−0.69 m**, 95% t-interval **[−1.20, −0.19] m** (df 5), which excludes 0.
+- **Verdict (the pre-registered rule): "EKF3 lower than the FGO on the textured floor."**
+  - The size, as the CI reports: about 0.5 m on five flights, and 1.7 m on r6, where EKF3 was
+    unusually low (3.11 m; its other nine flights are 3.86–4.12).
+  - Without r6, d is −0.48…−0.51 m, a very consistent 0.5 m.
+- **Claim wording now permitted:** "EKF3 is lower than the FGO on the textured floor (confirmatory,
+  n = 6 usable new flights, mean difference 0.69 m, 95% CI 0.19–1.20 m)". Scope: textured floor,
+  nomag, 0.5 m/s. Not transition or blank.
+- **Noise floor** (all re-flown `dsn_tex`, SD with χ² 95% interval): replaces "n = 3 range ± one
+  range-width" as the recommended basis for future textured bands; no retrospective re-scoring.
+  - **EKF3:** SD **0.31 m** [0.22, 0.57], n = 10. Mean 3.97, of which r6 alone is 3.11; without r6
+    the range is 3.86–4.12.
+  - **FGO:** SD **0.13 m** [0.09, 0.24], n = 9, mean 4.60.
+  - **d:** SD **0.39 m** [0.26, 0.75], n = 9, mean −0.64.
+- **UKF, reported regardless:**
+  - r4–r9: 35.9 / 3.0 / 20.6 / 21.0 / 13.4 / 25.1 m.
+  - Over the 9 usable flights: median **17.5 m**, SD 11.3, range 2.3–35.9.
+  - **The pre-registered instability rule (evo > 3× median) flags 0 flights, but only because the
+    median itself is high. The rule does not capture a UKF that is poor on most flights.** Stated
+    plainly: the offline UKF is accurate (≤ 4.3 m) on 3 of 9 textured flights and between 13 and
+    36 m on 6 of 9.
+  - This is the instability first recorded on `dsn_tex_r1`, now shown to be the common case.
+- **D6 (replacement for r10):** by its own stated rule ("fly r11 only if the conservative verdict is
+  'no ordering' because of r10"), **no replacement is recommended**. The verdict was reached with
+  r10 counted against.
+- The set-eval phase2 score line ("Primary criteria: INCOMPLETE") scores against the Phase 2 bands.
+  It is not part of this pre-registration and is not used.

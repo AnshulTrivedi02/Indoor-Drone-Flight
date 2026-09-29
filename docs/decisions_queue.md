@@ -59,3 +59,5 @@ evidence are in METHODOLOGY (section named per item).
   r4–r9 + r11, alongside the conservative version; (b) keep the conservative version only.
 - **Recommendation: (a)** if the conservative verdict is "no ordering" only because of r10;
   otherwise (b).
+- **Resolved by that rule:** the conservative verdict is "EKF3 lower" (both criteria), so **(b)**: no
+  replacement flight is needed. Listed for your confirmation only.

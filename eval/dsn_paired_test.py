@@ -55,11 +55,13 @@ floor = {}
 for name in ("EKF3", "FGO", "UKF"):
     vals = [allv[t][est_key(allv[t], name)] for t in all_t if any(k.upper().startswith(name) for k in allv[t])]
     floor[name] = sd_ci(vals); floor[name]["values"] = [round(v, 3) for v in vals]
-dall = [allv[t][est_key(allv[t], "EKF3")] - allv[t][est_key(allv[t], "FGO")] for t in all_t]
+has = lambda t, nm: any(k.upper().startswith(nm) for k in allv[t])
+dall = [allv[t][est_key(allv[t], "EKF3")] - allv[t][est_key(allv[t], "FGO")] for t in all_t if has(t, "FGO")]
 floor["d_EKF3_minus_FGO"] = sd_ci(dall)
+ukf_t = [t for t in all_t if has(t, "UKF")]
 ukf_all = np.array(floor["UKF"]["values"]); med = np.median(ukf_all)
 floor["UKF"]["instability_rate"] = {"rule": "evo > 3x median", "median": float(med),
-                                    "unstable": [t for t, v in zip(all_t, ukf_all) if v > 3 * med], "rate": float(np.mean(ukf_all > 3 * med))}
+                                    "unstable": [t for t, v in zip(ukf_t, ukf_all) if v > 3 * med], "rate": float(np.mean(ukf_all > 3 * med))}
 out["noise_floor_n10"] = floor
 out["ukf_r4_r10"] = {t: (round(new[t][est_key(new[t], "UKF")], 3) if any(k.upper().startswith("UKF") for k in new[t]) else None) for t in new_t}
 out["ekf3_r4_r10"] = {t: round(new[t][est_key(new[t], "EKF3")], 3) for t in new_t}
