@@ -65,6 +65,11 @@ print("[export] ENU/FLU -> NED/FRD conversion verified on 1000 random attitudes"
 # ---- recording wrappers ----
 rec = {"x0": None, "P0": None}
 ev = []          # (type, inputs(list of float), x_after_NED(15), flags(2))
+tev = []         # the replay loop's t at each call (sim clock, s): its module-global `t`
+
+
+def _t():
+    return float(sys._getframe(2).f_globals.get("t", float("nan")))
 _orig = {k: getattr(U, k) for k in ("init_state", "predict", "update_range", "update_flow", "update_yaw_pseudo")}
 
 
@@ -82,13 +87,13 @@ def w_predict(x, P, da, dv, p, dt=None):
         dv = np.nextafter(dv, np.inf)
     xn, Pn = _orig["predict"](x, P, da, dv, p, dt=dt)
     d = p["dt"] if dt is None else dt
-    ev.append((0, [da[0], -da[1], -da[2], dv[0], -dv[1], -dv[2], d], to_ned(xn), (0, 0)))
+    tev.append(_t()); ev.append((0, [da[0], -da[1], -da[2], dv[0], -dv[1], -dv[2], d], to_ned(xn), (0, 0)))
     return xn, Pn
 
 
 def w_range(x, P, z, p):
     xn, Pn, acc = _orig["update_range"](x, P, z, p)
-    ev.append((1, [z, 0, 0, 0, 0, 0, 0], to_ned(xn), (int(acc), 0)))
+    tev.append(_t()); ev.append((1, [z, 0, 0, 0, 0, 0, 0], to_ned(xn), (int(acc), 0)))
     return xn, Pn, acc
 
 
@@ -100,13 +105,13 @@ def w_flow(x, P, flow_xy, om, valid, inlier, p):
         flow_xy = np.asarray(flow_xy, np.float32).astype(float); om = np.asarray(om, np.float32).astype(float)
     xn, Pn, (ax, ay) = _orig["update_flow"](x, P, flow_xy, om, valid, inlier, p)
     ok = bool(valid) and inlier > 0 and abs(flow_xy[0]) < p["FLOW_MAX"] and abs(flow_xy[1]) < p["FLOW_MAX"]
-    ev.append((2, [flow_xy[0], flow_xy[1], om[0], -om[1], -om[2], float(ok), 0], to_ned(xn), (int(ax), int(ay))))
+    tev.append(_t()); ev.append((2, [flow_xy[0], flow_xy[1], om[0], -om[1], -om[2], float(ok), 0], to_ned(xn), (int(ax), int(ay))))
     return xn, Pn, (ax, ay)
 
 
 def w_yaw(x, P, p):
     xn, Pn, fired = _orig["update_yaw_pseudo"](x, P, p)
-    ev.append((3, [0] * 7, to_ned(xn), (int(fired), 0)))
+    tev.append(_t()); ev.append((3, [0] * 7, to_ned(xn), (int(fired), 0)))
     return xn, Pn, fired
 
 
@@ -132,7 +137,7 @@ typ = np.array([e[0] for e in ev], np.int8)
 inp = np.array([e[1] for e in ev], float)
 xs = np.array([e[2] for e in ev], float)
 fl = np.array([e[3] for e in ev], np.int8)
-np.savez_compressed(OUT + ".npz", x0=rec["x0"], P0=rec["P0"], type=typ, inputs=inp, x_after=xs, flags=fl)
+np.savez_compressed(OUT + ".npz", x0=rec["x0"], P0=rec["P0"], type=typ, inputs=inp, x_after=xs, flags=fl, time=np.array(tev))
 with open(OUT + ".bin", "wb") as f:                      # C++ harness input
     f.write(b"UKFEV001")
     f.write(struct.pack("<15d", *rec["x0"])); f.write(struct.pack("<225d", *rec["P0"].ravel()))
