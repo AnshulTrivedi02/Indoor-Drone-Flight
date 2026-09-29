@@ -76,8 +76,17 @@ def covariance(sigma_psi_rad):
 
 
 class HeadingCore:
-    def __init__(self, inlier_deg, s_min, sigma_psi_deg, every_n=1):
+    def __init__(self, inlier_deg, s_min, sigma_psi_deg, every_n=1, impl="python"):
         self.inlier_deg, self.s_min, self.every_n = float(inlier_deg), float(s_min), int(every_n)
+        # impl "cpp": the C++ port (src/forward_camera/cpp/libheading.so). NOT for flights until its
+        # equivalence test passes and the user rules on switching (METHODOLOGY "C++ port ...").
+        self.impl = impl
+        if impl == "cpp":
+            import ctypes
+            self._lib = ctypes.CDLL(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cpp", "libheading.so"))
+            self._lib.hc_heading.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint64,
+                                             ctypes.c_double, ctypes.c_double, ctypes.c_void_p, ctypes.c_void_p]
+            self._dout, self._iout = np.zeros(6), np.zeros(6, dtype=np.int32)
         self.sigma = math.radians(sigma_psi_deg)
         self.cov = covariance(self.sigma)
         self.offset = None
@@ -89,6 +98,13 @@ class HeadingCore:
     def measure(self, k, img):
         """Frozen Phase 3 heading on frame k. Returns (psi_deg or None, support, valid, proc_s)."""
         t0 = time.perf_counter()
+        if self.impl == "cpp":
+            img = np.ascontiguousarray(img)
+            self._lib.hc_heading(img.ctypes.data, img.shape[1], img.shape[0], img.strides[0], k, self.inlier_deg,
+                                 self.s_min, self._dout.ctypes.data, self._iout.ctypes.data)
+            dt = time.perf_counter() - t0
+            psi, sup = (float(self._dout[0]), float(self._dout[3])) if self._iout[0] else (None, 0.0)
+            return psi, sup, psi is not None and sup >= self.s_min, dt
         h = F.heading(img, seed=k, inlier_deg=self.inlier_deg)
         dt = time.perf_counter() - t0
         psi, sup = h["psi_deg"], (h["support"] if h["psi_deg"] is not None else 0.0)

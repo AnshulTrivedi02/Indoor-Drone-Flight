@@ -1,0 +1,45 @@
+{
+ "trial": "fwdc_tex_r1",
+ "frames": 10238,
+ "stamps_identical": true,
+ "C1": {
+  "vp_existence_mismatch": [],
+  "validity_mismatch": [],
+  "unexplained": [],
+  "pass": true
+ },
+ "C2": {
+  "max_abs_dpsi_deg": 5.169753514167041e-13,
+  "n_exact": 1996,
+  "n_both": 10213,
+  "pass": true
+ },
+ "C3": {
+  "max_abs_dsupport_px": 0.0,
+  "n_exact": 10213,
+  "pass": true
+ },
+ "C4": {
+  "quality_mismatch": [],
+  "unexplained": [],
+  "pass": true
+ },
+ "timing_ms": {
+  "cpp": {
+   "min": 8.457595,
+   "median": 15.293026000000001,
+   "p95": 16.53899835,
+   "p99": 20.40277240999997,
+   "max": 30.583810999999997
+  },
+  "python_sample": {
+   "min": 48.128499009180814,
+   "median": 55.31048448756337,
+   "p95": 59.76704714121297,
+   "max": 65.53393503418192
+  },
+  "python_n": 512,
+  "note": "single-threaded; nice 19"
+ },
+ "pass": true
+}

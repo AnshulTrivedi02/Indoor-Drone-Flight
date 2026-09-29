@@ -42,9 +42,10 @@ class HeadingBridge(Node):
         self.declare_parameter("every_n", 1)
         self.declare_parameter("sigma_psi_deg", 0.148)
         self.declare_parameter("log_path", "")
+        self.declare_parameter("impl", "python")      # "cpp": C++ port; not for flights until ruled
         n = int(self.get_parameter("every_n").value)
         sig = float(self.get_parameter("sigma_psi_deg").value)
-        self.core = HeadingCore(fz["inlier_deg"], fz["s_min"], sig, n)
+        self.core = HeadingCore(fz["inlier_deg"], fz["s_min"], sig, n, impl=str(self.get_parameter("impl").value))
         lp = self.get_parameter("log_path").value
         self.log = open(lp, "w") if lp else None
         if self.log:

@@ -321,7 +321,7 @@ if [ -n "${HEADING_BRIDGE:-}" ]; then
     start_bg "$LOG_DIR/heading_bridge.log" \
         env PYTHONPATH="$SHIM:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 /usr/bin/python3 "$HOME/thesis_ws/heading_bridge.py" \
         --ros-args -p use_sim_time:=true -p sigma_psi_deg:="$HEADING_SIGMA_DEG" -p every_n:="$HEADING_EVERY_N" \
-        -p log_path:="$LOG_DIR/heading_bridge.csv"
+        -p impl:="${HEADING_IMPL:-python}" -p log_path:="$LOG_DIR/heading_bridge.csv"
     wait_for "heading_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/heading_bridge.log'" 60
 fi
 
@@ -429,8 +429,8 @@ EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"
 if [ -n "${HEADING_BRIDGE:-}" ]; then
-    printf 'heading_bridge:\n  sigma_psi_deg: %s\n  every_n: %s\n  serial1: udpclient 127.0.0.1:14557\n' \
-        "$HEADING_SIGMA_DEG" "$HEADING_EVERY_N" >> "$OUTPUT_DIR/metadata.yaml"
+    printf 'heading_bridge:\n  sigma_psi_deg: %s\n  every_n: %s\n  impl: %s\n  serial1: udpclient 127.0.0.1:14557\n' \
+        "$HEADING_SIGMA_DEG" "$HEADING_EVERY_N" "${HEADING_IMPL:-python}" >> "$OUTPUT_DIR/metadata.yaml"
 fi
 if [ "$FWD_CAMERA" = true ]; then
     echo "forward_camera: true" >> "$OUTPUT_DIR/metadata.yaml"

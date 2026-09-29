@@ -6042,3 +6042,29 @@ Armed 29.63 s → disarmed 362.95 s. Results: `eval/results/ground_test_gt_headi
   - The B4 scorer fix on r1 is queued for the user's confirmation. r2 and r3 were scored with the
     fixed scorer only. Under the original sample-count scorer they would need re-checking. The
     fixed scorer's values are far inside the band.
+
+### C++ heading port — equivalence test RESULT: PASS (all pre-registered bands)
+
+`eval/heading_cpp_equivalence.py` on every frame of `fwdc_tex_r1` (10,238 frames, seed = k, stamps
+identical to Phase 3's `meas_frozen.npz`); `eval/results/heading_cpp_equivalence_fwdc_tex_r1.json`.
+
+| band | result |
+|---|---|
+| RNG (first) | `random()`: 0 of 10,001 seeds differ (first 1,000 values each, bit-identical). `choice`: 0 of 2,000 seeds × 300 RANSAC draws differ |
+| C1 | VP existence and validity identical on **all** frames (0 mismatches, none needing the boundary rule) |
+| C2 | max \|Δψ\| **5.2e-13 deg** (band 1e-6); 1,996 of 10,213 frames bit-identical |
+| C3 | support **identical** on all 10,213 frames |
+| C4 | quality identical on all frames |
+
+- **Per-frame time**, single-threaded, nice 19, no simulation running: **C++ median 15.3 ms**
+  (p95 16.5, p99 20.4, max 30.6). **Python** (the same frames, 512 sampled) median 55.3 ms
+  (p95 59.8). About 3.6× faster.
+- Inside the live node under simulation load, Python took 143–166 ms wall per frame (runs 1–3).
+  That is about 3× its isolated time: CPU contention with Gazebo/SITL/ROS, and the GIL shared with
+  the rclpy executor. `ctypes` releases the GIL during the C++ call.
+- **Wiring:** `HeadingCore(impl="cpp")` (the held patch, applied after the flights) matches
+  `impl="python"` on 26 sampled frames. The node takes `-p impl:=cpp`, and `run_trial.sh` passes
+  `HEADING_IMPL` (default `python`, recorded in metadata).
+- **The C++ path is NOT used in any flight until the user rules on switching.** The next step is a
+  SITL ground test, `gt_heading_cpp` (`HEADING_IMPL=cpp`, `every_n` 4, 330 s armed hold,
+  otherwise as run 3), for latency. DIAGNOSTIC; G1–G5 reported for comparison with run 3.
