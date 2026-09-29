@@ -241,7 +241,7 @@ class FlowTracker(Node):
             #       Z_opt=X_mount -> (wy, -wx, wz) = (pitchspeed, -rollspeed, yawspeed)
             # For small angles near the image centre, rotational pixel flow
             # reduces to (u_rot, v_rot) = (-f*wy_cam, f*wx_cam), which combines to:
-            #     flow_x_rot = -FOCAL_LENGTH_PX * rollspeed
+            #     flow_x_rot = -FOCAL_LENGTH_PX * rollspeed   [WRONG sign, see below]
             #     flow_y_rot = +FOCAL_LENGTH_PX * pitchspeed
             # NOTE: the roll term's sign was flipped from the original derivation
             # (+f*rollspeed) after pure-rotation hover testing showed the
@@ -272,7 +272,12 @@ class FlowTracker(Node):
                 interval_start, current_time
             ) if interval_start is not None else (0.0, 0.0, 0.0)
 
-            flow_x_rot = -FOCAL_LENGTH_PX * rollspeed
+            # CORRECTED 2026-09-29: roll term back to +f*rollspeed (the ORIGINAL
+            # derivation). The flip described above came from a hover test confounded by
+            # the ~17 Hz roll tone; data with real lateral excitation and the lag pinned by
+            # the forward axis gives flow_x ~ +1.5*rollspeed. METHODOLOGY "FINDING -
+            # lateral optical-flow sign".
+            flow_x_rot = FOCAL_LENGTH_PX * rollspeed
             flow_y_rot = FOCAL_LENGTH_PX * pitchspeed
 
             if enable_derotation:

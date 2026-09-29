@@ -23,6 +23,16 @@ flow_rate_x/y parameter, unless MAVLINK20=1 is set before importing
 pymavlink, which switches to the v20 dialect module). That must happen
 before the `from pymavlink import mavutil` import below.
 
+CORRECTION 2026-09-29: the X mapping derived below was WRONG (kept for history).
+Data (cl_ekf3_tex, 1.56 m/s rms lateral) gives flow_x_rad = +v_left/h + ~1.5*p and
+flow_y_rad = +v_fwd/h + ~1.2*q (FRD rates), which is exactly ArduPilot's raw-flow
+convention (flowRadXY = -raw, comp = flowRadXY + bodyRate, AP_NavEKF3_Measurements.cpp
+:221,227-228; losPred = (+v_right/h, -v_fwd/h), OptFlowFusion.cpp:334-335). So
+flow_rate_x = +flow_x_rad and flow_rate_y = +flow_y_rad. The premise below
+(flow_x_rot = -FOCAL*rollspeed) was the untested term. METHODOLOGY "FINDING - lateral
+optical-flow sign".
+
+ORIGINAL (superseded) derivation:
 Axis/sign mapping: flow_x_rad/flow_y_rad (from /optical_flow/measurement)
 are in the camera's optical/pixel frame (X=image-right, Y=image-down; see
 flow_tracker.py). This is best-derived, not empirically confirmed - derived
@@ -118,9 +128,10 @@ class FlowBridge(Node):
         time_usec = (self.get_clock().now().nanoseconds - self._start_ns) // 1_000
         quality = min(max(round(msg.inlier_ratio * 255.0), 0), 255)
 
-        # Best-derived axis/sign mapping - see module docstring. Verify via a
-        # known-direction flight before trusting fused output.
-        flow_rate_x = -msg.flow_x_rad
+        # Axis/sign mapping - see module docstring. CORRECTED 2026-09-29: X was
+        # -flow_x_rad (derived, never tested laterally) and is +flow_x_rad, from the
+        # closed-loop lateral excursion (METHODOLOGY "FINDING - lateral optical-flow sign").
+        flow_rate_x = msg.flow_x_rad
         flow_rate_y = msg.flow_y_rad
 
         self.master.mav.optical_flow_send(

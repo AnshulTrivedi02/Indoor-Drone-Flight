@@ -208,6 +208,15 @@ against ground truth would quantify it directly. Figures:
 
 ## Lateral-flow derotation coupling — characterised; two fixes refuted by the empirical gate; leak mechanism quantified (acceptance-driven, unobservable-yaw); nomag ordering null
 
+> **⚠️ SUPERSEDED IN PART (2026-09-29), kept unedited below as history.** The shared `h_flow`
+> lateral row was wrong in BOTH terms: the translation was negated as well as the rotation
+> (see "FINDING — lateral optical-flow sign"). The 2026-08-01 flip below changed only the
+> rotation term. That left the row inconsistent, which is why it made the UKF worse; it was
+> not evidence that `−rollspeed` was right. The `−2.07·rollspeed` residual below is what a
+> whole-row sign error predicts: model `(−v, −ω)` against measured `(+v, +~1.5ω)`. The
+> "acceptance-driven flow→yaw leak" quantification was made with the wrong lateral row and
+> is on the batched corrections list (iv).
+
 **What is real.** The shared `h_flow`'s lateral-flow prediction carries a large
 roll-rate-coupled residual against the measured flow: `lateral_residual =
 −2.07·rollspeed` (stable ±0.02 across `dsn_tex_r1/r2/r3`, corr −0.94), tracking roll
@@ -4142,3 +4151,132 @@ the co-sampled `/imu/data_raw` gyro, FLU, h = camera height):
 
 **Status:** fix proposed, and the re-fly batch is held pending the user's ruling. The
 proposed fix and verification are in the session report.
+
+## Lateral flow sign — rulings, fix and verification (2026-09-29)
+
+**Ruling (user, 2026-09-29).** The diagnosis and fix are accepted. The full history stays
+visible, with entries marked rather than erased:
+- the original model (`SIGN_X = −1`, `−ω_x`; `flow_bridge` `−flow_x_rad`, since Stage A);
+- the 2026-08-01 partial flip and why it made the UKF worse (the section marked above);
+- the wrong "retraction" in the closed-loop section and its withdrawal (both kept there).
+
+**Fix applied** (one commit; data untouched):
+- `flow_bridge.py`: `flow_rate_x = +flow_x_rad` (was `−`).
+- `measurement_models.h_flow_pose`: `flow_x = +v_left/h + ω_x` (`SIGN_X = +1`, rotation
+  `+ω_x`) and `flow_y = +v_fwd/h − ω_y` (rotation was `+ω_y`). The lever arm and forward
+  translation are unchanged.
+- `flow_tracker.py` (characterisation-only `flow_x`/`flow_y`): roll term back to
+  `+FOCAL·rollspeed`, the original derivation; the flip had come from the confounded hover
+  test. The pitch term is unchanged, since it is `+pitchspeed` in FRD and already matched.
+- The UKF and FGO both call `h_flow_pose`, so one change covers both.
+
+**Open item (ruling 3, not acted on):** the rotation-term magnitude is ~1.4–1.6 × the
+filtered gyro on X and ~1.2 on Y. It is consistent with the 20 Hz 2-pole INS filter
+attenuating the ~17 Hz roll tone. It is not changed unless check 2b fails its |FIX|
+criterion, and then only after reporting.
+
+### Check 2a — fixed model against the closed-loop bag: PASS
+
+On `cl_ekf3_tex` (248 airborne frames, 1.56 m/s rms lateral), measured `flow_x_rad` against
+the fixed `h_flow_pose` (GT pose and velocity, interval-averaged co-sampled gyro):
+- **slope +0.959, correlation +0.992** (0.3 s smoothing);
+- +0.906 to +0.960 across smoothing windows of 1–15 frames;
+- +0.957 to +0.960 over |v_left| > 0.3 m/s only.
+
+The band was +0.8 to +1.2. The old model gave −0.96 / −0.99.
+- **Side effect on the forward axis:** correlation 0.298 → 0.978, slope 0.84 → 1.00, from
+  the corrected `flow_y` rotation sign.
+
+### Check 2b — open-loop check flight with a sideways step: pre-registration (before flying)
+
+**Flight** `lfs_check_tex`. It is not part of any dataset.
+- World `corridor_textured_fwdc`, flown on simulator truth (`AHRS_EKF_TYPE 10`).
+- The fixed bridge, time sync on, `FLOW_POS_Z 0.25`, `LOG_REPLAY 1`, `LOG_DISARMED 1`.
+- The standard mission plus `SIDESTEP=60,0.5,6`: from 60 s of cruise, command +0.5 m/s East
+  for 6 s and then −0.5 m/s for 6 s, back to the centreline. The peak offset is 3 m, and
+  forward speed is unchanged. `fly_trial.py`'s `SIDESTEP` is unset for every dataset.
+
+**Pass criteria (fixed by the ruling):**
+1. airborne mean |FIX| ≤ 150;
+2. `XKF5` rejections (NI ≥ 100, airborne) ≤ 1%;
+3. over the step window (step start − 1 s to step end + 2 s), the least-squares slope of
+   EKF3's `XKF1` lateral velocity on GT lateral velocity is 0.8 to 1.2;
+4. over the same window, the fixed `h_flow_pose` prediction against measured `flow_x_rad`
+   has slope 0.8 to 1.2 (the 2a method).
+
+**Basis and margin for |FIX| ≤ 150, and the prediction.**
+- **Method.** The OF log records exactly the (raw flow, body rate) pair that EKF3 fuses. So
+  the post-fix compensated flow can be reconstructed from existing logs as
+  `comp_new = OF.flowX + OF.bodyX`, against the old `−OF.flowX + OF.bodyX`. The innovation
+  is |losPred − comp|, with losPred = v_right/h from truth or from EKF3's own state (the two
+  agree within 5%).
+- **Validation.** The method reproduces the old logged |FIX| on textured bags:
+
+| bag | logged | reconstructed |
+|---|---|---|
+| `tsx_on_tex` | 402 | 387 |
+| `tsx_off_tex` | 414 | 389 |
+| `dsn_tex_r1` | 446 | 428 |
+| `fwdc_tex_r1` | 326 | 310 |
+| `fwdplainc_tex_r1` | 344 | 332 |
+
+  It overestimates on transition bags (277 → 402), where fewer blank-half samples are fused.
+- **Prediction after the fix: |FIX| ≈ 250–380** (`dsn_tex_r1` 249–264, `tsx` 302–308,
+  `fwdc_tex_r1` 383, `fwdplainc_tex_r1` 369). **Criterion 1 is therefore PREDICTED TO FAIL.**
+- **Why.** Correcting the sign removes the reversed translation, but it does not make EKF3's
+  roll cancellation work. `AP_OpticalFlow_MAV` averages the gyro over the flow-message
+  *arrival* interval (`gyro_sum` between messages), not the camera's capture interval. The
+  roll content is a ~17 Hz tone, so that pairing is phase-incoherent in either sign. The
+  OF-log body-rate coefficient on X was −0.78 / −0.36 / +0.32 across bags.
+- **Consequence.** This is the rotation-term (timing/magnitude) open item, not the sign. No
+  sign-only fix can meet ≤ 150. The ruled band stands as fixed; this pre-flight prediction
+  is recorded so that a failure is not read as a failed sign fix.
+- **Other criteria predicted to pass:** 3 (EKF3 now sees lateral motion with the right sign)
+  and 4 (the 2a result, slope about 0.96).
+- **Rule:** if any criterion fails, stop and report. Check 2c and the batch do not proceed.
+
+### Excitation checks — methodology note (ruling 7)
+
+Open-loop straight flights cannot detect sign errors on axes they do not excite. Every open
+dataset has lateral speed ≤ 0.014 m/s rms, so a negated lateral flow row was invisible from
+Stage A until the first closed-loop flight. Closed-loop flight and deliberate excitation
+manoeuvres (the `SIDESTEP` hook) do excite those axes.
+**Standing rule from 2026-09-29: any new sensor model gets an excitation check before use.**
+Each axis it measures must be excited deliberately, and its sign and scale regressed against
+truth.
+
+### Records (rulings 5 and 6)
+
+- **Trial folders moved (2026-09-29).**
+  - The 42 pre-re-run folders that share names with re-flown trials are in
+    `~/thesis_data/trials_pre_rerun/`, moved and not deleted: 6 `p1c_*`, 9 `dsn_*`,
+    9 `fwdc_*`, 9 `fwdplainc_*`, 9 `ds_*`.
+  - Every trial name referenced in `eval/results/` and `docs/thesis/` is present there with
+    its `bag/`.
+  - The results files hold trial names, not absolute paths, so their numbers stay traceable
+    to `trials_pre_rerun/<name>`.
+  - **72 absolute symlinks** (the `dsn_tex_r*_oi2*` variant folders, the Phase 5b and
+    UKF-dt-check sandboxes) pointed into `trials/<moved name>/`. They were broken by the move
+    and would have silently resolved to the NEW data after the re-fly. They were retargeted to
+    `trials_pre_rerun/`, and no broken links remain under `~/thesis_data`.
+  - `plots/lateral_checks.py` hardcodes `trials/dsn_tex_r3`. It is a script, and after the
+    re-fly it reads the new data (the restatement).
+- **`cl_ekf3_tex` is a diagnostic record, not a dataset.** It is incomplete: the flight was
+  killed at the wall, there is no `metadata.yaml`, `ardupilot.bin` was hand-copied from
+  `logs/00000082.BIN`, and the bag ran about 12 min past the breach until the recorder was
+  stopped by hand. It is used only for the sign diagnosis and check 2a.
+- **Batched correction (iv): the lateral flow sign** (EKF3 bridge and `h_flow_pose`). Every
+  exposed result is restated after the re-run:
+  - the heading share (69% restated; originally 74%);
+  - the Phase 5 drift decomposition (errV, heading part, residual, correlations);
+  - all cross-track numbers (EKF3/UKF/FGO lateral error, onset, displacement ratio);
+  - the flow→yaw coupling / acceptance-driven leak finding (FINDING 4) and the 2026-08-01
+    derotation-coupling characterisation;
+  - the Phase 4 arm magnitudes (evo -a (cruise), yaw error, gyro-bias, NIS, acceptance);
+  - the Phase 5 verdicts and the Phase 5b NEES and heading-S results;
+  - the scale check (forward, but it uses the shared model);
+  - EKF3 lateral noise (|FIX|, XKF5 rejections, lateral-velocity error);
+  - the dejittered `dsn` baseline tables and every cross-estimator ATE.
+- **`sweep_v*`:** not cited for anything on the lateral axis. `analyse_flow_sweep.py` uses
+  median |`flow_y`| (forward), and METHODOLOGY cites `sweep_v*` only as skipped. It **stays
+  skipped.**

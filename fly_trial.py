@@ -297,11 +297,22 @@ def cruise(master, velocity: float, duration_s: float, wall_clock_cap_s: float =
     log(f"Cruising forward at {velocity:.2f} m/s for {duration_s:.1f} s of SIM time "
         f"(wall-clock cap {wall_clock_cap_s:.0f}s)...")
 
+    # Optional SIDESTEP="t_start,v_east,T" (check flights only; unset for datasets = no
+    # change): from t_start s of cruise, command v_east m/s East for T s, then -v_east for
+    # T s back to the centreline, forward speed unchanged. A deliberate lateral excitation
+    # (METHODOLOGY "Excitation checks"), added 2026-09-29 for the lateral-flow-sign check.
+    step = [float(v) for v in os.environ.get("SIDESTEP", "").split(",")] if os.environ.get("SIDESTEP") else None
+    if step:
+        log(f"SIDESTEP: {step[1]:+.2f} m/s East for {step[2]:.1f} s from cruise t={step[0]:.1f} s, then back")
     start_sim_t = sim_time_now_s(master)
     t0 = time.time()
     last_sim_elapsed = 0.0
     while time.time() - t0 < wall_clock_cap_s:
-        send_velocity(master, velocity, 0.0, 0.0)
+        v_east = 0.0
+        if step:
+            dt_s = last_sim_elapsed - step[0]
+            v_east = step[1] if 0.0 <= dt_s < step[2] else (-step[1] if step[2] <= dt_s < 2 * step[2] else 0.0)
+        send_velocity(master, velocity, v_east, 0.0)
         try:
             now_sim_t = sim_time_now_s(master, timeout_s=0.5)
         except TrialFailure:

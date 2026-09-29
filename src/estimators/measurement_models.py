@@ -10,9 +10,13 @@ Frames/signs pinned from source, not guessed:
   - h_cam = p_U - 0.25 (camera below base_link); == lidar_range - 0.13, FGO §0.
   - h_flow: RAW angular flow (translational + rotational) in the camera-optical
     axes, matching what flow_tracker.py publishes and estimators consume
-    (flow_tracker.py:275-276: flow_x_rot=-rollspeed, flow_y_rot=+pitchspeed).
-    Translational sign from validated Stage A: forward v_body.x -> +flow_y.
-    SIGN_X (lateral -> flow_x) is the empirical pin-point (design note).
+    CORRECTED 2026-09-29 (METHODOLOGY "FINDING - lateral optical-flow sign"), from data
+    with real lateral excitation (cl_ekf3_tex) and the roll tone at the forward axis's lag:
+        flow_x = +v_left/h + omega_x      flow_y = +v_fwd/h - omega_y      (FLU rates)
+    Previously flow_x = -v_left/h - omega_x (whole lateral row negated) and
+    flow_y_rot = +omega_y (an FRD->FLU slip: flow_tracker's +pitchspeed is FRD).
+    Forward translation (Stage A) was always right. Rotation MAGNITUDE (~1.4-1.5 x the
+    filtered gyro on X) is an open item, not modelled.
 """
 import numpy as np
 
@@ -29,8 +33,9 @@ RANGE_LEVER = 0.12                                   # LiDAR below base_link
 CAM_OFFSET = 0.25                                    # camera below base_link
 FLOW_LEVER_ARM_BODY = np.array([0.0, 0.0, -CAM_OFFSET])  # FLU
 H_MIN = 0.10
-# translational flow signs (Stage A: forward -> +flow_y; SIGN_X is the pin)
-SIGN_X = -1.0
+# translational flow signs (Stage A: forward -> +flow_y). SIGN_X was -1.0 until
+# 2026-09-29 (never tested laterally); +1.0 from the closed-loop lateral excursion.
+SIGN_X = +1.0
 SIGN_Y = +1.0
 
 
@@ -72,8 +77,12 @@ def h_flow_pose(R_wb, v_world, p_U, omega_body):
     # estimator got worse and the UKF innovation flipped (+0.71 -> -0.69) rather than
     # zeroing. The EKF3-vs-UKF innovation comparison that motivated it was flawed (EKF3's
     # FIX is post-derotation, the UKF's nu is full-model — not comparable). See METHODOLOGY.
-    flow_x_rot = -omega_body[0]                        # -rollspeed (unchanged; see note)
-    flow_y_rot = +omega_body[1]                        # +pitchspeed
+    # NOTE (2026-09-29): the 2026-08-01 test above flipped ONLY the rotation term, leaving
+    # the translation still negated, so the lateral row stayed inconsistent - which is
+    # why it made the UKF worse. The whole row was wrong. Both terms are now corrected
+    # together, and flow_y_rot's FLU sign is fixed (was +omega_y, i.e. -pitchspeed FRD).
+    flow_x_rot = +omega_body[0]                        # +roll rate  (was -omega_x)
+    flow_y_rot = -omega_body[1]                        # +pitchspeed FRD = -omega_y FLU (was +omega_y)
     return np.array([flow_x_trans + flow_x_rot, flow_y_trans + flow_y_rot])
 
 
