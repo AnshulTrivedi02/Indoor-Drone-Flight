@@ -63,7 +63,8 @@ t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 sig_fwd = FWD_SIGMA[fwd_dataset(TRIAL)] if ARM not in (None, "baseline") else None
-fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd, fwd_gate=FWD_CHI2_GATE)
+fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd, fwd_gate=FWD_CHI2_GATE,
+          log_cov=bool(os.environ.get("FGO_COV_LOG")))   # diagnostic covariance log (Phase 5b)
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init)
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 
@@ -117,8 +118,10 @@ for tt, kind, d in ev:
             flow_pend = None; rng_pend = None; fwd_pend = None
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
-fl = np.array(fgo.fwd_log).reshape(-1, 4)
-np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl)
+fl = np.array([r[:4] for r in fgo.fwd_log]).reshape(-1, 4)          # (t, kind, nis, ok): unchanged format
+fS = np.array([r[4] for r in fgo.fwd_log])                              # innovation covariance S (Phase 5b)
+np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl,
+                    fwd_S=fS, cov_log=np.array(fgo.cov_log).reshape(-1, 5))
 cnt = {"psi_valid": int((fl[:, 1] == 0).sum()), "psi_fused": int(((fl[:, 1] == 0) & (fl[:, 3] > 0)).sum()),
        "omega_valid": int((fl[:, 1] == 1).sum()), "omega_fused": int(((fl[:, 1] == 1) & (fl[:, 3] > 0)).sum())}
 json.dump({"arm": ARM, "counts": cnt, "sigma": sig_fwd and {k: (None if v is None else float(v)) for k, v in sig_fwd.items()},

@@ -85,6 +85,7 @@ fwd_avg = FlowFrameGyroAverager(t_init)      # same, over the forward-frame inte
 sig_fwd = FWD_SIGMA.get(fwd_dataset(TRIAL) or "", {}) if ARM not in (None, "baseline") else {}
 fwd_n = {"psi_valid": 0, "psi_fused": 0, "omega_valid": 0, "omega_fused": 0}
 nis_psi, nis_om = [], []
+S_psi = []                       # heading innovation covariance per tested measurement (Phase 5b)
 tim = {"predict": [], "range": [], "flow": [], "fwd": []}     # wall-clock ns per call (DIAGNOSTIC)
 DUMP = os.environ.get("UKF_DUMP")      # diagnostic only: full state per predict + flow pred/meas; no effect on the filter
 dump_x, dump_flow = [], []
@@ -141,7 +142,7 @@ for t, kind, d in ev:
         if psi_m is not None:
             fwd_n["psi_valid"] += 1
             x, P, a, nis = U.update_heading(x, P, psi_m, sig_fwd["psi"], FWD_CHI2_GATE, p)
-            fwd_n["psi_fused"] += a; nis_psi.append((t, nis, a))
+            fwd_n["psi_fused"] += a; nis_psi.append((t, nis, a)); S_psi.append(U.update_heading.last_S)
         if om_m is not None:
             fwd_n["omega_valid"] += 1
             x, P, a, nis = U.update_yawrate(x, P, om_m, gz, sig_fwd["omega"], FWD_CHI2_GATE, p)
@@ -151,7 +152,8 @@ traj = np.array(traj)
 if DUMP:
     np.savez_compressed(DUMP, x=np.array(dump_x), flow=np.array(dump_flow))
 np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", **{f"t_{k}_ns": np.array(v, np.int64) for k, v in tim.items()},
-                    nis_psi=np.array(nis_psi).reshape(-1, 3), nis_omega=np.array(nis_om).reshape(-1, 3))
+                    nis_psi=np.array(nis_psi).reshape(-1, 3), nis_omega=np.array(nis_om).reshape(-1, 3),
+                    S_psi=np.array(S_psi))
 json.dump({"arm": ARM, "counts": fwd_n, "sigma": {k: (None if v is None else float(v)) for k, v in sig_fwd.items()},
            "gate": FWD_CHI2_GATE}, open(f"{OUTDIR}/fwd_stats.json", "w"), indent=1)
 

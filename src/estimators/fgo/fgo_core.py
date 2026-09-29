@@ -38,8 +38,13 @@ ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
 
 
 class FGO:
-    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0):
+    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0,
+                 log_cov=False):
         self.kf_dt = kf_dt
+        # Diagnostic (Phase 5b): run the gate-only filtering covariance recursion and log the
+        # keyframe position/yaw covariance, in any arm. It never touches the smoother.
+        self.log_cov = log_cov or fwd_sigma is not None
+        self.cov_log = []          # (t, world pos cov xx, xy, yy, yaw var)
         # Phase 4 forward camera: None = baseline (no forward factors, no gate recursion).
         self.fwd_sigma, self.fwd_gate = fwd_sigma, fwd_gate
         self.fwd_log = []          # (t, kind, nis, accepted)
@@ -92,7 +97,7 @@ class FGO:
         g.add(PriorFactorConstantBias(B(0), bias0, gtsam.noiseModel.Diagonal.Sigmas(bias_sig)))
         vals.insert(X(0), pose0); vals.insert(V(0), vel0); vals.insert(B(0), bias0)
         self.smoother.update(g, vals, _tsmap({X(0): t0, V(0): t0, B(0): t0}))
-        if self.fwd_sigma is not None:
+        if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
         self.prev_pose, self.prev_vel, self.prev_bias = pose0, vel0, bias0
         self.t_last = t0; self.yaw_ref = 0.0
@@ -130,8 +135,12 @@ class FGO:
         ts = {X(k): t, V(k): t, B(k): t}
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
-        if self.fwd_sigma is not None:
+        if self.log_cov:
             self.cov_prev = self._posterior_cov(g, est, km1, k)
+            Rk = est.atPose3(X(k)).rotation().matrix()
+            Pw = Rk @ self.cov_prev[3:6, 3:6] @ Rk.T          # body-frame translation tangent -> world
+            Hy = F._jac_pose(lambda p_, v_, b_: np.array([p_.rotation().yaw()]), est.atPose3(X(k)), None, None, 1)
+            self.cov_log.append((t, Pw[0, 0], Pw[0, 1], Pw[1, 1], float(Hy @ self.cov_prev[0:6, 0:6] @ Hy.T)))
         self.prev_pose = est.atPose3(X(k)); self.prev_vel = est.atVector(V(k)); self.prev_bias = est.atConstantBias(B(k))
         self.pim.resetIntegrationAndSetBias(self.prev_bias)
         self.k = k; self.t_last = t
@@ -190,7 +199,7 @@ class FGO:
             ok = bool(np.isfinite(nis) and nis <= self.fwd_gate)
             if ok:
                 g.add(f)
-            self.fwd_log.append((t, 0, float(nis), ok))
+            self.fwd_log.append((t, 0, float(nis), ok, S))
         if om is not None:
             e = (gz - self.prev_bias.gyroscope()[2]) - om
             S = float(cBB[5, 5]) + self.fwd_sigma["omega"] ** 2
@@ -198,7 +207,7 @@ class FGO:
             ok = bool(np.isfinite(nis) and nis <= self.fwd_gate)
             if ok:
                 g.add(F.yawrate_factor(self.yawrate_noise, B(k), om, gz))
-            self.fwd_log.append((t, 1, float(nis), ok))
+            self.fwd_log.append((t, 1, float(nis), ok, S))
 
     def _posterior_cov(self, g, est, km1, k):
         v = self._values(km1, k, est.atPose3(X(k)), est.atVector(V(k)), est.atConstantBias(B(k)), src=est)

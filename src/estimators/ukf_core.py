@@ -253,6 +253,7 @@ def update_heading(x, P, psi, sigma, gate, p):
     S = Wc @ (dz * dz) + sigma ** 2
     nu = _wrap(psi - x[8]) - zpred
     nis = nu * nu / S
+    update_heading.last_S = float(S)             # innovation covariance, for diagnostics (Phase 5b)
     if not np.isfinite(nis) or nis > gate:
         return x, P, False, float(nis)
     Pxz = np.zeros(N)
