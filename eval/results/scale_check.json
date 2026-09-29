@@ -1,0 +1,656 @@
+{
+ "fwdc_tex_r1": {
+  "flow": {
+   "flow_y_slope": 1.0094453411601407,
+   "flow_y_median_ratio": 1.007216185995758,
+   "n": 9029,
+   "pred_flow_y_median": 0.24193944455101107
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0679460221027242,
+   "height_bias_mean_m": -0.09325315568068912,
+   "true_height_mean_m": -2.1002748900298105,
+   "disp_ratio": 1.0485826338823805
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8378183379496704,
+   "height_bias_mean_m": 0.014023718393037845,
+   "true_height_mean_m": 2.298565090908363,
+   "disp_ratio": 0.6828498273993893
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8507842016624217,
+   "height_bias_mean_m": 0.01400976832844478,
+   "true_height_mean_m": 2.298565090908363,
+   "disp_ratio": 0.8490847782633277
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0126852754047466,
+   "height_bias_mean_m": 0.011119617702803643,
+   "true_height_mean_m": 2.29856189714431,
+   "disp_ratio": 0.9850707704279431
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0132267953404437,
+   "height_bias_mean_m": 0.011316111245137237,
+   "true_height_mean_m": 2.29856189714431,
+   "disp_ratio": 1.0141227677585916
+  }
+ },
+ "fwdc_tex_r2": {
+  "flow": {
+   "flow_y_slope": 1.0096213906933702,
+   "flow_y_median_ratio": 1.008675668574179,
+   "n": 9029,
+   "pred_flow_y_median": 0.24309850141913855
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0683082536002122,
+   "height_bias_mean_m": -0.07334504370860927,
+   "true_height_mean_m": -2.093043775827814,
+   "disp_ratio": 1.0439308204743964
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8381977433893271,
+   "height_bias_mean_m": 0.014571701429852917,
+   "true_height_mean_m": 2.2895217497999605,
+   "disp_ratio": 0.5035915799890789
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8499470962902894,
+   "height_bias_mean_m": 0.014550928759045463,
+   "true_height_mean_m": 2.2895217497999605,
+   "disp_ratio": 0.8493659946855209
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0118784338394784,
+   "height_bias_mean_m": 0.01156161427674713,
+   "true_height_mean_m": 2.2895176936278676,
+   "disp_ratio": 0.988097233480639
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0127137338587255,
+   "height_bias_mean_m": 0.011795837173633857,
+   "true_height_mean_m": 2.2895176936278676,
+   "disp_ratio": 1.014616897483719
+  }
+ },
+ "fwdc_tex_r3": {
+  "flow": {
+   "flow_y_slope": 1.0093448805937661,
+   "flow_y_median_ratio": 1.0068009795812,
+   "n": 9022,
+   "pred_flow_y_median": 0.24203864126872549
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0698592560840088,
+   "height_bias_mean_m": -0.09408844996686562,
+   "true_height_mean_m": -2.1000096951623584,
+   "disp_ratio": 1.0432569667045772
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8347883244117589,
+   "height_bias_mean_m": 0.014055438189752831,
+   "true_height_mean_m": 2.2982817103856537,
+   "disp_ratio": 0.8337280588791561
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.849646613275723,
+   "height_bias_mean_m": 0.014005257741242063,
+   "true_height_mean_m": 2.2982817103856537,
+   "disp_ratio": 0.8491214713707279
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0111143712735378,
+   "height_bias_mean_m": 0.011248370250985122,
+   "true_height_mean_m": 2.2982850861626707,
+   "disp_ratio": 0.980857637511474
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0124629120320963,
+   "height_bias_mean_m": 0.011831461622104335,
+   "true_height_mean_m": 2.2982850861626707,
+   "disp_ratio": 1.0147784663947703
+  }
+ },
+ "fwdc_trans_r1": {
+  "flow": {
+   "flow_y_slope": 0.938643219682422,
+   "flow_y_median_ratio": 0.9995824328234848,
+   "n": 5181,
+   "pred_flow_y_median": 0.24462783879524735
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.037682231551173,
+   "height_bias_mean_m": -0.08924231158940406,
+   "true_height_mean_m": -2.0842265039735093,
+   "disp_ratio": 0.5639312285111355
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8514307184359733,
+   "height_bias_mean_m": 0.007342835490988192,
+   "true_height_mean_m": 2.2797681885575063,
+   "disp_ratio": 0.5668930417045644
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.866949365907862,
+   "height_bias_mean_m": 0.007250857402942877,
+   "true_height_mean_m": 2.2797681885575063,
+   "disp_ratio": 0.7588249078066311
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0363202273568715,
+   "height_bias_mean_m": 0.004886481772402378,
+   "true_height_mean_m": 2.2797672691934876,
+   "disp_ratio": 0.7125241601481791
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0364695502725354,
+   "height_bias_mean_m": 0.004959795603951116,
+   "true_height_mean_m": 2.2797672691934876,
+   "disp_ratio": 0.9111460695041361
+  }
+ },
+ "fwdc_trans_r2": {
+  "flow": {
+   "flow_y_slope": 0.940766153665499,
+   "flow_y_median_ratio": 0.9984412131266599,
+   "n": 5166,
+   "pred_flow_y_median": 0.24229446902927798
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.03825401424178,
+   "height_bias_mean_m": -0.09225834282875138,
+   "true_height_mean_m": -2.101017507784034,
+   "disp_ratio": 0.5582323159207573
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8519601109174648,
+   "height_bias_mean_m": 0.006757818826164277,
+   "true_height_mean_m": 2.2990817931682708,
+   "disp_ratio": 0.9626312743103496
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8627901149812605,
+   "height_bias_mean_m": 0.006733734606746612,
+   "true_height_mean_m": 2.2990817931682708,
+   "disp_ratio": 0.7630351791111211
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0316153303817837,
+   "height_bias_mean_m": 0.004279778238411337,
+   "true_height_mean_m": 2.2990828570011557,
+   "disp_ratio": 0.7038314140993909
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0318150716477583,
+   "height_bias_mean_m": 0.004405392502045693,
+   "true_height_mean_m": 2.2990828570011557,
+   "disp_ratio": 0.9139260164903752
+  }
+ },
+ "fwdc_trans_r3": {
+  "flow": {
+   "flow_y_slope": 0.9366714909965139,
+   "flow_y_median_ratio": 1.0003015264041992,
+   "n": 5189,
+   "pred_flow_y_median": 0.24332013101397695
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.036383815797333,
+   "height_bias_mean_m": -0.08492564838816893,
+   "true_height_mean_m": -2.0975122555666332,
+   "disp_ratio": 0.5465429470065413
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8540018400585139,
+   "height_bias_mean_m": 0.006102532997966365,
+   "true_height_mean_m": 2.2902837342571702,
+   "disp_ratio": 0.9083618947324159
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8670367248942425,
+   "height_bias_mean_m": 0.006014972654858444,
+   "true_height_mean_m": 2.2902837342571702,
+   "disp_ratio": 0.7627211075154311
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.038466065869882,
+   "height_bias_mean_m": 0.003875522816401187,
+   "true_height_mean_m": 2.290283917405205,
+   "disp_ratio": 0.7103119181198103
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0379282216372154,
+   "height_bias_mean_m": 0.003944585198672653,
+   "true_height_mean_m": 2.290283917405205,
+   "disp_ratio": 0.9145405184501239
+  }
+ },
+ "fwdc_blank_r1": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.21726559469900386,
+   "height_bias_mean_m": -0.09163020344599086,
+   "true_height_mean_m": -2.100732695825049,
+   "disp_ratio": 0.18078631238698464
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.2576331025776901,
+   "height_bias_mean_m": 0.0004203076386738604,
+   "true_height_mean_m": 2.2989246995709522,
+   "disp_ratio": 1.2340625199514412
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.2806780050473323,
+   "height_bias_mean_m": 0.00032395749945349694,
+   "true_height_mean_m": 2.2989246995709522,
+   "disp_ratio": 1.270694260219274
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.5528426491434888,
+   "height_bias_mean_m": -0.0016884347809768387,
+   "true_height_mean_m": 2.2989209947058638,
+   "disp_ratio": 1.5135616608870393
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.5520139437061524,
+   "height_bias_mean_m": -0.001686584565578629,
+   "true_height_mean_m": 2.2989209947058638,
+   "disp_ratio": 1.5555197285007851
+  }
+ },
+ "fwdc_blank_r2": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.2328772409373339,
+   "height_bias_mean_m": -0.09032836303411726,
+   "true_height_mean_m": -2.093133873799271,
+   "disp_ratio": 0.22257961321784395
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.2658698776218458,
+   "height_bias_mean_m": 0.0005037430894798934,
+   "true_height_mean_m": 2.289562630804545,
+   "disp_ratio": 1.241994474840708
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.288593560251069,
+   "height_bias_mean_m": 0.00041191005438694106,
+   "true_height_mean_m": 2.289562630804545,
+   "disp_ratio": 1.2843018551553682
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.5712298986311202,
+   "height_bias_mean_m": -0.0015163087833124694,
+   "true_height_mean_m": 2.2895649050943354,
+   "disp_ratio": 1.5290355954855217
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.569541937492403,
+   "height_bias_mean_m": -0.0015035379637851896,
+   "true_height_mean_m": 2.2895649050943354,
+   "disp_ratio": 1.5699336672433337
+  }
+ },
+ "fwdc_blank_r3": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.22182211085989892,
+   "height_bias_mean_m": -0.08603264996682156,
+   "true_height_mean_m": -2.1065117986065034,
+   "disp_ratio": 0.19546310540884432
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.246395992580748,
+   "height_bias_mean_m": -0.0013909571177463302,
+   "true_height_mean_m": 2.300099773733805,
+   "disp_ratio": 1.2224876751803528
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.2692131033451655,
+   "height_bias_mean_m": -0.0014822315465382087,
+   "true_height_mean_m": 2.300099773733805,
+   "disp_ratio": 1.2710981781026804
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.549426261732912,
+   "height_bias_mean_m": -0.003398203462255846,
+   "true_height_mean_m": 2.3000964615909885,
+   "disp_ratio": 1.5170140280106472
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.5491000482603774,
+   "height_bias_mean_m": -0.0033937011397608256,
+   "true_height_mean_m": 2.3000964615909885,
+   "disp_ratio": 1.5593321073198032
+  }
+ },
+ "fwdplainc_tex_r1": {
+  "flow": {
+   "flow_y_slope": 1.0093374899530965,
+   "flow_y_median_ratio": 1.006886647057013,
+   "n": 9024,
+   "pred_flow_y_median": 0.24195368945488266
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.067951585354987,
+   "height_bias_mean_m": -0.09338439165009953,
+   "true_height_mean_m": -2.1017607326043732,
+   "disp_ratio": 1.044855897132807
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8381024763742158,
+   "height_bias_mean_m": 0.01425987102722121,
+   "true_height_mean_m": 2.2992845361408456,
+   "disp_ratio": 0.652708212244713
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8507508718748804,
+   "height_bias_mean_m": 0.014266442633325497,
+   "true_height_mean_m": 2.2992845361408456,
+   "disp_ratio": 0.8488899358847374
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0134129848471114,
+   "height_bias_mean_m": 0.011531638002590975,
+   "true_height_mean_m": 2.2992866249750987,
+   "disp_ratio": 0.9840644291389131
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0147630381073907,
+   "height_bias_mean_m": 0.011560849290419555,
+   "true_height_mean_m": 2.2992866249750987,
+   "disp_ratio": 1.014490347251021
+  }
+ },
+ "fwdplainc_tex_r2": {
+  "flow": {
+   "flow_y_slope": 1.0093694438159047,
+   "flow_y_median_ratio": 1.007309632162201,
+   "n": 9028,
+   "pred_flow_y_median": 0.24186166886910027
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0683274529503317,
+   "height_bias_mean_m": -0.09196354024511438,
+   "true_height_mean_m": -2.102801100695594,
+   "disp_ratio": 1.0376394696566202
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8362764825951363,
+   "height_bias_mean_m": 0.014419468213766003,
+   "true_height_mean_m": 2.2994989686775082,
+   "disp_ratio": 0.7874953844529491
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8500030228655565,
+   "height_bias_mean_m": 0.01443720807661633,
+   "true_height_mean_m": 2.2994989686775082,
+   "disp_ratio": 0.8472743929836914
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0117784697405938,
+   "height_bias_mean_m": 0.011515172158156234,
+   "true_height_mean_m": 2.299498036607576,
+   "disp_ratio": 0.9831391052833017
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.011780506008272,
+   "height_bias_mean_m": 0.011547750983503994,
+   "true_height_mean_m": 2.299498036607576,
+   "disp_ratio": 1.013944953533968
+  }
+ },
+ "fwdplainc_tex_r3": {
+  "flow": {
+   "flow_y_slope": 1.0096284967385052,
+   "flow_y_median_ratio": 1.008086194458562,
+   "n": 9032,
+   "pred_flow_y_median": 0.24293081797146254
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.068006794786275,
+   "height_bias_mean_m": -0.08814149884144336,
+   "true_height_mean_m": -2.0981541906653423,
+   "disp_ratio": 1.0401151081574609
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.835547316437375,
+   "height_bias_mean_m": 0.015728647039223345,
+   "true_height_mean_m": 2.2904104695852237,
+   "disp_ratio": 0.8115816532295898
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8498973734104655,
+   "height_bias_mean_m": 0.015761296222156836,
+   "true_height_mean_m": 2.2904104695852237,
+   "disp_ratio": 0.8497888857275904
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.01183047094045,
+   "height_bias_mean_m": 0.01275909224933055,
+   "true_height_mean_m": 2.290408422648043,
+   "disp_ratio": 0.9850801262897559
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0131064798331186,
+   "height_bias_mean_m": 0.012763552412649908,
+   "true_height_mean_m": 2.290408422648043,
+   "disp_ratio": 1.0150520202793767
+  }
+ },
+ "fwdplainc_trans_r1": {
+  "flow": {
+   "flow_y_slope": 0.938079223591163,
+   "flow_y_median_ratio": 0.9989244169985565,
+   "n": 5183,
+   "pred_flow_y_median": 0.24323237709534443
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0345346198616199,
+   "height_bias_mean_m": -0.08400162425447331,
+   "true_height_mean_m": -2.0994546394963542,
+   "disp_ratio": 0.5571615908271609
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8566406215190915,
+   "height_bias_mean_m": 0.007181660777387209,
+   "true_height_mean_m": 2.290900403993702,
+   "disp_ratio": 0.9288009625482829
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8649504657557403,
+   "height_bias_mean_m": 0.007263522138425138,
+   "true_height_mean_m": 2.290900403993702,
+   "disp_ratio": 0.7640745763529024
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0355726176605335,
+   "height_bias_mean_m": 0.004827346297803067,
+   "true_height_mean_m": 2.290902256419228,
+   "disp_ratio": 0.7250854339113321
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0359654024001799,
+   "height_bias_mean_m": 0.0048299930837540275,
+   "true_height_mean_m": 2.290902256419228,
+   "disp_ratio": 0.9200388131072883
+  }
+ },
+ "fwdplainc_trans_r2": {
+  "flow": {
+   "flow_y_slope": 0.935844636070958,
+   "flow_y_median_ratio": 1.0002504368127336,
+   "n": 5194,
+   "pred_flow_y_median": 0.24453985987591317
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.0384668792477596,
+   "height_bias_mean_m": -0.08629746273600528,
+   "true_height_mean_m": -2.088399007949652,
+   "disp_ratio": 0.5583556923347788
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8473893479125061,
+   "height_bias_mean_m": 0.00861528428649119,
+   "true_height_mean_m": 2.2804867533321542,
+   "disp_ratio": 0.3756430591373165
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.864840490187311,
+   "height_bias_mean_m": 0.008606272409534472,
+   "true_height_mean_m": 2.2804867533321542,
+   "disp_ratio": 0.743131811295688
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.0358797627342855,
+   "height_bias_mean_m": 0.006171249206934721,
+   "true_height_mean_m": 2.2804854692428833,
+   "disp_ratio": 0.6911448119713657
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0361604520752863,
+   "height_bias_mean_m": 0.006186365249774514,
+   "true_height_mean_m": 2.2804854692428833,
+   "disp_ratio": 0.8999943214243408
+  }
+ },
+ "fwdplainc_trans_r3": {
+  "flow": {
+   "flow_y_slope": 0.9380676720885325,
+   "flow_y_median_ratio": 0.9996318148041738,
+   "n": 5181,
+   "pred_flow_y_median": 0.2444402798508369
+  },
+  "EKF3": {
+   "speed_ratio_median": 1.037463632143355,
+   "height_bias_mean_m": -0.08447085543369884,
+   "true_height_mean_m": -2.0889524825523424,
+   "disp_ratio": 0.5497783835117382
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 0.8529424359006639,
+   "height_bias_mean_m": 0.006886200840767063,
+   "true_height_mean_m": 2.28066349103738,
+   "disp_ratio": 0.914328549970012
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 0.8655002372060183,
+   "height_bias_mean_m": 0.007107470522175049,
+   "true_height_mean_m": 2.28066349103738,
+   "disp_ratio": 0.7648069779368754
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.036609927379325,
+   "height_bias_mean_m": 0.004658712070439484,
+   "true_height_mean_m": 2.280663787431056,
+   "disp_ratio": 0.7217172248898348
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.0368980135774937,
+   "height_bias_mean_m": 0.004689611150975653,
+   "true_height_mean_m": 2.280663787431056,
+   "disp_ratio": 0.9201919569026151
+  }
+ },
+ "fwdplainc_blank_r1": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.21294642412172826,
+   "height_bias_mean_m": -0.08446854572564623,
+   "true_height_mean_m": -2.0977702014579185,
+   "disp_ratio": 0.18147443982763065
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.249474624452655,
+   "height_bias_mean_m": -0.0007241904415255385,
+   "true_height_mean_m": 2.29034755952466,
+   "disp_ratio": 1.2431275355646876
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.2731394504988236,
+   "height_bias_mean_m": -0.0008178647155907753,
+   "true_height_mean_m": 2.29034755952466,
+   "disp_ratio": 1.267486828974429
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.5410068316419634,
+   "height_bias_mean_m": -0.0026772893917118086,
+   "true_height_mean_m": 2.2903505976108898,
+   "disp_ratio": 1.505538229002864
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.5407207322133507,
+   "height_bias_mean_m": -0.0026764534438549806,
+   "true_height_mean_m": 2.2903505976108898,
+   "disp_ratio": 1.544555346541859
+  }
+ },
+ "fwdplainc_blank_r2": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.220895328994975,
+   "height_bias_mean_m": -0.08297558813783977,
+   "true_height_mean_m": -2.0995339791252476,
+   "disp_ratio": 0.19363760212971456
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.2502380744635462,
+   "height_bias_mean_m": -0.0009203006611915943,
+   "true_height_mean_m": 2.2909762279971755,
+   "disp_ratio": 1.236240871365309
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.2729965257363731,
+   "height_bias_mean_m": -0.0010245642297800675,
+   "true_height_mean_m": 2.2909762279971755,
+   "disp_ratio": 1.2669522760034186
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.5521703911937232,
+   "height_bias_mean_m": -0.0029894145005167913,
+   "true_height_mean_m": 2.2909768237319654,
+   "disp_ratio": 1.52094090533428
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.5541084123092412,
+   "height_bias_mean_m": -0.002873242239032693,
+   "true_height_mean_m": 2.2909768237319654,
+   "disp_ratio": 1.5486181408314228
+  }
+ },
+ "fwdplainc_blank_r3": {
+  "flow": null,
+  "EKF3": {
+   "speed_ratio_median": 0.2304210066974493,
+   "height_bias_mean_m": -0.08364629115601205,
+   "true_height_mean_m": -2.0985977095064583,
+   "disp_ratio": 0.20358115728542583
+  },
+  "UKF_baseline": {
+   "speed_ratio_median": 1.2464661953440626,
+   "height_bias_mean_m": -0.0009219737860006062,
+   "true_height_mean_m": 2.2904857099820144,
+   "disp_ratio": 1.2345476473928936
+  },
+  "UKF_heading": {
+   "speed_ratio_median": 1.269488774318146,
+   "height_bias_mean_m": -0.0010245185402374744,
+   "true_height_mean_m": 2.2904857099820144,
+   "disp_ratio": 1.2684091161193838
+  },
+  "FGO_baseline": {
+   "speed_ratio_median": 1.5439482029803462,
+   "height_bias_mean_m": -0.003108945018848938,
+   "true_height_mean_m": 2.290484601489697,
+   "disp_ratio": 1.50908375461633
+  },
+  "FGO_heading": {
+   "speed_ratio_median": 1.5424781146069284,
+   "height_bias_mean_m": -0.003108807651357774,
+   "true_height_mean_m": 2.290484601489697,
+   "disp_ratio": 1.5500914768962968
+  }
+ }
+}

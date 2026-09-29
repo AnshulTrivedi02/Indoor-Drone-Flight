@@ -543,8 +543,8 @@ not log its `dt`. `dtEkfAvg` is a low-pass average
 jitter stays well inside. Treat as solid, but state the derivation rather than
 claiming a measurement.
 
-**Consequence:** the UKF predicts at this same 0.0125 s, accumulating by
-elapsed time exactly as EKF3 does, so **EKF3's `*_NSE` values transfer
+**Consequence (CORRECTED 2026-09-29, see METHODOLOGY "Distance-scale check"):** the UKF was intended to predict at this same 0.0125 s,
+accumulating by elapsed time as EKF3 does; **in practice each step spans 15.00 ms (five 3.0 ms IMU samples) but position and gravity were integrated with the fixed 0.0125 s**, a ~15% position under-scale. It is queued as a baseline correction. Originally: so **EKF3's `*_NSE` values transfer
 unchanged** (scale factor exactly 1). This is a stronger position than any
 correct rescaling — there is nothing to defend.
 

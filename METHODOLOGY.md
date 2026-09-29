@@ -1168,6 +1168,13 @@ data from Phase 2 onwards.**
 - **OI-2 residual:** the sensor-time IMU shift is not adopted. `/imu/time_ref`
   (recorded from Phase 2 on) allows true sensor time to be used in the consolidated
   re-run if ruled.
+- **Baseline corrections queued, 2026-09-29 (distance-scale check):**
+  - **(i) EKF3 `FLOW_POS_Z` 0.13 → 0.25.** Configuration. The logged HAGL is body-origin
+    referenced. Requires re-flying all datasets.
+  - **(ii) UKF process dt = the accumulated IMU interval** (15.00 ms, not the nominal 12.5
+    ms), with Q scaled to it. Implementation. Requires re-replaying all bags.
+  - **Both block:** the with-heading FGO-vs-UKF comparison and any EKF3/UKF cross-estimator
+    ATE claim.
 - **Tables not yet restated on the dejittered baseline** (deferred to the consolidated
   re-run): transition and blank evo -a and failure metrics; the FINDING 2 and 4
   tables; the gyro-z ramp-tracking table; the consistency percentages.
@@ -3517,3 +3524,87 @@ These are valid outputs (support ≥ S_MIN) with |error| > 3° against GT. Total
 **METHODOLOGY LESSON (standing rule from now on): every future prediction carries a numeric
 threshold.** A verbal criterion such as "roughly unchanged" cannot be scored without
 defining it after the fact. That is exactly what the pre-registration rules exist to prevent.
+
+## Distance-scale check — result (2026-09-29; replaces "bounded check 5a"; 11:18–12:05, inside the half-day bound)
+
+`eval/scale_check.py` → `eval/results/scale_check.json` (existing outputs, 18 ceiling bags).
+There was one minimal diagnostic replay: UKF `fwdc_tex_r1` heading arm, with an opt-in state dump (`UKF_DUMP`, logging only). Its trajectory is byte-identical to the stored run.
+
+**Measurements (cruise window), textured bags, all 6 bags consistent.**
+
+| quantity | EKF3 | UKF (baseline / +heading) | FGO (baseline / +heading) |
+|---|---|---|---|
+| displacement ratio (Phase 4) | 1.04–1.06 | 0.68 / 0.85 | 0.98 / 1.01 |
+| horizontal speed ratio (median \|v_est\| / \|v_gt\|) | **1.068–1.070** | **0.835–0.838 / 0.850–0.851** | 1.011–1.013 / 1.012–1.015 |
+| height bias (m) | n/a (origin-dependent) | +0.014–0.016 | +0.011–0.013 |
+
+- **The flow sensor itself** (measured forward flow ÷ flow predicted from GT through the shared
+  `h_flow` model) reads **1.009** on every textured bag.
+- **Transition** speed ratios: EKF3 1.035–1.038, UKF 0.85–0.87, FGO 1.03–1.04.
+- **Blank:** EKF3 0.21–0.23 (it freezes), UKF 1.25–1.29, FGO 1.54–1.57.
+- `FLOW_FXSCALER` and `FLOW_FYSCALER` are 0 in the logs. Our estimators apply no flow
+  scaling either.
+
+**EKF3 reads ~7% fast: a CONFIGURATION difference.**
+- EKF3 forms the flow range from `heightAboveGndEst = terrainState − pd`, minus `FLOW_POS_Z`
+  (`AP_NavEKF3_OptFlowFusion.cpp:297-316`).
+- **The logged `XKF5.HAGL` equals the body-origin height, not the lidar range:**
+
+  | bag | HAGL (m) | GT base_link height (m) | lidar range (m) |
+  |---|---|---|---|
+  | `fwdc_tex_r1` | 2.293 | 2.295 | 2.177 |
+  | `fwdplainc_tex_r2` | 2.295 | 2.298 | 2.178 |
+  | `dsn_tex_r1` | 2.284 | 2.293 | 2.168 |
+
+- **So `FLOW_POS_Z = 0.13` gives a flow range of HAGL − 0.13 ≈ 2.16 m, against a true camera
+  height of ≈ 2.05 m: a factor of 1.054–1.058.** Multiplied by the flow scale of 1.009, that
+  predicts 1.064–1.067; measured, 1.068–1.070.
+- **The 2026-08 derivation** in `flow_ekf.parm` and FGO_DESIGN ("`pd` cancels, the range is
+  lidar-referenced, so 0.13 = camera − lidar") **is contradicted by the logged HAGL at
+  runtime.**
+- **The value matching the data is the camera's body position, `FLOW_POS_Z = 0.25`.** Not yet
+  flown.
+- This also accounts, arithmetically, for the historical pre-`FLOW_POS` +12.6% (n = 1):
+  2.30 / 2.05 = 1.122.
+- **It affects every EKF3 result recorded so far** (`dsn`, `fwd`, ceiling datasets). EKF3 runs
+  live and no log is replayable, so **correcting it needs re-flying**.
+
+**The UKF reads ~15% short: an IMPLEMENTATION difference.**
+- Its velocity state is right: 0.507 m/s against 0.500, tracking flow with predicted/measured
+  0.992. **Its position is integrated with the fixed nominal dt.**
+- `ukf_replay.py` predicts once `acc_dt ≥ 0.0125`. With the dejittered 3.0006 ms IMU stamps,
+  that is **every 5 samples = 15.00 ms** (dump: spacing mean, median, min and max all
+  0.01500 s).
+- But `ukf_core._process` integrates position and gravity with `p['dt'] = 0.0125`
+  (`p += v·dt`, `dv_world = R·dv + g·dt`).
+- **Predicted position scale:** 0.0125 / 0.015 × 1.014 = **0.845**; measured, **0.850–0.851**.
+- **The gravity mismatch this creates**, 9.81 × 2.5/12.5 = **1.964 m/s²**, matches the UKF's
+  accelerometer z-bias estimate of **1.971 m/s²**.
+- So the UKF actually predicts at 66.7 Hz, not the recorded 80 Hz / 0.0125 s "exactly as
+  EKF3". **EKF3 uses the accumulated interval as its dt** (`AP_NavEKF3_core.cpp:1036`).
+- **It affects every UKF result recorded so far.** The UKF is offline, so correcting it needs
+  only a re-replay.
+
+**The FGO (~1.01) follows the flow sensor.** Its speed ratio matches the measured flow scale
+of 1.009 within 0.5%, and its preintegration uses the actual IMU intervals. **No
+configuration difference was found for the FGO.**
+
+**Conclusion: configuration and implementation differences, not genuine model
+differences.**
+- **Both go on the batched corrections list:**
+  - **EKF3:** `FLOW_POS_Z = 0.25`, requiring the datasets to be re-flown. Note also Part C's
+    `AHRS_EKF_TYPE` / time-sync item for any re-flight.
+  - **UKF:** use the accumulated IMU interval as the process dt, and scale Q with it. Re-replay
+    all bags.
+- **The with-heading FGO-vs-UKF comparison waits for the corrected re-run.**
+- **Any cross-estimator ATE comparison involving EKF3 or the UKF is provisional until then.**
+  This includes the dejittered `dsn` baseline tables.
+- **Phase 5 caveat:** the UKF's lateral velocity in the decomposition is differentiated from
+  its under-integrated positions, so the UKF's errV and residual magnitudes carry the same
+  ~0.83–0.85 position scale. The heading part uses GT speed and is unaffected. **The Phase 5
+  UKF verdicts are provisional on the corrected re-run.**
+- **Records now known to be wrong:**
+  - the `flow_ekf.parm` / FGO_DESIGN claim that 0.13 yields the true camera height;
+  - the CLAUDE.md / METHODOLOGY statement that the UKF predicts at 0.0125 s "exactly as EKF3".
+  - Both are corrected by this entry. The parameter file is **not** changed until the batched
+    re-run is ruled.

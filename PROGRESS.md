@@ -5,6 +5,18 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-29 — distance-scale check DONE: two baseline corrections queued
+
+- **EKF3 reads +7% (textured):** `FLOW_POS_Z = 0.13` is wrong in practice. The logged HAGL
+  is body-origin referenced (2.29 m, not the lidar's 2.18 m), so the flow range is 5–6% too
+  long. The fix is 0.25; it needs re-flying.
+- **The UKF reads −15%:** its predict step spans 15.00 ms (5 IMU samples), but it integrates
+  position and gravity with a fixed 12.5 ms. Its accel z-bias of 1.97 m/s² absorbs the
+  gravity mismatch. The fix is the accumulated dt; it needs re-replaying.
+- **The FGO (1.01) follows the flow sensor,** which itself reads 1.009.
+- **Blocked until the corrected re-run:** FGO-vs-UKF with heading, EKF3/UKF cross-estimator
+  ATE claims, and the UKF's Phase 5 magnitudes.
+
 ## Current Status — 2026-09-29 (later still) — Phase 5 evaluated; scale check next
 
 - **Prediction (a), "the heading-driven share falls": PASS** in all 12 cells. The heading

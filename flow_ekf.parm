@@ -34,6 +34,13 @@ EK3_FLOW_USE 1
 # separation 0.13, not the literal camera-from-origin 0.25 (which would
 # over-correct to 1.90 m, -5.9%). The validation trial's empirical residual is
 # the arbiter (pre-registered: |residual| <= 2% accept). See CLAUDE.md.
+# !! WARNING (2026-09-29, METHODOLOGY "Distance-scale check"): the derivation above is
+# CONTRADICTED by the logged XKF5.HAGL. At runtime HAGL = terrainState - pd equals the
+# BODY-ORIGIN height (2.29 m), not the lidar range (2.18 m), so pd does not cancel, and 0.13
+# leaves EKF3's flow range ~5.5% long (EKF3 speed ratio 1.068 on every textured bag,
+# against the 2% acceptance above). The value matching the data is the camera's body
+# position, 0.25. NOT changed here: it is queued on the batched corrections list (re-fly),
+# pending the user's ruling.
 FLOW_POS_X 0
 FLOW_POS_Y 0
 FLOW_POS_Z 0.13
