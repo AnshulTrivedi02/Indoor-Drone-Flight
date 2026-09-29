@@ -1009,7 +1009,7 @@ checks (`plots/lateral_checks.py`, diagnosis only):
    *body*-lateral velocity to ~0), which is why zero-mean innovations coexist with a biased
    *world*-frame velocity: **the bias lives in the unobservable yaw direction, not in the
    measurement or the gate.**
-3. **Attribution is a REAL decomposition, not double-counting.** ~**74%** of the
+3. **Attribution is a REAL decomposition, not double-counting.** *(SUPERSEDED share: 74% used the old window, aiding onset to end of log. On the pinned cruise window it is **69%**; see "Heading share restated (2026-09-29)".)* ~**74%** of the
    east-velocity bias is heading-driven (`vE_head` +0.143 of +0.194 m/s; cross-track 45.6 m
    of 62 m); the ~**26%** remainder (~0.05 m/s, ~16 m) is **uncorrelated with yaw error
    (−0.23)** — a genuinely separate lateral-velocity bias, source not established (not the
@@ -1175,6 +1175,8 @@ data from Phase 2 onwards.**
     ms), with Q scaled to it. Implementation. Requires re-replaying all bags.
   - **Both block:** the with-heading FGO-vs-UKF comparison and any EKF3/UKF cross-estimator
     ATE claim.
+  - **(iii) The heading share was restated on the pinned cruise window:** 74% → 69%
+    (`dsn_tex_r3`). It is to be restated again after (i).
 - **Tables not yet restated on the dejittered baseline** (deferred to the consolidated
   re-run): transition and blank evo -a and failure metrics; the FINDING 2 and 4
   tables; the gyro-z ramp-tracking table; the consistency percentages.
@@ -1306,7 +1308,7 @@ FGO −9.31 → −9.19, −9.71 → −9.41, −9.26 → −8.92.
 
 ### Hypothesis (stated before any forward-camera result exists)
 
-With no compass, absolute yaw is unobservable. On `dsn_tex_r3`, **74%** of EKF3's
+With no compass, absolute yaw is unobservable. *(74% / 26% below: old window, SUPERSEDED by 69% / 31% on the pinned cruise window; see "Heading share restated (2026-09-29)". The prediction text is left verbatim as pre-registered.)* On `dsn_tex_r3`, **74%** of EKF3's
 east-velocity error is heading-driven: `errVE` against speed × sin(yaw error) has a
 slope of 1.10. The remaining **26%** (~0.05 m/s) is uncorrelated with yaw error
 (§"Lateral drift", CLOSED).
@@ -3608,3 +3610,39 @@ differences.**
   - the CLAUDE.md / METHODOLOGY statement that the UKF predicts at 0.0125 s "exactly as EKF3".
   - Both are corrected by this entry. The parameter file is **not** changed until the batched
     re-run is ruled.
+
+
+### Heading share restated on the pinned cruise window (2026-09-29; batched correction)
+
+**The ~74% heading share is SUPERSEDED.**
+- It came from the old window, aiding onset to end of log, which includes the stop and
+  landing.
+- It drew on **one bag, `dsn_tex_r3`** (`plots/lateral_checks.py`).
+- Recomputed with the same method on the **pinned evo cruise window**
+  (`eval/results/heading_share_restated.json`, via `eval/phase5_analysis.ekf3`):
+
+| bag | errV (m/s) | heading part (m/s) | **share** | residual (m/s) | cross-track err / heading / residual (m) |
+|---|---|---|---|---|---|
+| **`dsn_tex_r3`** (the original bag) | 0.218 | 0.150 | **68.9%** | 0.068 (31.1%) | 65.9 / 45.4 / 20.5 |
+| *`dsn_tex_r1` (context, not in the original)* | 0.201 | 0.110 | *54.9%* | 0.090 | 60.7 / 33.3 / 27.4 |
+| *`dsn_tex_r2` (context)* | 0.131 | 0.080 | *60.7%* | 0.052 | 39.8 / 24.2 / 15.6 |
+
+- **The current figure is 69% (n = 1, `dsn_tex_r3`).** The three textured `dsn` repeats span
+  55–69%.
+- These are EKF3 values, so they also carry the `FLOW_POS_Z` scale (correction (i)). **They
+  are to be restated again after the corrected re-flight.**
+
+**Every place that quotes 74% (or its complement, 26%):**
+- **METHODOLOGY:**
+  - "Lateral drift … (CLOSED)", item 3 (annotated in place);
+  - "Forward-camera workstream — hypothesis" (annotated in place; the prediction wording
+    that follows is left verbatim as pre-registered);
+  - the Phase 5 section (it already notes 69% on the pinned window, and quotes the
+    prediction verbatim).
+- **`docs/thesis/numbers.md`:** the heading-share and residual-share rows (moved to
+  superseded).
+- **`docs/thesis/methodology_index.md`:** entries for the lateral drift, the forward-camera
+  hypothesis and open item 9.6.
+- **Not quoted in PROGRESS.md or CLAUDE.md.** The "0.74" values there are RTF, not the share.
+
+**Added to the batched corrections list as (iii).**

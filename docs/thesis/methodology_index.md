@@ -980,3 +980,5 @@ that differs), and whether it is CURRENT or SUPERSEDED. The companion file
 - **Source:** C L1863-L1876.
 - **Commit:** `5787b04`.
 - **Status:** CURRENT (open; planned, not yet run).
+
+> **Update 2026-09-29:** the ~74% / 26% heading/residual shares cited in the lateral-drift, hypothesis and 9.6 entries are SUPERSEDED by **69% / 31% on the pinned cruise window** (`dsn_tex_r3`; context r1/r2 55% / 61%). See METHODOLOGY "Heading share restated (2026-09-29)" and batched correction (iii).

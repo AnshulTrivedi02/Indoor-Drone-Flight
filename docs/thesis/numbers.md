@@ -235,9 +235,10 @@ The Phase 2 FGO bands (section 7) were derived from them.
 | EKF3 `XKF1.Yaw` drift, n = 9 `dsn_*` (window not stated in the record) | +6.6…+11.1 deg/min, mean ~8.1 | deg/min | CURRENT | M:L3142-L3145 |
 | EKF3 share of bias corrected | 14–33% | % | CURRENT | M:L884 |
 | EKF3 east-velocity bias, `dsn_tex_r3` | +0.194 m/s | m/s | CURRENT | M:L995 |
-| Heading-driven share | ~**74%** | % | CURRENT | M:L1012 |
+| Heading-driven share (pinned cruise window, `dsn_tex_r3`) | **68.9%** (0.150 of 0.218 m/s) | % | CURRENT (EKF3; restate after correction (i)) | eval/results/heading_share_restated.json; M: "Heading share restated (2026-09-29)" |
+| Heading share, `dsn_tex_r1` / `r2` (context) | 54.9% / 60.7% | % | CURRENT (context, n=3 span 55–69%) | same |
 | Geometric slope `errVE vs spd·sin(yawErr)` | +1.10 | — | CURRENT | M:L1007 |
-| Residual (non-heading) share | ~**26%** (~0.05 m/s, ~16 m) | % | CURRENT | M:L1014-L1015 |
+| Residual share (pinned cruise window, `dsn_tex_r3`) | 31.1% (0.068 m/s, 20.5 m) | % | CURRENT (restate after (i)) | same |
 | FINDING 1 lateral residual, EKF3: roll-rate corr / slope / std | −0.09 / −0.15 / 0.48 | — | CURRENT | M:L293 |
 | FINDING 1, `h_flow` (instantaneous ω) | −0.95 / −2.09 / 0.60 | — | CURRENT | M:L294 |
 | Interval-averaged ω residual slope / std | −2.09 → −1.24 (std 0.60 → 0.40) | — | CURRENT | M:L315 |
@@ -564,3 +565,5 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
 | EKF3 yaw drift with no compass, early figure | ~5 deg/min | deg/min | SUPERSEDED | M:L871 | n = 9 `dsn_*` value +6.6…+11.1, mean ~8.1 (M:L3142); origin is the single-trial residual +5.32 on `nomag_corridor_baseline` (M:L3146-L3148) |
 | UKF overshoot pair in the sign-flip paragraphs | 245% → 336% | % | SUPERSEDED (mixed denominators) | M:L228 | 245 is definition B, 336 is A; consistent pairs A 222% → 336%, B 245% → ~371% (M:L3163-L3164) |
 | EKF3 / FGO velocity scale, `dsn_tex_r1` (n = 1) | `0.556 m/s` (+12.6 %) … +4.7 % | % | SUPERSEDED | M:L1105-L1106 | n = 9 distance scale EKF3 +5.7…+9.6%, FGO +0.9…+1.1% (M:L3170-L3177); the n = 1 figure was speed-magnitude based and pre-correction |
+| Heading-driven share (old window, aiding onset to end of log) | ~74% | % | SUPERSEDED | M:L1012 | 69% on the pinned cruise window (M: "Heading share restated (2026-09-29)") |
+| Residual share (old window) | ~26% (~0.05 m/s, ~16 m) | % | SUPERSEDED | M:L1014-L1015 | 31% on the pinned cruise window |
