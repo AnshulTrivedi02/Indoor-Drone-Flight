@@ -40,6 +40,7 @@ Usage:
 """
 
 import argparse
+import os
 import sys
 import time
 
@@ -105,6 +106,13 @@ TYPE_MASK_VELOCITY_ONLY = 0b0000_1111_1100_0111
 
 class TrialFailure(Exception):
     pass
+
+
+# Optional EXPECT_OVERRIDE="NAME=value,NAME=value" replaces entries of EXPECTED_PARAMS for a
+# one-off test (e.g. the closed-loop smoke test's AHRS_EKF_TYPE=3). Unset for dataset flights.
+for _kv in filter(None, os.environ.get("EXPECT_OVERRIDE", "").split(",")):
+    _k, _v = _kv.split("=")
+    EXPECTED_PARAMS[_k.strip()] = float(_v)
 
 
 def log(msg: str) -> None:

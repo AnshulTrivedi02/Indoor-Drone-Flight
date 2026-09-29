@@ -3908,3 +3908,50 @@ The two check flights (`tsx_off_tex`, `tsx_on_tex`) are **supporting data only**
   `FLOW_POS_Z=0.25`, time sync on, the same missions and worlds, and the IMU-gap rule.
 - **Pass bands** are recomputed from the re-flown `dsn` baseline with the pre-registered
   formula.
+
+## Closed loop — EKF3 flying the vehicle: smoke test (2026-09-29; recorded before flying)
+
+**Why.** Every flight so far has been flown on simulator truth, so no estimator has ever
+steered the drone. The supervisor's direction is that the estimators must eventually fly the
+vehicle: first EKF3 in SITL, then our UKF as a drop-in EKF3 replacement, then real hardware.
+
+In closed loop the controller steers by the estimate, so estimation error becomes physical
+deviation, and the drone can hit a wall. **This is the first step: EKF3 flying, with no
+estimator code changes.** This flight is **not part of any dataset and not compared across
+estimators.**
+
+**Settings.**
+- The final re-fly settings: time sync on (`iris_fwd`), `FLOW_POS_Z 0.25`, `LOG_REPLAY 1`,
+  `LOG_DISARMED 1`.
+- **Plus `AHRS_EKF_TYPE 3`** (`closedloop.parm`, appended via `EXTRA_PARM_FILES`, and enforced
+  by `fly_trial.py` via `EXPECT_OVERRIDE`).
+- EKF3 sources are as in the datasets: flow + rangefinder, no GPS, no compass (`EK3_SRC1_YAW 0`).
+- `AHRS_EKF_TYPE = 3` is to be confirmed from the log.
+
+**Flight.**
+- One flight, `cl_ekf3_tex`: world `corridor_textured_fwdc`, the dataset mission (arm in
+  GUIDED, climb to 2 m, 300 s of 0.5 m/s cruise commanded in `MAV_FRAME_LOCAL_NED` along
+  North, land).
+- Launched by `sim/tools/closed_loop_run.sh`, with **no retry**.
+
+**Arming.** If arming checks fail without GPS or compass:
+- the exact failing checks are reported;
+- only the minimum change needed to arm is made;
+- every change is recorded;
+- no other check is disabled.
+
+**Wall contact and crash.** Judged from Gazebo ground truth (`sim/tools/wall_watch.py`):
+- **wall contact:** |x| ≥ 9.58 m;
+- **crash:** tilt > 60°, or height < 0.5 m after climbing and before the landing point.
+- A breach stops the flight (SIGTERM to the trial's process group, which flushes the bag), and
+  it is reported. **No retry with changed settings.**
+
+**To report:**
+- arms / completes the corridor;
+- arming issues and the changes made;
+- EKF3 estimated against true trajectory;
+- physical deviation from the intended path (cross-track and along-track over the cruise);
+- minimum wall clearance;
+- EKF3 cruise position error, compared with the open-loop check flight `tsx_on_tex` (same
+  settings, open loop);
+- whether the replay records (`RFRH`, `RFRN`, `RISH`) are present.

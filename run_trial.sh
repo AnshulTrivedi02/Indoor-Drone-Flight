@@ -104,6 +104,9 @@ mkdir -p "$OUTPUT_DIR"
 LOG_DIR="$OUTPUT_DIR/logs"
 mkdir -p "$LOG_DIR"
 
+# Optional EXTRA_PARM_FILES (comma list of absolute paths) is appended LAST to --defaults.
+# Unset for every dataset flight (argument list unchanged); used only by one-off tests such
+# as the closed-loop smoke test (METHODOLOGY "Closed loop"). Recorded in metadata.yaml.
 # Everything from here on is also captured to run_trial.log.
 exec > >(tee "$OUTPUT_DIR/run_trial.log") 2>&1
 
@@ -217,7 +220,7 @@ cd ~/ardupilot/ArduCopter
 start_bg "$LOG_DIR/arducopter.log" \
     ~/ardupilot/build/sitl/bin/arducopter \
     --model JSON --speedup 1 --slave 0 \
-    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm" \
+    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
     --serial2=udpclient:127.0.0.1:14556 \
     --sim-address=127.0.0.1 -I0
 
@@ -396,6 +399,7 @@ flow_ransac_seed: $RANSAC_SEED
 ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
+[ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
 if [ "$FWD_CAMERA" = true ]; then
     echo "forward_camera: true" >> "$OUTPUT_DIR/metadata.yaml"
     if [ -n "${FWD_DIAG:-}" ]; then

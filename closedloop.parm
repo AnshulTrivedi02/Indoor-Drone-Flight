@@ -1,0 +1,4 @@
+# Closed-loop smoke test ONLY (METHODOLOGY "Closed loop - EKF3 flying"). Never used for a
+# dataset flight. Appended after consolidated_rerun.parm via EXTRA_PARM_FILES, so EKF3 becomes
+# the estimator the vehicle flies on. Everything else is the re-fly configuration.
+AHRS_EKF_TYPE 3
