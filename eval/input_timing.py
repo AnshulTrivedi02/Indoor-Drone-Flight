@@ -11,7 +11,8 @@ threshold was a proxy for.
     period (a dropped or late sample).
 (b) Flow delivery latency into EKF3. Each valid flow frame is matched to the dataflash
     `OF` record that logged it, by value: `flow_bridge.py` sends
-    `flow_rate_x = -flow_x_rad`, `flow_rate_y = +flow_y_rad`, and `OF.flowX` /
+    `flow_rate_x = -flow_x_rad` (before the 2026-09-29 sign fix; `+flow_x_rad` after — the
+    sign is detected per trial), `flow_rate_y = +flow_y_rad`, and `OF.flowX` /
     `OF.flowY` log exactly those rates. Latency = (`OF.TimeUS` - clock offset) -
     frame header stamp, with TimeUS mapped to the sim clock by clock_map() (offset
     AND rate, fitted early and late in the flight). The two clocks do NOT share an epoch exactly: the first
@@ -171,7 +172,12 @@ def analyse(trial):
         of_t.setdefault(key(fx, fy), t)             # first log of that sample
     fl = np.array(flow)
     fl = fl[(fl[:, 0] >= t0) & (fl[:, 0] <= t1)]
-    lat = [to_sim(of_t[key(-fx, fy)]) - t for t, fx, fy in fl if key(-fx, fy) in of_t]
+    # The bridge's X sign changed on 2026-09-29 (lateral-sign fix: -flow_x_rad -> +flow_x_rad).
+    # Use whichever sign actually matches this trial's OF log, and record it.
+    n_by = {sx: sum(key(sx * fx, fy) in of_t for _, fx, fy in fl) for sx in (-1.0, 1.0)}
+    sx = max(n_by, key=n_by.get)
+    out["bridge_flow_x_sign"] = sx
+    lat = [to_sim(of_t[key(sx * fx, fy)]) - t for t, fx, fy in fl if key(sx * fx, fy) in of_t]
     lat = 1e3 * np.array(lat)
     out["flow_to_ekf3"] = {"valid_frames": int(len(fl)), "matched_pct": float(100 * len(lat) / len(fl)),
                            "lat_median_ms": float(np.median(lat)), "lat_p5_ms": float(np.percentile(lat, 5)),

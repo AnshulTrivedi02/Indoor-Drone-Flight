@@ -4615,3 +4615,73 @@ re-fly.** Reasoning:
 **Decision.** All PRIMARY criteria pass → the gain change is added to the batched corrections
 as a simulation-model correction, and the re-fly batch starts. Any PRIMARY failure → stop and
 report.
+
+### Check flight `rgs_check_tex` — result (2026-09-29): ALL PRIMARY PASS
+
+**Settings from the PARM dump:** `ATC_RAT_RLL_P/I 0.06003`, `ATC_RAT_RLL_D 0.0016`; pitch
+unchanged (P 0.135, D 0.0036); `AHRS_EKF_TYPE 10`; `FLOW_POS_Z 0.25`; `LOG_REPLAY 1`;
+`LOG_DISARMED 1`. It was the standard mission, and it completed normally.
+
+| # | result | band | verdict |
+|---|---|---|---|
+| R1 | cruise gyro-x rms **0.0028** (old 0.398); 15–20 Hz band rms **0.0013** (old 0.396); x peak now 2.4 Hz | ≤ 0.05; ≤ 0.040 | PASS |
+| R2 | airborne mean \|FIX\| **7** (p95 10, max 66), against 321 before | ≤ 150 (predicted ≤ ~95) | PASS |
+| R3 | cruise gyro-y rms **0.0037** (old 0.0054) | [0.0027, 0.0108] | PASS |
+| R4 | take-off **1.452 s**; climb peak **2.263 m**; cruise height **2.320 m**; speed **0.4999 m/s**; GT \|x\| ≤ **0.0093 m** | [1.384, 1.602]; [2.187, 2.288]; [2.244, 2.345]; [0.4899, 0.5099]; ≤ 0.05 | PASS |
+| R4 P1 | flow and lidar 30.30 Hz, 0.00% late; IMU mean gap 3.0005 ms, p99 6 ms | Phase 2 P1 | PASS |
+| R4 P3 | against the `dsn_tex` mean: inlier **+0.00999** (0.98332 vs 0.97333); % below 0.5 +0.36 pp; features −1.63%; `flow_y_raw` **−1.86%** | ±0.01; ±3 pp; ±5%; ±2% | PASS, **marginal on inlier and `flow_y_raw`** |
+| R5 | largest peak, ±0.5 Hz band rms: x 0.0010 (2.4 Hz), y 0.0028 (7.4 Hz), z 0.0008 (15.2 Hz); gyro-z rms 0.0029 (old 0.0100) | ≤ 0.02; y ≤ 0.0108, z ≤ 0.0200 | PASS |
+
+**Diagnostics (not gating).**
+- **EKF3 fuses flow throughout:** `horiz_pos_rel` 100% of airborne time, `const_pos_mode` 0,
+  and 97% of `FIX` samples non-zero. XKF5 rejections 0.00%; NI ≈ 0 because the innovations
+  are tiny. |FIY| 8.
+- **Dataflash `RATE` rms** (10 Hz log): R 0.15 deg/s (old 22.8), RDes 0.14, P 0.21, Y 0.16.
+- **Flow → EKF3 latency:** median 18.6 ms, p95 29.8 ms, 100% matched. `eval/input_timing.py`
+  now detects the bridge's X sign per trial; before this it matched with `−flow_x_rad`
+  only, and gave 0% on post-fix bags.
+- **EKF3 cruise speed ratio** (XKF1 VN median / GT; PN displacement ratio): `rgs_check_tex`
+  0.935 / 0.945, against `tsx_on_tex` 0.955 / 0.973 and `lfs_check_tex` (with the step)
+  0.909 / 0.916. That is a shift of about 2–3% with the new gains and the sign fix. It is
+  **reported, not acted on**; the distance-scale check in the re-run restates it.
+- **Cruise height** is about 2 cm higher (2.320 m against 2.290–2.299 m), within R4. It
+  accounts for about −1% of the −1.86% `flow_y_raw` change.
+
+**Interpretation.**
+- **EKF3's old lateral innovation (|FIX| 300–450 in every dataset) was almost entirely the
+  roll limit cycle.** With the limit cycle removed it is 7, the same level as the forward
+  axis (|FIY| 8).
+- The "67" true-rotation reconstruction was not a floor. It was limited by the 16 ms spacing
+  of the GT samples against the 17.5 Hz tone.
+- The two marginal P3 items (inlier +0.00999 and `flow_y_raw` −1.86%) are consistent with a
+  steadier camera (fewer tracking losses) and the slightly higher cruise height. P3's
+  references will be replaced by the re-flown `dsn`.
+
+**Decision: all PRIMARY criteria pass.** Per the ruling, the gain change is added to the
+batched corrections, and the re-fly batch is started without waiting.
+
+### Batched corrections list — consolidated (2026-09-29)
+
+| # | correction | kind | applied in |
+|---|---|---|---|
+| (i) | EKF3 `FLOW_POS_Z = 0.25` | configuration | re-flown bags (`consolidated_rerun.parm`) |
+| (ii) | UKF process dt = the accumulated IMU interval | estimator implementation | re-replays |
+| (iii) | heading share restated on the pinned cruise window (74% → 69%, then restated again) | analysis | re-run analysis |
+| (iv) | lateral optical-flow sign: EKF3 bridge `+flow_x_rad`; `h_flow_pose` lateral row and forward rotation sign; `flow_tracker` roll derotation sign. Exposed results are listed under "Records (rulings 5 and 6)". | sensor model / bridge | re-flown bags (EKF3), re-replays (UKF/FGO) |
+| (v) | **roll rate gains ×0.4447 (`roll_rate_gains.parm`)**, removing the 17.5 Hz roll limit cycle | **simulation-model correction** (the vehicle, not any estimator input) | re-flown bags |
+
+Plus the earlier items: the OI-2 dejitter, the IMU-gap rule, time sync on (the vendored iris
+model), `LOG_REPLAY` / `LOG_DISARMED`, and `AHRS_EKF_TYPE 10` set explicitly.
+
+### Re-fly batch launch (2026-09-29)
+
+- `tmux` session `rerun`: `~/thesis_data/batches/rerun.sh` runs
+  `run_resumable_batch.sh batches/rerun_main.conf rerun2_main`. That is 33 trials in order:
+  `p1c_*` (6), `dsn_*` (9), `fwdc_*` (9), `fwdplainc_*` (9).
+- Then, only if `rerun2_main` is DONE, `batches/rerun_ds.conf` → `rerun2_ds`: the 9 `ds_*`
+  trials with `compass_active.parm`.
+- `SIDESTEP`, `EXTRA_PARM_FILES` and `EXPECT_OVERRIDE` are unset for the datasets.
+- The earlier `rerun_main` state directory (`ff2b6a8`) flew nothing and is marked
+  `SUPERSEDED.txt`.
+- The missions and worlds are unchanged; flights are on simulator truth; the Phase 3 camera
+  parameters are frozen.
