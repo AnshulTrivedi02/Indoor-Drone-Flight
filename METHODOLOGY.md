@@ -5669,3 +5669,67 @@ values move to its superseded section and are **not edited in place.**
     textured-floor bands. The existing bands are **not** re-scored retrospectively.
 - **Reported regardless of outcome.** The UKF's r4–r10 values are included, and its instability
   rate is reported (flights with evo > 3× the median).
+
+### Part 4: shadow UKF in live SITL, `ukf_shadow_sitl_tex` (2026-09-29): runs, logs, flags valid; heading drifts
+
+**Setup.**
+- `ARDUPILOT_TREE=~/ardupilot_ukf` (port commit `f82dc09ccb`, from metadata) with `ukf_shadow.parm`
+  (`AHRS_UKF_ENABLE 1`).
+- `corridor_textured`, 0.5 m/s, 300 s cruise. The consolidated re-run configuration applies, with
+  the roll gains.
+- The vehicle flew on simulator truth (`AHRS_EKF_TYPE 10`, confirmed from the log's PARM
+  dump, as were `AHRS_UKF_ENABLE 1`, `LOG_REPLAY 1` and `ATC_RAT_RLL_P 0.06003`). The UKF
+  therefore ran **in shadow only** and could not affect the flight.
+- **The trial completed normally:** run_trial exit 0, landed and disarmed.
+- **The stock tree was untouched.** `~/ardupilot/ArduCopter/eeprom.bin` was last modified at
+  19:09:40, before the run. The run wrote only `~/ardupilot_ukf/ArduCopter/eeprom.bin`.
+
+**Results** (`eval/ukf_shadow_bin2csv.py` → `eval/ukf_shadow_replay_check.py`; saved in
+`eval/results/ukf_shadow_sitl_tex.json`):
+
+| check | result |
+|---|---|
+| `XUKF` / `XUKS` FMT emitted and decoded in the SITL log | yes. 8,581 rows each, all paired. (The Replay log could not decode them, hence its CSV.) |
+| healthy during cruise | 100% |
+| validity (`horiz_pos_rel`) during cruise | 100% valid; one change, to valid, at cruise −21.5 s |
+| flow accepted (x / y), range accepted | 10,139 / 10,139; 9,817 (the time-based range sampling works live) |
+| σ_vh during cruise | 0.163–0.168 m/s, below the 0.5 m/s rule |
+| error from cruise start (along / cross), +10 s | −0.14 / +0.49 m |
+| +60 s | −1.38 / +5.94 m |
+| +150 s | −9.6 / +28.9 m |
+| end (+300 s) | −65.7 / +95.5 m |
+| yaw error vs SIM, UKF port, at t = 60 / 180 / 330 s | +11.4 / +45.2 / +103.7° (about 21 deg/min) |
+| yaw error vs SIM, EKF3 (`XKF1`), same flight and times | +0.8 / +11.1 / +40.0° |
+
+**Reading.**
+- The live integration works end to end:
+  - the `AP_AHRS` update and optical-flow fan-out;
+  - the DAL hooks;
+  - dataflash logging;
+  - the `nav_filter_status` interface;
+  - the fixed range sampling.
+- **The textured-floor result reproduces the Replay controls:** valid throughout, with cross-track
+  error growing to about 95 m, against 66–99 m in Replay. The mechanism is now measured directly:
+  **the port's yaw drifts about 21 deg/min**, against EKF3's ~8 deg/min on the same flight.
+- **This is exactly the case the validity rule cannot see** (step 4 of the validation plan):
+  - σ_vh stays near 0.165 m/s because flow keeps constraining body-frame velocity;
+  - the heading error is unobservable.
+- **The port stays as ruled: it does not fly, and does not go further, until validation steps 2
+  and 3 are done.**
+  - Context, not a conclusion: the offline UKF baseline also drifts in yaw on some bags. On
+    `fwdc_tex` the yaw error rms is 52.9 / 6.1 / 117.3° over r1–r3, and on r1 the drift is
+    −19 deg/min (`phase4_fwdc_arms.json`).
+  - So a large yaw drift is not by itself evidence that the port is wrong. Step 2's equivalence
+    harness (E1–E5) decides that.
+
+**Replay of this SITL log (a determinism check; `Tools/Replay`, `LOG_REPLAY=1`).**
+- The Replay UKF initialises 155 ms later: first row at 5.142 s, against the live 4.987 s.
+- It reproduces the live run qualitatively:
+  - valid throughout;
+  - the same drift direction;
+  - yaw +13.5° against +11.4° at 60 s, and +116.4° against +103.7° at 330 s;
+  - end position (70.3, 101.1) m against (84.4, 95.4) m.
+- **It is not bit-exact.** The start offset alone changes the gyro-bias initialisation, and the
+  heading error integrates the difference.
+- **Consequence for step 2:** a comparison against the offline UKF must use the port's own
+  initialisation instant, or it measures initialisation timing rather than the filter.
