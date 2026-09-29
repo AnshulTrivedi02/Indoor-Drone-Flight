@@ -3799,3 +3799,36 @@ Median σ, cross-track: EKF3 4–8 m; UKF baseline 3.3–4.1 m and with heading 
 - The bias states and Q now match the real step, which moves the gyro-bias estimates.
 - The baseline displacement ratio stays below 1 because its yaw still drifts (a curved
   path). That is heading error, not scale.
+
+### Steps 2–3: time-sync A/B and FLOW_POS_Z = 0.25 verification (recorded before flying; half-day bound)
+
+**Configuration for every re-run flight** (`consolidated_rerun.parm`, appended last to
+`run_trial.sh`'s `--defaults`, and enforced by `fly_trial.py` `EXPECTED_PARAMS` via live set +
+one soft reboot):
+- `FLOW_POS_Z 0.25`, correction (i);
+- `AHRS_EKF_TYPE 10`: still flown on simulator truth, as ruled;
+- `LOG_REPLAY 1` and `LOG_DISARMED 1`.
+
+**Two flights,** both `corridor_textured_fwdc` geometry, the standard mission (300 s,
+0.5 m/s, 2 m, no compass):
+- `tsx_off_tex`: time sync **off**, as in every dataset. World `corridor_textured_fwdc`,
+  unchanged.
+- `tsx_on_tex`: time sync **on**. World `corridor_tson_fwdc`, which differs only in using
+  model `iris_fwd_ts` (identical to `iris_fwd` except `<no_time_sync>0</no_time_sync>`).
+
+**Compared:** EKF3 evo -a (cruise), EKF3 displacement ratio and speed ratio, flow → EKF3
+latency (median, p95), and RTF.
+
+**Proposed thresholds for "material".** These are for the user's decision; n = 1 per
+condition.
+- EKF3 evo -a (cruise) differs by **more than 0.55 m** (the `fwdc` textured EKF3 n = 3
+  range, 3.44–3.99);
+- **or** the displacement ratio differs by **more than 0.02**;
+- **or** the latency median differs by **more than 5 ms**.
+- RTF is reported only.
+
+**FLOW_POS_Z verification (step 3), on both flights.**
+- **Pass:** EKF3 displacement ratio within **1.00 ± 0.02**, and speed ratio within
+  **0.99–1.03** (the flow sensor itself reads 1.009).
+- Also check that `XKF5.HAGL` − 0.25 equals the true camera height.
+- All four re-run parameters are confirmed from each log's PARM dump.

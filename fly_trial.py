@@ -49,6 +49,12 @@ from pymavlink import mavutil
 # flow_ekf.parm, gnss_denied.parm). Verified after connecting; self-healed
 # if the eeprom persistence gotcha has left any of these stale.
 EXPECTED_PARAMS = {
+    # Consolidated re-run (2026-09-29, consolidated_rerun.parm): correction (i) and the
+    # replayable-log standing rule; AHRS_EKF_TYPE=10 keeps flights on simulator truth.
+    'FLOW_POS_Z': 0.25,
+    'AHRS_EKF_TYPE': 10,
+    'LOG_REPLAY': 1,
+    'LOG_DISARMED': 1,
     'RNGFND1_TYPE': 10,
     'FLOW_TYPE': 5,
     'EK3_SRC1_VELXY': 5,

@@ -1,0 +1,14 @@
+# Consolidated re-run configuration (user ruling 2026-09-29; METHODOLOGY "CONSOLIDATED RE-RUN").
+# Appended LAST to run_trial.sh's --defaults chain, and also enforced by fly_trial.py
+# EXPECTED_PARAMS (live PARAM_SET + one soft reboot if eeprom-stored values differ).
+#
+# Batched correction (i): EKF3 forms its flow range as XKF5.HAGL - FLOW_POS_Z, and HAGL is
+# body-origin referenced at runtime (METHODOLOGY "Distance-scale check"), so FLOW_POS_Z must
+# be the camera's body position, 0.25 m (downward camera at z = -0.25 m below base_link).
+FLOW_POS_Z 0.25
+# Flights stay on simulator truth, as in every dataset (ruling). Set explicitly because
+# SITL only injects this default when the model sends no_time_sync (SIM_JSON.cpp:410-413).
+AHRS_EKF_TYPE 10
+# Standing rule for all future flights: replayable logs from the first flight.
+LOG_REPLAY 1
+LOG_DISARMED 1
