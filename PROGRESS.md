@@ -5,6 +5,37 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-30 (overnight) — closed loop flown; C++ heading port; UKF port steps 2–3; confirmatory EKF3-vs-FGO test
+
+- **Ground test (live forward-camera heading → EKF3 ExtNav yaw).**
+  - Run 1 stopped at G4: the Python node's latency was about 100 ms, more than the 60 ms horizon.
+  - Ruled: `VISO_DELAY_MS 60`. The fusion time is set by the horizon clamp, so the delay is nearly
+    inert, and the residual timing error is < 0.2° at the conservative yaw rate.
+  - Run 2 failed G5.3 on drops (11%). Run 3, at `every_n` 4 (7.5 Hz), passes everything.
+- **Closed loop.**
+  - Set (a), EKF3 without heading: hit the west wall at cruise +186.2 s (predicted +187 s).
+  - Set (b), EKF3 with the live heading: 3/3 pass B1–B5. Cross-track 0.27–0.31 m; yaw p95
+    0.28–0.36°, max ≤ 0.54°.
+  - A B4 scorer bug was fixed (queued D1).
+- **C++ heading port:** bit-exact numpy RNG; equivalence C1–C4 pass on 10,238 frames. 15 ms per
+  frame against 55 ms in Python; SITL latency 47 ms against 141 ms. Switching is queued (D2);
+  Pi times are estimates only.
+- **UKF port:**
+  - Shadow SITL run: healthy and valid, but about 21 deg/min yaw drift.
+  - Step 2 found a bug (float `asin` amplified by the sigma weights) and fixed it. `dsn_tex_r2` then
+    passes E1–E5; `dsn_blank_r1` fails E2 as worded, after two permitted gate flips (D3).
+  - Step 3: input-path cost 5.1 m (flow at arrival 4.8, IMU path 3.2, gyro pairing 1.5); the
+    post-fix port scores about 3.4 m evo-a equivalent (D5).
+- **Confirmatory `dsn_tex_r4..r10`: EKF3 lower than the FGO on the textured floor.**
+  - d < 0 on 6/7; mean −0.69 m, CI [−1.20, −0.19]. r10 is unusable by the IMU-gap rule and was
+    counted against.
+  - Noise floor SD: EKF3 0.31, FGO 0.13 m.
+  - The UKF is poor on 6 of 9 textured flights (median 17.5 m).
+- **`numbers.md` restated** from the re-run; the old sections are superseded, not edited.
+- **Queued decisions:** `docs/decisions_queue.md` (D1–D6).
+- **Next open track:** the FGO companion C++ port (Part C route (a), 5–8 pw). Not started; it
+  needs scoping.
+
 ## Current Status — 2026-09-29 (afternoon) — queue items 1–3 done
 
 - **Heading share restated:** 74% → 69% (`dsn_tex_r3`, pinned window); batched correction
