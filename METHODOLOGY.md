@@ -5617,3 +5617,55 @@ loss point:
 - **Remaining for the thesis text:** the tables in `docs/thesis/numbers.md` need restating from
   `rerun_old_vs_new.md`. **No numbers.md value is edited in place**; the old values move to its
   superseded section when the text is updated.
+
+### Rulings (user, 2026-09-29) on the re-run results
+
+**Claim wording (binding for the thesis text):**
+- **EKF3 vs FGO** (`dsn` textured, no heading): "EKF3 lower on all three repeats (4.00 vs
+  4.52 m mean)". **No general ordering is claimed** until the additional repeats below are done.
+- **UKF-with-heading vs EKF3-without-heading: not a fair comparison.** It is never stated as the
+  UKF being better (the UKF has an absolute heading source that EKF3 does not).
+- **FGO vs UKF, both with heading** (`fwdc` textured 0.08–0.09 m vs ~0.6 m): a fair,
+  same-information comparison, **reported as an implementation result**. Stated alongside:
+  - the UKF's remaining instability (`dsn_tex_r1`, 17.45 m);
+  - its plain-wall over-confidence (`fwdplainc` textured cross-track NEES 5.08).
+- **The 1.3% flow-sensor scale change** (`flow_y` slope 1.009 → 0.987, textured) is a
+  **consequence of the steadier camera** after the roll-gain correction. **It was not tuned.**
+
+**The number tables** in `docs/thesis/numbers.md` are restated from `rerun_old_vs_new.md`. Old
+values move to its superseded section and are **not edited in place.**
+
+### PRE-REGISTRATION — additional `dsn_tex` repeats: the EKF3-vs-FGO ordering and the `dsn` noise floor (flown AFTER closed-loop sets (a) and (b))
+
+- **Flights.** `dsn_tex_r4 … dsn_tex_r10`: 7 new repeats. Same settings as the re-flown batch:
+  `corridor_textured`, 0.5 m/s, 2.0 m, 300 s, the committed harness with every correction, no
+  `SIDESTEP`, nomag, flown on simulator truth, crash-safe runner. Then the same pipeline
+  (IMU-gap rule, UKF/FGO replays, `three_way_eval` pinned cruise window).
+- **Why a separate confirmatory set.** The ordering hypothesis (EKF3 lower) was formed on
+  r1–r3, so testing it on the same three flights would be circular. **The confirmatory test uses
+  only the 7 new flights.** All 10 re-flown flights are used for the noise floor.
+- **Test.** Paired per-flight difference `d_i = evo(EKF3) − evo(FGO)` (evo -a (cruise), the same
+  flight and window), i = 4…10.
+  - **Claim "EKF3 lower than the FGO on the textured floor" only if both hold:**
+    - **(a)** `d_i < 0` on **at least 6 of 7** (one-sided sign test p = 8/128 = 0.0625 at 6/7,
+      and 1/128 = 0.008 at 7/7);
+    - **(b)** the 95% t-interval (df 6) of mean `d` excludes 0.
+  - **Claim "FGO lower"** by the mirror rule.
+  - **Otherwise: no ordering is claimed**, and the mean `d` ± CI is reported as the difference
+    between them.
+  - Requiring both (a) and (b) guards against one outlier flight deciding the result (the sign
+    test is robust to that) and against a tiny consistent difference being over-read (the CI
+    reports its size).
+- **Basis for n = 7.**
+  - On r1–r3 the observed paired `d` is −0.59 / −0.44 / −0.54 m (sd ~0.08). If that difference
+    is real, 7 flights make both (a) and (b) near-certain.
+  - If the true difference is 0, criterion (a) alone has a false-positive probability ≤ 6.25%.
+  - About 45 min of flying. It is not chosen from the data beyond stating the expectation.
+- **Noise floor (the long-open item: "the n = 3 ranges are not a noise floor").**
+  - From all 10 re-flown `dsn_tex`: the standard deviation of evo -a (cruise) per estimator
+    (EKF3, FGO, UKF), and of the paired difference, each with a χ² 95% interval (df 9, about
+    0.69–1.83 × the SD).
+  - **This replaces "n = 3 range ± one range-width"** as the recommended basis for future
+    textured-floor bands. The existing bands are **not** re-scored retrospectively.
+- **Reported regardless of outcome.** The UKF's r4–r10 values are included, and its instability
+  rate is reported (flights with evo > 3× the median).
