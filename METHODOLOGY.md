@@ -6015,3 +6015,30 @@ Armed 29.63 s → disarmed 362.95 s. Results: `eval/results/ground_test_gt_headi
 - **QUEUED for the user:** confirm that this is an implementation fix, not a re-scoring. I treated
   it that way and did not stop the set. If ruled otherwise, r1 is recorded as a B4 failure as first
   scored, and r2/r3 remain as data.
+
+### Closed-loop set (b), r2 and r3, and the SET RESULT: (b) PASSES (3/3 flights pass B1–B5)
+
+| flight | B1 | B2 max \|x\| cruise | B3 yaw p95 / max | B4 max lateral speed | B5 gyro rms r / p / y | headings sent (q ≥ 50) / ignored |
+|---|---|---|---|---|---|---|
+| `cl_b_tex_r1` | pass | 0.27 m | 0.36 / 0.54° | 0.033 m/s | 0.0021 / 0.0017 / 0.0027 | 2,286 (2,196) / 90 |
+| `cl_b_tex_r2` | pass | 0.31 m | 0.28 / 0.31° | 0.019 m/s | 0.0020 / 0.0021 / 0.0024 | 2,244 (2,158) / 86 |
+| `cl_b_tex_r3` | pass | 0.29 m | 0.28 / 0.34° | 0.017 m/s | 0.0020 / 0.0029 / 0.0025 | 2,242 (2,151) / 91 |
+
+- Results: `eval/results/closed_loop_cl_b_tex_r{1,2,3}.json`.
+- **The decision rule pre-registered before flying ("(b) passes if all three flights pass B1–B5")
+  is met.** Set (c) was dropped by an earlier ruling, and it is not flown.
+- **Reading, against set (a) on the same world and settings:**
+  - Without heading, EKF3 flew into the west wall at cruise +186 s.
+  - With the live forward-camera heading through ExtNav yaw, all three flights completed the
+    150 m corridor within 0.31 m of the centreline. EKF3's yaw error stayed at p95 ≤ 0.36° and
+    max ≤ 0.54°.
+  - The measured yaw error sits close to the offline prediction (p95 ≤ 0.28°, max ≤ 0.46° at
+    every 3rd frame). Only r1 exceeds it slightly, and all three are far inside the bands.
+- **Caveats, stated with the result:**
+  - n = 3, one world (textured walls; the upper-bound camera case).
+  - Heading at 7.5 Hz with about 140 ms latency, fused at the horizon; the residual timing error
+    is equivalent to < 0.1°.
+  - SITL only.
+  - The B4 scorer fix on r1 is queued for the user's confirmation. r2 and r3 were scored with the
+    fixed scorer only. Under the original sample-count scorer they would need re-checking. The
+    fixed scorer's values are far inside the band.
