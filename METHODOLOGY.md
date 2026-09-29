@@ -5348,3 +5348,71 @@ from the logs before any interpretation).**
 **4. UKF `dsn_tex_r1` (evo -a (cruise) 17.45 m) is recorded as a remaining instability case.**
 The same bag was 16.98 m before the corrections, while r2/r3 improved to 2.28 / 4.30 m. **Not
 investigated now.**
+
+## Part 4 — the UKF drop-in's health and validity (user ruling, 2026-09-29)
+
+**Requirement:** before the UKF ever flies, it must report health and position/velocity validity
+through the same `AP_AHRS` interface EKF3 uses (Part C §1.3), with an explicit rule for declaring
+position invalid, tested in shadow on a blank-floor replay. **There are no changes to the offline
+UKF used in the comparison.**
+
+**Implementation (`~/ardupilot_ukf`, branch `ukf-port`, `AP_NavUKF`):**
+- `healthy()` and `getFilterStatus(nav_filter_status&)`, with the **same signatures and the same
+  `nav_filter_status` union** that `NavEKF3` exposes to `AP_AHRS` (`AP_NavEKF/AP_Nav_Common.h`).
+- `AP_AHRS` selection wiring (Part C's per-type switch arms) is the next Part 4 step. Until then
+  the flags are logged: `XUKS.SS` and `H` in SITL, and `ukf_shadow.csv` in Replay.
+- It switched to DAL time (`dal.millis()`), so SITL and Replay behave identically.
+
+**VALIDITY RULE** (horizontal velocity, relative horizontal position, and the predicted relative
+position):
+- **Invalid when either:**
+  - **(a)** no flow update has been accepted (either axis) for more than **5000 ms**. That is
+    **EKF3's own relative-aiding timeout** (`flowFusionTimeout`, `AP_NavEKF3_Control.cpp:306`),
+    which moves EKF3 to AID_NONE and constant-position mode;
+  - **or (b)** the horizontal-velocity 1σ `√(P_vN + P_vE)` exceeds **0.5 m/s**, the cruise
+    speed: an estimate less certain than the speed it navigates at.
+- **Valid again** at the next accepted flow update, with (b) satisfied.
+- `vert_pos` / `vert_vel`: a rangefinder update accepted within 5000 ms.
+- `healthy()` requires initialisation and finite state and covariance.
+- **Unlike EKF3, the UKF has no constant-position fallback.** When invalid it keeps outputting its
+  inertial estimate, flagged invalid, and `const_pos_mode` is always false. `dead_reckoning` is
+  set while still valid but with no flow accepted for more than 1 s.
+
+**Shadow test in ArduPilot Replay on the re-flown logs** (`LOG_REPLAY=1`):
+- **Method.** The Replay tool is built from `ukf-port`. Two replay-only `AP_DAL` hooks (null in
+  every vehicle build) run the UKF on exactly the DAL frames and flow records EKF3 receives. The
+  check is `eval/ukf_shadow_replay_check.py`, with outputs in `eval/results/ukf_shadow_replay/`.
+- **A port bug found by the textured control and fixed.** Range was sampled only on a changed
+  value, but MAVLink `DISTANCE_SENSOR` is integer cm, so steady-hover readings repeat. Only 152
+  range updates in 300 s were fused, height stuck at its on-ground value, and flow was mis-scaled
+  about 20×. Range is now sampled at 30 Hz while its status is Good: 9,813–9,815 range updates
+  per flight.
+- **Replay logging note.** Replay's logger did not emit FMT records for the UKF's dynamically named
+  messages. In Replay mode the UKF therefore also writes a CSV. Dataflash logging is kept for SITL
+  and is checked in the SITL shadow run.
+
+| log | healthy | `horiz_pos_rel` valid (cruise) | validity change | position error vs GT at cruise end (along / cross) |
+|---|---|---|---|---|
+| **`dsn_blank_r1`** (no flow) | 100% | **0.6%** | **invalid at cruise +1.95 s** (flow age 3.2 s, σ_vh 0.506 m/s: rule (b) fired before the 5 s timeout); **never valid again** | −17.1 km / +15.2 km, **flagged invalid throughout** |
+| `dsn_tex_r2` (control) | 100% | 100% | none | −29.7 m / **+66.2 m** (σ_vh 0.16–0.17 m/s) |
+| `dsn_tex_r1` (control; the known UKF instability bag) | 100% | 100% | none | −142.5 m / +99.4 m |
+
+**Findings (stated plainly):**
+1. **The rule does what it is for on loss of aiding.** On the blank floor the UKF declares its
+   position invalid within 2 s of cruise start, and keeps it invalid while its estimate runs away.
+   That is the equivalent of EKF3's "stopped aiding", reached through the same status interface.
+2. **Validity is not accuracy.** On the textured controls, the port stays valid and confident
+   (σ_vh 0.16 m/s) while its position wanders 66–99 m cross-track: a heading drift that no
+   velocity-covariance rule catches. EKF3 has the same property in its own nomag configuration.
+3. **The port is not yet equivalent to the offline UKF.** On `dsn_tex_r2` the offline UKF ends
+   about 146 m along and 1.5 m cross (GT 151 m), against the port's ~120 m along and 66 m cross.
+   Likely contributors, not yet tested:
+   - EKF3's arrival-window AHRS gyro pairing for flow, against the offline UKF's co-sampled
+     frame-interval average;
+   - fusion at arrival with no delayed-state buffer;
+   - the INS delta inputs.
+
+   On `dsn_tex_r1` both wander ~98 m sideways (the recorded instability case).
+- **Consequence:** the UKF port **does not fly** until it has been validated against the offline
+  UKF on replayed logs, with a pre-registered agreement criterion. That validation is the next
+  Part 4 step, together with the `AP_AHRS` selection wiring.
