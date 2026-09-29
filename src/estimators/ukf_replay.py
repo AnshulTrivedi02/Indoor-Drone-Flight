@@ -64,11 +64,23 @@ ev.sort(key=lambda e: e[0]); gt.sort(key=lambda e: e[0])
 gt = np.array(gt)
 
 # ---------- init: gravity levelling over first 0.5 s + first valid range ----------
-p = U.make_params(dt=0.0125)
+# BATCHED CORRECTION (ii), 2026-09-29 (METHODOLOGY "Distance-scale check"): the predict step
+# fires once the accumulated IMU time reaches EKF3's target of 0.0125 s
+# (EKF_TARGET_DT, AP_NavEKF3_core.h:58). With 333 Hz IMU samples that takes n whole samples
+# (n = 5 at 3.0006 ms, i.e. 15.003 ms), and the process must integrate with that ACTUAL
+# interval, as EKF3 uses its accumulated delAngDT/delVelDT (AP_NavEKF3_core.cpp:1036). Q, the
+# delta-form bias states and their rate conversions all use the same step. Previously the
+# fixed 0.0125 s was used, under-integrating position by 0.833 and forcing the accel-z bias to
+# absorb the gravity mismatch.
+TARGET_DT = 0.0125
+_period = _imu_dj['period_ms'] / 1e3
+DT_STEP = math.ceil(TARGET_DT / _period - 1e-9) * _period
+p = U.make_params(dt=DT_STEP)
+print(f"[dt] predict step = {round(DT_STEP / _period)} IMU samples = {1e3 * DT_STEP:.4f} ms (target {1e3 * TARGET_DT} ms)")
 t_imu0 = next(t for t, k, _ in ev if k == "imu")
 acc_lvl = [d[0] for t, k, d in ev if k == "imu" and t <= t_imu0 + 0.5]
 first_rng = next(d for t, k, d in ev if k == "rng" and p['RNG_MIN'] <= d <= p['RNG_MAX'])
-x, P = U.init_state(np.mean(acc_lvl, axis=0), first_rng)
+x, P = U.init_state(np.mean(acc_lvl, axis=0), first_rng, dt=DT_STEP)
 t_init = t_imu0 + 0.5
 print(f"[init] t={t_init:.2f}s  roll0={math.degrees(x[6]):+.2f} pitch0={math.degrees(x[7]):+.2f} deg  "
       f"p_U0={x[2]:.3f} m (range {first_rng:.3f})")
@@ -107,9 +119,9 @@ for t, kind, d in ev:
         if dt_i <= 0 or dt_i > 0.2:
             continue
         da += d[1]*dt_i; dv += d[0]*dt_i; acc_dt += dt_i
-        if acc_dt >= p['dt']:
+        if acc_dt >= TARGET_DT - 1e-9:
             _t0 = time.perf_counter_ns()
-            x, P = U.predict(x, P, da, dv, p)
+            x, P = U.predict(x, P, da, dv, p, dt=acc_dt)
             tim["predict"].append(time.perf_counter_ns() - _t0)
             if DUMP:
                 dump_x.append(np.r_[t, x, np.diag(P)])

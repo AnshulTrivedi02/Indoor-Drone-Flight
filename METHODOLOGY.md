@@ -3761,3 +3761,41 @@ Median σ, cross-track: EKF3 4–8 m; UKF baseline 3.3–4.1 m and with heading 
   comes from the frame-to-keyframe mapping: here, the latest valid frame at or before each
   keyframe. It is recorded, not reconciled.
 - **The FGO's predicted yaw σ comes from the gate-only covariance approximation.**
+
+## CONSOLIDATED RE-RUN (user ruling, 2026-09-29): both baseline corrections accepted
+
+**Ruling.**
+- Batched corrections (i) EKF3 `FLOW_POS_Z = 0.25` and (ii) UKF accumulated dt are
+  **accepted**. The consolidated re-run runs now.
+- It unlocks every cross-estimator claim. **After it, results are frozen for writing.**
+- **It is a correction, not a tuning pass:** no parameter changes beyond the listed
+  corrections, and any result that changes direction is flagged.
+
+### Step 1: UKF time-step fix, correction (ii), applied and verified offline
+
+**The change** (`ukf_replay.py`, `ukf_core.predict(dt=)`):
+- The predict step still fires once the accumulated IMU time reaches EKF3's target of
+  0.0125 s.
+- The process now integrates with the **actual** accumulated interval: 5 dejittered IMU
+  samples = **15.0028 ms**, derived from the dejitter period.
+- Q, the delta-form bias states, their initial σ and every rate conversion use that same
+  step.
+- Nothing else changed.
+
+**Verified on `fwdc_tex_r1` (sandbox; the stored Phase 4 outputs are untouched):**
+
+| | UKF baseline, old → new | UKF +heading, old → new |
+|---|---|---|
+| speed ratio | 0.838 → **1.006** | 0.851 → **1.021** |
+| displacement ratio | 0.683 → 0.82 | 0.849 → **1.02** |
+| evo -a (cruise), m | 14.60 → 12.17 | 6.62 → **0.83** |
+| divergence onset | 72 → 122 m | — |
+| accel-bias z, m/s² | 1.97 → **0.008** | → 0.007 |
+| gyro-z bias vs truth | 429% → 354% | 118% → 98% |
+
+**Everything that moved is explained by the fix.**
+- Position is now integrated over the true interval, so the scale is ≈ 1.
+- The accelerometer-bias state no longer absorbs the 1.96 m/s² gravity mismatch.
+- The bias states and Q now match the real step, which moves the gyro-bias estimates.
+- The baseline displacement ratio stays below 1 because its yaw still drifts (a curved
+  path). That is heading error, not scale.

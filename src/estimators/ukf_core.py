@@ -108,9 +108,12 @@ def _process(x, da, dv, dt):
     return y
 
 
-def predict(x, P, da, dv, p):
+def predict(x, P, da, dv, p, dt=None):
+    """dt: the ACTUAL accumulated interval of this step (batched correction (ii),
+    2026-09-29); defaults to p['dt'], which the harness sets to the actual step."""
     sig, Wm, Wc = _sigma_points(x, P, p)
-    fs = np.array([_process(s, da, dv, p['dt']) for s in sig])
+    dt = p['dt'] if dt is None else dt
+    fs = np.array([_process(s, da, dv, dt) for s in sig])
     xm = _state_mean(fs, Wm)
     Pm = p['Q'].copy()
     for i in range(2*N+1):
