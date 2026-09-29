@@ -6523,3 +6523,23 @@ before): **2.79 m with D5**, 3.37 m without it; offline UKF 2.28, EKF3 3.86, FGO
 
 **Then the external-estimator backend and the validity signal.** Same gates as the UKF before any
 flight: step 2 passes, step 3 is ruled on, and a shadow run is reported first.
+
+### Set (b) RE-FLOWN with the C++ heading node (ruling D2): PASSES, 3/3 flights pass B1–B5
+
+Settings: `VISO_DELAY_MS 38`, `every_n` 4, `impl: cpp`, otherwise as the Python-node set (b).
+Results: `eval/results/closed_loop_cl_bcpp_tex_r{1,2,3}.json`.
+
+| flight | B2 max \|x\| | B3 yaw p95 / max | B4 max lateral speed | B5 gyro rms r / p / y | sent (q ≥ 50) / ignored |
+|---|---|---|---|---|---|
+| `cl_bcpp_tex_r1` | 0.25 m | 0.31 / 0.42° | 0.140 m/s (cruise +0.5 s) | 0.0020 / 0.0016 / 0.0026 | 2,286 (2,198) / 88 |
+| `cl_bcpp_tex_r2` | 0.23 m | 0.28 / 0.40° | 0.027 m/s | 0.0020 / 0.0020 / 0.0023 | — |
+| `cl_bcpp_tex_r3` | 0.34 m | 0.29 / 0.42° | 0.021 m/s | 0.0020 / 0.0018 / 0.0025 | 2,285 (2,199) / 86 |
+
+- **Verdict: 3/3.** This is **EKF3's with-heading result** for comparison with the later UKF/FGO
+  flights (same node).
+- The Python-node set (b) is the first result: "3/3 with the corrected scorer, 2/3 under the
+  original" (D1).
+- The two sets agree closely: cross-track 0.23–0.34 m against 0.27–0.31 m; yaw p95 0.28–0.31°
+  against 0.28–0.36°.
+- r1's B4 maximum (0.14 m/s) sits at cruise +0.5 s, in the speed-up transient at the window start.
+  It passes, and it is noted.
