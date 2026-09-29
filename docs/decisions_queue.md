@@ -83,3 +83,14 @@ evidence are in METHODOLOGY (section named per item).
   - (c) both, reporting the port under each.
 - **Recommendation: (a)**, plus the EKF3 Replay diagnostic, because it quantifies a property of the
   baseline itself.
+
+## D9. First UKF flight: with or without the forward-camera heading
+- Report above: in live shadow the UKF drifts about 24 deg/min, the algorithm's behaviour (the offline
+  UKF drifts 29.9 deg/min on the same flight). Without heading it would be expected to reach the
+  wall around +110 s (EKF3: +186 s).
+- Options: **(a) first UKF flight with the heading source** (add the heading update to the port, as
+  the offline UKF's Phase 4 arm; then steps 2-3 for that path, a shadow run, then fly); (b) a
+  no-heading UKF flight first, as the analogue of set (a), predicting early contact with bands
+  pre-registered from the drift above; (c) both, (b) first.
+- **Recommendation: (c)**, because (b) is cheap (it reuses the set (a) machinery) and gives the UKF's
+  own set (a); then (a). Both need a ruling.

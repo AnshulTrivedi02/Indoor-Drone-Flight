@@ -6543,3 +6543,35 @@ Results: `eval/results/closed_loop_cl_bcpp_tex_r{1,2,3}.json`.
   against 0.28–0.36°.
 - r1's B4 maximum (0.14 m/s) sits at cruise +0.5 s, in the speed-up transient at the window start.
   It passes, and it is noted.
+
+### D5 report (before any UKF flight): live SITL shadow run with the delay-buffered port, `ukf_shadow_sitl_tex_d5`
+
+- **Setup.** Port binary `cfd20739b3`: both step-2 fixes and the D5 delayed horizon. `AHRS_EKF_TYPE 10`,
+  so the vehicle flew on truth and the UKF ran **in shadow only**. `AHRS_UKF_ENABLE 1`. Textured
+  corridor, 300 s cruise. Results: `eval/results/ukf_shadow_sitl_tex_d5.json`.
+- **Health and validity:** healthy 100%, valid 100%. Flow accepted 10,156 / 10,156, range 9,838.
+- **Error from cruise start, along / cross:** −1.8 / +7.5 m at +60 s; −13.3 / +34.8 m at +150 s;
+  −86 / +103 m at the end.
+- **Yaw against SIM, port:** +14.5° at 60 s, +54.8° at 180 s, +121.4° at 330 s, **about
+  24 deg/min**. EKF3 on the same flight: +0.8 / +10.8 / +39.5°, about 8.6 deg/min.
+- **The offline UKF on this same flight's bag** (`ukf_replay.py`, IMU-gap rule "trim"): yaw drift
+  **29.9 deg/min** (magnitude; ENU sign −29.9), ATE apparatus 151 m.
+- **Reading.**
+  - **The port's live drift is the UKF algorithm's behaviour on this flight, not a port defect.**
+    The offline reference drifts slightly MORE (29.9 against about 24 deg/min).
+  - This is the "UKF poor in most textured flights" result (6/9 `dsn_tex`). The step-3 textured log
+    `dsn_tex_r2` is one of the UKF's three good flights, which is why the port scored 2.8 m there.
+  - D5 does not change the live drift (about 22.5 → 24 deg/min, one flight each).
+- **Consequence for flying the UKF.**
+  - The validity rule stays valid throughout, the known limitation that heading drift is
+    unobservable to it.
+  - So **a UKF closed-loop flight without a heading source would be expected to leave the corridor
+    early**. At about 24 deg/min against EKF3's 8.6, the 1/√drift scaling of set (a)'s contact
+    time (EKF3: +186 s) suggests roughly +110 s.
+  - With the forward-camera heading, the offline UKF + heading arm was 0.6 m on `fwdc_tex`.
+  - **Recommendation for the first UKF flight: with the heading source only** (the UKF + heading,
+    fed the same C++ node's heading). This needs the heading path added to the port, which it does
+    not have yet. **Not flown without a ruling (D9).**
+- **Step 3 after D5, the remaining input-path cost:** 5.06 m against the offline UKF on
+  `dsn_tex_r2`, almost all of it flow timing (D8). The full Replay port on that flight scores 2.79 m
+  evo -a equivalent (offline UKF 2.28).
