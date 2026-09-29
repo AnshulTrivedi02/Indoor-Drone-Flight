@@ -9,567 +9,567 @@
  "trials": {
   "fwdplainc_tex_r1": {
    "window_s": [
-    30.329,
-    332.131
+    29.93,
+    332.138
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 157.56898576714698,
-      "true_travel": 150.804514,
-      "disp_ratio": 1.044855897132807,
+      "final_disp": 147.175641477761,
+      "true_travel": 151.00488900000002,
+      "disp_ratio": 0.9746415659281136,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 3.881107
+      "+0.00": 4.075241
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 98.43748812420344,
-      "true_travel": 150.81392615801394,
-      "disp_ratio": 0.652708212244713,
-      "onset_gt_dist": 69.45857690947527
+      "final_disp": 112.73699783540914,
+      "true_travel": 151.00874673961476,
+      "disp_ratio": 0.7465593898994618,
+      "onset_gt_dist": 110.46937590311173
      },
      "ate_a_cruise": {
-      "+0.00": 15.805422
+      "+0.00": 14.229538
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 148.4008706519693,
-      "true_travel": 150.80401877936455,
-      "disp_ratio": 0.9840644291389131,
+      "final_disp": 146.35820184676334,
+      "true_travel": 151.00210235586073,
+      "disp_ratio": 0.9692461201755106,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 4.669721
+      "+0.00": 4.57459
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 128.02442410680197,
-      "true_travel": 150.81392615801394,
-      "disp_ratio": 0.8488899358847374,
-      "onset_gt_dist": 96.53425352172025
+      "final_disp": 148.92682603047965,
+      "true_travel": 151.00874673961476,
+      "disp_ratio": 0.9862132442385938,
+      "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 6.626476
+      "+0.00": 0.648542
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 152.98922137832702,
-      "true_travel": 150.80401877936455,
-      "disp_ratio": 1.014490347251021,
+      "final_disp": 150.65216220231807,
+      "true_travel": 151.00210235586073,
+      "disp_ratio": 0.9976825478050765,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 0.525035
+      "+0.00": 0.199915
      }
     }
    }
   },
   "fwdplainc_trans_r1": {
    "window_s": [
-    30.103,
-    331.916
+    29.881,
+    331.685
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 84.02248292415686,
+      "final_disp": 0.06607607891665486,
       "true_travel": 150.804514,
-      "disp_ratio": 0.5571615908271609,
-      "onset_gt_dist": 100.68847899999999
+      "disp_ratio": 0.00043815716893364913,
+      "onset_gt_dist": 83.022076
      },
      "ate_a_cruise": {
-      "+0.00": 21.707641
+      "+0.00": 41.478765
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 140.0769625767439,
-      "true_travel": 150.81483355963053,
-      "disp_ratio": 0.9288009625482829,
-      "onset_gt_dist": 61.754948702366924
+      "final_disp": 5800.1027061690465,
+      "true_travel": 150.8151605621305,
+      "disp_ratio": 38.45835315594555,
+      "onset_gt_dist": 60.697690652908705
      },
      "ate_a_cruise": {
-      "+0.00": 7.39604
+      "+0.00": 1443.654737
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 109.34646367573521,
-      "true_travel": 150.80493768284245,
-      "disp_ratio": 0.7250854339113321,
-      "onset_gt_dist": 94.84816735327445
+      "final_disp": 7534.3069614916185,
+      "true_travel": 150.80506489344384,
+      "disp_ratio": 49.96056973825929,
+      "onset_gt_dist": 89.59851643003167
      },
      "ate_a_cruise": {
-      "+0.00": 25.993917
+      "+0.00": 1864.968818
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 115.23378005980818,
-      "true_travel": 150.81483355963053,
-      "disp_ratio": 0.7640745763529024,
-      "onset_gt_dist": 83.5727303958467
+      "final_disp": 3438.6381976900166,
+      "true_travel": 150.8151605621305,
+      "disp_ratio": 22.80034835273354,
+      "onset_gt_dist": 102.91578509699656
      },
      "ate_a_cruise": {
-      "+0.00": 19.731137
+      "+0.00": 566.980457
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 138.74639587644094,
-      "true_travel": 150.80493768284245,
-      "disp_ratio": 0.9200388131072883,
-      "onset_gt_dist": 109.06212621332342
+      "final_disp": 4476.157807880084,
+      "true_travel": 150.80506489344384,
+      "disp_ratio": 29.68174716839157,
+      "onset_gt_dist": 90.44843183595069
      },
      "ate_a_cruise": {
-      "+0.00": 20.932478
+      "+0.00": 1072.562021
      }
     }
    }
   },
   "fwdplainc_blank_r1": {
    "window_s": [
-    30.263,
-    331.999
+    29.789,
+    330.977
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 27.365144528163924,
-      "true_travel": 150.793382,
-      "disp_ratio": 0.18147443982763065,
-      "onset_gt_dist": 17.176599398905857
+      "final_disp": 0.07696454441494473,
+      "true_travel": 150.503951,
+      "disp_ratio": 0.000511378896723746,
+      "onset_gt_dist": 15.083791
      },
      "ate_a_cruise": {
-      "+0.00": 35.167526
+      "+0.00": 43.452781
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 187.43409847271596,
-      "true_travel": 150.776242268316,
-      "disp_ratio": 1.2431275355646876,
-      "onset_gt_dist": 71.50532287439049
+      "final_disp": 9378.297488213,
+      "true_travel": 150.49945837084908,
+      "disp_ratio": 62.3144932861069,
+      "onset_gt_dist": 23.86022337215407
      },
      "ate_a_cruise": {
-      "+0.00": 12.580928
+      "+0.00": 5030.552133
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 226.98853935243906,
-      "true_travel": 150.76903062287317,
-      "disp_ratio": 1.505538229002864,
-      "onset_gt_dist": 38.194934333678674
+      "final_disp": 27139.686204077858,
+      "true_travel": 150.48839762893942,
+      "disp_ratio": 180.3440440039532,
+      "onset_gt_dist": 9.28225159658916
      },
      "ate_a_cruise": {
-      "+0.00": 25.789333
+      "+0.00": 7969.713895
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 191.10690119734812,
-      "true_travel": 150.776242268316,
-      "disp_ratio": 1.267486828974429,
-      "onset_gt_dist": 65.32530557491602
+      "final_disp": 24897.589508329354,
+      "true_travel": 150.49945837084908,
+      "disp_ratio": 165.43308379873798,
+      "onset_gt_dist": 23.90514387511963
      },
      "ate_a_cruise": {
-      "+0.00": 13.623924
+      "+0.00": 8706.005388
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 232.87111234149205,
-      "true_travel": 150.76903062287317,
-      "disp_ratio": 1.544555346541859,
-      "onset_gt_dist": 38.178291633632426
+      "final_disp": 20031.68777804977,
+      "true_travel": 150.48839762893942,
+      "disp_ratio": 133.11117729781455,
+      "onset_gt_dist": 6.498910945371737
      },
      "ate_a_cruise": {
-      "+0.00": 25.905479
+      "+0.00": 5867.527817
      }
     }
    }
   },
   "fwdplainc_tex_r2": {
    "window_s": [
-    30.032,
-    331.949
+    30.049,
+    331.306
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 156.52691993908923,
-      "true_travel": 150.849042,
-      "disp_ratio": 1.0376394696566202,
+      "final_disp": 146.7959803067134,
+      "true_travel": 150.537347,
+      "disp_ratio": 0.9751465880869642,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 4.263096
+      "+0.00": 4.056744
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 118.80824626619574,
-      "true_travel": 150.86849854838005,
-      "disp_ratio": 0.7874953844529491,
-      "onset_gt_dist": 80.46954413416238
+      "final_disp": 144.00250341684995,
+      "true_travel": 150.53247227957783,
+      "disp_ratio": 0.9566208621711862,
+      "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 9.9724
+      "+0.00": 3.397919
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 148.3239974349262,
-      "true_travel": 150.86776290134966,
-      "disp_ratio": 0.9831391052833017,
+      "final_disp": 146.110010685221,
+      "true_travel": 150.5297036194715,
+      "disp_ratio": 0.9706390643973952,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 4.82436
+      "+0.00": 4.472179
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 127.82701552793964,
-      "true_travel": 150.86849854838005,
-      "disp_ratio": 0.8472743929836914,
-      "onset_gt_dist": 96.76003710720349
+      "final_disp": 148.43454421384197,
+      "true_travel": 150.53247227957783,
+      "disp_ratio": 0.9860632856554733,
+      "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 6.671503
+      "+0.00": 1.013187
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 152.97160684478268,
-      "true_travel": 150.86776290134966,
-      "disp_ratio": 1.013944953533968,
+      "final_disp": 149.86900287110916,
+      "true_travel": 150.5297036194715,
+      "disp_ratio": 0.9956108280792704,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 0.567919
+      "+0.00": 0.613493
      }
     }
    }
   },
   "fwdplainc_trans_r2": {
    "window_s": [
-    30.478,
-    332.378
+    29.951,
+    331.586
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 84.22742128394812,
-      "true_travel": 150.849042,
-      "disp_ratio": 0.5583556923347788,
-      "onset_gt_dist": 100.97791040805997
+      "final_disp": 0.17686549147304004,
+      "true_travel": 150.704326,
+      "disp_ratio": 0.0011735926643077256,
+      "onset_gt_dist": 82.98868
      },
      "ate_a_cruise": {
-      "+0.00": 21.692487
+      "+0.00": 41.440278
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 56.66849188047067,
-      "true_travel": 150.85728460047355,
-      "disp_ratio": 0.3756430591373165,
-      "onset_gt_dist": 79.02023120844538
+      "final_disp": 8021.749225499943,
+      "true_travel": 150.72234790438688,
+      "disp_ratio": 53.22202936082623,
+      "onset_gt_dist": 71.60955957692163
      },
      "ate_a_cruise": {
-      "+0.00": 31.552816
+      "+0.00": 1859.660065
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 104.25969060918636,
-      "true_travel": 150.85071724955068,
-      "disp_ratio": 0.6911448119713657,
-      "onset_gt_dist": 94.64549913028671
+      "final_disp": 7232.485870632278,
+      "true_travel": 150.71684628329888,
+      "disp_ratio": 47.9872426273938,
+      "onset_gt_dist": 89.59537115777653
      },
      "ate_a_cruise": {
-      "+0.00": 26.303439
+      "+0.00": 1838.792824
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 112.106847152299,
-      "true_travel": 150.85728460047355,
-      "disp_ratio": 0.743131811295688,
-      "onset_gt_dist": 83.87276671021797
+      "final_disp": 2856.545459534886,
+      "true_travel": 150.72234790438688,
+      "disp_ratio": 18.952368373049637,
+      "onset_gt_dist": 102.75013759299638
      },
      "ate_a_cruise": {
-      "+0.00": 19.974529
+      "+0.00": 548.637117
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 135.76478890738446,
-      "true_travel": 150.85071724955068,
-      "disp_ratio": 0.8999943214243408,
-      "onset_gt_dist": 104.09353590458637
+      "final_disp": 4473.4529744862175,
+      "true_travel": 150.71684628329888,
+      "disp_ratio": 29.68117423368569,
+      "onset_gt_dist": 90.428882508325
      },
      "ate_a_cruise": {
-      "+0.00": 20.625862
+      "+0.00": 1067.853792
      }
     }
    }
   },
   "fwdplainc_blank_r2": {
    "window_s": [
-    30.097,
-    331.949
+    30.098,
+    331.669
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 29.20142448129697,
-      "true_travel": 150.804514,
-      "disp_ratio": 0.19363760212971456,
-      "onset_gt_dist": 19.280537137131553
+      "final_disp": 0.07335884963656396,
+      "true_travel": 150.704326,
+      "disp_ratio": 0.0004867733500666992,
+      "onset_gt_dist": 15.13945
      },
      "ate_a_cruise": {
-      "+0.00": 34.911937
+      "+0.00": 43.510757
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 186.47070959141502,
-      "true_travel": 150.83687484420093,
-      "disp_ratio": 1.236240871365309,
-      "onset_gt_dist": 71.81141593461375
+      "final_disp": 44706.89855488944,
+      "true_travel": 150.69475535722995,
+      "disp_ratio": 296.67189444589064,
+      "onset_gt_dist": 23.787510017756578
      },
      "ate_a_cruise": {
-      "+0.00": 12.463565
+      "+0.00": 14986.94731
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 229.40956339140754,
-      "true_travel": 150.83397559156762,
-      "disp_ratio": 1.52094090533428,
-      "onset_gt_dist": 35.375189107471655
+      "final_disp": 24071.636795024187,
+      "true_travel": 150.68690429535434,
+      "disp_ratio": 159.74604367638014,
+      "onset_gt_dist": 6.697496502143207
      },
      "ate_a_cruise": {
-      "+0.00": 25.638492
+      "+0.00": 7042.549849
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 191.1031218891032,
-      "true_travel": 150.83687484420093,
-      "disp_ratio": 1.2669522760034186,
-      "onset_gt_dist": 67.48389440673455
+      "final_disp": 23222.979993418296,
+      "true_travel": 150.69475535722995,
+      "disp_ratio": 154.1060930645329,
+      "onset_gt_dist": 23.8025022339675
      },
      "ate_a_cruise": {
-      "+0.00": 13.418507
+      "+0.00": 7541.727958
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 233.58423085482565,
-      "true_travel": 150.83397559156762,
-      "disp_ratio": 1.5486181408314228,
-      "onset_gt_dist": 34.759175402571735
+      "final_disp": 23623.218857270604,
+      "true_travel": 150.68690429535434,
+      "disp_ratio": 156.77021814030925,
+      "onset_gt_dist": 3.248358903138463
      },
      "ate_a_cruise": {
-      "+0.00": 25.753478
+      "+0.00": 7052.206352
      }
     }
    }
   },
   "fwdplainc_tex_r3": {
    "window_s": [
-    30.477,
-    332.527
+    29.999,
+    331.784
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 156.99299508623633,
-      "true_travel": 150.938097,
-      "disp_ratio": 1.0401151081574609,
+      "final_disp": 146.90151355241662,
+      "true_travel": 150.748855,
+      "disp_ratio": 0.9744784698525015,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 4.147613
+      "+0.00": 4.082146
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 122.49359240486781,
-      "true_travel": 150.9319387857273,
-      "disp_ratio": 0.8115816532295898,
-      "onset_gt_dist": 84.0590630966808
+      "final_disp": 59.2907412251648,
+      "true_travel": 150.80608950692127,
+      "disp_ratio": 0.3931588002780461,
+      "onset_gt_dist": 79.22320306376534
      },
      "ate_a_cruise": {
-      "+0.00": 8.706841
+      "+0.00": 24.931078
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 148.67886016485699,
-      "true_travel": 150.93072755903302,
-      "disp_ratio": 0.9850801262897559,
+      "final_disp": 146.08049924578202,
+      "true_travel": 150.80104457074907,
+      "disp_ratio": 0.9686968658711619,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 4.636979
+      "+0.00": 4.634629
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 128.2602840814281,
-      "true_travel": 150.9319387857273,
-      "disp_ratio": 0.8497888857275904,
-      "onset_gt_dist": 97.24390224629609
+      "final_disp": 148.68292215815828,
+      "true_travel": 150.80608950692127,
+      "disp_ratio": 0.9859212094438299,
+      "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 6.609679
+      "+0.00": 0.946238
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 153.20253993103265,
-      "true_travel": 150.93072755903302,
-      "disp_ratio": 1.0150520202793767,
+      "final_disp": 150.4571171039203,
+      "true_travel": 150.80104457074907,
+      "disp_ratio": 0.9977193296783338,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 0.523225
+      "+0.00": 0.224315
      }
     }
    }
   },
   "fwdplainc_trans_r3": {
    "window_s": [
-    30.412,
-    331.322
+    29.768,
+    331.256
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 82.67037784710521,
-      "true_travel": 150.370368,
-      "disp_ratio": 0.5497783835117382,
-      "onset_gt_dist": 100.376785
+      "final_disp": 0.07824150061188755,
+      "true_travel": 150.626403,
+      "disp_ratio": 0.0005194408088725822,
+      "onset_gt_dist": 82.98868
      },
      "ate_a_cruise": {
-      "+0.00": 21.889298
+      "+0.00": 41.440708
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 137.48259466206883,
-      "true_travel": 150.3645431027807,
-      "disp_ratio": 0.914328549970012,
-      "onset_gt_dist": 78.80273563600565
+      "final_disp": 8029.071425347724,
+      "true_travel": 150.64593812793035,
+      "disp_ratio": 53.29762969466418,
+      "onset_gt_dist": 103.47953982330986
      },
      "ate_a_cruise": {
-      "+0.00": 12.414253
+      "+0.00": 1848.003485
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 108.5135527356168,
-      "true_travel": 150.354666610847,
-      "disp_ratio": 0.7217172248898348,
-      "onset_gt_dist": 95.18012962454507
+      "final_disp": 7465.580857750527,
+      "true_travel": 150.64590601716748,
+      "disp_ratio": 49.55714400164154,
+      "onset_gt_dist": 89.46157628204337
      },
      "ate_a_cruise": {
-      "+0.00": 25.880087
+      "+0.00": 1852.139559
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 114.99985179929674,
-      "true_travel": 150.3645431027807,
-      "disp_ratio": 0.7648069779368754,
-      "onset_gt_dist": 83.97765133348759
+      "final_disp": 2666.96669167629,
+      "true_travel": 150.64593812793035,
+      "disp_ratio": 17.70354199269196,
+      "onset_gt_dist": 102.72190565229634
      },
      "ate_a_cruise": {
-      "+0.00": 19.664679
+      "+0.00": 348.876384
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 138.3551548980756,
-      "true_travel": 150.354666610847,
-      "disp_ratio": 0.9201919569026151,
-      "onset_gt_dist": 114.75987731751114
+      "final_disp": 4496.733249478652,
+      "true_travel": 150.64590601716748,
+      "disp_ratio": 29.849687710505776,
+      "onset_gt_dist": 90.17787541345344
      },
      "ate_a_cruise": {
-      "+0.00": 20.74961
+      "+0.00": 1066.071472
      }
     }
    }
   },
   "fwdplainc_blank_r3": {
    "window_s": [
-    30.362,
-    332.23
+    30.247,
+    332.081
    ],
    "est": {
     "EKF3": {
      "failure": {
-      "final_disp": 30.71002254575781,
-      "true_travel": 150.849042,
-      "disp_ratio": 0.20358115728542583,
-      "onset_gt_dist": 18.267528000000002
+      "final_disp": 0.07990915858022783,
+      "true_travel": 150.782251,
+      "disp_ratio": 0.0005299639582925966,
+      "onset_gt_dist": 15.117187
      },
      "ate_a_cruise": {
-      "+0.00": 34.752603
+      "+0.00": 43.540103
      }
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 186.22113114905616,
-      "true_travel": 150.84159087931215,
-      "disp_ratio": 1.2345476473928936,
-      "onset_gt_dist": 71.55625311381931
+      "final_disp": 30813.30725523147,
+      "true_travel": 150.8211113579366,
+      "disp_ratio": 204.30367458375048,
+      "onset_gt_dist": 22.51241192043697
      },
      "ate_a_cruise": {
-      "+0.00": 12.566665
+      "+0.00": 9556.513551
      }
     },
     "FGO_baseline": {
      "failure": {
-      "final_disp": 227.6211724125967,
-      "true_travel": 150.83402211195838,
-      "disp_ratio": 1.50908375461633,
-      "onset_gt_dist": 36.30707965721109
+      "final_disp": 25850.939003202893,
+      "true_travel": 150.8170482092559,
+      "disp_ratio": 171.4059472065465,
+      "onset_gt_dist": 7.634616109264296
      },
      "ate_a_cruise": {
-      "+0.00": 25.762984
+      "+0.00": 7545.176165
      }
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 191.32884896127004,
-      "true_travel": 150.84159087931215,
-      "disp_ratio": 1.2684091161193838,
-      "onset_gt_dist": 65.58673614295535
+      "final_disp": 26488.30427764897,
+      "true_travel": 150.8211113579366,
+      "disp_ratio": 175.6272980563413,
+      "onset_gt_dist": 22.790005964186406
      },
      "ate_a_cruise": {
-      "+0.00": 13.473723
+      "+0.00": 8928.177901
      }
     },
     "FGO_heading": {
      "failure": {
-      "final_disp": 233.80653210173423,
-      "true_travel": 150.83402211195838,
-      "disp_ratio": 1.5500914768962968,
-      "onset_gt_dist": 36.27376032462077
+      "final_disp": 21520.68503408961,
+      "true_travel": 150.8170482092559,
+      "disp_ratio": 142.69398114880258,
+      "onset_gt_dist": 7.684565593342714
      },
      "ate_a_cruise": {
-      "+0.00": 25.868552
+      "+0.00": 6191.416492
      }
     }
    }

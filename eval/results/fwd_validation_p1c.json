@@ -1,0 +1,167 @@
+{
+ "frozen": {
+  "inlier_deg": 0.5,
+  "s_min": 200,
+  "box_half_px": 80,
+  "n_min": 5
+ },
+ "per_bag": {
+  "p1c_fwdc_tex": {
+   "psi": {
+    "avail_pct": 96.5295208992688,
+    "avail_pct_y_gt_145": 15.733333333333333,
+    "n_cruise": 9163,
+    "n_valid": 8845,
+    "outlier_pct": 0.0791407574901074,
+    "bias": -0.00988894418790199,
+    "bias_all_valid": -0.009416788778624983,
+    "noise_sd": 0.20583320962726145,
+    "robust_sigma": 0.1363069479417813,
+    "pass": true
+   },
+   "omega": {
+    "avail_pct": 99.93451926225036,
+    "avail_pct_y_gt_145": 98.4,
+    "n_cruise": 9163,
+    "n_valid": 9157,
+    "outlier_pct": 0.0,
+    "bias": 0.0021476160914784483,
+    "bias_all_valid": 0.0021476160914784483,
+    "noise_sd": 0.030081919220672736,
+    "robust_sigma": 0.02595701098555648,
+    "pass": true
+   }
+  },
+  "p1c_fwdplainc_tex": {
+   "psi": {
+    "avail_pct": 60.41030117852466,
+    "avail_pct_y_gt_145": 6.914893617021277,
+    "n_cruise": 9164,
+    "n_valid": 5536,
+    "outlier_pct": 13.854768786127167,
+    "bias": 0.18501204360600407,
+    "bias_all_valid": 0.3970977073030507,
+    "noise_sd": 0.6462132899520114,
+    "robust_sigma": 0.32293241041235043,
+    "pass": false
+   },
+   "omega": {
+    "avail_pct": 88.18201658664339,
+    "avail_pct_y_gt_145": 95.47872340425532,
+    "n_cruise": 9164,
+    "n_valid": 8081,
+    "outlier_pct": 0.4207400074248237,
+    "bias": 0.03051509288393262,
+    "bias_all_valid": 0.023323643632301213,
+    "noise_sd": 0.29696858367993123,
+    "robust_sigma": 0.12508548756816754,
+    "pass": true
+   }
+  },
+  "p1c_fwdc_trans": {
+   "psi": {
+    "avail_pct": 96.7809044125698,
+    "avail_pct_y_gt_145": 15.028901734104046,
+    "n_cruise": 9133,
+    "n_valid": 8839,
+    "outlier_pct": 0.0,
+    "bias": -0.015427109059902338,
+    "bias_all_valid": -0.015427109059902338,
+    "noise_sd": 0.12942378718235797,
+    "robust_sigma": 0.09203737919452956,
+    "pass": true
+   },
+   "omega": {
+    "avail_pct": 97.51450782875287,
+    "avail_pct_y_gt_145": 34.39306358381503,
+    "n_cruise": 9133,
+    "n_valid": 8906,
+    "outlier_pct": 0.0,
+    "bias": 0.0016131294081199697,
+    "bias_all_valid": 0.0016131294081199697,
+    "noise_sd": 0.033831851167288415,
+    "robust_sigma": 0.024940765507429685,
+    "pass": true
+   }
+  },
+  "p1c_fwdplainc_trans": {
+   "psi": {
+    "avail_pct": 87.15175352343493,
+    "avail_pct_y_gt_145": 0.0,
+    "n_cruise": 9153,
+    "n_valid": 7977,
+    "outlier_pct": 3.936316911119468,
+    "bias": 0.02239044099206246,
+    "bias_all_valid": 0.08874164427527466,
+    "noise_sd": 0.37255105147626055,
+    "robust_sigma": 0.023662522388379893,
+    "pass": true
+   },
+   "omega": {
+    "avail_pct": 66.18594996176117,
+    "avail_pct_y_gt_145": 24.931506849315067,
+    "n_cruise": 9153,
+    "n_valid": 6058,
+    "outlier_pct": 0.2641135688345989,
+    "bias": 0.02149259539097968,
+    "bias_all_valid": 0.025343716812643052,
+    "noise_sd": 0.27016877316066185,
+    "robust_sigma": 0.1314696579741196,
+    "pass": false
+   }
+  },
+  "p1c_fwdc_blank": {
+   "psi": {
+    "avail_pct": 96.45196506550218,
+    "avail_pct_y_gt_145": 12.868632707774799,
+    "n_cruise": 9160,
+    "n_valid": 8835,
+    "outlier_pct": 0.0,
+    "bias": -0.017928194613976236,
+    "bias_all_valid": -0.017928194613976236,
+    "noise_sd": 0.10900113492529366,
+    "robust_sigma": 0.07563032893119777,
+    "pass": true
+   },
+   "omega": {
+    "avail_pct": 97.23799126637554,
+    "avail_pct_y_gt_145": 32.171581769437,
+    "n_cruise": 9160,
+    "n_valid": 8907,
+    "outlier_pct": 0.0,
+    "bias": 0.00012578702940948224,
+    "bias_all_valid": 0.00012578702940948224,
+    "noise_sd": 0.03420019679875554,
+    "robust_sigma": 0.026029648850865884,
+    "pass": true
+   }
+  },
+  "p1c_fwdplainc_blank": {
+   "psi": {
+    "avail_pct": 95.46946815495733,
+    "avail_pct_y_gt_145": 0.0,
+    "n_cruise": 9138,
+    "n_valid": 8724,
+    "outlier_pct": 0.04585052728106373,
+    "bias": -0.028908945807001526,
+    "bias_all_valid": -0.027442666538757494,
+    "noise_sd": 0.1153655002542148,
+    "robust_sigma": 0.009511224813610178,
+    "pass": true
+   },
+   "omega": {
+    "avail_pct": 68.8662727073758,
+    "avail_pct_y_gt_145": 25.714285714285715,
+    "n_cruise": 9138,
+    "n_valid": 6293,
+    "outlier_pct": 0.5402828539647228,
+    "bias": -0.005740327961520088,
+    "bias_all_valid": -0.007954021556899744,
+    "noise_sd": 0.34901849559783876,
+    "robust_sigma": 0.2619240293206602,
+    "pass": false
+   }
+  }
+ },
+ "aggregate": {}
+}

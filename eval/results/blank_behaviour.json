@@ -1,0 +1,4590 @@
+{
+ "fwdplainc_blank_r2": {
+  "window_s": [
+   30.098,
+   331.669
+  ],
+  "takeoff_s": 28.261,
+  "t_loss_s": 28.942,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1559999999999988,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 1,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.315508846153845,
+    "cross_m": 4.348668461538461
+   },
+   "+30s": {
+    "along_m": -17.15491897285068,
+    "cross_m": 16.805327371040725
+   },
+   "+60s": {
+    "along_m": 25.154917968325787,
+    "cross_m": 92.81468542986426
+   },
+   "+120s": {
+    "along_m": 3172.4010602036196,
+    "cross_m": -3780.7105422171944
+   },
+   "end": {
+    "along_m": 42261.93307961538,
+    "cross_m": -14137.366576923077
+   },
+   "disp_ratio_after_loss": 281.3143516784926
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -14.099777846153845,
+    "cross_m": 5.462805461538461
+   },
+   "+30s": {
+    "along_m": -102.76387997285067,
+    "cross_m": 10.111810371040724
+   },
+   "+60s": {
+    "along_m": -383.5262130316743,
+    "cross_m": -26.513736570135748
+   },
+   "+120s": {
+    "along_m": -1902.9411677963801,
+    "cross_m": -853.5478312171946
+   },
+   "end": {
+    "along_m": -14836.493906384616,
+    "cross_m": -19081.627365923076
+   },
+   "disp_ratio_after_loss": -97.40728682986119
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -4.944140846153845,
+    "cross_m": 4.398104461538462
+   },
+   "+30s": {
+    "along_m": -14.92314097285068,
+    "cross_m": 16.801258371040724
+   },
+   "+60s": {
+    "along_m": -93.26278403167422,
+    "cross_m": 137.80228942986423
+   },
+   "+120s": {
+    "along_m": 136.23309520361988,
+    "cross_m": 4919.863876782805
+   },
+   "end": {
+    "along_m": 22871.000726615384,
+    "cross_m": -3050.2762319230765
+   },
+   "disp_ratio_after_loss": 152.69844997014204
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -25.378790846153844,
+    "cross_m": 21.222137461538463
+   },
+   "+30s": {
+    "along_m": -179.43412197285068,
+    "cross_m": 142.32951337104072
+   },
+   "+60s": {
+    "along_m": -734.2564070316741,
+    "cross_m": 516.6406844298642
+   },
+   "+120s": {
+    "along_m": -3152.9032347963807,
+    "cross_m": 1558.4415657828054
+   },
+   "end": {
+    "along_m": -23478.806371384613,
+    "cross_m": -3759.3793689230765
+   },
+   "disp_ratio_after_loss": -154.72989464966128
+  },
+  "EKF3_OF_records_airborne": 5,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.70689655172413,
+    "changes_after_loss_s": [
+     5.06
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.04,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.04,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.79,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.79,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -19.55,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -19.54,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -18.1,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -18.09,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.98,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.98,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    315.44,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.44,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.04,
+   "duration_in_cruise_s": 301.8,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdc_trans_r3": {
+  "window_s": [
+   30.23,
+   332.441
+  ],
+  "takeoff_s": 28.399,
+  "t_loss_s": 191.302,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.072,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4858,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -6.044438599999992,
+    "cross_m": 4.378082600000001
+   },
+   "+30s": {
+    "along_m": -16.788499666666638,
+    "cross_m": 15.322268466666658
+   },
+   "+60s": {
+    "along_m": -50.6999940117647,
+    "cross_m": 133.20735559999997
+   },
+   "+120s": {
+    "along_m": -4897.292607766666,
+    "cross_m": 1148.7985296555555
+   },
+   "end": {
+    "along_m": -7218.5556786,
+    "cross_m": -824.0630553999999
+   },
+   "disp_ratio_after_loss": -101.33559424282322
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.205971599999998,
+    "cross_m": 1.5662736000000046
+   },
+   "+30s": {
+    "along_m": -52.08272166666664,
+    "cross_m": -47.09804653333333
+   },
+   "+60s": {
+    "along_m": -424.6244820117647,
+    "cross_m": -880.6930464
+   },
+   "+120s": {
+    "along_m": -1768.0071977666666,
+    "cross_m": -4866.015473344444
+   },
+   "end": {
+    "along_m": -2385.0968596000002,
+    "cross_m": -7276.866970399999
+   },
+   "disp_ratio_after_loss": -32.812900436226265
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.486217599999989,
+    "cross_m": 4.571401600000003
+   },
+   "+30s": {
+    "along_m": -15.677377666666644,
+    "cross_m": 15.57833146666667
+   },
+   "+60s": {
+    "along_m": 41.51199898823532,
+    "cross_m": -106.22595639999999
+   },
+   "+120s": {
+    "along_m": -1607.3764667666667,
+    "cross_m": -3388.8074413444447
+   },
+   "end": {
+    "along_m": -3803.9613936,
+    "cross_m": -4507.3132994
+   },
+   "disp_ratio_after_loss": -52.92777544749961
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.591460599999991,
+    "cross_m": 2.1649755999999933
+   },
+   "+30s": {
+    "along_m": -62.46227066666664,
+    "cross_m": -62.07990653333334
+   },
+   "+60s": {
+    "along_m": -394.66597601176466,
+    "cross_m": -542.2949804
+   },
+   "+120s": {
+    "along_m": -1833.1836087666666,
+    "cross_m": -3133.5339553444446
+   },
+   "end": {
+    "along_m": -2606.2293456,
+    "cross_m": -4724.8120194
+   },
+   "disp_ratio_after_loss": -35.94783841672705
+  },
+  "EKF3_OF_records_airborne": 4861,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.6378454996456413,
+    "changes_after_loss_s": [
+     0.93
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.52728561304039,
+    "changes_after_loss_s": [
+     4.93
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.6378454996456413,
+    "changes_after_loss_s": [
+     0.93
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.17,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.17,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.93,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.92,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.91,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.91,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.51,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -180.51,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.91,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.91,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    152.31,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    152.31,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 0.93,
+   "duration_in_cruise_s": 140.2,
+   "valid_until_cruise_end": false
+  }
+ },
+ "ds_blank_r2": {
+  "window_s": [
+   30.307,
+   333.246
+  ],
+  "takeoff_s": 28.467,
+  "t_loss_s": 28.467,
+  "case": "C",
+  "t_loss_after_cruise_start_s": -1.8399999999999999,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 0,
+  "EKF3_OF_records_airborne": 3,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -23.55,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -23.55,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.31,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.31,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -22.26,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -22.25,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -21.21,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -21.21,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    1.83,
+    "EKF3 lane switch 1"
+   ],
+   [
+    1.99,
+    "EKF3 lane switch 0"
+   ],
+   [
+    317.16,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    317.16,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -4.96,
+   "duration_in_cruise_s": 309.7,
+   "valid_until_cruise_end": false
+  }
+ },
+ "dsn_blank_r1": {
+  "window_s": [
+   30.409,
+   331.031
+  ],
+  "takeoff_s": 28.564,
+  "t_loss_s": 29.239,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1699999999999982,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 2,
+  "ukf": {
+   "+10s": {
+    "along_m": -5.404229647058827,
+    "cross_m": 3.502911588235294
+   },
+   "+30s": {
+    "along_m": -17.636840529411767,
+    "cross_m": 11.60546105882353
+   },
+   "+60s": {
+    "along_m": -92.09556982352942,
+    "cross_m": -298.84650076470587
+   },
+   "+120s": {
+    "along_m": 487.6503096470588,
+    "cross_m": -4335.137768882353
+   },
+   "end": {
+    "along_m": -5813.407853588235,
+    "cross_m": -13252.475404647059
+   },
+   "disp_ratio_after_loss": -37.681940701731754
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -11.184640647058828,
+    "cross_m": -6.552564411764706
+   },
+   "+30s": {
+    "along_m": -72.57176352941177,
+    "cross_m": -86.11555194117646
+   },
+   "+60s": {
+    "along_m": -267.5054928235294,
+    "cross_m": -373.43415176470586
+   },
+   "+120s": {
+    "along_m": -1531.0529373529414,
+    "cross_m": -2137.081923882353
+   },
+   "end": {
+    "along_m": -13376.777548588236,
+    "cross_m": -24026.714127647057
+   },
+   "disp_ratio_after_loss": -88.00798446394316
+  },
+  "EKF3_OF_records_airborne": 2,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.7358616101131,
+    "changes_after_loss_s": [
+     4.97
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.12,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.12,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.88,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -22.87,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -21.79,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -21.79,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -18.47,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -18.43,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.96,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.97,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    317.17,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    317.17,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.13,
+   "duration_in_cruise_s": 300.9,
+   "valid_until_cruise_end": false
+  }
+ },
+ "p1c_fwdplainc_blank": {
+  "window_s": [
+   30.003,
+   331.571
+  ],
+  "takeoff_s": 28.184,
+  "t_loss_s": 28.909,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.0940000000000012,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 4,
+  "ukf": {
+   "+10s": {
+    "along_m": -6.541730687499999,
+    "cross_m": 3.2459798125
+   },
+   "+30s": {
+    "along_m": -24.835189216911765,
+    "cross_m": 9.536259988970587
+   },
+   "+60s": {
+    "along_m": -92.4791619375,
+    "cross_m": -297.370833375
+   },
+   "+120s": {
+    "along_m": 2970.783834488971,
+    "cross_m": -2875.3241545992646
+   },
+   "end": {
+    "along_m": -16960.2088016875,
+    "cross_m": -22512.636584187498
+   },
+   "disp_ratio_after_loss": -111.50215880324241
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -14.7003126875,
+    "cross_m": -5.0968291875
+   },
+   "+30s": {
+    "along_m": -99.66805421691176,
+    "cross_m": -72.6398920110294
+   },
+   "+60s": {
+    "along_m": -362.26887793749995,
+    "cross_m": -322.723645375
+   },
+   "+120s": {
+    "along_m": -1894.6947925110296,
+    "cross_m": -2032.5603645992646
+   },
+   "end": {
+    "along_m": -15345.421160687501,
+    "cross_m": -24498.4120681875
+   },
+   "disp_ratio_after_loss": -100.7907873958798
+  },
+  "EKF3_OF_records_airborne": 7,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.70646766169155,
+    "changes_after_loss_s": [
+     4.99
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -23.7,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -23.7,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.39,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -22.39,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -19.16,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -19.16,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -17.66,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -17.66,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.98,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.99,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    315.04,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.04,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.11,
+   "duration_in_cruise_s": 301.7,
+   "valid_until_cruise_end": false
+  }
+ },
+ "ds_trans_r2": {
+  "window_s": [
+   29.836,
+   331.341
+  ],
+  "takeoff_s": 27.987,
+  "t_loss_s": 190.906,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.07,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4859,
+  "EKF3_OF_records_airborne": 4863,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 92.48913718187461,
+    "after_loss_pct": 0.7122507122507122,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 7.510862818125388,
+    "after_loss_pct": 96.43874643874643,
+    "changes_after_loss_s": [
+     5.03
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 92.48913718187461,
+    "after_loss_pct": 0.7122507122507122,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -185.86,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -185.86,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.6,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.59,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -184.56,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -184.56,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -181.6,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -181.6,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -160.87,
+    "EKF3 lane switch 1"
+   ],
+   [
+    -149.06,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -148.95,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.98,
+    "EKF3 IMU0 stopped aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.03,
+   "duration_in_cruise_s": 139.4,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.036462703439582356,
+    "cross_m": 0.027489999999999997
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "fwdplainc_trans_r1": {
+  "window_s": [
+   29.881,
+   331.685
+  ],
+  "takeoff_s": 28.037,
+  "t_loss_s": 190.939,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.058,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4873,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -2.2104969727272845,
+    "cross_m": -3.6070487454545455
+   },
+   "+30s": {
+    "along_m": -4.891046772727279,
+    "cross_m": -12.292648445454546
+   },
+   "+60s": {
+    "along_m": 10.832003272727277,
+    "cross_m": -66.62702472727274
+   },
+   "+120s": {
+    "along_m": -3088.7550248727275,
+    "cross_m": -3021.3945078121214
+   },
+   "end": {
+    "along_m": -1947.3460632727272,
+    "cross_m": -5455.694737545454
+   },
+   "disp_ratio_after_loss": -26.68443503973058
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.274291972727283,
+    "cross_m": 1.5462192545454514
+   },
+   "+30s": {
+    "along_m": -52.767494772727275,
+    "cross_m": -47.611332445454536
+   },
+   "+60s": {
+    "along_m": -431.54871572727274,
+    "cross_m": -882.5328727272728
+   },
+   "+120s": {
+    "along_m": -1817.9443658727273,
+    "cross_m": -4933.794831812121
+   },
+   "end": {
+    "along_m": -2425.0778052727273,
+    "cross_m": -7238.177719545454
+   },
+   "disp_ratio_after_loss": -33.476105830688525
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.4637519727272945,
+    "cross_m": 4.584746254545453
+   },
+   "+30s": {
+    "along_m": -14.742624772727282,
+    "cross_m": 15.678542554545455
+   },
+   "+60s": {
+    "along_m": -92.16017072727271,
+    "cross_m": -67.34078472727275
+   },
+   "+120s": {
+    "along_m": -1099.8757148727273,
+    "cross_m": 615.5817411878787
+   },
+   "end": {
+    "along_m": -3444.5011642727277,
+    "cross_m": 589.4684254545454
+   },
+   "disp_ratio_after_loss": -47.968732638267376
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.738039972727293,
+    "cross_m": 2.391198254545461
+   },
+   "+30s": {
+    "along_m": -63.97956477272728,
+    "cross_m": -34.64331444545454
+   },
+   "+60s": {
+    "along_m": -406.49484372727267,
+    "cross_m": -362.5575027272728
+   },
+   "+120s": {
+    "along_m": -2165.225620872727,
+    "cross_m": -2170.5229328121213
+   },
+   "end": {
+    "along_m": -3106.7028072727276,
+    "cross_m": -3373.035721545455
+   },
+   "disp_ratio_after_loss": -43.166424077262256
+  },
+  "EKF3_OF_records_airborne": 4873,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7107320540156361,
+    "changes_after_loss_s": [
+     1.04
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.44633972992182,
+    "changes_after_loss_s": [
+     5.04
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7107320540156361,
+    "changes_after_loss_s": [
+     1.04
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -185.95,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -185.95,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.71,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.71,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -181.76,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -181.75,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.16,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -180.1,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    152.72,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    152.72,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.04,
+   "duration_in_cruise_s": 139.7,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.05122013389275537,
+    "cross_m": 0.12788800000000045
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "fwdc_blank_r3": {
+  "window_s": [
+   29.834,
+   332.063
+  ],
+  "takeoff_s": 28.036,
+  "t_loss_s": 28.711,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.123000000000001,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 1,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.21675075,
+    "cross_m": 4.344563
+   },
+   "+30s": {
+    "along_m": -16.44317151470588,
+    "cross_m": 16.831176235294116
+   },
+   "+60s": {
+    "along_m": 43.69407536111112,
+    "cross_m": -195.99980638888889
+   },
+   "+120s": {
+    "along_m": 2711.768586779412,
+    "cross_m": -4102.888637764705
+   },
+   "end": {
+    "along_m": -585.0315217499999,
+    "cross_m": -15275.857544
+   },
+   "disp_ratio_after_loss": -2.8722935993924317
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -12.945049749999999,
+    "cross_m": 5.242509
+   },
+   "+30s": {
+    "along_m": -137.75579851470587,
+    "cross_m": -30.172942764705883
+   },
+   "+60s": {
+    "along_m": -540.6571436388889,
+    "cross_m": -192.41100638888892
+   },
+   "+120s": {
+    "along_m": -2666.5164782205875,
+    "cross_m": -1681.0190547647057
+   },
+   "end": {
+    "along_m": -20320.81760175,
+    "cross_m": -24975.805295
+   },
+   "disp_ratio_after_loss": -133.50244817287506
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -4.8392817500000005,
+    "cross_m": 4.377849
+   },
+   "+30s": {
+    "along_m": -15.651247514705881,
+    "cross_m": 16.711907235294117
+   },
+   "+60s": {
+    "along_m": -124.21859963888888,
+    "cross_m": 65.07424361111111
+   },
+   "+120s": {
+    "along_m": 1157.9274537794117,
+    "cross_m": 4377.639119235294
+   },
+   "end": {
+    "along_m": 18456.35788825,
+    "cross_m": 3163.724622
+   },
+   "disp_ratio_after_loss": 123.16168507464955
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -18.587643749999998,
+    "cross_m": 10.138145999999999
+   },
+   "+30s": {
+    "along_m": -201.76095051470588,
+    "cross_m": 71.44656823529411
+   },
+   "+60s": {
+    "along_m": -812.2702386388888,
+    "cross_m": 313.16770061111106
+   },
+   "+120s": {
+    "along_m": -3287.3178392205878,
+    "cross_m": 1406.9776382352943
+   },
+   "end": {
+    "along_m": -21503.25780775,
+    "cross_m": -2762.4028219999996
+   },
+   "disp_ratio_after_loss": -141.3289591746441
+  },
+  "EKF3_OF_records_airborne": 2,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.6763732627399,
+    "changes_after_loss_s": [
+     5.12
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -23.67,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -23.67,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.43,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.42,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -21.34,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -21.34,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -18.0,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -17.99,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    315.47,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.47,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.08,
+   "duration_in_cruise_s": 302.4,
+   "valid_until_cruise_end": false
+  }
+ },
+ "ds_trans_r3": {
+  "window_s": [
+   30.093,
+   332.98
+  ],
+  "takeoff_s": 28.263,
+  "t_loss_s": 191.17,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.077,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4873,
+  "EKF3_OF_records_airborne": 4873,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.6351446718419196,
+    "changes_after_loss_s": [
+     0.92
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.47141848976712,
+    "changes_after_loss_s": [
+     5.02
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.6351446718419196,
+    "changes_after_loss_s": [
+     0.92
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.27,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.27,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.95,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -185.95,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -185.87,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -185.87,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -185.87,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -185.87,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -185.86,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -185.86,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    4.92,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.92,
+    "EKF3 IMU0 stopped aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 0.92,
+   "duration_in_cruise_s": 140.8,
+   "valid_until_cruise_end": false
+  }
+ },
+ "dsn_blank_r2": {
+  "window_s": [
+   30.245,
+   333.058
+  ],
+  "takeoff_s": 28.409,
+  "t_loss_s": 29.107,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1380000000000017,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 3,
+  "ukf": {
+   "+10s": {
+    "along_m": -6.324817235294118,
+    "cross_m": 4.2394694117647065
+   },
+   "+30s": {
+    "along_m": -23.81473770588235,
+    "cross_m": 16.016193529411765
+   },
+   "+60s": {
+    "along_m": -136.4685218235294,
+    "cross_m": -19.04182164705882
+   },
+   "+120s": {
+    "along_m": -4672.819559647059,
+    "cross_m": 1961.6854986470587
+   },
+   "end": {
+    "along_m": -13552.24882482353,
+    "cross_m": -21724.591884882353
+   },
+   "disp_ratio_after_loss": -88.52344760556281
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -16.79991823529412,
+    "cross_m": -2.589540588235294
+   },
+   "+30s": {
+    "along_m": -117.62788770588234,
+    "cross_m": -54.33930747058823
+   },
+   "+60s": {
+    "along_m": -424.44286082352943,
+    "cross_m": -257.9562736470588
+   },
+   "+120s": {
+    "along_m": -2143.442491647059,
+    "cross_m": -1827.3241813529414
+   },
+   "end": {
+    "along_m": -16520.357939823527,
+    "cross_m": -24991.12237388235
+   },
+   "disp_ratio_after_loss": -108.13018330521933
+  },
+  "EKF3_OF_records_airborne": 5,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.71202113606341,
+    "changes_after_loss_s": [
+     5.04
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.16,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.16,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.91,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.91,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -21.83,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -21.82,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -18.49,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -18.49,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.03,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    316.05,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    316.05,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.06,
+   "duration_in_cruise_s": 303.0,
+   "valid_until_cruise_end": false
+  }
+ },
+ "ds_trans_r1": {
+  "window_s": [
+   30.172,
+   332.705
+  ],
+  "takeoff_s": 28.329,
+  "t_loss_s": 191.236,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.064,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4873,
+  "EKF3_OF_records_airborne": 4877,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 92.73743016759776,
+    "after_loss_pct": 0.6364922206506365,
+    "changes_after_loss_s": [
+     0.94
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 7.262569832402235,
+    "after_loss_pct": 96.46393210749646,
+    "changes_after_loss_s": [
+     5.04
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 92.73743016759776,
+    "after_loss_pct": 0.6364922206506365,
+    "changes_after_loss_s": [
+     0.94
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.26,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.26,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.02,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -185.01,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.96,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -184.95,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -183.9,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -183.9,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -160.92,
+    "EKF3 lane switch 1"
+   ],
+   [
+    -149.45,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -149.36,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.94,
+    "EKF3 IMU0 stopped aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 0.94,
+   "duration_in_cruise_s": 140.5,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdplainc_trans_r2": {
+  "window_s": [
+   29.951,
+   331.586
+  ],
+  "takeoff_s": 28.126,
+  "t_loss_s": 191.038,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.08700000000002,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4859,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -6.160001750000006,
+    "cross_m": -4.378443187499999
+   },
+   "+30s": {
+    "along_m": -18.925273972222215,
+    "cross_m": -15.203505854166666
+   },
+   "+60s": {
+    "along_m": 61.83466801470587,
+    "cross_m": -372.78070177573534
+   },
+   "+120s": {
+    "along_m": 5182.814505191177,
+    "cross_m": -99.17592677573529
+   },
+   "end": {
+    "along_m": 7845.84243925,
+    "cross_m": -1644.5079291875002
+   },
+   "disp_ratio_after_loss": 112.70332145626459
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.368891750000003,
+    "cross_m": 1.528379812500008
+   },
+   "+30s": {
+    "along_m": -54.020257972222225,
+    "cross_m": -48.00129885416666
+   },
+   "+60s": {
+    "along_m": -446.59656398529415,
+    "cross_m": -904.7098267757353
+   },
+   "+120s": {
+    "along_m": -1899.7381588088235,
+    "cross_m": -4868.590863775735
+   },
+   "end": {
+    "along_m": -2502.71012175,
+    "cross_m": -6891.5067911875
+   },
+   "disp_ratio_after_loss": -34.631741958408625
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.456049750000005,
+    "cross_m": 4.572492812500004
+   },
+   "+30s": {
+    "along_m": -14.732647972222225,
+    "cross_m": 15.654603145833336
+   },
+   "+60s": {
+    "along_m": -16.463469985294125,
+    "cross_m": -80.30522677573529
+   },
+   "+120s": {
+    "along_m": 177.79260319117645,
+    "cross_m": -930.5318427757353
+   },
+   "end": {
+    "along_m": 817.2748172500001,
+    "cross_m": -2796.6835661874998
+   },
+   "disp_ratio_after_loss": 12.635756432309067
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.804890749999998,
+    "cross_m": 2.3699068125000076
+   },
+   "+30s": {
+    "along_m": -65.70427797222223,
+    "cross_m": -35.17162585416666
+   },
+   "+60s": {
+    "along_m": -413.14711398529414,
+    "cross_m": -357.6452947757353
+   },
+   "+120s": {
+    "along_m": -2189.4908628088233,
+    "cross_m": -2160.1387297757356
+   },
+   "end": {
+    "along_m": -3111.04286875,
+    "cross_m": -3365.1433731875
+   },
+   "disp_ratio_after_loss": -43.29273520631907
+  },
+  "EKF3_OF_records_airborne": 4859,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7112375533428165,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.44381223328593,
+    "changes_after_loss_s": [
+     5.01
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7112375533428165,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -185.98,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -185.98,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.65,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.65,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.74,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.74,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.09,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -180.08,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.97,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.98,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    154.36,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    154.36,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.01,
+   "duration_in_cruise_s": 139.6,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.040368178650368236,
+    "cross_m": 0.11103699999999961
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "fwdplainc_blank_r3": {
+  "window_s": [
+   30.247,
+   332.081
+  ],
+  "takeoff_s": 28.415,
+  "t_loss_s": 29.107,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1400000000000006,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 3,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.596845500000001,
+    "cross_m": 4.1534015625
+   },
+   "+30s": {
+    "along_m": -18.87458755882353,
+    "cross_m": 15.509068738970587
+   },
+   "+60s": {
+    "along_m": -33.63597708823529,
+    "cross_m": -206.2584040257353
+   },
+   "+120s": {
+    "along_m": 2921.5429216764705,
+    "cross_m": -3870.0435796139705
+   },
+   "end": {
+    "along_m": -20912.274268499998,
+    "cross_m": -22775.370017437497
+   },
+   "disp_ratio_after_loss": -137.58990556098584
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -11.2151885,
+    "cross_m": -2.4723344375
+   },
+   "+30s": {
+    "along_m": -75.73809855882354,
+    "cross_m": -57.20819726102941
+   },
+   "+60s": {
+    "along_m": -283.4083930882353,
+    "cross_m": -273.89803402573534
+   },
+   "+120s": {
+    "along_m": -1619.9688023235292,
+    "cross_m": -1808.6109676139706
+   },
+   "end": {
+    "along_m": -13613.4450215,
+    "cross_m": -22068.710507437496
+   },
+   "disp_ratio_after_loss": -89.21907591998537
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.7811005,
+    "cross_m": 4.200594562500001
+   },
+   "+30s": {
+    "along_m": -19.764273558823533,
+    "cross_m": 15.435199738970589
+   },
+   "+60s": {
+    "along_m": -65.30715208823528,
+    "cross_m": 52.38831597426471
+   },
+   "+120s": {
+    "along_m": 1906.8115176764707,
+    "cross_m": -4453.437137613971
+   },
+   "end": {
+    "along_m": 23619.075616500002,
+    "cross_m": 11688.8580335625
+   },
+   "disp_ratio_after_loss": 157.52843000721182
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -11.0849505,
+    "cross_m": -2.4403494374999997
+   },
+   "+30s": {
+    "along_m": -74.88056155882354,
+    "cross_m": -57.00603226102942
+   },
+   "+60s": {
+    "along_m": -280.8610710882353,
+    "cross_m": -288.7619250257353
+   },
+   "+120s": {
+    "along_m": -1449.2752483235295,
+    "cross_m": -1633.4202546139707
+   },
+   "end": {
+    "along_m": -14331.0835725,
+    "cross_m": -16188.3110144375
+   },
+   "disp_ratio_after_loss": -93.97501292296475
+  },
+  "EKF3_OF_records_airborne": 4,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.67461895294898,
+    "changes_after_loss_s": [
+     5.14
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.15,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.15,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.91,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.91,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -21.81,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -21.81,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -18.47,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -18.46,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.04,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.05,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    315.69,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.69,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.06,
+   "duration_in_cruise_s": 302.0,
+   "valid_until_cruise_end": false
+  }
+ },
+ "dsn_trans_r1": {
+  "window_s": [
+   30.002,
+   332.495
+  ],
+  "takeoff_s": 28.149,
+  "t_loss_s": 191.071,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.069,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4874,
+  "ukf": {
+   "+10s": {
+    "along_m": -8.75154599999999,
+    "cross_m": -2.526704058823526
+   },
+   "+30s": {
+    "along_m": -28.293248411764694,
+    "cross_m": -8.14791858823529
+   },
+   "+60s": {
+    "along_m": -195.89773021176472,
+    "cross_m": -26.163286399999997
+   },
+   "+120s": {
+    "along_m": -4185.608341470588,
+    "cross_m": 2289.8180419411765
+   },
+   "end": {
+    "along_m": -6428.687163411765,
+    "cross_m": 5385.346538
+   },
+   "disp_ratio_after_loss": -89.95701790832449
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -8.20241399999999,
+    "cross_m": 1.4867629411764622
+   },
+   "+30s": {
+    "along_m": -52.29696641176471,
+    "cross_m": -47.4019725882353
+   },
+   "+60s": {
+    "along_m": -449.01290421176475,
+    "cross_m": -911.2576704
+   },
+   "+120s": {
+    "along_m": -1877.9402184705882,
+    "cross_m": -4924.123547058824
+   },
+   "end": {
+    "along_m": -2550.4166784117647,
+    "cross_m": -7324.487495
+   },
+   "disp_ratio_after_loss": -35.084862989176045
+  },
+  "EKF3_OF_records_airborne": 4878,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7072135785007072,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.46393210749646,
+    "changes_after_loss_s": [
+     5.03
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7072135785007072,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.06,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.06,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.82,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.82,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.55,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.55,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.4,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -180.39,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    5.0,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.01,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    153.49,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.49,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.03,
+   "duration_in_cruise_s": 140.4,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.05228740951962152,
+    "cross_m": 0.12548100000000062
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "dsn_trans_r3": {
+  "window_s": [
+   30.009,
+   331.816
+  ],
+  "takeoff_s": 28.177,
+  "t_loss_s": 191.071,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.062,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4873,
+  "ukf": {
+   "+10s": {
+    "along_m": -9.446228588235286,
+    "cross_m": 0.8211003529411725
+   },
+   "+30s": {
+    "along_m": -30.06600782352939,
+    "cross_m": 3.9458892941176478
+   },
+   "+60s": {
+    "along_m": -245.07178770588237,
+    "cross_m": 9.336863117647061
+   },
+   "+120s": {
+    "along_m": -2712.226880235294,
+    "cross_m": -3758.0755853529413
+   },
+   "end": {
+    "along_m": -5595.833713,
+    "cross_m": -4348.66257
+   },
+   "disp_ratio_after_loss": -78.55491417673309
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -8.19939958823528,
+    "cross_m": 1.513826352941173
+   },
+   "+30s": {
+    "along_m": -52.352806823529406,
+    "cross_m": -47.799988705882356
+   },
+   "+60s": {
+    "along_m": -439.92696470588237,
+    "cross_m": -891.250220882353
+   },
+   "+120s": {
+    "along_m": -1838.033189235294,
+    "cross_m": -4850.6957003529415
+   },
+   "end": {
+    "along_m": -2414.32293,
+    "cross_m": -6899.0567710000005
+   },
+   "disp_ratio_after_loss": -33.32397446780041
+  },
+  "EKF3_OF_records_airborne": 4876,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7107320540156361,
+    "changes_after_loss_s": [
+     1.04
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.44633972992182,
+    "changes_after_loss_s": [
+     5.04
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7107320540156361,
+    "changes_after_loss_s": [
+     1.04
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.06,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.06,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.81,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.81,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -181.11,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -181.1,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -179.98,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -179.98,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.0,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    5.0,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    153.75,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.75,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.04,
+   "duration_in_cruise_s": 139.7,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.04718574561674416,
+    "cross_m": 0.12502000000000013
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "ds_blank_r3": {
+  "window_s": [
+   30.31,
+   332.812
+  ],
+  "takeoff_s": 28.465,
+  "t_loss_s": 29.14,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1699999999999982,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 1,
+  "EKF3_OF_records_airborne": 6,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.22,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.22,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.99,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -22.98,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.93,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -22.92,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -20.53,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -20.53,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    316.01,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    316.01,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -4.93,
+   "duration_in_cruise_s": 308.5,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdc_trans_r2": {
+  "window_s": [
+   30.082,
+   332.164
+  ],
+  "takeoff_s": 28.25,
+  "t_loss_s": 191.17,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.088,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4874,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -7.744194812499984,
+    "cross_m": -3.6274212499999994
+   },
+   "+30s": {
+    "along_m": -24.873805577205857,
+    "cross_m": -12.412190602941177
+   },
+   "+60s": {
+    "along_m": -81.6448494007353,
+    "cross_m": -98.29066901470588
+   },
+   "+120s": {
+    "along_m": 3066.917836775735,
+    "cross_m": -3658.4204485441173
+   },
+   "end": {
+    "along_m": 5800.8272831875,
+    "cross_m": -2713.51384425
+   },
+   "disp_ratio_after_loss": 83.32519175661267
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.192911812499986,
+    "cross_m": 1.55525675
+   },
+   "+30s": {
+    "along_m": -52.58580657720585,
+    "cross_m": -47.453225602941174
+   },
+   "+60s": {
+    "along_m": -405.8842294007353,
+    "cross_m": -797.2618010147058
+   },
+   "+120s": {
+    "along_m": -1752.5545222242645,
+    "cross_m": -4421.462654544118
+   },
+   "end": {
+    "along_m": -2314.5267028125,
+    "cross_m": -6317.41090825
+   },
+   "disp_ratio_after_loss": -31.847703496894574
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.4284698124999835,
+    "cross_m": 4.587924750000002
+   },
+   "+30s": {
+    "along_m": -15.390879577205851,
+    "cross_m": 15.774368397058822
+   },
+   "+60s": {
+    "along_m": 66.9741155992647,
+    "cross_m": -28.387607014705885
+   },
+   "+120s": {
+    "along_m": -845.6447332242648,
+    "cross_m": -3988.1215695441174
+   },
+   "end": {
+    "along_m": 429.33407518750005,
+    "cross_m": -6481.46584825
+   },
+   "disp_ratio_after_loss": 7.093098163756593
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.3842918124999954,
+    "cross_m": 1.9798167499999997
+   },
+   "+30s": {
+    "along_m": -52.36988657720585,
+    "cross_m": -67.48883060294118
+   },
+   "+60s": {
+    "along_m": -324.5862244007353,
+    "cross_m": -574.820742014706
+   },
+   "+120s": {
+    "along_m": -1633.9105812242647,
+    "cross_m": -3197.8677405441176
+   },
+   "end": {
+    "along_m": -2394.1494928125003,
+    "cross_m": -4813.608032249999
+   },
+   "disp_ratio_after_loss": -32.9777080867476
+  },
+  "EKF3_OF_records_airborne": 4875,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7092198581560284,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.45390070921985,
+    "changes_after_loss_s": [
+     5.01
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7092198581560284,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.28,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.28,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.04,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -185.04,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -183.19,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -183.19,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.61,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -180.6,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    153.13,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.13,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.01,
+   "duration_in_cruise_s": 140.0,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.04490585202486841,
+    "cross_m": 0.12625900000000012
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "p1c_fwdc_trans": {
+  "window_s": [
+   30.017,
+   331.406
+  ],
+  "takeoff_s": 28.148,
+  "t_loss_s": 191.071,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.054,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4874,
+  "ukf": {
+   "+10s": {
+    "along_m": -9.489633611111103,
+    "cross_m": 0.006670277777778389
+   },
+   "+30s": {
+    "along_m": -30.363970787581692,
+    "cross_m": 0.9919759836601258
+   },
+   "+60s": {
+    "along_m": -130.28665137581697,
+    "cross_m": -20.835035545751637
+   },
+   "+120s": {
+    "along_m": 791.6420766830065,
+    "cross_m": 4241.58383198366
+   },
+   "end": {
+    "along_m": -1253.211585611111,
+    "cross_m": 5664.699039277778
+   },
+   "disp_ratio_after_loss": -16.868921700685505
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -8.198730611111102,
+    "cross_m": 1.4470592777777747
+   },
+   "+30s": {
+    "along_m": -52.446633787581696,
+    "cross_m": -48.48671201633987
+   },
+   "+60s": {
+    "along_m": -438.579828375817,
+    "cross_m": -883.1833895457517
+   },
+   "+120s": {
+    "along_m": -1875.1804723169935,
+    "cross_m": -4860.455201016339
+   },
+   "end": {
+    "along_m": -2499.089281611111,
+    "cross_m": -7095.145571722222
+   },
+   "disp_ratio_after_loss": -34.633273111144625
+  },
+  "EKF3_OF_records_airborne": 4875,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7127583749109052,
+    "changes_after_loss_s": [
+     1.05
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.43620812544548,
+    "changes_after_loss_s": [
+     5.05
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7127583749109052,
+    "changes_after_loss_s": [
+     1.05
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.05,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.05,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.78,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.78,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.76,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.76,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.24,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -180.23,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.99,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.0,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    153.15,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.15,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.05,
+   "duration_in_cruise_s": 139.3,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.06347519245078104,
+    "cross_m": 0.1257640000000002
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "p1c_fwdplainc_trans": {
+  "window_s": [
+   30.46,
+   332.495
+  ],
+  "takeoff_s": 28.63,
+  "t_loss_s": 191.533,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.07299999999998,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4858,
+  "ukf": {
+   "+10s": {
+    "along_m": -9.429335124999994,
+    "cross_m": -0.947227999999999
+   },
+   "+30s": {
+    "along_m": -30.47690706617648,
+    "cross_m": -2.3955023529411776
+   },
+   "+60s": {
+    "along_m": -132.2948340138889,
+    "cross_m": -53.002329333333336
+   },
+   "+120s": {
+    "along_m": 427.3688692867647,
+    "cross_m": 3975.906752294118
+   },
+   "end": {
+    "along_m": -1263.544222125,
+    "cross_m": 6205.382045
+   },
+   "disp_ratio_after_loss": -16.936562859922542
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -8.213426124999998,
+    "cross_m": 1.5084839999999922
+   },
+   "+30s": {
+    "along_m": -52.425816066176466,
+    "cross_m": -47.83877735294118
+   },
+   "+60s": {
+    "along_m": -420.09511701388885,
+    "cross_m": -854.6549403333333
+   },
+   "+120s": {
+    "along_m": -1792.1285227132353,
+    "cross_m": -4779.881030705882
+   },
+   "end": {
+    "along_m": -2457.010278125,
+    "cross_m": -7021.375547
+   },
+   "disp_ratio_after_loss": -33.87833550213887
+  },
+  "EKF3_OF_records_airborne": 4860,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7097232079488999,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.4513839602555,
+    "changes_after_loss_s": [
+     5.03
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7097232079488999,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.57,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.57,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.17,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -185.17,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.83,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.83,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.66,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -180.65,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.96,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.96,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    153.06,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.06,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.03,
+   "duration_in_cruise_s": 139.9,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.052760532810580685,
+    "cross_m": 0.12147500000000022
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "fwdplainc_blank_r1": {
+  "window_s": [
+   29.789,
+   330.977
+  ],
+  "takeoff_s": 27.968,
+  "t_loss_s": 28.645,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.144000000000002,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 1,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.060116166666663,
+    "cross_m": 4.332611666666666
+   },
+   "+30s": {
+    "along_m": -15.46960046078431,
+    "cross_m": 16.69509101960784
+   },
+   "+60s": {
+    "along_m": 0.12965330392156815,
+    "cross_m": -165.18256180392157
+   },
+   "+120s": {
+    "along_m": 3290.111665944444,
+    "cross_m": -3849.3773634444447
+   },
+   "end": {
+    "along_m": 3440.6253958333327,
+    "cross_m": -8662.874587333334
+   },
+   "disp_ratio_after_loss": 23.850772202925974
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -9.863500166666663,
+    "cross_m": 5.325890666666666
+   },
+   "+30s": {
+    "along_m": -92.2417234607843,
+    "cross_m": -27.37811298039216
+   },
+   "+60s": {
+    "along_m": -384.9575336960784,
+    "cross_m": -202.27556580392155
+   },
+   "+120s": {
+    "along_m": -2032.6617850555556,
+    "cross_m": -1683.3957374444444
+   },
+   "end": {
+    "along_m": -15859.948545166666,
+    "cross_m": -22139.664542333332
+   },
+   "disp_ratio_after_loss": -104.33319663181555
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.260481166666663,
+    "cross_m": 4.381210666666666
+   },
+   "+30s": {
+    "along_m": -16.47216146078431,
+    "cross_m": 16.614455019607842
+   },
+   "+60s": {
+    "along_m": 23.863759303921565,
+    "cross_m": -136.18588980392155
+   },
+   "+120s": {
+    "along_m": 3208.0878949444445,
+    "cross_m": -3616.0521784444445
+   },
+   "end": {
+    "along_m": -15232.340074166666,
+    "cross_m": -19812.626665333333
+   },
+   "disp_ratio_after_loss": -100.16496075794934
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -12.095289166666664,
+    "cross_m": 9.039726666666667
+   },
+   "+30s": {
+    "along_m": -118.02412546078432,
+    "cross_m": 75.56475801960785
+   },
+   "+60s": {
+    "along_m": -490.38613969607843,
+    "cross_m": 259.8197531960784
+   },
+   "+120s": {
+    "along_m": -2376.1473890555553,
+    "cross_m": 513.1919785555556
+   },
+   "end": {
+    "along_m": -18569.118379166666,
+    "cross_m": -7889.2862153333335
+   },
+   "disp_ratio_after_loss": -122.32603677382663
+  },
+  "EKF3_OF_records_airborne": 1,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.70474925273996,
+    "changes_after_loss_s": [
+     5.04
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -23.75,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -23.75,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.49,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.49,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -21.43,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -21.43,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -17.99,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -17.93,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.96,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    4.97,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    317.07,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    317.07,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.06,
+   "duration_in_cruise_s": 301.3,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdc_trans_r1": {
+  "window_s": [
+   30.379,
+   332.297
+  ],
+  "takeoff_s": 28.531,
+  "t_loss_s": 191.467,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.08800000000002,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4860,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.71882108749999,
+    "cross_m": 4.428720675000006
+   },
+   "+30s": {
+    "along_m": -15.56483492279412,
+    "cross_m": 15.36565352205883
+   },
+   "+60s": {
+    "along_m": 119.74753848897058,
+    "cross_m": 70.08624069852942
+   },
+   "+120s": {
+    "along_m": -3334.4377277463236,
+    "cross_m": 3864.0888685808823
+   },
+   "end": {
+    "along_m": -6479.635738687499,
+    "cross_m": 3602.2956138749996
+   },
+   "disp_ratio_after_loss": -91.06618355619149
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.391643087499986,
+    "cross_m": 1.243392675000008
+   },
+   "+30s": {
+    "along_m": -53.993937922794125,
+    "cross_m": -50.49817147794117
+   },
+   "+60s": {
+    "along_m": -475.53962351102945,
+    "cross_m": -969.5080493014706
+   },
+   "+120s": {
+    "along_m": -1982.4130117463235,
+    "cross_m": -5080.121523419118
+   },
+   "end": {
+    "along_m": -2606.5029306875,
+    "cross_m": -7165.409869124999
+   },
+   "disp_ratio_after_loss": -36.0346091870026
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.450152087499987,
+    "cross_m": 4.533081675000004
+   },
+   "+30s": {
+    "along_m": -17.65402492279412,
+    "cross_m": 15.497838522058823
+   },
+   "+60s": {
+    "along_m": -91.5754045110294,
+    "cross_m": 91.70433369852942
+   },
+   "+120s": {
+    "along_m": 512.0985002536765,
+    "cross_m": -3397.023491419118
+   },
+   "end": {
+    "along_m": 2587.7561133125005,
+    "cross_m": -5124.991241125
+   },
+   "disp_ratio_after_loss": 37.76824422465817
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.757719087499993,
+    "cross_m": 1.9780266750000077
+   },
+   "+30s": {
+    "along_m": -63.389642922794124,
+    "cross_m": -60.59456247794117
+   },
+   "+60s": {
+    "along_m": -383.5707765110294,
+    "cross_m": -523.3198243014706
+   },
+   "+120s": {
+    "along_m": -1863.4379077463234,
+    "cross_m": -3108.0139994191177
+   },
+   "end": {
+    "along_m": -2673.9902596875,
+    "cross_m": -4658.160042125
+   },
+   "disp_ratio_after_loss": -36.993505808665105
+  },
+  "EKF3_OF_records_airborne": 4862,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7102272727272727,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.44886363636364,
+    "changes_after_loss_s": [
+     5.01
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7102272727272727,
+    "changes_after_loss_s": [
+     1.01
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.58,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.58,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.81,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -185.81,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -185.8,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -185.8,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -185.8,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -185.8,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    4.93,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.93,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    152.99,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    152.99,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.01,
+   "duration_in_cruise_s": 139.8,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.041707187520003686,
+    "cross_m": 0.12062099999999987
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "fwdc_blank_r2": {
+  "window_s": [
+   30.296,
+   332.165
+  ],
+  "takeoff_s": 28.466,
+  "t_loss_s": 29.998,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -0.29799999999999827,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 4,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -6.998142875000004,
+    "cross_m": 5.978112437500001
+   },
+   "+30s": {
+    "along_m": -23.549316463235293,
+    "cross_m": 24.594094790441176
+   },
+   "+60s": {
+    "along_m": -249.84888963970587,
+    "cross_m": 0.9477984375
+   },
+   "+120s": {
+    "along_m": -2419.6994115972225,
+    "cross_m": 4776.317911659722
+   },
+   "end": {
+    "along_m": 7437.797027125001,
+    "cross_m": 62147.4408704375
+   },
+   "disp_ratio_after_loss": 50.288395659537024
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -4.145085875000003,
+    "cross_m": 0.4471114375
+   },
+   "+30s": {
+    "along_m": -3.971746463235295,
+    "cross_m": -43.068385209558826
+   },
+   "+60s": {
+    "along_m": -6.598124639705887,
+    "cross_m": -243.9649635625
+   },
+   "+120s": {
+    "along_m": -481.42933059722225,
+    "cross_m": -1667.5808313402779
+   },
+   "end": {
+    "along_m": -8723.524547875,
+    "cross_m": -21646.1546245625
+   },
+   "disp_ratio_after_loss": -56.80858604951021
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -7.4775858750000035,
+    "cross_m": 6.0721384375000005
+   },
+   "+30s": {
+    "along_m": -25.955211463235294,
+    "cross_m": 24.713501790441175
+   },
+   "+60s": {
+    "along_m": -106.39782963970589,
+    "cross_m": 140.71978243750002
+   },
+   "+120s": {
+    "along_m": 719.2065364027778,
+    "cross_m": 4329.591969659722
+   },
+   "end": {
+    "along_m": 27740.835745124998,
+    "cross_m": 21962.713129437496
+   },
+   "disp_ratio_after_loss": 184.8314870848881
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.049105875000004,
+    "cross_m": 0.9430864374999999
+   },
+   "+30s": {
+    "along_m": -35.00250046323529,
+    "cross_m": -55.46264720955883
+   },
+   "+60s": {
+    "along_m": -136.6390836397059,
+    "cross_m": -395.5806125625
+   },
+   "+120s": {
+    "along_m": -664.0831125972222,
+    "cross_m": -2402.7701163402776
+   },
+   "end": {
+    "along_m": -7532.373415875,
+    "cross_m": -23240.4487155625
+   },
+   "disp_ratio_after_loss": -48.91512941575006
+  },
+  "EKF3_OF_records_airborne": 7,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.26507620941020543,
+    "changes_after_loss_s": [
+     1.1
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.40954274353876,
+    "changes_after_loss_s": [
+     5.1
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.26507620941020543,
+    "changes_after_loss_s": [
+     1.1
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -25.0,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -25.0,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -23.75,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -23.75,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -20.17,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -20.16,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -19.04,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -19.03,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    313.26,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    313.26,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.1,
+   "duration_in_cruise_s": 301.0,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.01053250404641548,
+    "cross_m": 0.027337
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "ds_blank_r1": {
+  "window_s": [
+   29.863,
+   332.677
+  ],
+  "takeoff_s": 28.011,
+  "t_loss_s": 28.678,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.1849999999999987,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 1,
+  "EKF3_OF_records_airborne": 2,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.71202113606341,
+    "changes_after_loss_s": [
+     5.09
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -23.81,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -23.81,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -22.83,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -22.83,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -22.82,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -22.82,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -22.81,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -22.81,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -22.81,
+    "EKF3 IMU1 MAG0 initial yaw alignment complete"
+   ],
+   [
+    -22.8,
+    "EKF3 IMU0 MAG0 initial yaw alignment complete"
+   ],
+   [
+    5.0,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    5.0,
+    "EKF3 IMU1 stopped aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.11,
+   "duration_in_cruise_s": 303.1,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdc_blank_r1": {
+  "window_s": [
+   29.735,
+   331.751
+  ],
+  "takeoff_s": 27.907,
+  "t_loss_s": 29.437,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -0.29799999999999827,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 2,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -5.4197588125,
+    "cross_m": 4.0673076875000005
+   },
+   "+30s": {
+    "along_m": -14.919510165441174,
+    "cross_m": 13.992595099264705
+   },
+   "+60s": {
+    "along_m": 148.5863895404412,
+    "cross_m": -185.85921548897056
+   },
+   "+120s": {
+    "along_m": 4888.876551775735,
+    "cross_m": -1297.2796819595587
+   },
+   "end": {
+    "along_m": 11963.8392971875,
+    "cross_m": -1815.7295363125002
+   },
+   "disp_ratio_after_loss": 80.24252003583337
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -5.0487688125,
+    "cross_m": 2.6094176874999997
+   },
+   "+30s": {
+    "along_m": -21.937395165441174,
+    "cross_m": -16.069861900735294
+   },
+   "+60s": {
+    "along_m": -99.5029174595588,
+    "cross_m": -139.48407148897059
+   },
+   "+120s": {
+    "along_m": -967.6329092242647,
+    "cross_m": -1305.3059249595588
+   },
+   "end": {
+    "along_m": -11888.7429648125,
+    "cross_m": -20883.7056353125
+   },
+   "disp_ratio_after_loss": -77.74511928720894
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.0027498125,
+    "cross_m": 4.1164036875
+   },
+   "+30s": {
+    "along_m": -10.111962165441174,
+    "cross_m": 13.893804099264706
+   },
+   "+60s": {
+    "along_m": 26.80763954044118,
+    "cross_m": 55.29203551102941
+   },
+   "+120s": {
+    "along_m": -1638.9789842242647,
+    "cross_m": 627.5268230404412
+   },
+   "end": {
+    "along_m": -2930.6701468125,
+    "cross_m": 14969.8827636875
+   },
+   "disp_ratio_after_loss": -18.411301176688536
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.6934338125,
+    "cross_m": 3.7364386874999997
+   },
+   "+30s": {
+    "along_m": -49.90519016544117,
+    "cross_m": -8.087981900735295
+   },
+   "+60s": {
+    "along_m": -249.09437145955883,
+    "cross_m": -165.7597304889706
+   },
+   "+120s": {
+    "along_m": -1236.1412842242644,
+    "cross_m": -1574.3978609595588
+   },
+   "end": {
+    "along_m": -10235.115820812498,
+    "cross_m": -20241.843382312498
+   },
+   "disp_ratio_after_loss": -66.79231569003734
+  },
+  "EKF3_OF_records_airborne": 2,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.26490066225165565,
+    "changes_after_loss_s": [
+     1.1
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.41059602649007,
+    "changes_after_loss_s": [
+     5.1
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.26490066225165565,
+    "changes_after_loss_s": [
+     1.1
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.5,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.5,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -23.29,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -23.28,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -23.27,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -23.27,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -23.26,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -23.26,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    315.21,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.21,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.9,
+   "duration_in_cruise_s": 301.3,
+   "valid_until_cruise_end": false
+  }
+ },
+ "fwdplainc_trans_r3": {
+  "window_s": [
+   29.768,
+   331.256
+  ],
+  "takeoff_s": 27.92,
+  "t_loss_s": 190.84,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.072,
+  "valid_frames_in_cruise": 4817,
+  "valid_frames_airborne": 4873,
+  "ukf_baseline": {
+   "+10s": {
+    "along_m": -9.278450230769252,
+    "cross_m": 1.4423043846153834
+   },
+   "+30s": {
+    "along_m": -29.301115819004536,
+    "cross_m": 6.041695678733025
+   },
+   "+60s": {
+    "along_m": 192.42983135746607,
+    "cross_m": 113.76271067873304
+   },
+   "+120s": {
+    "along_m": 4116.724829047009,
+    "cross_m": 2941.9313644957265
+   },
+   "end": {
+    "along_m": 7486.386360769231,
+    "cross_m": 2761.3491573846154
+   },
+   "disp_ratio_after_loss": 107.68869898561414
+  },
+  "fgo_baseline": {
+   "+10s": {
+    "along_m": -8.070545230769241,
+    "cross_m": 1.472931384615386
+   },
+   "+30s": {
+    "along_m": -49.669394819004545,
+    "cross_m": -48.47166632126697
+   },
+   "+60s": {
+    "along_m": -409.64828464253395,
+    "cross_m": -916.570274321267
+   },
+   "+120s": {
+    "along_m": -1674.0392069529914,
+    "cross_m": -4936.611806504273
+   },
+   "end": {
+    "along_m": -2197.2906552307695,
+    "cross_m": -7237.384055615385
+   },
+   "disp_ratio_after_loss": -30.31364987095469
+  },
+  "ukf_heading": {
+   "+10s": {
+    "along_m": -5.453908230769244,
+    "cross_m": 4.568415384615385
+   },
+   "+30s": {
+    "along_m": -14.965261819004539,
+    "cross_m": 15.672941678733023
+   },
+   "+60s": {
+    "along_m": 3.8260043574660614,
+    "cross_m": -64.48549932126696
+   },
+   "+120s": {
+    "along_m": 241.9549390470085,
+    "cross_m": 335.10507249572646
+   },
+   "end": {
+    "along_m": 333.7547827692308,
+    "cross_m": 2556.526929384615
+   },
+   "disp_ratio_after_loss": 5.7563486357678135
+  },
+  "fgo_heading": {
+   "+10s": {
+    "along_m": -7.519886230769245,
+    "cross_m": 2.2624243846153793
+   },
+   "+30s": {
+    "along_m": -61.55993181900454,
+    "cross_m": -36.39219832126698
+   },
+   "+60s": {
+    "along_m": -396.76089364253386,
+    "cross_m": -376.13627732126696
+   },
+   "+120s": {
+    "along_m": -2113.6527399529914,
+    "cross_m": -2219.9915185042737
+   },
+   "end": {
+    "along_m": -3021.5823592307693,
+    "cross_m": -3476.747578615385
+   },
+   "disp_ratio_after_loss": -42.060653731888046
+  },
+  "EKF3_OF_records_airborne": 4875,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7122507122507122,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.43874643874643,
+    "changes_after_loss_s": [
+     5.03
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7122507122507122,
+    "changes_after_loss_s": [
+     1.03
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -185.87,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -185.87,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -184.63,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -184.63,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.63,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.62,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.18,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -180.18,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.01,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    153.3,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.3,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.03,
+   "duration_in_cruise_s": 139.4,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.052007667873539276,
+    "cross_m": 0.12440399999999988
+   },
+   "disp_ratio_after_loss": null
+  }
+ },
+ "p1c_fwdc_blank": {
+  "window_s": [
+   30.494,
+   332.774
+  ],
+  "takeoff_s": 28.663,
+  "t_loss_s": 29.371,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.123000000000001,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 3,
+  "ukf": {
+   "+10s": {
+    "along_m": -6.2511939374999965,
+    "cross_m": 2.6133836875
+   },
+   "+30s": {
+    "along_m": -23.012282113970585,
+    "cross_m": 5.806128922794118
+   },
+   "+60s": {
+    "along_m": -289.0967682708333,
+    "cross_m": 30.577364354166665
+   },
+   "+120s": {
+    "along_m": -1512.9216719963238,
+    "cross_m": 3285.498721569853
+   },
+   "end": {
+    "along_m": -29589.911329937502,
+    "cross_m": -7040.1009553125
+   },
+   "disp_ratio_after_loss": -194.80443207919134
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -13.886388937499998,
+    "cross_m": -9.5783273125
+   },
+   "+30s": {
+    "along_m": -89.72656811397059,
+    "cross_m": -102.81528007720588
+   },
+   "+60s": {
+    "along_m": -324.71625027083337,
+    "cross_m": -425.8532806458333
+   },
+   "+120s": {
+    "along_m": -1754.3792229963235,
+    "cross_m": -2421.733201430147
+   },
+   "end": {
+    "along_m": -15401.3302659375,
+    "cross_m": -26950.4956823125
+   },
+   "disp_ratio_after_loss": -100.91476048577678
+  },
+  "EKF3_OF_records_airborne": 6,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": [
+     1.12
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.67681111478663,
+    "changes_after_loss_s": [
+     5.12
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": [
+     1.12
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.37,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.37,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -23.13,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -23.13,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -21.23,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -21.23,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -18.71,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    -18.7,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    5.05,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    5.05,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    315.06,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    315.06,
+    "EKF3 IMU0 fusing optical flow"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.08,
+   "duration_in_cruise_s": 302.4,
+   "valid_until_cruise_end": false
+  }
+ },
+ "dsn_blank_r3": {
+  "window_s": [
+   30.672,
+   333.265
+  ],
+  "takeoff_s": 28.553,
+  "t_loss_s": 29.239,
+  "case": "A",
+  "t_loss_after_cruise_start_s": -1.4329999999999998,
+  "valid_frames_in_cruise": 0,
+  "valid_frames_airborne": 2,
+  "ukf": {
+   "+10s": {
+    "along_m": -5.672659500000002,
+    "cross_m": 3.803924794117647
+   },
+   "+30s": {
+    "along_m": -20.241255441176474,
+    "cross_m": 14.19969532352941
+   },
+   "+60s": {
+    "along_m": -158.34783414705882,
+    "cross_m": -72.25952985294118
+   },
+   "+120s": {
+    "along_m": 3509.235875088235,
+    "cross_m": -2541.4555869705882
+   },
+   "end": {
+    "along_m": 9502.5010435,
+    "cross_m": -3764.3596865
+   },
+   "disp_ratio_after_loss": 63.81741806266947
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -17.8199925,
+    "cross_m": -4.059996205882354
+   },
+   "+30s": {
+    "along_m": -125.96837044117648,
+    "cross_m": -65.4683266764706
+   },
+   "+60s": {
+    "along_m": -447.8337061470588,
+    "cross_m": -291.68094185294115
+   },
+   "+120s": {
+    "along_m": -2218.5936789117645,
+    "cross_m": -1929.8830379705882
+   },
+   "end": {
+    "along_m": -16914.149670500003,
+    "cross_m": -24123.4024875
+   },
+   "disp_ratio_after_loss": -110.81300650875973
+  },
+  "EKF3_OF_records_airborne": 3,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": null,
+    "after_loss_pct": 98.81031064111038,
+    "changes_after_loss_s": [
+     5.03
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "dead_reckoning": {
+    "before_loss_pct": null,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -24.26,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -24.26,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -23.0,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -23.0,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -18.74,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -18.73,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -17.88,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -17.87,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    5.01,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    5.02,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    316.43,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    316.43,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": -0.07,
+   "duration_in_cruise_s": 303.1,
+   "valid_until_cruise_end": false
+  }
+ },
+ "dsn_trans_r2": {
+  "window_s": [
+   30.455,
+   332.334
+  ],
+  "takeoff_s": 28.624,
+  "t_loss_s": 191.533,
+  "case": "B",
+  "t_loss_after_cruise_start_s": 161.07799999999997,
+  "valid_frames_in_cruise": 4818,
+  "valid_frames_airborne": 4874,
+  "ukf": {
+   "+10s": {
+    "along_m": -9.303494679738577,
+    "cross_m": 1.4264913071895402
+   },
+   "+30s": {
+    "along_m": -29.408806503267968,
+    "cross_m": 6.030861777777778
+   },
+   "+60s": {
+    "along_m": -99.31253088194445,
+    "cross_m": -32.38588084722222
+   },
+   "+120s": {
+    "along_m": 3654.8981309444443,
+    "cross_m": 2708.9055668888886
+   },
+   "end": {
+    "along_m": 6808.983929555555,
+    "cross_m": 2429.7856407777776
+   },
+   "disp_ratio_after_loss": 97.76416521232429
+  },
+  "fgo": {
+   "+10s": {
+    "along_m": -8.207022679738571,
+    "cross_m": 1.5646683071895462
+   },
+   "+30s": {
+    "along_m": -52.19920250326797,
+    "cross_m": -46.90930622222222
+   },
+   "+60s": {
+    "along_m": -405.5881158819444,
+    "cross_m": -816.8835658472221
+   },
+   "+120s": {
+    "along_m": -1721.5400870555557,
+    "cross_m": -4619.72140711111
+   },
+   "end": {
+    "along_m": -2277.4920374444446,
+    "cross_m": -6728.918815222221
+   },
+   "disp_ratio_after_loss": -31.366006156136166
+  },
+  "EKF3_OF_records_airborne": 4875,
+  "flow_fused_airborne": true,
+  "EKF3_flags": {
+   "horiz_vel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 100.0,
+    "changes_after_loss_s": []
+   },
+   "horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7102272727272727,
+    "changes_after_loss_s": [
+     1.02
+    ]
+   },
+   "horiz_pos_abs": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   },
+   "const_pos_mode": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 96.44886363636364,
+    "changes_after_loss_s": [
+     5.02
+    ]
+   },
+   "pred_horiz_pos_rel": {
+    "before_loss_pct": 100.0,
+    "after_loss_pct": 0.7102272727272727,
+    "changes_after_loss_s": [
+     1.02
+    ]
+   },
+   "dead_reckoning": {
+    "before_loss_pct": 0.0,
+    "after_loss_pct": 0.0,
+    "changes_after_loss_s": []
+   }
+  },
+  "EKF3_messages_rel_loss_s": [
+   [
+    -186.37,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    -186.37,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    -185.11,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    -185.1,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    -182.49,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    -182.49,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    -180.5,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    -180.5,
+    "EKF3 IMU1 started relative aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU1 stopped aiding"
+   ],
+   [
+    4.95,
+    "EKF3 IMU0 stopped aiding"
+   ],
+   [
+    153.96,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    153.96,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "EKF3_invalid_period": {
+   "start_rel_loss_s": 1.02,
+   "duration_in_cruise_s": 139.8,
+   "valid_until_cruise_end": false
+  },
+  "EKF3_valid_period": {
+   "end": {
+    "along_m": -0.03990443957472678,
+    "cross_m": 0.12696299999999994
+   },
+   "disp_ratio_after_loss": null
+  }
+ }
+}

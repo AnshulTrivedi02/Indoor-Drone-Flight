@@ -109,13 +109,18 @@ def est_scale(t, x, y, z, gt, win, gtz_offset=0.0):
     dz = z[w] - (np.interp(t[w], gt[:, 0], gt[:, 3]) + gtz_offset)
     gw = (gt[:, 0] >= win[0]) & (gt[:, 0] <= win[1])
     ax = 1 if abs(gt[gw, 1][-1] - gt[gw, 1][0]) > abs(gt[gw, 2][-1] - gt[gw, 2][0]) else 2
-    lat = 3 - ax
-    ve_al = smooth_vel(t, x if ax == 1 else y)[w]; ve_lat = smooth_vel(t, y if ax == 1 else x)[w]
+    # the ESTIMATE's own travel axis (UKF/FGO use a corridor-aligned frame, x along; GT/EKF3 NED or
+    # ENU may differ): fixed 2026-09-29 after the first re-run gave meaningless UKF/FGO along ratios
+    xe_ = x[w]; ye_ = y[w]
+    ax_e = 1 if abs(xe_[-1] - xe_[0]) > abs(ye_[-1] - ye_[0]) else 2
+    ve_al = smooth_vel(t, x if ax_e == 1 else y)[w]; ve_lat = smooth_vel(t, y if ax_e == 1 else x)[w]
+    if np.median(ve_al) < 0:
+        ve_al = -ve_al
     vg_al = np.interp(t[w], gt[:, 0], smooth_vel(gt[:, 0], gt[:, ax]))
     ok2 = np.abs(vg_al) > 0.3
     return {"speed_ratio_median": float(np.median(s_est[ok] / g_s[ok])),
-            "along_ratio_median": float(np.median(ve_al[ok2] / vg_al[ok2])),
-            "lateral_vel_mean_ms": float(np.sign(np.median(vg_al)) * ve_lat[ok2].mean()),
+            "along_ratio_median": float(np.median(ve_al[ok2] / np.abs(vg_al[ok2]))),
+            "lateral_vel_mean_ms": float(ve_lat[ok2].mean()),
             "lateral_vel_rms_ms": float(np.sqrt(np.mean(ve_lat[ok2] ** 2))),
             "height_bias_mean_m": float(dz.mean()),
             "true_height_mean_m": float(np.interp(t[w], gt[:, 0], gt[:, 3]).mean() + gtz_offset)}

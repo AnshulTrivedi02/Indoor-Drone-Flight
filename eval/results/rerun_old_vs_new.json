@@ -1,0 +1,3378 @@
+[
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "EKF3 r1",
+  "old": "4.575",
+  "new": "4.034",
+  "delta": "-0.541",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "EKF3 r2",
+  "old": "3.546",
+  "new": "3.855",
+  "delta": "0.309",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "EKF3 r3",
+  "old": "5.845",
+  "new": "4.098",
+  "delta": "-1.747",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "EKF3 mean",
+  "old": "4.655",
+  "new": "3.995",
+  "delta": "-0.660",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "EKF3 range",
+  "old": "2.298",
+  "new": "0.242",
+  "delta": "-2.056",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "FGO r1",
+  "old": "4.628",
+  "new": "4.623",
+  "delta": "-0.005",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "FGO r2",
+  "old": "4.744",
+  "new": "4.298",
+  "delta": "-0.446",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "FGO r3",
+  "old": "4.573",
+  "new": "4.642",
+  "delta": "0.068",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "FGO mean",
+  "old": "4.648",
+  "new": "4.521",
+  "delta": "-0.127",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "FGO range",
+  "old": "0.170",
+  "new": "0.344",
+  "delta": "0.174",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "UKF r1",
+  "old": "16.977",
+  "new": "17.454",
+  "delta": "0.477",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "UKF r2",
+  "old": "9.960",
+  "new": "2.284",
+  "delta": "-7.677",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "UKF r3",
+  "old": "20.710",
+  "new": "4.296",
+  "delta": "-16.414",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "UKF mean",
+  "old": "15.882",
+  "new": "8.011",
+  "delta": "-7.871",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "UKF range",
+  "old": "10.749",
+  "new": "15.171",
+  "delta": "4.421",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "ordering: mean EKF3 \u2212 mean FGO",
+  "old": "0.007",
+  "new": "-0.525",
+  "delta": "-0.532",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "ordering: mean UKF \u2212 mean EKF3",
+  "old": "11.227",
+  "new": "4.016",
+  "delta": "-7.211",
+  "flag": ""
+ },
+ {
+  "section": "6.1 dsn textured evo -a (cruise), m",
+  "quantity": "ordering: mean UKF \u2212 mean FGO",
+  "old": "11.234",
+  "new": "3.490",
+  "delta": "-7.744",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "EKF3 displacement ratio, mean of 3",
+  "old": "0.57",
+  "new": "0.00",
+  "delta": "-0.57",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "EKF3 onset (GT y, m), mean of 3",
+  "old": "102.0",
+  "new": "83.0",
+  "delta": "-19.0",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "FGO displacement ratio, mean of 3",
+  "old": "0.73",
+  "new": "48.31",
+  "delta": "47.58",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "FGO onset (GT y, m), mean of 3",
+  "old": "95.4",
+  "new": "89.6",
+  "delta": "-5.8",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "UKF displacement ratio, mean of 3",
+  "old": "0.84",
+  "new": "50.14",
+  "delta": "49.30",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "UKF onset (GT y, m), mean of 3",
+  "old": "77.6",
+  "new": "97.2",
+  "delta": "19.6",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "EKF3 displacement ratio, mean of 3",
+  "old": "0.20",
+  "new": "0.00",
+  "delta": "-0.20",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "EKF3 onset (GT y, m), mean of 3",
+  "old": "18.4",
+  "new": "15.1",
+  "delta": "-3.3",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "FGO displacement ratio, mean of 3",
+  "old": "1.52",
+  "new": "191.40",
+  "delta": "189.88",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "FGO onset (GT y, m), mean of 3",
+  "old": "35.4",
+  "new": "5.9",
+  "delta": "-29.5",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "UKF displacement ratio, mean of 3",
+  "old": "1.24",
+  "new": "111.05",
+  "delta": "109.81",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "UKF onset (GT y, m), mean of 3",
+  "old": "70.6",
+  "new": "21.8",
+  "delta": "-48.8",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "EKF3 evo -a (cruise), mean of 3",
+  "old": "21.32",
+  "new": "41.49",
+  "delta": "20.16",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "FGO evo -a (cruise), mean of 3",
+  "old": "25.82",
+  "new": "1823.43",
+  "delta": "1797.61",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn trans failure metrics",
+  "quantity": "UKF evo -a (cruise), mean of 3",
+  "old": "14.72",
+  "new": "1713.10",
+  "delta": "1698.38",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "EKF3 evo -a (cruise), mean of 3",
+  "old": "34.80",
+  "new": "43.58",
+  "delta": "8.78",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "FGO evo -a (cruise), mean of 3",
+  "old": "26.05",
+  "new": "8383.18",
+  "delta": "8357.13",
+  "flag": ""
+ },
+ {
+  "section": "6.2 dsn blank failure metrics",
+  "quantity": "UKF evo -a (cruise), mean of 3",
+  "old": "12.81",
+  "new": "6074.92",
+  "delta": "6062.11",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r3 share",
+  "old": "0.689",
+  "new": "0.906",
+  "delta": "0.216",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r3 errV mean (m/s)",
+  "old": "0.218",
+  "new": "0.133",
+  "delta": "-0.085",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r3 cross-track err (m)",
+  "old": "65.9",
+  "new": "40.2",
+  "delta": "-25.7",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r3 residual (m/s)",
+  "old": "0.068",
+  "new": "0.013",
+  "delta": "-0.055",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r1 share",
+  "old": "0.549",
+  "new": "0.904",
+  "delta": "0.355",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r1 errV mean (m/s)",
+  "old": "0.201",
+  "new": "0.130",
+  "delta": "-0.071",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r1 cross-track err (m)",
+  "old": "60.7",
+  "new": "39.3",
+  "delta": "-21.4",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r1 residual (m/s)",
+  "old": "0.090",
+  "new": "0.012",
+  "delta": "-0.078",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r2 share",
+  "old": "0.607",
+  "new": "0.899",
+  "delta": "0.292",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r2 errV mean (m/s)",
+  "old": "0.131",
+  "new": "0.121",
+  "delta": "-0.010",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r2 cross-track err (m)",
+  "old": "39.8",
+  "new": "36.7",
+  "delta": "-3.1",
+  "flag": ""
+ },
+ {
+  "section": "6.3 EKF3 lateral drift, heading share (pinned cruise window)",
+  "quantity": "dsn_tex_r2 residual (m/s)",
+  "old": "0.052",
+  "new": "0.012",
+  "delta": "-0.039",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "EKF3 mean of 3",
+  "old": "3.80",
+  "new": "3.92",
+  "delta": "0.12",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "EKF3 r1/r2/r3",
+  "old": "3.44/3.98/3.99",
+  "new": "4.09/3.60/4.08",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "EKF3 ratio, mean of 3",
+  "old": "0.56",
+  "new": "0.00",
+  "delta": "-0.56",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "EKF3 onset, mean of 3",
+  "old": "100.7",
+  "new": "83.0",
+  "delta": "-17.7",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "EKF3 ratio, mean of 3",
+  "old": "0.20",
+  "new": "0.00",
+  "delta": "-0.20",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "EKF3 onset, mean of 3",
+  "old": "18.8",
+  "new": "15.1",
+  "delta": "-3.8",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "FGO mean of 3",
+  "old": "4.69",
+  "new": "4.61",
+  "delta": "-0.08",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "FGO r1/r2/r3",
+  "old": "4.68/4.42/4.97",
+  "new": "4.58/4.68/4.58",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "FGO ratio, mean of 3",
+  "old": "0.71",
+  "new": "47.97",
+  "delta": "47.26",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "FGO onset, mean of 3",
+  "old": "94.7",
+  "new": "89.5",
+  "delta": "-5.2",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "FGO ratio, mean of 3",
+  "old": "1.52",
+  "new": "175.21",
+  "delta": "173.69",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "FGO onset, mean of 3",
+  "old": "35.3",
+  "new": "12.5",
+  "delta": "-22.8",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "UKF mean of 3",
+  "old": "14.28",
+  "new": "10.94",
+  "delta": "-3.34",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc textured evo -a (cruise), m",
+  "quantity": "UKF r1/r2/r3",
+  "old": "14.60/20.94/7.30",
+  "new": "9.88/2.47/20.46",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "UKF ratio, mean of 3",
+  "old": "0.81",
+  "new": "46.33",
+  "delta": "45.52",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.4 fwdc trans failure metrics",
+  "quantity": "UKF onset, mean of 3",
+  "old": "77.1",
+  "new": "95.6",
+  "delta": "18.5",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "UKF ratio, mean of 3",
+  "old": "1.23",
+  "new": "199.13",
+  "delta": "197.90",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdc blank failure metrics",
+  "quantity": "UKF onset, mean of 3",
+  "old": "69.9",
+  "new": "21.0",
+  "delta": "-48.9",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "EKF3 mean of 3",
+  "old": "4.10",
+  "new": "4.07",
+  "delta": "-0.03",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "EKF3 r1/r2/r3",
+  "old": "3.88/4.26/4.15",
+  "new": "4.08/4.06/4.08",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "EKF3 ratio, mean of 3",
+  "old": "0.56",
+  "new": "0.00",
+  "delta": "-0.55",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "EKF3 onset, mean of 3",
+  "old": "100.7",
+  "new": "83.0",
+  "delta": "-17.7",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "EKF3 ratio, mean of 3",
+  "old": "0.19",
+  "new": "0.00",
+  "delta": "-0.19",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "EKF3 onset, mean of 3",
+  "old": "18.2",
+  "new": "15.1",
+  "delta": "-3.1",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "FGO mean of 3",
+  "old": "4.71",
+  "new": "4.56",
+  "delta": "-0.15",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "FGO r1/r2/r3",
+  "old": "4.67/4.82/4.64",
+  "new": "4.57/4.47/4.63",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "FGO ratio, mean of 3",
+  "old": "0.71",
+  "new": "49.17",
+  "delta": "48.46",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "FGO onset, mean of 3",
+  "old": "94.9",
+  "new": "89.6",
+  "delta": "-5.3",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "FGO ratio, mean of 3",
+  "old": "1.51",
+  "new": "170.50",
+  "delta": "168.99",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "FGO onset, mean of 3",
+  "old": "36.6",
+  "new": "7.9",
+  "delta": "-28.8",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "UKF mean of 3",
+  "old": "11.49",
+  "new": "14.19",
+  "delta": "2.69",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc textured evo -a (cruise), m",
+  "quantity": "UKF r1/r2/r3",
+  "old": "15.81/9.97/8.71",
+  "new": "14.23/3.40/24.93",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "UKF ratio, mean of 3",
+  "old": "0.74",
+  "new": "48.33",
+  "delta": "47.59",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.4 fwdplainc trans failure metrics",
+  "quantity": "UKF onset, mean of 3",
+  "old": "73.2",
+  "new": "78.6",
+  "delta": "5.4",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "UKF ratio, mean of 3",
+  "old": "1.24",
+  "new": "187.76",
+  "delta": "186.53",
+  "flag": ""
+ },
+ {
+  "section": "6.4 fwdplainc blank failure metrics",
+  "quantity": "UKF onset, mean of 3",
+  "old": "71.6",
+  "new": "23.4",
+  "delta": "-48.2",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdc_tex EKF3",
+  "old": "3.92",
+  "new": "4.14",
+  "delta": "0.21",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdc_tex FGO",
+  "old": "4.60",
+  "new": "4.60",
+  "delta": "0.00",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdc_tex UKF",
+  "old": "18.51",
+  "new": "1.91",
+  "delta": "-16.60",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdplainc_tex EKF3",
+  "old": "4.49",
+  "new": "4.11",
+  "delta": "-0.38",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdplainc_tex FGO",
+  "old": "4.53",
+  "new": "4.60",
+  "delta": "0.08",
+  "flag": ""
+ },
+ {
+  "section": "6.4 p1c check flights, textured evo -a (cruise), m",
+  "quantity": "p1c_fwdplainc_tex UKF",
+  "old": "20.14",
+  "new": "19.68",
+  "delta": "-0.46",
+  "flag": ""
+ },
+ {
+  "section": "6.3 ds (compass-active) EKF3 evo -a (cruise), m \u2014 old values used a different (apparatus) metric",
+  "quantity": "tex mean of 3",
+  "old": "\u2014",
+  "new": "0.47",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.3 ds (compass-active) EKF3 evo -a (cruise), m \u2014 old values used a different (apparatus) metric",
+  "quantity": "trans mean of 3",
+  "old": "\u2014",
+  "new": "42.19",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.3 ds (compass-active) EKF3 evo -a (cruise), m \u2014 old values used a different (apparatus) metric",
+  "quantity": "trans displacement ratio, mean of 3",
+  "old": "\u2014",
+  "new": "0.00",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.3 ds (compass-active) EKF3 evo -a (cruise), m \u2014 old values used a different (apparatus) metric",
+  "quantity": "blank mean of 3",
+  "old": "\u2014",
+  "new": "nan",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.3 ds (compass-active) EKF3 evo -a (cruise), m \u2014 old values used a different (apparatus) metric",
+  "quantity": "blank displacement ratio, mean of 3",
+  "old": "\u2014",
+  "new": "0.00",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "EKF3 fwdc mean of 3",
+  "old": "1.069",
+  "new": "0.997",
+  "delta": "-0.072",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "EKF3 fwdplainc mean of 3",
+  "old": "1.068",
+  "new": "0.997",
+  "delta": "-0.071",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "FGO baseline fwdc mean of 3",
+  "old": "1.012",
+  "new": "0.997",
+  "delta": "-0.015",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "FGO baseline fwdplainc mean of 3",
+  "old": "1.012",
+  "new": "0.990",
+  "delta": "-0.023",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "FGO heading fwdc mean of 3",
+  "old": "1.013",
+  "new": "0.998",
+  "delta": "-0.015",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "FGO heading fwdplainc mean of 3",
+  "old": "1.013",
+  "new": "0.991",
+  "delta": "-0.022",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "UKF baseline fwdc mean of 3",
+  "old": "0.837",
+  "new": "0.971",
+  "delta": "0.134",
+  "flag": ""
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "UKF baseline fwdplainc mean of 3",
+  "old": "0.837",
+  "new": "0.964",
+  "delta": "0.127",
+  "flag": ""
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "UKF heading fwdc mean of 3",
+  "old": "0.850",
+  "new": "0.989",
+  "delta": "0.139",
+  "flag": ""
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "UKF heading fwdplainc mean of 3",
+  "old": "0.850",
+  "new": "0.981",
+  "delta": "0.131",
+  "flag": ""
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "flow sensor scale fwdc mean of 3",
+  "old": "1.009",
+  "new": "0.987",
+  "delta": "-0.022",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "6.5 distance scale (textured, speed ratio)",
+  "quantity": "flow sensor scale fwdplainc mean of 3",
+  "old": "1.009",
+  "new": "0.987",
+  "delta": "-0.022",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "EKF3 tex ate",
+  "old": "[1.26, 8.13]",
+  "new": "[3.613, 4.34]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "EKF3 trans ratio",
+  "old": "[0.51, 0.63]",
+  "new": "[-0.05, 0.051]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "EKF3 trans onset",
+  "old": "[96, 108]",
+  "new": "[77.966, 88.033]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "EKF3 blank ratio",
+  "old": "[0.12, 0.27]",
+  "new": "[-0.05, 0.051]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "EKF3 blank onset",
+  "old": "[13, 24]",
+  "new": "[10.073, 20.128]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "FGO tex ate",
+  "old": "[4.17, 5.14]",
+  "new": "[3.898, 5.042]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "FGO trans ratio",
+  "old": "[0.67, 0.78]",
+  "new": "[42.268, 54.849]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "FGO trans onset",
+  "old": "[90, 101]",
+  "new": "[84.534, 94.645]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "FGO blank ratio",
+  "old": "[1.45, 1.6]",
+  "new": "[167.662, 212.261]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P4 bands (recomputed from the re-flown dsn, same formula)",
+  "quantity": "FGO blank onset",
+  "old": "[28, 42]",
+  "new": "[0.232, 11.58]",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "tex inlier_mean",
+  "old": "0.9733",
+  "new": "0.9839",
+  "delta": "0.0105",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "tex flow_y_raw_mean",
+  "old": "136.4536",
+  "new": "134.4941",
+  "delta": "-1.9595",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "tex features_mean",
+  "old": "52.8268",
+  "new": "52.3977",
+  "delta": "-0.4291",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "trans inlier_mean",
+  "old": "0.6645",
+  "new": "0.6341",
+  "delta": "-0.0304",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "trans flow_y_raw_mean",
+  "old": "71.4295",
+  "new": "66.5352",
+  "delta": "-4.8942",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "trans features_mean",
+  "old": "31.7288",
+  "new": "30.5364",
+  "delta": "-1.1924",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "blank inlier_mean",
+  "old": "0.3139",
+  "new": "0.2360",
+  "delta": "-0.0779",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "blank flow_y_raw_mean",
+  "old": "-2.4491",
+  "new": "-11.4716",
+  "delta": "-9.0225",
+  "flag": ""
+ },
+ {
+  "section": "7 P3 references (dsn n=3 mean)",
+  "quantity": "blank features_mean",
+  "old": "7.9750",
+  "new": "5.8354",
+  "delta": "-2.1395",
+  "flag": ""
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc primary PASS",
+  "old": "8/9",
+  "new": "5/9",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc_blank_r1 verdict",
+  "old": "PASS []",
+  "new": "FAIL ['P4 FGO ratio', 'P4 FGO onset']",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc_blank_r2 verdict",
+  "old": "PASS []",
+  "new": "FAIL ['P4 FGO ratio', 'P4 FGO onset']",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc_blank_r3 verdict",
+  "old": "PASS []",
+  "new": "FAIL ['P4 FGO ratio']",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc_tex_r2 verdict",
+  "old": "PASS []",
+  "new": "FAIL ['P4 EKF3 evo -a (cruise)']",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdc_trans_r1 verdict",
+  "old": "FAIL ['P3 flow_y_raw']",
+  "new": "PASS []",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdplainc primary PASS",
+  "old": "9/9",
+  "new": "8/9",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "fwdplainc_blank_r2 verdict",
+  "old": "PASS []",
+  "new": "FAIL ['P4 FGO ratio']",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "p1c primary PASS",
+  "old": "5/6",
+  "new": "6/6",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "8 dataset primary pass counts",
+  "quantity": "p1c_fwdplainc_trans verdict",
+  "old": "FAIL ['P3 flow_y_raw']",
+  "new": "PASS []",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex avail_pct",
+  "old": "96.757",
+  "new": "96.618",
+  "delta": "-0.139",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex bias",
+  "old": "-0.006",
+  "new": "-0.010",
+  "delta": "-0.004",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex noise_sd",
+  "old": "0.202",
+  "new": "0.199",
+  "delta": "-0.002",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex robust_sigma",
+  "old": "0.134",
+  "new": "0.132",
+  "delta": "-0.002",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex outlier_pct",
+  "old": "0.087",
+  "new": "0.075",
+  "delta": "-0.011",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc tex bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans avail_pct",
+  "old": "96.772",
+  "new": "96.591",
+  "delta": "-0.181",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans bias",
+  "old": "-0.014",
+  "new": "-0.016",
+  "delta": "-0.002",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans noise_sd",
+  "old": "0.131",
+  "new": "0.131",
+  "delta": "0.001",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans robust_sigma",
+  "old": "0.092",
+  "new": "0.092",
+  "delta": "0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans outlier_pct",
+  "old": "0.000",
+  "new": "0.008",
+  "delta": "0.008",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc trans bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank avail_pct",
+  "old": "96.755",
+  "new": "96.587",
+  "delta": "-0.167",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank bias",
+  "old": "-0.018",
+  "new": "-0.017",
+  "delta": "0.001",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank noise_sd",
+  "old": "0.105",
+  "new": "0.106",
+  "delta": "0.001",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank robust_sigma",
+  "old": "0.076",
+  "new": "0.076",
+  "delta": "-0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank outlier_pct",
+  "old": "0.000",
+  "new": "0.000",
+  "delta": "0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdc blank bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex avail_pct",
+  "old": "59.992",
+  "new": "60.498",
+  "delta": "0.506",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex bias",
+  "old": "0.206",
+  "new": "0.175",
+  "delta": "-0.031",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex noise_sd",
+  "old": "0.682",
+  "new": "0.648",
+  "delta": "-0.034",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex robust_sigma",
+  "old": "0.330",
+  "new": "0.321",
+  "delta": "-0.009",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex outlier_pct",
+  "old": "11.930",
+  "new": "13.616",
+  "delta": "1.686",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc tex bags passing all bars",
+  "old": "0/3",
+  "new": "0/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans avail_pct",
+  "old": "87.572",
+  "new": "87.284",
+  "delta": "-0.288",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans bias",
+  "old": "0.035",
+  "new": "0.028",
+  "delta": "-0.007",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans noise_sd",
+  "old": "0.388",
+  "new": "0.377",
+  "delta": "-0.011",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans robust_sigma",
+  "old": "0.024",
+  "new": "0.023",
+  "delta": "-0.002",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans outlier_pct",
+  "old": "2.974",
+  "new": "3.250",
+  "delta": "0.276",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc trans bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank avail_pct",
+  "old": "95.455",
+  "new": "95.455",
+  "delta": "-0.001",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank bias",
+  "old": "-0.027",
+  "new": "-0.024",
+  "delta": "0.003",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank noise_sd",
+  "old": "0.121",
+  "new": "0.150",
+  "delta": "0.029",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank robust_sigma",
+  "old": "0.010",
+  "new": "0.009",
+  "delta": "-0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank outlier_pct",
+  "old": "0.137",
+  "new": "0.084",
+  "delta": "-0.053",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (psi)",
+  "quantity": "fwdplainc blank bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex avail_pct",
+  "old": "99.923",
+  "new": "99.924",
+  "delta": "0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex bias",
+  "old": "0.006",
+  "new": "0.002",
+  "delta": "-0.005",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex noise_sd",
+  "old": "0.190",
+  "new": "0.031",
+  "delta": "-0.159",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex robust_sigma",
+  "old": "0.103",
+  "new": "0.027",
+  "delta": "-0.076",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex outlier_pct",
+  "old": "0.015",
+  "new": "0.000",
+  "delta": "-0.015",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc tex bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans avail_pct",
+  "old": "97.411",
+  "new": "97.291",
+  "delta": "-0.120",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans bias",
+  "old": "0.009",
+  "new": "0.002",
+  "delta": "-0.007",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans noise_sd",
+  "old": "0.206",
+  "new": "0.035",
+  "delta": "-0.171",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans robust_sigma",
+  "old": "0.111",
+  "new": "0.025",
+  "delta": "-0.086",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans outlier_pct",
+  "old": "0.000",
+  "new": "0.000",
+  "delta": "0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc trans bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank avail_pct",
+  "old": "97.393",
+  "new": "97.272",
+  "delta": "-0.121",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank bias",
+  "old": "0.002",
+  "new": "0.000",
+  "delta": "-0.002",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank noise_sd",
+  "old": "0.132",
+  "new": "0.035",
+  "delta": "-0.097",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank robust_sigma",
+  "old": "0.105",
+  "new": "0.025",
+  "delta": "-0.080",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank outlier_pct",
+  "old": "0.000",
+  "new": "0.000",
+  "delta": "0.000",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdc blank bags passing all bars",
+  "old": "3/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex avail_pct",
+  "old": "89.653",
+  "new": "88.525",
+  "delta": "-1.128",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex bias",
+  "old": "0.053",
+  "new": "0.027",
+  "delta": "-0.026",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex noise_sd",
+  "old": "1.481",
+  "new": "0.288",
+  "delta": "-1.193",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex robust_sigma",
+  "old": "2.160",
+  "new": "0.121",
+  "delta": "-2.039",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex outlier_pct",
+  "old": "15.423",
+  "new": "0.416",
+  "delta": "-15.007",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc tex bags passing all bars",
+  "old": "0/3",
+  "new": "3/3",
+  "delta": "",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans avail_pct",
+  "old": "86.051",
+  "new": "66.896",
+  "delta": "-19.155",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans bias",
+  "old": "0.080",
+  "new": "0.020",
+  "delta": "-0.060",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans noise_sd",
+  "old": "1.431",
+  "new": "0.278",
+  "delta": "-1.153",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans robust_sigma",
+  "old": "2.066",
+  "new": "0.136",
+  "delta": "-1.930",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans outlier_pct",
+  "old": "15.710",
+  "new": "0.578",
+  "delta": "-15.132",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc trans bags passing all bars",
+  "old": "0/3",
+  "new": "0/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank avail_pct",
+  "old": "87.481",
+  "new": "68.641",
+  "delta": "-18.839",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank bias",
+  "old": "-0.066",
+  "new": "-0.003",
+  "delta": "0.062",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank noise_sd",
+  "old": "1.361",
+  "new": "0.331",
+  "delta": "-1.029",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank robust_sigma",
+  "old": "1.971",
+  "new": "0.256",
+  "delta": "-1.716",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank outlier_pct",
+  "old": "23.696",
+  "new": "0.308",
+  "delta": "-23.388",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 validation (omega)",
+  "quantity": "fwdplainc blank bags passing all bars",
+  "old": "0/3",
+  "new": "0/3",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 second validation on re-flown p1c (frozen parameters; old = calibration set)",
+  "quantity": "psi fwdc avail / outlier %",
+  "old": "\u2014",
+  "new": "\u2014 / \u2014",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 second validation on re-flown p1c (frozen parameters; old = calibration set)",
+  "quantity": "psi fwdplainc avail / outlier %",
+  "old": "\u2014",
+  "new": "\u2014 / \u2014",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 second validation on re-flown p1c (frozen parameters; old = calibration set)",
+  "quantity": "omega fwdc avail / outlier %",
+  "old": "\u2014",
+  "new": "\u2014 / \u2014",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "9 Phase 3 second validation on re-flown p1c (frozen parameters; old = calibration set)",
+  "quantity": "omega fwdplainc avail / outlier %",
+  "old": "\u2014",
+  "new": "\u2014 / \u2014",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "14.28",
+  "new": "10.94",
+  "delta": "-3.34",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "68.21",
+  "new": "58.79",
+  "delta": "-9.42",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "6.62",
+  "new": "0.62",
+  "delta": "-6.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "0.08",
+  "new": "0.08",
+  "delta": "0.01",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading_yawrate",
+  "old": "6.62",
+  "new": "0.62",
+  "delta": "-6.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.09",
+  "new": "0.08",
+  "delta": "-0.01",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "-7.66",
+  "new": "-10.32",
+  "delta": "-2.66",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "4.69",
+  "new": "4.61",
+  "delta": "-0.08",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "21.77",
+  "new": "21.91",
+  "delta": "0.15",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "0.47",
+  "new": "0.09",
+  "delta": "-0.38",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "0.18",
+  "new": "0.18",
+  "delta": "0.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.47",
+  "new": "0.09",
+  "delta": "-0.38",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.18",
+  "new": "0.18",
+  "delta": "0.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "-4.22",
+  "new": "-4.53",
+  "delta": "-0.31",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "3.80",
+  "new": "3.92",
+  "delta": "0.12",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc tex: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "2.82",
+  "new": "-3.31",
+  "delta": "-6.12",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc tex: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-3.33",
+  "new": "-3.84",
+  "delta": "-0.50",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "15.50",
+  "new": "1735.91",
+  "delta": "1720.42",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "53.11",
+  "new": "56.87",
+  "delta": "3.76",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "19.61",
+  "new": "1365.24",
+  "delta": "1345.63",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "0.10",
+  "new": "0.16",
+  "delta": "0.05",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading_yawrate",
+  "old": "19.61",
+  "new": "1342.47",
+  "delta": "1322.86",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.20",
+  "new": "0.11",
+  "delta": "-0.09",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "4.11",
+  "new": "-370.67",
+  "delta": "-374.78",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "26.04",
+  "new": "1829.99",
+  "delta": "1803.95",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "22.75",
+  "new": "21.92",
+  "delta": "-0.83",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "20.70",
+  "new": "1276.46",
+  "delta": "1255.76",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "0.21",
+  "new": "0.21",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading_yawrate",
+  "old": "20.70",
+  "new": "1248.05",
+  "delta": "1227.35",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.15",
+  "new": "0.15",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "-5.34",
+  "new": "-553.54",
+  "delta": "-548.19",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "21.75",
+  "new": "41.48",
+  "delta": "19.73",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc trans: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "-2.14",
+  "new": "1323.76",
+  "delta": "1325.91",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc trans: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-1.06",
+  "new": "1234.98",
+  "delta": "1236.03",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "13.00",
+  "new": "9995.44",
+  "delta": "9982.44",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "12.64",
+  "new": "23.52",
+  "delta": "10.88",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "13.82",
+  "new": "8054.87",
+  "delta": "8041.05",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "0.14",
+  "new": "0.09",
+  "delta": "-0.05",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading_yawrate",
+  "old": "13.82",
+  "new": "11216.00",
+  "delta": "11202.18",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.15",
+  "new": "0.10",
+  "delta": "-0.05",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "0.82",
+  "new": "-1940.57",
+  "delta": "-1941.39",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "26.24",
+  "new": "7651.30",
+  "delta": "7625.06",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "22.24",
+  "new": "21.95",
+  "delta": "-0.29",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "26.37",
+  "new": "6721.80",
+  "delta": "6695.42",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "0.14",
+  "new": "0.28",
+  "delta": "0.13",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading_yawrate",
+  "old": "26.37",
+  "new": "6827.54",
+  "delta": "6801.17",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.11",
+  "new": "0.22",
+  "delta": "0.10",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "0.14",
+  "new": "-929.50",
+  "delta": "-929.64",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "34.62",
+  "new": "43.58",
+  "delta": "8.96",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdc blank: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "-20.80",
+  "new": "8011.29",
+  "delta": "8032.09",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdc blank: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-8.25",
+  "new": "6678.22",
+  "delta": "6686.47",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "11.49",
+  "new": "14.19",
+  "delta": "2.69",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "55.61",
+  "new": "84.11",
+  "delta": "28.50",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "6.64",
+  "new": "0.87",
+  "delta": "-5.77",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "1.59",
+  "new": "2.09",
+  "delta": "0.51",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "-4.86",
+  "new": "-13.32",
+  "delta": "-8.46",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "4.71",
+  "new": "4.56",
+  "delta": "-0.15",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "22.17",
+  "new": "21.66",
+  "delta": "-0.50",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "0.54",
+  "new": "0.35",
+  "delta": "-0.19",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "1.97",
+  "new": "2.38",
+  "delta": "0.42",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "-4.17",
+  "new": "-4.21",
+  "delta": "-0.04",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "4.10",
+  "new": "4.07",
+  "delta": "-0.03",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc tex: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "2.54",
+  "new": "-3.20",
+  "delta": "-5.74",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc tex: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-3.56",
+  "new": "-3.73",
+  "delta": "-0.17",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "17.12",
+  "new": "1717.11",
+  "delta": "1699.99",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "76.69",
+  "new": "155.36",
+  "delta": "78.67",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "19.79",
+  "new": "488.16",
+  "delta": "468.37",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "0.56",
+  "new": "0.71",
+  "delta": "0.15",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "2.67",
+  "new": "-1228.94",
+  "delta": "-1231.61",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "26.06",
+  "new": "1851.97",
+  "delta": "1825.91",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "22.11",
+  "new": "22.08",
+  "delta": "-0.03",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "20.77",
+  "new": "1068.83",
+  "delta": "1048.06",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "0.38",
+  "new": "0.40",
+  "delta": "0.02",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "-5.29",
+  "new": "-783.14",
+  "delta": "-777.85",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "21.76",
+  "new": "41.45",
+  "delta": "19.69",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc trans: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "-1.97",
+  "new": "446.71",
+  "delta": "448.68",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc trans: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-0.99",
+  "new": "1027.38",
+  "delta": "1028.37",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_baseline",
+  "old": "12.54",
+  "new": "9858.00",
+  "delta": "9845.47",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_baseline",
+  "old": "8.05",
+  "new": "22.26",
+  "delta": "14.21",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "UKF_heading",
+  "old": "13.51",
+  "new": "8391.97",
+  "delta": "8378.47",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: yaw error rms, mean of 3, deg",
+  "quantity": "UKF_heading",
+  "old": "0.08",
+  "new": "0.06",
+  "delta": "-0.02",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "UKF",
+  "old": "0.97",
+  "new": "-1466.03",
+  "delta": "-1467.00",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_baseline",
+  "old": "25.73",
+  "new": "7519.15",
+  "delta": "7493.42",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_baseline",
+  "old": "19.06",
+  "new": "21.99",
+  "delta": "2.93",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "FGO_heading",
+  "old": "25.84",
+  "new": "6370.38",
+  "delta": "6344.54",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: yaw error rms, mean of 3, deg",
+  "quantity": "FGO_heading",
+  "old": "0.19",
+  "new": "0.22",
+  "delta": "0.03",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: heading arm effect (heading \u2212 baseline evo, mean), m",
+  "quantity": "FGO",
+  "old": "0.11",
+  "new": "-1148.76",
+  "delta": "-1148.88",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc blank: evo -a (cruise), mean of 3, m",
+  "quantity": "EKF3 (reference)",
+  "old": "34.94",
+  "new": "43.50",
+  "delta": "8.56",
+  "flag": ""
+ },
+ {
+  "section": "P4 fwdplainc blank: ordering UKF_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "UKF",
+  "old": "-21.44",
+  "new": "8348.47",
+  "delta": "8369.91",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P4 fwdplainc blank: ordering FGO_heading \u2212 EKF3 (evo mean), m",
+  "quantity": "FGO",
+  "old": "-9.10",
+  "new": "6326.88",
+  "delta": "6335.98",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.76",
+  "new": "0.90",
+  "delta": "0.13",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "1.22",
+  "new": "0.92",
+  "delta": "-0.30",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.02",
+  "new": "0.03",
+  "delta": "0.01",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.03",
+  "new": "0.03",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.96",
+  "new": "1.01",
+  "delta": "0.05",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.03",
+  "new": "0.23",
+  "delta": "0.20",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.02",
+  "new": "0.19",
+  "delta": "0.17",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.96",
+  "new": "1.89",
+  "delta": "0.93",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "-4.17",
+  "new": "-0.00",
+  "delta": "4.16",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.00",
+  "new": "-0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.43",
+  "new": "0.02",
+  "delta": "-0.41",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.99",
+  "new": "1.28",
+  "delta": "0.30",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "0.10",
+  "new": "0.03",
+  "delta": "-0.07",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading_yawrate",
+  "old": "0.00",
+  "new": "-0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.20",
+  "new": "0.00",
+  "delta": "-0.20",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading_yawrate",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdc UKF_heading",
+  "old": "0 / 47",
+  "new": "0 / 11",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdc UKF_heading_yawrate",
+  "old": "0 / 47",
+  "new": "0 / 11",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdc FGO_heading",
+  "old": "29 / 47",
+  "new": "2 / 11",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdc FGO_heading_yawrate",
+  "old": "29 / 47",
+  "new": "2 / 11",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.81",
+  "new": "0.91",
+  "delta": "0.10",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "1.19",
+  "new": "1.05",
+  "delta": "-0.14",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.20",
+  "new": "0.93",
+  "delta": "0.72",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5 fwdplainc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.96",
+  "new": "1.01",
+  "delta": "0.04",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc tex: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.56",
+  "new": "1.00",
+  "delta": "0.44",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "1.00",
+  "new": "1.88",
+  "delta": "0.88",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "-5.33",
+  "new": "-0.00",
+  "delta": "5.33",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "-0.00",
+  "new": "-0.00",
+  "delta": "0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.42",
+  "new": "0.02",
+  "delta": "-0.40",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc trans: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.99",
+  "new": "1.28",
+  "delta": "0.29",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "-0.03",
+  "new": "-0.00",
+  "delta": "0.02",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.00",
+  "new": "-0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "0.17",
+  "new": "0.00",
+  "delta": "-0.16",
+  "flag": ""
+ },
+ {
+  "section": "P5 fwdplainc blank: heading share of lateral velocity error, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.00",
+  "new": "0.00",
+  "delta": "-0.00",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdplainc UKF_heading",
+  "old": "0 / 59",
+  "new": "0 / 48",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 end wall (GT y > 140 m): wrong (> 3\u00b0) valid headings fused / wrong",
+  "quantity": "fwdplainc FGO_heading",
+  "old": "2 / 59",
+  "new": "17 / 48",
+  "delta": "",
+  "flag": ""
+ },
+ {
+  "section": "P5 plain walls over checker floor: gate acceptance %, mean of 3",
+  "quantity": "UKF",
+  "old": "68.7",
+  "new": "37.3",
+  "delta": "-31.4",
+  "flag": ""
+ },
+ {
+  "section": "P5 plain walls over checker floor: gate acceptance %, mean of 3",
+  "quantity": "FGO",
+  "old": "79.4",
+  "new": "77.1",
+  "delta": "-2.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "0.44",
+  "new": "1.47",
+  "delta": "1.03",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.0",
+  "new": "0.2",
+  "delta": "0.2",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "152.88",
+  "new": "87.61",
+  "delta": "-65.27",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "57.6",
+  "new": "50.6",
+  "delta": "-7.0",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "1.19",
+  "new": "0.34",
+  "delta": "-0.84",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.0",
+  "new": "0.0",
+  "delta": "0.0",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "166.53",
+  "new": "57.03",
+  "delta": "-109.50",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "62.4",
+  "new": "56.8",
+  "delta": "-5.6",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "0.28",
+  "new": "0.05",
+  "delta": "-0.24",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.0",
+  "new": "0.0",
+  "delta": "0.0",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "1.36",
+  "new": "0.07",
+  "delta": "-1.29",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "2.1",
+  "new": "0.0",
+  "delta": "-2.1",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "38.59",
+  "new": "36.00",
+  "delta": "-2.59",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "56.7",
+  "new": "20.8",
+  "delta": "-35.9",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "173.16",
+  "new": "0.16",
+  "delta": "-173.00",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "44.7",
+  "new": "0.0",
+  "delta": "-44.7",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "337.88",
+  "new": "24.95",
+  "delta": "-312.93",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "63.4",
+  "new": "20.9",
+  "delta": "-42.5",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "461.61",
+  "new": "57.65",
+  "delta": "-403.96",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "44.9",
+  "new": "20.6",
+  "delta": "-24.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "12.49",
+  "new": "0.00",
+  "delta": "-12.49",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "63.3",
+  "new": "0.0",
+  "delta": "-63.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "752.16",
+  "new": "3.40",
+  "delta": "-748.76",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "98.7",
+  "new": "13.3",
+  "delta": "-85.4",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "857.00",
+  "new": "2.17",
+  "delta": "-854.83",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "98.8",
+  "new": "10.6",
+  "delta": "-88.2",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "2988.88",
+  "new": "4752.10",
+  "delta": "1763.21",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "98.8",
+  "new": "48.0",
+  "delta": "-50.8",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "4682.48",
+  "new": "3648.85",
+  "delta": "-1033.63",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "98.9",
+  "new": "64.2",
+  "delta": "-34.6",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "0.71",
+  "new": "1.72",
+  "delta": "1.01",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.0",
+  "new": "0.3",
+  "delta": "0.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "109.79",
+  "new": "124.33",
+  "delta": "14.55",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "71.5",
+  "new": "77.0",
+  "delta": "5.5",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "0.68",
+  "new": "5.08",
+  "delta": "4.40",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdplainc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "0.8",
+  "new": "24.1",
+  "delta": "23.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "168.44",
+  "new": "56.09",
+  "delta": "-112.35",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "63.4",
+  "new": "57.0",
+  "delta": "-6.5",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "0.16",
+  "new": "0.05",
+  "delta": "-0.11",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc tex: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "0.0",
+  "new": "0.0",
+  "delta": "0.0",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "1.35",
+  "new": "0.07",
+  "delta": "-1.28",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "0.0",
+  "new": "0.0",
+  "delta": "0.0",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "137.35",
+  "new": "100.54",
+  "delta": "-36.81",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "66.9",
+  "new": "52.4",
+  "delta": "-14.5",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "168.69",
+  "new": "0.55",
+  "delta": "-168.14",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdplainc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "44.2",
+  "new": "0.0",
+  "delta": "-44.2",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "350.85",
+  "new": "35.29",
+  "delta": "-315.55",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "63.0",
+  "new": "23.7",
+  "delta": "-39.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "476.30",
+  "new": "76.02",
+  "delta": "-400.29",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc trans: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "44.7",
+  "new": "20.3",
+  "delta": "-24.4",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "EKF3",
+  "old": "12.26",
+  "new": "0.00",
+  "delta": "-12.26",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b fwdplainc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "EKF3",
+  "old": "67.5",
+  "new": "0.0",
+  "delta": "-67.5",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_baseline",
+  "old": "753.74",
+  "new": "6.70",
+  "delta": "-747.05",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_baseline",
+  "old": "98.9",
+  "new": "21.2",
+  "delta": "-77.7",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "UKF_heading",
+  "old": "861.96",
+  "new": "3.12",
+  "delta": "-858.84",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "UKF_heading",
+  "old": "99.0",
+  "new": "10.8",
+  "delta": "-88.3",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_baseline",
+  "old": "3172.68",
+  "new": "895.82",
+  "delta": "-2276.86",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_baseline",
+  "old": "99.0",
+  "new": "54.9",
+  "delta": "-44.1",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: cross-track mean 1-D NEES (consistent \u2248 1; flagged across 3)",
+  "quantity": "FGO_heading",
+  "old": "4470.38",
+  "new": "8728.26",
+  "delta": "4257.88",
+  "flag": ""
+ },
+ {
+  "section": "P5b fwdplainc blank: % outside \u00b13\u03c3, mean of 3",
+  "quantity": "FGO_heading",
+  "old": "99.3",
+  "new": "65.2",
+  "delta": "-34.1",
+  "flag": ""
+ },
+ {
+  "section": "P5b endwall_S: median \u221aS (deg)",
+  "quantity": "fwdc/UKF",
+  "old": "0.198",
+  "new": "0.161",
+  "delta": "-0.037",
+  "flag": ""
+ },
+ {
+  "section": "P5b endwall_S: yaw-prediction NEES mean",
+  "quantity": "fwdc/UKF",
+  "old": "2.98",
+  "new": "12.50",
+  "delta": "9.53",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b endwall_S: median \u221aS (deg)",
+  "quantity": "fwdc/FGO",
+  "old": "0.499",
+  "new": "0.498",
+  "delta": "-0.000",
+  "flag": ""
+ },
+ {
+  "section": "P5b endwall_S: yaw-prediction NEES mean",
+  "quantity": "fwdc/FGO",
+  "old": "21.20",
+  "new": "1.69",
+  "delta": "-19.51",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b endwall_S: median \u221aS (deg)",
+  "quantity": "fwdplainc/UKF",
+  "old": "0.136",
+  "new": "0.140",
+  "delta": "0.003",
+  "flag": ""
+ },
+ {
+  "section": "P5b endwall_S: yaw-prediction NEES mean",
+  "quantity": "fwdplainc/UKF",
+  "old": "4.60",
+  "new": "2.81",
+  "delta": "-1.79",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b endwall_S: median \u221aS (deg)",
+  "quantity": "fwdplainc/FGO",
+  "old": "0.488",
+  "new": "0.497",
+  "delta": "0.009",
+  "flag": ""
+ },
+ {
+  "section": "P5b endwall_S: yaw-prediction NEES mean",
+  "quantity": "fwdplainc/FGO",
+  "old": "1.35",
+  "new": "10.00",
+  "delta": "8.65",
+  "flag": "DIRECTION"
+ },
+ {
+  "section": "P5b checker_S: median \u221aS (deg)",
+  "quantity": "fwdc/UKF",
+  "old": "0.157",
+  "new": "0.159",
+  "delta": "0.002",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: yaw-prediction NEES mean",
+  "quantity": "fwdc/UKF",
+  "old": "1.70",
+  "new": "1.68",
+  "delta": "-0.02",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: median \u221aS (deg)",
+  "quantity": "fwdc/FGO",
+  "old": "0.499",
+  "new": "0.498",
+  "delta": "-0.000",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: yaw-prediction NEES mean",
+  "quantity": "fwdc/FGO",
+  "old": "0.25",
+  "new": "0.21",
+  "delta": "-0.04",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: median \u221aS (deg)",
+  "quantity": "fwdplainc/UKF",
+  "old": "0.139",
+  "new": "0.155",
+  "delta": "0.016",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: yaw-prediction NEES mean",
+  "quantity": "fwdplainc/UKF",
+  "old": "184.23",
+  "new": "460.78",
+  "delta": "276.55",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: median \u221aS (deg)",
+  "quantity": "fwdplainc/FGO",
+  "old": "0.489",
+  "new": "0.491",
+  "delta": "0.002",
+  "flag": ""
+ },
+ {
+  "section": "P5b checker_S: yaw-prediction NEES mean",
+  "quantity": "fwdplainc/FGO",
+  "old": "3.37",
+  "new": "4.15",
+  "delta": "0.78",
+  "flag": ""
+ }
+]

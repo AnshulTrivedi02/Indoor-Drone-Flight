@@ -5477,3 +5477,143 @@ position):
   report gives the difference from step 2, attributed to the three suspected causes by swapping
   one input at a time. **Nothing is changed to hide it.** The choice between ArduPilot's inputs
   as they are (fair to EKF3) and adding a delay buffer is the user's, and is recorded.
+
+## CONSOLIDATED RE-RUN — RESULTS (pipeline complete 2026-09-29 22:19; old vs new)
+
+**Scope.** Every stage re-run from scratch on the 42 re-flown bags (`eval/rerun_pipeline.sh`,
+state in `~/thesis_data/batches/rerun_pipeline/`):
+- the `dsn` baseline, the P4 bands recomputed with the pre-registered formula, and `ds_*`
+  (EKF3 only);
+- the `p1c`/`fwdc`/`fwdplainc` set scoring;
+- Phase 3 with FROZEN parameters (a second validation on the re-flown `p1c`);
+- the Phase 4 arms (90 replays), Phase 5, the scale check, the heading-share restatement and
+  Phase 5b (72 instrumented replays).
+
+There were no job failures. **This is a correction, not a tuning pass:** no parameter changed
+beyond the listed corrections. The old results are kept in `eval/results_pre_rerun/`, and the
+old-vs-new report is `docs/thesis/rerun_old_vs_new.md` (`eval/rerun_compare.py`; 422 rows,
+**50 direction flags**).
+
+### Every batched correction, confirmed applied (evidence)
+
+| # | correction | evidence |
+|---|---|---|
+| (i) | EKF3 `FLOW_POS_Z 0.25` | `fwdc_tex_r1` PARM dump: `FLOW_POS_Z 0.25`. EKF3 speed ratio 1.069 → **0.997** (`scale_check.json`). |
+| (ii) | UKF process dt = the accumulated IMU interval | `ukf_replay.py:77,124` (`DT_STEP`, `predict(..., dt=acc_dt)`). UKF heading-arm speed ratio 0.85 → **0.99**. |
+| (iii) | heading share restated on the pinned window | `eval/heading_share.py` → `heading_share_restated.json`, recomputed on the re-flown `dsn_tex` (below) |
+| (iv) | lateral flow sign (EKF3 bridge + `h_flow_pose`, and the `flow_tracker` roll sign) | `flow_bridge.py:134` `flow_rate_x = msg.flow_x_rad`; `measurement_models.py:38,84-85` (`SIGN_X +1`, `+ω_x`, `−ω_y`); `flow_tracker.py:280` |
+| (v) | roll rate gains ×0.4447 (simulation-model correction) | PARM dump: `ATC_RAT_RLL_P/I 0.06003`, `D 0.0016`; pitch P 0.135 unchanged |
+| earlier | time sync on; `LOG_REPLAY`/`LOG_DISARMED` 1; `AHRS_EKF_TYPE 10` set explicitly; OI-2 dejitter; the IMU-gap rule | `sim/models/iris_with_ardupilot/model.sdf:789` and `iris_fwd/model.sdf:793` `no_time_sync 0`; PARM: `AHRS_EKF_TYPE 10`, `LOG_REPLAY 1`, `LOG_DISARMED 1`; the dejitter and gap rule are in `ukf_replay.py`/`fgo_replay.py` (`imu_gaps.json` present on every forward-camera bag) |
+
+### Headline results, old → new (textured floor: the accuracy comparison)
+
+- **`dsn` textured, evo -a (cruise):**
+  - EKF3 4.58/3.55/5.84 → **4.03/3.86/4.10 m** (mean 4.66 → **4.00**; range 2.29 → 0.24);
+  - FGO 4.63/4.74/4.57 → **4.62/4.30/4.64** (mean 4.65 → **4.52**);
+  - UKF 16.98/9.96/20.71 → **17.45/2.28/4.30**. `dsn_tex_r1` is recorded as the remaining UKF
+    instability case.
+- **DIRECTION — textured `dsn` ordering.** EKF3 − FGO: +0.007 m (a tie) → **−0.53 m (EKF3 now
+  better).** Mechanism: correction (i) removes EKF3's +7% scale (displacement ratio 1.05 → 0.98),
+  and (iv)/(v) remove the roll-driven lateral flow noise (|FIX| ~400 → ~7).
+- **Phase 4, textured, evo -a (cruise):**
+  - `fwdc`: UKF+heading 6.62/6.61/6.63 → **0.61/0.62/0.62 m**; FGO+heading 0.46/0.46/0.49 →
+    **0.08/0.09/0.09 m**; EKF3 (no heading) 3.44/3.98/3.99 → 4.09/3.60/4.08.
+  - `fwdplainc`: UKF+heading → 0.65/1.01/0.95; FGO+heading → 0.20/0.61/0.22; EKF3 → 4.06–4.08.
+  - **DIRECTION:** UKF+heading − EKF3 goes +2.8 → **−3.3 m** (`fwdc`) and +2.5 → **−3.2 m**
+    (`fwdplainc`), so the UKF with heading now beats EKF3.
+  - Heading-arm yaw error rms: UKF 0.08 and FGO 0.18–0.19° (`fwdc`).
+- **Distance scale (textured `fwdc`):**
+  - flow sensor 1.009 → **0.987**. That is **DIRECTION** (it crosses 1). The steadier camera
+    changes the measured flow by −2.2%; this is not tuned.
+  - EKF3 1.069 → **0.997**; FGO baseline 1.012 → 0.997; FGO+heading 0.998; UKF+heading 0.99.
+  - **Along-track ratio** (a new column, fixed on 2026-09-29 to use each estimate's own axis):
+    EKF3 0.97–0.98; UKF baseline 0.63–0.97; UKF+heading 0.99; FGO baseline 0.96; FGO+heading
+    0.998.
+- **Heading share (correction (iii), EKF3 on `dsn_tex`, pinned window):**
+  - **r3 0.689 → 0.906; r1 0.549 → 0.904; r2 0.607 → 0.899.** EKF3's lateral drift is now about
+    90% heading-driven; before, the roll-driven flow noise supplied the non-heading remainder.
+  - Cross-track 65.9 → 40.2 m (r3). This supersedes the preliminary 91% from `rgs_check_tex`.
+- **Phase 3, second validation** (frozen parameters; a check, not a recalibration):
+  - heading: `fwdc` 9/9 and `fwdplainc` 6/9, **as before** (plain walls over the checkerboard
+    still fail). On the re-flown `p1c`, heading passes on 5/6 (fails `p1c_fwdplainc_tex`, as in
+    calibration).
+  - **Yaw-rate noise on textured walls fell about 5×** (`fwdc` sd 0.176 → **0.033 deg/s**).
+  - **DIRECTION:** `fwdplainc` textured yaw rate 0/3 → **3/3 pass** (sd 1.48 → 0.29, outliers
+    15.4% → 0.4%). But `fwdplainc` transition/blank yaw rate still fail, on **availability**
+    (86–88% → 67–69%, against the 70% bar).
+  - **The set (c) ruling's premise is unchanged:** it rests on the plain-wall **heading** over
+    the checkerboard, which still fails.
+
+### Direction flags — all 50, by category (full list in `docs/thesis/rerun_old_vs_new.md`)
+
+| category | flags | reading |
+|---|---|---|
+| **Blank floor and the transition's blank half: loss of flow aiding** | 25 (UKF/FGO displacement ratios 0.7–0.8 → 46–50; Phase 4 trans/blank arm effects and orderings; Phase 5b trans/blank NEES) | **Not accuracy comparisons** (ruling). The UKF/FGO values measure unbounded inertial runaways; EKF3's are its invalid origin output. See "Blank-floor behaviour" below. |
+| Distance scale crossing 1 | 8 | EKF3's is the intended correction (i). The flow sensor 1.009 → 0.987 is a real change from the steadier camera, and the FGO follows the flow. |
+| Primary verdict flips | 7 | 4 blank P4 FGO misses (ruling 3: recorded as worded, plus the post-hoc condition check); `fwdc_tex_r2` EKF3 0.01 m better than the band (ruling 2); `fwdc_trans_r1` and `p1c_fwdplainc_trans` P3 `flow_y_raw` **FAIL → PASS** (the bands are re-referenced to the re-flown `dsn`). |
+| **Textured orderings** | 3 | **Substantive:** EKF3 beats FGO on `dsn_tex` by 0.53 m; UKF+heading beats EKF3 on `fwdc`/`fwdplainc` textured by ~3.3 m |
+| Phase 3 | 1 | `fwdplainc` textured yaw rate 0/3 → 3/3 (above) |
+| Phase 5 heading share, `fwdplainc` tex UKF+heading | 1 | 0.20 → 0.93 of a now very small lateral velocity error (0.6–1.0 m evo). Not interpreted. |
+| Phase 5b | 5 | `fwdplainc` tex UKF+heading cross-track NEES 0.68 → 5.08 (over-confident, n = 3); end-wall yaw-prediction NEES: UKF `fwdc` 2.98 → 12.50, FGO `fwdc` 21.2 → 1.69, UKF `fwdplainc` 4.60 → 2.81, FGO `fwdplainc` 1.35 → 10.0 (small n of end-wall samples; reported, not interpreted) |
+
+### Blank-floor behaviour: total loss of flow aiding (ruling 2; `eval/blank_behaviour.py` → `eval/results/blank_behaviour.json`)
+
+The flow-loss point follows the definition recorded before the analysis ran.
+- **Transition:** 14/14 case B, with loss at the boundary (y ≈ 80.5 m).
+- **Blank:** 13/14 case A (1–4 take-off frames only), and `ds_blank_r2` case C (never valid
+  airborne).
+
+**EKF3 fails safe.**
+- It logs "stopped aiding", switches to constant-position mode, and **flags its position invalid**
+  (`horiz_pos_rel` = `pred_horiz_pos_rel` = `horiz_pos_abs` = 0).
+  - transition: from **+0.92…+1.05 s** after flow loss, for the remaining **139–141 s** of cruise;
+  - blank: from **−4.96…+1.10 s** relative to the loss point (at take-off), for the whole cruise
+    (**301–310 s**).
+- Its logged position is then **exactly the origin**. By the evaluation rule this is **not scored**;
+  its old-vs-new EKF3 blank/transition ratios and NEES (0.00) are that artefact.
+- Its velocity flag stays set while VN drifts to about −0.2 m/s.
+
+**The UKF and FGO have no validity flag.** They dead-reckon on IMU, range and the yaw prior alone,
+and their position error grows without bound. Error magnitude against GT, re-referenced at the
+loss point:
+
+| | +10 s | +30 s | +60 s | +120 s | end of cruise |
+|---|---|---|---|---|---|
+| UKF (baseline/legacy), blank | 6–9 m | 20–34 m | 96–313 m | 3.6–5.4 km | 9–63 km |
+| FGO (baseline/legacy), blank | 4–18 m | 27–142 m | 171–574 m | 1.6–3.2 km | 23–32 km |
+| UKF, transition | 4–9 m | 13–30 m | 67–378 m | 4.0–5.2 km | 5.8–8.4 km |
+| FGO, transition | 8–8.5 m | 69–74 m | 895–1,080 m | 4.8–5.5 km | 6.7–7.8 km |
+
+- **The asymmetry, stated plainly:** EKF3 declares that it no longer knows where it is. The
+  offline UKF and FGO keep producing a position, with no flag, that is wrong by tens of metres
+  within 30 s and by kilometres within two minutes.
+- The heading arms bound yaw, so their runaways are somewhat smaller (FGO+heading at the end of
+  transition: 4.6–5.4 km), but the camera heading gives no velocity information.
+- (The onboard UKF port now has a validity rule; see Part 4. **The offline comparison UKF is
+  unchanged.**)
+
+### OI-1 (FGO blank-floor freeze) — reviewed against the new behaviour: CLOSED as superseded
+
+- **OI-1 asked why the pre-`h_flow`-correction FGO froze on `dsn_blank`** (ratios 0.04–0.18)
+  while the corrected FGO dead-reckoned at 1.5–1.6×. Both hypotheses (H1: the χ² gate rejecting
+  roll-corrupted starved flow; H2: near-zero flow read as motion) needed **some flow to be
+  fused.**
+- **In the re-flown data no flow is fused on the blank floor at all** (the ~9% sparse valid
+  frames were an artefact of the removed roll oscillation). Neither mechanism can operate:
+  - the FGO neither freezes nor tracks, but runs away inertially (above);
+  - its ratios of 1.5–1.6 (old) and 0.04–0.18 (older) are both **superseded as dependent on a
+    simulation artefact.**
+- **OI-1 is closed without further investigation.** The question it asked only exists under
+  artefact-driven sparse flow.
+
+### Notes and open items
+
+- **Scale-check tooling fix (2026-09-29).** The along-track column first picked the travel axis
+  from GT (ENU), which is the lateral axis in the UKF/FGO frame, and gave meaningless values. It
+  now uses each estimate's own axis. Only this new column was affected.
+- **`ds_*`** (compass-active EKF3) textured/transition/blank evo -a (cruise) are in
+  `rerun_ds_evo.json`. The old `ds` figures used a different, apparatus metric, so there is no
+  old-vs-new direction for them.
+- **Remaining for the thesis text:** the tables in `docs/thesis/numbers.md` need restating from
+  `rerun_old_vs_new.md`. **No numbers.md value is edited in place**; the old values move to its
+  superseded section when the text is updated.
