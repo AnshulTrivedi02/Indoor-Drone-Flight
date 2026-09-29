@@ -5970,3 +5970,17 @@ Armed 29.63 s → disarmed 362.95 s. Results: `eval/results/ground_test_gt_headi
   191), the lower rate removed the waiting in the slot.
 - **Closed-loop heading settings, final:** `VISO_DELAY_MS 60`, `every_n` 4 (7.5 Hz),
   `HEADING_SIGMA_DEG 0.148` (sent σ; EKF3 applies 5°), `VISO_YAW_M_NSE 0.05`, `VISO_QUAL_MIN 50`.
+
+### Closed-loop set (a), `cl_a_tex` (EKF3 without heading, `corridor_textured_fwdc`, ×1): PRIMARY PASS
+
+- **PARM dump:** `AHRS_EKF_TYPE 3` (EKF3 flies), `EK3_SRC1_YAW 0`, `VISO_TYPE 0`, the roll gains,
+  `LOG_REPLAY 1`, and `DISARM_DELAY 10`, so the ground-test setting did not persist.
+- **Result: west-wall contact at pinned cruise +186.2 s, GT (x, y) = (−9.58, 92.2) m.** The watcher
+  stopped the flight (max |x| 9.69 m at 217.8 s during the stop).
+- **Against the prediction written before flying:** contact at +187 s, y ≈ 94 m. The window was
+  [+155, +215] s, and no contact came before +100 s.
+  - Both PRIMARY criteria pass (`eval/results/closed_loop_cl_a_tex.json`).
+  - The timing error is 0.8 s.
+- The open-loop drift model (`rgs_check_tex`: yaw drift → lateral velocity → East error)
+  therefore predicted the closed-loop outcome closely. In closed loop, EKF3's heading error
+  steers the vehicle physically into the wall on the side the estimate drifts away from.
