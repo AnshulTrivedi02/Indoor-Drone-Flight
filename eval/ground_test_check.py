@@ -59,7 +59,7 @@ g1 = {"ekf_msgs": ek_msgs[:20], "REPH_n": len(reph),
       "REPH_AEr_unique": sorted(set(np.round(reph[:, 2], 5).tolist())) if len(reph) else [],
       "XKF1_max_abs_PN_PE_m": pn_pe_max, "POSXY": par.get("EK3_SRC1_POSXY")}
 g1["pass"] = bool(len(reph) > 0 and g1["REPH_AEr_unique"] == [0.05] and pn_pe_max is not None and pn_pe_max < 5.0
-                  and par.get("EK3_SRC1_POSXY") == 0 and any("yaw" in s.lower() and "ext" in s.lower() for _, s in ek_msgs))
+                  and par.get("EK3_SRC1_POSXY") == 0 and any("yaw aligned" in s.lower() or "external nav" in s.lower() for _, s in ek_msgs))
 out["G1"] = g1
 
 # --- node CSV ---
@@ -117,25 +117,37 @@ if len(lat_a) and len(lat_b):
     out["G4"].update({"min_agree_within_5ms": bool(agree), "VISO_DELAY_MS_recommended": rec,
                       "horizon_other_sensors_ms": horizon, "pass": bool(agree and rec <= horizon)})
 
-# --- G5: delay applied and time alignment ---
-if len(reph):
-    dl = par.get("VISO_DELAY_MS")
-    g5 = {"REPH_delay_ms_unique": sorted(set(reph[:, 1].astype(int).tolist())), "VISO_DELAY_MS": dl,
-          "XKF5_rows_while_REPH": int(((x5[:, 0] >= visp[0, 0] / 1e6) & (x5[:, 0] <= visp[-1, 0] / 1e6)).sum()) if len(x5) and len(visp) else 0}
-    # EKF3 assigned time (SITL ms) vs capture mapped to SITL: capture_sitl = capture_sim - offset
-    # REPH rows and VISP rows are written in the same handler, in order: pair by index (checked by count)
+# --- G5 (RE-WORDED before run 2; METHODOLOGY "Rulings ... G5 re-worded BEFORE run 2") ---
+if len(reph) and len(visp):
+    dl = float(par.get("VISO_DELAY_MS"))
+    hz = max(par.get("EK3_HGT_DELAY", 60), par.get("EK3_FLOW_DELAY", 10), dl)
     n = min(len(reph), len(visp))
-    assigned = reph[:n, 0] - reph[:n, 1] - 6.0
-    cap_sim = visp[:n, 1] / 1e6
-    # invert to_sim: t_sitl = (t_sim - c0)/(1 + k)
-    cap_sitl_ms = 1e3 * (cap_sim - c0) / (1 + k)
-    diff = assigned - cap_sitl_ms
-    g5.update({"paired": n, "count_match": len(reph) == len(visp), "assigned_minus_capture_ms": st(diff),
-               "abs_median_ms": float(np.median(np.abs(diff))), "abs_p95_ms": float(np.percentile(np.abs(diff), 95)),
-               "horizon_ms": max(par.get("EK3_HGT_DELAY", 60), par.get("EK3_FLOW_DELAY", 10), dl or 0)})
-    g5["pass"] = bool(g5["REPH_delay_ms_unique"] == [int(dl)] and g5["XKF5_rows_while_REPH"] > 0
-                      and g5["abs_median_ms"] <= 6 and g5["abs_p95_ms"] <= 12.5 and g5["horizon_ms"] >= dl)
-    out["G5"] = g5
+    g51 = {"REPH_D_unique": sorted(set(reph[:, 1].astype(int).tolist())), "VISO_DELAY_MS": dl, "horizon_ms": hz,
+           "XKF5_rows_while_ExtNav": int(((x5[:, 0] >= visp[0, 0] / 1e6) & (x5[:, 0] <= visp[-1, 0] / 1e6)).sum()) if len(x5) else 0,
+           "count_match": len(reph) == len(visp)}
+    g51["pass"] = bool(g51["REPH_D_unique"] == [int(dl)] and hz >= dl and g51["XKF5_rows_while_ExtNav"] > 0)
+    # effective fusion time (SITL ms): MAX(TS - D - 6, receipt - horizon)  [AP_NavEKF3_Measurements.cpp:1101-1105]
+    ts_ms, recv_ms = reph[:n, 0], visp[:n, 0] / 1e3
+    fuse = np.maximum(ts_ms - reph[:n, 1] - 6.0, recv_ms - hz)
+    cap_sitl_ms = 1e3 * (visp[:n, 1] / 1e6 - c0) / (1 + k)
+    r = fuse - cap_sitl_ms
+    p95 = float(np.percentile(r, 95))
+    g52 = {"residual_ms": st(r), "clamped_to_horizon_pct": float(100 * np.mean(ts_ms - reph[:n, 1] - 6.0 < recv_ms - hz)),
+           "misalign_deg_at_0.93dps_p95": p95 * 1e-3 * 0.93, "misalign_deg_at_GT_p99_0.09dps_p95": p95 * 1e-3 * 0.09}
+    g52["pass"] = bool(g52["misalign_deg_at_0.93dps_p95"] <= 0.25)
+    # G5.3 latency stability: sent - capture per processed frame, armed period (arm + 5 s .. disarm)
+    tc = np.array([float(r_["t_capture"]) for r_ in sent]); la = np.array([1e3 * (float(r_["t_sim_sent"]) - float(r_["t_capture"])) for r_ in sent])
+    ks = np.array([int(r_["k"]) for r_ in rows])
+    # arm/disarm are on the SITL clock; capture is on the sim clock (offset ~ms, negligible for a 330 s window)
+    lo = (t_arm or 0) + 5; hi = t_dis or tc.max()
+    w = (tc >= lo) & (tc <= hi)
+    slope = float(np.polyfit(tc[w], la[w], 1)[0]) if w.sum() > 10 else None
+    blocks = [float(np.median(la[w & (tc >= b0) & (tc < b0 + 30)])) for b0 in np.arange(lo, hi, 30) if (w & (tc >= b0) & (tc < b0 + 30)).sum() > 5]
+    dk = np.diff(ks); step = int(np.median(dk)); drops = int(((dk - step) // step)[dk > step].sum())
+    g53 = {"armed_window_s": [lo, hi], "slope_ms_per_s": slope, "block30_medians_ms": [round(x, 1) for x in blocks],
+           "dropped_selected": drops, "processed": int(len(ks)), "drop_pct": 100 * drops / (drops + len(ks))}
+    g53["pass"] = bool(slope is not None and abs(slope) <= 0.1 and blocks and max(blocks) <= 200 and g53["drop_pct"] <= 5)
+    out["G5"] = {"G5.1": g51, "G5.2": g52, "G5.3": g53, "pass": bool(g51["pass"] and g52["pass"] and g53["pass"])}
 print(json.dumps(out, indent=1, default=str))
 if a.json:
     json.dump(out, open(a.json, "w"), indent=1, default=str)

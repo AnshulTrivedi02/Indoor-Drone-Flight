@@ -5879,3 +5879,78 @@ Replay starts 155 ms later and the heading error integrates the difference.
 - **For run 2, `groundtest.parm` sets `DISARM_DELAY 0`.** `closed_loop_run.sh` appends and enforces
   it **only when `GROUND_TEST` is set**, never for a flight. Sets (a) and (b) will be checked for
   `DISARM_DELAY` 10 in their PARM dumps (eeprom persistence).
+
+### C++ port of the heading node's per-frame computation — equivalence bands PRE-REGISTERED (2026-09-29, before any C++ is run)
+
+**Purpose (ruling 7).** The real drone's Raspberry Pi will be slower than this workstation.
+- The C++ port is of `fwd_measure.heading` + `HeadingCore.measure` / `quality` only.
+- It uses the same method and frozen parameters (inlier 0.5°, S_MIN 200 px), and the same OpenCV
+  4.6.0: the system `libopencv-dev` 4.6.0+dfsg-13.1ubuntu1, the same library the Phase 3 Python
+  stack (`~/venv-fwd`, system cv2 4.6.0) calls.
+- **Not used in any flight until the equivalence test passes and the user rules on switching.**
+
+**What must be reproduced exactly, and how.**
+- LSD (`createLineSegmentDetector(LSD_REFINE_STD)`) is the same compiled OpenCV 4.6 code in both
+  languages.
+- The RANSAC draws come from numpy: `default_rng(seed=k).choice(n, 2, replace=False, p=L/ΣL)`.
+  The C++ reproduces the numpy 1.26.4 stack:
+  - `SeedSequence` (entropy → 4-word pool → `generate_state(4, uint64)`);
+  - PCG64 (128-bit LCG, XSL-RR output, `set_seed`);
+  - `random()` = (next64 >> 11) × 2⁻⁵³;
+  - the weighted no-replacement `choice` (cumsum, normalise, `searchsorted(side='right')`, and
+    redraw duplicates). This algorithm was verified against numpy on 10,000/10,000 draws.
+- **The RNG is tested on its own first:** the first 1,000 `random()` values for seeds 0…10,000
+  must be bit-identical to numpy.
+
+**Bands (on every frame of `fwdc_tex_r1`, 10,203 frames, seed = k, against Phase 3's
+`fwd_meas/meas_frozen.npz`):**
+- **C1, VP existence and validity identical on every frame.** A mismatch is allowed **only** if it
+  is shown to be a floating-point boundary case: an inlier decision with residual within 1e-9° of
+  the 0.5° threshold, or support within 1e-6 px of S_MIN. Each such frame is listed. Any other
+  mismatch fails.
+- **C2, |Δψ| ≤ 1e-6 deg on every frame where both have a VP.** Basis:
+  - the remaining non-identical arithmetic is the order of double-precision operations (numpy
+    vectorised sums, `arctan2`, and the LAPACK `gelsd` 2-unknown least squares against the C++
+    solve);
+  - that is about 1e-12 relative on u ≈ 320 px, or about 1e-10°;
+  - 1e-6° leaves 4 orders of margin and is still 5 orders below the heading noise (0.1–0.2°).
+- **C3, |Δsupport| ≤ 1e-6 px** on every frame where both have a VP (same basis).
+- **C4, quality identical** on every frame (it is a floor of support / S_MIN × 50, so C3 implies it
+  except within 1e-6 px of a step; any such frame is listed).
+
+**Also measured (DIAGNOSTIC, no band):**
+- per-frame time, C++ against Python, single-threaded, on the same frames;
+- capture-to-receipt latency in a SITL ground test with the C++ computation behind the same node
+  (`impl` parameter; the ground test does not take off);
+- a Raspberry Pi 4/5 per-frame time: benchmarked on ARM if available, otherwise estimated with
+  its basis stated.
+
+### Ground test run 2, `gt_heading_2` (D = 60, `every_n` 3, 330 s armed hold): G5.3 FAILS on drops → switch to `every_n` 4 (as pre-registered)
+
+**Setup.** Armed 27.47 s → disarmed 359.55 s: the full 330 s hold held, so the `DISARM_DELAY 0`
+fix worked. PARM dump: `AHRS_EKF_TYPE 3`, `EK3_SRC1_YAW 6`, `VISO_TYPE 1`, `VISO_DELAY_MS 60`,
+`VISO_YAW_M_NSE 0.05`, `VISO_QUAL_MIN 50`, `EK3_SRC1_POSXY 0`, `LOG_REPLAY 1`.
+Results: `eval/results/ground_test_gt_heading_2.json`.
+
+| criterion | result |
+|---|---|
+| G1–G3 | PASS |
+| G4 (for the record) | min latency 103 / 104 ms (unchanged). The median has risen to 191 ms while armed (125–133 ms in run 1, mostly disarmed). |
+| G5.1 | **PASS.** `REPH.D` = 60 on all 3,094 samples; horizon 60 ms; XKF5 flow rows 3,444 during ExtNav. |
+| G5.2 | **PASS.** Residual r: median 132, p95 178, max 195 ms; 100% clamped to the horizon. p95 × 0.93 deg/s = **0.165°** (≤ 0.25°); at the GT p99 rate, 0.016°. |
+| G5.3 | **FAIL (L3).** L1: slope **0.007 ms/s**, pass (no creep). L2: 30 s block medians **182–196 ms**, pass (≤ 200). L3: **398 of 3,588 selected frames dropped = 11.1%**, against ≤ 5%. |
+
+- **Cause.** Per-frame processing is **166 ms wall (median) while armed**, against 156 ms
+  disarmed. At RTF ~0.7 (552 s wall for ~390 s sim) that is about 116–120 ms of sim time, more
+  than the 99 ms budget at `every_n` 3.
+- The latest-frame slot bounds the latency, which is flat, but drops about one selected frame in
+  nine.
+- **Action, as pre-registered: `every_n` 4** (7.5 Hz, the same per-frame method and frozen
+  parameters, above the documented 4 Hz minimum). The budget becomes 133 ms of sim time, about
+  90% utilisation at the measured load. Run 2 is repeated as `gt_heading_3`, with the same
+  G1–G5 (G5 as re-worded).
+- **Effect on the (b) pre-registration: none on the PRIMARY bands.**
+  - The B3 basis (`cl_yaw_prediction`) updated on every 3rd frame. At 7.5 Hz there are 25% fewer
+    heading updates of the same σ, which slightly widens the predicted yaw error. The bands keep
+    their stated 3.5–4× margin.
+  - Diagnostic counts per flight (sent, confident-wrong end-wall headings) scale by about 3/4.
