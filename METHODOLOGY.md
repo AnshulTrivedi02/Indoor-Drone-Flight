@@ -6407,3 +6407,25 @@ with clipping; port: larger jitter, then skip the predict). Counted on both logs
   horizon clamp mostly does not bind. The fusion time is then `TS − 38 − 6`, where SITL's
   virtual-baud term puts TS about 40 ms early. G5 as last worded (the residual × 0.93 deg/s ≤ 0.25°,
   i.e. p95 |r| ≤ 269 ms) is judged on that.
+
+### D2 ground test with the C++ node, `gt_heading_cpp2` (`VISO_DELAY_MS 38`, `every_n` 4, 330 s armed hold): ALL PASS → set (b) re-fly proceeds
+
+`eval/results/ground_test_gt_heading_cpp2.json`. PARM: `VISO_DELAY_MS 38`, `EK3_SRC1_YAW 6`,
+`AHRS_EKF_TYPE 3`. Metadata `impl: cpp`. Armed 28.5 → 361.1 s.
+
+| criterion | result |
+|---|---|
+| G1–G3 | PASS |
+| G5.1 | PASS: `REPH.D` = 38 throughout; horizon 60 ms; XKF5 flow rows 3,452 during ExtNav |
+| G5.2 | PASS: r = −29 … +1 ms (median −14); p95 \|r\| about 28 ms → **0.026°** at 0.93 deg/s (≤ 0.25°) |
+| G5.3 | PASS: slope 0.020 ms/s; 30 s block medians 41.5–47 ms; 0 drops |
+
+- **Checker fix.** G5.2 took the p95 of the SIGNED residual. With D now in effect r can be negative,
+  so it now takes the p95 of |r|. The verdict is unchanged, and earlier runs are unaffected (their r
+  was all positive).
+- **Recorded:** this run's own minimum latency is **31 ms** by both measures, against 38–40 ms in
+  `gt_heading_cpp`. That spread (~9 ms) is within one camera frame, and it is not re-tuned: D stays
+  38 as set by the rule on the measuring run.
+- Headings are still 100% horizon-clamped. The SITL virtual-baud term makes ArduPilot's corrected
+  timestamp about 40 ms early, so TS − 38 − 6 falls before receipt − 60. The fusion time is therefore
+  receipt − 60 ms, a median of 14 ms **before** capture.

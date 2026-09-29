@@ -131,7 +131,7 @@ if len(reph) and len(visp):
     fuse = np.maximum(ts_ms - reph[:n, 1] - 6.0, recv_ms - hz)
     cap_sitl_ms = 1e3 * (visp[:n, 1] / 1e6 - c0) / (1 + k)
     r = fuse - cap_sitl_ms
-    p95 = float(np.percentile(r, 95))
+    p95 = float(np.percentile(np.abs(r), 95))     # |r| (the misalignment magnitude); r can be negative once D takes effect
     g52 = {"residual_ms": st(r), "clamped_to_horizon_pct": float(100 * np.mean(ts_ms - reph[:n, 1] - 6.0 < recv_ms - hz)),
            "misalign_deg_at_0.93dps_p95": p95 * 1e-3 * 0.93, "misalign_deg_at_GT_p99_0.09dps_p95": p95 * 1e-3 * 0.09}
     g52["pass"] = bool(g52["misalign_deg_at_0.93dps_p95"] <= 0.25)
