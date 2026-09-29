@@ -1,0 +1,17 @@
+# Closed-loop Part 1: live forward-camera heading into EKF3 via ExternalNav YAW ONLY.
+# Appended after closedloop.parm (AHRS_EKF_TYPE 3) by sim/tools/closed_loop_run.sh HEADING=1.
+# Not for dataset flights. Sources (pinned 7bac20cbcc) in heading_bridge_core.py and METHODOLOGY.
+#
+# VISO_TYPE 1 = MAVLink pass-through (AP_VisualOdom_MAV). NOT 3 (VOXL): 3 selects the IntelT265
+# driver (AP_VisualOdom.cpp:145-147), whose yaw trim and reset-jump handling target VIO, and whose
+# automatic yaw alignment is refused when ExtNav is the yaw source (AP_VisualOdom_IntelT265.cpp:143-146).
+VISO_TYPE 1
+# ExternalNav yaw; POSXY stays 0 (None), VELXY 5 (flow), POSZ 2 (rangefinder)
+EK3_SRC1_YAW 6
+# quality = floor(50*support/S_MIN): VISO_QUAL_MIN 50 accepts exactly the frozen Phase 3 validity
+VISO_QUAL_MIN 50
+# Ruling 2026-09-29: the documented minimum. angErr (0.148 deg) is clamped up to 0.05 rad, then
+# EKF3's hard 5 deg floor applies (AP_NavEKF3_Measurements.cpp:1118): effective sigma 5.00 deg.
+VISO_YAW_M_NSE 0.05
+# PLACEHOLDER (ArduPilot default): set from the measured minimum capture-to-receipt latency before flying
+VISO_DELAY_MS 10

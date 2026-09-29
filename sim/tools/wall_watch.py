@@ -40,7 +40,10 @@ LEFTOVER = ["ros2 bag record", "gz sim -v4 -s", "build/sitl/bin/arducopter", "ma
             "lidar_bridge.py", "flow_bridge.py", "ekf_bridge.py", "imu_bridge.py"]
 
 ap = argparse.ArgumentParser(); ap.add_argument("out"); ap.add_argument("rt_pid", type=int)
-ap.add_argument("--land-after-y", type=float, default=150.0); a = ap.parse_args()
+ap.add_argument("--land-after-y", type=float, default=150.0)
+ap.add_argument("--watch-process", help="pgrep -f pattern of a process the flight depends on (e.g. heading_bridge.py); "
+                "if it dies while run_trial runs and the vehicle is airborne, the flight is stopped")
+a = ap.parse_args()
 os.makedirs(a.out, exist_ok=True)
 
 
@@ -64,6 +67,7 @@ class W(Node):
         self.max_abs_x = 0.0; self.at = None; self.was_high = False; self.last_log = 0.0
         self.breached = False; self.t_stop = None; self.escalated = False; self.leftover_t = None
         self.finished = False
+        self.z = 0.0; self.dep_seen = False; self.dep_dead = False
         self.track = open(os.path.join(a.out, "wall_watch_track.csv"), "w")
         self.track.write("t,x,y,z,tilt_deg\n")
         self.slog = open(os.path.join(a.out, "STOP_LOG.txt"), "a")
@@ -99,6 +103,7 @@ class W(Node):
         tilt = math.degrees(math.acos(max(-1.0, min(1.0, bz))))
         if abs(p.x) > self.max_abs_x:
             self.max_abs_x = abs(p.x); self.at = (t, p.x, p.y, p.z)
+        self.z = p.z; self._last_msg = m
         if p.z > 1.5:
             self.was_high = True
         if t - self.last_log >= 0.5:
@@ -112,6 +117,17 @@ class W(Node):
             self.breach(f"crash: height {p.z:.2f} m < 0.5 m before the landing point", m)
 
     def tick(self):
+        # Safeguard (closed-loop Part 1): a dependency (the heading node) dying mid-flight stops
+        # the flight. The wall/crash checks above never depend on it.
+        if a.watch_process and alive(a.rt_pid) and not self.breached:
+            up = bool(pids(a.watch_process))
+            if up:
+                self.dep_seen = True
+            elif self.dep_seen and not self.dep_dead:
+                self.dep_dead = True
+                self.note(f"watched process '{a.watch_process}' died (vehicle z = {self.z:.2f} m)")
+                if self.z > 0.5 and getattr(self, "_last_msg", None) is not None:
+                    self.breach(f"dependency died in flight: {a.watch_process}", self._last_msg)
         if alive(a.rt_pid):
             if self.breached and not self.escalated and time.monotonic() - self.t_stop > STOP_GRACE_S:
                 self.escalated = True

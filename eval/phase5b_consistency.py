@@ -26,7 +26,7 @@ import argparse, json, math, os
 import numpy as np
 
 TD = os.path.expanduser("~/thesis_data/trials")
-SB = os.path.expanduser("~/thesis_data/phase5b/home/thesis_data/trials")
+SB = os.environ.get("PHASE5B_SB") or os.path.expanduser("~/thesis_data/phase5b/home/thesis_data/trials")   # PHASE5B_SB: re-run sandbox
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
 SIG_PSI = {"fwdc": math.radians(0.148), "fwdplainc": math.radians(0.126)}
 

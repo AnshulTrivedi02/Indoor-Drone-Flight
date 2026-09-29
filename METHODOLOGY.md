@@ -4685,3 +4685,483 @@ model), `LOG_REPLAY` / `LOG_DISARMED`, and `AHRS_EKF_TYPE 10` set explicitly.
   `SUPERSEDED.txt`.
 - The missions and worlds are unchanged; flights are on simulator truth; the Phase 3 camera
   parameters are frozen.
+
+## CLOSED-LOOP GOAL (user, 2026-09-29): EKF3 flying with the live forward-camera heading
+
+**Goal (supervisor):** by the end of this week, closed-loop SITL + Gazebo flights that fly the
+corridor well. Check 2c showed that EKF3 with no absolute heading reaches a wall through yaw
+drift, which no tuning can fix. So the route is EKF3 flying (`AHRS_EKF_TYPE 3`), fed the
+camera heading live through ArduPilot's ExternalNav yaw path. **There are no estimator code
+changes.** Nothing flies while the re-fly batch or the pipeline re-run is running.
+
+### EKF3 speed ratio: tsx 1.02 against rgs 0.935 — reconciled (they are different quantities)
+
+- **tsx 1.019 / 1.022** is `eval/scale_check.est_scale`: the median of the 1 s-smoothed
+  horizontal speed MAGNITUDE |v| from the stored EKF3 trajectory, against GT.
+- **"0.935"** (`rgs_check_tex` report) was `XKF1.VN` alone against GT north speed: the
+  projection on North. It is reduced by EKF3's growing yaw error (cos ψ_err, with ψ_err 20–40°
+  late in cruise), so it is heading-dependent and **not a scale measure. That number is
+  withdrawn.**
+- **Like for like** (both metrics now in `scale_check.py`, plus EKF3's lateral velocity):
+
+| flight | \|v\| ratio | along-track ratio | EKF3 lateral velocity, mean / rms |
+|---|---|---|---|
+| `tsx_on_tex` (old gains, pre-sign-fix) | 1.022 | 0.983 | +0.094 / 0.197 m/s |
+| `rgs_check_tex` (new gains, sign fix) | 0.997 | 0.973 | +0.120 / 0.155 m/s |
+
+- **What changed:** the magnitude ratio fell 2.5 points. Most of that is less lateral
+  velocity noise inflating |v| now that the roll limit cycle is gone (rms 0.197 → 0.155).
+  The along-track component moved only 1% (n = 1 each).
+- The re-run scale check reports both columns.
+
+### Part 1 — live heading bridge: built and tested offline (no simulation)
+
+**Files:**
+- `src/forward_camera/heading_bridge_core.py` (pure core, shared with the offline test);
+- `heading_bridge.py` (ROS 2 node);
+- `closedloop_heading.parm`;
+- the `run_trial.sh` `HEADING_BRIDGE` hook, held as a patch
+  (`~/thesis_data/batches/heading_bridge_run_trial.patch`), since the batch executes
+  `run_trial.sh`;
+- `sim/tools/closed_loop_run.sh` (`HEADING=1`);
+- `sim/tools/wall_watch.py` (`--watch-process`);
+- `eval/heading_bridge_offline.py`.
+
+**Measurement.** The frozen Phase 3 heading, with the same code and parameters
+(`fwd_calibration.json`): inlier tolerance 0.5°, S_MIN 200 px.
+- The RANSAC seed is the frame's index in the image stream, exactly as in Phase 3. Live, the
+  index counts from node start: same method, different seeds.
+- **Runtime stack:** the node runs on the Phase 3 stack, system python with **OpenCV 4.6.0
+  and numpy 1.26**. `venv-ardupilot` has OpenCV **5.0.0** and numpy 2.5, which would silently
+  change a "frozen" measurement. pymavlink comes from a path shim.
+
+**Message, and the answers to the user's seven additions** (source at the pinned
+`7bac20cbcc`):
+1. **`ODOMETRY`** (the dev docs' preferred message).
+   - `frame_id = MAV_FRAME_LOCAL_FRD` and `child_frame_id = MAV_FRAME_BODY_FRD`, the only frames
+     accepted (`GCS_Common.cpp:4066-4070`).
+   - The heading goes in `q` (roll = pitch = 0).
+   - The rate is 10 Hz (every 3rd frame), above the documented 4 Hz minimum.
+   - `handle_odometry` always forwards a velocity too (`:4083-4086`). It is sent as NaN, so
+     `writeExtNavVelData` returns early (`AP_NavEKF3_Measurements.cpp:1130`), and VELXY is flow
+     in any case.
+   - *Changed from the first build, which used `VISION_POSITION_ESTIMATE`.*
+2. **Angle error.** ArduPilot combines the three covariance entries as
+   `angErr = sqrt(cov[15] + cov[18] + cov[20])` (`GCS_Common.cpp:4077`).
+   - Roll and pitch are set to 0, so `angErr` = σ_ψ exactly (0.148° `fwdc`, 0.126°
+     `fwdplainc`), verified by an encode/decode round trip.
+   - It is then clamped to `[VISO_YAW_M_NSE, 1.5]` rad (`AP_VisualOdom_MAV.cpp:43`), floored at
+     5° by EKF3 (`AP_NavEKF3_Measurements.cpp:1118`), and fused with
+     `R_YAW = max(err, 0.05)²` (`AP_NavEKF3_MagFusion.cpp:879`).
+   - **Effective EKF3 yaw σ: 11.46° at the default `VISO_YAW_M_NSE` 0.2 rad; 5.00° if
+     `VISO_YAW_M_NSE` ≤ 0.0873 rad** (range 0.05–1.0). **The value is for the user to rule on;
+     it stays at the default until then.**
+3. **Quality.** `quality = floor(50 · support / S_MIN)` (capped at 100), and −1 when there is no
+   vanishing point, with **`VISO_QUAL_MIN = 50`** as the gate (`AP_VisualOdom_MAV.cpp:47-51`).
+   - That accepts exactly the frozen Phase 3 validity: support 199 → 49 is rejected, 200 → 50
+     is accepted.
+   - Every processed frame is sent once the offset is set, and the dataflash `VISP` log records
+     each as consumed or ignored.
+   - *Changed: the first build dropped invalid frames in the node.*
+4. **`VISO_TYPE 1`, not 3.**
+   - 3 (VOXL) selects the IntelT265 driver (`AP_VisualOdom.cpp:145-147`). That driver adds a
+     yaw trim, reset-jump handling and a 1 s ignore after resets, all for VIO.
+   - Its automatic yaw alignment is explicitly refused when ExtNav is the yaw source
+     (`AP_VisualOdom_IntelT265.cpp:143-146`).
+   - 1 (MAVLink) passes the attitude straight to `writeExtNavData`, which is what a yaw-only,
+     fixed-offset source needs.
+5. **Yaw is fused with no ExtNav position fusion.**
+   - The EXTNAV yaw branch of `SelectMagFusion` (`AP_NavEKF3_MagFusion.cpp:365-393`) does not
+     depend on the position source. The first sample aligns yaw (`alignYawAngle`), and later
+     samples go through `fuseEulerYaw(EXTNAV)`.
+   - Position fusion needs `readyToUseExtNav()`, which is false unless POSXY is EXTNAV
+     (`AP_NavEKF3_Control.cpp:613-621`).
+   - The placeholder position (0, 0, 0; stated error 100 m) cannot enter the state either.
+     `ResetPosition()` uses ExtNav only when `PV_AidingMode == AID_ABSOLUTE`
+     (`AP_NavEKF3_PosVelFusion.cpp:124-162`), which flow aiding never reaches. This corrects
+     Part C's open caveat.
+   - **EKF origin:** nothing in the ExtNav yaw path checks `validOrigin`. The origin checks in
+     MagFusion concern GPS and declination (`:687,718,1000`), so none is expected to be needed.
+   - Both points are **to be tested in SITL on the ground** (disarmed and armed) once the batch
+     and re-run are done.
+6. **Alignment.** "Viso Align" (`request_align_yaw_to_ahrs`) exists only in the IntelT265/VOXL
+   driver (the MAVLink backend's version is a no-op, `AP_VisualOdom_Backend.h:50`), and it
+   refuses when ExtNav is the yaw source.
+   - So the node's one-off offset is used instead. It is set on the ground before arming:
+     the circular mean of `ATTITUDE.yaw + ψ` over the first 30 valid headings.
+   - **Frame definition:** `yaw_AP = OFFSET − ψ` (wrapped). ψ is Phase 3's heading relative to
+     the corridor, ENU-signed (nose left positive), and ArduPilot's yaw is NED.
+   - **The sign is established from the static yaw sweep's definition** (`yaw_sweep.sh` sets
+     ENU yaw = 90° + offset, and ψ tracks the offset with slope +1.007), not from the straight
+     flight, where ψ is too small to discriminate (±0.3°).
+   - The first message therefore equals EKF3's own yaw, so EKF3's first-sample alignment is a
+     no-op.
+   - It must be set before arming, because the VisualOdom arming check needs a message within
+     300 ms (`AP_VisualOdom_Backend.cpp:33-37`).
+   - **Ground truth is never used.**
+7. **`GPS_INPUT` is not used.**
+
+**Offline test** (`eval/heading_bridge_offline.py` on `fwdc_tex_r1`, the same core code the
+node runs, niced and single-threaded;
+`eval/results/heading_bridge_offline_fwdc_tex_r1.json`):
+- **Match: PASS.** All **10,203 frames** are identical to Phase 3's `meas_frozen.npz` in
+  heading (maximum difference 0.0°), support and validity (9,668 valid).
+- **Timing** (under the batch's concurrent load, so an upper bound): median 90.5 ms, p95
+  102.3 ms, minimum 53.4 ms per frame. At the lowest dataset RTF (0.72) a frame arrives every
+  45.8 ms of wall time, so **N = 3** (10 Hz), and a processed frame always finishes before the
+  next selected one.
+- **On-ground validity:** 603/603 frames before take-off are valid, so the pre-arm offset is
+  feasible.
+- **Convention check against the dataflash SIM yaw (test only):** node convention −0.007° ±
+  0.27°. This does not discriminate by itself; the sign is settled by the yaw sweep above.
+
+**Latency and `VISO_DELAY_MS`.**
+- ArduPilot's jitter correction (`GCS_Common.cpp:7373-7387`) maps the capture timestamp to its
+  clock by assuming the fastest message had zero lag. So `VISO_DELAY_MS` must equal the
+  MINIMUM capture-to-receipt latency.
+- Offline gives only the processing part: minimum 53 ms wall, about 40–45 ms sim at RTF ~0.8.
+- **Stated openly: the parameter file holds the ArduPilot default (10 ms) as a placeholder.**
+  The value is set from the node's own log (`t_capture` against sim time sent) in the SITL
+  ground test, before any flight.
+
+**Watcher safeguard.** `wall_watch.py --watch-process heading_bridge.py`. If the node dies while
+run_trial is running and the vehicle is airborne (z > 0.5 m), it is a breach and the flight is
+stopped. The wall and crash checks never depend on the node.
+
+### Part 2 — "flying well": pre-registration — DRAFT, SUPERSEDED BEFORE FLYING (see "Part 2 — revised")
+
+> **SUPERSEDED (2026-09-29, before any closed-loop flight).** This draft assumed the default
+> `VISO_YAW_M_NSE` (0.2 rad, an effective EKF3 yaw σ of 11.46°). The ruling set 0.05 rad, which
+> gives 5.00°. Its B2/B3 bases (a ~1° tracking allowance) and its diagnostic prediction (a ~34°
+> gate) no longer hold. Kept unedited as history.
+
+**Flights** (each a closed-loop dataset, never compared with the open-loop datasets as if the
+same experiment). All use the final settings: sign fix, `FLOW_POS_Z 0.25`, time sync on, the
+new roll gains, `LOG_REPLAY`, and the watcher.
+- (a) EKF3 without heading, `corridor_textured_fwdc`, ×1 (reference).
+- (b) EKF3 + live camera heading, `corridor_textured_fwdc`, ×3.
+- (c) only if (b) passes: EKF3 + live camera heading, `corridor_blank_fwdplainc` (plain walls
+  over the blank floor), ×3.
+
+**Bases (open-loop data, n = 1, stated):**
+- `rgs_check_tex` (new gains, sign fix, no heading): EKF3 yaw drift **8.28 deg/min**.
+  - 91% of its lateral velocity error is heading-driven.
+  - The **non-heading residual cross-track is 3.76 m over the 300 s cruise**.
+  - Open-loop East error reaches 9.58 m at cruise **+187 s**.
+- `dsn` yaw-drift range (n = 9): 6.6–11.1 deg/min.
+- Camera heading dropouts (Phase 3):
+  - textured walls: longest gap 1.2–3.0 s, near the end wall;
+  - plain walls over blank floor: none until y ≈ 144.5 m, then ~12 s to the end of cruise.
+
+**(a) Prediction, written before flying.**
+- West-wall contact at cruise **+187 s** (GT y ≈ 94 m).
+- Lateral error grows as drift × t², so contact time scales as 1/√drift. The `dsn` drift range
+  gives a **window of +161 to +209 s**.
+- **PRIMARY:** no wall contact before cruise +100 s; contact, if any, on the west wall inside
+  [+155, +215] s (the window rounded outward by 6 s for first-order error).
+
+**(b) and (c): PRIMARY criteria (each flight):**
+- **B1.** Completes the full mission (arm, climb, 300 s cruise, land) with no wall contact:
+  |x| < 9.58 m throughout, and no crash criterion.
+- **B2.** Maximum physical cross-track |x_GT| during cruise **≤ 6.5 m**.
+  - Basis: the non-heading residual (3.8 m), plus the lateral displacement from a mean EKF3 yaw
+    error of up to 1° over 150 m (150 · sin 1° = 2.6 m), which gives 6.4 m.
+  - The margin to the wall threshold is 3.1 m.
+- **B3.** EKF3 yaw error (`XKF1` vs SIM) during cruise: **95th percentile ≤ 2°, maximum ≤ 4.5°**.
+  - Basis: tracking of order 1° with the ≥ 5° R floor, plus the drift during the longest
+    dropout. That is 12 s at the maximum `dsn` drift of 11.1 deg/min, i.e. 2.2° for (c) and
+    0.6° for (b), giving 3.2°. The margin is 1.3°.
+- **B4.** No fast runaway: 1 s-smoothed |GT lateral speed| during cruise **≤ 0.25 m/s**.
+  - Basis: 0.5 · sin(4.5°) = 0.04 m/s from yaw, plus about 2.5× the heading-free EKF3 lateral
+    velocity noise (~0.10 m/s rms, `rgs_check_tex`).
+- **B5.** No oscillation: cruise gyro rms roll ≤ 0.05, pitch ≤ 0.0108, yaw ≤ 0.02 rad/s (the
+  `rgs_check_tex` R1/R3/R5 bands).
+
+**DIAGNOSTIC (reported, not gating):**
+- the fraction of heading messages consumed (`VISP`) and fused by EKF3 (yaw test ratio);
+- the number of confident-wrong end-wall headings (valid, |error vs GT| > 3°, y > 140 m) that
+  EKF3 fused, with the predicted outcome: **most are fused**, since the 3σ gate on an ≥ 11.46°
+  σ admits errors up to ~34°;
+- the flow → EKF3 and camera → EKF3 latency;
+- the heading-bridge frame drops;
+- RTF.
+
+**Decision:**
+- (b) passes if all three flights pass B1–B5.
+- (c) runs only if (b) passes.
+- Any B1 failure stops the set and is reported.
+
+### Rulings (user, 2026-09-29) on Parts 1 and 2
+
+1. **`VISO_YAW_M_NSE = 0.05` rad** (the documented minimum; added to `closedloop_heading.parm`
+   and enforced by `closed_loop_run.sh`).
+   - The effective EKF3 yaw σ is then **5.00°**. It is set by **ArduPilot's hard clamp in
+     `writeExtNavData`** (`MAX(angErr, radians(5.0f))`, `AP_NavEKF3_Measurements.cpp:1118`),
+     not by the parameter. **The 5° floor is an ArduPilot limit.**
+   - Reasoning: the camera heading is accurate to ~0.15–0.3°, so both options over-state its
+     error. The fairest choice is the least distorted value ArduPilot permits. It is a
+     documented parameter within its documented range (0.05–1.0), **so EKF3 remains stock.**
+2. The Part 2 bands and predictions were recomputed for 5.00°. The default-based draft is
+   marked SUPERSEDED above, before flying.
+3. **Accepted as reported:**
+   - `VISO_TYPE 1`;
+   - `quality = floor(50 · support / 200)`, −1 with no vanishing point, `VISO_QUAL_MIN 50`;
+   - the one-off pre-arm offset (Viso Align is unavailable with ExtNav as the yaw source);
+   - `yaw = offset − ψ`, from the static sweep;
+   - processing every 3rd frame (10 Hz), with the same per-frame method and parameters.
+   - **The version pin is part of "frozen":** the heading node runs on the Phase 3 stack,
+     **OpenCV 4.6.0 and numpy 1.26** (system python), never `venv-ardupilot`'s OpenCV 5.0.0.
+4. **`VISO_DELAY_MS`** is set from the minimum capture-to-receipt latency measured in the SITL
+   ground test, before any flight. The measurement is recorded.
+5. The speed-ratio reconciliation is accepted; **0.935 is withdrawn.** The re-run scale check
+   reports both the magnitude and the along-track ratio.
+6. **Working rule:** never edit any file a running batch uses; changes are held as patches
+   until the batch ends.
+7. **The 91% heading-driven share is preliminary** (one check flight). The re-run heading-share
+   restatement is the value that counts.
+
+**Order after the batch:** finish the Part 4 build → the pipeline re-run → the SITL ground test
+(yaw-only fusion, arming with the heading node, `VISO_DELAY_MS`) → the closed-loop flights as
+pre-registered. **Commit when the flights end.**
+
+### Part 2 — revised pre-registration at the ruled 5.00° EKF3 yaw σ (before any closed-loop flight)
+
+**New basis: an offline approximation of EKF3's yaw subsystem** (`eval/cl_yaw_prediction.py`
+→ `eval/results/cl_yaw_prediction_5deg.json`; archived `fwdc_tex_r1..3` and
+`fwdplainc_blank_r1..3`).
+- **States:** yaw and gyro-z bias (delta form).
+- **Predict:** every 12.5 ms with EKF3's own formulas, `q_att = (dt · GYRO_P_NSE)²` and
+  `q_bias = (dt² · GBIAS_P_NSE)²`, driven by the recorded gyro-z.
+- **Update:** with the frozen camera heading on every 3rd frame when valid, R = (5°)², and a gate
+  of |ν| ≤ 3√S (`EK3_YAW_I_GATE 300`).
+- **It is not EKF3.** It omits EKF3's coupling of flow into yaw (the Phase 5 flow→yaw finding),
+  its other states, and the first-sample alignment. So the bands carry an explicit margin for
+  that.
+
+| world (archived, n = 3) | yaw error p95 | yaw error max | mean (lag on the drift ramp) | cross-track from yaw alone | confident-wrong end-wall headings (every 3rd frame) / passing the gate |
+|---|---|---|---|---|---|
+| `fwdc_tex` | 0.25–0.28° | 0.28–0.37° | −0.17…−0.18° | 0.46–0.49 m | 0–2 / **all** |
+| `fwdplainc_blank` | 0.26° | 0.34–0.46° | −0.18…−0.19° | 0.54 m | 3–6 / **all** |
+
+**(a) No heading, textured, ×1.** Unchanged (no camera):
+- predicted west-wall contact at cruise +187 s;
+- **PRIMARY:** no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s.
+
+**(b) and (c): PRIMARY criteria (each flight), revised:**
+- **B1.** Completes the full mission and lands with no wall contact (|x| < 9.58 m throughout),
+  and no crash criterion. *(Unchanged.)*
+- **B2.** Maximum physical cross-track during cruise **≤ 6.0 m**.
+  - Prediction ≈ 4.3 m: the non-heading residual of 3.76 m (preliminary, n = 1, from
+    `rgs_check_tex`) plus ≤ 0.54 m from the yaw error.
+  - The 1.7 m margin (~40%) is for the n = 1 residual. The margin to the wall threshold is 3.6 m.
+  - *(Was ≤ 6.5 m.)*
+- **B3.** EKF3 yaw error during cruise: **95th percentile ≤ 1.0°, maximum ≤ 2.0°**.
+  - Prediction: p95 ≤ 0.28° and maximum ≤ 0.46°.
+  - The ~3.5–4× margin is for what the two-state approximation omits: EKF3's flow→yaw coupling,
+    and the wrong end-wall headings, which all pass the gate.
+  - *(Was p95 ≤ 2°, maximum ≤ 4.5°.)*
+- **B4.** 1 s-smoothed |GT lateral speed| during cruise **≤ 0.25 m/s**.
+  - The yaw part is now ≤ 0.004 m/s. The band is set by about 2.5× EKF3's heading-free lateral
+    velocity noise (~0.10 m/s rms, `rgs_check_tex`). *(Unchanged value; new yaw basis.)*
+- **B5.** No oscillation: cruise gyro rms roll ≤ 0.05, pitch ≤ 0.0108, yaw ≤ 0.02 rad/s.
+  *(Unchanged.)*
+
+**DIAGNOSTIC predictions (written before flying):**
+- **Heading acceptance:** `VISP` consumed = sent with quality ≥ 50 (about 97% of processed
+  cruise frames on `fwdc_tex`, and about 96% on `fwdplainc_blank` up to y ≈ 144.5 m). EKF3's
+  gate should pass almost all of them.
+- **Confident-wrong end-wall headings fused:** **all that occur** (0–2 per `fwdc_tex` flight, 3–6
+  per `fwdplainc_blank` flight). Their errors (3–17° in Phase 5) sit inside the ~15° 3σ gate,
+  and those above ~15° are rejected.
+  - The expected effect is a transient yaw error of well under 2° (B3), because each is one
+    sample at R = (5°)² among many correct ones.
+
+**Decision:**
+- (b) passes if all three flights pass B1–B5.
+- (c) runs only if (b) passes.
+- Any B1 failure stops the set and is reported.
+
+### `VISO_DELAY_MS` alongside optical flow: source analysis, and the ground-test verification (user request, 2026-09-29)
+
+**Concern:** a user report (ArduPilot issue #20163; *not fetched here, no network use*) says
+`VISO_DELAY_MS` had no effect with optical flow enabled.
+
+**What the pinned source (`7bac20cbcc`) does:**
+1. **Horizon.** At filter start (`setup_core`), EKF3 sizes its fusion horizon (the delayed-state
+   buffer) from the MAXIMUM delay of all enabled sensors (`AP_NavEKF3_core.cpp:41-88`):
+   - `EK3_HGT_DELAY` (default **60 ms**) and `EK3_FLOW_DELAY` (10 ms);
+   - GPS/airspeed when used;
+   - **`VISO_DELAY_MS` when VisualOdom is enabled** (`:79-85`, capped at 250 ms).
+
+   Then `imu_buffer_length = maxDelay/12 + 1` (`:88`), and the ExtNav buffer is sized from the
+   same horizon (`:104`).
+2. **Dating.** Each ExtNav sample is dated
+   `receipt_corrected − VISO_DELAY_MS − localFilterTimeStep/2` and clamped to be no older than the
+   horizon (`AP_NavEKF3_Measurements.cpp:1101-1107`). **This is independent of the flow delay**,
+   which dates flow samples separately (`:232-236`).
+3. **Recall.** The yaw sample is recalled and fused when the delayed IMU time reaches it
+   (`AP_NavEKF3_MagFusion.cpp:367`).
+4. **Receipt time.** `receipt_corrected` is ArduPilot's jitter-corrected version of our capture
+   timestamp: `offboard + min(local − offboard)`, re-estimated every few samples to follow clock
+   drift (`AP_RTC/JitterCorrection.cpp`, `GCS_Common.cpp:7373-7387`). That is capture +
+   minimum lag.
+
+   So the fusion time is capture + min_lag − `VISO_DELAY_MS` − ½ step, which is **time-aligned
+   when `VISO_DELAY_MS` = the minimum capture-to-receipt lag.**
+
+**Ways the delay could have "no effect", at this commit:**
+- **(i)** `VISO_DELAY_MS` exceeds the horizon from the other sensors while VisualOdom was
+  disabled at filter start. Then it is not folded into the horizon, and the excess is clamped
+  away by `MAX(timeStamp_ms, imuDataDelayed.time_ms)`.
+- **(ii)** It is changed live after filter start, so the buffers are not resized.
+
+**Neither applies here:**
+- `VISO_TYPE 1` and `VISO_DELAY_MS` load from the parameter file at boot.
+- The expected delay (~40–50 ms) is inside the 60 ms horizon that `EK3_HGT_DELAY` already sets.
+
+This is to be **proven from the ground-test logs, not assumed.**
+
+**SITL ground test** (after the batch and pipeline re-run; the vehicle does not take off):
+- **Run.** `HEADING=1 GROUND_TEST=60 sim/tools/closed_loop_run.sh corridor_textured_fwdc gt_heading_<n>`.
+  The `fly_trial.py` `GROUND_TEST` mode (held patch
+  `~/thesis_data/batches/ground_test_fly_trial.patch`) arms, stays armed on the ground for 60 s of
+  sim time, then disarms. It uses the final closed-loop settings (`closedloop.parm`,
+  `closedloop_heading.parm`).
+- **Run 1** measures the latency with the placeholder `VISO_DELAY_MS 10`. **Run 2** repeats with
+  the measured value.
+- **Pass criteria, fixed before the test:**
+  - **G1, yaw-only ExtNav fusion.**
+    - The EKF3 status shows ExtNav yaw in use (a "using external nav data" / yaw-alignment
+      message; `XKF4.SS`).
+    - `REPH` samples are present, with `angErr` = 0.05 rad (the clamp).
+    - EKF3's `PN`/`PE` do not jump to the (0,0) placeholder or to its ±100 m error.
+    - `EK3_SRC1_POSXY` = 0 in the PARM dump.
+  - **G2, arming with the heading node.** It arms with no VisualOdom or EKF pre-arm failure, and
+    the node's offset is locked before arming (node log). The node CSV records the offset.
+  - **G3, EKF origin.** G1 and G2 pass without an origin ever being set (none is set in this
+    configuration). If either fails for want of an origin, stop and report.
+  - **G4, latency (run 1).** Minimum capture-to-receipt latency, from two independent measures:
+    - (a) node CSV: `t_sim_sent − t_capture` (Gazebo sim clock), plus the loopback transport;
+    - (b) dataflash `VISP`: `TimeUS − RemTimeUS`, with the SITL↔Gazebo clock offset from
+      `eval/input_timing.clock_map`.
+
+    **`VISO_DELAY_MS` = round(min latency)**, provided (a) and (b) agree within 5 ms. It must be
+    ≤ the horizon (60 ms); if larger, stop and report.
+  - **G5, the delay takes effect and the heading is time-aligned (run 2).**
+    - Every `REPH.delay_ms` equals the set `VISO_DELAY_MS`, with flow fusion active in the same
+      run (XKF5 flow innovations present).
+    - EKF3's assigned measurement time, `REPH.timeStamp_ms − delay_ms − 6 ms` (half the 12 ms
+      step), against the capture time mapped to the SITL clock: the median |difference|
+      ≤ 6 ms and the p95 ≤ 12.5 ms (one EKF3 step, its own time resolution).
+    - The horizon from the PARM dump (`max(HGT_DELAY, FLOW_DELAY, VISO_DELAY_MS)`) ≥
+      `VISO_DELAY_MS`, so no clamping.
+- **Report before flying.** Any failure stops before the closed-loop flights.
+
+### Part 2 — evaluation windows for every band (recorded before flying; user request, 2026-09-29)
+
+**The window is the PINNED dataset cruise window** (`eval/cruise_window.cruise_bounds`, METHODOLOGY
+"Cruise window — pinned definition"): the largest contiguous run where the 0.42 s-smoothed GT
+horizontal speed exceeds 0.30 m/s. On the forward-camera bags it spans **GT y ≈ 0.1 → 151 m**,
+so **it INCLUDES the end-wall approach (y > 140 m)**. In a flight that the watcher stops, the
+window ends where the speed criterion ends, or at the stop.
+
+| band | window |
+|---|---|
+| (a) contact timing | "cruise +t" is measured from the pinned window's t0. The +187 s prediction came from the `rgs_check_tex` open-loop curve, whose start used the GT forward speed first > 0.3 m/s (25-sample smoothing); the two starts differ by < 1 s, which is stated. |
+| B1 (completion, no wall contact) | **the whole flight**, arming to disarm (the watcher's \|x\| check runs throughout) |
+| B2 (maximum cross-track) | pinned cruise window, **end-wall approach included** |
+| B3 (yaw error p95 / max) | pinned cruise window, **end-wall approach included**; y ≤ 140 m and y > 140 m are also reported separately as a DIAGNOSTIC |
+| B4 (lateral speed) | pinned cruise window, end-wall approach included |
+| B5 (gyro rms) | the definition of its source band (`eval/rgs_profile.py`): cruise span with GT forward speed > 0.3 m/s (51-sample smoothing), **trimmed by 5 s at each end** |
+| diagnostics (heading acceptance, confident-wrong fused) | pinned cruise window; "end wall" = GT y > 140 m inside it |
+
+**Keeping the end-wall region in the yaw bands: the check.** The offline yaw prediction was
+re-run on the pinned window and split at y = 140 m (`eval/cl_yaw_prediction.py`,
+`eval/results/cl_yaw_prediction_5deg.json`; archived bags, n = 3 per world):
+
+| world | whole window p95 / max | y ≤ 140 m max | **y > 140 m p95 / max** | end-wall rise over the value at 140 m | wrong end-wall headings fused |
+|---|---|---|---|---|---|
+| `fwdc_tex` | 0.25–0.29° / 0.29–0.39° | 0.29–0.38° | 0.20–0.25° / **0.23–0.28°** | +0.00…+0.08° | 0–2 (all that occur) |
+| `fwdplainc_blank` | 0.26° / 0.34–0.43° | 0.26–0.27° | 0.30–0.41° / **0.34–0.43°** | +0.26…+0.34° | 3–6 (all that occur) |
+
+- The predicted end-wall transients (fused wrong headings, plus the ~12 s dropout on
+  plain-blank) peak at **0.43°**, against the **2.0° maximum band: a 1.57° margin (×4.6).**
+- **Decision: the band holds, and the end-wall approach stays INSIDE B3's window.** The
+  y > 140 m numbers are reported alongside as a diagnostic, so that an end-wall-driven failure
+  can be told apart from a cruise-wide one.
+- The same margin logic as before covers what the two-state model omits (EKF3's flow→yaw
+  coupling).
+- The B2/B3 predictions above supersede the earlier "prediction" figures (p95 ≤ 0.28°, max
+  ≤ 0.46°), which used a slightly different window (GT speed > 0.3 with a 31-sample boxcar).
+  The bands themselves are unchanged: B3 p95 ≤ 1.0° and max ≤ 2.0°, B2 ≤ 6.0 m, B4 ≤ 0.25 m/s.
+
+### Consolidated re-fly — aborted attempt `p1c_fwdplainc_blank` (attempt 1), 2026-09-29
+
+- **What happened.** Attempt 1 (started 14:40:06) completed its flight normally: armed, 300 s
+  cruise, landed, "Trial flight complete". `run_trial.sh` then died in its post-flight step with
+  `run_trial.sh: line 343: HEADING_SIGMA_DEG: unbound variable` (exit 1, 14:47:34).
+- **Cause: a harness failure, unrelated to any estimator, the flight or the data.**
+  - During that trial I edited `run_trial.sh` (the closed-loop `HEADING_BRIDGE` hook) while the
+    batch was executing it.
+  - The file was restored byte for byte about a minute later, but the running bash instance still
+    read the edited text when it resumed after the flight.
+  - The failing line is the hook's metadata `printf`, which exists only in the edited version.
+- **Handling, under the runner's pre-declared rules** (`run_resumable_batch.sh`: a failed attempt
+  is marked ABORTED, its folder is kept and renamed, and the trial is re-flown once):
+  - the attempt was marked ABORTED and moved to `trials/p1c_fwdplainc_blank_ABORTED/`, **kept,
+    never used**;
+  - the trial was re-flown immediately as attempt 2 (14:47:34 → 14:55:37, COMPLETE).
+- **Checked:** every completed re-fly trial, including the re-flown `p1c_fwdplainc_blank`,
+  records `git_commit 7a90e81` (the committed harness) and contains no trace of the heading hook.
+- **Standing rule (confirmed by the user):** no file a running batch uses is edited while it
+  runs; changes are held as patches until the batch ends.
+
+**Which trials the edit could have affected: evidence (user request, 2026-09-29).**
+
+**1. The edit window: 14:45:40.96 → 14:45:57.56 AEST (16.6 s).**
+- Start: the in-place edit was issued at `2026-09-29T04:45:40.961Z` (session transcript,
+  tool call "Add HEADING_BRIDGE hook to run_trial").
+- End: the restore, `git checkout -- run_trial.sh` (transcript `04:45:56.506Z`). The file mtime
+  is **14:45:57.5645**, and the patch saved immediately before it is 14:45:57.5605.
+- The file now matches the committed and batch-commit (`7a90e81`) content byte for byte
+  (md5 `98d448f60e83` for all three).
+- No other file a dataset trial uses changed after the batch began (14:02:40). The only files
+  modified since are `run_trial.sh` (restored), and `closedloop_heading.parm`,
+  `heading_bridge.py`, `heading_bridge_core.py`, `sim/tools/wall_watch.py` and
+  `sim/tools/closed_loop_run.sh`, none of which a dataset trial invokes.
+  `fly_trial.py` and every `.parm` in `run_trial.sh`'s defaults are untouched.
+
+**2. Mechanism (why the restore did not save the running trial).**
+- The edit rewrote the file IN PLACE (Python `open(p, "w")`), on the same inode the running
+  `bash run_trial.sh` of `p1c_fwdplainc_blank` attempt 1 had open.
+- `git checkout` then wrote a NEW file (a new inode), so that bash kept reading the edited old
+  inode and hit `HEADING_SIGMA_DEG: unbound` after the flight.
+- **Consequence:** only a `run_trial.sh` process already running during the window could see the
+  edit. Each trial starts a fresh `run_trial.sh`, which opens the path, and so gets the
+  committed file if it started after 14:45:57.56.
+
+**3. Trial times (runner `trials.log`) against the window:**
+- **Finished before the edit** (all ended ≤ 14:40:06, before 14:45:40.96):
+  - `p1c_fwdc_tex` 14:02:40–14:10:05;
+  - `p1c_fwdplainc_tex` 14:10:05–14:17:18;
+  - `p1c_fwdc_trans` 14:17:18–14:24:29;
+  - `p1c_fwdplainc_trans` 14:24:29–14:32:19;
+  - `p1c_fwdc_blank` 14:32:20–14:40:06.
+- **Overlapping the window: only `p1c_fwdplainc_blank` attempt 1** (14:40:06–14:47:34). It is
+  ABORTED, and its log shows the hook's unbound variable and no exit-0 cleanup. **Not used, and
+  already re-flown.**
+- **Started after the restore:** the re-flown `p1c_fwdplainc_blank` (14:47:34–14:55:37) and every
+  later trial, `dsn_tex_r1` (14:55:37) through `fwdc_trans_r3` (16:48:11–16:55:49), and all
+  trials still to fly.
+
+**4. Log evidence for every completed trial** (22 of 22):
+- zero occurrences of `HEADING`, `heading_bridge`, `SERIAL1` or `unbound` in `run_trial.log`;
+- a normal `Cleaning up (exit code 0)`;
+- no `heading_bridge` block in `metadata.yaml`;
+- `git_commit 7a90e81`.
+
+The ABORTED attempt is the only log with a hook reference (1) and no exit-0 cleanup.
+
+**Conclusion:** no completed dataset trial executed the edited script. **Nothing is marked for
+re-flight.** The same log check is repeated on the remaining trials when the batch ends, before
+the pipeline re-run uses any of them.

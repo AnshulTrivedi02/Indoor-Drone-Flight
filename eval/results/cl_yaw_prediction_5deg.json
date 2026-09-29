@@ -1,0 +1,164 @@
+{
+ "fwdc_tex_r1": {
+  "yaw_err_abs_p95_deg": 0.25368258098628377,
+  "yaw_err_abs_max_deg": 0.3010802583177503,
+  "yaw_err_mean_deg": -0.18210198405147135,
+  "xtrack_from_yaw_max_m": 0.47981983593493677,
+  "lat_speed_from_yaw_max_ms": 0.0026274088182288912,
+  "window_s": [
+   30.61,
+   332.56
+  ],
+  "window_gt_y_m": [
+   0.07263787996307575,
+   150.95364305168863
+  ],
+  "y_le_140": {
+   "p95": 0.2566673995589896,
+   "max": 0.3010802583177503
+  },
+  "y_gt_140": {
+   "p95": 0.19892811097406723,
+   "max": 0.23114893072862863,
+   "max_minus_entry_deg": 0.07656841547132875
+  },
+  "endwall_wrong": 2,
+  "endwall_wrong_passing_gate": 2,
+  "n_updates_available": 3137
+ },
+ "fwdc_tex_r2": {
+  "yaw_err_abs_p95_deg": 0.24601276167696845,
+  "yaw_err_abs_max_deg": 0.2924388847099966,
+  "yaw_err_mean_deg": -0.17284117704371796,
+  "xtrack_from_yaw_max_m": 0.4558698164992342,
+  "lat_speed_from_yaw_max_ms": 0.002551999619119433,
+  "window_s": [
+   30.182,
+   332.114
+  ],
+  "window_gt_y_m": [
+   0.069010440720751,
+   150.94259083801992
+  ],
+  "y_le_140": {
+   "p95": 0.2470401628713757,
+   "max": 0.2924388847099966
+  },
+  "y_gt_140": {
+   "p95": 0.22677057759685412,
+   "max": 0.2375015468501473,
+   "max_minus_entry_deg": 0.019776916564495345
+  },
+  "endwall_wrong": 0,
+  "endwall_wrong_passing_gate": 0,
+  "n_updates_available": 3123
+ },
+ "fwdc_tex_r3": {
+  "yaw_err_abs_p95_deg": 0.28558974323838876,
+  "yaw_err_abs_max_deg": 0.3849648409376101,
+  "yaw_err_mean_deg": -0.18121823771732046,
+  "xtrack_from_yaw_max_m": 0.48730486658818417,
+  "lat_speed_from_yaw_max_ms": 0.0033594267131134515,
+  "window_s": [
+   30.181,
+   331.9
+  ],
+  "window_gt_y_m": [
+   0.06454740720426087,
+   150.8271199247714
+  ],
+  "y_le_140": {
+   "p95": 0.2875644427218965,
+   "max": 0.3849648409376101
+  },
+  "y_gt_140": {
+   "p95": 0.2476395224046595,
+   "max": 0.2761718042147523,
+   "max_minus_entry_deg": 0.0
+  },
+  "endwall_wrong": 2,
+  "endwall_wrong_passing_gate": 2,
+  "n_updates_available": 3141
+ },
+ "fwdplainc_blank_r1": {
+  "yaw_err_abs_p95_deg": 0.2633015283151315,
+  "yaw_err_abs_max_deg": 0.34258798486528935,
+  "yaw_err_mean_deg": -0.18976021668872595,
+  "xtrack_from_yaw_max_m": 0.5355749806167183,
+  "lat_speed_from_yaw_max_ms": 0.0029896263426302016,
+  "window_s": [
+   30.263,
+   331.999
+  ],
+  "window_gt_y_m": [
+   0.06783901909266804,
+   150.8410023496459
+  ],
+  "y_le_140": {
+   "p95": 0.26197637922248407,
+   "max": 0.2737068396208831
+  },
+  "y_gt_140": {
+   "p95": 0.3113040322520648,
+   "max": 0.34258798486528935,
+   "max_minus_entry_deg": 0.27193795988868313
+  },
+  "endwall_wrong": 3,
+  "endwall_wrong_passing_gate": 3,
+  "n_updates_available": 2929
+ },
+ "fwdplainc_blank_r2": {
+  "yaw_err_abs_p95_deg": 0.25482733522169293,
+  "yaw_err_abs_max_deg": 0.33743198764340343,
+  "yaw_err_mean_deg": -0.19191608282114872,
+  "xtrack_from_yaw_max_m": 0.5370857147379687,
+  "lat_speed_from_yaw_max_ms": 0.0029446325710309968,
+  "window_s": [
+   30.097,
+   331.949
+  ],
+  "window_gt_y_m": [
+   0.06900774825803845,
+   150.90432160421892
+  ],
+  "y_le_140": {
+   "p95": 0.25408113851864844,
+   "max": 0.268975060611386
+  },
+  "y_gt_140": {
+   "p95": 0.30257451457632084,
+   "max": 0.33743198764340343,
+   "max_minus_entry_deg": 0.26353963730057883
+  },
+  "endwall_wrong": 3,
+  "endwall_wrong_passing_gate": 3,
+  "n_updates_available": 2927
+ },
+ "fwdplainc_blank_r3": {
+  "yaw_err_abs_p95_deg": 0.2569595487516865,
+  "yaw_err_abs_max_deg": 0.43418218955350807,
+  "yaw_err_mean_deg": -0.1847276211149657,
+  "xtrack_from_yaw_max_m": 0.5334098043429684,
+  "lat_speed_from_yaw_max_ms": 0.003788918117455352,
+  "window_s": [
+   30.362,
+   332.23
+  ],
+  "window_gt_y_m": [
+   0.06606201438476361,
+   150.90540493564257
+  ],
+  "y_le_140": {
+   "p95": 0.25443907445389524,
+   "max": 0.26478044843538345
+  },
+  "y_gt_140": {
+   "p95": 0.410784458123025,
+   "max": 0.43418218955350807,
+   "max_minus_entry_deg": 0.34269554330603025
+  },
+  "endwall_wrong": 6,
+  "endwall_wrong_passing_gate": 6,
+  "n_updates_available": 2926
+ }
+}

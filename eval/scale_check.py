@@ -90,13 +90,34 @@ def flow_scale(gt, fl, imu, win):
             "n": int(len(meas)), "pred_flow_y_median": float(np.median(pred[:, ax]))}
 
 
+def smooth_vel(t, v, win_s=1.0):
+    dt = np.median(np.diff(t)); k = max(1, int(round(win_s / dt)))
+    return np.gradient(np.convolve(v, np.ones(k) / k, "same"), t)
+
+
 def est_scale(t, x, y, z, gt, win, gtz_offset=0.0):
+    """speed_ratio_median: |v_est| / |v_gt| (horizontal speed MAGNITUDE; heading-independent,
+    but it includes any lateral velocity error, which inflates it). along_ratio_median: the
+    estimator's velocity along ITS OWN axis of travel (the axis with the larger GT displacement,
+    in the estimator's frame) over the GT speed along the same axis; it mixes scale with
+    heading error (cos of the yaw error). Reconciliation of the two, 2026-09-29: METHODOLOGY
+    "EKF3 speed ratio: tsx 1.02 vs rgs 0.935"."""
     w = (t >= win[0]) & (t <= win[1])
     s_est = smooth_speed(t, x, y)[w]
     g_s = np.interp(t[w], gt[:, 0], smooth_speed(gt[:, 0], gt[:, 1], gt[:, 2]))
     ok = g_s > 0.3
     dz = z[w] - (np.interp(t[w], gt[:, 0], gt[:, 3]) + gtz_offset)
-    return {"speed_ratio_median": float(np.median(s_est[ok] / g_s[ok])), "height_bias_mean_m": float(dz.mean()),
+    gw = (gt[:, 0] >= win[0]) & (gt[:, 0] <= win[1])
+    ax = 1 if abs(gt[gw, 1][-1] - gt[gw, 1][0]) > abs(gt[gw, 2][-1] - gt[gw, 2][0]) else 2
+    lat = 3 - ax
+    ve_al = smooth_vel(t, x if ax == 1 else y)[w]; ve_lat = smooth_vel(t, y if ax == 1 else x)[w]
+    vg_al = np.interp(t[w], gt[:, 0], smooth_vel(gt[:, 0], gt[:, ax]))
+    ok2 = np.abs(vg_al) > 0.3
+    return {"speed_ratio_median": float(np.median(s_est[ok] / g_s[ok])),
+            "along_ratio_median": float(np.median(ve_al[ok2] / vg_al[ok2])),
+            "lateral_vel_mean_ms": float(np.sign(np.median(vg_al)) * ve_lat[ok2].mean()),
+            "lateral_vel_rms_ms": float(np.sqrt(np.mean(ve_lat[ok2] ** 2))),
+            "height_bias_mean_m": float(dz.mean()),
             "true_height_mean_m": float(np.interp(t[w], gt[:, 0], gt[:, 3]).mean() + gtz_offset)}
 
 

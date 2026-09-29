@@ -62,7 +62,15 @@ def main():
     ap.add_argument("--timing", default="input_timing_p2fwd.json")
     ap.add_argument("--flow", default="flow_quality_p2fwd.json")
     ap.add_argument("--evo", default="phase2_fwd_evo.json")
+    ap.add_argument("--p4-bands", default=os.environ.get("P4_BANDS"),
+                    help="JSON from eval/rerun_bands.py; overrides the Phase 2 P4 table (consolidated re-run)")
     a = ap.parse_args()
+    if a.p4_bands:
+        nb = json.load(open(a.p4_bands))
+        for est in P4:
+            for w in P4[est]:
+                P4[est][w] = {k: tuple(v) for k, v in nb[est][w].items() if not k.startswith("n3") and v is not None}
+        print(f"P4 bands from {a.p4_bands}")
     trials = [x for x in a.trials.split(",") if x] if "," in a.trials else \
         [f"{a.trials}_{w}_r{r}" for r in (1, 2, 3) for w in WORLDS]
 
@@ -127,8 +135,11 @@ def main():
                 chk[f"P4 {est} ratio"] = (round(fl["disp_ratio"], 3), f"[{b['ratio'][0]}, {b['ratio'][1]}]",
                                           inband(fl["disp_ratio"], *b["ratio"]), True)
                 on = fl["onset_gt_dist"]
-                chk[f"P4 {est} onset"] = (None if on is None else round(on, 1), f"[{b['onset'][0]}, {b['onset'][1]}] m",
-                                          inband(on, *b["onset"]), True)
+                if "onset" in b:
+                    chk[f"P4 {est} onset"] = (None if on is None else round(on, 1), f"[{b['onset'][0]}, {b['onset'][1]}] m",
+                                              inband(on, *b["onset"]), True)
+                else:
+                    chk[f"P4 {est} onset"] = (None if on is None else round(on, 1), "no band (a dsn repeat never diverged)", None, False)
 
         # ── DIAGNOSTICS (never gate) ──
         lat = it[t]["flow_to_ekf3"]

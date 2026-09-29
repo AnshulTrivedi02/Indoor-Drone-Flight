@@ -1,0 +1,45 @@
+{
+ "trial": "fwdc_tex_r1",
+ "frames": 10203,
+ "match": {
+  "stamps_identical": true,
+  "psi_identical_frames": 10203,
+  "support_identical_frames": 10203,
+  "valid_identical_frames": 10203,
+  "max_abs_psi_diff_deg": 0.0,
+  "valid_frames": 9668,
+  "pass": true
+ },
+ "timing_ms": {
+  "min": 53.387574036605656,
+  "p5": 79.75809463532642,
+  "median": 90.51965799881145,
+  "p95": 102.29544911417179,
+  "p99": 107.79897707398048,
+  "max": 128.5075240302831,
+  "frame_interval_wall_ms_at_rtf_min": 45.833333791666675,
+  "every_n": 3,
+  "note": "single-threaded, niced, measured WHILE the re-fly batch runs (concurrent load): an upper bound"
+ },
+ "ground_validity": {
+  "frames_on_ground": 603,
+  "valid_on_ground": 603,
+  "valid_pct_on_ground": 100.0
+ },
+ "frame_convention_vs_SIM_truth_TEST_ONLY": {
+  "node convention (offset - psi)": {
+   "offset_deg": -0.0192835567759712,
+   "airborne_valid": 8938,
+   "err_mean_deg": -0.006886624635623579,
+   "err_sd_deg": 0.27246167425008205,
+   "err_abs_p95_deg": 0.41138090561157425
+  },
+  "opposite sign (offset + psi)": {
+   "offset_deg": 0.01928355677594314,
+   "airborne_valid": 8938,
+   "err_mean_deg": 0.057109941547328354,
+   "err_sd_deg": 0.2751896591168095,
+   "err_abs_p95_deg": 0.4424351672792077
+  }
+ }
+}
