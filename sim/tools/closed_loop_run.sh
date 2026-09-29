@@ -19,6 +19,9 @@ if [ -n "${HEADING:-}" ]; then
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$P"
     # enforce every value in the heading parm file (eeprom self-heal, fly_trial.ensure_params)
     EXPECT_OVERRIDE="$EXPECT_OVERRIDE,$(grep -Ev '^\s*(#|$)' "$P" | awk '{printf "%s%s=%s", (NR>1?",":""), $1, $2}')"
+    # Ruling D2 (2026-09-30): the C++ heading node for all closed-loop flights; closedloop_heading.parm
+    # carries ITS delay (VISO_DELAY_MS 38), so the Python node must not be flown with it by default.
+    export HEADING_IMPL="${HEADING_IMPL:-cpp}"
     export HEADING_BRIDGE=1 HEADING_SIGMA_DEG HEADING_EVERY_N
     WATCH=(--watch-process heading_bridge.py)
 fi

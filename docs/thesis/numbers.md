@@ -214,6 +214,8 @@ The former values are in the superseded section ("Former sections 6–9").
 | EKF3 vs FGO (claim wording) | now CONFIRMED by the pre-registered test (row below); the earlier interim wording "EKF3 lower on all three repeats" is superseded | — | CURRENT (wording) | M: "Rulings (user, 2026-09-29) on the re-run results" |
 | **Confirmatory test, EKF3 vs FGO** (r4–r10, pre-registered; r10 unusable for FGO) | **EKF3 lower**: d < 0 on 6/7, mean d −0.69 m, 95% CI [−1.20, −0.19] | m | CURRENT | json:dsn_paired_test.json |
 | Noise floor SD (re-flown `dsn_tex`): EKF3 (n = 10) / FGO (n = 9) / d (n = 9) | 0.31 [0.22, 0.57] / 0.13 [0.09, 0.24] / 0.39 [0.26, 0.75] | m | CURRENT | same |
+| **Claim wording (ruling 2026-09-30): the UKF is "poor in most textured flights"** | accurate (≤ 4.3 m) on 3 of 9 usable `dsn_tex` flights, 13–36 m on 6 of 9; the pre-registered instability rule (evo > 3× median) cannot flag this because the median itself is high (a recorded weakness of the rule) | m | CURRENT (wording) | json:dsn_paired_test.json |
+| EKF3's flow timestamp against our flow (28 re-flown trials with flow fused) | EKF3 fuses flow 31–44 ms before capture (median 36), i.e. 15–27 ms before the frame's mid-time (median 19): its hard-coded 100 ms flow interval against our 30 Hz flow | ms | CURRENT (finding; D8) | json:input_timing_rerun_all.json |
 | UKF r1–r9 (usable): median / range | 17.5 / 2.3–35.9; ≤ 4.3 m on 3 of 9 flights only | m | CURRENT | same |
 | Compass-active `ds_*` EKF3, textured r1 / r2 / r3 | 0.66 / 0.69 / 0.07 | m | CURRENT (reference; EKF3 with an absolute heading) | json:rerun_ds_evo.json |
 
@@ -442,6 +444,10 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
    yet defined in the record.
 5. **OI-2 commit (§5):** cite `9b0f5d9` (on `master` and `fwd-camera`); `cc588df` is the first
    recording (fwd-camera only), same opening text.
+
+- **`dsn` noise floor — CLOSED (ruling 2026-09-30).** Established from the re-flown `dsn_tex` (n = 10 / 9):
+  EKF3 SD 0.31 m, FGO SD 0.13 m. It replaces "n = 3 range ± one range-width" as the basis for future
+  textured bands; the existing P4 bands are not re-scored retrospectively.
 
 **Remaining:**
 1. **Physical drift denominator ⚑:** 9.8 deg/min (M:L741) against 8.9 deg/min (M:L2718) and

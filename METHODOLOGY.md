@@ -6709,3 +6709,42 @@ in `~/thesis_data/batches/fgo_shadow{,2,3,4}/`.
   - step 3 reported (the node's inputs cost < 0.1 m against truth);
   - the shadow run is reported here.
   - Awaiting D12 (backend route) and a flight ruling.
+
+### Corrections and additions after review (2026-09-30)
+
+- **Shadow run 4, the offline comparison, now done.** The offline FGO (`fgo_replay.py`, window 0.25)
+  on `fgo_shadow_sitl_tex4`'s own bag (IMU-gap verdict "ok") scores **4.616 m**, against the live
+  node's **4.606 m**. The live-against-offline trajectory difference is at most 0.44 m, gauge
+  included.
+  - The row-4 claim "live matches offline on the same flight" is now backed. The earlier 4.61 m
+    offline figure was run 1's bag, flown with the defective design.
+- **The start-up lag is a TAKE-OFF backlog, not a node start.** Run 4 lag by keyframe time:
+  - about 150 ms until 26.9 s (armed 24.4 s);
+  - it rises at take-off (27.9 s): 1.0 s median at 29–31 s, **peak 1.9 s at about 31–33 s (the
+    cruise start)**;
+  - back under 300 ms by about 45 s, and at the steady 135 ms from about 51 s.
+  - Keyframes with lag > 300 ms: 531, mostly in that 30–45 s span, the rest near landing.
+  - The FGO step is slower during the take-off dynamics. **This overlaps take-off and the first ~15 s
+    of cruise.** For D12 route (a) it breaks EKF3's 250 ms ExtNav delay cap, so a warm-up/readiness
+    gate or held fusion is needed first (a D12 precondition).
+  - The no-load bag test's 3.3 s maximum is the same effect.
+- **FGO step 2 re-run with the FINAL core** (after the diagnostic counters were added): **PASS on both
+  logs** (8.4e-7 m; yaw 0; bias 0; counts identical). The core that ran live is the one that passed.
+- **D8's EKF3 flow-timing finding, re-scoped.** It rested on one flight's DAL arrival latency, and is
+  now backed by all 28 re-flown trials with flow fused (`input_timing_rerun_all.json`, capture →
+  EKF3 arrival, median 24 ms per trial, range 16–29):
+  - EKF3 fuses flow **31–44 ms before capture (median 36)**, i.e. **15–27 ms before the frame's
+    mid-time (median 19)**. Our flow is an average over the 33 ms frame, so its mid-time is capture −
+    16.5 ms.
+  - **"About 40–45 ms early in every dataset" is WITHDRAWN** as overstated.
+  - V5c's "correct time" was the capture time (the offline UKF's), not the mid-frame time.
+- **FGO step 3's "cannot change any claim" is n = 1** (`dsn_tex_r2`: 4.20–4.30 against 4.298 m).
+  The ~0.1 m difference sits at the 0.13 m noise floor.
+- **Preconditions written into the queue:**
+  - D9: the D5 event queue is not covered by step 2 (log and confirm `_n_ev_overflow` = 0; check the
+    processed order against EKF3's rule), plus a shadow run of the exact binary to be flown;
+  - D12: the take-off lag.
+- **Harness safety:** `sim/tools/closed_loop_run.sh` now defaults `HEADING_IMPL=cpp` (ruling D2), so a
+  closed-loop run launched directly cannot fly the Python node with the C++ node's `VISO_DELAY_MS 38`.
+- **The `dsn` noise floor is CLOSED** in `numbers.md` (EKF3 0.31 m, FGO 0.13 m). The ruled UKF claim
+  wording ("poor in most textured flights") is now a `numbers.md` row.

@@ -1,124 +1,84 @@
-# Decisions queued for the user (overnight 2026-09-29/30)
+# Decisions queue
 
-Each item gives the options and a recommendation. Nothing below blocked other work. Details and
-evidence are in METHODOLOGY (section named per item).
+Updated 2026-09-30. Only OPEN items are at the top. Ruled items are kept below as history.
+Details for every item are in METHODOLOGY.
 
-## D1. B4 scorer fix on `cl_b_tex_r1` (METHODOLOGY "Closed-loop set (b) r1 ... scorer bug fix")
-- The first scorer computed "1 s-smoothed lateral speed" with a sample-count boxcar and
-  `np.gradient` on the raw GT stamps. A 1 ms stamp gap produced 0.333 m/s, a false B4 failure.
-- A literal 1 s time window gives 0.033 m/s. The band and wording are unchanged.
-- Options: **(a) accept it as an implementation fix** (then set (b) passes 3/3); (b) count r1 as a
-  B4 failure as first scored.
-- **Recommendation: (a).**
-- Extra evidence: under the ORIGINAL scorer r2 / r3 give 0.099 / 0.100 m/s (pass). So (b) passes at
-  least 2/3 either way, and 3/3 with the fix.
+## OPEN
 
-## D2. Switch the live heading node to the C++ computation? (METHODOLOGY "C++ heading port")
-- Equivalence passes all pre-registered bands. The SITL latency falls from a median of 141 ms to
-  47 ms, which is inside the 60 ms horizon.
-- If switched, `VISO_DELAY_MS` must be re-measured by the ORIGINAL G4 rule (the minimum latency,
-  about 40 ms), and G5 re-checked in a ground test, because the delay now takes effect.
-- Options: **(a) switch, re-measure the delay, and repeat the ground test**; (b) keep Python for the
-  thesis's SITL flights and use C++ only for hardware.
-- **Recommendation: (a)** for any further closed-loop flights. Set (b)'s results stand as flown
-  with Python.
-
-## D3. WITHDRAWN (2026-09-30): UKF step 2 now PASSES on both logs
-- A second porting bug was found: ArduPilot's `-fsingle-precision-constant` made every constant in
-  the port a float. It is fixed.
-- `dsn_blank_r1` E2 ratio is 0.80 (was 1.19), and the gate flips are gone. The earlier "flip-driven
-  round-off" reading was wrong. No ruling is needed; listed so you can see the correction.
-
-## D4. Rebuild of the port's SITL binary and Replay tool (information, no ruling needed)
-- The shadow-UKF SITL result predates the step-2 fix. The binaries are rebuilt after the `dsn`
-  batch. Any future shadow run uses the fixed port.
-
-## D5. UKF port input path (step 3 report; METHODOLOGY "UKF port validation STEP 3")
-- On `dsn_tex_r2` the port on ArduPilot's inputs differs from the offline UKF by 5.1 m / 3.8°
-  (end of cruise), from three sources:
-  - flow fused at arrival: 4.8 m alone;
-  - the IMU path: 3.2 m alone;
-  - the flow-gyro pairing: 1.5 m alone.
-- The full post-fix Replay port scores about 3.4 m evo -a (cruise), between the offline UKF (2.3) and
-  EKF3 (3.9).
-- Options: **(a) add a flow delay buffer to the port** (fuse at the measurement time, as EKF3 does
-  with `EK3_FLOW_DELAY`), keeping ArduPilot's IMU and gyro inputs; (b) keep the port as is (pure
-  arrival-time fusion); (c) also reproduce the offline IMU/gyro inputs (not possible onboard, so not
-  a drop-in).
-- **Recommendation: (a).** It matches EKF3's own treatment of flow latency, so it is fair to EKF3.
-  The remaining IMU/gyro differences are properties of the onboard input path, and they are
-  reported, not hidden.
-
-## D6. Replacement flight for `dsn_tex_r10` (IMU-gap rule: unusable for UKF/FGO)
-- The paired test runs with r10 counted conservatively (METHODOLOGY). A replacement `dsn_tex_r11`
-  would give 7 usable flights.
-- Options: **(a) fly `dsn_tex_r11`** (about 7 min plus the pipeline) and report the test on
-  r4–r9 + r11, alongside the conservative version; (b) keep the conservative version only.
-- **Recommendation: (a)** if the conservative verdict is "no ordering" only because of r10;
-  otherwise (b).
-- **Resolved by that rule:** the conservative verdict is "EKF3 lower" (both criteria), so **(b)**: no
-  replacement flight is needed. Listed for your confirmation only.
-
-## D7. Next FGO track (none is registered yet)
-- Candidates:
-  - (a) the `fgo_node.py` ROS 2 node plus its pending validation (fair yaw anchor, §9 gating checks,
-    window sweep, NEES);
-  - (b) the C++ GTSAM companion port for Part C route (a), where EKF3 fuses the FGO as ExtNav
-    (5–8 pw);
-  - (c) proper FGO covariance logging for NEES (it is a gate-only approximation now).
-- **Recommendation: (a) then (c).** (a) is the prerequisite for any live or onboard use, and it
-  reuses the validated offline core. (c) is small and removes a caveat on every FGO consistency
-  claim. (b) is only worth starting after (a) runs live. I did not start any of them without a ruling.
-
-## D8. Flow timing (from D5's step-3 re-run)
-- EKF3's flow timestamp hard-codes a 100 ms flow interval, so our 30 Hz flow is fused about 45 ms
-  before capture. `EK3_FLOW_DELAY` cannot correct this (non-negative).
-- The port with D5 copies that. With flow at its true capture time, ArduPilot's inputs would cost the
-  port only 0.41 m against the offline UKF (against 5.06 m now).
+### D8. Flow timing (from D5's step-3 re-run)
+- EKF3's flow timestamp hard-codes a 100 ms flow interval. Across the 28 re-flown trials with flow
+  fused, EKF3 fuses our flow **31–44 ms before capture** (median 36), which is **15–27 ms before the
+  frame's mid-time** (median 19). `EK3_FLOW_DELAY` cannot correct this (non-negative).
+- The port with D5 copies EKF3's timing. On `dsn_tex_r2`, with flow at the offline UKF's time
+  (capture), ArduPilot's other inputs cost the port only 0.41 m (5.06 m with EKF3's timing).
 - Options:
-  - **(a) keep EKF3's timing in the port** (fair: both fuse at the same, equally wrong time), and
-    measure EKF3's own cost in Replay with the interval corrected (diagnostic only, never flown);
-  - (b) time the port's flow correctly (capture − half the frame interval), a non-EKF3 improvement,
-    stated as such;
-  - (c) both, reporting the port under each.
-- **Recommendation: (a)**, plus the EKF3 Replay diagnostic, because it quantifies a property of the
-  baseline itself.
+  - **(a) keep EKF3's timing in the port** (fair: both fuse at the same time), and measure EKF3's own
+    cost in Replay with the interval corrected (diagnostic only);
+  - (b) time the port's flow correctly (a non-EKF3 improvement, stated as such);
+  - (c) both.
+- **Recommendation: (a) + the EKF3 Replay diagnostic.**
 
-## D9. First UKF flight: with or without the forward-camera heading
-- Report above: in live shadow the UKF drifts about 24 deg/min, the algorithm's behaviour (the offline
-  UKF drifts 29.9 deg/min on the same flight). Without heading it would be expected to reach the
-  wall around +110 s (EKF3: +186 s).
-- Options: **(a) first UKF flight with the heading source** (add the heading update to the port, as
-  the offline UKF's Phase 4 arm; then steps 2-3 for that path, a shadow run, then fly); (b) a
-  no-heading UKF flight first, as the analogue of set (a), predicting early contact with bands
-  pre-registered from the drift above; (c) both, (b) first.
-- **Recommendation: (c)**, because (b) is cheap (it reuses the set (a) machinery) and gives the UKF's
-  own set (a); then (a). Both need a ruling.
+### D9. First UKF flight: with or without the forward-camera heading
+- In live shadow the port drifts about 24 deg/min. That is the algorithm: the offline UKF drifts
+  29.9 deg/min on the same flight. Without heading, wall contact would be expected at about +110 s.
+- **Preconditions before any UKF flight, whichever option:**
+  - the D5 event queue is not covered by step 2 (the harness calls the numerics directly), so confirm
+    `_n_ev_overflow` = 0 (log it) and check the processed order against EKF3's timing rule from the
+    Replay input dump;
+  - a shadow run of the exact binary to be flown.
+- Options: (a) with the heading (port the heading update, then steps 2–3 for it, then shadow, then
+  fly); (b) without heading first, as a UKF set (a), with bands pre-registered from the drift;
+  **(c) both, (b) first.**
+- **Recommendation: (c).**
 
-## D10. `fgo_replay.py` TUM quaternion typo
-- `euler_to_quat` writes `sr*sp*cy` for `sr*sp*sy` in w: a non-unit quaternion, ~0.002° yaw error in
-  the offline FGO's TUM orientations. Positions and all ATEs are unaffected.
-- Options: **(a) fix the writer and re-derive only the numbers that read FGO yaw from TUM files**
-  (Phase 4 yaw errors); (b) leave it and state the bound (≤ 1% of those values).
-- **Recommendation: (a).** It is a one-token fix, and the affected numbers are cheap to re-derive.
+### D10. `fgo_replay.py` TUM quaternion typo
+- The w component is written as `sr*sp*cy`, where it should be `sr*sp*sy`. The quaternion is
+  non-unit, giving ~0.002° of yaw error in the offline FGO's TUM orientations. Positions and ATEs are
+  unaffected.
+- **Recommendation: fix it and re-derive only the numbers that read FGO yaw from TUM files.**
 
-## D11. FGO speed-up route (FGO step 2 must re-pass with the same bands)
-- The pip GTSAM 4.2.1 wheel ships no C++ headers. A C++ flow/range/yaw factor with the SAME
-  finite-difference Jacobians (so step 2's 1e-6 bands can hold) needs GTSAM 4.2.1 **and its Python
-  wrapper** built from source, since the extension must share the library instance: hours at -j2,
-  and the whole FGO then re-passes step 2 on the new build.
-- Current timing without simulation load: step p99 36 ms, 1.9% of keyframes over 33 ms, absorbed by
-  the queue (lag flat at 117 ms).
-- Options: **(a) measure under simulation load first** (next simulation run), and build from source
-  only if the lag creeps or the p99 grows; (b) build from source now; (c) analytic Jacobians in Python
-  (faster, but different numerics, so the step 2 bands would need re-registering).
-- **Recommendation: (a).** The source build is needed for Pi hardware anyway (the onboard C++ route),
-  so it is worth doing once, for that, if SITL does not force it sooner.
+### D11. FGO speed-up route
+- Under simulation load the step is 29.7 ms median and 49 ms p99, and 5.8% of keyframes exceed
+  33 ms (absorbed by the queue). There is no margin for slower hardware.
+- A C++ factor with identical numerics needs GTSAM 4.2.1 **and its Python wrapper** built from source
+  (hours). Then step 2 re-passes on the new build.
+- **Recommendation:** not needed for SITL; do it once, for Pi deployment.
 
-## D12. External-estimator backend for the FGO
-- **Route (a), exists today:** EKF3 fuses the FGO pose/velocity as ExternalNav. No firmware; the caveat
-  is "EKF3 re-filtering the FGO", with double-counted IMU.
-- **Route (b):** a new MAVLink External-AHRS backend (4–6 pw). There is none for MAVLink at
-  `7bac20cbcc`.
-- **Recommendation: (a) for SITL.** It reuses the ExtNav path already validated for the heading
-  (G1–G5), with the double-counting stated. (b) only if the thesis needs the FGO to fly unfiltered.
+### D12. External-estimator backend for the FGO
+- **Route (a), exists:** EKF3 fuses the FGO pose/velocity as ExternalNav. Caveat: "EKF3 re-filtering
+  the FGO", with double-counted IMU. **Route (b):** a new MAVLink External-AHRS backend (4–6 pw).
+- **Precondition for route (a):** the node's queue lag must stay within EKF3's 250 ms ExtNav delay
+  cap. Under load it does in steady cruise (median 135 ms), **but not during take-off:** a backlog
+  rises from take-off (about 28 s), peaks at 1.9 s at the cruise start and clears by about +15 s.
+  Needed first: warm-up / a readiness gate before arming, or holding ExtNav fusion until the lag
+  settles.
+- **Recommendation: (a), with that precondition solved and shown in a shadow run.**
+
+### D13. Ruling on FGO step 3 (owed: the UKF gate was "step 2 passes AND step 3 is ruled on")
+- FGO step 2 **passes** on both logs, with the final core.
+- FGO step 3: the node's causal inputs cost < 0.1 m against truth on `dsn_tex_r2` (4.20–4.30 against
+  the offline 4.298 m). **n = 1 flight**, at the 0.13 m noise floor.
+- Shadow run 4 on its own bag: live 4.606 against offline 4.616 m.
+- **Recommendation: accept step 3 as reported.** Optionally, add the step-3 comparison on 2 more
+  textured flights to firm up n = 1.
+
+### D14. Confirm the equivalence-test comparison fixes (the same category as D1)
+- **FGO FE2** is scored with the node's attitude passed through the offline TUM writer, typo included,
+  so both sides are in the same representation. The first score (0.0016°) compared unlike
+  representations.
+- **FGO FE1** is compared row by row, because interpolating at the reference file's rounded
+  timestamps added ~1e-4 m in a blank runaway.
+- **UKF step 3's matcher** was corrected: matching by value within a time window, not by scanning
+  forward from index 0.
+- **Recommendation: confirm these as comparison fixes, not criterion changes.**
+
+## RULED (history)
+- **D1** (B4 time-window scorer): bug fix. Set (b) with the Python node is "3/3 corrected, 2/3
+  original".
+- **D2** (C++ heading node): switched. `VISO_DELAY_MS 38`; ground test passed; set (b) re-flown 3/3.
+- **D3:** withdrawn (the UKF step 2 bug).
+- **D4:** information only (the port's binaries rebuilt); no ruling needed.
+- **D5** (UKF flow delay buffer): added; step 3 re-run; shadow re-measured.
+- **D6:** not needed.
+- **D7** (the FGO node route): started. Steps 2–3, real-time, validity and shadow runs are done (see
+  D11–D14).

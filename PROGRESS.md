@@ -5,6 +5,30 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-30 (morning) — rulings D1–D7 carried out
+
+- **D2:** C++ heading node, `VISO_DELAY_MS 38` (original G4 rule). Ground test G1–G5 pass. **Set (b)
+  re-flown with C++: 3/3 pass** (cross-track 0.23–0.34 m; yaw p95 0.28–0.31°).
+  `closed_loop_run.sh` defaults to C++.
+- **D5:** the UKF port has a 60 ms delayed horizon with EKF3's flow timestamp.
+  - Step 3: the remaining cost is flow timing (0.41 m with flow at capture, against 5.06 m).
+  - EKF3 fuses our flow 31–44 ms before capture (28 trials; D8).
+  - Buffered Replay port 2.79 m.
+  - Live shadow drift about 24 deg/min, which is the UKF algorithm (the offline UKF does 29.9 on the
+    same flight); D9.
+- **D7 (FGO node):**
+  - step 2 PASS (both logs, the final core);
+  - step 3: < 0.1 m against truth (n = 1);
+  - real time without load: keeps up;
+  - a live-shadow defect (in-callback processing lost 1.4% of IMU → false invalid) was fixed with a
+    separate core process;
+  - under load: no loss, valid 100%, live 4.61 against offline 4.62 m, steady lag 135 ms, but a
+    **take-off backlog up to 1.9 s** (D12 precondition);
+  - validity rule: flow timeout 5 s, or a post-take-off gap.
+- **Established:** EKF3 < FGO on textured (confirmatory); `dsn` noise floor closed; UKF "poor in most
+  textured flights".
+- **Queue:** `docs/decisions_queue.md` (open D8–D14).
+
 ## Current Status — 2026-09-30 (overnight) — closed loop flown; C++ heading port; UKF port steps 2–3; confirmatory EKF3-vs-FGO test
 
 - **Ground test (live forward-camera heading → EKF3 ExtNav yaw).**
