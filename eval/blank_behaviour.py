@@ -109,18 +109,15 @@ for tr in a.trials:
         from pymavlink import mavutil
         m = mavutil.mavlink_connection(f"{d}/ardupilot.bin"); ss, msgs, ofr = [], [], []
         while True:
-            x = m.recv_match(type=["XKF4", "MSG", "OF", "XKF5"])
+            x = m.recv_match(type=["XKF4", "MSG", "OF"])
             if x is None:
                 break
             if x.get_type() == "OF":
                 ofr.append(x.TimeUS / 1e6)
-            elif x.get_type() == "XKF5" and x.C == 0:
-                ss.append((x.TimeUS / 1e6, -1, x.HAGL))
             elif x.get_type() == "XKF4" and x.C == 0:
                 ss.append((x.TimeUS / 1e6, int(x.SS)))
             elif x.get_type() == "MSG" and "EKF3" in x.Message and c0e - 30 <= x.TimeUS / 1e6 <= c1e + 30:
                 msgs.append((round(x.TimeUS / 1e6 - tl, 2), x.Message))
-        hagl = np.array([(t_, h) for t_, k, h in ss if k == -1]); ss = [(t_, k) for t_, k, *_ in ss if k != -1]
         # airborne by the SAME rule (GT z > 0.5 m), OF TimeUS mapped to the sim clock by the cruise-start offset
         of_air = [t_ for t_ in ofr if np.interp(t_ - off, gt_t, gz) > 0.5] if gtp else []
         r["EKF3_OF_records_airborne"] = len(of_air)
