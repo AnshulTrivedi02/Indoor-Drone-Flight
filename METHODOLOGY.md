@@ -6221,3 +6221,25 @@ GT (`eval/results/ukf_shadow_replay_dsn_tex_r2_postfix.json`):
 - **The choice** is between ArduPilot's inputs as they are (fair to EKF3, the drop-in case) and
   adding a delay buffer so flow is fused at its measurement time (which EKF3 also does). **It is
   the user's, and is queued (D5).** Adding a buffer changes the port only, never the offline UKF.
+
+### `dsn_tex_r4..r10` flown (7/7); `dsn_tex_r10` UNUSABLE for UKF/FGO by the IMU-gap rule — handling in the paired test, recorded BEFORE any r4–r10 result is seen
+
+- **The batch completed 7/7.** It was flown on the committed harness after the closed-loop sets. r4's
+  PARM dump shows no closed-loop or ground-test value persisting (`AHRS_EKF_TYPE 10`,
+  `EK3_SRC1_YAW 0`, `VISO_TYPE 0`, `DISARM_DELAY 10`).
+- **The IMU-gap rule (2026-09-24), applied as worded,** makes `dsn_tex_r10` **unusable** for the
+  replay estimators: "only 10.0 s before arming after the last irregularity (< 10 s)".
+  - Its only irregularity is a bunch at the very first IMU sample (14.138 s).
+  - Stationary-to-arm is 10.09 s from the first sample. The rule's clean start sits after the bunch,
+    just under 10 s.
+  - A boundary case, but not overridden. EKF3 is still scored on r10.
+- **Handling in the pre-registered paired test (decided now, before any d is seen):**
+  - **(a):** "d_i < 0 on at least 6 of 7". r10 has no FGO value, so it is counted as **NOT**
+    negative (conservative). (a) then needs all 6 usable flights to have d < 0.
+  - **(b):** the 95% t-interval uses the **6 usable** flights (df 5).
+  - The verdict rule is otherwise unchanged. The script is `eval/dsn_paired_test.py`, updated
+    accordingly.
+- **Noise floor:** the SD per estimator uses the available flights. EKF3 has n = 10; UKF/FGO and d
+  have n = 9 (χ² df 8).
+- **Queued (D6):** whether to fly a replacement `dsn_tex_r11`, with the rule applied to it as well,
+  so the test has 7 usable flights. Not flown without a ruling.

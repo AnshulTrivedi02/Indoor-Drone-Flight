@@ -51,3 +51,11 @@ evidence are in METHODOLOGY (section named per item).
 - **Recommendation: (a).** It matches EKF3's own treatment of flow latency, so it is fair to EKF3.
   The remaining IMU/gyro differences are properties of the onboard input path, and they are
   reported, not hidden.
+
+## D6. Replacement flight for `dsn_tex_r10` (IMU-gap rule: unusable for UKF/FGO)
+- The paired test runs with r10 counted conservatively (METHODOLOGY). A replacement `dsn_tex_r11`
+  would give 7 usable flights.
+- Options: **(a) fly `dsn_tex_r11`** (about 7 min plus the pipeline) and report the test on
+  r4–r9 + r11, alongside the conservative version; (b) keep the conservative version only.
+- **Recommendation: (a)** if the conservative verdict is "no ordering" only because of r10;
+  otherwise (b).
