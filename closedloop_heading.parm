@@ -13,6 +13,7 @@ VISO_QUAL_MIN 50
 # Ruling 2026-09-29: the documented minimum. angErr (0.148 deg) is clamped up to 0.05 rad, then
 # EKF3's hard 5 deg floor applies (AP_NavEKF3_Measurements.cpp:1118): effective sigma 5.00 deg.
 VISO_YAW_M_NSE 0.05
-# Ruling 2026-09-29 (ground test run 1, G4 stop -> option 1): the largest value inside the 60 ms horizon
-# (EK3_HGT_DELAY 60), so EKF3's fusion horizon is unchanged. Measured min latency 100-104 ms; see METHODOLOGY.
-VISO_DELAY_MS 60
+# Ruling D2 2026-09-30: C++ heading node; VISO_DELAY_MS = round(min latency) by the original G4 rule
+# (gt_heading_cpp: 37.9 ms VISP, 40.0 ms node). Was 60 for the Python node (ruling 2026-09-29, G4 stop -> option 1:
+# largest value inside the 60 ms horizon; Python min latency 100-104 ms). See METHODOLOGY.
+VISO_DELAY_MS 38

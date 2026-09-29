@@ -6361,3 +6361,49 @@ with clipping; port: larger jitter, then skip the predict). Counted on both logs
   - `groundtest.parm` and its `closed_loop_run.sh` hook (only with `GROUND_TEST`);
   - the closed-loop runner and scorer.
   - **All are inert for `dsn` flights.** r4's PARM dump confirms no leaked value.
+
+### Rulings (user, 2026-09-30) on the decision queue D1–D7
+
+- **D1:** the time-window B4 scorer is a **bug fix, not a criterion change**. Set (b) with the Python
+  node is reported as **"3 of 3 with the corrected scorer; 2 of 3 under the original"**. The cause:
+  two ground-truth samples 1 ms apart, which the sample-count boxcar + `np.gradient` turned into a
+  0.333 m/s spike on r1.
+- **D2:** switch to the **C++ heading node for all subsequent closed-loop flights**.
+  - Re-measure `VISO_DELAY_MS` by the original rule, and repeat the ground test (G1–G5 as last
+    worded).
+  - Then re-fly set (b) ×3 with the C++ node, so EKF3's with-heading result uses the same node as
+    the later UKF/FGO flights.
+  - The Python-node set (b) stays recorded as the **first result**. Set (a) (no camera) stands.
+- **D3:** withdrawn.
+- **D5:** **add a flow delay buffer to the UKF port** (EKF3's approach). The IMU path and flow-gyro
+  pairing stay as ArduPilot provides them (EKF3 receives the same). Then re-run step 3 for the
+  remaining input-path cost and re-measure the live SITL yaw drift in shadow. **Report before any
+  UKF flight.**
+- **D6:** not needed.
+- **D7:** the FGO track starts with the **ROS-node route and its validation**:
+  - equivalence to the offline FGO, with bands pre-registered before testing;
+  - the speed-up to fit the real-time budget;
+  - then the external-estimator backend and validity signal.
+  - Same gates as the UKF before any flight.
+- **Recorded as a weakness of the pre-registered UKF instability rule.** "evo > 3× the median"
+  cannot flag a filter that is poor in most flights, because the median itself is high. The UKF is
+  poor on 6 of 9 textured `dsn` flights (median 17.5 m). **Claim wording: "the UKF is poor in most
+  textured flights"** (accurate, ≤ 4.3 m, on 3 of 9).
+- **Established claim, closing the `dsn` noise-floor item:**
+  - **"EKF3 is lower than the FGO on the textured floor"** (confirmatory: 6/7, mean difference
+    0.69 m, 95% CI 0.19–1.20 m).
+  - Noise floors: **EKF3 SD 0.31 m, FGO SD 0.13 m** (re-flown `dsn_tex`, n = 10 / 9).
+- **Workstation order:** C++ ground test → set (b) re-fly → UKF (after D5 and step 3) → FGO.
+
+### D2: `VISO_DELAY_MS` for the C++ node, by the ORIGINAL G4 rule
+
+- From `gt_heading_cpp` (C++, `every_n` 4): (a) node sent − capture, min **40.0 ms**;
+  (b) `VISP` receipt − capture, min **37.9 ms**.
+- They agree within 5 ms, and 38 is within the 60 ms horizon. So **`VISO_DELAY_MS` = round(min) =
+  38**, taken from (b) as the G4 checker computed it in run 1.
+- `every_n` stays **4** (the last ruled setting), so the re-fly of set (b) differs from the Python set
+  **only in the node**.
+- Expected, and stated before the test: with latency (≤ 63 ms) near the horizon and D = 38, the
+  horizon clamp mostly does not bind. The fusion time is then `TS − 38 − 6`, where SITL's
+  virtual-baud term puts TS about 40 ms early. G5 as last worded (the residual × 0.93 deg/s ≤ 0.25°,
+  i.e. p95 |r| ≤ 269 ms) is judged on that.
