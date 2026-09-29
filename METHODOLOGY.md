@@ -3646,3 +3646,41 @@ differences.**
 - **Not quoted in PROGRESS.md or CLAUDE.md.** The "0.74" values there are RTF, not the share.
 
 **Added to the batched corrections list as (iii).**
+
+### UKF `fwdplainc_tex_r2` heading arm, 17.4° at cruise end: bounded check (2026-09-29, ~15 min of a 1 h box; existing outputs only)
+
+Plot: `plots/phase5/ukf_checker_r2_gate.png` (UKF yaw error; each tested heading
+measurement's error against GT, coloured accepted/rejected; NIS against the gate of 9;
+acceptance per 5 s; GT y).
+
+**What the data show, by corridor position (GT y):**
+
+| y (m) | UKF yaw error | measurement error (median \|err\|) | acceptance | NIS |
+|---|---|---|---|---|
+| 0–100 | within ±0.3° | 0.1–0.3° | 70–86% | median ~1 |
+| 100–125 | −0.2 → −0.5° | 0.3–1.1° | falls 70 → 30% | median 2 → 23 |
+| **125–140** | **−1.1 → −11.4°** | 2–6° | **8, 2 and 1** accepted in the 10 s bins at 285–315 s | — |
+| **> 140** | −14 → −21° | **0.09–0.17°** (correct) | **0%** | 20–970 |
+
+- **In the 125–140 m band the UKF yaw error changes at −0.27 to −0.39 deg/s.** The few
+  accepted measurements there have errors close to the estimate's own (−1.9, −5.1, −8.6°).
+- **The baseline arm's unaided drift on this bag is +0.22 deg/s**, the opposite sign.
+- **After y > 140 m, 244 measurements within 1° of truth are rejected in the last 40 s.**
+- Throughout the flight, a band of wrong checkerboard headings at +3 to +5° is (correctly)
+  rejected.
+
+**Classification.**
+- **The terminal state is gate lockout.** Once the estimate is 14–21° off, correct heading
+  measurements fail the χ² gate (NIS 20–87 at the end), so no correction is possible.
+- **The onset is not fully established within the box.** The yaw error grew during a
+  stretch of degraded measurements with almost none accepted (y ≈ 125–140 m). The data do
+  not separate the two possibilities:
+  - the few accepted wrong measurements drove it; or
+  - the estimate drifted and the gate admitted only measurements near it.
+
+  The accepted errors track the estimate, which is consistent with either.
+- **No fix and no new arm, as ruled.** The UKF's other two checkerboard repeats did not lock
+  out (end-of-cruise error 0.01° and 0.26°). The FGO did not lock out on any repeat (≤ 0.28°).
+- **Relevant to the UKF correction (ii):** the under-scaled position integration and the
+  gravity-absorbing accelerometer-bias state are present in this run. Whether the lockout
+  recurs after the correction is a question for the corrected re-run.
