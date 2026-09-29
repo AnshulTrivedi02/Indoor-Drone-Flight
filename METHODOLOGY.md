@@ -5302,3 +5302,49 @@ analysis runs; the same numbers come from `eval/blank_behaviour.py`):
 - **In every blank trial, flow is effectively absent for the whole flight:** at most 7 samples at
   take-off, and zero in cruise. The analysis therefore measures from `t_loss`, a second or two
   before cruise starts, which is equivalent to "from take-off" to within 2 s.
+
+### Rulings on the early pipeline results (user, 2026-09-29)
+
+**1. EKF3's displacement ratio of 0.00 on blank and transition is a SCORING ARTEFACT (established
+from the logs before any interpretation).**
+- **`dsn_trans_r1`.** EKF3 aids normally up to the boundary (PN 74.5 m at t = 180 s,
+  `horiz_pos_rel` = 1).
+  - At **t = 196.1 s** it logs "EKF3 IMU0/IMU1 stopped aiding".
+  - From then on `XKF1` PN/PE are **exactly 0.00 / 0.00 (the origin)**, with `XKF4.SS`
+    `const_pos_mode` = 1, `horiz_pos_rel` = 0, `pred_horiz_pos_rel` = 0 and `horiz_pos_abs` = 0.
+    **EKF3 itself flags its position invalid.**
+  - "Started relative aiding" returns only at t = 344.6 s, after landing.
+- **`dsn_blank_r1`.** The same from **t = 34.2 s** (just after take-off) to landing.
+- **Velocity.** Throughout, `horiz_vel` stays 1 while `XKF1` VN drifts to about −0.2 m/s: the
+  velocity is flagged valid but is wrong. This is reported, not scored.
+- **The 0.00 ratio is therefore EKF3's invalid output, the origin, scored as a position.**
+- **EVALUATION RULE (recorded before any blank/transition interpretation):** an estimate that the
+  estimator itself flags as invalid is not scored as a position estimate.
+  - For EKF3, invalid means `horiz_pos_rel` = `pred_horiz_pos_rel` = `horiz_pos_abs` = 0.
+  - **The invalid period (start relative to the flow-loss point, and duration) is reported
+    instead.**
+  - EKF3 position metrics on blank and transition use only its valid period.
+- **The UKF and FGO have no validity flag.** Their unbounded dead-reckoning growth is reported as
+  it is (ratios 47–197× on the re-flown blank and transition). **The asymmetry is stated plainly in
+  the blank-floor behaviour section:** EKF3 "fails safe" by declaring its position invalid, while
+  the UKF and FGO keep outputting a diverging position with no flag.
+
+**2. `fwdc_tex_r2`: recorded as a PRIMARY MISS as worded, not re-scored.**
+- EKF3 evo -a (cruise) was 3.603 m against the band floor of 3.613 m.
+- The two-sided band ([3.613, 4.34] m, from the new `dsn` EKF3 n = 3 range of 0.24 m) is narrower
+  than the n = 3 variability justifies. A 0.01 m deviation in the *better* direction changes no
+  conclusion. It does not stop the pipeline.
+
+**3. Blank-floor P4 misses (`fwdc_blank_r1..r3`: FGO ratio, and onset for r1/r2;
+`fwdplainc_blank_r2`: FGO ratio): recorded as misses as worded, not re-scored.**
+- **Context:** under the no-flow condition, the FGO displacement-ratio and onset bands measure the
+  size of an unbounded inertial runaway (`dsn` blank ratios 182–197), not the downward sensing
+  condition they were built to check.
+- **Post-hoc condition check (clearly labelled POST HOC):** valid airborne flow frames in cruise are
+  **zero in all 3 `dsn` blank and all 8 forward-camera blank trials** (and in the 3 `ds` blank
+  trials) (flow-loss table above). The sensing condition matches exactly; only the runaway size
+  differs.
+
+**4. UKF `dsn_tex_r1` (evo -a (cruise) 17.45 m) is recorded as a remaining instability case.**
+The same bag was 16.98 m before the corrections, while r2/r3 improved to 2.28 / 4.30 m. **Not
+investigated now.**

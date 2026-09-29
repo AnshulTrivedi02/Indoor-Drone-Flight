@@ -135,6 +135,22 @@ for tr in a.trials:
                         "after_loss_pct": None if not aft.any() else float(100 * bit[aft].mean()),
                         "changes_after_loss_s": [round(float(x - tl), 2) for x in ch[:6]]}
         r["EKF3_flags"] = flags; r["EKF3_messages_rel_loss_s"] = msgs[:12]
+        # EVALUATION RULE (METHODOLOGY, ruling 2026-09-29): EKF3 position is INVALID when horiz_pos_rel,
+        # pred_horiz_pos_rel and horiz_pos_abs are all 0; such output (the origin) is not scored.
+        inval = ((ssb >> 3) & 1) + ((ssb >> 8) & 1) + ((ssb >> 4) & 1) == 0
+        after_to = ss[:, 0] >= tl - 5.0
+        iv = np.where(inval & after_to & (ss[:, 0] <= c1e))[0]
+        if len(iv):
+            r["EKF3_invalid_period"] = {"start_rel_loss_s": round(float(ss[iv[0], 0] - tl), 2),
+                                        "duration_in_cruise_s": round(float(np.sum(np.diff(ss[:, 0])[iv[iv < len(ss) - 1]])), 1),
+                                        "valid_until_cruise_end": False}
+            # re-score EKF3 error growth on its VALID period only (up to the invalid start)
+            t_inv = float(ss[iv[0], 0])
+            if t_inv > tl + 1:
+                r["EKF3_valid_period"] = err_growth(et, ex_, ey_, gt2_t, g2x, g2y, tl, t_inv, alonge)
+            r.pop("EKF3", None)
+        else:
+            r["EKF3_invalid_period"] = None
     out[tr] = r
     print(tr, json.dumps({k: v for k, v in r.items() if k in ("case", "t_loss_after_cruise_start_s", "valid_frames_in_cruise",
                                                              "valid_frames_airborne", "EKF3_OF_records_airborne", "flow_fused_airborne")}),
