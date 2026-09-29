@@ -3955,3 +3955,121 @@ estimators.**
 - EKF3 cruise position error, compared with the open-loop check flight `tsx_on_tex` (same
   settings, open loop);
 - whether the replay records (`RFRH`, `RFRN`, `RISH`) are present.
+
+### Closed-loop smoke test — result (`cl_ekf3_tex`, 2026-09-29)
+
+**Outcome: the drone armed but did NOT complete the corridor.** It hit the west-wall threshold
+(|x| ≥ 9.58 m) about 9 s into the cruise. The watcher stopped the flight, and **there was no
+retry.** The flight is not part of any dataset.
+
+**Settings, confirmed from the log's PARM dump:**
+- `AHRS_EKF_TYPE 3`, `FLOW_POS_Z 0.25`, `LOG_REPLAY 1`, `LOG_DISARMED 1`;
+- `EK3_SRC1_YAW 0`, `COMPASS_USE 0`, `EK3_SRC1_POSXY 0`, `EK3_SRC1_VELXY 5`, `EK3_SRC1_POSZ 2`;
+- `GPS1_TYPE 0`, `SIM_GPS1_ENABLE 0`.
+
+**Arming.**
+- **No changes were needed.** `fly_trial.py` reported "All baseline params correct".
+- `Arm: Gyros inconsistent` was logged 9 times over about 7 s, then it armed with nothing
+  changed. This is normal warm-up: the same message appears 12× in `tsx_on_tex` and
+  `tsx_off_tex`, and 9× in `dsn_tex_r1`.
+- EKF3 started relative aiding at t = 10.8 s, before arming.
+
+**What happened** (Gazebo truth vs EKF3 `XKF1`, NED, cruise start = first GT forward speed
+> 0.2 m/s):
+
+| cruise + | GT North | GT East | EKF3 North | EKF3 East | EKF3 East error |
+|---|---|---|---|---|---|
+| 3 s | 1.39 | −2.01 | 1.48 | +0.13 | +2.14 m |
+| 6 s | 3.07 | −7.65 | 2.78 | +0.85 | +8.50 m |
+| 9 s | 3.52 | −9.47 | 3.04 | +0.25 | +9.72 m |
+
+- **Along-track** was roughly as commanded: 3.5 m in about 9 s at 0.5 m/s, with the EKF3
+  North error ≤ 0.5 m.
+- **Cross-track:** the drone accelerated west, to about 3.6 m/s true lateral speed. EKF3
+  believed it was holding the track: its East estimate stayed within +1 m, and its VE never
+  exceeded −1.2 m/s.
+- **Wall contact:** at t = 37.52 s, x = −9.581, y = 3.60, z = 2.31 m. **Minimum wall
+  clearance is 0**, because the contact threshold was reached. (The watcher summary's
+  "1.48 m" is its last 2 Hz log row, not the minimum.)
+- **Crash criteria** (tilt, height) did not trigger.
+
+**Mechanism (measured, not tuned).**
+- The EKF3 roll estimate fell progressively behind the truth: −4.0° vs −6.1° at 36.0 s, and
+  −8.6° vs −11.1° at 36.5 s. Pitch matched exactly.
+- The controller levels the *estimated* attitude, so the true tilt drove the drone west.
+- The lateral flow that showed the motion was increasingly rejected: 31/84 airborne `XKF5`
+  samples had NI ≥ 100, with |FIX| a mean of 830. In the open-loop `tsx_on_tex` the rejection
+  rate was 3.6%.
+- EKF3's X gyro-bias estimate moved from 0 to −0.09 over the same seconds.
+
+**The same estimator error exists open loop.** In `tsx_on_tex` (same settings, flown on
+simulator truth), EKF3's East error at cruise +3 / +6 / +9 s was **+0.07 / +0.31 / +1.09 m**,
+with the same sign and growing. In closed loop the controller converted that error into
+physical motion and amplified it.
+
+**A 300 s evo -a (cruise) figure cannot be computed** for a 9 s cruise. The +3/+6/+9 s
+comparison above is the like-for-like figure.
+
+**Lateral flow channel — a pre-existing property, and an open item.** A regression of the
+logged `OF` flow on truth-predicted translational flow plus the logged body rate, per axis, over
+the airborne flow frames:
+
+| bag | X (lateral) residual | Y (forward) residual | body-rate rms X / Y | airborne |FIX| / |FIY| |
+|---|---|---|---|---|
+| `dsn_tex_r1` (pre-change) | 0.279 rad/s | 0.019 | 0.218 / 0.016 rad/s | 446 / 8 |
+| `fwdc_tex_r1` (pre-change) | 0.318 | 0.019 | 0.219 / 0.016 | 326 / 8 |
+| `tsx_off_tex` | 0.316 | 0.019 | 0.220 / 0.016 | 414 / 9 |
+| `tsx_on_tex` | 0.316 | 0.019 | 0.219 / 0.016 | 402 / 9 |
+| `cl_ekf3_tex` | 0.270 | 0.029 | — | 830 / 18 |
+
+- The X translation coefficient is +1.02 in the closed-loop flight, so **the lateral sign and
+  scale are correct.**
+- The lateral channel is dominated by a residual of about 0.3 rad/s. It tracks the roll-axis
+  body-rate oscillation (about 0.22 rad/s rms against 0.016 on pitch — Known Issue #1's
+  background vibration).
+- The fitted body-rate coefficient on X is not stable across bags (−0.78, −0.36, +0.32), so
+  this regression cannot identify a derotation sign. **No derotation-sign claim is made.**
+  An interim remark in the session that the lateral axis was "sign-flipped" was wrong and is
+  retracted.
+- This predates the re-run. It is identical with time sync on and off, and it is present in
+  pre-change bags. The UKF and FGO consume the same `flow_x`. It is recorded as an **open
+  item, not acted on** in the re-run (a correction pass, not a tuning pass).
+
+**Replay records** are present:
+- `RFRH` 13407, `RFRN` 82, `RFRF` 13445, `RISH` 1, `RISI` 26815, `ROFH` 819, `RRNH` 1,
+  `RRNI` 154, `RMGH` 1, `RGPH` 1.
+- `REPH` = `RBOH` = 0, which is expected: no ExtNav or body-odometry source is configured. The
+  same is true in `tsx_on_tex`, `tsx_off_tex` and `dsn_tex_r1`.
+
+**Artefacts and manual handling.**
+- Output: `~/thesis_data/trials/cl_ekf3_tex/` and `~/thesis_data/closed_loop/cl_ekf3_tex/`
+  (BREACH.txt, the watcher track and summary).
+- The flight was killed mid-cruise, so `run_trial.sh` did not finish: there is no
+  `metadata.yaml`, and `ardupilot.bin` was copied by hand from `logs/00000082.BIN` (it matches
+  `LASTLOG.TXT` and the flight time).
+- The watcher exited with an rclpy `ExternalShutdownException`, a side effect of the process
+  group kill.
+
+**Do the re-fly settings play a part?** No.
+- The dataset flights keep `AHRS_EKF_TYPE 10`, so EKF3 cannot steer them.
+- The lateral-channel statistics are unchanged by time sync and match the pre-change bags.
+- `FLOW_POS_Z` affects scale only, and the forward channel is clean.
+- Per the ruling, the re-fly batch was started without waiting.
+
+### Consolidated re-run — batch launch (2026-09-29)
+
+- **Old data moved, not deleted.** The 42 pre-re-run trial folders with the re-flown names
+  were moved to `~/thesis_data/trials_pre_rerun/`, so the re-flown trials keep their names
+  and the crash-safe runner does not mark the old data ABORTED. The old numbers in
+  `eval/results/` and `numbers.md` refer to those folders.
+- **Batch 1: `batches/rerun_main.conf`** (33 trials, run by `rerun_main`):
+  - order `p1c_*` (6) → `dsn_*` (9) → `fwdc_*` (9) → `fwdplainc_*` (9);
+  - settings from `run_trial.sh` defaults (nomag + `consolidated_rerun.parm`);
+  - `EXTRA_PARM_FILES` and `EXPECT_OVERRIDE` are unset.
+- **Batch 2: `batches/rerun_ds.conf`** (9 trials, `rerun_ds`), started only after
+  `rerun_main` is DONE:
+  - the compass-active `ds_*` set, run with
+    `EXTRA_PARM_FILES=compass_active.parm` and
+    `EXPECT_OVERRIDE=EK3_SRC1_YAW=1,COMPASS_USE=1,COMPASS_USE2=1,COMPASS_USE3=1`;
+  - these are the only four live-parameter differences between the old `ds_tex_r1` and
+    `dsn_tex_r1` (from the PARM dumps; calibration state and counters excluded).

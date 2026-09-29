@@ -1,0 +1,7 @@
+# Consolidated re-run: ds_* only (compass-active yaw comparison dataset). Appended LAST via
+# EXTRA_PARM_FILES; undoes gnss_denied_nomag.parm's yaw lines. Live diff ds_tex_r1 vs dsn_tex_r1
+# (PARM dump) is exactly these four params.
+EK3_SRC1_YAW 1
+COMPASS_USE 1
+COMPASS_USE2 1
+COMPASS_USE3 1
