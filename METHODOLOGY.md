@@ -4010,30 +4010,10 @@ physical motion and amplified it.
 **A 300 s evo -a (cruise) figure cannot be computed** for a 9 s cruise. The +3/+6/+9 s
 comparison above is the like-for-like figure.
 
-**Lateral flow channel — a pre-existing property, and an open item.** A regression of the
-logged `OF` flow on truth-predicted translational flow plus the logged body rate, per axis, over
-the airborne flow frames:
-
-| bag | X (lateral) residual | Y (forward) residual | body-rate rms X / Y | airborne |FIX| / |FIY| |
-|---|---|---|---|---|
-| `dsn_tex_r1` (pre-change) | 0.279 rad/s | 0.019 | 0.218 / 0.016 rad/s | 446 / 8 |
-| `fwdc_tex_r1` (pre-change) | 0.318 | 0.019 | 0.219 / 0.016 | 326 / 8 |
-| `tsx_off_tex` | 0.316 | 0.019 | 0.220 / 0.016 | 414 / 9 |
-| `tsx_on_tex` | 0.316 | 0.019 | 0.219 / 0.016 | 402 / 9 |
-| `cl_ekf3_tex` | 0.270 | 0.029 | — | 830 / 18 |
-
-- The X translation coefficient is +1.02 in the closed-loop flight, so **the lateral sign and
-  scale are correct.**
-- The lateral channel is dominated by a residual of about 0.3 rad/s. It tracks the roll-axis
-  body-rate oscillation (about 0.22 rad/s rms against 0.016 on pitch — Known Issue #1's
-  background vibration).
-- The fitted body-rate coefficient on X is not stable across bags (−0.78, −0.36, +0.32), so
-  this regression cannot identify a derotation sign. **No derotation-sign claim is made.**
-  An interim remark in the session that the lateral axis was "sign-flipped" was wrong and is
-  retracted.
-- This predates the re-run. It is identical with time sync on and off, and it is present in
-  pre-change bags. The UKF and FGO consume the same `flow_x`. It is recorded as an **open
-  item, not acted on** in the re-run (a correction pass, not a tuning pass).
+**Lateral flow channel — CORRECTED the same day: the lateral (X) flow sign is wrong in all
+three estimators.** The first version of this paragraph "retracted" a sign flip on the basis of
+a flawed regression. That retraction is itself withdrawn. See "FINDING — lateral optical-flow
+sign" below.
 
 **Replay records** are present:
 - `RFRH` 13407, `RFRN` 82, `RFRF` 13445, `RISH` 1, `RISI` 26815, `ROFH` 819, `RRNH` 1,
@@ -4050,7 +4030,10 @@ the airborne flow frames:
 - The watcher exited with an rclpy `ExternalShutdownException`, a side effect of the process
   group kill.
 
-**Do the re-fly settings play a part?** No.
+**Do the re-fly settings play a part?** Superseded. The lateral flow sign (FINDING below) is
+part of every flight's EKF3 input, so it IS a problem with the re-fly configuration. **The
+batch is held for a ruling.** (It never flew: it refused to start because the closed-loop run
+had left processes running.) The original text follows.
 - The dataset flights keep `AHRS_EKF_TYPE 10`, so EKF3 cannot steer them.
 - The lateral-channel statistics are unchanged by time sync and match the pre-change bags.
 - `FLOW_POS_Z` affects scale only, and the forward channel is clean.
@@ -4073,3 +4056,89 @@ the airborne flow frames:
     `EXPECT_OVERRIDE=EK3_SRC1_YAW=1,COMPASS_USE=1,COMPASS_USE2=1,COMPASS_USE3=1`;
   - these are the only four live-parameter differences between the old `ds_tex_r1` and
     `dsn_tex_r1` (from the PARM dumps; calibration state and counters excluded).
+
+## FINDING — lateral optical-flow sign is wrong in EKF3's input and in the UKF/FGO model (2026-09-29)
+
+**Found by the closed-loop smoke test.** The flight's roughly 3.6 m/s lateral excursion is the
+first data in the project with substantial lateral velocity: the rms lateral speed was
+1.56 m/s, against ≤ 0.014 m/s in every open-loop dataset. The lateral translation sign had never
+been tested before. Stage A validated forward flow only, and Known Issue #1 records that roll
+derotation was never tested.
+
+**What the data says** (`/optical_flow/measurement` in the bag, against GT body velocity and
+the co-sampled `/imu/data_raw` gyro, FLU, h = camera height):
+- **Translation** (`cl_ekf3_tex`, 248 airborne frames, lateral v rms 1.56 m/s):
+  - `flow_x_rad = +1.004 · v_left/h`;
+  - `flow_y_rad = +0.994 · v_fwd/h`.
+- **Rotation** (integrated gyro over each frame interval, high-passed; lag fixed at −16 ms,
+  which is where the forward axis fits best and is independent of this question):
+  - `flow_x_rad ≈ +1.5 · ω_x` (R² 0.99 in `tsx_on_tex`, `dsn_tex_r1` and `fwdc_tex_r1`; +1.50
+    in `cl_ekf3_tex`);
+  - `flow_y_rad ≈ −1.2 · ω_y`.
+  - With no lag fixed, the roll term is ambiguous. The roll content is a narrowband tone near
+    17–18 Hz (the vibration that the IMU-rate work found at 17.4 Hz), so a half-period lag
+    (28 ms) flips its apparent sign. That is why the first regression, and the closed-loop
+    section's first draft, went wrong.
+  - Magnitudes above 1 are consistent with the gyro being attenuated by the 20 Hz 2-pole INS
+    filter at about 17 Hz, plus a lever-arm term of about 0.14. That is a separate, open
+    magnitude question, not a sign question.
+- The measured signal is self-consistent in **ArduPilot's own convention**
+  (`AP_NavEKF3_Measurements.cpp:221,227-228`: `flowRadXY = −raw`,
+  `comp = flowRadXY + bodyRate`; `OptFlowFusion.cpp:334-335`: `losPred = (+v_right/h, −v_fwd/h)`).
+  That convention requires:
+  - `raw_x = v_left/h + p` and `raw_y = v_fwd/h + q` (FRD rates);
+  - the Y channel satisfies this with `raw_y = +flow_y_rad`, which is why Stage A worked;
+  - the X channel satisfies it with **`raw_x = +flow_x_rad`**.
+
+**What each estimator assumes.**
+- **EKF3** (`flow_bridge.py:123`, since `f3a5559`, 2026-07-14): `flow_rate_x = −flow_x_rad`.
+  - This is **wrong**: EKF3 sees the lateral translation with the wrong sign, and the roll term
+    added rather than cancelled.
+  - Evidence: airborne |FIX| is 326–446 against |FIY| 8–9 in every open-loop dataset.
+  - In closed loop the wrong translation sign is positive feedback, which is the runaway.
+- **UKF/FGO** (shared `measurement_models.h_flow_pose`, `SIGN_X = −1` since `a19196a`,
+  2026-07-29): they predict `flow_x = −v_left/h − ω_x`.
+  - The **whole X row is negated**: on the closed-loop bag the measured-vs-model slope is −0.96
+    and the correlation −0.99.
+  - The Y rotation term is also negated: the model has `+ω_y` against about −1.06 measured once
+    the lever arm is removed. It has little effect because the pitch rate is small (0.008 rad/s
+    high-pass rms).
+  - The 2026-08-01 test flipped only the X rotation term. That left the X row internally
+    inconsistent (translation still negated), which explains why it made the UKF worse.
+- **Root cause (ours, not a parameter or plugin):**
+  - `FLOW_ORIENT_YAW = 0`, and the camera mounting is consistent. Both estimators' X mappings
+    come from the untested derotation formula in `flow_tracker.py` (`flow_x_rot = −FOCAL·rollspeed`;
+    the data gives +).
+  - The UKF's Y rotation sign is an FRD→FLU slip: `flow_tracker.py` uses `+pitchspeed` (FRD),
+    which is `−ω_y` in FLU.
+  - `flow_x`/`flow_y` (the characterisation-only derotated fields) inherit the same roll
+    sign error.
+
+**Scope.** Every flight since Stage A has this flow input: `ds_*`, `dsn_*`, `p1c_*`, `fwd*_*`,
+`fwdc_*`, `fwdplainc_*`, `tsx_*`, `sweep_*`. Every UKF and FGO result uses the negated model.
+
+**Estimated effect in the open-loop datasets.**
+- True lateral velocity was ≤ 0.014 m/s rms, so the translation flip itself contributes little
+  directly.
+- The main effect is the uncancelled roll tone. EKF3's X measurement carried about
+  (1.4 + 1) × 0.2 ≈ 0.5 rad/s rms of roll content instead of about (1.4 − 1) × 0.2 ≈ 0.08. At a
+  1.8 m camera height that is about 0.9 m/s of equivalent lateral-velocity noise instead of
+  about 0.15.
+- Observed EKF3 lateral-velocity error over cruise:
+
+| bag | mean | rms |
+|---|---|---|
+| `ds_tex_r1` | +0.16 m/s | 0.33 m/s |
+| `dsn_tex_r1` | +0.20 m/s | 0.31 m/s |
+| `dsn_blank_r1` | +0.14 m/s | 0.16 m/s |
+| `fwdc_tex_r1` | +0.07 m/s | 0.10 m/s |
+| `p1c_fwdc_tex` | +0.10 m/s | 0.13 m/s |
+
+- The compass-active `ds_tex_r1` shows the same bias, so it is not a heading effect.
+- These are **upper bounds on the flip's contribution, not attributions**. The counterfactual
+  needs the corrected re-fly (EKF3) or corrected replays (UKF/FGO).
+- The lateral-drift decomposition, the heading share, the flow→yaw coupling finding and every
+  cross-track number may be affected. They are to be restated after the fix.
+
+**Status:** fix proposed, and the re-fly batch is held pending the user's ruling. The
+proposed fix and verification are in the session report.

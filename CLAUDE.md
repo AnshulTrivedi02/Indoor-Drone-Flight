@@ -246,6 +246,12 @@ dialect module from `dialects/v10/` to `dialects/v20/`). `flow_bridge.py`
 sets this at the top of the file. `attitude_bridge.py`/`lidar_bridge.py`
 don't need it — `ATTITUDE` and `DISTANCE_SENSOR` have no extension fields.
 
+> ⚠️ **2026-09-29: the X (lateral) mapping below is WRONG.** The derivation's premise
+> (`flow_x_rot = −FOCAL·rollspeed`) was never tested and is contradicted by data;
+> `flow_rate_x` should be `+flow_x_rad`. Only the Y axis was ever verified. The UKF/FGO
+> `h_flow_pose` X row (and its Y rotation sign) is also wrong. See METHODOLOGY "FINDING —
+> lateral optical-flow sign".
+
 **Axis/sign mapping** (camera optical/pixel frame → MAVLink body-relative
 frame): `flow_x_rad`/`flow_y_rad` are in the camera's optical/pixel frame
 (X=image-right, Y=image-down; see `flow_tracker.py`). Best-derived (not

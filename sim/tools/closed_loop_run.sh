@@ -10,13 +10,13 @@ mkdir -p "$OUT"
 export EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop.parm" EXPECT_OVERRIDE="AHRS_EKF_TYPE=3"
 setsid "$HOME/thesis_ws/run_trial.sh" --world "$WORLD" --velocity 0.5 --altitude 2.0 --duration 300 --trial-name "$NAME" &
 RT=$!
-sleep 2
-PGID=$(ps -o pgid= "$RT" | tr -d ' ')
 set +u; source /opt/ros/jazzy/setup.bash; set -u
-python3 "$HOME/thesis_ws/sim/tools/wall_watch.py" "$OUT" "$PGID" > "$OUT/wall_watch.log" 2>&1 &
+# The watcher gets run_trial's PID (not its group) and stops the flight itself on a breach; it
+# exits only once run_trial has exited AND no sim process remains, so it is waited for, never killed.
+python3 "$HOME/thesis_ws/sim/tools/wall_watch.py" "$OUT" "$RT" > "$OUT/wall_watch.log" 2>&1 &
 WW=$!
 wait "$RT"; RC=$?
-kill "$WW" 2>/dev/null
-echo "run_trial exit $RC" | tee "$OUT/result.txt"
+wait "$WW"; WRC=$?
+echo "run_trial exit $RC; watcher exit $WRC" | tee "$OUT/result.txt"
 [ -f "$OUT/BREACH.txt" ] && { echo "BREACH:"; cat "$OUT/BREACH.txt"; } | tee -a "$OUT/result.txt"
 cat "$OUT/wall_watch_summary.txt" 2>/dev/null | tee -a "$OUT/result.txt"
