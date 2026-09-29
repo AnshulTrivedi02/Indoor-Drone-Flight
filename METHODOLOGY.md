@@ -3370,3 +3370,126 @@ is current.**
     35–42 ms after.
 - The camera pipeline has no post-fix measurement. Its ≤ 61 ms stays marked pre-fix, with
   no current value.
+
+## Phase 5 — evaluation against the pre-registered prediction (2026-09-29; analysis of Phase 4 outputs only)
+
+`eval/phase5_analysis.py` → `eval/results/phase5_analysis.json`. No new replays.
+
+**The prediction, verbatim** ("Forward-camera workstream — hypothesis"): *"the heading-driven
+share falls, and the 26% residual stays roughly unchanged. If the residual also moves, that
+is a finding, not a failure."*
+
+**Method.** The same decomposition as `plots/lateral_checks.py`:
+- errV_lat = estimated minus true lateral velocity;
+- heading part = spd·(sin ψ_est − sin ψ_true);
+- residual = errV_lat − heading part;
+- share = mean(heading part) / mean(errV_lat).
+
+**Checked:** it reproduces the recorded EKF3 `dsn_tex_r3` result exactly with the original
+window (from aiding onset): 0.194 = 0.143 + 0.051 m/s, share 73.6%, cross-track 62.0 / 45.6 /
+16.4 m, corr −0.226.
+
+**Two differences from the original analysis, stated:**
+- **Window:** here, the pinned evo cruise window (on `dsn_tex_r3` that gives share 69%
+  rather than 74%).
+- **UKF/FGO velocity:** from their own frame (yaw 0 along the corridor; GT mapped by a fixed
+  −90° rotation), with lateral velocity differentiated from the stored positions.
+  EKF3 keeps `XKF1` VE, as in the original.
+
+Values are means over 3 repeats, in m/s (cross-track in m).
+
+| dataset / world | estimator | heading part: baseline → +heading | residual: baseline → +heading | residual change vs itself | residual change / removed heading part |
+|---|---|---|---|---|---|
+| `fwdc` tex | UKF | +0.232 → 0.000 | −0.038 → −0.007 | −82% | 0.06–0.14 |
+| `fwdc` tex | FGO | −0.141 → 0.000 | −0.006 → −0.003 | −50% | 0.02 |
+| `fwdc` trans | UKF | +0.179 → 0.000 | −0.196 → −0.300 | +53% | 0.15–1.12 |
+| `fwdc` trans | FGO | −0.148 → 0.000 | −0.195 → −0.365 | +87% | 1.13–1.15 |
+| `fwdc` blank | UKF | −0.061 → 0.000 | −0.551 → −0.637 | +16% | 1.37–1.53 |
+| `fwdc` blank | FGO | −0.145 → 0.000 | −0.582 → −0.780 | +34% | 1.37 |
+| `fwdplainc` tex | UKF | +0.307 → −0.004 | −0.049 → −0.006 | −88% | 0.13–0.15 |
+| `fwdplainc` tex | FGO | −0.143 → −0.003 | −0.005 → −0.002 | −60% | 0.02 |
+| `fwdplainc` trans | UKF | +0.090 → +0.001 | −0.008 → −0.299 | large (baseline ≈ 0) | 0.14–1.76 |
+| `fwdplainc` trans | FGO | −0.143 → 0.000 | −0.201 → −0.365 | +82% | 1.14–1.15 |
+| `fwdplainc` blank | UKF | +0.016 → 0.000 | −0.631 → −0.633 | +0.3% | unstable (heading part ≈ 0.03) |
+| `fwdplainc` blank | FGO | −0.121 → −0.001 | −0.611 → −0.773 | +27% | 1.27–1.36 |
+
+**EKF3 reference** (no heading), in the same window: share 0.76 (`fwdc`) / 0.81 (`fwdplainc`)
+textured, with residual +0.021 m/s; transition and blank shares 0.96–1.00, with residual
+≈ 0.002 m/s.
+
+### Verdicts
+
+**(a) "The heading-driven share falls": PASS in all 12 estimator × world × dataset cells.**
+- The heading part falls from 0.02–0.31 m/s to ≤ 0.004 m/s everywhere.
+- Heading-driven cross-track goes from 18–93 m to ≤ 1.1 m.
+- Judged on the heading part's magnitude. The share ratio itself is unstable where the total
+  error is near zero: for example, `fwdplainc` tex with heading has shares of 0.20 / 0.56,
+  which are ratios of mm/s quantities.
+
+**(b) "The residual stays roughly unchanged": FAIL as worded in 10 of 12 cells.** The
+pre-registration gave no numerical band for "roughly".
+- **Textured:** the residual **shrank** by 50–88% (UKF −0.038 → −0.007, FGO −0.006 → −0.003
+  m/s). That is small in absolute terms (≤ 0.043 m/s; ≤ 13 m of cross-track) against the
+  heading part removed (0.14–0.31 m/s). **FGO textured:** the residual halved (−1.8 → −1.0 m
+  cross-track). The total lateral error is now almost all residual, at ~0.003 m/s.
+- **Transition and blank:** the residual **grew**: +53–87% in transition and +16–34% in
+  blank. The exception is UKF `fwdplainc` blank, +0.3%.
+  - **In every FGO transition and blank cell the residual grew by 1.1–1.4× the heading part
+    that was removed**, so the total lateral velocity error did not fall: FGO transition
+    −0.343 → −0.365 m/s.
+- The only cells where the residual stayed within ±20% of itself are UKF blank (`fwdc` +16%,
+  `fwdplainc` +0.3%).
+- **By the pre-registration's own terms, the residual moving is "a finding, not a
+  failure".** It is reported here as a failure of part (b) as worded.
+
+### Where the heading arm made things worse: UKF transition (evo 15.50 [7.97–25.67] → 19.61 [19.47–19.74] m)
+
+What the data show:
+- **In the baseline, the heading part (+0.179 m/s) and the residual (−0.196 m/s) have
+  opposite signs** and largely cancel: mean errV −0.017 m/s, spread −0.277 to +0.250 across
+  repeats.
+- **With heading,** the heading part is 0 and the residual is −0.300 m/s, consistent across
+  repeats (errV −0.298 to −0.302).
+- So the lower baseline mean evo came with large repeat-to-repeat spread, and is associated
+  with the two components cancelling.
+- The same pattern holds in `fwdplainc` transition: baseline errV +0.082 [−0.176, +0.441] →
+  −0.298.
+- **No further explanation is claimed.**
+
+**FGO transition** improves in evo (26.04 → 20.70 m) while its lateral velocity error does
+not fall. The improvement coincides with the along-track displacement ratio 0.71 → 0.91
+(Phase 4).
+
+### End wall (GT y > 140 m): confident wrong heading outputs
+
+These are valid outputs (support ≥ S_MIN) with |error| > 3° against GT. Totals over 3 bags:
+
+| dataset | valid outputs | wrong > 3° (max \|error\|) | UKF gate: fused / rejected | FGO gate: fused / rejected / not tested |
+|---|---|---|---|---|
+| `fwdc` | 3928 | 47 (6.7°) | **0 / 47** | **29 / 18** / 0 |
+| `fwdplainc` | 2233 | 59 (8.5°) | **0 / 59** | **2 / 55** / 2 |
+
+- "Not tested" means a later valid frame superseded it before the keyframe.
+- The same frame-to-keyframe mapping is used for both FGO arms; the counts are identical with
+  yaw rate.
+- The flight data contain no gross end-wall errors like the static sweep's (−17° for +10°),
+  because the true heading stays ≈ 0.
+- **The FGO fused 29 of the 47 wrong `fwdc` outputs; the UKF fused none.** Recorded as data.
+  The end-of-cruise FGO yaw error stays ≤ 0.53° (Phase 4).
+
+### Plain walls over the checkerboard floor (`fwdplainc_tex`, heading arm)
+
+| | gate acceptance r1 / r2 / r3 | yaw error RMS r1 / r2 / r3 | end-of-cruise yaw error |
+|---|---|---|---|
+| UKF | 68.5 / 66.4 / 71.2% | 0.35 / **4.05** / 0.37° | r2 **−17.4°** |
+| FGO | 77.1 / 80.6 / 80.5% | 2.11 / 2.06 / 1.73° | ≤ 0.28° |
+
+- The UKF r2 heading ends 17.4° off despite the heading arm. Recorded; not investigated here.
+
+### Scope of claims
+
+- **Within-estimator claims only.** EKF3 is the no-heading reference; no EKF3-vs-UKF or
+  EKF3-vs-FGO claim is made with heading.
+- **FGO vs UKF with heading** (textured evo 0.47 vs 6.62 m) is reported as a result but is
+  **conditional on the distance-scale check**: the UKF's with-heading displacement ratio is
+  0.85, the FGO's 1.01.

@@ -5,6 +5,23 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-29 (later still) — Phase 5 evaluated; scale check next
+
+- **Prediction (a), "the heading-driven share falls": PASS** in all 12 cells. The heading
+  part falls from 0.02–0.31 to ≤ 0.004 m/s.
+- **Prediction (b), "the residual stays roughly unchanged": FAIL as worded** in 10 of 12
+  cells.
+  - Textured: the residual shrank 50–88% (tiny in absolute terms).
+  - Transition and blank: it grew 16–87%. In the FGO it grew by more than the heading part
+    removed.
+  - The pre-registration classes this as a finding, not a failure.
+- **UKF transition got worse:** in the baseline, the heading part and the residual cancelled.
+- **End wall:** confident wrong headings (> 3°) were fused 0/47 and 0/59 by the UKF, and
+  29/47 and 2/59 by the FGO.
+- **Plain walls over the checker floor:** acceptance UKF 66–71%, FGO 77–81%. UKF r2 ends
+  17° off.
+- FGO-vs-UKF with heading is conditional on the scale check.
+
 ## Current Status — 2026-09-29 (later) — Phase 4 DONE (90/90), reported for Phase 5
 
 - **Phase 4 offline forward fusion (UKF/FGO):** 90/90 replays done. The baselines are
