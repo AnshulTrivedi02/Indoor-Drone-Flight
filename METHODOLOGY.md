@@ -5954,3 +5954,19 @@ Results: `eval/results/ground_test_gt_heading_2.json`.
     heading updates of the same σ, which slightly widens the predicted yaw error. The bands keep
     their stated 3.5–4× margin.
   - Diagnostic counts per flight (sent, confident-wrong end-wall headings) scale by about 3/4.
+
+### Ground test run 3, `gt_heading_3` (D = 60, `every_n` 4, 330 s armed hold): ALL PASS → sets (a) and (b) proceed (ruling 5)
+
+Armed 29.63 s → disarmed 362.95 s. Results: `eval/results/ground_test_gt_heading_3.json`.
+
+| criterion | result |
+|---|---|
+| G1, G2, G3 | PASS |
+| G5.1 | PASS: `REPH.D` = 60 throughout; horizon 60 ms; XKF5 flow rows 3,461 during ExtNav |
+| G5.2 | PASS: residual r median 82, p95 96, max 110 ms (100% horizon-clamped); p95 × 0.93 deg/s = **0.089°** (≤ 0.25°); 0.009° at the GT p99 rate |
+| G5.3 | PASS. L1 slope **0.012 ms/s**. L2 block medians **138–144 ms**. L3 drops **2 of 2,713 = 0.07%** |
+
+- Latency (node sent − capture): min 107, median 141, p95 153, max 162 ms. Against run 2 (median
+  191), the lower rate removed the waiting in the slot.
+- **Closed-loop heading settings, final:** `VISO_DELAY_MS 60`, `every_n` 4 (7.5 Hz),
+  `HEADING_SIGMA_DEG 0.148` (sent σ; EKF3 applies 5°), `VISO_YAW_M_NSE 0.05`, `VISO_QUAL_MIN 50`.
