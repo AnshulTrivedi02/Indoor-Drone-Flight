@@ -220,7 +220,7 @@ cd ~/ardupilot/ArduCopter
 start_bg "$LOG_DIR/arducopter.log" \
     ~/ardupilot/build/sitl/bin/arducopter \
     --model JSON --speedup 1 --slave 0 \
-    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
+    --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm","$HOME/thesis_ws/roll_rate_gains.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
     --serial2=udpclient:127.0.0.1:14556 \
     --sim-address=127.0.0.1 -I0
 

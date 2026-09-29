@@ -1,0 +1,10 @@
+# Simulation-model correction (user ruling 2026-09-29, METHODOLOGY "Roll rate gains").
+# The iris SITL airframe has 2.25x the roll authority per inertia of pitch (full-body
+# Ixx 0.01252 vs Iyy 0.01743 kg m^2 incl. rotor masses; rotor arms 0.210 m roll vs 0.130 m
+# pitch: (0.210/0.01252)/(0.130/0.01743) = 2.249) but ran IDENTICAL firmware-default rate
+# gains on both axes (P 0.135, I 0.135, D 0.0036), giving a 17.5 Hz roll rate-loop limit
+# cycle (0.40 rad/s rms, motors +-67 us). Roll P/I/D are scaled by 1/2.249 = 0.4447 so the
+# roll loop gain matches the (stable) pitch loop. Pitch, yaw, filters, FF, angle loops unchanged.
+ATC_RAT_RLL_P 0.06003
+ATC_RAT_RLL_I 0.06003
+ATC_RAT_RLL_D 0.0016

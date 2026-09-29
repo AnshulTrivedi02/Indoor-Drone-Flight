@@ -56,6 +56,11 @@ EXPECTED_PARAMS = {
     'AHRS_EKF_TYPE': 10,
     'LOG_REPLAY': 1,
     'LOG_DISARMED': 1,
+    # Roll rate gains scaled to this airframe (roll_rate_gains.parm, 2026-09-29): removes the
+    # 17.5 Hz roll limit cycle. Pitch/yaw stay at firmware defaults.
+    'ATC_RAT_RLL_P': 0.06003,
+    'ATC_RAT_RLL_I': 0.06003,
+    'ATC_RAT_RLL_D': 0.0016,
     'RNGFND1_TYPE': 10,
     'FLOW_TYPE': 5,
     'EK3_SRC1_VELXY': 5,
