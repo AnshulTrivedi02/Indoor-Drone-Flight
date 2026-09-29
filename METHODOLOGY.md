@@ -5733,3 +5733,50 @@ values move to its superseded section and are **not edited in place.**
   heading error integrates the difference.
 - **Consequence for step 2:** a comparison against the offline UKF must use the port's own
   initialisation instant, or it measures initialisation timing rather than the filter.
+
+### Closed-loop Part 1: SITL ground test run 1, `gt_heading_1` (2026-09-29): G4 STOP (latency above the horizon)
+
+**Run.**
+- `HEADING=1 HEADING_SIGMA_DEG=0.148 HEADING_EVERY_N=3 GROUND_TEST=60 sim/tools/closed_loop_run.sh corridor_textured_fwdc gt_heading_1`.
+- Stock tree; placeholder `VISO_DELAY_MS 10`.
+- The runner exited 0, and the watcher saw no motion (max |x| 0.000).
+- Checker: `eval/ground_test_check.py`; results in `eval/results/ground_test_gt_heading_1.json`.
+
+**Deviation in the G4(b) method, stated.** The pre-registered clock map (`input_timing.clock_map`)
+fits the SITL↔Gazebo offset from vehicle motion, and a ground test has none. The map used instead
+is `/imu/time_ref`: the ROS receipt stamp against HIGHRES_IMU `time_usec`, with a linear fit to the
+per-5 s minima.
+- Offset +2.8 ms, rate 162 ppm (the known ~0.02% rate difference), envelope residual ≤ 1.9 ms.
+- It is an upper bound on the offset by the loopback transport lag.
+
+| criterion | result |
+|---|---|
+| G1, yaw-only ExtNav fusion | **PASS as worded.** The first `VISP` is at 14.43 s and "EKF3 IMU0/1 yaw aligned" at 14.43/14.44 s, so EKF3's yaw alignment waited for the ExtNav heading. `REPH` n = 751, all with `AEr` = 0.05 (the clamp). \|PN\|, \|PE\| ≤ 0.007 m, with no jump to the placeholder. `EK3_SRC1_POSXY` = 0. XKF3 `IYAW` non-zero on 93% of samples after 20 s. (The checker's automatic G1 flag reads false only because its message match looked for "ext"; the pre-registered wording allows a yaw-alignment message.) |
+| G2, arming with the node | **PASS.** The offset was locked before arming (+0.0002 rad, at capture 14.29 s). It armed. Transient pre-arm messages "Gyros inconsistent" / "Need Position Estimate" (17.8–20.6 s) cleared before arming; none was from VisualOdom. |
+| G3, no origin needed | **PASS.** No origin was set. `horiz_pos_rel` came up at 25.5 s. |
+| G4, latency (run 1) | **STOP.** (a) node sent − capture: min **100.0** ms, median 132, p95 199. (b) `VISP` receipt − capture: min **103.7** ms, median 133, p95 200. They agree within 5 ms, which gives `VISO_DELAY_MS` = **104**, above the 60 ms horizon. **As pre-registered: stop and report.** Run 2 was not flown, and nothing was changed in `closedloop_heading.parm`. |
+| G5 | Not applicable in run 1 (the delay was the placeholder). Recorded: XKF5 flow innovations were present in 747 rows while ExtNav was fused, so flow and ExtNav fuse together on the ground. |
+
+**Where the latency comes from** (node CSV, sim clock):
+- **capture → node receipt:** 28–33 ms. This is image transport, about one frame.
+- **node receipt → sent:** min 67 ms, median 99, p95 166.
+- **The node's per-frame processing is 108–159 ms of WALL clock** (`proc_ms`). This is the
+  frozen Phase 3 LSD + RANSAC heading in Python. At RTF ~0.7–0.9 it maps to the sim-clock time
+  above, so **the sim-time latency depends on RTF**: it is a property of this workstation
+  implementation, not of the measurement.
+- It also exceeds the 100 ms frame budget at `every_n` 3.
+
+**A second, SITL-specific finding: ArduPilot's own corrected timestamp is not the "minimum
+receipt lag".**
+- `SERIAL1_BAUD` is 57 (57,600 baud, the default). The SITL `UARTDriver::receive_time_constraint_us`
+  (`AP_HAL_SITL/UARTDriver.cpp:1004-1013`) subtracts a virtual serial transmit time of
+  10 bits/byte × (packet + buffered bytes), about 40 ms for one `ODOMETRY` packet.
+- `JitterCorrection` (`AP_RTC/JitterCorrection.cpp:50-89`) then takes the minimum of
+  (local − remote) against that earlier local time.
+- Measured result: `VISP.CTimeMS` − capture = **73 → 47 ms** over the run (a window minimum
+  that drifts), while the true receipt lag has a minimum of 91–133 ms.
+- **The delay that would time-align the fused heading in this SITL setup is therefore about
+  50–70 ms, not the 104 ms minimum receipt lag.** The pre-registered rule (`VISO_DELAY_MS` =
+  the minimum receipt lag) assumed the minimum-lag convention without the virtual-baud term.
+- This is recorded as a fact about the rule's premise. **It is not used to change the rule or the
+  verdict.**
