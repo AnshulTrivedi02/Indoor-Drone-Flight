@@ -69,3 +69,17 @@ evidence are in METHODOLOGY (section named per item).
 - **Recommendation: (a) then (c).** (a) is the prerequisite for any live or onboard use, and it
   reuses the validated offline core. (c) is small and removes a caveat on every FGO consistency
   claim. (b) is only worth starting after (a) runs live. I did not start any of them without a ruling.
+
+## D8. Flow timing (from D5's step-3 re-run)
+- EKF3's flow timestamp hard-codes a 100 ms flow interval, so our 30 Hz flow is fused about 45 ms
+  before capture. `EK3_FLOW_DELAY` cannot correct this (non-negative).
+- The port with D5 copies that. With flow at its true capture time, ArduPilot's inputs would cost the
+  port only 0.41 m against the offline UKF (against 5.06 m now).
+- Options:
+  - **(a) keep EKF3's timing in the port** (fair: both fuse at the same, equally wrong time), and
+    measure EKF3's own cost in Replay with the interval corrected (diagnostic only, never flown);
+  - (b) time the port's flow correctly (capture − half the frame interval), a non-EKF3 improvement,
+    stated as such;
+  - (c) both, reporting the port under each.
+- **Recommendation: (a)**, plus the EKF3 Replay diagnostic, because it quantifies a property of the
+  baseline itself.

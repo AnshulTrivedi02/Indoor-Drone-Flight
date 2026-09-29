@@ -6429,3 +6429,49 @@ with clipping; port: larger jitter, then skip the predict). Counted on both logs
 - Headings are still 100% horizon-clamped. The SITL virtual-baud term makes ArduPilot's corrected
   timestamp about 40 ms early, so TS − 38 − 6 falls before receipt − 60. The fusion time is therefore
   receipt − 60 ms, a median of 14 ms **before** capture.
+
+### D5: flow delay buffer added to the UKF port (EKF3's approach) — step 3 re-run (`dsn_tex_r2`)
+
+**Implementation** (`~/ardupilot_ukf` `AP_NavUKF`).
+- The port now runs on a **60 ms delayed fusion horizon**, as EKF3 does. Every input is time-stamped
+  into a time-ordered queue, and the queue is processed up to `now − 60 ms`.
+- **Flow gets EKF3's exact timestamp:** arrival − `EK3_FLOW_DELAY` (10) − `flowTimeDeltaAvg_ms`/2
+  (100/2, hard-coded at `AP_NavEKF3.h:511`) − filter step/2 (6) = arrival − 66 ms, clamped to the
+  horizon (`AP_NavEKF3_Measurements.cpp:232-236`). **In practice that is arrival − 60 ms.**
+- The IMU path, the flow-gyro pairing and range are unchanged, as ArduPilot provides them.
+- The log is stamped at the horizon time. The numerics (`predict`/`update_scalar`/`yaw_pseudo`) are
+  untouched, so step 2's equivalence stands.
+
+**Step 3, re-run** (`eval/results/ukf_step3_dsn_tex_r2_d5.json`). Difference from the offline UKF at
+the end of cruise:
+
+| variant | Δ position | Δ yaw |
+|---|---|---|
+| V3: flow at arrival (the port before D5; about 14.5 ms after capture) | 4.80 m | 3.56° |
+| **V3e: flow at EKF3's time (D5; arrival − 60 ms, about 45 ms BEFORE capture)** | **5.36 m** | **3.98°** |
+| V5: all ArduPilot inputs, flow at arrival (port before D5) | 5.13 m | 3.75° |
+| **V5e: all ArduPilot inputs, flow at EKF3's time (port WITH D5)** | **5.06 m** | **3.81°** |
+| V5c DIAGNOSTIC: all ArduPilot inputs, flow at the offline UKF's capture time | **0.41 m** | **0.25°** |
+
+**Full Replay port against truth** (evo -a (cruise) equivalent, DIAGNOSTIC, same alignment as
+before): **2.79 m with D5**, 3.37 m without it; offline UKF 2.28, EKF3 3.86, FGO 4.30. Valid 100%.
+
+**Reading.**
+- **The remaining input-path cost is almost entirely flow TIMING.** With flow at its capture time,
+  ArduPilot's IMU path, gyro pairing and range together cost only 0.41 m / 0.25°.
+  - V1/V2's large single-input costs came from mixing inconsistent sources, such as ArduPilot's IMU
+    deltas with the bag's frame-averaged gyro. They are not additive.
+- **EKF3's approach, copied faithfully, mis-times our flow:** it is fused about 45 ms before capture,
+  where arrival fusion was about 15 ms after.
+  - The cause is EKF3's hard-coded assumption of a 100 ms flow interval (a 10 Hz sensor). Our flow is
+    30 Hz.
+  - `EK3_FLOW_DELAY` is a non-negative integer, so **no parameter can make EKF3 time our flow
+    correctly.**
+- **This is therefore also a finding about EKF3 itself:** EKF3 fuses our flow about 40–45 ms early
+  in every dataset.
+  - Its cost to EKF3 is not measured. It could be measured in Replay with a modified EKF3
+    (diagnostic only; queued as D8).
+- Against truth the buffered port is better (2.79 against 3.37 m), although its distance from the
+  offline UKF is about the same: it moves along a different error direction.
+- **Live SITL shadow yaw drift with D5:** after the set (b) re-fly (one simulation at a time).
+  Reported before any UKF flight.

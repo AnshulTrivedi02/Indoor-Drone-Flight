@@ -19,6 +19,8 @@ Variants (all start from the offline UKF's own initial state; only the named inp
   V4  range: the port's own range sampling (DAL rangefinder, cm-quantised, >= 33 ms) instead of the
       bag's float ranges at their stamps
   V5  V1 + V2 + V3 + V4 together
+  V3e flow fused at EKF3's time (the D5 delay buffer): arrival - 66 ms clamped to the 60 ms horizon
+  V5e V1 + V2 + V3e + V4: the port WITH the delay buffer (ruling D5)
 Reported per variant against the offline UKF (V0's Python states): position and yaw difference over
 the pinned cruise window (at +60 s, +150 s, end, max), and the gate acceptance counts.
 Usage (~/venv-evo): python3 eval/ukf_step3.py PREFIX UKF_INPUTS_CSV TRIAL [--json OUT]"""
@@ -91,7 +93,11 @@ for k in fl_idx:                  # exact float32 value match, arrival within [c
 lat = np.array([tfq[j] - tpy[k] for k, j in match.items()])
 
 
-def build(v1=False, v2=False, v3=False, v4=False):
+FLOW_EKF3_OFFSET_S = 0.060   # ruling D5: EKF3's flow time, arrival - 10 - 100/2 - 12/2 = arrival - 66 ms, clamped to the
+                             # 60 ms horizon (AP_NavEKF3_Measurements.cpp:232-236) -> arrival - 60 ms
+
+
+def build(v1=False, v2=False, v3=False, v4=False, v3e=False, v3c=False):
     evs = []
     for k in range(len(typ)):
         t_, ty = tpy[k], int(typ[k])
@@ -106,6 +112,10 @@ def build(v1=False, v2=False, v3=False, v4=False):
                 row[2], row[3] = fq[j, 5], fq[j, 6]
             if v3:
                 t_ = tfq[j]
+            if v3e:
+                t_ = tfq[j] - FLOW_EKF3_OFFSET_S
+            if v3c:                            # DIAGNOSTIC: the offline UKF's own time (capture), via arrival - measured latency
+                t_ = tpy[k]
         evs.append((t_, ty, row))
     if v1:
         evs += pred
@@ -137,7 +147,9 @@ out = {"trial": a.trial, "window_s": [float(c0), float(c1)], "flow_matched": len
        "flow_arrival_minus_capture_ms": {q: float(1e3 * np.percentile(lat, p)) for q, p in (("min", 0), ("median", 50), ("p95", 95), ("max", 100))},
        "clock_map": {"offset_ms": float(1e3 * (kk * env[0, 0] + cc)), "rate_ppm": float(1e6 * kk)}, "variants": {}}
 for name, kw in (("V0", {}), ("V1_imu", {"v1": True}), ("V2_flow_gyro", {"v2": True}), ("V3_flow_arrival", {"v3": True}),
-                 ("V4_range", {"v4": True}), ("V5_all", {"v1": True, "v2": True, "v3": True, "v4": True})):
+                 ("V4_range", {"v4": True}), ("V5_all", {"v1": True, "v2": True, "v3": True, "v4": True}),
+                 ("V3e_flow_ekf3_time", {"v3e": True}), ("V5e_all_ekf3_time", {"v1": True, "v2": True, "v3e": True, "v4": True}),
+                 ("V5c_all_capture_time_DIAG", {"v1": True, "v2": True, "v3c": True, "v4": True})):
     tv, ty, xs, fls = run(build(**kw), name)
     # port state at each offline predict instant: last port event at or before it
     idx = np.searchsorted(tv, tpp, side="right") - 1
