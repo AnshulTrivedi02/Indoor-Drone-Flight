@@ -3437,8 +3437,8 @@ pre-registration gave no numerical band for "roughly".
   - **In every FGO transition and blank cell the residual grew by 1.1–1.4× the heading part
     that was removed**, so the total lateral velocity error did not fall: FGO transition
     −0.343 → −0.365 m/s.
-- The only cells where the residual stayed within ±20% of itself are UKF blank (`fwdc` +16%,
-  `fwdplainc` +0.3%).
+- *(Descriptive only, not a definition of "roughly".)* The smallest residual changes are UKF
+  blank (`fwdc` +16%, `fwdplainc` +0.3%).
 - **By the pre-registration's own terms, the residual moving is "a finding, not a
   failure".** It is reported here as a failure of part (b) as worded.
 
@@ -3493,3 +3493,27 @@ These are valid outputs (support ≥ S_MIN) with |error| > 3° against GT. Total
 - **FGO vs UKF with heading** (textured evo 0.47 vs 6.62 m) is reported as a result but is
   **conditional on the distance-scale check**: the UKF's with-heading displacement ratio is
   0.85, the FGO's 1.01.
+
+
+### Phase 5 — accepted (user, 2026-09-29)
+
+**Result as accepted.**
+- **(a) PASS 12/12.**
+- **(b) FAIL as worded, 10/12.** Both the absolute and the relative residual changes are
+  reported in the table above.
+- **"Roughly" is not defined retrospectively.** The "residual change / removed heading part"
+  column and the smallest-change remark are descriptive only. They are not a band.
+
+**What the data show about the two components (a finding, not an explained mechanism).**
+- Where the heading error is removed, the residual grows in transition and blank.
+- In the UKF transition baseline, the heading part and the residual have **opposite signs**
+  and largely cancel.
+- **So the heading-driven and residual components were not independent in these bags.**
+  Removing one changed the other.
+- The decomposition's premise was that the residual is a separate term that removing heading
+  error would leave alone. The data do not support that premise here.
+- No mechanism is claimed.
+
+**METHODOLOGY LESSON (standing rule from now on): every future prediction carries a numeric
+threshold.** A verbal criterion such as "roughly unchanged" cannot be scored without
+defining it after the fact. That is exactly what the pre-registration rules exist to prevent.
