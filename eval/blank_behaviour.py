@@ -78,11 +78,20 @@ for tr in a.trials:
     vf = valid_frames(tr)
     if gtp:
         gt_t, gx, gy = tum(gtp); c0, c1 = cruise_bounds(gt_t, gx, gy)
+        # flow-loss point (METHODOLOGY "Loss-of-flow analysis - flow-loss point defined"): last valid frame
+        # while airborne (GT z > 0.5 m) up to cruise end; if none, take-off; case A/B/C
+        gz = np.loadtxt(gtp)[:, 3]
+        t_to = float(gt_t[np.argmax(gz > 0.5)])
+        z_at = np.interp(vf[:, 0], gt_t, gz)
+        air_valid = vf[(vf[:, 1] > 0) & (z_at > 0.5) & (vf[:, 0] <= c1), 0]
+        if len(air_valid):
+            t_loss = float(air_valid[-1]); case = "A" if t_loss < c0 else "B"
+        else:
+            t_loss = t_to; case = "C"
         w = (vf[:, 0] >= c0) & (vf[:, 0] <= c1)
-        vin = vf[w & (vf[:, 1] > 0), 0]
-        t_loss = float(vin[-1]) if len(vin) else float(c0)
-        r["window_s"] = [float(c0), float(c1)]; r["t_loss_s"] = t_loss
-        r["valid_frames_in_cruise"] = int(len(vin)); r["t_loss_after_cruise_start_s"] = t_loss - float(c0)
+        r.update({"window_s": [float(c0), float(c1)], "takeoff_s": t_to, "t_loss_s": t_loss, "case": case,
+                  "t_loss_after_cruise_start_s": t_loss - float(c0),
+                  "valid_frames_in_cruise": int((w & (vf[:, 1] > 0)).sum()), "valid_frames_airborne": int(len(air_valid))})
         along = 1 if abs(gy[-1] - gy[0]) > abs(gx[-1] - gx[0]) else 0          # ENU: corridor along +Y
         for s in a.arms.split(","):
             p = f"{d}/{s}/{s.split('_')[0]}_traj.tum"
@@ -98,15 +107,24 @@ for tr in a.trials:
         alonge = 0 if abs(g2x[-1] - g2x[0]) > abs(g2y[-1] - g2y[0]) else 1        # NED: corridor along North (x)
         r["EKF3"] = err_growth(et, ex_, ey_, gt2_t, g2x, g2y, tl, float(c1e), alonge)
         from pymavlink import mavutil
-        m = mavutil.mavlink_connection(f"{d}/ardupilot.bin"); ss, msgs = [], []
+        m = mavutil.mavlink_connection(f"{d}/ardupilot.bin"); ss, msgs, ofr = [], [], []
         while True:
-            x = m.recv_match(type=["XKF4", "MSG"])
+            x = m.recv_match(type=["XKF4", "MSG", "OF", "XKF5"])
             if x is None:
                 break
-            if x.get_type() == "XKF4" and x.C == 0:
+            if x.get_type() == "OF":
+                ofr.append(x.TimeUS / 1e6)
+            elif x.get_type() == "XKF5" and x.C == 0:
+                ss.append((x.TimeUS / 1e6, -1, x.HAGL))
+            elif x.get_type() == "XKF4" and x.C == 0:
                 ss.append((x.TimeUS / 1e6, int(x.SS)))
             elif x.get_type() == "MSG" and "EKF3" in x.Message and c0e - 30 <= x.TimeUS / 1e6 <= c1e + 30:
                 msgs.append((round(x.TimeUS / 1e6 - tl, 2), x.Message))
+        hagl = np.array([(t_, h) for t_, k, h in ss if k == -1]); ss = [(t_, k) for t_, k, *_ in ss if k != -1]
+        # airborne by the SAME rule (GT z > 0.5 m), OF TimeUS mapped to the sim clock by the cruise-start offset
+        of_air = [t_ for t_ in ofr if np.interp(t_ - off, gt_t, gz) > 0.5] if gtp else []
+        r["EKF3_OF_records_airborne"] = len(of_air)
+        r["flow_fused_airborne"] = bool(r.get("valid_frames_airborne", 0) > 0 or len(of_air) > 0)
         ss = np.array(ss); ssb = ss[:, 1].astype(np.int64); wc = (ss[:, 0] >= c0e) & (ss[:, 0] <= c1e)
         bef, aft = wc & (ss[:, 0] < tl), wc & (ss[:, 0] >= tl)
         flags = {}
@@ -118,7 +136,8 @@ for tr in a.trials:
                         "changes_after_loss_s": [round(float(x - tl), 2) for x in ch[:6]]}
         r["EKF3_flags"] = flags; r["EKF3_messages_rel_loss_s"] = msgs[:12]
     out[tr] = r
-    print(tr, json.dumps({k: v for k, v in r.items() if k in ("t_loss_after_cruise_start_s", "valid_frames_in_cruise")}),
+    print(tr, json.dumps({k: v for k, v in r.items() if k in ("case", "t_loss_after_cruise_start_s", "valid_frames_in_cruise",
+                                                             "valid_frames_airborne", "EKF3_OF_records_airborne", "flow_fused_airborne")}),
           {k: r[k].get("disp_ratio_after_loss") for k in r if isinstance(r[k], dict) and "disp_ratio_after_loss" in r[k]}, flush=True)
 if a.json:
     json.dump(out, open(a.json, "w"), indent=1)

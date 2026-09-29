@@ -5262,3 +5262,43 @@ after the pipeline.**
      user's ruling.
 5. **Order:** the pipeline re-run → the shadow UKF SITL run → the ground test → closed-loop sets
    (a) and (b).
+
+### Loss-of-flow analysis — flow-loss point defined BEFORE the analysis runs (user request, 2026-09-29)
+
+**Definition** (`eval/blank_behaviour.py`; one rule for all three estimators):
+- **Airborne:** GT base_link height (`/ground_truth/pose` z) > 0.5 m. Rest is 0.195 m.
+- **Take-off time:** the first time GT z > 0.5 m.
+- **Flow-loss point `t_loss`:** the time of the **last flow_tracker-`valid` frame received while
+  airborne, at any time up to the end of cruise**. If **no** valid frame occurs while airborne,
+  `t_loss` = take-off, and the trial is marked **"flow never valid airborne"**.
+- **Case labels per trial:**
+  - **A:** flow valid airborne, lost before cruise start (during the climb or hover);
+  - **B:** lost inside the cruise window (e.g. the transition boundary);
+  - **C:** never valid airborne (`t_loss` = take-off).
+- **"Flow fused airborne", reported per trial:**
+  - (i) the number of valid frames while airborne. These are what the UKF and FGO can fuse
+    (their update requires `valid`), subject to their gates.
+  - (ii) the number of EKF3 dataflash `OF` records while airborne. These are what reached EKF3,
+    since `flow_bridge.py` forwards only valid frames.
+- **Same rule for all estimators.** EKF3's own clock (`TimeUS`) is mapped by the per-trial
+  cruise-start offset (tens of ms, negligible at these timescales).
+- **Error growth** is measured with each estimate re-referenced to GT at `t_loss`, at
+  `t_loss` + 10/30/60/120 s and at the end of cruise.
+
+**Flow-loss cases, per trial** (computed from the bags and dataflash BEFORE the loss-of-flow
+analysis runs; the same numbers come from `eval/blank_behaviour.py`):
+
+| world | trials | case | `t_loss` − cruise start | GT y at loss | valid frames airborne | EKF3 `OF` records airborne | flow fused airborne? |
+|---|---|---|---|---|---|---|---|
+| transition | all 14 (`dsn`, `ds`, `fwdc`, `fwdplainc`, `p1c`) | **B** | **+161.05 … +161.09 s** | **80.5–80.6 m** (the boundary) | 4,858–4,874 (textured half) | 4,859–4,879 | yes, until the boundary |
+| blank | 13 of 14… see below | **A** | **−0.30 … −1.43 s** (during the climb) | 0.0 m | **1–4** (take-off only) | 1–7 | **only a few take-off frames; none in cruise** |
+| blank | `ds_blank_r2` | **C** | take-off (−1.84 s) | 0.0 m | **0** (never valid airborne) | 3 | only arrivals of frames captured just before take-off |
+
+- **Blank, case A:** `ds_blank_r1`, `ds_blank_r3`, `dsn_blank_r1..r3`, `fwdc_blank_r1..r3`,
+  `fwdplainc_blank_r1..r3`, `p1c_fwdc_blank`, `p1c_fwdplainc_blank`. **Case C:** `ds_blank_r2`.
+- **Airborne `OF` records slightly exceed the airborne valid frames** (for example 3 against 0 on
+  `ds_blank_r2`). This is expected: `OF` is stamped on arrival at ArduPilot, ~20 ms after capture,
+  so frames captured just below 0.5 m arrive after the vehicle passes 0.5 m.
+- **In every blank trial, flow is effectively absent for the whole flight:** at most 7 samples at
+  take-off, and zero in cruise. The analysis therefore measures from `t_loss`, a second or two
+  before cruise starts, which is equivalent to "from take-off" to within 2 s.
