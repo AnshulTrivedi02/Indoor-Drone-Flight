@@ -14,7 +14,7 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
 from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift, GroundProximityFlow
-from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
+from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset, f_variant, f_filter_forward
 import json
 from imu_timing import dejitter_imu, apply_gap_rule
 
@@ -24,7 +24,8 @@ TRIAL = sys.argv[1]
 ARM = sys.argv[4] if len(sys.argv) > 4 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/fgo" + ("" if ARM is None else f"_{ARM}"))
+FV = f_variant()     # offline F-test variants (all off by default)
+OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -54,6 +55,7 @@ ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
 ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
 ev.sort(key=lambda e: e[0]); gt = np.array(sorted(gt))
+ev = f_filter_forward(ev, gt[:, 0], gt[:, 1], gt[:, 2], FV)
 
 # init: gravity levelling over first 0.5 s + first valid range
 t_imu0 = next(t for t, k, _ in ev if k == "imu")
@@ -63,9 +65,13 @@ t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 sig_fwd = FWD_SIGMA[fwd_dataset(TRIAL)] if ARM not in (None, "baseline") else None
-fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd, fwd_gate=FWD_CHI2_GATE,
+fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd,
+          fwd_gate=(float("inf") if FV["F_ROBUST"] else FWD_CHI2_GATE), fwd_robust=FV["F_ROBUST"],
           log_cov=bool(os.environ.get("FGO_COV_LOG")))   # diagnostic covariance log (Phase 5b)
-fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init)
+fgo.batch_record = bool(FV["F_BATCH"])
+fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init,
+         yaw0=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else 0.0),
+         yaw_sigma=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else None))
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 
 # run: integrate every IMU sample; create a keyframe on the fixed IMU-clock cadence
@@ -204,3 +210,23 @@ with open(f"{OUTDIR}/metrics.txt", "w") as f:
             f"bgz_pct={bgz_frac:.1f}\ntrue_bias_mean={true_mean:.3f}\nbgz_ramp={est_slope:.3f}\ntrue_ramp={true_slope:.3f}\n"
             f"n_flow={fgo.n_flow}\nn_range={fgo.n_range}\nn_kf={n_kf}\n"
             f"step_median_ms={np.median(step_ms):.3f}\nstep_p99_ms={np.percentile(step_ms,99):.3f}\n")
+
+
+# ---- F2 (offline, F_BATCH): ONE batch LM over every factor the live smoother received ----
+if FV["F_BATCH"]:
+    import time as _t
+    import gtsam
+    from gtsam.symbol_shorthand import X as _X
+    t0b = _t.perf_counter()
+    prm = gtsam.LevenbergMarquardtParams(); prm.setMaxIterations(50); prm.setRelativeErrorTol(1e-6)
+    opt = gtsam.LevenbergMarquardtOptimizer(fgo.all_g, fgo.all_est, prm)
+    res = opt.optimize()
+    with open(f"{OUTDIR}/fgo_batch_traj.tum", "w") as f:
+        for kk, tk in fgo.key_t:
+            key = _X(kk)
+            if not res.exists(key):
+                continue
+            p_ = res.atPose3(key); rpy = p_.rotation().rpy(); q = euler_to_quat(rpy[0], rpy[1], rpy[2])
+            f.write(f"{tk:.6f} {p_.x():.6f} {p_.y():.6f} {p_.z():.6f} {q[0]:.6f} {q[1]:.6f} {q[2]:.6f} {q[3]:.6f}\n")
+    print(f"[batch] {fgo.all_g.size()} factors, error {opt.error():.3f}, {opt.iterations()} iterations, "
+          f"{_t.perf_counter() - t0b:.1f} s")

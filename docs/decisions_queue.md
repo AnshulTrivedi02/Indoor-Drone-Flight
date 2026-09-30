@@ -5,6 +5,23 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D22. Half-speed UKF with-heading r3 FAILS B4 (0.296 m/s > 0.25) at cruise +0.5 s; EKF3 half set 3/3 PASS, UKF 2/3 (BLOCKS the FGO gates and flights)
+- **It is a cruise-start transient:** GT East +0.27 → +0.49 m in ~1 s at the hover-to-cruise
+  transition, then settled. Yaw error 0.08°, all headings accepted. **Not a runaway.**
+- **The same class, under the band:** EKF3 r1 at cruise +0.5 s, 0.140 m/s (full speed) and 0.181 m/s
+  (half speed). Every other flight's peak is ≤ 0.044 m/s, later in cruise.
+- Options:
+  - **(a)** record the half-speed UKF set as FAILED (2/3) as worded, with this diagnosis, and continue
+    with the FGO gates. The FGO set is scored the same way, so it can fail the same way.
+  - (b) (a), plus a DIAGNOSTIC re-score of every closed-loop flight with B4 excluding the first 2 s of
+    cruise, reported alongside and never replacing the result.
+  - (c) re-fly UKF r3 once. Not recommended: a repeat must not replace a result.
+- **Recommendation: (a) + (b).**
+- **The cruise-start transient is a property of the mission profile** (the step from hover to a
+  0.5 m/s velocity command). It is worth stating in the thesis, since B4 at cruise start measures that
+  as much as the estimator.
+
+
 ### D21. Half-speed EKF3 set (a) PRIMARY MISS: contact +242.1 s (full speed +186.2; window [+155, +215]). The UKF passed (+198.0 against +163.0)
 - **A systematic RTF effect:** both estimators' no-heading yaw drift is slower at half speed (EKF3 +2.1
   against +4.3 deg/min over the first 150 s; UKF +3.9 against +5.5). SITL's gyro drift is identical in

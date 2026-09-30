@@ -38,7 +38,7 @@ ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
 
 
 class FGO:
-    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0,
+    def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0, fwd_robust=None,
                  log_cov=False):
         self.kf_dt = kf_dt
         # Diagnostic (Phase 5b): run the gate-only filtering covariance recursion and log the
@@ -72,6 +72,11 @@ class FGO:
         self.yaw_noise = gtsam.noiseModel.Isotropic.Sigma(1, 0.5)     # EK3_YAW_M_NSE, §9.4
         if fwd_sigma is not None:
             self.heading_noise = gtsam.noiseModel.Isotropic.Sigma(1, fwd_sigma["psi"])
+            if fwd_robust:                                  # F1 (offline): robust heading factor, gate removed by the caller
+                kind, k = fwd_robust.split(":")
+                est = (gtsam.noiseModel.mEstimator.Huber.Create(float(k)) if kind == "huber"
+                       else gtsam.noiseModel.mEstimator.Cauchy.Create(float(k)))
+                self.heading_noise = gtsam.noiseModel.Robust.Create(est, self.heading_noise)
             self.yawrate_noise = (gtsam.noiseModel.Isotropic.Sigma(1, fwd_sigma["omega"])
                                   if fwd_sigma.get("omega") is not None else None)
         self.k = 0
@@ -81,22 +86,27 @@ class FGO:
         self.n_flow = self.n_range = self.n_imu = 0
         self.last = None            # (t, Pose3, vel)
 
-    def init(self, accel_mean, first_range, t0):
+    def init(self, accel_mean, first_range, t0, yaw0=0.0, yaw_sigma=None):
         ax, ay, az = accel_mean
         roll0 = np.arctan2(ay, az)
         pitch0 = np.arctan2(-ax, np.hypot(ay, az))
-        pose0 = Pose3(Rot3.Ypr(0.0, pitch0, roll0), np.array([0.0, 0.0, first_range + 0.12]))
+        pose0 = Pose3(Rot3.Ypr(yaw0, pitch0, roll0), np.array([0.0, 0.0, first_range + 0.12]))   # yaw0: F3 only
         vel0 = np.zeros(3)
         bias0 = gtsam.imuBias.ConstantBias(np.zeros(3), np.zeros(3))
         g = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
         # X(0) prior: [roll,pitch,yaw, x,y,z] tangent sigmas (§8); x,y,yaw gauge-fixed
         pose_sig = np.array([np.radians(2), np.radians(2), 1e-3, 1e-3, 1e-3, 0.5])
+        if yaw_sigma is not None:                           # F3 only: a consistent prior sigma = the injected yaw offset
+            pose_sig[2] = yaw_sigma
         g.add(PriorFactorPose3(X(0), pose0, gtsam.noiseModel.Diagonal.Sigmas(pose_sig)))
         g.add(gtsam.PriorFactorVector(V(0), vel0, gtsam.noiseModel.Isotropic.Sigma(3, 0.1)))
         bias_sig = np.array([ACCEL_B0]*3 + [GYRO_B0]*3)
         g.add(PriorFactorConstantBias(B(0), bias0, gtsam.noiseModel.Diagonal.Sigmas(bias_sig)))
         vals.insert(X(0), pose0); vals.insert(V(0), vel0); vals.insert(B(0), bias0)
         self.smoother.update(g, vals, _tsmap({X(0): t0, V(0): t0, B(0): t0}))
+        if getattr(self, "batch_record", False):          # F2 (offline): keep every factor for one batch solve
+            self.all_g = gtsam.NonlinearFactorGraph(); self.all_g.push_back(g)
+            self.all_est = gtsam.Values(); self.all_est.insert(vals); self.key_t = []
         if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
         self.prev_pose, self.prev_vel, self.prev_bias = pose0, vel0, bias0
@@ -135,6 +145,15 @@ class FGO:
         ts = {X(k): t, V(k): t, B(k): t}
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
+        if getattr(self, "batch_record", False):          # F2 (offline): identical factors; latest estimate per key
+            self.all_g.push_back(g)
+            for key in est.keys():
+                c = chr(gtsam.Symbol(key).chr())
+                val = est.atPose3(key) if c == "x" else (est.atVector(key) if c == "v" else est.atConstantBias(key))
+                if self.all_est.exists(key):
+                    self.all_est.update(key, val)
+                else:
+                    self.all_est.insert(key, val)
         if self.log_cov:
             self.cov_prev = self._posterior_cov(g, est, km1, k)
             Rk = est.atPose3(X(k)).rotation().matrix()
@@ -144,6 +163,8 @@ class FGO:
         self.prev_pose = est.atPose3(X(k)); self.prev_vel = est.atVector(V(k)); self.prev_bias = est.atConstantBias(B(k))
         self.pim.resetIntegrationAndSetBias(self.prev_bias)
         self.k = k; self.t_last = t
+        if getattr(self, "batch_record", False):
+            self.key_t.append((k, t))                        # F2: the created keyframe's key and time
         self.last = (t, self.prev_pose, self.prev_vel)      # causal: newest keyframe only (§6)
 
     def latest(self):

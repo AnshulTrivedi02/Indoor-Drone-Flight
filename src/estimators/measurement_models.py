@@ -271,3 +271,46 @@ class GroundProximityFlow:
             return flow_xy
         self.n_replaced += 1
         return h_flow_rot(omega_flu)          # EKF3's flowRadXYcomp = 0 (zero relVelSensor, lever arm included)
+
+
+# ---------------------------------------------------------------------------------------------------------
+# OFFLINE F-TEST VARIANTS (METHODOLOGY "PRE-REGISTRATION — offline tests F1, F2, F3"). Environment switches,
+# ALL OFF by default (every pipeline result is unchanged); a variant writes to <est>_<arm>_<F_TAG>/.
+#   F_TAG              output-directory tag (required with any F_* switch)
+#   F_YAW0_DEG         F3: initial yaw offset (deg) and initial yaw sigma = the same value
+#   F_HDG_FROM_CRUISE  F3: forward-camera headings withheld before the pinned cruise start
+#   F_MASK "on/off"    F2: from cruise start, headings on `on` s, off `off` s, repeating (first interval on)
+#   F_ROBUST "huber:k" | "cauchy:k"   F1 (FGO only): robust heading noise model, chi-square gate removed
+#   F_BATCH 1          F2 (FGO only): also record every factor and solve ONE batch LM over the whole flight at the
+#                      end (initialised from the live estimates), written to fgo_batch_traj.tum
+# ---------------------------------------------------------------------------------------------------------
+def f_variant():
+    import os as _o
+    v = {k: _o.environ.get(k) for k in ("F_TAG", "F_YAW0_DEG", "F_HDG_FROM_CRUISE", "F_MASK", "F_ROBUST", "F_BATCH")}
+    if any(v[k] for k in v if k != "F_TAG"):
+        assert v["F_TAG"], "F_TAG is required with any F_* variant switch"
+    return v
+
+
+def f_filter_forward(ev, gt_t, gt_x, gt_y, v):
+    """Apply F_HDG_FROM_CRUISE / F_MASK to the 'fwd' events of a time-sorted event list (bag clock)."""
+    if not (v.get("F_HDG_FROM_CRUISE") or v.get("F_MASK")):
+        return ev
+    import sys as _s, os as _o
+    _s.path.insert(0, _o.path.join(_o.path.dirname(_o.path.abspath(__file__)), "..", "..", "eval"))
+    from cruise_window import cruise_bounds
+    c0, c1 = cruise_bounds(np.asarray(gt_t), np.asarray(gt_x), np.asarray(gt_y))
+    on = off = None
+    if v.get("F_MASK"):
+        on, off = (float(x) for x in v["F_MASK"].split("/"))
+    out = []
+    for e in ev:
+        if e[1] != "fwd":
+            out.append(e); continue
+        t = e[0]
+        if v.get("F_HDG_FROM_CRUISE") and t < c0:
+            continue
+        if on is not None and t >= c0 and ((t - c0) % (on + off)) >= on:
+            continue
+        out.append(e)
+    return out

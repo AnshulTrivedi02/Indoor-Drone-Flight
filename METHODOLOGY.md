@@ -8216,3 +8216,64 @@ bags on position) and the UKF's lower yaw error on 5 of 6 textured bags.
 - **Predictions:** as at full speed (EKF3 B2 0.23–0.34 m, B3 p95 ~0.3°; UKF B2 0.16–0.29 m, B3 p95
   ~0.2°). With the heading bounding yaw, the RTF effect seen without heading is not expected to change
   the outcome materially; any B2/B3 shift beyond the full-speed range is reported as an RTF effect.
+
+### RTF check RESULT (`eval/rtf_drift_check.py`; `eval/results/rtf_drift_check.json`; 18 textured open-loop flights, RTF 0.726–0.986)
+
+| quantity | Spearman ρ against RTF (p) | against flow latency (p) | `dsn` median / forward-camera median | Mann–Whitney p | rule |
+|---|---|---|---|---|---|
+| EKF3 drift (deg/min, NED) | +0.08 (0.75) | +0.12 (0.64) | +8.10 / +8.09 | 0.90 | **no dependence** |
+| UKF drift (ENU) | −0.05 (0.84) | −0.07 (0.79) | −10.01 / −9.77 | 0.61 | no dependence |
+| FGO drift (ENU) | −0.47 (0.057) | −0.03 (0.91) | −9.18 / −9.14 | **0.027** | fires (group test) |
+| EKF3 evo -a (cruise) | +0.18 (0.46) | +0.19 (0.46) | 4.10 / 4.08 m | 0.63 | no dependence |
+| UKF evo -a | +0.06 (0.81) | +0.06 (0.82) | 5.39 / 5.27 m | 0.61 | no dependence |
+| FGO evo -a | +0.45 (0.068) | −0.13 (0.61) | 4.61 / 4.58 m | **0.008** | fires (group test) |
+
+- **EKF3's open-loop drift and cruise error do not depend on RTF or flow latency over 0.73–0.99.** So
+  **no result comparing EKF3 across datasets of different RTF is affected**, including the P4 EKF3
+  textured band derived from `dsn` and applied to `fwdc`/`fwdplainc`/`p1c`.
+- **Prediction WRONG:** EKF3's drift is not lower on the lower-RTF group (8.09 against 8.10).
+- **The FGO fires the rule on the group test, but the effect is negligible and confounded:** 0.04
+  deg/min of drift and 0.03 m of error between the groups, which also differ in world (walls,
+  ceiling, camera load). With ρ against RTF not significant (p 0.057), this cannot be attributed to
+  RTF rather than world. It is recorded as worded.
+- **Same-flight comparisons are unaffected by construction** (the confirmatory EKF3-vs-FGO test and
+  every per-flight three-way comparison): all estimators see the same flight's data and timing.
+- **Bearing on D21:** open-loop yaw drift shows NO RTF effect in this range. That does not support
+  "shrinking sim-time latency changes the estimators' yaw drift" as the explanation of the closed-loop
+  half-speed effect, and it points to the closed loop itself. The mechanism stays **untested**.
+  - Caveat: no open-loop data exists at RTF 0.5; the range covered is 0.73–0.99.
+
+### Recorded against D21 (user, 2026-10-01)
+
+- **The full- against half-speed no-heading difference rests on ONE flight per estimator per speed.**
+  Closed-loop run-to-run variability in heading drift has not been measured. Open-loop EKF3 drift
+  varies ~6–8 deg/min across repeats (the RTF check: 6.06–8.18 deg/min over 18 textured flights).
+- **The difference may be partly or wholly variability.** The speed mechanism remains untested.
+- **No claim compares no-heading results across speeds, so this is not investigated further.** The
+  wording "not interchangeable" above stands as a caution, not as a demonstrated speed effect.
+
+### Half-speed with-heading sets: EKF3 3/3 PASS; UKF 2/3, **r3 FAILS B4 as worded** (0.296 m/s > 0.25). STOPPED; queued as D22
+
+`eval/results/closed_loop_cl_bcpp_tex_r{1,2,3}_half.json`, `closed_loop_cl_ukf_b_tex_r{1,2,3}_half.json`.
+
+| flight | B1 | B2 max cross-track | B3 p95 / max | B4 max lateral speed (at cruise +) | B5 | S2 |
+|---|---|---|---|---|---|---|
+| EKF3 r1 | PASS | 0.33 m | 0.32° / 0.39° | 0.181 m/s (+0.5 s) | PASS | — |
+| EKF3 r2 | PASS | 0.25 | 0.28 / 0.34 | 0.044 (+3.7 s) | PASS | — |
+| EKF3 r3 | PASS | 0.24 | 0.29 / 0.33 | 0.027 (+20.0 s) | PASS | — |
+| UKF r1 | PASS | 0.15 | 0.18 / 0.28 | 0.011 (+2.6 s) | PASS | PASS |
+| UKF r2 | PASS | 0.13 | 0.19 / 0.36 | 0.040 (+2.2 s) | PASS | PASS |
+| **UKF r3** | PASS | 0.53 | 0.21 / 1.32 | **0.296 (+0.5 s) — FAIL** | PASS | PASS |
+
+- **Diagnosis of UKF r3 (DIAGNOSTIC):**
+  - The peak is at **cruise +0.5 s, the hover-to-cruise transition** at the start of the pinned
+    window. GT East moved +0.27 → +0.49 m in ~1 s, then settled (+0.18 m at +4 s).
+  - **It is not heading-driven:** the UKF's yaw error was +0.08° at that moment, every heading in
+    ±1 s was accepted, and the max innovation nearby was 1.47° with test ratio ≤ 0.01.
+  - Its B3 max (1.32°) is in the end-wall region (y > 140 m); B3 passes.
+- **The same transient class appears elsewhere at cruise +0.5 s, under the band:** EKF3 r1 at full
+  speed (0.140 m/s) and at half speed (0.181 m/s). All other peaks are later and ≤ 0.044 m/s. B4's
+  basis was "no fast runaway"; this is a cruise-start transient that the 1 s window catches at its
+  edge. **The result stands as worded: the half-speed UKF set is 2/3, a FAIL.**
+- Per the stop rule, the sequence stops here: no FGO gate or flight runs until ruled. Offline work
+  continues (no simulator).

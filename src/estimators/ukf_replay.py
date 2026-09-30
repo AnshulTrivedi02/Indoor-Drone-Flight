@@ -14,7 +14,7 @@ from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 import ukf_core as U
 from imu_timing import dejitter_imu, apply_gap_rule
 from measurement_models import R_world_body, FlowFrameGyroAverager, sitl_gyro_drift
-from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
+from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset, f_variant, f_filter_forward
 from measurement_models import GroundProximityFlow
 import time, json
 
@@ -24,7 +24,8 @@ TRIAL = sys.argv[1]
 ARM = sys.argv[2] if len(sys.argv) > 2 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}"))
+FV = f_variant()     # offline F-test variants (all off by default)
+OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -63,6 +64,7 @@ ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
 ev.sort(key=lambda e: e[0]); gt.sort(key=lambda e: e[0])
 gt = np.array(gt)
+ev = f_filter_forward(ev, gt[:, 0], gt[:, 1], gt[:, 2], FV)
 
 # ---------- init: gravity levelling over first 0.5 s + first valid range ----------
 # BATCHED CORRECTION (ii), 2026-09-29 (METHODOLOGY "Distance-scale check"): the predict step
@@ -82,6 +84,8 @@ t_imu0 = next(t for t, k, _ in ev if k == "imu")
 acc_lvl = [d[0] for t, k, d in ev if k == "imu" and t <= t_imu0 + 0.5]
 first_rng = next(d for t, k, d in ev if k == "rng" and p['RNG_MIN'] <= d <= p['RNG_MAX'])
 x, P = U.init_state(np.mean(acc_lvl, axis=0), first_rng, dt=DT_STEP)
+if FV["F_YAW0_DEG"]:                               # F3: initial yaw offset, sigma = the offset
+    x[8] += np.radians(float(FV["F_YAW0_DEG"])); P[8, 8] = np.radians(float(FV["F_YAW0_DEG"])) ** 2
 t_init = t_imu0 + 0.5
 print(f"[init] t={t_init:.2f}s  roll0={math.degrees(x[6]):+.2f} pitch0={math.degrees(x[7]):+.2f} deg  "
       f"p_U0={x[2]:.3f} m (range {first_rng:.3f})")
