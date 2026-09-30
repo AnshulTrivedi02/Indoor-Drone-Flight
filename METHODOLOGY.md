@@ -7549,3 +7549,86 @@ that reason.**
   +2.53 deg/min.
 - Compared with EKF3's set (a) (+186.2 s): the UKF reached the wall 23 s earlier, consistent with
   its larger heading error.
+
+### Ruling D17 (user, 2026-09-30): option (a), the UKF port's heading input
+
+- The UKF applies the heading at **5°**, what EKF3 actually applies after ArduPilot's floor. It uses
+  the same ArduPilot call (`AP_AHRS::writeExtNavData`), the same quality gate (`VISO_QUAL_MIN`), the
+  same clamp (`VISO_YAW_M_NSE`, 1.5 rad), the same timing (minus `VISO_DELAY_MS`, clamped to the
+  horizon) and a 3σ gate.
+- **Reason, recorded:** the closed-loop UKF-vs-EKF3 comparison must give both estimators the same
+  heading at the same trust. Option (c), the camera's 0.148°, would attribute a measurement-trust
+  advantage to the estimator.
+- **Options (b) and (c) are not used in the main comparison.** (c) may be revisited later, only as a
+  separately labelled variant.
+- **Order:** pre-register the validation; build; Replay check on set (b)'s logs; shadow run; ground
+  test; the with-heading set ×3. Each is reported against its pre-registered criteria. **Stop and
+  report on any primary failure.** Then the gyro-bias diagnostic and D12's effort/blocker report.
+- **Recorded from `cl_ukf_a_tex`:** the +1.9° heading error at cruise start is larger than in the
+  prediction's realisations and built up after take-off. It is noted as consistent with the UKF's
+  residual post-take-off flow→yaw kick. Not investigated now.
+
+### PRE-REGISTRATION (D17): the UKF port's heading input, its validation, and the with-heading UKF set (written before any code)
+
+**Implementation (EKF3's ExtNav-yaw path, as ruled):**
+- **Switch:** a new parameter, `AHRS_UKF_EXTYAW` (0/1).
+- **Input:** `AP_AHRS::writeExtNavData` passes the same arguments EKF3 receives, after
+  `AP_VisualOdom_MAV`'s quality gate (`VISO_QUAL_MIN`) and `angErr` clamp ([`VISO_YAW_M_NSE`, 1.5]),
+  to `NavUKF::writeExtNavData`. In Replay the same arguments come from DAL's `REPH` handler (a new DAL
+  hook, as for flow).
+- **Acceptance and timing, EKF3's `writeExtNavData` (`AP_NavEKF3_Measurements.cpp:1072-1122`):**
+  - drop the sample if not initialised, or if < 20 ms since the last accepted one (`extNavIntervalMin_ms`);
+  - event time = timeStamp_ms − delay_ms − 6 ms (filterStep/2), clamped to the fusion horizon at
+    arrival;
+  - yaw = the 321 Euler yaw of the quaternion;
+  - σ = max(angErr, 5°), and R = max(σ, 0.05 rad)² (`MagFusion.cpp` EXTNAV), i.e. **5°**.
+- **Fusion, EKF3's `SelectMagFusion` EXTNAV branch (`MagFusion.cpp:365-391`):**
+  - the FIRST heading event after initialisation **aligns** yaw: yaw is set to the measurement, and
+    its covariance row/column is reset with variance σ² (`alignYawAngle`);
+  - later events use a scalar UKF yaw update, gated at ν² / (3² S) ≤ 1 (`EK3_YAW_I_GATE` 300);
+  - once aligned, the synthetic pseudo-yaw stops (EKF3 fuses it only while waiting for the first
+    ExtNav yaw).
+- **Logging:** each processed heading goes into a new `XUKH` message (measurement, innovation, test
+  ratio, accepted, aligned, counts), and into the Replay dump.
+
+**V1 — Replay check on set (b)'s logs** (`cl_bcpp_tex_r1..r3`, `LOG_REPLAY 1`, EKF3 flew with the C++
+heading; Replay with `AHRS_UKF_EXTYAW=1`). PASS iff, on all three:
+- **R1 (same input):** every `REPH` message replayed reaches the UKF, and every sample the UKF accepts
+  has event time = max(ts − delay − 6, arrival − 60) exactly. Yaw equals the quaternion's 321 yaw, and
+  R = max(angErr, 5°)², checked against the `REPH` fields.
+- **R2 (queue):** each accepted heading is processed exactly once, in time order, ≥ 60 ms after its
+  event time; `EvO` = 0.
+- **R3 (alignment):** alignment happens at the first processed heading, and there are no pseudo-yaw
+  fusions after it.
+- **R4 (acceptance):** ≥ 95% of processed headings in the cruise window pass the gate. Basis: R is
+  (5°)², far above the camera's 0.148° scatter; only the rare confident-wrong end-wall headings
+  (Phase 3: ≤ 0.08% outliers on `fwdc`) should be rejected.
+- **R5 (yaw):** UKF yaw error (`XUKF` against SIM) in the pinned cruise window: p95 ≤ 1.0°, max ≤ 2.0°
+  (set (b)'s B3 bands).
+
+**V2 — shadow run of the exact binary with heading** (EKF3 flies as in set (b); the UKF in shadow with
+`AHRS_UKF_EXTYAW 1`; `corridor_textured_fwdc`, C++ heading node, `every_n` 4). PASS iff:
+- R1–R5 hold live (R1 against the logged `REPH`);
+- the D9 output-predictor check passes with its bands unchanged;
+- `EvO` = 0;
+- EKF3's own flight completes (B1). That is the safety condition for a shadow run, not a UKF
+  criterion.
+
+**V3 — ground test with the UKF active and heading on** (`UKF=1 HEADING=1 GROUND_TEST=60`):
+- G1: `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `AHRS_UKF_EXTYAW 1`, `VISO_TYPE 1`.
+- G2 and G3 as in P3; G5 as in P3, plus the heading node alive throughout.
+- G4 as in P3, except **yaw**: yaw error against SIM over the hold p95 ≤ 1.0°, max ≤ 2.0° (B3's
+  bands; with a heading, yaw is observable on the ground). Plus R4's acceptance ≥ 95% over the hold.
+
+**V4 — the with-heading UKF set ×3** (`cl_ukf_b_tex_r1..r3`: `UKF=1 HEADING=1`,
+`corridor_textured_fwdc`, 0.5 m/s, 2.0 m, 300 s, the C++ node, `every_n` 4, `HEADING_SIGMA_DEG`
+0.148, `closedloop_heading.parm` as for set (b)):
+- **B1–B5 exactly as set (b)'s final bands**, scored by `eval/closed_loop_score.py` with the same
+  windows. **B3 uses the UKF's current-time yaw (`XUKO`)**, the value the controller receives, in
+  place of `XKF1`. EKF3's shadow yaw error is reported as a DIAGNOSTIC.
+- Plus S2: `horiz_pos_rel` and healthy throughout the flight.
+- **The set passes if all three pass. Any B1 failure stops the set and is reported.**
+- **Point predictions** (B2 cross-track, B3 yaw error) are to be written from V2's shadow data before
+  V4 flies.
+
+**Stop rule:** any PRIMARY failure in V1–V4 stops the sequence and is reported.
