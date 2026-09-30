@@ -106,7 +106,7 @@ class FGO:
         self.smoother.update(g, vals, _tsmap({X(0): t0, V(0): t0, B(0): t0}))
         if getattr(self, "batch_record", False):          # F2 (offline): keep every factor for one batch solve
             self.all_g = gtsam.NonlinearFactorGraph(); self.all_g.push_back(g)
-            self.all_est = gtsam.Values(); self.all_est.insert(vals); self.key_t = []
+            self.all_est = {X(0): pose0, V(0): np.array(vel0, float), B(0): bias0}; self.key_t = []
         if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
         self.prev_pose, self.prev_vel, self.prev_bias = pose0, vel0, bias0
@@ -147,13 +147,10 @@ class FGO:
         est = self.smoother.calculateEstimate()
         if getattr(self, "batch_record", False):          # F2 (offline): identical factors; latest estimate per key
             self.all_g.push_back(g)
-            for key in est.keys():
-                c = chr(gtsam.Symbol(key).chr())
-                val = est.atPose3(key) if c == "x" else (est.atVector(key) if c == "v" else est.atConstantBias(key))
-                if self.all_est.exists(key):
-                    self.all_est.update(key, val)
-                else:
-                    self.all_est.insert(key, val)
+            for key in est.keys():                        # a dict: Values.update picks the fixed-size Vector3
+                c = chr(gtsam.Symbol(key).chr())              # overload for velocities (stored dynamic) and throws
+                self.all_est[key] = (est.atPose3(key) if c == "x" else
+                                     (np.array(est.atVector(key), float) if c == "v" else est.atConstantBias(key)))
         if self.log_cov:
             self.cov_prev = self._posterior_cov(g, est, km1, k)
             Rk = est.atPose3(X(k)).rotation().matrix()

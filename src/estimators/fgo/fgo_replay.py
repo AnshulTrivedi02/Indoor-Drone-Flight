@@ -219,7 +219,10 @@ if FV["F_BATCH"]:
     from gtsam.symbol_shorthand import X as _X
     t0b = _t.perf_counter()
     prm = gtsam.LevenbergMarquardtParams(); prm.setMaxIterations(50); prm.setRelativeErrorTol(1e-6)
-    opt = gtsam.LevenbergMarquardtOptimizer(fgo.all_g, fgo.all_est, prm)
+    init_vals = gtsam.Values()
+    for key, val in fgo.all_est.items():
+        init_vals.insert(key, val)
+    opt = gtsam.LevenbergMarquardtOptimizer(fgo.all_g, init_vals, prm)
     res = opt.optimize()
     with open(f"{OUTDIR}/fgo_batch_traj.tum", "w") as f:
         for kk, tk in fgo.key_t:

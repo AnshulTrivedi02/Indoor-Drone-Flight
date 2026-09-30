@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 $HOME/thesis_ws/tools/edit_guard.py" }
+        ]
+      }
+    ]
+  }
+}
