@@ -11,6 +11,8 @@
 # Usage: [HEADING=1 HEADING_SIGMA_DEG=.. HEADING_EVERY_N=..] sim/tools/closed_loop_run.sh <world> <trial_name>
 set -uo pipefail
 WORLD="$1"; NAME="$2"; OUT="$HOME/thesis_data/closed_loop/$NAME"
+# D19: every half-speed world runs with gz-transport / ROS 2 discovery on loopback (run_trial.sh LOOPBACK_ONLY)
+if [[ "$WORLD" == *_half_* ]]; then export LOOPBACK_ONLY=1 GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST; fi
 mkdir -p "$OUT"
 export EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop.parm" EXPECT_OVERRIDE="AHRS_EKF_TYPE=3"
 WATCH=()

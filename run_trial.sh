@@ -274,6 +274,14 @@ echo "--- Launching ROS2 bridge + nodes ---"
 set +u
 source /opt/ros/jazzy/setup.bash
 source "$HOME/thesis_ws/install/setup.bash"
+# LOOPBACK_ONLY=1 (D19 half-speed flights, 2026-09-30): gz-transport and ROS 2 discovery pinned to loopback
+# (GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST, exported by the caller), so a USB Wi-Fi
+# (rt2800usb) drop cannot stop the sim's topics: gt_heading_half died that way ("Network is unreachable").
+# The ros2 daemon is restarted so the CLI readiness checks use the same discovery range. Unset = unchanged.
+if [ -n "${LOOPBACK_ONLY:-}" ]; then
+    export GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+    ros2 daemon stop >/dev/null 2>&1 || true
+fi
 set -u
 
 start_bg "$LOG_DIR/ros_gz_bridge.log" \
@@ -427,6 +435,7 @@ ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
+[ -n "${LOOPBACK_ONLY:-}" ] && echo "loopback_only: true  # GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     printf 'heading_bridge:\n  sigma_psi_deg: %s\n  every_n: %s\n  impl: %s\n  serial1: udpclient 127.0.0.1:14557\n' \

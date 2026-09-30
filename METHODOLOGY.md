@@ -7842,3 +7842,21 @@ Neither affected any result.
 - **Run 2, `gt_heading_half2`:** the ground test with the new value, G1–G5 as D2. It must pass before
   any half-speed flight. The value goes into `closedloop_heading_half.parm`, a copy of
   `closedloop_heading.parm` with only `VISO_DELAY_MS` changed, and `HEADING_PARM` selects that file.
+
+**Run 1 (`gt_heading_half`) VOID: an environmental failure, not a result.**
+- It armed at 24.2 s and held. At ~216 s sim (~192 s into the 330 s hold), both EKF3 cores "stopped
+  aiding" and `fly_trial` failed: "No message received while reading sim-time clock".
+- **Cause:** at ~22:01–22:02 the USB Wi-Fi dongle (rt2800usb, the same device behind the earlier
+  kernel panic) faulted; the kernel logged traces from that module.
+  - gz-transport's multicast discovery then failed ("Exception sending a multicast message: Network is
+    unreachable", 1,179 times in `gazebo.log` and `ros_gz_bridge.log`; 0 times in the earlier
+    flights), so the sensor topics stopped.
+  - Nothing about half speed is implicated: the RTF was 0.48 until the fault.
+- **Fix (harness, before any re-run):** half-speed worlds (`*_half_*`) run with gz-transport and ROS 2
+  discovery pinned to loopback (`GZ_IP=127.0.0.1`, `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`, via
+  `closed_loop_run.sh`/`run_trial.sh` `LOOPBACK_ONLY`, recorded in `metadata.yaml`). The ros2 daemon
+  is restarted so the readiness checks use the same range.
+  - Tested first: gz lists and streams topics with `GZ_IP=127.0.0.1`.
+  - It applies to every half-speed flight of all three estimators alike. Earlier flights are
+    unchanged.
+- Run 1 is repeated as `gt_heading_half_b`.
