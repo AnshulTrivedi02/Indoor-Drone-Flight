@@ -8162,3 +8162,57 @@ bags on position) and the UKF's lower yaw error on 5 of 6 textured bags.
   flown at different RTF (`dsn` ~0.95 against the forward-camera sets ~0.75) is affected.
 - **Same-flight comparisons (e.g. the confirmatory EKF3-vs-FGO test) are unaffected by construction:**
   every estimator is evaluated on the same flight's data and timing.
+
+### PRE-REGISTRATION — RTF check: does open-loop yaw drift depend on RTF / flow latency? (written before computing)
+
+- **Flights:** every current open-loop TEXTURED dataset flight (flow is available throughout):
+  - `dsn_tex_r1..r10` (RTF ~0.95);
+  - `fwdc_tex_r1..r3`, `fwdplainc_tex_r1..r3`, `p1c_fwdc_tex`, `p1c_fwdplainc_tex` (forward-camera
+    worlds, RTF ~0.75–0.83).
+  - Transition and blank are excluded: flow is lost there, so the drift is a different quantity.
+- **Per flight:**
+  - RTF (cruise; the scores' `diag RTF (cruise)`);
+  - flow capture → EKF3 latency median (`input_timing_*`);
+  - cruise yaw-drift rate (deg/min, linear fit of yaw error over the pinned cruise window) for EKF3
+    (`XKF1` against SIM), the UKF and the FGO (baseline arms; TUM against GT);
+  - each estimator's cruise evo -a.
+- **Tests, per estimator:**
+  - Spearman ρ of drift (and of evo -a) against RTF and against latency, over all flights (n up to
+    18; r10 has no UKF/FGO);
+  - `dsn_tex` against the forward-camera textured group (Mann–Whitney U, two-sided).
+- **Decision rule:** "drift depends on RTF" for an estimator iff |ρ(drift, RTF)| ≥ 0.5 with p < 0.05,
+  OR the group difference has p < 0.05.
+  - **Caveat, stated before the result:** the groups also differ in world (walls, ceiling, camera
+    load). RTF and world are confounded across the groups; only the within-group spread separates them.
+- **Affected results, if the rule fires for EKF3:** the list of results that compare EKF3 across
+  datasets of different RTF (e.g. the P4 EKF3 textured band derived from `dsn`, then applied to the
+  `fwdc`/`fwdplainc`/`p1c` flights) is checked and reported. **Same-flight comparisons (the
+  confirmatory EKF3-vs-FGO test, every per-flight three-way comparison) are unaffected by construction.**
+- **Prediction:** EKF3's drift is lower on the forward-camera group (lower RTF), in the same direction
+  as the closed-loop finding. The FGO's drift is nearly RTF-independent (it was −9.1…−9.4 deg/min on
+  both groups).
+
+### D20 verification ground test `gt_heading_half2` (`VISO_DELAY_MS 25`, half speed): G1–G5 ALL PASS
+
+`eval/results/ground_test_gt_heading_half2.json`:
+- **G1:** `REPH` angErr 0.05 only; no position (POSXY 0).
+- **G2:** armed, with the offset locked before arming.
+- **G3:** no origin messages.
+- **G5.1:** every `REPH.D` = 25, `XKF5` flow rows 3,450 during ExtNav.
+- **G5.2:** fusion times 100% clamped to the horizon; misalignment p95 0.035° (≤ 0.25°).
+- **G5.3:** no latency drift (−0.005 ms/s), 0 dropped.
+- **G4 in this run:** (a) min 21.0 ms, (b) min 16.2 ms, which agree. The minima vary between runs
+  (run 1b's (b) was 25.4 ms). As in D2, the value is **not re-tuned**: D stays 25 as ruled.
+
+### Half-speed with-heading EKF3 and UKF sets ×3 each — PRE-REGISTERED (as the full-speed sets)
+
+- **EKF3:** `cl_bcpp_tex_r1..r3_half`, stock tree. **UKF:** `cl_ukf_b_tex_r1..r3_half`, port
+  `1acfca00`, `UKF=1`.
+- **Common settings:** `HEADING=1`, C++ node, `every_n` 4, σ sent 0.148°,
+  `HEADING_PARM=closedloop_heading_half.parm` (`VISO_DELAY_MS 25`), world
+  `corridor_textured_half_fwdc`, loopback-pinned.
+- **Criteria:** B1–B5 exactly as set (b) (the EKF3 scorer; `--est ukf` for the UKF), plus S2 for the
+  UKF. A set passes if 3/3 pass. **Any B1 failure stops the runner** and is reported.
+- **Predictions:** as at full speed (EKF3 B2 0.23–0.34 m, B3 p95 ~0.3°; UKF B2 0.16–0.29 m, B3 p95
+  ~0.2°). With the heading bounding yaw, the RTF effect seen without heading is not expected to change
+  the outcome materially; any B2/B3 shift beyond the full-speed range is reported as an RTF effect.
