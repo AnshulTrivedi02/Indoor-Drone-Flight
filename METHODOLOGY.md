@@ -7366,3 +7366,58 @@ the set-(a) scaling):**
 **DIAGNOSTIC:** as before (the UKF's own yaw drift in the flight from `XUKO` against SIM and the contact
 time it implies; `EvO`/`EvMx`; EKF3's shadow; lateral speed and gyro rms), plus the take-off yaw change
 and `GpT`/`GpN`.
+
+### D9 precondition P3 (UKF backend ground test): PRE-REGISTERED before it is run
+
+**Run:** `UKF=1 GROUND_TEST=60 sim/tools/closed_loop_run.sh corridor_textured ukf_groundtest_p3` on port
+`9d2c545d29`. `UKF=1` is new in the launcher; it uses `closedloop_ukf.parm`: `AHRS_EKF_TYPE 12`,
+`AHRS_UKF_ENABLE 1`, both enforced through `EXPECT_OVERRIDE`, with `ARDUPILOT_TREE` set to the port.
+It holds armed on the ground for 60 s sim, with no take-off, then disarms. EKF3 still runs, as a
+passive shadow.
+
+**PASS iff all of:**
+- **(G1) Configuration:** the log's PARM dump has `AHRS_EKF_TYPE = 12` and `AHRS_UKF_ENABLE = 1`.
+- **(G2) Arming:** the pre-arm checks pass (including the UKF's own, "UKF not initialised" /
+  "UKF unhealthy") and the vehicle arms.
+- **(G3) The UKF is the ACTIVE attitude source:** during the armed hold, the logged AHRS attitude
+  (`ATT` Roll/Pitch/Yaw) matches the UKF's current-time output (`XUKO`) at |Δ| ≤ 0.1° p95.
+  - It must NOT match EKF3's `XKF1` where the two differ, i.e. whenever |XUKO − XKF1| > 0.3°.
+  - If they never differ by that much, G3 is reported as "not discriminating" and rests on the
+    ATT = XUKO match alone.
+  - Where they do differ, ATT must be closer to XUKO than to XKF1 in ≥ 95% of samples.
+- **(G4) Stable on the ground:** over the armed hold, `XUKO` horizontal position stays within 0.10 m of
+  its value at arming, and yaw within 1.0°.
+  - **Height:** the error against truth (SIM, base_link = range + 0.12 m) is ≤ 0.10 m at the end of
+    the hold, and never grows by more than 0.05 m over the hold.
+  - `XUKS` healthy (`H`) stays 1, and `XUKO.EvO` = 0.
+- **(G5) Disarm:** the vehicle disarms on request, with no EKF/UKF failsafe or crash message in the
+  whole run.
+
+- G5 excludes "PrecLand: Failsafe Measures". It is an INFO message from the precision-landing state
+  machine, printed in every landing, EKF3 datasets included (e.g. `dsn_tex_r2` at 334.5 s). The
+  checker is `eval/ukf_p3_check.py`, written before the run.
+
+**The exact binary (recorded before P3):** `~/ardupilot_ukf/build/sitl/bin/arducopter`, md5
+`2d631fa702ffdf77f50d996ff287abe4`.
+- It was built from the `9d2c545d29` source before that commit was made, so its embedded version
+  string reads `6f561c6a` (the previous HEAD).
+- Its code is the D15 code: the live P2 log has `XUKO.GpT`/`GpN` and 610 replacements.
+- P2 ran this binary; P3 and the UKF flights use it unchanged (no rebuild), with the md5 checked
+  before each run.
+
+**Basis:** these mirror the EKF3 ground test's intent (arm, hold, disarm) for a new backend.
+- G4's horizontal and yaw bounds are loose multiples of what a stationary vehicle should show. In
+  the P2 shadow's ground segment, `XUKO` moved ≤ 0.4 mm horizontally and ≤ 0.07° in yaw over the
+  3.5 s from arming to take-off.
+- **The height bound is informed by P2's ground segment, disclosed here:** the UKF height converges
+  slowly after initialisation (a finding, below). No ground-test data has been seen.
+
+**Finding (P2 ground segment): the UKF's height converges slowly on the ground.**
+- Truth: PD ≈ −0.20 m (range 0.080 + 0.12).
+- The UKF's `XUKO` PD goes −0.08 (8 s) → **−0.41 (13 s)** → −0.30 (19 s) → −0.257 at arming (24.6 s)
+  → −0.245 at 27 s. That is still 0.045–0.057 m high at take-off and moving about 0.004 m/s.
+- A likely reason, not tested: EK3_RNG_M_NSE (0.5 m) makes the range a weak height update, so the
+  vertical states take ~20 s to settle. This is DIAGNOSTIC and not changed (no tuning). It matters for
+  the flight only through the height at take-off (~0.05 m).
+- The D15 rule's 0.5 m test uses range × cos(tilt), not this state, so it is unaffected.
+- **Any failure stops the UKF flights and is reported.**

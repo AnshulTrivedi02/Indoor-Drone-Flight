@@ -1,0 +1,5 @@
+# D9 (ruling 2026-09-30): the thesis UKF (AP_NavUKF, ~/ardupilot_ukf) as the ACTIVE estimator.
+# Use only via sim/tools/closed_loop_run.sh with UKF=1 (ARDUPILOT_TREE=~/ardupilot_ukf). EKF3 keeps
+# running as a passive shadow. Both values are enforced by EXPECT_OVERRIDE (eeprom self-heal).
+AHRS_EKF_TYPE 12
+AHRS_UKF_ENABLE 1
