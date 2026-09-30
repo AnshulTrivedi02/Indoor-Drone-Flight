@@ -1,0 +1,25 @@
+{
+ "n_F": 10154,
+ "n_P": 49876,
+ "flow": {
+  "delivered_after_init": 10154,
+  "processed": 10154,
+  "event_time_matches_EKF3_rule": 10154,
+  "compared": 10154,
+  "missing": 0
+ },
+ "processing_minus_event_ms": {
+  "min": 60,
+  "median": 60.0,
+  "max": 63
+ },
+ "time_ordered": true,
+ "n_order_violations": 0,
+ "predict": {
+  "pushed_reconstructed": 27463,
+  "processed": 27458
+ },
+ "range_processed": 9813,
+ "yaw_processed": 2451,
+ "pass": true
+}

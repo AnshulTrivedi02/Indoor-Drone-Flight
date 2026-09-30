@@ -6831,3 +6831,81 @@ Part C estimated this as "UKF plumbing 2–3 pw". It is the shared base D12 woul
     JSONs, and the differences are at most the magnitudes above.
 - **FGO step 2** remains as passed. It compared like with like against the as-written (typo)
   representation, and the driver now uses the `.typo` originals, so it stays reproducible.
+
+### PRE-REGISTRATION — UKF closed-loop flight WITHOUT heading (`cl_ukf_a_tex`), written before any UKF flight (ruling D9)
+
+**What flies.**
+- The thesis UKF as the **active** estimator, `AHRS_EKF_TYPE = 12`: the new `AP_AHRS_UKF` backend
+  (`~/ardupilot_ukf` `43523b5a11` or later) and the D5 delayed horizon with EKF3's flow timing.
+- The attitude, velocity and position the controllers receive are the UKF's current-time output
+  (`XUKO`). EKF3 runs alongside, unused, and is logged (`XKF*`).
+- Otherwise identical to set (a): `corridor_textured_fwdc`, 0.5 m/s, 2.0 m, 300 s, no heading
+  source, nomag, `closedloop.parm` except `AHRS_EKF_TYPE`, and the wall watcher. ×1.
+
+**Preconditions, all to be shown first:**
+- **(P1)** the queue check on Replay logs (no loss; EKF3's flow timing; time-ordered);
+- **(P2)** a shadow run of **the exact binary to be flown** (`AHRS_EKF_TYPE 10`, `AHRS_UKF_ENABLE 1`):
+  `XUKS.EvO` = 0 throughout, the peak depth well below 64, valid and healthy, and the `XUKO` output
+  sane against SIM truth;
+- **(P3)** a ground test of the backend with `AHRS_EKF_TYPE 12` (arms, holds, disarms; the UKF
+  pre-arm check passes).
+
+**Prediction and basis.**
+- Set (a) confirmed the lateral-drift model within 0.8 s: EKF3, about 8.3 deg/min, reached the west
+  wall at cruise +186.2 s against +187 predicted. Lateral error ∝ drift × t², so contact time ≈
+  186.2 s × √(8.3 / |drift|).
+- **The drift expected for this configuration** comes from the live shadow of this port on the same
+  world (post-fix, D5), about **24 deg/min**, and the offline UKF on that flight, **29.9 deg/min**.
+  That gives **contact at about +98…+110 s**.
+- **The UKF's drift is highly variable across flights.** The offline UKF on `dsn_tex_r1`–`r9` and the
+  shadow flight gave |drift| 3.1 … 70 deg/min, with a direction that varies.
+  - 7 of 10 drift the same way as EKF3 did, towards the WEST wall. Their implied contacts are
+    +64 … +110 s (70 → 24 deg/min).
+  - 2 drift the other way at 5–8 deg/min (EAST, +186 … +233 s).
+  - 1 drifts only 3 deg/min (no contact within 300 s).
+
+**PRIMARY criteria:**
+- **U1 (the backend flies the vehicle).** Arming, take-off to ≥ 1.8 m and entry into cruise under UKF
+  control, with no crash, no EKF/UKF failsafe and no loss of control, before any wall contact.
+- **U2.** No wall contact before cruise **+50 s**. Basis: the fastest implied contact in the offline
+  distribution is +64 s at 70 deg/min, less a 14 s margin.
+- **U3.** If contact occurs, it is on the **west wall inside [+83, +135] s**. Basis: the +98…+110 s
+  prediction from 24–30 deg/min, widened by 15 s below and 25 s above for the drift's flight-to-flight
+  variability, because slower drifts delay contact more than faster ones advance it.
+  - **No contact, or east-wall contact, is recorded as a U3 miss AS WORDED**, and read against the
+    distribution above (3/10 offline flights predict it).
+
+**DIAGNOSTIC:**
+- the UKF's own yaw drift in this flight (`XUKO` yaw against SIM) and the contact time predicted from
+  it by the same scaling;
+- `XUKS.EvO`/`EvMx`;
+- EKF3's shadow estimate on the same flight;
+- lateral speed and gyro rms, as B4/B5.
+
+**Decision:** any U1 failure stops the UKF flights and is reported. U2/U3 are reported as worded.
+
+### D9 precondition P1 (queue check): PASS on 4 Replay logs, after two port fixes
+
+`eval/ukf_queue_check.py` on Replays of `dsn_tex_r2`, `dsn_trans_r1`, `dsn_blank_r1` and `fwdc_tex_r1`
+(port `~/ardupilot_ukf`, current HEAD). Results: `eval/results/ukf_queue_check_*.json`.
+
+| log | flows processed / delivered | at EKF3's rule time | processing − event time | time-ordered | predicts processed / pushed |
+|---|---|---|---|---|---|
+| `dsn_tex_r2` | 10,154 / 10,154 | 10,154 | 60–63 ms | yes | 27,458 / 27,463 (5 still queued) |
+| `dsn_trans_r1` | 5,563 / 5,563 | 5,563 | 60–63 ms | yes | 27,451 / 27,456 |
+| `dsn_blank_r1` | 700 / 701 (1 still queued at the end) | 700 | 60–63 ms | yes | 27,451 / 27,456 |
+| `fwdc_tex_r1` | 10,186 / 10,186 | 10,186 | 60–63 ms | yes | 27,458 / 27,463 |
+
+**Two port bugs, found by these checks, fixed before any shadow run or flight:**
+1. **Logger overflow.** Adding the queue diagnostics to `XUKS` made its format 18 characters and its
+   labels 71, over the logger's limits (16 / 64, `LogStructure.h:179-180`). **Replay panicked**
+   ("Unknown format specifier (T)") on every log. `XUKS` is restored unchanged, and the diagnostics
+   (`EvO`, `EvMx`) are now in `XUKO` (13 / 50). The SITL binary would have panicked the same way.
+   - *Cost, recorded:* the first four Replays sat in the SITL panic loop at 100% CPU for about 80
+     minutes before I noticed, because my wait loop only watched for output.
+2. **Flow timestamp one loop late.** The port stamped flow when `update()` consumed it, 2–3 ms after
+   arrival (0 of 10,154 matched EKF3's rule). It now stamps at arrival, as EKF3 does
+   (`AP_NavEKF3_Measurements.cpp:232`), clamped to the horizon at arrival: 10,154 of 10,154 match.
+
+**Still to do before the no-heading flight:** P2 (a shadow run of this exact binary) and P3 (a ground
+test with `AHRS_EKF_TYPE 12`).
