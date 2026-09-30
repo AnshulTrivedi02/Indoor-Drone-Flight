@@ -7117,3 +7117,32 @@ Cost = baseline − re-timed. A positive cost means the misdating hurt EKF3.
 - **Fairness note (as ruled).** EKF3 was the only estimator fusing flow at a misdated time. The
   EKF3-vs-FGO result held despite it, and this diagnostic shows the misdating did not disadvantage
   EKF3.
+
+### D15 full re-run: definitions pinned BEFORE it runs (2026-09-30)
+
+- **Pipeline:** `eval/d15_pipeline.sh`. It uses the consolidated re-run's scripts unchanged, on every
+  bag the UKF/FGO touch:
+  - dsn r1–r3 and r4–r10; the P4 bands (pre-registered formula; **the FGO bands move with the
+    corrected dsn**, so each restated P4 verdict says whether the band or the value moved);
+  - the confirmatory test (`dsn_paired_test.py`, unchanged); p1c, fwdc, fwdplainc; the Phase 4 arms;
+    Phase 5, scale check, heading share; Phase 5b (fresh sandbox).
+  - EKF3-only stages (ds, Phase 3) are unaffected and not re-run.
+  - Pre-D15 results go to `eval/results_pre_d15/`, and every trial's UKF/FGO outputs to
+    `~/thesis_data/pre_d15_trials/`.
+- **Implementation check:** the replacement measurement is `h_flow_rot(ω)`. It is the same function as
+  the rotational term of `h_flow_pose`, factored out, so the signs cannot differ. Checked numerically:
+  at zero velocity, `h_flow_pose − h_flow_rot` equals exactly the lever-arm translational term. That
+  is EKF3's `flowRadXYcomp = 0`, i.e. zero `relVelSensor` with the lever arm included.
+- **Take-off yaw change (item 3), as in the P2 table:**
+  - t0 = the first GT time with height > rest + 0.3 m (rest = GT median z over the first 2 s);
+  - change = yaw(t0 + 2 s) − yaw(t0 − 1 s).
+  - `eval/d15_kick.py` reproduces the recorded pre-D15 table exactly on r1–r9 (e.g. r4 −16.98°).
+  - It is reported for all ten dsn_tex and for the FGO too. The FGO has no kick, so its value should
+    barely move; a large FGO shift would be a red flag.
+- **Per-bag rule audit:** `eval/d15_rule_audit.py` reads each replay's `[ground-proximity]` line
+  (flows replaced, take-off time, arm time). It flags a missing line, a take-off never detected, a
+  missing arm time, or 0 replaced. A set where the rule did not fire would still hold pre-D15
+  numbers, so this is checked before any restatement.
+- **Recorded, not blocking:** the offline class has no disarm reset. EKF3 goes back to "on ground"
+  at disarm and zeroes flow again after landing. This only affects the period after the cruise
+  window. The port gets it through `AP_DAL` `get_armed()`.

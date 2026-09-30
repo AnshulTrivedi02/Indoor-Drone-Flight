@@ -182,7 +182,7 @@ np.savetxt(f"{OUTDIR}/bgz_series.txt",
            header="t_sec  est_bias_absdpm  true_bias_dpm", comments="# ")
 step_ms = np.array(step_ns)/1e6
 
-print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff}; arm t {gp.t_arm}")
+print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff} at t {gp.t_takeoff}; arm t {gp.t_arm}")
 print(f"[run] {n_kf} keyframes, window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s   "
       f"flow factors {fgo.n_flow}  range factors {fgo.n_range}  imu {fgo.n_imu}")
 print(f"[timing] per-keyframe update: median={np.median(step_ms):.1f}ms  p99={np.percentile(step_ms,99):.1f}ms  "

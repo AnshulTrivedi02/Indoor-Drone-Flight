@@ -81,9 +81,14 @@ def h_flow_pose(R_wb, v_world, p_U, omega_body):
     # the translation still negated, so the lateral row stayed inconsistent - which is
     # why it made the UKF worse. The whole row was wrong. Both terms are now corrected
     # together, and flow_y_rot's FLU sign is fixed (was +omega_y, i.e. -pitchspeed FRD).
-    flow_x_rot = +omega_body[0]                        # +roll rate  (was -omega_x)
-    flow_y_rot = -omega_body[1]                        # +pitchspeed FRD = -omega_y FLU (was +omega_y)
+    flow_x_rot, flow_y_rot = h_flow_rot(omega_body)
     return np.array([flow_x_trans + flow_x_rot, flow_y_trans + flow_y_rot])
+
+
+def h_flow_rot(omega_body):
+    """The rotational part of h_flow_pose (FLU body rates -> raw flow): +roll rate (was -omega_x);
+    +pitchspeed FRD = -omega_y FLU (was +omega_y). Also the D15 zero-translation measurement."""
+    return np.array([+omega_body[0], -omega_body[1]])
 
 
 def h_flow(x, omega_body):
@@ -234,6 +239,7 @@ class GroundProximityFlow:
         self.rng_at_arm = None      # EKF3's rngAtStartOfFlight: the last range while on ground
         self.last_rng = None
         self.n_replaced = 0
+        self.t_takeoff = None       # when take-off was detected (audit only)
 
     def armed(self, t):
         return self.t_arm is not None and t >= self.t_arm
@@ -246,7 +252,7 @@ class GroundProximityFlow:
             self.rng_at_arm = rng
         elif (not self.takeoff and t - self.t_arm > GP_ARM_GUARD_S and self.rng_at_arm is not None
               and rng > self.rng_at_arm + GP_RANGE_RISE_M):
-            self.takeoff = True
+            self.takeoff = True; self.t_takeoff = t
 
     def on_gyro(self, t, gyro_rate, bias_rate):
         if not self.armed(t):
@@ -254,7 +260,7 @@ class GroundProximityFlow:
             return
         if not self.takeoff and t - self.t_arm > GP_ARM_GUARD_S:
             if np.linalg.norm(np.asarray(gyro_rate, float) - np.asarray(bias_rate, float)) > GP_GYRO_RADPS:
-                self.takeoff = True
+                self.takeoff = True; self.t_takeoff = t
 
     def replace(self, flow_xy, omega_flu, roll, pitch):
         """Return the flow to fuse: the measured flow, or the zero-translation measurement before take-off
@@ -264,4 +270,4 @@ class GroundProximityFlow:
         if self.last_rng * np.cos(roll) * np.cos(pitch) >= GP_HEIGHT_M:
             return flow_xy
         self.n_replaced += 1
-        return np.array([+omega_flu[0], -omega_flu[1]])
+        return h_flow_rot(omega_flu)          # EKF3's flowRadXYcomp = 0 (zero relVelSensor, lever arm included)

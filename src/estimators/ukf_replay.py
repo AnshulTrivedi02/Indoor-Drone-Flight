@@ -244,7 +244,7 @@ print(f"[flow] axis-X accept {n_flow_acc[0]}/{n_flow_acc[0]+n_flow_rej[0]}  "
       f"[range] accept {n_rng_acc}/{n_rng_acc+n_rng_rej}")
 att_tr = np.array(att_tr)                    # columns: (tilt cov, yaw cov)
 tilt_c, yaw_c = att_tr[:, 0], att_tr[:, 1]
-print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff}; arm t {gp.t_arm}")
+print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff} at t {gp.t_takeoff}; arm t {gp.t_arm}")
 print(f"[pseudo-yaw] fired {n_yaw_fire}/{n_yaw_check} checks "
       f"({100.0*n_yaw_fire/max(n_yaw_check,1):.0f}% — variance-gated, was 100%)")
 print(f"[att-cov] tilt(P66+P77) median={np.median(tilt_c):.5f}  "
