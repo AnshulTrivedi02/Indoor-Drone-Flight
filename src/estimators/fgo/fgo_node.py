@@ -116,7 +116,10 @@ class FgoNode(Node):
         if getattr(self._mav, "udp_server", False) and not self._mav.clients:     # pymavlink 2.4.49: senders go to .clients
             self._n_unsent = getattr(self, "_n_unsent", 0) + 1
             return
-        C = np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]])     # ENU -> NED
+        # The FGO's navigation frame is the CORRIDOR frame (measurement_models.h_heading: yaw 0 along the corridor
+        # at spawn): x = forward along the corridor = North, y = left = West, z = up. -> NED: (x, -y, -z).
+        # (Found in the second smoke test: an ENU mapping put yaw 90 deg off and swapped N/E.)
+        C = np.array([[1.0, 0, 0], [0, -1, 0], [0, 0, -1]])    # corridor (x fwd/N, y W, z U) -> NED
         Fb = np.diag([1.0, -1, -1])                           # FLU <-> FRD
         pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
         # rotation matrix -> quaternion (w, x, y, z)

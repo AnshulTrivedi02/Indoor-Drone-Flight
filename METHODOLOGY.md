@@ -7963,3 +7963,24 @@ Neither affected any result.
   decreases monotonically with δ on ≥ 2 of 3 bags.
 - **Prediction:** the FGO's advantage grows with the initial error, with the UKF between EKF3 and the
   FGO (the EKF3 part applies only if EKF3 can be included).
+
+### C0 RESULT — FGO vs UKF with heading, post-D15 (`phase4_*_arms.json`, `_evo.json`; the offline design comparison, σ 0.148/0.126°)
+
+| bag | UKF +heading evo -a (cruise) | FGO +heading | UKF yaw RMS | FGO yaw RMS |
+|---|---|---|---|---|
+| `fwdc_tex_r1` | 0.61 m | **0.08 m** | **0.08°** | 0.19° |
+| `fwdc_tex_r2` | 0.62 | **0.09** | **0.08** | 0.18 |
+| `fwdc_tex_r3` | 0.62 | **0.09** | **0.09** | 0.18 |
+| `fwdplainc_tex_r1` | 0.65 | **0.20** | **0.89** | 1.36 |
+| `fwdplainc_tex_r2` | 1.01 | **0.61** | **2.45** | 4.22 |
+| `fwdplainc_tex_r3` | 0.95 | **0.22** | 2.93 | **1.57** |
+
+- **Against the prediction:**
+  - unchanged from pre-D15 to within 0.01 m: **yes**, all identical at printed precision;
+  - FGO lower on all 3 `fwdc` bags: **yes**;
+  - "mixed on `fwdplainc`": **no for position**, where the FGO is lower on all 3. It is mixed only in yaw
+    RMS.
+- **What the FGO does not win:** the UKF has the LOWER yaw error on 5 of 6 bags (by about 2× on
+  `fwdc`), yet the higher position error. The UKF's remaining position error with heading is
+  therefore not heading-driven (cf. the scale check: UKF +heading along-track ratio 0.987–0.990
+  against the FGO's 0.998).
