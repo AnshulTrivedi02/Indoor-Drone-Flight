@@ -7705,3 +7705,29 @@ It armed at 24.44 s, held 63.4 s and disarmed at 87.82 s.
 **V4 scorer:** `eval/closed_loop_score.py --est ukf` (added before V4). B3 is taken from `XUKO`, with
 EKF3's error as a DIAGNOSTIC, and S2 is added. Its default (`--est ekf3`) reproduces the recorded
 `cl_bcpp_tex_r1` B3 exactly.
+
+### D17 V4 — the with-heading UKF set (`cl_ukf_b_tex_r1..r3`, the UKF flies with the camera heading): PASS, 3 of 3
+
+`eval/closed_loop_score.py --set b --est ukf`; `eval/results/closed_loop_cl_ukf_b_tex_r{1,2,3}.json`.
+The binary had md5 `85179298…`, checked before the set. The flights ran sequentially, each scored
+before the next.
+
+| flight | B1 (completed, max \|x\| in flight) | B2 max cross-track | B3 UKF yaw error p95 / max (`XUKO`) | B4 | B5 gyro rms r/p/y (rad/s) | S2 | EKF3 shadow yaw error p95 / max (DIAG) |
+|---|---|---|---|---|---|---|---|
+| r1 | PASS, 0.28 m | 0.23 m | 0.18° / 0.28° | 0.016 m/s | 0.0020 / 0.0018 / 0.0023 | PASS | 0.36° / 0.41° |
+| r2 | PASS, 0.29 m | 0.16 m | 0.17° / 0.26° | 0.015 m/s | 0.0020 / 0.0017 / 0.0026 | PASS | 0.34° / 0.40° |
+| r3 | PASS, 0.31 m | 0.29 m | 0.21° / 0.31° | 0.005 m/s | 0.0021 / 0.0020 / 0.0024 | PASS | 0.38° / 0.42° |
+| band | < 9.58 m | ≤ 6.0 m | ≤ 1.0° / ≤ 2.0° | ≤ 0.25 m/s | 0.05 / 0.0108 / 0.02 | 100% | — |
+
+- **Against the predictions written from V2:**
+  - B3 p95 ≈ 0.17°, max ≈ 0.33°: flown 0.17–0.21° / 0.26–0.31°. Matched.
+  - B2 ≈ 0.3–0.6 m: flown 0.16–0.29 m, at or below the lower end, so the prediction was
+    conservative.
+- **Beside set (b) (EKF3 flying the same heading at the same 5° trust), DESCRIPTIVE, n = 3 each:**
+  - B2: EKF3 0.23–0.34 m, UKF 0.16–0.29 m;
+  - B3: EKF3 0.28–0.31° / 0.40–0.42°, UKF 0.17–0.21° / 0.26–0.31°;
+  - B4: EKF3 0.021–0.140 m/s, UKF 0.005–0.016 m/s.
+  - No ordering claim is pre-registered, so none is made. The two sets are separate flights,
+    days apart in configuration history.
+- **Sequence complete:** V1–V4 all PASS, with no primary failure. Next, as ruled: the gyro-bias
+  diagnostic, then D12's effort/blocker report.
