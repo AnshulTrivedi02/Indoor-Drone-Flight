@@ -7516,3 +7516,36 @@ that reason.**
     including the live shadow of this binary, predict no contact.
   - East-wall contact is a U3 miss with no support (0 of 11).
 - S1, S2 and U1 are unchanged.
+
+### UKF closed-loop flight WITHOUT heading, `cl_ukf_a_tex` (the UKF flies; `corridor_textured_fwdc`, ×1): PRIMARY PASS
+
+`eval/results/closed_loop_cl_ukf_a_tex.json`.
+- **Configuration:** the exact binary (md5 `2d631fa7…`, checked before launch); PARM dump
+  `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `LOG_REPLAY 1`. EKF3 ran as a passive shadow.
+- **Timeline:** armed 24.44 s; take-off 28.49 s (to 2.43 m); cruise start 29.99 s.
+- **Result: west-wall contact at cruise +163.0 s**, GT (x, y) = (−9.58, 81.9) m. The watcher stopped
+  the flight (max |x| 9.68 m during the stop).
+- **Against the prediction as updated before flying (D16 check):**
+  - **U1 PASS:** armed, took off, entered cruise; no failsafe message after arming; no loss of
+    control before contact.
+  - **U2 PASS:** no contact before +100 s.
+  - **U3 PASS:** west wall inside [+146, +218] s. The validated method's cluster was +161.3 … +192.7 s.
+    The contact also falls inside the superseded [+160, +217].
+  - **S1 and S2 hold:** `horiz_pos_rel` 100% and healthy 100% from take-off to contact; `EvO` 0,
+    `EvMx` 10.
+- **World note:** the prediction data are from `corridor_textured` (the same floor texture; the UKF
+  does not use the forward camera). The flight used the pre-registered `corridor_textured_fwdc`, as
+  set (a) did.
+
+**DIAGNOSTIC:**
+- **The UKF's own heading error:** +1.88° at cruise start, +15.6° at contact; in-flight drift
+  +5.78 deg/min NED (westward).
+  - The heading error at cruise start is larger than the +0.3 … +0.6° in the prediction's
+    realisations.
+  - The take-off yaw change itself was small: UKF +0.61°, SIM +0.85° (the vehicle genuinely yawed
+    slightly in closed loop), EKF3 shadow +0.77°. The remaining offset built up between take-off and
+    cruise start. Not investigated further.
+- **EKF3 shadow on the same flight:** heading error −0.01° at cruise start, +7.0° at contact,
+  +2.53 deg/min.
+- Compared with EKF3's set (a) (+186.2 s): the UKF reached the wall 23 s earlier, consistent with
+  its larger heading error.

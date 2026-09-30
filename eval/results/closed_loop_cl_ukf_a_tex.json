@@ -1,0 +1,11 @@
+{"trial": "cl_ukf_a_tex", "world": "corridor_textured_fwdc", "binary_md5": "2d631fa702ffdf77f50d996ff287abe4",
+ "parm": {"AHRS_EKF_TYPE": 12, "AHRS_UKF_ENABLE": 1, "LOG_REPLAY": 1},
+ "armed_s": 24.44, "takeoff_s": 28.49, "max_height_before_cruise_m": 2.43, "cruise_start_s": 29.99,
+ "contact": {"sim_t_s": 192.99, "cruise_plus_s": 163.0, "wall": "west", "E_m": -9.60, "N_m": 81.9,
+             "watcher": "wall contact |x| = 9.583 m at t=192.970, y=81.924; max |x| 9.679 m during the stop"},
+ "primary": {"U1": true, "U2_no_contact_before_100s": true, "U3_west_in_146_218": true},
+ "safety": {"S1": true, "S2_horiz_pos_rel_pct": 100.0, "S2_healthy_pct": 100.0, "failsafe_messages": []},
+ "diagnostic": {"EvO_max": 0, "EvMx_max": 10,
+   "ukf_yaw_err_cruise_start_deg": 1.88, "ukf_yaw_err_at_contact_deg": 15.60, "ukf_drift_deg_per_min_NED": 5.78,
+   "ekf3_shadow_yaw_err_cruise_start_deg": -0.01, "ekf3_shadow_yaw_err_at_contact_deg": 7.01, "ekf3_shadow_drift_deg_per_min_NED": 2.53,
+   "takeoff_yaw_change_deg": {"UKF": 0.61, "EKF3": 0.77, "SIM": 0.85}}}
