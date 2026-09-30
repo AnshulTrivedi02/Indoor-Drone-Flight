@@ -8125,3 +8125,40 @@ landing):
   with-heading sets are not expected to be affected in the same way, since the heading bounds yaw. This
   is to be shown, not assumed.
 - As pre-registered, this primary miss STOPS the sequence and is reported. Queued as **D21**.
+
+### Rulings (user, 2026-09-30, night): D21, D20, FGO heading timing, C0, new RTF check
+
+**D21:**
+- EKF3's half-speed no-heading flight is recorded as a **miss as worded** (+242.1 s against the
+  window [+155, +215]).
+- **The half-speed EKF3 and UKF flights are the half-speed references.** The FGO's no-heading
+  prediction is re-derived from half-speed data before its flight.
+- **No-heading results at different simulation speeds are NOT interchangeable.** Heading drift over
+  the first 150 s of cruise changed from 4.3 to 2.1 deg/min for EKF3, and from 5.5 to 3.9 for the UKF.
+  The likely mechanism (wall-clock bridge latencies shrink in sim time, affecting the flow→yaw
+  coupling) is **UNTESTED**.
+
+**D20:** `VISO_DELAY_MS` = **25 ms** at half speed (the receipt measure, as D2).
+- The 5.4 ms disagreement against the 5 ms tolerance is recorded as a miss as worded.
+- `closedloop_heading_half.parm` is a copy of `closedloop_heading.parm` with only `VISO_DELAY_MS` 25.
+- **The verification ground test (G1–G5 as D2) runs before any half-speed heading flight:**
+  `gt_heading_half2`, stock tree, EKF3, `HEADING_PARM=closedloop_heading_half.parm`, C++ node,
+  `every_n` 4, 330 s hold.
+
+**FGO heading timing, recorded:**
+- The FGO applies each heading at its capture time. EKF3 and the UKF use capture time minus
+  `VISO_DELAY_MS`, through ArduPilot's timing correction (`TS − D − 6`, clamped to the horizon).
+- **The resulting heading-timing difference will be quantified in the closed-loop flights** (from the
+  heading-bridge log and `REPH`/`XUKH` times against the capture stamps). It is stated wherever FGO and
+  EKF3/UKF closed-loop results are compared.
+
+**C0:** recorded as reported (above), including the prediction miss (the FGO won all three plain-wall
+bags on position) and the UKF's lower yaw error on 5 of 6 textured bags.
+
+**New check (offline, before the simulation freeze; does not block flights):**
+- Across all open-loop dataset flights, relate each estimator's cruise yaw drift rate (and cruise
+  error) to that flight's RTF and flow latency.
+- Report whether the drift depends on RTF, and whether any result comparing EKF3 across datasets
+  flown at different RTF (`dsn` ~0.95 against the forward-camera sets ~0.75) is affected.
+- **Same-flight comparisons (e.g. the confirmatory EKF3-vs-FGO test) are unaffected by construction:**
+  every estimator is evaluated on the same flight's data and timing.
