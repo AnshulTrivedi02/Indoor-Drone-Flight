@@ -5,6 +5,20 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D20. `VISO_DELAY_MS` at half speed: (a) and (b) disagree by 5.4 ms (BLOCKS every half-speed flight)
+- `gt_heading_half_b`: (a) node sent − capture min **20.0 ms**; (b) `VISP` receipt − capture min
+  **25.4 ms** (sim time). The pre-registered tolerance is 5 ms, so the run stopped as worded.
+- (The first attempt, `gt_heading_half`, was VOID: the Wi-Fi dongle faulted and broke gz multicast
+  discovery. Fixed by loopback pinning for all half-speed flights.)
+- Options:
+  - **(a) 25 ms from (b)**, as D2 took (b): EKF3's timestamp is the receipt-based value;
+  - (b) 20 ms from (a);
+  - (c) repeat the ground test once and apply the rule to it.
+- **Recommendation: (a) 25**, then run 2 (the G1–G5 verification ground test) before any
+  half-speed flight. The 5.4 ms is a fifth of a camera frame and within the p5 spread of both
+  measures.
+
+
 ### D19. D12 route and the take-off backlog fix (report: `docs/d12_fgo_backend_report.md`)
 - **The backlog is throughput.** The FGO step is 42–49 ms (max 54) against the 33.3 ms keyframe
   period for ~6 s around lift-off → ~1.7 s lag. There is only ~10% headroom in cruise (29.8 ms), so it

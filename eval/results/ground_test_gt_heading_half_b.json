@@ -1,0 +1,216 @@
+{
+ "params": {
+  "AHRS_EKF_TYPE": 3.0,
+  "EK3_HGT_DELAY": 60.0,
+  "EK3_FLOW_DELAY": 10.0,
+  "EK3_SRC1_POSXY": 0.0,
+  "EK3_SRC1_VELXY": 5.0,
+  "EK3_SRC1_POSZ": 2.0,
+  "EK3_SRC1_YAW": 6.0,
+  "VISO_TYPE": 1.0,
+  "VISO_DELAY_MS": 38.0,
+  "VISO_YAW_M_NSE": 0.05000000074505806,
+  "VISO_QUAL_MIN": 50.0,
+  "LOG_REPLAY": 1.0
+ },
+ "n": {
+  "VISP": 2602,
+  "REPH": 2602,
+  "XKF5": 3534
+ },
+ "arm_s": 26.326674,
+ "disarm_s": 357.13737,
+ "G1": {
+  "ekf_msgs": [
+   [
+    4.93,
+    "EKF3 IMU0 initialised"
+   ],
+   [
+    4.93,
+    "EKF3 IMU1 initialised"
+   ],
+   [
+    4.94,
+    "AHRS: EKF3 active"
+   ],
+   [
+    6.18,
+    "EKF3 IMU1 tilt alignment complete"
+   ],
+   [
+    6.18,
+    "EKF3 IMU0 tilt alignment complete"
+   ],
+   [
+    7.25,
+    "EKF3 IMU1 fusing optical flow"
+   ],
+   [
+    7.26,
+    "EKF3 IMU0 fusing optical flow"
+   ],
+   [
+    14.1,
+    "EKF3 IMU1 yaw aligned"
+   ],
+   [
+    14.1,
+    "EKF3 IMU0 yaw aligned"
+   ],
+   [
+    26.23,
+    "EKF3 IMU0 started relative aiding"
+   ],
+   [
+    26.24,
+    "EKF3 IMU1 started relative aiding"
+   ]
+  ],
+  "REPH_n": 2602,
+  "REPH_AEr_unique": [
+   0.05
+  ],
+  "XKF1_max_abs_PN_PE_m": 0.0342191681265831,
+  "POSXY": 0.0,
+  "pass": true
+ },
+ "node": {
+  "rows": 2662,
+  "sent": 2633,
+  "offset_rad": 8.7e-05,
+  "offset_locked_at_capture_s": 14.059,
+  "armed_flag_at_first_offset": 0
+ },
+ "G2": {
+  "armed": true,
+  "prearm_or_arm_failures": [
+   [
+    15.9,
+    "Arm: Gyros inconsistent"
+   ],
+   [
+    15.9,
+    "Arm: Need Position Estimate"
+   ],
+   [
+    16.41,
+    "Arm: Gyros inconsistent"
+   ],
+   [
+    16.41,
+    "Arm: Need Position Estimate"
+   ],
+   [
+    16.91,
+    "Arm: Gyros inconsistent"
+   ],
+   [
+    16.91,
+    "Arm: Need Position Estimate"
+   ],
+   [
+    17.41,
+    "Arm: Gyros inconsistent"
+   ],
+   [
+    17.41,
+    "Arm: Need Position Estimate"
+   ],
+   [
+    17.91,
+    "Arm: Gyros inconsistent"
+   ],
+   [
+    17.91,
+    "Arm: Need Position Estimate"
+   ]
+  ],
+  "offset_locked_before_arm": true,
+  "pass": true
+ },
+ "G3": {
+  "origin_msgs": [],
+  "pass": true
+ },
+ "clock_map": {
+  "source": "/imu/time_ref lower envelope",
+  "offset_s_at_start": 0.00493227126216037,
+  "rate_ppm": 187.16700783789292,
+  "envelope_resid_ms_max": 9.641892619220272,
+  "n_bins": 70
+ },
+ "G4": {
+  "a_node_sent_minus_capture_ms": {
+   "min": 19.99999999999602,
+   "p5": 25.000000000005684,
+   "median": 31.999999999996476,
+   "p95": 39.99999999999204,
+   "max": 46.999999999997044,
+   "n": 2633
+  },
+  "b_visp_receipt_minus_capture_ms": {
+   "min": 25.417882045815077,
+   "p5": 28.34704829437449,
+   "median": 33.6966469066482,
+   "p95": 43.12652582645526,
+   "max": 55.98549792267704,
+   "n": 2602
+  },
+  "min_agree_within_5ms": false,
+  "VISO_DELAY_MS_recommended": 25,
+  "horizon_other_sensors_ms": 60.0,
+  "pass": false
+ },
+ "G5": {
+  "G5.1": {
+   "REPH_D_unique": [
+    38
+   ],
+   "VISO_DELAY_MS": 38.0,
+   "horizon_ms": 60.0,
+   "XKF5_rows_while_ExtNav": 3433,
+   "count_match": true,
+   "pass": true
+  },
+  "G5.2": {
+   "residual_ms": {
+    "min": -34.58687445282703,
+    "p5": -31.65825634498251,
+    "median": -26.309658813726855,
+    "p95": -16.881544525831856,
+    "max": -4.024978754518088,
+    "n": 2602
+   },
+   "clamped_to_horizon_pct": 100.0,
+   "misalign_deg_at_0.93dps_p95": 0.029442178400833737,
+   "misalign_deg_at_GT_p99_0.09dps_p95": 0.002849243071048426,
+   "pass": true
+  },
+  "G5.3": {
+   "armed_window_s": [
+    31.326674,
+    357.13737
+   ],
+   "slope_ms_per_s": 0.011223429610230913,
+   "block30_medians_ms": [
+    27.0,
+    29.0,
+    32.0,
+    32.0,
+    34.0,
+    35.0,
+    33.0,
+    34.0,
+    32.0,
+    34.0,
+    31.0
+   ],
+   "dropped_selected": 0,
+   "processed": 2662,
+   "drop_pct": 0.0,
+   "pass": true
+  },
+  "pass": true
+ }
+}

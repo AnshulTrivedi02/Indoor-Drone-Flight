@@ -7860,3 +7860,16 @@ Neither affected any result.
   - It applies to every half-speed flight of all three estimators alike. Earlier flights are
     unchanged.
 - Run 1 is repeated as `gt_heading_half_b`.
+
+**Run 1b (`gt_heading_half_b`, loopback-pinned): completed cleanly** (330 s hold; 0 network errors).
+`eval/results/ground_test_gt_heading_half_b.json`.
+- **G4 latency, sim time:**
+  - (a) node sent − capture: min **20.0 ms** (p5 25, median 32, p95 40; n 2633);
+  - (b) `VISP` receipt − capture: min **25.4 ms** (p5 28.3, median 33.7, p95 43.1; n 2602).
+- **(a) and (b) disagree by 5.4 ms, just over the 5 ms tolerance. As pre-registered: STOP and report.**
+  `closedloop_heading_half.parm` is not written, and no half-speed flight is flown until ruled.
+- The prediction (≈ 19–20 ms) matched (a). (b) is ~5 ms higher.
+  - At full speed (D2) it was the other way round: (a) 40.0, (b) 37.9.
+  - The receipt measure includes the SITL serial path (`SERIAL1` udpclient, virtual baud) and the
+    dataflash clock map. Their sim-time share changes with RTF.
+- The checker's recommendation is 25, from (b), as D2 took (b).
