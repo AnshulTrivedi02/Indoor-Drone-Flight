@@ -7779,3 +7779,47 @@ fuses a synthetic yaw every 140 ms.
   unchanged, and no backlog is expected (66.7 ms wall per keyframe against a ≤ 60 ms step max).
   Queued as **D19**, including whether the EKF3/UKF closed-loop references are re-flown at the same
   RTF.
+
+### Rulings (user, 2026-09-30, evening): D18, D19, the FGO gates, offline tests F1–F3, timeline
+
+**D18: no. PRINCIPLE, recorded:**
+- **Sensor-validity rules** (what a sensor can physically measure, e.g. D15's ground-proximity flow
+  rule) are applied identically to every estimator.
+- **Estimator design features** (e.g. EKF3's stationary-yaw gyro-bias learning) are **not** copied
+  between estimators, because the thesis compares designs.
+- **Documented design difference and caveat:** EKF3 learns gyro-z bias before arming (~0.0100 deg/s,
+  ~0.6 deg/min equivalent, P3). This is a caveat on the **no-heading** closed-loop comparison only; it
+  does not apply with heading. The FGO does not receive it either.
+
+**D19: route (a).** The FGO becomes an ArduPilot estimator backend with its own input route.
+- **All FGO closed-loop flights fly at half real-time speed** (Gazebo `real_time_factor` 0.5).
+- **Identical timing for all three estimators:**
+  - re-measure `VISO_DELAY_MS` at half speed by the original rule (D2: round(min capture→receipt lag),
+    node-sent and receipt measures agreeing within 5 ms);
+  - re-fly the EKF3 and UKF closed-loop sets at half speed with the same settings (no heading ×1 each,
+    with heading ×3 each), alongside the FGO's sets.
+  - The full-speed EKF3 and UKF sets stay recorded as the first results.
+- **Statement for the thesis:** half speed gives the FGO twice the wall-clock compute per simulated
+  second. The flights show its behaviour **given sufficient compute, not real-time feasibility**,
+  which remains the speed-up (D11) for the real drone.
+
+**FGO gates before flying, as for the UKF:** backend equivalence to the offline FGO (pre-registered
+bands); validity signal; predictor check; shadow run; ground test; written predictions; then no-heading
+×1 and with-heading ×3.
+
+**Recorded as fixed before use (as ruled):**
+- the V1 checker column bug (R4 read the test-ratio column, not the accept flag);
+- the queue edit whose assertion failed, which left D19 and the report's risk (iv) out of commit
+  `328453e`; added in `8e4d3e0`.
+Neither affected any result.
+
+**Offline tests F1–F3, plus the FGO-vs-UKF with-heading comparison on post-D15 data:**
+- existing recordings only; no simulator use; modest CPU while flights run;
+- each pre-registered here before running: arms, metrics, bands or decision rules with their basis,
+  and a prediction;
+- every outcome is reported, including those where the FGO does not win.
+
+**Timeline:**
+- FGO closed-loop flights complete by **Fri 9 Oct**;
+- simulation freeze **Fri 16 Oct** (no new simulation experiments after it);
+- experiment freeze **Fri 23 Oct**.
