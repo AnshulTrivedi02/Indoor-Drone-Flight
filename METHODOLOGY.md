@@ -7146,3 +7146,164 @@ Cost = baseline − re-timed. A positive cost means the misdating hurt EKF3.
 - **Recorded, not blocking:** the offline class has no disarm reset. EKF3 goes back to "on ground"
   at disarm and zeroes flow again after landing. This only affects the period after the cruise
   window. The port gets it through `AP_DAL` `get_armed()`.
+
+### D15 RESULTS (2026-09-30) — dsn, the port, FGO step 2
+
+**Rule audit (`eval/d15_rule_audit.py`):** the rule fired in every dsn replay, UKF and FGO: 344–590
+flows replaced, take-off detected at 28.0–28.6 s, arm time present. No flags.
+
+**The take-off kick is gone on all six previously poor flights** (`eval/results/d15_kick.json`;
+definition as pinned). Yaw change at take-off, UKF old → new:
+
+| flight | UKF old | UKF new | FGO old | FGO new |
+|---|---|---|---|---|
+| r1 | −9.23° | −0.06° | −0.07° | −0.04° |
+| r2 | +0.39° | +0.38° | +0.30° | −0.00° |
+| r3 | +5.05° | −0.76° | −0.09° | −0.07° |
+| r4 | −16.98° | −0.43° | −0.05° | −0.05° |
+| r5 | +5.37° | −0.42° | −0.05° | −0.06° |
+| r6 | −10.69° | +0.36° | −0.05° | −0.00° |
+| r7 | −11.46° | −0.48° | −0.07° | −0.07° |
+| r8 | −5.44° | −0.50° | −0.05° | −0.05° |
+| r9 | −9.31° | −0.44° | −0.07° | −0.08° |
+
+(r10 is unusable for UKF/FGO under the IMU-gap rule.) The FGO barely moves (≤ 0.3°), as expected.
+
+**UKF evo -a (cruise), dsn_tex r1–r9, old → new (m):** r1 17.45 → 4.31, r2 2.28 → 2.29, r3 4.30 → 5.93,
+r4 35.94 → 5.51, r5 2.99 → 5.30, r6 20.56 → 1.87, r7 20.99 → 5.39, r8 13.37 → 5.56, r9 25.11 → 5.45.
+- **Median 17.45 → 5.39 m; range 2.28–35.94 → 1.87–5.93 m; SD 1.51 m.** Under the pre-registered
+  instability rule (evo > 3 × median), 0 of 9 flights are unstable.
+- **The two flights that got WORSE (r3 4.30 → 5.93, r5 2.99 → 5.30) had a POSITIVE kick (+5°)** that
+  partly cancelled the UKF's westward cruise drift. Their earlier "good" scores were the same artefact
+  with the opposite sign.
+- **Cruise yaw drift (`eval/results/d15_drift.json`, ENU, negative = west):**
+  - old: −70.1 … +8.3 deg/min, direction varying;
+  - new: −7.8, −3.1, −11.1, −10.2, −9.8, −1.9, −10.0, −10.4, −10.1 (textured r1–r9), and −10.4,
+    −13.3, −10.3 (transition). **All westward.** 10 of 12 lie in −7.8 … −13.3; r2 and r6 (−3.1, −1.9)
+    are the two best-scoring flights.
+  - The FGO drifts −9.1 … −9.4 in both old and new.
+- **The claim "the UKF is poor in most textured flights" is SUPERSEDED.** With EKF3's ground-proximity
+  rule, the UKF is stable in all nine textured flights: median 5.39 m against EKF3 4.10 and FGO 4.61
+  (descriptive; no pre-registered UKF ordering test). Its remaining spread follows its cruise yaw
+  drift.
+- **The finding:** the UKF's run-to-run variability was a take-off artefact. It fused flow at
+  focus-limited heights before take-off was detected, which EKF3 forbids. This is a sensor-model gap in
+  the replay estimators, not a filter property.
+
+**Transition and blank (failure metrics, old → new):**
+- UKF transition onset: r1 84.6 → 103.9 m (the kick had brought divergence forward); r2 and r3
+  unchanged (103.5 → 103.7, 103.6 → 103.9).
+- Displacement ratios: UKF ±5%, FGO −7 … +11%. Onsets are unchanged otherwise.
+- Blank onsets are unchanged: UKF 20.0–22.9 m, FGO 5.2–6.6 m.
+
+**FGO (evo -a cruise):**
+- textured median 4.61 → 4.61 m, SD 0.127 → 0.051 m (the r2 value moved 4.30 → 4.72);
+- **P4 bands (pre-registered formula) moved with it:**
+  - FGO textured [3.898, 5.042] → [4.189, 5.117] m;
+  - transition ratio [42.27, 54.85] → [42.14, 56.51];
+  - blank ratio [167.7, 212.3] → [168.0, 212.5];
+  - EKF3 bands unchanged.
+
+**The confirmatory EKF3-vs-FGO test HOLDS** (`dsn_paired_test.py`, unchanged; r4–r9 usable):
+- old: mean d −0.693 m, 95% CI [−1.198, −0.188], 6/6 negative;
+- **new: mean d −0.686 m, CI [−1.159, −0.212], 6/6 negative. Verdict "EKF3 lower", both (a) and (b)
+  met.**
+- The FGO noise floor (SD, n = 9) tightens from 0.127 to 0.051 m, chi-square 95% [0.035, 0.098]. The
+  EKF3 noise floor is unchanged (0.313 m).
+
+**FGO node step 2 re-run (the node core now carries the rule): PASS FE1–FE4 on both pre-registered
+logs.**
+- `dsn_tex_r2` / `dsn_blank_r1`: max |Δpos| 8.5e-7 / 8.4e-7 m; |Δyaw| 0.0; bias 0.0; identical
+  keyframe/flow/range counts.
+- **A harness bug was found and fixed:** `fgo_node_equiv.py` preferred the stale
+  `fgo_traj.tum.typo` (the pre-D10 copy) whenever it existed. The first re-run therefore compared the
+  D15 node against the pre-D15 offline FGO: "FAIL", 6.3 m / 4.57°. The `.typo` file is now used only
+  when it is at least as new as `fgo_traj.tum`. FE2 then compares against the corrected writer's
+  representation (w = cr·cp·cy + sr·sp·sy, %.6f).
+
+**The UKF port with the rule (`~/ardupilot_ukf` `9d2c545d29`), Replay on dsn_tex r1–r10**
+(`eval/d15_port_score.py`; `~/thesis_data/d15_port/`):
+
+| flight | port evo -a (cruise) | offline UKF (D15) | take-off yaw change | cruise drift (NED, + = west) |
+|---|---|---|---|---|
+| r1 | 4.32 | 4.31 | −0.10° | +7.8 |
+| r2 | 2.77 | 2.29 | −0.81° | +4.3 |
+| r3 | 4.90 | 5.93 | +0.12° | +9.0 |
+| r4 | 5.01 | 5.51 | +0.13° | +9.2 |
+| r5 | 5.04 | 5.30 | +0.15° | +9.3 |
+| r6 | 2.33 | 1.87 | −0.70° | +3.2 |
+| r7 | 5.03 | 5.39 | +0.20° | +9.3 |
+| r8 | 5.04 | 5.56 | +0.15° | +9.3 |
+| r9 | 5.10 | 5.45 | +0.25° | +9.4 |
+| r10 | 5.09 | — | +0.26° | +9.4 |
+
+- **No kick in the port on any flight (|Δ| ≤ 0.81°).** Drift is +3.2 … +9.4 deg/min NED, all westward,
+  with the same r2/r6 exceptions as offline.
+- The port and offline levels agree. Before D15, step 3 attributed the port-vs-offline difference
+  almost entirely to flow timing. That is not re-tested here.
+- The step-3 harness variants (`ukf_step3.py`) drive the filter core directly, so they bypass
+  `update()`, where the rule lives. **The Replay above is therefore the check of the port's rule, and
+  step 3 is not re-run.**
+
+### D15 RESULTS (2026-09-30) — forward-camera sets, Phase 4/5/5b, blank behaviour, scores
+
+**Rule audit over the whole re-run: 240 replays** (dsn 18, dsn_extra 12, p1c 12, fwdc 18, fwdplainc 18,
+Phase 4 90, Phase 5b 72). The rule fired in every one: ≥ 344 flows replaced, take-off detected, arm
+time present. No flags. `eval/results/d15_rule_audit.json`.
+
+**Textured UKF baseline, evo -a (cruise), old → new (m):**
+- fwdc r1 9.88 → 5.18, r2 2.47 → 2.47, r3 20.46 → 5.18;
+- fwdplainc r1 14.23 → 5.22, **r2 3.40 → 11.89**, **r3 24.93 → 11.54**;
+- p1c_fwdc 1.91 → 7.67, p1c_fwdplainc 19.68 → 5.32.
+- The FGO and EKF3 are unchanged to ≤ 0.07 m.
+
+**Take-off kick on these eight (UKF, old → new):**
+- fwdc r1 −3.41 → −0.34°, r2 +0.37 → +0.37°, r3 −9.93 → −0.31°;
+- fwdplainc r1 −6.48 → −0.36°, **r2 +4.46 → −4.35°**, **r3 −12.33 → −4.27°**;
+- p1c_fwdc +3.08 → −1.38°, p1c_fwdplainc −9.53 → −0.38°.
+- Cruise drift new: −9.6, −3.6, −9.6, −9.7, **−23.0, −22.3**, −14.7, −9.9 deg/min (all west).
+
+**Finding: a RESIDUAL kick after take-off detection, a UKF property, not a remaining sensor-model gap.**
+- In `fwdplainc_tex_r2`, take-off is detected at 28.084 s (range > range at arming + 0.1 m, as
+  EKF3). The UKF yaw steps −3.4° between 28.00 and 28.25 s, at camera height ≈ 0.1–0.2 m, where EKF3's
+  rule (as defined) fuses raw flow again.
+- **EKF3 on the same flights shows no take-off yaw change** (XKF1: +0.03°, +0.03°, +0.03° on fwdplainc
+  r2, r3, p1c_fwdc; SIM ±0.02°), although it fuses the same raw flow from the same moment. So the
+  residual kick is the UKF's own flow→yaw coupling (the Euler-state UKF under unobservable yaw; see
+  the flow→yaw coupling finding), acting on the low-height flow EKF3 tolerates.
+- The port shows it too (Replay: fwdplainc_tex_r2 +3.62° NED, drift 17.5 deg/min, 9.06 m;
+  fwdplainc_tex_r3 +1.02°, 11.4 deg/min, 6.03 m; p1c_fwdc +0.05°, 11.4 deg/min, 6.08 m).
+- **The rule is applied as defined and NOT adjusted to remove this** (e.g. a height-based rather than
+  take-off-based switch would be a departure from EKF3, i.e. tuning).
+
+**Superseding wording for "the UKF is poor in most textured flights":**
+- Over all 17 usable textured flights (dsn 9, fwdc 3, fwdplainc 3, p1c 2), the corrected UKF is
+  **≤ 5.93 m on 14 of 17**, 7.67–11.89 m on 3 (p1c_fwdc, fwdplainc r2 and r3).
+- The old count was ≤ 4.3 m on 6 of 17, and 7.7–35.9 m on 11.
+- The remaining poor flights carry a residual post-detection kick (−1.4 … −4.4°) and faster drift
+  (−14.7 … −23.0 deg/min).
+
+**Phase 4 arms:**
+- The heading and heading+yaw-rate arms are **unchanged to 0.01 m and 0.01°**: fwdc UKF +heading
+  0.61/0.62/0.62, FGO 0.08/0.09/0.09; fwdplainc UKF 0.65/1.01/0.95, FGO 0.20/0.61/0.22. The absolute
+  heading dominates after take-off.
+- The baseline arms change as the UKF baseline above.
+- **Phase 5b NEES:** `phase5b_consistency.json` is recomputed. The heading arms change by
+  ≤ 0.07 (fwdplainc textured UKF +heading mean 5.08 → 5.10: 0.36 / 5.50 / 9.45). The UKF baseline
+  NEES follows its trajectory: e.g. fwdc r1 55.9 → 6.6, r3 206.7 → 6.6, fwdplainc r2 22.1 → 94.1.
+
+**Scale check (textured fwdc):**
+- UKF baseline along-track ratio: r1 0.640 → 0.921, r3 0.627 → 0.929 (the kick's heading error had
+  rotated the track); r2 unchanged.
+- All other ratios (EKF3, FGO, UKF +heading, flow slope) are unchanged at printed precision.
+
+**Blank behaviour (`blank_behaviour.json`, re-run; EKF3 fields byte-identical):**
+- UKF transition +60 s error 67.5–377.9 → 82.5–314.5 m; +10 s 4.2–9.5 → 6.8–8.6 m.
+- FGO transition +60 s 894.6–1,079.9 → 938.5–1,048.6 m.
+- Blank rows change by < 1%.
+
+**Dataset primary scores (bands moved with the corrected dsn):**
+- p1c 6/6 (unchanged); fwdplainc 8/9 (unchanged miss: blank_r2 FGO ratio);
+- **fwdc 5/9 → 6/9.** `fwdc_blank_r3`'s FGO ratio now passes. **The VALUE moved** (212.528 → 203.521),
+  so it passes under either band; the band also moved (upper 212.261 → 212.519).
+- The `rerun_dsn_score.json` output (dsn scored against itself) is not used, as before.

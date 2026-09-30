@@ -5,7 +5,7 @@ FLAGS: no line (the rule was not in the code that ran); take-off never detected;
 0 flows replaced (expected only where no valid flow reaches the estimator before take-off, e.g. blank).
 Usage: python3 eval/d15_rule_audit.py [--since ISO] [--json OUT]"""
 import argparse, glob, json, os, re
-ap = argparse.ArgumentParser(); ap.add_argument("--since", default="2026-09-30T13:30"); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("--since", default="2026-09-30T13:18"); ap.add_argument("--json"); a = ap.parse_args()
 import datetime as dt
 since = dt.datetime.fromisoformat(a.since).timestamp()
 B = os.path.expanduser("~/thesis_data/batches")

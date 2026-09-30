@@ -58,7 +58,11 @@ dj_map = {}      # bag position of each IMU sample -> offline dejittered stamp (
 
 # FGO step 2 was validated against the offline TUM AS WRITTEN (with the euler_to_quat typo). After the
 # D10 repair the original is kept as fgo_traj.tum.typo; use it when present so step 2 stays reproducible.
-_ref_path = f"{D}/fgo/fgo_traj.tum.typo" if os.path.exists(f"{D}/fgo/fgo_traj.tum.typo") else f"{D}/fgo/fgo_traj.tum"
+# D15 (2026-09-30): a .typo file is only the reference when it is at least as new as fgo_traj.tum; a later
+# re-run of fgo_replay.py (the corrected writer) supersedes it, and FE2 then compares the true yaw.
+_typo, _tum = f"{D}/fgo/fgo_traj.tum.typo", f"{D}/fgo/fgo_traj.tum"
+USE_TYPO = os.path.exists(_typo) and os.path.getmtime(_typo) >= os.path.getmtime(_tum)
+_ref_path = _typo if USE_TYPO else _tum
 ref = np.loadtxt(_ref_path); gt = np.loadtxt(f"{D}/fgo/ground_truth.tum")
 c0, c1 = cruise_bounds(gt[:, 0], gt[:, 1], gt[:, 2])
 m_off = dict(l.strip().split("=") for l in open(f"{D}/fgo/metrics.txt"))
@@ -97,6 +101,8 @@ def compare(core, name):
     r_, p_, y_ = tr[:, 4], tr[:, 5], tr[:, 6]
     cr, sr, cp, sp, cy, sy = np.cos(r_/2), np.sin(r_/2), np.cos(p_/2), np.sin(p_/2), np.cos(y_/2), np.sin(y_/2)
     qw = np.round(np.c_[sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*cy], 6)
+    if not USE_TYPO:      # the corrected writer (D10): w = cr*cp*cy + sr*sp*sy, same %.6f rounding
+        qw = np.round(np.c_[sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*sy], 6)
     yw_written = np.unwrap(yaw_of(qw)) if same_t else np.interp(ref[:, 0], tr[:, 0], np.unwrap(yaw_of(qw)))
     # FE4: gyro-z bias against the offline bgz_series.txt (|b| deg/min per keyframe in its apparatus window)
     bz = np.loadtxt(f"{D}/fgo/bgz_series.txt")
@@ -111,6 +117,7 @@ def compare(core, name):
             "n_flow": core.fgo.n_flow, "n_flow_offline": int(m_off["n_flow"]), "n_range": core.fgo.n_range, "n_range_offline": int(m_off["n_range"]),
             "dpos_m": {"max": float(dp.max()), "rms": float(np.sqrt(np.mean(dp ** 2))), "end": float(dp[-1])},
             "dyaw_deg": {"max": float(dy.max()), "end": float(dy[-1])},
+            "reference": os.path.basename(_ref_path),
             "dyaw_deg_node_rpy_vs_offline_quat": {"max": float(dy_rpy.max())},
             "step_ms": {"median": float(np.median(sm)), "p95": float(np.percentile(sm, 95)), "p99": float(np.percentile(sm, 99))},
             "reinits": core.reinits, "valid_end": core.valid, "dbgz_deg_per_min_max": fe4,
