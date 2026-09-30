@@ -7765,3 +7765,17 @@ fuses a synthetic yaw every 140 ms.
   0.0100 deg/s = 0.6 deg/min, against cruise drifts of ~8–10 deg/min. **With the heading
   (sets (b) and V4), yaw and bias are observable in both, so it does not apply.** Queued as **D18**:
   whether to give the UKF EKF3's STATIC branch, as D15 did for the ground-proximity rule.
+
+### D12 effort/blocker report (delivered after the UKF flights, as ruled): `docs/d12_fgo_backend_report.md`
+
+- **The take-off backlog, measured** (`fgo_shadow_sitl_tex4`, the live node): the FGO step is 42–49 ms
+  median (max 54) against the 33.3 ms keyframe period for ~6 s around lift-off, which accrues ~1.7 s of
+  lag. Cruise headroom is ~10% (29.8 ms), so it drains in ~16 s. The cause is throughput.
+- **Route (a), the FGO AHRS backend: ~4.5–5 working days** including validation. No hard blocker.
+  The risks are listed: the input route (`ODOMETRY` carries the heading), wall-clock coupling, the D15
+  node core's take-off step not yet measured live, and RTF effects on latency.
+- Fallback (b): 1.5–2 days.
+- **Recommended:** route (a) with SITL at `real_time_factor` 0.5 for FGO flights (F1). The estimator is
+  unchanged, and no backlog is expected (66.7 ms wall per keyframe against a ≤ 60 ms step max).
+  Queued as **D19**, including whether the EKF3/UKF closed-loop references are re-flown at the same
+  RTF.
