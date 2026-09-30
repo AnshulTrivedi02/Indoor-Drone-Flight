@@ -6,11 +6,14 @@ crash text. Usage (venv-ardupilot): python3 eval/ukf_p3_check.py BIN [--json OUT
 import argparse, json
 import numpy as np
 from pymavlink import mavutil
-ap = argparse.ArgumentParser(); ap.add_argument("bin"); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("bin"); ap.add_argument("--json")
+ap.add_argument("--heading", action="store_true", help="D17 V3 (PRE-REGISTERED): G1 adds AHRS_UKF_EXTYAW 1 and VISO_TYPE 1; "
+                "G4 yaw = error vs SIM over the hold p95 <= 1.0, max <= 2.0 deg, plus >= 95%% of XUKH headings accepted")
+a = ap.parse_args()
 m = mavutil.mavlink_connection(a.bin)
-P, ARM, ATT, O, X, S, SIM, MSG = {}, [], [], [], [], [], [], []
+P, ARM, ATT, O, X, S, SIM, MSG, HD = {}, [], [], [], [], [], [], [], []
 while True:
-    r = m.recv_match(type=["PARM", "ARM", "ATT", "XUKO", "XKF1", "XUKS", "SIM", "MSG", "ERR"])
+    r = m.recv_match(type=["PARM", "ARM", "ATT", "XUKO", "XKF1", "XUKS", "SIM", "MSG", "ERR", "XUKH"])
     if r is None:
         break
     t = r.get_type(); ts = getattr(r, "TimeUS", 0) / 1e6
@@ -20,13 +23,17 @@ while True:
     elif t == "XUKO": O.append((ts, r.PN, r.PE, r.PD, r.Roll, r.Pitch, r.Yaw, r.EvO))
     elif t == "XKF1" and r.C == 0: X.append((ts, r.Roll, r.Pitch, r.Yaw))
     elif t == "XUKS": S.append((ts, r.H))
-    elif t == "SIM": SIM.append((ts, r.Alt))
+    elif t == "SIM": SIM.append((ts, r.Alt, r.Yaw))
+    elif t == "XUKH": HD.append((ts, r.Acc, r.Algn))
     elif t == "MSG": MSG.append((ts, r.Message))
     elif t == "ERR": MSG.append((ts, f"ERR subsys {r.Subsys} code {r.ECode}"))
 ATT, O, X, S, SIM = map(np.array, (ATT, O, X, S, SIM))
 out = {}
 out["G1"] = {"AHRS_EKF_TYPE": P.get("AHRS_EKF_TYPE"), "AHRS_UKF_ENABLE": P.get("AHRS_UKF_ENABLE"),
              "pass": P.get("AHRS_EKF_TYPE") == 12 and P.get("AHRS_UKF_ENABLE") == 1}
+if a.heading:
+    out["G1"].update({"AHRS_UKF_EXTYAW": P.get("AHRS_UKF_EXTYAW"), "VISO_TYPE": P.get("VISO_TYPE")})
+    out["G1"]["pass"] = out["G1"]["pass"] and P.get("AHRS_UKF_EXTYAW") == 1 and P.get("VISO_TYPE") == 1
 arms = [t for t, s in ARM if s == 1]; disarms = [t for t, s in ARM if s == 0 and arms and t > arms[0]]
 out["G2"] = {"armed_at": arms[0] if arms else None, "pass": bool(arms)}
 if arms:
@@ -59,7 +66,17 @@ if arms:
                  "height_err_end_m": float(herr[-1]), "height_err_growth_m": float(herr.max() - herr[0]),
                  "healthy_all": bool(hs[:, 1].min() == 1) if len(hs) else None, "EvO_max": int(Oh[:, 7].max())}
     g = out["G4"]
-    g["pass"] = (g["max_dNE_m"] <= 0.10 and g["max_dyaw_deg"] <= 1.0 and g["height_err_end_m"] <= 0.10
+    if a.heading:
+        ys = np.degrees(np.unwrap(np.radians(SIM[:, 2])))
+        ye = np.abs(wrap(np.degrees(np.unwrap(np.radians(Oh[:, 6]))) - np.interp(Oh[:, 0], SIM[:, 0], ys)))
+        HDa = np.array(HD); wh = (HDa[:, 0] >= t0) & (HDa[:, 0] <= t1) & (HDa[:, 2] == 1) if len(HDa) else None
+        g.update({"yaw_err_p95_deg": float(np.percentile(ye, 95)), "yaw_err_max_deg": float(ye.max()),
+                  "headings_in_hold": int(wh.sum()) if wh is not None else 0,
+                  "headings_accepted_pct": float(100 * HDa[wh, 1].mean()) if wh is not None and wh.any() else None})
+        yaw_ok = g["yaw_err_p95_deg"] <= 1.0 and g["yaw_err_max_deg"] <= 2.0 and (g["headings_accepted_pct"] or 0) >= 95.0
+    else:
+        yaw_ok = g["max_dyaw_deg"] <= 1.0
+    g["pass"] = (g["max_dNE_m"] <= 0.10 and yaw_ok and g["height_err_end_m"] <= 0.10
                  and g["height_err_growth_m"] <= 0.05 and g["healthy_all"] and g["EvO_max"] == 0)
 # "PrecLand: Failsafe Measures" is an INFO message from the precision-landing state machine printed in every
 # landing (also in the EKF3 datasets, e.g. dsn_tex_r2 at 334.5 s): not a vehicle failsafe, excluded.

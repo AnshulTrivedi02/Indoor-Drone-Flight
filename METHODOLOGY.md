@@ -7660,3 +7660,30 @@ heading; Replay with `AHRS_UKF_EXTYAW=1`). PASS iff, on all three:
 - **A checker bug, found and fixed before the result was used:** R4 first read the test-ratio column
   of the `HP` rows instead of the accepted flag, giving an impossible "0.03% accepted, 0 rejected".
   The criterion is unchanged.
+
+### D17 V2 (shadow run of the exact binary with heading, `ukf_shadow_hdg_v2`): PASS
+
+EKF3 flew with the C++ heading as in set (b) (`corridor_textured_fwdc`, `every_n` 4, σ sent 0.148°).
+The UKF ran in shadow with `AHRS_UKF_EXTYAW 1`. The binary had md5 `85179298…`.
+- **EKF3's flight completed** with no breach (max |x| 0.48 m); B1 held as the safety condition.
+- **R1–R5 (a Replay of the V2 log, as in V1):** PASS. 2,394 `REPH` = accepted = processed; yaw
+  match ≤ 6.7e-9 rad; event-time rule exact; lag ≥ 62 ms; aligned at the first heading (11 pseudo-yaw
+  before, 0 after); 100% of the 2,202 cruise headings accepted (max test ratio 0.18); yaw error p95
+  0.167°, max 0.327°. `eval/results/ukf_heading_v2_replay.json`.
+- **Live equals Replay:** the live `XUKH` (2,394 rows) equals the Replay's processed headings, with
+  identical event times, yaw to 4.4e-7° and identical accept flags. Live R5 (`XUKF`): p95 0.167°,
+  max 0.327°.
+- **Output-predictor check: PASS** (position p95 0.004 m, max 0.105 m; yaw p95 0.009°, max 0.19°).
+  **`EvO` = 0**, `EvMx` 10. `eval/results/ukf_predictor_check_v2.json`.
+- DIAGNOSTIC: EKF3 (flying) yaw error p95 0.32°, max 0.40° on the same flight.
+
+**V4 point predictions (written from V2 before V3/V4 fly):**
+- **B3:** UKF current-time yaw error (`XUKO`) in cruise **p95 ≈ 0.17°, max ≈ 0.33°** (band 1.0 / 2.0°).
+- **B2:** max physical cross-track **≈ 0.3–0.6 m** (band 6.0 m). Basis: the UKF's open-loop East
+  error peaked at 0.41 m in V2; EKF3 flying the same run reached 0.47 m; set (b) EKF3 0.27–0.37 m.
+- **B4, B5:** as set (b) (lateral speed ~0.03 m/s; gyro rms well inside).
+
+**V3 checker:** `eval/ukf_p3_check.py --heading` implements the pre-registered V3 changes (G1 adds
+`AHRS_UKF_EXTYAW`/`VISO_TYPE`; G4 yaw error against SIM p95 ≤ 1.0°, max ≤ 2.0°, and ≥ 95% of headings
+accepted). It was written before V3; without `--heading` it reproduces P3 unchanged. The heading
+node's liveness (G5) is read from the watcher log.
