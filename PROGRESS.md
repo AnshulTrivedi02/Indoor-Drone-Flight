@@ -5,6 +5,27 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-30 (evening) — the UKF flies: no-heading PASS, with-heading 3/3 PASS; D12 report; D18/D19 queued
+
+- **D16 (a):** the P3 yaw miss was recorded as worded.
+- **The no-heading prediction** was checked for the pre-take-off heading offset, found not to account
+  for it, and was superseded before flying. It was re-derived by the set-(a)-validated open-loop
+  East-error method: west wall [+146, +218] s.
+- **`cl_ukf_a_tex` (the UKF flies, no heading): PRIMARY PASS**, west-wall contact at cruise +163.0 s.
+- **D17 (a), heading at EKF3's 5°:** the port's ExtNav heading input was built on EKF3's path, and the
+  pre-registered V1–V4 all PASS:
+  - V1: Replay on set (b) logs; the input is identical to EKF3's 1:1.
+  - V2: shadow with heading; live equals Replay; the predictor check passes.
+  - V3: ground test, yaw error 0.05°.
+  - **V4: the with-heading UKF set, 3/3 PASS** (B2 0.16–0.29 m; B3 p95 0.17–0.21°).
+  - The binary had md5 `85179298…` (port `60887dea`, version string matching).
+- **Gyro-bias diagnostic:** EKF3 learns gyro-z bias only while disarmed and still (STATIC yaw fusion);
+  the UKF lacks that branch. **D18** is queued.
+- **D12 report:** the take-off backlog is throughput (step 42–49 ms > 33.3 ms period). Route (a) is
+  ~4.5–5 days. The recommendation is SITL RTF 0.5 for FGO flights. **D19** is queued.
+- **Lesson** (saved to memory): waiter command lines must not contain sim process patterns; the
+  watcher's leftover sweep killed one.
+
 ## Current Status — 2026-09-30 (afternoon) — D15 and D8 carried out; P2 passes; P3 misses on yaw (D16)
 
 - **D15 (EKF3's ground-proximity flow rule), applied to the offline UKF, the FGO (replay and node) and
