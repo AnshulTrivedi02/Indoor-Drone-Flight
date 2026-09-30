@@ -25,6 +25,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Vector3Stamped
 from pymavlink import mavutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -65,6 +66,11 @@ class HeadingBridge(Node):
         threading.Thread(target=self._worker, daemon=True).start()
         qos = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, history=HistoryPolicy.KEEP_LAST, depth=5)
         self.create_subscription(Image, "/forward_camera/image", self._on_image, qos)
+        # D19 (FGO heading input, the same message as ArduPilot's): every ODOMETRY sent is also published here,
+        # stamped at capture: x = yaw_ap (rad, the sent NED yaw), y = quality, z = angErr (rad, what
+        # AP_VisualOdom computes from the covariance: sqrt(cov15+cov18+cov20) = sigma_psi with roll = pitch = 0)
+        self.pub_sent = self.create_publisher(Vector3Stamped, "/forward_camera/heading_sent", 20)
+        self._ang_err = math.radians(sig)
 
     def _request_attitude(self):
         self.master.mav.command_long_send(self.master.target_system, self.master.target_component,
@@ -120,6 +126,10 @@ class HeadingBridge(Node):
                                               nan, nan, nan, nan, nan, nan, self.core.cov, [nan] + [0.0] * 20,
                                               0, mavutil.mavlink.MAV_ESTIMATOR_TYPE_VISION, qual)
                 sent = True
+                hm = Vector3Stamped(); hm.header.frame_id = "ned"
+                hm.header.stamp.sec = int(t); hm.header.stamp.nanosec = int(round((t - int(t)) * 1e9)) % 1000000000
+                hm.vector.x, hm.vector.y, hm.vector.z = float(yaw_ap), float(qual), float(self._ang_err)
+                self.pub_sent.publish(hm)
             if self.log:
                 self.log.write(f"{k},{t:.6f},{t_recv:.6f},{self._sim_now():.6f},{1e3*dt:.2f},{'' if psi is None else f'{psi:.5f}'},"
                                f"{sup:.1f},{int(valid)},{qual},{int(sent)},{yaw_ap:.6f},{'' if self.yaw_ekf is None else f'{self.yaw_ekf:.6f}'},"

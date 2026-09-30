@@ -355,7 +355,8 @@ if [ -n "${FGO_NODE:-}" ]; then
     start_bg "$LOG_DIR/fgo_node.log" \
         env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
         "$HOME/venv-fgo/bin/python" "$HOME/thesis_ws/src/estimators/fgo/fgo_node.py" \
-        --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats.npz" -p mavlink_out:=udp:127.0.0.1:14558
+        --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats.npz" -p mavlink_out:=udp:127.0.0.1:14558 \
+        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)"
     FGO_PID="${BG_PIDS[-1]}"
     wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 fi

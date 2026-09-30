@@ -5,6 +5,25 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D21. Half-speed EKF3 set (a) PRIMARY MISS: contact +242.1 s (full speed +186.2; window [+155, +215]). The UKF passed (+198.0 against +163.0)
+- **A systematic RTF effect:** both estimators' no-heading yaw drift is slower at half speed (EKF3 +2.1
+  against +4.3 deg/min over the first 150 s; UKF +3.9 against +5.5). SITL's gyro drift is identical in
+  sim time, so the effect is inferred to be the halved sim-time latencies (flow arrival etc.) acting
+  through the flow→yaw coupling. Not tested.
+- The half-speed comparison is still identical in timing across the three estimators, as ruled.
+- Options:
+  - **(a)** accept the miss as worded. Record the half-speed EKF3/UKF set (a) as the half-speed
+    references, and re-derive the FGO's no-heading window from half-speed data (its shadow run), not
+    from full-speed data. Continue with the ordered sequence (D20, then the with-heading sets).
+  - (b) additionally test the mechanism: a Replay/offline check of flow-latency sensitivity of the
+    closed-loop drift, e.g. re-timing flow in the UKF by the half-speed latency.
+  - (c) re-think half speed for the no-heading comparison (e.g. compare the FGO at half speed against
+    the half-speed EKF3/UKF only, which (a) already does).
+- **Recommendation: (a)**, with (b) as a non-blocking diagnostic.
+- **Note for the thesis:** no-heading closed-loop results depend on simulation timing; the full- and
+  half-speed sets are not interchangeable.
+
+
 ### D20. `VISO_DELAY_MS` at half speed: (a) and (b) disagree by 5.4 ms (BLOCKS every half-speed flight)
 - `gt_heading_half_b`: (a) node sent − capture min **20.0 ms**; (b) `VISP` receipt − capture min
   **25.4 ms** (sim time). The pre-registered tolerance is 5 ms, so the run stopped as worded.

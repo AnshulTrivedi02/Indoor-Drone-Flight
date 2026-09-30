@@ -1,0 +1,26 @@
+{
+ "trial": "cl_ukf_a_tex_half",
+ "set": "a",
+ "cruise_s": [
+  30.241,
+  227.99
+ ],
+ "cruise_len_s": 197.74900000000002,
+ "clock_map": {
+  "offset_ms_start": 0.9829460256356389,
+  "rate_ppm": 211.9794513568497
+ },
+ "contact": {
+  "t_rel_cruise_s": 198.01,
+  "x": -9.58008958763293,
+  "y": 99.67901171155657,
+  "wall": "west"
+ },
+ "completed": false,
+ "watcher_breach": "wall contact: |x| = 9.580 m >= 9.58\nt=228.251 x=-9.580 y=99.679 z=2.415",
+ "a_primary": {
+  "no_contact_before_100s": true,
+  "contact_if_any_west_in_155_215": true,
+  "pass": true
+ }
+}

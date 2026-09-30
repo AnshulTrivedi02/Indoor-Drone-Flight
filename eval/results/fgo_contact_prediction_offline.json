@@ -1,0 +1,86 @@
+[
+ {
+  "trial": "dsn_tex_r1",
+  "east_err_c0_m": -0.1271286209411765,
+  "east_err_end_m": 42.44083684988235,
+  "contact_s": 170.70263899999998,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r2",
+  "east_err_c0_m": -0.334895393,
+  "east_err_end_m": 43.719844589882356,
+  "contact_s": 168.18227399999998,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r3",
+  "east_err_c0_m": -0.017493897411764704,
+  "east_err_end_m": 42.71325398117647,
+  "contact_s": 169.428752,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r4",
+  "east_err_c0_m": -0.014645,
+  "east_err_end_m": 42.61324091623529,
+  "contact_s": 169.676064,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r5",
+  "east_err_c0_m": -0.019493248533333337,
+  "east_err_end_m": 42.83919241694444,
+  "contact_s": 169.339901,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r6",
+  "east_err_c0_m": -0.33591855652941177,
+  "east_err_end_m": 43.68082766217647,
+  "contact_s": 168.68474300000003,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r7",
+  "east_err_c0_m": -0.018123291470588235,
+  "east_err_end_m": 42.7958983146875,
+  "contact_s": 169.509995,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r8",
+  "east_err_c0_m": -0.015298999999999998,
+  "east_err_end_m": 42.781270235117645,
+  "contact_s": 169.313524,
+  "wall": "west"
+ },
+ {
+  "trial": "dsn_tex_r9",
+  "east_err_c0_m": -0.01806324094117647,
+  "east_err_end_m": 42.28421285505882,
+  "contact_s": 170.633845,
+  "wall": "west"
+ },
+ {
+  "trial": "fwdc_tex_r1",
+  "east_err_c0_m": -0.019416542,
+  "east_err_end_m": 42.33485031226667,
+  "contact_s": 170.239406,
+  "wall": "west"
+ },
+ {
+  "trial": "fwdc_tex_r2",
+  "east_err_c0_m": -0.3553597825,
+  "east_err_end_m": 43.278350048388894,
+  "contact_s": 168.957463,
+  "wall": "west"
+ },
+ {
+  "trial": "fwdc_tex_r3",
+  "east_err_c0_m": -0.01587655423529412,
+  "east_err_end_m": 42.394152408705885,
+  "contact_s": 169.864988,
+  "wall": "west"
+ }
+]

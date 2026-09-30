@@ -65,6 +65,12 @@ class FgoNode(Node):
         # D19 backend (route a): send each keyframe state to ArduPilot (AHRS_EKF_TYPE 13) over its own MAVLink
         # route, SITL SERIAL3 -> udpclient 127.0.0.1:14558. Empty = not sent (shadow/offline use).
         self.declare_parameter("mavlink_out", "")
+        # D19 FGO heading input (ruling D17's principle: the same heading at the same trust as EKF3/UKF): the
+        # heading bridge's sent ODOMETRY, re-published on /forward_camera/heading_sent, gated exactly as
+        # AP_VisualOdom + EKF3: quality >= VISO_QUAL_MIN 50; angErr clamped to [VISO_YAW_M_NSE 0.05, 1.5] rad;
+        # sigma = max(angErr, 5 deg); >= 20 ms apart (extNavIntervalMin_ms); chi-square gate 9 (3 sigma).
+        # Fused at its capture stamp (the FGO's factor-graph design; EKF3/UKF use TS - VISO_DELAY_MS).
+        self.declare_parameter("heading", False)
         self._toff = deque()                                 # (t_header, t_header - t_sitl) over the last 10 s
         self._mav = None
         self._n_pub = 0
@@ -75,6 +81,9 @@ class FgoNode(Node):
         self.create_subscription(Range, "/downward_lidar/range", self._rng, q)
         self.create_subscription(Vector3Stamped, "/attitude/angular_rates", self._att, q)
         self.pub = self.create_publisher(PoseStamped, "/fgo/pose", 10)
+        self._hdg_last = None
+        if self.get_parameter("heading").value:
+            self.create_subscription(Vector3Stamped, "/forward_camera/heading_sent", self._hdg, q)
         self.pub_valid = self.create_publisher(Bool, "/fgo/valid", 10)
         # The FGO core runs in a SEPARATE PROCESS; callbacks only forward messages over a pipe.
         # History (fgo_shadow_sitl_tex2/3, 2026-09-30): running the step inside the callbacks blocked
@@ -85,6 +94,8 @@ class FgoNode(Node):
         self._to_core, self._from_core = ctx.Queue(), ctx.Queue()
         self._proc = ctx.Process(target=_core_proc, args=(self._to_core, self._from_core,
                                  dict(window=float(self.get_parameter("window_s").value), lm_iters=int(self.get_parameter("lm_iters").value),
+                                      fwd_sigma=({"psi": math.radians(5.0), "omega": None} if self.get_parameter("heading").value else None),
+                                      fwd_gate=9.0,
                                       horizon_s=float(self.get_parameter("horizon_s").value), dejitter="causal", gap="causal"),
                                  self.get_parameter("stats_path").value), daemon=True)
         self._proc.start()
@@ -180,6 +191,16 @@ class FgoNode(Node):
 
     def _rng(self, m):
         self._push(_st(m.header), "rng", float(m.range))
+
+    def _hdg(self, m):
+        t, yaw_ap, qual, ang = _st(m.header), m.vector.x, m.vector.y, m.vector.z
+        if qual < 50:                                                  # VISO_QUAL_MIN (AP_VisualOdom_MAV.cpp:47-51)
+            return
+        if self._hdg_last is not None and t - self._hdg_last < 0.020:  # extNavIntervalMin_ms = 20
+            return
+        self._hdg_last = t
+        # sigma: clamp [0.05, 1.5] then the 5 deg floor = 5 deg; set as the core's fixed heading noise (fwd_sigma)
+        self._push(t, "fwd", (-yaw_ap, None))                           # FGO corridor yaw (CCW) = -NED yaw
 
     def _att(self, m):
         self._push(_st(m.header), "att", np.array([m.vector.x, m.vector.y, m.vector.z]))

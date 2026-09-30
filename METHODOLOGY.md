@@ -8024,3 +8024,104 @@ Neither affected any result.
 - **Prediction:** unchanged (EKF3 ≈ +186 s; UKF ≈ +161…+193 s, west). Half speed changes only the
   wall-clock latencies' share of sim time, and D8 shows EKF3 insensitive to flow timing at this scale.
   Any change of more than ~10 s is reported as an RTF effect.
+
+### PRE-REGISTRATION — the FGO closed-loop gates (D19; as for the UKF), written before any gate run
+
+**Configuration:**
+- Port tree with the FGO backend (`EKFType::FGO` 13, `AP_NavFGO`), plus the FGO node in the trial
+  (`FGO_NODE`; state via `ODOMETRY` LOCAL_NED + NAIVE on SERIAL3);
+- half speed, loopback-pinned;
+- window 0.25 s, LM 2; the D15 ground-proximity rule is in the node core.
+- **FGO heading input (with-heading flights only):** the heading bridge's sent `ODOMETRY` values,
+  re-published on `/forward_camera/heading_sent`, gated as `AP_VisualOdom` + EKF3:
+  - quality ≥ 50; angErr clamped to [0.05, 1.5] rad, then the 5° floor, so σ = 5°;
+  - ≥ 20 ms apart; χ² gate 9;
+  - ψ_FGO = −`yaw_ap` (the same offset-referenced value ArduPilot receives).
+  - **Design difference, stated:** the FGO fuses each heading at its capture stamp (a factor at that
+    time); EKF3/UKF fuse at TS − `VISO_DELAY_MS`, clamped to the horizon.
+  - Like EKF3/UKF, there is no position from the heading. Unlike them, there is no yaw reset at the
+    first heading (a design feature; not copied, per D18's principle).
+
+**FG1 — backend equivalence to the offline FGO** (on each shadow run: the states ArduPilot received,
+`XFGI`, against `fgo_replay.py` on the same flight's bag, converted to the corridor frame; keyframe
+times matched):
+- (a) evo -a (cruise) of the received trajectory within **±0.15 m** of the offline one. Basis: step 3
+  input-path cost < 0.1 m, plus the FGO noise floor (0.05 m).
+- (b) yaw difference p95 ≤ 0.2°, max ≤ 0.5°.
+- (c) every keyframe the node produced was received (`XFGI` count = the node's keyframe count after
+  the clock map settles), with 0 "late".
+
+**FG2 — validity signal:**
+- in each shadow run, `XFGO.OV` = 1 for 100% of samples from arming to disarm;
+- in the ground test, after the hold and before disarm, the node is stopped (SIGINT): `XFGO.OV` must
+  fall to 0 within 300 ms sim (`STATE_TIMEOUT_MS` 250 plus one log period).
+
+**FG3 — output-predictor check** (as the UKF's D9 check, with the bands unchanged; `XFGO` current
+output against the `XFGI` state later received for the same time, interpolated; from take-off to
+landing):
+- position p95 ≤ 0.05 m, max ≤ 0.15 m;
+- velocity p95 ≤ 0.05 m/s, max ≤ 0.15 m/s;
+- yaw p95 ≤ 0.10°, max ≤ 0.5°.
+- Plus **FG3b: output age ≤ 250 ms for 100% of samples from arming to disarm.**
+- Basis: at half speed the horizon is ~130 ms (smoke 3). At 0.5 m/s that is 0.065 m of travel, which
+  a bias-corrected strapdown over 130 ms covers far inside 0.05 m. The bands are the UKF's, so the
+  predictor cannot dominate.
+
+**Shadow runs (simulator truth flies, `AHRS_EKF_TYPE 10`, 300 s cruise):**
+- `fgo_shadow_half_a` (no heading);
+- `fgo_shadow_half_b` (heading; after D20).
+- FG1–FG3 must pass on each, plus 0 node crashes.
+
+**Ground test `fgo_groundtest_half` (`FGO=1 GROUND_TEST=60`):**
+- G1: `AHRS_EKF_TYPE 13`, `AHRS_FGO_ENABLE 1`, `SERIAL3_PROTOCOL 2`;
+- G2: arms (FGO pre-arm passes);
+- G3: ATT matches `XFGO` at ≤ 0.1° p95;
+- G4: horizontal ≤ 0.10 m, height error ≤ 0.10 m at the end and growth ≤ 0.05 m, EvO n/a.
+  **Yaw (no heading), learning from P3:** |yaw change over the hold − the integrated raw gyro-z drift|
+  ≤ 1.0°, i.e. no worse than integrating the gyro;
+- G5: disarm, no failsafe text;
+- FG2's node-stop test.
+
+**Written predictions before the flights:**
+- no-heading contact time and wall, by the validated open-loop East-error method, from the FGO
+  shadow run and the offline FGO `dsn_tex` trajectories;
+- with-heading B2/B3 point predictions from `fgo_shadow_half_b`.
+
+**Flights:**
+- `cl_fgo_a_tex_half` ×1, with PRIMARY criteria as the UKF's U1–U3 and S1/S2; U3's window from the
+  FGO prediction, widened by −15 / +25 s as before;
+- `cl_fgo_b_tex_r1..r3_half` ×3, B1–B5 as set (b), with B3 from `XFGO` (the scorer gets `--est fgo`).
+- **Stop rule:** any primary failure stops the sequence and is reported.
+
+### D19 half-speed set (a) RESULTS: EKF3 PRIMARY MISS (contact +242.1 s, outside [+155, +215]); UKF passes (+198.0 s). A large, systematic RTF effect. STOPPED; queued as D21
+
+`eval/results/closed_loop_cl_a_tex_half.json`, `closed_loop_cl_ukf_a_tex_half.json`.
+
+| flight | full speed (first result) | half speed | window | half-speed verdict |
+|---|---|---|---|---|
+| EKF3 set (a) | west, cruise +186.2 s | **west, +242.1 s** | [+155, +215] | **PRIMARY MISS** |
+| UKF set (a) | west, +163.0 s | west, +198.0 s | [+146, +218] | U1–U3 PASS, S1/S2 hold |
+
+- **Both reach the wall 35–56 s later at half speed, far beyond the ~10 s pre-registered as "an RTF
+  effect".** Their heading-error growth is slower:
+
+| | full: yaw error at cruise +60 / +120 s; drift over the first 150 s | half: the same |
+|---|---|---|
+| EKF3 | +2.23° / +7.34°; +4.31 deg/min | −0.51° / +2.43°; +2.13 deg/min |
+| UKF | +3.86° / +10.11°; +5.45 deg/min | +1.48° / +6.15°; +3.89 deg/min |
+
+- **Not the simulated gyro:** SITL's gyro-z drift at the same sim times before arming is identical at
+  both speeds (e.g. +0.0182/+0.0183 deg/s at 20–24 s in all four flights). The gyro drift model runs on
+  sim time.
+- **What changes with RTF is the sim-time share of every wall-clock latency.** Flow capture → arrival
+  was ~24 ms median at RTF ~1 and is roughly half at RTF 0.5; the same holds for every bridge.
+  - Without heading, both EKF3's and the UKF's yaw drift run through the flow→yaw coupling (the recorded
+    finding). The closed-loop heading drift is evidently sensitive to that timing.
+  - D8's open-loop Replay result (re-timing flow costs EKF3 nothing in cruise ATE) did not predict it.
+    **The mechanism is inferred, not tested.**
+- **Consequence for the ruled design:** the three estimators still share identical timing at half
+  speed, as ruled, so the half-speed comparison stays internally fair. But **the no-heading closed-loop
+  outcome is timing-sensitive**, and the full- and half-speed results are not interchangeable. The
+  with-heading sets are not expected to be affected in the same way, since the heading bounds yaw. This
+  is to be shown, not assumed.
+- As pre-registered, this primary miss STOPS the sequence and is reported. Queued as **D21**.
