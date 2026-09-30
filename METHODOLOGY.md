@@ -8727,3 +8727,37 @@ truth, stays at 2.32 m.
 - The design gives no nonlinearity comparison at a smaller consistent prior, since σ = 90° was fixed
   for all δ. A per-δ σ (as F3) reintroduces the F3 lockouts. **No further variant is run without a
   ruling.**
+
+### EXPLORATORY (bounded 1 h; not pre-registered): why the FGO has lower position error but the UKF lower heading error (C0/F2 pattern)
+
+**Hypothesis 1, the FGO's yaw prior: REJECTED.** On `fwdc_tex_r1` heading arm with the yaw-bounding
+mechanisms off in both estimators (`F_NO_YAWCAP`), the result is identical to the printed precision
+(UKF yaw RMS 0.082°, cross-track RMS 0.871 m; FGO 0.191°, 0.041 m). With the heading on, the UKF's
+variance-gated pseudo-yaw never fires, and the FGO's 0.5 rad yaw cap is negligible beside the 0.148°
+heading factor.
+
+**Decomposition** (cruise; yaw error split at a 2 s moving average into slow + fast):
+
+| bag | UKF yaw RMS = slow + fast | FGO yaw RMS = slow + fast | UKF cross-track at c0 / +60 s / end | FGO cross-track at c0 / +60 s / end |
+|---|---|---|---|---|
+| fwdc_tex_r1 | 0.082 = 0.069 + 0.039° | 0.170 = **0.062** + **0.158°** | −0.00 / +0.12 / **+1.86 m** | −0.02 / +0.01 / +0.08 m |
+| fwdc_tex_r2 | 0.078 = 0.065 + 0.037 | 0.150 = **0.058** + **0.137** | −0.27 / −0.22 / **+1.51** | −0.35 / −0.33 / −0.24 |
+| fwdplainc_tex_r1 | 0.895 = 0.885 + 0.084 | 1.345 = 1.163 + 0.614 | −0.02 / −0.58 / +1.18 | −0.01 / −0.15 / +0.36 |
+
+- **Heading:** on textured walls the FGO's slow heading error equals or beats the UKF's (0.058–0.062°
+  against 0.065–0.069°). **Its larger yaw RMS is almost entirely fast jitter** (0.14–0.16° against
+  0.04°), about the per-frame heading-measurement noise.
+  - A plausible cause (untested): each heading is a factor at its keyframe inside a 0.25 s window, so
+    the FGO's yaw follows individual headings closely. The UKF blends them through gyro propagation,
+    which low-passes the measurement noise.
+  - Fast jitter integrates out of position, so it barely costs the FGO position accuracy.
+  - On plain walls, both components are larger for the FGO (the wrong headings dominate, cf. F1).
+- **Position:** the UKF's cross-track error **grows steadily through the cruise with ~zero mean heading
+  error** (r1 mean yaw −0.02°), so it is a lateral drift not driven by heading. The FGO's stays
+  roughly constant.
+  - Plausible causes (untested): a lateral velocity bias in the UKF's flow/IMU fusion (e.g. its
+    accelerometer-bias estimate or the lateral flow row), which the FGO's smoother, re-linearising over
+    its window, does not accumulate.
+- **Summary:** the "UKF better heading" is the FGO's measurement-rate heading jitter, not a slow heading
+  deficit. The "FGO better position" is a UKF lateral drift independent of heading. **Both causes are
+  plausible, not tested.**
