@@ -71,6 +71,14 @@ The UKF work supplies most of the pattern:
 - (ii) wall-clock coupling: the node runs in wall time while SITL runs in lockstep, so the estimate age in
   sim time depends on RTF. F1 makes the margin explicit, and A5 measures it.
 - (iii) the D15 node core's take-off step time has not been measured live yet.
+- (iv) **F1 changes the wall-clock latencies as seen in sim time.** At RTF 0.5, each bridge's and node's
+  wall-clock delay counts for about half as much sim time: flow arrival (median ~24 ms at RTF ~1), and the
+  camera heading node's measured delay behind `VISO_DELAY_MS 38`. So the FGO flights would not run under
+  the exact latency conditions of the EKF3/UKF closed-loop sets.
+  - D8 shows EKF3 is insensitive to its flow timing at this scale.
+  - The heading delay would need re-measuring at the new RTF (the `VISO_DELAY_MS` basis).
+  - Alternatively, the EKF3 reference sets are re-flown at the same RTF. **This needs a ruling alongside
+    F1.**
 
 ## 3. Fallback route (b): EKF3 fuses the FGO via ExternalNav
 

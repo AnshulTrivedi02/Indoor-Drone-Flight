@@ -5,6 +5,25 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D19. D12 route and the take-off backlog fix (report: `docs/d12_fgo_backend_report.md`)
+- **The backlog is throughput.** The FGO step is 42–49 ms (max 54) against the 33.3 ms keyframe
+  period for ~6 s around lift-off → ~1.7 s lag. There is only ~10% headroom in cruise (29.8 ms), so it
+  drains over ~16 s.
+- **Route (a), the FGO AHRS backend** (reusing the UKF wiring, its own input route since `ODOMETRY`
+  carries the camera heading, an in-ArduPilot output predictor, validity, full validation): about
+  **4.5–5 working days**. No hard blocker. Fallback (b), EKF3 fusing the FGO via ExtNav: 1.5–2 days,
+  labelled as ruled.
+- **Backlog fix options:**
+  - **(F1) SITL at `real_time_factor` 0.5**: the estimator is unchanged and no backlog is expected,
+    but flights take 2× wall time, and the sim-time latencies change (risk iv: the heading delay would
+    be re-measured, or the EKF3 references re-flown at the same RTF);
+  - (F2) the D11 speed-up (days; needed for a real drone);
+  - (F3) keyframe decimation while behind (tuning, not recommended);
+  - (F4) EKF3 flies the take-off (not "the FGO flying", not recommended).
+- **Recommendation: route (a) + F1, with the heading delay re-measured at RTF 0.5 and the latency
+  budget (≤ 250 ms estimate age, arming to landing) pre-registered.** Also rule whether the EKF3/UKF
+  closed-loop references are re-flown at the same RTF.
+
 ### D18. EKF3's STATIC yaw fusion on the ground (pre-arm gyro-z bias learning): give it to the UKF?
 - From the gyro-bias diagnostic: with no yaw source, EKF3 fuses the yaw stored when the vehicle last moved
   whenever `onGroundNotMoving` (`MagFusion.cpp:262-277`), so it learns gyro-z bias while disarmed.
