@@ -7421,3 +7421,29 @@ passive shadow.
   the flight only through the height at take-off (~0.05 m).
 - The D15 rule's 0.5 m test uses range × cos(tilt), not this state, so it is unaffected.
 - **Any failure stops the UKF flights and is reported.**
+
+### D9 precondition P3 RESULT (`ukf_groundtest_p3`, 2026-09-30): FAIL as worded (G4 yaw). UKF flights STOPPED; queued as D16
+
+`eval/results/ukf_p3_check.json`. The binary had the recorded md5. It armed at 24.49 s, held for 65 s
+and disarmed at 89.50 s.
+
+| | result | band | |
+|---|---|---|---|
+| G1 | `AHRS_EKF_TYPE` 12, `AHRS_UKF_ENABLE` 1 | — | PASS |
+| G2 | pre-arm passed, armed | — | PASS |
+| G3 | ATT − XUKO p95 0.0005°; 578 of 640 samples discriminating (UKF vs EKF3 > 0.3°), ATT closer to the UKF in 100% (median ATT − XKF1 there 0.71°) | ≤ 0.1°, ≥ 95% | PASS |
+| G4 | horizontal 1.2 mm; height error at end 0.9 mm, growth 0.5 mm; healthy; EvO 0 | 0.10 m; 0.10 / 0.05 m | pass |
+| G4 | **yaw moved 3.09°** | ≤ 1.0° | **FAIL** |
+| G5 | disarmed; no failsafe/crash text | — | PASS |
+
+- **The UKF is the active estimator** (G3 is discriminating), and every backend mechanic works.
+- **Diagnosis of the yaw miss (DIAGNOSTIC):**
+  - SIM yaw changed 0.00° (the vehicle is stationary).
+  - IMU0 gyro z averaged 0.047 deg/s (2.85 deg/min) over the hold: SITL's gyro drift.
+  - **EKF3 (shadow) yaw moved +2.15° over the same hold; the UKF +3.09°.** Yaw is unobservable on
+    the ground with no heading source.
+  - The 1.0° bound was extrapolated from P2's 3.5 s arming-to-take-off segment and did not allow for
+    gyro drift over 65 s. **The basis was wrong, not the backend.** Recorded as my error.
+- **As pre-registered, any failure stops the UKF flights.** Queued as **D16** (options: accept the miss
+  with the diagnosis and fly; re-register the yaw criterion and re-run; investigate the UKF's ~1.4×
+  EKF3 ground drift first). Nothing flies without a ruling.
