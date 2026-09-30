@@ -7823,3 +7823,22 @@ Neither affected any result.
 - FGO closed-loop flights complete by **Fri 9 Oct**;
 - simulation freeze **Fri 16 Oct** (no new simulation experiments after it);
 - experiment freeze **Fri 23 Oct**.
+
+### D19 step 1: `VISO_DELAY_MS` at half speed, by the ORIGINAL rule (PRE-REGISTERED)
+
+- **World:** `sim/worlds/corridor_textured_half_fwdc.sdf`, a copy of `corridor_textured_fwdc` with
+  only the world name and `real_time_factor` 0.5 changed. The name must end in `_fwdc` for
+  `run_trial.sh`'s forward-camera switch.
+- **Run 1, `gt_heading_half`:** stock tree, EKF3, `HEADING=1`, C++ node, `every_n` 4, a 330 s armed
+  hold, as `gt_heading_cpp`. The latency is independent of the `VISO_DELAY_MS` value in use.
+  `eval/ground_test_check.py` G4 gives:
+  - (a) node sent − capture, min;
+  - (b) `VISP` receipt − capture, min;
+  - both in sim time.
+- **Rule (as D2):** `VISO_DELAY_MS` = round(min of (b)), provided (a) and (b) agree within 5 ms, and
+  it must be ≤ the 60 ms horizon. Otherwise stop and report.
+- **Prediction:** the wall-clock latency is unchanged (~40 ms), so in sim time it is about half:
+  **≈ 19–20 ms**.
+- **Run 2, `gt_heading_half2`:** the ground test with the new value, G1–G5 as D2. It must pass before
+  any half-speed flight. The value goes into `closedloop_heading_half.parm`, a copy of
+  `closedloop_heading.parm` with only `VISO_DELAY_MS` changed, and `HEADING_PARM` selects that file.

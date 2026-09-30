@@ -32,7 +32,7 @@ if [ -n "${UKF:-}" ]; then
     export ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
 fi
 if [ -n "${HEADING:-}" ]; then
-    P="$HOME/thesis_ws/closedloop_heading.parm"
+    P="${HEADING_PARM:-$HOME/thesis_ws/closedloop_heading.parm}"   # HEADING_PARM: D19 half-speed delay measurement/value
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$P"
     # enforce every value in the heading parm file (eeprom self-heal, fly_trial.ensure_params)
     EXPECT_OVERRIDE="$EXPECT_OVERRIDE,$(grep -Ev '^\s*(#|$)' "$P" | awk '{printf "%s%s=%s", (NR>1?",":""), $1, $2}')"
