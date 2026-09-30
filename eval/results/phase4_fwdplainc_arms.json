@@ -55,10 +55,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -16.933705047165873,
-   "yaw_err_rms_deg": 21.698148454220412,
-   "yaw_err_end_deg": -45.604793820219356,
-   "yaw_err_drift_dpm": -9.12718357623299,
+   "yaw_err_mean_deg": -16.933706769451653,
+   "yaw_err_rms_deg": 21.69815167548242,
+   "yaw_err_end_deg": -45.6059157311426,
+   "yaw_err_drift_dpm": -9.127185393515509,
    "bgz_mean_dpm": 0.041,
    "true_bias_mean_dpm": 8.882,
    "bgz_ramp": 0.022,
@@ -143,10 +143,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.1359400507871954,
-   "yaw_err_rms_deg": 1.3573216025344714,
-   "yaw_err_end_deg": -0.14965452619364328,
-   "yaw_err_drift_dpm": -0.32028112768556083,
+   "yaw_err_mean_deg": -0.13594126171597185,
+   "yaw_err_rms_deg": 1.3573269243473722,
+   "yaw_err_end_deg": -0.14966912988319336,
+   "yaw_err_drift_dpm": -0.3202822372285202,
    "bgz_mean_dpm": -4.908,
    "true_bias_mean_dpm": 8.882,
    "bgz_ramp": 1.405,
@@ -242,10 +242,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -16.919517783796653,
-   "yaw_err_rms_deg": 21.70912642751463,
-   "yaw_err_end_deg": -46.05055662018435,
-   "yaw_err_drift_dpm": -9.159579918476332,
+   "yaw_err_mean_deg": -16.927814487840646,
+   "yaw_err_rms_deg": 21.722855063884413,
+   "yaw_err_end_deg": -46.16083439477231,
+   "yaw_err_drift_dpm": -9.166772490966197,
    "bgz_mean_dpm": 0.058,
    "true_bias_mean_dpm": 8.873,
    "bgz_ramp": 0.03,
@@ -330,10 +330,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.028526314880443833,
-   "yaw_err_rms_deg": 0.3102165928367859,
-   "yaw_err_end_deg": -1.478897161582438,
-   "yaw_err_drift_dpm": -0.06383375604340988,
+   "yaw_err_mean_deg": -0.028533614604840114,
+   "yaw_err_rms_deg": 0.3103121762619212,
+   "yaw_err_end_deg": -1.480812083435353,
+   "yaw_err_drift_dpm": -0.06384618687195738,
    "bgz_mean_dpm": -4.938,
    "true_bias_mean_dpm": 8.873,
    "bgz_ramp": 1.514,
@@ -429,10 +429,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.10660989247234,
-   "yaw_err_rms_deg": 21.966113704947208,
-   "yaw_err_end_deg": -46.73085627681212,
-   "yaw_err_drift_dpm": -9.295266237199336,
+   "yaw_err_mean_deg": -17.12332418754086,
+   "yaw_err_rms_deg": 21.990446834560746,
+   "yaw_err_end_deg": -46.8589368655812,
+   "yaw_err_drift_dpm": -9.30699730816742,
    "bgz_mean_dpm": 0.1,
    "true_bias_mean_dpm": 8.861,
    "bgz_ramp": 0.056,
@@ -517,10 +517,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.050429183467458935,
-   "yaw_err_rms_deg": 0.1905180470571547,
-   "yaw_err_end_deg": -1.278940002106964,
-   "yaw_err_drift_dpm": -0.014033966853693377,
+   "yaw_err_mean_deg": -0.0504079265422088,
+   "yaw_err_rms_deg": 0.19065037790458417,
+   "yaw_err_end_deg": -1.280642038686409,
+   "yaw_err_drift_dpm": -0.014030023681137538,
    "bgz_mean_dpm": -4.858,
    "true_bias_mean_dpm": 8.861,
    "bgz_ramp": 1.591,
@@ -616,10 +616,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -16.45666894574354,
-   "yaw_err_rms_deg": 21.170371228643436,
-   "yaw_err_end_deg": -44.7190490845731,
-   "yaw_err_drift_dpm": -8.97991310026191,
+   "yaw_err_mean_deg": -16.45665902092153,
+   "yaw_err_rms_deg": 21.170359552272938,
+   "yaw_err_end_deg": -44.720943770969086,
+   "yaw_err_drift_dpm": -8.97990852343483,
    "bgz_mean_dpm": -0.096,
    "true_bias_mean_dpm": 8.871,
    "bgz_ramp": -0.031,
@@ -704,10 +704,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -1.3361944965749197,
-   "yaw_err_rms_deg": 4.219242024462123,
-   "yaw_err_end_deg": -14.690162527158662,
-   "yaw_err_drift_dpm": -1.6173150116779644,
+   "yaw_err_mean_deg": -1.336195676160033,
+   "yaw_err_rms_deg": 4.219241121053555,
+   "yaw_err_end_deg": -14.690034293810783,
+   "yaw_err_drift_dpm": -1.6173156624722365,
    "bgz_mean_dpm": -4.726,
    "true_bias_mean_dpm": 8.871,
    "bgz_ramp": 1.065,
@@ -803,10 +803,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.559895424492062,
-   "yaw_err_rms_deg": 22.440933767574098,
-   "yaw_err_end_deg": -47.39930114882591,
-   "yaw_err_drift_dpm": -9.42310415950886,
+   "yaw_err_mean_deg": -17.56872992387254,
+   "yaw_err_rms_deg": 22.45549946884188,
+   "yaw_err_end_deg": -47.50184714622861,
+   "yaw_err_drift_dpm": -9.430752078009071,
    "bgz_mean_dpm": 0.292,
    "true_bias_mean_dpm": 8.873,
    "bgz_ramp": 0.037,
@@ -891,10 +891,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.006362159019041314,
-   "yaw_err_rms_deg": 0.5365788306776121,
-   "yaw_err_end_deg": -1.4127593083069314,
-   "yaw_err_drift_dpm": -0.06789323715907808,
+   "yaw_err_mean_deg": -0.006361580701239217,
+   "yaw_err_rms_deg": 0.5366095705688883,
+   "yaw_err_end_deg": -1.4146656380161176,
+   "yaw_err_drift_dpm": -0.06789275212037142,
    "bgz_mean_dpm": -4.998,
    "true_bias_mean_dpm": 8.873,
    "bgz_ramp": 1.478,
@@ -990,10 +990,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.043406946439376,
-   "yaw_err_rms_deg": 21.914366332784788,
-   "yaw_err_end_deg": -46.60894524280991,
-   "yaw_err_drift_dpm": -9.279747668597166,
+   "yaw_err_mean_deg": -17.05910388298078,
+   "yaw_err_rms_deg": 21.937588868226687,
+   "yaw_err_end_deg": -46.73796753752515,
+   "yaw_err_drift_dpm": -9.29108385415114,
    "bgz_mean_dpm": 0.078,
    "true_bias_mean_dpm": 8.878,
    "bgz_ramp": 0.047,
@@ -1078,10 +1078,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.04646792743758361,
-   "yaw_err_rms_deg": 0.21904073032489865,
-   "yaw_err_end_deg": -1.2919767775245532,
-   "yaw_err_drift_dpm": -0.010747116666173251,
+   "yaw_err_mean_deg": -0.04643094292524073,
+   "yaw_err_rms_deg": 0.21918078955073064,
+   "yaw_err_end_deg": -1.293736839090343,
+   "yaw_err_drift_dpm": -0.010742249973184142,
    "bgz_mean_dpm": -4.965,
    "true_bias_mean_dpm": 8.878,
    "bgz_ramp": 1.604,
@@ -1177,10 +1177,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.31844662013081,
-   "yaw_err_rms_deg": 22.120562205271984,
-   "yaw_err_end_deg": -46.36146755371027,
-   "yaw_err_drift_dpm": -9.276117132874651,
+   "yaw_err_mean_deg": -17.318450478384804,
+   "yaw_err_rms_deg": 22.120568189635893,
+   "yaw_err_end_deg": -46.36224809015678,
+   "yaw_err_drift_dpm": -9.276120159983076,
    "bgz_mean_dpm": 0.211,
    "true_bias_mean_dpm": 8.878,
    "bgz_ramp": 0.028,
@@ -1265,10 +1265,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.18500545553725223,
-   "yaw_err_rms_deg": 1.5683756472103585,
-   "yaw_err_end_deg": -0.10544826682937014,
-   "yaw_err_drift_dpm": -0.39516741709782044,
+   "yaw_err_mean_deg": -0.18500586530637977,
+   "yaw_err_rms_deg": 1.5683771141320495,
+   "yaw_err_end_deg": -0.10545107193800618,
+   "yaw_err_drift_dpm": -0.395167764656965,
    "bgz_mean_dpm": -4.964,
    "true_bias_mean_dpm": 8.878,
    "bgz_ramp": 1.337,
@@ -1364,10 +1364,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.27482989106144,
-   "yaw_err_rms_deg": 22.0930279065611,
-   "yaw_err_end_deg": -46.70918084202194,
-   "yaw_err_drift_dpm": -9.288180692285948,
+   "yaw_err_mean_deg": -17.28307080160444,
+   "yaw_err_rms_deg": 22.10660101873918,
+   "yaw_err_end_deg": -46.81692984243233,
+   "yaw_err_drift_dpm": -9.295302003045652,
    "bgz_mean_dpm": 0.207,
    "true_bias_mean_dpm": 8.863,
    "bgz_ramp": 0.028,
@@ -1452,10 +1452,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.021361321517398,
-   "yaw_err_rms_deg": 0.35464427987694636,
-   "yaw_err_end_deg": -1.4890124466829207,
-   "yaw_err_drift_dpm": -0.06443337469062169,
+   "yaw_err_mean_deg": -0.021362578452208795,
+   "yaw_err_rms_deg": 0.3547649387311195,
+   "yaw_err_end_deg": -1.4907737818010105,
+   "yaw_err_drift_dpm": -0.06443981243039187,
    "bgz_mean_dpm": -4.953,
    "true_bias_mean_dpm": 8.863,
    "bgz_ramp": 1.5,
@@ -1551,10 +1551,10 @@
    }
   },
   "FGO_baseline": {
-   "yaw_err_mean_deg": -17.198733929462605,
-   "yaw_err_rms_deg": 22.077826113355297,
-   "yaw_err_end_deg": -46.89207989793553,
-   "yaw_err_drift_dpm": -9.31897393385976,
+   "yaw_err_mean_deg": -17.21488567008635,
+   "yaw_err_rms_deg": 22.101417560175886,
+   "yaw_err_end_deg": -47.01665045647499,
+   "yaw_err_drift_dpm": -9.330370170660723,
    "bgz_mean_dpm": 0.098,
    "true_bias_mean_dpm": 8.888,
    "bgz_ramp": 0.053,
@@ -1639,10 +1639,10 @@
    }
   },
   "FGO_heading": {
-   "yaw_err_mean_deg": -0.049695166930669575,
-   "yaw_err_rms_deg": 0.2527892499430642,
-   "yaw_err_end_deg": -1.4528502950304016,
-   "yaw_err_drift_dpm": -0.014264388072110489,
+   "yaw_err_mean_deg": -0.049671254550534075,
+   "yaw_err_rms_deg": 0.25301294071563274,
+   "yaw_err_end_deg": -1.4549021389648829,
+   "yaw_err_drift_dpm": -0.014257024182230366,
    "bgz_mean_dpm": -4.909,
    "true_bias_mean_dpm": 8.888,
    "bgz_ramp": 1.582,

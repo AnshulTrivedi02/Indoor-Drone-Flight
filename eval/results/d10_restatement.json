@@ -1,0 +1,1013 @@
+{
+ "phase4_fwdc_arms": [
+  {
+   "path": ".fwdc_tex_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.902019788418706,
+   "new": -16.902021275828268
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.679789744984372,
+   "new": 21.679792575603354
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -45.60010590681651,
+   "new": -45.60125871430142
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.129911110710237,
+   "new": -9.12991271760672
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.007758778371032582,
+   "new": -0.007758792217879351
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 0.19084364309539786,
+   "new": 0.19084355547497514
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading.yaw_err_end_deg",
+   "old": -0.29443570491923765,
+   "new": -0.29445300640421124
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.006854929618478935,
+   "new": -0.0068549342166010045
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.006533866832729852,
+   "new": -0.006533878706543012
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.19091123480332625,
+   "new": 0.19091114806138818
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.23739707248421382,
+   "new": -0.2374110242983818
+  },
+  {
+   "path": ".fwdc_tex_r1.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.005611147206222844,
+   "new": -0.005611149590774173
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.422251816724323,
+   "new": -17.43144618364309
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.26170436428706,
+   "new": 22.276884201290713
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -47.068014315032656,
+   "new": -47.17135042320825
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.33242829349634,
+   "new": -9.34039135586551
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.04358849455294951,
+   "new": -0.04360141282602563
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 0.19778888169523787,
+   "new": 0.19790901430196917
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading.yaw_err_end_deg",
+   "old": -1.3408838800577882,
+   "new": -1.342413318861702
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.0442512349914042,
+   "new": -0.044271156341348636
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.02893197506695921,
+   "new": -0.02893304605369225
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.1426301602410388,
+   "new": 0.1426982537763006
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.45041083647453206,
+   "new": -0.45080306574772067
+  },
+  {
+   "path": ".fwdc_trans_r1.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.027318244644387032,
+   "new": -0.02732455220742753
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.07456358678794,
+   "new": -17.090141966569828
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.924074410519204,
+   "new": 21.94747406078985
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -46.598417937356146,
+   "new": -46.73707951948569
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.250290452516778,
+   "new": -9.261797431471226
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.046017056187129306,
+   "new": -0.04600004374356658
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 0.19549262905255993,
+   "new": 0.1956417749480365
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading.yaw_err_end_deg",
+   "old": -1.4603225006316904,
+   "new": -1.4622071546583015
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.04719759521255924,
+   "new": -0.04721343792199184
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.030339862896721945,
+   "new": -0.030306762282703112
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.12421857945622565,
+   "new": 0.12429964676473497
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.4638126444913837,
+   "new": -0.4642368630202611
+  },
+  {
+   "path": ".fwdc_blank_r1.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.029066213747701613,
+   "new": -0.02906441209728228
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.49531541889738,
+   "new": -17.495318969056342
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.328771486365707,
+   "new": 22.3287778858473
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -46.72459551589975,
+   "new": -46.726532801457836
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.3480268479525,
+   "new": -9.348030460185383
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -0.009912543759328827,
+   "new": -0.00991256857704178
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 0.17762869679652585,
+   "new": 0.17762855338205005
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading.yaw_err_end_deg",
+   "old": -0.25334352218209233,
+   "new": -0.2533601494833704
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.009586056438656359,
+   "new": -0.009586052722310336
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.007816246751341098,
+   "new": -0.00781626714896971
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.17899607364343975,
+   "new": 0.1789959172799131
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.12005855944721588,
+   "new": -0.12006676008630279
+  },
+  {
+   "path": ".fwdc_tex_r2.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.007339740749209009,
+   "new": -0.007339731588786778
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.864835566495398,
+   "new": -16.873001738695653
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.645559821116002,
+   "new": 21.659079584821747
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -45.92897515145506,
+   "new": -46.01932321456863
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.125114201989634,
+   "new": -9.132189864592608
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -0.03646827551002131,
+   "new": -0.03647544133389276
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 0.18876874578215275,
+   "new": 0.18885757743212292
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading.yaw_err_end_deg",
+   "old": -1.2091724685089673,
+   "new": -1.2101957065856368
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.04220626792081872,
+   "new": -0.04221867990239775
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.02032902768810084,
+   "new": -0.020326788974073643
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.13669120209769473,
+   "new": 0.1367483821916012
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.23189241572271158,
+   "new": -0.23202867380172165
+  },
+  {
+   "path": ".fwdc_trans_r2.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.023553177344716174,
+   "new": -0.02355485933864423
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.03450296560832,
+   "new": -17.049190586400798
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.870262683877765,
+   "new": 21.892059829055214
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -46.489736118967414,
+   "new": -46.61817196907373
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.230962185424504,
+   "new": -9.241629190992237
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -0.02271077595264033,
+   "new": -0.0226771042913102
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 0.11346457971125809,
+   "new": 0.11354356517575857
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading.yaw_err_end_deg",
+   "old": -0.7041804887486478,
+   "new": -0.7049762314742054
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.020667451729790152,
+   "new": -0.020660332148740686
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.008336377343528418,
+   "new": -0.008288987928896093
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.11048145702191475,
+   "new": 0.11056257962168402
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": 0.19801086260869738,
+   "new": 0.1983812201220303
+  },
+  {
+   "path": ".fwdc_blank_r2.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.004049062076619602,
+   "new": -0.004028231043798859
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.960459492462967,
+   "new": -16.960464125826057
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.732851278250028,
+   "new": 21.732859124895768
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -45.66942636166851,
+   "new": -45.67179536106511
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.14326736543122,
+   "new": -9.143271486757579
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.011276818628327906,
+   "new": -0.01127683256292735
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 0.18201199616477756,
+   "new": 0.18201195622571906
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading.yaw_err_end_deg",
+   "old": -0.08582361283214368,
+   "new": -0.08583144142099286
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.01594437899418119,
+   "new": -0.015944372686772918
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.009747983436506645,
+   "new": -0.00974799464911211
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.18151146108140523,
+   "new": 0.18151141776123228
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.030718207366675188,
+   "new": -0.03072156246591362
+  },
+  {
+   "path": ".fwdc_tex_r3.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.014364478672785334,
+   "new": -0.014364469109202404
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.015066242766263,
+   "new": -17.023309375636597
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.837909141642967,
+   "new": 21.851509634084078
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -46.309823404447855,
+   "new": -46.42049266192009
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.205263670821319,
+   "new": -9.212371082434833
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.05231105476463716,
+   "new": -0.05232800033835304
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 0.2392815848718378,
+   "new": 0.23941414672013855
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading.yaw_err_end_deg",
+   "old": -1.6296481728239485,
+   "new": -1.6313316706365981
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.05831396326442278,
+   "new": -0.05833863233226279
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.036835701322800916,
+   "new": -0.036842425407560046
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.1692607210000835,
+   "new": 0.16934579173670844
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -0.6701141514942037,
+   "new": -0.6707013936619433
+  },
+  {
+   "path": ".fwdc_trans_r3.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.040440279715648814,
+   "new": -0.04045328192080619
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.170897029270986,
+   "new": -17.191816385230165
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.049043664929894,
+   "new": 22.0804395273801
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -46.82866812896401,
+   "new": -46.994007207286415
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.300202506559886,
+   "new": -9.315572569334659
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.106654287232483,
+   "new": -0.10669897902820874
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 0.5169505481049931,
+   "new": 0.5173830009228141
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading.yaw_err_end_deg",
+   "old": -3.3693582841350747,
+   "new": -3.3737785482743163
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.11910734302704741,
+   "new": -0.11918327203980104
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading_yawrate.yaw_err_mean_deg",
+   "old": -0.08782176933282693,
+   "new": -0.08785406258590071
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading_yawrate.yaw_err_rms_deg",
+   "old": 0.4139031818437801,
+   "new": 0.41431643573607696
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading_yawrate.yaw_err_end_deg",
+   "old": -2.3213591972280767,
+   "new": -2.324664928176361
+  },
+  {
+   "path": ".fwdc_blank_r3.FGO_heading_yawrate.yaw_err_drift_dpm",
+   "old": -0.09732114253568641,
+   "new": -0.09739090574215427
+  }
+ ],
+ "phase4_fwdplainc_arms": [
+  {
+   "path": ".fwdplainc_tex_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.933705047165873,
+   "new": -16.933706769451653
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.698148454220412,
+   "new": 21.69815167548242
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -45.604793820219356,
+   "new": -45.6059157311426
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.12718357623299,
+   "new": -9.127185393515509
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.1359400507871954,
+   "new": -0.13594126171597185
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 1.3573216025344714,
+   "new": 1.3573269243473722
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_heading.yaw_err_end_deg",
+   "old": -0.14965452619364328,
+   "new": -0.14966912988319336
+  },
+  {
+   "path": ".fwdplainc_tex_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.32028112768556083,
+   "new": -0.3202822372285202
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.919517783796653,
+   "new": -16.927814487840646
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.70912642751463,
+   "new": 21.722855063884413
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -46.05055662018435,
+   "new": -46.16083439477231
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.159579918476332,
+   "new": -9.166772490966197
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.028526314880443833,
+   "new": -0.028533614604840114
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 0.3102165928367859,
+   "new": 0.3103121762619212
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_heading.yaw_err_end_deg",
+   "old": -1.478897161582438,
+   "new": -1.480812083435353
+  },
+  {
+   "path": ".fwdplainc_trans_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.06383375604340988,
+   "new": -0.06384618687195738
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.10660989247234,
+   "new": -17.12332418754086
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.966113704947208,
+   "new": 21.990446834560746
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_baseline.yaw_err_end_deg",
+   "old": -46.73085627681212,
+   "new": -46.8589368655812
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.295266237199336,
+   "new": -9.30699730816742
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_heading.yaw_err_mean_deg",
+   "old": -0.050429183467458935,
+   "new": -0.0504079265422088
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_heading.yaw_err_rms_deg",
+   "old": 0.1905180470571547,
+   "new": 0.19065037790458417
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_heading.yaw_err_end_deg",
+   "old": -1.278940002106964,
+   "new": -1.280642038686409
+  },
+  {
+   "path": ".fwdplainc_blank_r1.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.014033966853693377,
+   "new": -0.014030023681137538
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -16.45666894574354,
+   "new": -16.45665902092153
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.170371228643436,
+   "new": 21.170359552272938
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -44.7190490845731,
+   "new": -44.720943770969086
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -8.97991310026191,
+   "new": -8.97990852343483
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -1.3361944965749197,
+   "new": -1.336195676160033
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 4.219242024462123,
+   "new": 4.219241121053555
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_heading.yaw_err_end_deg",
+   "old": -14.690162527158662,
+   "new": -14.690034293810783
+  },
+  {
+   "path": ".fwdplainc_tex_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -1.6173150116779644,
+   "new": -1.6173156624722365
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.559895424492062,
+   "new": -17.56872992387254
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.440933767574098,
+   "new": 22.45549946884188
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -47.39930114882591,
+   "new": -47.50184714622861
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.42310415950886,
+   "new": -9.430752078009071
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -0.006362159019041314,
+   "new": -0.006361580701239217
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 0.5365788306776121,
+   "new": 0.5366095705688883
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_heading.yaw_err_end_deg",
+   "old": -1.4127593083069314,
+   "new": -1.4146656380161176
+  },
+  {
+   "path": ".fwdplainc_trans_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.06789323715907808,
+   "new": -0.06789275212037142
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.043406946439376,
+   "new": -17.05910388298078
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_baseline.yaw_err_rms_deg",
+   "old": 21.914366332784788,
+   "new": 21.937588868226687
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_baseline.yaw_err_end_deg",
+   "old": -46.60894524280991,
+   "new": -46.73796753752515
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.279747668597166,
+   "new": -9.29108385415114
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_heading.yaw_err_mean_deg",
+   "old": -0.04646792743758361,
+   "new": -0.04643094292524073
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_heading.yaw_err_rms_deg",
+   "old": 0.21904073032489865,
+   "new": 0.21918078955073064
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_heading.yaw_err_end_deg",
+   "old": -1.2919767775245532,
+   "new": -1.293736839090343
+  },
+  {
+   "path": ".fwdplainc_blank_r2.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.010747116666173251,
+   "new": -0.010742249973184142
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.31844662013081,
+   "new": -17.318450478384804
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.120562205271984,
+   "new": 22.120568189635893
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -46.36146755371027,
+   "new": -46.36224809015678
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.276117132874651,
+   "new": -9.276120159983076
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.18500545553725223,
+   "new": -0.18500586530637977
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 1.5683756472103585,
+   "new": 1.5683771141320495
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_heading.yaw_err_end_deg",
+   "old": -0.10544826682937014,
+   "new": -0.10545107193800618
+  },
+  {
+   "path": ".fwdplainc_tex_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.39516741709782044,
+   "new": -0.395167764656965
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.27482989106144,
+   "new": -17.28307080160444
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.0930279065611,
+   "new": 22.10660101873918
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -46.70918084202194,
+   "new": -46.81692984243233
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.288180692285948,
+   "new": -9.295302003045652
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.021361321517398,
+   "new": -0.021362578452208795
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 0.35464427987694636,
+   "new": 0.3547649387311195
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_heading.yaw_err_end_deg",
+   "old": -1.4890124466829207,
+   "new": -1.4907737818010105
+  },
+  {
+   "path": ".fwdplainc_trans_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.06443337469062169,
+   "new": -0.06443981243039187
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_baseline.yaw_err_mean_deg",
+   "old": -17.198733929462605,
+   "new": -17.21488567008635
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_baseline.yaw_err_rms_deg",
+   "old": 22.077826113355297,
+   "new": 22.101417560175886
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_baseline.yaw_err_end_deg",
+   "old": -46.89207989793553,
+   "new": -47.01665045647499
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_baseline.yaw_err_drift_dpm",
+   "old": -9.31897393385976,
+   "new": -9.330370170660723
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_heading.yaw_err_mean_deg",
+   "old": -0.049695166930669575,
+   "new": -0.049671254550534075
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_heading.yaw_err_rms_deg",
+   "old": 0.2527892499430642,
+   "new": 0.25301294071563274
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_heading.yaw_err_end_deg",
+   "old": -1.4528502950304016,
+   "new": -1.4549021389648829
+  },
+  {
+   "path": ".fwdplainc_blank_r3.FGO_heading.yaw_err_drift_dpm",
+   "old": -0.014264388072110489,
+   "new": -0.014257024182230366
+  }
+ ],
+ "phase5b_consistency": [
+  {
+   "path": ".endwall_S.fwdc/FGO.all.yaw_pred_nees_mean",
+   "old": 1.689396889130524,
+   "new": 1.6895131367291834
+  },
+  {
+   "path": ".endwall_S.fwdc/FGO.accepted.median_abs_est_yaw_err_deg",
+   "old": 1.7349679200422858,
+   "new": 1.7352506834342818
+  },
+  {
+   "path": ".endwall_S.fwdc/FGO.accepted.yaw_pred_nees_mean",
+   "old": 7.128034189822503,
+   "new": 7.128675075829561
+  },
+  {
+   "path": ".endwall_S.fwdc/FGO.rejected.median_abs_est_yaw_err_deg",
+   "old": 0.22605708167667882,
+   "new": 0.22605684275516774
+  },
+  {
+   "path": ".endwall_S.fwdc/FGO.rejected.yaw_pred_nees_mean",
+   "old": 0.4808108223100845,
+   "new": 0.48081048359576634
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.all.median_abs_est_yaw_err_deg",
+   "old": 0.2636626894081759,
+   "new": 0.2638253703642094
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.all.yaw_pred_nees_mean",
+   "old": 10.000834873621974,
+   "new": 10.01567831566291
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.accepted.median_abs_est_yaw_err_deg",
+   "old": 3.0732219478957745,
+   "new": 3.0757584838298615
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.accepted.yaw_pred_nees_mean",
+   "old": 24.914257951625636,
+   "new": 24.95436614199157
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.rejected.median_abs_est_yaw_err_deg",
+   "old": 0.1923580371896458,
+   "new": 0.19241993821746972
+  },
+  {
+   "path": ".endwall_S.fwdplainc/FGO.rejected.yaw_pred_nees_mean",
+   "old": 1.3414279251037162,
+   "new": 1.3416015132785255
+  },
+  {
+   "path": ".checker_S.fwdc/FGO.all.yaw_pred_nees_mean",
+   "old": 0.21312889855649608,
+   "new": 0.213126514989404
+  },
+  {
+   "path": ".checker_S.fwdc/FGO.accepted.yaw_pred_nees_mean",
+   "old": 0.1926755663367,
+   "new": 0.19267346411045427
+  },
+  {
+   "path": ".checker_S.fwdc/FGO.rejected.median_abs_est_yaw_err_deg",
+   "old": 0.26592585699788673,
+   "new": 0.2659256867749823
+  },
+  {
+   "path": ".checker_S.fwdc/FGO.rejected.yaw_pred_nees_mean",
+   "old": 5.525231154805172,
+   "new": 5.525155701904998
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.all.median_abs_est_yaw_err_deg",
+   "old": 0.21529996143701358,
+   "new": 0.21529976742447954
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.all.yaw_pred_nees_mean",
+   "old": 4.145918709457946,
+   "new": 4.145851742821144
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.accepted.median_abs_est_yaw_err_deg",
+   "old": 0.1926144727503421,
+   "new": 0.19261463856379601
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.accepted.yaw_pred_nees_mean",
+   "old": 2.1769940493207205,
+   "new": 2.17696034461793
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.rejected.median_abs_est_yaw_err_deg",
+   "old": 0.40435646379374623,
+   "new": 0.4043556077986328
+  },
+  {
+   "path": ".checker_S.fwdplainc/FGO.rejected.yaw_pred_nees_mean",
+   "old": 10.785827308491815,
+   "new": 10.785648170878572
+  }
+ ]
+}

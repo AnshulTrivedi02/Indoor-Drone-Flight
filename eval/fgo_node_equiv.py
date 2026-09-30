@@ -56,7 +56,10 @@ off, dj = dejitter_imu(off)
 off.sort(key=lambda e: e[0])
 dj_map = {}      # bag position of each IMU sample -> offline dejittered stamp (for variant ii)
 
-ref = np.loadtxt(f"{D}/fgo/fgo_traj.tum"); gt = np.loadtxt(f"{D}/fgo/ground_truth.tum")
+# FGO step 2 was validated against the offline TUM AS WRITTEN (with the euler_to_quat typo). After the
+# D10 repair the original is kept as fgo_traj.tum.typo; use it when present so step 2 stays reproducible.
+_ref_path = f"{D}/fgo/fgo_traj.tum.typo" if os.path.exists(f"{D}/fgo/fgo_traj.tum.typo") else f"{D}/fgo/fgo_traj.tum"
+ref = np.loadtxt(_ref_path); gt = np.loadtxt(f"{D}/fgo/ground_truth.tum")
 c0, c1 = cruise_bounds(gt[:, 0], gt[:, 1], gt[:, 2])
 m_off = dict(l.strip().split("=") for l in open(f"{D}/fgo/metrics.txt"))
 

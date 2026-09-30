@@ -6801,3 +6801,33 @@ in `~/thesis_data/batches/fgo_shadow{,2,3,4}/`.
   arming checks.
 
 Part C estimated this as "UKF plumbing 2–3 pw". It is the shared base D12 would reuse.
+
+### D10 carried out: the FGO trajectory-writer quaternion typo fixed; affected values re-derived
+
+- **Fix:** `fgo_replay.py` `euler_to_quat` now writes w = `cr*cp*cy + sr*sp*sy` (it was `sr*sp*cy`).
+- **Repair of the existing outputs, with no replay re-run** (`eval/fix_fgo_tum_quat.py`):
+  - x, y, z were written correctly, so the unit quaternion's w = sign(w_written) · √(1 − x² − y² − z²);
+  - applied to the **146 current FGO TUM files** (`~/thesis_data/trials` and the Phase 5b sandbox);
+  - originals kept as `fgo_traj.tum.typo`; the pre-re-run archive is untouched.
+  - **Verified** on `dsn_blank_r1` against the node's exact attitude: repaired yaw within **9.9e-5°**
+    (the `%.6f` rounding), all quaternions unit, positions byte-identical.
+- **The typo's effect was LARGER than my earlier estimate.** Up to **4.47°** of yaw on
+  `dsn_blank_r1`, where the unaided runaway reaches large roll and pitch. **The "~0.002°" figure
+  (textured) is WITHDRAWN as a general bound.**
+- **Dependence check.** Only `eval/phase4_eval.py` (the Phase 4 FGO yaw errors) and
+  `eval/phase5b_consistency.py` (FGO yaw NEES / end-wall and checker yaw statistics) read FGO attitude
+  from TUM files. `three_way_eval` and every evo ATE use positions only, and the FGO drift figures in
+  `fgo_replay` metrics come from its own `rpy`. Both were re-run on the repaired files.
+- **Result** (`eval/results/d10_restatement.json` lists every changed value, old → new; the pre-D10
+  JSONs are kept in `eval/results_pre_d10/` as SUPERSEDED):
+  - Phase 4 `fwdc`: 108 values changed; `fwdplainc`: 72; Phase 5b: 21. **All are FGO yaw/attitude
+    quantities.** No evo value changed, and no EKF3 or UKF number.
+  - **Largest changes:** 0.17° absolute (`fwdc_blank_r3` FGO baseline end-of-cruise yaw error
+    −46.83 → −46.99°, a no-heading runaway), and ≤ 0.57% relative. Phase 5b ≤ 0.16% (the end-wall
+    FGO accepted yaw NEES 24.91 → 24.95).
+  - **At their printed precision, no value in `numbers.md` changes.** For example, FGO heading-arm
+    yaw rms `fwdc` is still 0.18–0.19°, and the 5b end-wall FGO NEES is still 1.69 / 10.0.
+  - Values quoted in METHODOLOGY's Phase 4/5b prose at more decimals are superseded by the restated
+    JSONs, and the differences are at most the magnitudes above.
+- **FGO step 2** remains as passed. It compared like with like against the as-written (typo)
+  representation, and the driver now uses the `.typo` originals, so it stays reproducible.

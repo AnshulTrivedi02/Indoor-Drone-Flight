@@ -704,4 +704,8 @@ The Phase 2 FGO bands (section 7) were derived from them.
 | Transition segment breakdown, `fwdc_trans_r{1,2,3}` | ψ and ω `pass` true in both halves | — | DIAGNOSTIC | json:fwd_transition_segments.json:fwdc_trans_r*/{checker_y<80,blank_y>80}.{psi,omega}.pass |
 | Transition segment breakdown, `fwdplainc_trans_r{1,2,3}` | ψ pass false (checker y<80), true (blank y>80); ω pass false in both | — | DIAGNOSTIC | json:fwd_transition_segments.json:fwdplainc_trans_r*/…pass |
 
+### Superseded by D10 (2026-09-30): Phase 4 / 5b FGO yaw values computed from typo'd FGO TUM quaternions
+- `eval/results_pre_d10/phase4_{fwdc,fwdplainc}_arms.json` and `phase5b_consistency.json` are SUPERSEDED by
+  the restated `eval/results/` files. Every changed value, old → new, is in `eval/results/d10_restatement.json`.
+  The largest change is 0.17° (≤ 0.57%). No row of this file changes at its printed precision.
 

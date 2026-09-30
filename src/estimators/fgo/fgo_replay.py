@@ -130,7 +130,7 @@ json.dump({"arm": ARM, "counts": cnt, "sigma": sig_fwd and {k: (None if v is Non
 # write TUM (ENU, euler->quat)
 def euler_to_quat(r, pch, y):
     cr, sr = np.cos(r/2), np.sin(r/2); cp, sp = np.cos(pch/2), np.sin(pch/2); cy, sy = np.cos(y/2), np.sin(y/2)
-    return (sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*cy)
+    return (sr*cp*cy - cr*sp*sy, cr*sp*cy + sr*cp*sy, cr*cp*sy - sr*sp*cy, cr*cp*cy + sr*sp*sy)   # w fixed (ruling D10, 2026-09-30): was sr*sp*cy
 with open(f"{OUTDIR}/fgo_traj.tum", "w") as f:
     for row in traj:
         q = euler_to_quat(row[4], row[5], row[6])

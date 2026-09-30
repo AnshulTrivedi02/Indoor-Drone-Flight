@@ -694,23 +694,23 @@
     "median_pred_yaw_sigma_deg": 0.4759439626395616,
     "median_abs_est_yaw_err_deg": 0.3058724589957794,
     "median_abs_meas_err_deg": 3.9564483775857715,
-    "yaw_pred_nees_mean": 1.689396889130524
+    "yaw_pred_nees_mean": 1.6895131367291834
    },
    "accepted": {
     "n": 2,
     "median_sqrtS_deg": 0.7512863915676506,
     "median_pred_yaw_sigma_deg": 0.7364592692061445,
-    "median_abs_est_yaw_err_deg": 1.7349679200422858,
+    "median_abs_est_yaw_err_deg": 1.7352506834342818,
     "median_abs_meas_err_deg": 3.360945974459443,
-    "yaw_pred_nees_mean": 7.128034189822503
+    "yaw_pred_nees_mean": 7.128675075829561
    },
    "rejected": {
     "n": 9,
     "median_sqrtS_deg": 0.4984240543936303,
     "median_pred_yaw_sigma_deg": 0.4759438391219961,
-    "median_abs_est_yaw_err_deg": 0.22605708167667882,
+    "median_abs_est_yaw_err_deg": 0.22605684275516774,
     "median_abs_meas_err_deg": 3.996487439643736,
-    "yaw_pred_nees_mean": 0.4808108223100845
+    "yaw_pred_nees_mean": 0.48081048359576634
    }
   },
   "fwdplainc/UKF": {
@@ -737,25 +737,25 @@
     "n": 49,
     "median_sqrtS_deg": 0.49662761857485543,
     "median_pred_yaw_sigma_deg": 0.4803779673666686,
-    "median_abs_est_yaw_err_deg": 0.2636626894081759,
+    "median_abs_est_yaw_err_deg": 0.2638253703642094,
     "median_abs_meas_err_deg": 3.4172343580683027,
-    "yaw_pred_nees_mean": 10.000834873621974
+    "yaw_pred_nees_mean": 10.01567831566291
    },
    "accepted": {
     "n": 18,
     "median_sqrtS_deg": 0.5925156394506411,
     "median_pred_yaw_sigma_deg": 0.5786937963247007,
-    "median_abs_est_yaw_err_deg": 3.0732219478957745,
+    "median_abs_est_yaw_err_deg": 3.0757584838298615,
     "median_abs_meas_err_deg": 3.1817277402026107,
-    "yaw_pred_nees_mean": 24.914257951625636
+    "yaw_pred_nees_mean": 24.95436614199157
    },
    "rejected": {
     "n": 31,
     "median_sqrtS_deg": 0.4964489041545471,
     "median_pred_yaw_sigma_deg": 0.48019320532078613,
-    "median_abs_est_yaw_err_deg": 0.1923580371896458,
+    "median_abs_est_yaw_err_deg": 0.19241993821746972,
     "median_abs_meas_err_deg": 3.5683285964764906,
-    "yaw_pred_nees_mean": 1.3414279251037162
+    "yaw_pred_nees_mean": 1.3416015132785255
    }
   }
  },
@@ -793,7 +793,7 @@
     "median_pred_yaw_sigma_deg": 0.47598905868084734,
     "median_abs_est_yaw_err_deg": 0.08237877489223898,
     "median_abs_meas_err_deg": 0.08763945706880533,
-    "yaw_pred_nees_mean": 0.21312889855649608
+    "yaw_pred_nees_mean": 0.213126514989404
    },
    "accepted": {
     "n": 28569,
@@ -801,15 +801,15 @@
     "median_pred_yaw_sigma_deg": 0.47598905868084734,
     "median_abs_est_yaw_err_deg": 0.08220513561242766,
     "median_abs_meas_err_deg": 0.08727506833190984,
-    "yaw_pred_nees_mean": 0.1926755663367
+    "yaw_pred_nees_mean": 0.19267346411045427
    },
    "rejected": {
     "n": 110,
     "median_sqrtS_deg": 0.4985129330581246,
     "median_pred_yaw_sigma_deg": 0.47603691476852256,
-    "median_abs_est_yaw_err_deg": 0.26592585699788673,
+    "median_abs_est_yaw_err_deg": 0.2659256867749823,
     "median_abs_meas_err_deg": 1.8420282753796098,
-    "yaw_pred_nees_mean": 5.525231154805172
+    "yaw_pred_nees_mean": 5.525155701904998
    }
   },
   "fwdplainc/UKF": {
@@ -843,25 +843,25 @@
     "n": 18788,
     "median_sqrtS_deg": 0.49123078217849425,
     "median_pred_yaw_sigma_deg": 0.4747964630671401,
-    "median_abs_est_yaw_err_deg": 0.21529996143701358,
+    "median_abs_est_yaw_err_deg": 0.21529976742447954,
     "median_abs_meas_err_deg": 0.25552880290624636,
-    "yaw_pred_nees_mean": 4.145918709457946
+    "yaw_pred_nees_mean": 4.145851742821144
    },
    "accepted": {
     "n": 14491,
     "median_sqrtS_deg": 0.4880113006194905,
     "median_pred_yaw_sigma_deg": 0.47146477019213934,
-    "median_abs_est_yaw_err_deg": 0.1926144727503421,
+    "median_abs_est_yaw_err_deg": 0.19261463856379601,
     "median_abs_meas_err_deg": 0.19843925521243463,
-    "yaw_pred_nees_mean": 2.1769940493207205
+    "yaw_pred_nees_mean": 2.17696034461793
    },
    "rejected": {
     "n": 4297,
     "median_sqrtS_deg": 0.6661228003922601,
     "median_pred_yaw_sigma_deg": 0.6540975349307064,
-    "median_abs_est_yaw_err_deg": 0.40435646379374623,
+    "median_abs_est_yaw_err_deg": 0.4043556077986328,
     "median_abs_meas_err_deg": 3.067987002379531,
-    "yaw_pred_nees_mean": 10.785827308491815
+    "yaw_pred_nees_mean": 10.785648170878572
    }
   }
  }
