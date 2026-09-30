@@ -5,7 +5,21 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D17. The UKF port's heading input: design, and the heading σ it applies (BLOCKS the with-heading UKF set)
+### D18. EKF3's STATIC yaw fusion on the ground (pre-arm gyro-z bias learning): give it to the UKF?
+- From the gyro-bias diagnostic: with no yaw source, EKF3 fuses the yaw stored when the vehicle last moved
+  whenever `onGroundNotMoving` (`MagFusion.cpp:262-277`), so it learns gyro-z bias while disarmed.
+  In P3 it reached 0.0100 deg/s pre-arm, then froze once the motors spun.
+- The UKF (offline and port) has only the zero-innovation form, so it learns nothing on the ground.
+- Effect: a pre-flight bias head start for EKF3 in the **no-heading** comparison (~0.6 deg/min against
+  cruise drifts of ~8–10). None with the heading.
+- Options:
+  - **(a)** port EKF3's STATIC branch to the UKF (offline and port), EKF3's approach as in D15; then
+    re-run the no-heading UKF results (a D15-style re-run) and restate them;
+  - (b) record it as a known asymmetry, with the magnitude above, and change nothing.
+- **Recommendation: (a)**, for the same fairness reason as D15. The expected effect is small (a
+  reduction of ≲ 0.6 deg/min in the UKF's no-heading drift), and it would be measured, not assumed.
+
+### D17. RULED (a) 2026-09-30: UKF heading at EKF3's 5°. V1–V4 all PASS (the with-heading UKF set 3/3)
 - **The no-heading UKF flight is done:** `cl_ukf_a_tex`, PRIMARY PASS, west-wall contact at cruise +163.0 s
   inside [+146, +218].
 - **The port has no heading path yet** (noted at D9). "Validate the port's heading input" therefore

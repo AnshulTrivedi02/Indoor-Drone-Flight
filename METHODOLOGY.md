@@ -7731,3 +7731,37 @@ before the next.
     days apart in configuration history.
 - **Sequence complete:** V1–V4 all PASS, with no primary failure. Next, as ruled: the gyro-bias
   diagnostic, then D12's effort/blocker report.
+
+### Gyro-bias diagnostic (ruled after the flights; DIAGNOSTIC): why the UKF learns no gyro-z bias while stationary, and how EKF3 learned ~21%
+
+**Mechanism, in EKF3's source** (`AP_NavEKF3_MagFusion.cpp:228-246, 262-277`): with no yaw source, EKF3
+fuses a synthetic yaw every 140 ms.
+- **When `onGroundNotMoving`:** it fuses **STATIC**, the yaw stored when the vehicle last moved, with
+  innovation = predicted − stored and R = max(`_yawNoise`, 0.05)² (`:867-868`, `:1054-1055`). As the
+  gyro drift rotates the estimate, the innovation is non-zero, and through the yaw–bias correlation
+  **the gyro-z bias is learned**. The source says so: "to allow yaw bias learning when on ground
+  before flight".
+- **Otherwise:** it fuses PREDICTED, a zero innovation that only bounds the variance.
+- `onGroundNotMoving` needs the bias-corrected gyro and accel magnitudes and rates of change under
+  limits (3°/s, 0.2, 1 m/s², 5; `AP_NavEKF3_Measurements.cpp:1390-1450`).
+- **The UKF (offline and port) implements only the zero-innovation PREDICTED form**, as its variance-
+  gated pseudo-yaw. It never sees a non-zero yaw innovation while stationary, so its gyro-z bias is
+  unobservable on the ground. This is expected from yaw unobservability, as the ruling anticipated,
+  **and it is a behaviour EKF3 has and the UKF lacks.**
+
+**Measured (P3 log, `ukf_groundtest_p3`):**
+
+| phase | SITL raw gyro-z (integrated) | EKF3 | UKF |
+|---|---|---|---|
+| disarmed and still, 10–24.4 s | 0.0143 deg/s (0.21°) | yaw +0.02° (held by STATIC); **bias 0 → 0.0100 deg/s** | yaw +0.21°; bias ≈ 0 (−0.0003 → −0.0001 deg/s) |
+| armed hold, 24.5–89.5 s | 0.0474 deg/s (3.08°) | yaw +2.15°; **bias frozen at 0.0100** | yaw +3.09°; bias ≈ 0 |
+
+- **EKF3 learns only while disarmed.** With the motors spinning, its stationary detector is no longer
+  satisfied, and it falls back to the zero-innovation fusion. Its armed drift,
+  (0.0474 − 0.0100) × 65 s ≈ 2.4°, matches the observed 2.15°.
+- **So the "~21%" is EKF3's pre-arm bias** (0.0100 deg/s), set against a SITL gyro drift that keeps
+  ramping (0.014 deg/s early, 0.047 deg/s later; `SIM_DRIFT_SPEED`/`SIM_DRIFT_TIME`).
+- **Relevance:** a small pre-flight head start for EKF3 in the no-heading configuration.
+  0.0100 deg/s = 0.6 deg/min, against cruise drifts of ~8–10 deg/min. **With the heading
+  (sets (b) and V4), yaw and bias are observable in both, so it does not apply.** Queued as **D18**:
+  whether to give the UKF EKF3's STATIC branch, as D15 did for the ground-proximity rule.
