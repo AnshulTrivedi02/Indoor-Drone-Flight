@@ -6748,3 +6748,56 @@ in `~/thesis_data/batches/fgo_shadow{,2,3,4}/`.
   closed-loop run launched directly cannot fly the Python node with the C++ node's `VISO_DELAY_MS 38`.
 - **The `dsn` noise floor is CLOSED** in `numbers.md` (EKF3 0.31 m, FGO 0.13 m). The ruled UKF claim
   wording ("poor in most textured flights") is now a `numbers.md` row.
+
+### Rulings (user, 2026-09-30) on D8–D14
+
+- **D8:** **keep EKF3's flow timing in the UKF port** (fair to EKF3 in closed loop).
+  - Run the Replay diagnostic of EKF3's own cost from fusing flow 31–44 ms before capture: EKF3 is
+    replayed on `LOG_REPLAY` logs with flow re-timed to the capture time. It is **labelled diagnostic
+    and never replaces the dataset results.** Report the cost per world.
+  - Record as a **fairness note** on the offline comparison: EKF3 was the only estimator fusing flow
+    at a misdated time, and the EKF3-vs-FGO result held despite it.
+- **D9:** the first UKF flight **without** the heading source, then **with** it.
+  - Before either: confirm the event queue never overflows, and a shadow run of the exact binary to be
+    flown.
+  - Before the with-heading flight: validate the port's camera-heading input (`ODOMETRY` yaw, the
+    same message and quality gating as EKF3).
+  - Written predictions first. No heading: expected wall contact around cruise +110 s from the
+    24–30 deg/min drift; the window and basis are to be stated.
+- **D10:** **fix the FGO trajectory-writer quaternion typo.** Check every reported FGO heading or
+  attitude figure for dependence on it; re-evaluate and restate any affected value, with the old values
+  moved to the superseded section.
+- **D11:** **defer the FGO speed-up**; not needed for SITL. Revisit only for the real drone.
+- **D12:** **prefer the external-estimator AHRS backend.** The FGO's estimate and validity go directly
+  to the controller, reusing the UKF's `AP_AHRS` wiring, so that a closed-loop FGO flight is genuinely
+  the FGO flying.
+  - **Report the effort and any blocker first.**
+  - Fall back to EKF3 fusing the FGO via ExternalNav only if the backend is infeasible this week. It is
+    then labelled "EKF3 fusing the FGO's output" everywhere, with the IMU double-counting and the 5° yaw
+    clamp stated.
+  - Either route requires the take-off backlog (peak 1.9 s) to be solved first: propose the fix and
+    show the latency stays within budget through take-off.
+- **D13:** **accept FGO step 3 as reported** (input-path cost < 0.1 m, at the 0.13 m noise floor,
+  n = 1). No input-path adjustment.
+- **D14:** **accept the FGO FE1/FE2 and UKF step-3 matcher fixes as bug fixes**, reporting the first
+  scores and the fixed results, as with D1:
+  - **FGO FE2:** first score 0.0016° (the node's `rpy` yaw against the offline writer's non-unit
+    quaternion); fixed, 0 (same representation).
+  - **FGO FE1 (blank):** first score 1.36e-4 m (interpolation at `%.6f`-rounded stamps); fixed,
+    8.4e-7 m (row by row).
+  - **UKF step-3 matcher:** first run 0 flows matched (forward scan from index 0); fixed, 10,058
+    matched by value in a time window.
+- **Workstation order:** UKF preconditions and shadow run → UKF no-heading flight → UKF with-heading
+  flights → the FGO, once D12's route and the take-off backlog are resolved. Check that nothing is
+  running before every commit.
+
+**Blocker recorded for D9 (and the base for D12).** The UKF port runs **in shadow only**. There is no
+`AP_AHRS` estimator type through which it can fly. Flying it needs:
+- **(i)** an `AP_AHRS` backend (`EKFType::UKF`, modelled on `AP_AHRS_External`: 220 lines) and **52
+  switch arms** in `AP_AHRS.cpp` (as `EXTERNAL`/`SIM` have);
+- **(ii)** a current-time output. The port fuses on a 60 ms delayed horizon (D5), and the 400 Hz
+  attitude loop needs current states, as EKF3's output predictor provides;
+- **(iii)** failsafe variances and control limits (EKF3's optical-flow ground-speed limit), and
+  arming checks.
+
+Part C estimated this as "UKF plumbing 2–3 pw". It is the shared base D12 would reuse.
