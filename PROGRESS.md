@@ -5,6 +5,30 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-30 (afternoon) — D15 and D8 carried out; P2 passes; P3 misses on yaw (D16)
+
+- **D15 (EKF3's ground-proximity flow rule), applied to the offline UKF, the FGO (replay and node) and
+  the UKF port.** Defined from EKF3's source before any re-run. A full re-run (`eval/d15_pipeline.sh`,
+  240 replays, all audited) followed, and `numbers.md` is restated (old values superseded).
+  - The take-off yaw kick is gone on all six previously poor dsn flights (|Δ| ≤ 0.76°).
+    UKF `dsn_tex` median 17.45 → 5.39 m.
+  - A residual post-detection kick remains on fwdplainc r2/r3. It is UKF-only: EKF3 shows none.
+  - **The confirmatory EKF3-vs-FGO test holds** (CI [−1.16, −0.21]). FGO node step 2 passes (a
+    harness `.typo` bug was fixed).
+- **D8 diagnostic:** re-timing flow costs EKF3 nothing measurable (16 bags; baselines reproduce to
+  ≤ 1 mm).
+- **Correction:** the four panicked Replays were not killed at 12:38 as recorded. They ran until 13:13
+  and overlapped the old P2 (RTF 0.92 vs 0.98). That P2 is superseded.
+- **P2 re-run** on the fixed binary: PASS. **Output-predictor check: PASS** (yaw max 0.22°, was 4.57°).
+  The no-heading prediction is re-derived and pre-registered: U2 +100 s, U3 west wall
+  [+160, +217] s.
+- **P3 ground test (UKF active, `AHRS_EKF_TYPE 12`):** G1–G3 and G5 pass, and the UKF is confirmed
+  as the active attitude source. **G4 yaw fails as worded** (3.09° over a 65 s hold, bound 1.0°): SITL
+  gyro drift with no heading source, and EKF3 drifts 2.15° on the same hold. **UKF flights stopped;
+  D16 queued.**
+- Finding: the UKF's on-ground height converges slowly after initialisation (P2).
+- Still owed: the D12 FGO backend effort/blocker report and the take-off backlog fix.
+
 ## Current Status — 2026-09-30 (morning) — rulings D1–D7 carried out
 
 - **D2:** C++ heading node, `VISO_DELAY_MS 38` (original G4 rule). Ground test G1–G5 pass. **Set (b)
