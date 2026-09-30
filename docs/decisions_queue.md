@@ -82,3 +82,27 @@ Details for every item are in METHODOLOGY.
 - **D6:** not needed.
 - **D7** (the FGO node route): started. Steps 2–3, real-time, validity and shadow runs are done (see
   D11–D14).
+
+### D15. UKF take-off yaw kick: adopt EKF3's low-height flow rule? (BLOCKS the UKF flights)
+- P2's predictor check failed only at lift-off: the fused yaw jumped ~7° while truth stayed flat. The
+  predictor itself is correct.
+- The same kick is in the OFFLINE UKF on every poor textured flight (−5…−17° at take-off → 13–36 m),
+  and absent from the 3 good ones (2.3–4.3 m). The FGO has none.
+- EKF3 zeroes the flow while take-off is not detected and the height is below 0.5 m
+  (`AP_NavEKF3_OptFlowFusion.cpp:45-51`). The UKF lacks this rule.
+- Options:
+  - **(a) adopt EKF3's rule in the UKF port only**, as with D5 (EKF3's approach, fair to EKF3). Then
+    P2 and the predictor check are re-run and the flights proceed. The offline UKF results stay as
+    they are, with this recorded as the explanation of their variability.
+  - **(b) (a), plus a correction of the offline UKF** (a batched correction like (i)–(v): re-run the
+    UKF replays, restate the UKF numbers, move the old values to the superseded section). This changes
+    comparison results, so it needs your explicit ruling. It is likely to move "poor in most textured
+    flights" substantially.
+  - (c) no change: fly the UKF as is, with the ~7° take-off kick expected. The no-heading prediction
+    already spans it.
+- **Recommendation: (b).** The offline UKF's comparison is currently dominated by a missing EKF3
+  behaviour, not by the filter, and correcting it is what fairness requires.
+  - Minimum (a), so the port does not fly with a known take-off kick.
+  - Take-off detection for the port: AP_AHRS's `likely_flying` flag (the vehicle's own detector), as
+    EKF3 uses `takeOffDetected`. Offline: the same < 0.5 m height test with a take-off detector from
+    the IMU/range data, stated.

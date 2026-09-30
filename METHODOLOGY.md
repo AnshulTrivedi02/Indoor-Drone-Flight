@@ -6909,3 +6909,116 @@ Part C estimated this as "UKF plumbing 2–3 pw". It is the shared base D12 woul
 
 **Still to do before the no-heading flight:** P2 (a shadow run of this exact binary) and P3 (a ground
 test with `AHRS_EKF_TYPE 12`).
+
+### Rulings (user, 2026-09-30) before the UKF flies; the output-predictor check PRE-REGISTERED (before looking at P2)
+
+**1. Working rule:** every wait loop checks that the process is alive and has a timeout (recorded in
+the working notes).
+- **Overlap check for the crashed Replays:** they panicked at 11:16:29 and were killed at about 12:38.
+  **Nothing timing-sensitive ran in that window.** No trial, batch output, bridge or flight was
+  written between 11:00 and 12:45. The previous simulation (`fgo_shadow_sitl_tex4`) ended at 09:49, and
+  P2 (`ukf_shadow_sitl_tex_p2`) started at 12:43, after the kill. The overlapping work was builds and one
+  single-threaded Replay. There are no RTF or latency effects to report.
+
+**2. Output-predictor check (must PASS before P3).** In P2, the shadow run of the exact binary, each
+**current-time output** the controllers would receive (`XUKO`, stamped at the current time t) is
+compared with the **fused state later computed for the same time t** (`XUKF`, logged about 60 ms
+later and stamped at its horizon time).
+- **Pairing.** Both are logged every ~40 ms with a 60 ms offset, so `XUKF` is linearly interpolated to
+  each `XUKO` time. At 0.5 m/s in straight cruise the interpolation error is negligible
+  (acceleration ~0).
+- **Window:** from take-off (`XUKO` height > 0.5 m) to landing, which covers the take-off transient as
+  well as the cruise.
+- **Bands (p95 and max of |Δ|):**
+  - **position, 3-D:** p95 ≤ 0.05 m, max ≤ 0.15 m;
+  - **velocity, 3-D:** p95 ≤ 0.05 m/s, max ≤ 0.15 m/s;
+  - **yaw:** p95 ≤ 0.10°, max ≤ 0.5°.
+- **Basis.** The difference is the effect of the measurements fused in the ≤ 60 ms between the
+  prediction and the fusion, plus the mean-only propagation.
+  - **Position:** the vehicle travels 0.03 m in 60 ms. A correction of a comparable size is plausible,
+    and 0.05 m is 1/6 of EKF3's with-heading closed-loop cross-track (0.3 m). The max allows for the
+    take-off transient.
+  - **Velocity:** 0.05 m/s is about 30% of the UKF's 1σ horizontal velocity (~0.165 m/s, shadow runs)
+    over two flow updates. The max (0.15 m/s) sits below set (b)'s B4 band (0.25 m/s).
+  - **Yaw:** without heading, yaw is corrected only through the weak flow→yaw coupling and the
+    zero-innovation pseudo-measurement. 0.5° is half of set (b)'s B3 p95 band.
+  - The bands are chosen so that the predictor cannot be the dominant error source in closed loop.
+    They are not fitted to data (none has been looked at).
+- **Also reported (DIAGNOSTIC):** the same differences over time (a growing trend would indicate a
+  predictor bug), and `XUKO.EvO` = 0 / `EvMx` from the live run.
+
+**3. How a miss of the no-heading prediction is read** (added to that pre-registration before flying):
+- Contact outside [+83, +135] s, or no contact, is **consistent with the UKF's recorded run-to-run
+  heading variability** (the offline |drift| distribution 3–70 deg/min, with the direction varying).
+  It is **reported as such, not as a flight failure**, **provided the primary SAFETY criteria hold:**
+  - **(S1)** no fast runaway before cruise +50 s (U2 as worded: no wall contact before +50 s);
+  - **(S2)** the estimator valid throughout: `XUKS.SS` `horiz_pos_rel` true from take-off to landing,
+    healthy (`H`) true, and no UKF-driven loss of control (U1).
+- A failure of S1, S2 or U1 stops the UKF flights and is reported.
+
+### P2 (shadow run of the exact binary) and the OUTPUT-PREDICTOR CHECK: yaw FAILS as worded. Cause found: the UKF's yaw jumps at take-off. UKF flights STOPPED before P3.
+
+**P2** (`ukf_shadow_sitl_tex_p2`, port `6f561c6a8d`, `AHRS_EKF_TYPE 10`, shadow):
+- completed normally, no panic;
+- `XUKO.EvO` = 0 throughout, peak queue depth `EvMx` = 10 of 64, output valid throughout;
+- healthy 100% and `horiz_pos_rel` 100% of the airborne span.
+
+**Predictor check** (`eval/ukf_predictor_check.py`; `eval/results/ukf_predictor_check_p2.json`), as
+pre-registered:
+
+| | p95 | max | band (p95 / max) | verdict |
+|---|---|---|---|---|
+| position | 0.0045 m | 0.097 m | 0.05 / 0.15 m | PASS |
+| velocity | 0.0022 m/s | 0.048 m/s | 0.05 / 0.15 m/s | PASS |
+| yaw | 0.007° | **4.57°** | 0.10 / 0.5° | **FAIL (max)** |
+
+- **The window definition, stated.** "From take-off (`XUKO` height > 0.5 m)" started at 13.9 s, where
+  the UKF's height estimate touched 0.50 m on the ground during its initialisation transient. So the
+  window as worded included ground time.
+  - The failure is not caused by that. The 4.57° maximum is at **28.07 s, during lift-off** (SIM
+    take-off at 28.40 s).
+  - Restricted per sample to height > 0.5 m, no sample exceeds 0.5°. The failure is **only the
+    take-off transient**, and it is recorded AS WORDED.
+- **Cause: the predictor is correct; the fused UKF yaw JUMPS at lift-off.**
+  - The fused yaw (`XUKF`) goes 0.33° → 5.06° between 28.00 and 28.05 s, and reaches 7.5° by 28.4 s.
+    The truth stays at 0.02°.
+  - Just before it, 2 flow updates on each axis were rejected.
+  - The current-time output follows the fused yaw exactly one horizon (60 ms) later, as designed.
+    That lag IS the 4.6° discrepancy.
+  - **In closed loop the controllers would see the attitude estimate step by about 7° at lift-off,
+    and the vehicle would physically yaw to follow it.**
+
+**The mechanism: a missing EKF3 rule.**
+- EKF3 **replaces the flow measurement with zero** while take-off is not detected and the height is
+  below 0.5 m ("insufficient to achieve acceptable focus", `AP_NavEKF3_OptFlowFusion.cpp:45-51`).
+- **The UKF, offline and ported, has no such rule.** It fuses raw flow while the camera is 0.1–0.3 m
+  off the floor, where `h_cam` is at or near its 0.1 m clamp and the flow model is at its most
+  sensitive.
+
+**The same kick is in the OFFLINE UKF, and it explains its run-to-run variability.** Yaw change across
+take-off (−1 s … +2 s around GT height +0.3 m) on `dsn_tex_r1`–`r9`, against the UKF's evo -a
+(cruise):
+
+| flight | UKF yaw change at take-off | UKF evo -a | FGO yaw change | FGO evo -a |
+|---|---|---|---|---|
+| r1 | −9.2° | 17.45 | −0.07° | 4.62 |
+| r2 | +0.4° | **2.28** | +0.30° | 4.30 |
+| r3 | +5.1° | **4.30** | −0.09° | 4.64 |
+| r4 | −17.0° | 35.94 | −0.05° | 4.61 |
+| r5 | +5.4° | **2.99** | −0.05° | 4.60 |
+| r6 | −10.7° | 20.56 | −0.05° | 4.79 |
+| r7 | −11.5° | 20.99 | −0.07° | 4.61 |
+| r8 | −5.4° | 13.37 | −0.05° | 4.61 |
+| r9 | −9.3° | 25.11 | −0.07° | 4.58 |
+
+- **Every poor UKF flight (13–36 m) starts with a 5–17° negative heading jump at lift-off. The three
+  good flights (2.3–4.3 m) do not have one.**
+- The FGO shows no such kick (|Δ| ≤ 0.3°) and is consistent (4.3–4.8 m).
+- **So "the UKF is poor in most textured flights" is largely a TAKE-OFF artefact** (flow fused at
+  focus-limited height), not a cruise property. This is a finding about the comparison, recorded
+  before any change.
+- **Nothing is changed without a ruling.** The ruled constraint stands: no changes to the offline UKF
+  used in the comparison.
+
+**Queued: D15** (in `docs/decisions_queue.md`). **P3 and the UKF flights stay STOPPED** until D15 is
+ruled and the predictor check passes.

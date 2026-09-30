@@ -1,0 +1,34 @@
+{
+ "span_s": [
+  13.905228,
+  344.58537
+ ],
+ "n": 8268,
+ "position_m": {
+  "p95": 0.0045025328178722665,
+  "max": 0.0974752233335424,
+  "median": 0.0029166945503616877
+ },
+ "velocity_mps": {
+  "p95": 0.0021648782347989397,
+  "max": 0.047545594950800185,
+  "median": 0.00036810671599268505
+ },
+ "yaw_deg": {
+  "p95": 0.007092154932028904,
+  "max": 4.573003595924376,
+  "median": 0.002756428384799392
+ },
+ "pass": {
+  "position": true,
+  "velocity": true,
+  "yaw": false
+ },
+ "PASS": false,
+ "trend_pos_m_per_min": -0.0005505358842324603,
+ "EvO_max": 0,
+ "EvMx_max": 10,
+ "OV_all": true,
+ "healthy_pct_airborne": 100.0,
+ "horiz_pos_rel_pct_airborne": 100.0
+}
