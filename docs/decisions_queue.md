@@ -5,7 +5,36 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D16. P3 (UKF backend ground test) FAILED G4 as worded on yaw; is the bound's basis wrong? (BLOCKS the UKF flights)
+### D17. The UKF port's heading input: design, and the heading σ it applies (BLOCKS the with-heading UKF set)
+- **The no-heading UKF flight is done:** `cl_ukf_a_tex`, PRIMARY PASS, west-wall contact at cruise +163.0 s
+  inside [+146, +218].
+- **The port has no heading path yet** (noted at D9). "Validate the port's heading input" therefore
+  needs the input built first. Proposed design, EKF3's own path throughout:
+  - **Input:** hook `AP_AHRS::writeExtNavData` (called by `AP_VisualOdom_MAV` after its quality gate
+    `VISO_QUAL_MIN 50` and the `angErr` clamp to [`VISO_YAW_M_NSE` 0.05 rad, 1.5]), so the UKF gets
+    the identical message and quality gating. It is also hooked in `AP_DAL`'s replay of ExtNav
+    (`AP_DAL.cpp:501`), so it runs in Replay.
+  - **Timing:** EKF3's (`AP_NavEKF3_Measurements.cpp:1100-1105`): timestamp − `VISO_DELAY_MS` −
+    filterStep/2, clamped to the horizon; an `EV_HEADING` event in the D5 queue.
+  - **Update:** yaw from the quaternion, a scalar UKF update, gated at χ² 9 (`EK3_YAW_I_GATE` 300, as
+    the offline heading arm).
+  - `UKF=1` + `HEADING=1` enabled together in the launcher.
+- **The open choice: the σ the UKF applies.**
+  - **(a) EKF3's effective σ: max(angErr, 5°) = 5°** (`writeExtNavData`, `AP_NavEKF3_Measurements.cpp:1118`),
+    as set (b) flew. This is EKF3's approach, as with D5/D15.
+  - (b) `angErr` as received: 0.05 rad = 2.86° (the `VISO_YAW_M_NSE` floor), without EKF3's internal
+    5° floor.
+  - (c) the camera's measured 0.148° (offline Phase 4). This is not reachable through the same message
+    path, whose clamp is ≥ 2.86°, so it would need a bypass.
+- **Validation, to be pre-registered after the ruling:**
+  - (1) Replay on set (b)'s `LOG_REPLAY` logs (`cl_bcpp_tex_r1..r3`): every ExtNav message EKF3
+    consumed reaches the UKF, at EKF3's timestamp, with the same yaw and `angErr`.
+  - (2) the UKF with heading in that Replay: yaw error against SIM within a band.
+  - (3) a shadow run of the exact binary with `HEADING=1`.
+  - (4) a ground test; then the set ×3, with bands mirroring set (b)'s B1–B5.
+- **Recommendation: (a)**, with this design.
+
+### D16. RULED (a), 2026-09-30: P3 yaw miss recorded as worded; flying not blocked (the no-heading flight has since PASSED)
 - Run `ukf_groundtest_p3` (`AHRS_EKF_TYPE 12`, the exact P2 binary, md5 `2d631fa7…`; 65 s armed hold).
   `eval/results/ukf_p3_check.json`.
   - G1 config, G2 arming, G3 (the UKF is the ACTIVE attitude source: ATT = XUKO at 0.0005° p95,
