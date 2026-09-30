@@ -7984,3 +7984,29 @@ Neither affected any result.
   `fwdc`), yet the higher position error. The UKF's remaining position error with heading is
   therefore not heading-driven (cf. the scale check: UKF +heading along-track ratio 0.987–0.990
   against the FGO's 0.998).
+
+### D19 FGO backend: development smoke tests (DEVELOPMENT, not gates; FGO in shadow, half speed)
+
+- **`fgo_dev_smoke1`** (`FGO=shadow`, so EKF3 flew with no heading):
+  - EKF3 reached the west wall at about cruise +184 s, as in set (a). Shadow gates therefore fly on
+    simulator truth (`AHRS_EKF_TYPE 10`), as the UKF's P2 did.
+  - **No FGO state reached ArduPilot.** pymavlink's `udp:` socket can only reply to senders it has
+    read, and the node never read.
+  - **The core died on SIGINT without stats.** Both fixed.
+  - A local loopback test then checked the time map, NED position/velocity, yaw and bias signs.
+- **`fgo_dev_smoke2`** (simulator truth, 60 s cruise): states at 30 Hz, but **yaw 90° off and N/E
+  swapped.** The FGO's navigation frame is the corridor frame (x along the corridor = North, y = West,
+  z up; `h_heading`), not ENU. Fixed: NED = (x, −y, −z).
+- **`fgo_dev_smoke3`** (simulator truth, 60 s cruise, after the fixes):
+  - 2,866 states at 30.1 Hz sim, 100% flagged valid, 0 late;
+  - state age at arrival median 115 ms, p95 124, max 143 ms (sim);
+  - output age (valid) median 134, p95 149, max 171 ms: **inside the 250 ms budget, with no take-off
+    backlog at half speed**;
+  - output error against truth: < 0.01 m and 0.3° on the ground; in cruise N ≤ 0.30 m, E ≤ 1.0 m,
+    D ≤ 0.08 m; yaw drifting to 4.6° by ~120 s (no heading, as expected).
+  - **A 0.67 m height error at the top of the climb (t ≈ 30 s) is in the FGO's own state**; the
+    output predictor tracks the state to within ~0.1 m. It coincides with the UKF's height dip at the
+    same moment, so it is an estimator/sensor transient, not a backend defect.
+  - Output validity was 84.4%: invalid from the first state (10.1 s) to 19.8 s, while the 10 s
+    `/imu/time_ref` lower-envelope clock map fills. It settles before arming (24 s), and pre-arm waits
+    for it.
