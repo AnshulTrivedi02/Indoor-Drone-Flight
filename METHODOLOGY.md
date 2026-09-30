@@ -7450,3 +7450,69 @@ and disarmed at 89.50 s.
 - **As pre-registered, any failure stops the UKF flights.** Queued as **D16** (options: accept the miss
   with the diagnosis and fly; re-register the yaw criterion and re-run; investigate the UKF's ~1.4×
   EKF3 ground drift first). Nothing flies without a ruling.
+
+### Ruling D16 (user, 2026-09-30): option (a)
+
+- **The P3 yaw miss is recorded as worded:** 3.09° against a 1.0° bound. Cause: the bound was
+  extrapolated from a 3.5 s P2 segment and ignored stationary gyro drift. The backend behaved as
+  designed. **The miss does not block flying.**
+- **Non-blocking diagnostic, after the flights:** why the UKF's gyro-z bias does not move while
+  stationary (expected from yaw unobservability without a heading reference), and how EKF3 learned
+  ~21% of it on the same hold.
+- **Recorded as ruled (all already in this file):**
+  - the three remaining UKF flights at 7.7–11.9 m, with a residual ~−4° post-take-off kick on
+    fwdplainc_tex_r2/r3: the UKF's own flow→yaw coupling, unadjusted ("D15 RESULTS — forward-camera
+    sets");
+  - the D8 result, as the fairness note: EKF3's flow misdating costs nothing measurable ("D8 result");
+  - the flown binary, identified by md5 `2d631fa702ffdf77f50d996ff287abe4`, with the version-string
+    mismatch explained (P3 pre-registration).
+- **Order:** the no-heading UKF flight; then validate the UKF heading input and fly the with-heading
+  set. D12's effort/blocker report is delivered after the UKF flights.
+
+### D16 check: does the no-heading prediction account for pre-take-off heading drift? NO. UPDATED before flying
+
+**The superseded prediction** (item 5 above): U3 was west-wall contact in [+160, +217] s. It came from
+√-scaling the **cruise drift slope** alone (contact ≈ 186.2 s × √(8.3 / |drift|)). That scaling carries
+no term for a heading offset built up before cruise. The ground dwell and climb, at the ~0.047 deg/s
+gyro drift seen in P3, leave an angle between the flight path and the corridor. **It is superseded for
+that reason.**
+
+**Re-derived by the method VALIDATED in set (a)** (`eval/ukf_contact_prediction.py`;
+`eval/results/ukf_contact_prediction_d16.json`):
+- the time at which the estimator's open-loop East error against SIM truth reaches 9.58 m, taken from
+  the **spawn origin** (not re-referenced). It therefore includes the heading offset and East error
+  accrued on the ground and in the climb.
+- In set (a) this predicted +187 s against the flown +186.2 s.
+- It is applied to the flown code's current-time output: the port Replays on `dsn_tex` r1–r10, and
+  the live P2 shadow of the exact binary (`XUKO`).
+
+| realisation | heading error at take-off | at cruise start | contact |
+|---|---|---|---|
+| r1 | +0.32° | +0.34° | +192.7 s, west |
+| r2 | +0.35° | −0.07° | none (East error at end 9.4 m) |
+| r3 | +0.39° | +0.42° | +167.6 s, west |
+| r4 | +0.45° | +0.50° | +164.4 s, west |
+| r5 | +0.47° | +0.56° | +163.5 s, west |
+| r6 | +0.33° | −0.18° | none (1.5 m) |
+| r7 | +0.45° | +0.54° | +163.8 s, west |
+| r8 | +0.46° | +0.53° | +163.1 s, west |
+| r9 | +0.53° | +0.59° | +161.3 s, west |
+| r10 | +0.51° | +0.60° | +161.9 s, west |
+| P2 live shadow | +0.30° | −0.21° | none (9.0 m) |
+
+- **The ground-dwell heading offset is +0.3 … +0.6°** (+ = clockwise of truth, the westward sense).
+  - That is smaller than 0.047 deg/s over the whole ~24 s from initialisation would give (~1.1°).
+    The pre-arm drift is lower (P3: +0.24° from initialisation to arming), and the armed dwell before
+    take-off is ~3.5 s.
+  - Over +160 s at 0.5 m/s, a 0.5° offset alone adds ~0.7 m of cross-track. That brings contact
+    earlier than the pure slope scaling.
+- **Contact: 8 of 11 at +161.3 … +192.7 s, all west; 3 of 11 no contact within the cruise.**
+
+**UPDATED PRIMARY criteria (U1 and U2 unchanged; U3 replaced):**
+- **U2:** no wall contact before cruise +100 s (unchanged; the fastest in any fixed-UKF data is +112 s).
+- **U3:** contact on the **WEST wall inside [+146, +218] s**. Basis: the validated method's cluster,
+  +161.3 … +192.7 s, widened by 15 s below and 25 s above, as before.
+  - No contact is a U3 miss as worded, read under the ruled miss clause: 3 of 11 realisations,
+    including the live shadow of this binary, predict no contact.
+  - East-wall contact is a U3 miss with no support (0 of 11).
+- S1, S2 and U1 are unchanged.
