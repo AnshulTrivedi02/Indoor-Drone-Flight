@@ -1,0 +1,73 @@
+{
+ "G1": {
+  "AHRS_EKF_TYPE": 12.0,
+  "AHRS_UKF_ENABLE": 1.0,
+  "pass": true,
+  "AHRS_UKF_EXTYAW": 1.0,
+  "VISO_TYPE": 1.0
+ },
+ "G2": {
+  "armed_at": 24.436324,
+  "pass": true
+ },
+ "G3": {
+  "att_vs_xuko_p95_deg": 0.0006899983179636137,
+  "n": 623,
+  "n_discriminating": 0,
+  "pass": true,
+  "discriminating": false
+ },
+ "G4": {
+  "hold_s": 63.379341999999994,
+  "max_dNE_m": 0.001359918043121797,
+  "max_dyaw_deg": 0.03295321576297283,
+  "height_err_end_m": 0.0009272426366805919,
+  "height_err_growth_m": 0.0004420280456542969,
+  "healthy_all": true,
+  "EvO_max": 0,
+  "yaw_err_p95_deg": 0.051660317927598946,
+  "yaw_err_max_deg": 0.05496255308389664,
+  "headings_in_hold": 480,
+  "headings_accepted_pct": 100.0,
+  "pass": true
+ },
+ "G5": {
+  "disarmed_at": 87.815666,
+  "bad_messages": [],
+  "pass": true
+ },
+ "messages": [
+  "3.0 ArduCopter V4.8.0-dev (60887dea)",
+  "3.0 e59225aca54e43ec88af403ce683b762",
+  "3.0 Param space used: 229/4096",
+  "3.0 RC Protocol: UDP",
+  "3.0 New mission",
+  "3.0 New rally",
+  "3.0 New fence",
+  "3.0 Frame: QUAD/X",
+  "3.1 ERR subsys 3 code 0",
+  "3.3 RC7: SaveWaypoint LOW",
+  "3.3 RC8: PrecisionLoiter MIDDLE",
+  "4.5 UKF shadow initialised: roll 0.0 pitch -0.0 h 0.20",
+  "5.0 EKF3 IMU0 initialised",
+  "5.0 EKF3 IMU1 initialised",
+  "6.3 EKF3 IMU1 tilt alignment complete",
+  "6.3 EKF3 IMU0 tilt alignment complete",
+  "8.3 EKF3 IMU0 fusing optical flow",
+  "8.3 EKF3 IMU1 fusing optical flow",
+  "16.8 EKF3 IMU0 yaw aligned",
+  "16.8 EKF3 IMU1 yaw aligned",
+  "19.2 Arm: Gyros inconsistent",
+  "19.9 Arm: Gyros inconsistent",
+  "20.7 Arm: Gyros inconsistent",
+  "21.4 Arm: Gyros inconsistent",
+  "22.2 Arm: Gyros inconsistent",
+  "22.9 Arm: Gyros inconsistent",
+  "23.7 Arm: Gyros inconsistent",
+  "24.4 Arming motors",
+  "28.8 EKF3 IMU0 started relative aiding",
+  "28.8 EKF3 IMU1 started relative aiding",
+  "87.8 Disarming motors"
+ ],
+ "PASS": true
+}

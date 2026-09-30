@@ -25,6 +25,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cruise_window import cruise_bounds
 
 ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--set", required=True, choices=["a", "b"])
+# --est ukf (D17 V4, PRE-REGISTERED): B3 uses the UKF's current-time yaw (XUKO), the value the controller receives;
+# EKF3's yaw error is then a DIAGNOSTIC, and S2 (XUKS horiz_pos_rel and healthy from arming to disarm) is added.
+ap.add_argument("--est", default="ekf3", choices=["ekf3", "ukf"])
 ap.add_argument("--json"); a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); C = os.path.expanduser(f"~/thesis_data/closed_loop/{a.trial}")
 WALL = 9.58
@@ -75,26 +78,46 @@ else:
     B["B1"] = {"completed": out["completed"], "no_breach": breach is None, "max_abs_x_flight": float(np.abs(x).max())}
     B["B1"]["pass"] = bool(out["completed"] and breach is None and np.abs(x).max() < WALL)
     B["B2"] = {"max_abs_x_cruise_m": float(np.abs(x[w]).max())}; B["B2"]["pass"] = B["B2"]["max_abs_x_cruise_m"] <= 6.0
-    # B3: yaw error from the dataflash
-    mm = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); ek, sim = [], []
+    # B3: yaw error from the dataflash (the flying estimator's yaw; --est)
+    mm = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); ser = {"ekf3": [], "ukf": []}; sim, st, arm = [], [], []
     while True:
-        rr = mm.recv_match(type=["XKF1", "SIM"])
+        rr = mm.recv_match(type=["XKF1", "SIM", "XUKO", "XUKS", "ARM"])
         if rr is None:
             break
-        if rr.get_type() == "SIM":
+        ty = rr.get_type()
+        if ty == "SIM":
             sim.append((rr.TimeUS / 1e6, rr.Yaw))
-        elif rr.C == 0:
-            ek.append((rr.TimeUS / 1e6, rr.Yaw))
-    ek, sim = np.array(ek), np.array(sim)
-    te = to_sim(ek[:, 0]); simy = np.interp(ek[:, 0], sim[:, 0], np.unwrap(np.radians(sim[:, 1])))
-    err = np.degrees((np.radians(ek[:, 1]) - simy + np.pi) % (2 * np.pi) - np.pi)
-    we = (te >= c0) & (te <= c1); ye = np.interp(te, t, y)
-    ae = np.abs(err[we])
-    B["B3"] = {"p95_deg": float(np.percentile(ae, 95)), "max_deg": float(ae.max()), "mean_deg": float(err[we].mean()),
-               "diag_y_le_140": {"p95": float(np.percentile(np.abs(err[we & (ye <= 140)]), 95)), "max": float(np.abs(err[we & (ye <= 140)]).max())},
-               "diag_y_gt_140": ({"p95": float(np.percentile(np.abs(err[we & (ye > 140)]), 95)), "max": float(np.abs(err[we & (ye > 140)]).max())}
-                                 if (we & (ye > 140)).any() else None)}
-    B["B3"]["pass"] = B["B3"]["p95_deg"] <= 1.0 and B["B3"]["max_deg"] <= 2.0
+        elif ty == "XKF1" and rr.C == 0:
+            ser["ekf3"].append((rr.TimeUS / 1e6, rr.Yaw))
+        elif ty == "XUKO":
+            ser["ukf"].append((rr.TimeUS / 1e6, rr.Yaw))
+        elif ty == "XUKS":
+            st.append((rr.TimeUS / 1e6, (int(rr.SS) >> 3) & 1, int(rr.H)))
+        elif ty == "ARM":
+            arm.append((rr.TimeUS / 1e6, rr.ArmState))
+    sim = np.array(sim)
+
+    def b3(ek):
+        ek = np.array(ek)
+        te = to_sim(ek[:, 0]); simy = np.interp(ek[:, 0], sim[:, 0], np.unwrap(np.radians(sim[:, 1])))
+        err = np.degrees((np.radians(ek[:, 1]) - simy + np.pi) % (2 * np.pi) - np.pi)
+        we = (te >= c0) & (te <= c1); ye = np.interp(te, t, y)
+        ae = np.abs(err[we])
+        r = {"p95_deg": float(np.percentile(ae, 95)), "max_deg": float(ae.max()), "mean_deg": float(err[we].mean()),
+             "diag_y_le_140": {"p95": float(np.percentile(np.abs(err[we & (ye <= 140)]), 95)), "max": float(np.abs(err[we & (ye <= 140)]).max())},
+             "diag_y_gt_140": ({"p95": float(np.percentile(np.abs(err[we & (ye > 140)]), 95)), "max": float(np.abs(err[we & (ye > 140)]).max())}
+                               if (we & (ye > 140)).any() else None)}
+        r["pass"] = r["p95_deg"] <= 1.0 and r["max_deg"] <= 2.0
+        return r
+    B["B3"] = b3(ser[a.est]); B["B3"]["estimator"] = a.est
+    other = "ukf" if a.est == "ekf3" else "ekf3"
+    if len(ser[other]):
+        out["diag_B3_other_estimator"] = {other: b3(ser[other])}
+    if a.est == "ukf":
+        st = np.array(st); arms = [tt for tt, s_ in arm if s_ == 1]; dis = [tt for tt, s_ in arm if s_ == 0 and arms and tt > arms[0]]
+        ws = (st[:, 0] >= arms[0]) & (st[:, 0] <= (dis[0] if dis else st[-1, 0]))
+        out["S2"] = {"horiz_pos_rel_pct": float(100 * st[ws, 1].mean()), "healthy_pct": float(100 * st[ws, 2].mean())}
+        out["S2"]["pass"] = out["S2"]["horiz_pos_rel_pct"] == 100.0 and out["S2"]["healthy_pct"] == 100.0
     # "1 s-smoothed": a 1 s TIME window. GT stamps are irregular (occasional samples 1 ms apart), so
     # x is resampled on a uniform 100 Hz grid, boxcar-smoothed over 1 s (100 samples), then
     # differentiated. (The first version used a sample-count boxcar + np.gradient on the raw stamps,

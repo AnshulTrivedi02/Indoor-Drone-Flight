@@ -7687,3 +7687,21 @@ The UKF ran in shadow with `AHRS_UKF_EXTYAW 1`. The binary had md5 `85179298…`
 `AHRS_UKF_EXTYAW`/`VISO_TYPE`; G4 yaw error against SIM p95 ≤ 1.0°, max ≤ 2.0°, and ≥ 95% of headings
 accepted). It was written before V3; without `--heading` it reproduces P3 unchanged. The heading
 node's liveness (G5) is read from the watcher log.
+
+### D17 V3 (ground test, UKF active with heading, `ukf_groundtest_hdg_v3`): PASS
+
+`eval/results/ukf_v3_check.json` (`eval/ukf_p3_check.py --heading`). The binary had md5 `85179298…`.
+It armed at 24.44 s, held 63.4 s and disarmed at 87.82 s.
+- **G1:** `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `AHRS_UKF_EXTYAW 1`, `VISO_TYPE 1`.
+- **G2:** armed.
+- **G3:** ATT − XUKO p95 0.0007°. It is **not discriminating** (0 of 623 samples with UKF − EKF3 > 0.3°,
+  since both fuse the heading), so as pre-registered it rests on the ATT = XUKO match.
+- **G4:** horizontal 1.4 mm; height error 0.9 mm, growth 0.4 mm; healthy; EvO 0. **Yaw error against
+  SIM p95 0.052°, max 0.055°** (band 1.0 / 2.0°). **480 of 480 headings accepted** over the hold
+  (≈ 7.5 Hz, so the heading node was alive throughout, and the watcher logged no dependency death).
+- **G5:** disarmed; no failsafe/crash text.
+- With the heading, the ground yaw drift that made P3 miss (3.09°) is gone.
+
+**V4 scorer:** `eval/closed_loop_score.py --est ukf` (added before V4). B3 is taken from `XUKO`, with
+EKF3's error as a DIAGNOSTIC, and S2 is added. Its default (`--est ekf3`) reproduces the recorded
+`cl_bcpp_tex_r1` B3 exactly.
