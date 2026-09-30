@@ -7873,3 +7873,93 @@ Neither affected any result.
   - The receipt measure includes the SITL serial path (`SERIAL1` udpclient, virtual baud) and the
     dataflash clock map. Their sim-time share changes with RTF.
 - The checker's recommendation is 25, from (b), as D2 took (b).
+
+### PRE-REGISTRATION — offline tests F1, F2, F3 and the post-D15 FGO-vs-UKF with-heading comparison (written before any is run)
+
+**Common to all four:**
+- existing recordings only, no simulator;
+- the shared measurement models and the frozen Phase 3 heading/yaw-rate measurements (`forward_events`);
+- the heading σ as Phase 4 (0.148° `fwdc`, 0.126° `fwdplainc`; the offline design comparison, not the
+  closed-loop 5°);
+- evaluation windows from `cruise_window`;
+- yaw error = estimator yaw − (GT ENU yaw − 90°), as `phase4_eval`;
+- cross-track = estimate East − GT East, from the spawn origin;
+- "wrong heading" = a valid camera heading with |ψ_meas − ψ_true| > 3° (Phase 3's confident-wrong
+  definition); "correct heading" = |ψ_meas − ψ_true| ≤ 1°.
+- Runs at `nice -n 15`, at most 2 jobs while flights run.
+- **Every outcome is reported, including those where the FGO does not win.**
+
+**C0 — FGO vs UKF with heading, post-D15 (REPORT, no decision rule).**
+- The values already exist: the D15 re-run's Phase 4 heading arms (`phase4_{fwdc,fwdplainc}_arms.json`,
+  `_evo.json`). They are tabulated as current: evo -a (cruise) and yaw-error RMS per bag, for the
+  UKF/FGO heading arms.
+- Prediction: unchanged from before D15 to within 0.01 m, since the heading arms did not move in the
+  D15 re-run. FGO lower than UKF on all 3 `fwdc` textured bags; mixed on `fwdplainc`.
+
+**F1 — robust weighting on bad headings.**
+- **Arms:**
+  - the UKF hard-gated heading arm (Phase 4, χ² ≤ 9), as the reference;
+  - the FGO hard-gated heading arm (Phase 4), for context;
+  - **the FGO robust arm:** the same heading measurements and σ, with the χ² gate REMOVED and the
+    heading factor's noise model made robust (`gtsam.noiseModel.Robust`).
+- **Choice of M-estimator and threshold, on the calibration flights only** (`p1c_fwdc_tex`,
+  `p1c_fwdplainc_tex`), before any dataset bag is touched:
+  - grid: Huber k ∈ {1.0, 1.345, 2.0, 3.0}, Cauchy k ∈ {1.0, 2.385, 3.0} (k in units of σ);
+  - rule: minimise the mean over the two calibration bags of the cruise yaw-error RMS;
+  - a tie within 0.01° goes to the smaller k, then Huber.
+- **Test bags:**
+  - plain walls over the checkerboard floor: `fwdplainc_tex_r1..r3` (Phase 3: heading availability
+    60.5%, outliers 13.6%);
+  - the end-wall region on textured walls: `fwdc_tex_r1..r3`, GT y > 140 m.
+- **Metrics per bag:**
+  - (i) yaw-error RMS and max over the region (fwdplainc: the whole cruise; fwdc: y > 140 m);
+  - (ii) wrong headings effectively accepted: hard gate = passed the gate; robust = weight ≥ 0.5
+    (Huber w = min(1, k/|r|), Cauchy w = 1/(1 + (r/k)²), r the whitened residual at the solution);
+  - (iii) correct headings rejected (weight < 0.5 or gated out), and **lockout episodes** (≥ 3 s of
+    consecutive correct headings rejected);
+  - (iv) max |cross-track| over the region.
+- **Decision rule:** "robust FGO better than hard-gated UKF" iff, over the 6 bags, it has fewer lockout
+  episodes in total AND a lower yaw-error max on ≥ 4 of 6. It is reported per bag either way.
+- **Prediction:** the robust FGO avoids lockout and limits the effect of wrong headings better than
+  the hard-gated UKF.
+
+**F2 — intermittent heading, evaluated in hindsight.**
+- **Bags:** `fwdc_tex_r1..r3`.
+- **Mask:** from cruise start, headings ON 30 s, OFF 30 s, repeating to the end of cruise. The first
+  30 s are on. Yaw-rate is not used (the heading arm).
+- **Arms:**
+  - the UKF heading arm (masked);
+  - the live FGO (0.25 s window, masked);
+  - **a batch FGO, separately labelled:** one Levenberg–Marquardt optimisation over ALL of the live
+    FGO's factors for the flight (identical factors, including the masked heading set), initialised
+    from the live FGO's estimates.
+- **Metrics (the OFF intervals only):** yaw-error RMS and cross-track RMS.
+  - **live:** the current (filtered) estimate at each time, for the UKF and the live FGO;
+  - **hindsight:** the full-trajectory estimate after the flight (the batch FGO; for the UKF and live
+    FGO, hindsight = live, since neither revises the past beyond 0.25 s). Reported separately.
+- **Decision rule:** "hindsight correction" iff the batch FGO's hindsight OFF-interval yaw RMS is below
+  both live arms' on all 3 bags.
+- **Prediction:** only the batch FGO corrects the gap trajectory once the heading returns; the live
+  estimates (UKF and live FGO) are similar.
+
+**F3 — large initial heading error (nonlinearity).**
+- **Bags:** `fwdc_tex_r1..r3`.
+- **Injection:**
+  - each estimator's yaw initialised δ ∈ {10, 30, 60, 90}° off truth;
+  - **the initial yaw σ set to δ** (a consistent prior, so the test is nonlinearity, not an
+    overconfident prior);
+  - **the camera heading withheld until cruise start**, then available as normal, so convergence
+    happens while moving. With the heading available on the ground, every arm would converge before
+    take-off and the test would be trivial.
+- **EKF3:** first check whether it can be initialised with a chosen yaw error in Replay. Expected: no.
+  With `EK3_SRC1_YAW 6` it aligns (resets) yaw to the first ExtNav heading (`alignYawAngle`), and
+  Replay cannot set its initial yaw. **If not, only the UKF and FGO are compared, and this is said.**
+  If it is included, it is stated that EKF3 applies the heading at the 5° clamp.
+- **Metrics from cruise start:**
+  - convergence time (first time |yaw error| < 1° and staying so for 5 s);
+  - peak |cross-track|;
+  - integrated |cross-track| (m·s) over the first 60 s.
+- **Decision rule:** "the FGO's advantage grows with δ" iff the FGO/UKF ratio of integrated error
+  decreases monotonically with δ on ≥ 2 of 3 bags.
+- **Prediction:** the FGO's advantage grows with the initial error, with the UKF between EKF3 and the
+  FGO (the EKF3 part applies only if EKF3 can be included).

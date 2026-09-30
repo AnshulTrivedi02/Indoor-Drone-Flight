@@ -33,6 +33,9 @@ def _quat(r, p, y):
 
 def _core_proc(inq, outq, kw, stats_path):
     """The FGO core process: pushes every message in arrival order; returns each new keyframe."""
+    import signal
+    signal.signal(signal.SIGINT, signal.SIG_IGN)   # run_trial stops the node's process group with SIGINT: the core
+    #                                                 must not die mid-step; it drains on the None sentinel and saves
     core = FgoNodeCore(**kw); n_out = 0
     while True:
         item = inq.get()
@@ -89,7 +92,7 @@ class FgoNode(Node):
         out = self.get_parameter("mavlink_out").value
         if out:
             from pymavlink import mavutil
-            self._mav = mavutil.mavlink_connection(out, source_system=1, source_component=197)
+            self._mav = mavutil.mavlink_connection(out, source_component=197)
         self._pub_thread = threading.Thread(target=self._publisher, daemon=True)
         self._pub_thread.start()
 
@@ -104,6 +107,14 @@ class FgoNode(Node):
         t_k, p, v, R, bg, ba = st
         t_us = self._sitl_us(t_k)
         if self._mav is None or t_us is None:
+            return
+        # pymavlink "udp:" listens; it can only reply to an address it has received from (SITL SERIAL3's
+        # udpclient heartbeats). Drain what has arrived so the destination is known (found: the first smoke
+        # test sent nothing because the node never read).
+        while self._mav.recv_msg() is not None:
+            pass
+        if getattr(self._mav, "udp_server", False) and not self._mav.clients:     # pymavlink 2.4.49: senders go to .clients
+            self._n_unsent = getattr(self, "_n_unsent", 0) + 1
             return
         C = np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]])     # ENU -> NED
         Fb = np.diag([1.0, -1, -1])                           # FLU <-> FRD
