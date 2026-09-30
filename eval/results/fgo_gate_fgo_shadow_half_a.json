@@ -1,0 +1,59 @@
+{
+ "trial": "fgo_shadow_half_a",
+ "n_XFGI": 10100,
+ "arm_s": 24.353353,
+ "disarm_s": 345.33837,
+ "FG2": {
+  "OV_pct_arm_to_disarm": 100.0,
+  "pass": true
+ },
+ "FG3b": {
+  "age_ms_max": 183.0,
+  "age_ms_p95": 152.0,
+  "age_ms_median": 137.0,
+  "pass": true
+ },
+ "FG3": {
+  "span_s": [
+   28.535914,
+   342.43537
+  ],
+  "n": 7847,
+  "position_m": {
+   "p95": 0.002761201045801987,
+   "max": 0.5139064804509909,
+   "median": 0.001300137901165736
+  },
+  "velocity_mps": {
+   "p95": 0.032172790921954304,
+   "max": 3.8266065625778922,
+   "median": 0.01117944217366829
+  },
+  "yaw_deg": {
+   "p95": 0.03183133003928446,
+   "max": 0.042468890565800166,
+   "median": 0.01829271204331917
+  },
+  "pass": {
+   "position": false,
+   "velocity": false,
+   "yaw": true
+  }
+ },
+ "FG1": {
+  "node_keyframes": 10262,
+  "sitl_to_bag_offset_s": 0.04900000000000049,
+  "late_max": 0,
+  "count_received": 10100,
+  "count_match_after_settle": true,
+  "evo_a_received": 4.542348,
+  "evo_a_offline": 4.539676,
+  "evo_diff": 0.0026719999999995636,
+  "yaw_diff_deg": {
+   "p95": 0.08114569319932201,
+   "max": 0.0941557280498273
+  },
+  "pass": true
+ },
+ "PASS": false
+}

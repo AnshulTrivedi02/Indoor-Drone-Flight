@@ -8512,3 +8512,218 @@ From `eval/results/f1_test.json` (FGO hard = the Phase 4 heading arm):
 - **Every outcome is reported.**
 - **Switches** (off by default; all other results unchanged): `F_YAW0_SIGMA_DEG` (the prior σ, separate
   from the offset) and `F_NO_YAWCAP` (disables both yaw-bounding mechanisms).
+
+### D22 bounded diagnosis (1 h): **REAL vehicle motion, not a scoring artefact.** The verdict stays 2 of 3
+
+**Not a scoring artefact (the D1 checks):**
+- The GT has no near-duplicate samples around the peak: minimum spacing 8.0 ms, 0 samples < 2 ms.
+- The independent dataflash SIM truth shows the same motion. East at cruise start −1/0/+0.5/+1/+2 s
+  is +0.000/+0.118/+0.272/+0.418/+0.517 m (GT: −0.000/+0.117/+0.279/+0.413/+0.525), with SIM max
+  |vE| 0.327 m/s.
+- The peak (+0.5 s) is inside the window, and the motion starts at cruise onset. It is not a
+  boxcar-edge effect.
+
+**Cause (`cl_ukf_b_tex_r3_half`):**
+- **An optical-flow disruption 1–2 s before cruise start**, at the end of the climb:
+  - at −2.0…−1.5 s, tracked features fell 194 → 63 and the inlier ratio to 0.59, with **9 of 15
+    messages flagged valid carrying a large spurious lateral flow (mean `flow_x` −1.37 rad/s)**;
+  - at −1.5…−1.0 s, 0 of 15 valid (inlier 0.10, 3 features);
+  - it recovered from −1.0 s.
+  - UKF r1 shows no such event: features 145 → 31 smoothly, all valid.
+- The UKF's lateral-velocity estimate was pulled west: at −0.5 s the UKF VE was −0.083 m/s against a
+  true +0.091. The error was −0.17 to −0.21 m/s for ~2 s and closed by +3 s.
+- **The controller responded to the estimate:** DesRoll +2.88° at −0.5 s, so the real vehicle moved
+  east at ~0.3 m/s. This is the B4 peak.
+- With the heading on, yaw error was 0.08° throughout. It is a flow-sensing transient propagated
+  through the estimator into closed-loop motion.
+
+**Verdict:** real motion, so the result stands as worded. **The half-speed UKF with-heading set is
+2 of 3**, and it does not become 3 of 3.
+- It is a per-flight sensing event (the flow tracker's feature collapse and spurious valid flow at the
+  top of the climb), not a scoring bug.
+- Whether EKF3 would have rejected those spurious flows cannot be known from this flight, since the
+  UKF flew. It is noted as a flow-validity weakness (spurious flow flagged valid) worth stating
+  alongside B4.
+
+**FGO gate checker `eval/fgo_gate_check.py`, written before the first gate result; one DEVIATION stated
+now:**
+- The FG3 velocity band cannot be checked exactly as worded. `XFGI` (the state ArduPilot receives)
+  logs position and yaw but not velocity; I overlooked that when defining FG3.
+- The velocity reference is therefore the time derivative of the received positions (a centred
+  difference over keyframes), not the node's velocity state. Position, yaw and age are checked exactly
+  as worded.
+- **FG1(c) tolerance:** the received count must match the node's keyframe count within 2% + 30. The
+  first ~10 s after the first state are skipped by design while the clock map fills.
+
+### FGO shadow run (a) `fgo_shadow_half_a` (no heading, simulator truth, half speed): FG1, FG2, FG3b PASS; **FG3 FAILS on position and velocity maxima**. STOPPED; queued as D23
+
+`eval/results/fgo_gate_fgo_shadow_half_a.json`. The binary had md5 `fa440748…`. The node ran 10,262
+keyframes, and 10,100 states were received.
+- **FG1 (backend equivalence) PASS after a checker fix, both scores reported as in D1:**
+  - first version: FAIL. The yaw difference was p95 1.26°, a constant offset, from a false 5.4 s
+    SITL→bag offset: the checker aligned the LAST N keyframes by count, but the node runs ~6 s past
+    the end of the dataflash log.
+  - corrected (offset estimated from positions: 49 ms): **evo -a received 4.542 against offline
+    4.540 m (+0.003 m, band ±0.15); yaw difference p95 0.081°, max 0.094° (bands 0.2 / 0.5); 0 late;
+    counts match.**
+- **FG2 PASS:** `XFGO.OV` 100% from arming to disarm.
+- **FG3b PASS:** output age median 137, p95 152, max 183 ms (budget 250).
+- **FG3:**
+  - yaw PASS (p95 0.032°, max 0.042°);
+  - **position FAIL** (p95 0.0028 m, max **0.514 m** against 0.15);
+  - **velocity FAIL** (p95 0.032 m/s, max **3.83 m/s** against 0.15; with the derivative proxy, per
+    the stated deviation).
+
+**Diagnosis (DIAGNOSTIC):**
+- **Every FG3 maximum is at t ≈ 30.0–30.2 s, the top of the climb.** There the FGO's own received
+  states jump ~0.09–0.12 m per keyframe in height: the smoother's height transient seen in smoke 3
+  (0.67 m). The output predictor propagates a ~130 ms-old state with the IMU and cannot anticipate the
+  smoother's next revision. **FG3 there measures the FGO's state revisions, not a predictor error.**
+- Excluding 28.5–33 s (a diagnostic only): position p95 0.0026 m, **max 0.048 m** (inside the band).
+  Velocity p95 0.030 m/s, max 0.341 m/s at touchdown (t 340.9 s), where differentiating positions
+  across the landing step is crude.
+- **In closed loop the controller would receive that climb-top state revision.** It is part of what
+  "the FGO flying" means.
+- Per the stop rule, no FGO ground test or flight runs until ruled. The F3b offline runs continue.
+
+### Rulings (user, 2026-10-01): D23, D22, the C0/F2 pattern
+
+**D23:**
+- **FG3 is recorded as FAILED as worded** (position max 0.51 m, velocity max 3.8 m/s, both at the
+  top of the climb). The checker clock-alignment bug is recorded as a **bug fix with both scores**
+  (as D1): FG1 first version FAIL (yaw p95 1.26°); corrected PASS (evo +0.003 m, yaw p95 0.08°).
+- **Proceed with the FGO ground test now** (no climb).
+- **Before any FGO flight, a bounded 2 h offline diagnosis** of the FGO's climb-top height transient
+  (~0.1 m per keyframe revisions at t ~ 30 s):
+  - which factors drive it;
+  - whether it relates to take-off detection, the D15 ground-proximity rule switching on, or the
+    climb-to-cruise transition;
+  - **the position-derived FG3 velocity reference is replaced with the simulator's true velocity**,
+    to establish whether the 3.8 m/s spike is real.
+- Then write the FGO flight predictions, including the expected controller response at the climb
+  top, and **state the transient with every FGO closed-loop result.**
+- **The FGO is not changed to remove it without a ruling.**
+
+**D22:**
+- Recorded as **real vehicle motion**; the half-speed UKF with-heading set stands at **2 of 3**.
+- **The cause is a sensor-pipeline weakness common to all three estimators:** the flow tracker flagged
+  ~0.5 s of large false sideways flow as valid while tracked features fell from 194 to 3.
+- **Where the validity decision lags:** `flow_tracker.py:313` sets
+  `valid = tracked_count >= min_valid_features` (20). The count is of RANSAC-surviving tracked
+  points, and validity depends on that count only.
+  - The inlier ratio (`flow_tracker.py:210`) is published but not part of the decision. So while the
+    tracked set dwindles (194 → 63 → 3), frames with ≥ 20 survivors stay valid even at inlier ratio
+    ~0.6 with a badly wrong median displacement (−1.37 rad/s).
+  - The tracker only re-detects features once the count collapses; validity switches off one step
+    later (at 3 features, inlier 0.10).
+  - EKF3 (`FLOW_TYPE 5`, quality > 0), the UKF and the FGO all consume the same `valid` flag.
+- **No tracker change now.**
+
+**Pattern to record (DESCRIPTIVE, not pre-registered):** across C0 and F2, the FGO has lower
+position/cross-track error while the UKF has lower heading error.
+- C0: FGO better position on 6 of 6, UKF better yaw on 5 of 6.
+- F2: UKF gap yaw 3–6× better; FGO better gap cross-track.
+- After F3b, a bounded (1 h) look at a plausible cause (e.g. the FGO's yaw prior, or how flow feeds
+  its heading), labelled EXPLORATORY.
+
+**F1 exploratory and F2:** recorded as reported (above).
+
+### FGO ground test `fgo_groundtest_half`: execution DEVIATION for the FG2 node-stop test, stated before the run
+
+- The pre-registered node stop was "after the hold, before disarm". `fly_trial.py` has no hook for
+  it, and the edit guard (correctly) blocks editing it while the F3b batch runs. The stop is therefore
+  made by an external watcher (`tools/node_stop_watch.sh`, a new file).
+- `GROUND_TEST` = **90 s** sim. The FGO node is sent SIGINT ~133 s wall after the hold starts
+  (≈ 65 s sim at RTF ~0.49), leaving ~25 s of armed hold with the node stopped before the disarm.
+- **Scored:**
+  - G1–G3 as pre-registered;
+  - **G4 over the hold up to the node stop** (≥ 55 s sim);
+  - **FG2 node-stop:** `XFGO.OV` falls to 0 within 300 ms sim of the node's last state;
+  - **G5 over the run up to the node stop.** Messages after the deliberate stop (e.g. EKF/estimator
+    failsafe text) are expected consequences, reported separately, and are not a G5 failure.
+  - G4 yaw, as pre-registered: |yaw change over the hold − the integrated raw gyro-z drift| ≤ 1.0°.
+
+### D23 bounded diagnosis (2 h): the FGO climb-top transient is a burst of SHORT LIDAR RETURNS at the climb-to-cruise transition; the 3.8 m/s spike was a checker-proxy artefact
+
+**Velocity against the simulator's TRUE velocity (the ruled replacement reference):** the FGO output's
+velocity error over 28–33 s is max **0.657 m/s** (at 30.36 s), p95 0.487 m/s. **The 3.8 m/s spike was
+not real.** It came from differentiating the state's ~0.1 m height steps over 33 ms keyframes (the
+proxy deviation). A 0.66 m/s vertical-velocity error at the climb top is real, in the output.
+
+**Which factors drive it (`fgo_shadow_half_a`, timeline):**
+- At t = 29.96–30.13 s the downward LiDAR returned **short readings (e.g. 0.131 m) while the vehicle
+  was ~2.2 m up**: 7 samples.
+- They start exactly as forward acceleration begins: true vN 0.03 → 0.20 → 0.36 m/s at 29.75 / 30.00 /
+  30.25 s, the pitch-forward at the climb-to-cruise transition. This is the known transient
+  self-occlusion dropout under attitude change (Known Issue #5).
+- The FGO range factor (`factors.range_factor`, σ 0.5 m, **no gate**) fused them. The state height fell
+  to 1.60 m (true 2.28 m) at 30.25 s and recovered over ~1.5 s. The output VD reached +0.38 m/s
+  (descending) against a true ≈ 0.
+- **Not take-off detection** (detected at 28.18 s) and **not the D15 rule** (inactive after take-off
+  detection). **It is the climb-to-cruise transition,** through the LiDAR.
+- Flow at that time was valid and plausible (35 features, inlier 1.0), so it is not a flow effect.
+
+**It is common to every flight and every estimator's input:** short returns (< 50% of true height,
+airborne) number 6–11 per flight, **all at 29–30 s**, in every flight checked (`fgo_shadow_half_a`,
+`cl_ukf_b_tex_r3_half`, `cl_bcpp_tex_r1_half`, `dsn_tex_r1`, `fwdc_tex_r1`).
+- `lidar_bridge.py` drops only readings outside [min, max].
+- EKF3 and the UKF gate range at 5σ with R = (0.5 m)². A ~2 m innovation gives ν²/(25·S) ≈ 0.6 < 1,
+  so they are also expected to accept them (inferred; not checked per flight). The FGO has no range
+  gate at all.
+
+**The closed-loop consequence already seen with EKF3/UKF:** a **climb-top height overshoot**. True
+height peaks at 2.47–2.85 m against a cruise mean of ~2.3 m in `cl_a_tex_half`, `cl_ukf_a_tex_half`,
+`cl_bcpp_tex_r1_half`, `cl_ukf_b_tex_r1_half` and `cl_ukf_b_tex_r3_half`. The shadow flight, flown on
+truth, stays at 2.32 m.
+
+**Per the ruling:** the FGO is NOT changed. The transient is stated with every FGO closed-loop result.
+
+### FGO ground test `fgo_groundtest_half`: G1–G4 and the FG2 node-stop PASS; **G5 FAILS as worded (no disarm)**, from a harness dependency exposed by the node stop
+
+`eval/results/fgo_groundtest_half.json`. The binary had md5 `fa440748…`; armed at 24.32 s.
+- **G1:** `AHRS_EKF_TYPE 13`, `AHRS_FGO_ENABLE 1`, `SERIAL3_PROTOCOL 2`.
+- **G2:** armed; the FGO pre-arm passed.
+- **G3:** ATT − XFGO p95 0.0008°.
+- **G4** (65.8 s of hold scored, up to the node stop): horizontal 2.9 mm; height error 0.05 mm, growth
+  0.13 mm. **Yaw change 3.131° against the integrated raw gyro-z 3.132° (difference −0.0003°).** Like
+  the UKF, the FGO learns no gyro-z bias on the ground (no heading).
+- **FG2 node-stop:** last state at 90.131 s, output invalid at 90.261 s: **130 ms** (band 300).
+- **G5 FAIL as worded:** there were no failsafe or crash messages before the stop, but **the vehicle
+  was never disarmed.**
+  - After the deliberate stop, the FGO output was invalid, so ArduPilot (correctly) stopped sending
+    `LOCAL_POSITION_NED`.
+  - `fly_trial.py` reads that message as its sim clock (`sim_time_now_s`), so it failed ("No message
+    received while reading sim-time clock") and never sent the disarm.
+  - This is a harness dependency, exposed by the mid-hold node stop (my execution deviation). The
+    backend's disarm path was not exercised.
+- Queued as **D24**.
+
+### F3b RESULT (`eval/results/f3b_test.json`): (a) TRUE, (b) FALSE, and the comparison is DEGENERATE because the UKF breaks down numerically with a 90° yaw prior
+
+**Per δ (all bags alike), from cruise start:**
+- **UKF: never converged at ANY δ, including 10°.** Its predicted heading σ at the first headings was
+  ~67,000–75,000° (the covariance had broken down before cruise). It "accepted" all 40 first headings
+  (the gate is meaningless at that S). Peak cross-track 10⁸–10¹¹ m: **numerical divergence.**
+- **FGO: converged at once at every δ on every bag** (0.006–0.057 s after cruise start), except δ 90°
+  on r2, where it converged at +3.06 s (its first 40 headings gated out, predicted σ 27.8°).
+  - Peak cross-track 0.07–0.37 m (1.50 m at r2 δ 90°).
+  - Predicted σ at the first headings 0.50°, with 40/40 accepted: **its yaw was already corrected
+    before the headings arrived**, with the yaw-cap prior off. This is inferred to come from the
+    flow/IMU coupling during take-off and acceleration; not tested.
+
+**Decisions:**
+- **(a) FGO convergence ≤ UKF at every δ on ≥ 2/3 bags: TRUE** (3/3). It holds trivially, since the UKF
+  never converges.
+- **(b) FGO/UKF integrated-error ratio decreasing with δ: FALSE** (the ratios are ~0 throughout
+  because the UKF's error is astronomical, not decreasing).
+- **Prediction:** (a) holds; (b) is not supported.
+
+**Reading, as found:**
+- The consistent 90° prior (the ruled design) is outside what the Euler-state UKF can represent. Its
+  sigma points spread yaw by several × 90°, past the ±180° wrap, and the covariance breaks down
+  whatever the actual offset. **The UKF's F3b outcome is therefore a representational limit of its
+  Euler yaw at large prior σ, not a convergence-speed result.**
+- The FGO (a Pose3 on the manifold, re-linearised by LM) represents it and converges.
+- The design gives no nonlinearity comparison at a smaller consistent prior, since σ = 90° was fixed
+  for all δ. A per-δ σ (as F3) reintroduces the F3 lockouts. **No further variant is run without a
+  ruling.**

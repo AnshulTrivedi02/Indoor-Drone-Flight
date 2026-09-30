@@ -1,0 +1,40 @@
+{
+ "G1": {
+  "AHRS_EKF_TYPE": 13.0,
+  "AHRS_FGO_ENABLE": 1.0,
+  "SERIAL3_PROTOCOL": 2.0,
+  "pass": true
+ },
+ "G2": {
+  "armed_at": 24.323363,
+  "pass": true
+ },
+ "G3": {
+  "att_vs_xfgo_p95_deg": 0.0007651247352122926,
+  "n": 648,
+  "pass": true
+ },
+ "G4": {
+  "hold_scored_s": 65.807525,
+  "max_dNE_m": 0.0029215031773671247,
+  "height_err_end_m": 5.183398723601629e-05,
+  "height_err_growth_m": 0.0001281648874282837,
+  "yaw_change_deg": 3.1312409937381744,
+  "raw_gyro_z_integral_deg": 3.1315342286402177,
+  "yaw_minus_gyro_deg": -0.000293234902043249,
+  "pass": true
+ },
+ "G5": {
+  "disarmed_at": null,
+  "bad_before_stop": [],
+  "after_stop_reported": [],
+  "pass": false
+ },
+ "FG2_node_stop": {
+  "last_state_s": 90.130888,
+  "first_invalid_s": 90.260845,
+  "latency_ms": 129.95700000000454,
+  "pass": true
+ },
+ "PASS": false
+}

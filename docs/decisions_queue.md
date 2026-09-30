@@ -5,6 +5,41 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D24. FGO ground test: G5 fails as worded (no disarm), from the harness's sim clock, not the backend
+- G1–G4 and the FG2 node-stop pass: output invalid 130 ms after the last state; the FGO's ground yaw
+  equals the integrated raw gyro to 0.0003°.
+- After the deliberate mid-hold node stop, `LOCAL_POSITION_NED` stopped (correct: no valid position).
+  `fly_trial.py` uses it as its sim clock, failed, and never sent the disarm. There were no failsafe
+  messages before the stop.
+- Options:
+  - **(a)** re-run the ground test (~6 min) **without** the node stop, so G5 (arm-hold-disarm) is
+    tested; then the node-stop separately after disarm, or accept the 130 ms result already measured;
+  - (b) accept as is: the disarm path is the same AP_AHRS code as the UKF's, which passed.
+- **Recommendation: (a).** It is cheap, and it closes G5 cleanly before the FGO flies.
+- **D23 diagnosis, done:** the climb-top transient is a burst of short LiDAR returns (~0.13 m at 2.2 m)
+  at the climb-to-cruise pitch-forward, fused by the FGO's un-gated range factor. The 3.8 m/s spike was
+  the checker's proxy (true output velocity error max 0.66 m/s). The same short returns occur in every
+  flight (6–11 at 29–30 s), and EKF3/UKF closed-loop flights already show a +0.2…+0.5 m climb-top
+  overshoot.
+
+
+### D23. FGO shadow (a): FG3 fails as worded at the climb top (position max 0.51 m, velocity max 3.8 m/s); FG1 (after a checker fix), FG2 and FG3b pass (BLOCKS the FGO ground test and flights)
+- The FG3 failures are all at t ≈ 30.0–30.2 s: the FGO's own state revises height ~0.1 m per keyframe
+  at the top of the climb (its known smoother transient), which the ~130 ms output predictor cannot
+  anticipate. **Elsewhere the predictor is exact** (position p95 0.003 m; max 0.048 m excluding
+  28.5–33 s).
+- The FG1 first-version fail was a checker bug (count alignment against a node that outlives the log).
+  Corrected: PASS (evo +0.003 m; yaw p95 0.08°). Both scores are reported.
+- Options:
+  - **(a)** record FG3 as failed as worded, with the diagnosis, and proceed: the ground test, the
+    written predictions, then the flights. The climb-top revision is the FGO's own behaviour and is
+    what the controller will see, stated with every FGO closed-loop result.
+  - (b) investigate the FGO's climb-top height transient before flying (bounded, e.g. 2 h: which
+    input, flow or range, drives it).
+  - (c) both: proceed per (a), with (b) offline in parallel.
+- **Recommendation: (c).** The 9 Oct target allows it.
+
+
 ### D22. Half-speed UKF with-heading r3 FAILS B4 (0.296 m/s > 0.25) at cruise +0.5 s; EKF3 half set 3/3 PASS, UKF 2/3 (BLOCKS the FGO gates and flights)
 - **It is a cruise-start transient:** GT East +0.27 → +0.49 m in ~1 s at the hover-to-cruise
   transition, then settled. Yaw error 0.08°, all headings accepted. **Not a runaway.**
