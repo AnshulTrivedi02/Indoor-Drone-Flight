@@ -26,9 +26,17 @@ Details for every item are in METHODOLOGY.
     the same hold, or within the integrated raw gyro ± 1°) and re-run P3 on the same binary.
   - (c) stop and investigate why the UKF drifts ~1.4× EKF3 on the ground (the UKF's gyro-bias
     learning while stationary) before flying.
+- **Why the UKF drifts more on the ground (checked in the log):** the UKF learns essentially NO gyro-z
+  bias while stationary.
+  - Its state `XUKF.GBZ` stays at about −1.5e-6 rad/s (≈ 0.0001 deg/s) through the hold, against
+    SITL's 0.047 deg/s.
+  - 0.0474 deg/s × 65 s = 3.08°, which matches the UKF's 3.09°: it integrates the raw gyro.
+  - EKF3's `XKF1.GZ` reaches 0.010 deg/s (≈ 21% of the drift), hence its smaller 2.15°.
+  - (In cruise the ordering differs: on P2 the UKF drifted 4.3 deg/min against EKF3's 7.54.)
 - **Recommendation: (a)**, with (c) as a DIAGNOSTIC in parallel (it does not block).
   - (b) would re-score what is, in substance, the same outcome.
-  - The ~1.4× ratio matches the UKF's cruise drift being comparable to EKF3's (8–10 deg/min each).
+  - (c) is now a specific question: why the UKF's z-bias state does not move on the ground when
+    EKF3's does, with the same process noise.
 
 ## RULED (history)
 - **D8** (flow timing): EKF3's timing kept in the port. Replay diagnostic done: re-timing costs EKF3

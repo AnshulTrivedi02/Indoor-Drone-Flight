@@ -7444,6 +7444,9 @@ and disarmed at 89.50 s.
     the ground with no heading source.
   - The 1.0° bound was extrapolated from P2's 3.5 s arming-to-take-off segment and did not allow for
     gyro drift over 65 s. **The basis was wrong, not the backend.** Recorded as my error.
+  - **Checked in the log:** the UKF's gyro-z bias state (`XUKF.GBZ`) stays at about −1.5e-6 rad/s
+    through the hold. It learns essentially none of SITL's 0.047 deg/s, and 0.0474 × 65 s = 3.08°
+    matches its 3.09°. EKF3's `XKF1.GZ` reaches 0.010 deg/s (≈ 21%). DIAGNOSTIC; not changed.
 - **As pre-registered, any failure stops the UKF flights.** Queued as **D16** (options: accept the miss
   with the diagnosis and fly; re-register the yaw criterion and re-run; investigate the UKF's ~1.4×
   EKF3 ground drift first). Nothing flies without a ruling.
