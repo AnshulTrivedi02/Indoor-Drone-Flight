@@ -136,6 +136,15 @@ if [ -n "${HEADING_BRIDGE:-}" ]; then
     : "${HEADING_SIGMA_DEG:?HEADING_SIGMA_DEG required with HEADING_BRIDGE}" "${HEADING_EVERY_N:?HEADING_EVERY_N required with HEADING_BRIDGE}"
     SERIAL1_ARG=(--serial1=udpclient:127.0.0.1:14557)
 fi
+# Optional FGO_NODE=1 (ruling D19): run the thesis FGO node (src/estimators/fgo/fgo_node.py, ~/venv-fgo) in
+# the trial, sending its keyframe state to SITL SERIAL3 (udpclient 127.0.0.1:14558; ODOMETRY LOCAL_NED +
+# MAV_ESTIMATOR_TYPE_NAIVE, read only by the port tree's AP_NavFGO). Stopped with SIGINT so it writes its
+# per-keyframe stats (fgo_node_stats.npz) before the other processes are killed. Unset = unchanged.
+declare -a SERIAL3_ARG=()
+FGO_PID=""
+if [ -n "${FGO_NODE:-}" ]; then
+    SERIAL3_ARG=(--serial3=udpclient:127.0.0.1:14558)
+fi
 
 start_bg() {
     # start_bg <logfile> <command...> — launches detached, tracks the PID.
@@ -153,6 +162,15 @@ cleanup() {
     CLEANED_UP=1
     echo ""
     echo "=== Cleaning up (exit code $exit_code) ==="
+
+    if [ -n "$FGO_PID" ] && kill -0 "$FGO_PID" 2>/dev/null; then
+        echo "Stopping FGO node (pid $FGO_PID, SIGINT: it writes its stats)..."
+        kill -INT -- "-$FGO_PID" 2>/dev/null || true
+        for _ in $(seq 1 120); do
+            kill -0 "$FGO_PID" 2>/dev/null || break
+            sleep 0.5
+        done
+    fi
 
     if [ -n "$RECORD_PID" ] && kill -0 "$RECORD_PID" 2>/dev/null; then
         echo "Stopping bag recorder (pid $RECORD_PID)..."
@@ -238,7 +256,7 @@ start_bg "$LOG_DIR/arducopter.log" \
     "$AP_TREE/build/sitl/bin/arducopter" \
     --model JSON --speedup 1 --slave 0 \
     --defaults ../Tools/autotest/default_params/copter.parm,../Tools/autotest/default_params/gazebo-iris.parm,"$HOME/thesis_ws/lidar_rangefinder.parm","$HOME/thesis_ws/flow_ekf.parm","$HOME/thesis_ws/gnss_denied.parm","$HOME/thesis_ws/gnss_denied_nomag.parm","$HOME/thesis_ws/sim_noise.parm","$HOME/thesis_ws/consolidated_rerun.parm","$HOME/thesis_ws/roll_rate_gains.parm"${EXTRA_PARM_FILES:+,$EXTRA_PARM_FILES} \
-    --serial2=udpclient:127.0.0.1:14556 "${SERIAL1_ARG[@]}" \
+    --serial2=udpclient:127.0.0.1:14556 "${SERIAL1_ARG[@]}" "${SERIAL3_ARG[@]}" \
     --sim-address=127.0.0.1 -I0
 
 wait_for "SITL MAVLink port open (tcp 5760)" "ss -tln 2>/dev/null | grep -q ':5760 '" 60
@@ -331,6 +349,15 @@ if [ -n "${HEADING_BRIDGE:-}" ]; then
         --ros-args -p use_sim_time:=true -p sigma_psi_deg:="$HEADING_SIGMA_DEG" -p every_n:="$HEADING_EVERY_N" \
         -p impl:="${HEADING_IMPL:-python}" -p log_path:="$LOG_DIR/heading_bridge.csv"
     wait_for "heading_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/heading_bridge.log'" 60
+fi
+
+if [ -n "${FGO_NODE:-}" ]; then
+    start_bg "$LOG_DIR/fgo_node.log" \
+        env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
+        "$HOME/venv-fgo/bin/python" "$HOME/thesis_ws/src/estimators/fgo/fgo_node.py" \
+        --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats.npz" -p mavlink_out:=udp:127.0.0.1:14558
+    FGO_PID="${BG_PIDS[-1]}"
+    wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 fi
 
 echo ""
@@ -435,6 +462,7 @@ ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
+[ -n "${FGO_NODE:-}" ] && echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${LOOPBACK_ONLY:-}" ] && echo "loopback_only: true  # GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"
 if [ -n "${HEADING_BRIDGE:-}" ]; then

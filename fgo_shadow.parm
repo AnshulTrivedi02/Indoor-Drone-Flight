@@ -1,0 +1,3 @@
+# D19: the FGO node's state received and its output predictor run in SHADOW (EKF3 flies). Port tree only.
+AHRS_FGO_ENABLE 1
+SERIAL3_PROTOCOL 2

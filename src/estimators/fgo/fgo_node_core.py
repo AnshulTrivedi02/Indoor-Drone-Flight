@@ -47,6 +47,7 @@ class FgoNodeCore:
         self._t_last_flow_fused = None         # keyframe time of the last keyframe that fused a flow factor
         self.valid_log = []                    # (keyframe t, valid) - one per keyframe
         self.traj = []                         # (t, pE, pN, pU, roll, pitch, yaw, bgz_rate)
+        self.states = []                       # D19 backend: (t, p ENU, v ENU, R world<-body FLU, gyro bias FLU, accel bias FLU)
         self.step_ns = []                      # per-keyframe processing time
         self.lag = []                          # (event stamp, wall-clock seconds from push to processing) for keyframes
         self.reinits = 0
@@ -191,6 +192,10 @@ class FgoNodeCore:
                 t_lat, pose, vel = self.fgo.latest()
                 rpy = pose.rotation().rpy()
                 self.traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2], self.fgo.prev_bias.gyroscope()[2]))
+                self.states.append((t_lat, np.array([pose.x(), pose.y(), pose.z()]), np.asarray(vel, float).copy(),
+                                    np.asarray(pose.rotation().matrix(), float).copy(),
+                                    np.asarray(self.fgo.prev_bias.gyroscope(), float).copy(),
+                                    np.asarray(self.fgo.prev_bias.accelerometer(), float).copy()))
                 self.lag.append((self.t_kf_next, time.perf_counter() - t_wall))
                 self.flow_pend = self.rng_pend = self.fwd_pend = None
                 self.t_kf_next += self.fgo.kf_dt

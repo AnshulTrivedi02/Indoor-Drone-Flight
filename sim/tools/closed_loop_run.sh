@@ -33,6 +33,19 @@ if [ -n "${UKF:-}" ]; then
     fi
     export ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
 fi
+# FGO=1 (ruling D19): the thesis FGO as the ACTIVE estimator (AHRS_EKF_TYPE 13; the FGO node runs in the trial,
+# FGO_NODE=1). FGO=shadow: EKF3 flies, the FGO node and its in-ArduPilot output predictor run in shadow.
+if [ -n "${FGO:-}" ]; then
+    [ -n "${UKF:-}" ] && { echo "FGO and UKF together are not supported" >&2; exit 2; }
+    if [ "$FGO" = shadow ]; then
+        EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/fgo_shadow.parm"
+        EXPECT_OVERRIDE="$EXPECT_OVERRIDE,AHRS_FGO_ENABLE=1,SERIAL3_PROTOCOL=2"
+    else
+        EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop_fgo.parm"
+        EXPECT_OVERRIDE="AHRS_EKF_TYPE=13,AHRS_FGO_ENABLE=1,SERIAL3_PROTOCOL=2"
+    fi
+    export FGO_NODE=1 ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
+fi
 if [ -n "${HEADING:-}" ]; then
     P="${HEADING_PARM:-$HOME/thesis_ws/closedloop_heading.parm}"   # HEADING_PARM: D19 half-speed delay measurement/value
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$P"

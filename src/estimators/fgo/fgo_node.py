@@ -7,6 +7,8 @@ time) and /fgo/valid (std_msgs/Bool; false after a post-take-off IMU gap, the IM
 form). Not used in any flight until FGO steps 2-3 are done and ruled on (METHODOLOGY, D7).
 Run: python3 fgo_node.py --ros-args -p use_sim_time:=true [-p horizon_s:=0.10]   (~/venv-fgo + ROS)"""
 import glob, math, multiprocessing as mp, os, sys, threading, time
+from collections import deque
+os.environ.setdefault("MAVLINK20", "1")     # ODOMETRY quality/estimator_type are v2 extensions (D19 backend)
 import numpy as np
 import rclpy
 import rclpy.executors
@@ -39,7 +41,7 @@ def _core_proc(inq, outq, kw, stats_path):
         t, kind, payload, tw_epoch = item
         core.push(t, kind, payload, t_wall=time.perf_counter() - (time.time() - tw_epoch))
         while n_out < len(core.traj):
-            outq.put((core.traj[n_out], core.valid)); n_out += 1
+            outq.put((core.traj[n_out], core.valid, core.states[n_out])); n_out += 1
     core.flush()
     if stats_path:
         np.savez(stats_path, step_ns=np.array(core.step_ns, np.int64), lag=np.array(core.lag).reshape(-1, 2),
@@ -57,6 +59,11 @@ class FgoNode(Node):
         self.declare_parameter("window_s", 0.25)
         self.declare_parameter("lm_iters", 2)
         self.declare_parameter("stats_path", "")          # on shutdown: per-keyframe step time and queue lag (npz)
+        # D19 backend (route a): send each keyframe state to ArduPilot (AHRS_EKF_TYPE 13) over its own MAVLink
+        # route, SITL SERIAL3 -> udpclient 127.0.0.1:14558. Empty = not sent (shadow/offline use).
+        self.declare_parameter("mavlink_out", "")
+        self._toff = deque()                                 # (t_header, t_header - t_sitl) over the last 10 s
+        self._mav = None
         self._n_pub = 0
         q = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, history=HistoryPolicy.KEEP_LAST, depth=200)
         self.create_subscription(Imu, "/imu/data_raw", self._imu, q)
@@ -79,8 +86,45 @@ class FgoNode(Node):
                                  self.get_parameter("stats_path").value), daemon=True)
         self._proc.start()
         self._stop = False
+        out = self.get_parameter("mavlink_out").value
+        if out:
+            from pymavlink import mavutil
+            self._mav = mavutil.mavlink_connection(out, source_system=1, source_component=197)
         self._pub_thread = threading.Thread(target=self._publisher, daemon=True)
         self._pub_thread.start()
+
+    def _sitl_us(self, t):
+        """Bag/sim header time -> SITL (DAL) clock, us: the lower envelope of header - /imu/time_ref over the
+        last 10 s (the least-delayed sample), as eval/input_timing's clock map but causal."""
+        if not self._toff:
+            return None
+        return int(round((t - min(o for _, o in self._toff)) * 1e6))
+
+    def _send_state(self, st, valid):
+        t_k, p, v, R, bg, ba = st
+        t_us = self._sitl_us(t_k)
+        if self._mav is None or t_us is None:
+            return
+        C = np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]])     # ENU -> NED
+        Fb = np.diag([1.0, -1, -1])                           # FLU <-> FRD
+        pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
+        # rotation matrix -> quaternion (w, x, y, z)
+        tr = np.trace(Rn)
+        if tr > 0:
+            S = math.sqrt(tr + 1.0) * 2; qw = 0.25 * S; qx = (Rn[2, 1] - Rn[1, 2]) / S; qy = (Rn[0, 2] - Rn[2, 0]) / S; qz = (Rn[1, 0] - Rn[0, 1]) / S
+        elif Rn[0, 0] > Rn[1, 1] and Rn[0, 0] > Rn[2, 2]:
+            S = math.sqrt(1.0 + Rn[0, 0] - Rn[1, 1] - Rn[2, 2]) * 2; qw = (Rn[2, 1] - Rn[1, 2]) / S; qx = 0.25 * S; qy = (Rn[0, 1] + Rn[1, 0]) / S; qz = (Rn[0, 2] + Rn[2, 0]) / S
+        elif Rn[1, 1] > Rn[2, 2]:
+            S = math.sqrt(1.0 + Rn[1, 1] - Rn[0, 0] - Rn[2, 2]) * 2; qw = (Rn[0, 2] - Rn[2, 0]) / S; qx = (Rn[0, 1] + Rn[1, 0]) / S; qy = 0.25 * S; qz = (Rn[1, 2] + Rn[2, 1]) / S
+        else:
+            S = math.sqrt(1.0 + Rn[2, 2] - Rn[0, 0] - Rn[1, 1]) * 2; qw = (Rn[1, 0] - Rn[0, 1]) / S; qx = (Rn[0, 2] + Rn[2, 0]) / S; qy = (Rn[1, 2] + Rn[2, 1]) / S; qz = 0.25 * S
+        bgf, baf = Fb @ bg, Fb @ ba
+        cov = [float("nan")] * 21; cov[0], cov[1], cov[2] = float(baf[0]), float(baf[1]), float(baf[2])
+        from pymavlink import mavutil
+        self._mav.mav.odometry_send(t_us, mavutil.mavlink.MAV_FRAME_LOCAL_NED, mavutil.mavlink.MAV_FRAME_BODY_FRD,
+                                    float(pn[0]), float(pn[1]), float(pn[2]), [float(qw), float(qx), float(qy), float(qz)],
+                                    float(vn[0]), float(vn[1]), float(vn[2]), float(bgf[0]), float(bgf[1]), float(bgf[2]),
+                                    cov, [float("nan")] * 21, 0, mavutil.mavlink.MAV_ESTIMATOR_TYPE_NAIVE, 100 if valid else 0)
 
     def _push(self, t, kind, payload):
         self._to_core.put((t, kind, payload, time.time()))     # wall arrival time (lag includes queueing)
@@ -88,7 +132,7 @@ class FgoNode(Node):
     def _publisher(self):
         while not self._stop:
             try:
-                row, valid = self._from_core.get(timeout=0.2)
+                row, valid, st = self._from_core.get(timeout=0.2)
             except Exception:
                 continue
             t_k, x, y, z, r, p, yw, _ = row
@@ -99,6 +143,7 @@ class FgoNode(Node):
             m.pose.orientation.x, m.pose.orientation.y, m.pose.orientation.z, m.pose.orientation.w = qx, qy, qz, qw
             self.pub.publish(m)
             self.pub_valid.publish(Bool(data=bool(valid)))
+            self._send_state(st, valid)
 
     def stop_worker(self):
         self._to_core.put(None)                 # the core drains its queue, writes stats, exits
@@ -110,7 +155,11 @@ class FgoNode(Node):
                                           np.array([m.angular_velocity.x, m.angular_velocity.y, m.angular_velocity.z])))
 
     def _tref(self, m):
-        self._push(_st(m.header), "tref", m.time_ref.sec + m.time_ref.nanosec * 1e-9)
+        th, ts = _st(m.header), m.time_ref.sec + m.time_ref.nanosec * 1e-9
+        self._push(th, "tref", ts)
+        self._toff.append((th, th - ts))
+        while self._toff and self._toff[0][0] < th - 10.0:
+            self._toff.popleft()
 
     def _flow(self, m):
         self._push(_st(m.header), "flow", (np.array([m.flow_x_rad, m.flow_y_rad]), bool(m.valid), float(m.inlier_ratio)))

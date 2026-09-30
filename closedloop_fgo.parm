@@ -1,0 +1,6 @@
+# D19 (ruling 2026-09-30): the thesis FGO as the ACTIVE estimator (AHRS_EKF_TYPE 13, port tree). The FGO node
+# (run_trial.sh FGO_NODE=1) sends its state over SITL SERIAL3 (udpclient 127.0.0.1:14558); SERIAL3 defaults to
+# the GPS protocol, so it is set to MAVLink2. EKF3 keeps running as a passive shadow. All values enforced.
+AHRS_EKF_TYPE 13
+AHRS_FGO_ENABLE 1
+SERIAL3_PROTOCOL 2
