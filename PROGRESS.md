@@ -5,6 +5,25 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-09-30 (late) — D18/D19 ruled; FGO backend built and plumbing-tested; half-speed sequence STOPPED (D20, D21)
+
+- **D18 principle recorded:** sensor-validity rules are shared; design features are not.
+- **D19 route (a) built:**
+  - ArduPilot: `EKFType::FGO` 13, `AP_NavFGO` output predictor, `AP_AHRS_FGO`, 52 switch arms, its own
+    `ODOMETRY` route on SERIAL3.
+  - Node: state out (corridor frame → NED), heading in (same message and trust as EKF3).
+  - Harness: `FGO_NODE`, `FGO=1|shadow`, loopback pinning for half speed.
+  - **3 dev smoke tests:** plumbing fixed and verified (age 134/149/171 ms median/p95/max at half
+    speed; no take-off backlog).
+- **The half-speed `VISO_DELAY_MS` measurement stopped by rule** ((a) 20.0 against (b) 25.4 ms,
+  > 5 ms): **D20.** Its first attempt was VOID (the Wi-Fi dongle fault broke gz multicast); fixed by
+  loopback pinning.
+- **Half-speed set (a):** EKF3 PRIMARY MISS (+242 s against +186 at full speed); the UKF passes
+  (+198 against +163). A systematic RTF effect on no-heading drift: **D21.** The sequence is stopped.
+- **Offline:** F1–F3 and C0 pre-registered. C0 reported (FGO lower position on 6/6 textured; UKF
+  lower yaw RMS on 5/6).
+- FGO gates pre-registered. FGO offline no-heading prediction: west +168…+171 s.
+
 ## Current Status — 2026-09-30 (evening) — the UKF flies: no-heading PASS, with-heading 3/3 PASS; D12 report; D18/D19 queued
 
 - **D16 (a):** the P3 yaw miss was recorded as worded.

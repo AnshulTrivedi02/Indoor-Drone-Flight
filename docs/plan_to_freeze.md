@@ -41,3 +41,14 @@ the timing-sensitive heading-delay measurement.
 - **R3.** 20+ half-speed flights at ~13 min wall each is ~5 h of flight time before the 16 Oct freeze.
   That is fine if run unattended overnight.
 - **R4.** If an FGO gate fails, 9 Oct has only ~1.5 days of buffer. Any failure is flagged the same day.
+
+## Status update (Wed 30 Sep, late)
+
+- **Ahead:** the FGO backend and node are built and plumbing-tested (planned Thu–Sun), and the gates are
+  pre-registered.
+- **Blocked on rulings:**
+  - D20 (`VISO_DELAY_MS` at half speed; blocks all with-heading half-speed flights);
+  - D21 (the half-speed EKF3 set (a) primary miss; stops the flight sequence).
+- Offline F-tests can proceed meanwhile (no simulator).
+- **9 Oct is still reachable** if D20/D21 are ruled by Fri 2 Oct: the remaining ~17 half-speed flights
+  and gate runs are ~5 h of unattended sim time.
