@@ -1,0 +1,3 @@
+# D17 (ruling 2026-09-30): the UKF fuses the ExtNav (forward-camera) yaw exactly as EKF3 does with
+# EK3_SRC1_YAW 6. Used with UKF=1 or UKF=shadow together with HEADING=1 (closed_loop_run.sh).
+AHRS_UKF_EXTYAW 1

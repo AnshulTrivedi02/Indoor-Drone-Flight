@@ -1,0 +1,47 @@
+{
+ "trial": "cl_bcpp_tex_r2",
+ "n_REPH": 2399,
+ "n_accepted": 2399,
+ "n_processed": 2399,
+ "R1": {
+  "expected_after_rule": 2399,
+  "accepted": 2399,
+  "all_REPH_after_init": true,
+  "ts_match": true,
+  "delay_match": true,
+  "angErr_match": true,
+  "yaw_max_diff_rad": 7.426889769845957e-09,
+  "event_time_rule_match": true,
+  "pass": true
+ },
+ "R2": {
+  "processed_once": true,
+  "time_ordered": true,
+  "lag_min_ms": 62,
+  "pass": true
+ },
+ "R3": {
+  "first_processed_aligns": true,
+  "pseudo_after_align": 0,
+  "pseudo_before": 13,
+  "pass": true
+ },
+ "cruise_s": [
+  36.252674,
+  337.85237
+ ],
+ "R4": {
+  "n": 2204,
+  "accepted_pct": 100.0,
+  "rejected": 0,
+  "test_ratio_max": 0.235069433,
+  "pass": true
+ },
+ "R5": {
+  "p95_deg": 0.12796299999928634,
+  "max_deg": 0.3829630000002453,
+  "mean_deg": 0.060829574997536696,
+  "pass": true
+ },
+ "PASS": true
+}

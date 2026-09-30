@@ -14,6 +14,23 @@ WORLD="$1"; NAME="$2"; OUT="$HOME/thesis_data/closed_loop/$NAME"
 mkdir -p "$OUT"
 export EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop.parm" EXPECT_OVERRIDE="AHRS_EKF_TYPE=3"
 WATCH=()
+# UKF=1 (ruling D9, 2026-09-30): the thesis UKF as the ACTIVE estimator (AHRS_EKF_TYPE 12) on the port tree,
+# replacing closedloop.parm's AHRS_EKF_TYPE 3. UKF=shadow (ruling D17 V2): EKF3 flies (closedloop.parm) and
+# the UKF runs in shadow. With HEADING=1 the UKF also fuses the ExtNav yaw (closedloop_ukf_heading.parm).
+if [ -n "${UKF:-}" ]; then
+    if [ "$UKF" = shadow ]; then
+        EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/ukf_shadow.parm"
+        EXPECT_OVERRIDE="$EXPECT_OVERRIDE,AHRS_UKF_ENABLE=1"
+    else
+        EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop_ukf.parm"
+        EXPECT_OVERRIDE="AHRS_EKF_TYPE=12,AHRS_UKF_ENABLE=1"
+    fi
+    if [ -n "${HEADING:-}" ]; then
+        EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/closedloop_ukf_heading.parm"
+        EXPECT_OVERRIDE="$EXPECT_OVERRIDE,AHRS_UKF_EXTYAW=1"
+    fi
+    export ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
+fi
 if [ -n "${HEADING:-}" ]; then
     P="$HOME/thesis_ws/closedloop_heading.parm"
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$P"
@@ -24,14 +41,6 @@ if [ -n "${HEADING:-}" ]; then
     export HEADING_IMPL="${HEADING_IMPL:-cpp}"
     export HEADING_BRIDGE=1 HEADING_SIGMA_DEG HEADING_EVERY_N
     WATCH=(--watch-process heading_bridge.py)
-fi
-# UKF=1 (ruling D9, 2026-09-30): the thesis UKF as the ACTIVE estimator (AHRS_EKF_TYPE 12) on the port tree,
-# replacing closedloop.parm's AHRS_EKF_TYPE 3. Not combinable with HEADING (the port has no heading input yet).
-if [ -n "${UKF:-}" ]; then
-    [ -n "${HEADING:-}" ] && { echo "UKF=1 with HEADING=1 is not supported yet" >&2; exit 2; }
-    EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop_ukf.parm"
-    EXPECT_OVERRIDE="AHRS_EKF_TYPE=12,AHRS_UKF_ENABLE=1"
-    export ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
 fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
 if [ -n "${GROUND_TEST:-}" ]; then

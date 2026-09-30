@@ -7632,3 +7632,31 @@ heading; Replay with `AHRS_UKF_EXTYAW=1`). PASS iff, on all three:
   V4 flies.
 
 **Stop rule:** any PRIMARY failure in V1–V4 stops the sequence and is reported.
+
+### D17 build and V1 (Replay check on set (b)'s logs): PASS on all three
+
+**Build:**
+- Port `171d803586` added the heading input as pre-registered; `60887dea26` added one Replay-dump row
+  per pseudo-yaw fusion, needed to test R3.
+- Both were committed BEFORE building, so the binary's version string reads `60887dea`.
+- **The binary for V2–V4:** `arducopter` md5 `85179298b90fd07a59906613ccb6475b` (Replay md5
+  `02f1fe9d…`).
+- Launcher: `UKF=shadow` (EKF3 flies, the UKF in shadow); `UKF=1|shadow` with `HEADING=1` adds
+  `closedloop_ukf_heading.parm` (`AHRS_UKF_EXTYAW 1`, enforced).
+
+**V1:** `eval/ukf_heading_v1.py`; `eval/results/ukf_heading_v1_cl_bcpp_tex_r{1,2,3}.json`. Replay with
+`UKF_EXTYAW=1`.
+
+| log | REPH / accepted / processed | R1 | R2 | R3 | R4 accepted (max test ratio) | R5 yaw error p95 / max |
+|---|---|---|---|---|---|---|
+| r1 | 2385 / 2385 / 2385 | PASS | PASS (lag ≥ 62 ms) | PASS (16 pseudo-yaw before, 0 after) | 100% of 2198 (0.31) | 0.17° / 0.39° |
+| r2 | 2399 / 2399 / 2399 | PASS | PASS | PASS (13 / 0) | 100% of 2204 (0.24) | 0.13° / 0.38° |
+| r3 | 2398 / 2398 / 2398 | PASS | PASS | PASS (9 / 0) | 100% of 2198 (0.05) | 0.18° / 0.44° |
+
+- **R1:** the accepted list equals EKF3's acceptance rule applied to `REPH` 1:1 (timestamp, delay,
+  angErr). The yaw matches the quaternion to ≤ 1.1e-8 rad. The event time equals
+  max(TS − D − 6, arrival − 60) for every sample: with `VISO_DELAY_MS` 38, every sample is clamped to
+  the 60 ms horizon, as in EKF3.
+- **A checker bug, found and fixed before the result was used:** R4 first read the test-ratio column
+  of the `HP` rows instead of the accepted flag, giving an impossible "0.03% accepted, 0 rejected".
+  The criterion is unchanged.
