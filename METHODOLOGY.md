@@ -8010,3 +8010,17 @@ Neither affected any result.
   - Output validity was 84.4%: invalid from the first state (10.1 s) to 19.8 s, while the 10 s
     `/imu/time_ref` lower-envelope clock map fills. It settles before arming (24 s), and pre-arm waits
     for it.
+
+### D19: half-speed re-fly of set (a) for EKF3 and the UKF (no heading, so independent of D20) — PRE-REGISTERED
+
+- **Flights:** `cl_a_tex_half` (EKF3, stock tree md5 `43a2165a…`) and `cl_ukf_a_tex_half` (UKF=1, port
+  `1acfca00` md5 `fa440748…`).
+  - The port's UKF code is identical to the V4 binary's (`60887dea`); the only additions are the FGO
+    backend, inactive with `AHRS_FGO_ENABLE 0`.
+  - World `corridor_textured_half_fwdc`, loopback-pinned; otherwise the full-speed settings.
+- **Criteria, unchanged from the full-speed pre-registrations:**
+  - EKF3 set (a): no contact before +100 s; any contact on the west wall inside [+155, +215] s.
+  - UKF: U1; U2 (no contact before +100 s); U3 (west wall inside [+146, +218] s); S1/S2.
+- **Prediction:** unchanged (EKF3 ≈ +186 s; UKF ≈ +161…+193 s, west). Half speed changes only the
+  wall-clock latencies' share of sim time, and D8 shows EKF3 insensitive to flow timing at this scale.
+  Any change of more than ~10 s is reported as an RTF effect.
