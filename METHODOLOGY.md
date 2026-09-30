@@ -7307,3 +7307,62 @@ time present. No flags. `eval/results/d15_rule_audit.json`.
 - **fwdc 5/9 → 6/9.** `fwdc_blank_r3`'s FGO ratio now passes. **The VALUE moved** (212.528 → 203.521),
   so it passes under either band; the band also moved (upper 212.261 → 212.519).
 - The `rerun_dsn_score.json` output (dsn scored against itself) is not used, as before.
+
+### D15 item 6: P2 re-run on the fixed binary — PASS; output-predictor check — PASS
+
+**P2** (`ukf_shadow_sitl_tex_d15`, port `9d2c545d29`, `AHRS_EKF_TYPE 10`, shadow, `corridor_textured`):
+- RTF 0.98 (340 s sim / 346 s wall); no other load (checked `arducopter` / `gz` / `Replay` before).
+- **`XUKO.EvO` = 0 throughout; `EvMx` = 10** (well below 64). Valid and healthy 100% of the airborne
+  time (`horiz_pos_rel` 100%).
+- The rule fired live: take-off detected at 28.58 s, 610 flows replaced.
+- **Take-off yaw change: UKF −0.88°** (the pre-D15 P2 kicked about 7°); EKF3 −0.07°, SIM −0.01°.
+
+**Output-predictor check, pre-registered bands (`eval/results/ukf_predictor_check_d15.json`): PASS.**
+
+| | p95 | max | band (p95 / max) |
+|---|---|---|---|
+| position 3-D | 0.0038 m | 0.138 m | 0.05 / 0.15 m |
+| velocity 3-D | 0.0008 m/s | 0.069 m/s | 0.05 / 0.15 m/s |
+| yaw | 0.006° | 0.22° | 0.10 / 0.5° |
+
+- There is no trend (−0.0003 m/min). The position max (0.138 m) is the closest to its band.
+- **The yaw max, which failed at 4.57° before D15, is now 0.22°:** the kick that caused it is gone.
+
+### D15 item 5: the UKF NO-HEADING PREDICTION, RE-DERIVED from the fixed UKF (recorded BEFORE P3 and any UKF flight)
+
+**Supersedes** the earlier U2/U3 (+50 s; west wall in [+83, +135] s from 24–30 deg/min). That basis
+was the pre-D15 UKF, whose drift was dominated by the take-off kick.
+
+**Drift of the fixed UKF (all westward; lateral error ∝ drift × t², contact ≈ 186.2 s × √(8.3 / |drift|),
+the set-(a) scaling):**
+- **Live shadow of the exact binary, this world (P2 above): +4.30 deg/min NED** → +259 s. The offline
+  UKF on the same flight gives −3.2 deg/min ENU → +300 s.
+- **Port Replay on `dsn_tex` r1–r10** (the flown code, this world): +7.8, +4.3, +9.0, +9.2, +9.3,
+  +3.2, +9.3, +9.3, +9.4, +9.4 deg/min NED.
+  - With the shadow, n = 11: **median 9.2 deg/min → +177 s**.
+  - 8 of 11 lie in 7.8–9.4 (+175 … +192 s); 3 of 11 in 3.2–4.3 (+259 … +300 s).
+- **Offline UKF, `dsn_tex` r1–r9:** 7 of 9 in 7.8–11.1 deg/min (+161 … +192 s); 2 of 9 in 1.9–3.1.
+  On the forward-camera textured bags there are 2 residual-kick flights at 22–23 deg/min (+112 s, the
+  fastest in any fixed-UKF data).
+- For comparison, EKF3 on the P2 flight drifted +7.54 deg/min (set (a): 8.3 → +186.2 s).
+
+**PRIMARY criteria (replacing U2/U3; U1 unchanged):**
+- **U1:** as before. The backend flies the vehicle through arming, take-off to ≥ 1.8 m and entry into
+  cruise, with no crash, failsafe or loss of control before any wall contact.
+- **U2:** no wall contact before cruise **+100 s**. Basis: the fastest implied contact in all fixed-UKF
+  data is +112 s (the residual-kick flights), less a 12 s margin.
+- **U3:** contact on the **WEST wall inside [+160, +217] s**. Basis: the port distribution's main
+  cluster (7.8–9.4 deg/min, +175 … +192 s), widened by 15 s below and 25 s above, as before.
+  - No contact, or contact after +217 s, is recorded as a **U3 miss as worded**. It is read under the
+    ruled miss clause: 3 of 11 port realisations, including the P2 shadow of this binary, predict
+    +259 … +300 s or no contact within the ~302 s cruise.
+  - East-wall contact is a U3 miss with no support in the data (0 of 11 port, 0 of 17 offline
+    textured flights drift east).
+- **Safety criteria S1 and S2 (the miss-reading clause) are unchanged as ruled:** S1 is no fast
+  runaway (no wall contact) before cruise +50 s; S2 is the estimator valid throughout, plus U1. U2 is
+  now stricter than S1. A U2 miss between +50 and +100 s is reported as a U2 miss but is not a safety
+  stop.
+
+**DIAGNOSTIC:** as before (the UKF's own yaw drift in the flight from `XUKO` against SIM and the contact
+time it implies; `EvO`/`EvMx`; EKF3's shadow; lateral speed and gyro rms), plus the take-off yaw change
+and `GpT`/`GpN`.
