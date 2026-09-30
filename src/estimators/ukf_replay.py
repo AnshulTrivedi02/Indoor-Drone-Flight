@@ -15,6 +15,7 @@ import ukf_core as U
 from imu_timing import dejitter_imu, apply_gap_rule
 from measurement_models import R_world_body, FlowFrameGyroAverager, sitl_gyro_drift
 from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
+from measurement_models import GroundProximityFlow
 import time, json
 
 TRIAL = sys.argv[1]
@@ -102,6 +103,10 @@ tim = {"predict": [], "range": [], "flow": [], "fwd": []}     # wall-clock ns pe
 DUMP = os.environ.get("UKF_DUMP")      # diagnostic only: full state per predict + flow pred/meas; no effect on the filter
 dump_x, dump_flow = [], []
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
+# ground-proximity flow rule (ruling D15): EKF3's, shared with the FGO. Arm time: the dataflash ARM record on the
+# bag clock (imu_gaps.json, the IMU-gap rule's mapping)
+_gpj = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/imu_gaps.json")
+gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 n_flow_acc = [0, 0]; n_flow_rej = [0, 0]; n_rng_acc = n_rng_rej = 0
 n_yaw_check = n_yaw_fire = 0     # pseudo-yaw: opportunities checked vs actually fused
 att_tr = []                      # attitude-cov trace (P[6..8]) at each yaw check, vs ATT_VAR_GATE
@@ -113,6 +118,7 @@ for t, kind, d in ev:
     if kind == "att":
         omega = d
     elif kind == "imu":
+        gp.on_gyro(t, d[1], x[U.BG_SLICE] / DT_STEP)   # take-off detection: |gyro - bias| > 0.1 rad/s (D15)
         gyro_avg.push(t, d[1])                # co-sampled gyro, for the flow-frame average
         fwd_avg.push(t, d[1])
         dt_i = t - t_prev; t_prev = t
@@ -133,6 +139,7 @@ for t, kind, d in ev:
             traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8], x[U.BG_SLICE.start+2]))
             da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
     elif kind == "rng":
+        gp.on_range(t, d)                      # range at arming / take-off detection (D15)
         _t0 = time.perf_counter_ns()
         x, P, acc = U.update_range(x, P, d, p)
         tim["range"].append(time.perf_counter_ns() - _t0)
@@ -142,6 +149,8 @@ for t, kind, d in ev:
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
         if DUMP and valid and inlier > 0:
             dump_flow.append(np.r_[t, flow_xy, U.h_flow(x, omega_flow), omega_flow])
+        if valid and inlier > 0:
+            flow_xy = gp.replace(flow_xy, omega_flow, x[6], x[7])   # zero translation below 0.5 m pre-take-off (D15)
         _t0 = time.perf_counter_ns()
         x, P, (ax, ay) = U.update_flow(x, P, flow_xy, omega_flow, valid, inlier, p)
         tim["flow"].append(time.perf_counter_ns() - _t0)
@@ -235,6 +244,7 @@ print(f"[flow] axis-X accept {n_flow_acc[0]}/{n_flow_acc[0]+n_flow_rej[0]}  "
       f"[range] accept {n_rng_acc}/{n_rng_acc+n_rng_rej}")
 att_tr = np.array(att_tr)                    # columns: (tilt cov, yaw cov)
 tilt_c, yaw_c = att_tr[:, 0], att_tr[:, 1]
+print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff}; arm t {gp.t_arm}")
 print(f"[pseudo-yaw] fired {n_yaw_fire}/{n_yaw_check} checks "
       f"({100.0*n_yaw_fire/max(n_yaw_check,1):.0f}% — variance-gated, was 100%)")
 print(f"[att-cov] tilt(P66+P77) median={np.median(tilt_c):.5f}  "

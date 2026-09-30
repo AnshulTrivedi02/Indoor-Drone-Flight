@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
-from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift
+from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift, GroundProximityFlow
 from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset
 import json
 from imu_timing import dejitter_imu, apply_gap_rule
@@ -76,6 +76,9 @@ flow_omega = np.zeros(3)
 flow_pend = None; rng_pend = None; fwd_pend = None
 fwd_avg = FlowFrameGyroAverager(t_init)      # gyro over the forward-frame interval (Phase 4 h_yawrate)
 t_kf_next = t_init + fgo.kf_dt
+# ground-proximity flow rule (ruling D15): EKF3's, identical to the UKF's (measurement_models.GroundProximityFlow)
+_gpj = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/imu_gaps.json")
+gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 step_ns = []; n_kf = 0
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
 for tt, kind, d in ev:
@@ -86,12 +89,14 @@ for tt, kind, d in ev:
         omega = d
     elif kind == "rng":
         rng_pend = d
+        gp.on_range(tt, d)
     elif kind == "flow":
         flow_pend = d
         flow_omega = gyro_avg.average(tt, omega)   # interval-avg over the flow frame (FINDING 4)
     elif kind == "fwd":
         fwd_pend = (d[0], d[1], float(fwd_avg.average(tt, omega)[2]))   # latest forward frame
     elif kind == "imu":
+        gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
         gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
         fwd_avg.push(tt, d[1])
         if t_prev_imu is not None:
@@ -99,6 +104,9 @@ for tt, kind, d in ev:
         t_prev_imu = tt
         while tt >= t_kf_next:
             t0 = time.perf_counter_ns()
+            if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0:
+                _rpy = fgo.prev_pose.rotation().rpy()    # the FGO's flow factor uses omega - bias: zero translation in that model
+                flow_pend = (gp.replace(flow_pend[0], flow_omega - fgo.prev_bias.gyroscope(), _rpy[0], _rpy[1]), flow_pend[1], flow_pend[2])
             try:
                 fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend, fwd=fwd_pend)
             except Exception as e:
@@ -174,6 +182,7 @@ np.savetxt(f"{OUTDIR}/bgz_series.txt",
            header="t_sec  est_bias_absdpm  true_bias_dpm", comments="# ")
 step_ms = np.array(step_ns)/1e6
 
+print(f"[ground-proximity] flows replaced {gp.n_replaced}; take-off detected {gp.takeoff}; arm t {gp.t_arm}")
 print(f"[run] {n_kf} keyframes, window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s   "
       f"flow factors {fgo.n_flow}  range factors {fgo.n_range}  imu {fgo.n_imu}")
 print(f"[timing] per-keyframe update: median={np.median(step_ms):.1f}ms  p99={np.percentile(step_ms,99):.1f}ms  "

@@ -6919,6 +6919,18 @@ the working notes).
   written between 11:00 and 12:45. The previous simulation (`fgo_shadow_sitl_tex4`) ended at 09:49, and
   P2 (`ukf_shadow_sitl_tex_p2`) started at 12:43, after the kill. The overlapping work was builds and one
   single-threaded Replay. There are no RTF or latency effects to report.
+  - **CORRECTION (2026-09-30, 13:13): the statement above is WRONG.** The four panicked Replays were
+    **not** killed at 12:38. They were still at 100% CPU at 13:12, found by the pre-commit process
+    check, and killed then with SIGKILL (SIGTERM did not stop the panic loop). They ran from 11:16:29 to 13:13, about
+    1 h 56 min. **P2 (`ukf_shadow_sitl_tex_p2`, 12:43–12:49) overlapped them:** 4 of 12 cores were
+    pegged, and its RTF was **0.92** (334 s sim / 362 s wall) against **0.98** for the D5 shadow run
+    (336 / 343).
+    - SITL runs in lockstep, so its physics are unaffected. The bridges and the flow latency are
+      wall-clock, so they may have been affected.
+    - **P2 is superseded anyway:** D15 requires a new shadow run of the fixed binary. That run will be
+      made with no other load (checked with `pgrep -x Replay` as well as `arducopter` / `gz`).
+    - The D8 batch (13:04–13:12, Replay only, deterministic) also overlapped. Its baselines reproduce
+      the dataset to ≤ 1 mm, so it is unaffected.
 
 **2. Output-predictor check (must PASS before P3).** In P2, the shadow run of the exact binary, each
 **current-time output** the controllers would receive (`XUKO`, stamped at the current time t) is
@@ -7022,3 +7034,86 @@ take-off (−1 s … +2 s around GT height +0.3 m) on `dsn_tex_r1`–`r9`, again
 
 **Queued: D15** (in `docs/decisions_queue.md`). **P3 and the UKF flights stay STOPPED** until D15 is
 ruled and the predictor check passes.
+
+### Ruling D15 (user, 2026-09-30): option (b). The GROUND-PROXIMITY FLOW RULE, defined from EKF3's source BEFORE any re-run
+
+**The rule, exactly as EKF3 implements it** (`~/ardupilot` `7bac20cbcc`):
+1. **On ground** = motors not armed (`AP_NavEKF3_VehicleStatus.cpp:378-384`, `detectFlight`,
+   non-fly-forward vehicles).
+2. **Take-off detected** (`detectOptFlowTakeoff`, `AP_NavEKF3_VehicleStatus.cpp:466-481`):
+   - while on ground: false;
+   - once armed, and **more than 1 s after arming**, it **latches true** at the first of:
+     - the bias-corrected gyro rate magnitude **> 0.1 rad/s** (`|ω_meas − b_gyro|`);
+     - the range **> the range at arming + 0.1 m**. The range at arming is `rngAtStartOfFlight`,
+       the last range while on ground (`:419-421`).
+3. **Flow replacement** (`AP_NavEKF3_OptFlowFusion.cpp:45-51`): while **take-off is NOT detected and
+   the height above terrain is < 0.5 m**, the flow measurement is **set to zero and still fused**
+   ("no motion"): both `flowRadXY` and the motion-compensated `flowRadXYcomp` are zeroed and
+   `flowDataValid` is set true.
+   - The height above terrain is EKF3's `terrainState − p_D`; with the rangefinder as the height
+     source that is the range × cos(tilt), clamped ≥ `rngOnGnd`
+     (`AP_NavEKF3_OptFlowFusion.cpp:112`).
+   - After take-off is detected, raw flow is fused at any height.
+
+**Justification, recorded.** A flow sensor cannot measure near the floor: it cannot focus, and the
+image scale is ill-conditioned when the camera is centimetres from the surface. EKF3 encodes this. The
+UKF (offline and port) lacked it, and fused flow at 0.1–0.3 m camera height. **This is a sensor-model
+correction, like `FLOW_POS_Z`, not tuning:** EKF3's own thresholds, used unchanged.
+
+**How each estimator implements it identically:**
+- **"Zero flow"** means a measurement of **zero translational motion**. In each estimator's model
+  (raw flow = translational part + rotational part), the measurement is replaced by its predicted
+  **rotational part only**:
+  - offline UKF / FGO (FLU, `h_flow_pose`): z = (+ω̄_x, −ω̄_y), with ω̄ the frame-averaged gyro the
+    flow model already uses;
+  - port (FRD): z = (p̄, q̄), its flow gyro.
+  - That is EKF3's `flowRadXYcomp = 0` expressed in raw-flow form.
+- **Armed / on ground:**
+  - port: `AP_DAL` `get_armed()`, EKF3's own `motorsArmed` source;
+  - offline: the arm time from the flight's dataflash `ARM` record, as mapped to the bag clock
+    (`imu_gaps.json` `arm_header_s`, the same mapping the IMU-gap rule uses).
+- **Take-off detection:** as rule 2. The gyro uses the estimator's own current bias estimate; the
+  range is the downward LiDAR as each estimator receives it; the 1 s after-arming guard is kept.
+- **Height < 0.5 m:** the latest valid range × cos(tilt, the estimator's own attitude), as EKF3 does
+  with the rangefinder as the height source.
+- **The FGO check (ruling point 2):** `fgo_core.keyframe` adds a flow factor whenever the flow is valid
+  and |flow| < 4.2 rad/s. It **has no ground-proximity rule**, so the same rule is applied to the FGO
+  for consistency. Every estimator gets identical ground-proximity flow handling, and EKF3 already has
+  it.
+
+**A caveat, stated before any result.** By this definition take-off is detected at the first
+range + 0.1 m. That is likely before the height at which the UKF's yaw kicked (UKF height ≈ 0.37 m,
+range ≈ 0.25 m), so **EKF3's rule applied faithfully might not remove the kick**. It is applied as
+defined, not adjusted to the outcome. The result is tested on the worst flight (`dsn_tex_r4`) before
+the full re-run, and reported either way.
+
+**Test on the worst flight, before the full re-run (`dsn_tex_r4`, offline UKF with the rule).** 428 flow
+messages replaced before take-off was detected. Take-off yaw change **−0.43°** (was −16.98°); yaw drift
+**−10.2 deg/min** (was −70); SE(3)-aligned ATE **5.50 m** (was 35.90 m). **The caveat above was wrong:**
+the rule as defined removes the kick. Applying it cost nothing on the outcome side: it was defined first,
+applied unchanged, and the full re-run follows.
+
+### D8 result (DIAGNOSTIC; never replaces the dataset results)
+
+`eval/d8_ekf3_retime.py`, run on 16 `dsn` bags: tex r1–r10, trans r1–r3, blank r1–r3. One diagnostic
+Replay binary is used (`~/ardupilot_diag`, EKF3 only). With `flowTimeDeltaAvg_ms` stock it is the
+**baseline**; with it set to 0 and `EK3_FLOW_DELAY = round(capture→EKF3 latency − 6)` it is
+**re-timed**, meaning each flow is fused at its capture time. Both are scored as `three_way_eval.py`
+scores EKF3: the replayed EKF3 (XKF1 core 100) against SIM, over the pinned cruise window, with evo -a.
+Cost = baseline − re-timed. A positive cost means the misdating hurt EKF3.
+
+- **Every baseline reproduces the dataset's EKF3 score to ≤ 1 mm** (16/16), so the Replay is faithful.
+- **Textured (n = 10), cost:**
+  - r1 −0.059, r2 −0.180, r3 −0.007, r4 −0.005, r5 −0.001, r6 −0.199, r7 −0.006, r8 −0.006,
+    r9 +0.002, r10 −0.006 m;
+  - median −0.006 m. **Re-timing never helps by more than 2 mm, and makes EKF3 worse by up to 0.20 m.**
+- **Transition (n = 3), cost:** −0.019, −0.001, −0.002 m.
+- **Blank (n = 3):** n/a. No flow frame was fused (`input_timing` valid_frames = 0), so there is
+  nothing to re-time. The re-timed runs differ by 1 mm.
+- **Reading.** Fusing flow 31–44 ms before capture costs EKF3 nothing measurable on this dataset.
+  This contrasts with the UKF, where the same timing cost 4.6 m on `dsn_tex_r2` (step 3). EKF3 is
+  insensitive to it here. A likely reason is the slow, near-constant-velocity cruise, where a 30–40 ms
+  shift of a velocity measurement changes little; that reason is not tested.
+- **Fairness note (as ruled).** EKF3 was the only estimator fusing flow at a misdated time. The
+  EKF3-vs-FGO result held despite it, and this diagnostic shows the misdating did not disadvantage
+  EKF3.

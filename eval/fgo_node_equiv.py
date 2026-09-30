@@ -117,8 +117,11 @@ def compare(core, name):
             "validity": validity(core)}
 
 
+T_ARM = json.load(open(f"{D}/imu_gaps.json")).get("arm_header_s") if os.path.exists(f"{D}/imu_gaps.json") else None
+
+
 def run(events, name, **kw):
-    core = FgoNodeCore(window=0.25, lm_iters=2, **kw)
+    core = FgoNodeCore(window=0.25, lm_iters=2, t_arm=T_ARM, **kw)    # D15 rule: the same arm time as fgo_replay
     t0 = time.perf_counter()
     for e in events:
         core.push(*e)

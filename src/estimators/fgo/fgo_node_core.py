@@ -24,7 +24,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # measurement_models
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                    # fgo_core, factors
 from fgo_core import FGO
-from measurement_models import FlowFrameGyroAverager
+from measurement_models import FlowFrameGyroAverager, GroundProximityFlow
 
 GAP_S = 0.010          # the IMU-gap rule's gap (METHODOLOGY "RULE — IMU gaps and the replay estimators")
 AIRBORNE_DZ = 0.30     # "left the ground": range above the initial range by more than this (m)
@@ -33,7 +33,7 @@ FLOW_TIMEOUT_S = 5.0   # EKF3's relative-aiding timeout (flowFusionTimeout, AP_N
 
 class FgoNodeCore:
     def __init__(self, window=0.25, lm_iters=2, fwd_sigma=None, fwd_gate=9.0, horizon_s=0.10,
-                 dejitter="causal", gap="causal"):
+                 dejitter="causal", gap="causal", t_arm=None):
         self.window, self.lm_iters, self.fwd_sigma, self.fwd_gate = window, lm_iters, fwd_sigma, fwd_gate
         self.horizon_s, self.dejitter, self.gap = horizon_s, dejitter, gap
         self._q, self._seq, self._newest = [], itertools.count(), -np.inf
@@ -50,6 +50,9 @@ class FgoNodeCore:
         self.step_ns = []                      # per-keyframe processing time
         self.lag = []                          # (event stamp, wall-clock seconds from push to processing) for keyframes
         self.reinits = 0
+        # ground-proximity flow rule (ruling D15), identical to fgo_replay / the UKF. t_arm: the arming time on the
+        # bag clock (offline: imu_gaps.json; live: set by the node from the vehicle's arm state)
+        self.gp = GroundProximityFlow(t_arm)
         self._reset_filter()
 
     # ---------------- inputs (arrival order) ----------------
@@ -155,12 +158,14 @@ class FgoNodeCore:
             self.omega = d
         elif kind == "rng":
             self.rng_pend = d
+            self.gp.on_range(tt, d)
         elif kind == "flow":
             self.flow_pend = d
             self.flow_omega = self.gyro_avg.average(tt, self.omega)
         elif kind == "fwd":
             self.fwd_pend = (d[0], d[1], float(self.fwd_avg.average(tt, self.omega)[2]))
         elif kind == "imu":
+            self.gp.on_gyro(tt, d[1], self.fgo.prev_bias.gyroscope())
             self.gyro_avg.push(tt, d[1])
             self.fwd_avg.push(tt, d[1])
             if self.t_prev_imu is not None:
@@ -168,6 +173,10 @@ class FgoNodeCore:
             self.t_prev_imu = tt
             while tt >= self.t_kf_next:
                 t0 = time.perf_counter_ns()
+                if self.flow_pend is not None and self.flow_pend[1] and self.flow_pend[2] > 0.0:
+                    _rpy = self.fgo.prev_pose.rotation().rpy()
+                    self.flow_pend = (self.gp.replace(self.flow_pend[0], self.flow_omega - self.fgo.prev_bias.gyroscope(), _rpy[0], _rpy[1]),
+                                      self.flow_pend[1], self.flow_pend[2])
                 try:
                     self.fgo.keyframe(self.t_kf_next, flow=self.flow_pend, omega=self.flow_omega, rng=self.rng_pend, fwd=self.fwd_pend)
                 except Exception as e:

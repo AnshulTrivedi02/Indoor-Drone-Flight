@@ -212,3 +212,56 @@ def forward_events(trial, arm):
         if p is not None or w is not None:
             out.append((float(t[k]), "fwd", (p, w)))
     return out
+
+
+# ---------------------------------------------------------------------------------------------------------
+# GROUND-PROXIMITY FLOW RULE (ruling D15, 2026-09-30) - EKF3's own rule, used unchanged, shared by the UKF
+# and the FGO so every estimator handles flow near the floor identically (METHODOLOGY "Ruling D15").
+#   take-off detected (AP_NavEKF3_VehicleStatus.cpp:466-481): false while disarmed; once armed and > 1 s after
+#     arming, latches true at |gyro - bias| > 0.1 rad/s or range > range_at_arming + 0.1 m
+#   replacement (AP_NavEKF3_OptFlowFusion.cpp:45-51): while NOT take-off detected AND range*cos(tilt) < 0.5 m,
+#     the flow is replaced by a ZERO-TRANSLATION measurement: its predicted rotational part only
+#     (h_flow_pose's rotation terms: flow_x = +w_x, flow_y = -w_y, FLU), i.e. EKF3's flowRadXYcomp = 0.
+# ---------------------------------------------------------------------------------------------------------
+GP_HEIGHT_M, GP_ARM_GUARD_S, GP_GYRO_RADPS, GP_RANGE_RISE_M = 0.5, 1.0, 0.1, 0.1
+
+
+class GroundProximityFlow:
+    def __init__(self, t_arm):
+        """t_arm: arming time on the bag clock (imu_gaps.json arm_header_s); None -> never armed (no take-off)."""
+        self.t_arm = t_arm
+        self.takeoff = False
+        self.rng_at_arm = None      # EKF3's rngAtStartOfFlight: the last range while on ground
+        self.last_rng = None
+        self.n_replaced = 0
+
+    def armed(self, t):
+        return self.t_arm is not None and t >= self.t_arm
+
+    def on_range(self, t, rng):
+        if not (0.05 <= rng <= 40.0):
+            return
+        self.last_rng = rng
+        if not self.armed(t):
+            self.rng_at_arm = rng
+        elif (not self.takeoff and t - self.t_arm > GP_ARM_GUARD_S and self.rng_at_arm is not None
+              and rng > self.rng_at_arm + GP_RANGE_RISE_M):
+            self.takeoff = True
+
+    def on_gyro(self, t, gyro_rate, bias_rate):
+        if not self.armed(t):
+            self.takeoff = False
+            return
+        if not self.takeoff and t - self.t_arm > GP_ARM_GUARD_S:
+            if np.linalg.norm(np.asarray(gyro_rate, float) - np.asarray(bias_rate, float)) > GP_GYRO_RADPS:
+                self.takeoff = True
+
+    def replace(self, flow_xy, omega_flu, roll, pitch):
+        """Return the flow to fuse: the measured flow, or the zero-translation measurement before take-off
+        below 0.5 m (range * cos(tilt), as EKF3's rangefinder-based terrain height)."""
+        if self.takeoff or self.last_rng is None:
+            return flow_xy
+        if self.last_rng * np.cos(roll) * np.cos(pitch) >= GP_HEIGHT_M:
+            return flow_xy
+        self.n_replaced += 1
+        return np.array([+omega_flu[0], -omega_flu[1]])
