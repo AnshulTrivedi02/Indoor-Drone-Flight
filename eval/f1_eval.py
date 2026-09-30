@@ -15,7 +15,6 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(HERE, "..", "src", "estimators"))
 from cruise_window import cruise_bounds
 from measurement_models import forward_events, FWD_SIGMA, fwd_dataset
-from scipy.spatial.transform import Rotation as Rot
 TD = os.path.expanduser("~/thesis_data/trials")
 VARIANTS = ["huber:1.0", "huber:1.345", "huber:2.0", "huber:3.0", "cauchy:1.0", "cauchy:2.385", "cauchy:3.0"]
 tag_of = lambda v: "F1" + v.replace(":", "_").replace(".", "_")
@@ -24,7 +23,8 @@ wrap = lambda a: (a + np.pi) % (2 * np.pi) - np.pi
 
 def traj(tr, sub, est):
     d = np.loadtxt(f"{TD}/{tr}/{sub}/{est}_traj.tum")
-    return d[:, 0], d[:, 1], d[:, 2], np.unwrap(Rot.from_quat(d[:, 4:8]).as_euler("xyz")[:, 2])
+    qx, qy, qz, qw = d[:, 4], d[:, 5], d[:, 6], d[:, 7]
+    return d[:, 0], d[:, 1], d[:, 2], np.unwrap(np.arctan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy * qy + qz * qz)))
 
 
 def truth(tr):

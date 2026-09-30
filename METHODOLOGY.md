@@ -8277,3 +8277,23 @@ bags on position) and the UKF's lower yaw error on 5 of 6 textured bags.
   edge. **The result stands as worded: the half-speed UKF set is 2/3, a FAIL.**
 - Per the stop rule, the sequence stops here: no FGO gate or flight runs until ruled. Offline work
   continues (no simulator).
+
+### F1 calibration (calibration bags only, as pre-registered): **Cauchy, k = 2.385 chosen**
+
+`eval/results/f1_calibration.json`. Cruise yaw-error RMS on `p1c_fwdc_tex` / `p1c_fwdplainc_tex` (mean):
+
+| variant | RMS (fwdc / fwdplainc) | mean |
+|---|---|---|
+| Huber 1.0 | 0.190 / 1.743° | 0.967° |
+| Huber 1.345 | 0.197 / 26.2° | 13.2° |
+| Huber 2.0 | 0.207 / 16.9° | 8.55° |
+| Huber 3.0 | 0.217 / 66.1° | 33.2° |
+| Cauchy 1.0 | 0.155 / 1.758° | 0.957° |
+| **Cauchy 2.385** | **0.182 / 1.501°** | **0.842°** |
+| Cauchy 3.0 | 0.187 / 1.614° | 0.900° |
+
+- By the rule (minimum mean; a tie within 0.01° goes to the smaller k, then Huber), **Cauchy k = 2.385**
+  is chosen, with no tie.
+- **Observation:** on plain walls every Huber variant except k = 1.0 diverged (16–66° RMS). Huber's
+  linear tail still pulls the estimate towards persistent wrong headings; the redescending Cauchy
+  does not.
