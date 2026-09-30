@@ -71,7 +71,8 @@ fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd,
 fgo.batch_record = bool(FV["F_BATCH"])
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init,
          yaw0=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else 0.0),
-         yaw_sigma=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else None))
+         yaw_sigma=(np.radians(float(FV["F_YAW0_SIGMA_DEG"] or FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else None))
+fgo.no_yawcap = bool(FV["F_NO_YAWCAP"])   # F3b: yaw-cap prior off
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 
 # run: integrate every IMU sample; create a keyframe on the fixed IMU-clock cadence

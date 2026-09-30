@@ -85,7 +85,7 @@ acc_lvl = [d[0] for t, k, d in ev if k == "imu" and t <= t_imu0 + 0.5]
 first_rng = next(d for t, k, d in ev if k == "rng" and p['RNG_MIN'] <= d <= p['RNG_MAX'])
 x, P = U.init_state(np.mean(acc_lvl, axis=0), first_rng, dt=DT_STEP)
 if FV["F_YAW0_DEG"]:                               # F3: initial yaw offset, sigma = the offset
-    x[8] += np.radians(float(FV["F_YAW0_DEG"])); P[8, 8] = np.radians(float(FV["F_YAW0_DEG"])) ** 2
+    x[8] += np.radians(float(FV["F_YAW0_DEG"])); P[8, 8] = np.radians(float(FV["F_YAW0_SIGMA_DEG"] or FV["F_YAW0_DEG"])) ** 2
 t_init = t_imu0 + 0.5
 print(f"[init] t={t_init:.2f}s  roll0={math.degrees(x[6]):+.2f} pitch0={math.degrees(x[7]):+.2f} deg  "
       f"p_U0={x[2]:.3f} m (range {first_rng:.3f})")
@@ -137,7 +137,7 @@ for t, kind, d in ev:
                 dump_x.append(np.r_[t, x, np.diag(P)])
             if t - t_yaw >= p['YAW_DT']:              # check opportunity ~7 Hz (EKF3's 140 ms)
                 att_tr.append((P[6, 6] + P[7, 7], P[8, 8]))  # (tilt, yaw) cov at each check
-                x, P, fired = U.update_yaw_pseudo(x, P, p)   # variance-gated fire (MagFusion.cpp:274)
+                x, P, fired = (x, P, False) if FV["F_NO_YAWCAP"] else U.update_yaw_pseudo(x, P, p)   # variance-gated fire (MagFusion.cpp:274); F3b: off
                 n_yaw_check += 1; n_yaw_fire += fired
                 t_yaw = t
             traj.append((t, x[0], x[1], x[2], x[6], x[7], x[8], x[U.BG_SLICE.start+2]))

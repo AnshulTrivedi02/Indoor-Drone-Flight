@@ -133,7 +133,8 @@ class FGO:
         # §9.4 yaw cap: anchor to THIS keyframe's IMU-predicted yaw -> zero innovation
         # (matches EKF3 fuseEulerYaw(PREDICTED), MagFusion.cpp:1062-1064/:970), bounding
         # the yaw marginal without injecting absolute heading.
-        g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
+        if not getattr(self, "no_yawcap", False):          # F3b (offline) only: off
+            g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
         if rng is not None and 0.05 <= rng <= 40.0:
             g.add(F.range_factor(self.range_noise, X(k), rng)); self.n_range += 1
         if flow is not None:

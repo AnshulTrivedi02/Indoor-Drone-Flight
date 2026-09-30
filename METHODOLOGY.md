@@ -8481,3 +8481,34 @@ From `eval/results/f1_test.json` (FGO hard = the Phase 4 heading arm):
 - **The larger worst-case yaw of the robust FGO against the UKF (F1) is therefore not caused by the
   weighting.** The hard-gated FGO's worst case is larger still, so it is an estimator difference
   (FGO against UKF), not a weighting effect.
+
+### PRE-REGISTRATION — F3b: the nonlinearity test, properly designed (offline, bounded; written before running)
+
+- **Bags:** `fwdc_tex_r1..r3`. **Arms:** the UKF and FGO heading arms. EKF3 is excluded as in F3 (it
+  resets yaw to the first ExtNav heading).
+- **Injection:** yaw initialised δ ∈ {10, 30, 60, 90}° off truth, with **the same consistent initial
+  yaw σ = 90° for every δ** (stated), so no δ is outside the prior. Headings are available from cruise
+  start, as in F3.
+- **The yaw-uncertainty shrink found in F3 is removed identically for both estimators:**
+  - the FGO's per-keyframe zero-innovation yaw-cap prior (§9.4) is disabled;
+  - the UKF's variance-gated zero-innovation pseudo-yaw is disabled.
+  Both are "yaw uncertainty bounding without information" mechanisms (EKF3's synthetic yaw, matched in
+  each estimator). With them off, the prior σ can only be reduced by real information (flow coupling,
+  headings).
+- **Measured and reported:** each estimator's predicted heading σ at the first headings (gate logs).
+  If it still shrinks (e.g. through the flow→yaw coupling), that is reported, and the gate may then
+  reject: that is the estimator's own behaviour, not the removed prior.
+  - The χ² gate stays as in the heading arm.
+- **Metrics from cruise start:**
+  - convergence time (first |yaw error| < 1° held for 5 s);
+  - peak |cross-track| over the cruise;
+  - integrated |cross-track| over the first 60 s.
+- **Decision rules:**
+  - (a) "FGO converges at least as fast" iff FGO convergence ≤ UKF convergence at every δ on ≥ 2 of
+    3 bags, where "never" counts as infinite;
+  - (b) "the FGO's advantage grows with the error" iff the FGO/UKF integrated-error ratio decreases
+    monotonically with δ on ≥ 2 of 3 bags.
+- **Prediction:** (a) and (b) both hold.
+- **Every outcome is reported.**
+- **Switches** (off by default; all other results unchanged): `F_YAW0_SIGMA_DEG` (the prior σ, separate
+  from the offset) and `F_NO_YAWCAP` (disables both yaw-bounding mechanisms).

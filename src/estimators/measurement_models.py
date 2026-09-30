@@ -281,12 +281,15 @@ class GroundProximityFlow:
 #   F_HDG_FROM_CRUISE  F3: forward-camera headings withheld before the pinned cruise start
 #   F_MASK "on/off"    F2: from cruise start, headings on `on` s, off `off` s, repeating (first interval on)
 #   F_ROBUST "huber:k" | "cauchy:k"   F1 (FGO only): robust heading noise model, chi-square gate removed
+#   F_YAW0_SIGMA_DEG   F3b: initial yaw sigma (deg), separate from the offset (default: sigma = the offset)
+#   F_NO_YAWCAP 1      F3b: disable the zero-innovation yaw-bounding mechanisms (FGO yaw-cap prior, UKF pseudo-yaw)
 #   F_BATCH 1          F2 (FGO only): also record every factor and solve ONE batch LM over the whole flight at the
 #                      end (initialised from the live estimates), written to fgo_batch_traj.tum
 # ---------------------------------------------------------------------------------------------------------
 def f_variant():
     import os as _o
-    v = {k: _o.environ.get(k) for k in ("F_TAG", "F_YAW0_DEG", "F_HDG_FROM_CRUISE", "F_MASK", "F_ROBUST", "F_BATCH")}
+    v = {k: _o.environ.get(k) for k in ("F_TAG", "F_YAW0_DEG", "F_HDG_FROM_CRUISE", "F_MASK", "F_ROBUST", "F_BATCH",
+                                         "F_YAW0_SIGMA_DEG", "F_NO_YAWCAP")}
     if any(v[k] for k in v if k != "F_TAG"):
         assert v["F_TAG"], "F_TAG is required with any F_* variant switch"
     return v
