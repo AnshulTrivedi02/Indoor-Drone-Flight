@@ -1,0 +1,15 @@
+[
+ {
+  "trial": "fgo_shadow_half_a (live XFGO)",
+  "cruise": [
+   30.135363,
+   331.03537
+  ],
+  "yaw_err_at_takeoff_deg": 0.3045930113288704,
+  "yaw_err_at_cruise_start_deg": 0.34262358969483947,
+  "east_err_at_cruise_start_m": -0.0061176114128572,
+  "contact_s": 169.384785,
+  "wall": "west",
+  "east_err_end_m": 42.162811279296875
+ }
+]

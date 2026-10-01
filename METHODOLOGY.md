@@ -8965,3 +8965,99 @@ The tracker is not changed (D22 ruling).
 - **Every outcome is reported.** If the UKF again breaks down numerically, i.e. its predicted σ at the first headings
   exceeds the prior or the cross-track is > 100 m, it is reported as such, and the comparison is called degenerate
   as in F3b.
+
+### FGO closed-loop PREDICTIONS (written before any FGO flight; the flights remain blocked by D25)
+
+**1. No-heading flight `cl_fgo_a_tex_half`: contact time and wall (D21: from half-speed data only).**
+- **Method:** the validated open-loop East-error method (the time at which the estimator's East error against truth,
+  from the spawn origin, reaches 9.58 m).
+  - Offline FGO (window 0.25 s, LM 2, no heading) on **every half-speed bag** (`batches/fgo_half_pred.jobs`;
+    `eval/results/fgo_contact_prediction_half.json`).
+  - The live current-time output `XFGO` of the FGO shadow `fgo_shadow_half_a` (`eval/fgo_contact_prediction_live.py`;
+    `eval/results/fgo_contact_prediction_live_shadow.json`).
+
+| realisation | contact | wall |
+|---|---|---|
+| `cl_a_tex_half` | +169.9 s | west |
+| `cl_bcpp_tex_r1_half` | +170.8 | west |
+| `cl_bcpp_tex_r2_half` | +160.1 | west |
+| `cl_bcpp_tex_r3_half` | +167.0 | west |
+| `cl_ukf_a_tex_half` | +165.9 | west |
+| `cl_ukf_b_tex_r1_half` | +169.6 | west |
+| `cl_ukf_b_tex_r2_half` | +168.5 | west |
+| `cl_ukf_b_tex_r3_half` | +170.0 | west |
+| `fgo_shadow_half_a` (offline) | +169.7 | west |
+| **`fgo_shadow_half_a` live `XFGO`** | **+169.4** | west |
+
+- 10 of 10 give the west wall, at +160.1 … +170.8 s. The heading error at take-off in the live shadow is +0.30°,
+  and +0.34° at cruise start.
+- **PRIMARY criteria, as the UKF's** (U1 and U2 unchanged; U3 window by the same rule: cluster −15 / +25 s):
+  - **U3: west-wall contact inside [+145, +196] s.**
+  - U2: no contact before +100 s.
+  - U1: armed, took off, entered cruise; no failsafe after arming; no loss of control before contact.
+  - S1/S2 as before.
+- **CAVEAT, stated before the flight: the method has NOT been validated at half speed, and its one half-speed check
+  misses.**
+  - EKF3's own open-loop East error in the truth-flown `fgo_shadow_half_a` (`XKF1`) predicts **+187.3 s, west**.
+    EKF3's half-speed closed-loop flight `cl_a_tex_half` reached the wall at **+242.1 s**, 55 s later.
+  - At full speed the same method matched: +187 predicted against +186.2 flown.
+  - The UKF's half-speed flight (+198.0) also came later than its full-speed-derived cluster (+161 … +193).
+  - So at half speed, closed loop appears to reach the wall later than open loop predicts. That is n = 1 per
+    estimator, and the mechanism is untested (D21).
+  - **A U3 miss on the late side would be consistent with this and is not, by itself, evidence about the FGO.**
+    The window is NOT widened for it: the rule is applied unchanged.
+  - Not inferred: the offline FGO's half-speed contact (+169.6 median) is about the same as its full-speed `dsn_tex`
+    contact (+168 … +171). Unlike EKF3/UKF in closed loop, this open-loop figure shows no speed effect.
+
+**2. Climb-top response (D23; all flights).**
+- **The input.** The same short-LiDAR burst occurs at the climb-to-cruise pitch-forward in every flight. Nothing
+  rejects it for any estimator (the source check above).
+- **The FGO's open-loop response is the largest of the three.** In `fgo_shadow_half_a` its output height dipped
+  **0.75 m**, against EKF3's 0.24 m on the same burst.
+- **In closed loop the true overshoot ≈ the flying estimator's output dip** (ratio 0.94–1.11, 8 flights). EKF3's
+  closed-loop dips (0.44–1.71 m) were 1.8–7× its open-loop dip, because the burst can lengthen in closed loop
+  (up to 27 samples).
+- **Prediction:**
+  - FGO true climb-top overshoot **≥ +0.75 m**, most likely +0.9 … +1.5 m, so a true peak of ~3.1–3.8 m. Up to
+    ~+2 m (peak ~4.4 m) if the burst self-feeds as in `cl_bcpp_tex_r2_half`.
+  - The peak comes 1.5–3 s after the burst, with recovery to cruise height within ~5 s.
+  - **Larger than EKF3's and the UKF's typical +0.2 … +0.5 m.**
+  - No failsafe, no loss of control.
+  - `XFGO.OV` stays 1, since the node keeps sending through the transient.
+  - The ceiling (visual-only, 5 m) cannot be touched physically.
+  - **Descriptive; not a primary criterion.** It is stated with every FGO closed-loop result.
+
+**3. With-heading B2/B3 point predictions:** these come from `fgo_shadow_half_b`, which has not been flown (blocked
+by D25). They will be written before the with-heading flights.
+
+### F3c RESULT (`eval/results/f3c_test.json`): (a) FALSE as worded, (b) TRUE as worded; both estimators remove a 10° or 30° offset at the first heading, and the differences are at the sample resolution
+
+| bag | δ | UKF convergence | FGO convergence | UKF peak / ∫60 s cross-track | FGO peak / ∫60 s | FGO/UKF ∫ ratio |
+|---|---|---|---|---|---|---|
+| r1 | 10° | 0.011 s | 0.006 s | 1.87 m / 3.2 m·s | 0.09 / 0.4 | 0.114 |
+| r1 | 30° | 0.011 | 0.006 | 1.86 / 2.8 | 0.09 / 0.3 | 0.095 |
+| r2 | 10° | 0.033 | 0.057 | 1.51 / 17.2 | 0.37 / 21.1 | 1.23 |
+| r2 | 30° | 0.033 | 0.057 | 1.47 / 19.9 | 0.37 / 21.2 | 1.06 |
+| r3 | 10° | 0.025 | 0.032 | 1.90 / 4.5 | 0.10 / 0.2 | 0.054 |
+| r3 | 30° | 0.025 | 0.032 | 1.90 / 4.1 | 0.10 / 0.2 | 0.045 |
+
+- **The offset was injected as designed.** The yaw error stays at +9.8/+29.8° until cruise start in both
+  estimators (checked on r1). It falls to < 0.1° within 0.5 s of the first heading. No numerical breakdown
+  occurred: the UKF's predicted heading σ at the first headings was 0.17°, the FGO's 0.50°. Acceptance was 36–40/40.
+- **(a) FALSE as worded.** The FGO converged first on r1 only: 6 against 11 ms. On r2 (57 against 33 ms) and on
+  r3 (32 against 25 ms) the UKF was first.
+  - **The differences (5–24 ms) are below one keyframe (33 ms)** and far below the heading period (~133 ms).
+    Both estimators converge at the first heading update. This is not a speed difference either way.
+- **(b) TRUE as worded.** The ratio at 30° is below that at 10° on 3/3 bags.
+  - But **the cross-track metrics barely depend on δ for either estimator.** For example, the UKF's peak is
+    1.87 against 1.86 m on r1, and its integral even falls from 3.2 to 2.8. So the cross-track is set by something
+    other than the yaw offset, i.e. the UKF's heading-independent lateral drift (the exploratory pattern). The
+    "growth" with δ is tiny and not evidence of a convergence advantage.
+- **Reading:** within the UKF's valid range (σ 30°), a 10° or 30° initial heading error is removed at once by both
+  estimators. F3/F3b/F3c together show:
+  - the FGO's advantage in F3b was the UKF's representation limit at 90° (ruled);
+  - in its valid range there is no convergence-speed difference at this test's resolution.
+  - The user's prediction ((a) and (b)) is not supported as a convergence result.
+- Timing note: the FGO heading replays in this batch took ~40–120 min each, against ~5–10 min in F3b, because the
+  batch ran concurrently with the 8 half-speed FGO replays (thread oversubscription). The results do not depend on
+  wall time.
