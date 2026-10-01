@@ -20,6 +20,7 @@ from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_node_core import FgoNodeCore
 ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--no-heading", action="store_true")
 ap.add_argument("--out", default="fgo_core")
+ap.add_argument("--robust", default="", help="plan step 2(b): e.g. cauchy:2.385 (gate removed), as the node")
 ap.add_argument("--save-npz", action="store_true", help="also save the heading gate log (fwd_log) and traj (D26)"); a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); OUT = f"{D}/{a.out}"; os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -59,7 +60,8 @@ if not a.no_heading:
         ev.append((float(row["t_sim_sent"]), tc, "fwd", (-float(row["yaw_ap_rad"]), None)))
 ev.sort(key=lambda e: e[0])           # receipt order (stable: bag order kept for equal receipt times)
 core = FgoNodeCore(window=0.25, lm_iters=2, fwd_sigma=(None if a.no_heading else {"psi": math.radians(5.0), "omega": None}),
-                   fwd_gate=9.0, horizon_s=0.10, dejitter="causal", gap="causal")
+                   fwd_gate=(float("inf") if a.robust else 9.0), horizon_s=0.10, dejitter="causal", gap="causal",
+                   fwd_robust=(a.robust or None))
 for _, h, k, p in ev:
     core.push(h, k, p)
 core.flush()

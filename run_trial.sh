@@ -356,7 +356,8 @@ if [ -n "${FGO_NODE:-}" ]; then
         env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
         "$HOME/venv-fgo/bin/python" "$HOME/thesis_ws/src/estimators/fgo/fgo_node.py" \
         --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats.npz" -p mavlink_out:=udp:127.0.0.1:14558 \
-        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)"
+        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)" \
+        ${FGO_HEADING_ROBUST:+-p heading_robust:=$FGO_HEADING_ROBUST}
     FGO_PID="${BG_PIDS[-1]}"
     wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 fi
@@ -464,6 +465,7 @@ ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${FGO_NODE:-}" ] && echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz" >> "$OUTPUT_DIR/metadata.yaml"
+[ -n "${FGO_HEADING_ROBUST:-}" ] && echo "fgo_heading_robust: ${FGO_HEADING_ROBUST}  # plan step 2(b)" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${LOOPBACK_ONLY:-}" ] && echo "loopback_only: true  # GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"
 if [ -n "${HEADING_BRIDGE:-}" ]; then

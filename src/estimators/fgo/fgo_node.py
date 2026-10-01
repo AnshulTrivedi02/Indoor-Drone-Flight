@@ -76,6 +76,9 @@ class FgoNode(Node):
         # sigma = max(angErr, 5 deg); >= 20 ms apart (extNavIntervalMin_ms); chi-square gate 9 (3 sigma).
         # Fused at its capture stamp (the FGO's factor-graph design; EKF3/UKF use TS - VISO_DELAY_MS).
         self.declare_parameter("heading", False)
+        # Plan step 2(b) (PRE-REGISTERED): robust heading weighting, e.g. "cauchy:2.385" (F1's calibration); the chi-square
+        # gate is then removed, exactly as fgo_replay.py's F1 arm. Default "" = the hard-gated FGO, unchanged.
+        self.declare_parameter("heading_robust", "")
         self._toff = deque()                                 # (t_header, t_header - t_sitl) over the last 10 s
         self._tref_t0 = None; self._toff_early = []          # D25: settle reference and start-up diagnostics
         self._n_unsettled = self._n_outl_max = self._n_maps_with_outliers = 0
@@ -102,7 +105,8 @@ class FgoNode(Node):
         self._proc = ctx.Process(target=_core_proc, args=(self._to_core, self._from_core,
                                  dict(window=float(self.get_parameter("window_s").value), lm_iters=int(self.get_parameter("lm_iters").value),
                                       fwd_sigma=({"psi": math.radians(5.0), "omega": None} if self.get_parameter("heading").value else None),
-                                      fwd_gate=9.0,
+                                      fwd_gate=(float("inf") if self.get_parameter("heading_robust").value else 9.0),
+                                      fwd_robust=(self.get_parameter("heading_robust").value or None),
                                       horizon_s=float(self.get_parameter("horizon_s").value), dejitter="causal", gap="causal"),
                                  self.get_parameter("stats_path").value), daemon=True)
         self._proc.start()

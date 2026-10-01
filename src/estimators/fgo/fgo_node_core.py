@@ -33,8 +33,9 @@ FLOW_TIMEOUT_S = 5.0   # EKF3's relative-aiding timeout (flowFusionTimeout, AP_N
 
 class FgoNodeCore:
     def __init__(self, window=0.25, lm_iters=2, fwd_sigma=None, fwd_gate=9.0, horizon_s=0.10,
-                 dejitter="causal", gap="causal", t_arm=None):
+                 dejitter="causal", gap="causal", t_arm=None, fwd_robust=None):
         self.window, self.lm_iters, self.fwd_sigma, self.fwd_gate = window, lm_iters, fwd_sigma, fwd_gate
+        self.fwd_robust = fwd_robust          # plan step 2(b): e.g. "cauchy:2.385" (the caller sets fwd_gate = inf), as fgo_replay F1
         self.horizon_s, self.dejitter, self.gap = horizon_s, dejitter, gap
         self._q, self._seq, self._newest = [], itertools.count(), -np.inf
         # running dejitter fit (index -> stamp)
@@ -128,7 +129,7 @@ class FgoNodeCore:
             return False
         self.t_init = self._t_imu0 + 0.5
         self.fgo = FGO(window=self.window, kf_dt=1.0 / 30.0, lm_maxiter=self.lm_iters, fwd_sigma=self.fwd_sigma,
-                       fwd_gate=self.fwd_gate, log_cov=bool(os.environ.get("FGO_COV_LOG")))
+                       fwd_gate=self.fwd_gate, fwd_robust=self.fwd_robust, log_cov=bool(os.environ.get("FGO_COV_LOG")))
         self.fgo.init(np.mean(self._acc_lvl, axis=0), self._first_rng, self.t_init)
         self.gyro_avg = FlowFrameGyroAverager(self.t_init)
         self.fwd_avg = FlowFrameGyroAverager(self.t_init)
