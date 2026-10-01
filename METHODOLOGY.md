@@ -9688,3 +9688,92 @@ sufficient):**
   long-wrong CURRENT rows, "UKF predict dt 0.0125 s" and "NSE scale factor exactly 1", are corrected.
 - The supervisor figures, regenerated: fig3, fig4, fig5, fig7 and fig8 values and captions; fig7's last column is
   labelled "+ D27" for the UKF.
+
+### PRE-REGISTRATION — plan step 2: robust-weighting confirmation (written in full before any flight; starts from exact noise parity, D27)
+
+**The question.** Does robust heading weighting (F1's Cauchy kernel, fixed by the `p1c_*` calibration at
+`cauchy:2.385`, no χ² gate) make the FGO handle bad headings better than the hard-gated FGO, (a) on fresh open-loop
+data and (b) in closed loop?
+
+#### 2(a) Fresh open-loop flights (not previously seen)
+
+**Flights:**
+- `batches/f4_robust.conf`, flown with `run_resumable_batch.sh`. The protocol is the ceiling datasets' (truth flies,
+  `gnss_denied_nomag.parm` + `sim_noise.parm`, forward camera recorded, 0.5 m/s, 2.0 m, 300 s cruise, full speed),
+  interleaved by world:
+  - **plain walls over the checkerboard floor:** `corridor_textured_fwdplainc` → `f4_fwdplainc_tex_r1..r6`;
+  - **textured walls, end-wall region:** `corridor_textured_fwdc` → `f4_fwdc_tex_r1..r6`.
+- **n = 6 per world (12 flights).**
+  - Basis: F1's robust-vs-hard effect was 5 of 6 bags on yaw maximum.
+  - With a true rate of 0.83, P(≥ 10 of 12) ≈ 0.65; with a null rate of 0.5, P(≥ 10 of 12) = 0.019 (one-sided sign
+    test).
+  - ~12 × 7 min of flying, plus the measurement pipeline and replays: one evening.
+
+**Pipeline, unchanged from F1:**
+- The Phase 3 forward measurements (`fwd_measure.py` → `fwd_meas/`).
+- The IMU-gap rule.
+- **Arms**, on identical headings (σ 0.148° fwdc / 0.126° fwdplainc, from `FWD_SIGMA`):
+  - UKF hard-gated: `ukf_replay.py <t> heading`, D27 noise;
+  - FGO hard-gated: `fgo_replay.py <t> 0.25 2 heading`;
+  - FGO robust: `F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 … fgo_replay.py <t> 0.25 2 heading`.
+- **Evaluator:** `eval/f4_eval.py`. It is `f1_eval.py test cauchy:2.385` with the trial list as an argument (new
+  file; F1's definitions unchanged).
+- **Metrics, as F1:**
+  - yaw-error RMS and maximum;
+  - maximum cross-track;
+  - wrong headings accepted;
+  - correct headings rejected (for the robust arm, weight < 0.5);
+  - lockout episodes.
+- **Regions, as F1:** plain walls, the whole cruise; textured walls, y > 140 m.
+
+**Decision rules (one-sided; flights counted across both worlds unless stated):**
+- **P1 (PRIMARY):** the robust FGO's **yaw maximum** < the hard-gated FGO's on **≥ 10 of 12** flights.
+  - Basis: F1 5/6.
+  - Sign-test p = 0.019 at 10/12.
+- **S1 (secondary):** on the plain-wall flights, the robust FGO accepts **fewer wrong headings** than the hard-gated
+  FGO on **≥ 5 of 6**.
+  - Basis: F1 3/3 (21–28 against 61–72).
+  - Sign-test p = 0.11 at 5/6, stated as weak.
+- **S2 (secondary):** the robust FGO's **maximum cross-track** ≤ the hard-gated FGO's on **≥ 8 of 12**.
+  - Basis: F1 4/6 including ties on the end wall.
+- **Reported, no decision:** robust FGO against the UKF on every metric. F1's UKF-lower-yaw-max (6/6) is the known
+  prior.
+- **Prediction:** P1 and S1 hold; S2 is uncertain.
+- **Every outcome is reported.** A P1 miss is a failure of the confirmation as worded.
+
+#### 2(b) Closed-loop robust-FGO with-heading set (×3, half speed)
+
+**Node change (only after 2(a)'s flights are flown, so the edit guard and the no-edit rule are respected):**
+- `fgo_node.py` gains a parameter `heading_robust` (default `""`, unchanged behaviour). When set, the core gets
+  `fwd_robust="cauchy:2.385"` and `fwd_gate = inf`, exactly as `fgo_replay.py`'s F1 arm.
+- `run_trial.sh` passes it through via `FGO_HEADING_ROBUST`.
+- **Regression:** `eval/fgo_core_replay.py` on `fgo_shadow_half_b` with the default must reproduce
+  `fgo_shadow_half_b/fgo/fgo_traj.tum` exactly.
+
+**Gates before flying:**
+- Shadow `fgo_shadow_half_b_robust`: heading, truth flies, the same command form as `fgo_shadow_half_b`, plus the
+  parameter.
+- D25 C1–C3 and FG1–FG3b, with FG1 against `eval/fgo_core_replay.py --robust`. As shadow (b), FG3 is expected to fail
+  at the climb top only.
+
+**Flights:**
+- `cl_fgo_b_robust_tex_r1..r3_half`, exactly as `cl_fgo_b_tex_*_half` except the parameter.
+- **B1–B5 and S2 as the hard-gated set** (`closed_loop_score.py --set b --est fgo`). Stop rule unchanged.
+
+**Descriptive comparison with the hard-gated FGO set (2/3), no decision:**
+- B3 yaw error beyond y = 140 m (p95 / max);
+- B5 gyro rms;
+- the FGO yaw-error range over the end-wall degradation (as D26: 300–323 s);
+- the D26 jitter and coupling metrics (`eval/d26_jitter_control.py`).
+
+**Prediction (user's, pre-registered):** lower end-wall yaw swings and lower gyro activity than the hard-gated FGO.
+
+**Basis note, stated before flying (arithmetic, not a test):**
+- In closed loop the heading σ is 5° (D17), not the offline 0.148°. The kernel threshold is fixed in whitened units
+  (k = 2.385), so it acts at 2.385 × 5° ≈ 12°.
+- Cauchy weights: an 11.6° end-wall outlier (the largest in `cl_fgo_b_tex_r3_half`) gets **w ≈ 0.51**; a 3.9° one
+  w ≈ 0.87; camera-noise-level 0.45° innovations w ≈ 1.00.
+- **The arithmetic therefore supports lower end-wall swings** (the largest roughly halved). **It does not by itself
+  support lower cruise gyro activity:** that is driven by the camera-noise-level jitter (D26), which the kernel leaves
+  essentially unweighted.
+- If cruise gyro activity is not lower, that part of the prediction misses, and it is reported as such.
