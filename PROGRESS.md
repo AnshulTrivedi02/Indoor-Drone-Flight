@@ -1332,3 +1332,13 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
   climb-top overshoot >= +0.75 m.
 - F3c: (a) false, (b) true as worded; both remove 10/30° at the first heading, so no speed difference at resolution.
 - Rulings recorded: F3b representation limit, pattern, D22 validity note.
+
+## 2026-10-01 (late afternoon)
+- D25 ruled and done: node clock map settles 10 s and rejects outliers. Mechanism confirmed in `fgo_shadow_half_a2`
+  (40 stale-clock time_ref samples at -126 ms, rejected). a2 itself was a launch error (EKF3 flew). `fgo_shadow_half_a3`:
+  C1-C3 pass; FG1/FG2/FG3b pass; FG3 climb-top only.
+- Edit guard narrowed to the job runners and their descendants.
+- Shadow (b), with heading: all gates except the FG3 climb-top pass. FGO open-loop cross-track 0.075 m.
+- **FGO no-heading flight `cl_fgo_a_tex_half`: PRIMARY PASS** (west +165.8 s in [+145, +196]; climb top +0.94 m).
+- **FGO with-heading set: 2/3.** r3 fails B5 (pitch 0.023) at the end-wall heading degradation. Stopped; **D26 open**.
+- Next: D26 ruling; then the plan to the 16 Oct simulation freeze.
