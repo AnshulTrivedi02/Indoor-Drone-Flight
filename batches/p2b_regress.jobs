@@ -1,0 +1,2 @@
+# Plan step 2(b) regression: node core default must reproduce fgo_shadow_half_b/fgo/fgo_traj.tum exactly
+reg__fgo_shadow_half_b cd /home/makerspace/thesis_ws && nice -n 10 /home/makerspace/venv-fgo/bin/python eval/fgo_core_replay.py fgo_shadow_half_b --out fgo_regress2b

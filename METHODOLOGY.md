@@ -9857,3 +9857,28 @@ noise for the UKF.
   both FGO arms.
 - The UKF's lower worst-case yaw comes with frequent lockouts and much larger cross-track (1.3–7.2 m on plain walls).
 - Plan step 2(b) proceeds as pre-registered (not gated on 2(a)).
+
+### Plan step 2(b) gates: regression byte-identical; robust shadow `fgo_shadow_half_b_robust` passes D25 C1–C3, FG1, FG2, FG3b; FG3 fails as worded at the climb top only (as pre-registered)
+
+- **Node change** (commit `0d6aace`): the `heading_robust` parameter, passed by `run_trial.sh` only when
+  `FGO_HEADING_ROBUST` is set.
+  - **Regression: byte-identical.** `fgo_core_replay.py fgo_shadow_half_b` with the default reproduces
+    `fgo/fgo_traj.tum` exactly (`cmp`).
+- **Robust shadow** (truth flies; heading; `FGO_HEADING_ROBUST=cauchy:2.385`, confirmed in the node's arguments and in
+  the trial metadata). Binary md5 `fa440748…`.
+  - **D25 C1–C3: PASS** (`eval/results/d25_shadow_b_robust.json`).
+  - **FG1: PASS** against `fgo_core_replay.py --robust cauchy:2.385`.
+    - evo -a (cruise): received 0.0388 m against offline 0.0418 m.
+    - Yaw p95 0.022°, max 0.19°.
+    - 0 late. Count 9,853 against 9,996 after settling.
+    - Core replay: 2,395 of 2,395 headings fused.
+  - **FG2: PASS** (100%). **FG3b: PASS** (age max 167 ms).
+  - **FG3: fails as worded at the climb top only.**
+    - Position max 0.47 m and velocity max 3.94 m/s (the proxy).
+    - **Yaw max 0.85°**: 3 samples at 29.98–30.06 s, the climb-to-cruise LiDAR burst (D23).
+    - Outside 28.5–33 s, the yaw max is 0.36° (≤ 0.5°) and p95 0.069°.
+    - The hard-gated shadow's FG3 yaw passed (max 0.36°). The robust FGO's state revises yaw more at the climb top.
+      Stated, not a new failure mode.
+- **Open-loop with heading, this run:** evo -a (cruise) 0.039 m, against the hard-gated shadow's 0.092 m. These are
+  different flights, so this is descriptive only.
+- **The closed-loop robust set proceeds** (no primary gate failure).

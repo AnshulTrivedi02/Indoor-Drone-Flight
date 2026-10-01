@@ -1,0 +1,2 @@
+# Plan step 2(b): FG1 reference for the robust shadow (node core, --robust cauchy:2.385, bridge CSV headings)
+fgocore__fgo_shadow_half_b_robust cd /home/makerspace/thesis_ws && nice -n 10 /home/makerspace/venv-fgo/bin/python eval/fgo_core_replay.py fgo_shadow_half_b_robust --out fgo --robust cauchy:2.385

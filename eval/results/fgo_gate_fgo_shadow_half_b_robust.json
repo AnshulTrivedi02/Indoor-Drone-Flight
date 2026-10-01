@@ -1,0 +1,61 @@
+{
+ "trial": "fgo_shadow_half_b_robust",
+ "n_XFGI": 9853,
+ "arm_s": 24.339358,
+ "disarm_s": 345.91737,
+ "FG2": {
+  "OV_pct_arm_to_disarm": 100.0,
+  "pass": true
+ },
+ "FG3b": {
+  "age_ms_max": 167.0,
+  "age_ms_p95": 152.0,
+  "age_ms_median": 136.0,
+  "pass": true
+ },
+ "FG3": {
+  "span_s": [
+   28.519919,
+   343.01937
+  ],
+  "n": 7862,
+  "position_m": {
+   "p95": 0.003027998936380247,
+   "max": 0.4714050085343033,
+   "median": 0.0013627027693030175
+  },
+  "velocity_mps": {
+   "p95": 0.03269448709824013,
+   "max": 3.9361017103542624,
+   "median": 0.01140197060052885
+  },
+  "yaw_deg": {
+   "p95": 0.06921533906593139,
+   "max": 0.8470183213055122,
+   "median": 0.013974575081334706
+  },
+  "pass": {
+   "position": false,
+   "velocity": false,
+   "yaw": false
+  }
+ },
+ "FG1": {
+  "node_keyframes": 10277,
+  "sitl_to_bag_offset_s": 0.05000000000000049,
+  "late_max": 0,
+  "count_received": 9853,
+  "count_match_total_keyframes": false,
+  "node_keyframes_unsettled": 281,
+  "count_match_after_settle": true,
+  "evo_a_received": 0.038778,
+  "evo_a_offline": 0.041776,
+  "evo_diff": -0.0029980000000000007,
+  "yaw_diff_deg": {
+   "p95": 0.021971856467797587,
+   "max": 0.19358939981455592
+  },
+  "pass": true
+ },
+ "PASS": false
+}
