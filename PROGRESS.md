@@ -1342,3 +1342,13 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 - **FGO no-heading flight `cl_fgo_a_tex_half`: PRIMARY PASS** (west +165.8 s in [+145, +196]; climb top +0.94 m).
 - **FGO with-heading set: 2/3.** r3 fails B5 (pitch 0.023) at the end-wall heading degradation. Stopped; **D26 open**.
 - Next: D26 ruling; then the plan to the 16 Oct simulation freeze.
+
+## 2026-10-01 (evening)
+- D26 ruled: the FGO with-heading set is recorded failed as worded (2/3).
+- D26 (b), exploratory diagnosis:
+  - degraded-but-valid end-wall headings (up to 11.6°) are accepted by all three estimators;
+  - the FGO weights each heading ~5.5× more (gate σ 2.17° against the UKF's 0.86°);
+  - its fast jitter (~5× theirs, intrinsic) couples into vehicle yaw motion in closed loop (corr +0.68 … +0.74).
+- Recorded: climb-top miss (0/1/3 short returns), B3 max, heading timing closed as negligible.
+- Three-way closed-loop summary table in METHODOLOGY.
+- No open decisions. Next: plan to the 16 Oct simulation freeze.
