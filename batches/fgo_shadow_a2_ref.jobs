@@ -1,0 +1,2 @@
+# FG1 reference for the D25 confirming shadow (as fgo_shadow_half_a)
+fgo__fgo_shadow_half_a2 cd ~/thesis_ws && nice -n 10 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fgo_shadow_half_a2 0.25 2

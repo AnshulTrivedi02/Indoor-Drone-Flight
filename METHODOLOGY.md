@@ -9173,3 +9173,48 @@ That is an EKF3 design feature, not copied under the D18 principle.
 - **Reported, descriptive:** the start-up raw offsets, and whether a low outlier occurred, i.e. whether the
   mechanism is confirmed.
 - **Prediction:** C1–C3 pass; FG1, FG2 and FG3b pass; FG3 fails at the climb top only.
+
+### D25 confirming shadow, first attempt `fgo_shadow_half_a2`: EXECUTION ERROR (EKF3 flew, not truth); the D25 node behaviour is shown nonetheless; re-run as `fgo_shadow_half_a3`
+
+**The error (mine).**
+- I launched it with `FGO=shadow sim/tools/closed_loop_run.sh …`. That path adds `closedloop.parm`, so **EKF3 flew**
+  (`AHRS_EKF_TYPE 3` in the PARM dump).
+- `fgo_shadow_half_a` was launched with `run_trial.sh` directly: `FGO_NODE=1`, `EXTRA_PARM_FILES=fgo_shadow.parm`,
+  `AHRS_EKF_TYPE 10`, truth flies.
+- So a2 is **not "as `fgo_shadow_half_a`"** as pre-registered. EKF3, with no heading, drifted into the west wall at
+  211.56 s (cruise ≈ +181 s), and the watcher stopped the flight.
+- The FGO node and its in-ArduPilot validity logic ran exactly as they would have. The D25 criteria concern only
+  those, so a2 is reported as evidence, and the pre-registered run is repeated correctly.
+
+**D25 criteria on a2** (`eval/d25_shadow_check.py`, `eval/results/d25_shadow_a2.json`):
+- **C1: fails as worded.** `XFGO.OV` = 1 at every sample from the first state (17.14 s) up to the wall-contact stop.
+  There are 10 `OV` = 0 samples from 211.66 s, after contact, when the harness stopped the node before disarming.
+  None occurs before the stop.
+- **C2: PASS.** 0 negative-age samples.
+- **C3: PASS.** The first state arrived 10.02 s after the node's first `/imu/time_ref` (7.13 → 17.14 s), before
+  arming (24.11 s).
+  - **Checker bug, disclosed:** the first version used the state's own stamp `Tv`, which lags the settle instant by
+    the horizon plus the step (9.92 s), so it scored C3 as a fail. The pre-registered quantity is the arrival time.
+    Both are kept in the JSON.
+- **Mechanism CONFIRMED** by the new start-up diagnostics:
+  - **40** consecutive `/imu/time_ref` samples **all carry the same header stamp** (+2.518 s after the first one),
+    with offsets down to **−126 ms**: a stale sim clock in `imu_bridge` at start-up. The median is +4.1 ms.
+  - The new map rejected them: up to 39 outliers in one window, in 79 queries. The plain minimum would have stamped
+    states ~130 ms in the future for 10 s, as in `fgo_groundtest_half_b`.
+
+**Re-run `fgo_shadow_half_a3`, with the pre-registration unchanged (C1–C3, FG1–FG3, prediction).** The command is
+exactly `fgo_shadow_half_a`'s:
+`env FGO_NODE=1 LOOPBACK_ONLY=1 GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST ARDUPILOT_TREE=$HOME/ardupilot_ukf EXTRA_PARM_FILES=$HOME/thesis_ws/fgo_shadow.parm EXPECT_OVERRIDE=AHRS_FGO_ENABLE=1,SERIAL3_PROTOCOL=2 ./run_trial.sh --world corridor_textured_half_fwdc --velocity 0.5 --altitude 2.0 --duration 300 --trial-name fgo_shadow_half_a3`.
+It is checked by `AHRS_EKF_TYPE` = 10 in the PARM dump before scoring.
+
+**Declared before shadow (b), for its FG1:**
+- `fgo_replay.py`'s heading arm reads the offline forward measurements, not the heading values the node received. Those
+  are the bridge's sent ODOMETRY yaw, which is not recorded in the bag.
+- FG1 for shadow (b) therefore uses **`eval/fgo_core_replay.py`**: the node core fed as `fgo_node.py` feeds it.
+  - The same settings.
+  - Every bag message, including `/imu/time_ref`, in receipt order.
+  - The sent headings from `logs/heading_bridge.csv` (sent = 1), inserted at `t_sim_sent` with stamp `t_capture`
+    and gated as `_hdg` (quality ≥ 50, ≥ 20 ms).
+- **Shadow (b) launch, same form as (a):** add `HEADING_BRIDGE=1 HEADING_SIGMA_DEG=0.148 HEADING_EVERY_N=4
+  HEADING_IMPL=cpp` and `closedloop_heading_half.parm` to `EXTRA_PARM_FILES`, with its values in `EXPECT_OVERRIDE`,
+  as the half-speed heading flights. Truth still flies (`AHRS_EKF_TYPE` 10, checked).
