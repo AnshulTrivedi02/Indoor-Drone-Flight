@@ -4,11 +4,13 @@ test fgo_groundtest_half: execution DEVIATION"): G1 config; G2 armed; G3 ATT == 
 hold up to the node stop: horizontal <= 0.10 m, height error at the end <= 0.10 m and growth <= 0.05 m, yaw:
 |yaw change - integrated raw gyro-z drift| <= 1.0 deg; G5 no failsafe/crash text up to the node stop (later text
 reported separately); FG2 node-stop: XFGO.OV falls to 0 within 300 ms sim of the last received state.
-Usage (venv-ardupilot): python3 eval/fgo_groundtest_check.py BIN [--json OUT]"""
+D24 re-run (no node stop): --no-node-stop scores G1-G5 over the whole hold to the disarm; FG2 node-stop is not
+applicable (the 130 ms result of fgo_groundtest_half stands) and is left out of PASS.
+Usage (venv-ardupilot): python3 eval/fgo_groundtest_check.py BIN [--json OUT] [--no-node-stop]"""
 import argparse, json
 import numpy as np
 from pymavlink import mavutil
-ap = argparse.ArgumentParser(); ap.add_argument("bin"); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("bin"); ap.add_argument("--json"); ap.add_argument("--no-node-stop", action="store_true"); a = ap.parse_args()
 m = mavutil.mavlink_connection(a.bin)
 P, ARM, ATT, O, I, SIM, IMU, MSG = {}, [], [], [], [], [], [], []
 while True:
@@ -59,7 +61,10 @@ inv = O[(O[:, 0] > t_last) & (O[:, 7] == 0)]
 out["FG2_node_stop"] = {"last_state_s": t_last, "first_invalid_s": float(inv[0, 0]) if len(inv) else None,
                         "latency_ms": float(1e3 * (inv[0, 0] - t_last)) if len(inv) else None}
 out["FG2_node_stop"]["pass"] = bool(len(inv) and (inv[0, 0] - t_last) <= 0.300)
-out["PASS"] = all(out[k]["pass"] for k in ("G1", "G2", "G3", "G4", "G5", "FG2_node_stop"))
+if a.no_node_stop:
+    out["FG2_node_stop"] = {"not_applicable": "no node stop in this run; the fgo_groundtest_half 130 ms result stands",
+                            "last_state_s": t_last, "disarm_s": dis[0] if dis else None, "pass": None}
+out["PASS"] = all(out[k]["pass"] for k in ("G1", "G2", "G3", "G4", "G5") + (() if a.no_node_stop else ("FG2_node_stop",)))
 print(json.dumps(out, indent=1, default=str))
 if a.json:
     json.dump(out, open(a.json, "w"), indent=1, default=str)

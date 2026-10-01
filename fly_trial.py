@@ -283,15 +283,29 @@ def send_velocity(master, vx: float, vy: float, vz: float) -> None:
 
 
 def sim_time_now_s(master, timeout_s: float = 3.0) -> float:
-    """Vehicle's own onboard clock (sim time), from any fresh MAVLink message."""
-    msg = master.recv_match(type=['LOCAL_POSITION_NED', 'HEARTBEAT', 'SYS_STATUS'],
-                             blocking=True, timeout=timeout_s)
-    if msg is None or not hasattr(msg, 'time_boot_ms'):
-        # HEARTBEAT has no time_boot_ms; retry with a type that does.
-        msg = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=timeout_s)
-    if msg is None:
-        raise TrialFailure("No message received while reading sim-time clock")
-    return msg.time_boot_ms / 1000.0
+    """Vehicle's own onboard clock (sim time, AP_HAL::millis()).
+
+    Prefers LOCAL_POSITION_NED exactly as before (so nominal flights read the same values), but that message
+    is an ESTIMATOR output: send_local_position() (GCS_Common.cpp:3048-3050) sends nothing while the active
+    AHRS backend has no position, so an estimator invalidation used to hang this clock and fail the trial
+    before landing/disarm (D24, fgo_groundtest_half G5). SYSTEM_TIME (STREAM_EXTRA3, GCS_Common.cpp:2148) carries
+    the same AP_HAL::millis() independently of any estimator; it is returned only when no LOCAL_POSITION_NED
+    arrives before two SYSTEM_TIMEs (LOCAL_POSITION_NED streams ~6x faster) or before the timeout."""
+    t0 = time.time()
+    sys_ms, n_sys = None, 0
+    while time.time() - t0 < timeout_s:
+        msg = master.recv_match(type=['LOCAL_POSITION_NED', 'SYSTEM_TIME'], blocking=True,
+                                timeout=max(0.01, timeout_s - (time.time() - t0)))
+        if msg is None:
+            break
+        if msg.get_type() == 'LOCAL_POSITION_NED':
+            return msg.time_boot_ms / 1000.0
+        sys_ms, n_sys = msg.time_boot_ms, n_sys + 1
+        if n_sys >= 2:
+            return sys_ms / 1000.0
+    if sys_ms is not None:
+        return sys_ms / 1000.0
+    raise TrialFailure("No message received while reading sim-time clock")
 
 
 def cruise(master, velocity: float, duration_s: float, wall_clock_cap_s: float = None) -> None:
@@ -371,6 +385,7 @@ def main() -> int:
     parser.add_argument('--velocity', type=float, required=True, help='cruise forward velocity, m/s')
     parser.add_argument('--duration', type=float, required=True, help='cruise duration, SIM seconds')
     args = parser.parse_args()
+    master = None
 
     try:
         master = connect(args.port)
@@ -396,6 +411,20 @@ def main() -> int:
         land(master)
     except TrialFailure as e:
         print(f"[fly_trial] FAILED: {e}", file=sys.stderr, flush=True)
+        # D24: a failure after arming must not leave the vehicle armed. Best effort, failure paths only
+        # (a completed trial never reaches here): disarm on the ground test, LAND otherwise; confirmation
+        # comes from HEARTBEAT, which does not depend on the estimator.
+        try:
+            if master is not None:
+                hb = master.recv_match(type='HEARTBEAT', blocking=True, timeout=3.0)
+                if hb is not None and (hb.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED):
+                    if os.environ.get("GROUND_TEST"):
+                        log("After failure: disarming (ground test).")
+                        master.mav.command_long_send(master.target_system, master.target_component,
+                                                     mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0, 0, 0, 0, 0, 0, 0, 0)
+                    land(master)
+        except Exception as e2:
+            print(f"[fly_trial] post-failure land/disarm did not confirm: {e2}", file=sys.stderr, flush=True)
         return 1
 
     log("Trial flight complete.")

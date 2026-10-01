@@ -8761,3 +8761,52 @@ heading factor.
 - **Summary:** the "UKF better heading" is the FGO's measurement-rate heading jitter, not a slow heading
   deficit. The "FGO better position" is a UKF lateral drift independent of heading. **Both causes are
   plausible, not tested.**
+
+### D24 RULED (user, 2026-10-01): G5 of `fgo_groundtest_half` FAILED AS WORDED; harness clock fixed; ground test re-run without the node stop
+
+**Ruling, recorded:** G5 failed as worded. The cause was a harness hang after the deliberate node stop, **not an FGO
+fault.** The 130 ms node-stop invalidation result (FG2) stands. Fix the flight script so that it does not use
+the estimator's position message as its clock, verify that the fix changes no other flight behaviour, then re-run the
+FGO ground test without the node stop.
+
+**Mechanism, confirmed in source and in the run's own MAVProxy tlog:**
+- `fly_trial.py`'s `sim_time_now_s` matched `LOCAL_POSITION_NED`/`HEARTBEAT`/`SYS_STATUS`, but only
+  `LOCAL_POSITION_NED` carries `time_boot_ms`, so the clock was in practice that message alone.
+- `GCS_MAVLINK::send_local_position()` (`~/ardupilot_ukf` `GCS_Common.cpp:3048-3050`) sends nothing when
+  `ahrs.get_relative_position_NED_origin_float()` fails, i.e. while the active estimator has no valid position.
+- In the tlog of `fgo_groundtest_half`, `LOCAL_POSITION_NED` ends at boot 90.230 s, the node stop.
+  `SYSTEM_TIME` continues to 93.677 s (363 messages, about 4 Hz sim, `STREAM_EXTRA3`).
+
+**Fix (`fly_trial.py`):**
+- **Clock.** `sim_time_now_s` still returns the first `LOCAL_POSITION_NED`, exactly as before. It falls back to
+  `SYSTEM_TIME.time_boot_ms`, sent by `send_system_time()` (`GCS_Common.cpp:2148`) as `AP_HAL::millis()` with no
+  estimator involved. This is the same clock as `LOCAL_POSITION_NED`'s stamp. The fallback is used only if two
+  `SYSTEM_TIME`s arrive with no `LOCAL_POSITION_NED` in between, or at the timeout. `HEARTBEAT` and
+  `SYS_STATUS` (no time field) are no longer matched.
+- **Failure paths after arming** (a completed trial never reaches them). The script disarms on the ground test,
+  sets LAND otherwise, and waits for the disarm on `HEARTBEAT`, which is also estimator-independent.
+  `wait_altitude` still needs `LOCAL_POSITION_NED`, because altitude is a state. If the estimator invalidates
+  during the climb, it times out to this landing path instead of leaving the vehicle armed.
+
+**Verification that nominal behaviour is unchanged.** Script:
+`eval/d24_clock_equiv.py`; the tlog is kept at `~/thesis_data/trials/fgo_groundtest_half/mav.tlog`. The old (`HEAD` `0ab58eb`) and new
+`sim_time_now_s` were called repeatedly on the recorded tlog of `fgo_groundtest_half`:
+- All **2,112** values returned while `LOCAL_POSITION_NED` streamed are **identical**.
+- The new function differs in only two places:
+  - before boot 10.3 s, where there is no EKF origin yet. The script never reads the clock before arming.
+  - after the node stop, where it returns 7 `SYSTEM_TIME` values, the last at 93.677 s; the old one raised.
+- The values are monotone.
+- No other function changed. Velocity commands, cruise and stop gating, LAND and the disarm wait are as before.
+
+### PRE-REGISTRATION: FGO ground test re-run `fgo_groundtest_half_b` (D24), recorded before the run
+
+- **Command:** `FGO=1 GROUND_TEST=90 sim/tools/closed_loop_run.sh corridor_textured_half_fwdc fgo_groundtest_half_b`.
+  - Same binary: md5 `fa44074887052b47200ba2a63a2a3647`.
+  - Same parameters and world as `fgo_groundtest_half`.
+  - **No node stop.**
+- **Scored:** `eval/fgo_groundtest_check.py --no-node-stop`.
+  - G1–G4 as pre-registered, with G4 over the whole hold up to the disarm.
+  - **G5: disarmed at the end of the hold, with no failsafe/crash/estimator-invalid text before the disarm.**
+  - FG2 node-stop: not applicable. The 130 ms result stands.
+- **Prediction:** all of G1–G5 pass. G4's yaw again equals the integrated raw gyro-z to within 1°, because there
+  is no heading on the ground.

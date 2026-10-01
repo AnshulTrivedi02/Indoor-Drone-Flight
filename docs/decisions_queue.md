@@ -5,7 +5,11 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D24. FGO ground test: G5 fails as worded (no disarm), from the harness's sim clock, not the backend
+### D24. FGO ground test: G5 fails as worded (no disarm), from the harness's sim clock, not the backend — RULED 2026-10-01
+- **Ruling:** G5 failed as worded (harness hang after the deliberate node stop, not an FGO fault); the 130 ms
+  node-stop result stands. `fly_trial.py`'s clock now falls back to `SYSTEM_TIME` (estimator-independent;
+  nominal values identical, `eval/d24_clock_equiv.py`), and failure paths after arming land/disarm. Re-run
+  `fgo_groundtest_half_b` without the node stop (METHODOLOGY "D24 RULED").
 - G1–G4 and the FG2 node-stop pass: output invalid 130 ms after the last state; the FGO's ground yaw
   equals the integrated raw gyro to 0.0003°.
 - After the deliberate mid-hold node stop, `LOCAL_POSITION_NED` stopped (correct: no valid position).
