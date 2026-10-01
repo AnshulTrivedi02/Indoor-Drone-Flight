@@ -5,7 +5,8 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D25. FGO ground test re-run: G5 fails as worded on PRE-ARM "FGO invalid or stale" text (node start-up clock map stamps states ~4 ms in the future; the backend's uint32 age wraps -> invalid). Arm-hold-disarm itself passes (BLOCKS shadow (b) and the FGO flights)
+### D25. FGO ground test re-run: G5 fails as worded on PRE-ARM "FGO invalid or stale" text (node start-up clock map stamps states ~4 ms in the future; the backend's uint32 age wraps -> invalid). Arm-hold-disarm itself passes — RULED 2026-10-01: node fix (settled, outlier-robust clock map); confirming shadow `fgo_shadow_half_a2`
+- **Correction:** genuine negative ages occurred only in this run (the earlier "all three runs" counted the no-state sentinel).
 - G1-G4 pass; disarmed at 116.26 s; OV = 1 for 100% of arming -> disarm in all three FGO runs. The future
   stamps occur in all three runs, only during start-up (to 9.2 / 10.3 / 20.8 s). In this run they overlapped
   the arming attempts, so pre-arm refused 14 times until 20.8 s; arming succeeded at 23.81 s.

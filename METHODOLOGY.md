@@ -9061,3 +9061,115 @@ by D25). They will be written before the with-heading flights.
 - Timing note: the FGO heading replays in this batch took ~40–120 min each, against ~5–10 min in F3b, because the
   batch ran concurrently with the 8 half-speed FGO replays (thread oversubscription). The results do not depend on
   wall time.
+
+### Rulings (user, 2026-10-01, afternoon): D25, the ceiling check, FGO prediction caveat, LiDAR, F3c, edit guard
+
+**D25: the node fix.**
+- The node sends no FGO output to ArduPilot until its time conversion has settled, and it uses a more robust
+  offset. ArduPilot's age check stays strict (no binary change).
+- `fgo_groundtest_half_b`'s **G5 is recorded as FAILED AS WORDED**, with the cause: start-up states were stamped in
+  the future (up to ~42 ms, typically 4–40 ms), and the negative age wrapped (uint32) to invalid.
+- One new shadow run confirms no pre-arm "FGO invalid or stale" refusals. Then shadow (b), the with-heading
+  predictions, and the FGO flights.
+
+**CORRECTION to the record of `fgo_groundtest_half_b`, from re-analysis before the fix.**
+- "All three FGO runs show it, only during start-up" was WRONG. My count used `Age` > 10⁶. That also caught
+  `UINT32_MAX`, which `age_ms()` returns when **no state has arrived yet**.
+- Separated properly, genuine negative ages (−42 … −4 ms) occur **only in `fgo_groundtest_half_b`**: 239 samples,
+  11.06–20.79 s. They caused all 240 `OV` = 0 samples with a state present.
+- `fgo_groundtest_half` and `fgo_shadow_half_a` had **no** negative-age samples. Their early samples are "no state
+  yet" (to 10.3 / 9.2 s).
+- In run b, states arrived ~40 ms **before** their own stamp for the first ~10 s. Elsewhere and later they arrived
+  +105 … +130 ms after it.
+
+**Mechanism (inferred, to be confirmed by the new diagnostics):**
+- **What the evidence shows.** The negative ages lasted **10 s, exactly the window length**. `imu_bridge` stamps
+  `/imu/time_ref` headers with its own ROS sim clock on receipt (`imu_bridge.py:173-175`).
+- **The inferred cause.** A stale clock reading at start-up gives one too-low offset. The window **minimum** then
+  holds it until it ages out.
+- **Not visible in the bag.** The node started keyframes at 10.39 s, before the bag's first `/imu/time_ref`
+  (10.96 s), so the culprit samples were not recorded.
+- The new node logs the first 20 s of raw offsets (`fgo_node_stats_clockmap.npz`) to confirm or refute this.
+
+**The fix (`src/estimators/fgo/fgo_node.py`, `_sitl_us`):**
+- **(1) Settle.** No state is sent until the window holds `CLOCK_SETTLE_S` = 10 s of samples. The first output
+  comes ~10 s after the first `/imu/time_ref`, i.e. ~21 s sim, before the usual ~24 s arming.
+- **(2) Robust offset.** The lower envelope is taken over **inliers** only, |offset − window median| ≤
+  `CLOCK_OUTLIER_S` = 20 ms. The true offset drifts ~0.2 ms/s, SITL's clock running ~0.02% slow; delivery jitter
+  is a few ms.
+- **(3) Thread safety.** The deque is snapshotted with `list()` before use (the executor thread appends while the
+  publisher thread reads).
+- **Equivalence** (`eval/d25_clockmap_check.py`, the recorded `/imu/time_ref` streams of `fgo_shadow_half_a` and
+  `fgo_groundtest_half_b`, queried at 30 Hz):
+  - after settling, the new map equals the old one **exactly** (max difference 0.000 ms; no outliers in either
+    stream);
+  - with one synthetic −145 ms offset injected at start-up, the old map is wrong by up to +147 ms for the window's
+    life, while the new map rejects it (1 outlier) and stays at the nominal value.
+- The binary is unchanged (md5 `fa440748…`).
+
+**Ceiling clearance, checked before the FGO flights (camera worlds):**
+- **The ceiling.** In `corridor_textured_half_fwdc`, the underside of `corridor_ceiling` is at **5.00 m** (a box
+  centred at 5.05 m, 0.10 m thick, `model.sdf:16-19`). It is **visual-only**, with no collision.
+- **Heights.** The airframe top is taken as ~0.1 m above `base_link` (rotors at +0.023 m). The true cruise height
+  in the half-speed closed-loop flights is 2.24–2.55 m (median of medians ~2.30 m).
+- **Margins** (5.00 m − peak − 0.1 m):
+
+| case | true peak | margin to the ceiling underside |
+|---|---|---|
+| ruled bound: +1.5 m on 2.2–2.4 m cruise | 3.7–3.9 m | **1.0–1.2 m** |
+| predicted most-likely, +0.9 … +1.5 m on 2.3 m | 3.2–3.8 m | 1.1–1.7 m |
+| largest seen in any flight (EKF3 `cl_bcpp_tex_r2_half`) | 4.39 m | 0.51 m |
+| self-feeding extreme, +2.0 m on 2.55 m | 4.55 m | 0.35 m |
+
+- No physical contact is possible: the ceiling has no collision.
+- If the vehicle ever passed 5 m, the forward camera's view would be corrupted (inside or above the ceiling slab). It
+  would be stated if it happened. None of the predicted cases reaches it.
+- **This margin is stated with the climb-top prediction.**
+
+**FGO no-heading prediction:** flown with the window as written ([+145, +196] s, west). The caveat is recorded: the
+method did not hold for EKF3 at half speed (predicted +187 s, actual +242 s). If the FGO misses, it is reported with
+that caveat and with the **unmeasured closed-loop run-to-run variability** (one flight per estimator per speed).
+
+**LiDAR short returns:** recorded as a sensor artefact affecting all three. **The FGO's larger height dip (0.75 m,
+against 0.24 m for EKF3 on the same burst) reflects EKF3's median-of-3 range filtering** (`AP_NavEKF3_Measurements.cpp:56-85`).
+That is an EKF3 design feature, not copied under the D18 principle.
+
+**F3c:** recorded as **(a) false, (b) true as worded**.
+- **The conclusion:** with honest initial uncertainty, both estimators remove a 10° or 30° heading error at the
+  first heading, with convergence times within one keyframe. **The FGO's theoretical large-error advantage does not
+  appear in this setup.**
+- By the earlier decision rule, **the turning S-path is NOT flown**.
+- **The nonlinearity line of investigation (F3, F3b, F3c) is CLOSED.**
+
+**Edit guard:** narrowed to the job runners and every process they start, i.e. descendants by parent PID
+(`tools/edit_guard.py`, `RUNNER_PAT`: `run_jobs_resumable.sh`, `run_resumable_batch.sh`, `closed_loop_run.sh`,
+`run_trial.sh`, `start_sim.sh`, `record_trial.sh`).
+- An open image viewer, editor or one-off command no longer blocks edits.
+- Tested:
+  - with only the viewer open, edits are allowed;
+  - with a dummy `run_trial.sh` and its child running, it blocks `fly_trial.py`/`fgo_node.py` (the hook exits 2),
+    listing both processes, and still allows `.md` files.
+- **Consequence, stated:** a process launched by hand outside a runner (e.g. a one-off diagnostic replay) is no
+  longer guarded. Such runs are to go through `eval/run_jobs_resumable.sh`.
+
+### PRE-REGISTRATION: D25 confirming shadow run `fgo_shadow_half_a2` (recorded before the run)
+
+- **Command:** `FGO=shadow sim/tools/closed_loop_run.sh corridor_textured_half_fwdc fgo_shadow_half_a2`.
+  - As `fgo_shadow_half_a`: simulator truth flies, no heading.
+  - Binary md5 `fa440748…`, checked before launch.
+  - Node = `fgo_node.py` with the D25 fix.
+- **Why a shadow can confirm the pre-arm question.** The FGO pre-arm check runs only for the active backend. It
+  refuses exactly when `healthy()` = `output_valid()` is false (`AP_AHRS_FGO.cpp:89-96`, `AP_NavFGO.h:39`), and
+  `XFGO.OV` logs `output_valid()` every 40 ms whether or not the FGO is active.
+- **D25 criteria (PRIMARY for this ruling):**
+  - **C1:** from the first received state (`XFGI`) to disarm, `XFGO.OV` = 1 at **every** sample. Equivalently, the
+    pre-arm check could not have refused "FGO invalid or stale" at any time after the FGO first had a state.
+  - **C2:** **0** negative-age samples (10⁶ < `Age` < `UINT32_MAX`) in the whole log.
+  - **C3:** the first state arrives ≥ 10 s (sim) after the node's first `/imu/time_ref` (from the clock-map
+    diagnostics), and before the vehicle arms.
+- **Also scored and reported** (the node changed, so the gates are re-run): FG1, FG2 and FG3/FG3b, by
+  `eval/fgo_gate_check.py`. FG3 is expected to fail as worded at the climb top, as in `fgo_shadow_half_a` (D23, the
+  LiDAR artefact), and is reported as such.
+- **Reported, descriptive:** the start-up raw offsets, and whether a low outlier occurred, i.e. whether the
+  mechanism is confirmed.
+- **Prediction:** C1–C3 pass; FG1, FG2 and FG3b pass; FG3 fails at the climb top only.

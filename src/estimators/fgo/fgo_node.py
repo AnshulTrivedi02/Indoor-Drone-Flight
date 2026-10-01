@@ -22,6 +22,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fgo_node_core import FgoNodeCore
 
 
+CLOCK_SETTLE_S = 10.0     # D25: no state is sent until the SITL clock map's 10 s window is full
+CLOCK_OUTLIER_S = 0.020   # D25: offsets further than this from the window median are not used (the true offset
+#                           drifts ~0.2 ms/s, SITL's clock running ~0.02% slow; delivery jitter is a few ms)
+
+
 def _st(h):
     return h.stamp.sec + h.stamp.nanosec * 1e-9
 
@@ -72,6 +77,8 @@ class FgoNode(Node):
         # Fused at its capture stamp (the FGO's factor-graph design; EKF3/UKF use TS - VISO_DELAY_MS).
         self.declare_parameter("heading", False)
         self._toff = deque()                                 # (t_header, t_header - t_sitl) over the last 10 s
+        self._tref_t0 = None; self._toff_early = []          # D25: settle reference and start-up diagnostics
+        self._n_unsettled = self._n_outl_max = self._n_maps_with_outliers = 0
         self._mav = None
         self._n_pub = 0
         q = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, history=HistoryPolicy.KEEP_LAST, depth=200)
@@ -109,10 +116,23 @@ class FgoNode(Node):
 
     def _sitl_us(self, t):
         """Bag/sim header time -> SITL (DAL) clock, us: the lower envelope of header - /imu/time_ref over the
-        last 10 s (the least-delayed sample), as eval/input_timing's clock map but causal."""
-        if not self._toff:
+        last 10 s (the least-delayed sample), as eval/input_timing's clock map but causal.
+        D25 (ruled 2026-10-01): NO output until the map has settled (the window holds CLOCK_SETTLE_S of samples),
+        and the envelope is taken over INLIERS only (|offset - window median| <= CLOCK_OUTLIER_S). A single too-low
+        start-up offset used to be held by the plain minimum for the whole 10 s window and stamped states up to
+        ~42 ms in the future (fgo_groundtest_half_b: ArduPilot's uint32 age wrapped -> invalid -> pre-arm refused).
+        With no outliers the value is identical to the plain minimum. The deque is snapshotted with list() (one C
+        call under the GIL) because the executor thread appends while this publisher thread reads."""
+        snap = list(self._toff)
+        if not snap or self._tref_t0 is None or snap[-1][0] - self._tref_t0 < CLOCK_SETTLE_S:
+            self._n_unsettled += 1
             return None
-        return int(round((t - min(o for _, o in self._toff)) * 1e6))
+        o = np.fromiter((x for _, x in snap), float, len(snap))
+        inl = np.abs(o - np.median(o)) <= CLOCK_OUTLIER_S
+        n_out = int(len(o) - inl.sum())
+        self._n_outl_max = max(self._n_outl_max, n_out)
+        self._n_maps_with_outliers += n_out > 0
+        return int(round((t - o[inl].min()) * 1e6))
 
     def _send_state(self, st, valid):
         t_k, p, v, R, bg, ba = st
@@ -171,6 +191,12 @@ class FgoNode(Node):
             self._send_state(st, valid)
 
     def stop_worker(self):
+        sp = self.get_parameter("stats_path").value
+        if sp:                                  # D25 clock-map diagnostics, next to the core's stats
+            np.savez(sp.replace(".npz", "") + "_clockmap.npz", early=np.array(self._toff_early).reshape(-1, 2),
+                     tref_t0=np.nan if self._tref_t0 is None else self._tref_t0, n_unsettled=self._n_unsettled,
+                     n_outliers_max=self._n_outl_max, n_maps_with_outliers=self._n_maps_with_outliers,
+                     settle_s=CLOCK_SETTLE_S, outlier_s=CLOCK_OUTLIER_S)
         self._to_core.put(None)                 # the core drains its queue, writes stats, exits
         self._proc.join(timeout=600)
         self._stop = True
@@ -182,6 +208,10 @@ class FgoNode(Node):
     def _tref(self, m):
         th, ts = _st(m.header), m.time_ref.sec + m.time_ref.nanosec * 1e-9
         self._push(th, "tref", ts)
+        if self._tref_t0 is None:
+            self._tref_t0 = th
+        if th - self._tref_t0 < 20.0:                     # D25 diagnostics: the first 20 s of raw offsets
+            self._toff_early.append((th, th - ts))
         self._toff.append((th, th - ts))
         while self._toff and self._toff[0][0] < th - 10.0:
             self._toff.popleft()

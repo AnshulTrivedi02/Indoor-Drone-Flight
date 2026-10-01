@@ -3,9 +3,10 @@
 PreToolUse hook for Edit, Write and Bash. Before any edit it lists the running jobs and the files they use, and
 REFUSES the edit (exit 2) if the target overlaps.
 
-Running jobs: processes whose command line references a guarded repository or is a simulation/replay process
-(arducopter, gz sim, Replay, ros2 bag, run_trial.sh, run_jobs_resumable.sh, fgo_node.py, *_replay.py, ...),
-excluding this hook and Claude's own tool shells.
+Running jobs (NARROWED, user ruling 2026-10-01, after an open image viewer of a plot blocked edits): the job RUNNERS
+(run_jobs_resumable.sh, run_resumable_batch.sh, closed_loop_run.sh, run_trial.sh, start_sim.sh, record_trial.sh)
+and every process started by them (descendants by parent PID). A process not started by a runner (a viewer, an
+editor, a one-off command) is not a job.
 Files a job uses: CONSERVATIVELY, every existing source file (.py .sh .parm .sdf .cpp .h .hpp .c .jobs .conf .msg)
 in any guarded repository the job references (a Python job imports from its whole tree; a simulation reads the
 harness, parameter files and worlds). Documentation (.md), results (eval/results/, thesis_data) and NEW files
@@ -18,26 +19,28 @@ import json, os, re, shlex, subprocess, sys
 HOME = os.path.expanduser("~")
 REPOS = [os.path.join(HOME, r) for r in ("thesis_ws", "ardupilot_ukf", "ardupilot_diag", "ardupilot", "ardupilot_gazebo")]
 SRC_EXT = (".py", ".sh", ".parm", ".sdf", ".cpp", ".h", ".hpp", ".c", ".jobs", ".conf", ".msg", ".yaml", ".config")
-JOB_PAT = re.compile(r"(arducopter|gz sim|/Replay\b|ros2 bag|run_trial\.sh|closed_loop_run\.sh|run_jobs_resumable\.sh|"
-                     r"run_resumable_batch\.sh|fgo_node\.py|_replay\.py|heading_bridge|flow_tracker|fly_trial\.py|"
-                     r"_pipeline\.sh|run_set_eval\.sh|thesis_ws|ardupilot_ukf|ardupilot_diag)")
+RUNNER_PAT = re.compile(r"(run_jobs_resumable\.sh|run_resumable_batch\.sh|closed_loop_run\.sh|run_trial\.sh|"
+                        r"start_sim\.sh|record_trial\.sh)")
 
 
 def running_jobs():
-    out = subprocess.run(["ps", "-eo", "pid=,args="], capture_output=True, text=True).stdout.splitlines()
-    me = os.getpid(); jobs = []
+    out = subprocess.run(["ps", "-eo", "pid=,ppid=,args="], capture_output=True, text=True).stdout.splitlines()
+    procs, children = {}, {}
     for line in out:
-        line = line.strip()
-        if not line:
+        parts = line.strip().split(None, 2)
+        if len(parts) < 3:
             continue
-        pid, _, args = line.partition(" ")
-        if int(pid) in (me, os.getppid()):
+        pid, ppid, args = int(parts[0]), int(parts[1]), parts[2]
+        procs[pid] = args; children.setdefault(ppid, []).append(pid)
+    me = {os.getpid(), os.getppid()}
+    roots = [p for p, a in procs.items() if RUNNER_PAT.search(a) and p not in me and "edit_guard.py" not in a]
+    jobs, stack = {}, list(roots)
+    while stack:                                       # runners and all their descendants
+        p = stack.pop()
+        if p in jobs or p in me:
             continue
-        if "edit_guard.py" in args or "shell-snapshots" in args or "claude" in args.split(" ")[0]:
-            continue
-        if JOB_PAT.search(args):
-            jobs.append((int(pid), args[:200]))
-    return jobs
+        jobs[p] = procs[p][:200]; stack.extend(children.get(p, []))
+    return sorted(jobs.items())
 
 
 def repo_of(path):
@@ -58,7 +61,7 @@ def guarded(path):
 
 
 def job_repos(jobs):
-    rs = set()
+    rs = {REPOS[0]} if jobs else set()                  # every runner lives in, and reads, thesis_ws
     for _, args in jobs:
         for r in REPOS:
             if r in args or r.replace(HOME, "~") in args:
