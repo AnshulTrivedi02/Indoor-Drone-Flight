@@ -5,6 +5,18 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D27. Noise parity (plan step 1): closed-loop builds MATCH; OFFLINE the UKF's IMU process noise per second is 1.2x the FGO's (UKF steps 15 ms with EKF3's per-step (dt*NSE)^2 form; FGO conversion pinned to 12.5 ms)
+- The measured heading weights (FGO 15.9% vs UKF 2.9%) come from the closed-loop builds, where everything matches.
+  Offline, the mismatch makes the UKF's weight LARGER (opposite direction), so it cannot explain the difference.
+- Options:
+  - **(a)** accept parity for the closed-loop comparison; record the offline 1.2x and state it with the offline F-tests
+    (F1, F2, F3c, C0); record the weight difference as structural (mechanism untested: fixed-lag window / marginal
+    information / 30 Hz yaw-cap factor);
+  - (b) align the offline UKF (Q per second from the 12.5 ms reference) and re-replay the affected offline tests
+    (~1 batch, ~2-4 h), before step 2's pre-registration.
+- **Recommendation: (b)** if step 2(a) will compare offline UKF numbers against the FGO (it does: the UKF is an arm),
+  so the new open-loop test starts from exact parity; otherwise (a).
+
 ### D26. FGO with-heading set FAILS (2/3) — RULED 2026-10-01: (a)+(b) done (METHODOLOGY "D26 RULED", "D26 (b)"): r3 B5 pitch gyro rms 0.0230 (band 0.0108) at the end-wall heading degradation (y ~ 138-145 m), with the FGO yaw swinging -1.9..+0.6 deg; r1, r2 pass; no-heading flight passed (contact +165.8 s in window)
 - Every FGO flight has larger end-of-corridor yaw error (y > 140: p95 0.61-1.67 deg) and 1.5-5x higher roll/yaw gyro rms
   than the EKF3/UKF half-speed sets (descriptive, separate flights). Consistent with the exploratory "fast heading

@@ -9488,3 +9488,78 @@ All contacts are on the west wall. n = 1 per cell; closed-loop run-to-run variab
   - the D26 failure and its exploratory mechanism.
 - No cross-speed comparison is claimed (D21). Within half speed, the three share identical timing (loopback-pinned,
   `VISO_DELAY_MS` 25).
+
+### Plan to the 16 Oct simulation freeze (user ruling, 2026-10-01, evening)
+
+The D26 diagnosis findings and the three-way closed-loop summary table are recorded as reported (above).
+1. Noise-parity check (offline, first).
+2. Robust-weighting confirmation. Fully pre-registered before any flight:
+   - (a) fresh open-loop flights (plain walls over the checkerboard floor, plus the textured end-wall region) with the
+     robust FGO (F1's kernel and threshold), the hard-gated FGO and the UKF;
+   - (b) a closed-loop robust-FGO with-heading set (×3, half speed), compared descriptively with the hard-gated FGO
+     set. Prediction: lower end-wall yaw swings and lower gyro activity.
+3. Optional, only if 1–2 finish by Fri 9 Oct: the flow gap-and-recovery world, pre-registered.
+4. Mon 12 – Fri 16 Oct: restate all numbers, regenerate the supervisor figures with the closed-loop summary;
+   simulation freeze Fri 16 Oct.
+
+Reports go to the user after step 1, after step 2's pre-registration, and after each set of flights.
+
+### Step 1 RESULT: noise-parity check — the closed-loop builds MATCH; OFFLINE, the UKF's IMU process noise per second is 1.2× the FGO's. STOPPED and reported, as ruled; nothing changed
+
+**Where the parameters live:**
+- UKF offline: `ukf_core.make_params`, `ukf_replay.py`.
+- UKF port: `AP_NavUKF.cpp:24-37, 150-157, 267`.
+- FGO offline and the FGO node: `fgo_core.py:27-31, 70-81`. The node core uses the same `fgo_core`; its heading σ
+  is in `fgo_node.py:104`.
+- Offline heading σ: `measurement_models.FWD_SIGMA`.
+
+| parameter | UKF offline | UKF port (closed loop) | FGO offline | FGO node (closed loop) | match? |
+|---|---|---|---|---|---|
+| gyro noise (EKF3 `GYRO_P_NSE` 0.015 rad/s) | (dt·NSE)² per step, **dt = 15.00 ms** step → **3.375×10⁻⁶ rad²/s** | (dt·NSE)² per step, mean step **12.50 ms** (from the Replay dump: 2.5 ms DAL frames, EKF3's 12 ms trigger) → **2.812×10⁻⁶** | σ_c² = NSE²·0.0125 = **2.8125×10⁻⁶** | same as offline | **port = FGO; UKF offline 1.20×** |
+| accel noise (`ACC_P_NSE` 0.35) | as gyro, 15 ms → 1.84×10⁻³ (m/s²)²·s | 12.5 ms → 1.53×10⁻³ | 1.53125×10⁻³ | same | port = FGO; UKF offline 1.20× |
+| gyro-bias random walk (`GBIAS_P_NSE` 0.001) | (dt²·NSE)² per step on the delta state → rate-bias 0.015·NSE² per s | 0.0125·NSE² | σ_c² = 1.25×10⁻⁸ (= 0.0125·NSE²) | same | port = FGO; UKF offline 1.20× |
+| accel-bias random walk (`ABIAS_P_NSE` 0.02) | as above | 0.0125·NSE² | 5.0×10⁻⁶ | same | port = FGO; UKF offline 1.20× |
+| flow | 0.25 rad/s | 0.25 | 0.25 | 0.25 | yes |
+| range | 0.5 m | 0.5 | 0.5 | 0.5 | yes |
+| heading σ (offline arm, camera) | 0.148° | — | 0.148° | — | yes |
+| yaw-rate σ (offline arm) | 0.162° | — | 0.162° | — | yes |
+| heading σ (closed loop) | — | max(angErr, 5°) = **5°** (angErr clamped to [0.05, 1.5] rad) | — | **5°** | yes |
+| zero-innovation yaw pseudo-measurement (EKF3 `YAW_M_NSE`) | 0.5 rad | 0.5 rad | 0.5 rad (§9.4 cap prior) | same | yes |
+| GTSAM `integrationCovariance` | — | — | 1×10⁻⁸ | same | FGO-only conditioning floor; documented asymmetry (no EKF3 counterpart) |
+
+**The difference: offline only.**
+- EKF3's per-step form `(dt·NSE)²` accumulates **dt·NSE²** per second. It is therefore rate-dependent; this was noted
+  in the EKF3-prediction-dt section.
+- The FGO's continuous-time conversion was pinned to EKF3's 12.5 ms (σ_c = NSE·√0.0125).
+- The UKF port steps at 12.5 ms (DAL frames), so it matches the FGO exactly.
+- **The offline UKF steps at 15.00 ms** (five 3.0 ms bridge IMU samples; correction (ii), 2026-09-29, Q scaled to the
+  actual step). It therefore accumulates **1.2×** the per-second process noise on all four IMU terms.
+
+**Effect on the heading weight (15.9% FGO against 2.9% UKF):**
+- **None on the measured numbers.** They come from the closed-loop builds (the node core and the port Replay on r3),
+  where every sensor noise parameter matches.
+- **Direction offline:** more process noise makes the UKF's predicted yaw σ, and so its heading weight, **larger**
+  (by roughly √1.2 ≈ 1.1× in σ). So the offline mismatch works **against** the observed difference; it cannot
+  explain it.
+- The FGO's weight is also larger offline: F3c's first-heading σ was 0.50° (FGO) against 0.17° (UKF), with the 0.148°
+  camera σ.
+
+**Most likely mechanism of the weight difference (UNTESTED; for the record if the user rules the closed-loop parity
+sufficient):**
+- **The weight is real in the smoother, not just in its gate.** The flying FGO's yaw moved 1.6–1.9° on an 11.6°
+  outlier, i.e. ≈ 14–16%, which matches the gate's 15.9%.
+- **So the FGO carries less yaw information than the UKF**, at equal sensor noise. The predicted heading σ is 2.17°
+  against the UKF's 0.86°. A filter with these noises would settle near ~0.4–0.9°.
+- **The candidates are structural:**
+  - (i) the 0.25 s fixed-lag window: ~2 headings per window, with older information carried only as the
+    marginalised linear prior;
+  - (ii) the yaw information in that marginal, which is re-linearised at each step;
+  - (iii) the per-keyframe zero-innovation yaw-cap factor (σ 0.5 rad), which at 30 Hz is applied far more often than
+    the UKF's variance-gated 7 Hz pseudo-yaw.
+- None is tested.
+
+**Per the ruling: STOPPED. Nothing is changed.** Ruling needed:
+- either (a) the parity is accepted (closed-loop builds identical; the offline 1.2× noted and stated with the offline
+  F-tests), and the weight difference is recorded as structural;
+- or (b) the offline UKF's per-second process noise is aligned (Q per step from the 12.5 ms reference, i.e.
+  dt_step · 0.0125 · NSE²), followed by a re-replay of the affected offline tests.
