@@ -136,10 +136,17 @@ else:
     B["B4"] = {"max_abs_lat_speed_mps": float(np.abs(vx).max()), "rms_mps": float(np.sqrt(np.mean(vx ** 2))),
                "t_rel_cruise_of_max_s": float(tv[np.argmax(np.abs(vx))] - c0)}
     B["B4"]["pass"] = B["B4"]["max_abs_lat_speed_mps"] <= 0.25
-    vy = np.convolve(np.gradient(y, t), np.ones(51) / 51, "same"); tc = t[vy > 0.3]; r0, r1 = tc[0], tc[-1]
-    sel = (imu[:, 0] > r0 + 5) & (imu[:, 0] < r1 - 5)
-    g = {nm: float(imu[sel, ax].std()) for ax, nm in ((1, "roll"), (2, "pitch"), (3, "yaw"))}
-    B["B5"] = {"gyro_rms": g, "pass": g["roll"] <= 0.05 and g["pitch"] <= 0.0108 and g["yaw"] <= 0.02}
+    vy = np.convolve(np.gradient(y, t), np.ones(51) / 51, "same"); tc = t[vy > 0.3]
+    # D28 (ruled 2026-10-02): the window is the LONGEST CONTIGUOUS run of vy > 0.3 (gaps <= 1 s). The first version
+    # used the first/last such sample; a spurious landing sample (~344 s) then stretched the window into the
+    # end-of-cruise deceleration (cl_fgo_b_tex_r3_half, cl_fgo_b_robust_tex_r3_half). Both scores are kept.
+    seg = np.split(tc, np.where(np.diff(tc) > 1.0)[0] + 1); main = max(seg, key=lambda s_: s_[-1] - s_[0])
+    r0, r1 = main[0], main[-1]
+    rms = lambda a0, a1: {nm: float(imu[(imu[:, 0] > a0) & (imu[:, 0] < a1), ax].std()) for ax, nm in ((1, "roll"), (2, "pitch"), (3, "yaw"))}
+    ok = lambda g_: g_["roll"] <= 0.05 and g_["pitch"] <= 0.0108 and g_["yaw"] <= 0.02
+    g = rms(r0 + 5, r1 - 5); g_old = rms(tc[0] + 5, tc[-1] - 5)
+    B["B5"] = {"gyro_rms": g, "window_s": [float(r0 + 5), float(r1 - 5)], "pass": ok(g),
+               "as_first_scored": {"gyro_rms": g_old, "window_s": [float(tc[0] + 5), float(tc[-1] - 5)], "pass": ok(g_old)}}
     B["pass"] = all(B[b]["pass"] for b in ("B1", "B2", "B3", "B4", "B5"))
     out["B"] = B
     # DIAGNOSTIC: heading acceptance in cruise (VISP rows vs node-sent quality >= 50)

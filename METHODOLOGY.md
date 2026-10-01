@@ -9936,3 +9936,55 @@ flight).
 - So the reduction is not explained by the kernel's weights on camera-noise-level headings. It may be flight-to-flight
   variability (n = 3). **Not tested.**
 - Every number is descriptive.
+
+### D28 RULED (user, 2026-10-02): option (a) — B5 window fixed; both FGO with-heading sets restated as 3/3; D26 corrected (both scores kept)
+
+**Scorer fix (`eval/closed_loop_score.py`).**
+- B5's window is now the longest contiguous run of vy > 0.3 (gaps ≤ 1 s), then (start + 5, end − 5).
+- The first-scored window and its rms are kept in each result as `B5.as_first_scored`.
+- **All 21 with-heading flights were rescored:**
+  - B1–B4 are numerically identical on all 21 (7 older files gain only a `B3.estimator` label);
+  - every first-scored B5 is reproduced exactly;
+  - **only `cl_fgo_b_tex_r3_half` and `cl_fgo_b_robust_tex_r3_half` change: B5 FAIL → PASS** (pitch 0.0230 → 0.0032
+    and 0.0212 → 0.0028 rad/s);
+  - `cl_b_tex_r3`'s window start moves, and its B5 changes slightly, but it passes both ways.
+- The pre-fix results are kept in `eval/results_preB5fix/`.
+
+**Restated:**
+- the FGO hard-gated with-heading set `cl_fgo_b_tex_*_half`: **3/3** (first scored 2/3);
+- the FGO robust with-heading set `cl_fgo_b_robust_tex_*_half`: **3/3** (first scored 2/3).
+
+**D26 CORRECTED.** The r3 "B5 failure at the end-wall heading degradation" was a **scoring artefact**: the window
+reached into the end-of-cruise deceleration. **These stand, descriptively:**
+- the end-wall heading swings (degraded-but-valid headings up to 11.6°; FGO yaw −1.9 … +0.6° there);
+- the 15.9% against 2.9% per-heading weight;
+- the ~5× jitter and its coupling into vehicle yaw (corr +0.68 … +0.74).
+
+**Plan step 2(a), recorded as ruled:**
+- As pre-registered: **P1 FAILS** (9/12 against ≥ 10); **S1 PASSES** (5/6); **S2 FAILS** (6/12 against ≥ 8).
+- The two IMU-gap exclusions are counted against.
+- The evaluator region bug and the S2 basis correction were recorded before scoring.
+- **Conclusion:** the exploratory F1 benefit of robust weighting **largely did not replicate on fresh flights**. The
+  replicated part is **fewer wrong headings accepted**.
+- Against the UKF (descriptive): UKF lower yaw maximum 10/10; robust FGO lower cross-track 10/10.
+
+**Plan step 2(b), recorded as ruled:**
+- Prediction outcomes: end-wall swings lower on 2 of 3; cruise yaw-gyro activity ~25% lower.
+- **My 5° threshold-scaling note was wrong** about cruise gyro activity.
+- The unexplained gyro reduction is possibly flight-to-flight variation, **untested** (the jitter and coupling are
+  unchanged).
+- Both robust and hard-gated with-heading FGO sets are 3/3 under the corrected B5.
+
+**Step 3 (gap-and-recovery world): ON HOLD.** No new simulation experiments without a ruling.
+
+### Three-way closed-loop summary, RESTATED after D28 (supersedes the table of 2026-10-01 for set (b))
+
+| estimator | no heading, full | no heading, half | with heading, full | with heading, half |
+|---|---|---|---|---|
+| EKF3 | +186.2 s PASS | +242.1 s MISS (D21) | 3/3 (Python node), 3/3 (C++) | 3/3 |
+| UKF | +163.0 s PASS | +198.0 s PASS | 3/3 | 2/3 (r3 B4, D22) |
+| FGO, hard-gated | not flown | +165.8 s PASS | not flown | **3/3** (D28; first scored 2/3) |
+| FGO, robust (plan step 2(b)) | not flown | not flown | not flown | **3/3** (D28; first scored 2/3) |
+
+Every FGO closed-loop result is stated with the D23 climb-top transient and with the D26 descriptive findings, as
+corrected.

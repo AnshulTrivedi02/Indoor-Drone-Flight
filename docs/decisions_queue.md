@@ -5,7 +5,7 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D28. B5 CHECKER BUG reverses both FGO r3 B5 failures (hard-gated cl_fgo_b_tex_r3_half 0.0230 -> 0.0032; robust 0.0212 -> 0.0028 rad/s pitch): a landing-time vy spike set B5's window end to 339 s, taking in the end-of-cruise deceleration
+### D28. — RULED 2026-10-02: (a) scorer fixed, both FGO sets 3/3, D26 corrected. B5 CHECKER BUG reverses both FGO r3 B5 failures (hard-gated cl_fgo_b_tex_r3_half 0.0230 -> 0.0032; robust 0.0212 -> 0.0028 rad/s pitch): a landing-time vy spike set B5's window end to 339 s, taking in the end-of-cruise deceleration
 - Only these 2 of 21 set-(b) flights change (all rechecked). With the corrected window both FGO sets are 3/3.
 - Options:
   - **(a)** adopt the corrected window (longest contiguous vy > 0.3 run), as with the earlier FG1/C3 checker fixes:

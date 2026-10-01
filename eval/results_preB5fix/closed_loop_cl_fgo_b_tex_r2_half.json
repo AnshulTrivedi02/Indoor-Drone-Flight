@@ -1,0 +1,84 @@
+{
+ "trial": "cl_fgo_b_tex_r2_half",
+ "set": "b",
+ "cruise_s": [
+  29.757,
+  330.685
+ ],
+ "cruise_len_s": 300.928,
+ "clock_map": {
+  "offset_ms_start": 3.8395476391192753,
+  "rate_ppm": 191.18250120093876
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 0.2800000000012039,
+   "max_deg": 0.3700000000012492,
+   "mean_deg": 0.1943517287242596,
+   "diag_y_le_140": {
+    "p95": 0.2700000000012554,
+    "max": 0.3700000000012492
+   },
+   "diag_y_gt_140": {
+    "p95": 0.3000000000012027,
+    "max": 0.33000000000120083
+   },
+   "pass": true
+  }
+ },
+ "S2": {
+  "fgo_output_valid_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.4756006131380694,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.08468550213817502,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.2571991374266405,
+   "max_deg": 1.2794565405264728,
+   "mean_deg": 0.06964199275608045,
+   "diag_y_le_140": {
+    "p95": 0.19433506105031412,
+    "max": 1.2794565405264728
+   },
+   "diag_y_gt_140": {
+    "p95": 0.782706478978487,
+    "max": 0.8865731983197539
+   },
+   "pass": true,
+   "estimator": "fgo"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.012526228243063889,
+   "rms_mps": 0.0023450373090146853,
+   "t_rel_cruise_of_max_s": 274.70000000004296,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.003404923364863329,
+    "pitch": 0.0023646889063131033,
+    "yaw": 0.003650532233414613
+   },
+   "pass": true
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2279,
+  "sent_q_ge_50": 2201,
+  "VISP_cruise": 2279,
+  "VISP_ignored": 78
+ }
+}
