@@ -24,6 +24,8 @@ for it in a.items:
     R, S, E = np.array(R), np.array(S), np.array(E)
     h = S[:, 1] - S[0, 1] + 0.195
     th = np.interp(R[:, 0], S[:, 0], h); sh = (th > 1.0) & (R[:, 1] < 0.5 * th)
+    if not sh.any():                                   # no short-return burst in this flight
+        out[it] = {"est": est, "n_short": 0}; print(it, json.dumps(out[it])); continue
     tb = R[sh, 0].min(); te = R[sh, 0].max()
     err = E[:, 1] - np.interp(E[:, 0], S[:, 0], h)
     pre = (E[:, 0] >= tb - 2.0) & (E[:, 0] < tb); post = (E[:, 0] >= tb) & (E[:, 0] <= te + 3.0)

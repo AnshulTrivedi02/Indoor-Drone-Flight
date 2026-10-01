@@ -1,0 +1,32 @@
+{
+ "cl_fgo_b_tex_r1_half:fgo": {
+  "est": "fgo",
+  "n_short": 0
+ },
+ "cl_fgo_b_tex_r2_half:fgo": {
+  "est": "fgo",
+  "burst_s": [
+   29.08,
+   29.08
+  ],
+  "n_short": 1,
+  "output_height_err_dip_m": -0.2058247877164714,
+  "true_peak_m": 2.49498779296875,
+  "true_cruise_median_m": 2.38500244140625,
+  "true_overshoot_m": 0.1099853515625,
+  "t_peak_after_burst_s": 1.049638999999999
+ },
+ "cl_fgo_b_tex_r3_half:fgo": {
+  "est": "fgo",
+  "burst_s": [
+   29.6,
+   29.7
+  ],
+  "n_short": 3,
+  "output_height_err_dip_m": -0.402124807861055,
+  "true_peak_m": 2.5950244140625,
+  "true_cruise_median_m": 2.35497314453125,
+  "true_overshoot_m": 0.24005126953125,
+  "t_peak_after_burst_s": 0.9996559999999981
+ }
+}

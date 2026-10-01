@@ -5,6 +5,20 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D26. FGO with-heading set FAILS (2/3): r3 B5 pitch gyro rms 0.0230 (band 0.0108) at the end-wall heading degradation (y ~ 138-145 m), with the FGO yaw swinging -1.9..+0.6 deg; r1, r2 pass; no-heading flight passed (contact +165.8 s in window)
+- Every FGO flight has larger end-of-corridor yaw error (y > 140: p95 0.61-1.67 deg) and 1.5-5x higher roll/yaw gyro rms
+  than the EKF3/UKF half-speed sets (descriptive, separate flights). Consistent with the exploratory "fast heading
+  jitter" pattern; mechanism untested.
+- Climb-top prediction missed (0/1/3 short returns -> 0/+0.11/+0.24 m, not >= +0.75 m); B3 max prediction exceeded
+  (1.28-1.88 deg against ~1.0, inside band).
+- Options:
+  - **(a)** record as failed as worded (2/3) and state it with every FGO closed-loop result; no re-fly;
+  - (b) bounded offline diagnosis (~2 h): replay r3's node core with the bridge CSV and log per-heading NIS/acceptance
+    and the yaw update around 305-325 s, to show which headings (degrading but still quality >= 50) drive the swings,
+    and how the UKF port's gate treats the same heading stream (Replay). No estimator change without a ruling;
+  - (c) additional repeats to measure closed-loop variability (new pre-registration; not a fix).
+- **Recommendation: (a) + (b).** The result stands as flown; (b) explains it for the thesis without changing anything.
+
 ### D25. FGO ground test re-run: G5 fails as worded on PRE-ARM "FGO invalid or stale" text (node start-up clock map stamps states ~4 ms in the future; the backend's uint32 age wraps -> invalid). Arm-hold-disarm itself passes — RULED 2026-10-01: node fix (settled, outlier-robust clock map); confirming shadow `fgo_shadow_half_a2`
 - **Correction:** genuine negative ages occurred only in this run (the earlier "all three runs" counted the no-state sentinel).
 - G1-G4 pass; disarmed at 116.26 s; OV = 1 for 100% of arming -> disarm in all three FGO runs. The future

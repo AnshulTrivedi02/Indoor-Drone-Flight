@@ -9330,3 +9330,56 @@ It is checked by `AHRS_EKF_TYPE` = 10 in the PARM dump before scoring.
   - **Drift over the first 150 s of cruise: 5.48 deg/min.** Half-speed references: EKF3 2.13, UKF 3.89; full
     speed: EKF3 4.31, UKF 5.45.
   - DESCRIPTIVE only (n = 1 per estimator; different flights, so no ordering claim).
+
+### FGO with-heading set `cl_fgo_b_tex_r1..r3_half`: r1, r2 PASS; **r3 FAILS B5 (pitch gyro rms 0.0230 against 0.0108 rad/s)**; the set FAILS (2/3). STOPPED as pre-registered; queued as D26
+
+`eval/closed_loop_score.py --set b --est fgo`; `eval/results/closed_loop_cl_fgo_b_tex_r{1,2,3}_half.json`.
+Binary md5 `fa440748…`. The flights ran sequentially, each scored before the next.
+
+| flight | B1 (max \|x\| in flight) | B2 max cross-track | B3 `XFGO` yaw error p95 / max | B4 | B5 gyro rms r / p / y (rad/s) | S2 (`OV`) |
+|---|---|---|---|---|---|---|
+| r1 | PASS, 0.06 m | 0.059 m | 0.26° / 1.44° | 0.037 m/s | 0.0049 / 0.0022 / 0.0042 | 100% |
+| r2 | PASS, 0.48 m (on landing) | 0.085 m | 0.26° / 1.28° | 0.013 m/s | 0.0034 / 0.0024 / 0.0037 | 100% |
+| r3 | PASS, 0.25 m | 0.249 m | 0.38° / 1.88° | 0.120 m/s | 0.0100 / **0.0230** / 0.0052 | 100% |
+| band | < 9.58 m | ≤ 6.0 m | ≤ 1.0° / ≤ 2.0° | ≤ 0.25 m/s | 0.05 / **0.0108** / 0.02 | 100% |
+
+**Where r3 fails** (descriptive, read-only localisation; no change made):
+- In cruise up to ~300 s, pitch-rate std is 0.0012–0.0017 rad/s, as in r2.
+- **At 308–323 s (y ≈ 138–145 m, approaching the end wall), the forward-camera headings degrade to invalid.** Valid
+  frames per 3 s fall 23 → 21 → 18 → 3 → 0. This is the known "no measurement near the end wall".
+- During that transition the FGO's yaw error swings −1.9 … +0.6°. Roll and pitch rates rise (gyro-x std to 0.070,
+  gyro-y to 0.015 rad/s). The controller responds to the FGO's yaw/position estimate.
+- This lies inside the B5 window (cruise start + 5 s to the end of cruise − 5 s), so the pitch rms reaches 0.023.
+- The deceleration at the stop (329–335 s) is outside the window.
+
+**Across the half-speed with-heading sets** (DESCRIPTIVE; separate flights, n = 3 each, no ordering claim):
+
+| | B3 yaw error beyond y = 140 m, p95 / max | B5 gyro rms roll / pitch / yaw |
+|---|---|---|
+| EKF3 r1–r3 | 0.21–0.33° / 0.23–0.33° | 0.0020–0.0022 / 0.0018–0.0024 / 0.0022–0.0027 |
+| UKF r1–r3 | 0.25–0.32° (r3 1.25°) / 0.28–0.36° (r3 1.32°) | 0.0020–0.0021 / 0.0017–0.0018 / 0.0023–0.0026 |
+| **FGO r1–r3** | **0.61–1.67° / 0.89–1.88°** | **0.0034–0.0100 / 0.0022–0.0230 / 0.0037–0.0052** |
+
+- On all three FGO flights the end-of-corridor yaw error is the largest of the three estimators. The roll and yaw
+  gyro rms are ~1.5–5× EKF3's/UKF's even where B5 passes.
+- This is consistent with the exploratory pattern (the FGO's fast heading jitter), which reaches the vehicle in
+  closed loop. **The mechanism is not tested.**
+
+**Against the point predictions written from shadow (b):**
+- **B3:** p95 ≈ 0.3° was matched (0.26–0.38°). Max ≈ 1.0° was exceeded (1.28–1.88°), though inside the 2.0° band.
+- **B2:** ≈ 0.15–0.4 m. Flown 0.06–0.25 m, so the prediction was conservative on r1/r2.
+- **B4, S2:** as predicted.
+- **B5:** not predicted to fail. **Missed** on r3.
+- **Climb top: MISSED.** "≥ +0.75 m on every FGO flight" was predicted. These flights had **0, 1 and 3** short returns
+  (`cl_fgo_a_tex_half`: 7; the shadows: 4–7), and true overshoots of 0, +0.11 and +0.24 m. The burst size varies from
+  flight to flight; the prediction assumed a shadow-sized burst every time. The overshoot still tracks the output
+  dip (−0.21, −0.40 m).
+
+**Heading timing, quantified as ruled** (`eval/results/fgo_heading_timing.json`, r1/r2):
+- The FGO applies each sent heading at the next keyframe after its capture stamp: **16–17 ms after capture (median),
+  31 ms p95, 33 ms max** (keyframe quantisation). Capture → send is 34 ms median.
+- EKF3/UKF fuse at TS − 25 − 6 ms, clamped to the horizon (100% clamped at half speed). Their misalignment from
+  timing is p95 0.035° (`gt_heading_half2`, G5.2).
+- At the ~0.9 deg/s cruise yaw rate, the FGO's 17 ms is ~0.015°. **Both are negligible** against the yaw errors above.
+
+**Per the stop rule, the sequence is stopped and reported.**
