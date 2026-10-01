@@ -8914,3 +8914,54 @@ true peak minus the true cruise median:
 - **The burst can feed itself in closed loop:** the bursts in `cl_bcpp` r2/r3 are 27 and 15 samples long. The
   mechanism is not established.
 - The ceiling of the `*_fwdc` worlds is visual-only, with its underside at 5 m, so an overshoot cannot cause contact.
+
+### F3b RULED (user, 2026-10-01): (a) TRUE, (b) FALSE — a REPRESENTATION LIMIT of this UKF, not a convergence-speed result
+
+Recorded as ruled:
+- **The UKF's plain-angle yaw cannot represent large heading uncertainty.** A 90° σ wraps past 180° and diverges
+  numerically at every offset.
+- **The FGO's manifold representation converged immediately at every offset.**
+- F3b is recorded as a representation limit of this UKF (an Euler-angle state with an additive-noise sigma-point
+  spread), **not** as evidence about convergence speed. F3c tests convergence speed inside the UKF's valid range.
+
+### Pattern (exploratory) RULED (user, 2026-10-01): recorded as reported
+
+The C0/F2 pattern stands as reported:
+- the FGO's slow heading is equal to or better than the UKF's, and its extra yaw RMS is fast heading jitter;
+- the UKF shows a heading-independent lateral drift;
+- the yaw-prior hypothesis was rejected.
+
+It is EXPLORATORY and carries no confirmatory weight.
+
+### D22 note RULED (user, 2026-10-01): flow validity uses the feature count only
+
+`flow_tracker.py` sets `valid` from `tracked_count >= 20` (`flow_tracker.py:313`) and **ignores `inlier_ratio`**.
+This is the sensor-pipeline weakness behind `cl_ukf_b_tex_r3_half`'s B4 failure (features 194 → 3 while flow stayed
+valid until the count fell below 20). It is common to all three estimators, since all receive the same `valid` flag.
+The tracker is not changed (D22 ruling).
+
+### PRE-REGISTRATION — F3c: convergence speed inside the UKF's valid range (offline, one batch; written before running)
+
+- **As F3b in everything except the prior and the offsets:**
+  - bags `fwdc_tex_r1..r3`;
+  - UKF and FGO heading arms;
+  - headings from cruise start (`F_HDG_FROM_CRUISE`);
+  - the yaw-bounding zero-innovation priors off identically in both (`F_NO_YAWCAP`), as in F3b.
+- **Initial yaw σ 30°** (`F_YAW0_SIGMA_DEG 30`), with no wrap: ±3σ = ±90°, inside ±180°.
+- **Offsets δ ∈ {10°, 30°}** (`F_YAW0_DEG`), so δ is at most 1σ.
+- **Command:** `F_TAG=F3cd$d F_YAW0_DEG=$d F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1`, with
+  `ukf_replay.py <bag> heading` (`venv-evo`) and `fgo_replay.py <bag> 0.25 2 heading` (`venv-fgo`). 12 runs in one
+  batch.
+- **Metrics (same as F3/F3b), from cruise start:**
+  - convergence time (first |yaw error| < 1° held 5 s; "never" = ∞);
+  - peak |cross-track|;
+  - integrated |cross-track| over the first 60 s;
+  - each estimator's predicted heading σ and acceptance at the first 40 headings.
+  - Scored by `eval/f3c_eval.py` (a new file: F3b's evaluator with `--tag`/`--deltas`; F3b's own file is unchanged).
+- **Decision rules:**
+  - **(a)** the FGO converges at least as fast iff FGO convergence ≤ UKF convergence at **both** δ on ≥ 2 of 3 bags;
+  - **(b)** the FGO's advantage is larger at 30° iff the FGO/UKF integrated-error ratio at 30° < at 10° on ≥ 2 of 3 bags.
+- **Prediction (user's):** (a) and (b) both hold.
+- **Every outcome is reported.** If the UKF again breaks down numerically, i.e. its predicted σ at the first headings
+  exceeds the prior or the cross-track is > 100 m, it is reported as such, and the comparison is called degenerate
+  as in F3b.

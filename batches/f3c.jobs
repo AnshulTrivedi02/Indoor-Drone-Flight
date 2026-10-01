@@ -1,0 +1,13 @@
+# F3c (METHODOLOGY PRE-REGISTRATION — F3c): sigma 30 deg, delta 10/30, one batch
+ukf__fwdc_tex_r1__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+fgo__fwdc_tex_r1__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+ukf__fwdc_tex_r1__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+fgo__fwdc_tex_r1__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+ukf__fwdc_tex_r2__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+fgo__fwdc_tex_r2__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+ukf__fwdc_tex_r2__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+fgo__fwdc_tex_r2__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+ukf__fwdc_tex_r3__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+fgo__fwdc_tex_r3__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+ukf__fwdc_tex_r3__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+fgo__fwdc_tex_r3__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
