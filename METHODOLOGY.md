@@ -9810,3 +9810,50 @@ data and (b) in closed loop?
   - S1 needs all 5 usable plain-wall flights (≥ 5/6);
   - S2 needs 8 of the 10 usable flights.
 - No replacement flights are flown. Doing so would change n after the fact.
+
+### Plan step 2(a) RESULT (`eval/results/f4_test.json`): P1 FAILS as worded (9/12); S1 PASSES (5/6); S2 FAILS (6/12). Robust weighting cuts wrongly accepted headings 3–6×; the yaw maximum barely moves
+
+Scored on the 10 usable flights; the 2 unusable flights count against, as recorded before scoring. Evaluator
+`eval/f4_eval.py test cauchy:2.385` (regression-checked against F1). All arms ran on identical headings, with D27
+noise for the UKF.
+
+| flight | yaw RMS / max: UKF hard | FGO hard | FGO robust | max cross-track U / H / R (m) | wrong accepted U / H / R (of n wrong) | correct rejected U / H / R (of n correct) | lockouts U / H / R |
+|---|---|---|---|---|---|---|---|
+| plain r1 | 2.84 / 5.49 | 1.75 / 10.22 | 1.61 / 10.22 | 5.02 / 0.59 / 0.41 | 249 / 66 / 14 (804) | 3971 / 201 / 754 (4397) | 1 / 1 / 1 |
+| plain r2 | 1.80 / 5.95 | 2.22 / 11.29 | 2.18 / 9.30 | 1.31 / 1.20 / 0.98 | 41 / 63 / 21 (811) | 1137 / 193 / 766 (4390) | 2 / 0 / 1 |
+| plain r4 | 3.54 / 5.83 | 3.99 / 14.04 | 1.87 / 11.65 | 7.17 / 3.57 / 0.65 | 302 / 49 / 16 (792) | 4428 / 183 / 769 (4460) | 1 / 1 / 1 |
+| plain r5 | 1.78 / 6.02 | 2.19 / 14.97 | 2.21 / 14.84 | 2.06 / 0.79 / 0.69 | 81 / 91 / 26 (951) | 1727 / 186 / 738 (4436) | 1 / 1 / 1 |
+| plain r6 | 2.50 / 5.41 | 1.34 / 9.70 | 1.48 / 9.68 | 4.16 / 0.48 / 0.64 | 172 / 49 / 13 (806) | 3062 / 198 / 758 (4359) | 2 / 0 / 1 |
+| end wall r2 | 0.10 / 0.34 | 0.28 / 1.22 | 0.27 / 1.05 | 1.86 / 0.07 / 0.07 | 0 / 0 / 0 (4) | 55 / 0 / 54 (351) | 0 / 0 / 0 |
+| end wall r3 | 0.12 / 0.31 | 0.28 / 1.51 | 0.28 / 1.08 | 1.86 / 0.07 / 0.07 | 0 / 0 / 0 (7) | 57 / 4 / 53 (346) | 0 / 0 / 0 |
+| end wall r4 | 0.11 / 0.34 | 0.30 / 1.27 | 0.29 / 1.10 | 1.81 / 0.03 / 0.03 | 0 / 0 / 0 (5) | 51 / 1 / 41 (346) | 0 / 0 / 0 |
+| end wall r5 | 0.13 / 0.41 | 0.29 / 1.19 | 0.28 / 1.14 | 1.82 / 0.06 / 0.06 | 0 / 0 / 0 (1) | 64 / 1 / 62 (363) | 0 / 0 / 0 |
+| end wall r6 | 0.12 / 0.34 | 0.32 / 1.27 | 0.31 / **1.72** | 1.84 / 0.07 / 0.07 | 0 / 0 / 0 (5) | 65 / 2 / 56 (358) | 0 / 0 / 0 |
+| plain r3, end wall r1 | unusable (IMU-gap rule; counted against) | | | | | | |
+
+**Decisions, as pre-registered:**
+- **P1 (PRIMARY), the robust FGO's yaw maximum < the hard-gated FGO's: 9 of 10 usable, so 9 of 12. FAILS as worded**
+  (≥ 10/12).
+  - The miss is end wall r6 (1.72° against 1.27°).
+  - Several "wins" are marginal: plain r5 14.84 against 14.97°; r6 9.68 against 9.70°; r1 equal to the hundredth,
+    10.22°.
+  - The maximum is set by a few heading events that both FGO arms take.
+- **S1, fewer wrong headings accepted on plain walls: 5 of 5 usable, so 5 of 6. PASSES.**
+  - 13–26 against 49–91, i.e. 3–6× fewer.
+- **S2, maximum cross-track ≤ the hard-gated FGO's: 6 of 10, so 6 of 12. FAILS** (≥ 8/12).
+  - Plain walls 4/5 (r6 0.64 against 0.48 m).
+  - End wall: equal to the hundredth (0.03–0.07 m), split at full precision.
+- **Prediction** (P1 and S1 hold, S2 uncertain): **P1 missed**, S1 held.
+
+**Reference against the UKF (no decision):**
+- The UKF has the lower yaw maximum on 10/10 (as F1, 6/6).
+- The robust FGO has the lower maximum cross-track on 10/10, and lower yaw RMS on 3/10.
+- The UKF rejects 26–99% of correct headings on plain walls (lockouts 7 in total), against the robust FGO's ~17%
+  (5) and the hard-gated FGO's ~4% (3).
+
+**Reading:**
+- Robust weighting reliably reduces how many wrong headings the FGO takes in (S1, here and in F1).
+- It does **not** reliably lower the FGO's worst-case yaw: the large yaw maxima on plain walls (9–15°) are common to
+  both FGO arms.
+- The UKF's lower worst-case yaw comes with frequent lockouts and much larger cross-track (1.3–7.2 m on plain walls).
+- Plan step 2(b) proceeds as pre-registered (not gated on 2(a)).
