@@ -27,7 +27,9 @@ from cruise_window import cruise_bounds
 ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--set", required=True, choices=["a", "b"])
 # --est ukf (D17 V4, PRE-REGISTERED): B3 uses the UKF's current-time yaw (XUKO), the value the controller receives;
 # EKF3's yaw error is then a DIAGNOSTIC, and S2 (XUKS horiz_pos_rel and healthy from arming to disarm) is added.
-ap.add_argument("--est", default="ekf3", choices=["ekf3", "ukf"])
+# --est fgo (D19, PRE-REGISTERED "B3 from XFGO, the scorer gets --est fgo"): B3 from the FGO backend's current-time
+# yaw (XFGO); S2 = XFGO.OV (output valid) 100% from arming to disarm (the FGO has no horiz_pos_rel flag of its own).
+ap.add_argument("--est", default="ekf3", choices=["ekf3", "ukf", "fgo"])
 ap.add_argument("--json"); a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); C = os.path.expanduser(f"~/thesis_data/closed_loop/{a.trial}")
 WALL = 9.58
@@ -79,9 +81,9 @@ else:
     B["B1"]["pass"] = bool(out["completed"] and breach is None and np.abs(x).max() < WALL)
     B["B2"] = {"max_abs_x_cruise_m": float(np.abs(x[w]).max())}; B["B2"]["pass"] = B["B2"]["max_abs_x_cruise_m"] <= 6.0
     # B3: yaw error from the dataflash (the flying estimator's yaw; --est)
-    mm = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); ser = {"ekf3": [], "ukf": []}; sim, st, arm = [], [], []
+    mm = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); ser = {"ekf3": [], "ukf": [], "fgo": []}; sim, st, arm, fov = [], [], [], []
     while True:
-        rr = mm.recv_match(type=["XKF1", "SIM", "XUKO", "XUKS", "ARM"])
+        rr = mm.recv_match(type=["XKF1", "SIM", "XUKO", "XUKS", "ARM", "XFGO"])
         if rr is None:
             break
         ty = rr.get_type()
@@ -91,6 +93,8 @@ else:
             ser["ekf3"].append((rr.TimeUS / 1e6, rr.Yaw))
         elif ty == "XUKO":
             ser["ukf"].append((rr.TimeUS / 1e6, rr.Yaw))
+        elif ty == "XFGO":
+            ser["fgo"].append((rr.TimeUS / 1e6, rr.Yaw)); fov.append((rr.TimeUS / 1e6, int(rr.OV)))
         elif ty == "XUKS":
             st.append((rr.TimeUS / 1e6, (int(rr.SS) >> 3) & 1, int(rr.H)))
         elif ty == "ARM":
@@ -110,14 +114,18 @@ else:
         r["pass"] = r["p95_deg"] <= 1.0 and r["max_deg"] <= 2.0
         return r
     B["B3"] = b3(ser[a.est]); B["B3"]["estimator"] = a.est
-    other = "ukf" if a.est == "ekf3" else "ekf3"
-    if len(ser[other]):
-        out["diag_B3_other_estimator"] = {other: b3(ser[other])}
+    for other in [e for e in ("ekf3", "ukf", "fgo") if e != a.est and len(ser[e])]:
+        out.setdefault("diag_B3_other_estimator", {})[other] = b3(ser[other])
     if a.est == "ukf":
         st = np.array(st); arms = [tt for tt, s_ in arm if s_ == 1]; dis = [tt for tt, s_ in arm if s_ == 0 and arms and tt > arms[0]]
         ws = (st[:, 0] >= arms[0]) & (st[:, 0] <= (dis[0] if dis else st[-1, 0]))
         out["S2"] = {"horiz_pos_rel_pct": float(100 * st[ws, 1].mean()), "healthy_pct": float(100 * st[ws, 2].mean())}
         out["S2"]["pass"] = out["S2"]["horiz_pos_rel_pct"] == 100.0 and out["S2"]["healthy_pct"] == 100.0
+    if a.est == "fgo":
+        fv = np.array(fov); arms = [tt for tt, s_ in arm if s_ == 1]; dis = [tt for tt, s_ in arm if s_ == 0 and arms and tt > arms[0]]
+        ws = (fv[:, 0] >= arms[0]) & (fv[:, 0] <= (dis[0] if dis else fv[-1, 0]))
+        out["S2"] = {"fgo_output_valid_pct": float(100 * fv[ws, 1].mean())}
+        out["S2"]["pass"] = out["S2"]["fgo_output_valid_pct"] == 100.0
     # "1 s-smoothed": a 1 s TIME window. GT stamps are irregular (occasional samples 1 ms apart), so
     # x is resampled on a uniform 100 Hz grid, boxcar-smoothed over 1 s (100 samples), then
     # differentiated. (The first version used a sample-count boxcar + np.gradient on the raw stamps,

@@ -1,0 +1,2 @@
+# FG1 reference for fgo_shadow_half_b: the node core fed as the live node (declared in METHODOLOGY)
+fgocore__fgo_shadow_half_b cd ~/thesis_ws && nice -n 10 $HOME/venv-fgo/bin/python eval/fgo_core_replay.py fgo_shadow_half_b --out fgo

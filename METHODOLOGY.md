@@ -9248,3 +9248,53 @@ It is checked by `AHRS_EKF_TYPE` = 10 in the PARM dump before scoring.
   derivative proxy). Elsewhere p95 is 0.003 m / 0.032 m/s, and yaw passes (p95 0.03°). This is the D23 LiDAR artefact,
   as in `fgo_shadow_half_a` (0.51 m / 3.83 m/s).
 - **The prediction held:** C1–C3, FG1, FG2 and FG3b pass; FG3 fails at the climb top only.
+
+### FGO shadow run (b) `fgo_shadow_half_b` (heading, truth flies, half speed): D25 C1–C3, FG1, FG2, FG3b PASS; FG3 fails as worded at the climb top only (as (a))
+
+`eval/results/fgo_gate_fgo_shadow_half_b.json`, `eval/results/d25_shadow_b.json`. Binary md5 `fa440748…`; truth flew
+(`AHRS_EKF_TYPE` 10).
+- **Heading input.** The C++ heading node, `every_n` 4, `closedloop_heading_half.parm` (`VISO_DELAY_MS` 25). The
+  node received 2,424 sent headings and fused **2,385 of 2,385** gated (from the core replay's log).
+- **D25: C1–C3 PASS.** `OV` = 1 from the first state to disarm; 0 negative ages; the first state came 10 s after the
+  first `/imu/time_ref`, before arming.
+- **FG1: PASS.**
+  - The reference is the node-core replay declared before the run (`eval/fgo_core_replay.py --out fgo`, the sent
+    headings from the bridge CSV).
+  - evo -a (cruise): received **0.0921 m** against offline 0.0958 m (difference −0.004 m).
+  - Yaw p95 **0.02°**, max 0.16°.
+  - 0 late. Count 9,797 against 9,945 after settling.
+- **FG2: PASS** (`OV` 100%). **FG3b: PASS** (age max 171 ms).
+- **FG3: FAIL as worded at the climb top only.**
+  - Position max 0.503 m at 29.79 s; velocity max 3.90 m/s (the proxy). Yaw passes (p95 0.07°, max 0.36°).
+  - Outside 28.5–33 s, position p95 is 0.003 m and the max 0.064 m. That max is at the cruise stop (341.5 s) and
+    touchdown (342.8 s), inside the 0.15 m max band, so it is reported, not a cause of failure.
+- **With the heading, the FGO's open-loop cruise error is small:**
+  - East error peak **0.075 m**; EKF3, passive on the same run, 0.294 m.
+  - Yaw error against SIM (`XFGO`) in cruise **p95 0.28°, max 0.95°**; EKF3 0.28° / 0.32°.
+  - The FGO's larger max is consistent with its fast heading jitter (the exploratory pattern).
+
+**Scorer `--est fgo`** (`eval/closed_loop_score.py`, as pre-registered in D19):
+- B3 comes from `XFGO` yaw. S2 = `XFGO.OV` 100% from arming to disarm. EKF3 is reported as a diagnostic.
+- **Regression:** `cl_bcpp_tex_r1_half` (EKF3) and `cl_ukf_b_tex_r1_half` (`--est ukf`) rescore **identically**
+  (B and S2).
+
+### FGO with-heading set `cl_fgo_b_tex_r1..r3_half`: POINT PREDICTIONS (written from `fgo_shadow_half_b` before any FGO flight)
+
+- **B3** (`XFGO` yaw error in cruise): **p95 ≈ 0.3°, max ≈ 1.0°** (band 1.0 / 2.0°). Basis: shadow (b) 0.28° / 0.95°.
+  The max is the FGO's fast heading jitter. The flown half-speed sets: EKF3 0.28–0.32° / 0.33–0.39°; UKF
+  0.18–0.21° / 0.28–1.32°.
+- **B2** (max physical cross-track in cruise): **≈ 0.15–0.4 m** (band 6.0 m).
+  - Basis: the FGO's open-loop East error peak is 0.075 m. Closed loop adds the controller's tracking of the
+    estimate, i.e. the half-speed sets' 0.13–0.33 m (EKF3 0.24–0.33 m, UKF 0.13–0.16 m for r1–r2).
+  - The upper end allows a D22-type flow-validity episode: `cl_ukf_b_tex_r3_half` reached 0.53 m. That weakness is
+    common to all three estimators.
+- **B4, B5:** as the sets. Lateral speed is typically ≤ 0.05 m/s, but a D22-type episode can reach ~0.3 m/s (the
+  B4 band is 0.25 m/s, which that UKF r3 flight failed). Gyro rms well inside.
+- **S2:** `XFGO.OV` 100% from arming to disarm.
+- **Climb top** (all FGO flights): overshoot ≥ +0.75 m, most likely +0.9 … +1.5 m. Ceiling margin 1.0–1.2 m at the
+  +1.5 m bound; 0.35 m at the constructed extreme. The ceiling has no collision.
+- **Heading timing:** the FGO fuses at the capture stamp, while EKF3/UKF use TS − 25 ms clamped to the horizon. This
+  difference is quantified from the heading-bridge CSV against `XFGI` and stated with the results (ruled
+  2026-09-30).
+- **Order and stop rule (unchanged):** `cl_fgo_a_tex_half` (no heading, U1–U3, S1/S2) first, then the set, each
+  scored before the next. Any primary failure stops the sequence and is reported.
