@@ -1319,3 +1319,16 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 | Horizontal FOV   | 60° (1.047 rad)              |
 | Focal length     | ~554 px                      |
 | Mount            | Rigid downward, no gimbal    |
+
+## 2026-10-01 (afternoon)
+- Supervisor figures: `plots/supervisor_2026-10-01/figures.pdf` (8 PNGs, INDEX.md), `0ab58eb`.
+- D24: `fly_trial.py`'s clock falls back to SYSTEM_TIME (nominal values identical on the recorded tlog); land/disarm on
+  failure after arming. Re-run `fgo_groundtest_half_b`: G1–G4 pass, arm–hold–disarm completes; G5 fails as worded
+  on pre-arm "FGO invalid or stale" (node start-up clock map future-stamps states) -> **D25 open, blocks FGO
+  shadow (b) and flights**.
+- LiDAR short returns: ArduPilot does not reject them (EKF3 median passes 2–3, SH <= 0.68; UKF port 0 rejected).
+  Nothing changed; known artefact for all three. Closed-loop overshoot ≈ the flying estimator's dip.
+- FGO predictions written: no-heading west [+145, +196] s (caveat: the method missed EKF3 by +55 s at half speed);
+  climb-top overshoot >= +0.75 m.
+- F3c: (a) false, (b) true as worded; both remove 10/30° at the first heading, so no speed difference at resolution.
+- Rulings recorded: F3b representation limit, pattern, D22 validity note.
