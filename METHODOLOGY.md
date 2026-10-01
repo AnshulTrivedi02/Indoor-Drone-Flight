@@ -9298,3 +9298,35 @@ It is checked by `AHRS_EKF_TYPE` = 10 in the PARM dump before scoring.
   2026-09-30).
 - **Order and stop rule (unchanged):** `cl_fgo_a_tex_half` (no heading, U1–U3, S1/S2) first, then the set, each
   scored before the next. Any primary failure stops the sequence and is reported.
+
+### FGO closed-loop flight WITHOUT heading, `cl_fgo_a_tex_half` (the FGO flies; half speed, ×1): PRIMARY PASS
+
+`eval/results/closed_loop_cl_fgo_a_tex_half.json` (`closed_loop_score.py --set a --est fgo`),
+`eval/results/climb_top_response_cl_fgo_a.json`.
+- **Configuration:** binary md5 `fa440748…`, checked before launch; `AHRS_EKF_TYPE 13`; the D25 node.
+- **Timeline:** armed 24.15 s; cruise start 33.09 s.
+- **Result: west-wall contact at cruise +165.8 s**, GT (x, y) = (−9.58, 83.8) m. The watcher stopped the flight
+  (max |x| 9.83 m during the stop).
+- **Against the predictions written before flying:**
+  - **U1 PASS:** armed, took off (1.82 m), entered cruise. **No message at all after arming**, no loss of control
+    before contact.
+  - **U2 PASS:** no contact before +100 s.
+  - **U3 PASS:** west wall inside **[+145, +196] s**.
+    - The scorer's built-in `a_primary` window, [+155, +215], is **EKF3's** and is not this flight's criterion (it
+      also passes).
+    - The open-loop method predicted +169.6 s (median of 10). The flight came 3.8 s earlier. **For the FGO, unlike
+      EKF3 (+55 s late) and the UKF (+5 … +37 s late) at half speed, the method held.** n = 1, and closed-loop
+      run-to-run variability is unmeasured.
+  - **S2 PASS:** `XFGO.OV` 100% from arming to contact. Output age max 172 ms; 0 negative ages.
+- **Climb top, against the prediction:**
+  - 7 short returns at 29.76–30.06 s. The FGO output height dipped **1.13 m** (EKF3, passive, 0.60 m).
+  - **True overshoot +0.94 m** (peak 3.34 m against a cruise median of 2.40 m), 1.15 s after the burst. That is
+    **inside the predicted "≥ +0.75, most likely +0.9 … +1.5 m"**.
+  - Ceiling margin 5.00 − 3.34 − 0.1 = **1.56 m**.
+  - Larger than EKF3's (+0.47 m) and the UKF's (+0.43 m) half-speed no-heading flights, as predicted.
+- **DIAGNOSTIC:**
+  - **Yaw error (`XFGO` against SIM):** +0.44° at cruise start; +3.6 / +9.9 / +14.2° at +60 / +120 / +150 s;
+    +17.6° at contact.
+  - **Drift over the first 150 s of cruise: 5.48 deg/min.** Half-speed references: EKF3 2.13, UKF 3.89; full
+    speed: EKF3 4.31, UKF 5.45.
+  - DESCRIPTIVE only (n = 1 per estimator; different flights, so no ordering claim).
