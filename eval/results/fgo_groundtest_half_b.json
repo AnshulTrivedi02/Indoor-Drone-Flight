@@ -1,0 +1,97 @@
+{
+ "G1": {
+  "AHRS_EKF_TYPE": 13.0,
+  "AHRS_FGO_ENABLE": 1.0,
+  "SERIAL3_PROTOCOL": 2.0,
+  "pass": true
+ },
+ "G2": {
+  "armed_at": 23.811514,
+  "pass": true
+ },
+ "G3": {
+  "att_vs_xfgo_p95_deg": 0.0006247105544911035,
+  "n": 915,
+  "pass": true
+ },
+ "G4": {
+  "hold_scored_s": 92.445568,
+  "max_dNE_m": 0.0053607859550893,
+  "height_err_end_m": 2.523541450499822e-05,
+  "height_err_growth_m": 0.00012032687664031982,
+  "yaw_change_deg": 5.391961097717285,
+  "raw_gyro_z_integral_deg": 5.392014310251081,
+  "yaw_minus_gyro_deg": -5.321253379619861e-05,
+  "pass": true
+ },
+ "G5": {
+  "disarmed_at": 116.257082,
+  "bad_before_stop": [
+   [
+    14.4,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    14.9,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    15.4,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    15.9,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    16.4,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    16.9,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    17.3,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    17.8,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    18.3,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    18.8,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    19.3,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    19.8,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    20.3,
+    "Arm: AHRS: FGO invalid or stale"
+   ],
+   [
+    20.8,
+    "Arm: AHRS: FGO invalid or stale"
+   ]
+  ],
+  "after_stop_reported": [],
+  "pass": false
+ },
+ "FG2_node_stop": {
+  "not_applicable": "no node stop in this run; the fgo_groundtest_half 130 ms result stands",
+  "last_state_s": 116.492003,
+  "disarm_s": 116.257082,
+  "pass": null
+ },
+ "PASS": false
+}

@@ -1,0 +1,132 @@
+{
+ "cl_a_tex_half:ekf3": {
+  "est": "ekf3",
+  "burst_s": [
+   28.84,
+   29.79
+  ],
+  "n_short": 6,
+  "output_height_err_dip_m": -0.44351043552160246,
+  "true_peak_m": 2.8450244140625,
+  "true_cruise_median_m": 2.37499267578125,
+  "true_overshoot_m": 0.47003173828125,
+  "t_peak_after_burst_s": 1.8493640000000013
+ },
+ "cl_bcpp_tex_r1_half:ekf3": {
+  "est": "ekf3",
+  "burst_s": [
+   29.19,
+   29.94
+  ],
+  "n_short": 6,
+  "output_height_err_dip_m": -0.47462406754493697,
+  "true_peak_m": 2.77501708984375,
+  "true_cruise_median_m": 2.3049853515625,
+  "true_overshoot_m": 0.47003173828125,
+  "t_peak_after_burst_s": 1.8993460000000013
+ },
+ "cl_bcpp_tex_r2_half:ekf3": {
+  "est": "ekf3",
+  "burst_s": [
+   32.35,
+   34.25
+  ],
+  "n_short": 27,
+  "output_height_err_dip_m": -1.7135137021541593,
+  "true_peak_m": 4.38500244140625,
+  "true_cruise_median_m": 2.5449755859375,
+  "true_overshoot_m": 1.8400268554687504,
+  "t_peak_after_burst_s": 3.0001880000000014
+ },
+ "cl_bcpp_tex_r3_half:ekf3": {
+  "est": "ekf3",
+  "burst_s": [
+   30.93,
+   32.53
+  ],
+  "n_short": 15,
+  "output_height_err_dip_m": -0.9101131483912466,
+  "true_peak_m": 3.3450244140625,
+  "true_cruise_median_m": 2.40502197265625,
+  "true_overshoot_m": 0.94000244140625,
+  "t_peak_after_burst_s": 2.600598999999999
+ },
+ "cl_ukf_a_tex_half:ukf": {
+  "est": "ukf",
+  "burst_s": [
+   29.0,
+   29.2
+  ],
+  "n_short": 5,
+  "output_height_err_dip_m": -0.4056610715954364,
+  "true_peak_m": 2.8149951171875,
+  "true_cruise_median_m": 2.38500244140625,
+  "true_overshoot_m": 0.42999267578125,
+  "t_peak_after_burst_s": 1.499483999999999
+ },
+ "cl_ukf_b_tex_r1_half:ukf": {
+  "est": "ukf",
+  "burst_s": [
+   29.04,
+   29.04
+  ],
+  "n_short": 1,
+  "output_height_err_dip_m": -0.18369492834979007,
+  "true_peak_m": 2.46501953125,
+  "true_cruise_median_m": 2.2949755859375,
+  "true_overshoot_m": 0.1700439453125,
+  "t_peak_after_burst_s": 1.3995190000000015
+ },
+ "cl_ukf_b_tex_r2_half:ukf": {
+  "est": "ukf",
+  "burst_s": [
+   29.34,
+   29.39
+  ],
+  "n_short": 2,
+  "output_height_err_dip_m": -0.2266063709102601,
+  "true_peak_m": 2.51500732421875,
+  "true_cruise_median_m": 2.24498779296875,
+  "true_overshoot_m": 0.27001953125,
+  "t_peak_after_burst_s": 1.099622
+ },
+ "cl_ukf_b_tex_r3_half:ukf": {
+  "est": "ukf",
+  "burst_s": [
+   29.27,
+   29.42
+  ],
+  "n_short": 4,
+  "output_height_err_dip_m": -0.361990603533212,
+  "true_peak_m": 2.695,
+  "true_cruise_median_m": 2.2949755859375,
+  "true_overshoot_m": 0.4000244140625,
+  "t_peak_after_burst_s": 1.249570000000002
+ },
+ "fgo_shadow_half_a:fgo": {
+  "est": "fgo",
+  "burst_s": [
+   30.04,
+   30.19
+  ],
+  "n_short": 4,
+  "output_height_err_dip_m": -0.7464424965110612,
+  "true_peak_m": 2.3250048828125,
+  "true_cruise_median_m": 2.3250048828125,
+  "true_overshoot_m": 0.0,
+  "t_peak_after_burst_s": 4.0002759999999995
+ },
+ "fgo_shadow_half_a:ekf3": {
+  "est": "ekf3",
+  "burst_s": [
+   30.04,
+   30.19
+  ],
+  "n_short": 4,
+  "output_height_err_dip_m": -0.24105405807495095,
+  "true_peak_m": 2.3250048828125,
+  "true_cruise_median_m": 2.3250048828125,
+  "true_overshoot_m": 0.0,
+  "t_peak_after_burst_s": 4.0002759999999995
+ }
+}

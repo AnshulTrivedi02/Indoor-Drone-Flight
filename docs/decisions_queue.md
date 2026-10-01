@@ -5,6 +5,23 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D25. FGO ground test re-run: G5 fails as worded on PRE-ARM "FGO invalid or stale" text (node start-up clock map stamps states ~4 ms in the future; the backend's uint32 age wraps -> invalid). Arm-hold-disarm itself passes (BLOCKS shadow (b) and the FGO flights)
+- G1-G4 pass; disarmed at 116.26 s; OV = 1 for 100% of arming -> disarm in all three FGO runs. The future
+  stamps occur in all three runs, only during start-up (to 9.2 / 10.3 / 20.8 s). In this run they overlapped
+  the arming attempts, so pre-arm refused 14 times until 20.8 s; arming succeeded at 23.81 s.
+- Risk: a late low outlier in the node's 10 s lower-envelope window could repeat it mid-flight (not observed).
+- Options:
+  - **(a)** record G5 as failed as worded, but judge the arm-hold-disarm as shown; fly as is. The pre-arm check is
+    the backend working as designed, and no in-flight occurrence has been seen in 3 runs;
+  - (b) node fix: a settled, outlier-robust clock map. Send no state until the window holds 10 s of samples,
+    and take a low percentile (e.g. the 1st) of header - time_ref instead of the minimum, since a single
+    too-low offset is what stamps states in the future. This is a node change, so a new shadow (a) is needed
+    for FG1-FG3;
+  - (c) backend fix: treat a small negative age (state up to e.g. 20 ms ahead) as age 0, not as wrapped. This is
+    a binary change, so a new shadow plus ground test is needed.
+- **Recommendation: (b).** It removes the cause on the node side, which is where the clock map is wrong, leaves
+  the backend's strict check intact, and costs one shadow run (~12 min).
+
 ### D24. FGO ground test: G5 fails as worded (no disarm), from the harness's sim clock, not the backend — RULED 2026-10-01
 - **Ruling:** G5 failed as worded (harness hang after the deliberate node stop, not an FGO fault); the 130 ms
   node-stop result stands. `fly_trial.py`'s clock now falls back to `SYSTEM_TIME` (estimator-independent;

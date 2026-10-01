@@ -8810,3 +8810,107 @@ FGO ground test without the node stop.
   - FG2 node-stop: not applicable. The 130 ms result stands.
 - **Prediction:** all of G1–G5 pass. G4's yaw again equals the integrated raw gyro-z to within 1°, because there
   is no heading on the ground.
+
+### FGO ground test re-run `fgo_groundtest_half_b` RESULT: G1–G4 PASS; the arm–hold–disarm completes (D24 fix works); **G5 FAILS AS WORDED** on pre-arm "FGO invalid or stale" text; queued as **D25**
+
+`eval/results/fgo_groundtest_half_b.json` (`--no-node-stop`). Binary md5 `fa440748…` (checked before launch).
+Armed 23.81 s; disarmed **116.26 s** after the 90 s sim hold. `fly_trial.py`: "disarm requested; ground
+test complete"; `run_trial` exit 0.
+- **G1:** `AHRS_EKF_TYPE 13`, `AHRS_FGO_ENABLE 1`, `SERIAL3_PROTOCOL 2`.
+- **G2:** armed.
+- **G3:** ATT − XFGO p95 0.0006°.
+- **G4** (92.4 s of hold scored, up to the disarm): horizontal 5.4 mm; height error at the end 0.03 mm,
+  growth 0.12 mm. Yaw change 5.392° against the integrated raw gyro-z 5.392° (difference −0.00005°).
+- **G5, FAIL as worded** ("no failsafe/crash/estimator-invalid text before the disarm").
+  - **What passed:** the disarm happened. There is no such text after arming, and `XFGO.OV` = 1 for 100% of
+    arming → disarm (output age max 181 ms).
+  - **What failed:** before arming there were **14 pre-arm refusals, "Arm: AHRS: FGO invalid or stale"** (14.4–20.8 s),
+    alongside "Need Alt Estimate" and "Gyros inconsistent". Arming succeeded at 23.81 s.
+- **FG2 node-stop:** not applicable. The 130 ms result of `fgo_groundtest_half` stands.
+
+**Cause of the pre-arm refusals: start-up clock-map settling in the node.**
+- **The node's map.** `fgo_node._sitl_us` maps header time to the SITL clock with the minimum of
+  header − `/imu/time_ref` over the last 10 s.
+- **What went wrong.** Until that window settles, some states were stamped **ahead of the vehicle clock**
+  (by ~4 ms). `AP_NavFGO::output_valid()` computes `now − t_valid` in `uint32`, so the age wraps
+  (`XFGO.Age` logged 4,294,967,292) and the output is **invalid**. `OV` = 0 for 240 samples between
+  10.9 and 20.8 s. The pre-arm check correctly refused.
+- **All three FGO runs show it, only during start-up and never while armed.** Future-stamped samples:
+  - `fgo_groundtest_half`: 154, at 4.1–10.3 s;
+  - `fgo_shadow_half_a`: 125, at 4.2–9.2 s;
+  - `fgo_groundtest_half_b`: 411, at 3.6–20.8 s. Here it lasted long enough to overlap the arming attempts.
+  - No run has a future-stamped sample between arming and disarm.
+- **Risk.** A late low outlier in the 10 s window could in principle reproduce it mid-flight, and in
+  closed loop that would invalidate the flying estimator. It has not been observed. Not changed without a
+  ruling (D25).
+
+### LiDAR short returns (D23 cause), the ruled source check: ArduPilot does NOT reject them, for EKF3 or for the UKF port. Nothing changed; recorded as a known sensor artefact affecting all three
+
+**The readings:**
+- Climb-to-cruise bursts of 4–6 short returns. Open loop they ramp 0.06–0.13 → 0.4–0.8 m while the
+  vehicle is ~2.2 m up.
+- In EKF3/UKF closed loop they number up to 27; more below.
+
+**1. Rangefinder library (`status()`), all estimators.**
+- `lidar_bridge.py` sends `DISTANCE_SENSOR` with min 0.05 m and max 40 m (from the `gpu_lidar`).
+- `AP_RangeFinder_MAVLink` takes min/max **from the message** (`handle_msg`, `_min_distance` /
+  `_max_distance`; `RNGFND1_MIN`/`MAX` are not used by this backend).
+- `AP_RangeFinder_Backend::update_status` gives `Good` for 0.05 ≤ d ≤ 40.
+- **A 0.13 m reading is `Good`** (RFND.Stat = 4 in the logs).
+- The UKF port (`AP_NavUKF.cpp:437`, `RNG_MIN` 0.05, `RNG_MAX` 40), the offline UKF (`ukf_core.update_range`),
+  the offline FGO (`fgo_core.keyframe`) and the FGO node (`fgo_node_core`) all apply **the same
+  [0.05, 40] m rule.** So the sensor-validity rule is already identical across the three.
+
+**2. EKF3's own range handling** (`AP_NavEKF3_Measurements.cpp:18-90`, `AP_NavEKF3_PosVelFusion.cpp:1411-1430`):
+- samples the latest `Good` value at > 50 ms intervals;
+- **takes the median of 3 fresh samples**;
+- floors at `rngOnGnd` = max(`GNDCLEAR`, 0.05);
+- fuses `rng·cos(tilt)` only if `prevTnb.c.z ≥ 0.7`;
+- R = max(`RNG_M_NSE`, 0.1)² plus a terrain-gradient × tilt term;
+- applies the 5σ gate.
+- These are EKF3 **estimator design**, not sensor validity. Under D18 they are not copied.
+- The UKF port has the matched 5σ gate, but no median or tilt cut.
+
+**3. What actually happened, from the logs** (`eval/lidar_short_returns.py`, `eval/results/lidar_short_returns.json`;
+7 flights: `cl_a_tex_half`, `cl_ukf_a_tex_half`, `cl_ukf_b_tex_r3_half`, `cl_bcpp_tex_r1_half`,
+`fgo_shadow_half_a`, `dsn_tex_r1`, `fwdc_tex_r1`):
+- **EKF3 accepted them.**
+  - The 3-sample median, replayed on the RFND stream, passes **2–3 short samples per burst** in every flight.
+  - `XKF4.SH` (squared height test ratio; > 1 = rejected) peaks at **0.44–0.68**, so **0 rejections**.
+  - `XKF3.IPD` reaches 1.1–1.8 m.
+  - EKF3's height error dips **0.29–0.48 m** in these 7 flights.
+- **The UKF port accepted them:** 27–29 range samples accepted and **0 rejected** in each burst
+  (`XUKS` Ra/Rr). Its height error dips 0.36–0.41 m.
+- **The FGO (no gate) also took them:** output dip 0.75 m in `fgo_shadow_half_a`, where EKF3 dipped 0.24 m
+  on the same burst.
+
+**Conclusion per the ruling (case 3):**
+- ArduPilot's rangefinder path does not reject these readings for EKF3 or the UKF port. **Nothing is
+  changed** in any estimator.
+- **The short returns are a known sensor artefact affecting all three.**
+- The estimators differ only in how strongly their estimates respond. On the same burst in
+  `fgo_shadow_half_a`, the FGO's output dip is ~3× EKF3's. That is estimator behaviour, stated with every
+  FGO closed-loop result (D23).
+
+**Closed-loop response measured so far** (`eval/climb_top_response.py`, `eval/results/climb_top_response.json`).
+The flying estimator's output height-error dip at the burst is set against the TRUE overshoot, i.e. the
+true peak minus the true cruise median:
+
+| flight | estimator | short returns | output dip | true overshoot | peak after burst |
+|---|---|---|---|---|---|
+| `cl_a_tex_half` | EKF3 | 6 | −0.44 m | +0.47 m | 1.8 s |
+| `cl_bcpp_tex_r1_half` | EKF3 | 6 | −0.47 | +0.47 | 1.9 |
+| `cl_bcpp_tex_r2_half` | EKF3 | **27** | **−1.71** | **+1.84** (peak 4.39 m) | 3.0 |
+| `cl_bcpp_tex_r3_half` | EKF3 | 15 | −0.91 | +0.94 | 2.6 |
+| `cl_ukf_a_tex_half` | UKF | 5 | −0.41 | +0.43 | 1.5 |
+| `cl_ukf_b_tex_r1_half` | UKF | 1 | −0.18 | +0.17 | 1.4 |
+| `cl_ukf_b_tex_r2_half` | UKF | 2 | −0.23 | +0.27 | 1.1 |
+| `cl_ukf_b_tex_r3_half` | UKF | 4 | −0.36 | +0.40 | 1.25 |
+| `fgo_shadow_half_a` (truth flies) | FGO output | 4 | **−0.75** | 0 | — |
+| `fgo_shadow_half_a` (truth flies) | EKF3 | 4 | −0.24 | 0 | — |
+
+- **In closed loop, the true overshoot ≈ the output dip** (ratio 0.94–1.11 over 8 flights). The controller
+  climbs by what the estimate lost.
+- **The burst can feed itself in closed loop:** the bursts in `cl_bcpp` r2/r3 are 27 and 15 samples long. The
+  mechanism is not established.
+- The ceiling of the `*_fwdc` worlds is visual-only, with its underside at 5 m, so an overshoot cannot cause contact.
