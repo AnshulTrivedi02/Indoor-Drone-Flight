@@ -1,0 +1,123 @@
+# D27 (b): re-run every offline UKF replay produced since 2026-09-29 with the aligned process noise (commit 5598e30)
+ukf__dsn_blank_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_blank_r1
+ukf__dsn_blank_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_blank_r2
+ukf__dsn_blank_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_blank_r3
+ukf__dsn_tex_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r1
+ukf__dsn_tex_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r2
+ukf__dsn_tex_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r3
+ukf__dsn_tex_r4__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r4
+ukf__dsn_tex_r5__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r5
+ukf__dsn_tex_r6__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r6
+ukf__dsn_tex_r7__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r7
+ukf__dsn_tex_r8__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r8
+ukf__dsn_tex_r9__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_tex_r9
+ukf__dsn_trans_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_trans_r1
+ukf__dsn_trans_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_trans_r2
+ukf__dsn_trans_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py dsn_trans_r3
+ukf__fwdc_blank_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1
+ukf__fwdc_blank_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2
+ukf__fwdc_blank_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3
+ukf__fwdc_tex_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1
+ukf__fwdc_tex_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2
+ukf__fwdc_tex_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3
+ukf__fwdc_trans_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1
+ukf__fwdc_trans_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2
+ukf__fwdc_trans_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3
+ukf__fwdplainc_blank_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1
+ukf__fwdplainc_blank_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2
+ukf__fwdplainc_blank_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3
+ukf__fwdplainc_tex_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1
+ukf__fwdplainc_tex_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2
+ukf__fwdplainc_tex_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3
+ukf__fwdplainc_trans_r1__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1
+ukf__fwdplainc_trans_r2__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2
+ukf__fwdplainc_trans_r3__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3
+ukf__p1c_fwdc_blank__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdc_blank
+ukf__p1c_fwdc_tex__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdc_tex
+ukf__p1c_fwdc_trans__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdc_trans
+ukf__p1c_fwdplainc_blank__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdplainc_blank
+ukf__p1c_fwdplainc_tex__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdplainc_tex
+ukf__p1c_fwdplainc_trans__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py p1c_fwdplainc_trans
+ukf__ukf_shadow_sitl_tex_d5__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py ukf_shadow_sitl_tex_d5
+ukf__ukf_shadow_sitl_tex_d15__plain cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py ukf_shadow_sitl_tex_d15
+ukf__fwdc_blank_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 baseline
+ukf__fwdc_blank_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading
+ukf__fwdc_blank_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 baseline
+ukf__fwdc_blank_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading
+ukf__fwdc_blank_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 baseline
+ukf__fwdc_blank_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading
+ukf__fwdc_tex_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 baseline
+ukf__fwdc_tex_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+ukf__fwdc_tex_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 baseline
+ukf__fwdc_tex_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+ukf__fwdc_tex_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 baseline
+ukf__fwdc_tex_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+ukf__fwdc_trans_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 baseline
+ukf__fwdc_trans_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading
+ukf__fwdc_trans_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 baseline
+ukf__fwdc_trans_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading
+ukf__fwdc_trans_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 baseline
+ukf__fwdc_trans_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading
+ukf__fwdplainc_blank_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 baseline
+ukf__fwdplainc_blank_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 heading
+ukf__fwdplainc_blank_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 baseline
+ukf__fwdplainc_blank_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 heading
+ukf__fwdplainc_blank_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 baseline
+ukf__fwdplainc_blank_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 heading
+ukf__fwdplainc_tex_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 baseline
+ukf__fwdplainc_tex_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 heading
+ukf__fwdplainc_tex_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 baseline
+ukf__fwdplainc_tex_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 heading
+ukf__fwdplainc_tex_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 baseline
+ukf__fwdplainc_tex_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 heading
+ukf__fwdplainc_trans_r1__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 baseline
+ukf__fwdplainc_trans_r1__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 heading
+ukf__fwdplainc_trans_r2__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 baseline
+ukf__fwdplainc_trans_r2__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 heading
+ukf__fwdplainc_trans_r3__baseline cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 baseline
+ukf__fwdplainc_trans_r3__heading cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 heading
+ukf__fwdc_blank_r1__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading_yawrate
+ukf__fwdc_blank_r2__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading_yawrate
+ukf__fwdc_blank_r3__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading_yawrate
+ukf__fwdc_tex_r1__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading_yawrate
+ukf__fwdc_tex_r2__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading_yawrate
+ukf__fwdc_tex_r3__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading_yawrate
+ukf__fwdc_trans_r1__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading_yawrate
+ukf__fwdc_trans_r2__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading_yawrate
+ukf__fwdc_trans_r3__heading_yawrate cd ~/thesis_ws && nice -n 10 ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading_yawrate
+ukf5b__fwdc_tex_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 baseline
+ukf5b__fwdc_tex_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+ukf5b__fwdc_trans_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 baseline
+ukf5b__fwdc_trans_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading
+ukf5b__fwdc_blank_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 baseline
+ukf5b__fwdc_blank_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading
+ukf5b__fwdc_tex_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 baseline
+ukf5b__fwdc_tex_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+ukf5b__fwdc_trans_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 baseline
+ukf5b__fwdc_trans_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading
+ukf5b__fwdc_blank_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 baseline
+ukf5b__fwdc_blank_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading
+ukf5b__fwdc_tex_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 baseline
+ukf5b__fwdc_tex_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_tex_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+ukf5b__fwdc_trans_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 baseline
+ukf5b__fwdc_trans_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_trans_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading
+ukf5b__fwdc_blank_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 baseline
+ukf5b__fwdc_blank_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdc_blank_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading
+ukf5b__fwdplainc_tex_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 baseline
+ukf5b__fwdplainc_tex_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 heading
+ukf5b__fwdplainc_trans_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 baseline
+ukf5b__fwdplainc_trans_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 heading
+ukf5b__fwdplainc_blank_r1__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r1/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 baseline
+ukf5b__fwdplainc_blank_r1__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r1/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 heading
+ukf5b__fwdplainc_tex_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 baseline
+ukf5b__fwdplainc_tex_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 heading
+ukf5b__fwdplainc_trans_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 baseline
+ukf5b__fwdplainc_trans_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 heading
+ukf5b__fwdplainc_blank_r2__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r2/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 baseline
+ukf5b__fwdplainc_blank_r2__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r2/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 heading
+ukf5b__fwdplainc_tex_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 baseline
+ukf5b__fwdplainc_tex_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_tex_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 heading
+ukf5b__fwdplainc_trans_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 baseline
+ukf5b__fwdplainc_trans_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_trans_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 heading
+ukf5b__fwdplainc_blank_r3__baseline cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r3/ukf_baseline_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 baseline
+ukf5b__fwdplainc_blank_r3__heading cd ~/thesis_ws && HOME=/home/makerspace/thesis_data/phase5b/home UKF_DUMP=/home/makerspace/thesis_data/phase5b/home/thesis_data/trials/fwdplainc_blank_r3/ukf_heading_dump.npz ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 heading
