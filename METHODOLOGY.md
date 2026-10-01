@@ -9594,3 +9594,97 @@ sufficient):**
   - the replays as `~/thesis_data/trials/*/ukf*.preD27` (122 directories);
   - the Phase 5b sandbox as `*.preD27` (72 entries).
 - Old vs new is reported for every headline UKF number. Old values move to the superseded section.
+
+### D27 item 3: the closed-loop heading-weight difference is STRUCTURAL (recorded as ruled)
+
+- **The difference.** At **equal sensor noise** (step 1: the closed-loop builds carry identical sensor-noise
+  parameters), the FGO weights each camera heading at **15.9%** (predicted heading σ at its gate 2.17°), against the
+  UKF's **2.9%** (0.86°), with the same R (5°).
+- **It is real in the smoother, not only at the gate.** An 11.6° outlier moved the flying FGO's yaw ~1.6–1.9°
+  (≈ 14–16%).
+- It is a property of the FGO's structure, not of its inputs.
+- **Candidate mechanisms, ALL UNTESTED:**
+  - (i) the 0.25 s fixed-lag window holds only ~2 headings (7.5 Hz); older heading information survives only in the
+    marginalised linear prior;
+  - (ii) that marginal prior is re-linearised as the window slides, which may lose or understate yaw information;
+  - (iii) the per-keyframe (30 Hz) zero-innovation yaw-cap factor, against the UKF's variance-gated pseudo-yaw at
+    7 Hz, which fires only when the yaw variance exceeds its gate.
+- The consequences (D26): ~5× fast heading jitter, its coupling into vehicle yaw motion in closed loop, and the
+  larger end-wall swings. They are recorded as the behaviour of this FGO design.
+
+### D27 RESULT: every offline-UKF result since 2026-09-29 re-run with the aligned process noise; NO verdict changes; per-bag direction changes on two plain-wall bags flagged; EKF3/FGO numbers byte-identical
+
+**What was re-run:**
+- **Replays:** `batches/d27_ukf_rerun_v2.jobs`, 156 jobs, all DONE, 0 failed, commit `5598e30`:
+  - the plain arm on `dsn` (blank, tex r1–r9, trans), `fwdc`, `fwdplainc`, `p1c` and the two port-shadow bags;
+  - the Phase 4 arms (baseline, heading, heading_yawrate);
+  - Phase 5b on the **current D15 sandbox** (`phase5b_d15`);
+  - every F-variant (F2mask, F3d, F3bd, F3cd; the C0/F2 pattern run PATnocap, reconstructed as
+    `F_TAG=PATnocap F_NO_YAWCAP=1`).
+- **Evaluations:** `eval/d27_regen.sh`. It runs the producing commands of `d15_pipeline.sh`/`run_set_eval.sh`
+  steps 4–5 and the F-test evaluators, **without re-replaying the FGO**.
+- **Two execution slips in the regeneration, found and fixed, disclosed:**
+  - (1) `P4_BANDS` was exported after the forward sets were scored. `d27_compare.py` caught it as non-UKF changes in
+    three score files; the scores were redone with the bands, and the flags cleared.
+  - (2) `blank_behaviour.py` needs `rosbags`, so it was rerun under `venv-evo` with the pymavlink shim.
+- **Old vs new for every leaf:** `eval/d27_compare.py` → `docs/thesis/d27_old_vs_new.md`,
+  `eval/results/d27_old_vs_new.json`; the old JSONs are kept in `eval/results_preD27/`.
+- **Non-UKF changes: 0 in every file.** The only "non-UKF" paths that changed are the F3b/F3c FGO/UKF ratios, which
+  are UKF-derived. So **every EKF3 and FGO number is identical.**
+
+**The confirmatory EKF3-vs-FGO test is UNAFFECTED (confirmed).**
+- `dsn_paired_test.json` differs only in its UKF noise-floor fields: mean −0.686, CI [−1.159, −0.212], 6/6 negative,
+  "EKF3 lower", byte-identical.
+
+**Headline UKF numbers, old (correction (ii) to D27) → new (D27):**
+
+| result | old | new | verdict / direction |
+|---|---|---|---|
+| `dsn_tex` r1 / r2 / r3 evo -a (cruise) | 4.31 / 2.29 / 5.93 m | **4.23 / 2.14 / 5.38 m** | — |
+| `dsn_tex` r1–r9 median / range / SD | 5.39 / 1.87–5.93 / 1.51 m | **5.34 / 1.71–5.96 / 1.55 m** | **textured-floor standing unchanged:** UKF median highest (EKF3 4.10, FGO 4.61); UKF lowest on the same 2 of 9 bags; 9/9 stable |
+| UKF take-off kick, `dsn_tex` r1–r9 | \|Δ\| ≤ 0.76° | **≤ 0.79°** (r3 −0.76 → −0.45°, r8 −0.50 → −0.79°) | the D15 wording "≤ 0.76°" restated as "≤ 0.79°" |
+| UKF cruise yaw drift, `dsn_tex` / transition | −7.8 … −1.9 / −10.4, −13.3, −10.3 deg/min | −7.6, −2.7, −10.0, −10.1, −9.7, −1.3, −9.9, −11.2, −10.0 / −10.3, −13.0, −10.2 | — |
+| U2 offline basis (D15 item 5) | 7/9 at 7.8–11.1 deg/min | 7/9 at 7.6–11.2 deg/min | unchanged |
+| `fwdc` / `fwdplainc` UKF baseline, textured | 5.18 / 2.47 / 5.18; 5.22 / 11.89 / 11.54 m | 5.13 / 2.27 / 5.13; 5.17 / 11.51 / 11.09 m | — |
+| `p1c` UKF, textured | 7.67 (fwdc), 5.32 (fwdplainc) m | 7.50, 5.27 m | — |
+| Phase 4 UKF+heading, `fwdc` | 0.613 / 0.619 / 0.623 m | 0.611 / 0.617 / 0.621 m | — |
+| Phase 4 UKF+heading, `fwdplainc` | 0.65 / 1.01 / 0.95 m | **0.88 / 0.94 / 0.73 m** | — |
+| **C0: FGO vs UKF with heading, position** | FGO lower 6/6 | FGO lower 6/6 | **unchanged** |
+| **C0: yaw RMS** | UKF lower 5/6 (FGO lower on `fwdplainc_tex_r3`) | UKF lower 5/6, **but FGO now lower on `fwdplainc_tex_r1`** (UKF 0.895 → 3.125°) and **UKF now lower on r3** (2.933 → 1.463°) | **count unchanged; per-bag direction FLIPS on 2 plain-wall bags (FLAG)** |
+| `fwdc` heading-arm yaw RMS (UKF) | 0.08° | 0.081 / 0.078 / 0.085° | — |
+| Phase 5 decomposition (fig5) | without heading, heading-driven cross-track 3.5–46.0 m; UKF+heading residual mean 1.78 m | 0.4–45.3 m; 1.78 m | — |
+| Phase 5b `fwdplainc` UKF+heading NEES | 5.10 (0.36 / 5.50 / 9.45) | **6.11 (10.42 / 6.79 / 1.12)** | over-confidence statement holds; per-bag order reshuffled (FLAG, as C0) |
+| Phase 5b UKF baseline NEES `fwdc` r1, r3 / `fwdplainc` r2 | 6.6, 6.6 / 94.1 | 6.3, 6.3 / 86.2 | — |
+| Scale: UKF+heading speed / along-track ratio | 0.987–0.990 | 0.987–0.990 | unchanged |
+| Blank, UKF baseline error +10 / +30 / +60 s (n = 11) | 6.4–9.2 / 20.5–34.1 / 96–313 m | 6.4–9.0 / 20.5–33.0 / 112–288 m | same collapse |
+| Blank end of cruise / transition +60 s | 10–63 km / 83–315 m | 13–58 km / 31–307 m | diverged runs; chaotic |
+| Blank heading arms +60 s (UKF) | 61–176 m | 88–323 m | heading still does not bound position without flow |
+| RTF check (UKF drift and evo against RTF and latency) | ρ −0.05 / −0.07; +0.06 / +0.06 | ρ −0.04 / −0.04; +0.04 / +0.04 (all p > 0.8) | **"no dependence" unchanged** |
+| **F1** | decision NOT met; lockouts UKF 5 / robust FGO 4; UKF lower yaw max 6/6 | decision NOT met; **lockouts UKF 6** / 4; UKF lower yaw max 6/6 | **verdict unchanged.** Descriptive per-bag shift (FLAG): the UKF's correct-rejected share on plain walls is now 94 / 85 / 28% (r1/r2/r3), was 17 / 72 / 89%; cross-track 5.65 / 4.53 / 1.38 m, was 1.18 / 3.83 / 5.37 m; the robust FGO is lower on all three, as before |
+| **F2** | NOT met; UKF live OFF yaw 0.51 / 0.22 / 0.31° | NOT met; 0.53 / 0.21 / 0.32° | unchanged |
+| **F3** | advantage-grows NOT met; UKF 60° +211 s or never; 90° diverged | NOT met; 60° +216 / +213 s or never; 90° diverged | unchanged |
+| **F3b** | (a) TRUE, (b) FALSE; UKF never converged (numerical divergence) | (a) TRUE, (b) FALSE; still divergent (r3 δ30 "converged" only at +302 s, the end) | unchanged (representation limit) |
+| **F3c** | (a) FALSE, (b) TRUE; ratios 0.114/0.095, 1.23/1.06, 0.054/0.045 | (a) FALSE, (b) TRUE; 0.116/0.094, 1.27/1.10, 0.054/0.045 | unchanged |
+| C0/F2 pattern: UKF yaw / cross-track RMS, `F_NO_YAWCAP` `fwdc_tex_r1` | 0.082° / 0.871 m | 0.081° / 0.870 m | unchanged |
+
+**Flags (direction changes; no verdict changes):**
+- **The UKF's plain-wall heading arm is sensitive to the process-noise change.** On `fwdplainc_tex_r1`/`r3`, which bag
+  shows a UKF heading lockout, i.e. many correct headings rejected, moved: r1 locks out now, r3 no longer.
+- So the per-bag C0 yaw ordering, the F1 descriptive per-bag counts and the Phase 5b per-bag NEES change, while every
+  pre-registered count and decision is the same.
+- The textured-wall (`fwdc`) results move by ≤ 0.002 m and ≤ 0.007°.
+
+**Not re-run, stated:**
+- The correction (ii) verification (B1) is historical: the pre-re-fly bag, an ad hoc check.
+- The `regress`/`regress2` switch-identity checks are code-identity checks, not results.
+- The pre-29-Sep values were already superseded.
+- **Port step-2 equivalence (E1–E5) and the step-3/D5/D15 "offline reference" columns** compared the UKF port with the
+  offline UKF **as it then was**: same per-step Q at 15 ms steps, like for like. They remain valid as implementation
+  equivalence checks of that configuration. The port's own results are unaffected (its 12.5 ms steps already carried
+  the matched densities). They are not restated.
+
+**Updated:**
+- `docs/thesis/numbers.md`: 15 current rows restated; old rows moved verbatim to "Superseded by D27". The two
+  long-wrong CURRENT rows, "UKF predict dt 0.0125 s" and "NSE scale factor exactly 1", are corrected.
+- The supervisor figures, regenerated: fig3, fig4, fig5, fig7 and fig8 values and captions; fig7's last column is
+  labelled "+ D27" for the UKF.

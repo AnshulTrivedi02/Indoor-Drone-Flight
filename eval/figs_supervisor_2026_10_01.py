@@ -179,7 +179,7 @@ fig.tight_layout(rect=(0, 0, 1, 0.93))
 save(fig, "fig3_offline_textured_no_heading.png", "Offline accuracy, textured floor, no heading; confirmatory EKF3 − FGO test",
      "Left: evo -a (cruise) per flight for the three estimators on the same 10 open-loop flights (same information; r10 is unusable for UKF/FGO under the "
      "IMU-gap rule). Right: the pre-registered paired test on the 6 usable new flights r4–r9 (d = EKF3 − FGO; t-interval df 5). "
-     "Values after the consolidated corrections and D15. UKF median 5.39 m (all 9 stable after D15).",
+     "Values after the consolidated corrections, D15 and D27 (offline UKF process noise aligned). UKF median 5.34 m (all 9 stable).",
      "CONFIRMATORY (right panel); DESCRIPTIVE (left)", "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (evo -a cruise '+0.00'); dsn_paired_test.json")
 
 # ------------------------------------------------------------------------------------------------ Figure 4
@@ -267,8 +267,8 @@ save(fig, "fig6_blank_flow_loss.png", "Loss of flow aiding on the blank floor",
 rows = [
     ("dsn textured, EKF3 evo -a mean (r1–r3)", "4.66 m", "4.00 m", "4.00 m (unchanged)"),
     ("dsn textured, FGO evo -a mean (r1–r3)", "4.65 m", "4.52 m", "4.64 m"),
-    ("dsn textured, UKF evo -a (r1–r3)", "16.98 / 9.96 / 20.71 m", "17.45 / 2.28 / 4.30 m", "4.31 / 2.29 / 5.93 m"),
-    ("dsn textured, UKF r1–r9 median", "—", "17.5 m (≤4.3 m on 3/9)", "5.39 m (all 9 stable)"),
+    ("dsn textured, UKF evo -a (r1–r3)", "16.98 / 9.96 / 20.71 m", "17.45 / 2.28 / 4.30 m", "4.23 / 2.14 / 5.38 m"),
+    ("dsn textured, UKF r1–r9 median", "—", "17.5 m (≤4.3 m on 3/9)", "5.34 m (all 9 stable)"),
     ("Heading share of EKF3 lateral drift (dsn_tex_r3)", "68.9 %", "90.6 %", "—"),
     ("EKF3 lateral flow innovation |FIX| (airborne mean)", "~300–450", "7", "—"),
     ("Confirmatory EKF3 − FGO (r4–r9), 95% CI", "—", "−0.69 [−1.20, −0.19] m", "−0.69 [−1.16, −0.21] m"),
@@ -280,7 +280,7 @@ fixes = [("(i) flow sign", "lateral optical-flow axis had the wrong sign in the 
          ("(v) roll gains", "a roll limit cycle in the vehicle's attitude loop contaminated flow; gains fixed"),
          ("D15 ground-proximity rule", "UKF/FGO fused flow on the ground; EKF3's rule (flow = no motion below 0.5 m before take-off) now shared")]
 fig = plt.figure(figsize=(16, 7.6)); ax = fig.add_axes([0.01, 0.47, 0.98, 0.44]); ax.axis("off")
-tab = ax.table(cellText=[list(r) for r in rows], colLabels=["headline number", "before corrections", "after 5 corrections (re-flown)", "after D15"],
+tab = ax.table(cellText=[list(r) for r in rows], colLabels=["headline number", "before corrections", "after 5 corrections (re-flown)", "after D15 (UKF: + D27)"],
                loc="upper left", cellLoc="left", colLoc="left", colWidths=[0.40, 0.19, 0.22, 0.19])
 tab.auto_set_font_size(False); tab.set_fontsize(12.5); tab.scale(1, 2.1)
 for (r_, c_), cell in tab.get_celld().items():
@@ -295,7 +295,8 @@ fig.suptitle("The corrections: headline numbers before and after", x=0.01, ha="l
 save(fig, "fig7_corrections_table.png", "Corrections: headline numbers old vs new",
      "Headline numbers before the consolidated corrections, after the five corrections (re-flown datasets), and after D15. Old values are the "
      "superseded rows recorded verbatim in numbers.md; '—' = not computed at that stage. The five corrections were applied together (one "
-     "re-fly), so their individual effects are not separated.",
+     "re-fly), so their individual effects are not separated. The UKF values in the last column also include D27 (the offline UKF's IMU process "
+     "noise aligned to the FGO/port per-second densities, 2026-10-01).",
      "DESCRIPTIVE", "docs/thesis/numbers.md (Former sections 6–9; §6.1, §6.3; Superseded by D15); eval/results/dsn_paired_test.json")
 
 # ------------------------------------------------------------------------------------------------ Figure 8
@@ -318,7 +319,7 @@ fig.tight_layout(rect=(0, 0, 1, 0.94))
 save(fig, "fig8_f1_robust_tradeoff.png", "F1: robust heading weighting trade-off",
      "Same camera headings (σ 0.148°/0.126°) on plain-wall bags (whole cruise) and the textured end-wall region (y > 140 m). Pre-registered F1 "
      "decision FAILED as worded (the UKF had the lower worst-case yaw on all 6 bags). Descriptively: the robust FGO rejects far fewer correct headings "
-     "than the UKF on plain walls (≈16% vs 72–89% on r2/r3), accepts fewer wrong ones, and has much lower cross-track; the hard-gated FGO bar isolates "
+     "than the UKF on plain walls (16–18% vs 85–94% on r1/r2; 28% on r3), accepts fewer wrong ones, and has lower cross-track on all 3; the hard-gated FGO bar isolates "
      "the effect of the weighting from the estimator. 'Rejected' for the robust arm = weight < 0.5 (still contributes). "
      "Small n on the textured end wall: only 3 / 5 / 2 wrong headings (r1/r2/r3), so its 'wrong accepted' 33% is 1 of 3.",
      "EXPLORATORY (descriptive part; the pre-registered decision failed)", "eval/results/f1_test.json")

@@ -171,8 +171,8 @@ has been recomputed or re-rounded.
 | Frames per prediction | 5 frames = **0.0125 s** | — | CURRENT | C:L532 |
 | Actual prediction dt | 0.0125 s (80 Hz) (derived, not logged) | s | CURRENT | C:L537 |
 | `SCHED_LOOP_RATE` | 400 | Hz | CURRENT | C:L537 |
-| UKF predict dt | 0.0125 s | s | CURRENT | C:L546 |
-| NSE scale factor UKF vs EKF3 | exactly 1 | — | CURRENT | C:L548 |
+| UKF predict dt | port 12.5 ms (DAL frames); offline 15.00 ms (actual accumulated IMU interval, correction (ii)) | s | CURRENT (D27) | M: "D27 RULED" |
+| UKF process noise vs EKF3 / FGO | identical per-second densities (EKF3's at DT_REF 12.5 ms; offline per-step forms scaled by DT_REF/dt) | — | CURRENT (D27) | M: "D27 RULED"; ukf_core.make_params |
 
 ## 5. Evaluation window and metric parameters
 
@@ -210,15 +210,15 @@ The former values are in the superseded section ("Former sections 6–9").
 | EKF3 mean / range | 4.00 / 0.24 | m | CURRENT | same |
 | FGO (0.25 s) r1 / r2 / r3 | 4.59 / 4.72 / 4.60 | m | CURRENT (D15) | same |
 | FGO mean / range | 4.64 / 0.13 | m | CURRENT (D15) | same |
-| UKF r1 / r2 / r3 | 4.31 / 2.29 / 5.93 | m | CURRENT (D15; the r1 instability was the take-off kick) | same |
+| UKF r1 / r2 / r3 | 4.23 / 2.14 / 5.38 | m | CURRENT (D15 + D27) | same |
 | EKF3 vs FGO (claim wording) | now CONFIRMED by the pre-registered test (row below); the earlier interim wording "EKF3 lower on all three repeats" is superseded | — | CURRENT (wording) | M: "Rulings (user, 2026-09-29) on the re-run results" |
 | **Confirmatory test, EKF3 vs FGO** (r4–r10, pre-registered; r10 unusable for FGO) | **EKF3 lower** (holds after D15): d < 0 on 6/7, mean d −0.69 m, 95% CI [−1.16, −0.21] | m | CURRENT (D15) | json:dsn_paired_test.json |
 | Noise floor SD (re-flown `dsn_tex`): EKF3 (n = 10) / FGO (n = 9) / d (n = 9) | 0.31 [0.22, 0.57] / 0.05 [0.03, 0.10] / 0.37 [0.25, 0.71] | m | CURRENT (D15) | same |
-| **Claim wording (D15, supersedes "the UKF is poor in most textured flights")** | with EKF3's ground-proximity flow rule the UKF is stable on all 9 usable `dsn_tex` flights (1.87–5.93 m, median 5.39; above EKF3 4.10 and FGO 4.61, descriptive) and ≤ 5.93 m on 14 of 17 textured flights overall; 3 of 17 (p1c_fwdc, fwdplainc r2, r3) are 7.7–11.9 m with a residual post-detection take-off kick (−1.4 … −4.4°) that EKF3 does not show (a UKF flow→yaw property) | m | CURRENT (wording) | M: "D15 RESULTS" |
+| **Claim wording (D15, supersedes "the UKF is poor in most textured flights")** | with EKF3's ground-proximity flow rule the UKF is stable on all 9 usable `dsn_tex` flights (1.71–5.96 m, median 5.34 after D27; above EKF3 4.10 and FGO 4.61, descriptive) and ≤ 5.93 m on 14 of 17 textured flights overall; 3 of 17 (p1c_fwdc, fwdplainc r2, r3) are 7.7–11.9 m with a residual post-detection take-off kick (−1.4 … −4.4°) that EKF3 does not show (a UKF flow→yaw property) | m | CURRENT (wording) | M: "D15 RESULTS" |
 | EKF3's flow timestamp against our flow (28 re-flown trials with flow fused) | EKF3 fuses flow 31–44 ms before capture (median 36), i.e. 15–27 ms before the frame's mid-time (median 19): its hard-coded 100 ms flow interval against our 30 Hz flow | ms | CURRENT (finding; D8) | json:input_timing_rerun_all.json |
-| UKF r1–r9 (usable): median / range / SD | 5.39 / 1.87–5.93 / 1.51 | m | CURRENT (D15) | json:rerun_dsn_evo.json, dsn_extra_evo.json |
-| UKF cruise yaw drift, `dsn_tex` r1–r9 / transition (ENU; all westward) | −7.8, −3.1, −11.1, −10.2, −9.8, −1.9, −10.0, −10.4, −10.1 / −10.4, −13.3, −10.3 | deg/min | CURRENT (D15) | json:d15_drift.json |
-| UKF take-off yaw change, `dsn_tex` r1–r9 | \|Δ\| ≤ 0.76° (was −17.0 … +5.4°) | deg | CURRENT (D15) | json:d15_kick.json |
+| UKF r1–r9 (usable): median / range / SD | 5.34 / 1.71–5.96 / 1.55 | m | CURRENT (D15 + D27) | json:rerun_dsn_evo.json, dsn_extra_evo.json |
+| UKF cruise yaw drift, `dsn_tex` r1–r9 / transition (ENU; all westward) | −7.6, −2.7, −10.0, −10.1, −9.7, −1.3, −9.9, −11.2, −10.0 / −10.3, −13.0, −10.2 | deg/min | CURRENT (D15 + D27) | json:d15_drift.json |
+| UKF take-off yaw change, `dsn_tex` r1–r9 | \|Δ\| ≤ 0.79° (was −17.0 … +5.4° before D15) | deg | CURRENT (D15 + D27) | json:d15_kick.json |
 | Compass-active `ds_*` EKF3, textured r1 / r2 / r3 | 0.66 / 0.69 / 0.07 | m | CURRENT (reference; EKF3 with an absolute heading) | json:rerun_ds_evo.json |
 
 ### 6.2 Transition and blank: behaviour under total loss of flow aiding (not accuracy)
@@ -230,11 +230,11 @@ The former values are in the superseded section ("Former sections 6–9").
 | EKF3 position flagged invalid | transition +0.9…+1.1 s after loss, for 139–141 s of cruise; blank from take-off (all 14), for 301–310 s | s | CURRENT | json:blank_behaviour.json |
 | EKF3 output while invalid | exactly the origin (0, 0); not scored (evaluation rule) | — | CURRENT | M: "Rulings on the early pipeline results" |
 | Compass-active `ds_blank` EKF3 evo -a (cruise), r1 / r2 / r3 | 43.68 / NaN / NaN: in all three the cruise output is a single point (the origin; 2,950 rows, xy std 0). evo's SE(3) alignment of a constant trajectory is undefined (NaN), and r1 is finite only from moving samples at the window edge. None is scored (invalid-output rule). | m | RECORDED (artefact) | json:rerun_ds_evo.json |
-| UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) | 6.4–9.2 / 20.5–34.1 / 96–313 | m | CURRENT | json:blank_behaviour.json |
+| UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) | 6.4–9.0 / 20.5–33.0 / 112–288 | m | CURRENT (D27) | json:blank_behaviour.json |
 | FGO baseline, same | 4.2–18.3 / 27–142 / 172–574 | m | CURRENT (D15) | same |
-| UKF / FGO baseline error at the end of cruise, blank | 10–63 / 22–31 | km | CURRENT (D15) | same |
-| UKF / FGO baseline error at +60 s after loss, transition (n = 11) | 83–315 / 939–1,049 | m | CURRENT (D15) | json:blank_behaviour.json |
-| Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO | 61–176 / 299–904 | m | CURRENT (D15; the heading does not bound position without flow) | json:blank_behaviour.json |
+| UKF / FGO baseline error at the end of cruise, blank | 13–58 / 22–31 | km | CURRENT (D15 + D27) | same |
+| UKF / FGO baseline error at +60 s after loss, transition (n = 11) | 31–307 / 939–1,049 | m | CURRENT (D15 + D27) | json:blank_behaviour.json |
+| Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO | 88–323 / 299–904 | m | CURRENT (D15 + D27; the heading does not bound position without flow) | json:blank_behaviour.json |
 
 ### 6.3 Other current estimator results
 
@@ -251,10 +251,10 @@ The former values are in the superseded section ("Former sections 6–9").
 |---|---|---|---|---|
 | `fwdc` textured EKF3 r1 / r2 / r3 | 4.09 / 3.60 / 4.08 | m | CURRENT | json:rerun_fwdc_evo.json |
 | `fwdc` textured FGO r1 / r2 / r3 | 4.58 / 4.68 / 4.58 | m | CURRENT | same |
-| `fwdc` textured UKF r1 / r2 / r3 | 5.18 / 2.47 / 5.18 | m | DIAGNOSTIC (D15) | same |
+| `fwdc` textured UKF r1 / r2 / r3 | 5.13 / 2.27 / 5.13 | m | DIAGNOSTIC (D15 + D27) | same |
 | `fwdplainc` textured EKF3 r1 / r2 / r3 | 4.08 / 4.06 / 4.08 | m | CURRENT | json:rerun_fwdplainc_evo.json |
 | `fwdplainc` textured FGO r1 / r2 / r3 | 4.57 / 4.54 / 4.56 | m | CURRENT (D15) | same |
-| `fwdplainc` textured UKF r1 / r2 / r3 | 5.22 / 11.89 / 11.54 | m | DIAGNOSTIC (D15; r2, r3 residual take-off kick) | same |
+| `fwdplainc` textured UKF r1 / r2 / r3 | 5.17 / 11.51 / 11.09 | m | DIAGNOSTIC (D15 + D27; r2, r3 residual take-off kick) | same |
 | `p1c` textured EKF3 / FGO (`fwdc`, `fwdplainc`) | 4.14 / 4.57; 4.11 / 4.60 | m | CURRENT (D15) | json:rerun_p1c_evo.json |
 
 ### 6.5 Distance scale (textured `fwdc`, n = 3)
@@ -271,15 +271,15 @@ The former values are in the superseded section ("Former sections 6–9").
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
-| `fwdc` UKF +heading r1 / r2 / r3 | 0.61 / 0.62 / 0.62 | m | CURRENT | json:phase4_fwdc_arms.json |
+| `fwdc` UKF +heading r1 / r2 / r3 | 0.61 / 0.62 / 0.62 (0.611 / 0.617 / 0.621) | m | CURRENT (D27: −0.002 m each) | json:phase4_fwdc_arms.json |
 | `fwdc` FGO +heading r1 / r2 / r3 | 0.08 / 0.09 / 0.09 | m | CURRENT | same |
 | `fwdc` +heading+yaw rate (UKF / FGO) | equal to +heading to 0.01 m | m | CURRENT | same |
-| `fwdplainc` UKF +heading r1 / r2 / r3 | 0.65 / 1.01 / 0.95 | m | CURRENT | json:phase4_fwdplainc_arms.json |
+| `fwdplainc` UKF +heading r1 / r2 / r3 | 0.88 / 0.94 / 0.73 | m | CURRENT (D27) | json:phase4_fwdplainc_arms.json |
 | `fwdplainc` FGO +heading r1 / r2 / r3 | 0.20 / 0.61 / 0.22 | m | CURRENT | same |
 | Heading-arm yaw error rms, `fwdc` (UKF / FGO) | 0.08 / 0.18–0.19 | deg | CURRENT | same |
-| FGO vs UKF with heading (claim wording) | implementation result; the UKF's residual take-off kick (D15) and plain-wall over-confidence (NEES 5.10) stated alongside | — | CURRENT (wording, D15) | M: "D15 RESULTS" |
+| FGO vs UKF with heading (claim wording) | implementation result; the UKF's residual take-off kick (D15) and plain-wall over-confidence (NEES 6.11 after D27) stated alongside | — | CURRENT (wording, D15) | M: "D15 RESULTS" |
 | UKF +heading vs EKF3 without heading | **not a fair comparison; never stated as the UKF being better** | — | CURRENT (wording) | same |
-| `fwdplainc` textured UKF +heading mean position NEES, mean of r1–r3 | 5.10 (0.36 / 5.50 / 9.45) (D15; was 5.08) | — | DIAGNOSTIC | json:phase5b_consistency.json |
+| `fwdplainc` textured UKF +heading mean position NEES, mean of r1–r3 | 6.11 (10.42 / 6.79 / 1.12) (D27; was 5.10) | — | DIAGNOSTIC | json:phase5b_consistency.json |
 
 ## 7. Pre-registered bands — P4 recomputed from the re-flown `dsn` (same formula)
 
@@ -710,6 +710,27 @@ The Phase 2 FGO bands (section 7) were derived from them.
 - `eval/results_pre_d10/phase4_{fwdc,fwdplainc}_arms.json` and `phase5b_consistency.json` are SUPERSEDED by
   the restated `eval/results/` files. Every changed value, old → new, is in `eval/results/d10_restatement.json`.
   The largest change is 0.17° (≤ 0.57%). No row of this file changes at its printed precision.
+
+
+### Superseded by D27 (2026-10-01): offline-UKF values with 1.2× per-second IMU process noise (correction (ii) to D27); kept verbatim (cell separators shown as ¦)
+
+| row (verbatim) |
+|---|
+|  UKF predict dt ¦ 0.0125 s ¦ s ¦ CURRENT ¦ C:L546  |
+|  NSE scale factor UKF vs EKF3 ¦ exactly 1 ¦ — ¦ CURRENT ¦ C:L548  |
+|  UKF r1 / r2 / r3 ¦ 4.31 / 2.29 / 5.93 ¦ m ¦ CURRENT (D15; the r1 instability was the take-off kick) ¦ same  |
+|  UKF r1–r9 (usable): median / range / SD ¦ 5.39 / 1.87–5.93 / 1.51 ¦ m ¦ CURRENT (D15) ¦ json:rerun_dsn_evo.json, dsn_extra_evo.json  |
+|  UKF cruise yaw drift, `dsn_tex` r1–r9 / transition (ENU; all westward) ¦ −7.8, −3.1, −11.1, −10.2, −9.8, −1.9, −10.0, −10.4, −10.1 / −10.4, −13.3, −10.3 ¦ deg/min ¦ CURRENT (D15) ¦ json:d15_drift.json  |
+|  UKF take-off yaw change, `dsn_tex` r1–r9 ¦ \¦Δ\¦ ≤ 0.76° (was −17.0 … +5.4°) ¦ deg ¦ CURRENT (D15) ¦ json:d15_kick.json  |
+|  UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) ¦ 6.4–9.2 / 20.5–34.1 / 96–313 ¦ m ¦ CURRENT ¦ json:blank_behaviour.json  |
+|  UKF / FGO baseline error at the end of cruise, blank ¦ 10–63 / 22–31 ¦ km ¦ CURRENT (D15) ¦ same  |
+|  UKF / FGO baseline error at +60 s after loss, transition (n = 11) ¦ 83–315 / 939–1,049 ¦ m ¦ CURRENT (D15) ¦ json:blank_behaviour.json  |
+|  Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO ¦ 61–176 / 299–904 ¦ m ¦ CURRENT (D15; the heading does not bound position without flow) ¦ json:blank_behaviour.json  |
+|  `fwdc` textured UKF r1 / r2 / r3 ¦ 5.18 / 2.47 / 5.18 ¦ m ¦ DIAGNOSTIC (D15) ¦ same  |
+|  `fwdplainc` textured UKF r1 / r2 / r3 ¦ 5.22 / 11.89 / 11.54 ¦ m ¦ DIAGNOSTIC (D15; r2, r3 residual take-off kick) ¦ same  |
+|  `fwdc` UKF +heading r1 / r2 / r3 ¦ 0.61 / 0.62 / 0.62 ¦ m ¦ CURRENT ¦ json:phase4_fwdc_arms.json  |
+|  `fwdplainc` UKF +heading r1 / r2 / r3 ¦ 0.65 / 1.01 / 0.95 ¦ m ¦ CURRENT ¦ json:phase4_fwdplainc_arms.json  |
+|  `fwdplainc` textured UKF +heading mean position NEES, mean of r1–r3 ¦ 5.10 (0.36 / 5.50 / 9.45) (D15; was 5.08) ¦ — ¦ DIAGNOSTIC ¦ json:phase5b_consistency.json  |
 
 ### Superseded by D15 (2026-09-30): UKF/FGO values before EKF3's ground-proximity flow rule
 - All pre-D15 result files are kept in `eval/results_pre_d15/`, and every trial's pre-D15 UKF/FGO outputs in

@@ -2,10 +2,10 @@
  "fwdc_tex_r1": {
   "UKF_d10": {
    "convergence_s": null,
-   "xtrack_peak_m": 1165433618.2199714,
-   "xtrack_int_60s_ms": 750788974.2589612,
+   "xtrack_peak_m": 980958296.8254393,
+   "xtrack_int_60s_ms": 7726382901.819879,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 70915.0296376738
+   "first40_pred_sigma_deg": 67031.25391679216
   },
   "FGO_d10": {
    "convergence_s": 0.006071999999999633,
@@ -16,10 +16,10 @@
   },
   "UKF_d30": {
    "convergence_s": null,
-   "xtrack_peak_m": 2040663755.9597166,
-   "xtrack_int_60s_ms": 7573583859.284901,
+   "xtrack_peak_m": 811709991.2966882,
+   "xtrack_int_60s_ms": 768367719.0286055,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 73448.50838603519
+   "first40_pred_sigma_deg": 73533.14445251759
   },
   "FGO_d30": {
    "convergence_s": 0.006071999999999633,
@@ -30,10 +30,10 @@
   },
   "UKF_d60": {
    "convergence_s": null,
-   "xtrack_peak_m": 208287330.8563544,
-   "xtrack_int_60s_ms": 907908439.3513927,
+   "xtrack_peak_m": 693484304.8434523,
+   "xtrack_int_60s_ms": 1895381560.279654,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 73774.50174473358
+   "first40_pred_sigma_deg": 72380.99601001975
   },
   "FGO_d60": {
    "convergence_s": 0.006071999999999633,
@@ -44,10 +44,10 @@
   },
   "UKF_d90": {
    "convergence_s": null,
-   "xtrack_peak_m": 932818433.5441893,
-   "xtrack_int_60s_ms": 692535766.2293155,
+   "xtrack_peak_m": 479414564.2141113,
+   "xtrack_int_60s_ms": 1929084877.074389,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 74086.77293049886
+   "first40_pred_sigma_deg": 71212.56109650651
   },
   "FGO_d90": {
    "convergence_s": 0.006071999999999633,
@@ -58,20 +58,20 @@
   },
   "fgo_le_ukf_all_deltas": true,
   "ratio": [
-   4.771003953215043e-10,
-   3.48438228128318e-11,
-   2.383858437791956e-10,
-   8.639609322506453e-10
+   4.6360854875262e-11,
+   3.434457324478275e-10,
+   1.1418941912524509e-10,
+   3.1015941979484085e-10
   ],
   "ratio_decreasing": false
  },
  "fwdc_tex_r2": {
   "UKF_d10": {
    "convergence_s": null,
-   "xtrack_peak_m": 1282116923.460901,
-   "xtrack_int_60s_ms": 2016500219.7283573,
+   "xtrack_peak_m": 3755108546.546838,
+   "xtrack_int_60s_ms": 5548737139.322192,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 67163.35498496906
+   "first40_pred_sigma_deg": 69179.98878484758
   },
   "FGO_d10": {
    "convergence_s": 0.05746300000000204,
@@ -82,10 +82,10 @@
   },
   "UKF_d30": {
    "convergence_s": null,
-   "xtrack_peak_m": 1623563118.242151,
-   "xtrack_int_60s_ms": 8407134864.542638,
+   "xtrack_peak_m": 1524700664.476525,
+   "xtrack_int_60s_ms": 6166431711.88555,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 70678.06063635704
+   "first40_pred_sigma_deg": 72124.73416820545
   },
   "FGO_d30": {
    "convergence_s": 0.05746300000000204,
@@ -96,10 +96,10 @@
   },
   "UKF_d60": {
    "convergence_s": null,
-   "xtrack_peak_m": 3227411162.921912,
-   "xtrack_int_60s_ms": 8359420125.299586,
+   "xtrack_peak_m": 3426253313.749934,
+   "xtrack_int_60s_ms": 9517648721.955893,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 74858.52578139551
+   "first40_pred_sigma_deg": 73032.48512573926
   },
   "FGO_d60": {
    "convergence_s": 0.05746300000000204,
@@ -110,10 +110,10 @@
   },
   "UKF_d90": {
    "convergence_s": null,
-   "xtrack_peak_m": 301627308.79495907,
-   "xtrack_int_60s_ms": 2040401426.384216,
+   "xtrack_peak_m": 946948035.1501378,
+   "xtrack_int_60s_ms": 5594063442.985582,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 70054.96944481645
+   "first40_pred_sigma_deg": 71535.13806772674
   },
   "FGO_d90": {
    "convergence_s": 3.057463000000002,
@@ -124,20 +124,20 @@
   },
   "fgo_le_ukf_all_deltas": true,
   "ratio": [
-   1.0455522469663336e-08,
-   2.49421226949452e-09,
-   2.576849967044623e-09,
-   1.560529833403532e-08
+   3.799704838789023e-09,
+   3.4005369572195453e-09,
+   2.263266075863713e-09,
+   5.691939911736707e-09
   ],
   "ratio_decreasing": false
  },
  "fwdc_tex_r3": {
   "UKF_d10": {
    "convergence_s": null,
-   "xtrack_peak_m": 1617997783.8995643,
-   "xtrack_int_60s_ms": 3461061353.0626473,
+   "xtrack_peak_m": 1211034817.4855013,
+   "xtrack_int_60s_ms": 3859397294.8891525,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 70912.21841625527
+   "first40_pred_sigma_deg": 67222.28780325767
   },
   "FGO_d10": {
    "convergence_s": 0.03165400000000318,
@@ -147,11 +147,11 @@
    "first40_pred_sigma_deg": 0.5030952522961959
   },
   "UKF_d30": {
-   "convergence_s": null,
-   "xtrack_peak_m": 156759709.22344452,
-   "xtrack_int_60s_ms": 580692713.0379612,
+   "convergence_s": 302.167485,
+   "xtrack_peak_m": 1864972460.4542513,
+   "xtrack_int_60s_ms": 11188197826.103876,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 72186.20311554284
+   "first40_pred_sigma_deg": 71837.91885730447
   },
   "FGO_d30": {
    "convergence_s": 0.03165400000000318,
@@ -162,10 +162,10 @@
   },
   "UKF_d60": {
    "convergence_s": null,
-   "xtrack_peak_m": 104341949455.49106,
-   "xtrack_int_60s_ms": 909039557.4352264,
+   "xtrack_peak_m": 156804012643.00894,
+   "xtrack_int_60s_ms": 1625421523.3614001,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 70802.72088634539
+   "first40_pred_sigma_deg": 71853.58497155143
   },
   "FGO_d60": {
    "convergence_s": 0.03165400000000318,
@@ -176,10 +176,10 @@
   },
   "UKF_d90": {
    "convergence_s": null,
-   "xtrack_peak_m": 626754699.7137167,
-   "xtrack_int_60s_ms": 5380603396.241716,
+   "xtrack_peak_m": 3488100279.0379357,
+   "xtrack_int_60s_ms": 12488629978.112608,
    "first40_accepted": 40,
-   "first40_pred_sigma_deg": 74451.49211954552
+   "first40_pred_sigma_deg": 68647.8019021182
   },
   "FGO_d90": {
    "convergence_s": 0.03165400000000318,
@@ -190,10 +190,10 @@
   },
   "fgo_le_ukf_all_deltas": true,
   "ratio": [
-   6.98466540639738e-11,
-   3.2118382925657543e-10,
-   1.0891061278915933e-10,
-   1.8342627273822364e-10
+   6.263764431344947e-11,
+   1.6670165480964785e-11,
+   6.090977252787608e-11,
+   7.902740555088504e-11
   ],
   "ratio_decreasing": false
  },

@@ -121,7 +121,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 5.217,
+     "value": 5.17,
      "band": "report",
      "pass": null,
      "primary": false
@@ -278,13 +278,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1947.355,
+     "value": 1643.416,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "56.117 / 103.9",
+     "value": "45.795 / 103.5",
      "band": "report",
      "pass": null,
      "primary": false
@@ -423,13 +423,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 8774.474,
+     "value": 7792.898,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "186.015 / 23.9",
+     "value": "164.842 / 23.6",
      "band": "report",
      "pass": null,
      "primary": false
@@ -568,7 +568,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 11.893,
+     "value": 11.509,
      "band": "report",
      "pass": null,
      "primary": false
@@ -725,13 +725,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1332.779,
+     "value": 1564.575,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "40.631 / 104.0",
+     "value": "43.750 / 103.5",
      "band": "report",
      "pass": null,
      "primary": false
@@ -872,13 +872,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 14956.29,
+     "value": 5791.63,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "295.509 / 23.8",
+     "value": "123.257 / 22.8",
      "band": "report",
      "pass": null,
      "primary": false
@@ -1017,7 +1017,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 11.537,
+     "value": 11.093,
      "band": "report",
      "pass": null,
      "primary": false
@@ -1174,13 +1174,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1825.36,
+     "value": 1585.414,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "51.747 / 103.9",
+     "value": "42.566 / 103.4",
      "band": "report",
      "pass": null,
      "primary": false
@@ -1319,13 +1319,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 9681.531,
+     "value": 17072.313,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "207.590 / 22.5",
+     "value": "386.726 / 22.3",
      "band": "report",
      "pass": null,
      "primary": false

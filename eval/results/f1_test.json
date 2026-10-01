@@ -1,14 +1,14 @@
 {
  "fwdplainc_tex_r1": {
   "UKF_hard": {
-   "yaw_rms_deg": 0.8948197802572816,
-   "yaw_max_deg": 4.319286897474556,
-   "xtrack_max_m": 1.1783683129489126,
+   "yaw_rms_deg": 3.1250493931296566,
+   "yaw_max_deg": 7.037413605059481,
+   "xtrack_max_m": 5.649806260281791,
    "n_in_region": 5563,
    "wrong": 783,
-   "wrong_accepted": 19,
+   "wrong_accepted": 244,
    "correct": 4457,
-   "correct_rejected": 774,
+   "correct_rejected": 4180,
    "lockout_episodes": 1
   },
   "FGO_hard": {
@@ -36,14 +36,14 @@
  },
  "fwdplainc_tex_r2": {
   "UKF_hard": {
-   "yaw_rms_deg": 2.451172443893523,
-   "yaw_max_deg": 4.7834768475837395,
-   "xtrack_max_m": 3.8319381484685877,
+   "yaw_rms_deg": 2.737150730826182,
+   "yaw_max_deg": 5.459421695689588,
+   "xtrack_max_m": 4.528838664602556,
    "n_in_region": 5507,
    "wrong": 711,
-   "wrong_accepted": 128,
+   "wrong_accepted": 158,
    "correct": 4435,
-   "correct_rejected": 3201,
+   "correct_rejected": 3759,
    "lockout_episodes": 3
   },
   "FGO_hard": {
@@ -71,15 +71,15 @@
  },
  "fwdplainc_tex_r3": {
   "UKF_hard": {
-   "yaw_rms_deg": 2.9330718346488998,
-   "yaw_max_deg": 5.004566617054944,
-   "xtrack_max_m": 5.371921763284488,
+   "yaw_rms_deg": 1.462748541317476,
+   "yaw_max_deg": 4.588295164998191,
+   "xtrack_max_m": 1.3751968012727518,
    "n_in_region": 5526,
    "wrong": 766,
-   "wrong_accepted": 229,
+   "wrong_accepted": 68,
    "correct": 4399,
-   "correct_rejected": 3897,
-   "lockout_episodes": 1
+   "correct_rejected": 1247,
+   "lockout_episodes": 2
   },
   "FGO_hard": {
    "yaw_rms_deg": 1.5684220780811082,
@@ -106,9 +106,9 @@
  },
  "fwdc_tex_r1": {
   "UKF_hard": {
-   "yaw_rms_deg": 0.15308503062334125,
-   "yaw_max_deg": 0.3365109542231667,
-   "xtrack_max_m": 1.8577163428305876,
+   "yaw_rms_deg": 0.1463365115589647,
+   "yaw_max_deg": 0.3289510103460182,
+   "xtrack_max_m": 1.8570773428305876,
    "n_in_region": 365,
    "wrong": 3,
    "wrong_accepted": 0,
@@ -141,14 +141,14 @@
  },
  "fwdc_tex_r2": {
   "UKF_hard": {
-   "yaw_rms_deg": 0.14620536180672136,
-   "yaw_max_deg": 0.43523641770424654,
-   "xtrack_max_m": 1.5136709426250599,
+   "yaw_rms_deg": 0.1449642961054996,
+   "yaw_max_deg": 0.42664254745483515,
+   "xtrack_max_m": 1.5226889426250598,
    "n_in_region": 361,
    "wrong": 5,
    "wrong_accepted": 0,
    "correct": 347,
-   "correct_rejected": 54,
+   "correct_rejected": 55,
    "lockout_episodes": 0
   },
   "FGO_hard": {
@@ -176,9 +176,9 @@
  },
  "fwdc_tex_r3": {
   "UKF_hard": {
-   "yaw_rms_deg": 0.18215189943495647,
-   "yaw_max_deg": 0.5207971246821602,
-   "xtrack_max_m": 1.8454512565726997,
+   "yaw_rms_deg": 0.18079436974310328,
+   "yaw_max_deg": 0.5173601662247818,
+   "xtrack_max_m": 1.8446172565726997,
    "n_in_region": 358,
    "wrong": 2,
    "wrong_accepted": 0,
@@ -211,7 +211,7 @@
  },
  "decision": {
   "lockout_total": {
-   "UKF_hard": 5,
+   "UKF_hard": 6,
    "FGO_robust": 4
   },
   "robust_lower_yaw_max_on": 0,

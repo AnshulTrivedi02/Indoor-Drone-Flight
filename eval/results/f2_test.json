@@ -1,9 +1,9 @@
 {
  "fwdc_tex_r1": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.5083636638687606,
-   "off_xtrack_rms_m": 0.8750601524282291,
-   "on_yaw_rms_deg": 0.09685097293001864
+   "off_yaw_rms_deg": 0.5271488349626304,
+   "off_xtrack_rms_m": 0.8731277954363786,
+   "on_yaw_rms_deg": 0.0985176470845811
   },
   "FGO_live": {
    "off_yaw_rms_deg": 1.3418172364810101,
@@ -18,9 +18,9 @@
  },
  "fwdc_tex_r2": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.22443777747735044,
-   "off_xtrack_rms_m": 0.6855776068809417,
-   "on_yaw_rms_deg": 0.06783752906964172
+   "off_yaw_rms_deg": 0.21392044670196161,
+   "off_xtrack_rms_m": 0.691809829479231,
+   "on_yaw_rms_deg": 0.06705037647504895
   },
   "FGO_live": {
    "off_yaw_rms_deg": 1.4938718102357356,
@@ -35,9 +35,9 @@
  },
  "fwdc_tex_r3": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.3136865638633389,
-   "off_xtrack_rms_m": 0.9127321758240156,
-   "on_yaw_rms_deg": 0.07206157832062166
+   "off_yaw_rms_deg": 0.32038634712644226,
+   "off_xtrack_rms_m": 0.9150147971687903,
+   "on_yaw_rms_deg": 0.0714110910349345
   },
   "FGO_live": {
    "off_yaw_rms_deg": 1.4565653749591143,

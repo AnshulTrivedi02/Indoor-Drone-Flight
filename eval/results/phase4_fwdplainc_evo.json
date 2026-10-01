@@ -26,13 +26,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 141.58729895068728,
+      "final_disp": 141.67809879160637,
       "true_travel": 151.00874673961476,
-      "disp_ratio": 0.937609920005674,
+      "disp_ratio": 0.9382112086255687,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 5.216894
+      "+0.00": 5.169507
      }
     },
     "FGO_baseline": {
@@ -48,13 +48,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 148.9296513681823,
+      "final_disp": 148.87348712276747,
       "true_travel": 151.00874673961476,
-      "disp_ratio": 0.9862319540005358,
+      "disp_ratio": 0.9858600268994409,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 0.648513
+      "+0.00": 0.881367
      }
     },
     "FGO_heading": {
@@ -89,13 +89,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 8463.313150294794,
+      "final_disp": 6906.585272093918,
       "true_travel": 150.8151605621305,
-      "disp_ratio": 56.11712455664038,
-      "onset_gt_dist": 103.87602709520958
+      "disp_ratio": 45.79503311438408,
+      "onset_gt_dist": 103.46330270206472
      },
      "ate_a_cruise": {
-      "+0.00": 1947.355076
+      "+0.00": 1643.416102
      }
     },
     "FGO_baseline": {
@@ -111,13 +111,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 3438.5846758020525,
+      "final_disp": 1654.0436418908887,
       "true_travel": 150.8151605621305,
-      "disp_ratio": 22.799993468730072,
-      "onset_gt_dist": 102.91578509699656
+      "disp_ratio": 10.96735656896696,
+      "onset_gt_dist": 102.65342294676023
      },
      "ate_a_cruise": {
-      "+0.00": 566.930505
+      "+0.00": 512.360707
      }
     },
     "FGO_heading": {
@@ -152,13 +152,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 27995.135347548112,
+      "final_disp": 24808.563821290987,
       "true_travel": 150.49945837084908,
-      "disp_ratio": 186.0148577981236,
-      "onset_gt_dist": 23.86022337215407
+      "disp_ratio": 164.8415488656421,
+      "onset_gt_dist": 23.642957517030364
      },
      "ate_a_cruise": {
-      "+0.00": 8774.474138
+      "+0.00": 7792.897798
      }
     },
     "FGO_baseline": {
@@ -174,13 +174,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 25647.490387332935,
+      "final_disp": 23662.047962480643,
       "true_travel": 150.49945837084908,
-      "disp_ratio": 170.41583182402144,
-      "onset_gt_dist": 23.90514387511963
+      "disp_ratio": 157.2234758757368,
+      "onset_gt_dist": 22.457950596723876
      },
      "ate_a_cruise": {
-      "+0.00": 8778.886717
+      "+0.00": 7218.788885
      }
     },
     "FGO_heading": {
@@ -215,13 +215,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 121.78115172239619,
+      "final_disp": 123.21994806167373,
       "true_travel": 150.53247227957783,
-      "disp_ratio": 0.8090025353215285,
-      "onset_gt_dist": 121.47314866338708
+      "disp_ratio": 0.818560581618711,
+      "onset_gt_dist": 123.58826940296728
      },
      "ate_a_cruise": {
-      "+0.00": 11.892874
+      "+0.00": 11.509368
      }
     },
     "FGO_baseline": {
@@ -237,13 +237,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 148.4284247697577,
+      "final_disp": 148.44884285441285,
       "true_travel": 150.53247227957783,
-      "disp_ratio": 0.9860226336686189,
+      "disp_ratio": 0.9861582727393519,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 1.013307
+      "+0.00": 0.937408
      }
     },
     "FGO_heading": {
@@ -278,13 +278,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 6124.038024496328,
+      "final_disp": 6594.092553227939,
       "true_travel": 150.72234790438688,
-      "disp_ratio": 40.631254154700464,
-      "onset_gt_dist": 103.95026735087976
+      "disp_ratio": 43.74993254093286,
+      "onset_gt_dist": 103.50770959946165
      },
      "ate_a_cruise": {
-      "+0.00": 1332.779293
+      "+0.00": 1564.574954
      }
     },
     "FGO_baseline": {
@@ -300,13 +300,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 2869.8957482702162,
+      "final_disp": 1929.1699426956607,
       "true_travel": 150.72234790438688,
-      "disp_ratio": 19.040943749700478,
-      "onset_gt_dist": 102.75013759299638
+      "disp_ratio": 12.799495028563783,
+      "onset_gt_dist": 102.61515983376259
      },
      "ate_a_cruise": {
-      "+0.00": 553.217111
+      "+0.00": 362.103678
      }
     },
     "FGO_heading": {
@@ -341,13 +341,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 44531.597558104186,
+      "final_disp": 18574.19451059176,
       "true_travel": 150.69475535722995,
-      "disp_ratio": 295.50860912537837,
-      "onset_gt_dist": 23.787510017756578
+      "disp_ratio": 123.25707332389001,
+      "onset_gt_dist": 22.82761852866019
      },
      "ate_a_cruise": {
-      "+0.00": 14956.2905
+      "+0.00": 5791.630159
      }
     },
     "FGO_baseline": {
@@ -363,13 +363,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 23286.571403568603,
+      "final_disp": 13169.878721943041,
       "true_travel": 150.69475535722995,
-      "disp_ratio": 154.52808127506856,
-      "onset_gt_dist": 23.817496731792968
+      "disp_ratio": 87.3944065984456,
+      "onset_gt_dist": 23.59268305285044
      },
      "ate_a_cruise": {
-      "+0.00": 7568.32611
+      "+0.00": 5548.694713
      }
     },
     "FGO_heading": {
@@ -404,13 +404,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 123.3241416120124,
+      "final_disp": 124.95739007172651,
       "true_travel": 150.80608950692127,
-      "disp_ratio": 0.8177663250551459,
-      "onset_gt_dist": 123.58419551938857
+      "disp_ratio": 0.8285964477978959,
+      "onset_gt_dist": 126.13466514966565
      },
      "ate_a_cruise": {
-      "+0.00": 11.537194
+      "+0.00": 11.093156
      }
     },
     "FGO_baseline": {
@@ -426,13 +426,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 148.6818194492462,
+      "final_disp": 148.73190762166257,
       "true_travel": 150.80608950692127,
-      "disp_ratio": 0.985913897345786,
+      "disp_ratio": 0.9862460336181351,
       "onset_gt_dist": null
      },
      "ate_a_cruise": {
-      "+0.00": 0.946255
+      "+0.00": 0.732453
      }
     },
     "FGO_heading": {
@@ -467,13 +467,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 7795.5183507915235,
+      "final_disp": 6412.433633447136,
       "true_travel": 150.64593812793035,
-      "disp_ratio": 51.74728537434229,
-      "onset_gt_dist": 103.91457642810562
+      "disp_ratio": 42.566256436344275,
+      "onset_gt_dist": 103.44197494942135
      },
      "ate_a_cruise": {
-      "+0.00": 1825.360345
+      "+0.00": 1585.414029
      }
     },
     "FGO_baseline": {
@@ -489,13 +489,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 2621.242248237451,
+      "final_disp": 1885.6092049145855,
       "true_travel": 150.64593812793035,
-      "disp_ratio": 17.400019415136573,
-      "onset_gt_dist": 102.72190565229634
+      "disp_ratio": 12.516827392407377,
+      "onset_gt_dist": 101.89726006144797
      },
      "ate_a_cruise": {
-      "+0.00": 342.925204
+      "+0.00": 275.033001
      }
     },
     "FGO_heading": {
@@ -530,13 +530,13 @@
     },
     "UKF_baseline": {
      "failure": {
-      "final_disp": 31308.956807713686,
+      "final_disp": 58326.39534273244,
       "true_travel": 150.8211113579366,
-      "disp_ratio": 207.59001525595195,
-      "onset_gt_dist": 22.519920422290955
+      "disp_ratio": 386.7256700178344,
+      "onset_gt_dist": 22.272518379334993
      },
      "ate_a_cruise": {
-      "+0.00": 9681.531496
+      "+0.00": 17072.313361
      }
     },
     "FGO_baseline": {
@@ -552,13 +552,13 @@
     },
     "UKF_heading": {
      "failure": {
-      "final_disp": 26621.64864591517,
+      "final_disp": 8896.807117203412,
       "true_travel": 150.8211113579366,
-      "disp_ratio": 176.51142075684137,
-      "onset_gt_dist": 22.790005964186406
+      "disp_ratio": 58.98913644847134,
+      "onset_gt_dist": 22.587491546575983
      },
      "ate_a_cruise": {
-      "+0.00": 8960.442257
+      "+0.00": 3299.536183
      }
     },
     "FGO_heading": {
