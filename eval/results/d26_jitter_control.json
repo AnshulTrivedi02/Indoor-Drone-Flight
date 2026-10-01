@@ -1,0 +1,178 @@
+{
+ "cl_bcpp_tex_r1_half:ekf3": {
+  "est": "ekf3",
+  "window_s": [
+   40.6,
+   300.0
+  ],
+  "yaw_jitter_std_deg": 0.00627709965894009,
+  "yaw_jitter_rate_std_dps": 0.045548254743761785,
+  "gyro_std_dps": {
+   "x": 0.10687069029955372,
+   "y": 0.0984853333466252,
+   "z": 0.12229519324381187
+  },
+  "coupling_corr": 0.1317383886632911,
+  "coupling_lag_s": 0.2
+ },
+ "cl_bcpp_tex_r2_half:ekf3": {
+  "est": "ekf3",
+  "window_s": [
+   44.1,
+   303.4
+  ],
+  "yaw_jitter_std_deg": 0.007446744221487777,
+  "yaw_jitter_rate_std_dps": 0.04632791664600276,
+  "gyro_std_dps": {
+   "x": 0.09520597109191314,
+   "y": 0.08994734272511523,
+   "z": 0.09715054570461286
+  },
+  "coupling_corr": 0.08719120756540899,
+  "coupling_lag_s": 0.16
+ },
+ "cl_bcpp_tex_r3_half:ekf3": {
+  "est": "ekf3",
+  "window_s": [
+   42.6,
+   301.3
+  ],
+  "yaw_jitter_std_deg": 0.006561527538944876,
+  "yaw_jitter_rate_std_dps": 0.04718249106124299,
+  "gyro_std_dps": {
+   "x": 0.11372834082937859,
+   "y": 0.10220369366108595,
+   "z": 0.15071589271144747
+  },
+  "coupling_corr": 0.12448044106618864,
+  "coupling_lag_s": 0.12
+ },
+ "cl_ukf_b_tex_r1_half:ukf": {
+  "est": "ukf",
+  "window_s": [
+   40.3,
+   299.9
+  ],
+  "yaw_jitter_std_deg": 0.0066527899269117185,
+  "yaw_jitter_rate_std_dps": 0.060023926835407686,
+  "gyro_std_dps": {
+   "x": 0.10103042520245697,
+   "y": 0.09190641897621446,
+   "z": 0.09161891318082074
+  },
+  "coupling_corr": 0.24309681525448082,
+  "coupling_lag_s": 0.16
+ },
+ "cl_ukf_b_tex_r2_half:ukf": {
+  "est": "ukf",
+  "window_s": [
+   40.5,
+   300.4
+  ],
+  "yaw_jitter_std_deg": 0.007110084920928189,
+  "yaw_jitter_rate_std_dps": 0.06205893960418724,
+  "gyro_std_dps": {
+   "x": 0.09893177100473784,
+   "y": 0.08847575147589283,
+   "z": 0.09675951766627214
+  },
+  "coupling_corr": 0.24762073663166442,
+  "coupling_lag_s": 0.16
+ },
+ "cl_ukf_b_tex_r3_half:ukf": {
+  "est": "ukf",
+  "window_s": [
+   40.6,
+   300.3
+  ],
+  "yaw_jitter_std_deg": 0.008672717093038877,
+  "yaw_jitter_rate_std_dps": 0.07292428527222235,
+  "gyro_std_dps": {
+   "x": 0.11446152350939713,
+   "y": 0.09192314883674628,
+   "z": 0.13817668673125816
+  },
+  "coupling_corr": 0.2829899213812005,
+  "coupling_lag_s": 0.16
+ },
+ "cl_fgo_b_tex_r1_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.3,
+   299.0
+  ],
+  "yaw_jitter_std_deg": 0.03897764382871999,
+  "yaw_jitter_rate_std_dps": 0.30900010598615424,
+  "gyro_std_dps": {
+   "x": 0.1556131211291646,
+   "y": 0.11616843273830632,
+   "z": 0.2017010386675957
+  },
+  "coupling_corr": 0.6834528937346712,
+  "coupling_lag_s": 0.16
+ },
+ "cl_fgo_b_tex_r2_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.0,
+   299.0
+  ],
+  "yaw_jitter_std_deg": 0.031096851693579553,
+  "yaw_jitter_rate_std_dps": 0.25768583939900225,
+  "gyro_std_dps": {
+   "x": 0.16768222855548354,
+   "y": 0.12500733938888603,
+   "z": 0.19645054708079915
+  },
+  "coupling_corr": 0.6825474307261435,
+  "coupling_lag_s": 0.16
+ },
+ "cl_fgo_b_tex_r3_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.6,
+   300.0
+  ],
+  "yaw_jitter_std_deg": 0.04052895266602157,
+  "yaw_jitter_rate_std_dps": 0.33146017092902746,
+  "gyro_std_dps": {
+   "x": 0.2412574997781245,
+   "y": 0.10773938186852182,
+   "z": 0.20847763754951415
+  },
+  "coupling_corr": 0.7439267649682149,
+  "coupling_lag_s": 0.16
+ },
+ "fgo_shadow_half_b:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.0,
+   299.7
+  ],
+  "yaw_jitter_std_deg": 0.03023851336170388,
+  "yaw_jitter_rate_std_dps": 0.26076803838235696,
+  "gyro_std_dps": {
+   "x": 0.14397271546113405,
+   "y": 0.21077873912642722,
+   "z": 0.15780004044079438
+  },
+  "coupling_corr": -0.03344151641182701,
+  "coupling_lag_s": 0.2
+ },
+ "fgo_shadow_half_b:ekf3": {
+  "est": "ekf3",
+  "window_s": [
+   40.0,
+   299.7
+  ],
+  "yaw_jitter_std_deg": 0.006426306463153584,
+  "yaw_jitter_rate_std_dps": 0.04827355676747027,
+  "gyro_std_dps": {
+   "x": 0.14397271546113405,
+   "y": 0.21077873912642722,
+   "z": 0.15780004044079438
+  },
+  "coupling_corr": 0.061204548958424886,
+  "coupling_lag_s": 0.88
+ }
+}

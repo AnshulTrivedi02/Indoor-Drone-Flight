@@ -9383,3 +9383,108 @@ Binary md5 `fa440748…`. The flights ran sequentially, each scored before the n
 - At the ~0.9 deg/s cruise yaw rate, the FGO's 17 ms is ~0.015°. **Both are negligible** against the yaw errors above.
 
 **Per the stop rule, the sequence is stopped and reported.**
+
+### D26 RULED (user, 2026-10-01): (a) + (b)
+
+**(a) Recorded:** the FGO with-heading set **FAILED AS WORDED (2 of 3)**. r3 fails B5 (pitch gyro rms 0.023 against
+0.0108 rad/s) at y ≈ 138–145 m, where the camera headings degrade near the end wall. **This is stated with every FGO
+closed-loop result.**
+
+**Also recorded, as ruled:**
+- **Climb-top overshoot prediction: MISSED on all three with-heading flights** (0 / +0.11 / +0.24 m against ≥ +0.75 m).
+  They had **0, 1 and 3** short LiDAR returns respectively. The overshoot tracked the number of short returns,
+  consistent with the D23 mechanism. (`cl_fgo_a_tex_half`: 7 returns, +0.94 m.)
+- **B3 maximum 1.28–1.88° against ~1.0° predicted**, inside the 2.0° band.
+- **FGO heading timing:** each heading is applied 17 ms after capture (median; 33 ms max), about 0.015° at cruise yaw
+  rates. **The heading-timing fairness concern is CLOSED as negligible.**
+
+### D26 (b) bounded diagnosis (≈1.5 h of the 2 h, offline, no estimator change): EXPLORATORY, descriptive
+
+**Tools:**
+- `eval/d26_heading_stream.py`: the heading stream against truth.
+- `eval/d26_ukf_ekf3_gate.py`: the UKF port Replayed on the flight's own log with `UKF_EXTYAW=1`, plus EKF3 passive
+  in the same flight.
+- `eval/d26_fgo_gate.py`: the FGO node-core replay, `eval/fgo_core_replay.py --save-npz`.
+- `eval/d26_jitter_control.py`.
+- Results: `eval/results/d26_jitter_control.json`; Replay outputs in `~/thesis_data/d26/`.
+
+**1. Which headings drive the swings (r3; r1 for comparison).**
+- Up to y ≈ 138 m, the sent headings (valid, quality ≥ 50) have errors against truth of p95 0.45°.
+- **At 308–320 s (y ≈ 139–145 m), still marked valid and sent, they carry errors up to 11.3° (308–311 s), 6.8°, 3.9°
+  and 7.7°.** Over the same stretch the image support (line evidence) falls from ~900 to ~100, until the bridge
+  marks them invalid (from 320 s).
+- These **degraded-but-valid** headings are the ones that drive the swings.
+- r1 has smaller ones (up to 7.0° at 305–308 s) and a smaller swing.
+
+**2. Accepted against gated: the gate is not the difference.**
+
+| r3, same heading stream | evaluated | gated | max innovation | predicted heading σ at the gate | per-heading weight σ²/(σ²+R) |
+|---|---|---|---|---|---|
+| FGO (node-core replay) | 2,359 | **0** | 11.6° (NIS 4.55) | **2.17°** | **15.9%** |
+| UKF port (Replay, passive) | 2,360 | 1 | 11.5° (test ratio 0.57) | **0.86°** | **2.9%** |
+
+- EKF3 (passive in the flight) also fused them; its yaw moved ≤ 0.3° there.
+- All three accept the degraded headings, because a 5° σ with a χ² gate of 9 admits innovations up to ~15°.
+- **What differs is the weight each heading gets.** The FGO's predicted heading σ at its gate is ~2.5× the UKF's, so
+  each heading moves it ~5.5× as much.
+- An 11.6° outlier at 15.9% is ~1.8°. The FGO's yaw swung **1.6–1.9°** (the replay +1.61° in the corridor frame; the
+  flying `XFGO` −1.57 … −1.88° in NED), against the UKF's passive −0.28 … −0.76° and EKF3's ≤ 0.3°, on the same stream.
+- *Caveat:* the FGO's gate σ comes from its local two-keyframe information approximation (`_info`). The fixed-lag
+  smoother's effective weight is not separately measured. The match between predicted and observed swing is
+  consistent with it, but this is not a proof.
+
+**3. Hypothesis: the FGO's fast heading jitter becomes control activity in closed loop.**
+- Measured over cruise +10 s until y = 135 m, i.e. **excluding** the end-wall zone; all half-speed with-heading flights.
+
+| | yaw jitter (e − 2 s mean), std / rate std | vehicle gyro std x / y / z (deg/s) | corr(true yaw rate, −de/dt), lag |
+|---|---|---|---|
+| EKF3 flying, r1–r3 | 0.006–0.007° / 0.05 deg/s | 0.095–0.114 / 0.090–0.102 / 0.097–0.151 | +0.09 … +0.13, 0.12–0.20 s |
+| UKF flying, r1–r3 | 0.007–0.009° / 0.06–0.07 | 0.099–0.114 / 0.088–0.092 / 0.092–0.138 | +0.24 … +0.28, 0.16 s |
+| **FGO flying, r1–r3** | **0.031–0.041° / 0.26–0.33** | **0.156–0.241 / 0.108–0.125 / 0.196–0.208** | **+0.68 … +0.74, 0.16 s** |
+| FGO passive (shadow b, truth flies) | 0.030° / 0.26 | (truth-flown) | −0.03 |
+| EKF3 passive (shadow b) | 0.006° / 0.05 | (truth-flown) | +0.06 |
+
+- **The FGO's fast yaw jitter is ~5× EKF3's and the UKF's, and it is intrinsic.** It is the same with no feedback
+  (shadow b: 0.030°), consistent with the per-heading weight ratio (~5.5×).
+- **In closed loop, the vehicle's yaw motion follows it.** The true yaw rate correlates +0.68 … +0.74 with −de/dt at a
+  0.16 s lag on all three FGO flights. EKF3 shows +0.09 … +0.13 and the UKF +0.24 … +0.28; the passive shadow shows
+  none (−0.03).
+- Vehicle yaw gyro std is ~1.5–2× the EKF3/UKF flights, and roll ~1.5–2×.
+- **The hypothesis is SUPPORTED, descriptively.** The FGO's camera-noise-level heading jitter becomes extra control
+  activity in closed loop. At the end wall, the larger degraded-heading swings produce the r3 B5 failure.
+
+**Reading:**
+- The B5 failure is the end-of-corridor case of a general property of this FGO: a larger per-heading weight, from a
+  larger predicted heading uncertainty at its gate.
+- Fed headings that are degraded but still marked valid (the bridge's validity lags the image evidence, much as D22's
+  flow validity lags the feature count), it moves several times further than EKF3 or the UKF. In closed loop, the
+  vehicle follows.
+- **Not tested** (it would need a change, by ruling only): whether the FGO's heading weighting or its gate σ is itself
+  correct.
+- **No estimator change was made.** EXPLORATORY; no confirmatory weight.
+
+### Three-way closed-loop summary (all flights to date; `corridor_textured(_half)_fwdc`, 0.5 m/s, 300 s cruise)
+
+**No heading (set a)** — west-wall contact time in cruise against the pre-registered window:
+
+| estimator | full speed | half speed |
+|---|---|---|
+| EKF3 | **+186.2 s, PASS** [+155, +215] (`cl_a_tex`) | **+242.1 s, MISS** [+155, +215] (`cl_a_tex_half`, D21) |
+| UKF | **+163.0 s, PASS** [+146, +218] (`cl_ukf_a_tex`) | **+198.0 s, PASS** [+146, +218] (`cl_ukf_a_tex_half`) |
+| FGO | not flown (FGO closed loop is half speed only, D19) | **+165.8 s, PASS** [+145, +196] (`cl_fgo_a_tex_half`) |
+
+All contacts are on the west wall. n = 1 per cell; closed-loop run-to-run variability is unmeasured (D21).
+
+**With the camera heading (set b)** — B1–B5 (+ S2 for UKF/FGO), flights passing:
+
+| estimator | full speed | half speed |
+|---|---|---|
+| EKF3 | **3/3** (Python node, `cl_b_tex`); **3/3** (C++ node, `cl_bcpp_tex`) | **3/3** (`cl_bcpp_tex_*_half`) |
+| UKF | **3/3** (`cl_ukf_b_tex`) | **2/3** (`cl_ukf_b_tex_*_half`; r3 fails B4, D22 flow validity) |
+| FGO | not flown | **2/3** (`cl_fgo_b_tex_*_half`; r3 fails B5, D26 end-wall heading degradation) |
+
+- Every FGO closed-loop result is stated with:
+  - the D23 climb-top transient (LiDAR short returns, unfiltered by design, D18);
+  - the D26 failure and its exploratory mechanism.
+- No cross-speed comparison is claimed (D21). Within half speed, the three share identical timing (loopback-pinned,
+  `VISO_DELAY_MS` 25).

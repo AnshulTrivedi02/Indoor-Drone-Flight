@@ -1,0 +1,3 @@
+# D26 (b): FGO node-core replay of r3 with the gate log
+fgocore__cl_fgo_b_tex_r3_half cd ~/thesis_ws && nice -n 10 $HOME/venv-fgo/bin/python eval/fgo_core_replay.py cl_fgo_b_tex_r3_half --out fgo_core --save-npz
+fgocore__cl_fgo_b_tex_r1_half cd ~/thesis_ws && nice -n 10 $HOME/venv-fgo/bin/python eval/fgo_core_replay.py cl_fgo_b_tex_r1_half --out fgo_core --save-npz

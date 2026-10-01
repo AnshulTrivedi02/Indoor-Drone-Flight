@@ -5,7 +5,7 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
-### D26. FGO with-heading set FAILS (2/3): r3 B5 pitch gyro rms 0.0230 (band 0.0108) at the end-wall heading degradation (y ~ 138-145 m), with the FGO yaw swinging -1.9..+0.6 deg; r1, r2 pass; no-heading flight passed (contact +165.8 s in window)
+### D26. FGO with-heading set FAILS (2/3) — RULED 2026-10-01: (a)+(b) done (METHODOLOGY "D26 RULED", "D26 (b)"): r3 B5 pitch gyro rms 0.0230 (band 0.0108) at the end-wall heading degradation (y ~ 138-145 m), with the FGO yaw swinging -1.9..+0.6 deg; r1, r2 pass; no-heading flight passed (contact +165.8 s in window)
 - Every FGO flight has larger end-of-corridor yaw error (y > 140: p95 0.61-1.67 deg) and 1.5-5x higher roll/yaw gyro rms
   than the EKF3/UKF half-speed sets (descriptive, separate flights). Consistent with the exploratory "fast heading
   jitter" pattern; mechanism untested.

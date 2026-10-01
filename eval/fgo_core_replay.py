@@ -19,7 +19,8 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_node_core import FgoNodeCore
 ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--no-heading", action="store_true")
-ap.add_argument("--out", default="fgo_core"); a = ap.parse_args()
+ap.add_argument("--out", default="fgo_core")
+ap.add_argument("--save-npz", action="store_true", help="also save the heading gate log (fwd_log) and traj (D26)"); a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); OUT = f"{D}/{a.out}"; os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 ts.register(get_types_from_msg(open(glob.glob(os.path.join(ROOT, "**/OpticalFlow.msg"), recursive=True)[0]).read(),
@@ -71,4 +72,6 @@ np.savetxt(f"{OUT}/ground_truth.tum", np.array(gt), fmt="%.6f")
 fl = getattr(core.fgo, "fwd_log", [])
 acc = int(sum(1 for x in fl if x[1] == 0 and x[3])); n0 = int(sum(1 for x in fl if x[1] == 0))
 print(f"[core replay] {a.trial}: {len(tr)} keyframes, headings pushed {n_hdg}, fused {acc}/{n0}, valid_end {core.valid}, reinits {core.reinits}")
+if a.save_npz:
+    np.savez(f"{OUT}/core_replay.npz", traj=tr, fwd_log=np.array([(x[0], x[1], x[2], float(x[3]), x[4]) for x in fl]).reshape(-1, 5))
 print(f"[out] {OUT}/fgo_traj.tum")
