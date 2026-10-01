@@ -5,6 +5,17 @@ Details for every item are in METHODOLOGY.
 
 ## OPEN
 
+### D28. B5 CHECKER BUG reverses both FGO r3 B5 failures (hard-gated cl_fgo_b_tex_r3_half 0.0230 -> 0.0032; robust 0.0212 -> 0.0028 rad/s pitch): a landing-time vy spike set B5's window end to 339 s, taking in the end-of-cruise deceleration
+- Only these 2 of 21 set-(b) flights change (all rechecked). With the corrected window both FGO sets are 3/3.
+- Options:
+  - **(a)** adopt the corrected window (longest contiguous vy > 0.3 run), as with the earlier FG1/C3 checker fixes:
+    fix `closed_loop_score.py`, rescore every set-(b) flight (identical for 19 of 21), restate both FGO sets as 3/3,
+    and correct D26's "fails B5 at the end wall" (the end-wall swings and jitter coupling remain, descriptively; both
+    scores kept);
+  - (b) keep the as-worded 2/3 and state the bug alongside.
+- **Recommendation: (a).** The window was meant to be the cruise; the bug is unambiguous and independent of the
+  estimator, and the same checker-fix practice was applied before.
+
 ### D27. Noise parity (plan step 1): closed-loop builds MATCH; OFFLINE the UKF's IMU process noise per second is 1.2x the FGO's (UKF steps 15 ms with EKF3's per-step (dt*NSE)^2 form; FGO conversion pinned to 12.5 ms)
 - The measured heading weights (FGO 15.9% vs UKF 2.9%) come from the closed-loop builds, where everything matches.
   Offline, the mismatch makes the UKF's weight LARGER (opposite direction), so it cannot explain the difference.

@@ -9882,3 +9882,57 @@ noise for the UKF.
 - **Open-loop with heading, this run:** evo -a (cruise) 0.039 m, against the hard-gated shadow's 0.092 m. These are
   different flights, so this is descriptive only.
 - **The closed-loop robust set proceeds** (no primary gate failure).
+
+### Plan step 2(b) RESULT, and a B5 CHECKER BUG that reverses the B5 failures of BOTH FGO r3 flights (queued as D28; both scores kept)
+
+**The robust-FGO set as scored by `closed_loop_score.py` (as worded):** r1 and r2 pass B1–B5 and S2; **r3 fails B5**
+(pitch 0.0212 against 0.0108 rad/s), so 2/3, like the hard-gated set. The stop rule ends the set (it was the last
+flight).
+
+**Checker bug, found while localising r3** (`eval/b5_window_check.py`, `eval/results/b5_window_check.json`):
+- **The rule.** B5's window is (r0 + 5 s, r1 − 5 s), with r0/r1 the first and last GT sample with smoothed vy > 0.3 m/s.
+- **What went wrong.** In **both FGO r3 flights** (hard-gated and robust) a spurious vy > 0.3 sample at landing
+  (~344.4 s) moved r1. The window then ended at **339 s** instead of ~326 s, and took in the end-of-cruise
+  deceleration: pitch rate ~11 deg/s at 329–335 s, present in every flight.
+- **Corrected window:** the longest contiguous run of vy > 0.3 (gaps ≤ 1 s), then (start + 5, end − 5).
+- **All 21 set-(b) flights on record were rechecked** (EKF3 Python/C++ full speed, UKF full, EKF3/UKF/FGO/robust-FGO
+  half). **Only the two FGO r3 flights change.** `cl_b_tex_r3`'s start moves but it passes both ways.
+
+| flight | B5 r / p / y (rad/s), window as scored | corrected window | B5 |
+|---|---|---|---|
+| `cl_fgo_b_tex_r3_half` (hard-gated) | 0.0100 / **0.0230** / 0.0052 [35.2, 339.5] s | 0.0101 / 0.0032 / 0.0053 [35.2, 326.1] s | **FAIL → PASS** |
+| `cl_fgo_b_robust_tex_r3_half` | 0.0048 / **0.0212** / 0.0041 [35.1, 339.3] s | 0.0038 / 0.0028 / 0.0041 [35.1, 326.0] s | **FAIL → PASS** |
+
+**Consequences, stated (not restated until ruled):**
+- With the corrected checker, both FGO with-heading sets are **3/3**.
+- **The D26 attribution is wrong in part.** The "r3 fails B5 at the end-wall heading degradation" failure came from
+  the deceleration included by the bug. The end-wall degradation did raise pitch-rate activity (0.6–0.9 deg/s at
+  311–323 s in the hard-gated r3), but within the corrected window pitch rms is 0.0032 rad/s, far inside the band.
+- **Unaffected:** D26's exploratory findings (degraded-but-valid headings, the 15.9% against 2.9% per-heading weight,
+  the ~5× jitter and its coupling into vehicle yaw, corr +0.68 … +0.74). They are descriptive and independent of B5.
+- Queued as **D28**.
+
+**Descriptive comparison, robust against hard-gated FGO (pre-registered; n = 3 each, different flights, no decision):**
+
+| metric | hard-gated r1 / r2 / r3 | robust r1 / r2 / r3 |
+|---|---|---|
+| end-wall FGO yaw-error range, 300–323 s | 2.36 / 1.07 / 2.48° | **1.14 / 1.20 / 2.04°** |
+| B3 beyond y = 140 m, p95 / max | 0.61/0.91, 0.78/0.89, 1.67/1.88° | 0.56/0.83, 0.84/0.95, 0.99/1.15° |
+| end-wall gyro std 300–323 s, pitch / roll | 0.20/0.82, 0.18/0.37, 0.52/1.87 deg/s | 0.15/0.33, 0.20/0.51, 0.26/0.52 deg/s |
+| cruise B5, corrected: roll / pitch / yaw (rad/s) | 0.0049/0.0022/0.0042, 0.0034/0.0024/0.0037, 0.0101/0.0032/0.0053 | 0.0031/0.0022/0.0037, 0.0037/0.0024/0.0037, 0.0038/0.0028/0.0041 |
+| cruise (y ≤ 135 m) yaw jitter std; gyro std x / y / z | 0.039/0.031/0.041°; 0.156–0.241 / 0.108–0.125 / 0.196–0.208 deg/s | 0.032/0.030/0.037°; 0.140–0.153 / 0.111–0.124 / 0.144–0.159 deg/s |
+| coupling corr(true yaw rate, −de/dt) | +0.68 / +0.68 / +0.74 | +0.68 / +0.67 / +0.70 |
+| shadow (truth flies) jitter | 0.030° | 0.030° |
+
+**Against the prediction (user's, pre-registered):**
+- **Lower end-wall yaw swings: met descriptively** on 2 of 3 (the range mean is 1.97° → 1.46°; r2 is slightly
+  higher).
+- **Lower gyro activity: met descriptively.** In cruise, yaw-gyro std is 0.196–0.208 → 0.144–0.159 deg/s and roll
+  std 0.156–0.241 → 0.140–0.153; pitch is about equal. At the end wall, roll is lower on 2 of 3.
+- **My recorded basis note expected no material cruise reduction. It was not borne out:** cruise yaw-gyro activity is
+  ~25% lower.
+- But the intrinsic jitter is about the same: the shadows' 0.030° each, and in flight 0.030–0.037° against
+  0.031–0.041°. The coupling is unchanged.
+- So the reduction is not explained by the kernel's weights on camera-noise-level headings. It may be flight-to-flight
+  variability (n = 3). **Not tested.**
+- Every number is descriptive.

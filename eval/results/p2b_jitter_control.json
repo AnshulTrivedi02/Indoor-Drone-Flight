@@ -1,0 +1,66 @@
+{
+ "cl_fgo_b_robust_tex_r1_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.3,
+   299.0
+  ],
+  "yaw_jitter_std_deg": 0.032478183034651935,
+  "yaw_jitter_rate_std_dps": 0.25834797445140417,
+  "gyro_std_dps": {
+   "x": 0.1399003342060614,
+   "y": 0.11135343335428606,
+   "z": 0.14796303831978802
+  },
+  "coupling_corr": 0.6781875299520459,
+  "coupling_lag_s": 0.16
+ },
+ "cl_fgo_b_robust_tex_r2_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.3,
+   299.0
+  ],
+  "yaw_jitter_std_deg": 0.030304970777775997,
+  "yaw_jitter_rate_std_dps": 0.2412081338512982,
+  "gyro_std_dps": {
+   "x": 0.1464646096774915,
+   "y": 0.11773267914735643,
+   "z": 0.14371185165298753
+  },
+  "coupling_corr": 0.672805530410394,
+  "coupling_lag_s": 0.16
+ },
+ "cl_fgo_b_robust_tex_r3_half:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.3,
+   299.0
+  ],
+  "yaw_jitter_std_deg": 0.03707918439333283,
+  "yaw_jitter_rate_std_dps": 0.29975071507774326,
+  "gyro_std_dps": {
+   "x": 0.15310013614797185,
+   "y": 0.12385324513356703,
+   "z": 0.1592185734159765
+  },
+  "coupling_corr": 0.7036278507312977,
+  "coupling_lag_s": 0.16
+ },
+ "fgo_shadow_half_b_robust:fgo": {
+  "est": "fgo",
+  "window_s": [
+   40.3,
+   300.0
+  ],
+  "yaw_jitter_std_deg": 0.030190955795177957,
+  "yaw_jitter_rate_std_dps": 0.250680491307769,
+  "gyro_std_dps": {
+   "x": 0.12584547199467358,
+   "y": 0.1464248452122544,
+   "z": 0.10757851069843813
+  },
+  "coupling_corr": -0.022070716486980956,
+  "coupling_lag_s": 0.68
+ }
+}
