@@ -1,0 +1,31 @@
+# Plan step 2(a): replay arms on the 10 USABLE flights (IMU-gap rule; f4_fwdc_tex_r1, f4_fwdplainc_tex_r3 unusable)
+ukfh__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r1 heading
+fgoh__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r1 0.25 2 heading
+fgor__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r1 0.25 2 heading
+ukfh__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r2 heading
+fgoh__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r2 0.25 2 heading
+fgor__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r2 0.25 2 heading
+ukfh__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r2 heading
+fgoh__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r2 0.25 2 heading
+fgor__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r2 0.25 2 heading
+ukfh__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r3 heading
+fgoh__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r3 0.25 2 heading
+fgor__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r3 0.25 2 heading
+ukfh__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r4 heading
+fgoh__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r4 0.25 2 heading
+fgor__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r4 0.25 2 heading
+ukfh__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r4 heading
+fgoh__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r4 0.25 2 heading
+fgor__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r4 0.25 2 heading
+ukfh__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r5 heading
+fgoh__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r5 0.25 2 heading
+fgor__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r5 0.25 2 heading
+ukfh__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r5 heading
+fgoh__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r5 0.25 2 heading
+fgor__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r5 0.25 2 heading
+ukfh__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r6 heading
+fgoh__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r6 0.25 2 heading
+fgor__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r6 0.25 2 heading
+ukfh__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r6 heading
+fgoh__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r6 0.25 2 heading
+fgor__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r6 0.25 2 heading

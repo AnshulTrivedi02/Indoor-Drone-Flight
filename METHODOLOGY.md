@@ -9793,3 +9793,20 @@ data and (b) in closed loop?
     S1-type 3/3, S2-type 3/6.
 - **Flights launched with loopback pinning** (`LOOPBACK_ONLY=1`; networking only, recorded in each trial's
   metadata), to guard against the Wi-Fi-dongle multicast fault. The ceiling datasets predate the pinning.
+
+### Plan step 2(a): IMU-gap verdicts, and how they count (recorded BEFORE any replay or scoring)
+
+**12/12 flights complete** (no aborts). IMU-gap rule (`eval/imu_gap_check.py --write`):
+- `f4_fwdc_tex_r1` **unusable**: only 8.4 s stationary before arming after a pre-arm 20 ms IMU step;
+- `f4_fwdplainc_tex_r3` **unusable**: 9.9 s after a 1.29 s pre-arm gap;
+- `f4_fwdc_tex_r4` **trim**: replay starts at 13.83 s;
+- the other 9 are ok.
+- All irregularities are pre-arm start-up artefacts; there is nothing in flight.
+
+**Handling, by the confirmatory test's precedent** (`dsn_paired_test`: "r10 counted against (a)"):
+- The UKF/FGO are not replayed on unusable bags (standing rule).
+- **Each unusable flight counts AGAINST P1, S1 and S2.** The thresholds are unchanged:
+  - P1 now needs the robust FGO lower on all 10 usable flights (≥ 10/12);
+  - S1 needs all 5 usable plain-wall flights (≥ 5/6);
+  - S2 needs 8 of the 10 usable flights.
+- No replacement flights are flown. Doing so would change n after the fact.
