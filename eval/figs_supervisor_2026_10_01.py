@@ -343,17 +343,19 @@ rows9 = [
     ("FGO hard-gated, half speed", seta("cl_fgo_a_tex_half", (145, 196)), *setb([f"cl_fgo_b_tex_r{i}_half" for i in (1, 2, 3)])),
     ("FGO robust heading, half speed", "not flown", *setb([f"cl_fgo_b_robust_tex_r{i}_half" for i in (1, 2, 3)])),
 ]
-fig = plt.figure(figsize=(16, 6.4)); ax = fig.add_axes([0.01, 0.20, 0.98, 0.68]); ax.axis("off")
-tab = ax.table(cellText=[list(r) for r in rows9], colLabels=["flying estimator", "no heading: wall contact (window)", "with heading: B1–B5 pass",
-               "max cross-track (B2)", "yaw error p95 / max (B3)"], loc="upper left", cellLoc="left", colLoc="left",
-               colWidths=[0.22, 0.31, 0.15, 0.13, 0.19])
+fig = plt.figure(figsize=(16, 5.0)); ax = fig.add_axes([0.01, 0.24, 0.98, 0.62]); ax.axis("off")
+tab = ax.table(cellText=[list(r) for r in rows9], colLabels=["flying estimator", "no heading:\nwall contact (window)", "with heading:\nB1–B5 + S2 pass",
+               "with heading:\nmax cross-track (B2)", "with heading:\nyaw error p95 / max (B3)"], loc="upper left", cellLoc="left", colLoc="left",
+               colWidths=[0.21, 0.29, 0.14, 0.15, 0.21])
 tab.auto_set_font_size(False); tab.set_fontsize(12.5); tab.scale(1, 2.2)
+for (r_, c_), cell in tab.get_celld().items():
+    if r_ == 0: cell.set_height(cell.get_height() * 1.7)
 for (r_, c_), cell in tab.get_celld().items():
     cell.set_edgecolor(GRID); cell.set_facecolor(SURF if r_ else "#f0efec")
     if r_ == 0: cell.set_text_props(weight="bold")
-fig.text(0.01, 0.12, "UKF half r3 fails B4 (D22: flow validity lags the feature count). Both FGO with-heading sets are 3/3 after the D28 scorer fix "
+fig.text(0.01, 0.10, "UKF half r3 fails B4 (D22: flow validity lags the feature count). Both FGO with-heading sets are 3/3 after the D28 scorer fix "
          "(first scored 2/3: a landing speed sample stretched the B5 window into the stop).", fontsize=12, color=INK2)
-fig.text(0.01, 0.07, "No cross-speed comparison is claimed (D21); n = 1 per no-heading cell, so closed-loop run-to-run variability is unmeasured.",
+fig.text(0.01, 0.04, "No cross-speed comparison is claimed (D21); n = 1 per no-heading cell, so closed-loop run-to-run variability is unmeasured.",
          fontsize=12, color=INK2)
 fig.suptitle("Closed loop, all three estimators: summary (restated after D28)", x=0.01, ha="left", fontsize=17)
 save(fig, "fig9_closed_loop_summary.png", "Closed-loop summary: all three estimators flying the vehicle",
