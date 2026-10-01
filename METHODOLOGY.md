@@ -9988,3 +9988,20 @@ reached into the end-of-cruise deceleration. **These stand, descriptively:**
 
 Every FGO closed-loop result is stated with the D23 climb-top transient and with the D26 descriptive findings, as
 corrected.
+
+### Cruise-window audit (user ruling 2026-10-02): NO flight's pinned cruise window changes; nothing restated
+
+`eval/cruise_window_audit.py` → `eval/results/cruise_window_audit.json`.
+- **Method.** For every trial with a bag (174: open-loop datasets, closed-loop sets, shadows, ground tests,
+  early tests), the pinned window (`cruise_window.cruise_bounds`) was recomputed on the GT after removing spurious
+  samples:
+  - near-duplicate stamps (< 2 ms);
+  - isolated jumps (> 3 m/s implied from both neighbours).
+- A window is flagged if either end moves > 0.05 s.
+- **Result: 0 of 174 flagged.**
+- **Why the pinned window is immune** where B5's was not: `cruise_bounds` takes the **largest contiguous run** of
+  smoothed speed > 0.3 m/s. An isolated landing sample cannot extend it, whereas B5's first-to-last rule could (D28).
+- **4 trials were not auditable:** `check1`, `check3`, `corridor_migration_test`, `verify_textured`. They are early
+  tests whose GT stamps are all identical (from before the sim-time stamping) and are used in no result.
+- The shortest windows are legitimately short flights (sweeps, Stage B/C, `cl_ekf3_tex`). The longest are ground
+  tests, where no cruise metric is scored.

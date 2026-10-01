@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cruise_window import cruise_bounds
 ap = argparse.ArgumentParser(); ap.add_argument("trials", nargs="*"); ap.add_argument("--json"); a = ap.parse_args()
 TD = os.path.expanduser("~/thesis_data/trials")
-trials = a.trials or sorted(os.path.basename(os.path.dirname(p)) for p in glob.glob(f"{TD}/*/bag/metadata.yaml"))
+trials = a.trials or sorted(os.path.basename(os.path.dirname(os.path.dirname(p))) for p in glob.glob(f"{TD}/*/bag/metadata.yaml"))
 ts = get_typestore(Stores.ROS2_JAZZY); out = {}
 for tr in trials:
     try:
@@ -37,6 +37,8 @@ for tr in trials:
     p0, p1 = cruise_bounds(t, x, y)
     keep = np.r_[True, np.diff(t) >= 0.002]
     t2, x2, y2 = t[keep], x[keep], y[keep]
+    if len(t2) < 100:                                   # degenerate GT stream (almost all stamps duplicated)
+        out[tr] = {"error": f"degenerate GT: {len(t)} samples, {len(t2)} after removing duplicates"}; continue
     d = np.hypot(np.diff(x2), np.diff(y2)) / np.diff(t2)
     jump = np.r_[False, (d[:-1] > 3.0) & (d[1:] > 3.0), False]
     t2, x2, y2 = t2[~jump], x2[~jump], y2[~jump]
