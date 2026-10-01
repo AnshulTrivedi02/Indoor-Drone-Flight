@@ -1364,3 +1364,11 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
   (both sets 3/3 corrected). **D28 open.** D26's B5 attribution needs correcting.
 - Robust against hard-gated FGO (descriptive): lower end-wall swings (2/3), cruise yaw/roll gyro activity ~25% lower;
   jitter and coupling unchanged.
+
+## 2026-10-02 (morning)
+- D28 ruled and done: the B5 window is fixed in the scorer; 21 with-heading flights rescored (only the two FGO r3
+  change); both FGO with-heading sets restated 3/3; D26 corrected; both scores kept.
+- Cruise-window audit: 174 trials, 0 windows changed (the largest-contiguous-run definition is immune).
+- 2(a)/2(b) recorded as ruled. Step 3 ON HOLD (no new simulation without a ruling).
+- Consolidated restating: numbers.md §15 (closed loop after D28) and §15.1 (robust weighting). Supervisor figures
+  regenerated, with fig9 (closed-loop summary) and fig10 (half-speed paths, all three estimators).
