@@ -121,7 +121,8 @@ save(fig, "fig1_closed_loop_paths.png", "Closed-loop true paths: EKF3 and UKF, w
      "Ground-truth paths (top-down) when EKF3 or the UKF is the vehicle's estimator, 0.5 m/s, textured corridor "
      "(walls at x = ±10 m; dotted line = the 9.58 m wall-contact threshold). Without heading both drift west into the wall "
      "(X = contact; shaded strip = the pre-registered contact window, mapped to distance at 0.5 m/s); with the camera heading "
-     "all 6 flights stay within 0.34 m of the centreline. n = 1 per no-heading set, 3 per heading set; FGO closed loop not yet flown. "
+     "all 6 flights stay within 0.34 m of the centreline. n = 1 per no-heading set, 3 per heading set. The FGO closed loop was flown at half "
+     "speed only (fig10, fig9). "
      "Same information within each estimator (heading on vs off); EKF3 and UKF differ by design.",
      "CONFIRMATORY (pre-registered criteria)",
      "paths: trial bags cl_a_tex, cl_bcpp_tex_r1-3, cl_ukf_a_tex, cl_ukf_b_tex_r1-3 (/ground_truth/pose); contact times, cruise "
@@ -324,6 +325,89 @@ save(fig, "fig8_f1_robust_tradeoff.png", "F1: robust heading weighting trade-off
      "Small n on the textured end wall: only 3 / 5 / 2 wrong headings (r1/r2/r3), so its 'wrong accepted' 33% is 1 of 3.",
      "EXPLORATORY (descriptive part; the pre-registered decision failed)", "eval/results/f1_test.json")
 
+
+# ------------------------------------------------------------------------------------------------ Figure 9 (closed-loop summary, D28)
+def setb(trs):
+    B = [L(f"closed_loop_{t}.json")["B"] for t in trs]
+    rng = lambda f: f"{min(f(b) for b in B):.2f}–{max(f(b) for b in B):.2f}"
+    return (f"{sum(b['pass'] for b in B)}/3", rng(lambda b: b["B2"]["max_abs_x_cruise_m"]) + " m",
+            rng(lambda b: b["B3"]["p95_deg"]) + "° / " + rng(lambda b: b["B3"]["max_deg"]) + "°")
+def seta(tr, win):
+    c0, ct = cl_meta(tr); t_ = ct["t_rel_cruise_s"]
+    return f"west +{t_:.1f} s  {'PASS' if win[0] <= t_ <= win[1] else 'MISS'}  [+{win[0]}, +{win[1]}]"
+rows9 = [
+    ("EKF3, full speed", seta("cl_a_tex", (155, 215)), *setb([f"cl_bcpp_tex_r{i}" for i in (1, 2, 3)])),
+    ("EKF3, half speed", seta("cl_a_tex_half", (155, 215)), *setb([f"cl_bcpp_tex_r{i}_half" for i in (1, 2, 3)])),
+    ("UKF, full speed", seta("cl_ukf_a_tex", (146, 218)), *setb([f"cl_ukf_b_tex_r{i}" for i in (1, 2, 3)])),
+    ("UKF, half speed", seta("cl_ukf_a_tex_half", (146, 218)), *setb([f"cl_ukf_b_tex_r{i}_half" for i in (1, 2, 3)])),
+    ("FGO hard-gated, half speed", seta("cl_fgo_a_tex_half", (145, 196)), *setb([f"cl_fgo_b_tex_r{i}_half" for i in (1, 2, 3)])),
+    ("FGO robust heading, half speed", "not flown", *setb([f"cl_fgo_b_robust_tex_r{i}_half" for i in (1, 2, 3)])),
+]
+fig = plt.figure(figsize=(16, 6.4)); ax = fig.add_axes([0.01, 0.20, 0.98, 0.68]); ax.axis("off")
+tab = ax.table(cellText=[list(r) for r in rows9], colLabels=["flying estimator", "no heading: wall contact (window)", "with heading: B1–B5 pass",
+               "max cross-track (B2)", "yaw error p95 / max (B3)"], loc="upper left", cellLoc="left", colLoc="left",
+               colWidths=[0.22, 0.31, 0.15, 0.13, 0.19])
+tab.auto_set_font_size(False); tab.set_fontsize(12.5); tab.scale(1, 2.2)
+for (r_, c_), cell in tab.get_celld().items():
+    cell.set_edgecolor(GRID); cell.set_facecolor(SURF if r_ else "#f0efec")
+    if r_ == 0: cell.set_text_props(weight="bold")
+fig.text(0.01, 0.12, "UKF half r3 fails B4 (D22: flow validity lags the feature count). Both FGO with-heading sets are 3/3 after the D28 scorer fix "
+         "(first scored 2/3: a landing speed sample stretched the B5 window into the stop).", fontsize=12, color=INK2)
+fig.text(0.01, 0.07, "No cross-speed comparison is claimed (D21); n = 1 per no-heading cell, so closed-loop run-to-run variability is unmeasured.",
+         fontsize=12, color=INK2)
+fig.suptitle("Closed loop, all three estimators: summary (restated after D28)", x=0.01, ha="left", fontsize=17)
+save(fig, "fig9_closed_loop_summary.png", "Closed-loop summary: all three estimators flying the vehicle",
+     "Pre-registered closed-loop results. No heading: west-wall contact time in cruise against the pre-registered window (EKF3's half-speed "
+     "flight missed it: D21). With the camera heading: flights passing B1–B5 (+S2 for UKF/FGO), and the B2/B3 ranges over the 3 flights. "
+     "The FGO was flown at half speed only. Every FGO closed-loop result is stated with the D23 climb-top transient (LiDAR short returns) and the "
+     "D26 findings (larger per-heading weight, ~5x fast heading jitter coupling into vehicle yaw; descriptive).",
+     "CONFIRMATORY (pre-registered criteria)",
+     "eval/results/closed_loop_<trial>.json (scorer after D28); windows: METHODOLOGY pre-registrations; numbers.md §15")
+
+# ------------------------------------------------------------------------------------------------ Figure 10 (half-speed paths, all three)
+HALF = [("EKF3", "cl_a_tex_half", [f"cl_bcpp_tex_r{i}_half" for i in (1, 2, 3)], (155, 215), "-"),
+        ("UKF", "cl_ukf_a_tex_half", [f"cl_ukf_b_tex_r{i}_half" for i in (1, 2, 3)], (146, 218), "-"),
+        ("FGO", "cl_fgo_a_tex_half", [f"cl_fgo_b_tex_r{i}_half" for i in (1, 2, 3)], (145, 196), "-"),
+        ("FGO robust", None, [f"cl_fgo_b_robust_tex_r{i}_half" for i in (1, 2, 3)], None, "--")]
+fig, axs = plt.subplots(4, 2, figsize=(16, 13), sharex=True, sharey=True)
+for i, (nm, off, ons, win, ls) in enumerate(HALF):
+    col = C["FGO"] if nm.startswith("FGO") else C[nm]
+    for j in (0, 1):
+        ax = axs[i, j]
+        for yw in (10, -10):
+            ax.axhspan(yw - 0.1, yw + 0.1, color=WALL)
+        ax.axhline(9.58, color=WALL, lw=0.8, ls=":"); ax.axhline(-9.58, color=WALL, lw=0.8, ls=":")
+        if j == 0:
+            if off is None:
+                ax.text(80, 0, "not flown (the robust variant was flown with heading only)", ha="center", fontsize=12, color=INK2)
+            else:
+                g = gt_of(off); c0, ct = cl_meta(off); w = g[:, 0] >= 20
+                ax.plot(g[w, 2], g[w, 1], color=col, lw=2, ls=ls)
+                ax.plot(ct["y"], ct["x"], marker="X", ms=13, color=INK, mec=SURF, mew=1.5, zorder=5)
+                y0 = float(np.interp(c0, g[:, 0], g[:, 2])); a, b = win
+                ax.axvspan(y0 + 0.5 * a, y0 + 0.5 * b, ymin=0.0, ymax=0.08, color=col, alpha=0.25, lw=0)
+                ax.annotate(f"contact at cruise +{ct['t_rel_cruise_s']:.1f} s (window +{a}…+{b} s)", (ct["y"], ct["x"]),
+                            xytext=(4, 3.2), fontsize=12, color=INK, arrowprops=dict(arrowstyle="-", color=INK2, lw=1))
+        else:
+            for k, tr in enumerate(ons):
+                g = gt_of(tr); w = g[:, 0] >= 20
+                ax.plot(g[w, 2], g[w, 1], color=col, lw=1.6, ls=ls, alpha=1 if k == 0 else 0.75)
+            mx = max(L(f"closed_loop_{tr}.json")["B"]["B2"]["max_abs_x_cruise_m"] for tr in ons)
+            ax.text(80, 6.2, f"3 flights, max |cross-track| {mx:.2f} m (band 6.0 m)", ha="center", fontsize=12, color=INK)
+        ax.set_title(f"{nm}, {'no camera heading' if j == 0 else 'with camera heading'}", loc="left", fontsize=14)
+        ax.set_ylim(-10.6, 10.6); ax.set_xlim(0, 160)
+        if i == 3: ax.set_xlabel("distance along corridor, true North y (m)")
+        if j == 0: ax.set_ylabel("true East x (m)")
+fig.suptitle("Closed loop at half speed: true paths when each estimator flies the vehicle", x=0.01, ha="left", fontsize=17)
+fig.tight_layout(rect=(0, 0, 1, 0.96))
+save(fig, "fig10_closed_loop_paths_half.png", "Closed-loop true paths at half speed: EKF3, UKF, FGO (hard-gated and robust heading)",
+     "Ground-truth paths (top-down), 0.5 m/s, half-speed textured corridor (walls at x = ±10 m; dotted = the 9.58 m contact threshold). "
+     "Without heading every estimator drifts west into the wall (X = contact; shaded = the pre-registered window, mapped to distance at 0.5 m/s); "
+     "EKF3 reached it later than its window (D21). With the camera heading all 12 flights stay near the centreline; the FGO rows show its "
+     "larger heading jitter only as small path wiggles at this scale. Solid = hard-gated heading, dashed = robust heading weighting (plan step 2(b)).",
+     "CONFIRMATORY (pre-registered criteria)",
+     "trial bags cl_*_half (/ground_truth/pose); contact times and B2: eval/results/closed_loop_<trial>.json; windows: METHODOLOGY pre-registrations")
+
 # ------------------------------------------------------------------------------------------------ PDF + index
 pdf = os.path.join(OUT, "figures.pdf")
 with PdfPages(pdf) as P:
@@ -337,7 +421,7 @@ with PdfPages(pdf) as P:
         fig.text(0.03, 0.045, "\n".join(textwrap.wrap(f"Source: {src}. Commit {COMMIT}.", 180)), fontsize=8.5, va="top", color=INK2)
         P.savefig(fig); plt.close(fig)
 with open(os.path.join(OUT, "INDEX.md"), "w") as f:
-    f.write(f"# Supervisor meeting figures, 2026-10-01\n\nGenerated by `eval/figs_supervisor_2026_10_01.py` at commit `{COMMIT}`. "
+    f.write(f"# Supervisor meeting figures, 2026-10-01 (updated 2026-10-02: D27, D28, fig9–fig10)\n\nGenerated by `eval/figs_supervisor_2026_10_01.py` at commit `{COMMIT}`. "
             "Combined PDF: `figures.pdf` (one figure + caption per page). No new experiments; numbers from committed result files, "
             "curves from the recorded trial data named per figure.\n\n")
     for png, title, cap, kind, src in FIGS:

@@ -428,6 +428,39 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
 
 ---
 
+## 15. Closed loop (the estimator flies the vehicle) — CURRENT after D28 (2026-10-02)
+
+Textured corridor, 0.5 m/s, 300 s cruise. Full speed = `corridor_textured_fwdc`; half speed = `corridor_textured_half_fwdc` (loopback-pinned, `VISO_DELAY_MS` 25). No cross-speed comparison is claimed (D21). n = 1 per no-heading cell; closed-loop run-to-run variability is unmeasured.
+
+| Quantity | Value | Unit | Status | Source |
+|---|---|---|---|---|
+| No heading, west-wall contact (cruise +): EKF3 full / half | +186.2 (PASS, window [+155, +215]) / +242.1 (MISS, D21) | s | CURRENT | json:closed_loop_cl_a_tex.json, closed_loop_cl_a_tex_half.json |
+| No heading, contact: UKF full / half | +163.0 (PASS, [+146, +218]) / +198.0 (PASS, [+146, +218]) | s | CURRENT | M: "cl_ukf_a_tex"; json:closed_loop_cl_ukf_a_tex_half.json |
+| No heading, contact: FGO (half only) | +165.8 (PASS, [+145, +196]; open-loop prediction +169.6) | s | CURRENT | json:closed_loop_cl_fgo_a_tex_half.json |
+| No heading, yaw drift over first 150 s of cruise: EKF3 full / half; UKF full / half; FGO half | 4.31 / 2.13; 5.45 / 3.89; 5.48 | deg/min | DESCRIPTIVE (n = 1 each) | M: D21; "cl_fgo_a_tex_half" |
+| With heading, flights passing B1–B5 (+S2 UKF/FGO): EKF3 full (Python / C++) / half | 3/3, 3/3 / 3/3 | — | CURRENT | json:closed_loop_cl_b*_tex*.json |
+| With heading: UKF full / half | 3/3 / 2/3 (r3 B4, D22 flow validity) | — | CURRENT | json:closed_loop_cl_ukf_b_tex*.json |
+| With heading: FGO hard-gated / robust (half) | **3/3 / 3/3** (D28; first scored 2/3 each, B5 window artefact) | — | CURRENT (D28) | json:closed_loop_cl_fgo_b*_tex_r*_half.json |
+| With heading, B2 max cross-track (EKF3 full C++, EKF3 half, UKF full, UKF half, FGO hard, FGO robust) | 0.23–0.34, 0.24–0.33, 0.16–0.29, 0.13–0.53, 0.06–0.25, 0.05–0.14 | m | CURRENT | same |
+| With heading, B3 yaw error p95 / max (same order) | 0.28–0.31/0.40–0.42, 0.28–0.32/0.33–0.39, 0.17–0.21/0.26–0.31, 0.18–0.21/0.28–1.32, 0.26–0.38/1.28–1.88, 0.26–0.30/0.86–1.15 | deg | CURRENT | same |
+| FGO climb-top true overshoot (no heading / with heading r1–r3 / robust) | +0.94 / 0, +0.11, +0.24 / descriptive | m | DESCRIPTIVE (D23 artefact; scales with short LiDAR returns 7 / 0, 1, 3) | json:climb_top_response_cl_fgo_*.json |
+| FGO heading timing: applied after capture (median / max) | 17 / 33 | ms | CLOSED as negligible (≈0.015°) | json:fgo_heading_timing.json |
+| Per-heading weight at equal sensor noise: FGO / UKF (closed loop, 5° R) | 15.9 / 2.9 (gate σ 2.17 / 0.86°) | % | STRUCTURAL (mechanism untested) | M: "D26 (b)", "D27 item 3" |
+| Fast yaw jitter (cruise): FGO hard / robust / EKF3 / UKF | 0.031–0.041 / 0.030–0.037 / 0.006–0.007 / 0.007–0.009 | deg | DESCRIPTIVE (EXPLORATORY) | json:d26_jitter_control.json, p2b_jitter_control.json |
+| Coupling corr(true yaw rate, −de/dt): FGO hard / robust / EKF3 / UKF / passive shadow | +0.68…+0.74 / +0.67…+0.70 / +0.09…+0.13 / +0.24…+0.28 / ≈0 | — | DESCRIPTIVE (EXPLORATORY) | same |
+
+### 15.1 Robust heading weighting (plan step 2)
+
+| Quantity | Value | Unit | Status | Source |
+|---|---|---|---|---|
+| 2(a) fresh open-loop flights: P1 robust < hard-gated FGO yaw max | 9/12 (≥ 10 needed): **FAIL** | — | CURRENT (2 IMU-gap exclusions counted against) | json:f4_test.json |
+| 2(a) S1 fewer wrong headings accepted, plain walls | 5/6: **PASS** (13–26 vs 49–91 accepted) | — | CURRENT | same |
+| 2(a) S2 max cross-track ≤ hard-gated | 6/12 (≥ 8 needed): **FAIL** | — | CURRENT | same |
+| 2(a) against the UKF (descriptive) | UKF lower yaw max 10/10; robust FGO lower cross-track 10/10 | — | DESCRIPTIVE | same |
+| 2(a) conclusion | F1's exploratory benefit largely did not replicate; replicated: fewer wrong headings accepted | — | CURRENT (wording, ruled) | M: "D28 RULED" |
+| 2(b) robust closed-loop set, end-wall FGO yaw-error range (r1–r3) vs hard-gated | 1.14 / 1.20 / 2.04 vs 2.36 / 1.07 / 2.48 | deg | DESCRIPTIVE | M: "Plan step 2(b) RESULT" |
+| 2(b) cruise yaw-gyro std, robust vs hard-gated | 0.144–0.159 vs 0.196–0.208 (~25% lower; jitter unchanged; cause untested) | deg/s | DESCRIPTIVE | json:p2b_jitter_control.json |
+
 ## Flags: resolved and remaining
 
 **Resolved** (METHODOLOGY "Source-pack flag resolutions", M:L3114-L3198; applied above):
