@@ -1352,3 +1352,15 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 - Recorded: climb-top miss (0/1/3 short returns), B3 max, heading timing closed as negligible.
 - Three-way closed-loop summary table in METHODOLOGY.
 - No open decisions. Next: plan to the 16 Oct simulation freeze.
+
+## 2026-10-01 night / 2026-10-02 early
+- D27 done: the offline UKF noise is aligned. All post-29-Sep offline-UKF results are re-run; no verdict changes;
+  plain-wall per-bag flips are flagged; EKF3/FGO byte-identical.
+- Plan step 2(a), 12 fresh flights (2 unusable, counted against): P1 FAILS (9/12), S1 passes (5/6), S2 fails (6/12).
+  Robust weighting cuts wrongly accepted headings 3–6×; it does not reliably lower the yaw maximum.
+- Plan step 2(b): node parameter (regression byte-identical); robust shadow gates pass (FG3 climb-top only); robust
+  closed-loop set 2/3 as scored.
+- **B5 checker bug:** a landing vy spike extended the window into the stop. Both FGO r3 B5 failures reverse
+  (both sets 3/3 corrected). **D28 open.** D26's B5 attribution needs correcting.
+- Robust against hard-gated FGO (descriptive): lower end-wall swings (2/3), cruise yaw/roll gyro activity ~25% lower;
+  jitter and coupling unchanged.
