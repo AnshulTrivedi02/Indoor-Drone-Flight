@@ -9563,3 +9563,34 @@ sufficient):**
   F-tests), and the weight difference is recorded as structural;
 - or (b) the offline UKF's per-second process noise is aligned (Q per step from the 12.5 ms reference, i.e.
   dt_step · 0.0125 · NSE²), followed by a re-replay of the affected offline tests.
+
+### D27 RULED (user, 2026-10-01): option (b) — the offline UKF's IMU process noise aligned to the same per-second densities as the FGO and the UKF port
+
+**The rule (D18 principle: sensor noise models are sensor properties, so every estimator carries the same ones).**
+- EKF3's per-step forms (dt·NSE)² (attitude, velocity) and (dt²·NSE)² (delta-form biases) accumulate **dt·NSE² per
+  second**. They are rate-dependent.
+- The reference is EKF3's own prediction period, **DT_REF = 12.5 ms**:
+  - the UKF port steps at 12.5 ms (measured mean, Replay dump), so it carries exactly these densities;
+  - the FGO's GTSAM densities are σ_c² = NSE²·DT_REF.
+- The offline UKF steps at its actual 15.00 ms (correction (ii)). Its per-step terms are therefore EKF3's forms at
+  dt = 15 ms **scaled by DT_REF/dt**:
+  - q_att = (dt·GYRO_P_NSE)²·DT_REF/dt, i.e. 2.8125×10⁻⁶ rad²/s;
+  - q_vel = (dt·ACC_P_NSE)²·DT_REF/dt, i.e. 1.53125×10⁻³;
+  - q_bg = (dt²·GBIAS_P_NSE)²·DT_REF/dt, i.e. a rate-bias density of 1.25×10⁻⁸;
+  - q_ba = (dt²·ABIAS_P_NSE)²·DT_REF/dt, i.e. 5.0×10⁻⁶.
+  - These are all identical per second to the FGO and the port, verified numerically at dt = 12.5 and 15 ms
+    (`ukf_core.make_params`, `DT_REF`).
+- At dt = DT_REF the form is EKF3's exactly.
+- The position conditioning floor (10⁻⁸ per step) is not a sensor term and is unchanged.
+
+**Origin of the mismatch.**
+- It entered with **correction (ii) on 2026-09-29**: the offline UKF's step became the actual 15 ms, with Q built at
+  15 ms unscaled, i.e. 1.2× the per-second noise.
+- Before that (fixed 12.5 ms Q per 15 ms step) it carried 0.83×, also a mismatch. The pre-29-Sep offline UKF results
+  are already superseded by the consolidated re-run and are not restated again.
+
+**Re-run scope, as ruled:** every offline UKF result produced since 2026-09-29.
+- Old outputs are preserved:
+  - the replays as `~/thesis_data/trials/*/ukf*.preD27` (122 directories);
+  - the Phase 5b sandbox as `*.preD27` (72 entries).
+- Old vs new is reported for every headline UKF number. Old values move to the superseded section.

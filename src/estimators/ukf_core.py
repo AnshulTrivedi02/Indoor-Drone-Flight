@@ -17,13 +17,23 @@ _ANG = [6, 7, 8]
 
 
 # ---------- params (locked constants) ----------
+DT_REF = 0.0125     # EKF3's prediction period (EKF_TARGET_DT accumulation: 5 x 2.5 ms frames)
+
+
 def make_params(dt=0.0125):
     GYRO_P_NSE, ACC_P_NSE = 0.015, 0.35            # EKF3, rad/s and m/s^2
     GBIAS_P_NSE, ABIAS_P_NSE = 0.001, 0.02         # EKF3, rad/s/s and m/s/s/s
-    q_att = (dt * GYRO_P_NSE) ** 2
-    q_vel = (dt * ACC_P_NSE) ** 2
-    q_bg = (dt * dt * GBIAS_P_NSE) ** 2
-    q_ba = (dt * dt * ABIAS_P_NSE) ** 2
+    # D27 (ruled 2026-10-01): EKF3's per-step forms (dt*NSE)^2 and (dt^2*NSE)^2 accumulate dt*NSE^2 per second,
+    # i.e. they are rate-dependent. Every estimator must carry the SAME per-second noise densities (sensor noise is
+    # a sensor property, D18): EKF3's at its own DT_REF = 12.5 ms, as the UKF port (12.5 ms steps) and the FGO
+    # (sigma_c = NSE*sqrt(DT_REF)) do. At a step dt the per-step form is therefore scaled by DT_REF/dt; at
+    # dt = DT_REF this is EKF3's form exactly. (From correction (ii), 2026-09-29, until D27 the offline UKF used
+    # dt = 15 ms unscaled: 1.2x the per-second noise of the FGO and the port.)
+    k = DT_REF / dt
+    q_att = (dt * GYRO_P_NSE) ** 2 * k
+    q_vel = (dt * ACC_P_NSE) ** 2 * k
+    q_bg = (dt * dt * GBIAS_P_NSE) ** 2 * k      # delta-form bias: rate-bias variance dt*DT_REF*NSE^2 per step
+    q_ba = (dt * dt * ABIAS_P_NSE) ** 2 * k
     Q = np.diag([1e-8, 1e-8, 1e-8,                 # position (from velocity prop.)
                  q_vel, q_vel, q_vel,
                  q_att, q_att, q_att,
