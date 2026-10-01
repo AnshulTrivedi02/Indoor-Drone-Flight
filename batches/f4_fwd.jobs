@@ -1,0 +1,13 @@
+# Plan step 2(a): Phase 3 forward measurements (frozen parameters) for the fresh flights
+fwd__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r1 --frozen
+fwd__f4_fwdc_tex_r1 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r1 --frozen
+fwd__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r2 --frozen
+fwd__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r2 --frozen
+fwd__f4_fwdplainc_tex_r3 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r3 --frozen
+fwd__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r3 --frozen
+fwd__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r4 --frozen
+fwd__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r4 --frozen
+fwd__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r5 --frozen
+fwd__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r5 --frozen
+fwd__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdplainc_tex_r6 --frozen
+fwd__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && /home/makerspace/venv-fwd/bin/python eval/fwd_run.py f4_fwdc_tex_r6 --frozen

@@ -9777,3 +9777,19 @@ data and (b) in closed loop?
   support lower cruise gyro activity:** that is driven by the camera-noise-level jitter (D26), which the kernel leaves
   essentially unweighted.
 - If cruise gyro activity is not lower, that part of the prediction misses, and it is reported as such.
+
+### Plan step 2(a): corrections recorded BEFORE any 2(a) flight was scored (flights in progress)
+
+- **S2 basis corrected.** The pre-registration says "F1 4/6 including ties". Recomputed with the 2(a) evaluator on
+  F1's own bags, the robust FGO's maximum cross-track is ≤ the hard-gated FGO's on **3/6**:
+  - plain r2 and r3 yes; plain r1 no (0.84 against 0.38 m);
+  - end wall: equal to the hundredth, but not ≤ at full precision on 2 of 3.
+  - **The S2 rule (≥ 8 of 12) is unchanged.** With a basis rate of 0.5 it is now expected to be a coin toss, so the
+    prediction "S2 uncertain" stands.
+- **Evaluator `eval/f4_eval.py`**, held as a patch while the flights run (the edit guard correctly blocks edits).
+  - **A region bug, caught before use:** F1's `region()` tests `startswith("fwdc_")`, which would have scored the
+    `f4_fwdc_*` flights over the whole cruise instead of y > 140 m. It now tests the name token.
+  - **Regression:** on F1's six bags it reproduces `f1_test.json`'s per-bag values exactly, and gives P1-type 5/6,
+    S1-type 3/3, S2-type 3/6.
+- **Flights launched with loopback pinning** (`LOOPBACK_ONLY=1`; networking only, recorded in each trial's
+  metadata), to guard against the Wi-Fi-dongle multicast fault. The ceiling datasets predate the pinning.
