@@ -1,0 +1,45 @@
+{
+ "trial": "fgo_shadow_half_a3",
+ "first_state_s": 16.348108,
+ "armed_s": 24.058454,
+ "disarm_s": 346.16837,
+ "C1": {
+  "n": 8245,
+  "ov0_after_first_state": 0,
+  "ov0_times": [],
+  "pass": true
+ },
+ "C2": {
+  "negative_age_samples": 0,
+  "min_ms": null,
+  "pass": true
+ },
+ "C3": {
+  "first_time_ref_header_s": 6.328,
+  "first_state_arrival_s": 16.348108,
+  "first_state_tv_s": 16.226,
+  "settle_s": 10.020108,
+  "first_state_stamp_minus_t0_s": 9.898,
+  "pass": true
+ },
+ "diag": {
+  "n_unsettled_queries": 281,
+  "maps_with_outliers": 0,
+  "max_outliers_in_window": 0,
+  "early_offsets_ms": {
+   "first_5": [
+    2.9,
+    2.9,
+    2.9,
+    2.9,
+    2.9
+   ],
+   "min": 1.8820000000001613,
+   "median": 3.8559999999989714,
+   "max": 8.665000000000589
+  },
+  "early_low_outliers_gt20ms": 0,
+  "early_low_outlier_times_s": []
+ },
+ "PASS": true
+}

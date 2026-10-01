@@ -1,0 +1,61 @@
+{
+ "trial": "fgo_shadow_half_a3",
+ "n_XFGI": 9909,
+ "arm_s": 24.058454,
+ "disarm_s": 346.16837,
+ "FG2": {
+  "OV_pct_arm_to_disarm": 100.0,
+  "pass": true
+ },
+ "FG3b": {
+  "age_ms_max": 176.0,
+  "age_ms_p95": 149.0,
+  "age_ms_median": 132.0,
+  "pass": true
+ },
+ "FG3": {
+  "span_s": [
+   28.240015,
+   343.14037
+  ],
+  "n": 7873,
+  "position_m": {
+   "p95": 0.0026919850837612905,
+   "max": 0.5820172876426989,
+   "median": 0.0012986001420634886
+  },
+  "velocity_mps": {
+   "p95": 0.032341800293148516,
+   "max": 4.1728940343053464,
+   "median": 0.011324842869108934
+  },
+  "yaw_deg": {
+   "p95": 0.031232254558699418,
+   "max": 0.05644878506660689,
+   "median": 0.01832402778393316
+  },
+  "pass": {
+   "position": false,
+   "velocity": false,
+   "yaw": true
+  }
+ },
+ "FG1": {
+  "node_keyframes": 10323,
+  "sitl_to_bag_offset_s": 0.04900000000000049,
+  "late_max": 0,
+  "count_received": 9909,
+  "count_match_total_keyframes": false,
+  "node_keyframes_unsettled": 281,
+  "count_match_after_settle": true,
+  "evo_a_received": 4.63341,
+  "evo_a_offline": 4.650279,
+  "evo_diff": -0.01686900000000069,
+  "yaw_diff_deg": {
+   "p95": 0.11237308150106601,
+   "max": 0.13150694058504087
+  },
+  "pass": true
+ },
+ "PASS": false
+}

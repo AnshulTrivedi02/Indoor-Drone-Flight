@@ -9218,3 +9218,33 @@ It is checked by `AHRS_EKF_TYPE` = 10 in the PARM dump before scoring.
 - **Shadow (b) launch, same form as (a):** add `HEADING_BRIDGE=1 HEADING_SIGMA_DEG=0.148 HEADING_EVERY_N=4
   HEADING_IMPL=cpp` and `closedloop_heading_half.parm` to `EXTRA_PARM_FILES`, with its values in `EXPECT_OVERRIDE`,
   as the half-speed heading flights. Truth still flies (`AHRS_EKF_TYPE` 10, checked).
+
+### D25 confirming shadow `fgo_shadow_half_a3` RESULT: **C1–C3 PASS** (the pre-arm "FGO invalid or stale" condition never arises once the FGO has a state); FG1, FG2, FG3b PASS; FG3 fails as worded at the climb top only (as predicted, D23)
+
+`eval/results/d25_shadow_a3.json`, `eval/results/fgo_gate_fgo_shadow_half_a3.json`. Binary md5 `fa440748…`;
+`AHRS_EKF_TYPE` 10 (truth flew; checked in the PARM dump). Armed 24.06 s; disarmed 346.17 s; full 300 s cruise.
+
+**D25 criteria (all PASS):**
+- **C1:** `XFGO.OV` = 1 at all 8,245 samples from the first state (16.35 s) to disarm.
+- **C2:** 0 negative-age samples.
+- **C3:** the first state arrived **10.02 s** after the first `/imu/time_ref` (6.33 → 16.35 s), 7.7 s before arming.
+- This run's start-up offsets had no outliers (1.9–8.7 ms, median 3.9 ms; 0 maps with an outlier). The outlier case
+  is shown by `fgo_shadow_half_a2` (40 stale-clock samples rejected). Both ways the fix behaves as designed.
+
+**Gates FG1–FG3 on the changed node:**
+- **FG1: PASS.**
+  - evo -a (cruise): received 4.633 m against offline 4.650 m (difference **−0.017 m**; band ±0.15).
+  - Yaw p95 **0.11°**, max 0.13° (bands 0.2 / 0.5).
+  - 0 late.
+  - Count: 9,909 received against **10,042** node keyframes after the map settled (10,323 − 281 unsent while
+    settling). That is inside the band (2% + 30).
+  - **Checker correction, disclosed:** the first version compared against all 10,323 keyframes and failed the
+    count. The pre-registered wording is "after the clock map settles". Since D25, the node deliberately sends
+    nothing before that (the count is in `fgo_node_stats_clockmap.npz`). Both counts are in the JSON.
+    `fgo_shadow_half_a` (no such file) scores as before.
+- **FG2: PASS** (`OV` 100% arming → disarm).
+- **FG3b: PASS** (age max 176 ms).
+- **FG3: FAIL as worded at the climb top only**, as predicted: position max 0.58 m, velocity max 4.17 m/s (the
+  derivative proxy). Elsewhere p95 is 0.003 m / 0.032 m/s, and yaw passes (p95 0.03°). This is the D23 LiDAR artefact,
+  as in `fgo_shadow_half_a` (0.51 m / 3.83 m/s).
+- **The prediction held:** C1–C3, FG1, FG2 and FG3b pass; FG3 fails at the climb top only.

@@ -83,7 +83,14 @@ off_c = float(grid[int(np.argmin(cost))])
 Tb = Iv[:, 1] + off_c                                  # received states on the bag clock
 fg1["sitl_to_bag_offset_s"] = float(off_c)
 fg1["late_max"] = int(I[:, 7].max()); fg1["count_received"] = int(len(I))
-fg1["count_match_after_settle"] = bool(abs(len(ntraj) - len(I)) <= int(0.02 * len(ntraj)) + 30)
+fg1["count_match_total_keyframes"] = bool(abs(len(ntraj) - len(I)) <= int(0.02 * len(ntraj)) + 30)
+# As worded ("the node's keyframe count AFTER the clock map settles"): since D25 the node deliberately sends nothing
+# until its clock map has settled (n_unsettled keyframes, from <trial>/fgo_node_stats_clockmap.npz); those are not
+# expected to arrive. Runs before D25 have no such file (n_unsettled = 0, i.e. the original check).
+_cm = f"{TD}/fgo_node_stats_clockmap.npz"
+fg1["node_keyframes_unsettled"] = int(np.load(_cm)["n_unsettled"]) if os.path.exists(_cm) else 0
+_n_settled = len(ntraj) - fg1["node_keyframes_unsettled"]
+fg1["count_match_after_settle"] = bool(abs(_n_settled - len(I)) <= int(0.02 * _n_settled) + 30)
 # received (NED) -> corridor frame (x = N, y = -E, z = -D) as TUM for evo
 def tum(path, t, x, y, z, yaw_deg):
     q = np.c_[np.zeros(len(t)), np.zeros(len(t)), np.sin(np.radians(yaw_deg) / 2), np.cos(np.radians(yaw_deg) / 2)]
