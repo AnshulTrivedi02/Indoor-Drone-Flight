@@ -1,0 +1,13 @@
+{
+ "trial": "fwdc_tex_r1",
+ "every": 50,
+ "frames": 205,
+ "arm_run": "qemu-aarch64",
+ "frames_with_vp": 204,
+ "frames_valid_x86": 193,
+ "integer_outputs_identical": 205,
+ "all_outputs_bit_identical": 6,
+ "max_abs_dpsi_deg": 1.249383239404489e-05,
+ "max_abs_dsupport_px": 9.744632436081702e-05,
+ "x86_proc_ms_median": 14.561
+}

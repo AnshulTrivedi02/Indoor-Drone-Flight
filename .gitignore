@@ -44,3 +44,8 @@ mav.parm
 __pycache__/
 *.pyc
 src/forward_camera/cpp/libheading.so
+
+# real-flight tooling build outputs (rebuild with the build scripts)
+src/forward_camera/cpp/libheading.so
+src/forward_camera/cpp/heading_test_x86
+src/forward_camera/cpp/aarch64/
