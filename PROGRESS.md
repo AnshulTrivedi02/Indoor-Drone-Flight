@@ -1372,3 +1372,15 @@ Gazebo (iris_textured.sdf — checkerboard floor, nominal)
 - 2(a)/2(b) recorded as ruled. Step 3 ON HOLD (no new simulation without a ruling).
 - Consolidated restating: numbers.md §15 (closed loop after D28) and §15.1 (robust weighting). Supervisor figures
   regenerated, with fig9 (closed-loop summary) and fig10 (half-speed paths, all three estimators).
+
+## 2026-10-02 (afternoon): real-flight preparation (no hardware; no thesis results changed)
+- `docs/real_flights_plan.md`: Pi architecture, steering routes and their fairness, inputs/rates/time sync, camera,
+  logging, safety, compute. 9 open questions for the supervisor.
+- Item 2: ARM64 cross-build of the heading program (OpenCV 4.6.0 cross-built). The qemu check has identical decisions on
+  205 frames, |Δψ| ≤ 1.25e-5°. `docs/real_flights_pi_readiness.md`: the FGO needs the D11 speed-up or a lower keyframe
+  rate on a Pi.
+- Item 3: `tools/real_camera/` (calibration, undistort onto the frozen camera, table test), with self-tests passed.
+- Item 4: `eval/mocap_align.py` (gyro |ω| time fit with filter-delay compensation, 4-DoF frame fit, Pi↔FC map).
+  Self-test: offset −3.7 ms, rate 4.9 ppm, yaw 0.30°.
+- System packages installed: `g++-aarch64-linux-gnu`, `qemu-user` (apt index refreshed). OpenCV ARM64 build in
+  `~/cross`.

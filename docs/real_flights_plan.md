@@ -206,8 +206,30 @@ camera flown only once verified.
   4. Shadow flights.
   5. Only then any route-1 flight.
 
-## 8. Tooling built now (no hardware)
+## 8. Tooling built now (no hardware), with self-test results
 
-- **Item 2:** ARM64 cross-build of the heading program, plus a Pi checklist (`docs/real_flights_pi_readiness.md`).
-- **Item 3:** a real-camera test pipeline (`tools/real_camera/`): calibration plus the frozen heading on a recorded video.
-- **Item 4:** mocap alignment (`eval/mocap_align.py`): time and frame alignment of mocap against FC and Pi logs.
+- **Item 2: ARM64 cross-build of the heading program and Pi checklist** (`docs/real_flights_pi_readiness.md`).
+  - OpenCV 4.6.0 cross-built.
+  - Under qemu-aarch64, every integer output (VP, counts, validity, quality) is identical to x86 on 205 real frames;
+    |Δψ| ≤ 1.25 × 10⁻⁵°.
+  - Native Pi timing and equivalence are still to be run.
+- **Item 3: real-camera test pipeline** (`tools/real_camera/`): lens calibration, undistortion and resampling onto the
+  frozen simulated camera, and a known-angle table test against Phase 3's bars (diagnostic).
+  - Self-tests: a lossless PNG sequence of simulated frames reproduces Phase 3's frozen headings to 2.4 × 10⁻¹⁴°.
+  - Synthetic distorted chessboards: fx recovered within 0.15%, k1 within 0.0012, and a 7.6 px lens-curved line
+    straight to 0.024 px in the frozen frame.
+- **Item 4: mocap alignment** (`eval/mocap_align.py`).
+  - **Time, mocap ↔ FC:** a linear map from |ω| (mocap orientation against the FC gyro), fitted in take-off and landing
+    windows. The gyro is shifted by the INS low-pass group delay, √2/(2π·`INS_GYRO_FILTER`) = 11.3 ms at 20 Hz. The
+    rangefinder vertical speed is an optional cross-check only: its latency is unknown, and in the self-test it biased
+    the offset by about −40 ms.
+  - **Frame:** a 4-DoF fit (yaw + translation) on the initial segment for drift metrics, plus a whole-flight 4-DoF fit
+    for evo -a style ATE. SE(3) is not used: a straight flight leaves rotation about its axis unobservable.
+  - **Pi ↔ FC:** the D25 robust envelope, with a rate fit from `/imu/time_ref`.
+  - **Self-test** (synthetic mocap from a simulated flight's SIM truth, known offset 3.457 s, +80 ppm, 37° yaw):
+    offset recovered to −3.7 ms, rate to 4.9 ppm, yaw to 0.30°. It is limited by the 10 Hz SIM log and the 25 Hz
+    logged gyro; real mocap at ≥ 100 Hz with full-rate IMU logging is expected to do better [E].
+  - The Pi ↔ FC map on recorded bags gives 190–194 ppm, reproducing the known 0.017–0.02% SITL clock drift, with a
+    start offset of 2–3 ms (as D25).
+  - **For flights:** log the FC IMU at full rate (`INS_LOG_BAT_*` or a fast IMU bitmask). The mocap stream should
+    include its own frame stamps and the Pi receipt stamps.
