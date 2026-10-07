@@ -18,7 +18,7 @@ for i in range(lo, hi + 1):
     img = cv2.imdecode(raw, cv2.IMREAD_UNCHANGED)
     rgb = img[:, :, :3] if img.ndim == 3 else cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     big = cv2.resize(rgb, (400, 400), interpolation=cv2.INTER_NEAREST)
-    cv2.imwrite(os.path.join(d, "tag.png"), big)
+    cv2.imwrite(os.path.join(d, f"tag36h11_{i}.png"), big)   # UNIQUE file name: Ogre caches textures by file name (all "tag.png" rendered as the first loaded)
     s = a.side
     open(os.path.join(ROOT, name, "model.config"), "w").write(f"""<?xml version="1.0"?>
 <model><name>{name}</name><version>1.0</version><sdf version="1.9">model.sdf</sdf>
@@ -35,7 +35,7 @@ for i in range(lo, hi + 1):
         <geometry><box><size>{s} {s} 0.002</size></box></geometry>
         <material>
           <ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><specular>0 0 0 1</specular>
-          <pbr><metal><albedo_map>model://{name}/materials/textures/tag.png</albedo_map><roughness>1</roughness><metalness>0</metalness></metal></pbr>
+          <pbr><metal><albedo_map>model://{name}/materials/textures/tag36h11_{i}.png</albedo_map><roughness>1</roughness><metalness>0</metalness></metal></pbr>
         </material>
       </visual>
     </link>

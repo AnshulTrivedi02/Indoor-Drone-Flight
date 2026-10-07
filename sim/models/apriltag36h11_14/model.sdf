@@ -9,7 +9,7 @@
         <geometry><box><size>0.5 0.5 0.002</size></box></geometry>
         <material>
           <ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse><specular>0 0 0 1</specular>
-          <pbr><metal><albedo_map>model://apriltag36h11_14/materials/textures/tag.png</albedo_map><roughness>1</roughness><metalness>0</metalness></metal></pbr>
+          <pbr><metal><albedo_map>model://apriltag36h11_14/materials/textures/tag36h11_14.png</albedo_map><roughness>1</roughness><metalness>0</metalness></metal></pbr>
         </material>
       </visual>
     </link>
