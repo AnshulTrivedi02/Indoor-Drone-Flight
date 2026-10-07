@@ -135,7 +135,9 @@ class FGO:
         # §9.4 yaw cap: anchor to THIS keyframe's IMU-predicted yaw -> zero innovation
         # (matches EKF3 fuseEulerYaw(PREDICTED), MagFusion.cpp:1062-1064/:970), bounding
         # the yaw marginal without injecting absolute heading.
+        i_yawcap = None
         if not getattr(self, "no_yawcap", False):          # F3b (offline) only: off
+            i_yawcap = g.size()
             g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
         if rng is not None and 0.05 <= rng <= 40.0:
             g.add(F.range_factor(self.range_noise, X(k), rng)); self.n_range += 1
@@ -153,7 +155,15 @@ class FGO:
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
         if getattr(self, "batch_record", False):          # F2 (offline): identical factors; latest estimate per key
-            self.all_g.push_back(g)
+            if getattr(self, "batch_drop_yawcap", False) and i_yawcap is not None:
+                # experiment O hindsight (2026-10-08): the yaw cap anchors to the LIVE predicted yaw; in a whole-flight
+                # batch its thousands of copies become information about the live estimate (circular), so the batch
+                # record leaves it out. Default False: every earlier use (F2) unchanged.
+                for i_ in range(g.size()):
+                    if i_ != i_yawcap:
+                        self.all_g.push_back(g.at(i_))
+            else:
+                self.all_g.push_back(g)
             for key in est.keys():                        # a dict: Values.update picks the fixed-size Vector3
                 c = chr(gtsam.Symbol(key).chr())              # overload for velocities (stored dynamic) and throws
                 self.all_est[key] = (est.atPose3(key) if c == "x" else

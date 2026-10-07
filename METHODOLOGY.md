@@ -10285,3 +10285,112 @@ B 0.05, C 0.05, D 0.05: from B onwards EKF3 times out (> 10 s) in almost every g
     past better than filter + iterated smoother would.
   - Live errors are not similar: the FGO live is best with frequent fixes, EKF3 best with the sparsest fixes, and the
     UKF worst with sparse fixes.
+
+
+### Experiment O: pre-registration (written before any O flight)
+
+**Question.** In an outdoor → indoor → outdoor flight with GNSS outside only, are the live indoor errors of the three
+estimators similar? And does the FGO's hindsight reconstruction of the indoor segment, anchored by GNSS at both ends,
+beat the filters' live tracks? The fair hindsight comparison is the RTS-smoothed UKF.
+
+**World** (`sim/worlds/outdoor_indoor.sdf`): the corridor checker floor over y = −20…80 m, with exactly one collision
+plane. A building at x ∈ [−5, 5], y ∈ [20, 70] has 3 m walls, a 3 m full-height entrance in the south wall at y = 20,
+and a roof. Walls and roof cast no shadows, so floor texture and lighting do not change at the entrance; only GNSS does.
+Spawn is at (0, −15), facing north. The camera-heading walls (forward camera) are not used: descoped.
+
+**Flight** (`fly_trial` OUTBACK, `OUTBACK=15,1.5,50,0.5,20`), open loop on simulator truth:
+1. **Align:** 15 m forward at 1.5 m/s outdoors. EKF3 without a compass aligns yaw only from GPS course or its GSF,
+   which need > ~1.16 m/s, and uses GPS only after yaw alignment (`AP_NavEKF3_Control.cpp:596`,
+   `MagFusion.cpp:150-190`).
+2. **Out:** 50 m forward at 0.5 m/s, from y = 0 through the entrance (y = 20) to y = 50.
+3. **Hold:** 3 s.
+4. **Back:** 50 m in reverse at the same heading, to y = 0.
+
+GNSS goes OFF (`SIM_GPS1_ENABLE 0`) when the true North first exceeds 20 m, and back ON when it falls below 20 m on the
+way back. Indoors lasts about 120 s. Three repeats. `LOG_REPLAY 1`, `LOG_DISARMED 1`.
+
+**GNSS sensor (SITL), stated as a limitation.** SITL's GPS has **no horizontal noise** (exact position, quantised to
+1e-7°; only an altitude sine term), and reports hAcc 0.3 m, sAcc 0. It runs at 5 Hz with a 100 ms lag. While
+disabled it reports NO_FIX but keeps sending the true position, so every estimator uses only 3D-fix samples. Lock
+returns immediately on re-enable.
+
+**EKF3** (`o_gnss.parm`, appended after the standard chain):
+- **Source set 1 (GNSS):** POSXY 3, VELXY 3, POSZ 2 (rangefinder), VELZ 0, YAW 8 (GSF; no compass for any estimator,
+  GSF is EKF3's own feature).
+- **Source set 2 (flow):** POSXY 0, VELXY 5, POSZ 2, VELZ 0, YAW 0.
+- `EK3_SRC_OPTIONS 1` (FuseAllVelocities): flow is fused outdoors too, as the UKF and FGO do.
+- **Switching:** `sim/scripts/o_source_switch.lua` switches on `gps:status(primary) < 3D` with the stock example's 2 s
+  vote. The stock example votes on speed accuracy, which SITL keeps at 0, so it would never switch.
+- **Effective GNSS noise** (source-traced): σ_pos 0.5 m, σ_vel 0.3 m/s; gates 5σ. EKF3 timestamps each sample at
+  GPA.SMS − 126 ms.
+- **Known behaviour on return, reported not hidden:** the set 2 → 1 switch resets position to GNSS
+  (`PosVelFusion.cpp:549-551,614-627`). After > 10 s without GNSS, `posTimeout` can trigger a second reset, with
+  position variance (12.5 m)². This shows as a **jump**.
+- **Baseline protection:** every later trial's `ensure_params` restores `SIM_GPS1_ENABLE 0`, `GPS1_TYPE 0`,
+  `SCR_ENABLE 0` and `EK3_SRC_OPTIONS 0` (the last two added to `EXPECTED_PARAMS`), so no O setting can leak into
+  another flight through the eeprom.
+
+**UKF and FGO** (`room_ukf_replay.py --gnss`, `room_fgo_replay.py --gnss`): the thesis configurations (FGO window
+0.25 s, 2 LM iterations), plus:
+- **GNSS measurements:** the samples EKF3 received (`eval/extract_gnss.py`: 3D fix only, EKF3's measurement time,
+  lat/lon → world about SITL home). h = (p_E, p_N, v_E, v_N); σ 0.5 m, 0.3 m/s (EKF3's effective noise). **No gate**,
+  as in T. No reset or variance inflation on return: that is EKF3's design (D18). The UKF and FGO simply resume fusing.
+- **Alignment:** once 5 consecutive samples have speed > 1 m/s, position, velocity and yaw are re-anchored to the
+  GNSS sample and its course, as EKF3's GPS-course alignment. Yaw σ = asin(0.3/speed). Covariance is diagonal, as T.
+- **Yaw cap:** kept throughout, as in the corridor configuration. Indoors, EKF3 with YAW 0 fuses its predicted yaw.
+- **Hindsight:** RTS-UKF and the whole-flight batch FGO, labelled, from the alignment on.
+
+**Metrics** (`eval/o_score.py`; world frame, no alignment; indoor segment = GNSS OFF → GNSS ON):
+- **Live indoor error:** horizontal RMSE and max (EKF3 from `XKF1` about EKF3's origin, the GPS sample at the
+  `XKFS.GPS_GTA` rising edge).
+- **At GNSS return:** the error at the ON instant and 10 s later, and the **jump** (the largest position step in the
+  10 s after ON, against the largest in the 10 s before OFF).
+- **EKF3 log facts:** source-set changes, `posTimeout` indoors, and the last reset delta.
+- **Hindsight indoor RMSE:** RTS-UKF and FGO batch.
+
+**Gates (per flight; a failure stops and is reported):**
+- **G1:** all OUTBACK markers present; GNSS OFF and ON each logged once.
+- **G2:** EKF3 changes source set twice (to set 2 after OFF, to set 1 after ON), from the `XKFS.SS` transitions.
+- **G3:** EKF3 aligned yaw and used GPS before OFF. Pass if `XKF4.SS` `using_gps` is true for ≥ 5 s before OFF.
+- **G4:** both replays aligned before OFF and fused GNSS on both sides of the indoor segment.
+
+**Hypotheses (3 flights):**
+- **H-O1 (PRIMARY, the ruling's hypothesis):** FGO hindsight beats the filters' live tracks indoors. PASS iff in 3/3
+  flights the FGO-batch indoor RMSE is < both EKF3's and the UKF's live indoor RMSE.
+- **H-O2 (the ruling's hypothesis, second half):** live indoor errors are similar. In every flight, the largest live
+  indoor RMSE of EKF3, UKF and FGO is ≤ 1.5 × the smallest.
+- **P-O3 (prediction; the fair comparison):** FGO batch and RTS-UKF indoor RMSE are within 1.5× of each other in every
+  flight. The prediction is that the hindsight benefit comes from smoothing, which a filter + backward smoother also
+  has.
+- **Reported regardless:** EKF3's jump at GNSS return and its size against EKF3's indoor error just before return;
+  the UKF and FGO convergence after return.
+
+**DISCLOSURE: written AFTER one check flight (`o_check1`, same configuration) whose scores were seen.**
+- **What it verified:**
+  - all world checks: one collision plane, LiDAR on the floor throughout (0.08–1.97 m incl. landing), RTF normal;
+  - EKF3 "yaw aligned using GPS" at 32.3 s during the 1.5 m/s run, then "is using GPS";
+  - the Lua switch went to flow 4.4 s after GNSS OFF and back to GPS 4.3 s after ON;
+  - `posTimeout` was set for 92% of the indoor segment;
+  - EKF3's origin is at world N −14.975, the spawn;
+  - gates G1–G4 pass.
+- **Check scores (indoor RMSE / error at return / largest step after return, m):**
+
+  | track | indoor RMSE | error at return | largest step after return |
+  |---|---|---|---|
+  | EKF3 | 1.42 | 3.52 | **4.03** (the reset jump) |
+  | UKF live | 0.62 | 1.67 | 1.64 |
+  | RTS-UKF | 0.60 | 0.02 | |
+  | FGO live | 0.95 | 2.78 | 2.42 |
+  | FGO batch | 0.33 (after the fix below) | 0.00 | |
+
+- **One change made after seeing it (a hindsight-construction fault, not tuning):**
+  - In the first `o_check1` batch, the FGO batch was WORSE indoors than live (1.57 m). The yaw cap, kept on in O,
+    anchors each keyframe to the LIVE predicted yaw. ~3,700 copies in a whole-flight batch make it pin the batch to the
+    live yaw drift (−10° at return, as live): circular information.
+  - The whole-flight batch record now leaves the yaw cap out (`fgo_core` `batch_drop_yawcap`, set only by the room
+    replays). This has no effect in T, where the cap is off from the re-anchor on and the batch starts there.
+  - The live FGO is unchanged.
+- **Design observation, stated before flying:** on an out-and-back, the lateral error from a constant yaw error
+  cancels between the two legs (it depends on the world velocity direction). GNSS at both ends therefore constrains the
+  indoor yaw drift only through its growth over time (the SITL gyro-z drift ramp: ~11° over 123 s for the FGO live).
+  The hypotheses stay as ruled.

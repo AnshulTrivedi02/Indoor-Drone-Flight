@@ -66,6 +66,8 @@ first_rng = next(d for t, k, d in ev if k == "rng" and 0.05 <= d <= 40.0)
 t_init = t_imu0 + 0.5
 fgo = FGO(window=WINDOW, kf_dt=1.0 / 30.0, lm_maxiter=LM_ITERS, log_cov=True)   # log_cov: cov_prev for the re-anchor prior
 fgo.batch_record = DO_BATCH
+fgo.batch_drop_yawcap = True     # the yaw cap is a filtering device; the batch record excludes it (fgo_core; no effect in T,
+#                                  where the cap is off from the re-anchor on and the batch starts there)
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init)
 _gpj = f"{D}/imu_gaps.json"
 gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
