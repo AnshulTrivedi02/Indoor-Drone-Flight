@@ -40,6 +40,7 @@ Usage:
 """
 
 import argparse
+import math
 import os
 import sys
 import time
@@ -360,29 +361,54 @@ def cruise(master, velocity: float, duration_s: float, wall_clock_cap_s: float =
                         f"of {duration_s:.1f}s target)")
 
 
-def laps(master, n_laps: int, side_m: float, speed: float) -> None:
-    """Experiments T/L (2026-10-08): square laps N -> E -> S -> W at constant heading (velocity-only commands; yaw is
-    held), each leg side_m / speed SIM seconds, timed on the estimator-independent clock (sim_time_now_s, D24).
-    Logs 'LAP <k> LEG <j> START t_sim=<s>' markers (the pre-registered lap evaluation window) and 'LAPS END t_sim'."""
-    legs = [(speed, 0.0), (0.0, speed), (-speed, 0.0), (0.0, -speed)]     # (north, east) m/s
-    leg_s = side_m / speed
-    log(f"LAPS: {n_laps} laps of a {side_m:.2f} m square at {speed:.2f} m/s ({leg_s:.1f} s per leg)")
-    for k in range(n_laps):
-        for j, (vn, ve) in enumerate(legs):
-            t0 = sim_time_now_s(master); log(f"LAP {k} LEG {j} START t_sim={t0:.3f}")
-            tw = time.time(); cap = leg_s / MIN_ASSUMED_RTF + 60.0
-            while time.time() - tw < cap:
-                send_velocity(master, vn, ve, 0.0)
-                try:
-                    now = sim_time_now_s(master, timeout_s=0.5)
-                except TrialFailure:
-                    now = None
-                if now is not None and now - t0 >= leg_s:
-                    break
-                time.sleep(0.1)
-            else:
-                raise TrialFailure(f"lap {k} leg {j} did not complete within {cap:.0f} s wall-clock")
-    log(f"LAPS END t_sim={sim_time_now_s(master):.3f}")
+TYPE_MASK_POS_VEL_YAW = 0b0000_1001_1100_0000   # use position + velocity (feed-forward) + yaw; ignore accel, yaw rate
+
+
+def laps(master, n_laps: int, side_m: float, speed: float, alt_m: float) -> None:
+    """Experiments T/L (2026-10-08): square laps N -> E -> S -> W from the lap-start point, at constant heading (yaw
+    held at the lap-start yaw). A MOVING POSITION SETPOINT with velocity feed-forward (SET_POSITION_TARGET_LOCAL_NED,
+    position + velocity + yaw) travels the square at `speed`, timed on the estimator-independent clock (sim_time_now_s,
+    D24), so the flown path matches the square (the timed velocity-only version, tag_check1c, overshot the first corner
+    by ~1 m and shifted the square off the tag line). Position here is simulator truth (AHRS_EKF_TYPE 10), so the path
+    is independent of the estimator under test. Logs 'LAP <k> LEG <j> START t_sim=<s>' when the setpoint enters each
+    leg (the pre-registered lap evaluation window) and 'LAPS END t_sim'."""
+    dirs = [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)]       # (north, east) unit vectors
+    leg_s = side_m / speed; total_s = 4 * n_laps * leg_s
+    msg = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=5.0)
+    att = master.recv_match(type='ATTITUDE', blocking=True, timeout=5.0)
+    if msg is None or att is None:
+        raise TrialFailure("no LOCAL_POSITION_NED/ATTITUDE at lap start")
+    n0, e0, yaw0 = msg.x, msg.y, att.yaw
+    corners = [(n0, e0)]
+    for dn, de in dirs[:3]:
+        corners.append((corners[-1][0] + dn * side_m, corners[-1][1] + de * side_m))
+    log(f"LAPS: {n_laps} laps of a {side_m:.2f} m square at {speed:.2f} m/s ({leg_s:.1f} s per leg), "
+        f"start N {n0:.2f} E {e0:.2f}, yaw {math.degrees(yaw0):.1f} deg, alt {alt_m:.2f} m (position setpoint)")
+    t0 = sim_time_now_s(master); tw = time.time(); cap = total_s / MIN_ASSUMED_RTF + 120.0; cur = None
+    while time.time() - tw < cap:
+        try:
+            now = sim_time_now_s(master, timeout_s=0.5)
+        except TrialFailure:
+            now = None
+        if now is not None:
+            el = now - t0
+            if el >= total_s:
+                break
+            idx = int(el // leg_s); k, j = divmod(idx, 4)
+            if (k, j) != cur:
+                cur = (k, j); log(f"LAP {k} LEG {j} START t_sim={t0 + idx * leg_s:.3f}")
+            u = dirs[j]; s = el - idx * leg_s
+            pn, pe = corners[j][0] + u[0] * speed * s, corners[j][1] + u[1] * speed * s
+            master.mav.set_position_target_local_ned_send(
+                0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+                TYPE_MASK_POS_VEL_YAW, pn, pe, -alt_m, u[0] * speed, u[1] * speed, 0, 0, 0, 0, yaw0, 0)
+        time.sleep(0.05)
+    else:
+        raise TrialFailure(f"laps did not complete within {cap:.0f} s wall-clock")
+    master.mav.set_position_target_local_ned_send(          # hold the closing corner (the stop() velocity hold follows)
+        0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        TYPE_MASK_POS_VEL_YAW, n0, e0, -alt_m, 0, 0, 0, 0, 0, 0, yaw0, 0)
+    log(f"LAPS END t_sim={t0 + total_s:.3f}")
 
 
 def stop(master, settle_sim_s: float = 2.0) -> None:
@@ -444,7 +470,7 @@ def main() -> int:
         wait_altitude(master, args.altitude)
         if os.environ.get("LAPS"):          # experiments T/L: "n_laps,side_m,speed"; unset = the corridor cruise, unchanged
             n_, side_, v_ = os.environ["LAPS"].split(",")
-            laps(master, int(n_), float(side_), float(v_))
+            laps(master, int(n_), float(side_), float(v_), args.altitude)
         else:
             cruise(master, args.velocity, args.duration)
         stop(master)

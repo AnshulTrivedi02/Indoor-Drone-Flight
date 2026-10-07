@@ -7,7 +7,7 @@ EK3_SRC1_YAW 6          # ExternalNav yaw (tag yaw). YAW 0 would leave yaw never
 VISO_YAW_M_NSE 0.05     # rad; with EKF3's 5 deg floor the effective yaw sigma is 5 deg (the heading-path setting)
 VISO_POS_M_NSE 0.05     # m; = sent sigma_pos (tag characterisation: central-third fixes p95 40 mm at 2.26 m), so effective = 0.05
 VISO_QUAL_MIN 0
-VISO_DELAY_MS 10        # PLACEHOLDER until measured (minimum capture -> receipt latency, the D2 rule)
+VISO_DELAY_MS 15        # = round(min VISP receipt - capture): 15.6 ms (tag_check1c), 15.0 ms (tag_check2); D20 rule (receipt measure). The node measure (a) is 4 ms: (a)/(b) disagree by 11 ms, reported
 ARMING_SKIPCHK 262144   # skip ONLY check bit 18 (VisualOdometry): the downward camera cannot see a tag on the ground (it is
                         # below the floor plane at rest); simulator truth flies these trials. (This build renamed ARMING_CHECK
                         # to ARMING_SKIPCHK, a skip-bitmask: AP_Arming.cpp:195-201; found when ARMING_CHECK did not read back.)

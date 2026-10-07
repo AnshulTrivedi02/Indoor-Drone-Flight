@@ -58,7 +58,7 @@ class TagBridge(Node):
         lp = self.get_parameter("log_path").value
         self.log = open(lp, "w") if lp else None
         if self.log:
-            self.log.write("t_capture,t_wall_done,id,in_subset,sent,margin,hamming,cx,cy,x_enu,y_enu,z_enu,yaw_enu,proc_ms\n")
+            self.log.write("t_capture,t_wall_done,id,in_subset,sent,margin,hamming,cx,cy,x_enu,y_enu,z_enu,yaw_enu,proc_ms,t_sim_sent\n")
         self.master = None
         if self.get_parameter("send").value:
             from pymavlink import mavutil
@@ -103,12 +103,13 @@ class TagBridge(Node):
                                               float(p[1]), float(p[0]), float(-p[2]),
                                               [math.cos(yaw_ned / 2), 0.0, 0.0, math.sin(yaw_ned / 2)],
                                               nan, nan, nan, nan, nan, nan, cov, [nan] * 21, 0, 0, 100)
+        t_sent = self.get_clock().now().nanoseconds * 1e-9 if best is not None else float("nan")   # sim clock (use_sim_time)
         if self.log:
             tw = time.time()
             for (i, dm, hm, cc, p, yaw) in fixes:
                 sent = best is not None and i == best[0]
                 self.log.write(f"{t:.6f},{tw:.6f},{i},{int(i in self.subset)},{int(sent)},{dm:.2f},{hm},{cc[0]:.2f},{cc[1]:.2f},"
-                               f"{p[0]:.5f},{p[1]:.5f},{p[2]:.5f},{yaw:.6f},{proc:.2f}\n")
+                               f"{p[0]:.5f},{p[1]:.5f},{p[2]:.5f},{yaw:.6f},{proc:.2f},{t_sent:.6f}\n")
             self.log.flush()
 
 

@@ -140,3 +140,22 @@ def _jac_bias(err, pose, vel, bias, m):
         bm = gtsam.imuBias.ConstantBias(ba - d[:3], bg - d[3:])
         H[:, j] = (err(pose, vel, bp) - err(pose, vel, bm)) / (2 * EPS)
     return H
+
+
+# ---------- AprilTag absolute fix (experiments T/L): 3-DOF on X(k) ----------
+def tag_factor(noise, key_x, fix):
+    """Base_link (p_E, p_N, yaw) - the tag fix (measurement_models.h_tag, the SAME model the UKF uses), yaw wrapped.
+    noise = diag(TAG_SIGMA_POS, TAG_SIGMA_POS, TAG_SIGMA_YAW): EKF3's effective ExtNav noise."""
+    pE, pN, yaw = (float(v) for v in fix)
+
+    def err(pose, vel, bias):
+        t = pose.translation()
+        return np.array([t[0] - pE, t[1] - pN, _wrap(pose.rotation().yaw() - yaw)])
+
+    def efun(this, values, H):
+        pose = values.atPose3(key_x)
+        e = err(pose, None, None)
+        if H is not None:
+            H[0] = _jac_pose(err, pose, None, None, 3)
+        return e
+    return CustomFactor(noise, [key_x], efun)

@@ -132,6 +132,44 @@ def predict(x, P, da, dv, p, dt=None):
     return xm, 0.5*(Pm+Pm.T)
 
 
+def predict_rts(x, P, da, dv, p, dt=None):
+    """predict() plus the prior/prediction cross-covariance D = sum Wc (sig - x)(f(sig) - xm)^T, for the unscented
+    RTS smoother (experiments T and O, RTS-UKF hindsight). Same sigma points, process and Q as predict()."""
+    sig, Wm, Wc = _sigma_points(x, P, p)
+    dt = p['dt'] if dt is None else dt
+    fs = np.array([_process(s, da, dv, dt) for s in sig])
+    xm = _state_mean(fs, Wm)
+    Pm = p['Q'].copy(); D = np.zeros((N, N))
+    for i in range(2*N+1):
+        r = _state_residual(fs[i], xm)
+        Pm += Wc[i]*np.outer(r, r)
+        D += Wc[i]*np.outer(_state_residual(sig[i], x), r)
+    return xm, 0.5*(Pm+Pm.T), D
+
+
+def rts_smooth(xa, Pa, xp, Pp, D):
+    """Unscented RTS backward pass. Node i has filtered (xa[i], Pa[i]); the prediction FROM node i to node i+1 is
+    (xp[i+1], Pp[i+1]) with cross-covariance D[i+1]. Returns smoothed (xs, Ps) per node."""
+    n = len(xa); xs = xa.copy(); Ps = Pa.copy()
+    for i in range(n - 2, -1, -1):
+        G = np.linalg.solve(Pp[i+1].T, D[i+1].T).T          # D Pp^-1
+        xs[i] = xa[i] + G @ _state_residual(xs[i+1], xp[i+1])
+        for j in _ANG:
+            xs[i, j] = _wrap(xs[i, j])
+        Ps[i] = Pa[i] + G @ (Ps[i+1] - Pp[i+1]) @ G.T
+    return xs, Ps
+
+
+def update_tag(x, P, z, sig_pos, sig_yaw, p):
+    """AprilTag absolute fix (measurement_models.h_tag): p_E, p_N as two sequential scalar updates, then yaw through
+    update_heading (wrapped). NO gate (pre-registered for T: fix validity is the shared sensor rule in tag_bridge.py;
+    the tag characterisation found 0 wrong ids and 0 false positives). Returns (x, P)."""
+    for i in (0, 1):
+        x, P, _, _ = _update_scalar(x, P, z[i], lambda s, i=i: s[i], sig_pos ** 2, np.inf, p)
+    x, P, _, _ = update_heading(x, P, z[2], sig_yaw, np.inf, p)
+    return x, P
+
+
 # ---------- scalar gated update (used by range and each flow axis) ----------
 def _update_scalar(x, P, z, hfun, R_scalar, gate_c, p):
     """1-D UKF update with EKF3-style NIS gate. Returns (x, P, accepted, testRatio)."""

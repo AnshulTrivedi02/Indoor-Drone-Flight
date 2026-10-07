@@ -1,0 +1,193 @@
+{
+ "trial": "tag_check3",
+ "lap_window_sitl_s": [
+  29.544,
+  77.544
+ ],
+ "params": {
+  "VISO_TYPE": 1.0,
+  "VISO_DELAY_MS": 15.0,
+  "VISO_POS_M_NSE": 0.05000000074505806,
+  "VISO_YAW_M_NSE": 0.05000000074505806,
+  "EK3_SRC1_POSXY": 6.0,
+  "EK3_SRC1_YAW": 6.0,
+  "EK3_SRC1_VELXY": 5.0,
+  "EK3_SRC1_POSZ": 2.0,
+  "ARMING_SKIPCHK": 262144.0,
+  "AHRS_EKF_TYPE": 10.0,
+  "LOG_REPLAY": 1.0,
+  "LOG_DISARMED": 1.0
+ },
+ "msgs": [
+  [
+   5.1,
+   "EKF3 IMU0 initialised"
+  ],
+  [
+   6.51,
+   "EKF3 IMU0 tilt alignment complete"
+  ],
+  [
+   10.45,
+   "EKF3 IMU0 fusing optical flow"
+  ],
+  [
+   28.61,
+   "EKF3 IMU1 yaw aligned"
+  ],
+  [
+   28.61,
+   "EKF3 IMU0 yaw aligned"
+  ],
+  [
+   28.61,
+   "EKF3 IMU0 is using external nav data"
+  ],
+  [
+   28.61,
+   "EKF3 IMU0 initial pos NED = -3.0,-3.0,-0.7 (m)"
+  ]
+ ],
+ "bag_counts": {
+  "tags_sent": 765,
+  "tags_raw": 1062,
+  "sent_ids": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ]
+ },
+ "clock_map": {
+  "offset_ms_at_start": 1.2615706021533677,
+  "rate_ppm": 130.3076619198274,
+  "envelope_resid_ms_max": 7.208437333952119
+ },
+ "latency_visp_receipt_minus_capture_ms": {
+  "min": 11.005396653501975,
+  "p5": 19.367219937569757,
+  "median": 28.024344894213016,
+  "p95": 40.55261889597545,
+  "max": 54.58744230622159,
+  "n": 765
+ },
+ "bridge_proc_ms": {
+  "min": NaN,
+  "p5": NaN,
+  "median": NaN,
+  "p95": NaN,
+  "max": NaN,
+  "n": 1062
+ },
+ "latency_a_node_sent_minus_capture_ms": {
+  "min": 3.0000000000001137,
+  "p5": 7.000000000005002,
+  "median": 12.999999999998124,
+  "p95": 24.00000000000091,
+  "max": 33.00000000000125,
+  "n": 765
+ },
+ "latency_min_agree_within_5ms": false,
+ "VISO_DELAY_MS_by_rule": 11,
+ "visp": {
+  "n": 765,
+  "ignored": 0,
+  "resets": 0,
+  "PErr_median": 0.05000000074505806,
+  "AErr_median": 0.0872664600610733
+ },
+ "ekf3_lap": {
+  "horiz_err_m": {
+   "min": 0.000737214641053887,
+   "p5": 0.006294484283076287,
+   "median": 0.02058340994964681,
+   "p95": 0.06598035734886748,
+   "max": 0.08551321354589507,
+   "n": 480
+  },
+  "yaw_err_deg": {
+   "min": 9.071058843801438e-05,
+   "p5": 0.009351489327767127,
+   "median": 0.054955115984512304,
+   "p95": 0.11737030768516793,
+   "max": 0.15232276945673107,
+   "n": 480
+  },
+  "horiz_pos_abs_frac": 1.0,
+  "horiz_pos_rel_frac": 1.0
+ },
+ "legs": [
+  {
+   "lap": 0,
+   "leg": 0,
+   "dir_NE": [
+    1,
+    0
+   ],
+   "gt_along_mps": 0.42350411148173706,
+   "gt_across_mps": 0.00012715360529824693,
+   "ekf3_along_mps": 0.4167836159467697,
+   "ekf3_across_mps": 0.011656513437628746,
+   "gt_yaw_enu_deg_range": [
+    89.98446243928693,
+    90.00728181561524
+   ],
+   "tags_sent_in_leg": 64
+  },
+  {
+   "lap": 0,
+   "leg": 1,
+   "dir_NE": [
+    0,
+    1
+   ],
+   "gt_along_mps": 0.45579950320218643,
+   "gt_across_mps": -0.00411646915928543,
+   "ekf3_along_mps": 0.45918817818164825,
+   "ekf3_across_mps": 0.006818344350904226,
+   "gt_yaw_enu_deg_range": [
+    89.95179270551237,
+    90.1014831803684
+   ],
+   "tags_sent_in_leg": 57
+  },
+  {
+   "lap": 0,
+   "leg": 2,
+   "dir_NE": [
+    -1,
+    0
+   ],
+   "gt_along_mps": 0.4538067523096174,
+   "gt_across_mps": 0.0003806390860461306,
+   "ekf3_along_mps": 0.46654701232910156,
+   "ekf3_across_mps": -0.004422642290592194,
+   "gt_yaw_enu_deg_range": [
+    89.87318683049375,
+    90.03384531471133
+   ],
+   "tags_sent_in_leg": 59
+  },
+  {
+   "lap": 0,
+   "leg": 3,
+   "dir_NE": [
+    0,
+    -1
+   ],
+   "gt_along_mps": 0.4469962330292123,
+   "gt_across_mps": 0.0004634182971514633,
+   "ekf3_along_mps": 0.4381769299507141,
+   "ekf3_across_mps": -0.00596867292188108,
+   "gt_yaw_enu_deg_range": [
+    89.91673206998465,
+    90.04079767273156
+   ],
+   "tags_sent_in_leg": 56
+  }
+ ]
+}

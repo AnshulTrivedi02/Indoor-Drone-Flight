@@ -10005,3 +10005,201 @@ corrected.
   tests whose GT stamps are all identical (from before the sim-time stamping) and are used in no result.
 - The shortest windows are legitimately short flights (sweeps, Stage B/C, `cl_ekf3_tex`). The longest are ground
   tests, where no cruise metric is scored.
+
+
+## Experiments T, L, O (user ruling 2026-10-08): the hold on new simulation work lifted for three experiments before the Fri 16 Oct freeze
+
+One simulation at a time. Each experiment is pre-registered here before it flies, and every outcome is reported.
+**Descoping order, if time runs short: L first, then the wall tags (forward camera) of T.** The first pass of T flies
+floor tags only (downward camera); wall tags are not planned unless time remains after O.
+
+### Tag module (T/L infrastructure; reported before any estimator used a tag)
+
+- **Detector:** `src/tags/tag_measure.py`, pupil_apriltags (tag36h11) in its own venv (`~/venv-tags`), independent of
+  the frozen heading program and its OpenCV 4.6 pin. One detection gives the vehicle pose
+  `T_world_body = T_world_tag · T_tag_cam · T_cam_body` (frames in the module docstring).
+- **Texture convention frozen** on the room check flight: `u-y_v-x`, median position error 0.013 m, |yaw| 0.02°. Every
+  other candidate was ≥ 0.38 m and 60–180° off.
+- **Two world defects found and fixed while building it (both in `room_tags` only):**
+  1. Ogre caches textures by file name. With every tag texture named `tag.png`, tag 4 rendered as tag 0. Each texture now
+     has a unique name (`tag36h11_<id>.png`).
+  2. **The upstream "axes" model** (1 cm red/green/blue lines 0.1 m above the floor, inherited from the corridor
+     worlds) put the green y-axis line across tag 5, which then never decoded (found on `tag_check2img`, 2026-10-08;
+     the red line also crossed tag 6). The three line visuals are removed from `room_tags.sdf`; the model and its
+     unused navsat sensor stay.
+     - **Corridor note, no action:** the same lines lie on the corridor flight line (x = 0, y = 0…10 m) in every
+       corridor world. On the blank floor, flow quality is unchanged there: inlier ratio 0.240 for y = 1–10 m against
+       0.235 for y = 30–150 m, and 5.9 against 5.8 features (`dsn_blank_r1`, same in r2). The line runs along the
+       motion and carries no trackable along-track texture. No corridor result is affected.
+- **Characterisation** (`eval/tag_char_report.py`, `eval/results/tag_char_report.json`; four north overflights of
+  tags 0, 4, 1 at four heights, images recorded):
+
+  | median height | detection rate (fully visible) | position median / p95 | yaw p95 | max ground distance | time/frame |
+  |---|---|---|---|---|---|
+  | 1.74 m | 100% | 7.8 / 26 mm | 0.08° | 0.54 m | 5.0 ms |
+  | 2.26 m | 100% | 9.1 / 50 mm | 0.11° | 0.76 m | 5.6 ms |
+  | 2.76 m | 100% | 22 / 90 mm | 0.13° | 0.97 m | 6.3 ms |
+  | 3.28 m | 100% | 29 / 175 mm | 0.23° | 1.15 m | 7.1 ms |
+
+  - 0 unknown ids. 14–65 detections per flight were of tags the ground-truth projection put partly outside the frame
+    (valid ids at the image edge; none is inside the central third).
+  - By image radius at 2.26 m: centre third p95 40 mm (yaw 0.10°); middle third p95 207 mm.
+  - **Validity rule (measurement-intrinsic, shared by all three estimators):** a detection is sendable only if its
+    centre lies in the central third of the image (radius ≤ 133 px). At most one fix per image is sent (largest
+    decision margin).
+
+### Tag bridge, EKF3 configuration and the check flights (`tag_check1c`, `tag_check2`, `tag_check3`)
+
+- **`tag_bridge.py`** publishes `/tags/raw` (camera-from-tag, every detection) and `/tags/sent` (the world fix actually
+  sent), and sends MAVLink `ODOMETRY` (`LOCAL_FRD`, NED from the world map, yaw only, velocity NaN, cov[0] = σ_pos²,
+  cov[20] = σ_yaw²) to SITL SERIAL1 (the heading-bridge path).
+- **`tags_extnav.parm`:** `VISO_TYPE 1`, `EK3_SRC1_POSXY 6` (ExtNav) with `VELXY 5` (flow) and `POSZ 2` (range) kept,
+  `EK3_SRC1_YAW 6` (ExtNav: yaw never aligns with `YAW 0`), `VISO_POS_M_NSE 0.05`, `VISO_YAW_M_NSE 0.05`,
+  `VISO_QUAL_MIN 0`, `VISO_DELAY_MS 15`, `ARMING_SKIPCHK 262144`.
+  - `ARMING_SKIPCHK` is this build's renamed skip bitmask (`ARMING_CHECK` is gone); 262144 skips only bit 18
+    (VisualOdometry).
+  - `AHRS_EKF_TYPE 10` (from `consolidated_rerun.parm`): **the laps fly on simulator truth (open loop)**, confirmed from
+    the PARM dump; the flown path does not depend on the estimator or the tag condition.
+- **EKF3's effective noise, stated (source-traced, `~/ardupilot` 7bac20cbcc):**
+  - position σ = max(`VISO_POS_M_NSE`, posErr) = 0.05 m;
+  - yaw σ = max(`VISO_YAW_M_NSE`, angErr, 5°) = **5° (the floor)**.
+  - Gates: position 5σ, yaw 3σ. **After > 10 s without an accepted fix (with flow), `posTimeout` latches and the next
+    fixes are fused WITHOUT the gate** (`horiz_pos_abs` false), and position is reset at the first fix after a timeout.
+  - With an ExtNav yaw source, EKF3 fuses its zero-innovation predicted yaw **only until yaw alignment**
+    (`AP_NavEKF3_MagFusion.cpp:368-385`).
+- **`VISO_DELAY_MS` = 15** (D2/D20 rule: round(minimum receipt latency)). `VISP` receipt − capture, clock-mapped by
+  `/imu/time_ref`:
+
+  | flight | min | median | p95 |
+  |---|---|---|---|
+  | `tag_check1c` | 15.6 ms | 28.8 ms | 40.2 ms |
+  | `tag_check2` | 15.0 ms | 28.7 ms | 38.3 ms |
+  | `tag_check3` (measured after 15 was set) | 11.0 ms | 28.0 ms | 40.6 ms |
+
+  - The minimum varies 11.0–15.6 ms between flights. 15 is kept, as set before `tag_check3`. 4 ms at 0.5 m/s is about
+    2 mm, against σ_pos 50 mm.
+
+  - **DEVIATION, reported:** the node measure (a) (bridge sim clock at send − capture) is min 4.0 ms, median 12 ms. (a)
+    and (b) disagree by 11 ms, beyond the 5 ms agreement in the original G4 wording.
+  - (a) excludes the SITL serial transport (SERIAL1 udpclient at 30 Hz × 230-byte messages, against 7.5 Hz for the
+    heading node, where they agreed). Following D20 (the receipt measure is the basis), 15 ms is used. Queued for a
+    ruling, not blocking.
+- **Lap mode (`fly_trial.py`, LAPS):** the first version (timed velocity legs) overshot the first corner by ~1 m and
+  shifted the square off the tag line (`tag_check1c`: tags 3, 5, 7 never in view). Lap mode now tracks a **moving
+  position setpoint** (position + velocity feed-forward + yaw held at the lap-start yaw) round the square. On
+  `tag_check2` it passed within 0.01 m of all 8 tags at 2.00 m, with GT yaw held within 89.86–90.11°.
+  - Flown speed in the leg centres is 0.42–0.49 m/s (the vehicle lags the 0.5 m/s setpoint), and corners are rounded
+    (~0.4 m). The same trajectory is flown in every condition.
+  - Lap mode is used only when `LAPS` is set; the corridor `cruise()` path is unchanged.
+- **EKF3 on `tag_check2` (all 8 tags, 1 lap):**
+  - 708 `VISP` = 708 `/tags/sent`, 0 ignored, 0 resets;
+  - horizontal error median 0.029 m, p95 0.073 m; yaw error p95 0.14°; `horiz_pos_abs` 100% of the lap;
+  - across-track velocity on the E/W (pure body-lateral) legs ≤ 0.010 m/s against GT ≤ 0.001 m/s, so lateral flow is
+    fused with the right sign.
+
+### Experiment T: pre-registration (written before any T flight; hypotheses, conditions, metrics and criteria fixed here)
+
+**Question.** With absolute fixes from AprilTags at known positions, does the FGO's hindsight reconstruction gain over
+its live estimate grow with the length of the gap between fixes? And how do the three live estimators compare under
+identical fixes?
+
+**World and flight.**
+- `room_tags`: 10 × 10 m room, 3 m walls, textured floor, 8 floor tags (0.5 m, 0.4 m black square) on the 6 m lap
+  square (corners and side midpoints).
+- Laps: `LAPS=5,6,0.5`, five laps of the square N→E→S→W, setpoint 0.5 m/s, 2.0 m altitude, constant yaw (north),
+  open loop on simulator truth.
+- `LOG_REPLAY=1`, `LOG_DISARMED=1`. `/tags/raw` is recorded in every flight (L reuses these flights).
+
+**Conditions (tag count, the controlled variable; a LIVE per-flight condition).** All 8 tags stay in the world; the
+bridge sends only the subset. EKF3 receives it live; the UKF and FGO replay the same `/tags/sent`.
+
+| condition | `TAG_IDS` | fixes per lap | expected gap between fixes |
+|---|---|---|---|
+| A, all | `all` | 8 | ≈ 4–5 s |
+| B, corners | `0,1,2,3` | 4 | ≈ 10–11 s (**straddles EKF3's 10 s timeout**: its timeout state is logged per gap as a covariate) |
+| C, diagonal | `0,2` | 2 | ≈ 22–25 s |
+| D, single | `0` | 1 | ≈ 48–52 s |
+
+Three repeats each, run interleaved (A1 B1 C1 D1 A2 … D3): 12 flights. Every condition anchors on tag 0, at the
+start corner.
+
+**Estimators.**
+- **EKF3** (live, from `XKF1`): as configured above.
+- **UKF** (`src/estimators/room_ukf_replay.py`) and **FGO** (`src/estimators/fgo/room_fgo_replay.py`): the thesis
+  configurations. The FGO uses window 0.25 s, batch fixed-lag, 2 LM iterations and 30 Hz keyframes. Same init, IMU gap
+  rule, dejitter, ground-proximity rule and noise as the corridor replays, plus:
+  - **Tag model:** h = (p_E, p_N, yaw) of base_link (`measurement_models.h_tag`), σ_pos = 0.05 m and σ_yaw = 5°
+    (EKF3's effective noise: parity). The FGO puts the newest fix since the last keyframe on the next keyframe
+    (≤ 33 ms later).
+  - **No gate** on tag fixes in the UKF or FGO. Fix validity is the shared sensor rule (central third). The check
+    below also requires every sent fix to agree with GT (G3), so no wrong id can enter. EKF3 keeps its own gates and
+    timeout behaviour (an estimator design feature, D18). Rejected or ungated fixes are reported per estimator and
+    condition.
+  - **First-fix re-anchor, identical in both (as EKF3's reset and yaw alignment):** rigid transform about the vertical
+    to the fix, horizontal velocity rotated. The covariance becomes the diagonal of the transformed covariance (the
+    FGO's from its gate-only filtering covariance), with x, y and yaw variances set to the fix noise. The FGO smoother
+    restarts from that prior.
+  - **Yaw cap only before the first fix** (as EKF3 with an ExtNav yaw source).
+  - **Hindsight tracks, labelled:**
+    - "FGO hindsight (whole-flight batch)": one LM (≤ 50 iterations) over every factor the live FGO received from the
+      re-anchor on.
+    - "RTS-UKF (hindsight)": the unscented RTS smoother over the UKF's predict nodes from the re-anchor on. A filter
+      plus a backward smoother also revises the past, so **FGO hindsight vs RTS-UKF is the fair hindsight comparison**.
+      FGO hindsight vs the filters' live tracks is not.
+
+**Metrics** (`eval/tag_score.py`; absolute world frame, **no alignment**; ground truth from the bag):
+- **Lap window:** `LAP 0 LEG 0 START` to `LAPS END` (SITL clock, mapped to the bag clock by the `/imu/time_ref` lower
+  envelope). `cruise_bounds` is not used (corners slow the vehicle).
+- **Per track** (EKF3 live, UKF live, RTS-UKF, FGO live, FGO hindsight): horizontal error RMSE, median, p95 and max;
+  yaw error median and p95.
+- **Per gap** (consecutive `/tags/sent` fixes inside the window, ≥ 1 s apart): length; mean and max horizontal error
+  per track over the gap interior; EKF3's `horiz_pos_abs` fraction in the gap (the timeout covariate).
+  - **Hindsight gain** Δ = mean live error − mean hindsight error: for the FGO (live → whole-flight batch) and the UKF
+    (live → RTS).
+
+**Gates, per flight, before scoring (a failure stops the batch and is reported).**
+- **G1:** 5 laps complete (20 `LEG START` markers and `LAPS END`), landed; `AHRS_EKF_TYPE 10`, `LOG_REPLAY 1`,
+  `VISO_DELAY_MS 15` in the PARM dump.
+- **G2 (identical measurements):**
+  - `VISP` count = `/tags/sent` count;
+  - sent ids ⊆ the condition subset;
+  - every subset tag sent at least once in each lap.
+- **G3:** every sent fix within 0.3 m (horizontal) and 3° of GT (no wrong ids).
+- **G4:** both replays complete with 0 keyframe failures; FGO tag factors ≥ 95% of the sent fixes after the anchor.
+
+**Hypotheses and criteria (pooled over the 12 flights).**
+- **H-T1 (PRIMARY, the ruling's hypothesis): the FGO's hindsight gain grows with the gap.** PASS iff both:
+  - (i) the per-condition medians of Δ_FGO increase strictly A < B < C < D;
+  - (ii) Spearman ρ(gap length, Δ_FGO) over all gaps > 0 with p < 0.01.
+
+  A failure is reported as such, with no re-tuning.
+- **P-T2 (prediction): the same holds for the RTS-UKF** (Δ_UKF, same two criteria). The prediction is that hindsight
+  gain is a property of smoothing, not of the FGO.
+- **P-T3 (prediction): live errors are similar.** In every condition, the largest live horizontal RMSE among EKF3, UKF
+  and FGO (mean over repeats) is ≤ 1.5 × the smallest.
+- **P-T4 (prediction): FGO hindsight ≈ RTS-UKF.** In every condition, the larger of their horizontal RMSEs (mean over
+  repeats) is ≤ 1.5 × the smaller.
+
+**Pre-flight checks done on the current configuration** (`tag_check3`: fixed world, `VISO_DELAY_MS 15`, 1 lap, all
+tags; `eval/results/tag_check3.json`, `tag_score_check3.json`):
+- every tag decoded and sent (8/8); 765 `VISP` = 765 sent, 0 ignored;
+- fix error vs GT max 0.062 m / 0.18° (G3);
+- EKF3 median 0.021 m;
+- both replays complete, with 757/765 tag factors in the FGO (newest per keyframe).
+
+**Lateral dead-reckoning check** (diagnostic `ROOM_TAG_MAX=1`, UKF with the first fix only, `tag_check3`): the east
+leg is tracked with the right sign at about 94% scale, and the drift reaches 0.62 m after one 24 m lap. The lateral flow
+row is right-signed for the UKF (the 2026-09-29 correction holds), so condition D measures dead-reckoning drift, not a
+sign error.
+
+**Reported regardless:** every track's numbers per flight; EKF3's ungated/timeout fixes per condition; the per-gap
+error profiles; FGO step time (diagnostic). Smoke test on `tag_check2` (1 lap, all tags, before this
+pre-registration's tag-5 fix; not a T result):
+
+| track | horizontal RMSE |
+|---|---|
+| EKF3 | 0.044 m |
+| UKF live | 0.044 m |
+| RTS-UKF | 0.017 m |
+| FGO live | 0.016 m |
+| FGO batch | 0.012 m |

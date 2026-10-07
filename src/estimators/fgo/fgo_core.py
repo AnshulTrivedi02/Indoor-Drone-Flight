@@ -41,6 +41,8 @@ class FGO:
     def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0, fwd_robust=None,
                  log_cov=False):
         self.kf_dt = kf_dt
+        self._window, self._lm_maxiter, self._solver = window, lm_maxiter, solver   # kept for reanchor() (experiment T)
+        self.tag_noise = None      # experiment T: set by reanchor(); None = no tag factors (every other use)
         # Diagnostic (Phase 5b): run the gate-only filtering covariance recursion and log the
         # keyframe position/yaw covariance, in any arm. It never touches the smoother.
         self.log_cov = log_cov or fwd_sigma is not None
@@ -118,7 +120,7 @@ class FGO:
             self.pim.integrateMeasurement(np.asarray(accel, float), np.asarray(gyro, float), dt)
             self.n_imu += 1
 
-    def keyframe(self, t, flow=None, omega=None, rng=None, fwd=None):
+    def keyframe(self, t, flow=None, omega=None, rng=None, fwd=None, tag=None):
         """Create keyframe k on the IMU clock. flow=(flow_xy, valid, inlier),
         omega = FLU rates for the flow factor, rng = range or None,
         fwd = (psi | None, omega_meas | None, gyro_z_avg) forward-camera measurements."""
@@ -143,6 +145,8 @@ class FGO:
                 g.add(F.flow_factor(self.flow_noise, X(k), V(k), B(k), flow_xy, omega)); self.n_flow += 1
         if self.fwd_sigma is not None:
             self._forward_factors(g, vals, t, km1, k, Xk, fwd)
+        if tag is not None and self.tag_noise is not None:      # experiment T: tag fix (no gate, pre-registered)
+            g.add(F.tag_factor(self.tag_noise, X(k), tag)); self.n_tag = getattr(self, "n_tag", 0) + 1
         ts = {X(k): t, V(k): t, B(k): t}
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
@@ -167,6 +171,46 @@ class FGO:
 
     def latest(self):
         return self.last
+
+    # ---------- experiment T: first-fix re-anchor ----------
+    def reanchor(self, p_EN, yaw_fix, sig_pos, sig_yaw):
+        """As EKF3's position reset + ExtNav yaw alignment, and identical to the UKF's (measurement_models.
+        reanchor_jacobian): rigidly transform the newest keyframe state about the vertical so that (x, y, yaw) = the
+        fix, rotate the horizontal velocity by the yaw change, and RESTART the smoother (same window, solver and LM
+        cap) with a prior on that state: x, y, yaw sigmas = the fix noise; roll, pitch, z, velocity and bias sigmas =
+        the diagonal of the gate-only filtering covariance (cov_prev; cross-covariances zeroed, as the UKF re-anchor).
+        The new key sits at the newest keyframe's time; the IMU preintegration since then is kept. From here on the
+        yaw cap is off (EKF3 with an ExtNav yaw source fuses its predicted yaw only before yaw alignment), and tag
+        factors are added. A whole-flight batch record (batch_record) restarts here."""
+        r, pch, y = self.prev_pose.rotation().rpy()
+        d = F._wrap(yaw_fix - y); c, s_ = np.cos(d), np.sin(d); R3 = np.array([[c, -s_, 0], [s_, c, 0], [0, 0, 1.0]])
+        pose = Pose3(Rot3.Ypr(yaw_fix, pch, r), np.array([p_EN[0], p_EN[1], self.prev_pose.translation()[2]]))
+        vel = R3 @ np.asarray(self.prev_vel, float); bias = self.prev_bias
+        C = self.cov_prev if self.cov_prev is not None else np.diag(
+            np.concatenate([[np.radians(2)] * 2 + [1e-3] * 3 + [0.5], [0.1] * 3, [ACCEL_B0] * 3 + [GYRO_B0] * 3]) ** 2)
+        pose_sig = np.array([np.sqrt(C[0, 0]), np.sqrt(C[1, 1]), sig_yaw, sig_pos, sig_pos, np.sqrt(C[5, 5])])
+        vel_sig = np.sqrt(np.diag(R3 @ C[6:9, 6:9] @ R3.T)); bias_sig = np.sqrt(np.diag(C[9:15, 9:15]))
+        k = self.k + 1; t = self.t_last
+        if self._solver == "batch":
+            lm = gtsam.LevenbergMarquardtParams(); lm.setMaxIterations(self._lm_maxiter)
+            self.smoother = gtsam_unstable.BatchFixedLagSmoother(self._window, lm)
+        else:
+            raise NotImplementedError("reanchor: batch solver only")
+        g = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
+        g.add(PriorFactorPose3(X(k), pose, gtsam.noiseModel.Diagonal.Sigmas(pose_sig)))
+        g.add(gtsam.PriorFactorVector(V(k), vel, gtsam.noiseModel.Diagonal.Sigmas(vel_sig)))
+        g.add(PriorFactorConstantBias(B(k), bias, gtsam.noiseModel.Diagonal.Sigmas(bias_sig)))
+        vals.insert(X(k), pose); vals.insert(V(k), vel); vals.insert(B(k), bias)
+        self.smoother.update(g, vals, _tsmap({X(k): t, V(k): t, B(k): t}))
+        if getattr(self, "batch_record", False):
+            self.all_g = gtsam.NonlinearFactorGraph(); self.all_g.push_back(g)
+            self.all_est = {X(k): pose, V(k): vel, B(k): bias}; self.key_t = [(k, t)]
+        if self.log_cov:
+            self.cov_prev = np.diag(np.concatenate([pose_sig, vel_sig, bias_sig]) ** 2)
+        self.prev_pose, self.prev_vel = pose, vel
+        self.k = k; self.no_yawcap = True
+        self.tag_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([sig_pos, sig_pos, sig_yaw]))
+        self.last = (t, pose, vel)
 
     # ---------- Phase 4: chi-square gate via a gate-only filtering covariance ----------
     # The Python BatchFixedLagSmoother exposes no marginal covariance, so the predicted

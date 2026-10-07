@@ -317,3 +317,31 @@ def f_filter_forward(ev, gt_t, gt_x, gt_y, v):
             continue
         out.append(e)
     return out
+
+
+# ---------- AprilTag absolute fix (experiments T/L; ruling 2026-10-08) ----------
+# The fix is the vehicle pose computed by tag_bridge.py (src/tags/tag_measure.py) from one detection, published on
+# /tags/sent (world ENU, base_link) and sent to EKF3 as ExtNav ODOMETRY. Measurement h_tag(x) = (p_E, p_N, yaw): the
+# base_link position and yaw, no lever arm (the fix is already base_link). Noise = EKF3's EFFECTIVE noise (parity):
+#   position: max(VISO_POS_M_NSE 0.05, sent sigma 0.05) = 0.05 m per axis;
+#   yaw:      max(VISO_YAW_M_NSE 0.05 rad, angErr, 5 deg) = 5 deg (EKF3's floor).
+TAG_SIGMA_POS = 0.05
+TAG_SIGMA_YAW = np.radians(5.0)
+
+
+def h_tag(x):
+    return np.array([x[0], x[1], x[8]])
+
+
+def reanchor_jacobian(x, p_fix_EN, yaw_fix):
+    """First-fix re-anchor (EKF3 resets position to the first ExtNav fix and aligns yaw to its first ExtNav yaw; the
+    UKF and FGO do the same, identically): rigid transform of the state about the vertical so that (p_E, p_N, yaw) =
+    the fix; horizontal velocity rotated by the yaw change. Returns (x_new, J) with J the Jacobian w.r.t. the old state
+    (p_E, p_N, yaw rows are replaced, so their J rows are zero; the caller sets their variance to the fix noise)."""
+    d = (yaw_fix - x[8] + np.pi) % (2 * np.pi) - np.pi
+    c, s = np.cos(d), np.sin(d); Rz = np.array([[c, -s], [s, c]])
+    xn = x.copy(); xn[0], xn[1] = p_fix_EN; xn[8] = yaw_fix
+    xn[3:5] = Rz @ x[3:5]
+    J = np.eye(N); J[0, 0] = J[1, 1] = J[8, 8] = 0.0
+    J[3:5, 3:5] = Rz
+    return xn, J
