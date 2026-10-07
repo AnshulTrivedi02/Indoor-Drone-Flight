@@ -268,9 +268,12 @@ def write_rows(path, rows):
 
 write_rows(f"{OUT}/live.tum", live)
 t_h0 = time.perf_counter()
-graph = isam.getFactorsUnsafe(); est = isam.calculateEstimate()
-prm = gtsam.LevenbergMarquardtParams(); prm.setMaxIterations(20); prm.setRelativeErrorTol(1e-6)
-res = gtsam.LevenbergMarquardtOptimizer(graph, est, prm).optimize()
+# DEVIATION (recorded, 2026-10-08): the pre-registered final LM polish over the whole graph did not finish within
+# 5000 s on the 300 s V-L flight (Python CustomFactors, ~10k keyframes). Hindsight = iSAM2's own full-graph estimate
+# after 5 extra update() calls with no new factors (each relinearises every variable over the threshold).
+for _ in range(5):
+    isam.update()
+res = isam.calculateEstimate()
 rows = []
 for kk, tk in key_t:
     if res.exists(X(kk)):
