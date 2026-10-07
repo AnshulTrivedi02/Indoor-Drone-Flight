@@ -23,6 +23,7 @@ os.environ.setdefault("MAVLINK20", "1")
 import numpy as np
 import rclpy
 from rclpy.node import Node
+from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
@@ -42,7 +43,8 @@ R_VALID = 1.0 / 3.0; HALF_DIAG = (CX ** 2 + CY ** 2) ** 0.5
 class TagBridge(Node):
     def __init__(self):
         super().__init__("tag_bridge")
-        self.declare_parameter("tag_ids", "all"); self.declare_parameter("sigma_pos_m", 0.05)
+        # dynamic typing: "-p tag_ids:=0" arrives as an INTEGER (a single id), "0,2" as a string (T_D_r1, 2026-10-08)
+        self.declare_parameter("tag_ids", "all", ParameterDescriptor(dynamic_typing=True)); self.declare_parameter("sigma_pos_m", 0.05)
         self.declare_parameter("sigma_yaw_deg", 5.0); self.declare_parameter("send", True)
         self.declare_parameter("map", os.path.join(HERE, "sim", "worlds", "room_tags_map.json"))
         self.declare_parameter("log_path", "")
