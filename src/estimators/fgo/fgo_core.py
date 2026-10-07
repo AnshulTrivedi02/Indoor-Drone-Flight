@@ -120,7 +120,7 @@ class FGO:
             self.pim.integrateMeasurement(np.asarray(accel, float), np.asarray(gyro, float), dt)
             self.n_imu += 1
 
-    def keyframe(self, t, flow=None, omega=None, rng=None, fwd=None, tag=None):
+    def keyframe(self, t, flow=None, omega=None, rng=None, fwd=None, tag=None, gnss=None):
         """Create keyframe k on the IMU clock. flow=(flow_xy, valid, inlier),
         omega = FLU rates for the flow factor, rng = range or None,
         fwd = (psi | None, omega_meas | None, gyro_z_avg) forward-camera measurements."""
@@ -147,6 +147,8 @@ class FGO:
             self._forward_factors(g, vals, t, km1, k, Xk, fwd)
         if tag is not None and self.tag_noise is not None:      # experiment T: tag fix (no gate, pre-registered)
             g.add(F.tag_factor(self.tag_noise, X(k), tag)); self.n_tag = getattr(self, "n_tag", 0) + 1
+        if gnss is not None and getattr(self, "gnss_noise", None) is not None:   # experiment O: GNSS fix (no gate)
+            g.add(F.gnss_factor(self.gnss_noise, X(k), V(k), gnss)); self.n_gnss = getattr(self, "n_gnss", 0) + 1
         ts = {X(k): t, V(k): t, B(k): t}
         self.smoother.update(g, vals, _tsmap(ts))
         est = self.smoother.calculateEstimate()
@@ -173,7 +175,7 @@ class FGO:
         return self.last
 
     # ---------- experiment T: first-fix re-anchor ----------
-    def reanchor(self, p_EN, yaw_fix, sig_pos, sig_yaw):
+    def reanchor(self, p_EN, yaw_fix, sig_pos, sig_yaw, vel_EN=None, sig_vel=None, keep_yawcap=False):
         """As EKF3's position reset + ExtNav yaw alignment, and identical to the UKF's (measurement_models.
         reanchor_jacobian): rigidly transform the newest keyframe state about the vertical so that (x, y, yaw) = the
         fix, rotate the horizontal velocity by the yaw change, and RESTART the smoother (same window, solver and LM
@@ -190,6 +192,8 @@ class FGO:
             np.concatenate([[np.radians(2)] * 2 + [1e-3] * 3 + [0.5], [0.1] * 3, [ACCEL_B0] * 3 + [GYRO_B0] * 3]) ** 2)
         pose_sig = np.array([np.sqrt(C[0, 0]), np.sqrt(C[1, 1]), sig_yaw, sig_pos, sig_pos, np.sqrt(C[5, 5])])
         vel_sig = np.sqrt(np.diag(R3 @ C[6:9, 6:9] @ R3.T)); bias_sig = np.sqrt(np.diag(C[9:15, 9:15]))
+        if vel_EN is not None:                      # experiment O: velocity reset to the GNSS sample (as EKF3's alignment)
+            vel = np.array([vel_EN[0], vel_EN[1], vel[2]]); vel_sig[0] = vel_sig[1] = sig_vel
         k = self.k + 1; t = self.t_last
         if self._solver == "batch":
             lm = gtsam.LevenbergMarquardtParams(); lm.setMaxIterations(self._lm_maxiter)
@@ -208,7 +212,7 @@ class FGO:
         if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, vel_sig, bias_sig]) ** 2)
         self.prev_pose, self.prev_vel = pose, vel
-        self.k = k; self.no_yawcap = True
+        self.k = k; self.no_yawcap = not keep_yawcap
         self.tag_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([sig_pos, sig_pos, sig_yaw]))
         self.last = (t, pose, vel)
 

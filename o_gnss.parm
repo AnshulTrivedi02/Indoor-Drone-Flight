@@ -1,0 +1,18 @@
+# Experiment O (outdoor -> indoor -> outdoor; ruling 2026-10-08). Appended LAST (EXTRA_PARM_FILES) after the standard
+# chain (which ends GNSS-denied, no compass). Flights stay on simulator truth (AHRS_EKF_TYPE 10, consolidated_rerun.parm).
+GPS1_TYPE 1            # GPS fitted (gnss_denied.parm sets 0)
+SIM_GPS1_ENABLE 1      # simulated GPS on at boot; fly_trial OUTBACK switches it off/on live at the entrance
+# Source set 1: GNSS. Height from the rangefinder (as every other flight), no vertical GNSS velocity.
+EK3_SRC1_POSXY 3
+EK3_SRC1_VELXY 3
+EK3_SRC1_POSZ 2
+EK3_SRC1_VELZ 0
+EK3_SRC1_YAW 8         # GSF (no compass for ANY estimator; EKF3's GSF yaw is stated as an EKF3 feature)
+# Source set 2: optical flow (the GNSS-denied thesis configuration)
+EK3_SRC2_POSXY 0
+EK3_SRC2_VELXY 5
+EK3_SRC2_POSZ 2
+EK3_SRC2_VELZ 0
+EK3_SRC2_YAW 0
+EK3_SRC_OPTIONS 1      # FuseAllVelocities: flow is fused outdoors too, as the UKF and FGO do (sensor parity)
+SCR_ENABLE 1           # sim/scripts/o_source_switch.lua (linked as ~/ardupilot/ArduCopter/scripts)

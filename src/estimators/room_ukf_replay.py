@@ -22,8 +22,11 @@ from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 import ukf_core as U
 from imu_timing import dejitter_imu, apply_gap_rule
 from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_SIGMA_POS, TAG_SIGMA_YAW, reanchor_jacobian
+from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED, GNSS_ALIGN_N
 
 TRIAL = sys.argv[1]; DO_RTS = "--no-rts" not in sys.argv
+GNSS = "--gnss" in sys.argv      # experiment O: GNSS fixes from <trial>/gnss.npz; yaw cap kept throughout (EKF3 in O has
+#                                  GSF yaw outdoors and no yaw source indoors, where it fuses its predicted yaw)
 D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf"; os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -70,6 +73,9 @@ def write_tum(path, T, X):
 
 
 ev, gt = read_events(f"{D}/bag")
+if GNSS:
+    _g = np.load(f"{D}/gnss.npz")
+    ev += [(float(t), "gnss", (e, n, ve, vn)) for t, e, n, ve, vn in zip(_g["t"], _g["E"], _g["N"], _g["vE"], _g["vN"])]
 TAG_MAX = int(os.environ.get("ROOM_TAG_MAX", "0"))     # DIAGNOSTIC only (never in T results): keep the first N fixes
 if TAG_MAX:
     _n = 0; _keep = []
@@ -93,7 +99,7 @@ gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.ex
 gyro_avg = FlowFrameGyroAverager(t_init)
 omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
 da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
-anchored = False; t_anchor = None; n_tag = 0; n_yaw_fire = 0
+anchored = False; t_anchor = None; n_tag = 0; n_yaw_fire = 0; n_fast = 0; n_gnss = 0
 node_t, xa, Pa, xp, Pp, Dc = [], [], [], [], [], []      # RTS records (from the re-anchor on)
 live_t, live_x = [], []
 for t, kind, d in ev:
@@ -116,7 +122,8 @@ for t, kind, d in ev:
                 xp.append(x.copy()); Pp.append(P.copy()); Dc.append(Dk)
             else:
                 x, P = U.predict(x, P, da, dv, p, dt=acc_dt)
-                if t - t_yaw >= p['YAW_DT']:
+            if (not anchored or GNSS) and t - t_yaw >= p['YAW_DT']:
+                if True:
                     x, P, fired = U.update_yaw_pseudo(x, P, p); n_yaw_fire += fired; t_yaw = t
             live_t.append(t); live_x.append(x.copy())
             da = np.zeros(3); dv = np.zeros(3); acc_dt = 0.0
@@ -128,6 +135,19 @@ for t, kind, d in ev:
         if valid and inlier > 0:
             flow_xy = gp.replace(flow_xy, om, x[6], x[7])
         x, P, _ = U.update_flow(x, P, flow_xy, om, valid, inlier, p)
+    elif kind == "gnss":
+        e_, n_, ve_, vn_ = d
+        if not anchored:
+            n_fast = n_fast + 1 if math.hypot(ve_, vn_) > GNSS_ALIGN_SPEED else 0
+            if n_fast >= GNSS_ALIGN_N:
+                spd = math.hypot(ve_, vn_)
+                x, J = reanchor_jacobian(x, (e_, n_), math.atan2(vn_, ve_))
+                P = np.diag(np.diag(J @ P @ J.T)); P[0, 0] = P[1, 1] = GNSS_SIGMA_POS ** 2
+                P[8, 8] = math.asin(min(1.0, GNSS_SIGMA_VEL / spd)) ** 2
+                x[3], x[4] = ve_, vn_; P[3, 3] = P[4, 4] = GNSS_SIGMA_VEL ** 2
+                anchored = True; t_anchor = t
+        else:
+            x, P = U.update_gnss(x, P, d, GNSS_SIGMA_POS, GNSS_SIGMA_VEL, p); n_gnss += 1
     elif kind == "tag":
         pE, pN, yaw = d
         if not anchored:
@@ -141,7 +161,7 @@ for t, kind, d in ev:
 live_x = np.array(live_x); live_t = np.array(live_t)
 keep = live_t >= (t_anchor if t_anchor is not None else np.inf)
 write_tum(f"{OUT}/ukf_live.tum", live_t[keep], live_x[keep])
-stats = {"t_anchor": t_anchor, "n_tag_fused": n_tag, "pseudo_yaw_fired_before_anchor": int(n_yaw_fire),
+stats = {"t_anchor": t_anchor, "n_tag_fused": n_tag, "n_gnss_fused": n_gnss, "mode": "gnss" if GNSS else "tags", "pseudo_yaw_fired_before_anchor": int(n_yaw_fire),
          "dt_step_ms": 1e3 * DT_STEP, "tag_sigma_pos": TAG_SIGMA_POS, "tag_sigma_yaw_deg": math.degrees(TAG_SIGMA_YAW)}
 if DO_RTS and len(node_t) > 2:
     # node i: filtered xa[i+1] (posterior after the updates following predict i), prediction xp[i] from xa[i]

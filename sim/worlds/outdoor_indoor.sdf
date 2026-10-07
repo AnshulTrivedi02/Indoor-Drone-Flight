@@ -1,0 +1,160 @@
+<?xml version="1.0" ?>
+<!-- Experiment O (user ruling 2026-10-08): outdoor -> indoor -> outdoor. Physics, plugins, lighting and the drone as
+       room_tags.sdf (itself copied from corridor_textured.sdf; the upstream axis-line visuals removed). Floor: five
+       20 x 20 m textured_ground_visual tiles (y = -20 ... 80, the corridor checker) + exactly ONE ground_collision.
+       Building: x in [-5, 5], y in [20, 70], 3 m plain walls with a 3 m wide full-height entrance (|x| <= 1.5) in the
+       south wall at y = 20, and a plain roof (visual-only box, underside 3.0 m). Walls and roof cast NO shadows, so
+       the floor is lit identically inside and out: floor texture and lighting do not change at the entrance; only GNSS
+       does (toggled by fly_trial OUTBACK at the entrance). Spawn (0, -15) outdoors (room for the 15 m GNSS yaw-alignment run), yaw 90 deg = ArduPilot North = world +y. -->
+<sdf version="1.9">
+  <world name="outdoor_indoor">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.363262</latitude_deg>
+      <longitude_deg>149.165237</longitude_deg>
+      <elevation>584</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="axes">
+      <static>1</static>
+      <link name="link">
+        <!-- the upstream axis-line visuals (r/g/b, 1 cm boxes 0.1 m above the floor) are REMOVED in this world: the
+             green y-axis line crossed tag 5 and broke its decoding (tag_check2img, 2026-10-08) -->
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- Floor: 5 x 20 x 20 m textured_ground_visual tiles along y (-20 ... 80) + ONE ground_collision -->
+    <include>
+      <name>floor_0</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 -10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_1</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 10 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_2</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 30 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_3</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 50 0 0 0 0</pose>
+    </include>
+    <include>
+      <name>floor_4</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 70 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://ground_collision</uri>
+    </include>
+    <model name="bldg_south_w">
+      <static>true</static>
+      <pose>-3.25 20 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>3.5 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="bldg_south_e">
+      <static>true</static>
+      <pose>3.25 20 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>3.5 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="bldg_north">
+      <static>true</static>
+      <pose>0 70 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>10.2 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="bldg_west">
+      <static>true</static>
+      <pose>-5 45 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>0.2 50 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="bldg_east">
+      <static>true</static>
+      <pose>5 45 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>0.2 50 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="bldg_roof">
+      <static>true</static>
+      <pose>0 45 3.05 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>10.2 50.2 0.1</size></box></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <include>
+      <uri>model://iris_with_ardupilot</uri>
+      <pose degrees="true">0 -15 0.195 0 0 90</pose>
+    </include>
+
+  </world>
+</sdf>

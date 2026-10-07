@@ -345,3 +345,21 @@ def reanchor_jacobian(x, p_fix_EN, yaw_fix):
     J = np.eye(N); J[0, 0] = J[1, 1] = J[8, 8] = 0.0
     J[3:5, 3:5] = Rz
     return xn, J
+
+
+# ---------- GNSS (experiment O; ruling 2026-10-08) ----------
+# Samples = the GPS samples EKF3 received (eval/extract_gnss.py: 3D fix only, EKF3's measurement time GPA.SMS - 126 ms,
+# lat/lon -> world ENU about SITL home). h_gnss(x) = (p_E, p_N, v_E, v_N) of base_link (SITL's antenna offset is 0).
+# Noise = EKF3's EFFECTIVE noise (SITL reports hAcc 0.3, sAcc 0; floored by EK3_POSNE_M_NSE 0.5 / EK3_VELNE_M_NSE 0.3,
+# AP_NavEKF3_Measurements.cpp:612-637, PosVelFusion.cpp:819-834): sigma_pos 0.5 m, sigma_vel 0.3 m/s per axis.
+GNSS_SIGMA_POS = 0.5
+GNSS_SIGMA_VEL = 0.3
+# First-fix alignment (both UKF and FGO, as EKF3's GPS-course yaw alignment, MagFusion.cpp:150-190): once 5
+# consecutive GNSS samples have speed > 1 m/s, re-anchor position and velocity to the GNSS sample and yaw to its
+# course (the vehicle flies FORWARD on the alignment run). Yaw sigma at alignment = asin(sigma_vel / speed).
+GNSS_ALIGN_SPEED = 1.0
+GNSS_ALIGN_N = 5
+
+
+def h_gnss(x):
+    return np.array([x[0], x[1], x[3], x[4]])

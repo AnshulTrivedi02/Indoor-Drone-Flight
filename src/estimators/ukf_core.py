@@ -173,6 +173,14 @@ def update_tag(x, P, z, sig_pos, sig_yaw, p):
     return x, P
 
 
+def update_gnss(x, P, z, sig_pos, sig_vel, p):
+    """GNSS fix (measurement_models.h_gnss): p_E, p_N, v_E, v_N as four sequential scalar updates, NO gate
+    (pre-registered for O: SITL's GNSS has no outliers; matches the tag rule in T). Returns (x, P)."""
+    for i, j, s in ((0, 0, sig_pos), (1, 1, sig_pos), (2, 3, sig_vel), (3, 4, sig_vel)):
+        x, P, _, _ = _update_scalar(x, P, z[i], lambda st, j=j: st[j], s ** 2, np.inf, p)
+    return x, P
+
+
 # ---------- scalar gated update (used by range and each flow axis) ----------
 def _update_scalar(x, P, z, hfun, R_scalar, gate_c, p):
     """1-D UKF update with EKF3-style NIS gate. Returns (x, P, accepted, testRatio)."""

@@ -70,6 +70,9 @@ EXPECTED_PARAMS = {
     'EK3_SRC1_POSZ': 2,
     'EK3_SRC1_VELZ': 0,
     'SIM_GPS1_ENABLE': 0,
+    # experiment O guards (2026-10-08): scripting and the source options must stay off in every other flight
+    'SCR_ENABLE': 0,
+    'EK3_SRC_OPTIONS': 0,
     # GPS1_TYPE=0 (None) is required for arming, not just for GNSS-denial:
     # gps_checks() rejects a configured-but-unfixed GPS with "GPS 1: Bad
     # fix" regardless of the EK3_SRC selections. It carries
@@ -411,6 +414,70 @@ def laps(master, n_laps: int, side_m: float, speed: float, alt_m: float) -> None
     log(f"LAPS END t_sim={t0 + total_s:.3f}")
 
 
+def set_gnss(master, on: bool) -> None:
+    """Experiment O: the simulated GPS on/off, live (SIM_GPS1_ENABLE; SITL then reports NO_FIX). Every later trial's
+    ensure_params restores the baseline (SIM_GPS1_ENABLE 0, GPS1_TYPE 0, SCR_ENABLE 0, EK3_SRC_OPTIONS 0)."""
+    set_param(master, 'SIM_GPS1_ENABLE', 1 if on else 0)
+    log(f"GNSS {'ON' if on else 'OFF'} t_sim={sim_time_now_s(master):.3f}")
+
+
+def outback(master, align_m: float, align_speed: float, out_m: float, speed: float, gate_n: float, alt_m: float,
+            hold_s: float = 3.0) -> None:
+    """Experiment O (2026-10-08). Along +North from the start point at constant yaw, with a moving position setpoint
+    (position + velocity feed-forward + yaw, as laps()) on simulator truth (AHRS_EKF_TYPE 10):
+      1. ALIGN: align_m forward at align_speed (outdoors, GNSS on). EKF3 without a compass aligns yaw only from GPS
+         course or its GSF, which need > ~1.16 m/s (AP_NavEKF3_MagFusion.cpp:150-190), and uses GPS only after that;
+      2. OUT: out_m forward at `speed` (through the entrance into the building);
+      3. hold hold_s; 4. BACK: out_m in REVERSE at `speed` (same heading) to the end of the align run.
+    GNSS is switched OFF when the measured North position first exceeds gate_n (the entrance) and ON again when it
+    first falls below gate_n on the way back. Markers: 'OUTBACK ALIGN START', 'OUTBACK OUT START', 'OUTBACK BACK
+    START', 'OUTBACK END', 'GNSS OFF/ON t_sim'."""
+    msg = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=5.0)
+    att = master.recv_match(type='ATTITUDE', blocking=True, timeout=5.0)
+    if msg is None or att is None:
+        raise TrialFailure("no LOCAL_POSITION_NED/ATTITUDE at out-and-back start")
+    n0, e0, yaw0 = msg.x, msg.y, att.yaw
+    ta, to = align_m / align_speed, out_m / speed
+    T1, T2, T3 = ta, ta + to, ta + to + hold_s; total_s = T3 + to
+    n1, n2 = n0 + align_m, n0 + align_m + out_m
+    log(f"OUTBACK: align {align_m:.1f} m at {align_speed:.2f} m/s, then {out_m:.1f} m out and back at {speed:.2f} m/s; "
+        f"start N {n0:.2f} E {e0:.2f}, yaw {math.degrees(yaw0):.1f} deg, GNSS gate N = {gate_n:.1f} m, alt {alt_m:.2f} m")
+    t0 = sim_time_now_s(master); log(f"OUTBACK ALIGN START t_sim={t0:.3f}")
+    tw = time.time(); cap = total_s / MIN_ASSUMED_RTF + 120.0; phase = 0; gnss_on = True
+    while time.time() - tw < cap:
+        m = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=0.5)
+        if m is None:
+            continue
+        el = m.time_boot_ms / 1000.0 - t0
+        if el >= total_s:
+            break
+        if el < T1:
+            pn, vn = n0 + align_speed * el, align_speed
+        elif el < T2:
+            if phase < 1: phase = 1; log(f"OUTBACK OUT START t_sim={t0 + T1:.3f}")
+            pn, vn = n1 + speed * (el - T1), speed
+        elif el < T3:
+            pn, vn = n2, 0.0
+        else:
+            if phase < 2: phase = 2; log(f"OUTBACK BACK START t_sim={t0 + T3:.3f}")
+            pn, vn = n2 - speed * (el - T3), -speed
+        master.mav.set_position_target_local_ned_send(
+            0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            TYPE_MASK_POS_VEL_YAW, pn, e0, -alt_m, vn, 0, 0, 0, 0, 0, yaw0, 0)
+        if gnss_on and m.x > gate_n:
+            set_gnss(master, False); gnss_on = False
+        elif not gnss_on and phase == 2 and m.x < gate_n:
+            set_gnss(master, True); gnss_on = True
+    else:
+        raise TrialFailure(f"out-and-back did not complete within {cap:.0f} s wall-clock")
+    master.mav.set_position_target_local_ned_send(
+        0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        TYPE_MASK_POS_VEL_YAW, n1, e0, -alt_m, 0, 0, 0, 0, 0, 0, yaw0, 0)
+    if not gnss_on:
+        raise TrialFailure("GNSS never switched back on (the vehicle did not return past the gate)")
+    log(f"OUTBACK END t_sim={t0 + total_s:.3f}")
+
+
 def stop(master, settle_sim_s: float = 2.0) -> None:
     log(f"Stopping (holding zero velocity for {settle_sim_s:.1f}s sim time)...")
     start_sim_t = sim_time_now_s(master)
@@ -471,6 +538,9 @@ def main() -> int:
         if os.environ.get("LAPS"):          # experiments T/L: "n_laps,side_m,speed"; unset = the corridor cruise, unchanged
             n_, side_, v_ = os.environ["LAPS"].split(",")
             laps(master, int(n_), float(side_), float(v_), args.altitude)
+        elif os.environ.get("OUTBACK"):     # experiment O: "align_m,align_speed,out_m,speed,gate_n"
+            a_, as_, o_, v_, g_ = (float(x) for x in os.environ["OUTBACK"].split(","))
+            outback(master, a_, as_, o_, v_, g_, args.altitude)
         else:
             cruise(master, args.velocity, args.duration)
         stop(master)

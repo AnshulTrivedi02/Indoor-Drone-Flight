@@ -25,9 +25,11 @@ import gtsam
 from gtsam.symbol_shorthand import X
 from fgo_core import FGO
 from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_SIGMA_POS, TAG_SIGMA_YAW
+from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED, GNSS_ALIGN_N
 from imu_timing import dejitter_imu, apply_gap_rule
 
 TRIAL = sys.argv[1]; DO_BATCH = "--no-batch" not in sys.argv
+GNSS = "--gnss" in sys.argv      # experiment O (as room_ukf_replay.py --gnss); the yaw cap is kept throughout
 WINDOW, LM_ITERS = 0.25, 2
 D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_fgo"; os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -53,6 +55,9 @@ with Reader(f"{D}/bag") as r:
         else:
             q = m.pose.pose.orientation
             ev.append((tt, "tag", (m.pose.pose.position.x, m.pose.pose.position.y, 2 * math.atan2(q.z, q.w))))
+if GNSS:
+    _g = np.load(f"{D}/gnss.npz")
+    ev += [(float(t), "gnss", (e, n, ve, vn)) for t, e, n, ve, vn in zip(_g["t"], _g["E"], _g["N"], _g["vE"], _g["vN"])]
 ev = apply_gap_rule(ev, TRIAL); ev, dj = dejitter_imu(ev); ev.sort(key=lambda e: e[0])
 
 t_imu0 = next(t for t, k, _ in ev if k == "imu")
@@ -66,7 +71,7 @@ _gpj = f"{D}/imu_gaps.json"
 gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 gyro_avg = FlowFrameGyroAverager(t_init)
 omega = np.zeros(3); flow_omega = np.zeros(3); t_prev_imu = None
-flow_pend = rng_pend = tag_pend = None; anchored = False; t_anchor = None
+flow_pend = rng_pend = tag_pend = gnss_pend = None; anchored = False; t_anchor = None; n_fast = 0
 t_kf_next = t_init + fgo.kf_dt; traj = []; step_ns = []; n_fail = 0
 for tt, kind, d in ev:
     if tt < t_init:
@@ -78,6 +83,17 @@ for tt, kind, d in ev:
         rng_pend = d; gp.on_range(tt, d)
     elif kind == "flow":
         flow_pend = d; flow_omega = gyro_avg.average(tt, omega)
+    elif kind == "gnss":
+        if not anchored:
+            n_fast = n_fast + 1 if math.hypot(d[2], d[3]) > GNSS_ALIGN_SPEED else 0
+            if n_fast >= GNSS_ALIGN_N:
+                spd = math.hypot(d[2], d[3])
+                fgo.reanchor((d[0], d[1]), math.atan2(d[3], d[2]), GNSS_SIGMA_POS, math.asin(min(1.0, GNSS_SIGMA_VEL / spd)),
+                             vel_EN=(d[2], d[3]), sig_vel=GNSS_SIGMA_VEL, keep_yawcap=True)
+                fgo.gnss_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([GNSS_SIGMA_POS] * 2 + [GNSS_SIGMA_VEL] * 2))
+                anchored = True; t_anchor = tt
+        else:
+            gnss_pend = d
     elif kind == "tag":
         if not anchored:
             fgo.reanchor((d[0], d[1]), d[2], TAG_SIGMA_POS, TAG_SIGMA_YAW); anchored = True; t_anchor = tt
@@ -96,14 +112,14 @@ for tt, kind, d in ev:
                 _rpy = fgo.prev_pose.rotation().rpy()
                 flow_pend = (gp.replace(flow_pend[0], flow_omega - fgo.prev_bias.gyroscope(), _rpy[0], _rpy[1]), flow_pend[1], flow_pend[2])
             try:
-                fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend, tag=tag_pend)
+                fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend, tag=tag_pend, gnss=gnss_pend)
             except Exception as e:
                 n_fail += 1; print(f"[warn] keyframe at {t_kf_next:.3f} failed: {type(e).__name__}: {e}")
             step_ns.append(time.perf_counter_ns() - t0)
             t_lat, pose, vel = fgo.latest(); rpy = pose.rotation().rpy()
             if anchored:
                 traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2]))
-            flow_pend = rng_pend = tag_pend = None
+            flow_pend = rng_pend = tag_pend = gnss_pend = None
             t_kf_next += fgo.kf_dt
 
 
@@ -120,7 +136,8 @@ def write_rows(path, rows):
 
 
 write_rows(f"{OUT}/fgo_live.tum", traj)
-stats = {"t_anchor": t_anchor, "n_tag_factors": getattr(fgo, "n_tag", 0), "keyframe_failures": n_fail,
+stats = {"t_anchor": t_anchor, "n_tag_factors": getattr(fgo, "n_tag", 0), "n_gnss_factors": getattr(fgo, "n_gnss", 0),
+         "mode": "gnss" if GNSS else "tags", "keyframe_failures": n_fail,
          "step_median_ms": float(np.median(step_ns) / 1e6), "window_s": WINDOW, "lm_iters": LM_ITERS}
 if DO_BATCH and anchored:
     t0b = time.perf_counter()

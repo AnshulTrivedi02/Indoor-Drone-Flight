@@ -159,3 +159,23 @@ def tag_factor(noise, key_x, fix):
             H[0] = _jac_pose(err, pose, None, None, 3)
         return e
     return CustomFactor(noise, [key_x], efun)
+
+
+# ---------- GNSS (experiment O): 4-DOF on X(k), V(k) ----------
+def gnss_factor(noise, key_x, key_v, fix):
+    """Base_link (p_E, p_N, v_E, v_N) - the GNSS fix (measurement_models.h_gnss, the SAME model the UKF uses).
+    noise = diag(GNSS_SIGMA_POS x2, GNSS_SIGMA_VEL x2): EKF3's effective GPS noise."""
+    z = np.asarray(fix, float)
+
+    def err(pose, vel, bias):
+        t = pose.translation()
+        return np.array([t[0], t[1], vel[0], vel[1]]) - z
+
+    def efun(this, values, H):
+        pose = values.atPose3(key_x); vel = values.atVector(key_v)
+        e = err(pose, vel, None)
+        if H is not None:
+            H[0] = _jac_pose(err, pose, vel, None, 4)
+            H[1] = _jac_vec(err, pose, vel, None, 4)
+        return e
+    return CustomFactor(noise, [key_x, key_v], efun)
