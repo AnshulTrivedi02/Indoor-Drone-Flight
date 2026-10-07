@@ -34,6 +34,14 @@
    "max_step_after_return_m": 0.007526029298373663,
    "max_step_before_off_m": 0.007535000265425181
   },
+  "RTS-UKF (hindsight, cap-free forward pass)": {
+   "indoor_rmse_m": 0.9792412932291358,
+   "indoor_max_m": 1.5368404431273146,
+   "err_at_return_m": 0.007610662974671067,
+   "err_10s_after_return_m": 0.004963934331143493,
+   "max_step_after_return_m": 0.0075780053444184725,
+   "max_step_before_off_m": 0.007508001065527875
+  },
   "FGO live": {
    "indoor_rmse_m": 0.9748316505131257,
    "indoor_max_m": 2.8327499431623053,

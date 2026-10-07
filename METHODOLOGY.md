@@ -10435,3 +10435,16 @@ for 92% of the indoor segment.
 - **Fair-comparison statement:** with GNSS at both ends, the whole-flight FGO reconstructs the indoor segment about 2×
   better than the RTS-smoothed UKF and 2–4× better than the live tracks. As in T, the RTS-UKF here is a single-pass
   smoother, not an iterated one.
+- **CORRECTION CHECK, run AFTER the result above (both scores kept).**
+  - **The asymmetry:** the RTS-UKF smoothed a forward pass that kept the live-anchored pseudo-yaw. That is the same
+    circularity removed from the FGO batch before the O flights (`batch_drop_yawcap`). The RTS was therefore re-run on
+    a forward pass with the pseudo-yaw OFF after alignment (`room_ukf_replay.py --rts-no-yawcap`,
+    `room_ukf_rtsnocap/`); the live UKF is unchanged.
+  - **Result:** the cap-free RTS-UKF is **worse**: indoor RMSE 0.98 / 0.97 / 0.97 m (max 1.52–1.54), against
+    0.60–0.64 m with the cap. The cap was not what limited the smoother. Without it, the forward pass's yaw drifts
+    further and the single-pass smoother cannot recover it.
+  - **P-O3 fails either way:** FGO batch 0.33 m against RTS-UKF 0.60–0.64 (capped) or 0.97–0.98 (cap-free). The
+    "≈2× better than the RTS-smoothed UKF" statement uses the better (capped) RTS-UKF.
+- **Out-and-back observability (stated before flying, confirmed).** The live tracks' error is mostly lateral (yaw
+  drift) and peaks just before the exit. A constant yaw error cancels between the legs, so the endpoint GNSS sees only
+  the drift growth. The FGO batch still recovers a 0.33 m indoor RMSE.

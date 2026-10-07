@@ -55,7 +55,7 @@ while True:
     elif ty == "XKF4": k4.append((t, int(r.TS) & 1, r.OFN, r.OFE, (int(r.SS) >> 13) & 1))   # SS bit 13 = using_gps
     else: kfs.append((t, r.SS))
 tracks = {"EKF3 live": np.array(k1)}
-for name, p in (("UKF live", "room_ukf/ukf_live.tum"), ("RTS-UKF (hindsight)", "room_ukf/ukf_rts.tum"),
+for name, p in (("UKF live", "room_ukf/ukf_live.tum"), ("RTS-UKF (hindsight)", "room_ukf/ukf_rts.tum"), ("RTS-UKF (hindsight, cap-free forward pass)", "room_ukf_rtsnocap/ukf_rts.tum"),
                 ("FGO live", "room_fgo/fgo_live.tum"), ("FGO hindsight (whole-flight batch)", "room_fgo/fgo_batch.tum")):
     if os.path.exists(f"{D}/{p}"):
         x = np.loadtxt(f"{D}/{p}", ndmin=2); tracks[name] = x[:, :3]

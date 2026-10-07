@@ -25,9 +25,12 @@ from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_S
 from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED, GNSS_ALIGN_N
 
 TRIAL = sys.argv[1]; DO_RTS = "--no-rts" not in sys.argv
+RTS_NOCAP = "--rts-no-yawcap" in sys.argv   # O correction (2026-10-08): forward pass for the RTS with the pseudo-yaw OFF after
+#   the alignment (it anchors to the LIVE predicted yaw, which caps the filtered yaw variance and blocks the smoother, the
+#   same circularity removed from the FGO batch). Writes room_ukf_rtsnocap/; the live UKF (room_ukf/) is unchanged.
 GNSS = "--gnss" in sys.argv      # experiment O: GNSS fixes from <trial>/gnss.npz; yaw cap kept throughout (EKF3 in O has
 #                                  GSF yaw outdoors and no yaw source indoors, where it fuses its predicted yaw)
-D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf"; os.makedirs(OUT, exist_ok=True)
+D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else ""); os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
 ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/OpticalFlow"))
@@ -122,7 +125,7 @@ for t, kind, d in ev:
                 xp.append(x.copy()); Pp.append(P.copy()); Dc.append(Dk)
             else:
                 x, P = U.predict(x, P, da, dv, p, dt=acc_dt)
-            if (not anchored or GNSS) and t - t_yaw >= p['YAW_DT']:
+            if (not anchored or (GNSS and not RTS_NOCAP)) and t - t_yaw >= p['YAW_DT']:
                 if True:
                     x, P, fired = U.update_yaw_pseudo(x, P, p); n_yaw_fire += fired; t_yaw = t
             live_t.append(t); live_x.append(x.copy())
