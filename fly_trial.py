@@ -349,6 +349,31 @@ def cruise(master, velocity: float, duration_s: float, wall_clock_cap_s: float =
                         f"of {duration_s:.1f}s target)")
 
 
+def laps(master, n_laps: int, side_m: float, speed: float) -> None:
+    """Experiments T/L (2026-10-08): square laps N -> E -> S -> W at constant heading (velocity-only commands; yaw is
+    held), each leg side_m / speed SIM seconds, timed on the estimator-independent clock (sim_time_now_s, D24).
+    Logs 'LAP <k> LEG <j> START t_sim=<s>' markers (the pre-registered lap evaluation window) and 'LAPS END t_sim'."""
+    legs = [(speed, 0.0), (0.0, speed), (-speed, 0.0), (0.0, -speed)]     # (north, east) m/s
+    leg_s = side_m / speed
+    log(f"LAPS: {n_laps} laps of a {side_m:.2f} m square at {speed:.2f} m/s ({leg_s:.1f} s per leg)")
+    for k in range(n_laps):
+        for j, (vn, ve) in enumerate(legs):
+            t0 = sim_time_now_s(master); log(f"LAP {k} LEG {j} START t_sim={t0:.3f}")
+            tw = time.time(); cap = leg_s / MIN_ASSUMED_RTF + 60.0
+            while time.time() - tw < cap:
+                send_velocity(master, vn, ve, 0.0)
+                try:
+                    now = sim_time_now_s(master, timeout_s=0.5)
+                except TrialFailure:
+                    now = None
+                if now is not None and now - t0 >= leg_s:
+                    break
+                time.sleep(0.1)
+            else:
+                raise TrialFailure(f"lap {k} leg {j} did not complete within {cap:.0f} s wall-clock")
+    log(f"LAPS END t_sim={sim_time_now_s(master):.3f}")
+
+
 def stop(master, settle_sim_s: float = 2.0) -> None:
     log(f"Stopping (holding zero velocity for {settle_sim_s:.1f}s sim time)...")
     start_sim_t = sim_time_now_s(master)
@@ -406,7 +431,11 @@ def main() -> int:
             log("GROUND_TEST: disarm requested; ground test complete.")
             return 0
         wait_altitude(master, args.altitude)
-        cruise(master, args.velocity, args.duration)
+        if os.environ.get("LAPS"):          # experiments T/L: "n_laps,side_m,speed"; unset = the corridor cruise, unchanged
+            n_, side_, v_ = os.environ["LAPS"].split(",")
+            laps(master, int(n_), float(side_), float(v_))
+        else:
+            cruise(master, args.velocity, args.duration)
         stop(master)
         land(master)
     except TrialFailure as e:

@@ -1,0 +1,12 @@
+# Experiments T/L (2026-10-08): EKF3 fuses AprilTag fixes as ExternalNav (tag_bridge.py, ODOMETRY on SERIAL1), with
+# optical flow (VELXY 5) and rangefinder height (POSZ 2) in the SAME source set (verified in source: AID_ABSOLUTE once a
+# tag arrives; flow keeps fusing; METHODOLOGY "T design"). Loaded AFTER gnss_denied_nomag.parm.
+VISO_TYPE 1             # MAVLink visual odometry (AP_VisualOdom_MAV)
+EK3_SRC1_POSXY 6        # ExternalNav (the tag fixes)
+EK3_SRC1_YAW 6          # ExternalNav yaw (tag yaw). YAW 0 would leave yaw never aligned (filter unhealthy in AID_ABSOLUTE)
+VISO_YAW_M_NSE 0.05     # rad; with EKF3's 5 deg floor the effective yaw sigma is 5 deg (the heading-path setting)
+VISO_POS_M_NSE 0.05     # m; = sent sigma_pos (tag characterisation: central-third fixes p95 40 mm at 2.26 m), so effective = 0.05
+VISO_QUAL_MIN 0
+VISO_DELAY_MS 10        # PLACEHOLDER until measured (minimum capture -> receipt latency, the D2 rule)
+ARMING_CHECK 786430     # all checks (bits 1-19) EXCEPT 18 VisualOdometry: the downward camera cannot see a tag on the
+                        # ground (it is below the floor plane at rest); simulator truth flies these trials

@@ -131,6 +131,15 @@ CLEANED_UP=0
 # build's eeprom.
 AP_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot}"
 declare -a SERIAL1_ARG=()
+# Optional TAG_BRIDGE=1 (experiments T/L, 2026-10-08; unset = unchanged): tag_bridge.py (~/venv-tags, pupil_apriltags)
+# detects AprilTags in the downward camera and sends the condition subset (TAG_IDS, e.g. "0" or "0,1,2,3" or "all")
+# as ExtNav ODOMETRY to SITL SERIAL1 (udpclient 127.0.0.1:14557, the heading-bridge path); /tags/raw and /tags/sent
+# are recorded. TAG_SIGMA_POS (m) sets the sent position error. Mutually exclusive with HEADING_BRIDGE (same port).
+if [ -n "${TAG_BRIDGE:-}" ]; then
+    [ -z "${HEADING_BRIDGE:-}" ] || { echo "ERROR: TAG_BRIDGE and HEADING_BRIDGE share SERIAL1" >&2; exit 1; }
+    : "${TAG_IDS:?TAG_IDS required with TAG_BRIDGE}" "${TAG_SIGMA_POS:?TAG_SIGMA_POS required with TAG_BRIDGE}"
+    SERIAL1_ARG=(--serial1=udpclient:127.0.0.1:14557)
+fi
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     [ "$FWD_CAMERA" = true ] || { echo "ERROR: HEADING_BRIDGE needs a forward-camera world" >&2; exit 1; }
     : "${HEADING_SIGMA_DEG:?HEADING_SIGMA_DEG required with HEADING_BRIDGE}" "${HEADING_EVERY_N:?HEADING_EVERY_N required with HEADING_BRIDGE}"
@@ -341,6 +350,15 @@ start_bg "$LOG_DIR/imu_bridge.log" \
 
 wait_for "/imu/data_raw publishing" "ros2 topic list 2>/dev/null | grep -q /imu/data_raw" 60
 
+if [ -n "${TAG_BRIDGE:-}" ]; then
+    start_bg "$LOG_DIR/tag_bridge.log" \
+        env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
+        "$HOME/venv-tags/bin/python" "$HOME/thesis_ws/tag_bridge.py" \
+        --ros-args -p use_sim_time:=true -p tag_ids:="$TAG_IDS" -p sigma_pos_m:="$TAG_SIGMA_POS" \
+        -p log_path:="$LOG_DIR/tag_bridge.csv"
+    wait_for "tag_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/tag_bridge.log'" 60
+fi
+
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     SHIM="$HOME/.cache/thesis_pyshim"; mkdir -p "$SHIM"
     ln -sfn "$(ls -d "$HOME"/venv-ardupilot/lib/python3*/site-packages)/pymavlink" "$SHIM/pymavlink"
@@ -386,6 +404,7 @@ setsid ros2 bag record \
     /optical_flow/measurement \
     "${FWD_RECORD_TOPICS[@]}" \
     ${EXTRA_RECORD_TOPICS:-} \
+    $([ -n "${TAG_BRIDGE:-}" ] && echo /tags/raw /tags/sent) \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!
 disown
@@ -467,6 +486,7 @@ ardupilot_gazebo_commit: $AG_COMMIT
 ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
+[ -n "${TAG_BRIDGE:-}" ] && echo "tag_bridge: {tag_ids: \"${TAG_IDS}\", sigma_pos_m: ${TAG_SIGMA_POS}}" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${FGO_NODE:-}" ] && echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${FGO_HEADING_ROBUST:-}" ] && echo "fgo_heading_robust: ${FGO_HEADING_ROBUST}  # plan step 2(b)" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${LOOPBACK_ONLY:-}" ] && echo "loopback_only: true  # GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> "$OUTPUT_DIR/metadata.yaml"
