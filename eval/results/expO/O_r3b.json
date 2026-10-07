@@ -1,0 +1,92 @@
+{
+ "trial": "O_r3b",
+ "markers_bag_s": {
+  "OUTBACK ALIGN START": 30.09715347929394,
+  "OUTBACK OUT START": 40.09929194523616,
+  "GNSS OFF": 80.13585179670966,
+  "OUTBACK BACK START": 143.12131814444098,
+  "GNSS ON": 203.21916711705478,
+  "OUTBACK END": 243.14270280386313
+ },
+ "indoor_s": 123.08331532034512,
+ "tracks": {
+  "EKF3 live": {
+   "indoor_rmse_m": 1.4261968179253368,
+   "indoor_max_m": 3.5322747514525763,
+   "err_at_return_m": 3.5322747514525763,
+   "err_10s_after_return_m": 0.03497115358928204,
+   "max_step_after_return_m": 4.097477742239563,
+   "max_step_before_off_m": 0.051086483925324576
+  },
+  "UKF live": {
+   "indoor_rmse_m": 0.6432945192034408,
+   "indoor_max_m": 1.7498228290641575,
+   "err_at_return_m": 1.7508956351867278,
+   "err_10s_after_return_m": 0.02035383867512504,
+   "max_step_after_return_m": 1.7124803065089538,
+   "max_step_before_off_m": 0.008464555983627591
+  },
+  "RTS-UKF (hindsight)": {
+   "indoor_rmse_m": 0.6016991280018591,
+   "indoor_max_m": 1.216450661247872,
+   "err_at_return_m": 0.017863269560202632,
+   "err_10s_after_return_m": 0.005482960470459666,
+   "max_step_after_return_m": 0.007535011214325503,
+   "max_step_before_off_m": 0.007530005378483283
+  },
+  "FGO live": {
+   "indoor_rmse_m": 1.171646835697886,
+   "indoor_max_m": 3.310096290884619,
+   "err_at_return_m": 3.310096290884619,
+   "err_10s_after_return_m": 0.13614640235022166,
+   "max_step_after_return_m": 2.8762562708877315,
+   "max_step_before_off_m": 0.0185952951576478
+  },
+  "FGO hindsight (whole-flight batch)": {
+   "indoor_rmse_m": 0.3295635976989236,
+   "indoor_max_m": 0.6323840493695866,
+   "err_at_return_m": 0.005738904501279395,
+   "err_10s_after_return_m": 0.003438281479001992,
+   "max_step_after_return_m": 0.018087000000001296,
+   "max_step_before_off_m": 0.018121000248331385
+  }
+ },
+ "ekf3": {
+  "source_set_changes": [
+   [
+    5.2573697118236025,
+    1
+   ],
+   [
+    14.859123575187999,
+    0
+   ],
+   [
+    84.47457441939683,
+    1
+   ],
+   [
+    207.50089655454917,
+    0
+   ]
+  ],
+  "posTimeout_frac_indoor": 0.9179528838342811,
+  "last_reset_delta_after_return_NE_m": [
+   0.0,
+   0.0
+  ],
+  "origin_EN": [
+   -0.0024290836966584495,
+   -14.974999126604239
+  ]
+ },
+ "gates": {
+  "G1": true,
+  "G2": true,
+  "G3_using_gps_5s_before_off": 1.0,
+  "G3": true,
+  "G4_room_ukf": true,
+  "G4_room_fgo": true,
+  "PASS": true
+ }
+}

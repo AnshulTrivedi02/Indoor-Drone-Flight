@@ -10394,3 +10394,44 @@ returns immediately on re-enable.
   cancels between the two legs (it depends on the world velocity direction). GNSS at both ends therefore constrains the
   indoor yaw drift only through its growth over time (the SITL gyro-z drift ramp: ~11° over 123 s for the FGO live).
   The hypotheses stay as ruled.
+
+### Experiment O RESULT (`eval/results/expO/`): H-O1 PASSES 3/3; H-O2 and P-O3 FAIL as worded; EKF3 jumps ~4.1 m at GNSS return
+
+**Flights.** O_r1, O_r2 and O_r3b. O_r3 was IMU-gap unusable: a 69-sample receipt bunch at 18.2 s, 6.3 s before
+arming, with nothing else running. It is kept as `O_r3_IMUGAP` and was re-flown unchanged as O_r3b. All gates G1–G4
+pass. Indoors (GNSS OFF→ON) lasts 123 s. EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s, and `posTimeout` was set
+for 92% of the indoor segment.
+
+| flight | track | indoor RMSE (m) | indoor max | error at GNSS return | +10 s | largest step in 10 s after return |
+|---|---|---|---|---|---|---|
+| O_r1 | EKF3 live | 1.42 | 3.52 | 3.53 | 0.03 | **4.10** |
+| | UKF live | 0.63 | 1.69 | 1.69 | 0.02 | 1.66 |
+| | RTS-UKF (hindsight) | 0.64 | 1.29 | 0.02 | 0.00 | 0.01 |
+| | FGO live | 0.97 | 2.83 | 2.83 | 0.11 | 2.47 |
+| | FGO hindsight (whole-flight batch) | **0.33** | 0.63 | 0.00 | 0.00 | 0.02 |
+| O_r2 | EKF3 live | 1.42 | 3.53 | 3.54 | 0.03 | **4.10** |
+| | UKF live | 0.64 | 1.72 | 1.72 | 0.02 | 1.69 |
+| | RTS-UKF | 0.61 | 1.23 | 0.02 | 0.01 | 0.01 |
+| | FGO live | 1.01 | 2.92 | 2.92 | 0.12 | 2.54 |
+| | FGO batch | **0.33** | 0.64 | 0.01 | 0.00 | 0.02 |
+| O_r3b | EKF3 live | 1.43 | 3.53 | 3.53 | 0.03 | **4.10** |
+| | UKF live | 0.64 | 1.75 | 1.75 | 0.02 | 1.71 |
+| | RTS-UKF | 0.60 | 1.22 | 0.02 | 0.01 | 0.01 |
+| | FGO live | 1.17 | 3.31 | 3.31 | 0.14 | 2.88 |
+| | FGO batch | **0.33** | 0.63 | 0.01 | 0.00 | 0.02 |
+
+- **H-O1 (PRIMARY): PASS, 3/3.** FGO batch indoor RMSE 0.33 m, below EKF3 live (1.42) and UKF live (0.63–0.64).
+- **H-O2 (live errors similar, ≤ 1.5×): FAIL, 3/3.** The ratios are 2.2–2.3×. EKF3's indoor error is about twice the
+  UKF's, with the live FGO in between (0.97–1.17).
+- **P-O3 (FGO batch vs RTS-UKF within 1.5×): FAIL, 3/3.** RTS-UKF 0.60–0.64 m against FGO batch 0.33 m (ratio ~1.9).
+  The RTS-UKF removes the error at the exit (0.02 m) but barely improves the indoor RMSE over the live UKF. This is the
+  same single-pass limitation as in T: it cannot re-attribute the indoor yaw drift.
+- **The EKF3 jump at GNSS return, as required:** a largest single step of **4.10 m** in every flight, against EKF3's
+  error of 3.53 m just before return. It overshoots, consistent with the two back-to-back resets the source trace
+  predicted: a source-change reset, then the `posTimeout` reset with (12.5 m)² variance.
+  - `XKF4.OFN/OFE` reads 0 after the second reset, as predicted. The jump is measured from the `XKF1` discontinuity.
+  - The UKF and FGO have no reset; they converge in about 10 s (0.02 and 0.11–0.14 m at +10 s), with the largest
+    single step 1.7 m (UKF) and 2.5–2.9 m (FGO live).
+- **Fair-comparison statement:** with GNSS at both ends, the whole-flight FGO reconstructs the indoor segment about 2×
+  better than the RTS-smoothed UKF and 2–4× better than the live tracks. As in T, the RTS-UKF here is a single-pass
+  smoother, not an iterated one.

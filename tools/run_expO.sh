@@ -4,8 +4,8 @@ set -u
 cd "$(dirname "$0")/.."
 EO=$(grep -Ev '^\s*(#|$)' o_gnss.parm | awk '{printf "%s%s=%s", (NR>1?",":""), $1, $2}')
 mkdir -p batches/expO
-for rep in 1 2 3; do
-  name="O_r${rep}"; conf="batches/expO/${name}.conf"
+for rep in ${REPS:-1 2 3}; do
+  name="O_r${rep}${SUFFIX:-}"; conf="batches/expO/${name}.conf"
   echo "outdoor_indoor  0.5  2.0  60  ${name}" > "$conf"
   LOOPBACK_ONLY=1 GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST OUTBACK=15,1.5,50,0.5,20 \
     EXTRA_PARM_FILES="$HOME/thesis_ws/o_gnss.parm" EXPECT_OVERRIDE="$EO" \
