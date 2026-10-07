@@ -1,0 +1,77 @@
+{
+ "tags": [
+  {
+   "id": 0,
+   "x": -3,
+   "y": -3,
+   "z": 0.001,
+   "yaw_deg": 0.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 1,
+   "x": -3,
+   "y": 3,
+   "z": 0.001,
+   "yaw_deg": 30.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 2,
+   "x": 3,
+   "y": 3,
+   "z": 0.001,
+   "yaw_deg": -45.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 3,
+   "x": 3,
+   "y": -3,
+   "z": 0.001,
+   "yaw_deg": 90.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 4,
+   "x": -3,
+   "y": 0,
+   "z": 0.001,
+   "yaw_deg": 15.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 5,
+   "x": 0,
+   "y": 3,
+   "z": 0.001,
+   "yaw_deg": -20.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 6,
+   "x": 3,
+   "y": 0,
+   "z": 0.001,
+   "yaw_deg": 60.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  },
+  {
+   "id": 7,
+   "x": 0,
+   "y": -3,
+   "z": 0.001,
+   "yaw_deg": -75.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4
+  }
+ ],
+ "frame": "room/world ENU (Gazebo world frame); tag yaw = rotation of the tag image about +z"
+}

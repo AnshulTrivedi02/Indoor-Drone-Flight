@@ -367,6 +367,8 @@ echo "--- Full stack up ---"
 
 # ── Recording ─────────────────────────────────────────────────────────────
 echo ""
+# Optional EXTRA_RECORD_TOPICS="topic1 topic2 ..." (experiments T/L/O, 2026-10-08): extra topics appended to the bag
+# (e.g. /downward_camera/image for a world check, /tags/*, /gnss/*). Unset = the recorded set is unchanged.
 echo "--- Starting bag recording ---"
 set +e
 setsid ros2 bag record \
@@ -383,6 +385,7 @@ setsid ros2 bag record \
     /imu/time_ref \
     /optical_flow/measurement \
     "${FWD_RECORD_TOPICS[@]}" \
+    ${EXTRA_RECORD_TOPICS:-} \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!
 disown

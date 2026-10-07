@@ -1,0 +1,223 @@
+<?xml version="1.0" ?>
+<!-- Experiments T/L (user ruling 2026-10-08): room-sized world for AprilTag fixes (assumed 10 x 10 m until the mocap
+       room is confirmed). Physics, plugins, lighting and the drone are copied from corridor_textured.sdf unchanged.
+       Floor: one 20 x 20 m textured_ground_visual tile (same checker as the corridors) + exactly ONE ground_collision.
+       Walls: 4 plain boxes, 3 m tall, enclosing x, y in [-5, 5] m. Tags: tag36h11 ids 0-7, 0.5 m (0.4 m black square),
+       at the corners and edge midpoints of the 6 m lap square (x, y in {-3, 0, 3}); tag yaws vary (known, below).
+       Spawn: (-3, -3) (the SW corner, over tag 0), yaw 90 deg = ArduPilot North = room +y. -->
+<sdf version="1.9">
+  <world name="room_tags">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.363262</latitude_deg>
+      <longitude_deg>149.165237</longitude_deg>
+      <elevation>584</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="axes">
+      <static>1</static>
+      <link name="link">
+        <visual name="r">
+          <cast_shadows>0</cast_shadows>
+          <pose>5 0 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>10 0.01 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 0.8</ambient>
+            <diffuse>1 0 0 0.8</diffuse>
+            <emissive>1 0 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="g">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 5 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 10 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <emissive>0 1 0 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <visual name="b">
+          <cast_shadows>0</cast_shadows>
+          <pose>0 0 5.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.01 10</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 0.8</ambient>
+            <diffuse>0 0 1 0.8</diffuse>
+            <emissive>0 0 1 0.8</emissive>
+            <specular>0.5 0.5 0.5 0.8</specular>
+          </material>
+        </visual>
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- Spawn margin pad: fills the knife-edge at y=0 where the drone
+         spawns exactly on floor_tile_0's near boundary — the downward
+         LiDAR's single ray occasionally missed geometry entirely at that
+         exact edge (reproducible: `ranges: inf` at y=0, valid at y=1, see
+         CLAUDE.md Known Issues). Extends the floor 4 m behind spawn
+         (y=-4..0) plus 1 m of overlap with floor_tile_0 (y=0..1), so
+         there's always solid, well-margined floor under the spawn point
+         regardless of sub-mm pose jitter. Same checker material as
+         textured_ground (texture reused via its model:// URI, not
+         duplicated), 1 mm below floor_tile_0's surface (z=-0.001) so the
+         overlap always resolves to floor_tile_0's texture, not a
+         z-fighting flicker. -->
+
+    <!-- Floor: 8x 20x20 m textured_ground tiles tiled along Y, covering y:0..160 -->
+    <include>
+      <name>floor</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://ground_collision</uri>
+    </include>
+    <model name="wall_0">
+      <static>true</static>
+      <pose>0 5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10.4 0.2 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>10.4 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_1">
+      <static>true</static>
+      <pose>0 -5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10.4 0.2 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>10.4 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_2">
+      <static>true</static>
+      <pose>5.1 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10.4 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 10.4 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_3">
+      <static>true</static>
+      <pose>-5.1 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10.4 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 10.4 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <include>
+      <name>tag_0</name>
+      <uri>model://apriltag36h11_0</uri>
+      <pose>-3 -3 0.001 0 0 0.000000</pose>
+    </include>
+    <include>
+      <name>tag_1</name>
+      <uri>model://apriltag36h11_1</uri>
+      <pose>-3 3 0.001 0 0 0.523599</pose>
+    </include>
+    <include>
+      <name>tag_2</name>
+      <uri>model://apriltag36h11_2</uri>
+      <pose>3 3 0.001 0 0 -0.785398</pose>
+    </include>
+    <include>
+      <name>tag_3</name>
+      <uri>model://apriltag36h11_3</uri>
+      <pose>3 -3 0.001 0 0 1.570796</pose>
+    </include>
+    <include>
+      <name>tag_4</name>
+      <uri>model://apriltag36h11_4</uri>
+      <pose>-3 0 0.001 0 0 0.261799</pose>
+    </include>
+    <include>
+      <name>tag_5</name>
+      <uri>model://apriltag36h11_5</uri>
+      <pose>0 3 0.001 0 0 -0.349066</pose>
+    </include>
+    <include>
+      <name>tag_6</name>
+      <uri>model://apriltag36h11_6</uri>
+      <pose>3 0 0.001 0 0 1.047198</pose>
+    </include>
+    <include>
+      <name>tag_7</name>
+      <uri>model://apriltag36h11_7</uri>
+      <pose>0 -3 0.001 0 0 -1.308997</pose>
+    </include>
+    <include>
+      <uri>model://iris_with_ardupilot</uri>
+      <pose degrees="true">-3 -3 0.195 0 0 90</pose>
+    </include>
+
+  </world>
+</sdf>
