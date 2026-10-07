@@ -224,6 +224,17 @@ def wait_ready_to_arm(master, wall_clock_cap_s: float = None) -> None:
     t0 = time.time()
     last_reason = None
     while time.time() - t0 < wall_clock_cap_s:
+        # 2026-10-08 fix: after ensure_params' fix-and-reboot, the GUIDED request above can land while SITL is still
+        # rebooting ("System not initialised"); the reboot then completes in STABILIZE and the take-off is ignored
+        # (tag_check1b). Re-assert GUIDED before every arm attempt if the heartbeat shows another mode (a no-op when
+        # already GUIDED, so a flight that never rebooted sends exactly the same arm commands as before).
+        hb = master.recv_match(type='HEARTBEAT', blocking=True, timeout=2.0)
+        if hb is not None and (hb.get_srcSystem() != master.target_system or hb.type == mavutil.mavlink.MAV_TYPE_GCS):
+            hb = None                                    # only the vehicle's own heartbeat counts
+        if hb is not None and hb.custom_mode != (master.mode_mapping() or {}).get('GUIDED', 4):
+            log(f"Mode is {hb.custom_mode}, not GUIDED: re-asserting GUIDED before arming")
+            master.set_mode_apm('GUIDED')
+            continue
         master.mav.command_long_send(
             master.target_system, master.target_component,
             mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0,
