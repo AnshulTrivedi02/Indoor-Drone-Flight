@@ -10203,3 +10203,85 @@ pre-registration's tag-5 fix; not a T result):
 | RTS-UKF | 0.017 m |
 | FGO live | 0.016 m |
 | FGO batch | 0.012 m |
+
+
+### Experiment T: flights, the IMU-gap rule, and a process slip (recorded BEFORE any hypothesis was evaluated)
+
+- **All 12 flights flew and passed G1–G3**: 5 laps each; `VISP` = `/tags/sent` in every flight, 0 ignored; every
+  subset tag in every lap; max fix error vs GT 0.058–0.068 m and ≤ 0.21°.
+- **One aborted start, a code bug.** `T_D_r1` attempts 1–2 aborted before take-off: `-p tag_ids:=0` reached the node
+  as an INTEGER, and the node crashed on its type check. The bridge now declares the parameter with dynamic typing;
+  committed before the successful T_D_r1. No other condition was affected.
+- **PROCESS SLIP (mine), disclosed.** I ran the UKF/FGO replays concurrently with the flights. Six FGO replays at
+  ~330% CPU each (GTSAM/BLAS threads) loaded the machine during the r2 flights and A_r3/B_r3. The standing IMU-gap rule
+  (`eval/imu_gap_check.py --write`) marks **six flights unusable**:
+  - T_A_r2, T_B_r2, T_C_r2, T_D_r2, T_B_r3: an IMU irregularity after arming;
+  - T_A_r3: only 6.0 s of clean IMU before arming.
+
+  The six usable flights (A_r1, B_r1, C_r1, C_r3, D_r1, D_r3) were all flown without concurrent load.
+  - **Correction:** the six are re-flown unchanged (`tools/run_expT_refly.sh`) with nothing else on the machine. The
+    old directories are kept as `<name>_IMUGAP`. Their EKF3-only numbers are not used.
+  - **Rule kept from now on:** no replay or other heavy job while any flight runs. Replays run single-threaded
+    (`OMP/OPENBLAS/MKL/TBB_NUM_THREADS=1`).
+- **The same load also corrupted the latency clock map.** The VISP receipt − capture minimum came out negative
+  (−15 to −19 ms) on A_r2, B_r2 and C_r2, which is impossible; the `/imu/time_ref` lower envelope was distorted under
+  load. On the clean flights the minimum is 17.5–26.6 ms (median 33–36 ms), against `VISO_DELAY_MS 15`. That is ≤ 12 ms
+  shorter than measured, about 6 mm at 0.5 m/s, against σ_pos 50 mm. Reported; nothing changed mid-experiment.
+- **FGO replay cost.** The gate-only covariance recursion (`log_cov`) is needed only for the re-anchor prior. It is now
+  switched off after the re-anchor: computation only, the smoother is untouched. The live FGO step is ~19 ms median
+  (diagnostic, workstation Python).
+- **The six re-flown trials** (A_r2, B_r2, C_r2, D_r2, A_r3, B_r3; nothing else running) are all IMU-gap `ok` and pass
+  G1–G3. G4: both replays completed on all 12, with 0 FGO keyframe failures.
+
+### Experiment T RESULT (`eval/t_aggregate.py`, `eval/results/expT/`): H-T1 PASSES; P-T2, P-T3, P-T4 FAIL as worded
+
+Horizontal RMSE over the lap window, world frame, no alignment (m):
+
+| flight | EKF3 live | UKF live | FGO live | RTS-UKF (hindsight) | FGO hindsight (whole-flight batch) |
+|---|---|---|---|---|---|
+| T_A_r1 | 0.039 | 0.036 | 0.019 | 0.013 | 0.011 |
+| T_A_r2 | 0.039 | 0.036 | 0.018 | 0.014 | 0.012 |
+| T_A_r3 | 0.041 | 0.038 | 0.018 | 0.014 | 0.011 |
+| T_B_r1 | 0.056 | 0.065 | 0.026 | 0.031 | 0.012 |
+| T_B_r2 | 0.054 | 0.064 | 0.028 | 0.031 | 0.014 |
+| T_B_r3 | 0.056 | 0.065 | 0.028 | 0.030 | 0.013 |
+| T_C_r1 | 0.075 | 0.103 | 0.054 | 0.093 | 0.019 |
+| T_C_r2 | 0.071 | 0.104 | 0.062 | 0.090 | 0.022 |
+| T_C_r3 | 0.075 | 0.106 | 0.058 | 0.090 | 0.022 |
+| T_D_r1 | 0.093 | 0.192 | 0.125 | 0.260 | 0.034 |
+| T_D_r2 | 0.106 | 0.188 | 0.119 | 0.251 | 0.034 |
+| T_D_r3 | 0.089 | 0.188 | 0.120 | 0.263 | 0.032 |
+
+Median gap per condition: A 4.3 s, B 10.1 s, C 22.0 s, D 46.3 s. EKF3's `horiz_pos_abs` inside the gaps is A 1.00,
+B 0.05, C 0.05, D 0.05: from B onwards EKF3 times out (> 10 s) in almost every gap and fuses the next fix ungated.
+
+- **H-T1 (PRIMARY): PASS.** The FGO hindsight gain per gap (live mean error − whole-flight-batch mean error) has
+  condition medians of A 0.005, B 0.015, C 0.025 and D 0.050 m, strictly increasing. Spearman ρ(gap length, gain) =
+  +0.47, p = 3e-13, n = 213 gaps. **The FGO's hindsight advantage grows with the gap, as hypothesised.**
+- **P-T2: FAIL.** The RTS-UKF gain medians are A +0.021, B +0.036, C −0.007 and D −0.126 m (ρ = −0.16). In C and D
+  the RTS-smoothed UKF is **worse** than the live UKF.
+  - **Diagnosis (T_D_r1, recorded before the hypotheses were evaluated):** the smoothed yaw sits −4 to −5° off for most
+    of the flight. The live yaw error is 0–3°, and the smoothed track is exact at the fixes but 0.56 m off mid-gap.
+  - **Not a numerical fault:** solving the gain on the diagonally scaled covariance (kept as hardening) changed the
+    RMSE by < 1 mm.
+  - It is the single-pass unscented RTS, which linearises about the filter's estimates once and never relinearises. With
+    46 s gaps and 5° yaw fixes, it attributes the unmodelled flow-scale error (~6%, see the lateral check) to yaw.
+  - With dense fixes it works: in A, 0.014 m against 0.037 m live.
+  - **Consequence for the fair comparison:** "a filter plus a backward smoother also revises the past" holds for
+    dense fixes (A, B). Over long gaps this one-pass smoother does not reach the batch solution. An iterated smoother
+    (relinearising, i.e. Gauss–Newton over the whole trajectory) would be the stronger fair comparison; it is
+    effectively what the batch FGO is. Stated, not built.
+- **P-T3 (live within 1.5×): FAIL.** max/min ratios are A 2.15, B 2.33, C 1.80, D 1.97.
+  - The FGO live is lowest in A–C, by 2.1–2.3× in A and B.
+  - In D (46 s gaps) EKF3 is lowest: 0.096 against FGO 0.121 and UKF 0.189.
+  - The UKF is highest in B–D.
+- **P-T4 (FGO batch vs RTS-UKF within 1.5×): FAIL** from B on (A 1.23, B 2.34, C 4.26, D 7.78), for the reason above.
+- **Repeatability:** the three repeats of each condition agree within 0.008 m for every track.
+- **What T does and does not show:**
+  - The ruling's hypothesis holds: the whole-flight FGO's advantage over its own live estimate grows with gap length,
+    from 5 mm at 4 s gaps to 50 mm at 46 s gaps.
+  - This is FGO hindsight against FGO live. Against the fair hindsight comparison, the batch FGO beats this RTS-UKF
+    everywhere, but the RTS-UKF is a single-pass smoother. The result does not establish that factor graphs revise the
+    past better than filter + iterated smoother would.
+  - Live errors are not similar: the FGO live is best with frequent fixes, EKF3 best with the sparsest fixes, and the
+    UKF worst with sparse fixes.

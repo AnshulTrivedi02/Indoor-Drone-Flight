@@ -152,7 +152,10 @@ def rts_smooth(xa, Pa, xp, Pp, D):
     (xp[i+1], Pp[i+1]) with cross-covariance D[i+1]. Returns smoothed (xs, Ps) per node."""
     n = len(xa); xs = xa.copy(); Ps = Pa.copy()
     for i in range(n - 2, -1, -1):
-        G = np.linalg.solve(Pp[i+1].T, D[i+1].T).T          # D Pp^-1
+        # G = D Pp^-1, solved on the diagonally scaled (correlation) matrix: Pp spans ~1e-14 (delta-form bias states)
+        # to ~1 (yaw), so the unscaled solve is ill-conditioned (T_D_r1: RTS-UKF worse than the live UKF, 2026-10-08)
+        sc = np.sqrt(np.clip(np.diag(Pp[i+1]), 1e-300, None))
+        G = np.linalg.solve((Pp[i+1] / np.outer(sc, sc)).T, (D[i+1] / sc[None, :]).T).T / sc[None, :]
         xs[i] = xa[i] + G @ _state_residual(xs[i+1], xp[i+1])
         for j in _ANG:
             xs[i, j] = _wrap(xs[i, j])

@@ -81,6 +81,8 @@ for tt, kind, d in ev:
     elif kind == "tag":
         if not anchored:
             fgo.reanchor((d[0], d[1]), d[2], TAG_SIGMA_POS, TAG_SIGMA_YAW); anchored = True; t_anchor = tt
+            fgo.log_cov = False     # the gate-only covariance recursion was needed only for the re-anchor prior; it never
+            #                         touches the smoother (fgo_core), and costs ~45 ms/keyframe
         else:
             tag_pend = d                              # the newest fix since the last keyframe
     elif kind == "imu":
