@@ -10448,3 +10448,60 @@ for 92% of the indoor segment.
 - **Out-and-back observability (stated before flying, confirmed).** The live tracks' error is mostly lateral (yaw
   drift) and peaks just before the exit. A constant yaw error cancels between the legs, so the endpoint GNSS sees only
   the drift growth. The FGO batch still recovers a 0.33 m indoor RMSE.
+
+### Experiment L: pre-registration (written before any L result; the V-L replays were started minutes earlier, no output read)
+
+**Question.** With AprilTags at UNKNOWN positions, does a keyframe FGO that re-identifies tags (loop closure) bound
+its drift over laps, compared with the same FGO without re-identification?
+- This is an **FGO capability**, not an FGO-vs-filter result. The filters have no loop-closure equivalent without a
+  different design (e.g. EKF-SLAM with the tags in the state).
+- Tag ids make re-identification trivial, so this tests whether the estimator *uses* loop closures, not place
+  recognition.
+
+**Estimator, labelled "keyframe FGO (loop closure)"** (`src/estimators/fgo/lc_fgo_replay.py`), separate from the thesis
+FGO:
+- **Before the first sighting of the gauge tag (tag 0):** the thesis FGO, unchanged.
+- **At the first sighting:** re-anchor (as T) to the vehicle's measured pose in tag 0's frame (tag 0 = origin, tight
+  prior), and start a **retained-history graph solved by plain iSAM2** (QR, no marginalisation, defaults otherwise).
+- **Keyframe selection:** the thesis 30 Hz IMU-clock keyframes, all retained. The flow, IMU and range information is
+  identical to the thesis FGO's.
+- **Factors:** CombinedImuFactor (every IMU sample), flow, range, and **no yaw cap** after the anchor (as T; in a
+  retained-history graph the live-anchored cap is circular).
+- **Tag landmarks:** L_j = (x, y, yaw) of a tag on the floor. The flat-floor assumption (z, roll, pitch known) is
+  stated.
+  - **Measurement:** the vehicle (x, y, yaw) in the tag frame, from `tag_measure.vehicle_pose` with the tag at the
+    origin. It carries the same information as a T fix: σ 0.05 m / 5°, the central-third rule (the centre from
+    projecting t_cam_tag), all detections in `/tags/raw`.
+  - Landmarks are initialised from the current estimate and the inverse measurement.
+- **Live** = the newest keyframe after each iSAM2 update. **Hindsight** = every keyframe after a final LM polish
+  (≤ 20 iterations) over the whole graph.
+- **No-LC comparison:** the identical estimator, but a new landmark for every pass over a tag (a pass ends after > 1 s
+  without a sighting). The only difference is re-identification.
+
+**Smoke test** (60 s of T_A_r1, before this pre-registration): 4.4 ms median / 19 ms p99 per keyframe, 0 failures.
+The landmarks matched the map in tag 0's frame: tag 4 at (−0.003, 3.029) m, 14.8° against 15°; tag 1 at (0.005,
+6.034) m, 29.7° against 30°. Live 0.069 m / hindsight 0.035 m RMSE over 60 s. **Fallback, if a full flight is
+infeasible:** periodic batch solves, with "live" = the latest solve (labelled).
+
+**V-L validation (no revisits):** `dsn_tex_r1` (corridor, 300 s cruise, no tags).
+- The keyframe FGO with `--no-tags` starts its retained graph at the first keyframe from the thesis initial state,
+  with the thesis factors **including the yaw cap**. The solver and retained history are then the only differences.
+- Scored with the standing **evo -a (cruise)** metric (`eval/three_way_eval.py --est`).
+- **PASS iff its live ATE is within ±20% of the thesis FGO's live ATE on the same bag** (thesis configuration, re-run
+  fresh as `fgo_baseline/`).
+
+**Flights and scoring.** L uses T_A_r1, T_A_r2 and T_A_r3. `/tags/raw` does not depend on the T condition, and all 8
+tags are detected. Both modes run on each flight.
+- **Frame:** tag 0's frame; the scorer maps ground truth into it with the known map (tag 0 at (−3, −3), yaw 0). This is
+  the scorer only; the estimator never sees the map.
+- **Window:** the lap window (`eval/tag_score.py`'s rule).
+- **Metrics:** horizontal RMSE overall and **per lap** (laps 1–5), live and hindsight, per mode.
+
+**Hypotheses (3 flights):**
+- **H-L1 (PRIMARY): loop closure bounds live drift.** For LC live, the lap-5 RMSE is ≤ 1.5 × the lap-1 RMSE in 3/3
+  flights.
+- **H-L2:** LC live overall RMSE < no-LC live overall RMSE in 3/3 flights.
+- **H-L3:** LC hindsight overall RMSE < no-LC hindsight overall RMSE in 3/3 flights.
+- **P-L4 (prediction):** no-LC live per-lap RMSE grows: lap 5 > 1.5 × lap 1 in 3/3 flights.
+
+A V-L failure stops L before H-L1–P-L4 are scored, and is reported.
