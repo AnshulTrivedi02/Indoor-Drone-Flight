@@ -12269,3 +12269,13 @@ failure stops the sequence.
 - **S2 PASS:** `XFGO.OV` 100 % from arming to contact; age max **163 ms** (original 172); 0 wrapped.
 - The driver stopped on the breach by design. For the no-heading flight, contact is the pre-registered expected
   outcome, so the sequence continues with the heading set.
+
+### FGO re-flight `cl_fgo_b_tex_r1_half_v2` (heading, corrected FGO) RESULT: ALL B criteria PASS (`eval/results/closed_loop_cl_fgo_b_tex_r1_half_v2.json`)
+- **B1:** completed, no breach; max |x| 0.112 m (original 0.059).
+- **B2:** max |x| in cruise 0.089 m (original 0.059).
+- **B3:** FGO heading error p95 **0.325°**, max **0.397°**, mean 0.235°. The original was p95 0.259°, max 1.441°,
+  mean 0.051°: the corrected FGO's heading is offset slightly more but without the original's 1.44° excursion.
+- **B4:** max lateral speed 0.008 m/s.
+- **B5:** PASS.
+- **S2:** output valid 100 %.
+- **Heading:** 2279 sent, 2204 with quality ≥ 50 (original 2199).
