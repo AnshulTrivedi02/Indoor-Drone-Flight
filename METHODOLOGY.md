@@ -12319,3 +12319,64 @@ failure stops the sequence.
 - The drift stays in the inherent attitude-only range (ruling 2026-10-09).
 - **All FGO closed-loop re-flights are done:** the no-heading flight, the heading set ×3, and safety (a) and (b), all
   PASS. Next, per the ruled order: the model audit, then the consolidated offline re-run.
+
+### MODEL AUDIT RESULT (`docs/handovers/2026-10-09_model_audit.md`, merged `62fcaa6`) and RULINGS (user, 2026-10-09)
+**Audit findings** (effective behaviour, each estimator's own code on the same recorded IMU, against the analytic
+growth from the stated densities; flag > 2×):
+- **EKF3 and the corrected FGO match on every process-noise quantity** (0.94–1.09×). The per-sample measurement noise
+  is consistent for all three: flow 0.25 rad/s, range 0.5 m, heading 5°, tag yaw 5°, tag position 0.02 m (H) and
+  0.05 m (T). All 8670 H fixes carried PErr 0.02 and AErr 5°.
+- **UKF covariance jitter (GENUINE).** Both builds add 1e-12·I to P before the Cholesky (`ukf_core.py:54`,
+  `AP_NavUKF.cpp:117-121`), and the unscented transform carries it into every predicted covariance.
+  - On the delta-form gyro bias that is ~20× (15 ms, offline) and ~41× (12.5 ms, port) the stated per-step
+    random-walk variance (2.4e-14 / 5.1e-14).
+  - The effective gyro-bias random walk is 24.7× / 42×. Free-inertial tilt and yaw variance are ×4.1 / ×6.3 at 10 s.
+  - With the term removed, the UKF matches the analytic growth within 1 %.
+- **FGO yaw cap NOT variance-gated (GENUINE, against its own design).** The σ 0.5 rad cap is added at every keyframe
+  (`fgo_core.py`, `fgo_core.cpp:123-125`), whereas FGO_DESIGN §9.4 states EKF3's gated mechanism. Free-inertial yaw
+  variance is ×0.82 (10 s) and ×0.37 (60 s) of the others'.
+- **Flow and range fusion rates (STRUCTURAL):** EKF3 fuses flow at 15.1 Hz and range at 16 Hz. The UKF and FGO fuse
+  both at 30 Hz with the same per-sample σ.
+- **EKF3's position-variance hold** (1e4 m²): structural, irrelevant at flight scale.
+
+**Rulings:**
+1. **UKF jitter: a MODEL CORRECTION under D18.**
+   - **Fix:** both builds identically, with the guard applied only on factorisation failure or scaled to the
+     covariance, so that normal propagation matches the analytic noise.
+   - **Verify:** both builds within the audit's 0.94–1.09 band; port-vs-offline equivalence re-checked.
+   - **Re-fly with the corrected UKF:**
+     - the half-speed corridor set (no heading ×1, heading ×3);
+     - S2;
+     - UKF safety (a) and (b).
+   - The old runs stay recorded and labelled.
+   - The full-speed UKF set stays as recorded with the old model, labelled, unless time allows.
+2. **FGO yaw cap: GATED like EKF3's and the UKF's,** per FGO_DESIGN §9.4.
+   - **Classification:** a correction of the implementation to its stated design, not a copied design feature.
+   - It is folded into the FGO fix before S3 and the FGO re-flights, and into the consolidated re-run.
+   - C++-vs-Python equivalence is re-checked.
+   - **After the re-run:** the closed-loop heading weight (D27 item 3) and the F3 prior-induced lockout are
+     re-measured, reporting whether either changes.
+3. **Flow fusion rate:** EKF3's 15 Hz flow fusion is recorded as EKF3 design under D18, as for range. The results
+   state that **the UKF and FGO fuse ~2× the flow (and range) information per second.**
+4. **Process slip recorded:** a scratch copy wrote a byte-identical `OpticalFlow.msg` into the stale worktree
+   `agent-aee89b7f42eabced3` through a leftover symlink in an old scratch HOME. **Agents remove leftover symlinks to
+   stale worktrees.**
+
+**Order:**
+1. implement and verify fixes 1 and 2;
+2. S3 (corrected C++ FGO);
+3. the S1 flight-3 re-fly;
+4. the UKF re-flights (S2, the half-speed corridor set, safety a/b);
+5. the FGO re-flights (the half-speed corridor set, safety a/b);
+6. then the consolidated offline re-run with ALL corrections (UKF derotation and jitter, FGO noise and yaw cap),
+   EKF3 unchanged;
+7. the confirmatory EKF3-vs-FGO test with its original decision rule;
+8. old against new; restate before the 16 Oct freeze;
+9. **if time runs short, the user is told before anything is cut.**
+
+**Status against that order, stated:**
+- S3 (`H_s3_r*`), the S1 flight-3 re-fly (`H_s1far_r3b`) and the FGO re-flights (`cl_fgo_*_v2`,
+  `H_safety_fgo_*_v2`) were ALREADY flown, with the noise-fix-only FGO, before this ruling.
+- `H_s1far_r3b` (EKF3 flying) needs nothing more.
+- **S3 and the FGO re-flights are flown AGAIN with the noise + yaw-cap FGO.** The noise-fix-only runs stay recorded,
+  labelled "FGO noise fix only (yaw cap ungated)".
