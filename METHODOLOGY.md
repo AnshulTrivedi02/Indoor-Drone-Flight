@@ -11108,7 +11108,7 @@ late-message wait within the 250 ms limit (0.10 s fallback), and FC-clock IMU ti
 - **Rule A: applied as pre-registered.** If the FC state age with the 0.20 s late-message wait can exceed 250 ms, the
   wait becomes 0.10 s and the reason is recorded.
 
-### H SITL GROUND TESTS (2026-10-08, `H_gt_fgo`, `H_gt_ukf`): BOTH FAILED. The FGO vehicle crashed; the watcher stopped it correctly. Mechanisms found from the logs
+### H SITL GROUND TESTS (2026-10-08, `H_gt_fgo`, `H_gt_ukf`): BOTH FAILED. The FGO vehicle crashed; the watcher stopped it correctly. Mechanisms established from the logs (FGO: direct; UKF: from logs and timing)
 Profile `batches/expH/wtest_profile.json`: `wait_fix` → move → hold 60 s, flown on the backend under test
 (`AHRS_EKF_TYPE 13` FGO / `12` UKF), port tree `~/ardupilot_ukf` at `eb86bada`. Fail-closed watcher active (heartbeat
 confirmed before arming in both).
@@ -11121,12 +11121,22 @@ the port's handling of a stale output is unsafe.** Timeline (dataflash, SITL clo
    - **The controller handled the reset as designed:** the position target moved with the estimate (PSCN target
      −1.42 m immediately after).
    - **There was no transient from the anchor:** GT tilt stayed 1.0–2.4° from 28.95 s until 30.10 s.
-2. **The node fell behind.** Python step time (node stats):
-   - median 40.9 ms on the ground and 42.0 ms in the climb;
-   - **55.9 ms after the anchor** (tag factors added);
-   - against the 33.3 ms keyframe period.
-   The queue lag rose from 0.16 s to 0.44 s. The FC state age (`XFGO.Age`) rose ~0.17 s/s, from ~170 ms at the anchor
-   to **253 ms at 30.06 s**, over the 250 ms limit, so **`OV` went 0** and stayed 0.
+2. **The node was over its budget from the start; the anchor pushed it over the limit.** Python step time (node
+   stats), against the 33.3 ms keyframe period:
+   - **already over budget before the anchor:** median 40.9 ms on the ground and 42.0 ms in the climb, with a queue
+     lag of 0.22–0.36 s and an FC state age (`XFGO.Age`) of ~135 ms on the ground and ~200 ms in the climb;
+   - **55.9 ms after the anchor** (tag factors added).
+   The lag rose to 0.44 s. The age rose ~0.17 s/s to **253 ms at 30.06 s**, over the 250 ms limit, so **`OV` went 0**
+   and stayed 0.
+   - **This contradicts the earlier "p95 33.6 ms after the anchor"** (S2/S3 backends section and the S3 plan). That
+     figure came from the node core fed an OFFLINE bag stream. This is the first LIVE run of the Python node with tags
+     (333 Hz IMU callbacks in Python, the full room-world stack), and it is ~1.4× slower. The offline figure
+     understated the live load.
+   - **Concurrency:** the input-path agent was active during the ground tests, but only with reads, greps, one
+     dataflash parse and a bag copy, and no replays. Its first heavy job (`apin_extract`) started at 20:48:14 AEDT,
+     after `H_gt_fgo` ended (20:46:23). The node was over budget from its first keyframe, before any of that.
+   - **Context for Rule A (rule unchanged):** with the Python node live, the FC state age is ~200 ms in flight even
+     before the anchor, so the 250 ms limit leaves ~50 ms for the late-message wait plus any step-time growth.
 3. **What the controller received when the output went invalid (port defects, not node defects):**
    - **(a) Attitude froze.** `AP_AHRS_FGO::get_results` returns early with `attitude_valid = false`, but
      `AP_AHRS::update` still calls `copy_estimates_from_backend_estimates` with the stale struct. There is no DCM
@@ -11142,6 +11152,9 @@ the port's handling of a stale output is unsafe.** Timeline (dataflash, SITL clo
    - **The watcher stopped the flight at tilt 60.6° > 60°** (SIGTERM to `fly_trial.py` and `run_trial.sh`; the log was
      copied). The watcher behaved exactly as designed.
    - **It could not have saved a real vehicle:** LAND also flies on the frozen attitude.
+   - **The UKF adapter has the same code path** (`AP_AHRS_UKF::get_results`: the same early return; AHRS copies the
+     stale struct). Its trigger is rarer: the onboard UKF's output is invalid only on a non-finite state
+     (`NavUKF::compute_output`), with no age gate. A UKF divergence would freeze attitude the same way.
 
 **`H_gt_ukf`: no ExtNav records (0 `VISP`, 0 `XUKT`). Cause: a SITL soft reboot changed SERIAL1's UDP source port,
 and the tag bridge kept sending to the old port.**
@@ -11157,21 +11170,35 @@ and the tag bridge kept sending to the old port.**
 - **Only this ground test rebooted.** `H_s1_r1..r3` and `H_gt_fgo` show no reboot, and their ExtNav worked.
 - **Not caught before takeoff:** the `wait_fix` gate runs after takeoff, so the UKF flew with no fix, timed out and
   landed safely.
-- **Status:** the cause is inferred from the logs and consistent with every record. It will be confirmed by the
-  bridge fix plus a forced-reboot re-run (VISP count = sent count after the reboot).
+- **Timing check (wall clock):**
+  - The bridge got its heartbeat at 20:41:52.95. The pre-reboot boot's log (`00000033.BIN`) was last written at
+    20:42:05.14, so the heartbeat came **before** the reboot.
+  - The bridge's first fix was sent at 20:42:58.8, after the reboot, and so were all 2097 fixes.
+- **Status: cause established from the logs and the timing.** The bridge fix will be verified by a forced-reboot
+  re-run (VISP count = sent count after the reboot).
 
 **Proposed fixes (design; ruling item 2 + the defects above), all before any S2/S3 flight:**
 1. **Frame anchoring before arming (ruled).** At the hold point on the ground the tag is out of view: the camera
    needs ≥ 1.5 m of vertical coverage at 23.4° half-VFOV. Planned changes:
-   - **Spawn** at N_W ≈ −3.7 m (world y ≈ 1.3 m), where the whole tag is in view from the ground (camera-to-tag
-     ~3.7 m).
+   - **Spawn** at N_W ≈ −3.9 m (world y ≈ 1.1 m). The tag's top edge needs a camera-to-tag horizontal distance of
+     ≥ 1.5/tan 23.4° ≈ 3.47 m, i.e. vehicle N_W ≤ −3.62 m; −3.9 m gives ~0.3 m of margin. The camera-to-tag range
+     is then ~4.0 m.
+   - **A DEVIATION from the S2/S3 profile:** a flown move of ~2.4 m to the hold point is added before the measured
+     segments. Check that the occluder's rest pose does not block the view from the new spawn.
    - **A pre-arm gate:** no arming until every backend has anchored (EKF3 "using external nav", UKF `XUKT` anchor
      row, FGO `XFGR`) and the FC sees valid fixes (VISP count tracks the sent count).
    - The range is outside S0a's characterised 0.9–2.8 m, so **the pre-arm fix error against GT at the spawn is
      measured and pre-registered** in the re-run.
    - Both backends anchor on the first fix whether armed or not (`NavUKF::tag_reanchor`; `fgo_node_core`), so no
      backend change is needed for this.
-2. **Stale/invalid output must not freeze attitude or zero position (port fix).**
+2. **Stale/invalid output must not freeze attitude or zero position (port fix; NEW SCOPE, a proposal for ruling).**
+   - **Root cause:** the 250 ms age gate invalidates the attitude as well as the position. Two options:
+     - **(i) Preferred:** keep the attitude from the FC output predictor valid (it is IMU-propagated every loop from
+       the last state, so it does not go stale the way position does). Gate only position/velocity on age. Then
+       treat lost position as an estimator failure → LAND on height + attitude. This mirrors EKF3, whose attitude
+       never goes invalid with position.
+     - **(ii)** Fall back to DCM attitude on invalid output.
+   - Either way:
    - On invalid output, AHRS falls back to DCM attitude.
    - The vehicle lands with the estimator-independent vertical path. This needs an `ekf_check`-equivalent trigger
      that does not depend on an origin: give the port backends an origin at the anchor, or add an explicit
