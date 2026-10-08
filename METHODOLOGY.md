@@ -11015,3 +11015,45 @@ results below once run.
   deleted, the other coding agent's `BUILD_LOCK` (a waf build) for about 1 minute. **No flight ran in that window.**
   - Fixed: `heavy.py` now waits on any existing lock and creates its own with `O_EXCL`.
   - The other agent was told to create its lock exclusively and remove only its own.
+
+### H S2/S3 backends: tag-fix input (pre-registered bands at `abdb7b2`, before any comparison; details `docs/h_backends_tag_input.md`)
+
+- **UKF port** (`~/ardupilot_ukf`, branch `ukf-port-tag`, commit `eb86bada`; `AHRS_UKF_EXTPOS`, default 0 =
+  unchanged):
+  - ExtNav POSITION fusion on the D17 path, with EKF3's timing and noise;
+  - first-fix re-anchor (position and yaw), later fixes ungated, pseudo-yaw off after the anchor (the T/H rule);
+  - **reset reporting** through EKF3's two reset queries.
+- **FGO node** (`fgo_node.py`/`fgo_node_core.py`, parameter `tags`, default false; `tag_sigma_pos_m` 0.02):
+  - handles tag fixes as `room_fgo_replay.py` does; after the anchor it sends the state in W (ENU → NED);
+  - it increments ODOMETRY `reset_counter` at the anchor, and `AP_NavFGO` reports it as a reset.
+- **Why reset reporting is needed to fly:** without it, the GUIDED target would not be shifted at the ~1.5 m anchor
+  step. EKF3 avoided that in S1 only because its reset is reported.
+- **Results:**
+
+  | check | result |
+  |---|---|
+  | **UKF tier A** (port harness on the offline UKF's event stream) | **FAIL as worded**: UA1 3.6 mm against a 1 mm band, UA3 accel bias, UA5 |
+  | UKF tier A, diagnostic (offline Q substituted in the harness, port source unchanged) | all bands pass (max 3.2e-8 m) |
+  | UKF tier B (Replay of `H_s1_r1`) | UB1–UB5 PASS; the UB6 prediction holds |
+  | UKF regression UR1 (`AHRS_UKF_EXTPOS 0`) | PASS, byte-identical |
+  | FGO node FN1–FN3 | PASS (byte-identical to the stored live track) |
+  | FGO node FN4 (causal inputs) | PASS (p95 2.5 mm) |
+  | FGO regression FR1 | PASS |
+
+  - **Cause of the tier-A failure:** the first difference is at a plain predict at 18.7 s, before any tag. The offline
+    UKF scales Q by DT_REF/dt (D27) at its 15 ms step; the port uses EKF3's form at 12.5 ms.
+  - **Ruling queued:** accept on the diagnostic, or re-register UA with the D27 form in the harness.
+- **Finding (relevant to the S1 open finding):** on ArduPilot's own inputs (`H_s1_r1` Replay), the **UKF port drifts
+  7–19 mm** in the tag losses, EKF3's scale. The offline UKF on the bridged inputs drifted 28–292 mm. The tier-A
+  diagnostic shows the tag code is equivalent, so the gap points to the **input path** (the bridged IMU/flow
+  streams), not the UKF formulation. Not yet attributed to a single input; S2 will show it.
+- **FGO node step after the anchor:** median 29.8 ms, p95 33.6 ms, against the 33 ms keyframe budget (pre-anchor
+  18 ms). A real-time margin risk for S3, stated.
+- **Open:**
+  - the reset path and the FGO frame switch are not yet exercised live (SITL ground-test checks are in
+    `docs/h_backends_tag_input.md` §5);
+  - `h_ukf_tag.parm` is not yet wired into a launcher.
+- **Process:** the agent's worktree branch started from the unrelated `main` root and was hard-reset to `fwd-camera`
+  before any work. Its simulator check initially matched its own command lines; that caused refusals only, never a run
+  alongside a simulator, and is fixed. Its lock wrapper uses an exclusive create with an owner tag and removes only its
+  own lock (checked).

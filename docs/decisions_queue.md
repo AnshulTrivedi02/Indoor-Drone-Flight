@@ -359,3 +359,14 @@ Details for every item are in METHODOLOGY.
   forward from index 0.
 - **Recommendation: confirm these as comparison fixes, not criterion changes.**
 
+
+### D29. UKF port tag input: tier A failed as worded (D27 Q form), queued 2026-10-08
+- **Pre-registered tier A** (port harness on the offline UKF's event stream): FAIL as worded (UA1 3.6 mm against a
+  1 mm band; UA3 accel bias; UA5).
+- **Diagnostic** (the offline D27 Q substituted in the harness; port source unchanged): passes by 4–5 orders of
+  magnitude. The first difference is at a plain predict before any tag. The offline UKF scales Q by DT_REF/dt at 15 ms
+  steps (D27); the port uses EKF3's form at 12.5 ms.
+- **Tier B** (Replay of `H_s1_r1`, the port's real path): PASS.
+- **Options:**
+  - **(a)** accept the port on tier B + the diagnostic (tier A recorded as failed as worded, cause identified);
+  - **(b)** re-register tier A with the D27 Q form in the harness and re-run before S2.
