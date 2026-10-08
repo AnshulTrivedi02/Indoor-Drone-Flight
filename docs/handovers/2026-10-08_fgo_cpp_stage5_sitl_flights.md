@@ -4,6 +4,32 @@
 `worktree-agent-ad3a9c56cd2a4135a`, based on `fwd-camera` `8dfe675`; it is not merged.
 **For:** the main session, which flies.
 
+## RULING NEEDED BEFORE THE FLIGHTS LAND: Rule B (IMU time base) will almost certainly return "indistinguishable"
+
+Check (b)'s pre-registered primary metric is δ_att, the roll/pitch time shift against ground truth on separate
+flights. On a3 a single flight cannot locate it:
+- the two halves of a3 give −23.0 and +37.5 ms;
+- the RMS rises only about 0.0009° at ±20 ms from the minimum.
+
+So R = max(5 ms, |δ(iii) − δ(a3)|) will very likely be tens of ms. Rule B would then say "indistinguishable; keep
+time_ref" whatever the truth is, and the user's question would not be answered.
+
+**This agent has NOT amended the rule.** It has already seen a3's same-bag paired replay (time_ref −3.5 ms, causal
++6.0 ms; the live and replay causal results agreed to 1.5 ms), so an amendment written by this agent would look
+result-driven. The pre-registration was also partly on the advice that the cross-flight shift be primary; a3 shows
+that only same-bag pairing removes the within- and between-flight variation.
+
+Options for the main session or the user to rule on, **before** the flight data are scored:
+- **(a)** Make the same-bag paired replay primary. Each of the four bags is replayed through
+  `fgo_cpp_live_replay` in both modes (the `--replay-pair` rows, already computed below). A consistency rule is
+  needed, for example "time_ref has the smaller |δ_att| on at least 3 of 4 bags, else indistinguishable".
+- **(b)** Keep δ_att, but high-pass or detrend the roll/pitch error and fit only the climb, start-of-cruise and stop
+  segments. This needs a code change and a re-check on a3 first.
+- **(c)** Keep Rule B as registered and accept "indistinguishable".
+
+The flights do not depend on this ruling. The scoring commands below already compute the paired replay on all four
+bags as report rows, so any of (a)–(c) can be applied to them.
+
 ## State (stage 4, done)
 
 | commit | content |
@@ -70,10 +96,11 @@ Each flight is about 6–7 minutes of wall-clock time.
 ```
 cd ~/thesis_ws
 H="python3 src/estimators/fgo_cpp/tools/heavy.py"; P=$HOME/venv-fgo/bin/python; C=eval/fgo_cpp_sitl_check.py
-$H "score i"   -- $P $C score fgo_cpp_shadow_i   --json eval/results/fgo_cpp_sitl_i.json
-$H "score ii"  -- $P $C score fgo_cpp_shadow_ii  --json eval/results/fgo_cpp_sitl_ii.json --replay-pair $HOME/opt/fgo_cpp/bin
-$H "score iii" -- $P $C score fgo_cpp_shadow_iii --json eval/results/fgo_cpp_sitl_iii.json
-$H "score a3"  -- $P $C score fgo_shadow_half_a3 --json eval/results/fgo_cpp_sitl_a3.json
+R="--replay-pair $HOME/opt/fgo_cpp/bin"   # same-bag paired replay on every bag (report rows; see the ruling above)
+$H "score i"   -- $P $C score fgo_cpp_shadow_i   --json eval/results/fgo_cpp_sitl_i.json   $R
+$H "score ii"  -- $P $C score fgo_cpp_shadow_ii  --json eval/results/fgo_cpp_sitl_ii.json  $R
+$H "score iii" -- $P $C score fgo_cpp_shadow_iii --json eval/results/fgo_cpp_sitl_iii.json $R
+$H "score a3"  -- $P $C score fgo_shadow_half_a3 --json eval/results/fgo_cpp_sitl_a3.json  $R
 $P $C decide --i eval/results/fgo_cpp_sitl_i.json --ii eval/results/fgo_cpp_sitl_ii.json \
   --iii eval/results/fgo_cpp_sitl_iii.json --a3 eval/results/fgo_cpp_sitl_a3.json --json eval/results/fgo_cpp_sitl_decision.json
 ```
@@ -103,7 +130,11 @@ How the script handles bags and timing:
 
 ## Open items
 
-- The δ_att identifiability concern above. It is a diagnostic only, and the rules are unchanged.
+- The Rule B ruling at the top.
+- **Check (a) reports wrapped ages.** A future-stamped state wraps `XFGO.Age` to about 4.29e9 (the D25 failure
+  mode). Rule A still uses the literal maximum. The script also reports `n_age_wrapped` and
+  `max_excluding_wrapped`, and `decide` warns if any wrap occurred. That is parsing only. If it fires, the
+  'max Age' is a clock-map fault, not staleness, so report it as that.
 - Whether AP_NavFGO accepts the C++ node's ODOMETRY live has not been tested. A void or empty `XFGI` in (i)
   answers it.
 - The flight results, the verdicts and the METHODOLOGY entry are for the next stage. Write them after

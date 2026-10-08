@@ -679,3 +679,8 @@ pre-registration).** The run included the packed-bag scratch copy (sha256 verifi
 The minimum is therefore poorly located for a single flight. Rule B's resolution R = max(5 ms, |(iii) − a3|) is
 the guard: if (iii) and a3 disagree by tens of ms, the pre-registered verdict will be "indistinguishable; keep
 time_ref". The diagnostics `diag_rms_rise_at_pm20ms_deg` and `diag_delta_halves_ms` are reported with every fit.
+
+**Wrapped ages (parsing only, changes no rule).** Check (a) also reports `n_age_wrapped` (`XFGO.Age` ≥ 2³¹: a
+state stamped in the future wraps the uint32 age, D25) and the maximum excluding those samples. `decide` warns when
+any are present. Rule A still uses the literal maximum. One synthetic `decide` case and the counting expressions
+are unit-checked; on a3: 0 wrapped.

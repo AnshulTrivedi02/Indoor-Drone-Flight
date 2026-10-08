@@ -133,7 +133,11 @@ def check_a(D):
                      "max": float(age.max()) if len(age) else None,
                      "frac_over_250ms": float(np.mean(age > AGE_MAX_MS)) if len(age) else None,
                      "frac_output_invalid_OV0": float(np.mean(inv)) if len(inv) else None,
-                     "longest_OV0_span_s": longest}
+                     "longest_OV0_span_s": longest,
+                     # parsing only, changes no rule (Rule A uses the literal max above): a state stamped in the
+                     # future wraps the uint32 age to ~4.29e9 (D25); count those and give the max without them
+                     "n_age_wrapped": int(np.sum(age >= 2 ** 31)),
+                     "max_excluding_wrapped": float(age[age < 2 ** 31].max()) if np.any(age < 2 ** 31) else None}
     wi = (I[:, 0] >= t0) & (I[:, 0] <= t1)
     lat = 1e3 * (I[wi, 0] - I[wi, 1]); gaps = 1e3 * np.diff(I[wi, 0])
     res["arrival"] = {"n_states": int(wi.sum()), "latency_ms_median": pct(lat, 50), "latency_ms_p95": pct(lat, 95),
@@ -321,6 +325,10 @@ def decide(a):
                      "verdict": None if mx is None else ("adopt 0.10 s (max Age > 250 ms)" if mx > AGE_MAX_MS else "keep 0.20 s"),
                      "flight_ii_max_age_ms": J["ii"]["a"].get("age_ms", {}).get("max"),
                      "reason_figures_i": J["i"]["a"].get("age_ms"), "figures_ii": J["ii"]["a"].get("age_ms")}
+    wr = {k: J[k]["a"].get("age_ms", {}).get("n_age_wrapped") for k in J}
+    if any(wr.values()):
+        out["rule_A"]["WARNING_age_wrapped"] = (f"wrapped (future-stamped, negative) ages present {wr}: the literal max is "
+                                                "a wrap, not staleness; see max_excluding_wrapped (the rule is unchanged)")
     m2 = out["rule_A"]["flight_ii_max_age_ms"]
     if m2 is not None and m2 > AGE_MAX_MS:
         out["rule_A"]["note"] = "neither delay keeps the age within the 250 ms budget at all times (to the main session)"
