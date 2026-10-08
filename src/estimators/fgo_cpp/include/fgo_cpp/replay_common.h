@@ -3,6 +3,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <map>
 #include <memory>
 #include <tuple>
@@ -53,6 +54,10 @@ class Runner {
   Runner(const ReplayConfig& cfg, bool own_averager);
   void on_event(const double* row);   // one EV_COLS row
   ReplayResult finish();              // runs the whole-flight batch if configured
+  void set_arm(double t_arm) { gp_.set_arm(t_arm); }   // live: arming time on the header clock (rule D15)
+  std::function<void(const double* row)> on_keyframe;  // called with every KF_COLS keyframe row (live output)
+  bool keep_rows = true;              // false (live): do not accumulate keyframe rows / step times
+  long long last_step_ns = 0;         // step time of the latest keyframe (set before on_keyframe is called)
 
  private:
   void keyframes_due(double tt);
@@ -105,6 +110,14 @@ class StreamFrontEnd {
   // bag sensors, 1 = external measurement sources (forward camera, GNSS), as the replays order them
   void push(const double* row, int rank = 0);
   ReplayResult finish();
+  void set_arm(double t_arm);            // live arming time (header clock); before init it goes into the config
+  void reset_estimator();                // live IMU-gap re-initialisation: drop the estimator, keep the reorder buffer
+  bool initialised() const { return runner_ != nullptr; }
+  long long last_step_ns() const { return runner_ ? runner_->last_step_ns : 0; }
+  std::function<void(const double* row)> on_keyframe;   // forwarded to the runner (live output)
+  bool keep_released = true;             // false (live): do not keep the released stream
+  bool have_last_rng = false;            // last VALID range released (for the live validity rule's "airborne")
+  double last_rng = NAN;
   const std::vector<double>& released() const { return released_; }   // the processed stream, as released
   const ReplayConfig& config() const { return cfg_; }                  // with the init inputs filled in
   double max_lateness = 0;               // largest (newest stamp seen - stamp) at arrival

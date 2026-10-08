@@ -259,7 +259,8 @@ void Runner::keyframes_due(double tt) {
       std::fprintf(stderr, "[warn] keyframe at %.3f failed: %s\n", t_kf_next_, e.what());
     }
     const auto t1 = std::chrono::steady_clock::now();
-    res_.step_ns.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+    last_step_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    if (keep_rows) res_.step_ns.push_back(last_step_ns);
     const Pose3& P = fgo_.prev_pose;
     const gtsam::Matrix3 R = P.rotation().matrix();
     double row[KF_COLS];
@@ -281,7 +282,8 @@ void Runner::keyframes_due(double tt) {
     row[35] = fgo_.n_tag - nt0; row[36] = fgo_.n_gnss - ng0;
     row[37] = anchored_ ? 1 : 0;
     row[38] = room ? res_.n_fail - nfail0 : 0; row[39] = room ? res_.n_fail : 0;
-    res_.kf_rows.insert(res_.kf_rows.end(), row, row + KF_COLS);
+    if (on_keyframe) on_keyframe(row);
+    if (keep_rows) res_.kf_rows.insert(res_.kf_rows.end(), row, row + KF_COLS);
     have_flow_ = have_fwd_ = have_tag_ = have_gnss_ = false;
     rng_pend_ = NAN;
     t_kf_next_ += fgo_.kf_dt;
@@ -378,6 +380,20 @@ std::vector<double> offline_imu_timing(const std::vector<double>& raw, const Rep
 StreamFrontEnd::StreamFrontEnd(const ReplayConfig& cfg, double reorder_delay) : cfg_(cfg), delay_(reorder_delay) {}
 StreamFrontEnd::~StreamFrontEnd() = default;
 
+void StreamFrontEnd::reset_estimator() {   // fgo_node_core._reset_filter: the queue survives, the filter restarts
+  runner_.reset();
+  pre_.clear();
+  have_imu0_ = have_rng_ = level_done_ = false;
+  have_last_rng = false;
+  last_rng = NAN;
+}
+
+void StreamFrontEnd::set_arm(double t_arm) {
+  cfg_.has_arm = true;
+  cfg_.t_arm = t_arm;
+  if (runner_) runner_->set_arm(t_arm);
+}
+
 void StreamFrontEnd::push(const double* row, int rank) {
   std::array<double, EV_COLS> e;
   std::copy(row, row + EV_COLS, e.begin());
@@ -395,7 +411,8 @@ void StreamFrontEnd::push(const double* row, int rank) {
 
 void StreamFrontEnd::release(const std::array<double, EV_COLS>& e) {
   t_last_released_ = std::max(t_last_released_, e[1]);
-  released_.insert(released_.end(), e.begin(), e.end());
+  if (keep_released) released_.insert(released_.end(), e.begin(), e.end());
+  if (static_cast<int>(e[0]) == RNG && 0.05 <= e[2] && e[2] <= 40.0) { have_last_rng = true; last_rng = e[2]; }
   if (runner_) {
     runner_->on_event(e.data());
     return;
@@ -420,6 +437,8 @@ void StreamFrontEnd::try_init() {
   cfg_.accel_mean = Vector3(acc[0] / na, acc[1] / na, acc[2] / na);
   cfg_.t_init = t_imu0_ + 0.5;
   runner_.reset(new Runner(cfg_, /*own_averager=*/true));
+  runner_->on_keyframe = on_keyframe;
+  runner_->keep_rows = keep_released;
   for (const auto& e : pre_) runner_->on_event(e.data());
   pre_.clear();
 }

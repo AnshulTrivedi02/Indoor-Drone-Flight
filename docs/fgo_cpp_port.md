@@ -374,3 +374,64 @@ step.
 - **Not ported.** The offline F-test variants (F1 robust heading, F3 injected yaw, F_MASK /
   F_HDG_FROM_CRUISE) and the diagnostic covariance-log output. The recursion itself is ported.
 - **Experiment T.** Six stored room_fgo results predate `imu_gaps.json` (see the finding above).
+
+---
+
+# Part 3: live ROS 2 / MAVLink adapter (started 2026-10-08, coding only, no simulator)
+
+The C++ counterpart of `fgo_node.py` + `fgo_node_core.py` is `fgo_cpp::LiveAdapter` (`live_adapter.{h,cpp}`).
+It has no ROS dependency. Two thin shells sit around it:
+- the ROS 2 node `fgo_cpp_node` (subscriptions as `fgo_node.py`, with a worker thread so callbacks never
+  block, `/fgo/pose` and `/fgo/valid`, and ODOMETRY over `mavlink_out`);
+- the deterministic bag-replay harness `fgo_cpp_live_replay`. It feeds a "message tape" — the bag's
+  messages in receipt order with their header stamps, written by `tools/make_tape.py` — through the
+  same calls the node's callbacks make.
+
+What the adapter does:
+- **Reorder buffer**, default delay 0.20 s (the bags showed lateness ≤ 0.185 s).
+- **IMU stamps**, three options:
+  - `time_ref` (live default): HIGHRES_IMU `time_usec` paired by header stamp and mapped to the header
+    clock by the D25 lower envelope, slew-limited to 50 µs per sample;
+  - `causal`: the Python node's running fit;
+  - `header`: the stamp as given.
+- **Causal IMU-gap rule**: before take-off a gap re-initialises the estimator and keeps the queue;
+  after take-off it makes the output invalid for the rest of the flight.
+- **Validity rule**: `valid_now`.
+- **Clock map**: D25 settle, envelope and `_sitl_us`.
+- **ODOMETRY**: `LOCAL_NED`, `MAV_ESTIMATOR_TYPE_NAIVE`, quality 100/0, gyro bias in the rates and
+  accel bias in `pose_covariance[0:3]`, as `fgo_node._send_state`. It is encoded by a built-in
+  MAVLink 2 encoder (`mavlink_io.h`).
+- **UDP**: pymavlink `udp:` listen semantics. HEARTBEAT armed flag → D15 arming time.
+- **Heading**: gated as `fgo_node._hdg`.
+- **Tag fixes**: experiment T anchoring, in an ENU navigation frame.
+
+## Pre-registration 3 (written and committed BEFORE any part-3 comparison was run)
+
+**Band L (= band C).** The reference is the export-driven C++ result on the same bag (`fgo_cpp_replay`
+on the part-2 export). Requirements:
+- the same keyframe count;
+- per keyframe, |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01°, for (a) every adapter keyframe state and (b) every
+  ODOMETRY message actually produced, decoded by pymavlink and converted back from NED to the
+  navigation frame;
+- in addition, every ODOMETRY `time_usec` must EQUAL an independent Python re-implementation of
+  `fgo_node._sitl_us` over the time_ref messages that had arrived;
+- in addition, every frame must parse with a valid CRC in pymavlink.
+
+| row | bag | adapter configuration |
+|---|---|---|
+| L1 | dsn_tex_r1 | tape with the offline dejittered IMU stamps substituted (`--imu-stamp header`); arming time = the export's (`--arm-source param`); delay 0.20 s; everything else live: receipt order, reorder buffer, interval-averaged gyro, init, keyframing, gap rule, validity, clock map, ODOMETRY encoding |
+| L2 | fwdc_tex_r1 | as L1, plus the heading input: the export's frozen forward headings written as the heading bridge's sent message (NED yaw = −psi, quality 100, angErr 0) at their capture stamp, with heading sigma = the offline heading arm's (0.148°) and gate 9 |
+
+**Also reported, with no band:**
+- The live configurations on the same bags: `--imu-stamp time_ref` (the default) and `--imu-stamp causal`
+  (the Python node's choice). Both use the raw receipt stamps, with arming from the export time.
+  These differ from the reference by construction (different IMU time base), so they are a report.
+- Whether the adapter's ODOMETRY frames are byte-identical to pymavlink's encoding of the same values.
+- Step time.
+
+**Cannot be tested without SITL** (left for the main session's live ground test):
+- message arrival timing and latency;
+- the ROS 2 executor and queueing under load;
+- UDP delivery to and from SITL SERIAL3;
+- HEARTBEAT-derived arming;
+- whether AP_NavFGO accepts and flies the state.

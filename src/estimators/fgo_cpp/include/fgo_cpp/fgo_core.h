@@ -103,6 +103,7 @@ class GroundProximityFlow {
  public:
   explicit GroundProximityFlow(double t_arm, bool has_arm) : t_arm_(t_arm), has_arm_(has_arm) {}
   bool armed(double t) const { return has_arm_ && t >= t_arm_; }
+  void set_arm(double t_arm) { t_arm_ = t_arm; has_arm_ = true; }
   void on_range(double t, double rng);
   void on_gyro(double t, const Vector3& gyro, const Vector3& bias);
   Eigen::Vector2d replace(const Eigen::Vector2d& flow_xy, const Vector3& omega_flu, double roll, double pitch);
