@@ -27,6 +27,7 @@ from fgo_core import FGO
 from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_SIGMA_POS, TAG_SIGMA_YAW
 from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED, GNSS_ALIGN_N
 from imu_timing import dejitter_imu, apply_gap_rule
+import fgo_export
 
 TRIAL = sys.argv[1]; DO_BATCH = "--no-batch" not in sys.argv
 # experiment H: the wall-tag fix sigma from S0 (EKF3's VISO_POS_M_NSE), shared by the UKF and FGO; unset = T's 0.05 m
@@ -179,7 +180,6 @@ if DO_BATCH and anchored:
                   "batch_s": time.perf_counter() - t0b})
 json.dump(stats, open(f"{OUT}/stats.json", "w"), indent=1)
 if DUMP:
-    import fgo_export
     fgo_export.write(DUMP, {"trial": TRIAL, "mode": "room", "gnss": GNSS, "batch": DO_BATCH,
                             "accel_mean": [float(a) for a in np.mean(acc_lvl, axis=0)], "first_range": float(first_rng),
                             "t_init": float(t_init), "t_arm": gp.t_arm, "window": WINDOW, "lm_iters": LM_ITERS,

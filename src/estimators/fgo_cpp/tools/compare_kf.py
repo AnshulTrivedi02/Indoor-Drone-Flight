@@ -10,7 +10,7 @@ import json, os, sys
 import numpy as np
 
 ref, test = sys.argv[1], sys.argv[2]
-extra = [a for a in sys.argv[3:] if not a.startswith("--")]
+extra = [a for a in sys.argv[3:] if not a.startswith("--") and a != "anchored"]
 info = json.load(open(ref + ".init.json"))
 NC = info.get("kf_cols", 31)
 py = np.fromfile(ref + ".kf.f64", np.float64).reshape(-1, NC)

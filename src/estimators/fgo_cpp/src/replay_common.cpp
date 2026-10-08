@@ -189,10 +189,12 @@ void Runner::on_event(const double* r) {
       have_flow_ = true;
       flow_pend_ = FlowMeas{Eigen::Vector2d(r[2], r[3]), r[4] != 0.0, r[5]};
       flow_omega_ = own_avg_ ? average(gyro_buf_, gyro_t_prev_, tt) : Vector3(r[6], r[7], r[8]);
+      res_.avg_log.insert(res_.avg_log.end(), {double(FLOW), tt, flow_omega_[0], flow_omega_[1], flow_omega_[2]});
       break;
     case FWD:
       have_fwd_ = true;
       fwd_pend_ = FwdMeas{r[2], r[3], own_avg_ ? average(fwd_buf_, fwd_t_prev_, tt)[2] : r[4]};
+      res_.avg_log.insert(res_.avg_log.end(), {double(FWD), tt, fwd_pend_.gz, NAN, NAN});
       break;
     case GNSS:
       if (!anchored_) {
@@ -320,7 +322,7 @@ ReplayResult run_processed(const ReplayConfig& cfg, const std::vector<double>& e
 }
 
 // ---------------- native front end ----------------
-std::vector<double> front_end(const std::vector<double>& raw, ReplayConfig& cfg, FrontEndStats* st) {
+std::vector<double> offline_imu_timing(const std::vector<double>& raw, const ReplayConfig& cfg, FrontEndStats* st) {
   const size_t n = raw.size() / EV_COLS;
   std::vector<std::array<double, EV_COLS>> ev(n);
   for (size_t i = 0; i < n; ++i) std::copy(&raw[i * EV_COLS], &raw[i * EV_COLS] + EV_COLS, ev[i].begin());
@@ -328,24 +330,27 @@ std::vector<double> front_end(const std::vector<double>& raw, ReplayConfig& cfg,
   if (cfg.gap_verdict == "unusable") throw std::runtime_error("unusable for the replay estimators (imu_gaps.json)");
   if (cfg.gap_verdict == "trim") {
     const size_t n0 = ev.size();
-    ev.erase(std::remove_if(ev.begin(), ev.end(), [&](const std::array<double, EV_COLS>& e) { return !(e[1] >= cfg.gap_replay_start); }),
+    ev.erase(std::remove_if(ev.begin(), ev.end(),
+                            [&](const std::array<double, EV_COLS>& e) { return !(e[1] >= cfg.gap_replay_start); }),
              ev.end());
     if (st) st->n_trimmed = n0 - ev.size();
   }
-  // dejitter (imu_timing.dejitter_imu): least-squares line t_i = a + b*i through the IMU receipt stamps, in bag order
+  // dejitter (imu_timing.dejitter_imu): least-squares line t_i = a + b*i through the IMU receipt stamps, bag order
   std::vector<size_t> idx;
   for (size_t i = 0; i < ev.size(); ++i)
     if (static_cast<int>(ev[i][0]) == IMU) idx.push_back(i);
   const size_t m = idx.size();
   for (size_t j = 1; j < m; ++j)
     if (ev[idx[j]][1] < ev[idx[j - 1]][1]) throw std::runtime_error("IMU receipt stamps not monotonic; refusing to dejitter");
-  // closed form, centred, in long double
-  long double mi = (static_cast<long double>(m) - 1.0L) / 2.0L, mt = 0;
+  // closed form about the means, in long double (numpy.polyfit uses a scaled SVD least squares: the fitted stamps
+  // agree to round-off, not bit for bit; the difference is reported by the front-end tool)
+  const long double mi = (static_cast<long double>(m) - 1.0L) / 2.0L;
+  long double mt = 0;
   for (size_t j = 0; j < m; ++j) mt += ev[idx[j]][1];
   mt /= m;
   long double sxy = 0, sxx = 0;
   for (size_t j = 0; j < m; ++j) {
-    const long double dx = j - mi;
+    const long double dx = static_cast<long double>(j) - mi;
     sxy += dx * (ev[idx[j]][1] - mt);
     sxx += dx * dx;
   }
@@ -364,30 +369,69 @@ std::vector<double> front_end(const std::vector<double>& raw, ReplayConfig& cfg,
     st->resid_maxabs_ms = 1e3 * maxres;
     st->resid_std_ms = 1e3 * std::sqrt(ss / m - (sres / m) * (sres / m));
   }
-  // stable sort by time (Python list.sort(key=t) is stable)
-  std::stable_sort(ev.begin(), ev.end(), [](const std::array<double, EV_COLS>& x, const std::array<double, EV_COLS>& y) {
-    return x[1] < y[1];
-  });
-  // init inputs: gravity levelling over the first 0.5 s of IMU, first valid range
-  double t_imu0 = NAN;
-  for (const auto& e : ev)
-    if (static_cast<int>(e[0]) == IMU) { t_imu0 = e[1]; break; }
-  Vector3 acc = Vector3::Zero();
-  size_t na = 0;
-  for (const auto& e : ev)   // np.mean(list of 3-vectors, axis=0): sequential row sum, then divide
-    if (static_cast<int>(e[0]) == IMU && e[1] <= t_imu0 + 0.5) {
-      if (na == 0) acc = Vector3(e[2], e[3], e[4]);
-      else acc = Vector3(acc[0] + e[2], acc[1] + e[3], acc[2] + e[4]);
-      ++na;
-    }
-  cfg.accel_mean = Vector3(acc[0] / na, acc[1] / na, acc[2] / na);
-  for (const auto& e : ev)
-    if (static_cast<int>(e[0]) == RNG && 0.05 <= e[2] && e[2] <= 40.0) { cfg.first_range = e[2]; break; }
-  cfg.t_init = t_imu0 + 0.5;
   std::vector<double> out;
   out.reserve(ev.size() * EV_COLS);
   for (const auto& e : ev) out.insert(out.end(), e.begin(), e.end());
   return out;
+}
+
+StreamFrontEnd::StreamFrontEnd(const ReplayConfig& cfg, double reorder_delay) : cfg_(cfg), delay_(reorder_delay) {}
+StreamFrontEnd::~StreamFrontEnd() = default;
+
+void StreamFrontEnd::push(const double* row) {
+  std::array<double, EV_COLS> e;
+  std::copy(row, row + EV_COLS, e.begin());
+  const double t = e[1];
+  max_lateness = std::max(max_lateness, t_newest_ - t);
+  if (t < t_last_released_) ++n_out_of_order;
+  t_newest_ = std::max(t_newest_, t);
+  buf_.emplace(std::make_pair(t, seq_++), e);
+  while (!buf_.empty() && buf_.begin()->first.first <= t_newest_ - delay_) {
+    const auto e0 = buf_.begin()->second;
+    buf_.erase(buf_.begin());
+    release(e0);
+  }
+}
+
+void StreamFrontEnd::release(const std::array<double, EV_COLS>& e) {
+  t_last_released_ = std::max(t_last_released_, e[1]);
+  released_.insert(released_.end(), e.begin(), e.end());
+  if (runner_) {
+    runner_->on_event(e.data());
+    return;
+  }
+  pre_.push_back(e);
+  const int kind = static_cast<int>(e[0]);
+  if (kind == IMU && !have_imu0_) { have_imu0_ = true; t_imu0_ = e[1]; }
+  if (kind == RNG && !have_rng_ && 0.05 <= e[2] && e[2] <= 40.0) { have_rng_ = true; cfg_.first_range = e[2]; }
+  if (have_imu0_ && e[1] > t_imu0_ + 0.5) level_done_ = true;   // every IMU sample up to t_imu0 + 0.5 is released
+  try_init();
+}
+
+void StreamFrontEnd::try_init() {
+  if (runner_ || !have_imu0_ || !have_rng_ || !level_done_) return;
+  Vector3 acc = Vector3::Zero();
+  size_t na = 0;
+  for (const auto& e : pre_)   // np.mean(list of 3-vectors, axis=0): sequential row sum, then divide
+    if (static_cast<int>(e[0]) == IMU && e[1] <= t_imu0_ + 0.5) {
+      acc = na == 0 ? Vector3(e[2], e[3], e[4]) : Vector3(acc[0] + e[2], acc[1] + e[3], acc[2] + e[4]);
+      ++na;
+    }
+  cfg_.accel_mean = Vector3(acc[0] / na, acc[1] / na, acc[2] / na);
+  cfg_.t_init = t_imu0_ + 0.5;
+  runner_.reset(new Runner(cfg_, /*own_averager=*/true));
+  for (const auto& e : pre_) runner_->on_event(e.data());
+  pre_.clear();
+}
+
+ReplayResult StreamFrontEnd::finish() {
+  while (!buf_.empty()) {
+    const auto e0 = buf_.begin()->second;
+    buf_.erase(buf_.begin());
+    release(e0);
+  }
+  if (!runner_) throw std::runtime_error("stream ended before the init inputs were complete");
+  return runner_->finish();
 }
 
 // ---------------- outputs ----------------
@@ -423,6 +467,7 @@ void write_bin(const std::string& path, const std::vector<T>& v) {
 void write_outputs(const std::string& out, const ReplayConfig& cfg, const ReplayResult& r) {
   write_bin(out + ".kf.f64", r.kf_rows);
   write_bin(out + ".step_ns.i64", r.step_ns);
+  write_bin(out + ".avg.f64", r.avg_log);
   write_tum(out + ".tum", r.kf_rows, KF_COLS, 1, 10, 13, cfg.mode == "room" ? 37 : -1);
   if (!r.batch_rows.empty()) {
     write_bin(out + ".batch.f64", r.batch_rows);
