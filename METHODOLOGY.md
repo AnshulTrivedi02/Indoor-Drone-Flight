@@ -10531,3 +10531,19 @@ All bounds are below half the fix noise, so the delay cannot change any T result
 **Correction to the T record ("Lap mode", above).** "Flown speed in the leg centres is 0.42–0.49 m/s" describes
 **leg centres only**. After each corner the vehicle runs up to 1.30–1.80 m/s for a short catch-up. The trajectory is
 still the same in every condition (simulator truth, same setpoint); only the speed statement is corrected.
+
+### T: optical-flow validity in the post-corner catch-up segments (user request 2026-10-08; a SHARED sensor condition)
+
+`eval/t_flow_catchup.py`, `eval/results/expT/t_flow_catchup.json`: all 12 T flights, lap window, per flow frame,
+segmented by GT horizontal speed (0.2 s boxcar): **catch-up** ≥ 0.8 m/s (the post-corner run, up to 1.3–1.8 m/s) and
+**straight** 0.4–0.6 m/s.
+
+| segment | frames | valid share | tracked features median (p5) | inlier ratio median | inlier > 0 (EKF3 accepts) |
+|---|---|---|---|---|---|
+| catch-up | 6,226 | **97.3%** (per flight 96.8–98.0%) | 54 (22) | 1.00 | 99.98% |
+| straight | 63,169 | **98.7%** (per flight 98.6–98.8%) | 53 (24) | 1.00 | 99.99% |
+
+- The flow tracker stays valid through the catch-up segments: a 1.4-point lower valid share, the same feature count
+  and the same inlier ratio.
+- This is a shared condition: all three estimators receive the same flow, and EKF3 accepts on quality > 0. Nothing is
+  invalid, so **no T result changes**.
