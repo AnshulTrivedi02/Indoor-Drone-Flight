@@ -11174,6 +11174,9 @@ and the tag bridge kept sending to the old port.**
   - The bridge got its heartbeat at 20:41:52.95. The pre-reboot boot's log (`00000033.BIN`) was last written at
     20:42:05.14, so the heartbeat came **before** the reboot.
   - The bridge's first fix was sent at 20:42:58.8, after the reboot, and so were all 2097 fixes.
+- **Reproduced and fixed (loopback test, no sim).** The pymavlink `udp:` listener, as the bridge uses it, sends to a
+  "SITL" heartbeating from port A. After a "reboot" to port B, a send without reading reaches B: **False**. After
+  draining received messages: **True**. `tag_bridge_fwd.py` now drains before each send.
 - **Status: cause established from the logs and the timing.** The bridge fix will be verified by a forced-reboot
   re-run (VISP count = sent count after the reboot).
 

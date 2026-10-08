@@ -106,6 +106,10 @@ class TagBridgeFwd(Node):
             c = [0.0] * 36; c[0] = c[7] = c[14] = self.sig_p ** 2; c[35] = self.sig_y ** 2; s.pose.covariance = c
             self.pub_sent.publish(s)
             if self.master is not None:
+                # drain SITL's messages so pymavlink's UDP client set learns a SITL reboot's new SERIAL1 source port
+                # (re-exec); without this every fix after a reboot went to the dead port (H_gt_ukf)
+                while self.master.recv_msg() is not None:
+                    pass
                 yaw_ned = math.pi / 2 - yaw; nan = float("nan")
                 cov = [0.0] * 21; cov[0] = self.sig_p ** 2; cov[20] = self.sig_y ** 2
                 self.master.mav.odometry_send(int(round(t * 1e6)), self.mav.mavlink.MAV_FRAME_LOCAL_FRD, self.mav.mavlink.MAV_FRAME_BODY_FRD,
