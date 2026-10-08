@@ -64,3 +64,15 @@ Largest groups:
 Option 1 on every trial **except** the T / O / L / room flights (they have no forward images and are needed now).
 That leaves ≈ 300 GB free. Option 2 only if you want the pre-rerun originals off the machine. Flights stay paused
 until you rule.
+
+## OUTCOME (ruling 2026-10-08: option 1 approved; the external move deferred)
+
+- `tools/pack_all.sh` (with `tools/bag_pack.sh`) ran 15:11–16:38: **234 trial bags packed, 0 failures**, each
+  verified by a full decompress and sha256 match before its original was removed.
+  - 25 excluded: T / O / L (`T_*`, `O_*`, `o_check1`).
+  - `H_s0a` was recorded after its directory had been passed; it is current H data and stays unpacked.
+- **Free space: 16 GB → 329 GB.** `trials/` 330.6 GB → 56 GB; `trials_pre_rerun/` 79.9 GB → 11 GB.
+- **To use a packed trial:** `tools/bag_pack.sh unpack ~/thesis_data/trials/<name>` (about 6 s per 3 GB; sha-checked).
+  Repack afterwards with `pack`.
+- **Flights resume:** 329 GB is far above the ~55 GB needed plus the 50 GB margin. H records no full-rate forward
+  stream (ruling).

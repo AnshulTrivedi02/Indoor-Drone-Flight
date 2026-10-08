@@ -33,7 +33,12 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
   6.5–7.5 days; only S0+S1 fit before the freeze.
 - **Item 4:** `docs/real_flights_plan.md` §9 covers the profiles, the real-FC backend with flashing/rollback, the
   real-time FGO options (recommend SymForce exact Jacobians via a numerical C++ port) and the staging.
-- **Next:** rulings on the disk options and on H; then simulator work Mon 12–Wed 14 Oct; freeze Fri 16 Oct.
+- **Disk done:** 234 bags zstd-packed, 0 failures; free 16 → 329 GB (`docs/disk_report_2026-10-08.md`).
+- **FGO C++ port (ruled):** textured PASS; blank/trans FAIL as worded (rounding amplified by the Python runaway);
+  default build accepted for the aided regime only; SymForce dropped; next are the heading/tag paths, native inputs and
+  a Pi estimate.
+- **H:** S0a done (σ_pos 0.02 m, whole image valid, convention frozen); S0b, then S1 (3 EKF3 flights) next. S2/S3 run
+  19–23 Oct.
 
 ---
 
