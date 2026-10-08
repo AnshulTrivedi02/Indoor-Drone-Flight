@@ -12290,3 +12290,17 @@ failure stops the sequence.
 
 - **B5 PASS; S2 100 %.**
 - **The same pattern as r1:** a slightly larger steady heading offset, no excursion above 0.4°.
+
+### FGO re-flight `cl_fgo_b_tex_r3_half_v2` RESULT: ALL B criteria PASS. The heading set (×3) is complete
+| criterion | corrected FGO | original r3 |
+|---|---|---|
+| B1 (max \|x\| in flight) | 0.047 m | 0.249 m |
+| B2 (max \|x\| in cruise) | 0.038 m | 0.249 m |
+| B3 heading p95 / max / mean | 0.294° / 0.330° / 0.224° | 0.385° / 1.884° / 0.004° |
+| B4 (max lateral speed) | 0.017 m/s | 0.120 m/s |
+
+- **B5 PASS; S2 100 %.**
+- **Set summary (corrected against original), 3/3 PASS in both:**
+  - B3 max 0.33–0.40° against 1.28–1.88° (no heading excursions);
+  - B3 mean 0.22–0.24° against 0.00–0.07° (a small steady offset);
+  - B2 cruise lateral 0.04–0.09 m against 0.06–0.25 m.
