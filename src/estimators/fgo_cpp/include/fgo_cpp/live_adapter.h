@@ -85,6 +85,7 @@ class LiveAdapter {
   double tref_seed_th = NAN;          // header time of the time_ref arrival that settled the map
   size_t n_held = 0;                  // inputs held before the settle and pushed at it
   double tref_max_track_err = 0;      // max |envelope - applied offset| over IMU samples after the seed (s)
+  size_t n_tag_postarm_refused = 0;   // tag fixes refused: armed before any anchor (ruling 2026-10-09)
   size_t n_dup_stamp = 0;             // IMU or time_ref arrivals whose header stamp was already waiting (FIFO-paired)
   // clock integrity (ruling 2026-10-09): a FC (SITL) reboot after the node started steps the sensor clock back and
   // breaks the clock map. Detected by (a) /imu/time_ref sensor time stepping back > CLOCK_BACK_S, (b) the time_ref
@@ -140,6 +141,7 @@ class LiveAdapter {
   double t_last_flow_fused_ = 0;
   uint8_t seq_ = 0;
   bool armed_ = false;
+  bool anchored_seen_ = false;        // a keyframe in the anchored (tag) frame has been produced
 };
 
 }  // namespace fgo_cpp

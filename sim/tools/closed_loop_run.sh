@@ -83,7 +83,10 @@ if [ -n "${H:-}" ]; then
     ALT=1.5
     # far spawn (ruling 2026-10-08 item 2): no arming until the FC's backends have anchored to the tag frame and fixes
     # arrive on SITL's current SERIAL1 port (fly_trial.require_anchor_before_arming); EKF3 always runs on ExtNav here
-    if [ "$WORLD" = room_wall_tag_far ]; then          # (room_wall_tag_far_occ, the in-flight-anchor check: no gate)
+    # NO FRAME CHANGE AFTER ARMING (ruling 2026-10-09): every H world arms only once anchored; the near-spawn world (tag not
+    # visible on the ground) can therefore not be flown, and is refused outright
+    if [ "$WORLD" = room_wall_tag ]; then echo "REFUSED: room_wall_tag (tag not visible on the ground; no arming without the anchor)" >&2; exit 2; fi
+    if [[ "$WORLD" == room_wall_tag_far* ]]; then
         H_PREARM=EKF3
         if [ -n "${UKF:-}" ] && [ "${UKF}" != shadow ]; then H_PREARM="$H_PREARM,UKF"; fi
         if [ -n "${FGO:-}" ]; then H_PREARM="$H_PREARM,FGO"; fi

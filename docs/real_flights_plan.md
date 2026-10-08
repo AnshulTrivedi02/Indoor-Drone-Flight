@@ -237,6 +237,13 @@ camera flown only once verified.
   step of the FC clock (time-reference sensor time, offset tracking error > 0.1 s, or a sent state time going
   backwards) latches the node's output INVALID, so the FC's estimator-loss landing trigger applies. Verified in SITL
   (`fly_trial.require_fgo_node_current`, `live_adapter` clock-integrity latch) before any real flight.
+- **No frame change after arming (ruling 2026-10-09, after `H_ifa_ekf3`).** Under GUIDED with a stored position
+  target, a frame change in flight sends the vehicle towards the OLD target expressed in the NEW frame (SITL: 2.25 m,
+  19.2° tilt, watcher stop). ArduCopter's GUIDED sets this, not the estimator. Enforced for every estimator: the
+  marker bridge releases no first fix once armed, the onboard backends refuse a first anchor once armed, EKF3's ExtNav
+  alignment must complete pre-arm, and **arming is refused unless anchored: if the marker is not visible on the
+  ground, the drone does not arm.** (EKF3's position reset after a > 10 s marker loss is a same-frame correction
+  equal to the accumulated drift, not a frame change, and is not covered by this rule.)
 - **Frame anchoring completes before arming (ruling 2026-10-08).** Every estimator that re-anchors to the marker/mocap
   frame must have anchored on the ground before arming (the vehicle placed where the marker is in view), and the FC must
   be receiving valid fixes. No frame change in flight. Gate it in the flight script, as `wait_fix` before arming.

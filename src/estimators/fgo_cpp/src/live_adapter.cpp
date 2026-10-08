@@ -225,6 +225,9 @@ void LiveAdapter::heading(double th, double yaw_ned, double quality, double ang_
 
 void LiveAdapter::tag(double th, double x, double y, double yaw) {
   ++n_arrivals;
+  // NO FRAME CHANGE AFTER ARMING (ruling 2026-10-09, after H_ifa_ekf3): once armed, a tag fix is not passed on unless
+  // the front end has already anchored (its first anchored keyframe seen), so no first anchor can happen in flight
+  if (armed_ && !anchored_seen_) { ++n_tag_postarm_refused; return; }
   const double row[EV_COLS] = {double(TAG), th, x, y, yaw, NAN, NAN, NAN, NAN};
   push(row, 0);
 }
@@ -269,6 +272,7 @@ bool LiveAdapter::sitl_us(double t, uint64_t* out) {
 
 // ---------------- output ----------------
 void LiveAdapter::on_keyframe(const double* row) {
+  if (row[37] > 0.5) anchored_seen_ = true;
   // validity (fgo_node_core.valid_now), evaluated at the keyframe as the Python core does
   if (row[5] > 0) { have_flow_fused_ = true; t_last_flow_fused_ = row[0]; }
   bool valid;

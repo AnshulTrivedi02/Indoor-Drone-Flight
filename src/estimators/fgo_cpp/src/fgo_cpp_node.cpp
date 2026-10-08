@@ -185,13 +185,14 @@ class FgoCppNode : public rclcpp::Node {
                    "\"max_lateness_s\": %.6f, \"n_out_of_order\": %zu, \"n_heading_rejected\": %zu, \"n_imu_unpaired\": %zu, "
                    "\"tref_settled\": %s, \"tref_seed_th\": %s, \"tref_seed_offset_s\": %s, \"n_held\": %zu, "
                    "\"tref_max_track_err_s\": %.6f, \"n_dup_stamp\": %zu, \"clock_broken\": %s, \"clock_broken_reason\": \"%s\", "
-                   "\"clock_broken_th\": %s}\n",
+                   "\"clock_broken_th\": %s, \"n_tag_postarm_refused\": %zu}\n",
                    cfg_desc_.c_str(), stats_.size() / 10, adapter_->n_sent, adapter_->n_unsettled, n_unsent_,
                    adapter_->n_reinits, adapter_->gap_invalid ? "true" : "false", adapter_->t_armed_header, adapter_->max_lateness(),
                    adapter_->n_out_of_order(), adapter_->n_hdg_rejected, adapter_->n_imu_unpaired,
                    adapter_->tref_settled ? "true" : "false", jnum(adapter_->tref_seed_th).c_str(),
                    jnum(adapter_->tref_seed_offset).c_str(), adapter_->n_held, adapter_->tref_max_track_err,
-                   adapter_->n_dup_stamp);
+                   adapter_->n_dup_stamp, adapter_->clock_broken ? "true" : "false", adapter_->clock_broken_reason.c_str(),
+                   jnum(adapter_->clock_broken_th).c_str(), adapter_->n_tag_postarm_refused);
       std::fclose(f);
     }
   }

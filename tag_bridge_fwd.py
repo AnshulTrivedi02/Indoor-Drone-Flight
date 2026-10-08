@@ -74,6 +74,11 @@ class TagBridgeFwd(Node):
         # the offline replays only these on /tags/sent.
         self.rng_lo = float(self.get_parameter("range_min_m").value); self.rng_hi = float(self.get_parameter("range_max_m").value)
         self.armed = False
+        # NO FRAME CHANGE AFTER ARMING (user ruling 2026-10-09, after H_ifa_ekf3): a fix is released while ARMED only if a
+        # fix was already released while DISARMED (the pre-arm anchor). No first anchor can therefore happen in flight,
+        # for EKF3, the UKF port, the FGO node or the offline replays. (EKF3's position reset after a > 10 s tag loss is a
+        # same-frame correction, not a frame change, and is not affected: fixes resume once the tag is back.)
+        self.sent_disarmed = False
         if self.get_parameter("send").value:
             if self.R_wt is None or self.r_valid <= 0:
                 raise SystemExit("send=true needs the frozen convention and r_valid_px from S0")
@@ -118,6 +123,8 @@ class TagBridgeFwd(Node):
             valid = self.r_valid > 0 and math.hypot(cc[0] - CX, cc[1] - CY) <= self.r_valid
             if self.master is not None and self.armed and not (self.rng_lo <= rng <= self.rng_hi):
                 valid = False                            # D18 range rule: in flight, outside the characterised band
+            if self.master is not None and self.armed and not self.sent_disarmed:
+                valid = False                            # no first anchor after arming (ruling 2026-10-09)
             pw = yaw = None
             if self.R_wt is not None:
                 p, Rw = T.vehicle_pose_full(self.R_wt, WALL_P, R, tt); pw = (p[0] - WALL_P[0], p[1] - WALL_P[1], p[2]); yaw = T.yaw_of(Rw)
@@ -145,6 +152,8 @@ class TagBridgeFwd(Node):
                                               nan, nan, nan, nan, nan, nan, cov, [nan] * 21, 0, 0, 100)
                 t_sent = self.get_clock().now().nanoseconds * 1e-9
                 self.n_sent += 1
+                if not self.armed:
+                    self.sent_disarmed = True
                 if self.status_path:
                     cl = getattr(self.master, "clients_last_alive", {})
                     dest = max(cl, key=cl.get) if cl else getattr(self.master, "last_address", None)

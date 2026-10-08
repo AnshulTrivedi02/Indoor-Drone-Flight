@@ -11985,3 +11985,44 @@ EKF3 flying. The tag was hidden at take-off; the vehicle moved 1.5 m toward it i
 - **Implication:** an in-flight frame change under GUIDED position control is UNSAFE with this ArduCopter build,
   whichever estimator flies. This is direct evidence for the "anchor before arming" rule.
 - `H_ifa_ukf` and `H_ifa_fgo` were NOT flown (the sequence stops on a failure).
+
+### RULING (user, 2026-10-09): the in-flight-anchor question is answered by `H_ifa_ekf3` (option 1); "no frame change after arming" is ENFORCED
+- **Recorded as the answer:** under GUIDED with a stored position target, a frame change after arming sends the
+  vehicle towards the OLD target in the NEW frame (displacement 2.25 m, tilt 19.2°, watcher stop). This is set by
+  ArduCopter's GUIDED behaviour, not the estimator.
+- **`H_ifa_ukf` and `H_ifa_fgo` are SKIPPED, for that reason.**
+- **Enforcement (all three estimators):**
+  - **tag bridge:** once armed, a fix is released only if one was already released while disarmed (no first fix
+    after arming). This covers EKF3, the UKF port, the FGO node and the offline replays alike;
+  - **UKF port** (`~/ardupilot_ukf` `00b597dd`): `fuse_tag` refuses the first anchor while armed ("UKF: first tag
+    anchor refused (armed)");
+  - **C++ FGO node:** `LiveAdapter::tag` drops fixes while armed until it has anchored (`n_tag_postarm_refused`);
+  - **EKF3:** its ExtNav alignment must complete pre-arm, which the arming gate (`H_PREARM`) already requires;
+  - **arming is refused unless anchored** in every H world. `closed_loop_run` refuses the near-spawn `room_wall_tag`
+    outright, since the tag is not visible on the ground there.
+- **NOT covered (the distinction recorded):** EKF3's position reset after a > 10 s tag loss is a SAME-FRAME
+  correction equal to the accumulated drift, not a frame change.
+- **Real-flight plan §7:** both points added. If the tag is not visible on the ground, the drone does not arm.
+
+**Verification (no flights):**
+- **Port, Replay regression** on a pre-arm-anchored flight (`H_gt_ukf_far`, `UKF_EXTPOS=1 UKF_EXTYAW=1`), old
+  `c234b389` against new: `ukf_shadow.csv` and `ukf_inputs.csv` **byte-identical**.
+- **Port, refusal on a post-arm-anchor log** (`H_s1_r1` Replay): one "first tag anchor refused" and 0 processed
+  fixes, as intended. **This also means the earlier tier-B Replay of `H_s1_r1` cannot be reproduced with the new
+  port.** It stays recorded against `eb86bada`.
+- **C++ node:** the old-vs-new regression on the shadow_ii tapes is running (reported on completion).
+
+**DEFECT found and fixed while doing this.** The clock-integrity commit `07fca9b` added three format fields to the
+node's stats JSON but not their arguments: an incomplete edit, made when the edit guard stopped the second half.
+- `fprintf` therefore read garbage at shutdown, and the stats JSON was **empty** (unparseable) for `H_gt_fgo_far`
+  (also the restart stats of `H_safety_fgo_a_abort1`). The safety-test nodes were SIGKILLed, so they wrote none.
+- **No scored result used the node stats JSON** (the ground tests and safety tests are scored from the dataflash
+  log and the bag). The `.f64` files are intact.
+- **Fixed:** the arguments were added (node md5 `53831eae…`).
+- The installed nodes used for `H_safety_fgo_a`, `_b2` and `H_gt_fgo_far` had this defect only at shutdown; their
+  flight behaviour is unaffected.
+
+**Sequence status:**
+- the EKF3 reference failure test and the FGO (b) re-fly at the 2 m-clearance hold were ALREADY flown (both before
+  this ruling; results above);
+- next: the S1 re-fly ×3, then S2, then S3 (after the FGO tilt trace, time box 03:04).
