@@ -261,7 +261,9 @@ fig.tight_layout(rect=(0, 0, 1, 0.93))
 save(fig, "fig6_blank_flow_loss.png", "Loss of flow aiding on the blank floor",
      "Position error magnitude after flow is lost (blank floor) for the UKF and FGO baselines (thin: each of 11 flights: dsn, p1c, fwdc, fwdplainc "
      "blank; thick: median). EKF3 has no curve: its position is flagged invalid for the whole flight and it outputs the origin, so it is not scored "
-     "(evaluation rule). Behaviour under total loss, not accuracy; the estimators respond by design differently.",
+     "(evaluation rule). Behaviour under total loss, not accuracy; the estimators respond by design differently. "
+     "The curves are runaway magnitudes: evidence of divergence, not precise values (not bit-reproducible across BLAS builds; "
+     "ruling 2026-10-08, METHODOLOGY 'FGO C++ port', numbers.md dagger).",
      "DESCRIPTIVE", "eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60/+120 s; EKF3 validity)")
 
 # ------------------------------------------------------------------------------------------------ Figure 7 (table)
