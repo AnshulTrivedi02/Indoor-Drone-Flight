@@ -12304,3 +12304,18 @@ failure stops the sequence.
   - B3 max 0.33–0.40° against 1.28–1.88° (no heading excursions);
   - B3 mean 0.22–0.24° against 0.00–0.07° (a small steady offset);
   - B2 cruise lateral 0.04–0.09 m against 0.06–0.25 m.
+
+### FGO safety re-flights with the corrected FGO (2 m-clearance hold; C++ node `1123742d…`): ALL PASS
+| | `H_safety_fgo_a_v2` (node killed; standard watcher) | `H_safety_fgo_b_v2` (node killed; watcher watches the node) |
+|---|---|---|
+| S-A1 max \|ATT − GT\| roll / pitch / yaw | 0.08° / 0.24° / 0.41° | 0.34° / 0.16° / 0.39° |
+| S-A2 "position lost" + LAND | **+0.29 s** | +0.43 s |
+| S-A3 drift to touchdown / max tilt / touchdown speed / disarm | **0.78 m** / 2.12° / 0.53 m/s / +8.9 s | **1.27 m** / 1.75° / 0.53 m/s / +9.5 s |
+| breach | none | none |
+| S-A4 | one LAND, no re-arm | one LAND, no re-arm |
+
+- The old-FGO runs were: (a) at the old hold, 0.37 m; (b2) at the 2 m-clearance hold, 1.25 m. The EKF3 reference was
+  1.40 m.
+- The drift stays in the inherent attitude-only range (ruling 2026-10-09).
+- **All FGO closed-loop re-flights are done:** the no-heading flight, the heading set ×3, and safety (a) and (b), all
+  PASS. Next, per the ruled order: the model audit, then the consolidated offline re-run.
