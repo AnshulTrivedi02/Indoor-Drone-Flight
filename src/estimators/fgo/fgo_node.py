@@ -19,7 +19,7 @@ from sensor_msgs.msg import Imu, Range, TimeReference
 from std_msgs.msg import Bool
 from optical_flow_interfaces.msg import OpticalFlow
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from fgo_node_core import FgoNodeCore
+from fgo_node_core import FgoNodeCore, odom_ned
 
 
 CLOCK_SETTLE_S = 10.0     # D25: no state is sent until the SITL clock map's 10 s window is full
@@ -175,26 +175,9 @@ class FgoNode(Node):
         # The FGO's navigation frame is the CORRIDOR frame (measurement_models.h_heading: yaw 0 along the corridor
         # at spawn): x = forward along the corridor = North, y = left = West, z = up. -> NED: (x, -y, -z).
         # (Found in the second smoke test: an ENU mapping put yaw 90 deg off and swapped N/E.)
-        C = np.array([[1.0, 0, 0], [0, -1, 0], [0, 0, -1]])    # corridor (x fwd/N, y W, z U) -> NED
-        if anchored:
-            # experiment H: after the tag re-anchor the FGO's frame is W written as ENU (x = E_W, y = N_W, z up, yaw ENU,
-            # the /tags/sent convention): (N, E, D) = (y, x, -z); yaw_NED = pi/2 - yaw_ENU. Before the anchor the
-            # corridor mapping above is kept: the FGO starts at yaw 0 along body x, and H spawns facing the tag (W
-            # north), so the anchor's yaw step stays small, as EKF3's (which starts at NED yaw 0 too).
-            C = np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]])
-        Fb = np.diag([1.0, -1, -1])                           # FLU <-> FRD
-        pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
-        # rotation matrix -> quaternion (w, x, y, z)
-        tr = np.trace(Rn)
-        if tr > 0:
-            S = math.sqrt(tr + 1.0) * 2; qw = 0.25 * S; qx = (Rn[2, 1] - Rn[1, 2]) / S; qy = (Rn[0, 2] - Rn[2, 0]) / S; qz = (Rn[1, 0] - Rn[0, 1]) / S
-        elif Rn[0, 0] > Rn[1, 1] and Rn[0, 0] > Rn[2, 2]:
-            S = math.sqrt(1.0 + Rn[0, 0] - Rn[1, 1] - Rn[2, 2]) * 2; qw = (Rn[2, 1] - Rn[1, 2]) / S; qx = 0.25 * S; qy = (Rn[0, 1] + Rn[1, 0]) / S; qz = (Rn[0, 2] + Rn[2, 0]) / S
-        elif Rn[1, 1] > Rn[2, 2]:
-            S = math.sqrt(1.0 + Rn[1, 1] - Rn[0, 0] - Rn[2, 2]) * 2; qw = (Rn[0, 2] - Rn[2, 0]) / S; qx = (Rn[0, 1] + Rn[1, 0]) / S; qy = 0.25 * S; qz = (Rn[1, 2] + Rn[2, 1]) / S
-        else:
-            S = math.sqrt(1.0 + Rn[2, 2] - Rn[0, 0] - Rn[1, 1]) * 2; qw = (Rn[1, 0] - Rn[0, 1]) / S; qx = (Rn[0, 2] + Rn[2, 0]) / S; qy = (Rn[1, 2] + Rn[2, 1]) / S; qz = 0.25 * S
-        bgf, baf = Fb @ bg, Fb @ ba
+        # frames (corridor before the H tag re-anchor, W-as-ENU after it): fgo_node_core.odom_ned, tested offline
+        # (eval/fgo_odom_mapping_check.py). History: the second D19 smoke test found an ENU mapping 90 deg off in yaw.
+        pn, vn, (qw, qx, qy, qz), bgf, baf = odom_ned(p, v, R, bg, ba, anchored)
         cov = [float("nan")] * 21; cov[0], cov[1], cov[2] = float(baf[0]), float(baf[1]), float(baf[2])
         from pymavlink import mavutil
         self._mav.mav.odometry_send(t_us, mavutil.mavlink.MAV_FRAME_LOCAL_NED, mavutil.mavlink.MAV_FRAME_BODY_FRD,

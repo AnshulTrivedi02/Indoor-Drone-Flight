@@ -78,10 +78,10 @@
     "port_minus_offline_m": 0.030598721472614825
    },
    "effective": {
-    "t": 239.7327754161202,
-    "port_drift_m": 0.0058516512294712,
-    "offline_drift_m": 0.03237090119515811,
-    "port_minus_offline_m": 0.03575510847930381
+    "t": 239.6927689911484,
+    "port_drift_m": 0.012038112782617148,
+    "offline_drift_m": 0.032084960902159704,
+    "port_minus_offline_m": 0.03504520040228403
    },
    "UB6_within_band": true
   },
@@ -96,10 +96,10 @@
     "port_minus_offline_m": 0.10971734210040851
    },
    "effective": {
-    "t": 274.8984229663473,
-    "port_drift_m": 0.009840143660224171,
-    "offline_drift_m": 0.12000009162574854,
-    "port_minus_offline_m": 0.12747157543930138
+    "t": 274.8584165413755,
+    "port_drift_m": 0.007545306167115536,
+    "offline_drift_m": 0.11961817785057738,
+    "port_minus_offline_m": 0.11208476692240096
    },
    "UB6_within_band": true
   },
@@ -114,10 +114,10 @@
     "port_minus_offline_m": 0.2811977136244621
    },
    "effective": {
-    "t": 325.66657625558304,
-    "port_drift_m": 0.015655967095683156,
-    "offline_drift_m": 0.2919548329136602,
-    "port_minus_offline_m": 0.30318000540060464
+    "t": 325.6265698306112,
+    "port_drift_m": 0.010922076414049008,
+    "offline_drift_m": 0.2916033968075153,
+    "port_minus_offline_m": 0.2843446517148704
    },
    "UB6_within_band": true
   },

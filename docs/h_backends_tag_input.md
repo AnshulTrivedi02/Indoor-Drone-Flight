@@ -318,15 +318,22 @@ stored one, and the stored `room_ukf/` was untouched (mtimes checked).
 
 **Losses (report) and the UB6 prediction (P-H5 UKF bands; drift = |estimate − GT| before the returning fix):**
 
+- **Correction, made before hand-off.** The first scoring cut the "effective" sample at the returning fix's *capture*
+  stamp. The port fuses fixes about 25 ms before capture on its horizon timeline, so that sample could already contain
+  the fix. The cut is now that fix's **event time**. The as-worded column (at OCCLUDER OFF, 0.16–1 s before any fix)
+  was unaffected.
+- **Re-run on the committed Replay binary** (md5 `ea486dea…`): its `ukf_shadow.csv` and `ukf_inputs.csv` are
+  byte-identical to those of the first, pre-commit binary run.
+
 | loss | port drift as worded / effective | offline UKF drift (effective) | port − offline (effective) | band | UB6 |
 |---|---|---|---|---|---|
-| hover 5 s | 12 / 6 mm | 32 mm | 36 mm | 100 mm | holds |
-| hover 15 s | 7 / 10 mm | 120 mm | 127 mm | 200 mm | holds |
-| hover 30 s | 11 / 16 mm | 292 mm | 303 mm | 400 mm | holds |
+| hover 5 s | 12 / 12 mm | 32 mm | 35 mm | 100 mm | holds |
+| hover 15 s | 7 / 8 mm | 120 mm | 112 mm | 200 mm | holds |
+| hover 30 s | 11 / 11 mm | 292 mm | 284 mm | 400 mm | holds |
 | move ~7 s | 19 / 13 mm | 40 mm | 52 mm | 300 mm | holds |
 
 **FINDING (Replay; to be confirmed in S2 flight).**
-- On ArduPilot's own inputs, the port drifts **6–19 mm** in the tag losses. That is EKF3's scale in S1 (3–31 mm),
+- On ArduPilot's own inputs, the port drifts **7–19 mm** in the tag losses (one Replay flight). That is EKF3's scale in S1 (3–31 mm),
   where the offline UKF on the bridged inputs drifted 28–292 mm.
 - **The same algorithm** (tier A) on different inputs. So the offline UKF's large hover drift in S1 is an
   **input-path effect**, not the UKF formulation.
@@ -390,6 +397,14 @@ bag unpacked under a fake HOME into scratch; `eval/results/expH/fgo_node_FR1_dsn
 - FE2: 0;
 - FE3: 10,197 keyframes, 10,018 flow, 10,196 range, all identical;
 - FE4: 0.
+
+### 4.5 The node's output mapping (`fgo_node_core.odom_ned`, `eval/fgo_odom_mapping_check.py`): **PASS** (added before hand-off, not pre-registered)
+
+The ArduPilot-facing conversion was moved out of `_send_state` into a pure function so it can be tested offline:
+- **Anchored:** FGO state x 0, y -1.5, ENU yaw 90 deg maps to NED (-1.5, 0) and NED yaw 0 (ArduPilot's 321 extraction);
+  (vN, vE) = (vy, vx); ENU 60 deg maps to NED 30 deg; roll and pitch are carried correctly into FRD; biases go FLU to FRD.
+- **Corridor (pre-anchor, every non-H use):** bit-identical to the pre-H inline code on 1,000 random states.
+- **reset_counter:** 0 before the anchor, 1 after it.
 
 ## 5. What the live SITL ground tests must check (to be run later by the main session; not run here)
 
@@ -457,7 +472,7 @@ Also re-run tier B (`eval/ukf_tag_tierB.py`) on the ground test's own log (Repla
    reset path is coded and builds, but has **not been exercised live**; it is S2/S3 ground-test G4.
 3. **The port fuses each tag fix ~25 ms before its capture** (EKF3's clamp, reproduced exactly). The offline replays use
    the capture stamp. The difference is ≤ ~5 mm at 0.2 m/s; stated, not changed.
-4. **Finding to confirm in S2:** on ArduPilot's inputs (Replay), the UKF port's loss drift (6–19 mm) is EKF3's scale,
+4. **Finding to confirm in S2:** on ArduPilot's inputs (one Replay flight), the UKF port's loss drift (7–19 mm) is EKF3's scale,
    not the offline UKF's (28–292 mm). This is an input-path effect, not yet attributed to a single input.
 5. **`tags` and `heading` are exclusive** in the FGO node.
 6. **Process:**

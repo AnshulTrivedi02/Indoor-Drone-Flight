@@ -226,3 +226,25 @@ class FgoNodeCore:
                 self.anchor_log.append((self.anchored, self.n_anchors))
                 self.flow_pend = self.rng_pend = self.fwd_pend = self.tag_pend = None
                 self.t_kf_next += self.fgo.kf_dt
+
+
+def odom_ned(p, v, R, bg, ba, anchored):
+    """The FGO state -> ArduPilot ODOMETRY values (NED/FRD), as fgo_node.py sends them. PURE (tested offline by
+    eval/fgo_odom_mapping_check.py). Before the tag re-anchor (and in every non-H use): the CORRIDOR frame
+    (x forward = N, y = W, z up) -> NED (x, -y, -z). After it (experiment H): W written as ENU (x = E_W, y = N_W, z up)
+    -> NED (y, x, -z), so yaw_NED = pi/2 - yaw_ENU.
+    Returns (pos NED, vel NED, quaternion (w, x, y, z) NED<-FRD, gyro bias FRD, accel bias FRD)."""
+    C = (np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]]) if anchored
+         else np.array([[1.0, 0, 0], [0, -1, 0], [0, 0, -1]]))
+    Fb = np.diag([1.0, -1, -1])                          # FLU <-> FRD
+    pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
+    tr = np.trace(Rn)
+    if tr > 0:
+        S = np.sqrt(tr + 1.0) * 2; qw = 0.25 * S; qx = (Rn[2, 1] - Rn[1, 2]) / S; qy = (Rn[0, 2] - Rn[2, 0]) / S; qz = (Rn[1, 0] - Rn[0, 1]) / S
+    elif Rn[0, 0] > Rn[1, 1] and Rn[0, 0] > Rn[2, 2]:
+        S = np.sqrt(1.0 + Rn[0, 0] - Rn[1, 1] - Rn[2, 2]) * 2; qw = (Rn[2, 1] - Rn[1, 2]) / S; qx = 0.25 * S; qy = (Rn[0, 1] + Rn[1, 0]) / S; qz = (Rn[0, 2] + Rn[2, 0]) / S
+    elif Rn[1, 1] > Rn[2, 2]:
+        S = np.sqrt(1.0 + Rn[1, 1] - Rn[0, 0] - Rn[2, 2]) * 2; qw = (Rn[0, 2] - Rn[2, 0]) / S; qx = (Rn[0, 1] + Rn[1, 0]) / S; qy = 0.25 * S; qz = (Rn[1, 2] + Rn[2, 1]) / S
+    else:
+        S = np.sqrt(1.0 + Rn[2, 2] - Rn[0, 0] - Rn[1, 1]) * 2; qw = (Rn[1, 0] - Rn[0, 1]) / S; qx = (Rn[0, 2] + Rn[2, 0]) / S; qy = (Rn[1, 2] + Rn[2, 1]) / S; qz = 0.25 * S
+    return pn, vn, (float(qw), float(qx), float(qy), float(qz)), Fb @ bg, Fb @ ba

@@ -159,10 +159,15 @@ bands = [0.10, 0.20, 0.40, 0.30]       # P-H5 UKF: hover 5 / 15 / 30 s, during t
 L = []
 for k_, ((s1, ton), (s2, toff)) in enumerate(zip(occ[0::2], occ[1::2])):
     row = {"t_on": float(ton), "t_off": float(toff), "band_m": bands[k_] if k_ < 4 else None}
-    for lab, tq in (("as_worded", toff), ("effective", float(SENT[SENT > toff][0]) if (SENT > toff).any() else None)):
+    k_first = int(np.searchsorted(SENT, toff, side="right")) if (SENT > toff).any() else None
+    # effective: the port's state BEFORE it fused the returning fix. The port fuses each fix at its EVENT time (EKF3's
+    # clamp, ~25 ms before capture) on the horizon timeline, so the cut is that fix's event time (its T row, REPH and
+    # /tags/sent 1:1), not its capture stamp (corrected 2026-10-08, before hand-off: the capture cut could include the fix)
+    t_eff = float(to_bag(T[k_first, 3] / 1e3)) if (k_first is not None and len(acc) == len(T) and len(SENT) == len(reph)) else None
+    for lab, tq in (("as_worded", toff), ("effective", t_eff)):
         if tq is None:
             continue
-        ib = np.searchsorted(port[:, 0], tq) - 1          # the last port sample before tq (before the returning fix)
+        ib = np.searchsorted(port[:, 0], tq, side="left") - 1     # the last port sample strictly before tq
         tp = port[ib, 0]
         drift = math.hypot(port[ib, 1] - gi(tp, 1), port[ib, 2] - gi(tp, 2))
         on, oe = np.interp(tp, off_t[:, 0], off_t[:, 1]), np.interp(tp, off_t[:, 0], off_t[:, 2])

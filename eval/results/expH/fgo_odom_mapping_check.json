@@ -1,0 +1,54 @@
+{
+ "A_anchored": {
+  "pos_NED": [
+   -1.5,
+   0.0,
+   -1.5
+  ],
+  "vel_NED": [
+   0.2,
+   0.05,
+   -0.01
+  ],
+  "yaw_NED_deg": 3.508354649267438e-15,
+  "roll_deg": 0.0,
+  "pitch_deg": 0.0,
+  "yaw_ENU60_to_NED_deg": 30.00000000000001,
+  "roll_pitch_check_deg": [
+   4.999999999999999,
+   3.0000000000000004,
+   3.4835057063535225e-15
+  ],
+  "bias_FRD": [
+   [
+    0.01,
+    -0.02,
+    -0.03
+   ],
+   [
+    0.1,
+    -0.2,
+    -0.3
+   ]
+  ],
+  "pass": true
+ },
+ "B_corridor": {
+  "random_states": 1000,
+  "not_bit_identical": 0,
+  "yaw_FGO0_NED_deg": 0.0,
+  "pass": true
+ },
+ "C_reset_counter": {
+  "sequence": [
+   0,
+   0,
+   0,
+   1,
+   1,
+   1
+  ],
+  "pass": true
+ },
+ "pass": true
+}
