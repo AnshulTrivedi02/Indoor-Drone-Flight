@@ -11094,3 +11094,96 @@ late-message wait within the 250 ms limit (0.10 s fallback), and FC-clock IMU ti
 - **Why:** the Python node is at its time limit after the anchor (p95 33.6 ms against the 33 ms keyframe budget), and
   the real drone will run C++.
 - **If the C++ shadow does not pass in time,** S3 falls back to the Python node and it is reported.
+
+### RULINGS (user, 2026-10-08): C++ FGO adapter Rules A and B; shadow flights on simulator truth
+- **Rule B (IMU timing): option (c).** The pre-registered single-flight metric (δ_att roll/pitch time shift) is scored
+  and recorded **as worded, whatever it shows**.
+  - The same-bag paired replay (time_ref −3.5 ms against the Python node's timing +6.0 ms) is reported as
+    **EXPLORATORY**, labelled as seen before any amendment.
+  - **FC-clock IMU stamping (`time_ref`) is chosen on principle:** it is the true sensor time, and the real drone uses
+    it. The choice does not depend on the Rule B outcome.
+- **Shadow flights fly on simulator truth (`AHRS_EKF_TYPE 10`) instead of EKF3:** accepted as a **recorded deviation**
+  from the stage-5 handover. Rule A is unaffected (FC state age does not depend on who flies). Rule B does not need
+  identical trajectories.
+- **Rule A: applied as pre-registered.** If the FC state age with the 0.20 s late-message wait can exceed 250 ms, the
+  wait becomes 0.10 s and the reason is recorded.
+
+### H SITL GROUND TESTS (2026-10-08, `H_gt_fgo`, `H_gt_ukf`): BOTH FAILED. The FGO vehicle crashed; the watcher stopped it correctly. Mechanisms found from the logs
+Profile `batches/expH/wtest_profile.json`: `wait_fix` → move → hold 60 s, flown on the backend under test
+(`AHRS_EKF_TYPE 13` FGO / `12` UKF), port tree `~/ardupilot_ukf` at `eb86bada`. Fail-closed watcher active (heartbeat
+confirmed before arming in both).
+
+**`H_gt_fgo` (Python FGO node flying): crash. The anchor itself was clean; the backend output then went stale, and
+the port's handling of a stale output is unsafe.** Timeline (dataflash, SITL clock):
+1. **28.95 s, the first tag fix: re-anchor.** `XFGR` reports **both** resets: position dN −1.42 m, dE +0.00 m, and
+   **yaw −0.38°** (the `XFGR.DY` field is in degrees; an earlier verbal report of −22° misread the unit). AP_AHRS
+   dispatches both `getLastPosNorthEastReset` and `getLastYawResetAngle` to the FGO (`AP_AHRS.cpp`).
+   - **The controller handled the reset as designed:** the position target moved with the estimate (PSCN target
+     −1.42 m immediately after).
+   - **There was no transient from the anchor:** GT tilt stayed 1.0–2.4° from 28.95 s until 30.10 s.
+2. **The node fell behind.** Python step time (node stats):
+   - median 40.9 ms on the ground and 42.0 ms in the climb;
+   - **55.9 ms after the anchor** (tag factors added);
+   - against the 33.3 ms keyframe period.
+   The queue lag rose from 0.16 s to 0.44 s. The FC state age (`XFGO.Age`) rose ~0.17 s/s, from ~170 ms at the anchor
+   to **253 ms at 30.06 s**, over the 250 ms limit, so **`OV` went 0** and stayed 0.
+3. **What the controller received when the output went invalid (port defects, not node defects):**
+   - **(a) Attitude froze.** `AP_AHRS_FGO::get_results` returns early with `attitude_valid = false`, but
+     `AP_AHRS::update` still calls `copy_estimates_from_backend_estimates` with the stale struct. There is no DCM
+     fallback for copters. **`ATT` roll/pitch stayed at exactly 0.5° / 2.0° from 30.06 s to the end** while the
+     desired pitch rose to 21–27°.
+   - **(b) Position zero-filled.** `AC_PosControl::update_estimates` (upstream) leaves the position at zero when AHRS
+     has none: **PSCN/PSCE/PSCD position 0.00** against targets N −1.39 m, D −1.62 m.
+   - **(c) The EKF failsafe cannot fire.** `Copter::ekf_check` returns at its first line when AHRS has no origin, and
+     both port backends return `get_origin() = false`. **`FS_EKF_ACTION` can therefore never trigger on the UKF or
+     FGO port:** no `EKFCHECK` error and no mode change in the 2.6 s to the end of the log.
+4. **Result:** the attitude loop drove the real pitch up against a frozen 2° reading. GT tilt reached 20° at 30.31 s,
+   50° at 31.0 s and 60.6° at 31.60 s, with the vehicle thrown 6 m toward −N.
+   - **The watcher stopped the flight at tilt 60.6° > 60°** (SIGTERM to `fly_trial.py` and `run_trial.sh`; the log was
+     copied). The watcher behaved exactly as designed.
+   - **It could not have saved a real vehicle:** LAND also flies on the frozen attitude.
+
+**`H_gt_ukf`: no ExtNav records (0 `VISP`, 0 `XUKT`). Cause: a SITL soft reboot changed SERIAL1's UDP source port,
+and the tag bridge kept sending to the old port.**
+- `fly_trial.py` found `ARMING_SKIPCHK` stuck in the port tree's own `eeprom.bin` (the Known Issue #10 gotcha, in
+  `~/ardupilot_ukf/ArduCopter`). It corrected it and rebooted.
+- The SITL reboot re-executes `arducopter`. `arducopter.log` shows a second `Starting sketch` and a new
+  `UDP connection 127.0.0.1:14557`, i.e. a new SERIAL1 socket with a new ephemeral source port.
+- `tag_bridge_fwd.py` binds 14557 with pymavlink's `udp:` listener. That listener replies to the `last_address` it
+  learned from SITL's first heartbeat, and the bridge never reads again after `wait_heartbeat`. Its 2097 ODOMETRY
+  messages therefore went to the dead pre-reboot port.
+- **The parameters were correct** (PARM dump: `VISO_TYPE 1`, `SERIAL1_PROTOCOL 2`, `AHRS_UKF_EXTPOS 1`,
+  `EK3_SRC1_POSXY 6`, `VISO_DELAY_MS 31`), and the build includes `AP_VisualOdom`.
+- **Only this ground test rebooted.** `H_s1_r1..r3` and `H_gt_fgo` show no reboot, and their ExtNav worked.
+- **Not caught before takeoff:** the `wait_fix` gate runs after takeoff, so the UKF flew with no fix, timed out and
+  landed safely.
+- **Status:** the cause is inferred from the logs and consistent with every record. It will be confirmed by the
+  bridge fix plus a forced-reboot re-run (VISP count = sent count after the reboot).
+
+**Proposed fixes (design; ruling item 2 + the defects above), all before any S2/S3 flight:**
+1. **Frame anchoring before arming (ruled).** At the hold point on the ground the tag is out of view: the camera
+   needs ≥ 1.5 m of vertical coverage at 23.4° half-VFOV. Planned changes:
+   - **Spawn** at N_W ≈ −3.7 m (world y ≈ 1.3 m), where the whole tag is in view from the ground (camera-to-tag
+     ~3.7 m).
+   - **A pre-arm gate:** no arming until every backend has anchored (EKF3 "using external nav", UKF `XUKT` anchor
+     row, FGO `XFGR`) and the FC sees valid fixes (VISP count tracks the sent count).
+   - The range is outside S0a's characterised 0.9–2.8 m, so **the pre-arm fix error against GT at the spawn is
+     measured and pre-registered** in the re-run.
+   - Both backends anchor on the first fix whether armed or not (`NavUKF::tag_reanchor`; `fgo_node_core`), so no
+     backend change is needed for this.
+2. **Stale/invalid output must not freeze attitude or zero position (port fix).**
+   - On invalid output, AHRS falls back to DCM attitude.
+   - The vehicle lands with the estimator-independent vertical path. This needs an `ekf_check`-equivalent trigger
+     that does not depend on an origin: give the port backends an origin at the anchor, or add an explicit
+     "backend invalid > N ms → LAND" in the port.
+   - **Verified in SITL by forcing invalidity in a hover** (stopping the node), as the pre-registered check.
+3. **The node must keep the FC state age under 250 ms.**
+   - **S3 flies the C++ node** (already planned). Its per-step time is well under the keyframe budget.
+   - The Python node is not flown closed loop with tags.
+4. **Tag bridge reboot-robustness.** Read (non-blocking) before each send so `last_address` follows SITL re-execs.
+   **Also a pre-run eeprom check** on the port tree, so the reboot does not happen.
+5. **Then re-run both ground tests**, plus the pre-registered check that an **in-flight** anchor (tag first seen
+   airborne) produces a controller transient below a stated bound. The bound is to be stated before the run.
+
+**Real-flight plan:** "frame anchoring completes before arming" and the stale-output findings are added to
+`docs/real_flights_plan.md` §7.

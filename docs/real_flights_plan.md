@@ -214,9 +214,16 @@ camera flown only once verified.
   - **Thin backend flying:** the backend reports zero innovation variances (`AP_AHRS_FGO::get_variances`) [V], so
     `ekf_check` can only trip on "no relative position" when the Pi state goes invalid (`ekf_check.cpp`, `has_position`).
     The output goes invalid 130 ms after the last state (FG2 node-stop) [V].
-    - **To verify on the bench or in SITL before flight:** that this triggers the configured `FS_EKF_ACTION` (LAND)
-      within the expected time. It was not exercised in the ground tests, where the vehicle was on the ground.
+    - **CORRECTED 2026-10-08 (`H_gt_fgo` crash, METHODOLOGY "H SITL GROUND TESTS"): it does NOT trigger.**
+      `Copter::ekf_check` returns at its first line when AHRS has no origin, and the port backends have none, so
+      `FS_EKF_ACTION` can never fire on the UKF/FGO port. Worse, on invalid output the port froze the AHRS attitude
+      (stale estimates copied, no DCM fallback), and `AC_PosControl` zero-filled the position. **Before any flight on
+      a thin backend:** DCM attitude fallback on invalid output, an origin-independent "backend invalid → LAND"
+      trigger, both verified by forcing invalidity in a hover.
   - The flight script must use the estimator-independent clock (`SYSTEM_TIME`, D24) and land on failure.
+- **Frame anchoring completes before arming (ruling 2026-10-08).** Every estimator that re-anchors to the marker/mocap
+  frame must have anchored on the ground before arming (the vehicle placed where the marker is in view), and the FC must
+  be receiving valid fixes. No frame change in flight. Gate it in the flight script, as `wait_fix` before arming.
 - **Physical:** prop guards, tether or net (question 7), conservative speed (0.25–0.5 m/s), the lowest workable
   height (≥ 1 m for the flow and range geometry), and a battery failsafe.
 - **Staged bring-up:**
