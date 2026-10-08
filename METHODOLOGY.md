@@ -11926,3 +11926,17 @@ drift is not worse than EKF3's.
 tilt only, and reports the cause and a proposed fix without changing anything.
 
 **The flights do NOT wait for it:** the FGO (b) re-fly is in progress, and S3 follows the remaining steps.
+
+### FGO (b) RE-FLY RESULT (`H_safety_fgo_b2`, 2 m-clearance hold, `eval/results/expH/safety_fgo_b2.json`): ALL PASS
+C++ node SIGKILLed in the hold at t 66.04 s. The watcher also watched the node (`--dep-loss land`).
+- **S-A1 PASS:** max |ATT − GT| roll 0.53°, pitch 0.24°, yaw 0.17°.
+- **S-A2 PASS:** "Thesis nav: FGO position lost" and LAND (reason 6) at +0.47 s.
+- **S-A3 PASS:**
+  - drift to touchdown **1.25 m** (EKF3 reference 1.40 m);
+  - max tilt 1.99°;
+  - touchdown 0.57 m/s;
+  - disarmed +8.66 s;
+  - **no breach** (2 m clearance).
+- **S-A4 PASS:** one LAND entry, no re-arm, no conflict between the watcher's and the FC's paths.
+- **The option (i) safety tests are complete:** UKF (a), (b) and FGO (a) PASS; FGO (b) failed as worded at the old
+  hold and PASSED at the 2 m-clearance hold; the EKF3 reference was measured.
