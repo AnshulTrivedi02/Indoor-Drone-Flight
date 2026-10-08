@@ -29,3 +29,15 @@ D15 rule; only the inputs named change; env `UKF_APIN`, OFF by default):
 **Regression (default path byte-identical):** the modified scripts with `UKF_APIN` unset, run into a scratch HOME,
 must give output files byte-identical to the unmodified scripts (HEAD `b918455`) on `dsn_tex_r2` and `H_s1_r1`, and
 are also compared with the stored thesis outputs.
+
+### 0.1 Added after the first (a)/(b) results, stated before running them
+
+The first results put the whole `H_s1_r1` effect in the flow path ((b-flow) = (b); (b-imu) = (a)). Three more
+OFF-by-default variants split it (same metrics as §0):
+- `flowgyro`: bag flow and capture stamps, but EKF3's derotation gyro (ROFH `bodyRate`, paired by frame).
+- `flowtime`: ROFH flow at EKF3's time (arrival − 60 ms), with the bag-IMU frame-average gyro.
+- `biascorr`: bag inputs; `h_flow` derotates with the frame-average gyro minus the UKF's own gyro-bias estimate
+  (EKF3 derotates with bias-corrected rates; the FGO too). A formulation variant, not an input substitution.
+Expectation stated beforehand: if `flowgyro` and `biascorr` each close most of the H gap and `flowtime` does not,
+the mechanism is the gyro bias left in the offline UKF's derotation, not the input path. The default path is
+re-checked byte-identical after this change.

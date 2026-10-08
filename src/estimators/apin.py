@@ -9,11 +9,16 @@ Env UKF_APIN (unset = off; the replays' default path never imports this module's
         EKF3's / the UKF port's time rule (arrival - 60 ms), with EKF3's derotation gyro (AP_OpticalFlow_MAV bodyRate,
         FLU x/y) in place of the frame-averaged IMU gyro. Valid = Qual > 0, inlier = Qual / 255.
   both  imu + flow.
+Split of the flow path (added after the first results, 2026-10-08; DIAGNOSTIC):
+  flowgyro  bag flow values and capture stamps; derotation gyro = ROFH bodyRate of the same frame (paired by value).
+  flowtime  ROFH values at EKF3's time (arrival - 60 ms); derotation gyro = the bag-IMU frame average (as (a)).
+  biascorr  NO input substitution: bag inputs, but h_flow derotates with (gyro average - the UKF's own gyro-bias
+            estimate), as EKF3 (delAngCorrected, flowGyroBias) and the FGO do. A FORMULATION variant, not an input one.
 Range, tags, attitude rates: unchanged (bag)."""
 import os
 import numpy as np
 
-MODES = {"imu": ("imu",), "flow": ("flow",), "both": ("imu", "flow")}
+MODES = {"imu": ("imu",), "flow": ("flow",), "both": ("imu", "flow"), "flowgyro": (), "flowtime": ("flow",), "biascorr": ()}
 
 
 def mode():
@@ -37,8 +42,12 @@ def substitute(ev, trial_dir, m):
         keep += [(float(t), "imu", (acc[i], gyr[i], float(dt[i]))) for i, t in enumerate(z["imu_t"])]
     if "flow" in parts:
         q = z["flow_qual"]
-        keep += [(float(t), "flow", (z["flow_xy"][i].astype(float), bool(q[i] > 0), float(q[i]) / 255.0,
-                                      z["flow_gyro"][i].astype(float))) for i, t in enumerate(z["flow_t"])]
+        g = (lambda i: (z["flow_gyro"][i].astype(float),)) if m != "flowtime" else (lambda i: ())
+        keep += [(float(t), "flow", (z["flow_xy"][i].astype(float), bool(q[i] > 0), float(q[i]) / 255.0) + g(i))
+                 for i, t in enumerate(z["flow_t"])]
+    if m == "flowgyro":
+        gmap = {round(float(tb), 6): z["flow_gyro"][k].astype(float) for k, tb in zip(z["pair_rofh"], z["pair_bag_t"])}
+        keep = [(e[0], e[1], e[2] + (gmap[round(e[0], 6)],)) if e[1] == "flow" and round(e[0], 6) in gmap else e for e in keep]
     return keep
 
 

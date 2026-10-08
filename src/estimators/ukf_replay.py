@@ -157,6 +157,8 @@ for t, kind, d in ev:
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
         if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
             omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])
+        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
+            omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
         if DUMP and valid and inlier > 0:
             dump_flow.append(np.r_[t, flow_xy, U.h_flow(x, omega_flow), omega_flow])
         if valid and inlier > 0:
