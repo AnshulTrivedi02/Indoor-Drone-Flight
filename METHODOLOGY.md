@@ -11647,3 +11647,6 @@ estimators), using the tag fix only where it is characterised:
 4. the S1 re-fly;
 5. S2;
 6. S3.
+- The failed run's directories are renamed `H_safety_ukf_a_run1_failed` (trials/ and closed_loop/). Its scored result
+  stays in `eval/results/expH/safety_ukf_a.json`, where the trial field reads `H_safety_ukf_a`. The re-run reuses the
+  name `H_safety_ukf_a`.
