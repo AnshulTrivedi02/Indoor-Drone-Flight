@@ -12380,3 +12380,23 @@ growth from the stated densities; flag > 2×):
 - `H_s1far_r3b` (EKF3 flying) needs nothing more.
 - **S3 and the FGO re-flights are flown AGAIN with the noise + yaw-cap FGO.** The noise-fix-only runs stay recorded,
   labelled "FGO noise fix only (yaw cap ungated)".
+
+### RULINGS (user, 2026-10-09): the yaw-cap ablation; the cut order if time runs short before 16 Oct
+1. **The "FGO noise fix only (yaw cap ungated)" runs are KEPT as a labelled ABLATION.** What the yaw-cap gating alone
+   changes is reported against the final corrected runs. The pairs:
+   - S3 `H_s3_r*` against the re-flown S3;
+   - `cl_fgo_*_v2` against the re-flown corridor set;
+   - `H_safety_fgo_*_v2` against the re-flown safety tests.
+2. **Cut order if time runs short** (cut first at the top):
+   - **a.** The UKF and FGO safety re-tests (a)/(b). These are real-flight readiness evidence, not thesis results.
+     They may move to after the simulation freeze, **but must pass before any real closed-loop flight.**
+   - **b.** The full-speed UKF corridor set re-fly (already excluded unless time allows).
+   - **Protected, in priority order:**
+     1. the consolidated offline re-run with all corrections, and the confirmatory EKF3-vs-FGO test;
+     2. S2 and S3;
+     3. the half-speed corridor re-flights;
+     4. the D27/F3 re-measurement.
+   - **Anything beyond (a) and (b) is cut only after telling the user.**
+- **Machine schedule implied:** after the fixes are installed, fly S3 and S2, then the half-speed corridor
+  re-flights (UKF, then FGO). Start the consolidated re-run as soon as those are done. The safety re-tests follow if
+  time allows, otherwise after the freeze.
