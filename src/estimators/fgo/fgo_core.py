@@ -29,7 +29,10 @@ def make_pim_params():
     p.setBiasAccCovariance(np.eye(3) * 5.0e-6)
     p.setBiasOmegaCovariance(np.eye(3) * 1.25e-8)
     p.setIntegrationCovariance(np.eye(3) * 1e-8)                 # conditioning floor (unmatched)
-    p.setBiasAccOmegaInit(np.diag([0.2**2]*3 + [0.043633**2]*3))
+    # ZERO (user ruling 2026-10-09, METHODOLOGY "FGO noise-model correction"; D18 MODEL CORRECTION): in GTSAM 4.2.1
+    # CombinedImuFactor::integrateMeasurement (CombinedImuFactor.cpp:138-163) adds biasAccOmegaInt as extra IMU white
+    # noise at EVERY sample, not as an initial bias covariance. EKF3's initial bias sigmas stay in the B(0) prior only.
+    p.setBiasAccOmegaInit(np.zeros((6, 6)))
     return p
 
 

@@ -41,9 +41,10 @@ boost::shared_ptr<gtsam::PreintegrationCombinedParams> make_pim_params() {
   p->setBiasAccCovariance(gtsam::Matrix3::Identity() * 5.0e-6);
   p->setBiasOmegaCovariance(gtsam::Matrix3::Identity() * 1.25e-8);
   p->setIntegrationCovariance(gtsam::Matrix3::Identity() * 1e-8);          // conditioning floor (unmatched)
-  gtsam::Vector6 d;
-  d << 0.2 * 0.2, 0.2 * 0.2, 0.2 * 0.2, 0.043633 * 0.043633, 0.043633 * 0.043633, 0.043633 * 0.043633;
-  p->setBiasAccOmegaInit(d.asDiagonal().toDenseMatrix());
+  // ZERO (user ruling 2026-10-09, METHODOLOGY "FGO noise-model correction"; D18 MODEL CORRECTION): in GTSAM 4.2.1
+  // CombinedImuFactor::integrateMeasurement (CombinedImuFactor.cpp:138-163) adds biasAccOmegaInt as extra IMU white
+  // noise at EVERY sample, not as an initial bias covariance. EKF3's initial bias sigmas stay in the B(0) prior only.
+  p->setBiasAccOmegaInit(gtsam::Matrix6::Zero());
   return p;
 }
 
