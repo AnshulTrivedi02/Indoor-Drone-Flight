@@ -12258,3 +12258,14 @@ first node keyframe at or after the first returning fix (node stats, header cloc
 
 **Order and stop rule (as the original):** a first, scored; then the set, each scored before the next. A primary
 failure stops the sequence.
+
+### FGO re-flight `cl_fgo_a_tex_half_v2` (no heading, corrected FGO, Python node) RESULT: PRIMARY PASS (`eval/results/closed_loop_cl_fgo_a_tex_half_v2.json`)
+- **Contact (as the original, the expected end of a no-heading flight):** west wall at cruise **+169.6 s**, GT
+  (−9.58, 83.8). The original was +165.8 s. **The open-loop method's prediction was +169.6 s.**
+- **U1 PASS:** armed, took off (1.81 m), cruised. No message after arming before contact. "Thesis nav: FGO position
+  lost" + LAND appear at 200.0 s, when the watcher stopped the run at contact, i.e. after the node and sim teardown.
+- **U2 PASS:** no contact before +100 s.
+- **U3 PASS:** inside [+145, +196] s.
+- **S2 PASS:** `XFGO.OV` 100 % from arming to contact; age max **163 ms** (original 172); 0 wrapped.
+- The driver stopped on the breach by design. For the no-heading flight, contact is the pre-registered expected
+  outcome, so the sequence continues with the heading set.
