@@ -103,6 +103,7 @@ void LiveAdapter::imu_time_ref_paired(double th, double ts, const Vector3& acc, 
   if (!ok) return;
   // the offset was seeded from the SETTLED envelope in settle_and_flush (never from unsettled samples)
   tref_max_track_err = std::max(tref_max_track_err, std::abs(env - off_used_));
+  if (std::abs(env - off_used_) > CLOCK_TRACK_LIMIT_S) break_clock(th, "time_ref offset tracking error over the limit");
   off_used_ += std::max(-cfg_.slew_s_per_sample, std::min(cfg_.slew_s_per_sample, env - off_used_));
   const double row[EV_COLS] = {double(IMU), ts + off_used_, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2], NAN};
   push(row, 0);
@@ -139,8 +140,15 @@ void LiveAdapter::settle_and_flush() {
   held_.shrink_to_fit();
 }
 
+void LiveAdapter::break_clock(double th, const char* why) {
+  if (clock_broken) return;
+  clock_broken = true; clock_broken_reason = why; clock_broken_th = th;
+}
+
 void LiveAdapter::time_ref(double th, double ts) {
   ++n_arrivals;
+  if (std::isfinite(ts_prev_any_) && ts < ts_prev_any_ - CLOCK_BACK_S) break_clock(th, "time_ref sensor time stepped back (FC reboot?)");
+  ts_prev_any_ = std::isfinite(ts_prev_any_) ? std::max(ts_prev_any_, ts) : ts;
   if (holding()) held_.push_back({2, -1, {NAN, ts, NAN, NAN, NAN, NAN, NAN, NAN, NAN}});   // gap check deferred
   else gap_check(ts);
   // clock map (fgo_node._tref): offsets header - sensor over the last clock_window_s
@@ -276,6 +284,9 @@ void LiveAdapter::on_keyframe(const double* row) {
   uint64_t tus = 0;
   if (flushing_) ++n_unsettled;   // produced from inputs held before the clock map settled: stale, not sent
   else if (sitl_us(row[1], &tus)) {
+    if (last_sent_tus_ && tus < last_sent_tus_) break_clock(row[1], "sent time_usec stepped back");
+    last_sent_tus_ = std::max(last_sent_tus_, tus);
+    if (clock_broken) { valid = false; o.valid = false; }
     o.sent = true;
     o.t_us = tus;
     o.frame = odometry(row, valid, tus);

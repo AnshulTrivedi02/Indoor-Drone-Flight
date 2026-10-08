@@ -383,6 +383,49 @@ def _live_bin_since_boot():
 ANCHOR_TEXT = {"EKF3": "is using external nav data", "UKF": "UKF tag re-anchor", "FGO": "FGO re-anchor"}
 
 
+def require_fgo_node_current(cap_s: float = 120.0) -> None:
+    """FC-reboot check (user ruling 2026-10-09). The C++ FGO node's clock map is built against ONE FC boot; a SITL
+    reboot after the node started (e.g. ensure_params' soft reboot) would step the FC clock back under it. run_trial
+    records the FC boot the node started against (the newest dataflash log then: one per boot). If the FC has rebooted
+    since, stop the node (SIGINT, it writes its stats), start it again (fgo_node_restart.sh, same parameters) and wait
+    for its 'FIRST STATE SENT' (clock map settled) before arming. Mid-flight the node itself latches its output INVALID
+    on a clock step back (live_adapter clock_broken), so the FC's landing trigger applies."""
+    d = os.environ.get("FGO_NODE_CHECK_DIR", "")
+    if not d:
+        return
+    logs = os.environ["FGO_NODE_AP_LOGS"]
+    bins = sorted((f for f in os.listdir(logs) if f.endswith(".BIN")), key=lambda f: os.path.getmtime(os.path.join(logs, f)))
+    started = open(os.path.join(d, "fgo_node_boot.txt")).read().strip()
+    now = bins[-1] if bins else ""
+    if now == started:
+        log(f"FGO node check ok: no FC reboot since the node started (boot log {now})")
+        return
+    log(f"FGO node check: FC REBOOTED since the node started (boot log {started} -> {now}); restarting the node")
+    pid = int(open(os.path.join(d, "fgo_node.pid")).read().strip())
+    try:
+        os.killpg(pid, 2)
+    except ProcessLookupError:
+        pass
+    t0 = time.time()
+    while time.time() - t0 < 30:
+        try:
+            os.kill(pid, 0); time.sleep(0.5)
+        except ProcessLookupError:
+            break
+    else:
+        raise TrialFailure(f"REFUSING TO ARM: the old FGO node (pid {pid}) did not stop")
+    subprocess.run(["bash", os.path.join(d, "fgo_node_restart.sh")], check=True)
+    open(os.path.join(d, "fgo_node_boot.txt"), "w").write(now + "\n")
+    rl = os.path.join(d, "fgo_node_restart.log"); t0 = time.time()
+    while time.time() - t0 < cap_s:
+        if os.path.exists(rl) and "FIRST STATE SENT" in open(rl, errors="replace").read():
+            log(f"FGO node restarted (pid {open(os.path.join(d, 'fgo_node.pid')).read().strip()}); clock map settled after "
+                f"{time.time() - t0:.1f} s wall")
+            return
+        time.sleep(1.0)
+    raise TrialFailure("REFUSING TO ARM: the restarted FGO node did not settle its clock map in time")
+
+
 def require_anchor_before_arming(cap_s: float = 180.0) -> None:
     """Experiment H ruling 2026-10-08 (item 2): no arming until every listed backend has anchored to the tag frame (its own
     anchor text in the running SITL's log since the latest boot) AND the FC is receiving fixes (VISP rows growing, the
@@ -771,6 +814,7 @@ def main() -> int:
         healed = ensure_params(master, args.port)
         if healed is not None:
             master = healed
+        require_fgo_node_current()
         require_watcher_before_arming()
         require_anchor_before_arming()
         wait_ready_to_arm(master)

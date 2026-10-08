@@ -86,6 +86,14 @@ class LiveAdapter {
   size_t n_held = 0;                  // inputs held before the settle and pushed at it
   double tref_max_track_err = 0;      // max |envelope - applied offset| over IMU samples after the seed (s)
   size_t n_dup_stamp = 0;             // IMU or time_ref arrivals whose header stamp was already waiting (FIFO-paired)
+  // clock integrity (ruling 2026-10-09): a FC (SITL) reboot after the node started steps the sensor clock back and
+  // breaks the clock map. Detected by (a) /imu/time_ref sensor time stepping back > CLOCK_BACK_S, (b) the time_ref
+  // offset tracking error > CLOCK_TRACK_LIMIT_S after the seed, (c) a sent time_usec stepping back. LATCHED: from then
+  // on every state is sent INVALID (quality 0), so the FC's output goes invalid and its landing trigger applies.
+  static constexpr double CLOCK_BACK_S = 0.5, CLOCK_TRACK_LIMIT_S = 0.10;
+  bool clock_broken = false;
+  std::string clock_broken_reason;
+  double clock_broken_th = NAN;
 
  private:
   void push(const double* row, int rank);
@@ -97,6 +105,9 @@ class LiveAdapter {
   void imu_time_ref_paired(double th, double ts, const Vector3& acc, const Vector3& gyro);
   void gap_check(double ts);
   void settle_and_flush();
+  void break_clock(double th, const char* why);
+  double ts_prev_any_ = NAN;
+  uint64_t last_sent_tus_ = 0;
   bool holding() const { return cfg_.imu_stamp == "time_ref" && !tref_settled; }
   std::vector<uint8_t> odometry(const double* row, bool valid, uint64_t t_us);
 

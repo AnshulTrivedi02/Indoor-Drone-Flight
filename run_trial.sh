@@ -202,6 +202,8 @@ cleanup() {
     echo ""
     echo "=== Cleaning up (exit code $exit_code) ==="
 
+    # a node restarted by fly_trial's pre-arm reboot check (ruling 2026-10-09) replaces the original one
+    if [ -f "$LOG_DIR/fgo_node.pid" ]; then FGO_PID="$(cat "$LOG_DIR/fgo_node.pid")"; fi
     if [ -n "$FGO_PID" ] && kill -0 "$FGO_PID" 2>/dev/null; then
         echo "Stopping FGO node (pid $FGO_PID, SIGINT: it writes its stats)..."
         kill -INT -- "-$FGO_PID" 2>/dev/null || true
@@ -415,13 +417,27 @@ if [ -n "${HEADING_BRIDGE:-}" ]; then
 fi
 
 if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
+    FGO_CPP_ARGS=(--ros-args -p mavlink_out:=udp:127.0.0.1:14558
+        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)"
+        -p reorder_delay_s:="$FGO_CPP_DELAY" -p imu_stamp:="$FGO_CPP_IMU_STAMP" -p arm_source:="$FGO_CPP_ARM_SOURCE"
+        ${FGO_NODE_TAGS:+-p tags:=true -p tag_sigma_pos:=${TAG_SIGMA_POS:-0.02}})
     start_bg "$LOG_DIR/fgo_node.log" \
-        env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$FGO_CPP_NODE_BIN" \
-        --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats" -p mavlink_out:=udp:127.0.0.1:14558 \
-        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)" \
-        -p reorder_delay_s:="$FGO_CPP_DELAY" -p imu_stamp:="$FGO_CPP_IMU_STAMP" -p arm_source:="$FGO_CPP_ARM_SOURCE" \
-        ${FGO_NODE_TAGS:+-p tags:=true -p tag_sigma_pos:=${TAG_SIGMA_POS:-0.02}}
+        env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$FGO_CPP_NODE_BIN" "${FGO_CPP_ARGS[@]}" -p stats_path:="$OUTPUT_DIR/fgo_node_stats"
     FGO_PID="${BG_PIDS[-1]}"
+    # FC-reboot check (ruling 2026-10-09): the FC boot the node started against = the newest dataflash log now (one per
+    # boot, LOG_DISARMED 1); fly_trial compares it before arming and, if the FC has rebooted since, stops this node
+    # and runs fgo_node_restart.sh (same parameters, stats "_restart"), whose PID replaces this one in fgo_node.pid
+    echo "$FGO_PID" > "$LOG_DIR/fgo_node.pid"
+    ls -t "$AP_TREE/ArduCopter/logs/"*.BIN 2>/dev/null | head -1 | xargs -r basename > "$LOG_DIR/fgo_node_boot.txt"
+    {
+        echo '#!/usr/bin/env bash'
+        printf 'setsid nohup env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 %q' "$FGO_CPP_NODE_BIN"
+        printf ' %q' "${FGO_CPP_ARGS[@]}" -p stats_path:="$OUTPUT_DIR/fgo_node_stats_restart"
+        printf ' > %q 2>&1 < /dev/null &\n' "$LOG_DIR/fgo_node_restart.log"
+        printf 'echo $! > %q\n' "$LOG_DIR/fgo_node.pid"
+    } > "$LOG_DIR/fgo_node_restart.sh"
+    chmod +x "$LOG_DIR/fgo_node_restart.sh"
+    export FGO_NODE_CHECK_DIR="$LOG_DIR" FGO_NODE_AP_LOGS="$AP_TREE/ArduCopter/logs"
     wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 elif [ -n "${FGO_NODE:-}" ]; then
     start_bg "$LOG_DIR/fgo_node.log" \

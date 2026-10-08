@@ -225,6 +225,13 @@ camera flown only once verified.
       origin-independent landing trigger is added. **This behaviour must pass on the bench AND in SITL** (kill the
       estimator in a hover, with and without the watcher) **before any real closed-loop flight.**
   - The flight script must use the estimator-independent clock (`SYSTEM_TIME`, D24) and land on failure.
+- **No arming if the flight controller has rebooted since the estimator node started (ruling 2026-10-09).** The Pi
+  node's clock map is built against one FC boot. The pre-arm check compares the FC boot identity (boot counter or
+  `SYSTEM_TIME` boot time / the dataflash log index) recorded at node start with the current one. On a mismatch the
+  node is restarted and its clock map must settle ("first state sent") before arming. **In flight**, a backwards
+  step of the FC clock (time-reference sensor time, offset tracking error > 0.1 s, or a sent state time going
+  backwards) latches the node's output INVALID, so the FC's estimator-loss landing trigger applies. Verified in SITL
+  (`fly_trial.require_fgo_node_current`, `live_adapter` clock-integrity latch) before any real flight.
 - **Frame anchoring completes before arming (ruling 2026-10-08).** Every estimator that re-anchors to the marker/mocap
   frame must have anchored on the ground before arming (the vehicle placed where the marker is in view), and the FC must
   be receiving valid fixes. No frame change in flight. Gate it in the flight script, as `wait_fix` before arming.

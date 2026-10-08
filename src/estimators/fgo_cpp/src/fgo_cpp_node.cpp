@@ -184,7 +184,8 @@ class FgoCppNode : public rclcpp::Node {
                    "\"n_unsettled\": %zu, \"n_unsent_no_peer\": %zu, \"n_reinits\": %zu, \"gap_invalid\": %s, \"t_armed_header\": %.6f, "
                    "\"max_lateness_s\": %.6f, \"n_out_of_order\": %zu, \"n_heading_rejected\": %zu, \"n_imu_unpaired\": %zu, "
                    "\"tref_settled\": %s, \"tref_seed_th\": %s, \"tref_seed_offset_s\": %s, \"n_held\": %zu, "
-                   "\"tref_max_track_err_s\": %.6f, \"n_dup_stamp\": %zu}\n",
+                   "\"tref_max_track_err_s\": %.6f, \"n_dup_stamp\": %zu, \"clock_broken\": %s, \"clock_broken_reason\": \"%s\", "
+                   "\"clock_broken_th\": %s}\n",
                    cfg_desc_.c_str(), stats_.size() / 10, adapter_->n_sent, adapter_->n_unsettled, n_unsent_,
                    adapter_->n_reinits, adapter_->gap_invalid ? "true" : "false", adapter_->t_armed_header, adapter_->max_lateness(),
                    adapter_->n_out_of_order(), adapter_->n_hdg_rejected, adapter_->n_imu_unpaired,
@@ -196,6 +197,15 @@ class FgoCppNode : public rclcpp::Node {
   }
 
   void output(const fgo_cpp::LiveOutput& o) {
+    // live markers for fly_trial's pre-arm node check (ruling 2026-10-09) and the clock-integrity latch
+    if (o.sent && !logged_first_sent_) {
+      logged_first_sent_ = true;
+      RCLCPP_INFO(get_logger(), "FIRST STATE SENT (clock map settled)");
+    }
+    if (adapter_->clock_broken && !logged_clock_broken_) {
+      logged_clock_broken_ = true;
+      RCLCPP_ERROR(get_logger(), "CLOCK BROKEN: %s - every state is now sent INVALID", adapter_->clock_broken_reason.c_str());
+    }
     geometry_msgs::msg::PoseStamped p;
     p.header.frame_id = "map";
     p.header.stamp.sec = static_cast<int32_t>(std::floor(o.t_k));
@@ -235,6 +245,7 @@ class FgoCppNode : public rclcpp::Node {
   std::atomic<bool> stop_{false};
   size_t n_unsent_ = 0;
   std::string stats_path_, cfg_desc_;
+  bool logged_first_sent_ = false, logged_clock_broken_ = false;
   std::vector<double> stats_;   // 10 per keyframe (write_stats columns)
   std::chrono::steady_clock::time_point cur_wall_;
 };

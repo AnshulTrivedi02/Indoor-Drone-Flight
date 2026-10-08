@@ -11744,3 +11744,33 @@ did not occur in (i) or (ii). `tref_max_track_err_s` flags it.
 - **δ_att PASS:** live **2.5 ms**, same-bag time_ref replay 2.5 ms (difference 0). Causal replay: 13.5 ms.
 - **Consequence (as ruled):** the FGO safety tests and S3 fly **0.10 s with time_ref (FC clock)**. Rule A is
   adopted, and the FC-clock choice stands on principle. The causal fallback is not needed.
+
+### RULING (user, 2026-10-09): close the FC soft-reboot risk for the FGO node (pre-arm check + in-flight latch). Implemented
+- **Pre-arm** (`fly_trial.require_fgo_node_current`, before the watcher and anchor gates):
+  - `run_trial` records the FC boot the C++ node started against: the newest dataflash log, one per boot with
+    `LOG_DISARMED 1`;
+  - if the FC has rebooted since (e.g. an `ensure_params` soft reboot), fly_trial stops the node (SIGINT, its stats
+    are written) and starts it again with the same parameters (`fgo_node_restart.sh`, stats `_restart`);
+  - it then waits for the node's "FIRST STATE SENT (clock map settled)" before arming. Otherwise it refuses to arm.
+  - `run_trial`'s clean-up stops whichever node is current (`fgo_node.pid`).
+  - **Offline unit test** (fake logs, a dummy node): reboot detected → old node stopped → restart → settled marker
+    seen (3.0 s) → the second check reports no reboot.
+- **In flight** (`live_adapter` clock-integrity latch, every IMU-stamp mode). Any of these breaks the clock:
+  - the time_ref sensor time steps back > 0.5 s;
+  - the time_ref offset tracking error exceeds 0.10 s (normal: 2 ms);
+  - a sent `time_usec` steps back.
+  On a break, every later state is sent INVALID (quality 0). The FC (option (i)) then holds attitude, lets position
+  time out and lands. Logged as "CLOCK BROKEN"; `clock_broken` and its reason are in the stats.
+- **Real-flight plan §7:** the same pre-arm check and in-flight latch are now required.
+- **Process note:** the first source edit of this change (live_adapter, node stats) was made while the live check
+  flight `fgo_cpp_shadow_ii_fix` was running. It did not affect that flight, which ran the installed binary; nothing
+  was built until it ended. The edit guard refused the next edit.
+- **Installed:** `fgo_cpp_node` md5 `ef9f5713…`. The regression replays (old/new binary on the shadow_ii tapes) are
+  reported below.
+- **Regression (old vs new binary, through heavy.py):** on the shadow_ii tapes (real, ramp, burst, ramp + early gap,
+  ramp + late gap in time_ref; ramp in causal), `kf.f64` and `mav.bin` are **byte-identical in all six**. The latch
+  never fires on a normal run.
+- **Latch test** (a synthetic FC reboot: the time_ref sensor time stepped back 100 s at th 150 s):
+  - the old binary kept sending all 7211 keyframes as VALID, on a broken clock;
+  - **the new binary sends 4232 valid, then only invalid states from the step on.**
+- **Launcher:** `closed_loop_run` now defaults the C++ node to 0.10 s / time_ref (Rule A; the FC clock confirmed live).

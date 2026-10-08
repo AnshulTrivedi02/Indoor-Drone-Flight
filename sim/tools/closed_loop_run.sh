@@ -47,6 +47,8 @@ if [ -n "${FGO:-}" ]; then
         EXPECT_OVERRIDE="AHRS_EKF_TYPE=13,AHRS_FGO_ENABLE=1,SERIAL3_PROTOCOL=2"
     fi
     export FGO_NODE=1 ARDUPILOT_TREE="${ARDUPILOT_TREE:-$HOME/ardupilot_ukf}"
+    # C++ node: Rule A (0.10 s late-message wait) and FC-clock IMU stamps, confirmed live by fgo_cpp_shadow_ii_fix
+    if [ "${FGO_NODE_IMPL:-python}" = cpp ]; then export FGO_CPP_DELAY="${FGO_CPP_DELAY:-0.10}" FGO_CPP_IMU_STAMP="${FGO_CPP_IMU_STAMP:-time_ref}"; fi
 fi
 if [ -n "${HEADING:-}" ]; then
     P="${HEADING_PARM:-$HOME/thesis_ws/closedloop_heading.parm}"   # HEADING_PARM: D19 half-speed delay measurement/value
