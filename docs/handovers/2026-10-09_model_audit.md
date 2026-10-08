@@ -163,7 +163,19 @@ on every quantity (full table in `results/tables.md`).
   - For scale: EKF3's in-flight gyro-bias variance in `dsn_tex_r1` cruise (XKV, 60–300 s, median) is 3.9e-11 rad² delta
     on x/y (σ 0.50 mrad/s) and 3.9e-10 on z (σ 1.58 mrad/s).
   - The jitter adds 6.7e-11 (offline) or 8e-11 (port) per second: more than the whole x/y variance, every second.
-  - The effect on the aided estimates (yaw drift, flow→gyro-bias coupling) was **not measured** here.
+  - **In-flight measurement (offline UKF):** `ukf_replay.py dsn_tex_r1` was run with `UKF_DUMP`, with HOME set to a
+    scratch copy, so no trial directory was written (`ukf_dump_bias.py`, `results/ukf_inflight_bias.json`). Over
+    cruise 60–300 s:
+    - the UKF's gyro-bias σ is **1.42 mrad/s on x/y and 4.33 mrad/s on z**, against EKF3's 0.50 / 1.58 (XKV): a
+      variance of ~8× / ~7.5× EKF3's;
+    - the jitter adds 1e-12 per step, i.e. **15% of the x/y gyro-bias variance per second** (1.6% on z);
+    - so the jitter keeps the UKF's gyro-bias uncertainty well above EKF3's in aided flight;
+    - its accel-bias σ x/y stays at 0.197 m/s² (≈ the 0.2 initial value: unobservable horizontally), and z is
+      10 mm/s² (EKF3: 52.9 / 10.0).
+  - The dumped delta-bias variances (4.5e-10 to 4.2e-9) are ≫ 1e-12. So the `rts_smooth` comment in `ukf_core.py`
+    ("Pp spans ~1e-14 (delta-form bias states)") is loose; it does not contradict this finding.
+  - The effect on yaw drift and position was **not measured**; it would need a jitter-free replay, which is a model
+    change and is left to the ruling.
 - **Classification: GENUINE inconsistency, D18 model-correction candidate.**
   - The stated, matched noise density is not what the filter carries.
   - A numerical regulariser enters as unmodelled process noise on the smallest-variance states.
@@ -227,6 +239,13 @@ on every quantity (full table in `results/tables.md`).
   - Fix options for the user, none applied: add the cap factor only when the FGO's predicted yaw variance (the
     gate-only recursion already computes it) exceeds the EKF3-equivalent threshold; or drop it as the reanchored room
     runs do.
+  - **Aided-flight size, existing evidence (PRE-correction FGO).** METHODOLOGY "EXPLORATORY … C0/F2 pattern",
+    Hypothesis 1: on the `fwdc_tex_r1` heading arm, `F_NO_YAWCAP` changed nothing to the printed precision. "The FGO's
+    0.5 rad yaw cap is negligible beside the 0.148° heading factor."
+  - So the cap matters only where there is **no heading measurement**: the `dsn_*` baselines, the forward-arm
+    baselines, and the closed-loop no-heading flights. Its size there is **not measured**.
+  - With heading at 5° (closed loop, up to 30 Hz) the heading carries up to 30/0.0873² ≈ 3900 rad⁻²/s. The cap's
+    120 rad⁻²/s is ~3% of that: probably small, but untested.
 
 ## Item 2: measurement noise
 
@@ -305,9 +324,12 @@ The UKF numbers are from the trial's D27 `ukf_heading`. Cruise is 60–300 s, an
 0.121, identical NIS).
 - Before the correction the FGO's predicted yaw σ was 8.7× the UKF's and its weight 0.91. That is the offline face of
   "D27 item 3" (closed loop: weight 15.9% FGO against 2.9% UKF).
-- The mechanism ruled "structural" there was in fact the `biasAccOmegaInt` white noise, which the correction removed.
-- The closed-loop weights were not re-measured here (it would need a node replay); **the expectation is that they now
-  agree as well.**
+- **Offline**, the `biasAccOmegaInt` white noise accounts for the whole difference, and the correction removed it.
+- **This does not settle "D27 item 3".** That ruling concerned the closed-loop builds: heading at 5°, with the weight
+  measured from the smoother's actual yaw response to an outlier.
+  - Those weights were not re-measured here; that would need a node-core replay with the corrected `make_pim_params`.
+  - Flag 4 (the ungated yaw cap) was one of that item's candidates and is still present in closed loop.
+  - Treat the item as **open pending a closed-loop re-measurement**, not as resolved.
 - Mean NIS 1.36 for both: the heading innovations are slightly larger than predicted, identically in both
   estimators. This lies within 2× and is not flagged. The median NIS of 0.23 together with 2.4% > 9 points to
   heavy-tailed camera headings, not a model difference.
@@ -321,7 +343,7 @@ The UKF numbers are from the trial's D27 `ukf_heading`. Cruise is 60–300 s, an
 | 4 | FGO | ungated per-keyframe yaw cap (σ 0.5 rad, 30 Hz) against EKF3's variance-gated PREDICTED fusion | yaw variance ×0.82 (10 s), ×0.37 (60 s) | an inconsistency with the FGO's own stated design (§9.4); **user to rule** whether D18 applies |
 | 5 | UKF, FGO vs EKF3 | flow and range fusion rate at equal σ (EKF3 50 ms sensor interval) | information per second ×2.0 (flow), ×1.9 (range) | STRUCTURAL (EKF3 buffer rule; range already ruled under D18, flow to be confirmed) |
 | 1c | EKF3 | horizontal position variance held at 1e4 m² | ×0.21 at 60 s | STRUCTURAL (EKF3 rule, `core.cpp:1774`); irrelevant in flight |
-| (resolved) | FGO (pre-correction) | offline heading S 10× the UKF's, the basis of "D27 item 3 STRUCTURAL" | corrected FGO: S ×0.99 of the UKF's | **resolved by the merged correction**. The D27 item 3 "structural" record should be revisited: the old cause was the `biasAccOmegaInt` noise |
+| (resolved OFFLINE only) | FGO (pre-correction) | offline heading S 10× the UKF's (σ 0.148° arm) | corrected FGO: S ×0.99 of the UKF's, identical NIS | **resolved offline** by the merged correction. The closed-loop weight behind "D27 item 3" (5° heading, the smoother's response to an outlier) was **not** re-measured; re-measure it with the corrected core before revisiting that ruling (Flag 4's ungated cap is still a candidate there) |
 
 Not flagged (consistent within ×0.94–×1.09):
 - **EKF3 and the FGO** on every process-noise quantity.
@@ -331,6 +353,32 @@ Not flagged (consistent within ×0.94–×1.09):
   - closed-loop heading 5° (EKF3's floor);
   - tag position 0.02 m (H) / 0.05 m (T) and tag yaw 5°.
 - **The accel-bias random walk** in all three (the UKF +4–9% from the jitter).
+
+### Re-run scope if a correction is ruled (for the consolidated re-run plan)
+- **3a (UKF jitter):**
+  - **Offline:** every offline UKF result (all `ukf*` replays, RTS-UKF hindsight, room/T/O/H shadows).
+  - **Port:** every port result:
+    - the shadow replays can be re-run through Replay;
+    - the closed-loop UKF flights (`cl_ukf_*`, H S2/S3 with the UKF flying) **cannot be replayed** and would need
+      re-flying, as was ruled for the FGO's closed-loop flights.
+  - The fix must go into both builds (`ukf_core.py:54` and `AP_NavUKF.cpp:117-121`), with the port equivalence
+    re-checked.
+- **Flag 4 (FGO yaw cap):**
+  - every FGO result, offline and closed-loop: the C++ core adds the same factor at every keyframe (`fgo_core.cpp:123-125`);
+  - the room runs drop the cap after the anchor, so their post-anchor segment is unaffected;
+  - from the existing (pre-correction) evidence, heading-arm results are expected to be insensitive.
+- **Flag 5 (rates):** no re-run unless the user rules to match EKF3's 50 ms interval (it is EKF3 design under D18 for
+  range).
+
+### Scope of the evidence (what each number is)
+- **Item 1/3:** free-inertial propagation through each estimator's own prediction code, on recorded IMU. No aiding.
+- **Item 2, flow / range / tags:** the R each **code path** applies, computed at a synthetic cruise state (UKF sigma
+  points; FGO factor whitening), plus the EKF3 source and the dataflash values. **Only heading has an in-flight S**
+  (§2.3).
+- **The analytic reference:** no flag depends on choosing the fixed-level reference or the mean-trajectory one.
+  - At 10 s the two are identical to 4 significant figures.
+  - They differ only in vertical velocity and position at 30–60 s, where all three estimators side with
+    `analytic_tv`.
 
 ## Reproduce
 ```

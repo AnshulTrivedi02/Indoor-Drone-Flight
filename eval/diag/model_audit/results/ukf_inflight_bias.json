@@ -1,0 +1,27 @@
+{
+ "n": 15997,
+ "dt_step_s": 0.0150028434,
+ "gyro_bias_var_delta_median_xyz": [
+  4.544535410485399e-10,
+  4.5598155688542825e-10,
+  4.229570438500995e-09
+ ],
+ "gyro_bias_sigma_rate_median_xyz": [
+  0.001420925047048666,
+  0.0014233118410547647,
+  0.004334854799354503
+ ],
+ "accel_bias_sigma_rate_median_xyz": [
+  0.19697233815674656,
+  0.19698023176465052,
+  0.010077200765253952
+ ],
+ "jitter_per_step": 1e-12,
+ "stated_gyro_bias_rw_per_step_delta": 4.221149573555687e-14,
+ "jitter_over_stated_per_step": 23.69022899033757,
+ "jitter_per_second_over_gyro_bias_var_xyz": [
+  0.14666852760047688,
+  0.14617703440395943,
+  0.015759054659942047
+ ]
+}
