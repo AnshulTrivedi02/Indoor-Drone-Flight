@@ -172,6 +172,7 @@ void LiveAdapter::armed(bool is_armed) {
     cfg_.base.has_arm = true;
     cfg_.base.t_arm = newest_th_;   // the arming time on the header clock: the newest stamp seen at the transition
     fe_->set_arm(newest_th_);
+    t_armed_header = newest_th_;
   }
   armed_ = is_armed;
 }

@@ -56,9 +56,14 @@ if(FGO_CPP_BUILD_ROS)
     add_executable(fgo_cpp_node src/fgo_cpp_node.cpp)
     target_link_libraries(fgo_cpp_node PRIVATE fgo_cpp_core rclcpp::rclcpp ${sensor_msgs_TARGETS} ${geometry_msgs_TARGETS}
                           ${std_msgs_TARGETS} ${optical_flow_interfaces_TARGETS})
-    set_target_properties(fgo_cpp_node PROPERTIES BUILD_RPATH "$ENV{HOME}/opt/gtsam-4.2.1/lib")
+    set_target_properties(fgo_cpp_node PROPERTIES BUILD_RPATH "$ENV{HOME}/opt/gtsam-4.2.1/lib"
+                          INSTALL_RPATH "$ENV{HOME}/opt/gtsam-4.2.1/lib")
+    # run_trial.sh (FGO_NODE_IMPL=cpp) runs $HOME/opt/fgo_cpp/bin/fgo_cpp_node: configure with
+    # -DCMAKE_INSTALL_PREFIX=$HOME/opt/fgo_cpp and `make install`
+    install(TARGETS fgo_cpp_node RUNTIME DESTINATION bin)
     target_link_options(fgo_cpp_node PRIVATE "-Wl,--disable-new-dtags")
   else()
     message(STATUS "rclcpp not found: fgo_cpp_node not built (add /opt/ros/jazzy to CMAKE_PREFIX_PATH)")
   endif()
 endif()
+install(TARGETS fgo_cpp_live_replay fgo_cpp_replay fgo_cpp_frontend RUNTIME DESTINATION bin)

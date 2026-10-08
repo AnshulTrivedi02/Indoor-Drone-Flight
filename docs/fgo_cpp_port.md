@@ -512,3 +512,175 @@ At 19:39–19:40 an earlier version of `tools/heavy.py` overwrote another agent'
 by agent ab687339, pid 996668) and then removed it at the end of its own step. I was not permitted to
 restore the file, and that build ended about a minute later. `heavy.py` now waits while another job's
 lock exists and creates its own lock with `O_EXCL`, so it can never overwrite one.
+
+# Part 4: SITL wiring and the two live checks (started 2026-10-08, coding only, no simulator)
+
+`run_trial.sh` gains `FGO_NODE_IMPL=cpp` (with `FGO_NODE=1`). It runs `fgo_cpp_node` in place of `fgo_node.py`:
+- the same SERIAL3 port and ODOMETRY;
+- it is stopped the same way, with SIGINT, and writes `fgo_node_stats.{f64,json}`;
+- its parameters come from `FGO_CPP_DELAY`, `FGO_CPP_IMU_STAMP` and `FGO_CPP_ARM_SOURCE`;
+- `/fgo/pose` and `/fgo/valid` are added to the bag.
+
+Unset, the behaviour is unchanged. The scoring script is `eval/fgo_cpp_sitl_check.py`.
+
+## Pre-registration 4 (written and committed BEFORE any C++-node SITL data exists, and before the scoring script was run on any trial)
+
+**Flights.** The main session flies them. Each is the exact `fgo_shadow_half_a3` command with only the C++ env added:
+- `corridor_textured_half_fwdc`, 0.5 m/s, 2.0 m, 300 s, no heading;
+- truth flies (`AHRS_EKF_TYPE` 10, checked in the PARM dump);
+- the FGO runs in shadow.
+
+| flight | node | reorder delay | IMU stamps |
+|---|---|---|---|
+| (i) | cpp | 0.20 s | time_ref |
+| (ii) | cpp | 0.10 s | time_ref |
+| (iii) | cpp | 0.10 s | causal (the Python node's timing) |
+| a3 (exists) | `fgo_node.py` | 0.10 s horizon | causal |
+
+`arm_source` is `heartbeat` in all three C++ flights. a3 is the between-flight reference.
+
+**Deviation from the stage-4 brief, stated.** The brief says "EKF3 flies". The existing shadow flights flew on
+simulator truth. a3 used `AHRS_EKF_TYPE` 10. The one flight with EKF3 in the loop, a2, hit the west wall at about
+211 s. Truth flying keeps the trajectories matched and lets a3 serve as the fourth flight. If the main session
+flies EKF3 instead, Rule A is unchanged, and δ_att (Rule B) does not need identical trajectories. The secondary
+position rows would then not be comparable across flights.
+
+**Config check (every flight, before scoring).** The flight is void, not scored, unless all of these hold:
+- the PARM dump has `AHRS_EKF_TYPE` 10, `AHRS_FGO_ENABLE` 1 and `SERIAL3_PROTOCOL` 2;
+- `metadata.yaml` names the intended implementation, delay and stamp mode;
+- the node's stats JSON echoes the same configuration.
+
+### Check (a): FGO state age at the flight controller (dataflash `XFGO` / `XFGI` from `AP_NavFGO`)
+
+**Window W_a.** It starts at the later of the first `ARM` and the first `XFGI` arrival. It ends at the earlier of the
+first disarm after that and the last `XFGI` arrival, so the node stop at shutdown is excluded. Only `XFGO` samples
+(25 Hz) in W_a count.
+
+**Reported for every flight:**
+- `Age`: median, p95, p99 and max;
+- the fraction of samples with `Age` > 250 ms;
+- the fraction of samples with `OV` = 0, which is the share of time the output is invalid;
+- the longest `OV` = 0 span;
+- the arrival latency (`XFGI.TimeUS` − `Tv`): median, p95, p99 and max;
+- the largest gap between state arrivals;
+- the `Late` count.
+
+**Rule A (user ruling).** The rule is applied to flight (i) only:
+- if the **max** `Age` over W_a is above 250 ms, the 0.10 s delay is adopted for the live node, and the measured
+  figures above are recorded as the reason;
+- if it is 250 ms or less, 0.20 s stays.
+
+"Can exceed" is read literally, as the maximum and not a percentile.
+
+**If flight (ii) (0.10 s) also has max `Age` > 250 ms,** it is reported as "neither delay keeps the age within the
+250 ms budget at all times". The fractions and spans are given. 0.10 s is still the adopted option, because it is
+the ruling's fallback. The 250 ms budget is not changed; the matter goes to the main session.
+
+**The cost of 0.10 s, reported on (ii) and (iii):** the node's `max_lateness_s` and `n_out_of_order` from its stats
+JSON. These are messages later than the delay, released out of stamp order.
+
+### Check (b): accuracy of the IMU time base, FC clock (time_ref) against the Python node's timing (causal)
+
+**Why the primary metric is a time shift.** The replay reports (part 3) put the difference between the two time
+bases at 20–45 mm of position. Over a 150 m flight, dead-reckoning drift and flight-to-flight variation are much
+larger than that, so absolute position error from separate flights cannot resolve it. The keyframe stamps are on the
+header clock either way. The IMU time base sets which instant the propagated **attitude** at a keyframe belongs to:
+IMU stamps late by L make the state at t_k carry the true attitude of about t_k − L. Roll and pitch are observable
+(gravity) and do not drift, so a time-shift fit on them measures the time base directly.
+
+**Primary metric δ_att.** It uses the node's states (`/fgo/pose` from the bag; fallback `fgo_node_stats.f64`; a3:
+`fgo_node_stats.npz` `traj`) against `/ground_truth/pose`.
+- Over the airborne period (ground-truth height > 0.5 m), find the shift δ in −200…+200 ms (0.5 ms grid) that
+  minimises the RMS of [roll_fgo(t_k) − roll_gt(t_k − δ) − c_r, pitch_fgo(t_k) − pitch_gt(t_k − δ) − c_p].
+- The constant offsets c_r and c_p are fitted at each δ. Ground truth is linearly interpolated.
+- Roll and pitch are body FLU relative to gravity (ZYX Euler). They do not depend on the navigation frame's yaw.
+- δ > 0 means the states lag truth.
+- δ_att is reported with the RMS at δ_att and at δ = 0. If the minimum lies on the grid edge, δ_att is **"not
+  identified"**.
+
+**Rule B.**
+- The resolution is R = max(5 ms, |δ_att(iii) − δ_att(a3)|). (iii) and a3 have the same timing method on matched
+  flights, so their difference is the between-flight floor.
+- If |δ_att(ii)| and |δ_att(iii)| differ by **R or more,** the smaller |δ_att| is the more accurate time base.
+- If they differ by less than R, the verdict is "**indistinguishable at this resolution; keep time_ref**", the live
+  default (ruling). If either is "not identified", the verdict is the same.
+
+**Secondary rows (report only, no decision).** Each is computed on (i), (ii), (iii) and a3. The FGO frame is mapped
+to world ENU by the fixed spawn convention, with no alignment (corridor x = world +Y, y = world −X, yaw + 90°).
+- **Over the airborne period and the cruise** (the longest run of ground-truth horizontal speed > 0.3 m/s):
+  - roll/pitch RMS at δ = 0;
+  - horizontal error RMS, max and end;
+  - height error RMS;
+  - yaw error mean, RMS and max;
+  - the relative horizontal error per metre at the end of the cruise.
+- **Paired replay of flight (ii)'s own bag.** The bag is run through `fgo_cpp_live_replay` in both `imu_stamp` modes,
+  with delay 0.10 s and the live node's header-clock arming instant (stats JSON `t_armed_header`) inserted as a
+  HEARTBEAT row. Both are scored with the same δ_att and secondary rows against the same ground truth. This removes
+  flight-to-flight variation, but it is a replay of receipt order and not the live run.
+  - If its δ ordering contradicts the live verdict, both are stated. The pre-registered live verdict is not
+    overridden.
+
+Results are reported as measured. No band or threshold above is loosened after the data are seen.
+
+## Part 4: what was built and verified (no simulator; after Pre-registration 4 was committed)
+
+**Wiring (`run_trial.sh`, adopted from WIP `b641287` after review).** With `FGO_NODE=1 FGO_NODE_IMPL=cpp`:
+- `run_trial.sh` launches `$FGO_CPP_NODE_BIN` (default `~/opt/fgo_cpp/bin/fgo_cpp_node`) on the same SERIAL3 port,
+  with `stats_path`, `reorder_delay_s`, `imu_stamp`, `arm_source` and `heading`;
+- `/fgo/pose` and `/fgo/valid` are added to the bag;
+- `metadata.yaml` gets `fgo_node_impl: cpp` and a `fgo_cpp:` line.
+
+**Python path unchanged.** Checked as follows:
+- the `fgo_node.py` launch block is byte-identical to the committed one (extracted and `diff`ed);
+- the metadata line is the same text, now under an `elif`;
+- the empty `FGO_RECORD_TOPICS` array expands to zero words under `set -u`;
+- the `HEADING_BRIDGE` `&&` inside the `if` does not trip `set -e`;
+- `bash -n` passes.
+
+**Node.**
+- On SIGINT it drains its queue, flushes, and writes `fgo_node_stats.f64` (10 columns per keyframe) and
+  `fgo_node_stats.json`. The JSON holds the configuration, the counters and `t_armed_header`, the header-clock
+  arming instant from HEARTBEAT; that field was added in this stage.
+- After shutdown it skips ROS publishing but still sends ODOMETRY.
+- Built and installed to `~/opt/fgo_cpp/bin` through `heavy.py`. md5 of `fgo_cpp_node`: `ecc683b2…`; of
+  `fgo_cpp_live_replay`: `63aafa77…`.
+
+**Smoke tests.** These used `ros2 bag play` of a scratch copy of the `fgo_shadow_half_a3` bag on an isolated ROS
+domain. The node was launched with `run_trial.sh`'s exact command line in its own process group. A fake SERIAL3
+peer sent HEARTBEATs, disarmed and then armed, and the node was stopped with SIGINT to the group.
+- The build-dir binary was run twice: (0.10, causal) and (0.20, time_ref). The installed binary was run once:
+  (0.10, causal).
+- In every run the node exited with rc 0 within 0.11–0.16 s and wrote both stats files.
+- The JSON echoed the configuration, and `t_armed_header` was set from the HEARTBEAT.
+- ODOMETRY datagrams reached the peer, and `/fgo/pose` was recorded.
+- In the bag, `/fgo/pose` equals the stats rows **exactly** (position and yaw) for every keyframe. The exceptions
+  are the last 6 of 1695, the post-SIGINT drain, which by design is not published.
+
+**Scoring script `eval/fgo_cpp_sitl_check.py`** (`score` / `decide`). Unit checks on existing data:
+- a +30 ms stamp shift moves `delta_att` by exactly +30 ms;
+- the `/fgo/pose` reader agrees with the node stats;
+- `kf_states` matches the quaternion path to 6e-19 rad;
+- `decide` gives the pre-registered verdict on four synthetic cases: rule A both ways, the "neither delay" note,
+  rule B both ways plus "indistinguishable", and the void-config handling;
+- the config-echo parser was checked on the exact metadata and JSON formats.
+
+**Dry run on `fgo_shadow_half_a3`, the Python-node reference flight (its first scoring; after the
+pre-registration).** The run included the packed-bag scratch copy (sha256 verified) and the paired replay.
+- Config OK (`AHRS_EKF_TYPE` 10).
+- Check a: Age median 132, p95 149, p99 152, **max 176 ms**; 0% over 250 ms; `OV` = 0 never. Arrival latency median
+  115 ms, max 149 ms.
+- `delta_att` = +7.5 ms.
+- Paired replay of a3's own bag (delay 0.10, no arming): time_ref −3.5 ms, causal +6.0 ms.
+
+**Caution for Rule B (diagnostic only, rules unchanged).** On a3 the roll/pitch shift curve is very shallow:
+- the RMS rises only about 0.0009° at ±20 ms from the minimum;
+- the same fit on each half of the flight gives −23.0 and +37.5 ms.
+
+The minimum is therefore poorly located for a single flight. Rule B's resolution R = max(5 ms, |(iii) − a3|) is
+the guard: if (iii) and a3 disagree by tens of ms, the pre-registered verdict will be "indistinguishable; keep
+time_ref". The diagnostics `diag_rms_rise_at_pm20ms_deg` and `diag_delta_halves_ms` are reported with every fit.
+
+**Wrapped ages (parsing only, changes no rule).** Check (a) also reports `n_age_wrapped` (`XFGO.Age` ≥ 2³¹: a
+state stamped in the future wraps the uint32 age, D25) and the maximum excluding those samples. `decide` warns when
+any are present. Rule A still uses the literal maximum. One synthetic `decide` case and the counting expressions
+are unit-checked; on a3: 0 wrapped.
