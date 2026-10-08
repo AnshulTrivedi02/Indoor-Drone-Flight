@@ -12176,3 +12176,22 @@ configured values:
   - **Four are larger than any hold step:** r2 15 s **29 mm**, r2 30 s 17 mm, r3 5 s 17 mm, r3 move 12 mm. These are
     genuine small re-lock corrections.
 - **Comparative hold (H-H2) needs S3.**
+
+### FGO noise-model correction MERGED (`252fc46`) and the corrected C++ node INSTALLED; equivalence as before
+- **Change:** `setBiasAccOmegaInit` set to zero in `fgo_core.py` and `fgo_cpp/src/fgo_core.cpp`; the `B(0)` prior is
+  unchanged. Handover: `docs/handovers/2026-10-09_fgo_binit0_equivalence.md`.
+- **Equivalence bands re-run with both cores corrected** (as registered):
+  - A on dsn_tex PASS (2.3e-2 mm). A on blank and trans **FAILS AS WORDED, as before**: the corrected Python FGO
+    itself diverges there (35.6 km, 2.78 km), and an emulate-gemv build is bit-identical to Python. This is round-off
+    amplified by divergence, as in part 1;
+  - B1–B5 PASS; B6 (O, GNSS) PASS;
+  - C PASS (all bags);
+  - L1 and L2 PASS (adapter states bit-identical; ODOMETRY ≤ 7.8e-3 mm);
+  - no decision mismatches anywhere.
+- **First indication** (not a result): the fwdc heading gate accepts 9184/9539 frames (was 9480).
+- **Installed** (`~/opt/fgo_cpp/bin`, built from the merged tree): `fgo_cpp_node` md5 **`1123742d…`** (was
+  `53831eae…`, uncorrected).
+- **Functional acceptance:** the installed `fgo_cpp_replay` on the dsn_tex_r1 export gives keyframes
+  **byte-identical** to the stage's (sha256 `fef3533a…`, the registered reference).
+- **S3 gate met:** the corrected C++ FGO passes its equivalence check. **S3 flies `fgo_cpp_node` `1123742d…`.**
+- **Not run:** the tag-input bands FN1–FN4 (Python node). The tag path is covered by B2–B5 (T, tags) and L.
