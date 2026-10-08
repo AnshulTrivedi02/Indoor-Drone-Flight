@@ -11511,3 +11511,27 @@ wrapped (negative) ages; excluding them, (i) reaches 246 ms.
 - Nothing else differs.
 
 **The sequence is STOPPED** (pre-registered: any failure stops it). The options are put to the user.
+
+### RULINGS (user, 2026-10-08) after UKF safety test (a)
+1. **UKF tilt bias** (+0.76° roll, +0.63° pitch in hover against EKF3/FGO ~0.08°): **trace and fix before any
+   further UKF flight.**
+   - First check whether the OFFLINE UKF has the same bias against GT.
+   - **If the offline UKF has it:** it is a UKF MODEL issue. Report the cause and the proposed fix BEFORE changing
+     anything, and check whether it explains the unexplained part of the UKF tag-loss drift (~0.29 m against ~0.1 m
+     from the gyro bias alone).
+   - **If only the port has it:** it is a PORTING bug. Fix it, and show that the port and offline attitudes agree.
+2. **Landing:** EKF3's standard LAND failsafe behaviour, the 4 s pause included, for all estimators. Safety test (a)
+   is re-run after the fix with **S-A3 as worded**.
+3. **S-A2, for the re-run:** timed from when the forced failure TAKES EFFECT (the FC's "UKF TFAIL" text).
+   - **Recorded as RE-WORDED after this result. Reason:** the PARAM_SET latency (0.74 s) is not part of the
+     behaviour under test.
+   - The original run stays FAILED as worded.
+4. **`MOT_THST_HOVER`:** pinned in the parameter files of both ArduPilot trees at the value of the earlier flights
+   (0.310 unless the logs show a different common value).
+   - **Why:** all estimators then start from identical controller settings. The learned value had been supplied by
+     each tree's eeprom and differed after the port tree's eeprom was cleared (0.310 against 0.293).
+5. **C++ FGO timing:** fix the live FC-clock (`time_ref`) defect, time-boxed to half a day. FC-clock stamping was
+   chosen on principle for the real drone.
+   - **If it is not fixed in time for S3:** fly S3 with 0.10 s and causal timing, recorded as a FALLBACK.
+   - The stage-0 results and the defect description go to the user.
+**Then the sequence resumes from UKF safety test (a).**
