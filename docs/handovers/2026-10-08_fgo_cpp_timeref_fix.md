@@ -116,6 +116,43 @@ thousands of out-of-order releases. The fix removes all of it.
 - This is the expected sensitivity of the FGO to a ≤ 2 ms IMU time-base change over the first 10 s. These rows had
   no band (part 3: "differ by construction").
 
+
+**Deferred gap rule** (`run_startup_repro.py` variants; both live time_ref flights logged `n_reinits` 1 from a gap
+before the bag started, so the live check will exercise this path):
+
+| variant (shadow_ii, 0.10 s) | binary | reinits / gaps | out-of-order | future stamps (receipt / SITL) | δ_att whole (t_k > 45 s) |
+|---|---|---|---|---|---|
+| ramp + 25 ms IMU gap at th0 + 0.8 s (inside the backlog, before the settle) | baseline | 1 / 1 | 2741 | 748 / 478 | 165.5 (23.5) |
+| same | **fixed** | 1 / 1 (not airborne) | 0 | 0 / 0 | 1.0 (23.0) |
+| ramp + 25 ms gap at th0 + 12 s (after the settle at th 18.87 s, on the ground) | baseline | 1 / 1 | 2741 | 746 / 458 | 164.5 (24.0) |
+| same | **fixed** | 1 / 1 | 0 | 0 / 0 | 6.5 (23.0) |
+
+The estimator initialises and runs to the end in all four.
+
+**ROS node smoke test** of the fixed `fgo_cpp_node`, through `heavy.py`. Setup: `ros2 bag play` of shadow_ii at
+rate 2 on an isolated domain, run_trial's parameters (time_ref, 0.10 s, heartbeat, `stats_path`), a fake SERIAL3
+peer, and a SIGINT to the process group.
+- rc 0 within 0.11 s.
+- `fgo_node_stats.json` parses with `json.load`: `tref_settled` true, seed offset 1.797 ms at th 18.319 s,
+  `n_held` 7704, `tref_max_track_err_s` 0.002, out-of-order 0, max lateness 0.033 s, 9836 sent / 281 unsettled.
+- 9833 ODOMETRY datagrams. The first has `time_usec` 18.211 s, 0.108 s before the settling time_ref's header time.
+  That is the first post-flush keyframe: the reorder delay plus the offset, as expected.
+- `time_usec` is monotonic, so no stale flush keyframe was sent.
+- **Note:** the flush publishes ~300 `/fgo/pose` messages at once on a depth-10 publisher, so a bag may drop some
+  pre-arm poses. This is harmless: they are before arming, and ODOMETRY is unaffected.
+
+**Re-running all of the above from the commit:**
+```
+cd ~/thesis_ws
+# baseline binaries: build ca71593's src/estimators/fgo_cpp into a scratch dir (build script as below, no install)
+python3 src/estimators/fgo_cpp/tools/run_startup_repro.py ~/thesis_data/trials/fgo_cpp_shadow_ii <work_dir> \
+  <baseline_build_dir> ~/opt/fgo_cpp/bin      # each step goes through heavy.py itself
+```
+It writes the tape (`make_tape.py`), the variants (`make_startup_repro.py`), replays each binary and scores it
+(`score_startup_repro.py`, ground truth read from the bag once and cached). The header/causal byte-identity rows
+used the part-3 tapes (`live/dsn_tex_r1.{dj,raw}.tape`, `live/fwdc_tex_r1.{dj,raw}.tape`, with the `dump2/*.init.json`
+configs) and `cmp`.
+
 ## Binaries (NOT installed; the main session installs after review)
 
 Built from this commit's sources in my scratch dir. md5: `fgo_cpp_node` `3256a931…`, `fgo_cpp_live_replay`
@@ -168,4 +205,13 @@ Suggested pass criteria (written here before that flight):
   correct for held inputs too.
 - The stage-5 RESULT entry in METHODOLOGY.md still reads "not yet traced". The mechanism above is for the main
   session to record there after review. I did not edit METHODOLOGY.md.
+- **A SITL clock step after the node starts is NOT handled (pre-existing, not introduced here).** A soft reboot
+  (`MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN`) restarts HIGHRES_IMU `time_usec`, so the header − sensor offset jumps by the
+  uptime. Neither the gap rule (it only sees forward gaps) nor the 50 µs/sample slew recovers from that, and
+  `time_usec` for ODOMETRY would be wrong for the 10 s window as well. `run_trial.sh` starts the FGO node (line ~419)
+  BEFORE `fly_trial.py` (line ~483), and `fly_trial.ensure_params` does exactly such a reboot when a baseline
+  parameter is wrong in the eeprom (`fly_trial.py:194-212`). It did not fire in shadow_i/ii ("All baseline params
+  correct"). `tref_max_track_err_s` would show it; nothing corrects it. **Before flying time_ref closed loop**, either
+  check `fly_trial.log` for "fixing and rebooting" (and treat such a flight as void), or add a backward-jump rule
+  (re-seed + front-end reset on the ground) in a later stage.
 - Not merged; not installed.

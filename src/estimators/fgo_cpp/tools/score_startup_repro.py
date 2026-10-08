@@ -1,7 +1,7 @@
 """(~/venv-fgo) Score a fgo_cpp_live_replay output against its tape: future stamps (header clock and SITL clock) and delta_att.
-usage: score_startup_repro.py <tape> <out_prefix> <FG.npz>
-<FG.npz>: arrays F (unused) and G = ground truth rows (t, x, y, z, roll, pitch, yaw) from
-eval/fgo_cpp_sitl_check.read_bag on the same bag. Reports keyframes stamped ahead of the receipt clock and of the
+usage: score_startup_repro.py <tape> <out_prefix> <bag_dir | GT.npz> [--cache GT.npz]
+Ground truth: read from the bag (eval/fgo_cpp_sitl_check.read_bag; --cache also saves it as an .npz with array G),
+or from such an .npz. Reports keyframes stamped ahead of the receipt clock and of the
 SITL clock (the live XFGO.Age wrap), and delta_att (whole, and t_k > 45 s) as the stage-5 scorer computes it.
 Used for the time_ref start-up fix (docs/handovers/2026-10-08_fgo_cpp_timeref_fix.md)."""
 import sys, json, numpy as np
@@ -26,7 +26,12 @@ out = {"n_kf": int(len(L)), "n_sent": int(sent.sum()),
        "sent_ahead_of_sitl_clock (would wrap XFGO.Age)": int((ahead_s > 0).sum()),
        "max_sent_ahead_ms": round(1e3 * float(ahead_s.max()), 1) if sent.any() else None,
        "median_output_age_ms (receipt clock)": round(-1e3 * float(np.median(ahead_h)), 1)}
-d = np.load(fg); G = d["G"]
+if fg.endswith(".npz"):
+    G = np.load(fg)["G"]
+else:
+    G = C.read_bag(fg)[1]
+    if len(sys.argv) > 5 and sys.argv[4] == "--cache":
+        np.savez(sys.argv[5], G=G)
 K = C.kf_states(pre)
 for lo in (0, 45):
     r = C.fit_delta(K[K[:, 0] > lo], G)
