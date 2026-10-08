@@ -25,7 +25,15 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
   - **H-L1, H-L2, H-L3 and P-L4 all pass 3/3:** LC live 0.041–0.047 m, bounded from lap 2; no-LC live 0.20–0.31 m,
     growing 4.5–5.5× over the laps.
   - The cost is recorded: no-LC p99 1.3–2.2 s per update. A real drone would need a much lower keyframe rate.
-- **Next:** Mon 12–Fri 16 Oct restating and figures (T/O/L), then the simulation freeze.
+- **Restated (2026-10-08, supervisor item 2):** `numbers.md` §16, figures fig11–fig15 (`plots/supervisor_2026-10-08/`).
+- **Disk (item 1):** 16 GB free, flights PAUSED until ruled. Forward images are 380 of 410 GB. Lossless file-level
+  zstd was verified byte-identical (5.1×, ≈ 290 GB saving); rosbag2 convert was rejected because it reorders tied
+  IMU stamps (`docs/disk_report_2026-10-08.md`).
+- **Item 3:** tag-holding experiment H designed, with a draft pre-registration for review (`docs/tag_hold_design.md`).
+  6.5–7.5 days; only S0+S1 fit before the freeze.
+- **Item 4:** `docs/real_flights_plan.md` §9 covers the profiles, the real-FC backend with flashing/rollback, the
+  real-time FGO options (recommend SymForce exact Jacobians via a numerical C++ port) and the staging.
+- **Next:** rulings on the disk options and on H; then simulator work Mon 12–Wed 14 Oct; freeze Fri 16 Oct.
 
 ---
 
