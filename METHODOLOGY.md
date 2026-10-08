@@ -11389,3 +11389,16 @@ spawn).
      - why a 2.6 mrad/s bias gives ~0.29 m rather than ~0.1 m over 30 s;
      - the source of the SITL gyro bias;
      - the FGO's own H drift gap (after S3).
+
+### Port-tree parameter audit after the eeprom clear (first port-tree flight, `fgo_cpp_shadow_i`, 2026-10-08)
+Live PARM dump of `fgo_cpp_shadow_i` (cleared eeprom) against `fgo_shadow_half_a3` (same configuration, old eeprom).
+- **1392 parameters on each side; none present on only one side.**
+- **7 value differences, all calibration, learned or counter values** (the categories of the 2026-07-22 audit):
+  - `BARO2_GND_PRESS` 94501.8 → 94501.6;
+  - `MOT_THST_HOVER` 0.293088 → 0.293014 (learned; 0.03 %);
+  - `STAT_BOOTCNT`, `STAT_DISTFLWN`, `STAT_FLTCNT`, `STAT_FLTTIME`, `STAT_RUNTIME` (counters reset).
+- **No difference can change estimator or controller behaviour. The sequence continues.**
+- Against `H_gt_ukf` (a different configuration) every difference is the configuration's own: the AHRS type, the
+  UKF/FGO enables, the VISO/H parameters, `ARMING_SKIPCHK`, `SERIAL3_PROTOCOL` and the MAV4 stream group present with
+  SERIAL3 MAVLink. The calibration/counter rows are the same as above.
+- Repeated after the first stage-1 safety test, as ruled.
