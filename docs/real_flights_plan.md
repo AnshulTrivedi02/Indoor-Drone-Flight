@@ -220,6 +220,10 @@ camera flown only once verified.
       (stale estimates copied, no DCM fallback), and `AC_PosControl` zero-filled the position. **Before any flight on
       a thin backend:** DCM attitude fallback on invalid output, an origin-independent "backend invalid → LAND"
       trigger, both verified by forcing invalidity in a hover.
+    - **RULING 2026-10-08 (option (i)): a GATE.** On stale external state, attitude stays valid (FC-IMU-propagated
+      every loop), only position/velocity time out, position loss → land on height + attitude, and an
+      origin-independent landing trigger is added. **This behaviour must pass on the bench AND in SITL** (kill the
+      estimator in a hover, with and without the watcher) **before any real closed-loop flight.**
   - The flight script must use the estimator-independent clock (`SYSTEM_TIME`, D24) and land on failure.
 - **Frame anchoring completes before arming (ruling 2026-10-08).** Every estimator that re-anchors to the marker/mocap
   frame must have anchored on the ground before arming (the vehicle placed where the marker is in view), and the FC must

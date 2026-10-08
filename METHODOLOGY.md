@@ -11217,3 +11217,33 @@ and the tag bridge kept sending to the old port.**
 
 **Real-flight plan:** "frame anchoring completes before arming" and the stale-output findings are added to
 `docs/real_flights_plan.md` §7.
+
+### RULINGS (user, 2026-10-08) on the H ground-test failures
+1. **Invalid-output handling: option (i), in BOTH port backends (UKF and FGO).**
+   - When the external state goes stale, attitude stays valid, propagated from the FC IMU every loop. Only position
+     and velocity time out.
+   - On position loss the vehicle lands on height plus attitude (EKF3's behaviour).
+   - A landing trigger independent of the EKF origin is added, so a stale or lost estimator always lands.
+   - **Verified in SITL, pre-registered:** (a) kill the estimator node in a hover: attitude stays correct and the
+     vehicle lands safely within a stated bound; (b) the same with the watcher also running.
+   - **Recorded failures** (see "H SITL GROUND TESTS"): the frozen attitude on invalid output, and the origin-less
+     skip of `ekf_check`. **Both affect the UKF and the FGO backends.**
+   - The real-flight plan is updated: this behaviour must pass on the bench and in SITL before any real closed-loop
+     flight.
+2. **Spawn ~3.9 m from the wall: accepted.**
+   - No arming until all three backends have anchored and fixes are being received.
+   - The on-ground fix error at ~4 m is pre-registered and measured.
+   - The added ~2.4 m move to the hold point is a **deviation, excluded from scoring**.
+   - **For a fair comparison, S1 is re-flown** (EKF3 flying, ×3) from the same spawn and profile. The original S1
+     stays recorded.
+3. **Only the C++ FGO node flies closed loop with tags.**
+   - **CORRECTION recorded:** the Python node runs **~1.4× slower live** (step median 41 ms before the anchor, 56 ms
+     after) than the offline figure (p95 33.6 ms, `docs/h_backends_tag_input.md`) that motivated the S3 plan.
+4. **Clear the stale `ARMING_SKIPCHK` in the port tree's saved parameters.** Add a pre-flight check that the tag
+   bridge's target port matches SITL's current port.
+5. **Order:**
+   1. both ground tests re-run;
+   2. the pre-registered in-flight-anchor transient check (bound stated before the run);
+   3. the re-flown S1;
+   4. S2;
+   5. S3.
