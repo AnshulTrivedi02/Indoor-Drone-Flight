@@ -1,0 +1,4 @@
+[export] ENU/FLU -> NED/FRD conversion and the NED re-anchor verified on 1000 random cases each
+{"t_anchor": 49.138, "n_tag_fused": 8670, "n_gnss_fused": 0, "mode": "tags", "pseudo_yaw_fired_before_anchor": 26, "dt_step_ms": 15.00242800293766, "tag_sigma_pos": 0.02, "tag_sigma_yaw_deg": 5.0}
+[export] wrapped ukf_live.tum byte-identical to the stored one: False; stored room_ukf/ untouched
+[export] 57371 events: predict 25402, range 11547, flow 11548, yaw-check 204, tag 8669, re-anchor 1 -> /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/ua/h_s1_r1.npz / .bin

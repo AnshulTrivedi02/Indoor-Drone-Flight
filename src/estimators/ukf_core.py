@@ -8,6 +8,7 @@ only call predict()/update_range()/update_flow() and never reach inside.
 Predict at dt = 0.0125 s (80 Hz). Process noise Q and measurement R/gates copied
 from EKF3 unchanged (see make_params). Per-axis sequential flow gating.
 """
+import sys
 import numpy as np
 from measurement_models import (N, P_SLICE, V_SLICE, A_SLICE, BG_SLICE, BA_SLICE,
                                  R_world_body, h_range, h_flow)
@@ -48,13 +49,34 @@ def make_params(dt=0.0125):
 
 
 # ---------- sigma points (Van der Merwe) ----------
+# Cholesky jitter ONLY on factorisation failure (D18 model correction, user ruling 2026-10-09, model audit 3a).
+# Until then 1e-12*I was added on EVERY call; the unscented transform carried it into every predicted covariance,
+# i.e. it acted as extra process noise (~24x / 42x the stated gyro-bias random walk). Now the first attempt has no
+# jitter; on failure the SAME ladder as the C++ port (AP_NavUKF.cpp sigma_points) is tried, each retry counted in
+# CHOL_STATS. If every rung fails the pre-existing eigen-clip fallback is kept (the port instead skips the step).
+CHOL_JITTER_LADDER = (0.0, 1e-12, 1e-9, 1e-6)
+CHOL_STATS = {"calls": 0, "retry": 0, "eig_fallback": 0}
+
+
 def _sigma_points(x, P, p):
     lam = p['alpha']**2 * (N + p['kappa']) - N
     c = N + lam
-    Psym = 0.5*(P + P.T) + 1e-12*np.eye(N)
-    try:
-        S = np.linalg.cholesky(c * Psym)
-    except np.linalg.LinAlgError:
+    Psym = 0.5*(P + P.T)
+    CHOL_STATS["calls"] += 1
+    S = None
+    for k, jit in enumerate(CHOL_JITTER_LADDER):
+        try:
+            S = np.linalg.cholesky(c * (Psym + jit*np.eye(N)) if jit else c * Psym)
+        except np.linalg.LinAlgError:
+            continue
+        if k > 0:
+            CHOL_STATS["retry"] += 1
+            if CHOL_STATS["retry"] == 1:
+                print(f"[ukf_core] WARNING: Cholesky needed jitter {jit:g} (first fallback; counted in CHOL_STATS)",
+                      file=sys.stderr)
+        break
+    if S is None:
+        CHOL_STATS["eig_fallback"] += 1
         w, V = np.linalg.eigh(c * Psym)
         S = V @ np.diag(np.sqrt(np.clip(w, 1e-12, None)))
     sig = np.zeros((2*N+1, N)); sig[0] = x

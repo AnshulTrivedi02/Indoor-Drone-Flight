@@ -1,0 +1,69 @@
+{
+ "log": "tex",
+ "events": 45277,
+ "window_s": [
+  30.556,
+  333.044
+ ],
+ "events_in_window": 40510,
+ "dt_step_s": 0.015002757754876382,
+ "E1_E2": {
+  "max_m": 1.0393614203207481e-05,
+  "rms_m": 5.396799717425974e-06,
+  "at_end_m": 1.0363622684551078e-05,
+  "band": "max <= 0.05, rms <= 0.01",
+  "pass": true
+ },
+ "E3": {
+  "max_deg": 7.339514036704836e-06,
+  "pass": true
+ },
+ "E4": {
+  "max_gyro_z_bias_deg_per_min": 1.6086069260401107e-06,
+  "max_accel_bias_mps2": 2.496240209150415e-09,
+  "pass": true
+ },
+ "E5": {
+  "flow_x": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9166,
+   "accepted_port": 9166,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 2016,
+   "identical_frac": 1.0,
+   "accepted_python": 42,
+   "accepted_port": 42,
+   "count_rel_diff": 0.0
+  },
+  "pass": true
+ },
+ "diag_first_divergence": {
+  "event": 6736,
+  "type": 0,
+  "t": 60.715912,
+  "dpos_m": 1.7979303083254072e-07,
+  "dyaw_deg": 1.00040352728755e-06
+ },
+ "diag_first_event_diff": {
+  "dpos_m": 5.729816621193649e-11,
+  "dyaw_deg": 1.5238164701078968e-09
+ },
+ "pass": true
+}

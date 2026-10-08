@@ -1,0 +1,9 @@
+case B: C++ port vs analytic (variance ratio) and vs the Python core at 12.5 ms
+  t=  1 ref:  tilt=x1.000  yaw=x1.000  vh=x0.986  vz=x1.000  ph=x0.960  pz=x0.976  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t=  2 ref:  tilt=x1.000  yaw=x1.000  vh=x0.989  vz=x1.000  ph=x0.971  pz=x0.988  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t=  5 ref:  tilt=x1.000  yaw=x1.000  vh=x0.995  vz=x1.007  ph=x0.986  pz=x0.997  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t= 10 ref:  tilt=x1.000  yaw=x1.000  vh=x0.997  vz=x1.075  ph=x0.992  pz=x1.014  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000

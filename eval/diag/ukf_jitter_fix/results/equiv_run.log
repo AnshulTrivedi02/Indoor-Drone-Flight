@@ -1,0 +1,254 @@
+8f915bf02799ea35f42f4a33566ed528  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/apukf/build/sitl/examples/UKF_Equiv
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+[out] /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/s2/dsn_tex_r2_replay_out/ukf/ukf_traj.tum
+[export] python cholesky calls 52950, eigh fallbacks 0
+[export] 45277 events: predict 22539, range 10247, flow 10238, yaw-check 2253 -> /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/s2/dsn_tex_r2.npz / .bin
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+{
+ "log": "tex",
+ "events": 45277,
+ "window_s": [
+  30.556,
+  333.044
+ ],
+ "events_in_window": 40510,
+ "dt_step_s": 0.015002757754876382,
+ "E1_E2": {
+  "max_m": 4.183987111521854,
+  "rms_m": 1.9347516021456566,
+  "at_end_m": 4.18373687586014,
+  "band": "max <= 0.05, rms <= 0.01",
+  "pass": false
+ },
+ "E3": {
+  "max_deg": 3.106993191353775,
+  "pass": false
+ },
+ "E4": {
+  "max_gyro_z_bias_deg_per_min": 0.5824621164053454,
+  "max_accel_bias_mps2": 0.001439753228406185,
+  "pass": false
+ },
+ "E5": {
+  "flow_x": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9166,
+   "accepted_port": 9166,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 2016,
+   "identical_frac": 0.9583333333333334,
+   "accepted_python": 42,
+   "accepted_port": 42,
+   "count_rel_diff": 0.0
+  },
+  "pass": false
+ },
+ "diag_first_divergence": {
+  "event": 53,
+  "type": 0,
+  "t": 10.801456,
+  "dpos_m": 1.0381462551586474e-06,
+  "dyaw_deg": 3.121330208850921e-08
+ },
+ "diag_first_event_diff": {
+  "dpos_m": 5.729816621193649e-11,
+  "dyaw_deg": 1.5238164701078968e-09
+ },
+ "pass": false
+}
+{"t_anchor": 49.138, "n_tag_fused": 8670, "n_gnss_fused": 0, "mode": "tags", "pseudo_yaw_fired_before_anchor": 26, "dt_step_ms": 15.00242800293766, "tag_sigma_pos": 0.02, "tag_sigma_yaw_deg": 5.0}
+[export] wrapped ukf_live.tum byte-identical to the stored one: False; stored room_ukf/ untouched
+[export] 57371 events: predict 25402, range 11547, flow 11548, yaw-check 204, tag 8669, re-anchor 1 -> /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/ua/h_s1_r1.npz / .bin
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: D27 process-noise diagnostic ON
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+{
+ "events": 57371,
+ "predict_steps": 25402,
+ "dt_step_s": 0.015002352442339974,
+ "live_tum_identical": false,
+ "UA1": {
+  "max_m": 0.003807222612230252,
+  "rms_m": 0.0004915738493007305,
+  "max_m_predict_steps": 0.0037869363155950166,
+  "end_m": 0.0036664817838919198,
+  "band": "max <= 1e-3 m",
+  "pass": false
+ },
+ "UA2": {
+  "max_deg": 0.03155990131691328,
+  "max_deg_predict_steps": 0.03155698542186097,
+  "band": "max <= 0.01 deg",
+  "pass": false
+ },
+ "UA3": {
+  "max_gyro_z_bias_deg_per_min": 0.04722858593414588,
+  "max_accel_bias_mps2": 0.003888026981315029,
+  "pass": false
+ },
+ "UA4": {
+  "flow_x": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 11547,
+   "identical_frac": 1.0,
+   "accepted_python": 11547,
+   "accepted_port": 11547,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 204,
+   "identical_frac": 1.0,
+   "accepted_python": 26,
+   "accepted_port": 26,
+   "count_rel_diff": 0.0
+  },
+  "pass": true
+ },
+ "UA5": {
+  "anchor_event": 4100,
+  "anchor_t": 49.138,
+  "first_tag_event_is_anchor": true,
+  "anchor_state_max_abs_diff": 0.0024610315712538695,
+  "port_state_equals_fix_exactly": true,
+  "tag_events": 8670,
+  "tag_fused_python": 8670,
+  "tag_fused_port": 8670,
+  "pseudo_yaw_checks_after_anchor_in_stream": 0,
+  "pseudo_yaw_fusions_after_anchor": {
+   "python": 0,
+   "port": 0
+  },
+  "pass": false
+ },
+ "diag_after_anchor": {
+  "dpos_max_m": 0.003807222612230252,
+  "dyaw_max_deg": 0.03155990131691328
+ },
+ "diag_before_anchor": {
+  "dpos_max_m": 0.0015229975192320839,
+  "dyaw_max_deg": 0.001314708143405725
+ },
+ "diag_first_divergence_1e-6": {
+  "event": 22,
+  "type": 0,
+  "t": 18.70340249768739,
+  "dpos_m": 1.322606819851007e-06,
+  "dyaw_deg": 5.0143861774830255e-09
+ },
+ "pass": false
+}
+{
+ "events": 57371,
+ "predict_steps": 25402,
+ "dt_step_s": 0.015002352442339974,
+ "live_tum_identical": false,
+ "UA1": {
+  "max_m": 3.2048695838412604e-08,
+  "rms_m": 4.257682589080919e-09,
+  "max_m_predict_steps": 3.2048695838412604e-08,
+  "end_m": 4.555430742017738e-09,
+  "band": "max <= 1e-3 m",
+  "pass": true
+ },
+ "UA2": {
+  "max_deg": 3.1702440865193354e-07,
+  "max_deg_predict_steps": 3.170242814297463e-07,
+  "band": "max <= 0.01 deg",
+  "pass": true
+ },
+ "UA3": {
+  "max_gyro_z_bias_deg_per_min": 6.340777169618259e-07,
+  "max_accel_bias_mps2": 6.580514143703919e-09,
+  "pass": true
+ },
+ "UA4": {
+  "flow_x": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 11547,
+   "identical_frac": 1.0,
+   "accepted_python": 11547,
+   "accepted_port": 11547,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 204,
+   "identical_frac": 1.0,
+   "accepted_python": 26,
+   "accepted_port": 26,
+   "count_rel_diff": 0.0
+  },
+  "pass": true
+ },
+ "UA5": {
+  "anchor_event": 4100,
+  "anchor_t": 49.138,
+  "first_tag_event_is_anchor": true,
+  "anchor_state_max_abs_diff": 2.159609824303743e-09,
+  "port_state_equals_fix_exactly": true,
+  "tag_events": 8670,
+  "tag_fused_python": 8670,
+  "tag_fused_port": 8670,
+  "pseudo_yaw_checks_after_anchor_in_stream": 0,
+  "pseudo_yaw_fusions_after_anchor": {
+   "python": 0,
+   "port": 0
+  },
+  "pass": false
+ },
+ "diag_after_anchor": {
+  "dpos_max_m": 3.2048695838412604e-08,
+  "dyaw_max_deg": 3.1702440865193354e-07
+ },
+ "diag_before_anchor": {
+  "dpos_max_m": 1.3816487401108141e-09,
+  "dyaw_max_deg": 2.1177311146638108e-07
+ },
+ "diag_first_divergence_1e-6": null,
+ "pass": false
+}
+DONE
