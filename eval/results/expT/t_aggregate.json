@@ -4,8 +4,8 @@
    "mean_rmse_m": {
     "EKF3 live": 0.0394770833931866,
     "UKF live": 0.03676348174723241,
-    "FGO live": 0.01835159598327382,
-    "FGO hindsight (whole-flight batch)": 0.011165066992550174,
+    "FGO live": 0.018345498360194692,
+    "FGO hindsight (whole-flight batch)": 0.011165029305314544,
     "RTS-UKF (hindsight)": 0.013708188460909524
    },
    "gap_length_median_s": 4.257000000000005,
@@ -15,8 +15,8 @@
    "mean_rmse_m": {
     "EKF3 live": 0.05530835160615264,
     "UKF live": 0.06448838050788674,
-    "FGO live": 0.027631121223102215,
-    "FGO hindsight (whole-flight batch)": 0.013077763592598643,
+    "FGO live": 0.027567694982387255,
+    "FGO hindsight (whole-flight batch)": 0.013078465830383334,
     "RTS-UKF (hindsight)": 0.03066497680883005
    },
    "gap_length_median_s": 10.097999999999999,
@@ -26,8 +26,8 @@
    "mean_rmse_m": {
     "EKF3 live": 0.07376232694627682,
     "UKF live": 0.10439772750190585,
-    "FGO live": 0.058128700040387726,
-    "FGO hindsight (whole-flight batch)": 0.021378821473188193,
+    "FGO live": 0.05790769660837303,
+    "FGO hindsight (whole-flight batch)": 0.021381027779213645,
     "RTS-UKF (hindsight)": 0.091028720196491
    },
    "gap_length_median_s": 22.043999999999983,
@@ -37,8 +37,8 @@
    "mean_rmse_m": {
     "EKF3 live": 0.09606106931454501,
     "UKF live": 0.1893226890644557,
-    "FGO live": 0.12143299036798112,
-    "FGO hindsight (whole-flight batch)": 0.03317310922715793,
+    "FGO live": 0.12147165994712254,
+    "FGO hindsight (whole-flight batch)": 0.03324164954642219,
     "RTS-UKF (hindsight)": 0.2579969479084947
    },
    "gap_length_median_s": 46.315499999999986,
@@ -48,13 +48,13 @@
  "H-T1 (FGO live -> whole-flight batch)": {
   "median_gain_m": {
    "A": 0.005244026161350994,
-   "B": 0.01483610684278212,
+   "B": 0.014738774409526685,
    "C": 0.025104901592857012,
-   "D": 0.0499339503705406
+   "D": 0.04978400184378956
   },
   "strictly_increasing": true,
-  "spearman_rho": 0.4720109262762683,
-  "p": 3.236172444122841e-13,
+  "spearman_rho": 0.4661146006391163,
+  "p": 6.921727772954227e-13,
   "n_gaps": 213,
   "PASS": true
  },
@@ -73,19 +73,19 @@
  },
  "P-T3 live ratio max/min": {
   "by_condition": {
-   "A": 2.1511525988893374,
-   "B": 2.333903861055352,
-   "C": 1.7959756097998145,
+   "A": 2.151867592697419,
+   "B": 2.33927357906012,
+   "C": 1.8028299106411134,
    "D": 1.9708576056397236
   },
   "PASS": false
  },
  "P-T4 hindsight ratio max/min": {
   "by_condition": {
-   "A": 1.2277748507963484,
-   "B": 2.3448181022468466,
-   "C": 4.257892340354345,
-   "D": 7.777291725711365
+   "A": 1.227778995115081,
+   "B": 2.344692199110272,
+   "C": 4.25745296888805,
+   "D": 7.761255877154959
   },
   "PASS": false
  }

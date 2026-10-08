@@ -10858,3 +10858,31 @@ as-worded drifts differ by ≤ 5 mm.
   estimate, or from estimator differences in the flow model at near-zero speed (cf. the open lateral
   rotation-magnitude item in `measurement_models.h_flow`). S2/S3, with the UKF and FGO flying, will show their drift
   when they fly.
+
+### CORRECTION (2026-10-08, found by the C++-port equivalence work): six T FGO runs lacked the D15 ground-proximity rule; re-run; NO verdict changes
+
+- **What happened.** The first T replay batch started the FGO room replays for T_A_r1, T_B_r1, T_C_r1, T_C_r3, T_D_r1
+  and T_D_r3 at ~04:4x. That was **before** their `imu_gaps.json` was written (04:59–05:01, by the IMU-gap check
+  after the flights).
+  - `GroundProximityFlow` takes the arming time from that file. With it absent, those FGO runs applied **no** D15
+    ground-proximity rule.
+  - The UKF runs (06:39+) and the re-flown trials' FGO runs started after the file existed, so the two estimators did
+    not get the same rule on those six flights.
+- **How it was found.** The port agent reproduced the stored T_D_r1 FGO outputs byte for byte only by withholding
+  `imu_gaps.json`.
+  - My earlier timestamp check compared against `stats.json`, which is written only after the batch, and so missed it.
+  - Checked by process start time: O, H, L, every T UKF run and the six re-flown T FGO runs started after their
+    `imu_gaps.json`, so they are unaffected.
+- **Correction.**
+  - The six FGO runs were re-run with the rule (live and whole-flight batch); the old outputs are kept as
+    `room_fgo_noD15/`.
+  - Re-scored; the pre-correction JSONs are kept in `eval/results/expT_preD15fix/`.
+- **Effect:**
+  - per-flight FGO live RMSE changes ≤ 0.3 mm, batch ≤ 0.1 mm;
+  - condition means ≤ 0.2 mm;
+  - H-T1 condition medians 5.2 / 14.7 / 25.1 / 49.8 mm (were 5.2 / 14.8 / 25.1 / 49.9);
+  - ρ = 0.466, p = 7e-13;
+  - local point differences up to 163 mm (T_D_r1, ground segment) leave the RMSE unchanged.
+- **Verdicts unchanged:** H-T1 PASS; P-T2, P-T3, P-T4 FAIL. At the table's printed precision the only change is
+  T_C_r3 FGO live 0.058 → 0.057 m. `numbers.md` §16.1 (condition means) is unchanged at its precision.
+- **Lesson:** a replay must not start until the trial's `imu_gaps.json` exists. Added to the replay discipline.
