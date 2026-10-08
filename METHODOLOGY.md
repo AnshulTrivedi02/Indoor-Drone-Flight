@@ -11608,3 +11608,42 @@ estimators), using the tag fix only where it is characterised:
   persistence), and the start value would drift between flights.
 - **Why:** every estimator then starts from identical controller settings. The value had come from each tree's eeprom
   and differed after the port tree's eeprom was cleared (0.310 against 0.293).
+
+### RULING (user, 2026-10-08): the shared tag-fix VALIDITY RULE (D18) adopted; Rules A/B(c) confirmed; the sequence resumes
+**1. Tag-fix validity rule (a sensor-validity rule under D18, applied IDENTICALLY to EKF3, the UKF and the FGO).**
+- **In flight:** a fix is valid only within the characterised S0a range, camera-to-tag **0.9–2.8 m**.
+- **On the ground while disarmed:** fixes stay valid at any range, for the pre-arm anchor (measured separately by F1,
+  which PASSED: p95 0.021 m, 0.23°).
+- **Implemented in `tag_bridge_fwd.py`**, the single source for all three:
+  - EKF3 and the UKF port receive only the valid fixes over MAVLink; the FGO node and the offline replays receive
+    only `/tags/sent`;
+  - the armed state is taken from SITL's HEARTBEAT on the tag link (loopback test: parsed correctly);
+  - the CSV's `valid` column carries the rule.
+- **Latency:** HEARTBEAT is 1 Hz, so after arming up to ~1 s of on-ground (armed, not yet climbing) fixes can still
+  be valid. They are static and F1-characterised, and this is stated.
+- **Cause recorded** (section "UKF tilt bias TRACED"):
+  - fixes at ~4 m during the climb, beyond the characterised range, with lateral error sd 0.10–0.13 m against σ
+    0.02 m;
+  - the ungated UKF read them as tilt and accelerometer bias;
+  - the diagnostic replay without them removed the bias (1.18° / 1.12° → 0.10° / 0.17°).
+- **Scope:**
+  - **it applies to every far-spawn flight** (the S1 re-fly, S2, S3);
+  - **the original S1 at 1.5 m is unaffected**: its fixes were all within the band;
+  - **it does NOT explain the S1 tag-loss drift residual.**
+
+**2. Rule A: the 0.10 s late-message wait is adopted, as worded.**
+
+**3. Rule B(c): recorded as worded.**
+- Causal timing is more accurate live, by ~128 ms.
+- The exploratory same-bag replay favours FC-clock timing on 4/4 bags.
+- **The explanation is the live FC-clock defect** (being fixed, half-day box).
+- **If it is not fixed within the box, S3 flies option (iii)** (0.10 s, causal), which had no future-stamped states
+  and no invalid output.
+
+**4. The sequence resumes:**
+1. UKF safety tests (a) and (b);
+2. FGO safety tests (a) and (b);
+3. the far-spawn ground tests and the in-flight-anchor check;
+4. the S1 re-fly;
+5. S2;
+6. S3.

@@ -45,8 +45,8 @@ class TagBridgeFwd(Node):
         # every value is cast explicitly below
         dyn = ParameterDescriptor(dynamic_typing=True)
         for n, v in (("send", False), ("r_valid_px", 0.0), ("sigma_pos_m", 0.05), ("sigma_yaw_deg", 5.0), ("audit_every", 15), ("log_path", ""),
-                     ("status_path", "")):
-            self.declare_parameter(n, v, dyn if n in ("r_valid_px", "sigma_pos_m", "sigma_yaw_deg", "audit_every") else ParameterDescriptor())
+                     ("status_path", ""), ("range_min_m", 0.9), ("range_max_m", 2.8)):
+            self.declare_parameter(n, v, dyn if n in ("r_valid_px", "sigma_pos_m", "sigma_yaw_deg", "audit_every", "range_min_m", "range_max_m") else ParameterDescriptor())
         self.declare_parameter("convention", "", ParameterDescriptor(dynamic_typing=True))
         conv = str(self.get_parameter("convention").value)
         self.R_wt = T.wall_tag_R_wt(WALL_RPY, conv) if conv else None
@@ -67,6 +67,13 @@ class TagBridgeFwd(Node):
         # status file (H ruling 2026-10-08 item 4): the SITL address the fixes go to (the most recently heard SERIAL1
         # source) and the sent count, rewritten atomically on each send; fly_trial checks it against SITL's live port
         self.status_path = self.get_parameter("status_path").value; self.n_sent = 0
+        # D18 sensor-validity rule (user ruling 2026-10-08, after the UKF tilt-bias trace): IN FLIGHT a fix is valid only
+        # within the characterised S0a camera-to-tag range [range_min_m, range_max_m]; ON THE GROUND WHILE DISARMED it
+        # stays valid at any range (the pre-arm anchor; measured separately, F1). Armed state = SITL's HEARTBEAT on this
+        # link. One rule for every estimator: EKF3 and the UKF port get only these fixes over MAVLink, the FGO node and
+        # the offline replays only these on /tags/sent.
+        self.rng_lo = float(self.get_parameter("range_min_m").value); self.rng_hi = float(self.get_parameter("range_max_m").value)
+        self.armed = False
         if self.get_parameter("send").value:
             if self.R_wt is None or self.r_valid <= 0:
                 raise SystemExit("send=true needs the frozen convention and r_valid_px from S0")
@@ -76,13 +83,21 @@ class TagBridgeFwd(Node):
             self.get_logger().info("waiting for a heartbeat from SITL SERIAL1 ...")
             self.master.wait_heartbeat(timeout=60)
             self.get_logger().info(f"heartbeat from system {self.master.target_system}")
-        self.get_logger().info(f"wall tag {WALL_ID}; send {self.master is not None}; r_valid {self.r_valid} px; convention '{conv}'")
+        self.get_logger().info(f"wall tag {WALL_ID}; send {self.master is not None}; r_valid {self.r_valid} px; convention '{conv}'; "
+                               f"in-flight range band [{self.rng_lo}, {self.rng_hi}] m")
 
     def _img(self, m):
         t = m.header.stamp.sec + m.header.stamp.nanosec * 1e-9; t0 = time.perf_counter()
         self.n_img += 1
         if self.audit_every > 0 and self.n_img % self.audit_every == 0:
             self.pub_audit.publish(m)
+        if self.master is not None:                  # drain: armed state, and the reply port follows a SITL reboot
+            while True:
+                mm = self.master.recv_msg()
+                if mm is None:
+                    break
+                if mm.get_type() == "HEARTBEAT" and mm.get_srcComponent() == 1:
+                    self.armed = bool(mm.base_mode & self.mav.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
         gray = np.frombuffer(m.data, np.uint8).reshape(m.height, m.step)[:, :m.width]
         # wall tag only, pose on a crop around it (tag_measure.detect_pose_roi; 2026-10-08: from the far spawn a floor tag
         # at a grazing angle broke pupil_apriltags' pose solver and crashed this node; /tags/raw is now the wall tag only)
@@ -99,11 +114,14 @@ class TagBridgeFwd(Node):
             self.pub_raw.publish(r)
             if i != WALL_ID:
                 continue
+            rng = float(np.linalg.norm(tt))
             valid = self.r_valid > 0 and math.hypot(cc[0] - CX, cc[1] - CY) <= self.r_valid
+            if self.master is not None and self.armed and not (self.rng_lo <= rng <= self.rng_hi):
+                valid = False                            # D18 range rule: in flight, outside the characterised band
             pw = yaw = None
             if self.R_wt is not None:
                 p, Rw = T.vehicle_pose_full(self.R_wt, WALL_P, R, tt); pw = (p[0] - WALL_P[0], p[1] - WALL_P[1], p[2]); yaw = T.yaw_of(Rw)
-            rows.append([i, valid, dm, hm, cc, float(np.linalg.norm(tt)), pw, yaw])
+            rows.append([i, valid, dm, hm, cc, rng, pw, yaw])
             if valid and pw is not None and (best is None or dm > best[2]):
                 best = rows[-1]
         proc = (time.perf_counter() - t0) * 1e3; t_sent = float("nan")
