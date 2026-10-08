@@ -39,6 +39,12 @@ using fgo_cpp::Vector3;
 
 namespace {
 double st(const builtin_interfaces::msg::Time& t) { return t.sec + t.nanosec * 1e-9; }
+std::string jnum(double x) {   // a JSON number, or null for NaN (time_ref fields in causal/header mode)
+  if (!std::isfinite(x)) return "null";
+  char b[64];
+  std::snprintf(b, sizeof b, "%.6f", x);
+  return b;
+}
 
 struct Msg {   // one arrival, copied out of the callback
   int kind;    // tape kinds (fgo_live_replay.cpp): 0 imu, 1 att, 2 rng, 3 flow, 4 heading, 5 tag, 7 time_ref
@@ -176,10 +182,15 @@ class FgoCppNode : public rclcpp::Node {
       std::fprintf(f, "{\"impl\": \"cpp\", \"config\": \"%s\", \"columns\": [\"t_k\", \"valid\", \"sent\", \"t_us\", "
                    "\"step_ns\", \"lag_s\", \"x\", \"y\", \"z\", \"yaw\"], \"n_keyframes\": %zu, \"n_sent\": %zu, "
                    "\"n_unsettled\": %zu, \"n_unsent_no_peer\": %zu, \"n_reinits\": %zu, \"gap_invalid\": %s, \"t_armed_header\": %.6f, "
-                   "\"max_lateness_s\": %.6f, \"n_out_of_order\": %zu, \"n_heading_rejected\": %zu, \"n_imu_unpaired\": %zu}\n",
+                   "\"max_lateness_s\": %.6f, \"n_out_of_order\": %zu, \"n_heading_rejected\": %zu, \"n_imu_unpaired\": %zu, "
+                   "\"tref_settled\": %s, \"tref_seed_th\": %s, \"tref_seed_offset_s\": %s, \"n_held\": %zu, "
+                   "\"tref_max_track_err_s\": %.6f, \"n_dup_stamp\": %zu}\n",
                    cfg_desc_.c_str(), stats_.size() / 10, adapter_->n_sent, adapter_->n_unsettled, n_unsent_,
                    adapter_->n_reinits, adapter_->gap_invalid ? "true" : "false", adapter_->t_armed_header, adapter_->max_lateness(),
-                   adapter_->n_out_of_order(), adapter_->n_hdg_rejected, adapter_->n_imu_unpaired);
+                   adapter_->n_out_of_order(), adapter_->n_hdg_rejected, adapter_->n_imu_unpaired,
+                   adapter_->tref_settled ? "true" : "false", jnum(adapter_->tref_seed_th).c_str(),
+                   jnum(adapter_->tref_seed_offset).c_str(), adapter_->n_held, adapter_->tref_max_track_err,
+                   adapter_->n_dup_stamp);
       std::fclose(f);
     }
   }
