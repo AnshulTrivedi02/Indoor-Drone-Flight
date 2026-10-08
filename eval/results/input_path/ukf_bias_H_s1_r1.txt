@@ -1,0 +1,11 @@
+room_ukf airborne mean bias FLU mrad/s [ 2.85 -2.85 -2.83]
+   loss 5.6s: bias x,y mean +3.36 -3.34; vel E,N at end +13.8 -8.9 mm/s
+   loss 14.5s: bias x,y mean +3.79 -3.81; vel E,N at end +8.3 -6.8 mm/s
+   loss 30.7s: bias x,y mean +4.24 -4.24; vel E,N at end +5.9 -6.0 mm/s
+   loss 7.3s: bias x,y mean +3.58 -3.56; vel E,N at end -146.5 +1.2 mm/s
+room_ukf_apin_biascorr airborne mean bias FLU mrad/s [ 2.85 -2.85 -2.83]
+   loss 5.6s: bias x,y mean +3.38 -3.36; vel E,N at end +7.4 -2.5 mm/s
+   loss 14.5s: bias x,y mean +3.80 -3.81; vel E,N at end +2.0 -0.7 mm/s
+   loss 30.7s: bias x,y mean +4.24 -4.24; vel E,N at end -0.9 +0.6 mm/s
+   loss 7.3s: bias x,y mean +3.60 -3.58; vel E,N at end -152.5 +7.1 mm/s
+EKF3-implied true bias FLU (x, y) mrad/s: +2.56, -2.64 (XKF1 FRD +2.56, +2.64)

@@ -1,0 +1,118 @@
+{
+ "window_def": {
+  "source": "ukf/ground_truth.tum",
+  "speed_mps": 0.3,
+  "boxcar_s": 0.42,
+  "rule": "largest contiguous run",
+  "metric": "evo -a (cruise)"
+ },
+ "trials": {
+  "dsn_tex_r2": {
+   "window_s": [
+    30.556,
+    333.044
+   ],
+   "est": {
+    "EKF3": {
+     "failure": {
+      "final_disp": 147.63394609620997,
+      "true_travel": 151.138472,
+      "disp_ratio": 0.9768124829011766,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 3.855266
+     }
+    },
+    "UKF": {
+     "failure": {
+      "final_disp": 145.8506304933873,
+      "true_travel": 151.14902478246577,
+      "disp_ratio": 0.9649458916674856,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.134915
+     }
+    },
+    "FGO": {
+     "failure": {
+      "final_disp": 146.23170939493926,
+      "true_travel": 151.14723101817668,
+      "disp_ratio": 0.967478586341775,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 4.716604
+     }
+    },
+    "UKF_APIN": {
+     "failure": {
+      "final_disp": 145.89457235623306,
+      "true_travel": 151.15093909576842,
+      "disp_ratio": 0.9652243858292872,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.042446
+     }
+    },
+    "UKF_APIN_IMU": {
+     "failure": {
+      "final_disp": 145.67595372832633,
+      "true_travel": 151.15093909576842,
+      "disp_ratio": 0.963778026122794,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.31664
+     }
+    },
+    "UKF_APIN_FLOW": {
+     "failure": {
+      "final_disp": 146.03782295669504,
+      "true_travel": 151.14902478246577,
+      "disp_ratio": 0.9661843545922523,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 1.880981
+     }
+    },
+    "FLOWGYRO": {
+     "failure": {
+      "final_disp": 145.8869055679675,
+      "true_travel": 151.14902478246577,
+      "disp_ratio": 0.9651858870934064,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.087444
+     }
+    },
+    "FLOWTIME": {
+     "failure": {
+      "final_disp": 145.89599020685904,
+      "true_travel": 151.14902478246577,
+      "disp_ratio": 0.965245990947233,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 2.06829
+     }
+    },
+    "BIASCORR": {
+     "failure": {
+      "final_disp": 147.65380038394463,
+      "true_travel": 151.14902478246577,
+      "disp_ratio": 0.97687564042473,
+      "onset_gt_dist": null
+     },
+     "ate_a_cruise": {
+      "+0.00": 1.691002
+     }
+    }
+   }
+  }
+ }
+}

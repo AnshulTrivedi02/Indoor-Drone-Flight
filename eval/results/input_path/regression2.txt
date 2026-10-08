@@ -1,0 +1,15 @@
+--- /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/home_orig/thesis_data/trials/dsn_tex_r2/ukf
+    /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/home/thesis_data/trials/dsn_tex_r2/ukf
+    bgz_series.txt: BYTE-IDENTICAL
+    fwd_stats.json: BYTE-IDENTICAL
+    ground_truth.tum: BYTE-IDENTICAL
+    metrics.txt: BYTE-IDENTICAL
+    timing_and_fwd.npz: IDENTICAL arrays (excluded timing: ['t_predict_ns', 't_range_ns', 't_flow_ns', 't_fwd_ns'])
+    ukf_traj.tum: BYTE-IDENTICAL
+--- /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/home_orig/thesis_data/trials/H_s1_r1/room_ukf
+    /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/home/thesis_data/trials/H_s1_r1/room_ukf
+    ground_truth.tum: BYTE-IDENTICAL
+    rts_cov.npz: IDENTICAL arrays (excluded timing: [])
+    stats.json: BYTE-IDENTICAL
+    ukf_live.tum: BYTE-IDENTICAL
+    ukf_rts.tum: BYTE-IDENTICAL

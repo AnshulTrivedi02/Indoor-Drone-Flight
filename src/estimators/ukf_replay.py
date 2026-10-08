@@ -25,7 +25,9 @@ ARM = sys.argv[2] if len(sys.argv) > 2 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
 FV = f_variant()     # offline F-test variants (all off by default)
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
+import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
+APIN = apin.mode()
+OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -58,9 +60,11 @@ with Reader(BAG) as r:
             ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
         elif con.topic == "/ground_truth/pose":
             gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
+if APIN:
+    ev = apin.substitute(ev, os.path.dirname(BAG), APIN)
 ev += forward_events(TRIAL, ARM)    # Phase 4 forward-camera measurements ([] for baseline/legacy)
 ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
-ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
+ev, _imu_dj = dejitter_imu(ev) if "imu" not in apin.MODES.get(APIN, ()) else apin.imu_period_stats(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
 ev.sort(key=lambda e: e[0]); gt.sort(key=lambda e: e[0])
 gt = np.array(gt)
@@ -125,7 +129,7 @@ for t, kind, d in ev:
         gp.on_gyro(t, d[1], x[U.BG_SLICE] / DT_STEP)   # take-off detection: |gyro - bias| > 0.1 rad/s (D15)
         gyro_avg.push(t, d[1])                # co-sampled gyro, for the flow-frame average
         fwd_avg.push(t, d[1])
-        dt_i = t - t_prev; t_prev = t
+        dt_i = (t - t_prev) if len(d) == 2 else d[2]; t_prev = t     # UKF_APIN imu: the FC delta's own DADT
         if dt_i <= 0 or dt_i > 0.2:
             continue
         da += d[1]*dt_i; dv += d[0]*dt_i; acc_dt += dt_i
@@ -149,8 +153,12 @@ for t, kind, d in ev:
         tim["range"].append(time.perf_counter_ns() - _t0)
         n_rng_acc += acc; n_rng_rej += (not acc)
     elif kind == "flow":
-        flow_xy, valid, inlier = d
+        flow_xy, valid, inlier = d[:3]
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
+        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
+            omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])
+        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
+            omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
         if DUMP and valid and inlier > 0:
             dump_flow.append(np.r_[t, flow_xy, U.h_flow(x, omega_flow), omega_flow])
         if valid and inlier > 0:

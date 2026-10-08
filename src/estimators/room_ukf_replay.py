@@ -32,7 +32,9 @@ RTS_NOCAP = "--rts-no-yawcap" in sys.argv   # O correction (2026-10-08): forward
 #   same circularity removed from the FGO batch). Writes room_ukf_rtsnocap/; the live UKF (room_ukf/) is unchanged.
 GNSS = "--gnss" in sys.argv      # experiment O: GNSS fixes from <trial>/gnss.npz; yaw cap kept throughout (EKF3 in O has
 #                                  GSF yaw outdoors and no yaw source indoors, where it fuses its predicted yaw)
-D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else ""); os.makedirs(OUT, exist_ok=True)
+import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
+APIN = apin.mode()
+D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else "") + apin.outdir_suffix(APIN); os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
 ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/OpticalFlow"))
@@ -78,6 +80,8 @@ def write_tum(path, T, X):
 
 
 ev, gt = read_events(f"{D}/bag")
+if APIN:
+    ev = apin.substitute(ev, D, APIN)
 if GNSS:
     _g = np.load(f"{D}/gnss.npz")
     ev += [(float(t), "gnss", (e, n, ve, vn)) for t, e, n, ve, vn in zip(_g["t"], _g["E"], _g["N"], _g["vE"], _g["vN"])]
@@ -90,7 +94,7 @@ if TAG_MAX:
             if _n > TAG_MAX: continue
         _keep.append(e)
     ev = _keep; OUT = OUT + f"_diag_first{TAG_MAX}"; os.makedirs(OUT, exist_ok=True)
-ev = apply_gap_rule(ev, TRIAL); ev, dj = dejitter_imu(ev); ev.sort(key=lambda e: e[0])
+ev = apply_gap_rule(ev, TRIAL); ev, dj = dejitter_imu(ev) if "imu" not in apin.MODES.get(APIN, ()) else apin.imu_period_stats(ev); ev.sort(key=lambda e: e[0])
 TARGET_DT = 0.0125; period = dj['period_ms'] / 1e3
 DT_STEP = math.ceil(TARGET_DT / period - 1e-9) * period
 p = U.make_params(dt=DT_STEP)
@@ -116,7 +120,7 @@ for t, kind, d in ev:
         omega = d
     elif kind == "imu":
         gp.on_gyro(t, d[1], x[U.BG_SLICE] / DT_STEP); gyro_avg.push(t, d[1])
-        dt_i = t - t_prev; t_prev = t
+        dt_i = (t - t_prev) if len(d) == 2 else d[2]; t_prev = t     # UKF_APIN imu: the FC delta's own DADT
         if dt_i <= 0 or dt_i > 0.2:
             continue
         da += d[1] * dt_i; dv += d[0] * dt_i; acc_dt += dt_i
@@ -135,8 +139,12 @@ for t, kind, d in ev:
     elif kind == "rng":
         gp.on_range(t, d); x, P, _ = U.update_range(x, P, d, p)
     elif kind == "flow":
-        flow_xy, valid, inlier = d
+        flow_xy, valid, inlier = d[:3]
         om = gyro_avg.average(t, omega)
+        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
+            om = np.array([d[3][0], d[3][1], om[2]])
+        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
+            om = om - x[U.BG_SLICE] / DT_STEP
         if valid and inlier > 0:
             flow_xy = gp.replace(flow_xy, om, x[6], x[7])
         x, P, _ = U.update_flow(x, P, flow_xy, om, valid, inlier, p)
