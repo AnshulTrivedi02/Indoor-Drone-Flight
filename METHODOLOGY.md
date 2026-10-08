@@ -11346,3 +11346,46 @@ spawn).
 - The original S1 stays recorded; the re-fly is the comparison set for S2/S3.
 
 **Then S2 and S3** per their pre-registration items, from the far spawn.
+
+### RULINGS (user, 2026-10-08): parameter-dump check timing; input-path diagnostic recorded; UKF flow derotation corrected
+1. **Parameter-dump check** (port tree eeprom cleared): done **immediately after the first port-tree flight**, i.e.
+   the first stage-1 safety test, before the sequence continues.
+   - Every difference from the earlier logs is reported.
+   - If any could change estimator or controller behaviour: **stop and report before flying further**.
+   - The stage-0 shadow flights are a port-tree run too, so the check is made on the first of them. That is earlier
+     than ruled, and is repeated after the first stage-1 test.
+2. **Input-path diagnostic: recorded as reported** (`docs/handovers/2026-10-08_input_path_diagnostic_result.md`, on
+   merge):
+   - **The S1 hover-drift gap is not an input-path effect.** Swapping the IMU path or the flow timing changes the H
+     drift by ≤ 4 mm. The effect is the UKF derotating flow with the RAW gyro.
+   - **The tier-B attribution is REVERSED.** The port's small Replay drift (7–19 mm) came from EKF3's bias-corrected
+     rate reaching its flow model (a Replay of an AHRS-type-3 flight). It did not come from ArduPilot's input path.
+     This replaces "input-path effect, not the UKF formulation" in `docs/h_backends_tag_input.md` §3.3.
+   - **The main EKF3-vs-FGO result is affected by at most ~0.25 m of evo -a (cruise) via the input path.** This is
+     an indirect estimate: the UKF swaps moved it −0.25…+0.19 m on `dsn_tex_r2`; no FGO was run on FC inputs.
+3. **UKF flow derotation: the bias-corrected rate is ADOPTED as a MODEL CORRECTION, decided on principle, not on the
+   observed effect.**
+   - **Change:** the UKF's own gyro-bias estimate is subtracted from the rate before derotation in `h_flow`.
+   - **Reasoning:**
+     - the UKF already estimates gyro bias, and its flow model ignored its own estimate: an internal inconsistency;
+     - EKF3, the FGO and the flying UKF port (`AP_AHRS_UKF`: `gyro + drift`) all derotate with bias-corrected rates,
+       so this makes the offline UKF consistent with the onboard UKF.
+   - **Classification:** a model correction (as FLOW_POS_Z and the lateral sign fix), NOT a design feature copied
+     under D18.
+   - **Schedule:** after the current flight sequence (no replays during timing-sensitive flights) and before the
+     16 Oct freeze:
+     - **(a)** re-run every offline UKF result with the corrected derotation:
+       - the datasets: `dsn_*`, `fwdc_*`, `fwdplainc_*`;
+       - Phase 4/5/5b, the scale and heading-share checks;
+       - C0, F1–F3c, 2(a);
+       - T, O and the H shadows.
+       **EKF3 and FGO numbers must be unchanged.**
+     - **(b)** report old vs new for every headline UKF number. Flag any verdict or ordering change, including the
+       UKF's textured-floor standing and the earlier "UKF sideways drift with near-zero heading error" pattern.
+       Restate numbers.md and the figures.
+     - **(c)** the S2 prediction now tests the UKF's FLOW FORMULATION, not the input path: the flying port derotates
+       with its own bias-corrected rate (the `biascorr` condition).
+   - **Low priority, after that:**
+     - why a 2.6 mrad/s bias gives ~0.29 m rather than ~0.1 m over 30 s;
+     - the source of the SITL gyro bias;
+     - the FGO's own H drift gap (after S3).
