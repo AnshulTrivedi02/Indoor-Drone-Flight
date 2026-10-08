@@ -360,7 +360,7 @@ Details for every item are in METHODOLOGY.
 - **Recommendation: confirm these as comparison fixes, not criterion changes.**
 
 
-### D29. UKF port tag input: tier A failed as worded (D27 Q form), queued 2026-10-08
+### D29. UKF port tag input: tier A failed as worded (D27 Q form), queued 2026-10-08 — RULED (a) 2026-10-08: tier A recorded as failed as worded, with the diagnostic; port accepted on tier B + UR1; not re-registered
 - **Pre-registered tier A** (port harness on the offline UKF's event stream): FAIL as worded (UA1 3.6 mm against a
   1 mm band; UA3 accel bias; UA5).
 - **Diagnostic** (the offline D27 Q substituted in the harness; port source unchanged): passes by 4–5 orders of

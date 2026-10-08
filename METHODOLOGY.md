@@ -11057,3 +11057,40 @@ results below once run.
   before any work. Its simulator check initially matched its own command lines; that caused refusals only, never a run
   alongside a simulator, and is fixed. Its lock wrapper uses an exclusive create with an owner tag and removes only its
   own lock (checked).
+
+### RULINGS (user, 2026-10-08): D29 (a); input-path diagnostic; S2 tests the input-path explanation; S3 flies the C++ FGO node (conditional)
+
+**D29 RULED (a).**
+- **UKF port tier A: FAILED AS WORDED** (UA1 3.6 mm against 1 mm, at an ordinary predict step before any tag; also UA3
+  and UA5).
+- **Diagnostic:** substituting the offline per-second noise form (D27) in the harness passes every band by 4–5 orders
+  of magnitude. The tag code is equivalent; the difference is the known noise-form / step-size difference (offline D27
+  form at 15 ms steps vs EKF3's form at 12.5 ms in the port).
+- **Tier A is NOT re-registered.**
+- **The port is ACCEPTED** on its `H_s1_r1` Replay result (tier B UB1–UB5 PASS) and the byte-identical regression
+  (UR1).
+
+**Input-path diagnostic (bounded, before the thesis results are written; does not block S2):**
+1. Document what IMU and flow data EKF3 receives inside ArduPilot (rate, delta-angle/delta-velocity integration,
+   filtering, timing) against what the bags give the offline UKF/FGO.
+2. On `H_s1_r1` and `dsn_tex_r2`, run the offline UKF on (a) the bridged bag inputs and (b) ArduPilot-derived inputs
+   from the Replay log. Report the difference in tag-loss drift and cruise error.
+3. State whether the input path could account for part of the main EKF3-vs-FGO result, with an estimated size.
+   **Report only; no thesis numbers change.**
+
+**S2 PREDICTION (recorded before flying):** S2 tests the input-path explanation. The UKF port flies on ArduPilot's own
+inputs (FC IMU delta quantities, the FC's flow path).
+- **Predicted:** its tag-loss drift is at **EKF3's scale**, not the offline-shadow scale: ≤ **0.05 m** after the 30 s
+  hover loss and ≤ **0.03 m** after the 5 s and 15 s losses.
+  - Basis: the port on `H_s1_r1`'s Replay drifted 7–19 mm in the losses, against 28–292 mm for the offline UKF on the
+    bridged inputs.
+- **If S2's UKF drifts at the offline-shadow scale instead** (≥ 0.12 m at 15 s, ≥ 0.25 m at 30 s), the input-path
+  explanation is not supported, and the S1 gap points to flying-vs-shadow or to the UKF formulation.
+- The pre-registered S2 drift band (≤ 0.40 m at 30 s) stays as the primary criterion. This prediction is the
+  directional test.
+
+**S3 plan:** fly the **C++ FGO node** (live adapter), **provided** its SITL shadow passes: FC state age with the
+late-message wait within the 250 ms limit (0.10 s fallback), and FC-clock IMU timing checked against GT.
+- **Why:** the Python node is at its time limit after the anchor (p95 33.6 ms against the 33 ms keyframe budget), and
+  the real drone will run C++.
+- **If the C++ shadow does not pass in time,** S3 falls back to the Python node and it is reported.
