@@ -11677,3 +11677,23 @@ With the D18 range rule, the pinned hover throttle, TFAIL enforced 0 at the star
   - touchdown vertical speed 0.47 m/s;
   - no breach.
 - **S-A4 (single landing):** one LAND entry, no re-arm.
+
+### H safety test UKF (b) RESULT (`H_safety_ukf_b`, `eval/results/expH/safety_ukf_b.json`): ALL PASS
+The tag bridge and the flow bridge were SIGKILLed in the hold at t 83.53 s. The watcher watched the tag bridge with
+`--dep-loss land`.
+- **Sequence:**
+  - the watcher withdrew `bridge`;
+  - fly_trial ("safety watcher lost in flight") commanded LAND at **+0.91 s** (reason 2, GCS);
+  - the UKF dead-reckoned (EKF3 also: "Dead Reckoning started" +1.41 s);
+  - the FC trigger "Thesis nav: UKF position lost" fired at **+4.81 s** (AID_TIMEOUT, 5 s after the last accepted
+    flow). Already in LAND, so it raised the failsafe without a mode change;
+  - disarmed at +9.65 s.
+- **S-A1 PASS:** max |ATT − GT| roll 0.15°, pitch 0.06°, yaw 0.08°.
+- **S-A2 PASS:** text at 4.81 s ≤ 5.5 s; LAND at 0.91 s.
+- **S-A3 PASS:**
+  - max tilt 0.29°;
+  - displacement to touchdown **0.28 m**;
+  - touchdown 0.52 m/s;
+  - no breach.
+- **S-A4 PASS:** one LAND entry, no re-arm. The two landing paths did not conflict.
+- `run_trial` ended non-zero by design: fly_trial's exit after WatcherLost. The log was copied.
