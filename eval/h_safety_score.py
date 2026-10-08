@@ -19,6 +19,8 @@ from rosbags.typesys import Stores, get_typestore
 from scipy.spatial.transform import Rotation as Rot
 
 ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--a2-bound", type=float, required=True)
+ap.add_argument("--from-effect", action="store_true", help="S-A2 RE-WORDED (ruling 2026-10-08, after H_safety_ukf_a): time "
+                "the trigger from the FC's own 'UKF TFAIL' text (the forced failure taking effect), not the PARAM_SET")
 ap.add_argument("--json"); a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); CL = os.path.expanduser(f"~/thesis_data/closed_loop/{a.trial}")
 wrapd = lambda x: (x + 180.0) % 360.0 - 180.0
@@ -67,6 +69,10 @@ def att_err(t0, t1):
 out = {"trial": a.trial, "failure": kind, "t_f": t_f, "t_disarm": t_dis}
 out["attitude_err_before_failure_10s"] = att_err(t_f - 10, t_f)
 e1 = att_err(t_f, t_end); out["S-A1"] = dict(e1, PASS=bool(max(e1["roll_max_deg"], e1["pitch_max_deg"]) <= 3.0 and e1["yaw_max_deg"] <= 5.0))
+t_eff = next((t for t, s in msgs if t >= t_f and "UKF TFAIL" in s), None)
+out["t_failure_effect"] = t_eff
+if a.from_effect and t_eff is not None:
+    out["S-A2_reference"] = "the FC's 'UKF TFAIL' text (re-worded after H_safety_ukf_a)"; t_f = t_eff
 t_txt = next((t for t, s in msgs if t >= t_f and "Thesis nav" in s), None)
 lands = [(t, rs) for t, mn, rs in modes if t >= t_f and mn == 9]
 t_land = lands[0][0] if lands else None
