@@ -77,6 +77,9 @@ The CMake option `-DFGO_CPP_EMULATE_NUMPY_GEMV=ON` (default OFF) is a **diagnost
 1. Python reference: `fgo_replay.py <trial> 0.25 2 baseline`, reading a scratch copy of the bag
    (`FGO_BAG_ROOT`) and writing to scratch (`FGO_OUT_ROOT`). No trial directory was written. For
    `dsn_tex_r1` the fresh TUM is byte-identical to the stored `~/thesis_data/trials/dsn_tex_r1/fgo_baseline/fgo_traj.tum`.
+   For `dsn_blank_r1` and `dsn_trans_r1` it is byte-identical to the stored legacy `fgo/fgo_traj.tum`
+   (same computation, n_kf 10048 / 10031). The round-off-sensitive runs therefore reproduce on this
+   machine, and the reference is the thesis result.
 2. The same run with `FGO_DUMP_EVENTS=<prefix>`. Its `fgo_traj.tum`, `ground_truth.tum`,
    `fwd_stats.json`, `bgz_series.txt` and `metrics.txt` (without the `step_*` timing lines) are
    **byte-identical** to the run without the export (`dsn_tex_r1`), so the export changes nothing.
@@ -102,14 +105,19 @@ With `FGO_CPP_EMULATE_NUMPY_GEMV=ON`, the C++ does that one product with the sam
 
 ### Whole-flight equivalence (pre-registered band: same count, |Δp| ≤ 1 mm, |Δyaw| ≤ 0.01°)
 
+**Pre-registered verdict.** The verdict applies to the default build, which was committed before any
+comparison: **tex PASS, blank FAIL, trans FAIL.** The emulate-gemv rows were added post hoc, after
+the tex and probe results had been seen. They are a diagnostic of the failures' cause, not a
+pre-registered pass.
+
 | bag | build | keyframes (Py / C++) | flags¹ | max / p99 \|Δp\| | max / p99 \|Δyaw\| | band | bit-identical |
 |---|---|---|---|---|---|---|---|
 | dsn_tex_r1 | default | 10197 / 10197 | 0 mismatches | 4.1e-4 / 3.7e-4 mm | 3.2e-8 / 3.2e-8 ° | **PASS** | no |
-| dsn_tex_r1 | emulate-gemv | 10197 / 10197 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** (whole export and TUM) |
+| dsn_tex_r1 | emulate-gemv (diagnostic, post hoc) | 10197 / 10197 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** (whole export and TUM) |
 | dsn_blank_r1 | default | 10048 / 10048 | 0 | 1.97e6 / 1.89e6 mm | 20.8 / 0.066 ° | **FAIL** | no |
-| dsn_blank_r1 | emulate-gemv | 10048 / 10048 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** |
+| dsn_blank_r1 | emulate-gemv (diagnostic, post hoc) | 10048 / 10048 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** |
 | dsn_trans_r1 | default | 10031 / 10031 | 0 | 1.44e6 / 1.16e6 mm | 19.6 / 2.5 ° | **FAIL** | no |
-| dsn_trans_r1 | emulate-gemv | 10031 / 10031 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** |
+| dsn_trans_r1 | emulate-gemv (diagnostic, post hoc) | 10031 / 10031 | 0 | 0 / 0 | 0 / 0 | **PASS** | **yes** |
 
 ¹ Per keyframe: keyframe created, flow replaced (D15), flow factor added, range factor added.
 
@@ -122,7 +130,7 @@ FGO itself diverges:
   against 151 m true, and |V| is about 200 m/s by t = 300 s. |Δp| first exceeds 1 µm at t = 38 s,
   1 mm at t = 51 s and 1 m at t = 98 s.
 - `dsn_trans_r1`: within the band until t = 214 s, which is after the y = 80 m blank boundary
-  (~190 s). The Python estimate then diverges (7.8 km along-track).
+  (crossed at t = 189.99 s on this bag's ground truth). The Python estimate then diverges (7.8 km along-track).
 - `dsn_tex_r1`, which is well conditioned, stays at sub-micrometre throughout.
 
 So the blank and transition baseline trajectories are sensitive to floating-point round-off at the
