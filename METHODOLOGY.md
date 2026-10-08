@@ -11908,3 +11908,21 @@ EKF3 flying, at the 2 m-clearance hold W(−2.6, 0). The tag bridge and the flow
     +0.30°). Its drift comes from landing on a drifting dead-reckoned position, a different route to the same order
     of drift.
   - The FGO's larger hover tilt error (Item 2) is being traced separately.
+
+### RULING (user, 2026-10-09): the FGO tilt trace is bounded. Trace only if the FGO's hover tilt error or landing drift is > 2× EKF3's in the reference test; time-box 2 h
+**Comparison.** Hover tilt RMS error: roll and pitch, bias and scatter combined, ATT − GT, from hold start + 3 s to
+the failure.
+
+| flight | flying estimator | tilt RMS error | × EKF3 reference | landing drift | × EKF3 |
+|---|---|---|---|---|---|
+| `H_safety_ekf3_ref` | EKF3 | **0.114°** | 1 | **1.40 m** | 1 |
+| `H_safety_fgo_a` | FGO | 0.205° | 1.8 | 0.37 m | 0.26 |
+| `H_safety_fgo_b` | FGO | 0.280° | **2.5** | ~1.4 m (stopped at the breach) | ~1.0 |
+
+**The condition is met on the hover tilt:** (b) is 2.5×, and the mean of the two FGO flights is 2.1×. The landing
+drift is not worse than EKF3's.
+
+**So the trace continues, TIME-BOXED to 2 h** from the agent's start (01:04 → **03:04 AEDT**). It covers the hover
+tilt only, and reports the cause and a proposed fix without changing anything.
+
+**The flights do NOT wait for it:** the FGO (b) re-fly is in progress, and S3 follows the remaining steps.
