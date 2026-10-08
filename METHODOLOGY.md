@@ -12211,3 +12211,39 @@ configured values:
   - displacement ratio 0.97 in both.
   - The stored FGO reproduces at 4.72.
   - One bag. The confirmatory test is re-run in the consolidated re-run under the original decision rule.
+
+### S3 RESULT (corrected C++ FGO flying, `fgo_cpp_node` `1123742d…`, far spawn, ×3; `eval/results/expH/s3_r{1,2,3}.json`)
+`eval/h_score.py` now also scores the flying FGO: its FC output `XFGO` (OV = 1 rows), with the re-lock taken to the
+first node keyframe at or after the first returning fix (node stats, header clock).
+- **Hold (vehicle):** mean 7.6–8.2 mm, max 17–28 mm (H-H1 PASS).
+- **Drift during loss, end of loss** (FGO flying, mm, r1 / r2 / r3): 5 s 13 / 11 / 9; 15 s 8 / 10 / 7; 30 s
+  19 / 13 / 13; move 13 / 18 / 4. **Within every FGO band** (≤ 50 / 100 / 200 / 150 mm).
+  - EKF3 (shadow): 10–20 mm.
+- **Re-lock (primary):** 0.003–0.029 s, PASS (≤ 0.1 s).
+- **Lockout:** none.
+- **FGO yaw wander over the 30 s loss:** **0.58° / 0.59° / 0.64°** (≤ 3°, PASS).
+- **Jump criterion AS WORDED:** fails in most losses. The FGO's post-re-lock steps are 6–27 mm against drifts of
+  5–19 mm; its quiet-hold steps are p99 6.3–6.7 mm, max 8.0–8.7 mm. Steps of 12–27 mm (r1 5 s / 30 s / move, r2
+  5 s / 30 s / move, r3 15 s / 30 s) are genuine small re-lock corrections.
+
+### H comparative criteria across S1 re-fly (EKF3 flying), S2 (UKF) and S3 (FGO), paired by run index (r3 for EKF3 = `H_s1far_r3b`)
+| run | mean hold error EKF3 / UKF / FGO | hold gyro activity (high-pass rms, rad/s) | 15 s re-lock jump (mm) | 5 s re-lock jump (mm) |
+|---|---|---|---|---|
+| 1 | 7.8 / **6.1** / 7.8 mm | 0.0093 / 0.0223 / 0.0198 | 5 / 8 / 6 | 4 / 10 / 20 |
+| 2 | 7.9 / **5.5** / 7.9 mm | 0.0090 / 0.0220 / 0.0203 | 5 / 29 / 6 | 4 / 6 / 26 |
+| 3 | 7.8 / **5.5** / 7.9 mm | 0.0090 / 0.0210 / 0.0214 | 7 / 7 / 16 | 5 / 17 / 12 |
+
+- **H-H2 FAILS** ("FGO lowest hold error, 3/3"). The UKF is lowest in 3/3; the FGO and EKF3 tie (7.8–7.9 mm).
+- **P-H3 FAILS** (gyro activity within 1.5×): the UKF and FGO are ~2.2–2.4× EKF3's. They hold position tighter or
+  equally, with more attitude activity.
+- **H-H4 FAILS:**
+  - "EKF3's 15 s re-lock jump larger than the UKF's and the FGO's, 3/3": EKF3's is the SMALLEST or tied
+    (5 / 5 / 7 mm). The 15 s loss did not reach EKF3's 10 s `posTimeout` reset at a size that mattered.
+  - "5 s jumps within 1.5×": FAILS (EKF3 4–5 mm against 6–26 mm).
+- **P-H5 PASSES:** every estimator drifted ≤ 30 mm over the 15 s loss (≤ 0.3 m).
+- **The S2/S3 directional prediction** ("the flying UKF and FGO drift more than the flying EKF3") **is NOT borne
+  out:** UKF 1–19 mm and FGO 4–19 mm against EKF3 3–26 mm. **The gap seen in S1 between EKF3 and the shadows closes
+  when the UKF/FGO fly.** For the UKF this matches the derotation finding (the flying port uses its own
+  bias-corrected rate). For the FGO it also reflects the noise-model correction, which S3 flies but the S1 shadows did
+  not.
+- **Caveat:** each estimator flew its own flights, so the pairing is by run index, not the same trajectory.

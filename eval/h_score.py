@@ -66,19 +66,28 @@ for i, sg in enumerate(P):
 SP = np.array(sp)
 # tracks
 tracks = {}
-mv = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); k1, k4, visp, xuko, xukt = [], [], [], [], []
+mv = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); k1, k4, visp, xuko, xukt, xfgo = [], [], [], [], [], []
 while True:
-    r = mv.recv_match(type=["XKF1", "XKF4", "VISP", "XUKO", "XUKT"])
+    r = mv.recv_match(type=["XKF1", "XKF4", "VISP", "XUKO", "XUKT", "XFGO"])
     if r is None: break
     if r.get_type() == "VISP": visp.append(to_bag(r.TimeUS / 1e6)); continue
     # S2 (2026-10-09): the FLYING UKF port's current-time output (XUKO, NED W) and its processed fixes (XUKT, event time)
     if r.get_type() == "XUKO": xuko.append((to_bag(r.TimeUS / 1e6), r.PN, r.PE, math.radians(90.0 - r.Yaw))); continue
     if r.get_type() == "XUKT": xukt.append(to_bag(r.TimeUS / 1e6)); continue
+    if r.get_type() == "XFGO":
+        if r.OV == 1: xfgo.append((to_bag(r.TimeUS / 1e6), r.PN, r.PE, math.radians(90.0 - r.Yaw)))
+        continue
     if r.C != 0: continue
     if r.get_type() == "XKF1": k1.append((to_bag(r.TimeUS / 1e6), r.PN, r.PE, math.radians(90.0 - r.Yaw)))
     else: k4.append((to_bag(r.TimeUS / 1e6), int(r.TS) & 1))
 tracks["EKF3"] = np.array(k1); k4 = np.array(k4); visp = np.array(sorted(visp)); xukt = np.array(sorted(xukt))
 if len(xuko): tracks["UKF_port"] = np.array(xuko)
+if len(xfgo): tracks["FGO_flying"] = np.array(xfgo)
+# FGO keyframes (node stats, header clock = bag clock): a fix is in the first keyframe at or after its capture time
+_kf = None
+for _f in ("fgo_node_stats.f64", "fgo_node_stats_restart.f64"):
+    if os.path.exists(f"{D}/{_f}"): _kf = np.fromfile(f"{D}/{_f}").reshape(-1, 10)[:, 0]
+kf_t = np.sort(_kf) if _kf is not None else np.array([])
 for n, p in (("UKF", "room_ukf/ukf_live.tum"), ("FGO", "room_fgo/fgo_live.tum")):
     if os.path.exists(f"{D}/{p}"):
         x = np.loadtxt(f"{D}/{p}", ndmin=2); qx, qy, qz, qw = x[:, 4], x[:, 5], x[:, 6], x[:, 7]
@@ -134,7 +143,8 @@ for (s1, ton), (s2, toff) in zip(occ[0::2], occ[1::2]):
             i_b = np.searchsorted(X[:, 0], tf) - 1
             d_eff = float(math.hypot(X[i_b, 1] - gi(X[i_b, 0], 1), X[i_b, 2] - gi(X[i_b, 0], 2)))
             fus = (visp[visp >= tf - 1e-6][0] if n == "EKF3" and (visp >= tf - 1e-6).any() else
-                   xukt[xukt >= tf - 0.1][0] if n == "UKF_port" and (xukt >= tf - 0.1).any() else tf)
+                   xukt[xukt >= tf - 0.1][0] if n == "UKF_port" and (xukt >= tf - 0.1).any() else
+                   kf_t[kf_t >= tf - 1e-6][0] if n == "FGO_flying" and (kf_t >= tf - 1e-6).any() else tf)
             w = (X[:, 0] >= tf - 0.05) & (X[:, 0] <= tf + 2.0); Y = X[w]
             st = np.hypot(np.diff(Y[:, 1]), np.diff(Y[:, 2])); sy = np.degrees(np.abs(wrap(np.diff(Y[:, 3]))))
             r["effective"] = {"t_last_fix": tl, "t_first_fix": tf, "loss_s": tf - tl, "drift_m": d_eff,
