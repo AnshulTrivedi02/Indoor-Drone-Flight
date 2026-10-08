@@ -11402,3 +11402,36 @@ Live PARM dump of `fgo_cpp_shadow_i` (cleared eeprom) against `fgo_shadow_half_a
   UKF/FGO enables, the VISO/H parameters, `ARMING_SKIPCHK`, `SERIAL3_PROTOCOL` and the MAV4 stream group present with
   SERIAL3 MAVLink. The calibration/counter rows are the same as above.
 - Repeated after the first stage-1 safety test, as ruled.
+
+### FGO C++ stage 5 RESULT (`fgo_cpp_shadow_{i,ii,iii}`, scored by `eval/fgo_cpp_sitl_check.py`; `eval/results/fgo_cpp_sitl_*.json`)
+Three open-loop shadow flights on simulator truth (the recorded deviation), `corridor_textured_half_fwdc`, 300 s, all
+completed (exit 0). Reference: `fgo_shadow_half_a3` (Python node, 0.10 s, causal).
+
+| flight | delay / IMU stamp | FC age median / p95 / max-excl.-wrapped (ms) | wrapped (future-stamped) ages | OV = 0 share, longest span | δ_att live (ms) | same-bag replay δ_att time_ref / causal (ms) |
+|---|---|---|---|---|---|---|
+| (i) | 0.20 / time_ref | 224 / 239 / 246 | **85** | 1.06 %, 2.76 s | **149.0** | 2.5 / 13.5 |
+| (ii) | 0.10 / time_ref | 123 / 141 / 148 | **206** | 2.56 %, **7.61 s** | **140.5** | 1.0 / 12.0 |
+| (iii) | 0.10 / causal | 120 / 136 / 143 | 0 | 0, — | 12.5 | 2.5 / 13.5 |
+| a3 (Python) | 0.10 / causal | 132 / 149 / 176 | 0 | 0, — | 7.5 | −3.5 / 6.0 |
+
+**Rule A, as worded: "adopt 0.10 s".** The literal maximum age of (i) exceeds 250 ms. The literal maxima are
+wrapped (negative) ages; excluding them, (i) reaches 246 ms.
+
+**Rule B(c), scored and recorded as worded, whatever it shows: "causal (Python node timing) more accurate".**
+- δ_att: (ii) 140.5 ms against (iii) 12.5 ms; resolution 5 ms; difference 128 ms.
+- **EXPLORATORY** (the same-bag paired replay, labelled as seen before any amendment): time_ref is the more accurate
+  on all four bags (−3.5…2.5 ms against 6.0…13.5 ms).
+
+**FINDING (a defect in the LIVE time_ref path, not in time_ref stamping as such):**
+- Live, both time_ref flights show δ_att ≈ 140–149 ms, while the same bags replayed through `fgo_cpp_live_replay` in
+  time_ref mode give 1.0–2.5 ms.
+- The live time_ref states are also sometimes stamped AHEAD of the FC clock (85 and 206 wrapped ages). The FC
+  therefore flags the output INVALID for up to 7.6 s at a time (1–2.6 % of the flight).
+- Causal live (iii) agrees with its replay (12.5 against 13.5 ms) and has no wraps.
+- **Consequence:**
+  - with the option (i) trigger, a time_ref node flying closed loop would trigger LAND on such a span;
+  - **the C++ node must not fly closed loop in time_ref mode until this is found and fixed**;
+  - 0.10 s / causal (iii) is clean on every Rule A figure.
+- The cause is not yet traced. The live path differs from the replay in how `/imu/time_ref` messages are paired with
+  IMU samples as they arrive.
+- **The flight configuration for the FGO safety tests and S3 is put to the user.**

@@ -1,0 +1,281 @@
+{
+ "trial": "fgo_cpp_shadow_iii",
+ "notes": [],
+ "meta": [
+  "world: corridor_textured_half_fwdc",
+  "extra_parm_files: \"/home/makerspace/thesis_ws/fgo_shadow.parm\"",
+  "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.f64/.json",
+  "fgo_node_impl: cpp",
+  "fgo_cpp: {bin: \"/home/makerspace/opt/fgo_cpp/bin/fgo_cpp_node\", reorder_delay_s: 0.10, imu_stamp: causal, arm_source: heartbeat}"
+ ],
+ "impl": "cpp",
+ "node_stats": {
+  "impl": "cpp",
+  "config": "reorder_delay_s=0.100000 imu_stamp=causal arm_source=heartbeat heading=false",
+  "columns": [
+   "t_k",
+   "valid",
+   "sent",
+   "t_us",
+   "step_ns",
+   "lag_s",
+   "x",
+   "y",
+   "z",
+   "yaw"
+  ],
+  "n_keyframes": 10225,
+  "n_sent": 9944,
+  "n_unsettled": 281,
+  "n_unsent_no_peer": 0,
+  "n_reinits": 0,
+  "gap_invalid": false,
+  "t_armed_header": 25.480793,
+  "max_lateness_s": 0.093826,
+  "n_out_of_order": 0,
+  "n_heading_rejected": 0,
+  "n_imu_unpaired": 0
+ },
+ "a": {
+  "params": {
+   "AHRS_EKF_TYPE": 10.0,
+   "AHRS_FGO_ENABLE": 1.0,
+   "SERIAL3_PROTOCOL": 2.0
+  },
+  "params_ok": true,
+  "W_a_s": [
+   24.480309,
+   346.05337
+  ],
+  "age_ms": {
+   "n_xfgo": 8040,
+   "median": 120.0,
+   "p95": 136.0,
+   "p99": 139.0,
+   "max": 143.0,
+   "frac_over_250ms": 0.0,
+   "frac_output_invalid_OV0": 0.0,
+   "longest_OV0_span_s": 0.0,
+   "n_age_wrapped": 0,
+   "max_excluding_wrapped": 143.0
+  },
+  "arrival": {
+   "n_states": 9649,
+   "latency_ms_median": 103.36999999998397,
+   "latency_ms_p95": 106.9242000000088,
+   "latency_ms_p99": 108.85652000000164,
+   "latency_ms_max": 111.9470000000149,
+   "max_gap_between_states_ms": 44.99200000000769,
+   "frac_node_valid_flag0": 0.0,
+   "late_count_end": 0
+  }
+ },
+ "config_echo_ok": true,
+ "config": {
+  "reorder_delay_s": 0.1,
+  "imu_stamp": "causal"
+ },
+ "config_ok": true,
+ "b_source": "/fgo/pose (bag)",
+ "b_primary": {
+  "delta_att_ms": 12.5,
+  "identified": true,
+  "grid_argmin_ms": 12.5,
+  "rms_at_delta_deg": 0.08623042010784161,
+  "rms_at_0_deg": 0.08660031472793316,
+  "offsets_deg_at_0": [
+   0.11001034460957991,
+   -0.019854568033404282
+  ],
+  "n_states": 9456,
+  "t_s": [
+   28.445666667,
+   343.612333333
+  ],
+  "diag_rms_rise_at_pm20ms_deg": [
+   0.0009291585006967455,
+   0.0009130832649267824
+  ],
+  "diag_delta_halves_ms": [
+   -12.0,
+   38.5
+  ]
+ },
+ "b_secondary": {
+  "airborne": {
+   "t_s": [
+    28.445666667,
+    343.612333333
+   ],
+   "n": 9456,
+   "roll_rms_deg": 0.14792595469449268,
+   "pitch_rms_deg": 0.0749240998784013,
+   "horiz_rms_m": 19.494905398207127,
+   "horiz_max_m": 44.75396468387373,
+   "horiz_end_m": 44.7172568499385,
+   "height_rms_m": 0.028067405006975785,
+   "yaw_mean_deg": -18.54007805286899,
+   "yaw_rms_deg": 23.7225630902384,
+   "yaw_max_abs_deg": 49.315979433757626
+  },
+  "cruise": {
+   "t_s": [
+    30.312333333,
+    331.245666667
+   ],
+   "n": 9029,
+   "roll_rms_deg": 0.1250737793270983,
+   "pitch_rms_deg": 0.0466924099034679,
+   "horiz_rms_m": 17.778766064550897,
+   "horiz_max_m": 44.565078828014485,
+   "horiz_end_m": 44.565078828014485,
+   "height_rms_m": 0.02526632808023829,
+   "yaw_mean_deg": -17.445032991653214,
+   "yaw_rms_deg": 22.24641210571004,
+   "yaw_max_abs_deg": 46.54850616640591,
+   "travel_m": 150.38879761330276,
+   "relative_horiz_err_end_m": 44.87334153676499,
+   "relative_err_per_m": 0.2983822083088168
+  }
+ },
+ "b_replay_pair": {
+  "arming": "HEARTBEAT row at t_armed_header 25.480793",
+  "time_ref": {
+   "states": "/tmp/fgo_cpp_sitl_check_n258w8xi/fgo_cpp_shadow_iii_replay/R_time_ref.kf.f64",
+   "b_primary": {
+    "delta_att_ms": 2.5,
+    "identified": true,
+    "grid_argmin_ms": 2.5,
+    "rms_at_delta_deg": 0.0861237002351737,
+    "rms_at_0_deg": 0.08613642988920062,
+    "offsets_deg_at_0": [
+     0.10690531718557841,
+     -0.030331799035388643
+    ],
+    "n_states": 9455,
+    "t_s": [
+     28.458666666667277,
+     343.59200000005774
+    ],
+    "diag_rms_rise_at_pm20ms_deg": [
+     0.0008874693706638103,
+     0.0009310186038440977
+    ],
+    "diag_delta_halves_ms": [
+     -18.5,
+     24.5
+    ]
+   },
+   "b_secondary": {
+    "airborne": {
+     "t_s": [
+      28.458666666667277,
+      343.59200000005774
+     ],
+     "n": 9455,
+     "roll_rms_deg": 0.1460610492946082,
+     "pitch_rms_deg": 0.0765108087942136,
+     "horiz_rms_m": 19.501110523142508,
+     "horiz_max_m": 44.76726144940444,
+     "horiz_end_m": 44.72080019740492,
+     "height_rms_m": 0.02936822094420608,
+     "yaw_mean_deg": -18.562416212395117,
+     "yaw_rms_deg": 23.75652400576724,
+     "yaw_max_abs_deg": 49.38519452466823
+    },
+    "cruise": {
+     "t_s": [
+      30.325333333334036,
+      331.2586666667146
+     ],
+     "n": 9029,
+     "roll_rms_deg": 0.12257152705876913,
+     "pitch_rms_deg": 0.050906447124162896,
+     "horiz_rms_m": 17.788355760112,
+     "horiz_max_m": 44.603004864340356,
+     "horiz_end_m": 44.603004864340356,
+     "height_rms_m": 0.026469393521425372,
+     "yaw_mean_deg": -17.46897295875766,
+     "yaw_rms_deg": 22.282419207317748,
+     "yaw_max_abs_deg": 46.62040315571784,
+     "travel_m": 150.38857884375733,
+     "relative_horiz_err_end_m": 44.91695719917406,
+     "relative_err_per_m": 0.29867266214304394
+    }
+   },
+   "n_kf": 10007
+  },
+  "causal": {
+   "states": "/tmp/fgo_cpp_sitl_check_n258w8xi/fgo_cpp_shadow_iii_replay/R_causal.kf.f64",
+   "b_primary": {
+    "delta_att_ms": 13.5,
+    "identified": true,
+    "grid_argmin_ms": 13.5,
+    "rms_at_delta_deg": 0.08665787134092529,
+    "rms_at_0_deg": 0.08707513392462979,
+    "offsets_deg_at_0": [
+     0.10638596423810887,
+     -0.023730465569297896
+    ],
+    "n_states": 9455,
+    "t_s": [
+     28.458666666667277,
+     343.59200000005774
+    ],
+    "diag_rms_rise_at_pm20ms_deg": [
+     0.0009129312852790853,
+     0.0009487325735464101
+    ],
+    "diag_delta_halves_ms": [
+     -12.0,
+     39.0
+    ]
+   },
+   "b_secondary": {
+    "airborne": {
+     "t_s": [
+      28.458666666667277,
+      343.59200000005774
+     ],
+     "n": 9455,
+     "roll_rms_deg": 0.14569827179335776,
+     "pitch_rms_deg": 0.076271094625822,
+     "horiz_rms_m": 19.52662994816311,
+     "horiz_max_m": 44.82252147292303,
+     "horiz_end_m": 44.774750778135264,
+     "height_rms_m": 0.028597320511075483,
+     "yaw_mean_deg": -18.583557667451597,
+     "yaw_rms_deg": 23.781228674363838,
+     "yaw_max_abs_deg": 49.42863384995731
+    },
+    "cruise": {
+     "t_s": [
+      30.325333333334036,
+      331.2586666667146
+     ],
+     "n": 9029,
+     "roll_rms_deg": 0.12211170863480243,
+     "pitch_rms_deg": 0.04841669397927477,
+     "horiz_rms_m": 17.811910911374937,
+     "horiz_max_m": 44.65639800780497,
+     "horiz_end_m": 44.65639800780497,
+     "height_rms_m": 0.0255837512372726,
+     "yaw_mean_deg": -17.489341388932694,
+     "yaw_rms_deg": 22.306199294748406,
+     "yaw_max_abs_deg": 46.66351798986674,
+     "travel_m": 150.38857884375733,
+     "relative_horiz_err_end_m": 44.96998721161852,
+     "relative_err_per_m": 0.2990252820883362
+    }
+   },
+   "n_kf": 10008
+  }
+ },
+ "node_timing": {
+  "step_ms_median": 0.737726,
+  "step_ms_p99": 1.515767440000001,
+  "queue_lag_ms_median": 0.891512,
+  "queue_lag_ms_p99": 1.77540012,
+  "queue_lag_ms_max": 5.0786549999999995
+ }
+}

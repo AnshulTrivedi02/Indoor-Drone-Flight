@@ -1,0 +1,247 @@
+{
+ "trial": "fgo_shadow_half_a3",
+ "notes": [
+  "packed bag decompressed to scratch copy /tmp/fgo_cpp_sitl_check_4feuul3s/fgo_shadow_half_a3_bag (sha256 verified)"
+ ],
+ "meta": [
+  "world: corridor_textured_half_fwdc",
+  "extra_parm_files: \"/home/makerspace/thesis_ws/fgo_shadow.parm\"",
+  "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz"
+ ],
+ "impl": "python",
+ "node_stats": null,
+ "a": {
+  "params": {
+   "AHRS_EKF_TYPE": 10.0,
+   "AHRS_FGO_ENABLE": 1.0,
+   "SERIAL3_PROTOCOL": 2.0
+  },
+  "params_ok": true,
+  "W_a_s": [
+   24.058454,
+   346.16837
+  ],
+  "age_ms": {
+   "n_xfgo": 8053,
+   "median": 132.0,
+   "p95": 149.0,
+   "p99": 152.0,
+   "max": 176.0,
+   "frac_over_250ms": 0.0,
+   "frac_output_invalid_OV0": 0.0,
+   "longest_OV0_span_s": 0.0,
+   "n_age_wrapped": 0,
+   "max_excluding_wrapped": 176.0
+  },
+  "arrival": {
+   "n_states": 9665,
+   "latency_ms_median": 114.92099999998118,
+   "latency_ms_p95": 121.19519999999397,
+   "latency_ms_p99": 126.68408000000015,
+   "latency_ms_max": 148.91899999999225,
+   "max_gap_between_states_ms": 69.9769999999944,
+   "frac_node_valid_flag0": 0.0,
+   "late_count_end": 0
+  }
+ },
+ "config": {
+  "reorder_delay_s": 0.1,
+  "imu_stamp": "causal (fgo_node.py)"
+ },
+ "config_ok": true,
+ "b_source": "fgo_node_stats.npz traj (fgo_node.py)",
+ "b_primary": {
+  "delta_att_ms": 7.5,
+  "identified": true,
+  "grid_argmin_ms": 7.5,
+  "rms_at_delta_deg": 0.08321309585222583,
+  "rms_at_0_deg": 0.0833372664823884,
+  "offsets_deg_at_0": [
+   0.11423230813703454,
+   -0.05994500242762901
+  ],
+  "n_states": 9468,
+  "t_s": [
+   28.028000000000567,
+   343.59466666672444
+  ],
+  "diag_rms_rise_at_pm20ms_deg": [
+   0.0008977060170932904,
+   0.0009556183979377489
+  ],
+  "diag_delta_halves_ms": [
+   -23.0,
+   37.5
+  ]
+ },
+ "b_secondary": {
+  "airborne": {
+   "t_s": [
+    28.028000000000567,
+    343.59466666672444
+   ],
+   "n": 9468,
+   "roll_rms_deg": 0.15188515100965336,
+   "pitch_rms_deg": 0.08639169179180886,
+   "horiz_rms_m": 19.567389883010588,
+   "horiz_max_m": 44.75059491957564,
+   "horiz_end_m": 44.75059491957564,
+   "height_rms_m": 0.028164677987702863,
+   "yaw_mean_deg": -18.60020256392437,
+   "yaw_rms_deg": 23.799170863514917,
+   "yaw_max_abs_deg": 49.45789896315051
+  },
+  "cruise": {
+   "t_s": [
+    29.894666666667327,
+    330.5946666667141
+   ],
+   "n": 9022,
+   "roll_rms_deg": 0.12891845505356833,
+   "pitch_rms_deg": 0.07710315868045307,
+   "horiz_rms_m": 17.769778599095005,
+   "horiz_max_m": 44.534706573701314,
+   "horiz_end_m": 44.534706573701314,
+   "height_rms_m": 0.026143707859894522,
+   "yaw_mean_deg": -17.442406018016666,
+   "yaw_rms_deg": 22.242538876106263,
+   "yaw_max_abs_deg": 46.551415417420856,
+   "travel_m": 150.27166285428774,
+   "relative_horiz_err_end_m": 44.83465903410051,
+   "relative_err_per_m": 0.2983573761180432
+  }
+ },
+ "b_replay_pair": {
+  "arming": "arm_source none (no t_armed_header)",
+  "time_ref": {
+   "states": "/tmp/fgo_cpp_sitl_check_4feuul3s/fgo_shadow_half_a3_replay/R_time_ref.kf.f64",
+   "b_primary": {
+    "delta_att_ms": -3.5,
+    "identified": true,
+    "grid_argmin_ms": -3.5,
+    "rms_at_delta_deg": 0.0823585167912064,
+    "rms_at_0_deg": 0.08238415421890517,
+    "offsets_deg_at_0": [
+     0.11066534886398506,
+     -0.0610403821620324
+    ],
+    "n_states": 9468,
+    "t_s": [
+     28.030333333333907,
+     343.59700000005773
+    ],
+    "diag_rms_rise_at_pm20ms_deg": [
+     0.0009543448202912252,
+     0.0009147443522222608
+    ],
+    "diag_delta_halves_ms": [
+     -26.5,
+     20.0
+    ]
+   },
+   "b_secondary": {
+    "airborne": {
+     "t_s": [
+      28.030333333333907,
+      343.59700000005773
+     ],
+     "n": 9468,
+     "roll_rms_deg": 0.1499113877020198,
+     "pitch_rms_deg": 0.08410482307013013,
+     "horiz_rms_m": 19.59697525671343,
+     "horiz_max_m": 44.822358641664444,
+     "horiz_end_m": 44.822358641664444,
+     "height_rms_m": 0.02628509552508961,
+     "yaw_mean_deg": -18.637952167966542,
+     "yaw_rms_deg": 23.846430095089815,
+     "yaw_max_abs_deg": 49.545360820120266
+    },
+    "cruise": {
+     "t_s": [
+      29.897000000000666,
+      330.5970000000474
+     ],
+     "n": 9022,
+     "roll_rms_deg": 0.12630001612529781,
+     "pitch_rms_deg": 0.07562076718785181,
+     "horiz_rms_m": 17.79685358501909,
+     "horiz_max_m": 44.60160201534569,
+     "horiz_end_m": 44.60160201534569,
+     "height_rms_m": 0.023913046062632382,
+     "yaw_mean_deg": -17.478434836265006,
+     "yaw_rms_deg": 22.2876633274669,
+     "yaw_max_abs_deg": 46.633517552284836,
+     "travel_m": 150.27164147152928,
+     "relative_horiz_err_end_m": 44.901607570280696,
+     "relative_err_per_m": 0.2988029353415151
+    }
+   },
+   "n_kf": 10121
+  },
+  "causal": {
+   "states": "/tmp/fgo_cpp_sitl_check_4feuul3s/fgo_shadow_half_a3_replay/R_causal.kf.f64",
+   "b_primary": {
+    "delta_att_ms": 6.0,
+    "identified": true,
+    "grid_argmin_ms": 6.0,
+    "rms_at_delta_deg": 0.08322974648188626,
+    "rms_at_0_deg": 0.08331116866684314,
+    "offsets_deg_at_0": [
+     0.11381396308632047,
+     -0.05942038504491626
+    ],
+    "n_states": 9468,
+    "t_s": [
+     28.030333333333907,
+     343.59700000005773
+    ],
+    "diag_rms_rise_at_pm20ms_deg": [
+     0.0009133954374114433,
+     0.0009538061353731403
+    ],
+    "diag_delta_halves_ms": [
+     -23.0,
+     34.0
+    ]
+   },
+   "b_secondary": {
+    "airborne": {
+     "t_s": [
+      28.030333333333907,
+      343.59700000005773
+     ],
+     "n": 9468,
+     "roll_rms_deg": 0.15190086645725365,
+     "pitch_rms_deg": 0.08539337662316905,
+     "horiz_rms_m": 19.622241428700207,
+     "horiz_max_m": 44.87440533601276,
+     "horiz_end_m": 44.87440533601276,
+     "height_rms_m": 0.028274310771588373,
+     "yaw_mean_deg": -18.655421841674272,
+     "yaw_rms_deg": 23.86652520054644,
+     "yaw_max_abs_deg": 49.58139710067608
+    },
+    "cruise": {
+     "t_s": [
+      29.897000000000666,
+      330.5970000000474
+     ],
+     "n": 9022,
+     "roll_rms_deg": 0.12871686437176177,
+     "pitch_rms_deg": 0.07587131132369393,
+     "horiz_rms_m": 17.820427866511043,
+     "horiz_max_m": 44.65176736260234,
+     "horiz_end_m": 44.65176736260234,
+     "height_rms_m": 0.026195712964892384,
+     "yaw_mean_deg": -17.4952199665667,
+     "yaw_rms_deg": 22.30688580654334,
+     "yaw_max_abs_deg": 46.66936350064058,
+     "travel_m": 150.27164147152928,
+     "relative_horiz_err_end_m": 44.95157935669672,
+     "relative_err_per_m": 0.2991354783677752
+    }
+   },
+   "n_kf": 10122
+  }
+ }
+}

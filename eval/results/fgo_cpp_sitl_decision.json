@@ -1,0 +1,64 @@
+{
+ "inputs": {
+  "i": "eval/results/fgo_cpp_sitl_i.json",
+  "ii": "eval/results/fgo_cpp_sitl_ii.json",
+  "iii": "eval/results/fgo_cpp_sitl_iii.json",
+  "a3": "eval/results/fgo_cpp_sitl_a3.json"
+ },
+ "void": [],
+ "rule_A": {
+  "flight_i_max_age_ms": 4294967293.0,
+  "verdict": "adopt 0.10 s (max Age > 250 ms)",
+  "flight_ii_max_age_ms": 4294967295.0,
+  "reason_figures_i": {
+   "n_xfgo": 8036,
+   "median": 224.0,
+   "p95": 239.0,
+   "p99": 4294967232.0,
+   "max": 4294967293.0,
+   "frac_over_250ms": 0.010577401692384272,
+   "frac_output_invalid_OV0": 0.010577401692384272,
+   "longest_OV0_span_s": 2.7600640000000007,
+   "n_age_wrapped": 85,
+   "max_excluding_wrapped": 246.0
+  },
+  "figures_ii": {
+   "n_xfgo": 8033,
+   "median": 123.0,
+   "p95": 141.0,
+   "p99": 4294967239.0,
+   "max": 4294967295.0,
+   "frac_over_250ms": 0.02564421760239014,
+   "frac_output_invalid_OV0": 0.02564421760239014,
+   "longest_OV0_span_s": 7.607396000000002,
+   "n_age_wrapped": 206,
+   "max_excluding_wrapped": 148.0
+  },
+  "WARNING_age_wrapped": "wrapped (future-stamped, negative) ages present {'i': 85, 'ii': 206, 'iii': 0, 'a3': 0}: the literal max is a wrap, not staleness; see max_excluding_wrapped (the rule is unchanged)",
+  "note": "neither delay keeps the age within the 250 ms budget at all times (to the main session)",
+  "cost_of_0.10": {
+   "ii": {
+    "max_lateness_s": 0.694237,
+    "n_out_of_order": 2685
+   },
+   "iii": {
+    "max_lateness_s": 0.093826,
+    "n_out_of_order": 0
+   }
+  }
+ },
+ "rule_B": {
+  "delta_att_ms": {
+   "ii": 140.5,
+   "iii": 12.5,
+   "a3": 7.5
+  },
+  "resolution_R_ms": 5.0,
+  "abs_difference_ms": 128.0,
+  "verdict": "causal (Python node timing) more accurate",
+  "replay_pair_ii_report": {
+   "time_ref": 1.0,
+   "causal": 12.0
+  }
+ }
+}
