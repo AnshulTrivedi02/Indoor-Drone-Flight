@@ -18,8 +18,12 @@ imu = P[:n, 0] == 0
 dt = np.abs(P[:n, 1] - C[:n, 1])
 print(f"IMU stamps: max |dt| {dt[imu].max():.3e} s, bit-identical {np.mean(dt[imu] == 0) * 100:.1f}% of samples")
 print(f"non-IMU stamps bit-identical: {np.array_equal(P[:n][~imu, 1], C[:n][~imu, 1])}")
-pay = lambda X: np.nan_to_num(X[:, 2:6], nan=-12345.0)
-print(f"payloads (cols 2-5) bit-identical: {np.array_equal(pay(P[:n]), pay(C[:n]))}")
+def pay(X):   # measurement payloads (IMU acc+gyro, flow xy/valid/inlier, range, fwd psi/omega, tag, gnss)
+    Y = np.nan_to_num(X[:, 2:8].copy(), nan=-12345.0)
+    Y[X[:, 0] == 4, 2:] = 0     # forward rows: col 4 is the averaged gyro-z (compared separately below)
+    Y[X[:, 0] == 3, 4:] = 0     # flow rows: cols 6-7 are the averaged omega (compared separately below)
+    return Y
+print(f"measurement payloads bit-identical: {np.array_equal(pay(P[:n]), pay(C[:n]))}")
 avg = np.fromfile(fe_p + ".avg.f64").reshape(-1, 5)
 for kind, nm, cols in [(3, "flow omega", slice(6, 9)), (4, "forward gyro-z", slice(4, 5))]:
     pr = P[(P[:, 0] == kind) & ~np.isnan(P[:, cols.start])]

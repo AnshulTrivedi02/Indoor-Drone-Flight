@@ -29,8 +29,23 @@ int main(int argc, char** argv) {
   const std::vector<double> raw = fgo_cpp::read_f64(pre + ".raw.f64");
   fgo_cpp::FrontEndStats st;
   const std::vector<double> timed = fgo_cpp::offline_imu_timing(raw, cfg, &st);
+  // Arrival order. The bag events arrive in bag order. The forward-camera and GNSS measurements are not in the bag
+  // (the replays append them from separate files), so they are merged in as a live node would receive them: each one
+  // just before the first bag event stamped later than it.
+  const int C = fgo_cpp::EV_COLS;
+  std::vector<const double*> bag, ext;
+  for (size_t i = 0; i < timed.size() / C; ++i) {
+    const int k = static_cast<int>(timed[i * C]);
+    (k == fgo_cpp::FWD || k == fgo_cpp::GNSS ? ext : bag).push_back(&timed[i * C]);
+  }
+  std::stable_sort(ext.begin(), ext.end(), [](const double* a, const double* b) { return a[1] < b[1]; });
   fgo_cpp::StreamFrontEnd fe(cfg, delay);
-  for (size_t i = 0; i < timed.size() / fgo_cpp::EV_COLS; ++i) fe.push(&timed[i * fgo_cpp::EV_COLS]);
+  size_t j = 0;
+  for (const double* b : bag) {
+    while (j < ext.size() && ext[j][1] < b[1]) fe.push(ext[j++], 1);
+    fe.push(b);
+  }
+  while (j < ext.size()) fe.push(ext[j++], 1);
   fgo_cpp::ReplayResult res = fe.finish();
   const fgo_cpp::ReplayConfig& c = fe.config();
   {

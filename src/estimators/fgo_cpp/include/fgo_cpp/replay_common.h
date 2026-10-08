@@ -5,6 +5,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <tuple>
 #include <string>
 #include <vector>
 
@@ -100,7 +101,9 @@ class StreamFrontEnd {
  public:
   StreamFrontEnd(const ReplayConfig& cfg, double reorder_delay);
   ~StreamFrontEnd();
-  void push(const double* row);          // one EV_COLS row, in arrival order
+  // one EV_COLS row, in arrival order. rank breaks stamp ties (lower first, then arrival): 0 = flight-controller /
+  // bag sensors, 1 = external measurement sources (forward camera, GNSS), as the replays order them
+  void push(const double* row, int rank = 0);
   ReplayResult finish();
   const std::vector<double>& released() const { return released_; }   // the processed stream, as released
   const ReplayConfig& config() const { return cfg_; }                  // with the init inputs filled in
@@ -112,7 +115,7 @@ class StreamFrontEnd {
   void try_init();
   ReplayConfig cfg_;
   double delay_;
-  std::multimap<std::pair<double, size_t>, std::array<double, EV_COLS>> buf_;
+  std::multimap<std::tuple<double, int, size_t>, std::array<double, EV_COLS>> buf_;
   size_t seq_ = 0;
   double t_newest_ = -1e300, t_last_released_ = -1e300;
   std::vector<double> released_;

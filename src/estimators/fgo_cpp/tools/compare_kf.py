@@ -11,7 +11,7 @@ import numpy as np
 
 ref, test = sys.argv[1], sys.argv[2]
 extra = [a for a in sys.argv[3:] if not a.startswith("--") and a != "anchored"]
-info = json.load(open(ref + ".init.json"))
+info = json.load(open(ref + ".init.json")) if os.path.exists(ref + ".init.json") else {"kf_cols": 40}   # C++ output as ref
 NC = info.get("kf_cols", 31)
 py = np.fromfile(ref + ".kf.f64", np.float64).reshape(-1, NC)
 cp = np.fromfile(test + ".kf.f64", np.float64).reshape(-1, 40)[:, :NC]

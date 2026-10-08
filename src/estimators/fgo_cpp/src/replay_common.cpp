@@ -378,15 +378,15 @@ std::vector<double> offline_imu_timing(const std::vector<double>& raw, const Rep
 StreamFrontEnd::StreamFrontEnd(const ReplayConfig& cfg, double reorder_delay) : cfg_(cfg), delay_(reorder_delay) {}
 StreamFrontEnd::~StreamFrontEnd() = default;
 
-void StreamFrontEnd::push(const double* row) {
+void StreamFrontEnd::push(const double* row, int rank) {
   std::array<double, EV_COLS> e;
   std::copy(row, row + EV_COLS, e.begin());
   const double t = e[1];
   max_lateness = std::max(max_lateness, t_newest_ - t);
   if (t < t_last_released_) ++n_out_of_order;
   t_newest_ = std::max(t_newest_, t);
-  buf_.emplace(std::make_pair(t, seq_++), e);
-  while (!buf_.empty() && buf_.begin()->first.first <= t_newest_ - delay_) {
+  buf_.emplace(std::make_tuple(t, rank, seq_++), e);
+  while (!buf_.empty() && std::get<0>(buf_.begin()->first) <= t_newest_ - delay_) {
     const auto e0 = buf_.begin()->second;
     buf_.erase(buf_.begin());
     release(e0);

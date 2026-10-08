@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run ONE CPU-heavy step (a single make, a single replay) under the flight/build lock protocol (ruling 2026-10-08).
 
-  heavy.py [--wait-s N] "<description>" -- <command> [args...]
+  heavy.py [--wait-s N] [--keep-threads] "<description>" -- <command> [args...]
 
 1. Before starting: ~/thesis_data/FLIGHT_LOCK must not exist and no `[a]rducopter` / `[g]z sim` process may run.
    Otherwise poll every 60 s until clear, up to --wait-s (default 6 h), then give up (exit 75) without running.
@@ -26,9 +26,12 @@ def flying():
 
 def main():
     a = sys.argv[1:]
-    wait_s = 6 * 3600
-    if a[:1] == ["--wait-s"]:
-        wait_s = float(a[1]); a = a[2:]
+    wait_s = 6 * 3600; keep_threads = False
+    while a[:1] in (["--wait-s"], ["--keep-threads"]):
+        if a[0] == "--wait-s":
+            wait_s = float(a[1]); a = a[2:]
+        else:
+            keep_threads = True; a = a[1:]     # diagnostic only: leave BLAS/OpenMP thread counts at their defaults
     desc, sep, cmd = a[0], a[1], a[2:]
     assert sep == "--" and cmd, __doc__
     t0 = time.time()
@@ -52,7 +55,7 @@ def main():
     signal.signal(signal.SIGTERM, lambda *_: (cleanup(), sys.exit(143)))
     rc = 1
     try:
-        env = dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1")
+        env = dict(os.environ) if keep_threads else dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1")
         rc = subprocess.run(cmd, env=env, preexec_fn=lambda: os.nice(19)).returncode
     finally:
         cleanup()
