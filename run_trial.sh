@@ -400,7 +400,8 @@ if [ -n "${FGO_NODE:-}" ]; then
         "$HOME/venv-fgo/bin/python" "$HOME/thesis_ws/src/estimators/fgo/fgo_node.py" \
         --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats.npz" -p mavlink_out:=udp:127.0.0.1:14558 \
         -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)" \
-        ${FGO_HEADING_ROBUST:+-p heading_robust:=$FGO_HEADING_ROBUST}
+        ${FGO_HEADING_ROBUST:+-p heading_robust:=$FGO_HEADING_ROBUST} \
+        ${FGO_NODE_TAGS:+-p tags:=true -p tag_sigma_pos_m:=${TAG_SIGMA_POS:-0.02}}
     FGO_PID="${BG_PIDS[-1]}"
     wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 fi

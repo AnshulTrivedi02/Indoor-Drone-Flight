@@ -69,6 +69,13 @@ if [ -n "${H:-}" ]; then
     export HPROFILE HWORLD="$WORLD"
     WATCH=(--watch-process tag_bridge_fwd.py --box=-4.4,4.4,-4.4,4.4)
     export WATCH_HEARTBEAT="$OUT/watch_heartbeat"     # fail-closed: fly_trial will not arm without the watcher
+    # S2 (UKF flies on the tag; docs/h_backends_tag_input.md): the port's ExtNav position input, enforced
+    if [ -n "${UKF:-}" ] && [ "${UKF}" != shadow ]; then
+        EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/h_ukf_tag.parm"
+        EXPECT_OVERRIDE="$EXPECT_OVERRIDE,AHRS_UKF_EXTPOS=1,AHRS_UKF_EXTYAW=1"
+    fi
+    # S3 (FGO flies on the tag): the node takes /tags/sent (tags, sigma = the S0a sigma_pos); heading stays off
+    if [ -n "${FGO:-}" ]; then export FGO_NODE_TAGS=1; fi
     ALT=1.5
 fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
