@@ -5,6 +5,30 @@ GNSS-denied environments, with emphasis on robustness under degraded sensing.
 
 ---
 
+## Current Status — 2026-10-08 — Experiments T, L, O complete (METHODOLOGY has the full pre-registrations and results)
+
+- **T (AprilTags at known positions; `room_tags`, 5 laps, 4 tag densities × 3 repeats):**
+  - **H-T1 PASS:** the FGO's whole-flight hindsight gain grows with the gap between fixes, 5 → 50 mm for gaps of
+    4 → 46 s (ρ 0.47, p 3e-13).
+  - P-T2, P-T3 and P-T4 fail as worded. The single-pass RTS-UKF degrades on long gaps; live errors differ by 1.8–2.3×
+    (FGO live best with dense fixes, EKF3 best with the sparsest).
+  - Six flights were re-flown after my concurrent-replay slip (IMU-gap rule).
+  - `VISO_DELAY_MS 15` kept by ruling, with the bound recorded (≤ 22 mm at the 1.8 m/s corner catch-up).
+  - Flow stays valid in the catch-up segments (97.3% valid against 98.7%).
+- **O (outdoor → indoor → outdoor, GNSS switched at the entrance; 3 flights):**
+  - **H-O1 PASS 3/3:** FGO batch indoor RMSE 0.33 m against EKF3 1.42 and UKF 0.63.
+  - H-O2 and P-O3 fail.
+  - **EKF3 jumps 4.10 m at GNSS return.**
+  - A post-result check showed the RTS-UKF on a cap-free forward pass is worse (0.97 m).
+- **L (tags at unknown positions; keyframe FGO with loop closure, iSAM2 whole history):**
+  - V-L passes (+0.9% against the thesis FGO).
+  - **H-L1, H-L2, H-L3 and P-L4 all pass 3/3:** LC live 0.041–0.047 m, bounded from lap 2; no-LC live 0.20–0.31 m,
+    growing 4.5–5.5× over the laps.
+  - The cost is recorded: no-LC p99 1.3–2.2 s per update. A real drone would need a much lower keyframe rate.
+- **Next:** Mon 12–Fri 16 Oct restating and figures (T/O/L), then the simulation freeze.
+
+---
+
 ## Current Status — 2026-09-30 (late) — D18/D19 ruled; FGO backend built and plumbing-tested; half-speed sequence STOPPED (D20, D21)
 
 - **D18 principle recorded:** sensor-validity rules are shared; design features are not.
