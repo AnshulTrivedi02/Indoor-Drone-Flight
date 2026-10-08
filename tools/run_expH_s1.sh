@@ -4,15 +4,13 @@
 # during each flight. Stops at the first failed or breached flight.
 set -u
 cd "$(dirname "$0")/.."
+source tools/flight_lock.sh
 for r in ${REPS:-1 2 3}; do
   name="H_s1_r$r"
   [ -f "$HOME/thesis_data/closed_loop/$name/result.txt" ] && grep -q "run_trial exit 0" "$HOME/thesis_data/closed_loop/$name/result.txt" && { echo "$name done, skipping"; continue; }
-  SECONDS=0; while [ -e ~/thesis_data/BUILD_LOCK ] && [ $SECONDS -lt 3600 ]; do sleep 20; done
-  [ -e ~/thesis_data/BUILD_LOCK ] && { echo "BUILD_LOCK held > 1 h; stopping"; exit 1; }
-  echo "$name $(date -Is)" > ~/thesis_data/FLIGHT_LOCK; sleep 5
-  [ -e ~/thesis_data/BUILD_LOCK ] && { rm -f ~/thesis_data/FLIGHT_LOCK; echo "BUILD_LOCK raced; stopping"; exit 1; }
+  flight_lock_acquire "$name" || { echo "expH S1: cannot take the flight lock; stopping"; exit 1; }
   H=1 HPROFILE="$PWD/batches/expH/s1_profile.json" sim/tools/closed_loop_run.sh room_wall_tag "$name"
-  rm -f ~/thesis_data/FLIGHT_LOCK
+  flight_lock_release
   res="$HOME/thesis_data/closed_loop/$name/result.txt"
   if ! grep -q "run_trial exit 0" "$res" || [ -f "$HOME/thesis_data/closed_loop/$name/BREACH.txt" ]; then
     echo "expH S1: $name FAILED or BREACHED - stopping"; cat "$res"; exit 1

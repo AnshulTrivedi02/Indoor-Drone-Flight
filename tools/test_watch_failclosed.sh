@@ -2,10 +2,8 @@
 # Fail-closed safety-watcher tests (ruling 2026-10-08). Lock protocol: waits for BUILD_LOCK to clear, holds FLIGHT_LOCK.
 #  T1 H_wtest_noarm: the watcher is deliberately NOT started -> fly_trial must refuse to arm (no take-off).
 #  T2 H_wtest_kill : the watcher is SIGKILLed once the vehicle is airborne -> fly_trial must land.
-set -u; cd "$(dirname "$0")/.."
-SECONDS=0; while [ -e ~/thesis_data/BUILD_LOCK ] && [ $SECONDS -lt 3600 ]; do sleep 20; done
-[ -e ~/thesis_data/BUILD_LOCK ] && { echo "BUILD_LOCK held > 1 h"; exit 1; }
-echo "watcher tests $(date -Is)" > ~/thesis_data/FLIGHT_LOCK; trap 'rm -f ~/thesis_data/FLIGHT_LOCK' EXIT; sleep 5
+set -u; cd "$(dirname "$0")/.."; source tools/flight_lock.sh
+flight_lock_acquire "watcher tests" || exit 1; trap flight_lock_release EXIT
 P="$PWD/batches/expH/wtest_profile.json"
 echo "=== T1: watcher not started"
 H=1 HPROFILE="$P" WATCHER_TEST_SKIP=1 sim/tools/closed_loop_run.sh room_wall_tag H_wtest_noarm
