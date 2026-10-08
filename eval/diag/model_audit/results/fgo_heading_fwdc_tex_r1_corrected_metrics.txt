@@ -1,0 +1,15 @@
+along_pN=-0.031
+true_travel=151.027
+cross_track=150.841
+ate_apparatus=123.223
+yaw_drift=-0.016
+bgz_mean=-8.240
+bgz_pct=92.7
+true_bias_mean=8.887
+bgz_ramp=2.899
+true_ramp=2.809
+n_flow=9960
+n_range=10117
+n_kf=10118
+step_median_ms=23.263
+step_p99_ms=39.022

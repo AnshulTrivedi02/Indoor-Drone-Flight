@@ -1,0 +1,30 @@
+{
+ "R_sigma_deg": 0.148,
+ "ukf_current": {
+  "n": 7272,
+  "S_median": 7.594356052250086e-06,
+  "pred_yaw_sigma_deg_median": 0.055016363665638994,
+  "weight_median": 0.12140806708194789,
+  "nis_mean": 1.3591396616906046,
+  "nis_median": 0.23914290498520285,
+  "frac_nis_gt9": 0.02392739273927393
+ },
+ "fgo_pre_correction": {
+  "n": 7200,
+  "S_median": 7.56842227747713e-05,
+  "pred_yaw_sigma_deg_median": 0.47597546903251503,
+  "weight_median": 0.9118397505003878,
+  "nis_mean": 0.2153972086173688,
+  "nis_median": 0.04234898195897509,
+  "frac_nis_gt9": 0.0008333333333333334
+ },
+ "fgo_corrected": {
+  "n": 7200,
+  "S_median": 7.5296942665056035e-06,
+  "pred_yaw_sigma_deg_median": 0.05305212674089159,
+  "weight_median": 0.11386309631605054,
+  "nis_mean": 1.3629244477571456,
+  "nis_median": 0.2342861750727187,
+  "frac_nis_gt9": 0.024305555555555556
+ }
+}

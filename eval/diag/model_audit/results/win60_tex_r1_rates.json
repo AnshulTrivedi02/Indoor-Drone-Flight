@@ -1,0 +1,13 @@
+{
+ "window_s": [
+  60.0,
+  300.0
+ ],
+ "flow_arrivals_bag_hz": 30.3,
+ "flow_OF_records_hz": 29.908333333333335,
+ "ekf3_flow_accepted_hz": 15.1125,
+ "ekf3_flow_accept_fraction": 0.505293953747562,
+ "range_arrivals_bag_hz": 30.3,
+ "ekf3_range_fused_hz_derived": 16.0,
+ "OF_interval_ms_median": 34.987999999998465
+}
