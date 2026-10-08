@@ -705,9 +705,14 @@ rad/s/√s ✓ — the standard bias-random-walk unit.
 - `integrationCovariance` has **no EKF3 counterpart** (GTSAM-specific position
   integration uncertainty). Set small (~1e-8·I) and document the asymmetry
   rather than pretending it is matched.
-- `biasAccOmegaInt` is **deprecated** in current GTSAM
-  (`PreintegrationCombinedParams.h:92`: *"no longer used. Use a prior on first
-  bias instead"*).
+- **`biasAccOmegaInt` must be ZERO (corrected 2026-10-09).** The earlier note here
+  ("deprecated, no longer used", `PreintegrationCombinedParams.h:92`) was WRONG for the
+  GTSAM 4.2.1 both FGO cores use: `CombinedImuFactor::integrateMeasurement`
+  (`CombinedImuFactor.cpp:138-163`) still adds `H·(biasAccOmegaInt/dt)·Hᵀ` at EVERY IMU
+  sample, i.e. extra IMU white noise. The FGO had it at diag(0.2², 0.043633²), meant as
+  EKF3's initial bias covariance: gyro ~26× and accel ~5× looser than the EKF3-matched
+  values below. The initial bias uncertainty belongs in the `B(0)` prior only. See
+  METHODOLOGY "FGO noise-model correction".
 - Gravity: `imu_bridge.py` publishes FLU with **+9.81 at rest**, so
   `PreintegrationCombinedParams::MakeSharedU(9.81)` (Z-up) is the matching
   constructor.

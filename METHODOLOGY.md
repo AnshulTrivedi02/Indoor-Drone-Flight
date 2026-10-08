@@ -12042,3 +12042,49 @@ node's stats JSON but not their arguments: an incomplete edit, made when the edi
 - **C++ node regression (no-first-anchor-after-arming + stats fix; old `23e01eae` against new `53831eae`):**
   `kf.f64` and `mav.bin` are **byte-identical** on all six shadow_ii tapes (real, ramp, burst, both gap variants in
   time_ref; ramp in causal). **The regression is clean, and S3 is unblocked.**
+
+### RULING (user, 2026-10-09): FGO noise-model correction (`setBiasAccOmegaInit` → 0), a MODEL CORRECTION under D18; consolidated re-run plan
+**Defect.**
+- Both FGO cores (`fgo_core.py:32`, `fgo_cpp/src/fgo_core.cpp:46`) set `setBiasAccOmegaInit(diag(0.2², 0.043633²))`,
+  intended (FGO_DESIGN §5) as EKF3's INITIAL bias covariance.
+- In GTSAM 4.2.1, `CombinedImuFactor::integrateMeasurement` (`CombinedImuFactor.cpp:138-163`) adds it at EVERY IMU
+  sample as extra white noise.
+- Effective IMU noise: **gyro ~26×, accelerometer ~5× looser** than the EKF3-matched values (per 33 ms keyframe,
+  rotation sd 0.45° against 0.0175°). The same sigmas are also in the `B(0)` prior, so they are double-counted.
+- **Cause:** a misread of the GTSAM 4.2.1 API. CLAUDE.md wrongly called the parameter "deprecated"; that note is
+  corrected.
+- **Classification:** a sensor-noise-model error under D18. The IMU noise must match EKF3's and the UKF's
+  (σ_c = NSE·√dt). It is corrected as a MODEL CORRECTION (as FLOW_POS_Z, the lateral sign fix, and the UKF's
+  bias-corrected derotation), not tuned.
+- **Evidence** (the stopped trace, `docs/handovers/2026-10-09_fgo_tilt_trace.md`):
+  - with the term at zero, the hover tilt RMS goes 0.26° → 0.11° (`H_s1_r1`) and 0.206° → 0.089° (`H_safety_fgo_a`;
+    EKF3 reference 0.114°);
+  - the S1 FGO tag-loss drift goes 49.8 → 4.2 mm (15 s) and 111.6 → 6.5 mm (30 s).
+
+**Take-off pitch offset: recorded as a characterised LIMITATION, not fixed.**
+- −0.22° in one of two flights (`H_safety_fgo_b`; it survives the correction).
+- **Mechanism:** a fast low climb with a large flow-model error (forward-flow residual up to +0.88 rad/s at 0.5 m
+  against ≤ 0.005 in hover). The tilt/accel-bias split this leaves is frozen in by the 0.25 s window.
+- Unconfirmed beyond the stopped trace.
+
+**Order (ruled):**
+1. S2 (UKF flying) proceeds now.
+2. In parallel, coding only:
+   - set it to 0 in both cores, keeping the `B(0)` prior;
+   - re-check C++ against Python (bands A–C, L);
+   - then one quick sizing replay of `dsn_tex_r2` between flights, a **first indication only**.
+3. **S3 flies only with the corrected C++ FGO**, once its equivalence check passes.
+4. **After S2 and S3: ONE consolidated re-run** of every UKF and FGO result with BOTH corrections (the UKF
+   bias-corrected derotation and the FGO noise fix):
+   - dsn, fwdc, fwdplainc;
+   - Phase 4/5/5b, scale, heading share;
+   - C0, F1–F3c, 2(a);
+   - T, O, L;
+   - the H shadows, and the closed-loop scoring where it applies.
+   **EKF3 numbers must be unchanged. L runs last** (its cost).
+5. **The confirmatory EKF3-vs-FGO test is re-run** on the same `dsn_tex` flights with the corrected FGO, applying the
+   ORIGINAL pre-registered decision rule unchanged, and the verdict is reported whichever way it falls. **The
+   original confirmatory result used a mis-specified FGO noise model**, and that is stated.
+6. **Old against new for every headline UKF and FGO number;** every verdict or ordering change is flagged;
+   numbers.md and the figures are restated before the 16 Oct freeze. **If time runs short, the user is told before
+   anything is cut.**
