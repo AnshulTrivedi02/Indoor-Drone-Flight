@@ -18,13 +18,19 @@ intended differences are the causal forms of the offline replay's non-causal ste
        valid = False for the rest of the flight (the rule's "unusable"). gap="off": no detection.
 Initialisation as fgo_replay: gravity levelling over the first 0.5 s of IMU, first valid range,
 t_init = t_imu0 + 0.5; before t_init only attitude rates are kept.
+
+Experiment H (2026-10-08; docs/h_backends_tag_input.md): tags=True adds the "tag" kind, (E_W, N_W, yaw ENU) from
+/tags/sent, handled exactly as room_fgo_replay.py: the first fix after t_init re-anchors (FGO.reanchor with the fix
+noise; the gate-only covariance recursion, needed only for the re-anchor prior, is on until then and off after it);
+later fixes give a tag factor on the next keyframe (the newest fix since the last keyframe), NO gate; the yaw cap is
+off from the re-anchor on (FGO.reanchor sets no_yawcap). tags=False (default): unchanged.
 """
 import heapq, itertools, os, sys, time
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # measurement_models
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                    # fgo_core, factors
 from fgo_core import FGO
-from measurement_models import FlowFrameGyroAverager, GroundProximityFlow
+from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_SIGMA_YAW
 
 GAP_S = 0.010          # the IMU-gap rule's gap (METHODOLOGY "RULE — IMU gaps and the replay estimators")
 AIRBORNE_DZ = 0.30     # "left the ground": range above the initial range by more than this (m)
@@ -33,8 +39,15 @@ FLOW_TIMEOUT_S = 5.0   # EKF3's relative-aiding timeout (flowFusionTimeout, AP_N
 
 class FgoNodeCore:
     def __init__(self, window=0.25, lm_iters=2, fwd_sigma=None, fwd_gate=9.0, horizon_s=0.10,
-                 dejitter="causal", gap="causal", t_arm=None, fwd_robust=None):
+                 dejitter="causal", gap="causal", t_arm=None, fwd_robust=None, tags=False, tag_sigma_pos=0.02,
+                 tag_sigma_yaw=TAG_SIGMA_YAW):
         self.window, self.lm_iters, self.fwd_sigma, self.fwd_gate = window, lm_iters, fwd_sigma, fwd_gate
+        # experiment H: tag fixes (room_fgo_replay.py's handling); sigma_pos = the S0 wall-tag sigma (EKF3's
+        # VISO_POS_M_NSE 0.02), sigma_yaw = EKF3's 5 deg floor
+        self.tags, self.tag_sigma_pos, self.tag_sigma_yaw = tags, tag_sigma_pos, tag_sigma_yaw
+        self.n_anchors = 0                     # re-anchors so far (the ODOMETRY reset_counter)
+        self.t_anchor = None
+        self.anchor_log = []                   # (anchored, n_anchors) per traj row: the frame each keyframe is in
         self.fwd_robust = fwd_robust          # plan step 2(b): e.g. "cauchy:2.385" (the caller sets fwd_gate = inf), as fgo_replay F1
         self.horizon_s, self.dejitter, self.gap = horizon_s, dejitter, gap
         self._q, self._seq, self._newest = [], itertools.count(), -np.inf
@@ -123,13 +136,15 @@ class FgoNodeCore:
         self.t_init = None
         self.omega = np.zeros(3); self.t_prev_imu = None
         self.flow_omega = np.zeros(3); self.flow_pend = self.rng_pend = self.fwd_pend = None
+        self.anchored = False; self.tag_pend = None
 
     def _try_init(self, t):
         if self._t_imu0 is None or self._first_rng is None or t < self._t_imu0 + 0.5:
             return False
         self.t_init = self._t_imu0 + 0.5
         self.fgo = FGO(window=self.window, kf_dt=1.0 / 30.0, lm_maxiter=self.lm_iters, fwd_sigma=self.fwd_sigma,
-                       fwd_gate=self.fwd_gate, fwd_robust=self.fwd_robust, log_cov=bool(os.environ.get("FGO_COV_LOG")))
+                       fwd_gate=self.fwd_gate, fwd_robust=self.fwd_robust,
+                       log_cov=bool(os.environ.get("FGO_COV_LOG")) or self.tags)   # tags: cov_prev for the re-anchor prior
         self.fgo.init(np.mean(self._acc_lvl, axis=0), self._first_rng, self.t_init)
         self.gyro_avg = FlowFrameGyroAverager(self.t_init)
         self.fwd_avg = FlowFrameGyroAverager(self.t_init)
@@ -166,6 +181,15 @@ class FgoNodeCore:
             self.flow_omega = self.gyro_avg.average(tt, self.omega)
         elif kind == "fwd":
             self.fwd_pend = (d[0], d[1], float(self.fwd_avg.average(tt, self.omega)[2]))
+        elif kind == "tag":
+            if not self.tags:
+                return
+            if not self.anchored:                  # room_fgo_replay.py, verbatim
+                self.fgo.reanchor((d[0], d[1]), d[2], self.tag_sigma_pos, self.tag_sigma_yaw)
+                self.anchored = True; self.t_anchor = tt; self.n_anchors += 1
+                self.fgo.log_cov = False
+            else:
+                self.tag_pend = d                  # the newest fix since the last keyframe
         elif kind == "imu":
             self.gp.on_gyro(tt, d[1], self.fgo.prev_bias.gyroscope())
             self.gyro_avg.push(tt, d[1])
@@ -180,7 +204,8 @@ class FgoNodeCore:
                     self.flow_pend = (self.gp.replace(self.flow_pend[0], self.flow_omega - self.fgo.prev_bias.gyroscope(), _rpy[0], _rpy[1]),
                                       self.flow_pend[1], self.flow_pend[2])
                 try:
-                    self.fgo.keyframe(self.t_kf_next, flow=self.flow_pend, omega=self.flow_omega, rng=self.rng_pend, fwd=self.fwd_pend)
+                    self.fgo.keyframe(self.t_kf_next, flow=self.flow_pend, omega=self.flow_omega, rng=self.rng_pend, fwd=self.fwd_pend,
+                                      tag=self.tag_pend)
                 except Exception as e:
                     print(f"[warn] keyframe at {self.t_kf_next:.3f} failed: {type(e).__name__}: {e}")
                 self.step_ns.append(time.perf_counter_ns() - t0)
@@ -198,5 +223,28 @@ class FgoNodeCore:
                                     np.asarray(self.fgo.prev_bias.gyroscope(), float).copy(),
                                     np.asarray(self.fgo.prev_bias.accelerometer(), float).copy()))
                 self.lag.append((self.t_kf_next, time.perf_counter() - t_wall))
-                self.flow_pend = self.rng_pend = self.fwd_pend = None
+                self.anchor_log.append((self.anchored, self.n_anchors))
+                self.flow_pend = self.rng_pend = self.fwd_pend = self.tag_pend = None
                 self.t_kf_next += self.fgo.kf_dt
+
+
+def odom_ned(p, v, R, bg, ba, anchored):
+    """The FGO state -> ArduPilot ODOMETRY values (NED/FRD), as fgo_node.py sends them. PURE (tested offline by
+    eval/fgo_odom_mapping_check.py). Before the tag re-anchor (and in every non-H use): the CORRIDOR frame
+    (x forward = N, y = W, z up) -> NED (x, -y, -z). After it (experiment H): W written as ENU (x = E_W, y = N_W, z up)
+    -> NED (y, x, -z), so yaw_NED = pi/2 - yaw_ENU.
+    Returns (pos NED, vel NED, quaternion (w, x, y, z) NED<-FRD, gyro bias FRD, accel bias FRD)."""
+    C = (np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]]) if anchored
+         else np.array([[1.0, 0, 0], [0, -1, 0], [0, 0, -1]]))
+    Fb = np.diag([1.0, -1, -1])                          # FLU <-> FRD
+    pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
+    tr = np.trace(Rn)
+    if tr > 0:
+        S = np.sqrt(tr + 1.0) * 2; qw = 0.25 * S; qx = (Rn[2, 1] - Rn[1, 2]) / S; qy = (Rn[0, 2] - Rn[2, 0]) / S; qz = (Rn[1, 0] - Rn[0, 1]) / S
+    elif Rn[0, 0] > Rn[1, 1] and Rn[0, 0] > Rn[2, 2]:
+        S = np.sqrt(1.0 + Rn[0, 0] - Rn[1, 1] - Rn[2, 2]) * 2; qw = (Rn[2, 1] - Rn[1, 2]) / S; qx = 0.25 * S; qy = (Rn[0, 1] + Rn[1, 0]) / S; qz = (Rn[0, 2] + Rn[2, 0]) / S
+    elif Rn[1, 1] > Rn[2, 2]:
+        S = np.sqrt(1.0 + Rn[1, 1] - Rn[0, 0] - Rn[2, 2]) * 2; qw = (Rn[0, 2] - Rn[2, 0]) / S; qx = (Rn[0, 1] + Rn[1, 0]) / S; qy = 0.25 * S; qz = (Rn[1, 2] + Rn[2, 1]) / S
+    else:
+        S = np.sqrt(1.0 + Rn[2, 2] - Rn[0, 0] - Rn[1, 1]) * 2; qw = (Rn[1, 0] - Rn[0, 1]) / S; qx = (Rn[0, 2] + Rn[2, 0]) / S; qy = (Rn[1, 2] + Rn[2, 1]) / S; qz = 0.25 * S
+    return pn, vn, (float(qw), float(qx), float(qy), float(qz)), Fb @ bg, Fb @ ba

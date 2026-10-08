@@ -1,0 +1,8 @@
+# Experiment H, S2 (the UKF flies on the wall tag; docs/h_backends_tag_input.md). Appended AFTER h_extnav.parm (which
+# sets the ExtNav source set, VISO_POS_M_NSE 0.02, VISO_DELAY_MS 31) and the closed-loop UKF file. NOT wired into any
+# launcher yet: the main session adds it for S2 (and enforces both values, as EXPECT_OVERRIDE does for the others).
+# The UKF port (~/ardupilot_ukf branch ukf-port-tag) fuses the whole ExtNav fix with the offline T/H tag rule: the first
+# fix re-anchors position and yaw (reported to the controllers as an EKF3-style reset), later fixes ungated, the yaw
+# pseudo-measurement off after the anchor. EXTPOS replaces the EXTYAW yaw-only path; EXTYAW is kept at 1 for clarity.
+AHRS_UKF_EXTPOS 1
+AHRS_UKF_EXTYAW 1
