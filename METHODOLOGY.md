@@ -11462,3 +11462,52 @@ wrapped (negative) ages; excluding them, (i) reaches 246 ms.
   - the wall tag is found in every frame with a proper rotation, deterministically;
   - pose N_W −3.886, E −0.017 m against the spawn (−3.898, 0): **12 mm, yaw 0.23°** (F1 is measured in flight).
 - **The world is unchanged.** Tag 5 lies under the S1 hold point (downward-flow texture), so it stays.
+
+### H safety test UKF (a) RESULT (`H_safety_ukf_a`, `eval/results/expH/safety_ukf_a.json`): S-A1 PASS; S-A2 FAIL as worded; S-A3 FAIL (watcher breach). SEQUENCE STOPPED
+**Flight.**
+- The pre-arm gate passed: EKF3 and UKF anchored, VISP growing, bridge port = SITL SERIAL1.
+- wait_fix at N −3.86, E −0.09; the 2.4 m move; hold.
+- `AHRS_UKF_TFAIL` was sent at t 63.51 s. The FC applied it 0.74 s later ("UKF TFAIL: output forced invalid",
+  63.25 + …).
+- **In the same loop:** "Thesis nav: UKF position lost" and "EKF Failsafe: changed to Land Mode" (reason 6, EKF
+  failsafe).
+- **At t 68.56 s the watcher stopped the flight on the ROOM BOX** (world y 4.401 > 4.4). The vehicle was still at
+  1.48 m, inside LAND's 4 s pause.
+
+**Criteria.**
+- **S-A1 PASS.** Max |ATT − GT| roll 0.95°, pitch 0.64°, yaw 0.14° from the failure to the stop. The attitude did
+  not freeze: the hold propagated correctly.
+- **S-A2 FAIL AS WORDED.**
+  - The bound was "within 0.1 s of TFAIL", timed from the PARAM_SET logged by fly_trial. The text and LAND came
+    0.738 s later.
+  - That gap is the parameter-set latency. Measured from the moment the forced failure took effect (the FC's own
+    "TFAIL" text), the trigger and LAND came in the **same loop (0.000 s)**.
+- **S-A3 FAIL.**
+  - Watcher breach (room box).
+  - GT drifted 1.6 m (west 1.47 m, north 1.01 m) in 5.3 s at a steady GT tilt of 1.1°.
+  - No touchdown before the stop.
+  - The prediction (≤ 0.5 m) was wrong.
+- **S-A4:** not applicable (an (a) run).
+
+**Mechanism (from the logs).**
+- LAND without position flies to the ESTIMATED level.
+- **The flying UKF port has a steady attitude bias in hover:** ATT − GT before the failure is roll **+0.76°**, pitch
+  **+0.63°** (sd 0.04° / 0.00°, 15 s of hold).
+  - EKF3 flying in `H_s1_r1`: +0.08° / +0.08°.
+  - The FGO in `H_gt_fgo` before its anchor: +0.07° / +0.07°.
+- Under position control the loop hides this. On position loss the vehicle truly tilts ~1°, which gives ~0.17 m/s²
+  and metres of drift within the 4 s pause plus the descent. The hold propagation is not the cause: the bias was the
+  same before and after the failure (roll +0.90° after).
+- **Untraced:** a constant pitch error with zero spread points to the UKF's initial static levelling, never
+  corrected in hover (tilt vs accel bias is unobservable there).
+
+**Parameter audit** (ruled: after the first stage-1 flight), against `H_gt_ukf` (same configuration, old eeprom):
+- `AHRS_UKF_TFAIL` (new, the test hook);
+- `BARO2_GND_PRESS` 94501.1 → 94501.3;
+- the `STAT_*` counters;
+- **`MOT_THST_HOVER` 0.310 → 0.293.** This is the learned hover throttle. It is the controller's throttle
+  feed-forward until it is re-learned in flight (`MOT_HOVER_LEARN`). **It can change controller behaviour slightly**
+  (take-off and the first seconds of hover), so it is **reported under the ruling**.
+- Nothing else differs.
+
+**The sequence is STOPPED** (pre-registered: any failure stops it). The options are put to the user.
