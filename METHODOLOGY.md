@@ -11594,3 +11594,17 @@ estimators), using the tag fix only where it is characterised:
   - an innovation gate for the UKF/FGO tag update: departs from the T/H tag rule.
 - **This bears on S1-refly/S2/S3 too.** Every far-spawn flight would otherwise fuse uncharacterised 3–4 m fixes
   during the approach.
+
+### `MOT_THST_HOVER` pinned (ruling item 4)
+- **`h_extnav.parm`** (loaded by every H flight in both trees, and enforced by `closed_loop_run`'s EXPECT_OVERRIDE):
+  `MOT_THST_HOVER 0.310`, `MOT_HOVER_LEARN 1`.
+- **Value:** the common value of the earlier H flights.
+  - `H_s1_r1` learned 0.293 → 0.310 in flight.
+  - `H_s1_r3`, `H_gt_fgo` and `H_gt_ukf` start at 0.3102–0.3103.
+  - The corridor/T/O flights converge to 0.293. They are not re-flown, so they are not affected.
+- **`MOT_HOVER_LEARN` 1** (learn but do not save) instead of 2. The in-flight learning is unchanged, but the learned
+  value is no longer written back, so every flight starts from the same pinned value. **Without it**, the eeprom
+  would store each flight's learned value, the `.parm` default could not override it (the Known Issue #10
+  persistence), and the start value would drift between flights.
+- **Why:** every estimator then starts from identical controller settings. The value had come from each tree's eeprom
+  and differed after the port tree's eeprom was cleared (0.310 against 0.293).

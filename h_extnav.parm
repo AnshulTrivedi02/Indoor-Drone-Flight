@@ -10,3 +10,9 @@ VISO_YAW_M_NSE 0.05    # effective yaw sigma = EKF3's 5 deg floor
 VISO_QUAL_MIN 0
 VISO_DELAY_MS 31       # S0b (H_s0b): min receipt 31.2 ms, node 31.0 ms (agree within 5 ms); D2/D20 rule; <= 60 ms horizon
 ARMING_SKIPCHK 262144  # skip only check bit 18 (VisualOdometry)
+# Controller start state pinned (ruling 2026-10-08 item 4): every H flight, in both ArduPilot trees and for every flying
+# estimator, starts from the same learned hover throttle. 0.310 = the value the earlier H flights converged to and started
+# from (H_s1_r1 learned 0.293 -> 0.310; H_s1_r3, H_gt_fgo, H_gt_ukf start at 0.3102-0.3103; corridor/T/O flights with the
+# same airframe sit at 0.293). It had been supplied by each tree's eeprom, which differed once the port tree's was cleared.
+MOT_THST_HOVER 0.310
+MOT_HOVER_LEARN 1      # learn in flight as before (2), but do not SAVE, so the pinned start value persists between flights
