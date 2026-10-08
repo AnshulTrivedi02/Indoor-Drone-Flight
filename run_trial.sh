@@ -165,6 +165,25 @@ FGO_PID=""
 if [ -n "${FGO_NODE:-}" ]; then
     SERIAL3_ARG=(--serial3=udpclient:127.0.0.1:14558)
 fi
+# Optional FGO_NODE_IMPL=cpp (with FGO_NODE=1; docs/fgo_cpp_port.md part 3): run the C++ FGO node
+# ($FGO_CPP_NODE_BIN, default ~/opt/fgo_cpp/bin/fgo_cpp_node) in place of fgo_node.py - the same SERIAL3 port and
+# ODOMETRY, stopped the same way (SIGINT; it writes fgo_node_stats.f64/.json). Its parameters:
+#   FGO_CPP_DELAY      reorder delay, s           (default 0.20)
+#   FGO_CPP_IMU_STAMP  time_ref | causal | header (default time_ref; causal = fgo_node.py's timing)
+#   FGO_CPP_ARM_SOURCE heartbeat | none           (default heartbeat; none = fgo_node.py's behaviour)
+# With FGO_NODE_IMPL=cpp the node's states (/fgo/pose, /fgo/valid) and, with HEADING_BRIDGE, the heading it
+# received (/forward_camera/heading_sent) are added to the bag. FGO_NODE_IMPL unset (or python) = unchanged.
+FGO_NODE_IMPL="${FGO_NODE_IMPL:-python}"
+case "$FGO_NODE_IMPL" in python|cpp) ;; *) echo "ERROR: FGO_NODE_IMPL must be python or cpp" >&2; exit 1;; esac
+declare -a FGO_RECORD_TOPICS=()
+if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
+    FGO_CPP_NODE_BIN="${FGO_CPP_NODE_BIN:-$HOME/opt/fgo_cpp/bin/fgo_cpp_node}"
+    [ -x "$FGO_CPP_NODE_BIN" ] || { echo "ERROR: FGO_NODE_IMPL=cpp but $FGO_CPP_NODE_BIN is missing (see docs/fgo_cpp_port.md)" >&2; exit 1; }
+    FGO_CPP_DELAY="${FGO_CPP_DELAY:-0.20}"; FGO_CPP_IMU_STAMP="${FGO_CPP_IMU_STAMP:-time_ref}"
+    FGO_CPP_ARM_SOURCE="${FGO_CPP_ARM_SOURCE:-heartbeat}"
+    FGO_RECORD_TOPICS=(/fgo/pose /fgo/valid)
+    [ -n "${HEADING_BRIDGE:-}" ] && FGO_RECORD_TOPICS+=(/forward_camera/heading_sent)
+fi
 
 start_bg() {
     # start_bg <logfile> <command...> — launches detached, tracks the PID.
@@ -394,7 +413,15 @@ if [ -n "${HEADING_BRIDGE:-}" ]; then
     wait_for "heading_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/heading_bridge.log'" 60
 fi
 
-if [ -n "${FGO_NODE:-}" ]; then
+if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
+    start_bg "$LOG_DIR/fgo_node.log" \
+        env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$FGO_CPP_NODE_BIN" \
+        --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats" -p mavlink_out:=udp:127.0.0.1:14558 \
+        -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)" \
+        -p reorder_delay_s:="$FGO_CPP_DELAY" -p imu_stamp:="$FGO_CPP_IMU_STAMP" -p arm_source:="$FGO_CPP_ARM_SOURCE"
+    FGO_PID="${BG_PIDS[-1]}"
+    wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
+elif [ -n "${FGO_NODE:-}" ]; then
     start_bg "$LOG_DIR/fgo_node.log" \
         env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
         "$HOME/venv-fgo/bin/python" "$HOME/thesis_ws/src/estimators/fgo/fgo_node.py" \
@@ -429,6 +456,7 @@ setsid ros2 bag record \
     /optical_flow/measurement \
     "${FWD_RECORD_TOPICS[@]}" \
     ${EXTRA_RECORD_TOPICS:-} \
+    "${FGO_RECORD_TOPICS[@]}" \
     $([ -n "${TAG_BRIDGE:-}" ] && echo /tags/raw /tags/sent) \
     $([ -n "${TAG_BRIDGE_FWD:-}" ] && echo /tags/raw /tags/sent /forward_camera/image_audit) \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
@@ -513,7 +541,14 @@ ardupilot_gazebo_upstream_base: $AG_BASE
 EOF
 [ -n "${EXTRA_PARM_FILES:-}" ] && echo "extra_parm_files: \"${EXTRA_PARM_FILES}\"" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${TAG_BRIDGE:-}" ] && echo "tag_bridge: {tag_ids: \"${TAG_IDS}\", sigma_pos_m: ${TAG_SIGMA_POS}}" >> "$OUTPUT_DIR/metadata.yaml"
-[ -n "${FGO_NODE:-}" ] && echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz" >> "$OUTPUT_DIR/metadata.yaml"
+if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
+    { echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.f64/.json"
+      echo "fgo_node_impl: cpp"
+      echo "fgo_cpp: {bin: \"$FGO_CPP_NODE_BIN\", reorder_delay_s: $FGO_CPP_DELAY, imu_stamp: $FGO_CPP_IMU_STAMP, arm_source: $FGO_CPP_ARM_SOURCE}"
+    } >> "$OUTPUT_DIR/metadata.yaml"
+elif [ -n "${FGO_NODE:-}" ]; then
+    echo "fgo_node: true  # SERIAL3 udpclient 127.0.0.1:14558, stats fgo_node_stats.npz" >> "$OUTPUT_DIR/metadata.yaml"
+fi
 [ -n "${FGO_HEADING_ROBUST:-}" ] && echo "fgo_heading_robust: ${FGO_HEADING_ROBUST}  # plan step 2(b)" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${LOOPBACK_ONLY:-}" ] && echo "loopback_only: true  # GZ_IP=127.0.0.1, ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" >> "$OUTPUT_DIR/metadata.yaml"
 [ -n "${ARDUPILOT_TREE:-}" ] && echo "ardupilot_tree: \"${ARDUPILOT_TREE}\" (commit $(git -C "$ARDUPILOT_TREE" rev-parse --short HEAD 2>/dev/null))" >> "$OUTPUT_DIR/metadata.yaml"

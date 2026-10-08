@@ -71,6 +71,7 @@ class LiveAdapter {
   double max_lateness() const;
   size_t n_out_of_order() const;
   bool gap_invalid = false;
+  double t_armed_header = -1.0;   // header-clock arming instant used for D15 (heartbeat source); -1 = none
   std::vector<std::array<double, 3>> gaps_seen;   // (sensor t, gap, airborne)
 
  private:

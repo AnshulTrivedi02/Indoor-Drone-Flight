@@ -14,6 +14,8 @@
 // heading (false), heading_sigma_deg (5), tags (false), nav_frame (corridor|enu), mavlink_out (""),
 // arm_source (heartbeat|none), gap_rule (true).
 #include <atomic>
+#include <chrono>
+#include <cstdio>
 #include <cmath>
 #include <condition_variable>
 #include <deque>
@@ -42,6 +44,7 @@ struct Msg {   // one arrival, copied out of the callback
   int kind;    // tape kinds (fgo_live_replay.cpp): 0 imu, 1 att, 2 rng, 3 flow, 4 heading, 5 tag, 7 time_ref
   double t;
   double v[8];
+  std::chrono::steady_clock::time_point wall;   // arrival (callback) time, for the queue lag
 };
 }  // namespace
 
@@ -63,6 +66,10 @@ class FgoCppNode : public rclcpp::Node {
     cfg.arm_source = declare_parameter("arm_source", std::string("heartbeat"));
     cfg.gap_rule = declare_parameter("gap_rule", true);
     const std::string out = declare_parameter("mavlink_out", std::string(""));
+    stats_path_ = declare_parameter("stats_path", std::string(""));   // on shutdown: <path>.f64 + <path>.json
+    cfg_desc_ = "reorder_delay_s=" + std::to_string(cfg.reorder_delay) + " imu_stamp=" + cfg.imu_stamp +
+                " arm_source=" + cfg.arm_source + " heading=" + (cfg.heading ? "true" : "false");
+    RCLCPP_INFO(get_logger(), "fgo_cpp_node: %s mavlink_out=%s", cfg_desc_.c_str(), out.c_str());
     if (!out.empty()) {
       udp_.reset(new fgo_cpp::mav::UdpEndpoint(out));
       if (!udp_->ok()) RCLCPP_ERROR(get_logger(), "cannot bind %s", out.c_str());
@@ -106,12 +113,22 @@ class FgoCppNode : public rclcpp::Node {
     stop_ = true;
     cv_.notify_all();
     if (worker_.joinable()) worker_.join();
+    // as fgo_node.py: drain what arrived before the stop, flush the reorder buffer, then write the stats
+    std::deque<Msg> rest;
+    {
+      std::lock_guard<std::mutex> lk(mu_);
+      rest.swap(q_);
+    }
+    for (const Msg& m : rest) feed(m);
+    adapter_->flush();
+    write_stats();
     RCLCPP_INFO(get_logger(), "keyframes sent %zu, unsettled %zu, reinits %zu, max lateness %.3f s, out-of-order %zu",
                 adapter_->n_sent, adapter_->n_unsettled, adapter_->n_reinits, adapter_->max_lateness(), adapter_->n_out_of_order());
   }
 
  private:
-  void enqueue(const Msg& m) {
+  void enqueue(Msg m) {
+    m.wall = std::chrono::steady_clock::now();
     {
       std::lock_guard<std::mutex> lk(mu_);
       q_.push_back(m);
@@ -131,18 +148,39 @@ class FgoCppNode : public rclcpp::Node {
         const int a = udp_->poll();   // learn SITL's address; read the armed flag
         if (a >= 0) adapter_->armed(a == 1);
       }
-      for (const Msg& m : batch) {
-        switch (m.kind) {
-          case 0: adapter_->imu(m.t, Vector3(m.v[0], m.v[1], m.v[2]), Vector3(m.v[3], m.v[4], m.v[5])); break;
-          case 1: adapter_->att(m.t, Vector3(m.v[0], m.v[1], m.v[2])); break;
-          case 2: adapter_->range(m.t, m.v[0]); break;
-          case 3: adapter_->flow(m.t, m.v[0], m.v[1], m.v[2] != 0.0, m.v[3]); break;
-          case 4: adapter_->heading(m.t, m.v[0], m.v[1], m.v[2]); break;
-          case 5: adapter_->tag(m.t, m.v[0], m.v[1], m.v[2]); break;
-          case 7: adapter_->time_ref(m.t, m.v[0]); break;
-          default: break;
-        }
-      }
+      for (const Msg& m : batch) feed(m);
+    }
+  }
+
+  void feed(const Msg& m) {
+    cur_wall_ = m.wall;
+    switch (m.kind) {
+      case 0: adapter_->imu(m.t, Vector3(m.v[0], m.v[1], m.v[2]), Vector3(m.v[3], m.v[4], m.v[5])); break;
+      case 1: adapter_->att(m.t, Vector3(m.v[0], m.v[1], m.v[2])); break;
+      case 2: adapter_->range(m.t, m.v[0]); break;
+      case 3: adapter_->flow(m.t, m.v[0], m.v[1], m.v[2] != 0.0, m.v[3]); break;
+      case 4: adapter_->heading(m.t, m.v[0], m.v[1], m.v[2]); break;
+      case 5: adapter_->tag(m.t, m.v[0], m.v[1], m.v[2]); break;
+      case 7: adapter_->time_ref(m.t, m.v[0]); break;
+      default: break;
+    }
+  }
+
+  void write_stats() {
+    if (stats_path_.empty()) return;
+    if (FILE* f = std::fopen((stats_path_ + ".f64").c_str(), "wb")) {
+      std::fwrite(stats_.data(), sizeof(double), stats_.size(), f);
+      std::fclose(f);
+    }
+    if (FILE* f = std::fopen((stats_path_ + ".json").c_str(), "w")) {
+      std::fprintf(f, "{\"impl\": \"cpp\", \"config\": \"%s\", \"columns\": [\"t_k\", \"valid\", \"sent\", \"t_us\", "
+                   "\"step_ns\", \"lag_s\", \"x\", \"y\", \"z\", \"yaw\"], \"n_keyframes\": %zu, \"n_sent\": %zu, "
+                   "\"n_unsettled\": %zu, \"n_unsent_no_peer\": %zu, \"n_reinits\": %zu, \"gap_invalid\": %s, \"t_armed_header\": %.6f, "
+                   "\"max_lateness_s\": %.6f, \"n_out_of_order\": %zu, \"n_heading_rejected\": %zu, \"n_imu_unpaired\": %zu}\n",
+                   cfg_desc_.c_str(), stats_.size() / 10, adapter_->n_sent, adapter_->n_unsettled, n_unsent_,
+                   adapter_->n_reinits, adapter_->gap_invalid ? "true" : "false", adapter_->t_armed_header, adapter_->max_lateness(),
+                   adapter_->n_out_of_order(), adapter_->n_hdg_rejected, adapter_->n_imu_unpaired);
+      std::fclose(f);
     }
   }
 
@@ -157,11 +195,21 @@ class FgoCppNode : public rclcpp::Node {
       for (int b = 0; b < 3; ++b) R(a, b) = o.row[13 + 3 * a + b];
     const auto qq = gtsam::Rot3(R).toQuaternion();
     p.pose.orientation.w = qq.w(); p.pose.orientation.x = qq.x(); p.pose.orientation.y = qq.y(); p.pose.orientation.z = qq.z();
-    pub_->publish(p);
     std_msgs::msg::Bool b;
     b.data = o.valid;
-    pub_valid_->publish(b);
+    if (rclcpp::ok()) {   // after SIGINT the context is shut down: the final drain only sends MAVLink and logs stats
+      try {
+        pub_->publish(p);
+        pub_valid_->publish(b);
+      } catch (const std::exception&) {
+      }
+    }
     if (udp_ && o.sent && !udp_->send(o.frame)) ++n_unsent_;
+    const double lag = std::chrono::duration<double>(std::chrono::steady_clock::now() - cur_wall_).count();
+    const double yaw = std::atan2(o.row[16], o.row[13]);
+    const double st_row[10] = {o.t_k, o.valid ? 1.0 : 0.0, o.sent ? 1.0 : 0.0, double(o.t_us), double(o.step_ns), lag,
+                               o.row[10], o.row[11], o.row[12], yaw};
+    stats_.insert(stats_.end(), st_row, st_row + 10);
   }
 
   std::unique_ptr<fgo_cpp::LiveAdapter> adapter_;
@@ -175,6 +223,9 @@ class FgoCppNode : public rclcpp::Node {
   std::thread worker_;
   std::atomic<bool> stop_{false};
   size_t n_unsent_ = 0;
+  std::string stats_path_, cfg_desc_;
+  std::vector<double> stats_;   // 10 per keyframe (write_stats columns)
+  std::chrono::steady_clock::time_point cur_wall_;
 };
 
 int main(int argc, char** argv) {
