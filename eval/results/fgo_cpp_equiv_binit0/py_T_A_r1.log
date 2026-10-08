@@ -1,0 +1,1 @@
+{"t_anchor": 28.546, "n_tag_factors": 2394, "n_gnss_factors": 0, "mode": "tags", "keyframe_failures": 0, "step_median_ms": 15.141401, "window_s": 0.25, "lm_iters": 2, "batch_factors": 25592, "batch_error": 135.73671271895932, "batch_iterations": 4, "batch_s": 817.1667596679181}

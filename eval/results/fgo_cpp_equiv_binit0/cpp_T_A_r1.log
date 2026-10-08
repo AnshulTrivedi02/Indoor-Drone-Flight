@@ -1,0 +1,57 @@
+[run] 8015 keyframes, flow 7873, range 8015, imu 89040, tag 2394, gnss 0, gp replaced 221, failures 0
+[timing] per-keyframe update: median=0.542ms p99=1.099ms
+[batch] 7775 keys, error 135.736713, 4 iterations, 1.6 s
+==== band A/B: Python export T_A_r1 vs C++ replay (all rows)
+keyframe rows: ref 8015  test 8015  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 221]
+flow factor        mismatches: 0   [ref total 7873]
+range factor       mismatches: 0   [ref total 8015]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 2394]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 7774]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 219 rows; max |diff| 1.419e-16
+first row with |dp| > 1e-9 m: None
+position   max 9.945e-08  p99 6.604e-08  median 4.447e-09 mm
+yaw        max 2.213e-10  p99 8.931e-11  median 5.394e-12 deg
+velocity   max 3.448e-08  p99 2.368e-08  median 2.964e-09 mm/s
+accel bias max 9.740e-11  p99 7.216e-11  median 1.388e-11 m/s^2
+gyro bias  max 6.157e-13  p99 4.342e-13  median 6.662e-15 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[batch] keys ref 7775 test 7775  key ids identical: True
+[batch] position max 5.149e-09 p99 4.606e-09 mm; yaw max 9.389e-12 p99 7.328e-12 deg -> BAND PASS
+[timing test] median 0.542 ms  p99 1.099 ms  max 2.876 ms  n 8015
+==== band B: anchored rows
+keyframe rows: ref 8015  test 8015  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 221]
+flow factor        mismatches: 0   [ref total 7873]
+range factor       mismatches: 0   [ref total 8015]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 2394]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 7774]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 219 rows; max |diff| 1.419e-16
+rows compared: 7774 anchored of 8015
+first row with |dp| > 1e-9 m: None
+position   max 9.945e-08  p99 6.634e-08  median 4.703e-09 mm
+yaw        max 2.213e-10  p99 9.097e-11  median 5.623e-12 deg
+velocity   max 3.448e-08  p99 2.377e-08  median 3.085e-09 mm/s
+accel bias max 9.740e-11  p99 7.218e-11  median 1.398e-11 m/s^2
+gyro bias  max 6.157e-13  p99 4.350e-13  median 6.902e-15 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[batch] keys ref 7775 test 7775  key ids identical: True
+[batch] position max 5.149e-09 p99 4.606e-09 mm; yaw max 9.389e-12 p99 7.328e-12 deg -> BAND PASS
+[timing test] median 0.542 ms  p99 1.099 ms  max 2.876 ms  n 8015
+per-keyframe export bit-identical: no

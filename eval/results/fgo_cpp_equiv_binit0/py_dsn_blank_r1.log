@@ -1,0 +1,15 @@
+/home/makerspace/venv-fgo/lib/python3.12/site-packages/numpy/core/fromnumeric.py:3504: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-fgo/lib/python3.12/site-packages/numpy/core/_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+[imu] dejittered: period 3.00057 ms, resid std 3.40 max 13.54 ms
+[init] t=13.65s first_range=0.075
+[ground-proximity] flows replaced 436; take-off detected True at t 28.447; arm t 24.618911124538286
+[run] 10048 keyframes, window t=[30,331]s   flow factors 501  range factors 10047  imu 111623
+[timing] per-keyframe update: median=2.5ms  p99=29.8ms  (deployability budget 33ms)
+[yaw] drift = -9.12 deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)
+[gyro-z bias] cruise mean = +0.05 deg/min  (1% of true mean 8.9)   ramp d|b|/dt = +0.02 vs true +2.82 deg/min/min (ideal 3.00)
+[result] along-track = 35594.6 m (true 150.2)  cross-track = -18776.7 m  ATE = 13911.78 m
+[scale] cruise |V(k)| median = 105.0506 m/s   (true ~0.50; EKF3 ~0.556)
+[flow resid] cruise median (pred-meas): x=+nan  y=+nan rad/s (systematic != 0 => FGO not tracking flow)
+[out] /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/out/dsn_blank_r1/fgo_baseline/fgo_traj.tum

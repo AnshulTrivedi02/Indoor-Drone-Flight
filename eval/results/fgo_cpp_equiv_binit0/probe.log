@@ -1,0 +1,28 @@
+R         n=  9 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yaw       n=  1 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rpy       n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+Pret+     n= 16 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+Pret-     n= 16 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+deltaRij  n=  9 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+deltaPij  n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+deltaVij  n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+cov       n=225 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+predP     n= 16 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+predV     n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+flowAb    n= 32 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rngAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yawAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+wrap      n=  2 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+hdgAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yrAb      n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+tagAb     n= 21 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+gnssAb    n= 40 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+kf0       n= 21 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+kf1       n= 21 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+kf2       n= 21 bit-identical=False max|d|=2.186e-15 max rel=3.896e-12
+--- new python probe vs OLD python probe (expect the preintegration covariance to differ)
+Traceback (most recent call last):
+  File "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/src/estimators/fgo_cpp/tools/compare_probe.py", line 9, in <module>
+    assert len(a) == len(b), (len(a), len(b))
+           ^^^^^^^^^^^^^^^^
+AssertionError: (18, 22)

@@ -1,0 +1,12 @@
+[live] 10118 keyframes, 9840 ODOMETRY sent (278 before the clock map settled), 10118 valid; reinits 0, gaps 0, gap-invalid 0; heading rejected 0; IMU unpaired 0; max lateness 0.042 s, out-of-order 0
+[timing] per-keyframe step: median 0.942 ms, p99 1.508 ms, max 3.814 ms
+==== band L2: live adapter vs export-driven C++ cpp_fwdc_tex_r1_heading
+[mavlink] parsed 9840 ODOMETRY frames (bad CRC / parse errors: 0); sent keyframes 9840
+[mavlink] pymavlink re-encoding byte-identical to the adapter's frames: True
+[clock] time_usec equal to the independent _sitl_us on 9840 of 9840 frames
+[states] keyframes: adapter 10118  reference 10118  -> count IDENTICAL
+[states] decision mismatches by column {2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 32: 0, 35: 0}
+[states] adapter rows vs reference: |dp| max 0.000e+00 p99 0.000e+00 mm; |dyaw| max 0.000e+00 p99 0.000e+00 deg
+[odometry] decoded states vs reference (9840 sent keyframes): |dp| max 7.618e-03 p99 7.233e-03 mm; |dyaw| max 1.979e-08 p99 9.368e-09 deg
+[valid] quality matches the valid flag on 9840 of 9840 frames; invalid keyframes 0 of 10118 (first [])
+BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg; rows and decoded ODOMETRY): PASS   time_usec all equal: True   frames byte-identical to pymavlink: True

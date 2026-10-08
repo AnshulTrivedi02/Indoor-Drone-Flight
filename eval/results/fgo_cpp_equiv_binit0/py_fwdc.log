@@ -1,0 +1,40 @@
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094345 started 2026-10-09T03:26:27 : binit0 py_dsn_blank_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094555 started 2026-10-09T03:27:14 : binit0 py_dsn_trans_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094698 started 2026-10-09T03:28:58 : binit0 cpp_dsn_trans_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[heavy] waiting: BUILD_LOCK held by another job (running): pid 1094733 started 2026-10-09T03:29:04 : binit0 py_O_r1
+[imu] dejittered: period 3.00057 ms, resid std 3.40 max 11.74 ms
+[init] t=11.20s first_range=0.075
+[ground-proximity] flows replaced 505; take-off detected True at t 28.084; arm t 24.259999306615104
+[run] 10118 keyframes, window t=[30,332]s   flow factors 9960  range factors 10117  imu 112404
+[timing] per-keyframe update: median=24.4ms  p99=38.9ms  (deployability budget 33ms)
+[yaw] drift = -0.02 deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)
+[gyro-z bias] cruise mean = -8.24 deg/min  (93% of true mean 8.9)   ramp d|b|/dt = +2.90 vs true +2.81 deg/min/min (ideal 3.00)
+[result] along-track = 150.8 m (true 151.0)  cross-track = +150.8 m  ATE = 123.22 m
+[scale] cruise |V(k)| median = 0.4866 m/s   (true ~0.50; EKF3 ~0.556)
+[flow resid] cruise median (pred-meas): x=-0.0056  y=-0.0052 rad/s (systematic != 0 => FGO not tracking flow)
+[out] /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/out/fwdc_tex_r1/fgo_heading/fgo_traj.tum
