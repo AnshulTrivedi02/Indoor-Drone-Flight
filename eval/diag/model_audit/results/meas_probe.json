@@ -1,0 +1,100 @@
+{
+ "ukf": {
+  "flow_x": {
+   "R_stated": 0.0625,
+   "S_code": 0.06488005843130058,
+   "HPH_lin": 0.0023800583999179325,
+   "R_eff": 0.06250000003138265,
+   "ratio_R_eff_over_stated": 1.0000000005021223,
+   "sigma_spread_over_lin": 1.0000000131856668
+  },
+  "flow_y": {
+   "R_stated": 0.0625,
+   "S_code": 0.06489186580368242,
+   "HPH_lin": 0.002391847923911697,
+   "R_eff": 0.06250001787977072,
+   "ratio_R_eff_over_stated": 1.0000002860763315,
+   "sigma_spread_over_lin": 1.0000074752957926
+  },
+  "range": {
+   "R_stated": 0.25,
+   "S_code": 0.2525000000010028,
+   "HPH_lin": 0.0025000000006988898,
+   "R_eff": 0.2500000000003039,
+   "ratio_R_eff_over_stated": 1.0000000000012157,
+   "sigma_spread_over_lin": 1.0000000001215714
+  },
+  "heading_closed_loop_5deg": {
+   "R_stated": 0.007615435494667714,
+   "S_code": 0.008015435495669335,
+   "HPH_lin": 0.00040000000011182235,
+   "R_eff": 0.007615435495557513,
+   "ratio_R_eff_over_stated": 1.0000000001168414,
+   "sigma_spread_over_lin": 1.000000002224497,
+   "S_update_heading_last_S": 0.008015435495669335
+  },
+  "heading_offline_fwdc": {
+   "R_stated": 6.672339963008063e-06,
+   "S_code": 0.0004066723409646292,
+   "HPH_lin": 0.00040000000011182235,
+   "R_eff": 6.672340852806856e-06,
+   "ratio_R_eff_over_stated": 1.0000001333563335,
+   "sigma_spread_over_lin": 1.000000002224497
+  },
+  "tag_pos_T": {
+   "R_stated": 0.0025000000000000005,
+   "S_code": 0.04250000000100001,
+   "HPH_lin": 0.04,
+   "R_eff": 0.002500000001000008,
+   "ratio_R_eff_over_stated": 1.000000000400003,
+   "sigma_spread_over_lin": 1.0000000000250002
+  },
+  "tag_yaw": {
+   "R_stated": 0.007615435494667714,
+   "S_code": 0.008015435495669335,
+   "HPH_lin": 0.00040000000011182235,
+   "R_eff": 0.007615435495557513,
+   "ratio_R_eff_over_stated": 1.0000000001168414,
+   "sigma_spread_over_lin": 1.000000002224497
+  }
+ },
+ "fgo": {
+  "flow": {
+   "sigma_stated": 0.25,
+   "sigma_eff_per_row": [
+    0.25,
+    0.25
+   ]
+  },
+  "range": {
+   "sigma_stated": 0.5,
+   "sigma_eff_per_row": [
+    0.5
+   ]
+  },
+  "yaw_cap": {
+   "sigma_stated": 0.5,
+   "sigma_eff_per_row": [
+    0.5
+   ]
+  },
+  "heading_closed_loop_5deg": {
+   "sigma_stated": 0.08726646259971647,
+   "sigma_eff_per_row": [
+    0.08726646259971647
+   ]
+  },
+  "tag_H_0.02": {
+   "sigma_stated": [
+    0.02,
+    0.02,
+    0.08726646259971647
+   ],
+   "sigma_eff_per_row": [
+    0.019999999999999997,
+    0.019999999999999997,
+    0.08726646259971647
+   ]
+  }
+ }
+}
