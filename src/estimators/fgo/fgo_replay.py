@@ -16,6 +16,7 @@ from fgo_core import FGO
 from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift, GroundProximityFlow
 from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset, f_variant, f_filter_forward
 import json
+import fgo_export
 from imu_timing import dejitter_imu, apply_gap_rule
 
 TRIAL = sys.argv[1]
@@ -61,6 +62,7 @@ with Reader(BAG) as r:
         elif con.topic == "/ground_truth/pose":
             gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
 ev += forward_events(TRIAL, ARM)    # Phase 4 forward-camera measurements ([] for baseline/legacy)
+_raw_ev = list(ev) if DUMP else None  # equivalence export: the raw stream, before gap rule / dejitter / sort
 ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
 ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
 print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
@@ -98,7 +100,7 @@ _gpj = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/imu_gaps.json")
 gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 step_ns = []; n_kf = 0
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
-_dump_flow_om = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
+_dump_flow_om = {}; _dump_fwd_gz = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
 for _ei, (tt, kind, d) in enumerate(ev):
     if tt < t_init:
         if kind == "att": omega = d
@@ -114,6 +116,7 @@ for _ei, (tt, kind, d) in enumerate(ev):
         if DUMP: _dump_flow_om[_ei] = flow_omega
     elif kind == "fwd":
         fwd_pend = (d[0], d[1], float(fwd_avg.average(tt, omega)[2]))   # latest forward frame
+        if DUMP: _dump_fwd_gz[_ei] = fwd_pend[2]
     elif kind == "imu":
         gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
         gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
@@ -122,7 +125,7 @@ for _ei, (tt, kind, d) in enumerate(ev):
             fgo.integrate_imu(d[0], d[1], tt - t_prev_imu)
         t_prev_imu = tt
         while tt >= t_kf_next:
-            if DUMP: _d_k, _d_nr, _d_nf, _d_nrg = fgo.k, gp.n_replaced, fgo.n_flow, fgo.n_range
+            if DUMP: _d_k, _d_nr, _d_nf, _d_nrg, _d_nfw = fgo.k, gp.n_replaced, fgo.n_flow, fgo.n_range, len(fgo.fwd_log)
             t0 = time.perf_counter_ns()
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0:
                 _rpy = fgo.prev_pose.rotation().rpy()    # the FGO's flow factor uses omega - bias: zero translation in that model
@@ -136,14 +139,10 @@ for _ei, (tt, kind, d) in enumerate(ev):
             rpy = pose.rotation().rpy()          # [roll, pitch, yaw]
             bgz = fgo.prev_bias.gyroscope()[2]
             traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2], bgz))
-            if DUMP:   # (t_kf, t_lat, k_before, k_after, replaced, flow factor, range factor, flow used xy, rng,
-                       #  pose t xyz, R row-major 9, vel 3, bias acc 3, bias gyro 3)
-                _fu = flow_pend[0] if flow_pend is not None else (np.nan, np.nan)
-                _dump_kf.append([t_kf_next, t_lat, _d_k, fgo.k, gp.n_replaced - _d_nr, fgo.n_flow - _d_nf,
-                                 fgo.n_range - _d_nrg, _fu[0], _fu[1], np.nan if rng_pend is None else rng_pend]
-                                + list(pose.translation()) + list(pose.rotation().matrix().reshape(-1))
-                                + list(np.asarray(vel, float)) + list(fgo.prev_bias.accelerometer())
-                                + list(fgo.prev_bias.gyroscope()))
+            if DUMP:   # layout: fgo_export.kf_row
+                _dump_kf.append(fgo_export.kf_row(t_kf_next, t_lat, _d_k, fgo.k, gp.n_replaced - _d_nr, fgo.n_flow - _d_nf,
+                                                  fgo.n_range - _d_nrg, None if flow_pend is None else flow_pend[0], rng_pend,
+                                                  pose, vel, fgo.prev_bias, fgo.fwd_log[_d_nfw:]))
             # diag (read-only): |V(k)| and the flow-factor residual at the converged state
             vmag.append((t_lat, float(np.linalg.norm(vel))))
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0 \
@@ -155,28 +154,15 @@ for _ei, (tt, kind, d) in enumerate(ev):
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
 if DUMP:
-    assert ARM in (None, "baseline") and not any(FV[k] for k in FV), "equivalence export: baseline arm, no F-variants"
-    _K = {"imu": 0, "att": 1, "rng": 2, "flow": 3}
-    _rows = []
-    for _ei, (tt, kind, d) in enumerate(ev):
-        r = [np.nan] * 9; r[0] = _K[kind]; r[1] = tt
-        if kind == "imu":
-            r[2:8] = list(d[0]) + list(d[1])
-        elif kind == "att":
-            r[2:5] = list(d)
-        elif kind == "rng":
-            r[2] = d
-        else:
-            r[2:6] = [d[0][0], d[0][1], float(d[1]), d[2]]
-            if _ei in _dump_flow_om:
-                r[6:9] = list(_dump_flow_om[_ei])
-        _rows.append(r)
-    np.asarray(_rows, np.float64).tofile(DUMP + ".events.f64")
-    np.asarray(_dump_kf, np.float64).tofile(DUMP + ".kf.f64")
-    json.dump({"trial": TRIAL, "accel_mean": [float(a) for a in np.mean(acc_lvl, axis=0)], "first_range": float(first_rng),
-               "t_init": float(t_init), "t_arm": gp.t_arm, "window": WINDOW, "lm_iters": LM_ITERS, "kf_dt": fgo.kf_dt,
-               "n_events": len(_rows), "event_cols": 9, "n_kf": len(_dump_kf), "kf_cols": len(_dump_kf[0])},
-              open(DUMP + ".init.json", "w"), indent=1)
+    assert not any(FV[k] for k in FV), "equivalence export: no F-variants"
+    fgo_export.write(DUMP, {"trial": TRIAL, "mode": "corridor", "arm": ARM,
+                            "accel_mean": [float(a) for a in np.mean(acc_lvl, axis=0)], "first_range": float(first_rng),
+                            "t_init": float(t_init), "t_arm": gp.t_arm, "window": WINDOW, "lm_iters": LM_ITERS,
+                            "kf_dt": fgo.kf_dt, "log_cov": bool(fgo.log_cov),
+                            "fwd_sigma_psi": None if sig_fwd is None else float(sig_fwd["psi"]),
+                            "fwd_sigma_omega": None if (sig_fwd is None or sig_fwd.get("omega") is None) else float(sig_fwd["omega"]),
+                            "fwd_gate": float(fgo.fwd_gate), "imu_gaps": (json.load(open(_gpj)) if os.path.exists(_gpj) else None)},
+                     _raw_ev, ev, _dump_flow_om, _dump_fwd_gz, _dump_kf)
 fl = np.array([r[:4] for r in fgo.fwd_log]).reshape(-1, 4)          # (t, kind, nis, ok): unchanged format
 fS = np.array([r[4] for r in fgo.fwd_log])                              # innovation covariance S (Phase 5b)
 np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl,
