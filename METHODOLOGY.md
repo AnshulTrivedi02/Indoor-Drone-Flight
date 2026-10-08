@@ -10602,7 +10602,9 @@ concurrently; the lone 60 s smoke test ran at 4.4 ms per update):
 Mean cost per update over the flight, by 1000-keyframe block (≈ 33 s of flight each):
 - **LC:** 9–11 ms in the first block; 27–77 ms afterwards, roughly flat with 8 landmarks.
 - **no-LC:** 9–13 ms in the first blocks, rising with the landmark count to 104–335 ms per update by 34–39
-  landmarks. T_A_r1 had a 611 ms/update stretch (keyframes 3000–4000, 23 landmarks).
+  landmarks. T_A_r1 had its worst stretch at keyframes 3000–5000 (23–28 landmarks): **611 ms and then 1,406 ms per
+  update** in 1000-keyframe means. *(Corrected 2026-10-08: the first version, written before that block was logged,
+  quoted only the 611 ms.)*
 
 **Cause of the slowdown:**
 - **The whole-history graph:** every keyframe (30 Hz, the thesis cadence: ~7,350 per flight with 3 states each) is

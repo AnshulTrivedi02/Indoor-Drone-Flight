@@ -461,6 +461,69 @@ Textured corridor, 0.5 m/s, 300 s cruise. Full speed = `corridor_textured_fwdc`;
 | 2(b) robust closed-loop set, end-wall FGO yaw-error range (r1–r3) vs hard-gated | 1.14 / 1.20 / 2.04 vs 2.36 / 1.07 / 2.48 | deg | DESCRIPTIVE | M: "Plan step 2(b) RESULT" |
 | 2(b) cruise yaw-gyro std, robust vs hard-gated | 0.144–0.159 vs 0.196–0.208 (~25% lower; jitter unchanged; cause untested) | deg/s | DESCRIPTIVE | json:p2b_jitter_control.json |
 
+## 16. Experiments T, O, L (2026-10-08) — CURRENT
+
+Pre-registrations and full records: METHODOLOGY "Experiments T, L, O". Figures: `plots/supervisor_2026-10-08/` (fig11–fig15).
+All absolute-frame metrics are world frame (T, O) or the first tag's frame (L), with **no alignment**.
+
+### 16.1 T — AprilTag fixes at known positions (`room_tags`, 5 laps of a 6 m square, 3 repeats per condition)
+
+Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 mm). Source: `eval/results/expT/t_aggregate.json`.
+
+| condition (tags sent; median gap) | EKF3 live | UKF live | FGO live | RTS-UKF (hindsight) | FGO batch (hindsight) |
+|---|---|---|---|---|---|
+| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.018 m** | 0.014 m | **0.011 m** |
+| B: corners (10.1 s) | 0.055 m | 0.064 m | **0.028 m** | 0.031 m | **0.013 m** |
+| C: 2 diagonal (22.0 s) | 0.074 m | 0.104 m | **0.058 m** | 0.091 m | **0.021 m** |
+| D: 1 tag (46.3 s) | **0.096 m** | 0.189 m | 0.121 m | 0.258 m | **0.033 m** |
+
+- **H-T1 (primary) PASS.** The FGO hindsight gain per gap (median) is 0.005 / 0.015 / 0.025 / 0.050 m for A–D,
+  strictly increasing. Spearman ρ = +0.47, p = 3e-13, n = 213 gaps.
+- **P-T2 FAIL.** The RTS-UKF gain is +0.021 / +0.036 / −0.007 / −0.126 m (single-pass smoother).
+- **P-T3 FAIL.** The live max/min ratio is 2.15 / 2.33 / 1.80 / 1.97.
+- **P-T4 FAIL.** The batch-FGO vs RTS-UKF ratio is 1.23 / 2.34 / 4.26 / 7.78.
+- **EKF3 timeout:** `horiz_pos_abs` inside the gaps is A 1.00, B–D 0.05. EKF3 times out (> 10 s) and fuses the next
+  fix ungated from B on.
+- **Tag module** (2.26 m): detection 100% of the fully visible tags; central-third position p95 40 mm, yaw p95 0.10°;
+  5.6 ms/frame.
+- **`VISO_DELAY_MS 15`** (ruled; D2 deviation): the per-fix bound is ≤ 6 mm nominal, ≤ 22 mm at the measured 1.80 m/s
+  corner maximum, ≤ 0.06° in yaw.
+- **Flow in the post-corner catch-up:** 97.3% of frames valid against 98.7% on the straights; 54 vs 53 features.
+
+### 16.2 O — outdoor → indoor (123 s, GNSS off) → outdoor, 3 flights
+
+Indoor horizontal RMSE across O_r1 / O_r2 / O_r3b. Source: `eval/results/expO/O_*.json`.
+
+| track | indoor RMSE | error at GNSS return | largest step in 10 s after return |
+|---|---|---|---|
+| EKF3 live | 1.42–1.43 m | 3.53–3.54 m | **4.10 m (reset jump, every flight)** |
+| UKF live | 0.63–0.64 m | 1.69–1.75 m | 1.66–1.71 m |
+| FGO live | 0.97–1.17 m | 2.83–3.31 m | 2.47–2.88 m |
+| RTS-UKF (hindsight) | 0.60–0.64 m (cap-free variant 0.97–0.98 m) | 0.02 m | — |
+| **FGO batch (hindsight)** | **0.33 m** | 0.00–0.01 m | — |
+
+- **H-O1 (primary) PASS 3/3.**
+- **H-O2 FAIL:** the live ratio is about 2.2×.
+- **P-O3 FAIL:** the batch FGO is about 1.9× better than the better RTS-UKF.
+- EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment.
+
+### 16.3 L — tags at UNKNOWN positions; keyframe FGO with loop closure (T_A_r1–r3)
+
+Horizontal RMSE in the first tag's frame. Source: `eval/results/expL/T_A_r*_t245.json`.
+
+| mode | live (overall) | hindsight (overall) | live lap 5 ÷ lap 1 |
+|---|---|---|---|
+| with loop closure | **0.041–0.047 m** | **0.020–0.029 m** | 0.27–0.57 |
+| without loop closure | 0.200–0.312 m | 0.236–0.298 m | 4.5–5.5 |
+
+- **V-L PASS:** keyframe FGO 4.63 m against thesis FGO 4.59 m on `dsn_tex_r1` (evo -a cruise, +0.9%).
+- **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3.**
+- **Computational cost (DIAGNOSTIC, workstation Python):**
+  - LC: median 33–43 ms per update.
+  - no-LC: median 36–55 ms, p99 1.3–2.2 s, worst 1000-keyframe mean 1.41 s.
+  - Cause: the 30 Hz whole-history graph, plus a landmark per pass without loop closure.
+  - Deviations: the replays are cut at anchor + 245 s, and hindsight uses iSAM2's full estimate.
+
 ## Flags: resolved and remaining
 
 **Resolved** (METHODOLOGY "Source-pack flag resolutions", M:L3114-L3198; applied above):

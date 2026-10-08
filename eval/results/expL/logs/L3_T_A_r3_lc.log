@@ -1,0 +1,8 @@
+[progress] keyframe 1000 t 62.0 landmarks 6 wall 11 s
+[progress] keyframe 2000 t 95.4 landmarks 8 wall 48 s
+[progress] keyframe 3000 t 128.7 landmarks 8 wall 75 s
+[progress] keyframe 4000 t 162.0 landmarks 8 wall 108 s
+[progress] keyframe 5000 t 195.4 landmarks 8 wall 156 s
+[progress] keyframe 6000 t 228.7 landmarks 8 wall 209 s
+[progress] keyframe 7000 t 262.0 landmarks 8 wall 273 s
+{"mode": "lc", "t_anchor": 28.744, "keyframes": 7351, "landmarks": 8, "landmark_factors": 2038, "raw_detections": 3588, "central": 2314, "keyframe_failures": 0, "step_median_ms": 33.421049, "step_p99_ms": 94.04307816999989, "wall_s": 300.76753635914065, "hindsight_polish_s": 0.17646328802220523}
