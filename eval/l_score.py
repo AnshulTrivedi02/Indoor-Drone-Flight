@@ -11,7 +11,9 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "tags")); import tag_measure as TM
 
-ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--json")
+ap.add_argument("--suffix", default="", help='e.g. "_t245": the replays cut at anchor + 245 s (DEVIATION, METHODOLOGY)')
+a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}")
 tag0 = TM.load_map(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "sim", "worlds", "room_tags_map.json"))[0]
 assert abs(tag0["yaw"]) < 1e-9, "the frame mapping below assumes tag 0 has yaw 0"
@@ -42,7 +44,7 @@ bounds = laps + [end]
 out = {"trial": a.trial, "lap_bounds_s": bounds, "tracks": {}}
 for mode in ("lc", "nolc"):
     for kind in ("live", "hindsight"):
-        p = f"{D}/lc_fgo_{mode}/{kind}.tum"
+        p = f"{D}/lc_fgo_{mode}{a.suffix}/{kind}.tum"
         if not os.path.exists(p): continue
         x = np.loadtxt(p, ndmin=2)
         e = np.hypot(x[:, 1] - np.interp(x[:, 0], G[:, 0], G[:, 1]), x[:, 2] - np.interp(x[:, 0], G[:, 0], G[:, 2]))

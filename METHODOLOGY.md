@@ -10505,3 +10505,29 @@ tags are detected. Both modes run on each flight.
 - **P-L4 (prediction):** no-LC live per-lap RMSE grows: lap 5 > 1.5 × lap 1 in 3/3 flights.
 
 A V-L failure stops L before H-L1–P-L4 are scored, and is reported.
+
+### RULING (user, 2026-10-08): T `VISO_DELAY_MS` stays 15 ms, no re-fly — recorded as a DEVIATION from the D2 rule
+
+**Ruling.** The D2 rule sets `VISO_DELAY_MS` from the measured minimum latency. On the clean T flights the minimum
+VISP receipt − capture was **17.5–26.6 ms**, so 15 ms is up to **12 ms short**. Kept; no re-fly.
+
+**Bound on the effect.** In T, the ExternalNav delay applies to **both** position and yaw fusion, since both come from
+the same ODOMETRY sample and its timestamp. A mistimed fix is compared with the state up to 12 ms away from its true
+time, so the error is ≤ 12 ms × the true rate:
+- **Position, nominal speed:** 12 ms × 0.5 m/s ≈ **6 mm per fix**, against σ_pos = 50 mm.
+- **Position, at corners (measured maximum speed):**
+  - The maximum ground-truth horizontal speed in any T lap window is **1.80 m/s** (T_A_r2). It comes from a 0.2 s
+    boxcar on 20 ms resampled GT, with every flight between 1.30 and 1.80 m/s; the unsmoothed maximum is 1.82 m/s.
+  - It occurs ~0.9 m past a corner, where the position controller catches up with the moving setpoint after rounding
+    the corner. p99 speed is 0.99–1.09 m/s.
+  - Bound: 12 ms × 1.80 m/s ≈ **22 mm per fix** (0.43 σ_pos), and only on the post-corner fixes.
+- **Yaw:** the maximum smoothed GT yaw rate in any lap window is **5.1 °/s** (unsmoothed 6.7 °/s). The bound is
+  12 ms × 5.1 °/s ≈ **0.06°** (0.08° unsmoothed), against EKF3's effective yaw σ = 5°.
+
+All bounds are below half the fix noise, so the delay cannot change any T result.
+- The UKF and FGO replay `/tags/sent` at the capture stamp and are not affected at all.
+- EKF3's live errors in T are 39–106 mm RMSE.
+
+**Correction to the T record ("Lap mode", above).** "Flown speed in the leg centres is 0.42–0.49 m/s" describes
+**leg centres only**. After each corner the vehicle runs up to 1.30–1.80 m/s for a short catch-up. The trajectory is
+still the same in every condition (simulator truth, same setpoint); only the speed statement is corrected.
