@@ -8,8 +8,8 @@
 # A packed bag cannot be read by rosbags/ros2 until unpacked (about 6 s per 3 GB bag).
 set -euo pipefail
 cmd=$1; d=${2%/}; b="$d/bag"; man="$b/PACKED.txt"
-n_db=$(ls "$b"/*.db3 2>/dev/null | wc -l); [ "$n_db" -le 1 ] || { echo "ERROR $n_db .db3 files in $b" >&2; exit 2; }
-if [ "$n_db" -eq 1 ]; then db=$(ls "$b"/*.db3); else z0=$(ls "$b"/*.db3.zst 2>/dev/null | head -1); db=${z0%.zst}; [ -n "$z0" ] || db="$b/bag_0.db3"; fi
+n_db=$( (compgen -G "$b/*.db3" || true) | wc -l); [ "$n_db" -le 1 ] || { echo "ERROR $n_db .db3 files in $b" >&2; exit 2; }
+if [ "$n_db" -eq 1 ]; then db=$(compgen -G "$b/*.db3"); else z0=$( (compgen -G "$b/*.db3.zst" || true) | head -1); db=${z0%.zst}; [ -n "$z0" ] || db="$b/bag_0.db3"; fi
 z="$db.zst"
 case "$cmd" in
   pack)
