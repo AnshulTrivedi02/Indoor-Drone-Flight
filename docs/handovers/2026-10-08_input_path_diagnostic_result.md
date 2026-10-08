@@ -41,3 +41,109 @@ OFF-by-default variants split it (same metrics as §0):
 Expectation stated beforehand: if `flowgyro` and `biascorr` each close most of the H gap and `flowtime` does not,
 the mechanism is the gyro bias left in the offline UKF's derotation, not the input path. The default path is
 re-checked byte-identical after this change.
+
+## 1. What each estimator receives (source at `~/ardupilot` 7bac20cbcc; port at `~/ardupilot_ukf` `ukf-port-tag` eb86bada)
+
+| | EKF3 (and the UKF port, via DAL) | offline UKF/FGO (bags) |
+|---|---|---|
+| IMU quantity | delta angle / delta velocity per FC frame (`AP_InertialSensor::get_delta_angle/velocity`, EKF3 `AP_NavEKF3_Measurements.cpp:546,763`; port `AP_NavUKF.cpp` `update()`, first usable IMU) | HIGHRES_IMU instantaneous `get_gyro()/get_accel()` (`GCS_Common.cpp:2294-2302`), summed rectangularly |
+| filtering | **unfiltered**: delta angle from the raw sample, trapezoidal + coning (`AP_InertialSensor_Backend.cpp:333-365`, in `_notify_new_gyro_raw_sample` :281); delta velocity from the raw accel (:608) | **20 Hz 2-pole low-pass** (`_gyro_filter` :251, `_accel_filter` :611; `INS_*_FILTER 20`) |
+| rate / timing | 1 kHz sensor integrated into FC frames (RFRH median 3.00 ms, 2–4 ms), on the FC clock; EKF3 predicts on ~12 ms sums, the port on the same 12 ms trigger | one sample per FC frame (333 Hz), receipt-stamped, OI-2 dejittered to a regular 3.0006 ms grid; 15.0 ms predict step (D27 noise form) |
+| flow values | ROFH FX/FY = the MAVLink `flow_rate_x/y` exactly (`FLOW_*SCALER 0`, `ORIENT_YAW 0`); matched to the bag `flow_x_rad/flow_y_rad` frame by frame (|Δ| < 1e-5 rad/s; signs +,+ on both flights) | same values |
+| flow time | `imuSampleTime − EK3_FLOW_DELAY(10) − flowTimeDeltaAvg/2(50) − localFilterTimeStep/2(6)`, clamped to the 60 ms horizon (`AP_NavEKF3_Measurements.cpp:232-236`, `AP_NavEKF3.h:511`, `AP_NavEKF3_core.cpp:42-46`); port identical (`AP_NavUKF.cpp:37` + flow block) = arrival − 60 ms | capture stamp |
+| flow rate limit | EKF3 only: ≥ 50 ms between accepted flows (`AP_NavEKF3_Measurements.cpp:178-180`, `AP_NavEKF3.h:516`) → **50.1 % (H) / 50.4 % (dsn) of frames fused**; the port does not limit | every frame |
+| derotation gyro | `bodyRate` = `AP::ahrs().get_gyro()` averaged between flow messages (`AP_OpticalFlow_MAV.cpp:38-42,76`); EKF3 then subtracts `flowGyroBias` (:193-194,206-207) | frame-averaged bag gyro (`FlowFrameGyroAverager`), **raw** (no bias correction) in the UKF; bias-corrected in the FGO |
+| AHRS gyro | `AHRS_EKF_TYPE 3` (**H**): `ins.get_gyro() + EKF3 gyro drift` (`AP_AHRS.cpp:776-780`) = **EKF3-bias-corrected**; `AHRS_EKF_TYPE 10` (**dsn**): `ins.get_gyro()` (`AP_AHRS_SIM.cpp:215`). Port flying (S2): `ins.get_gyro() + UKF drift` (`AP_AHRS_UKF.cpp:30`) | — |
+
+**Measured differences** (`eval/apin_extract.py`; `eval/results/input_path/extract_stats_*.json`; clock: `/imu/time_ref`
+lower envelope, as `h_score.py`):
+- IMU lag: the bag gyro/accel lag the FC deltas by **16 ms (H) / 18 ms (dsn)** (cross-correlation; ≈ the 20 Hz
+  filter's ~11 ms group delay plus receipt latency). Over 15 ms steps the integrated difference is small: delta-angle
+  RMS 2–7e-5 rad, delta-velocity RMS 1.2e-5 (x, y) / 1.7–2.0e-4 (z) m/s; means ≈ 0 except dv_z −2.4…−3.3e-5 m/s
+  (~2 mm/s² vertical).
+- Flow time: EKF3 / the port place each flow **36 ms (H) / 45 ms (dsn) before** its capture (median; arrival is
+  24 / 15 ms after capture). The offline UKF fuses at capture.
+- Derotation gyro, ROFH − bag frame average: H mean **(−2.6, +2.6) mrad/s** (x, y), RMS 7.5 / 3.2 mrad/s; dsn mean
+  ≈ 0 (2e-6), RMS 1.2 / 2.9 mrad/s. The H offset is EKF3's gyro-bias estimate carried in by AHRS type 3.
+
+## 2. Results
+
+**Regression (default path):** with `UKF_APIN` unset, the modified scripts reproduce the unmodified ones (HEAD
+`b918455`) and the stored thesis outputs **byte for byte** on both flights (`.tum`, `.json`, `metrics.txt`,
+`bgz_series.txt`; npz compared array by array, excluding only the wall-clock `t_*_ns` timing arrays). Checked after
+both code changes (`eval/results/input_path/regression2.txt`).
+
+**`H_s1_r1` tag-loss drift, UKF, effective / as worded (mm)** (`eval/results/input_path/h_*.json`):
+
+| variant | hover 5 s | hover 15 s | hover 30 s | move ~7 s |
+|---|---|---|---|---|
+| (a) bag (= stored thesis value) | 32 / 28 | 120 / 117 | 292 / 289 | 40 / 37 |
+| (b) FC IMU + FC flow | **11 / 11** | **7 / 7** | **11 / 11** | **13 / 18** |
+| (b-imu) | 32 / 28 | 120 / 117 | 292 / 289 | 44 / 38 |
+| (b-flow) | 11 / 11 | 7 / 7 | 11 / 11 | 16 / 21 |
+| `flowgyro` (bag flow, EKF3's gyro) | 11 / 11 | 13 / 12 | 31 / 30 | 8 / 12 |
+| `flowtime` (FC flow time, bag gyro) | 33 / 28 | 120 / 117 | 292 / 289 | 33 / 32 |
+| **`biascorr` (bag inputs, own bias removed in h_flow)** | **13 / 13** | **2 / 2** | **6 / 6** | **16 / 9** |
+| reference: UKF port on Replay (tier B) | 12 | 8 | 11 | 13 |
+| reference: EKF3 / FGO (this flight) | 13 / 14 | 6 / 50 | 11 / 112 | 31 / 1 |
+
+Share of the offline-vs-port gap closed by (b): 1.0 / 1.0 / 1.0 / 1.0 (b-imu: 0 / 0 / 0 / <0).
+
+**`dsn_tex_r2` evo -a (cruise), m** (window 30.56–333.04 s; `eval/results/input_path/dsn_three_way.json`):
+EKF3 3.86, FGO 4.72, UKF (a) **2.13**; (b) 2.04; (b-imu) 2.32; (b-flow) 1.88; `flowgyro` 2.09; `flowtime` 2.07;
+`biascorr` 1.69. Displacement ratio 0.96–0.98 for all.
+
+## 3. Findings
+
+1. **The S1 hover-drift gap is NOT an input-path effect. It is the UKF's flow derotation using the raw gyro.**
+   - Swapping the IMU path (filtered 333 Hz samples → FC unfiltered deltas, on the FC clock) changes nothing on H
+     (≤ 4 mm) and moves dsn cruise by +0.19 m.
+   - Swapping flow timing (capture → EKF3's arrival − 60 ms) changes nothing on H.
+   - All of (b)'s effect comes from the derotation gyro. On H it carries **EKF3's gyro-bias estimate** (AHRS type 3), a
+     ~2.6 mrad/s x/y offset. The offline UKF, on its own bag inputs, removes the same effect when `h_flow` uses
+     (gyro − its own bias estimate) (`biascorr`: 2–16 mm, EKF3's scale).
+   - Mechanism: an uncorrected rate bias b in the rotational term reads as translation, ≈ b·h_cam of velocity error,
+     which the hover with no tag integrates.
+2. **This reverses the tier-B attribution** ("input-path effect, not the UKF formulation",
+   `docs/h_backends_tag_input.md` §3.3). The port on Replay received EKF3's bias-corrected `bodyRate` (Replay of an
+   AHRS-type-3 flight), so its 7–19 mm drift reflects EKF3's bias estimate fed into the port's flow model.
+   - **S2 prediction:** when the port flies, `AP_AHRS_UKF.cpp:30` supplies `ins.get_gyro() + UKF drift`, i.e. the
+     UKF's *own* bias-corrected rate, which is the `biascorr` condition. The predicted EKF3-scale drift is therefore
+     still expected, but for this reason. S2 tests the formulation, not the input path.
+3. **Size for the main results:**
+   - **EKF3 vs FGO:** the FGO already derotates with a bias-corrected rate, so finding 1 does not apply to it. The
+     input path proper (the IMU/flow swaps) moved the UKF by −0.06…+0.19 m on dsn cruise and ≤ 4 mm on H. Estimated
+     share of the EKF3-vs-FGO textured result: **≲ 0.2 m of evo -a (cruise)**, inside the 0.40 m pipeline sensitivity
+     floor (P4). It is not a material explanation.
+   - **EKF3 vs UKF:** the input path is likewise small (≲ 0.2 m cruise). The raw-rate derotation is a formulation
+     difference: about −0.44 m on one textured cruise (2.13 → 1.69, n = 1, not significant), and the dominant term in
+     hover dead-reckoning (H: ~10× drift).
+   - The dsn bags have no EKF3 bias in ROFH (AHRS type 10), so dsn (b-flow) isolates timing and the raw-vs-averaged
+     AHRS gyro only.
+
+## 4. Open questions / what would confirm
+- `biascorr` on all nine `dsn_*`, `H_s1_r2/r3` and the T/O flights, to size the formulation effect with n > 1. It
+  would be a thesis change to the UKF's `h_flow` rate, so it needs a ruling (it moves away from "UKF passes the raw
+  rate", `measurement_models.h_flow_pose` docstring).
+- The source of the ~2.6 mrad/s x/y gyro bias in SITL (`SIM_GYR*_BIAS` 0; the drift model?) is not traced.
+- The EKF3-only 50 ms flow rate limit (half the frames fused) is not reproduced by the port or the offline UKF;
+  unquantified.
+- (b) keeps the offline 15 ms step and D27 noise form, so (b)-vs-port also contains the tier-A noise-form term
+  (~3.6 mm); not separated.
+- n = 1 per flight type. No FGO input-path run (the IMU swap is the relevant one for the FGO; not done).
+
+## 5. Exact commands
+Scratch: `$S=/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad`, with
+`$S/home` a scratch HOME. It holds a decompressed COPY of `dsn_tex_r2/bag/bag_0.db3.zst` (sha256 matches
+`PACKED.txt`) and links to `H_s1_r1/bag`.
+- Extract: `~/venv-tags/bin/python eval/apin_extract.py <trial> --trials-dir $S/home/thesis_data/trials`
+- Replays, each through `src/estimators/fgo_cpp/tools/heavy.py "<desc>" -- env HOME=$S/home OPENBLAS_NUM_THREADS=1
+  [ROOM_TAG_SIGMA_POS=0.02] [UKF_APIN=both|imu|flow|flowgyro|flowtime|biascorr] ~/venv-evo/bin/python
+  src/estimators/{room_ukf_replay.py H_s1_r1 | ukf_replay.py dsn_tex_r2}`
+- Regression: the same with `UKF_APIN` unset, and the HEAD-`b918455` scripts under `$S/home_orig`; compared by
+  `$S/regcmp.py`.
+- Scoring: `eval/h_score.py H_s1_r1 --profile batches/expH/s1_profile.json --sigma 0.02` with `HOME` = one scoring
+  home per variant (`room_ukf` linked to that variant). `eval/three_way_eval.py dsn_tex_r2 --est
+  LABEL=ukf_apin*/ukf_traj.tum`, with `ekf3/ukf/fgo` linked to the real trial.
+- Outputs: copied to NEW directories `~/thesis_data/trials/{H_s1_r1/room_ukf_apin*, dsn_tex_r2/ukf_apin*, */apin}`
+  and `eval/results/input_path/`. No existing file was changed.
