@@ -10547,3 +10547,73 @@ segmented by GT horizontal speed (0.2 s boxcar): **catch-up** ≥ 0.8 m/s (the p
   and the same inlier ratio.
 - This is a shared condition: all three estimators receive the same flow, and EKF3 accepts on quality > 0. Nothing is
   invalid, so **no T result changes**.
+
+### Experiment L RESULT (`eval/results/expL/*_t245.json`): H-L1, H-L2, H-L3 and P-L4 ALL PASS 3/3
+
+**V-L (recorded earlier): PASS.** On `dsn_tex_r1`, no tags and no revisits, the keyframe FGO's live evo -a (cruise)
+is 4.63 m against 4.59 m for the thesis FGO (+0.9%; band ±20%).
+
+**Deviations, recorded:**
+- **Hindsight solve:** iSAM2's full-graph estimate after 5 extra relinearising updates, instead of the
+  pre-registered LM polish. The polish exceeded 5000 s on the V-L flight.
+- **Cut after the lap window:** every L replay (both modes, all three flights) stops at anchor + 245 s, 4 s after
+  LAPS END (which is 241.0 s after the anchor in all three). The first no-LC runs of T_A_r1 and T_A_r2 exceeded their
+  2 h cap; the worst stall was in the landing after the laps, outside the scored window.
+  - The cut is identical for both modes.
+  - The LC live tracks are byte-for-byte the same as the uncut runs (causal). LC hindsight changed by ≤ 1 mm RMSE.
+
+Horizontal RMSE in tag 0's frame over the lap window (m):
+
+| flight | track | overall | per lap 1 → 5 |
+|---|---|---|---|
+| T_A_r1 | LC live | **0.043** | 0.075, 0.033, 0.025, 0.035, 0.030 |
+| | LC hindsight | **0.020** | 0.023, 0.019, 0.019, 0.022, 0.019 |
+| | no-LC live | 0.251 | 0.075, 0.151, 0.243, 0.327, 0.350 |
+| | no-LC hindsight | 0.242 | 0.183, 0.297, 0.270, 0.232, 0.213 |
+| T_A_r2 | LC live | **0.041** | 0.060, 0.040, 0.034, 0.029, 0.034 |
+| | LC hindsight | **0.029** | 0.031, 0.028, 0.027, 0.028, 0.029 |
+| | no-LC live | 0.200 | 0.060, 0.133, 0.183, 0.267, 0.272 |
+| | no-LC hindsight | 0.298 | 0.178, 0.333, 0.372, 0.334, 0.225 |
+| T_A_r3 | LC live | **0.047** | 0.091, 0.024, 0.023, 0.029, 0.025 |
+| | LC hindsight | **0.021** | 0.020, 0.022, 0.022, 0.022, 0.019 |
+| | no-LC live | 0.312 | 0.091, 0.197, 0.267, 0.342, 0.500 |
+| | no-LC hindsight | 0.236 | 0.092, 0.166, 0.249, 0.235, 0.354 |
+
+- **H-L1 (PRIMARY): PASS, 3/3.** LC live lap-5/lap-1 = 0.40, 0.57, 0.27 (band ≤ 1.5). Lap 1 is the highest, since
+  every tag is still new on the first lap; from lap 2 on, re-identified tags hold the live error at 0.02–0.04 m.
+- **H-L2: PASS, 3/3.** LC live 0.041–0.047 against no-LC live 0.200–0.312 (5–7×).
+- **H-L3: PASS, 3/3.** LC hindsight 0.020–0.029 against no-LC hindsight 0.236–0.298.
+- **P-L4: PASS, 3/3.** no-LC live lap 5/lap 1 = 4.7, 4.5, 5.5: the drift grows lap on lap without re-identification.
+- **Also reported:** without loop closure, hindsight does **not** reliably improve on live (worse on T_A_r2:
+  0.298 vs 0.200). With no re-identification there is nothing to tie the passes together, so smoothing only
+  redistributes the drift.
+- **Scope:** this is an FGO capability (persistent landmarks plus re-identification), not an FGO-vs-filter result. The
+  filters have no loop-closure equivalent without a different design (e.g. EKF-SLAM). Tag ids make re-identification
+  trivial, so this tests whether the estimator *uses* loop closures, not place recognition.
+
+**Computational cost** (DIAGNOSTIC: workstation Python, numerical-Jacobian CustomFactors, six replays running
+concurrently; the lone 60 s smoke test ran at 4.4 ms per update):
+
+| mode | per-update solve median / p99 | live replay of the ~245 s lap flight | landmarks |
+|---|---|---|---|
+| LC | 33–43 ms / 85–94 ms | 301–382 s | 8 |
+| no-LC | 36–55 ms / **1.3–2.2 s** | 1,044–2,996 s | 41 |
+
+Mean cost per update over the flight, by 1000-keyframe block (≈ 33 s of flight each):
+- **LC:** 9–11 ms in the first block; 27–77 ms afterwards, roughly flat with 8 landmarks.
+- **no-LC:** 9–13 ms in the first blocks, rising with the landmark count to 104–335 ms per update by 34–39
+  landmarks. T_A_r1 had a 611 ms/update stretch (keyframes 3000–4000, 23 landmarks).
+
+**Cause of the slowdown:**
+- **The whole-history graph:** every keyframe (30 Hz, the thesis cadence: ~7,350 per flight with 3 states each) is
+  kept and solved by iSAM2. Each relinearisation and each loop closure touches a growing part of the Bayes tree.
+- **A new landmark per pass without loop closure:** about 41 landmarks per flight against 8. Each pass's landmark
+  links the poses of that pass, the fill-in grows, and iSAM2's partial relinearisations become expensive and erratic
+  (p99 > 1 s).
+- **The post-lap landing over tag 0:** continuous sightings at near-zero motion produced the worst stalls, hence the
+  cut.
+
+**Implication for a real drone:** a real-drone keyframe FGO would need a **much lower keyframe rate** (e.g. 2–5 Hz
+with preintegrated IMU and flow between keyframes), bounded landmark sets or marginalisation, and compiled factors.
+The 30 Hz retained-history design here was chosen so the flow information equals the thesis FGO's. It is an offline
+capability demonstration, not a real-time design.

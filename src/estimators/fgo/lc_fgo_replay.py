@@ -204,6 +204,8 @@ def isam_keyframe(t, flow, omega_f, rng, tags):
     est = isam.calculateEstimate()
     prev = (est.atPose3(X(k)), est.atVector(V(k)), est.atConstantBias(B(k)))
     pim.resetIntegrationAndSetBias(prev[2]); key_t.append((k, t))
+    if k % 1000 == 0:
+        print(f"[progress] keyframe {k} t {t:.1f} landmarks {n_lm} wall {time.perf_counter() - t_wall0:.0f} s", flush=True)
     rpy = prev[0].rotation().rpy(); live.append((t, prev[0].x(), prev[0].y(), prev[0].z(), rpy[0], rpy[1], rpy[2]))
 
 
