@@ -12195,3 +12195,19 @@ configured values:
   **byte-identical** to the stage's (sha256 `fef3533a…`, the registered reference).
 - **S3 gate met:** the corrected C++ FGO passes its equivalence check. **S3 flies `fgo_cpp_node` `1123742d…`.**
 - **Not run:** the tag-input bands FN1–FN4 (Python node). The tag path is covered by B2–B5 (T, tags) and L.
+
+### `H_s1far_r3b` (S1 flight-3 re-fly) and the FGO sizing replay
+- **`H_s1far_r3b`:**
+  - IMU-gap check **ok**, so it is usable for the replay estimators;
+  - EKF3 flying: hold mean 7.5 / 8.2 mm, max 20 / 17 mm (H-H1 PASS);
+  - loss drift 12 / 17 / 11 / 16 mm; effective re-lock 0.031–0.044 s; no lockout.
+  - Its offline UKF/FGO shadows are produced in the consolidated re-run. The repo FGO is now the corrected one, so a
+    shadow run now would not be comparable with r1/r2's.
+  - The original `H_s1far_r3` stays recorded (excluded under the IMU-gap rule).
+- **Sizing replay (FIRST INDICATION ONLY, ruling):** the corrected FGO on `dsn_tex_r2`, evo -a (cruise), the same
+  pinned window:
+  - FGO **4.72 → 4.48 m** (−0.24 m, −5 %);
+  - EKF3 3.86 and UKF 2.13 unchanged;
+  - displacement ratio 0.97 in both.
+  - The stored FGO reproduces at 4.72.
+  - One bag. The confirmatory test is re-run in the consolidated re-run under the original decision rule.
