@@ -621,3 +621,61 @@ to world ENU by the fixed spawn convention, with no alignment (corridor x = worl
     overridden.
 
 Results are reported as measured. No band or threshold above is loosened after the data are seen.
+
+## Part 4: what was built and verified (no simulator; after Pre-registration 4 was committed)
+
+**Wiring (`run_trial.sh`, adopted from WIP `b641287` after review).** With `FGO_NODE=1 FGO_NODE_IMPL=cpp`:
+- `run_trial.sh` launches `$FGO_CPP_NODE_BIN` (default `~/opt/fgo_cpp/bin/fgo_cpp_node`) on the same SERIAL3 port,
+  with `stats_path`, `reorder_delay_s`, `imu_stamp`, `arm_source` and `heading`;
+- `/fgo/pose` and `/fgo/valid` are added to the bag;
+- `metadata.yaml` gets `fgo_node_impl: cpp` and a `fgo_cpp:` line.
+
+**Python path unchanged.** Checked as follows:
+- the `fgo_node.py` launch block is byte-identical to the committed one (extracted and `diff`ed);
+- the metadata line is the same text, now under an `elif`;
+- the empty `FGO_RECORD_TOPICS` array expands to zero words under `set -u`;
+- the `HEADING_BRIDGE` `&&` inside the `if` does not trip `set -e`;
+- `bash -n` passes.
+
+**Node.**
+- On SIGINT it drains its queue, flushes, and writes `fgo_node_stats.f64` (10 columns per keyframe) and
+  `fgo_node_stats.json`. The JSON holds the configuration, the counters and `t_armed_header`, the header-clock
+  arming instant from HEARTBEAT; that field was added in this stage.
+- After shutdown it skips ROS publishing but still sends ODOMETRY.
+- Built and installed to `~/opt/fgo_cpp/bin` through `heavy.py`. md5 of `fgo_cpp_node`: `ecc683b2…`; of
+  `fgo_cpp_live_replay`: `63aafa77…`.
+
+**Smoke tests.** These used `ros2 bag play` of a scratch copy of the `fgo_shadow_half_a3` bag on an isolated ROS
+domain. The node was launched with `run_trial.sh`'s exact command line in its own process group. A fake SERIAL3
+peer sent HEARTBEATs, disarmed and then armed, and the node was stopped with SIGINT to the group.
+- The build-dir binary was run twice: (0.10, causal) and (0.20, time_ref). The installed binary was run once:
+  (0.10, causal).
+- In every run the node exited with rc 0 within 0.11–0.16 s and wrote both stats files.
+- The JSON echoed the configuration, and `t_armed_header` was set from the HEARTBEAT.
+- ODOMETRY datagrams reached the peer, and `/fgo/pose` was recorded.
+- In the bag, `/fgo/pose` equals the stats rows **exactly** (position and yaw) for every keyframe. The exceptions
+  are the last 6 of 1695, the post-SIGINT drain, which by design is not published.
+
+**Scoring script `eval/fgo_cpp_sitl_check.py`** (`score` / `decide`). Unit checks on existing data:
+- a +30 ms stamp shift moves `delta_att` by exactly +30 ms;
+- the `/fgo/pose` reader agrees with the node stats;
+- `kf_states` matches the quaternion path to 6e-19 rad;
+- `decide` gives the pre-registered verdict on four synthetic cases: rule A both ways, the "neither delay" note,
+  rule B both ways plus "indistinguishable", and the void-config handling;
+- the config-echo parser was checked on the exact metadata and JSON formats.
+
+**Dry run on `fgo_shadow_half_a3`, the Python-node reference flight (its first scoring; after the
+pre-registration).** The run included the packed-bag scratch copy (sha256 verified) and the paired replay.
+- Config OK (`AHRS_EKF_TYPE` 10).
+- Check a: Age median 132, p95 149, p99 152, **max 176 ms**; 0% over 250 ms; `OV` = 0 never. Arrival latency median
+  115 ms, max 149 ms.
+- `delta_att` = +7.5 ms.
+- Paired replay of a3's own bag (delay 0.10, no arming): time_ref −3.5 ms, causal +6.0 ms.
+
+**Caution for Rule B (diagnostic only, rules unchanged).** On a3 the roll/pitch shift curve is very shallow:
+- the RMS rises only about 0.0009° at ±20 ms from the minimum;
+- the same fit on each half of the flight gives −23.0 and +37.5 ms.
+
+The minimum is therefore poorly located for a single flight. Rule B's resolution R = max(5 ms, |(iii) − a3|) is
+the guard: if (iii) and a3 disagree by tens of ms, the pre-registered verdict will be "indistinguishable; keep
+time_ref". The diagnostics `diag_rms_rise_at_pm20ms_deg` and `diag_delta_halves_ms` are reported with every fit.

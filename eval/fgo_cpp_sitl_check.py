@@ -145,7 +145,7 @@ def check_a(D):
 
 
 # ---------------------------------------------------------------- check b
-def fit_delta(F, G):
+def fit_delta(F, G, half=True):
     """F, G rows (t, x, y, z, roll, pitch, yaw). Airborne = GT height > 0.5 m at t_k."""
     tk = F[:, 0]
     ok = (tk >= G[0, 0] + 0.25) & (tk <= G[-1, 0] - 0.25) & (np.interp(tk, G[:, 0], G[:, 3]) > 0.5)
@@ -160,11 +160,20 @@ def fit_delta(F, G):
         rms[i] = math.sqrt(np.mean(np.r_[er, ep] ** 2))
     i = int(np.argmin(rms)); i0 = int(np.argmin(np.abs(grid)))
     er0 = rf - np.interp(t, G[:, 0], G[:, 4]); ep0 = pf - np.interp(t, G[:, 0], G[:, 5])
-    return {"delta_att_ms": None if i in (0, len(grid) - 1) else round(1e3 * grid[i], 1),
-            "identified": i not in (0, len(grid) - 1), "grid_argmin_ms": round(1e3 * grid[i], 1),
-            "rms_at_delta_deg": math.degrees(rms[i]), "rms_at_0_deg": math.degrees(rms[i0]),
-            "offsets_deg_at_0": [math.degrees(er0.mean()), math.degrees(ep0.mean())],
-            "n_states": int(ok.sum()), "t_s": [float(t[0]), float(t[-1])]}
+    out = {"delta_att_ms": None if i in (0, len(grid) - 1) else round(1e3 * grid[i], 1),
+           "identified": i not in (0, len(grid) - 1), "grid_argmin_ms": round(1e3 * grid[i], 1),
+           "rms_at_delta_deg": math.degrees(rms[i]), "rms_at_0_deg": math.degrees(rms[i0]),
+           "offsets_deg_at_0": [math.degrees(er0.mean()), math.degrees(ep0.mean())],
+           "n_states": int(ok.sum()), "t_s": [float(t[0]), float(t[-1])]}
+    # diagnostics (report only, added after the pre-registration; they change no rule): curve depth at +-20 ms
+    # and the same fit on each half of the airborne states (how well the minimum is located)
+    j20 = [int(np.argmin(np.abs(grid - grid[i] - s))) for s in (-0.020, 0.020)]
+    out["diag_rms_rise_at_pm20ms_deg"] = [math.degrees(rms[j] - rms[i]) for j in j20]
+    if half:
+        h = len(t) // 2
+        out["diag_delta_halves_ms"] = [fit_delta(F[np.flatnonzero(ok)[s]], G, half=False).get("grid_argmin_ms")
+                                       for s in (slice(0, h), slice(h, None))]
+    return out
 
 
 def secondary(F, G, frame="corridor"):
