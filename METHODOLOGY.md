@@ -10794,3 +10794,67 @@ Jacobians (a Pi timing estimate follows in the next port stage). `docs/real_flig
   parameters. Kept as `H_s0b_ABORTED`.
 - Flown with nothing else on the machine (bag compression finished; the build lock was clear and the flight lock was
   held).
+
+### Experiment H S1 RESULT (`H_s1_r1..r3`, `eval/results/expH/s1_r*.json`): H-H1 PASS; P-H5 PASS; P-H7 PASS; P-H6 FAILS as worded (a measurement-definition fault found after scoring)
+
+**Flights.**
+- **Profile:** all three flew the full 46-segment profile closed loop on EKF3 (tag at 51.7 s, landed).
+- **IMU:** the IMU-gap rule is ok on all three.
+- **G2/G3:** `VISP` = `/tags/sent`, and no wrong ids.
+- **PROCESS FAULT (mine), disclosed: the safety watcher never started in S1.** `--box -4.4,4.4,-4.4,4.4` was parsed by
+  argparse as an option, so the watcher exited at once (exit 2). The flights had neither the live room-box stop (G5)
+  nor the bridge-liveness guard.
+  - **G5 checked post hoc from GT:** the minimum wall clearance was **1.33 m** (band ≥ 0.5 m). PASS.
+  - **Fixed** (`--box=…`, parse-tested) for every later H flight.
+- **Profile arithmetic error, mine:** the "loss during a lateral move" was pre-registered as 12 s but lasts **7 s**
+  (0.5 m at 0.2 m/s each way plus a 2 s pause). The profile was flown as written.
+
+**EKF3 flying (mean of 3 flights):**
+- **Hold error:** mean **8 mm**, max **16–25 mm**, in both pre-loss hold windows.
+- **Gyro activity** in the holds: 0.008 rad/s.
+- **Lateral tracking:** RMSE 78–90 mm, max 235–251 mm. This is the controller following the 0.2 m/s moving setpoint;
+  reported, no band.
+
+**Tag losses** (drift = |estimate − GT| at the end; EKF3 flew, the UKF and FGO are shadows on identical inputs):
+
+| loss | EKF3 drift | UKF drift | FGO drift | EKF3 `posTimeout` share |
+|---|---|---|---|---|
+| hover 5 s | 13–27 mm | 32–49 mm | 14–25 mm | 0 |
+| hover 15 s | 6–25 mm | 120–145 mm | 50–63 mm | 0.27–0.31 |
+| hover 30 s | 3–11 mm | 282–292 mm | 107–114 mm | 1.00 |
+| during the move, ~7 s | 7–31 mm | 40–57 mm | 1–7 mm | 1.00 |
+
+Effective loss durations: 5.6–5.7, 14.5–15.5, 30.1–30.7 and 6.9–7.3 s. Values are the effective (post hoc) drifts; the
+as-worded drifts differ by ≤ 5 mm.
+
+**Verdicts:**
+- **H-H1 (primary): PASS** 3/3 (mean ≤ 0.05 m, max ≤ 0.15 m).
+- **P-H5 (drift bands): PASS** for every loss and estimator, as worded and effective:
+  - EKF3 and FGO ≤ 0.05 / 0.10 / 0.20 m at 5 / 15 / 30 s and ≤ 0.15 m during the move;
+  - UKF ≤ 2× those (its 30 s drift, 0.29 m, is within 0.40).
+- **P-H7 (lockout): PASS.** No estimator rejected the returning tag in any loss.
+- **P-H6 (re-lock): FAIL as worded:**
+  - **Re-lock time.** Measured as pre-registered (occluder OFF → first fused fix), it is **0.16–1.06 s** for all
+    three estimators, against bands of ≤ 0.2 s (EKF3) and ≤ 0.1 s (UKF/FGO).
+  - **Jump vs drift, UKF and FGO.** Their "largest single step ≤ accumulated drift" fails in most losses, by a few mm to
+    10 mm. They converge in one step, so the step is about the drift, plus noise and motion.
+  - **EKF3's jumps** match the predictions (≤ 0.05 m after 5 s; within 0.02 m of the drift after 15/30 s), but only
+    because its drift was tiny.
+
+**FINDING (after scoring): the occluder's rendering lags the `set_pose` call by 0.16–1.0 s of sim time.**
+- The tag bridge still detected (and sent) the tag for 0.25–1.0 s after OCCLUDER ON, and the first detection after
+  OFF came 0.16–1.02 s after OFF (`tag_bridge_fwd.csv`).
+- So the pre-registered re-lock time measured **Gazebo's occluder lag, identical for all three estimators**, not any
+  estimator.
+- **Effective metrics (POST HOC, labelled; both kept):** using the actual gap in fixes, EKF3 fuses the first returning
+  fix **28–44 ms** after its capture (its 31 ms `VISO_DELAY_MS` plus one prediction step). The UKF and FGO fuse it
+  on arrival (0 ms) by construction.
+
+**What H S1 shows:**
+- EKF3 flying on the wall tag holds to ~1 cm and rides out tag losses of up to 30 s on flow, with ≤ 3 cm drift.
+- With identical inputs in shadow, the UKF drifts ~1 cm/s and the FGO ~0.4 cm/s in hover with the tag lost. The FGO's
+  yaw wanders up to 2.6° (no yaw cap after the anchor, the T design).
+- **An open question, not tested here:** EKF3's much smaller hover drift may come partly from flying on its own
+  estimate, or from estimator differences in the flow model at near-zero speed (cf. the open lateral
+  rotation-magnitude item in `measurement_models.h_flow`). S2/S3, with the UKF and FGO flying, will show their drift
+  when they fly.

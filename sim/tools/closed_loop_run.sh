@@ -67,7 +67,7 @@ if [ -n "${H:-}" ]; then
     export LOOPBACK_ONLY=1 GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
     export TAG_BRIDGE_FWD=1 TAG_FWD_SEND=1 TAG_FWD_CONV="${TAG_FWD_CONV:-u-y_v-x}" TAG_FWD_RVALID="${TAG_FWD_RVALID:-400}" TAG_SIGMA_POS="${TAG_SIGMA_POS:-0.02}"
     export HPROFILE HWORLD="$WORLD"
-    WATCH=(--watch-process tag_bridge_fwd.py --box -4.4,4.4,-4.4,4.4)
+    WATCH=(--watch-process tag_bridge_fwd.py --box=-4.4,4.4,-4.4,4.4)
     ALT=1.5
 fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts

@@ -524,6 +524,36 @@ Horizontal RMSE in the first tag's frame. Source: `eval/results/expL/T_A_r*_t245
   - Cause: the 30 Hz whole-history graph, plus a landmark per pass without loop closure.
   - Deviations: the replays are cut at anchor + 245 s, and hindsight uses iSAM2's full estimate.
 
+## 17. Experiment H (marker-relative holding), S0 + S1 (2026-10-08) — CURRENT
+
+Source: `eval/results/expH/` (`s0a_char.json`, `s0b_check.json`, `s1_r1..3.json`). Full record: METHODOLOGY
+"Experiment H".
+
+**S0a (wall tag, forward camera):**
+- detection 95.8% of in-view frames, 0 wrong ids;
+- horizontal p95: 18 mm at 1.25–1.75 m, 15 mm at 1.75–2.25 m, 24 mm at 2.25–2.8 m;
+- yaw p95 0.4–0.7°;
+- whole image valid; σ_pos 0.02 m.
+
+**S0b:** `VISO_DELAY_MS` 31 (receipt 31.2 ms, node 31.0 ms).
+
+| S1, EKF3 flying (3 flights) | value |
+|---|---|
+| hold error mean / max | 8 mm / 16–25 mm (H-H1 PASS) |
+| lateral tracking RMSE / max (0.2 m/s setpoint) | 78–90 / 235–251 mm |
+| gyro activity in the holds | 0.008 rad/s |
+
+| tag-loss drift (effective, post hoc) | EKF3 (flying) | UKF (shadow) | FGO (shadow) |
+|---|---|---|---|
+| 5 s hover | 13–27 mm | 32–49 mm | 14–25 mm |
+| 15 s hover | 6–25 mm | 120–145 mm | 50–63 mm |
+| 30 s hover | 3–11 mm | 282–292 mm | 107–114 mm |
+| ~7 s during a move | 7–31 mm | 40–57 mm | 1–7 mm |
+| re-lock after the first returning fix (effective) | 28–44 ms | 0 ms | 0 ms |
+| re-lock as pre-registered (OFF → fused) | 0.16–1.06 s (occluder render lag; P-H6 FAIL as worded) | same | same |
+
+No lockout in any loss (P-H7 PASS). P-H5 PASS.
+
 ## † Diverging (unaided) FGO results: evidence of divergence, not precise values (ruling 2026-10-08)
 
 Rows marked **†** carry magnitudes from the Python FGO's **runaway** on blank or transition floors (end-of-cruise km

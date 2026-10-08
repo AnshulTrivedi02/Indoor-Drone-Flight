@@ -117,6 +117,21 @@ for (s1, ton), (s2, toff) in zip(occ[0::2], occ[1::2]):
             for b in bad:
                 run = run + 1 if b else 0; mx = max(mx, run)
             r["lockout"] = bool(mx * dt > 2.0); r["err_after_relock_max_m"] = float(err.max()) if len(err) else None
+        # EFFECTIVE loss (POST HOC, 2026-10-08): the occluder's rendering lags set_pose by 0.16-1.0 s, so fixes go on
+        # after ON and resume late after OFF. The real loss = the gap in SENT fixes around OFF:
+        # t_last = last fix before OFF, t_first = first fix after OFF. Drift at t_first (just before fusing it);
+        # estimator re-lock = first fused fix (EKF3: VISP receipt; UKF/FGO: the fix itself) - t_first; jump after t_first.
+        prev = SENT[SENT < toff]; nxt2 = SENT[SENT > toff]
+        if len(prev) and len(nxt2):
+            tl, tf = float(prev[-1]), float(nxt2[0])
+            i_b = np.searchsorted(X[:, 0], tf) - 1
+            d_eff = float(math.hypot(X[i_b, 1] - gi(X[i_b, 0], 1), X[i_b, 2] - gi(X[i_b, 0], 2)))
+            fus = (visp[visp >= tf - 1e-6][0] if n == "EKF3" and (visp >= tf - 1e-6).any() else tf)
+            w = (X[:, 0] >= tf - 0.05) & (X[:, 0] <= tf + 2.0); Y = X[w]
+            st = np.hypot(np.diff(Y[:, 1]), np.diff(Y[:, 2])); sy = np.degrees(np.abs(wrap(np.diff(Y[:, 3]))))
+            r["effective"] = {"t_last_fix": tl, "t_first_fix": tf, "loss_s": tf - tl, "drift_m": d_eff,
+                              "relock_after_first_fix_s": float(fus - tf),
+                              "jump_pos_m": float(st.max()) if len(st) else None, "jump_yaw_deg": float(sy.max()) if len(sy) else None}
         row[n] = r
     L.append(row)
 out["losses"] = L
