@@ -62,5 +62,26 @@ int main() {
   YawPriorFactor yf(gtsam::noiseModel::Isotropic::Sigma(1, 0.5), X(1), 0.0995);
   pm("yawAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(yf.linearize(vals))->augmentedJacobian());
   std::printf("wrap %.17g %.17g\n", wrap(-3.5), wrap(3.5));
+
+  // one FGO keyframe through the real smoother: variant 0 = priors + CombinedImuFactor only (pure GTSAM),
+  // 1 = + yaw cap + range, 2 = + flow. Attributes any difference to the library build or to the port.
+  for (int variant = 0; variant < 3; ++variant) {
+    FGO f(0.25, 1.0 / 30.0, 2);
+    f.init(Vector3(-0.0009, 0.0009, 9.8107), 0.075, 10.0);
+    for (int i = 0; i < 11; ++i) {
+      const Vector3 a(0.1 * i / 200, -0.05, 9.81 + 0.001 * i);
+      const Vector3 w(0.01, -0.02 * i / 200, 0.03);
+      f.integrate_imu(a, w, 0.003);
+    }
+    const FlowMeas fm{Eigen::Vector2d(0.02, 0.17), true, 0.9};
+    f.keyframe_variant(10.0 + 1.0 / 30.0, variant == 2 ? &fm : nullptr, Vector3(0.011, -0.007, 0.002),
+                       variant >= 1 ? 0.08 : NAN, variant >= 1);
+    std::printf("kf%d", variant);
+    const gtsam::Matrix4 M = f.prev_pose.matrix();
+    for (int i = 0; i < 12; ++i) std::printf(" %.17g", M(i / 4, i % 4));
+    for (int i = 0; i < 3; ++i) std::printf(" %.17g", f.prev_vel[i]);
+    for (int i = 0; i < 6; ++i) std::printf(" %.17g", f.prev_bias.vector()[i]);
+    std::printf("\n");
+  }
   return 0;
 }

@@ -47,7 +47,16 @@ inline Eigen::Vector2d h_flow_rot(const Vector3& om) { return Eigen::Vector2d(+o
 
 // measurement_models.h_flow_pose, in numpy's operation order.
 inline Eigen::Vector2d h_flow_pose(const gtsam::Matrix3& R, const Vector3& v, double p_U, const Vector3& om) {
+#ifdef FGO_CPP_EMULATE_NUMPY_GEMV
+  // Diagnostic only (CMake option FGO_CPP_EMULATE_NUMPY_GEMV, default OFF): reproduce the rounding of
+  // numpy's `R_wb.T @ v_world` on the thesis workstation, which goes to OpenBLAS dgemv and was measured
+  // (2000/2000 random cases, every component) to equal fma(c2, v2, fma(c0, v0, c1 * v1)) per column c.
+  // This depends on the BLAS kernel the CPU dispatches to; it is not part of the model.
+  Vector3 vb;
+  for (int j = 0; j < 3; ++j) vb[j] = std::fma(R(2, j), v[2], std::fma(R(0, j), v[0], R(1, j) * v[1]));
+#else
   const Vector3 vb = R.transpose() * v;                       // R_wb.T @ v_world
+#endif
   // np.cross(omega, [0, 0, -CAM_OFFSET]): (a1*b2 - a2*b1, a2*b0 - a0*b2, a0*b1 - a1*b0)
   const double b0 = 0.0, b1 = 0.0, b2 = -CAM_OFFSET;
   const Vector3 cr(om[1] * b2 - om[2] * b1, om[2] * b0 - om[0] * b2, om[0] * b1 - om[1] * b0);

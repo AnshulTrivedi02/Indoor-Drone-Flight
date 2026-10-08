@@ -32,7 +32,11 @@ class FGO {
   void init(const Vector3& accel_mean, double first_range, double t0);
   void integrate_imu(const Vector3& accel, const Vector3& gyro, double dt);
   // flow: nullptr = none. omega: FLU rates for the flow factor. rng: NaN = none.
-  void keyframe(double t, const FlowMeas* flow, const Vector3& omega, double rng);
+  void keyframe(double t, const FlowMeas* flow, const Vector3& omega, double rng) {
+    keyframe_variant(t, flow, omega, rng, true);
+  }
+  // yaw_cap = false is for the numerics probe only (isolating the factors); the thesis FGO always has it.
+  void keyframe_variant(double t, const FlowMeas* flow, const Vector3& omega, double rng, bool yaw_cap);
 
   double kf_dt;
   int k = 0;

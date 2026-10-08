@@ -48,3 +48,17 @@ pm("rngAb", rf.linearize(vals).augmentedJacobian())
 yf = F.yaw_prior_factor(gtsam.noiseModel.Isotropic.Sigma(1, 0.5), X(1), 0.0995)
 pm("yawAb", yf.linearize(vals).augmentedJacobian())
 print(f"wrap {F._wrap(-3.5):.17g} {F._wrap(3.5):.17g}")
+
+# one FGO keyframe through the real smoother (see probe.cpp): 0 = IMU only, 1 = + yaw cap + range, 2 = + flow
+from fgo_core import FGO
+for variant in range(3):
+    f = FGO(window=0.25, kf_dt=1.0 / 30.0, lm_maxiter=2)
+    f.init(np.array([-0.0009, 0.0009, 9.8107]), 0.075, 10.0)
+    f.no_yawcap = variant == 0
+    for i in range(11):
+        f.integrate_imu(np.array([0.1 * i / 200, -0.05, 9.81 + 0.001 * i]), np.array([0.01, -0.02 * i / 200, 0.03]), 0.003)
+    f.keyframe(10.0 + 1.0 / 30.0, flow=((np.array([0.02, 0.17]), True, 0.9) if variant == 2 else None),
+               omega=np.array([0.011, -0.007, 0.002]), rng=(0.08 if variant >= 1 else None))
+    M = f.prev_pose.matrix()
+    vals = list(M[:3, :].reshape(-1)) + list(f.prev_vel) + list(f.prev_bias.vector())
+    print(f"kf{variant}" + "".join(f" {v:.17g}" for v in vals))

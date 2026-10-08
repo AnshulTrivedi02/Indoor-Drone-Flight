@@ -76,7 +76,7 @@ void FGO::integrate_imu(const Vector3& accel, const Vector3& gyro, double dt) {
   }
 }
 
-void FGO::keyframe(double t, const FlowMeas* flow, const Vector3& omega, double rng) {
+void FGO::keyframe_variant(double t, const FlowMeas* flow, const Vector3& omega, double rng, bool yaw_cap) {
   if (pim_->deltaTij() <= 0) return;   // no IMU since last keyframe - skip (§8)
   const int km1 = k, kk = k + 1;
   const gtsam::NavState pred = pim_->predict(gtsam::NavState(prev_pose, Vector3(prev_vel)), prev_bias);
@@ -89,7 +89,7 @@ void FGO::keyframe(double t, const FlowMeas* flow, const Vector3& omega, double 
   vals.insert(B(kk), prev_bias);
   g.add(gtsam::CombinedImuFactor(X(km1), V(km1), X(kk), V(kk), B(km1), B(kk), *pim_));
   // §9.4 yaw cap: anchored to THIS keyframe's IMU-predicted yaw (zero innovation)
-  g.add(YawPriorFactor(yaw_noise_, X(kk), Xk.rotation().yaw()));
+  if (yaw_cap) g.add(YawPriorFactor(yaw_noise_, X(kk), Xk.rotation().yaw()));
   if (!std::isnan(rng) && 0.05 <= rng && rng <= 40.0) {
     g.add(RangeFactor(range_noise_, X(kk), rng));
     ++n_range;
