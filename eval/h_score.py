@@ -66,15 +66,19 @@ for i, sg in enumerate(P):
 SP = np.array(sp)
 # tracks
 tracks = {}
-mv = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); k1, k4, visp = [], [], []
+mv = mavutil.mavlink_connection(f"{D}/ardupilot.bin"); k1, k4, visp, xuko, xukt = [], [], [], [], []
 while True:
-    r = mv.recv_match(type=["XKF1", "XKF4", "VISP"])
+    r = mv.recv_match(type=["XKF1", "XKF4", "VISP", "XUKO", "XUKT"])
     if r is None: break
     if r.get_type() == "VISP": visp.append(to_bag(r.TimeUS / 1e6)); continue
+    # S2 (2026-10-09): the FLYING UKF port's current-time output (XUKO, NED W) and its processed fixes (XUKT, event time)
+    if r.get_type() == "XUKO": xuko.append((to_bag(r.TimeUS / 1e6), r.PN, r.PE, math.radians(90.0 - r.Yaw))); continue
+    if r.get_type() == "XUKT": xukt.append(to_bag(r.TimeUS / 1e6)); continue
     if r.C != 0: continue
     if r.get_type() == "XKF1": k1.append((to_bag(r.TimeUS / 1e6), r.PN, r.PE, math.radians(90.0 - r.Yaw)))
     else: k4.append((to_bag(r.TimeUS / 1e6), int(r.TS) & 1))
-tracks["EKF3"] = np.array(k1); k4 = np.array(k4); visp = np.array(sorted(visp))
+tracks["EKF3"] = np.array(k1); k4 = np.array(k4); visp = np.array(sorted(visp)); xukt = np.array(sorted(xukt))
+if len(xuko): tracks["UKF_port"] = np.array(xuko)
 for n, p in (("UKF", "room_ukf/ukf_live.tum"), ("FGO", "room_fgo/fgo_live.tum")):
     if os.path.exists(f"{D}/{p}"):
         x = np.loadtxt(f"{D}/{p}", ndmin=2); qx, qy, qz, qw = x[:, 4], x[:, 5], x[:, 6], x[:, 7]
@@ -92,11 +96,11 @@ for i, sg in pre_loss:
     k = max(1, int(round(1.0 / np.median(np.diff(GY[:, 0])))))
     hp = g - np.vstack([np.convolve(g[:, j], np.ones(k) / k, "same") for j in range(3)]).T
     hw.append({"t0": float(t0), "t1": float(t1), "mean_m": float(e.mean()), "max_m": float(e.max()), "gyro_hp_rms_rad_s": float(np.sqrt(np.mean(np.sum(hp ** 2, 1))))})
-out["hold_windows_EKF3_flying"] = hw
+out["hold_windows_vehicle"] = hw
 lat_i = [i for i, sg in enumerate(P) if sg["type"] == "move" and abs(sg["to"][1]) > 0 and seg_t[i] < occ[0][1]]
 t0, t1 = seg_t[lat_i[0]], seg_t[lat_i[-1] + 3] if lat_i[-1] + 3 in seg_t else seg_t[lat_i[-1]] + 20
 w = (G[:, 0] >= t0) & (G[:, 0] <= t1); eE = G[w, 2] - np.interp(G[w, 0], SP[:, 0], SP[:, 2]); eN = G[w, 1] - np.interp(G[w, 0], SP[:, 0], SP[:, 1])
-out["lateral_tracking_EKF3_flying"] = {"rmse_m": float(np.sqrt(np.mean(eE ** 2 + eN ** 2))), "max_m": float(np.hypot(eE, eN).max())}
+out["lateral_tracking_vehicle"] = {"rmse_m": float(np.sqrt(np.mean(eE ** 2 + eN ** 2))), "max_m": float(np.hypot(eE, eN).max())}
 # losses
 L = []
 for (s1, ton), (s2, toff) in zip(occ[0::2], occ[1::2]):
@@ -106,7 +110,7 @@ for (s1, ton), (s2, toff) in zip(occ[0::2], occ[1::2]):
     for n, X in tracks.items():
         i_off = np.argmin(np.abs(X[:, 0] - toff))
         drift = float(math.hypot(X[i_off, 1] - gi(X[i_off, 0], 1), X[i_off, 2] - gi(X[i_off, 0], 2)))
-        src = visp if n == "EKF3" else SENT
+        src = visp if n == "EKF3" else (xukt if n == "UKF_port" else SENT)
         nxt = src[src > toff]; t_rl = float(nxt[0]) if len(nxt) else None
         r = {"drift_end_m": drift, "relock_s": (t_rl - toff) if t_rl else None}
         if t_rl:
@@ -129,7 +133,8 @@ for (s1, ton), (s2, toff) in zip(occ[0::2], occ[1::2]):
             tl, tf = float(prev[-1]), float(nxt2[0])
             i_b = np.searchsorted(X[:, 0], tf) - 1
             d_eff = float(math.hypot(X[i_b, 1] - gi(X[i_b, 0], 1), X[i_b, 2] - gi(X[i_b, 0], 2)))
-            fus = (visp[visp >= tf - 1e-6][0] if n == "EKF3" and (visp >= tf - 1e-6).any() else tf)
+            fus = (visp[visp >= tf - 1e-6][0] if n == "EKF3" and (visp >= tf - 1e-6).any() else
+                   xukt[xukt >= tf - 0.1][0] if n == "UKF_port" and (xukt >= tf - 0.1).any() else tf)
             w = (X[:, 0] >= tf - 0.05) & (X[:, 0] <= tf + 2.0); Y = X[w]
             st = np.hypot(np.diff(Y[:, 1]), np.diff(Y[:, 2])); sy = np.degrees(np.abs(wrap(np.diff(Y[:, 3]))))
             r["effective"] = {"t_last_fix": tl, "t_first_fix": tf, "loss_s": tf - tl, "drift_m": d_eff,

@@ -12088,3 +12088,59 @@ node's stats JSON but not their arguments: an incomplete edit, made when the edi
 6. **Old against new for every headline UKF and FGO number;** every verdict or ordering change is flagged;
    numbers.md and the figures are restated before the 16 Oct freeze. **If time runs short, the user is told before
    anything is cut.**
+
+### RULING (user, 2026-10-09): bounded MODEL AUDIT of effective behaviour before the consolidated re-run (half a day max)
+Starts after the FGO noise fix is in. EKF3, the UKF and the FGO are audited on their EFFECTIVE behaviour, not their
+configured values:
+1. **Free inertial growth:** propagate each estimator's covariance over the same 10 s of recorded IMU data with no
+   aiding. Compare the attitude, velocity and position uncertainty growth with the analytic growth expected from the
+   stated noise densities, and **flag any mismatch over 2×**.
+2. **Measurement noise:** each estimator's effective innovation covariance for flow, range, heading and tags, against
+   the stated σ.
+3. **Bias process noise** (random walk): checked the same way.
+- **Findings are reported BEFORE the re-run starts.** Only genuine inconsistencies are fixed, as model corrections
+  under D18, and they go into the same consolidated re-run.
+
+### S1 RE-FLY RESULT (far spawn, EKF3 flying; `eval/results/expH/s1far_r{1,2}.json`). Offline UKF/FGO on the CURRENT models (before both corrections)
+- **`H_s1far_r3` is UNUSABLE for the replay estimators** under the IMU-gap rule:
+  - a receipt bunch (98 ms) at header 18.9 s, only 5.9 s before arming;
+  - its EKF3 (flying) data are valid, but there are no offline UKF/FGO shadows;
+  - the cause of the bunch is not traced. **A re-fly of r3 is proposed** (as for T), after S2.
+- **H-H1 PASS (r1, r2):** hold mean 7.5–8.3 mm, max 16–21 mm (bounds 50 / 150 mm).
+- **P-H5 (drift during loss, end of loss), within every band:**
+
+  | loss | EKF3 r1 / r2 (mm) | UKF r1 / r2 | FGO r1 / r2 | bands UKF / FGO |
+  |---|---|---|---|---|
+  | 5 s | 15 / 19 | 24 / 34 | 16 / 18 | ≤ 100 / ≤ 50 |
+  | 15 s | 10 / 12 | 117 / 110 | 65 / 54 | ≤ 200 / ≤ 100 |
+  | 30 s | 3 / 26 | 277 / 259 | 132 / 111 | ≤ 400 / ≤ 200 |
+  | ~7 s move | 7 / 23 | 67 / 48 | 41 / 24 | ≤ 300 / ≤ 150 |
+
+- **P-H7 PASS:** no lockout.
+- **P-H6, as in S1:**
+  - from cover OFF (the original wording) 0.87–1.19 s, which is the occluder render lag;
+  - from the first returning fix (the effective primary): EKF3 0.035–0.037 s, UKF and FGO 0.0 s.
+- **These UKF/FGO shadow numbers will be superseded** by the consolidated re-run with both corrections. The S1 FGO
+  drift above is the size the noise-model fix is expected to remove: `H_s1_r1` 30 s, 111.6 → 6.5 mm.
+
+### RULINGS (user, 2026-10-09): the S1 flight-3 re-fly; FGO closed-loop re-flights with the corrected FGO; machine order
+1. **`H_s1far_r3` is RE-FLOWN after S2.**
+   - It is excluded under the pre-declared IMU-gap rule: a 98 ms receipt bunch 5.9 s before arming. Its EKF3 data
+     are fine.
+   - The original stays recorded.
+   - The cause of the bunch is noted only if it is quick to find; this does not block anything.
+2. **Added to the consolidated plan:** the FGO's CLOSED-LOOP flights cannot be replayed, so they are RE-FLOWN with
+   the corrected FGO:
+   - the half-speed corridor set, same settings and criteria as before: no heading `cl_fgo_a_tex_half` ×1, and with
+     heading `cl_fgo_b_tex_r{1,2,3}_half` ×3;
+   - FGO safety tests (a) and (b) from the 2 m-clearance hold point.
+   - The original runs stay recorded against the old FGO.
+   - The robust-weighting closed-loop set (`cl_fgo_b_robust_*`) is NOT re-flown unless time allows.
+   - The corridor set flew the Python node; "same settings" keeps the Python node there, with the corrected core.
+     The H safety tests fly the corrected C++ node.
+3. **Machine order:**
+   1. S2;
+   2. the S1 flight-3 re-fly;
+   3. S3 (corrected C++ FGO, after its equivalence check);
+   4. the FGO re-flights;
+   5. then the model audit and the consolidated offline re-run with both corrections.
