@@ -10986,3 +10986,32 @@ results below once run.
   - Detection latency ≤ 4 s: the 3 s stale threshold plus the 1 s check cadence.
 - Every later closed-loop H flight runs fail-closed (`closed_loop_run.sh` H=1 sets `WATCH_HEARTBEAT`). The rule is
   added to `docs/real_flights_plan.md` §7 for the mocap watcher.
+
+### FGO C++ port, part 3: live ROS 2 / MAVLink adapter (band L PASS); a lock-protocol incident
+
+- **Built:**
+  - `fgo_cpp::LiveAdapter` (no ROS dependency): the `fgo_node.py` inputs incl. heading and tags; IMU stamps from
+    `/imu/time_ref` by default; a 0.20 s reorder buffer; the causal gap and validity rules; the D25 clock map;
+    `ODOMETRY` via its own MAVLink 2 encoder over UDP; arming time from the FC HEARTBEAT.
+  - `fgo_cpp_node`: the ROS 2 shell.
+  - `fgo_cpp_live_replay`: a deterministic bag-replay harness.
+- **Band L** (pre-registered at `bf73bba` before any run):
+
+  | row | bag | keyframes | states | `ODOMETRY` | result |
+  |---|---|---|---|---|---|
+  | L1 | `dsn_tex_r1` | 10197 | bit-identical | max 7.7e-3 mm (float32) | PASS |
+  | L2 | `fwdc_tex_r1` heading | 10118 | bit-identical | max 7.6e-3 mm (float32) | PASS |
+
+  - 0 decision mismatches.
+  - `time_usec` equals an independent re-implementation of `_sitl_us` on every frame.
+  - Frames are byte-identical to pymavlink's encoding.
+  - Step 0.55 / 1.14 ms median.
+- **Live IMU-stamp modes** (reported, no band; they change the time base): time_ref p99 41 mm (dsn) and 16.5 mm (fwdc);
+  causal (as `fgo_node.py`) 6 / 22 mm. Which time base is more accurate is untested against GT.
+- **By design it differs from `fgo_node.py`:** time_ref stamping, HEARTBEAT arming and a 0.20 s delay. Options
+  `causal` and `arm_source none` reproduce the Python node.
+- **Needs SITL (not yet tested):** real arrival timing, whether 0.20 s is enough, UDP to SERIAL3, AP_NavFGO acceptance.
+- **LOCK INCIDENT (disclosed):** at 19:39–19:40 an older version of the port agent's `tools/heavy.py` overwrote, then
+  deleted, the other coding agent's `BUILD_LOCK` (a waf build) for about 1 minute. **No flight ran in that window.**
+  - Fixed: `heavy.py` now waits on any existing lock and creates its own with `O_EXCL`.
+  - The other agent was told to create its lock exclusively and remove only its own.
