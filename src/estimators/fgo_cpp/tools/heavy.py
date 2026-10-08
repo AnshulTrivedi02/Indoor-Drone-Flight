@@ -24,6 +24,19 @@ def flying():
     return None
 
 
+def other_lock():
+    """Another job's BUILD_LOCK. Held (wait) while it exists: a stale one is reported, never removed."""
+    if not os.path.exists(BUILD_LOCK):
+        return None
+    try:
+        txt = open(BUILD_LOCK).read().strip()
+    except OSError:
+        return None
+    pid = next((int(t) for t in txt.replace("pid", " ").split() if t.isdigit()), None)
+    alive = pid is not None and os.path.exists(f"/proc/{pid}")
+    return f"BUILD_LOCK held by another job ({'running' if alive else 'STALE?'}): {txt}"
+
+
 def main():
     a = sys.argv[1:]
     wait_s = 6 * 3600; keep_threads = False
@@ -35,16 +48,21 @@ def main():
     desc, sep, cmd = a[0], a[1], a[2:]
     assert sep == "--" and cmd, __doc__
     t0 = time.time()
-    while (why := flying()) is not None:
+    while True:
+        why = flying() or other_lock()
+        if why is None:
+            try:   # O_EXCL: never overwrite another job's BUILD_LOCK (2026-10-08 fix: an earlier version did)
+                fd = os.open(BUILD_LOCK, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o664)
+                os.write(fd, f"pid {os.getpid()} started {time.strftime('%Y-%m-%dT%H:%M:%S')} : {desc}\n".encode())
+                os.close(fd)
+                break
+            except FileExistsError:
+                why = "BUILD_LOCK appeared"
         if time.time() - t0 > wait_s:
             print(f"[heavy] still blocked after {wait_s:.0f} s ({why}); not running: {desc}", flush=True)
             sys.exit(75)
         print(f"[heavy] waiting: {why}", flush=True)
         time.sleep(60)
-    if os.path.exists(BUILD_LOCK):
-        print(f"[heavy] note: BUILD_LOCK already exists: {open(BUILD_LOCK).read().strip()}", flush=True)
-    with open(BUILD_LOCK, "w") as f:
-        f.write(f"pid {os.getpid()} started {time.strftime('%Y-%m-%dT%H:%M:%S')} : {desc}\n")
 
     def cleanup(*_):
         try:
