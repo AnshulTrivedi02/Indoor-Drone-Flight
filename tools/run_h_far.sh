@@ -11,6 +11,7 @@ for t in "$@"; do
     ifa_ukf) name=H_ifa_ukf; cmd=(env H=1 UKF=1 HPROFILE="$B/ifanchor_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far_occ);;
     ifa_fgo) name=H_ifa_fgo; cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$B/ifanchor_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far_occ);;
     s1r[123]) name="H_s1far_r${t:3}"; cmd=(env H=1 HPROFILE="$B/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
+    s2r[123]) name="H_s2_r${t:3}"; cmd=(env H=1 UKF=1 HPROFILE="$B/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
     *) echo "bad arg $t"; exit 2;;
   esac
   [ -e "$HOME/thesis_data/trials/$name" ] && { echo "$name exists; stopping"; exit 1; }
