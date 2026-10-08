@@ -94,6 +94,11 @@ if TAG_MAX:
             if _n > TAG_MAX: continue
         _keep.append(e)
     ev = _keep; OUT = OUT + f"_diag_first{TAG_MAX}"; os.makedirs(OUT, exist_ok=True)
+TAG_SKIP = os.environ.get("ROOM_TAG_SKIP", "")       # DIAGNOSTIC only (H tilt-bias trace 2026-10-08): "t0,t1" drops fixes in [t0, t1)
+if TAG_SKIP:
+    _a, _b = (float(v) for v in TAG_SKIP.split(","))
+    ev = [e for e in ev if not (e[1] == "tag" and _a <= e[0] < _b)]
+    OUT = OUT + f"_diag_skip{_a:g}-{_b:g}"; os.makedirs(OUT, exist_ok=True)
 ev = apply_gap_rule(ev, TRIAL); ev, dj = dejitter_imu(ev) if "imu" not in apin.MODES.get(APIN, ()) else apin.imu_period_stats(ev); ev.sort(key=lambda e: e[0])
 TARGET_DT = 0.0125; period = dj['period_ms'] / 1e3
 DT_STEP = math.ceil(TARGET_DT / period - 1e-9) * period

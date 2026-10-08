@@ -11535,3 +11535,62 @@ wrapped (negative) ages; excluding them, (i) reaches 246 ms.
    - **If it is not fixed in time for S3:** fly S3 with 0.10 s and causal timing, recorded as a FALLBACK.
    - The stage-0 results and the defect description go to the user.
 **Then the sequence resumes from UKF safety test (a).**
+
+### UKF tilt bias TRACED (ruling item 1): a UKF MODEL issue (offline and port), caused by fusing tag fixes through the take-off at ~4 m range. Cause and proposed fix REPORTED; NOTHING CHANGED
+**Offline vs port vs others, roll/pitch error against GT in hover.** Positive = the estimate tilted more than the
+vehicle; FRD for the port and EKF3. The offline UKF is in body FLU axes, mapped to the same roll/pitch sense.
+
+| flight | estimator | roll | pitch |
+|---|---|---|---|
+| `H_safety_ukf_a` (far spawn, anchored pre-arm) | UKF port, flying (XUKF/XUKO/ATT) | **+0.77°** | **+0.63°** |
+| `H_safety_ukf_a` | OFFLINE UKF (`room_ukf_replay`, same inputs) | **+1.16°** | **+1.12°** |
+| `H_safety_ukf_a` | EKF3 (shadow, XKF1) | +0.12° | +0.03° |
+| `H_s1_r1` (anchor in flight) | offline UKF | +0.02° | +0.18° |
+| `H_s1_r1` | UKF port on Replay (tier B) | +0.00° | −0.20° |
+| `H_s1_r1` | EKF3 flying | +0.08° | +0.07° |
+| `H_gt_ukf` (no fixes at all) | UKF port, flying | +0.08° | +0.05° |
+
+**The offline UKF has it too, so by the ruling this is a MODEL issue, not a porting bug.**
+
+**When it appears.**
+- On the ground, before and after the pre-arm anchor: |error| < 0.01° (both).
+- It appears **during the take-off climb** (offline: 28–30 s, z 0.2 → 1.7 m with overshoot), reaching ~1.1° in about
+  2 s.
+- It then stays constant in hover, where tilt and horizontal accel bias are not separately observable.
+
+**What is different in this flight: tag fixes during the take-off, at ~4 m range.**
+- In S1 the tag was out of view until the vehicle was airborne at the hold, so the climb was IMU + flow only.
+- Here the fixes continue through the climb:
+  - the LATERAL (E) fix error has sd **0.10–0.13 m** in the 3 s of the climb;
+  - in hover at ~3.9 m range it is still sd ~0.04 m;
+  - this is against σ_pos 0.02 m, characterised at 1.5 m (S0a band 0.9–2.8 m);
+  - N error sd ≤ 0.02 m.
+- The UKF fuses every fix with **no innovation gate** (the T/H tag rule) and σ 0.02 m. It absorbs these
+  attitude-correlated fix errors as tilt and accel bias, which hover then cannot separate.
+- EKF3, with the same fixes, is unaffected (its ExtNav fusion is gated).
+
+**Diagnostic** (offline replay, `ROOM_TAG_SKIP=24.5,36`: fixes dropped from arming to 8 s after take-off; diagnostic
+output dir `room_ukf_diag_skip24.5-36`, not a result): the hover tilt error drops from (1.18°, 1.12°) to
+**(0.10°, 0.17°)**, the S1 level. **The fixes through the take-off cause it.** Not separated further: the fix noise
+itself against its correlation with the climb dynamics.
+
+**Does it explain the unexplained part of the S1 UKF tag-loss drift (~0.29 m against ~0.1 m from the gyro bias)?**
+**No.** In S1 the offline UKF had no comparable tilt bias (0.02° / 0.18°), because the anchor was airborne and there
+were no take-off fixes.
+
+**F1 (on-ground fix error at ~4 m, pre-registered):** 260 pre-arm fixes: horizontal p95 **0.021 m**, yaw p95
+**0.23°** (bounds 0.10 m, 2°). **PASS.**
+
+**Proposed fix (for the user's ruling; nothing changed).** A shared measurement-validity rule (D18: the same for all
+estimators), using the tag fix only where it is characterised:
+- **in flight, valid fixes only within the S0a range band (camera-to-tag 0.9–2.8 m);**
+- **on the ground (disarmed), the static far-spawn fixes stay valid** for the pre-arm anchor. That case is measured
+  separately (F1: p95 0.021 m).
+- **Consequence:** from arming until the vehicle is within 2.8 m of the tag (during the 2.4 m approach), every
+  estimator runs on IMU + flow + range only, as S1 did before its in-flight anchor. The frame was fixed on the ground,
+  so there is still no frame change in flight.
+- **Alternatives, not recommended:**
+  - a range-dependent σ_pos: needs a characterisation beyond 2.8 m, and changes EKF3's input;
+  - an innovation gate for the UKF/FGO tag update: departs from the T/H tag rule.
+- **This bears on S1-refly/S2/S3 too.** Every far-spawn flight would otherwise fuse uncharacterised 3–4 m fixes
+  during the approach.
