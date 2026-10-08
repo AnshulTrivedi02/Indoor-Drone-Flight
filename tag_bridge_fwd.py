@@ -41,8 +41,11 @@ WALL_RPY = (math.pi / 2, 0.0, 0.0)
 class TagBridgeFwd(Node):
     def __init__(self):
         super().__init__("tag_bridge_fwd")
+        # dynamic typing for the numeric parameters: "-p r_valid_px:=400" arrives as an INTEGER (H_s0b attempt 1);
+        # every value is cast explicitly below
+        dyn = ParameterDescriptor(dynamic_typing=True)
         for n, v in (("send", False), ("r_valid_px", 0.0), ("sigma_pos_m", 0.05), ("sigma_yaw_deg", 5.0), ("audit_every", 15), ("log_path", "")):
-            self.declare_parameter(n, v)
+            self.declare_parameter(n, v, dyn if n in ("r_valid_px", "sigma_pos_m", "sigma_yaw_deg", "audit_every") else ParameterDescriptor())
         self.declare_parameter("convention", "", ParameterDescriptor(dynamic_typing=True))
         conv = str(self.get_parameter("convention").value)
         self.R_wt = T.wall_tag_R_wt(WALL_RPY, conv) if conv else None
