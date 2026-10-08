@@ -46,11 +46,11 @@ re-checked byte-identical after this change.
 
 | | EKF3 (and the UKF port, via DAL) | offline UKF/FGO (bags) |
 |---|---|---|
-| IMU quantity | delta angle / delta velocity per FC frame (`AP_InertialSensor::get_delta_angle/velocity`, EKF3 `AP_NavEKF3_Measurements.cpp:546,763`; port `AP_NavUKF.cpp` `update()`, first usable IMU) | HIGHRES_IMU instantaneous `get_gyro()/get_accel()` (`GCS_Common.cpp:2294-2302`), summed rectangularly |
+| IMU quantity | delta angle / delta velocity per FC frame (`AP_InertialSensor::get_delta_angle/velocity`, EKF3 `AP_NavEKF3_Measurements.cpp:546,763`; port `AP_NavUKF.cpp:460-467` `update()`, first usable IMU; flow input `writeOptFlowMeas` :442-457, `e.fg` used as given :543,574) | HIGHRES_IMU instantaneous `get_gyro()/get_accel()` (`GCS_Common.cpp:2294-2302`), summed rectangularly |
 | filtering | **unfiltered**: delta angle from the raw sample, trapezoidal + coning (`AP_InertialSensor_Backend.cpp:333-365`, in `_notify_new_gyro_raw_sample` :281); delta velocity from the raw accel (:608) | **20 Hz 2-pole low-pass** (`_gyro_filter` :251, `_accel_filter` :611; `INS_*_FILTER 20`) |
 | rate / timing | 1 kHz sensor integrated into FC frames (RFRH median 3.00 ms, 2–4 ms), on the FC clock; EKF3 predicts on ~12 ms sums, the port on the same 12 ms trigger | one sample per FC frame (333 Hz), receipt-stamped, OI-2 dejittered to a regular 3.0006 ms grid; 15.0 ms predict step (D27 noise form) |
 | flow values | ROFH FX/FY = the MAVLink `flow_rate_x/y` exactly (`FLOW_*SCALER 0`, `ORIENT_YAW 0`); matched to the bag `flow_x_rad/flow_y_rad` frame by frame (|Δ| < 1e-5 rad/s; signs +,+ on both flights) | same values |
-| flow time | `imuSampleTime − EK3_FLOW_DELAY(10) − flowTimeDeltaAvg/2(50) − localFilterTimeStep/2(6)`, clamped to the 60 ms horizon (`AP_NavEKF3_Measurements.cpp:232-236`, `AP_NavEKF3.h:511`, `AP_NavEKF3_core.cpp:42-46`); port identical (`AP_NavUKF.cpp:37` + flow block) = arrival − 60 ms | capture stamp |
+| flow time | `imuSampleTime − EK3_FLOW_DELAY(10) − flowTimeDeltaAvg/2(50) − localFilterTimeStep/2(6)`, clamped to the 60 ms horizon (`AP_NavEKF3_Measurements.cpp:232-236`, `AP_NavEKF3.h:511`, `AP_NavEKF3_core.cpp:42-46`); port identical (`AP_NavUKF.cpp:37`, `:540-542`) = arrival − 60 ms | capture stamp |
 | flow rate limit | EKF3 only: ≥ 50 ms between accepted flows (`AP_NavEKF3_Measurements.cpp:178-180`, `AP_NavEKF3.h:516`) → **50.1 % (H) / 50.4 % (dsn) of frames fused**; the port does not limit | every frame |
 | derotation gyro | `bodyRate` = `AP::ahrs().get_gyro()` averaged between flow messages (`AP_OpticalFlow_MAV.cpp:38-42,76`); EKF3 then subtracts `flowGyroBias` (:193-194,206-207) | frame-averaged bag gyro (`FlowFrameGyroAverager`), **raw** (no bias correction) in the UKF; bias-corrected in the FGO |
 | AHRS gyro | `AHRS_EKF_TYPE 3` (**H**): `ins.get_gyro() + EKF3 gyro drift` (`AP_AHRS.cpp:776-780`) = **EKF3-bias-corrected**; `AHRS_EKF_TYPE 10` (**dsn**): `ins.get_gyro()` (`AP_AHRS_SIM.cpp:215`). Port flying (S2): `ins.get_gyro() + UKF drift` (`AP_AHRS_UKF.cpp:30`) | — |
@@ -102,8 +102,20 @@ EKF3 3.86, FGO 4.72, UKF (a) **2.13**; (b) 2.04; (b-imu) 2.32; (b-flow) 1.88; `f
    - All of (b)'s effect comes from the derotation gyro. On H it carries **EKF3's gyro-bias estimate** (AHRS type 3), a
      ~2.6 mrad/s x/y offset. The offline UKF, on its own bag inputs, removes the same effect when `h_flow` uses
      (gyro − its own bias estimate) (`biascorr`: 2–16 mm, EKF3's scale).
-   - Mechanism: an uncorrected rate bias b in the rotational term reads as translation, ≈ b·h_cam of velocity error,
-     which the hover with no tag integrates.
+   - **Confirmed from the log:** EKF3's logged gyro bias (`XKF1` GX, GY, core 0, airborne mean) is
+     (+2.56, +2.64) mrad/s FRD (it ramps 0.35 → 4.0 mrad/s, the SITL drift model). `gyro_estimate = gyro − bias`
+     predicts a ROFH − bag offset of (−2.56, +2.64) mrad/s FLU; measured (−2.56, +2.63).
+   - **Mechanism (checked with a scratch state dump of the offline UKF on H, `--no-rts`, live track unchanged):**
+     - The UKF's own gyro-bias estimate is right: airborne mean (+2.85, −2.85) mrad/s FLU, against EKF3's
+       (+2.56, −2.64). Within each hover loss it is +3.4 / +3.8 / +4.2 mrad/s per axis (5 / 15 / 30 s losses). It
+       follows the SITL drift ramp, so later losses see a larger bias.
+     - In (a) that bias stays in `h_flow`'s rotational term (the raw rate). Flow therefore reads it as translation, and
+       the estimated velocity at the end of each hover loss is (+13.8, −8.9) / (+8.3, −6.8) / (+5.9, −6.0) mm/s (E, N).
+       With `biascorr` the same bias estimate is applied in `h_flow` too, and these fall to (+7.4, −2.5) / (+2.0, −0.7)
+       / (−0.9, +0.6) mm/s.
+     - b·h_cam: (bias ≈ 4.2·√2 ≈ 6 mrad/s horizontal) × (h_cam ≈ 0.9 m) ≈ 5.4 mm/s, of the order of the 8.5 mm/s
+       observed at 30 s. The order of magnitude is explained. The residual (filter dynamics, the growing bias) is not
+       modelled further.
 2. **This reverses the tier-B attribution** ("input-path effect, not the UKF formulation",
    `docs/h_backends_tag_input.md` §3.3). The port on Replay received EKF3's bias-corrected `bodyRate` (Replay of an
    AHRS-type-3 flight), so its 7–19 mm drift reflects EKF3's bias estimate fed into the port's flow model.
@@ -112,10 +124,14 @@ EKF3 3.86, FGO 4.72, UKF (a) **2.13**; (b) 2.04; (b-imu) 2.32; (b-flow) 1.88; `f
      still expected, but for this reason. S2 tests the formulation, not the input path.
 3. **Size for the main results:**
    - **EKF3 vs FGO:** the FGO already derotates with a bias-corrected rate, so finding 1 does not apply to it. The
-     input path proper (the IMU/flow swaps) moved the UKF by −0.06…+0.19 m on dsn cruise and ≤ 4 mm on H. Estimated
-     share of the EKF3-vs-FGO textured result: **≲ 0.2 m of evo -a (cruise)**, inside the 0.40 m pipeline sensitivity
-     floor (P4). It is not a material explanation.
-   - **EKF3 vs UKF:** the input path is likewise small (≲ 0.2 m cruise). The raw-rate derotation is a formulation
+     input path proper (the IMU/flow swaps) moved the UKF by **−0.25…+0.19 m** on dsn cruise ((b-flow) −0.25, (b)
+     −0.09, `flowtime` −0.06, `flowgyro` −0.04, (b-imu) +0.19) and ≤ 4 mm on H. Estimated share of the EKF3-vs-FGO
+     textured result: **≲ 0.25 m of evo -a (cruise)**, of the order of the FGO's own measured 0.40 m sensitivity to
+     IMU-timestamp treatment (P4; an FGO figure, not a UKF one). Indirect: no FGO was run on FC inputs.
+   - **The FGO's own H gap is NOT explained by this stage.** The FGO drifted 50 / 112 mm (15 / 30 s) against EKF3's
+     6 / 11 mm, and it already derotates with a bias-corrected rate, so finding 1 does not apply. Open; one candidate
+     is the post-anchor yaw wander S1 recorded (up to 2.6°).
+   - **EKF3 vs UKF:** the input path is likewise small (≲ 0.25 m cruise). The raw-rate derotation is a formulation
      difference: about −0.44 m on one textured cruise (2.13 → 1.69, n = 1, not significant), and the dominant term in
      hover dead-reckoning (H: ~10× drift).
    - The dsn bags have no EKF3 bias in ROFH (AHRS type 10), so dsn (b-flow) isolates timing and the raw-vs-averaged
@@ -147,3 +163,14 @@ Scratch: `$S=/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced
   LABEL=ukf_apin*/ukf_traj.tum`, with `ekf3/ukf/fgo` linked to the real trial.
 - Outputs: copied to NEW directories `~/thesis_data/trials/{H_s1_r1/room_ukf_apin*, dsn_tex_r2/ukf_apin*, */apin}`
   and `eval/results/input_path/`. No existing file was changed.
+
+## 6. Process note (lock protocol)
+- No simulator was used. `FLIGHT_LOCK` was never touched. Every replay ran through `heavy.py`, and no `BUILD_LOCK` of
+  mine is left.
+- **Found: `heavy.py` can wait on itself.** At ~21:52 another session's job was `heavy.py --wait-s 3600 "port rebuild
+  for version string" -- bash -c '... ./waf copter ... strings build/sitl/bin/arducopter ...'`. Its own command line
+  contains "arducopter", so `pgrep -f '[a]rducopter'` matches the waiting `heavy.py` itself (and its parent shell).
+  - It therefore waits on itself until its timeout.
+  - It blocks every other `heavy.py` job and the "no commit while `[a]rducopter` matches" rule.
+  - I did not touch it. A fix would exclude the caller's own PID and its ancestors from the match, or match the
+    process name (`pgrep -x arducopter`) rather than the full command line.
