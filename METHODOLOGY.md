@@ -12026,3 +12026,16 @@ node's stats JSON but not their arguments: an incomplete edit, made when the edi
 - the EKF3 reference failure test and the FGO (b) re-fly at the 2 m-clearance hold were ALREADY flown (both before
   this ruling; results above);
 - next: the S1 re-fly ×3, then S2, then S3 (after the FGO tilt trace, time box 03:04).
+
+### RULING (user, 2026-10-09): attitude-only landing drift is INHERENT, not FGO-specific; the FGO tilt trace is STOPPED
+- **The answer, recorded:** without position, the landing drift is inherent to attitude-only (or dead-reckoned)
+  landing, not FGO-specific.
+  - EKF3 reference: **1.40 m**.
+  - FGO (b) re-fly: **1.25 m**, all checks passed.
+  - (FGO (a): 0.37 m; UKF (a) re-run: 0.42 m; UKF (b): 0.28 m.)
+- **FGO tilt trace STOPPED** by ruling: its condition, "FGO clearly worse than EKF3", is ruled not met.
+  - The pre-kill hover tilt comparison stays recorded as reported (section "Item 2"; the 2× comparison table):
+    tilt RMS FGO 0.205° / 0.280° against EKF3 0.114°.
+  - The agent's partial notes go to `docs/handovers/2026-10-09_fgo_tilt_trace.md`, marked incomplete.
+- **S3 no longer waits on it.** Order: the S1 re-fly, then S2, then S3, once the C++ node regression comparison is
+  clean.
