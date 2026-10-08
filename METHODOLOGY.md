@@ -10730,3 +10730,52 @@ flights, with nothing else running on the machine.
 - **`h_extnav.parm`:** `VISO_POS_M_NSE 0.02`. The UKF and FGO use `ROOM_TAG_SIGMA_POS=0.02` (noise parity).
   `VISO_DELAY_MS` is a placeholder until S0b. **S0b waits for the bag compression to finish:** latency measured under
   CPU load is distorted (the T lesson).
+
+### RULING (user, 2026-10-08): FGO C++ port, option A — verdict, scope, SymForce dropped, reproducibility of the diverging Python results
+
+**1. The pre-registered equivalence band** (same keyframe count, |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01° per keyframe, default
+Eigen build against the Python thesis FGO on the same bags; pre-registered in `docs/fgo_cpp_port.md` at `9ac521d`
+before any comparison):
+
+| bag | result | max \|Δp\| | max \|Δyaw\| |
+|---|---|---|---|
+| `dsn_tex_r1` | **PASS** | 4.1e-4 mm | 3.2e-8° |
+| `dsn_blank_r1` | **FAIL as worded** | 1.97 km | 20.8° |
+| `dsn_trans_r1` | **FAIL as worded** | 1.44 km | 19.6° |
+
+**The band is not re-stated.**
+
+**Evidence that the two failures are rounding amplified by an unbounded runaway of the Python FGO itself:**
+- The Python FGO's own blank estimate runs to 28.6 km along-track against 151 m true. On transition it leaves the
+  band at t = 214 s, after the 80 m boundary (189.99 s).
+- **Identical per-keyframe factor decisions** (flow replaced, flow factor used, range factor used) on all three bags.
+- A probe shows bit-identical Python/C++ arithmetic everywhere except `R.T @ v` in `h_flow_pose`. OpenBLAS `dgemv`
+  rounds the last bit as `fma(c2, v2, fma(c0, v0, c1·v1))`; Eigen rounds it differently.
+- With a build that emulates the NumPy rounding (`FGO_CPP_EMULATE_NUMPY_GEMV`, OFF by default), the C++ output is
+  **bit-identical** to Python on all three bags, whole flight. This option was added after the textured and probe
+  results were seen: **a post-hoc diagnosis, not a pre-registered pass.**
+
+**2. Scope of acceptance.** The C++ FGO (**default build**) is accepted for real-flight use **in the aided regime**,
+where it passed. It is **not claimed equivalent in unaided runaway**: no implementation can be, because last-bit
+differences grow without bound once the estimate diverges.
+
+**3. SymForce DROPPED.** The C++ FGO with numerical Jacobians runs at **~0.6–0.9 ms per keyframe** (median,
+workstation, single thread) against the **33 ms** keyframe budget. Real-time operation on a Pi is expected without exact
+Jacobians (a Pi timing estimate follows in the next port stage). `docs/real_flights_plan.md` §9.3 is updated.
+
+**4. Next port stage** (coding only, BUILD_LOCK/FLIGHT_LOCK rules):
+- the heading and tag paths (then GNSS if cheap), with the **same** pre-registered band on aided bags (`fwdc_tex_r1`
+  heading arm; T laps `T_A_r1`, `T_D_r1`);
+- native input handling, so it runs without the Python export;
+- then a Pi timing estimate.
+
+**5. Reproducibility of the diverging Python results (standing note).**
+- The Python FGO's **blank and transition** results are **not bit-reproducible across BLAS builds**. They are
+  reproducible on this workstation: fresh runs match the stored results byte for byte. A different BLAS (or CPU FMA
+  behaviour) changes the last bit of `R.T @ v`, and the runaway amplifies it to kilometres.
+- So their **kilometre-scale magnitudes** (end-of-cruise blank error, transition +60 s error, the blank/transition
+  displacement ratios and runaway-size bands) are reported as **evidence of divergence, not as precise values**.
+- The textured (aided) results are bit-reproducible across BLAS builds (the C++ default build agrees to 4e-4 mm).
+- Checked in `numbers.md` (rows marked †, footnote added) and in the supervisor figures (fig6 caption note).
+- Not tested: whether the UKF's diverging results have the same property. They also run through NumPy, so the same
+  caution applies by analogy, stated but unverified.

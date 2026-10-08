@@ -232,9 +232,9 @@ The former values are in the superseded section ("Former sections 6–9").
 | Compass-active `ds_blank` EKF3 evo -a (cruise), r1 / r2 / r3 | 43.68 / NaN / NaN: in all three the cruise output is a single point (the origin; 2,950 rows, xy std 0). evo's SE(3) alignment of a constant trajectory is undefined (NaN), and r1 is finite only from moving samples at the window edge. None is scored (invalid-output rule). | m | RECORDED (artefact) | json:rerun_ds_evo.json |
 | UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) | 6.4–9.0 / 20.5–33.0 / 112–288 | m | CURRENT (D27) | json:blank_behaviour.json |
 | FGO baseline, same | 4.2–18.3 / 27–142 / 172–574 | m | CURRENT (D15) | same |
-| UKF / FGO baseline error at the end of cruise, blank | 13–58 / 22–31 | km | CURRENT (D15 + D27) | same |
-| UKF / FGO baseline error at +60 s after loss, transition (n = 11) | 31–307 / 939–1,049 | m | CURRENT (D15 + D27) | json:blank_behaviour.json |
-| Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO | 88–323 / 299–904 | m | CURRENT (D15 + D27; the heading does not bound position without flow) | json:blank_behaviour.json |
+| UKF / FGO baseline error at the end of cruise, blank †| 13–58 / 22–31 | km | CURRENT (D15 + D27) | same |
+| UKF / FGO baseline error at +60 s after loss, transition (n = 11) †| 31–307 / 939–1,049 | m | CURRENT (D15 + D27) | json:blank_behaviour.json |
+| Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO †| 88–323 / 299–904 | m | CURRENT (D15 + D27; the heading does not bound position without flow) | json:blank_behaviour.json |
 
 ### 6.3 Other current estimator results
 
@@ -301,8 +301,8 @@ The former values are in the superseded section ("Former sections 6–9").
 | Re-fly batch | 42 trials complete (33 main + 9 `ds`); one harness abort, re-flown | — | CURRENT | M: "Consolidated re-fly — aborted attempt" |
 | IMU gap rule on the 42 bags | 39 `ok`, 3 `trim`, 0 `unusable` | — | CURRENT | `<trial>/imu_gaps.json` |
 | `p1c` primary | 6/6 pass | — | CURRENT | json:rerun_p1c_score.json |
-| `fwdc` primary | 6/9 pass (D15; misses: `fwdc_tex_r2` EKF3 0.01 m better than the band; `fwdc_blank_r1..r2` FGO runaway-size bands; `fwdc_blank_r3` now passes because its FGO ratio moved 212.53 → 203.52) | — | CURRENT (misses as worded) | json:rerun_fwdc_score.json |
-| `fwdplainc` primary | 8/9 pass (miss: `fwdplainc_blank_r2` FGO ratio) | — | CURRENT (miss as worded) | json:rerun_fwdplainc_score.json |
+| `fwdc` primary †| 6/9 pass (D15; misses: `fwdc_tex_r2` EKF3 0.01 m better than the band; `fwdc_blank_r1..r2` FGO runaway-size bands; `fwdc_blank_r3` now passes because its FGO ratio moved 212.53 → 203.52) | — | CURRENT (misses as worded) | json:rerun_fwdc_score.json |
+| `fwdplainc` primary †| 8/9 pass (miss: `fwdplainc_blank_r2` FGO ratio) | — | CURRENT (miss as worded) | json:rerun_fwdplainc_score.json |
 | Phase 3 heading validation | `fwdc` 9/9, `fwdplainc` 6/9 (checkerboard fails) | — | CURRENT (unchanged) | json:fwd_validation.json |
 | Phase 3 yaw-rate validation | `fwdc` 9/9; `fwdplainc` 3/9 (textured 3/3 now; transition/blank fail on availability 67–69%) | — | CURRENT | same |
 | Phase 3 second validation on the re-flown `p1c` | heading 5/6 (fails `p1c_fwdplainc_tex`); yaw rate 4/6 | — | CURRENT | json:fwd_validation_p1c.json |
@@ -524,6 +524,20 @@ Horizontal RMSE in the first tag's frame. Source: `eval/results/expL/T_A_r*_t245
   - Cause: the 30 Hz whole-history graph, plus a landmark per pass without loop closure.
   - Deviations: the replays are cut at anchor + 245 s, and hindsight uses iSAM2's full estimate.
 
+## † Diverging (unaided) FGO results: evidence of divergence, not precise values (ruling 2026-10-08)
+
+Rows marked **†** carry magnitudes from the Python FGO's **runaway** on blank or transition floors (end-of-cruise km
+errors, +60 s errors, displacement ratios, onsets, runaway-size bands).
+- These are **not bit-reproducible across BLAS builds**. One last-bit rounding difference in `R.T @ v` (OpenBLAS
+  `dgemv` vs Eigen) is amplified without bound once the estimate diverges: the C++ port differs by up to 1.97 km on
+  `dsn_blank_r1`, yet is bit-identical under NumPy-rounding emulation.
+- They are reproducible on this workstation; fresh runs match the stored results.
+- **Cite them as evidence that the FGO diverges, with the order of magnitude, not as precise values.**
+- Aided (textured) FGO results are bit-reproducible across builds (agreement to 4e-4 mm).
+- See METHODOLOGY "RULING (user, 2026-10-08): FGO C++ port". The UKF's diverging values are untested in this respect
+  (same caution by analogy).
+
+
 ## Flags: resolved and remaining
 
 **Resolved** (METHODOLOGY "Source-pack flag resolutions", M:L3114-L3198; applied above):
@@ -695,14 +709,14 @@ The Phase 2 FGO bands (section 7) were derived from them.
 | Ceiling `fwdplainc` textured EKF3 r1 / r2 / r3 | 3.88 / 4.26 / 4.15 | m | CURRENT | M:L2534 |
 | Ceiling `fwdplainc` textured FGO r1 / r2 / r3 | 4.67 / 4.82 / 4.64 | m | CURRENT | M:L2534 |
 | Ceiling transition EKF3 ratio / onset | 0.547–0.564, onset 100–101 m | —, m | CURRENT | M:L2536 |
-| Ceiling transition FGO ratio / onset | 0.691–0.725, onset 94.5–95.2 m | —, m | CURRENT | M:L2536-L2537 |
+| Ceiling transition FGO ratio / onset †| 0.691–0.725, onset 94.5–95.2 m | —, m | CURRENT | M:L2536-L2537 |
 | Ceiling blank EKF3 ratio / onset | 0.181–0.223, onset 17–20 m | —, m | CURRENT | M:L2538 |
-| Ceiling blank FGO ratio / onset | 1.506–1.529, onset 34–38 m | —, m | CURRENT | M:L2538-L2539 |
+| Ceiling blank FGO ratio / onset †| 1.506–1.529, onset 34–38 m | —, m | CURRENT | M:L2538-L2539 |
 | Ceiling UKF textured (`fwdc` / `fwdplainc`) | `fwdc` 14.6 / 20.9 / 7.3, `fwdplainc` 15.8 / 10.0 / 8.7 | m | DIAGNOSTIC | M:L2543 |
 | Ceiling P2 latency p95 max | at most 36.4 ms | ms | DIAGNOSTIC | M:L2541 |
 | Phase 1c P4 EKF3 (fwdc tex / fwdplainc tex) | 3.92 / 4.49 | m | CURRENT | M:L2413 |
 | Phase 1c P4 FGO (fwdc tex / fwdplainc tex) | 4.60 / 4.53 | m | CURRENT | M:L2414 |
-| `p1c_fwdc_trans` after the extended rule: FGO ratio / onset | 0.700 … 94.9 m | —, m | CURRENT | M:L2488-L2489 |
+| `p1c_fwdc_trans` after the extended rule: FGO ratio / onset †| 0.700 … 94.9 m | —, m | CURRENT | M:L2488-L2489 |
 
 ##### 6.5 Resolved definitions and scale (flag resolutions §3, §4)
 
@@ -734,8 +748,8 @@ The Phase 2 FGO bands (section 7) were derived from them.
 | P4 EKF3 blank ratio / onset | [0.12, 0.27], onset [13, 24] m | —, m | CURRENT (pre-registered) | M:L1850 |
 | P4 FGO textured (dejittered) | [4.17, 5.14] | m | CURRENT (pre-registered) | M:L1851 |
 | P4 FGO textured band basis | 4.57–4.74 ± max(range 0.17, **0.40 m**) | m | CURRENT (pre-registered) | M:L1851 |
-| P4 FGO transition | ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m | —, m | CURRENT (pre-registered) | M:L1851 |
-| P4 FGO blank | ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m | —, m | CURRENT (pre-registered) | M:L1851 |
+| P4 FGO transition †| ratio 0.72–0.73 ± 0.05 → [0.67, 0.78]; onset 95–96 ± 5 → [90, 101] m | —, m | CURRENT (pre-registered) | M:L1851 |
+| P4 FGO blank †| ratio 1.50–1.55 ± 0.05 → [1.45, 1.60]; onset 33–37 ± 5 → [28, 42] m | —, m | CURRENT (pre-registered) | M:L1851 |
 | `dsn` P3 baseline, textured inlier | 0.9729–0.9741 | — | CURRENT | M:L1445 |
 | `dsn` P3 baseline, blank inlier | 0.3130–0.3153 | — | CURRENT | M:L1446 |
 | `dsn` `flow_y_raw` mean, textured | 136.45 | px/s | CURRENT | M:L1516 |

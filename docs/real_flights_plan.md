@@ -313,7 +313,14 @@ The measured cost: the Python GTSAM node needs 28 ms median / 59 ms p99 per 30 H
 | **B. C++ port with exact Jacobians** (hand-derived, or generated with **SymForce** from the same `h_flow`/`h_range`/`h_heading`/`h_tag` models) | language + Jacobians | 6–9 (SymForce codegen + verification) | 5–15× faster than Python (Part C §5.4): ~3–8 ms | (1) **Unit level:** generated Jacobians against numerical differences of the *shared Python models* at random states (relative error ≤ 1e-6). (2) **System level:** as A, against the Python node on the same bags. Exact Jacobians move the LM steps slightly, so the band is position ≤ 1 cm and the same pre-registered outcomes. |
 | **C. Lower keyframe rate** (e.g. 10 Hz; flow and range attached per keyframe or averaged) | the estimator | 1–2 (+ re-running affected simulation results) | the Python cost per keyframe at 10 Hz (100 ms budget): fits a Pi 5 | **Not** equivalent by construction: it changes the information per keyframe. Proof = a new simulation comparison against the 30 Hz FGO on the frozen datasets, with a pre-registered band (e.g. evo -a (cruise) within ±10%), stated as a different estimator configuration. |
 
-**Recommendation: B, with A as the stepping stone.**
+**UPDATE (ruling 2026-10-08): option A built and accepted; SymForce (B) DROPPED.**
+- The C++ port with numerical Jacobians passes the equivalence band on the aided (textured) bag, and runs at
+  ~0.6–0.9 ms per keyframe (workstation, single thread) against the 33 ms budget. A Pi is expected to manage it without
+  exact Jacobians; a Pi timing estimate follows.
+- Accepted for real-flight use in the **aided** regime only (METHODOLOGY "RULING ... FGO C++ port").
+- The recommendation below is kept for the record.
+
+**Recommendation (superseded by the update above): B, with A as the stepping stone.**
 - Build A first (fast to verify, since numerical Jacobians match by construction).
 - Then switch the Jacobians to SymForce-generated exact ones (B) behind a flag, verified at both levels.
 - B keeps the thesis FGO's configuration (30 Hz keyframes, 0.25 s window) and so transfers every simulation result.
