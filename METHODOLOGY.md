@@ -12279,3 +12279,14 @@ failure stops the sequence.
 - **B5:** PASS.
 - **S2:** output valid 100 %.
 - **Heading:** 2279 sent, 2204 with quality ≥ 50 (original 2199).
+
+### FGO re-flight `cl_fgo_b_tex_r2_half_v2` RESULT: ALL B criteria PASS
+| criterion | corrected FGO | original r2 |
+|---|---|---|
+| B1 (max \|x\| in flight) | 0.170 m | 0.476 m |
+| B2 (max \|x\| in cruise) | 0.074 m | 0.085 m |
+| B3 heading p95 / max / mean | 0.318° / 0.356° / 0.230° | 0.257° / 1.279° / 0.070° |
+| B4 (max lateral speed) | 0.014 m/s | 0.013 m/s |
+
+- **B5 PASS; S2 100 %.**
+- **The same pattern as r1:** a slightly larger steady heading offset, no excursion above 0.4°.
