@@ -9,11 +9,18 @@ program, the D25 clock map and the node step times.
 **Supervisor direction (2026-09-29):** all estimators on the Raspberry Pi; real mocap flights in scope; the forward
 camera flown only once verified.
 
+**Supervisor decisions (2026-10-08), §9:** BOTH approved.
+- **Open loop:** EKF3 flies; the UKF and FGO run alongside on the Pi with identical data, scored against mocap.
+- **Closed loop:** each estimator flies its own flights.
+- **Flight profiles:** the wall-tag holding task (`docs/tag_hold_design.md`) and laps (as experiment T).
+- Questions 1 and 9 below are resolved by §9.
+
 ---
 
 ## Open questions for the supervisor (decisions needed before hardware work)
 
-1. **Steering route.** Which estimator may fly the vehicle, and how?
+1. **Steering route.** *(RESOLVED 2026-10-08: route 3 (open loop) and route 1 (closed loop), staged as §9.4.)* Which
+   estimator may fly the vehicle, and how?
    - (1) The thin external-estimator backend, already built and SITL-validated for the FGO: the Pi estimate flies through
      an on-FC output predictor.
    - (2) EKF3 fusing the Pi estimate as ExternalNav, a cascade.
@@ -54,7 +61,8 @@ camera flown only once verified.
 8. **Pre-registration of the real-flight criteria.** The simulation criteria (U1–U3, B1–B5) assume a 160 m corridor
    (B2 band 6 m, wall-contact timing). New criteria must be fitted to the capture volume.
    - Should they be pre-registered with the supervisor before the first flight?
-9. **Compute compromise for the FGO**, if the Pi cannot run it at 30 Hz keyframes (§6):
+9. **Compute compromise for the FGO** *(options and recommendation now in §9.3)*, if the Pi cannot run it at 30 Hz
+   keyframes (§6):
    - (a) the D11 speed-up (C++/analytic Jacobians), or
    - (b) a lower keyframe rate (e.g. 10–15 Hz), which changes the estimator relative to simulation and needs a new
      simulation check before the freeze.
@@ -233,3 +241,129 @@ camera flown only once verified.
     start offset of 2–3 ms (as D25).
   - **For flights:** log the FC IMU at full rate (`INS_LOG_BAT_*` or a fast IMU bitmask). The mocap stream should
     include its own frame stamps and the Pi receipt stamps.
+
+---
+
+## 9. Supervisor decisions 2026-10-08: profiles, the real-FC backend, the real-time FGO, staging (PLAN ONLY)
+
+### 9.1 Flight profiles
+
+- **P-HOLD: wall-tag holding** (`docs/tag_hold_design.md`).
+  - Hold 1.5 m in front of a wall tag (forward camera), with lateral ±0.5 m moves at 0.2 m/s, return, and a
+    covered-tag segment (5 s and 15 s).
+  - Navigation frame = the tag frame. EKF3 receives the tag fixes as ExtNav position + yaw; the UKF and FGO receive the
+    same fixes directly.
+  - Metrics: hold error, lateral tracking, gyro activity, drift during tag loss, re-lock time and jump. Mocap is
+    ground truth.
+  - This is the primary closed-loop profile: it stays inside a small volume and has a natural safe hold point.
+- **P-LAPS: laps** (as experiment T).
+  - A square of 4–6 m (fitted to the capture volume) at 0.3–0.5 m/s, constant yaw, with floor tags at known positions
+    (absolute fixes) at a chosen density, or tags at unknown positions (L).
+  - Open loop first. Closed loop only after P-HOLD has passed for that estimator.
+- **Both profiles are scripted** with the `fly_trial.py` patterns: moving position setpoints, the
+  estimator-independent clock (D24), land on failure. Both are SITL-rehearsed in the simulated mocap room before any
+  hardware flight.
+
+### 9.2 The thin backend on the actual flight controller
+
+**What flies.** The thin external-estimator backend (`AP_NavFGO`, `EKFType::FGO` 13, SITL-validated: FG1–FG3b, D25,
+`cl_fgo_*`) carries the FGO. The same pattern, with a UKF mode, carries a Pi-side UKF. Alternatively the UKF port
+(`AP_NavUKF`, type 12) runs on the FC itself (question 2).
+- The firmware is built from the port tree (`~/ardupilot_ukf`, branch `ukf-port`) for the actual board. The
+  Pixhawk 6X / CubeOrange flash budget was checked in Part C.
+
+**Flashing and rollback plan:**
+1. **Baseline image** = the stock ArduPilot release the vehicle is first tuned on. Archive its `.apj` and a full
+   parameter dump (`param save`) before any change.
+2. **Thesis image** = the port tree at a tagged commit. Record the firmware git hash (`FWVersion`, logged) with every
+   flight.
+   - The thesis image must reproduce the baseline's EKF3 behaviour with the backends **disabled**
+     (`AHRS_EKF_TYPE 3`, `AHRS_FGO_ENABLE 0`). This is checked by flying the baseline P-HOLD with EKF3 on both images
+     and comparing hold error within the run-to-run spread.
+3. **Flash** over USB with the ground-station tool. Parameters are restored from the dump plus a versioned
+   `real_*.parm` file. The eeprom gotcha applies: `ensure_params`-style verification of every load-bearing parameter
+   after each flash and boot.
+4. **Rollback:** re-flash the archived baseline `.apj` and restore the parameter dump. This is rehearsed once on the
+   bench before the first thesis-image flight, and takes about 5 min.
+   - An in-flight fallback needs no re-flash: RC mode switch to ALT_HOLD/STABILIZE, plus `AHRS_EKF_TYPE 3` on the
+     ground.
+5. **Bootloader** untouched. No custom bootloader. A second, identical FC kept as a spare if possible.
+
+**Tested first in SITL with Pi-like link latency:**
+- The SITL rehearsal runs the Pi-side processes **with an injected link delay and jitter** matching the measured Pi
+  link: a `tc netem` delay on the loopback UDP ports, or a delay stage in the bridges.
+  - Starting values: one-way 5–15 ms ± 3 ms for USB/serial at 921 600 baud. To be replaced by the bench-measured
+    distribution (§9.4 stage 0).
+- **The pre-registered SITL gates repeat at that latency:**
+  - FG1 (received = offline);
+  - FG2 (validity 100%, invalid 130 ms after node stop);
+  - FG3/FG3b (output age and predictor error);
+  - D25 (no start-up invalidity);
+  - one closed-loop P-HOLD per estimator.
+- A gate failure blocks hardware closed loop for that estimator.
+
+### 9.3 The FGO in real time on the Pi: options
+
+The measured cost: the Python GTSAM node needs 28 ms median / 59 ms p99 per 30 Hz keyframe on the i7 (§6). Expected
+3–5× slower on a Pi 4 and 1.5–2.5× on a Pi 5: it does not fit 30 Hz on either.
+
+| option | what changes | effort (days) [E] | expected cost on a Pi 5 [E] | how it is proved equivalent |
+|---|---|---|---|---|
+| **A. C++ port, numerical Jacobians** (the same central differences as `factors.py`) | language only | 4–6 | 3–4× faster than Python: ~10–20 ms | Run the C++ node and the Python node on the **same recorded bags**: identical inputs, same keyframes, same factors. Require per-keyframe state differences below solver tolerance (position ≤ 1 mm, yaw ≤ 0.01°) and identical gate decisions, on the 9 `dsn_*`, 6 `fwdc`, the T and O sets. As D19's FG1 and the C++ heading port (bit-equivalence tests) were done. |
+| **B. C++ port with exact Jacobians** (hand-derived, or generated with **SymForce** from the same `h_flow`/`h_range`/`h_heading`/`h_tag` models) | language + Jacobians | 6–9 (SymForce codegen + verification) | 5–15× faster than Python (Part C §5.4): ~3–8 ms | (1) **Unit level:** generated Jacobians against numerical differences of the *shared Python models* at random states (relative error ≤ 1e-6). (2) **System level:** as A, against the Python node on the same bags. Exact Jacobians move the LM steps slightly, so the band is position ≤ 1 cm and the same pre-registered outcomes. |
+| **C. Lower keyframe rate** (e.g. 10 Hz; flow and range attached per keyframe or averaged) | the estimator | 1–2 (+ re-running affected simulation results) | the Python cost per keyframe at 10 Hz (100 ms budget): fits a Pi 5 | **Not** equivalent by construction: it changes the information per keyframe. Proof = a new simulation comparison against the 30 Hz FGO on the frozen datasets, with a pre-registered band (e.g. evo -a (cruise) within ±10%), stated as a different estimator configuration. |
+
+**Recommendation: B, with A as the stepping stone.**
+- Build A first (fast to verify, since numerical Jacobians match by construction).
+- Then switch the Jacobians to SymForce-generated exact ones (B) behind a flag, verified at both levels.
+- B keeps the thesis FGO's configuration (30 Hz keyframes, 0.25 s window) and so transfers every simulation result.
+  C is the fallback if A/B slip, labelled as a different configuration.
+- For **open-loop** flights (route 3) the FGO may also run **offline after the flight** on the logged inputs, with no
+  speed-up. This is stated as "not real-time" wherever it is used.
+- L's keyframe FGO (whole-history iSAM2) is **not** a real-time candidate on the Pi. Its measured cost was 33–55 ms
+  median and up to 2.2 s p99 per update in Python.
+
+### 9.4 Staging, with safety requirements per stage
+
+**Stage 0: bench and hand-carried (no flight).** Requirements:
+- props off;
+- all streams at rate: `HIGHRES_IMU` 333 Hz, flow 30 Hz, tags, heading;
+- clock map settled (D25);
+- link latency distribution measured, which feeds the §9.2 SITL rehearsal;
+- `VISO_DELAY_MS` and `EK3_FLOW_DELAY` by the D2 procedure;
+- tag validity rule and σ re-measured against mocap;
+- hand-carried P-HOLD and laps paths, with every estimator scored against mocap;
+- rollback rehearsed.
+
+**Stage 1: open loop (route 3). EKF3 flies P-HOLD, then P-LAPS; the UKF and FGO run alongside on the Pi with
+identical data.** Safety:
+- the mocap geofence watcher (§7), independent of every estimator under test;
+- safety pilot with RC override to ALT_HOLD;
+- tether or net;
+- ≥ 1 m height and ≥ 1 m wall clearance;
+- 0.3–0.5 m/s maximum;
+- `FS_EKF_ACTION` LAND;
+- battery failsafe;
+- the flight script lands on any script failure (D24 clock).
+
+Entry: stage 0 complete. Exit: n flights with all logs complete and the pre-registered scoring done.
+
+**Stage 2: UKF closed loop.**
+- **Entry:**
+  - stage 1 clean;
+  - the UKF passes its SITL gates at Pi-like latency (§9.2);
+  - its open-loop P-HOLD error in stage 1 is within the pre-registered band.
+- **Additional safety:**
+  - the backend-invalid → `FS_EKF_ACTION` path verified on the bench (open item in §7);
+  - first flights tethered;
+  - an RC switch from the UKF to EKF3 (`AHRS_EKF_TYPE` change) is **not** used in flight (an AHRS switch in flight is
+    untested); the fallback is ALT_HOLD.
+- **Order:** P-HOLD first; P-LAPS only after 3 clean P-HOLD flights.
+
+**Stage 3: FGO closed loop.** Entry: stage 2 clean, the real-time FGO (§9.3 option B or A) passes its equivalence and
+SITL gates, and its open-loop stage-1 results are within band. Safety as stage 2, plus:
+- the per-keyframe solve time is monitored live, and the node stops itself (backend goes invalid → LAND) if p99
+  exceeds the keyframe period for 2 s.
+
+**Per stage:** a pre-registration (hypotheses, bands, n) written and reviewed before the first flight of the stage.
+Every stage can be stopped by the safety pilot or the watcher without any estimator.
