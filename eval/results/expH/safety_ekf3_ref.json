@@ -1,0 +1,59 @@
+{
+ "trial": "H_safety_ekf3_ref",
+ "failure": "KILL",
+ "t_f": 76.81,
+ "t_disarm": 90.035675,
+ "attitude_err_before_failure_10s": {
+  "n": 100,
+  "roll_max_deg": 0.26257347909826206,
+  "pitch_max_deg": 0.04579373722738583,
+  "yaw_max_deg": 0.31024832482773945
+ },
+ "S-A1": {
+  "n": 132,
+  "roll_max_deg": 0.2982464452305558,
+  "pitch_max_deg": 0.2639280736831554,
+  "yaw_max_deg": 0.4353479937614395,
+  "PASS": true
+ },
+ "t_failure_effect": null,
+ "S-A2": {
+  "text_delay_s": null,
+  "land_delay_s": 1.2457019999999943,
+  "land_reason": 2,
+  "bound_s": 99.0,
+  "fc_text": null,
+  "PASS": false
+ },
+ "S-A3": {
+  "disarm_delay_s": 13.225674999999995,
+  "max_tilt_deg": 1.8277348988619901,
+  "touchdown_t": 88.0716032827256,
+  "horiz_disp_m": 1.3968539938737432,
+  "touchdown_vz_m_s": -0.5248103563491843,
+  "breach": false,
+  "PASS": true
+ },
+ "S-A4_single_landing": {
+  "n_land_entries_after_t_f": 1,
+  "rearmed_after_disarm": false,
+  "PASS": true
+ },
+ "modes_after_t_f": [
+  [
+   1.246,
+   9,
+   2
+  ]
+ ],
+ "msgs_after_t_f": [
+  [
+   1.248,
+   "PrecLand: Failsafe Measures"
+  ],
+  [
+   13.226,
+   "Disarming motors"
+  ]
+ ]
+}

@@ -11882,3 +11882,29 @@ The C++ node was SIGKILLed in the hold at t 72.19 s. The watcher also watched th
   - **prediction:** attitude error ≤ 0.2°, drift ≤ 0.5 m.
 - **`H_safety_fgo_b2`** (the FGO (b) configuration at the new hold): S-A1–S-A4 exactly as pre-registered for (b).
   The 1.5 m drift limit is now inside the 2.0 m box clearance.
+
+### EKF3 reference failure test RESULT (`H_safety_ekf3_ref`, `eval/results/expH/safety_ekf3_ref.json`): drift 1.40 m (the prediction ≤ 0.5 m was WRONG); no breach
+EKF3 flying, at the 2 m-clearance hold W(−2.6, 0). The tag bridge and the flow bridge were SIGKILLed at t 76.81 s.
+- **Sequence:**
+  - the watcher withdrew `bridge`;
+  - fly_trial commanded LAND at **+1.25 s** (reason GCS);
+  - EKF3 itself raised no failsafe. It kept a (dead-reckoned) position, so LAND ran with position control on a
+    drifting estimate.
+- **EKF3 attitude error** (ATT − GT, from the failure to disarm):
+  - max roll 0.30°, pitch 0.26°, yaw 0.44°;
+  - mean during the landing +0.13° / +0.09°;
+  - before the failure, max 0.26° / 0.05°.
+- **Landing:**
+  - drift from the failure to touchdown **1.40 m**;
+  - max GT tilt 1.83°;
+  - touchdown 0.52 m/s;
+  - disarmed +13.2 s;
+  - **no breach** (2 m clearance).
+- **Reference conclusion:**
+  - **EKF3's own landing after losing its aiding drifts as far as the FGO's did in (b)** (1.40 m against ~1.4 m at
+    the breach). An FGO landing drift of this size is therefore consistent with attitude-only / dead-reckoned landing
+    in general; it is not FGO-specific.
+  - EKF3's attitude error during the landing is smaller than the FGO's in (b) (+0.13° / +0.09° against +0.28° /
+    +0.30°). Its drift comes from landing on a drifting dead-reckoned position, a different route to the same order
+    of drift.
+  - The FGO's larger hover tilt error (Item 2) is being traced separately.
