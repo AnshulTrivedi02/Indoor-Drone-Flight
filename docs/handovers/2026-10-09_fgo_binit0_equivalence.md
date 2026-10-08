@@ -56,9 +56,12 @@ was written to a trial directory. Nothing was installed to `~/opt/fgo_cpp`.
 | fgo_cpp_probe | `da4aeb0c8d497138cbda0e8fdeac4de9` |
 | fgo_cpp_replay, emulate-gemv (diagnostic only) | `b885fd231d38868c73547007efbfaeef` |
 
-- The currently installed `~/opt/fgo_cpp/bin/fgo_cpp_node` is `53831eae…`, the uncorrected model.
+- The currently installed `~/opt/fgo_cpp/bin/fgo_cpp_node` is `53831eae…`. That is the last md5 recorded in
+  METHODOLOGY (C++ node regression, 2026-10-09), built from source before this correction.
+- **Tested base:** `104fd5e` plus the patch. At hand-back, `git log 104fd5e..fwd-camera -- src/estimators/` is empty
+  (`fwd-camera` is at `b1422b7`). So merging this branch builds exactly the tested source.
 - **md5 may depend on the source path** (GTSAM headers embed `__FILE__`). A build from `~/thesis_ws` may therefore
-  give different md5s. Use the functional check in §5 instead.
+  give different md5s. Use the functional check in §6 instead.
 
 ## 3. Proof that both cores picked up the change
 - **Numerics probe, Python vs C++ (new):**
@@ -177,6 +180,13 @@ python3 ~/thesis_ws/src/estimators/fgo_cpp/tools/heavy.py "install fgo_cpp binit
 - The node links the same `fgo_cpp_core` library. To check the node path too, run
   `~/opt/fgo_cpp/bin/fgo_cpp_live_replay` with the L1 command (`scripts/step.sh`, case `live`) and `cmp` its `.kf.f64`
   with `$D/L1.kf.f64`.
+- **Reference sha256** (in case `/tmp` is cleaned):
+  - `dsn_tex_r1_baseline.kf.f64` (Python export): `49227a44c4d28ab4160d6d7461c507f0572b18a5e76315151890ccd5efe136ab`;
+  - `cpp_dsn_tex_r1_baseline.kf.f64` (C++ replay) and `L1.kf.f64` (live adapter; the same bytes):
+    `fef3533ae18008048573d44554763a49137224c14122280830bb8c4dcabdd7ce`.
+- To regenerate the export (~3 min), run `FGO_BAG_ROOT=<scratch bag copy> FGO_OUT_ROOT=<scratch> FGO_DUMP_EVENTS=<prefix>`
+  `~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py dsn_tex_r1 0.25 2 baseline` and check the hashes. If ACCEPT
+  fails on a source that has changed since `104fd5e`, the bands must be re-run on the merged source.
 - **Fallback if the scratch dir is gone:** the probe pair (`fgo_cpp_probe.py` vs a freshly built `fgo_cpp_probe`)
   must give a bit-identical `cov` line, and that line must differ from the old `probe2_py.txt`.
 - **Before S3:** record the new `fgo_cpp_node` md5 in METHODOLOGY. The old one is `53831eae…`.
