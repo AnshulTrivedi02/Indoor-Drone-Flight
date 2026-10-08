@@ -14,7 +14,7 @@ import rclpy
 import rclpy.executors
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
-from geometry_msgs.msg import PoseStamped, Vector3Stamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Vector3Stamped
 from sensor_msgs.msg import Imu, Range, TimeReference
 from std_msgs.msg import Bool
 from optical_flow_interfaces.msg import OpticalFlow
@@ -49,7 +49,7 @@ def _core_proc(inq, outq, kw, stats_path):
         t, kind, payload, tw_epoch = item
         core.push(t, kind, payload, t_wall=time.perf_counter() - (time.time() - tw_epoch))
         while n_out < len(core.traj):
-            outq.put((core.traj[n_out], core.valid, core.states[n_out])); n_out += 1
+            outq.put((core.traj[n_out], core.valid, core.states[n_out], core.anchor_log[n_out])); n_out += 1
     core.flush()
     if stats_path:
         np.savez(stats_path, step_ns=np.array(core.step_ns, np.int64), lag=np.array(core.lag).reshape(-1, 2),
@@ -57,7 +57,10 @@ def _core_proc(inq, outq, kw, stats_path):
                  valid_log=np.array(core.valid_log, float).reshape(-1, 2),
                  gaps_seen=np.array(core.gaps_seen, float).reshape(-1, 3),
                  n_pushed=np.array([(k, v) for k, v in core.n_pushed.items()], dtype=object),
-                 n_imu_integrated=(core.fgo.n_imu if core.fgo is not None else 0))
+                 n_imu_integrated=(core.fgo.n_imu if core.fgo is not None else 0),
+                 t_anchor=np.nan if core.t_anchor is None else core.t_anchor, n_anchors=core.n_anchors,
+                 n_tag=(getattr(core.fgo, "n_tag", 0) if core.fgo is not None else 0),
+                 anchor_log=np.array(core.anchor_log, float).reshape(-1, 2))
 
 
 class FgoNode(Node):
@@ -79,6 +82,15 @@ class FgoNode(Node):
         # Plan step 2(b) (PRE-REGISTERED): robust heading weighting, e.g. "cauchy:2.385" (F1's calibration); the chi-square
         # gate is then removed, exactly as fgo_replay.py's F1 arm. Default "" = the hard-gated FGO, unchanged.
         self.declare_parameter("heading_robust", "")
+        # Experiment H (2026-10-08; docs/h_backends_tag_input.md): the wall-tag fixes EKF3 receives, re-published by
+        # tag_bridge_fwd.py on /tags/sent (W written as ENU: x = E_W, y = N_W, yaw ENU), handled exactly as
+        # room_fgo_replay.py: the first fix re-anchors (FGO.reanchor), later fixes are tag factors with NO gate, the yaw
+        # cap is off after the anchor. sigma_pos = tag_sigma_pos_m (S0: 0.02 = VISO_POS_M_NSE), sigma_yaw = 5 deg.
+        # Fused at the capture stamp (the FGO's factor-graph design, as the heading). Default false = unchanged.
+        # After the anchor the state goes to ArduPilot in W (ENU -> NED) with ODOMETRY reset_counter incremented, which
+        # AP_NavFGO reports as a position + yaw reset (as EKF3's ExtNav reset).
+        self.declare_parameter("tags", False)
+        self.declare_parameter("tag_sigma_pos_m", 0.02)
         self._toff = deque()                                 # (t_header, t_header - t_sitl) over the last 10 s
         self._tref_t0 = None; self._toff_early = []          # D25: settle reference and start-up diagnostics
         self._n_unsettled = self._n_outl_max = self._n_maps_with_outliers = 0
@@ -92,7 +104,14 @@ class FgoNode(Node):
         self.create_subscription(Vector3Stamped, "/attitude/angular_rates", self._att, q)
         self.pub = self.create_publisher(PoseStamped, "/fgo/pose", 10)
         self._hdg_last = None
-        if self.get_parameter("heading").value:
+        self._tags = bool(self.get_parameter("tags").value)
+        if self._tags and self.get_parameter("heading").value:
+            # the heading is a corridor-frame yaw (-yaw_ap); after the tag re-anchor the frame is W: never both
+            self.get_logger().error("tags and heading both set: the heading input is DISABLED (tags take precedence)")
+        self._use_heading = bool(self.get_parameter("heading").value) and not self._tags
+        if self._tags:
+            self.create_subscription(PoseWithCovarianceStamped, "/tags/sent", self._tag, q)
+        if self._use_heading:
             self.create_subscription(Vector3Stamped, "/forward_camera/heading_sent", self._hdg, q)
         self.pub_valid = self.create_publisher(Bool, "/fgo/valid", 10)
         # The FGO core runs in a SEPARATE PROCESS; callbacks only forward messages over a pipe.
@@ -104,10 +123,11 @@ class FgoNode(Node):
         self._to_core, self._from_core = ctx.Queue(), ctx.Queue()
         self._proc = ctx.Process(target=_core_proc, args=(self._to_core, self._from_core,
                                  dict(window=float(self.get_parameter("window_s").value), lm_iters=int(self.get_parameter("lm_iters").value),
-                                      fwd_sigma=({"psi": math.radians(5.0), "omega": None} if self.get_parameter("heading").value else None),
+                                      fwd_sigma=({"psi": math.radians(5.0), "omega": None} if self._use_heading else None),
                                       fwd_gate=(float("inf") if self.get_parameter("heading_robust").value else 9.0),
                                       fwd_robust=(self.get_parameter("heading_robust").value or None),
-                                      horizon_s=float(self.get_parameter("horizon_s").value), dejitter="causal", gap="causal"),
+                                      horizon_s=float(self.get_parameter("horizon_s").value), dejitter="causal", gap="causal",
+                                      tags=self._tags, tag_sigma_pos=float(self.get_parameter("tag_sigma_pos_m").value)),
                                  self.get_parameter("stats_path").value), daemon=True)
         self._proc.start()
         self._stop = False
@@ -138,8 +158,9 @@ class FgoNode(Node):
         self._n_maps_with_outliers += n_out > 0
         return int(round((t - o[inl].min()) * 1e6))
 
-    def _send_state(self, st, valid):
+    def _send_state(self, st, valid, anchor=(False, 0)):
         t_k, p, v, R, bg, ba = st
+        anchored, n_anchors = anchor
         t_us = self._sitl_us(t_k)
         if self._mav is None or t_us is None:
             return
@@ -155,6 +176,12 @@ class FgoNode(Node):
         # at spawn): x = forward along the corridor = North, y = left = West, z = up. -> NED: (x, -y, -z).
         # (Found in the second smoke test: an ENU mapping put yaw 90 deg off and swapped N/E.)
         C = np.array([[1.0, 0, 0], [0, -1, 0], [0, 0, -1]])    # corridor (x fwd/N, y W, z U) -> NED
+        if anchored:
+            # experiment H: after the tag re-anchor the FGO's frame is W written as ENU (x = E_W, y = N_W, z up, yaw ENU,
+            # the /tags/sent convention): (N, E, D) = (y, x, -z); yaw_NED = pi/2 - yaw_ENU. Before the anchor the
+            # corridor mapping above is kept: the FGO starts at yaw 0 along body x, and H spawns facing the tag (W
+            # north), so the anchor's yaw step stays small, as EKF3's (which starts at NED yaw 0 too).
+            C = np.array([[0.0, 1, 0], [1, 0, 0], [0, 0, -1]])
         Fb = np.diag([1.0, -1, -1])                           # FLU <-> FRD
         pn, vn, Rn = C @ p, C @ v, C @ R @ Fb
         # rotation matrix -> quaternion (w, x, y, z)
@@ -173,7 +200,8 @@ class FgoNode(Node):
         self._mav.mav.odometry_send(t_us, mavutil.mavlink.MAV_FRAME_LOCAL_NED, mavutil.mavlink.MAV_FRAME_BODY_FRD,
                                     float(pn[0]), float(pn[1]), float(pn[2]), [float(qw), float(qx), float(qy), float(qz)],
                                     float(vn[0]), float(vn[1]), float(vn[2]), float(bgf[0]), float(bgf[1]), float(bgf[2]),
-                                    cov, [float("nan")] * 21, 0, mavutil.mavlink.MAV_ESTIMATOR_TYPE_NAIVE, 100 if valid else 0)
+                                    cov, [float("nan")] * 21, int(n_anchors) % 256, mavutil.mavlink.MAV_ESTIMATOR_TYPE_NAIVE,
+                                    100 if valid else 0)
 
     def _push(self, t, kind, payload):
         self._to_core.put((t, kind, payload, time.time()))     # wall arrival time (lag includes queueing)
@@ -181,7 +209,7 @@ class FgoNode(Node):
     def _publisher(self):
         while not self._stop:
             try:
-                row, valid, st = self._from_core.get(timeout=0.2)
+                row, valid, st, anchor = self._from_core.get(timeout=0.2)
             except Exception:
                 continue
             t_k, x, y, z, r, p, yw, _ = row
@@ -192,7 +220,7 @@ class FgoNode(Node):
             m.pose.orientation.x, m.pose.orientation.y, m.pose.orientation.z, m.pose.orientation.w = qx, qy, qz, qw
             self.pub.publish(m)
             self.pub_valid.publish(Bool(data=bool(valid)))
-            self._send_state(st, valid)
+            self._send_state(st, valid, anchor)
 
     def stop_worker(self):
         sp = self.get_parameter("stats_path").value
@@ -235,6 +263,10 @@ class FgoNode(Node):
         self._hdg_last = t
         # sigma: clamp [0.05, 1.5] then the 5 deg floor = 5 deg; set as the core's fixed heading noise (fwd_sigma)
         self._push(t, "fwd", (-yaw_ap, None))                           # FGO corridor yaw (CCW) = -NED yaw
+
+    def _tag(self, m):
+        q = m.pose.pose.orientation                                     # (E_W, N_W, yaw ENU), as room_fgo_replay.py
+        self._push(_st(m.header), "tag", (m.pose.pose.position.x, m.pose.pose.position.y, 2 * math.atan2(q.z, q.w)))
 
     def _att(self, m):
         self._push(_st(m.header), "att", np.array([m.vector.x, m.vector.y, m.vector.z]))

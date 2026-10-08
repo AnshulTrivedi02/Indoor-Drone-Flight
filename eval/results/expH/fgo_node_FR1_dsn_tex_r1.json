@@ -1,0 +1,54 @@
+{
+ "trial": "dsn_tex_r1",
+ "mode": "step2",
+ "window_s": [
+  30.348,
+  333.041
+ ],
+ "offline_dejitter": {
+  "period_ms": 3.0005686729723964,
+  "resid_std_ms": 3.4247195761140152,
+  "resid_maxabs_ms": 11.543556264541621
+ },
+ "step2": {
+  "variant": "step2_offline_stream",
+  "keyframes": 10197,
+  "keyframes_offline": 10197,
+  "same_keyframe_times": true,
+  "n_flow": 10018,
+  "n_flow_offline": 10018,
+  "n_range": 10196,
+  "n_range_offline": 10196,
+  "dpos_m": {
+   "max": 8.327554411659463e-07,
+   "rms": 4.997476544553698e-07,
+   "end": 6.574828779356135e-07
+  },
+  "dyaw_deg": {
+   "max": 0.0,
+   "end": 0.0
+  },
+  "reference": "fgo_traj.tum",
+  "dyaw_deg_node_rpy_vs_offline_quat": {
+   "max": 7.980004517916159e-05
+  },
+  "step_ms": {
+   "median": 16.130097,
+   "p95": 18.121546399999996,
+   "p99": 29.844467519999988
+  },
+  "reinits": 0,
+  "valid_end": true,
+  "dbgz_deg_per_min_max": 0.0,
+  "validity": {
+   "valid_pct_cruise": 100.0,
+   "changes_rel_cruise_s": []
+  },
+  "wall_s": 169.79381792410277,
+  "FE1": true,
+  "FE2": true,
+  "FE4": true,
+  "FE3": true
+ },
+ "pass": true
+}
