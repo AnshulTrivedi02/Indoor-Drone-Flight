@@ -11940,3 +11940,14 @@ C++ node SIGKILLed in the hold at t 66.04 s. The watcher also watched the node (
 - **S-A4 PASS:** one LAND entry, no re-arm, no conflict between the watcher's and the FC's paths.
 - **The option (i) safety tests are complete:** UKF (a), (b) and FGO (a) PASS; FGO (b) failed as worded at the old
   hold and PASSED at the 2 m-clearance hold; the EKF3 reference was measured.
+
+### Pre-registration amendment (2026-10-09, before flying): the in-flight-anchor profile moves into the D18 range band first
+- At the occluded-start spawn the camera is ~3.75 m from the tag. Under the D18 rule (adopted after the
+  pre-registration), uncovering there would give NO valid in-flight fix and no anchor.
+- **New profile:** take off → `move` 1.5 m toward the tag in the estimator's own (pre-anchor) frame, which at
+  arming is the vehicle heading, facing the tag → `idle` 5 s → uncover → `idle` 25 s.
+  - At N_W ≈ −2.4 the camera is ~2.25 m from the tag, inside the band.
+  - From the `idle` on, fly_trial sends no setpoints: the FC holds its own GUIDED target, which follows the reset.
+- The bound is unchanged (5 s after the anchor: tilt ≤ 10°, displacement ≤ 0.30 m, |yaw change| ≤ 5°).
+- **Driver:** `tools/run_h_far.sh` (ground tests `H_gt_ukf_far`, `H_gt_fgo_far`; in-flight anchor `H_ifa_ekf3`,
+  `H_ifa_ukf`, `H_ifa_fgo`; S1 re-fly `H_s1far_r1..3`). It stops at the first breach or failed run.
