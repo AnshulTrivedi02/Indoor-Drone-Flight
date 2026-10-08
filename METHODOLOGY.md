@@ -12247,3 +12247,14 @@ first node keyframe at or after the first returning fix (node stats, header cloc
   bias-corrected rate). For the FGO it also reflects the noise-model correction, which S3 flies but the S1 shadows did
   not.
 - **Caveat:** each estimator flew its own flights, so the pairing is by run index, not the same trajectory.
+
+### FGO closed-loop RE-FLIGHTS with the corrected FGO: launch settings (recorded before flying)
+`tools/run_fgo_refly.sh`, the same settings and criteria as the originals:
+- `cl_fgo_a_tex_half_v2`: `FGO=1`, `corridor_textured_half_fwdc`, Python node (corrected core).
+- `cl_fgo_b_tex_r{1,2,3}_half_v2`: also `HEADING=1`, `HEADING_PARM=closedloop_heading_half.parm`
+  (`VISO_DELAY_MS 25`), `HEADING_SIGMA_DEG 0.148`, `HEADING_EVERY_N 4`, the C++ heading node. These are the
+  originals' values, from their heading_bridge log.
+- `H_safety_fgo_{a,b}_v2`: the 2 m-clearance hold, the corrected C++ node.
+
+**Order and stop rule (as the original):** a first, scored; then the set, each scored before the next. A primary
+failure stops the sequence.
