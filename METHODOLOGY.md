@@ -12039,3 +12039,6 @@ node's stats JSON but not their arguments: an incomplete edit, made when the edi
   - The agent's partial notes go to `docs/handovers/2026-10-09_fgo_tilt_trace.md`, marked incomplete.
 - **S3 no longer waits on it.** Order: the S1 re-fly, then S2, then S3, once the C++ node regression comparison is
   clean.
+- **C++ node regression (no-first-anchor-after-arming + stats fix; old `23e01eae` against new `53831eae`):**
+  `kf.f64` and `mav.bin` are **byte-identical** on all six shadow_ii tapes (real, ramp, burst, both gap variants in
+  time_ref; ramp in causal). **The regression is clean, and S3 is unblocked.**
