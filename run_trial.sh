@@ -375,7 +375,7 @@ if [ -n "${TAG_BRIDGE_FWD:-}" ]; then
         env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
         "$HOME/venv-tags/bin/python" "$HOME/thesis_ws/tag_bridge_fwd.py" \
         --ros-args -p use_sim_time:=true -p send:="$([ -n "${TAG_FWD_SEND:-}" ] && echo true || echo false)" \
-        -p r_valid_px:="${TAG_FWD_RVALID:-0.0}" -p convention:="${TAG_FWD_CONV:-}" -p sigma_pos_m:="${TAG_SIGMA_POS:-0.05}" \
+        -p r_valid_px:="${TAG_FWD_RVALID:-0.0}" ${TAG_FWD_CONV:+-p convention:="$TAG_FWD_CONV"} -p sigma_pos_m:="${TAG_SIGMA_POS:-0.05}" \
         -p log_path:="$LOG_DIR/tag_bridge_fwd.csv"
     if [ -n "${TAG_FWD_SEND:-}" ]; then
         wait_for "tag_bridge_fwd linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/tag_bridge_fwd.log'" 60

@@ -10700,3 +10700,33 @@ flights, with nothing else running on the machine.
   - **P-H7 (lockout):** no estimator locks out the returning tag in any loss. For EKF3 this follows when the drift
     stays below its 5σ gate (5 × σ_pos at 15 s and below); above 10 s the timeout bypasses the gate anyway.
 - **Not tested in S1:** comparative hold error (H-H2) and smoothness across estimators (P-H3). They need S2/S3.
+
+### Experiment H S0a RESULT (`H_s0a`, `eval/results/expH/s0a_char.json`): convention frozen; r_valid = whole image; σ_pos 0.02 m; amplitude 0.5 m kept
+
+- **Flight:** the 47-segment sweep, open loop on simulator truth.
+  - 4,257 forward frames; 2,357 wall-tag detections; **95.8%** of frames with the tag fully in view detected;
+    **0 wrong ids**; 7.4 ms/frame median (p99 24 ms).
+  - The occluder `set_pose` works (ON at 130.0 s, OFF at 133.1 s).
+  - Flown while the bag compression ran (a characterisation against GT only, with no estimator data used from it).
+  - The first attempt aborted before take-off: an empty `-p convention:=` ROS parameter, fixed in `run_trial.sh`; kept
+    as `H_s0a_ABORTED`.
+- **Rules applied as pre-registered:**
+  - **Texture convention FROZEN = `u-y_v-x`** (the same mapping as the floor tags): median position error 7.6 mm,
+    |yaw| 0.08°. Every other candidate is ≥ 0.31 m off.
+  - **r_valid:** p95 horizontal error ≤ 0.05 m at **every** radius up to the 400 px half-diagonal (1.0–2.0 m camera
+    range), so **r_valid = 400 px: no image-position restriction**.
+  - **σ_pos = 0.02 m** (p95 at 1.35–1.65 m = 18 mm, rounded up).
+  - **Lateral amplitude stays 0.5 m.**
+- **Accuracy by camera-to-tag range** (horizontal p50 / p95; yaw p95):
+
+  | range | horizontal p50 | horizontal p95 | yaw p95 |
+  |---|---|---|---|
+  | 1.25–1.75 m | 2.1 mm | 18 mm | 0.67° |
+  | 1.75–2.25 m | 3.2 mm | 15 mm | 0.41° |
+  | 2.25–2.8 m | 4.9 mm | 24 mm | 0.54° |
+  | 0.9–1.25 m | | | |
+
+  The 0.9–1.25 m band had only 5 detections, because the tag fills or leaves the frame at the 1.0 m stations.
+- **`h_extnav.parm`:** `VISO_POS_M_NSE 0.02`. The UKF and FGO use `ROOM_TAG_SIGMA_POS=0.02` (noise parity).
+  `VISO_DELAY_MS` is a placeholder until S0b. **S0b waits for the bag compression to finish:** latency measured under
+  CPU load is distorted (the T lesson).

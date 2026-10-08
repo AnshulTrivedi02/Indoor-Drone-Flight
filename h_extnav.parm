@@ -1,0 +1,12 @@
+# Experiment H (wall tag, forward camera; METHODOLOGY "Experiment H: pre-registration"). Appended after the standard chain.
+# ONE source set: tag position + yaw (ExternalNav) with optical-flow velocity and rangefinder height (no switching, ruling R2).
+VISO_TYPE 1
+EK3_SRC1_POSXY 6
+EK3_SRC1_VELXY 5
+EK3_SRC1_POSZ 2
+EK3_SRC1_YAW 6
+VISO_POS_M_NSE 0.02    # = S0a sigma_pos (p95 horizontal error of valid detections at 1.5 m: 18 mm, rounded up)
+VISO_YAW_M_NSE 0.05    # effective yaw sigma = EKF3's 5 deg floor
+VISO_QUAL_MIN 0
+VISO_DELAY_MS 10       # PLACEHOLDER until S0b measures it (D2/D20 receipt rule)
+ARMING_SKIPCHK 262144  # skip only check bit 18 (VisualOdometry)
