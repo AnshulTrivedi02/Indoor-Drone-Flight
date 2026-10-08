@@ -28,8 +28,14 @@ struct LiveConfig {
   ReplayConfig base;                 // window, LM, kf_dt, mode ("corridor" | "room"), forward config, tag sigmas
   double reorder_delay = 0.20;       // s; stamp-ordered release up to newest stamp - delay (bags: lateness <= 0.185 s)
   // IMU stamp source:
-  //   "time_ref": HIGHRES_IMU time_usec (/imu/time_ref, paired by header stamp) mapped to the header clock by the
-  //               D25 lower envelope, slew-limited so stamps stay monotonic (the live default; no offline dejitter)
+  //   "time_ref": HIGHRES_IMU time_usec (/imu/time_ref, paired FIFO by header stamp) mapped to the header clock by
+  //               the D25 lower envelope, slew-limited so stamps stay monotonic (the live default; no offline
+  //               dejitter). The offset is SEEDED only from the SETTLED envelope (the same D25 settle as the
+  //               ODOMETRY time_usec): every input that arrives before the settle is held, and at the settle the
+  //               held block is pushed in final-stamp order; keyframes it produces are not sent (they are stale).
+  //               Fix 2026-10-08 (docs/handovers/2026-10-08_fgo_cpp_timeref_fix.md): seeding from the first,
+  //               unsettled samples took the bridge's start-up backlog offset (~0.5 s) and the 50 us/sample slew
+  //               then needed ~30 s to remove it, stamping states up to ~0.4 s in the future.
   //   "causal":   fgo_node_core's running least-squares fit of the receipt stamps (the Python node's choice)
   //   "header":   the header stamp as given (replay of an already dejittered stream)
   std::string imu_stamp = "time_ref";
@@ -73,6 +79,13 @@ class LiveAdapter {
   bool gap_invalid = false;
   double t_armed_header = -1.0;   // header-clock arming instant used for D15 (heartbeat source); -1 = none
   std::vector<std::array<double, 3>> gaps_seen;   // (sensor t, gap, airborne)
+  // time_ref clock-map diagnostics (fix 2026-10-08)
+  bool tref_settled = false;          // the IMU offset has been seeded from the settled envelope
+  double tref_seed_offset = NAN;      // the seeded offset (header - sensor, s)
+  double tref_seed_th = NAN;          // header time of the time_ref arrival that settled the map
+  size_t n_held = 0;                  // inputs held before the settle and pushed at it
+  double tref_max_track_err = 0;      // max |envelope - applied offset| over IMU samples after the seed (s)
+  size_t n_dup_stamp = 0;             // IMU or time_ref arrivals whose header stamp was already waiting (FIFO-paired)
 
  private:
   void push(const double* row, int rank);
@@ -82,6 +95,9 @@ class LiveAdapter {
   bool sitl_us(double t, uint64_t* out);
   double envelope_offset(bool require_settle, bool* ok);
   void imu_time_ref_paired(double th, double ts, const Vector3& acc, const Vector3& gyro);
+  void gap_check(double ts);
+  void settle_and_flush();
+  bool holding() const { return cfg_.imu_stamp == "time_ref" && !tref_settled; }
   std::vector<uint8_t> odometry(const double* row, bool valid, uint64_t t_us);
 
   LiveConfig cfg_;
@@ -91,8 +107,14 @@ class LiveAdapter {
   // causal dejitter (fgo_node_core._dejitter)
   double dj_n_ = 0, dj_mx_ = 0, dj_my_ = 0, dj_cxx_ = 0, dj_cxy_ = 0;
   // time_ref pairing and clock map
-  std::map<double, std::pair<Vector3, Vector3>> imu_wait_;   // IMU waiting for its time_ref (by header stamp)
-  std::map<double, double> tref_wait_;                       // time_ref waiting for its IMU
+  // FIFO per header stamp: the bridge can give two samples the same receipt stamp (153 of 112563 in shadow_ii)
+  std::map<double, std::deque<std::pair<Vector3, Vector3>>> imu_wait_;   // IMU waiting for its time_ref
+  std::map<double, std::deque<double>> tref_wait_;                       // time_ref waiting for its IMU
+  // inputs held before the clock map settles (time_ref mode): what 0 = a row push (row, rank), 1 = a paired IMU
+  // sample (row[1] = sensor time), 2 = a gap-rule check (row[1] = sensor time)
+  struct Held { int what; int rank; std::array<double, EV_COLS> row; };
+  std::vector<Held> held_;
+  bool flushing_ = false;
   std::deque<std::pair<double, double>> toff_;               // (th, th - ts) over the last clock_window_s
   bool have_tref0_ = false;
   double tref_t0_ = 0;

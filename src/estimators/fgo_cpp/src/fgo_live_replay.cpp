@@ -83,6 +83,10 @@ int main(int argc, char** argv) {
               "gaps %zu, gap-invalid %d; heading rejected %zu; IMU unpaired %zu; max lateness %.3f s, out-of-order %zu\n",
               live.size() / 6, ad.n_sent, ad.n_unsettled, n_valid, ad.n_reinits, ad.gaps_seen.size(), int(ad.gap_invalid),
               ad.n_hdg_rejected, ad.n_imu_unpaired, ad.max_lateness(), ad.n_out_of_order());
+  if (cfg.imu_stamp == "time_ref")
+    std::printf("[tref] settled %d at header %.3f s, seeded offset %.6f s, %zu inputs held, max |envelope - offset| "
+                "after the seed %.6f s, duplicate header stamps %zu\n", int(ad.tref_settled), ad.tref_seed_th,
+                ad.tref_seed_offset, ad.n_held, ad.tref_max_track_err, ad.n_dup_stamp);
   if (!st.empty())
     std::printf("[timing] per-keyframe step: median %.3f ms, p99 %.3f ms, max %.3f ms\n", st[st.size() / 2],
                 st[std::min(st.size() - 1, size_t(0.99 * (st.size() - 1) + 0.5))], st.back());

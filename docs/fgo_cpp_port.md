@@ -684,3 +684,20 @@ time_ref". The diagnostics `diag_rms_rise_at_pm20ms_deg` and `diag_delta_halves_
 state stamped in the future wraps the uint32 age, D25) and the maximum excluding those samples. `decide` warns when
 any are present. Rule A still uses the literal maximum. One synthetic `decide` case and the counting expressions
 are unit-checked; on a3: 0 wrapped.
+
+# Part 5 fix: the live time_ref start-up defect (2026-10-08)
+
+The stage-5 finding (live time_ref δ_att 140–149 ms, future-stamped states) is traced and fixed. Cause: the
+time_ref IMU offset was seeded from the first, unsettled time_ref samples, which carry the bridge's start-up offset
+(~0.5 s, inferred). The 50 µs/sample slew then needed ~30 s to remove it. With only t_k > 45 s, live δ_att is 23.0 /
+23.5 ms, against 22.5 / 22.0 ms for the same-bag replay.
+
+Fix: the offset is seeded only from the D25-settled envelope; inputs before the settle are held and pushed in
+final-stamp order; flush keyframes are not sent; pairing is FIFO per header stamp.
+
+Verification:
+- Header and causal modes, including band L rows L1/L2, are byte-identical to before.
+- A synthetic start-up reproduction shows the defect before the fix (δ_att 161–171 ms, 476–493 future-stamped
+  states) and none after it (1.0 ms, 0).
+
+Details, numbers and the live check still needed: `docs/handovers/2026-10-08_fgo_cpp_timeref_fix.md`.

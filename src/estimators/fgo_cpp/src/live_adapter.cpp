@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <tuple>
 
 namespace fgo_cpp {
 
@@ -39,6 +40,12 @@ size_t LiveAdapter::n_out_of_order() const { return fe_->n_out_of_order; }
 
 void LiveAdapter::push(const double* row, int rank) {
   newest_th_ = std::max(newest_th_, row[1]);
+  if (holding()) {   // time_ref mode before the clock map settles: hold (pushed at the settle, in stamp order)
+    Held h{0, rank, {}};
+    std::copy(row, row + EV_COLS, h.row.begin());
+    held_.push_back(h);
+    return;
+  }
   fe_->push(row, rank);
 }
 
@@ -57,13 +64,16 @@ void LiveAdapter::reset_front_end() {   // fgo_node_core._reset_filter (+ the de
 void LiveAdapter::imu(double th, const Vector3& acc, const Vector3& gyro) {
   ++n_arrivals;
   if (cfg_.imu_stamp == "time_ref") {
-    auto it = tref_wait_.find(th);
+    auto it = tref_wait_.find(th);   // FIFO per header stamp (duplicate receipt stamps occur)
     if (it != tref_wait_.end()) {
-      const double ts = it->second;
-      tref_wait_.erase(it);
+      const double ts = it->second.front();
+      it->second.pop_front();
+      if (it->second.empty()) tref_wait_.erase(it);
       imu_time_ref_paired(th, ts, acc, gyro);
     } else {
-      imu_wait_[th] = {acc, gyro};
+      auto& q = imu_wait_[th];
+      if (!q.empty()) ++n_dup_stamp;
+      q.emplace_back(acc, gyro);
     }
     return;
   }
@@ -83,22 +93,83 @@ void LiveAdapter::imu(double th, const Vector3& acc, const Vector3& gyro) {
 }
 
 void LiveAdapter::imu_time_ref_paired(double th, double ts, const Vector3& acc, const Vector3& gyro) {
+  if (holding()) {   // before the settle: keep the sensor time; the stamp is applied at the settle
+    newest_th_ = std::max(newest_th_, th);
+    held_.push_back({1, 0, {double(IMU), ts, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2], NAN}});
+    return;
+  }
   bool ok = false;
   const double env = envelope_offset(false, &ok);
   if (!ok) return;
-  if (!have_off_used_) {
-    off_used_ = env;
-    have_off_used_ = true;
-  } else {
-    off_used_ += std::max(-cfg_.slew_s_per_sample, std::min(cfg_.slew_s_per_sample, env - off_used_));
-  }
-  (void)th;
+  // the offset was seeded from the SETTLED envelope in settle_and_flush (never from unsettled samples)
+  tref_max_track_err = std::max(tref_max_track_err, std::abs(env - off_used_));
+  off_used_ += std::max(-cfg_.slew_s_per_sample, std::min(cfg_.slew_s_per_sample, env - off_used_));
   const double row[EV_COLS] = {double(IMU), ts + off_used_, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2], NAN};
   push(row, 0);
 }
 
+void LiveAdapter::settle_and_flush() {
+  bool ok = false;
+  const double env = envelope_offset(true, &ok);
+  if (!ok) return;
+  tref_settled = true;
+  have_off_used_ = true;
+  off_used_ = env;
+  tref_seed_offset = env;
+  tref_seed_th = toff_.back().first;
+  n_held = held_.size();
+  // push the held block in FINAL-stamp order (IMU: sensor time + seeded offset), with the reorder buffer's tie-break
+  // (stamp, rank, arrival); a gap-rule check sorts just before the IMU sample whose time_ref it came with
+  std::vector<std::tuple<double, int, size_t>> order;
+  order.reserve(held_.size());
+  for (size_t i = 0; i < held_.size(); ++i) {
+    const Held& h = held_[i];
+    order.emplace_back(h.what == 0 ? h.row[1] : h.row[1] + env, h.what == 2 ? -1 : h.rank, i);
+  }
+  std::sort(order.begin(), order.end());
+  flushing_ = true;   // keyframes produced now are up to clock_settle_s old: not sent to the autopilot
+  for (const auto& o : order) {
+    const Held& h = held_[std::get<2>(o)];
+    if (h.what == 0) push(h.row.data(), h.rank);
+    else if (h.what == 1) imu_time_ref_paired(NAN, h.row[1], Vector3(h.row[2], h.row[3], h.row[4]), Vector3(h.row[5], h.row[6], h.row[7]));
+    else gap_check(h.row[1]);
+  }
+  flushing_ = false;
+  held_.clear();
+  held_.shrink_to_fit();
+}
+
 void LiveAdapter::time_ref(double th, double ts) {
   ++n_arrivals;
+  if (holding()) held_.push_back({2, -1, {NAN, ts, NAN, NAN, NAN, NAN, NAN, NAN, NAN}});   // gap check deferred
+  else gap_check(ts);
+  // clock map (fgo_node._tref): offsets header - sensor over the last clock_window_s
+  if (!have_tref0_) { have_tref0_ = true; tref_t0_ = th; }
+  toff_.emplace_back(th, th - ts);
+  while (!toff_.empty() && toff_.front().first < th - cfg_.clock_window_s) toff_.pop_front();
+  if (cfg_.imu_stamp == "time_ref") {
+    auto it = imu_wait_.find(th);   // FIFO per header stamp
+    if (it != imu_wait_.end()) {
+      const auto ag = it->second.front();
+      it->second.pop_front();
+      if (it->second.empty()) imu_wait_.erase(it);
+      imu_time_ref_paired(th, ts, ag.first, ag.second);
+    } else {
+      auto& q = tref_wait_[th];
+      if (!q.empty()) ++n_dup_stamp;
+      q.push_back(ts);
+    }
+    // drop stale unpaired entries (> 1 s behind)
+    while (!imu_wait_.empty() && imu_wait_.begin()->first < th - 1.0) {
+      n_imu_unpaired += imu_wait_.begin()->second.size();
+      imu_wait_.erase(imu_wait_.begin());
+    }
+    while (!tref_wait_.empty() && tref_wait_.begin()->first < th - 1.0) tref_wait_.erase(tref_wait_.begin());
+    if (holding()) settle_and_flush();   // seeds the offset and pushes the held block once D25 has settled
+  }
+}
+
+void LiveAdapter::gap_check(double ts) {
   // causal IMU-gap rule (fgo_node_core._gap_check)
   if (cfg_.gap_rule && have_tref_prev_ && ts - tref_prev_ > GAP_S) {
     const bool air = airborne();
@@ -112,23 +183,6 @@ void LiveAdapter::time_ref(double th, double ts) {
   }
   have_tref_prev_ = true;
   tref_prev_ = ts;
-  // clock map (fgo_node._tref): offsets header - sensor over the last clock_window_s
-  if (!have_tref0_) { have_tref0_ = true; tref_t0_ = th; }
-  toff_.emplace_back(th, th - ts);
-  while (!toff_.empty() && toff_.front().first < th - cfg_.clock_window_s) toff_.pop_front();
-  if (cfg_.imu_stamp == "time_ref") {
-    auto it = imu_wait_.find(th);
-    if (it != imu_wait_.end()) {
-      const auto ag = it->second;
-      imu_wait_.erase(it);
-      imu_time_ref_paired(th, ts, ag.first, ag.second);
-    } else {
-      tref_wait_[th] = ts;
-    }
-    // drop stale unpaired entries (> 1 s behind)
-    while (!imu_wait_.empty() && imu_wait_.begin()->first < th - 1.0) { imu_wait_.erase(imu_wait_.begin()); ++n_imu_unpaired; }
-    while (!tref_wait_.empty() && tref_wait_.begin()->first < th - 1.0) tref_wait_.erase(tref_wait_.begin());
-  }
 }
 
 void LiveAdapter::flow(double th, double fx, double fy, bool valid, double inlier) {
@@ -220,7 +274,8 @@ void LiveAdapter::on_keyframe(const double* row) {
   o.step_ns = fe_->last_step_ns();
   o.arrival_index = n_arrivals;
   uint64_t tus = 0;
-  if (sitl_us(row[1], &tus)) {
+  if (flushing_) ++n_unsettled;   // produced from inputs held before the clock map settled: stale, not sent
+  else if (sitl_us(row[1], &tus)) {
     o.sent = true;
     o.t_us = tus;
     o.frame = odometry(row, valid, tus);
