@@ -1,0 +1,68 @@
+{
+ "trial": "H_safety_ukf_a",
+ "failure": "PARAM",
+ "t_f": 86.682,
+ "t_disarm": 96.57034,
+ "attitude_err_before_failure_10s": {
+  "n": 100,
+  "roll_max_deg": 0.197498404102345,
+  "pitch_max_deg": 0.06911669798190703,
+  "yaw_max_deg": 0.11992240439488455
+ },
+ "S-A1": {
+  "n": 99,
+  "roll_max_deg": 0.1351704835310334,
+  "pitch_max_deg": 0.11305503678111035,
+  "yaw_max_deg": 0.2591680509180776,
+  "PASS": true
+ },
+ "t_failure_effect": 87.40942,
+ "S-A2_reference": "the FC's 'UKF TFAIL' text (re-worded after H_safety_ukf_a)",
+ "S-A2": {
+  "text_delay_s": 0.0,
+  "land_delay_s": 0.0,
+  "land_reason": 6,
+  "bound_s": 0.1,
+  "fc_text": "Thesis nav: UKF position lost",
+  "PASS": true
+ },
+ "S-A3": {
+  "disarm_delay_s": 9.160920000000004,
+  "max_tilt_deg": 0.25651890165395136,
+  "touchdown_t": 94.48401984707102,
+  "horiz_disp_m": 0.4217157339166007,
+  "touchdown_vz_m_s": -0.47227071210097615,
+  "breach": false,
+  "PASS": true
+ },
+ "S-A4_single_landing": {
+  "n_land_entries_after_t_f": 1,
+  "rearmed_after_disarm": false,
+  "PASS": true
+ },
+ "modes_after_t_f": [
+  [
+   0.0,
+   9,
+   6
+  ]
+ ],
+ "msgs_after_t_f": [
+  [
+   0.0,
+   "UKF TFAIL: output forced invalid"
+  ],
+  [
+   0.0,
+   "Thesis nav: UKF position lost"
+  ],
+  [
+   0.0,
+   "EKF Failsafe: changed to Land Mode"
+  ],
+  [
+   9.161,
+   "Disarming motors"
+  ]
+ ]
+}

@@ -11662,3 +11662,18 @@ estimators), using the tag fix only where it is characterised:
 - **Also noted:**
   - the D18 range rule shows in the bridge log as fixes stopping once armed;
   - the pre-arm checks waited ~18 s on "Accels/Gyros inconsistent" (the usual SITL warm-up).
+
+### H safety test UKF (a) RE-RUN RESULT (`H_safety_ukf_a`, `eval/results/expH/safety_ukf_a_rerun.json`): ALL PASS
+With the D18 range rule, the pinned hover throttle, TFAIL enforced 0 at the start, and EKF3's standard LAND.
+- **Pre-arm gate passed.** wait_fix at N −3.95, E −0.00.
+- **The UKF tilt bias is gone:** XUKF − GT in hover is roll −0.09°, pitch +0.06° (run 1: +0.77° / +0.63°).
+- **S-A1 PASS:** max |ATT − GT| from the failure to disarm is roll 0.14°, pitch 0.11°, yaw 0.26°.
+- **S-A2 PASS** (re-worded: from the FC's "UKF TFAIL"): "Thesis nav: UKF position lost" and LAND (reason 6) in the
+  same loop, **0.000 s**. Measured from the PARAM_SET, the latency was 0.73 s.
+- **S-A3 PASS:**
+  - disarmed 9.16 s after the failure;
+  - max GT tilt 0.26°;
+  - horizontal displacement to touchdown **0.42 m**;
+  - touchdown vertical speed 0.47 m/s;
+  - no breach.
+- **S-A4 (single landing):** one LAND entry, no re-arm.
