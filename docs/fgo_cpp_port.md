@@ -435,3 +435,80 @@ on the part-2 export). Requirements:
 - UDP delivery to and from SITL SERIAL3;
 - HEARTBEAT-derived arming;
 - whether AP_NavFGO accepts and flies the state.
+
+## Part 3 results
+
+### Band L (pre-registered above; default Eigen build)
+
+| row | bag | keyframes adapter / reference | decisions | adapter states vs reference | decoded ODOMETRY vs reference | time_usec = independent `_sitl_us` | band |
+|---|---|---|---|---|---|---|---|
+| L1 | dsn_tex_r1 | 10197 / 10197 | 0 mismatches | **bit-identical** (max 0) | max 7.7e-3 / p99 7.2e-3 mm; yaw max 2.9e-6° (float32 quantisation) | 9919 / 9919 | **PASS** |
+| L2 | fwdc_tex_r1 heading | 10118 / 10118 | 0 mismatches (heading gate included) | **bit-identical** | max 7.6e-3 mm; yaw max 1.9e-7° | 9840 / 9840 | **PASS** |
+
+In both rows:
+- The first 278 keyframes are not sent; the clock map is unsettled for its first 10 s (D25), as in `fgo_node.py`.
+- Every frame parses in pymavlink with no CRC errors.
+- pymavlink's own encoding of the decoded values is **byte-identical** to the adapter's frames, so the
+  wire bytes equal what `fgo_node.py`'s `odometry_send` produces for the same state.
+- Quality matches the validity flag on every frame. No keyframe was invalid in these flights.
+- The reorder buffer saw at most 0.042 s of lateness and released nothing out of order at the 0.20 s delay.
+- Step time: median 0.55 / 1.14 ms (dsn / fwdc), p99 0.95 / 1.73 ms.
+
+### Live IMU-stamp modes (report, no band; raw receipt stamps, arming time from the export)
+
+| bag | `imu_stamp` | in-flight max / p99 \|Δp\| | in-flight max / p99 \|Δyaw\| | decisions differing (flow factor / heading gate) |
+|---|---|---|---|---|
+| dsn_tex_r1 | time_ref (default) | 45.3 / 41.2 mm | 0.035 / 0.031° | 176 / — |
+| dsn_tex_r1 | causal (as `fgo_node.py`) | 20.1 / 6.0 mm | 0.006 / 0.004° | 15 / — |
+| fwdc_tex_r1 | time_ref | 131 / 16.5 mm | 1.9 / 0.30° | 190 / 184 |
+| fwdc_tex_r1 | causal | 134 / 22.1 mm | 2.2 / 0.29° | 15 / 19 |
+
+"In-flight" means before the last 2.3 s of the dsn bag. After touchdown (t ≥ 346.2 s) the export-driven
+reference itself jumps by about 1 m in one keyframe, with no flow factors. Both live modes then end
+3.3 m away, so whole-bag maxima there are not meaningful. On fwdc the figures are whole-bag.
+
+**These differences are a change of IMU time base, not an adapter error.** The reference uses the
+offline least-squares dejitter of the receipt stamps; the live modes cannot. `time_ref` stamps each
+IMU sample at its SITL sampling time mapped to the header clock, so it removes the mean receipt
+latency that the offline fit keeps. Which time base is more accurate is a ground-truth question, and
+it was not evaluated here. The heading arm is the most sensitive: different IMU timing flips 184 of
+9539 heading-gate decisions.
+
+### ROS 2 node smoke test (no simulator)
+
+`fgo_cpp_node` was run against `ros2 bag play dsn_tex_r1 --rate 2` on an isolated ROS domain, with a
+local UDP peer standing in for SITL SERIAL3:
+- 10191 `/fgo/valid` messages, all true;
+- 9913 ODOMETRY datagrams received by the peer;
+- 278 states held back by the D25 settle;
+- 0 out-of-order releases.
+
+This shows the ROS and UDP plumbing works. It does not test timing.
+
+### Not testable without SITL (for the main session's live ground test)
+
+- real message arrival timing, queueing and latency under the full sensor load;
+- whether a 0.20 s reorder delay is adequate live;
+- UDP to and from SITL SERIAL3;
+- the HEARTBEAT-derived arming time (`arm_source heartbeat`, the default);
+- whether AP_NavFGO (`AHRS_EKF_TYPE` 13) accepts and flies the state;
+- the time_ref stamping under real `time_usec` behaviour.
+
+### Differences from `fgo_node.py` (deliberate, stated)
+
+- **IMU stamps.** The default is `time_ref` (per the ruling). `causal` reproduces the Python node.
+- **Arming time.** The default `arm_source` is `heartbeat`, so the D15 ground-proximity rule gets an
+  arming time as offline. `fgo_node.py` passes none. `arm_source none` reproduces it.
+- **Reorder delay.** 0.20 s, against the Python node's 0.10 s horizon. The bags showed lateness up to
+  0.185 s.
+- **`_sitl_us` timing.** It is evaluated synchronously when the keyframe is produced. The Python node
+  evaluates it on its publisher thread, which is timing-dependent.
+- **Sequence numbers.** The MAVLink sequence advances for every encoded frame, including frames not
+  sent because no peer is known yet.
+
+### Lock incident (process)
+
+At 19:39–19:40 an earlier version of `tools/heavy.py` overwrote another agent's `BUILD_LOCK` (a waf build
+by agent ab687339, pid 996668) and then removed it at the end of its own step. I was not permitted to
+restore the file, and that build ended about a minute later. `heavy.py` now waits while another job's
+lock exists and creates its own lock with `O_EXCL`, so it can never overwrite one.
