@@ -25,6 +25,8 @@ from measurement_models import FlowFrameGyroAverager, GroundProximityFlow, TAG_S
 from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED, GNSS_ALIGN_N
 
 TRIAL = sys.argv[1]; DO_RTS = "--no-rts" not in sys.argv
+# experiment H: the wall-tag fix sigma from S0 (EKF3's VISO_POS_M_NSE), shared by the UKF and FGO; unset = T's 0.05 m
+TAG_SIGMA_POS = float(os.environ.get("ROOM_TAG_SIGMA_POS", TAG_SIGMA_POS))
 RTS_NOCAP = "--rts-no-yawcap" in sys.argv   # O correction (2026-10-08): forward pass for the RTS with the pseudo-yaw OFF after
 #   the alignment (it anchors to the LIVE predicted yaw, which caps the filtered yaw variance and blocks the smoother, the
 #   same circularity removed from the FGO batch). Writes room_ukf_rtsnocap/; the live UKF (room_ukf/) is unchanged.

@@ -29,6 +29,8 @@ from measurement_models import GNSS_SIGMA_POS, GNSS_SIGMA_VEL, GNSS_ALIGN_SPEED,
 from imu_timing import dejitter_imu, apply_gap_rule
 
 TRIAL = sys.argv[1]; DO_BATCH = "--no-batch" not in sys.argv
+# experiment H: the wall-tag fix sigma from S0 (EKF3's VISO_POS_M_NSE), shared by the UKF and FGO; unset = T's 0.05 m
+TAG_SIGMA_POS = float(os.environ.get("ROOM_TAG_SIGMA_POS", TAG_SIGMA_POS))
 GNSS = "--gnss" in sys.argv      # experiment O (as room_ukf_replay.py --gnss); the yaw cap is kept throughout
 WINDOW, LM_ITERS = 0.25, 2
 D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_fgo"; os.makedirs(OUT, exist_ok=True)
