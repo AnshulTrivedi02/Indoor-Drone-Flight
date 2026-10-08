@@ -10886,3 +10886,36 @@ as-worded drifts differ by ≤ 5 mm.
 - **Verdicts unchanged:** H-T1 PASS; P-T2, P-T3, P-T4 FAIL. At the table's printed precision the only change is
   T_C_r3 FGO live 0.058 → 0.057 m. `numbers.md` §16.1 (condition means) is unchanged at its precision.
 - **Lesson:** a replay must not start until the trial's `imu_gaps.json` exists. Added to the replay discipline.
+
+### FGO C++ port, part 2 (ruling 2026-10-08 item 4): bands B and C PASS; Pi timing estimate (details `docs/fgo_cpp_port.md`)
+
+- **Ported:** heading and yaw-rate (chi-square gate on the gate-only covariance recursion), the tag path (re-anchor,
+  tag factors, whole-flight batch), and GNSS (alignment re-anchor with velocity).
+- **Band B** (pre-registered at `f35ca78` before any comparison): the same band (same keyframes, ≤ 1 mm, ≤ 0.01°),
+  default Eigen build, aided bags. Zero decision mismatches; the closest heading gate decision was |NIS − 9| = 0.167.
+
+  | row | bag / track | max \|Δp\| | result |
+  |---|---|---|---|
+  | B1 | `fwdc_tex_r1` heading | 1.7e-4 mm | PASS |
+  | B2 | `T_A_r1` live | 4.6e-8 mm | PASS |
+  | B3 | `T_D_r1` live | 7.8e-6 mm | PASS |
+  | B4 / B5 | T batches | ≤ 1.6e-7 mm | PASS |
+  | B6 (optional) | `O_r1` GNSS | 2.6e-5 mm | PASS |
+
+- **Band C (native front end; no Python export):** PASS on `dsn_tex_r1`, `fwdc_tex_r1`, `T_A_r1` and `T_D_r1` (max
+  7.9e-4 mm against the export-driven C++). Live use takes the IMU stamps from `/imu/time_ref`; the dejitter is
+  offline only.
+- **Timing (workstation, single thread):**
+
+  | track | C++ median / p99 | Python median |
+  |---|---|---|
+  | baseline | 0.54–0.61 / ≤ 1.44 ms | 21.6 ms |
+  | heading | 1.14–1.19 / ≤ 2.2 ms | 43.5 ms |
+  | whole-flight batch | 1.2–1.4 s | 642–834 s |
+
+- **Pi estimate** (scaled by published Geekbench 6 single-core scores; **not measured on ARM**): worst p99 ≈ 4.3 ms
+  (Pi 5) and ≈ 10–11.5 ms (Pi 4), against the 33 ms budget. A single worst-case spike would scale to ≈ 25 ms / 65 ms.
+- **Open:**
+  - a ROS 2 / MAVLink adapter for the live front end (reorder delay; bags show ≤ 0.185 s lateness);
+  - the F-test variants (not ported);
+  - a real Pi timing run.
