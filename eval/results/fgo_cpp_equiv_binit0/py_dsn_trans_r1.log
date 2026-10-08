@@ -1,0 +1,12 @@
+[imu] timing rule: pre-arm irregularity, replay starts at 13.496 s (158 events dropped)
+[imu] dejittered: period 3.00057 ms, resid std 3.46 max 15.75 ms
+[init] t=14.00s first_range=0.075
+[ground-proximity] flows replaced 419; take-off detected True at t 28.018; arm t 24.20646523999253
+[run] 10031 keyframes, window t=[30,332]s   flow factors 5340  range factors 10030  imu 111442
+[timing] per-keyframe update: median=14.5ms  p99=29.5ms  (deployability budget 33ms)
+[yaw] drift = -9.09 deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)
+[gyro-z bias] cruise mean = +0.03 deg/min  (0% of true mean 8.9)   ramp d|b|/dt = +0.02 vs true +2.81 deg/min/min (ideal 3.00)
+[result] along-track = 2775.4 m (true 151.1)  cross-track = -2649.0 m  ATE = 703.56 m
+[scale] cruise |V(k)| median = 0.4892 m/s   (true ~0.50; EKF3 ~0.556)
+[flow resid] cruise median (pred-meas): x=-0.0057  y=-0.0052 rad/s (systematic != 0 => FGO not tracking flow)
+[out] /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/out/dsn_trans_r1/fgo_baseline/fgo_traj.tum

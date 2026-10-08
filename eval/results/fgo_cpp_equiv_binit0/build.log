@@ -1,0 +1,100 @@
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+[heavy] waiting: FLIGHT_LOCK present
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found suitable version "1.83.0", minimum required is "1.65") found components: serialization filesystem program_options timer chrono 
+-- GTSAM include directory:  /home/makerspace/opt/gtsam-4.2.1/lib/cmake/GTSAM/../../../include
+-- GTSAM include directory:  /home/makerspace/opt/gtsam-4.2.1/lib/cmake/GTSAM/../../../include
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Found rosidl_generator_c: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+-- Found rosidl_generator_cpp: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rmw_implementation_cmake: 7.3.3 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)
+-- Found rmw_fastrtps_cpp: 8.4.4 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.13")  
+-- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") 
+-- Using RMW implementation 'rmw_fastrtps_cpp' as default
+-- Found sensor_msgs: 5.3.8 (/opt/ros/jazzy/share/sensor_msgs/cmake)
+-- Found optical_flow_interfaces: 0.0.0 (/home/makerspace/thesis_ws/install/optical_flow_interfaces/share/optical_flow_interfaces/cmake)
+-- Configuring done (0.9s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build
+make: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[1]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 21%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/live_adapter.cpp.o
+[ 21%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/fgo_core.cpp.o
+[ 21%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/replay_common.cpp.o
+[ 28%] Linking CXX static library libfgo_cpp_core.a
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 28%] Built target fgo_cpp_core
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 57%] Building CXX object CMakeFiles/fgo_cpp_frontend.dir/src/fgo_frontend.cpp.o
+[ 57%] Building CXX object CMakeFiles/fgo_cpp_probe.dir/src/probe.cpp.o
+[ 57%] Building CXX object CMakeFiles/fgo_cpp_replay.dir/src/fgo_replay.cpp.o
+[ 57%] Building CXX object CMakeFiles/fgo_cpp_live_replay.dir/src/fgo_live_replay.cpp.o
+[ 64%] Linking CXX executable fgo_cpp_replay
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 64%] Built target fgo_cpp_replay
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 71%] Building CXX object CMakeFiles/fgo_cpp_node.dir/src/fgo_cpp_node.cpp.o
+[ 85%] Linking CXX executable fgo_cpp_live_replay
+[ 85%] Linking CXX executable fgo_cpp_frontend
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 85%] Built target fgo_cpp_frontend
+[ 85%] Built target fgo_cpp_live_replay
+[ 92%] Linking CXX executable fgo_cpp_probe
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[ 92%] Built target fgo_cpp_probe
+[100%] Linking CXX executable fgo_cpp_node
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+[100%] Built target fgo_cpp_node
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+make: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build'
+6002f76ebc1bb7fa1684a236ea9345b4  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build/fgo_cpp_node
+22dfa5dfef159af48814160fb3d76fd9  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build/fgo_cpp_live_replay
+3591d69e7288b2ba95670b01d6378815  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build/fgo_cpp_replay
+2bdf3a951b35cced34f42a2a9097bda2  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build/fgo_cpp_frontend
+da4aeb0c8d497138cbda0e8fdeac4de9  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/binit0/build/fgo_cpp_probe

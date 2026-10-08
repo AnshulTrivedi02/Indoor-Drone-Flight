@@ -1,0 +1,38 @@
+[front end] reorder delay 1.000 s, max lateness 0.042 s, out-of-order 0; dejitter period 3.00057 ms, resid std 3.40 max 11.74 ms, trimmed 0
+[front end] vs export: t_init DIFFERENT, accel_mean bit-identical, first_range bit-identical
+[run] 10118 keyframes, flow 9960, range 10117, imu 112404, tag 0, gnss 0, gp replaced 505, failures 0
+[timing] per-keyframe update: median=0.931ms p99=1.644ms
+==== band C: export-driven C++ cpp_fwdc_tex_r1_heading vs native front end fe_fwdc_tex_r1_heading
+keyframe rows: ref 10118  test 10118  -> count IDENTICAL
+t_kf identical: False   t_lat identical: False
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 505]
+flow factor        mismatches: 0   [ref total 9960]
+range factor       mismatches: 0   [ref total 10117]
+heading accepted   mismatches: 0   [ref total 9184]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10118]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 504 rows; max |diff| 1.283e-09
+heading NIS: 9539 frames, max |diff| 2.844e-07, min |NIS - 9| over frames 2.805e-02
+first row with |dp| > 1e-9 m: 39 (t 12.5317, |dp| 2.806e-09)
+position   max 6.675e-05  p99 5.454e-05  median 1.296e-05 mm
+yaw        max 4.842e-11  p99 1.660e-11  median 2.265e-12 deg
+velocity   max 5.840e-06  p99 5.151e-07  median 4.707e-08 mm/s
+accel bias max 3.134e-07  p99 1.267e-08  median 4.133e-09 m/s^2
+gyro bias  max 1.297e-09  p99 9.962e-13  median 1.788e-13 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[timing test] median 0.928 ms  p99 1.643 ms  max 3.146 ms  n 10118
+==== stream diagnostics: Python export vs front end
+events: python 158044  front end 158044
+kind sequence identical: True
+IMU stamps: max |dt| 2.274e-13 s, bit-identical 2.5% of samples
+non-IMU stamps bit-identical: True
+measurement payloads bit-identical: True
+flow omega: python 10220  front end 10220  stamps identical True  bit-identical True  max |diff| 0.000e+00
+forward gyro-z: python 9635  front end 9635  stamps identical True  bit-identical True  max |diff| 0.000e+00
+front end: {"reorder_delay_s": 1.0, "max_lateness_s": 0.04247, "n_out_of_order": 0, "period_ms": 3.000569131, "resid_std_ms": 3.404163, "resid_maxabs_ms": 11.741281, "n_trimmed": 0, "t_init": 11.198405525504455, "t_init_export": 11.198405525504432, "first_range": 0.07500401139259338, "first_range_export": 0.07500401139259338, "accel_mean": [-0.0010014460619682277, 0.0009234319917769987, 9.810607670310015], "accel_mean_export": [-0.0010014460619682277, 0.0009234319917769987, 9.810607670310015]}

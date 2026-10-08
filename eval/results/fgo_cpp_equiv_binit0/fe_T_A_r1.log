@@ -1,0 +1,39 @@
+[front end] reorder delay 1.000 s, max lateness 0.185 s, out-of-order 0; dejitter period 3.00064 ms, resid std 2.14 max 9.41 ms, trimmed 0
+[front end] vs export: t_init DIFFERENT, accel_mean bit-identical, first_range bit-identical
+[run] 8015 keyframes, flow 7873, range 8015, imu 89040, tag 2394, gnss 0, gp replaced 221, failures 0
+[timing] per-keyframe update: median=0.548ms p99=1.294ms
+[batch] 7775 keys, error 135.736713, 4 iterations, 1.6 s
+==== band C: export-driven C++ cpp_T_A_r1 vs native front end fe_T_A_r1
+keyframe rows: ref 8015  test 8015  -> count IDENTICAL
+t_kf identical: False   t_lat identical: False
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 221]
+flow factor        mismatches: 0   [ref total 7873]
+range factor       mismatches: 0   [ref total 8015]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 2394]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 7774]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 220 rows; max |diff| 2.671e-13
+first row with |dp| > 1e-9 m: None
+position   max 1.273e-07  p99 8.206e-08  median 4.594e-09 mm
+yaw        max 5.280e-11  p99 3.302e-11  median 5.140e-12 deg
+velocity   max 3.732e-08  p99 2.549e-08  median 3.019e-09 mm/s
+accel bias max 7.194e-11  p99 4.631e-11  median 7.103e-12 m/s^2
+gyro bias  max 2.697e-13  p99 9.755e-14  median 6.502e-15 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[batch] keys ref 7775 test 7775  key ids identical: False
+[batch] position max 3.090e-09 p99 8.262e-10 mm; yaw max 4.224e-12 p99 2.856e-12 deg -> BAND PASS
+[timing test] median 0.548 ms  p99 1.294 ms  max 2.848 ms  n 8015
+==== stream diagnostics: Python export vs front end
+events: python 120360  front end 120360
+kind sequence identical: True
+IMU stamps: max |dt| 5.684e-14 s, bit-identical 27.2% of samples
+non-IMU stamps bit-identical: True
+measurement payloads bit-identical: True
+flow omega: python 8095  front end 8095  stamps identical True  bit-identical True  max |diff| 0.000e+00
+front end: {"reorder_delay_s": 1.0, "max_lateness_s": 0.185081, "n_out_of_order": 0, "period_ms": 3.000640836, "resid_std_ms": 2.135147, "resid_maxabs_ms": 9.412337, "n_trimmed": 0, "t_init": 20.498919290924693, "t_init_export": 20.49891929092467, "first_range": 0.07300388067960739, "first_range_export": 0.07300388067960739, "accel_mean": [-0.0010824995167627231, 0.0010317376026887904, 9.81080460120104], "accel_mean_export": [-0.0010824995167627231, 0.0010317376026887904, 9.81080460120104]}

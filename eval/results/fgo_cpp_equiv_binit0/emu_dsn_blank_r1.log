@@ -1,0 +1,26 @@
+[run] 10048 keyframes, flow 501, range 10047, imu 111623, tag 0, gnss 0, gp replaced 436, failures 0
+[timing] per-keyframe update: median=0.465ms p99=1.737ms
+keyframe rows: ref 10048  test 10048  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 436]
+flow factor        mismatches: 0   [ref total 501]
+range factor       mismatches: 0   [ref total 10047]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10048]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 0 rows; max |diff| 0.000e+00
+first row with |dp| > 1e-9 m: None
+position   max 0.000e+00  p99 0.000e+00  median 0.000e+00 mm
+yaw        max 0.000e+00  p99 0.000e+00  median 0.000e+00 deg
+velocity   max 0.000e+00  p99 0.000e+00  median 0.000e+00 mm/s
+accel bias max 0.000e+00  p99 0.000e+00  median 0.000e+00 m/s^2
+gyro bias  max 0.000e+00  p99 0.000e+00  median 0.000e+00 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: True
+[timing test] median 0.465 ms  p99 1.736 ms  max 3.113 ms  n 10048
+per-keyframe export bit-identical: yes

@@ -1,0 +1,28 @@
+[run] 10118 keyframes, flow 9960, range 10117, imu 112404, tag 0, gnss 0, gp replaced 505, failures 0
+[timing] per-keyframe update: median=1.023ms p99=1.801ms
+==== band A/B: Python export fwdc_tex_r1_heading vs C++ replay (all rows)
+keyframe rows: ref 10118  test 10118  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 505]
+flow factor        mismatches: 0   [ref total 9960]
+range factor       mismatches: 0   [ref total 10117]
+heading accepted   mismatches: 0   [ref total 9184]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10118]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 503 rows; max |diff| 7.160e-10
+heading NIS: 9539 frames, max |diff| 2.478e-07, min |NIS - 9| over frames 2.805e-02
+first row with |dp| > 1e-9 m: 185 (t 17.3984, |dp| 1.027e-09)
+position   max 1.179e-04  p99 1.091e-04  median 2.811e-05 mm
+yaw        max 1.198e-10  p99 1.719e-11  median 2.265e-12 deg
+velocity   max 1.239e-06  p99 2.905e-07  median 4.545e-08 mm/s
+accel bias max 3.390e-07  p99 8.381e-09  median 2.621e-09 m/s^2
+gyro bias  max 7.164e-10  p99 1.129e-12  median 1.616e-13 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[timing test] median 1.022 ms  p99 1.799 ms  max 4.409 ms  n 10118
+per-keyframe export bit-identical: no

@@ -1,0 +1,36 @@
+[front end] reorder delay 1.000 s, max lateness 0.033 s, out-of-order 0; dejitter period 3.00057 ms, resid std 3.42 max 11.54 ms, trimmed 0
+[front end] vs export: t_init DIFFERENT, accel_mean bit-identical, first_range bit-identical
+[run] 10197 keyframes, flow 10018, range 10196, imu 113282, tag 0, gnss 0, gp replaced 584, failures 0
+[timing] per-keyframe update: median=0.506ms p99=0.926ms
+==== band C: export-driven C++ cpp_dsn_tex_r1_baseline vs native front end fe_dsn_tex_r1_baseline
+keyframe rows: ref 10197  test 10197  -> count IDENTICAL
+t_kf identical: False   t_lat identical: False
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 584]
+flow factor        mismatches: 0   [ref total 10018]
+range factor       mismatches: 0   [ref total 10196]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10197]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 583 rows; max |diff| 1.016e-13
+first row with |dp| > 1e-9 m: 1365 (t 54.3173, |dp| 1.006e-09)
+position   max 1.693e-02  p99 1.121e-04  median 1.874e-05 mm
+yaw        max 9.431e-08  p99 1.444e-08  median 5.925e-09 deg
+velocity   max 7.229e-05  p99 1.241e-07  median 4.677e-08 mm/s
+accel bias max 5.381e-08  p99 4.167e-10  median 1.471e-10 m/s^2
+gyro bias  max 1.008e-10  p99 1.300e-12  median 5.475e-13 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[timing test] median 0.506 ms  p99 0.926 ms  max 3.072 ms  n 10197
+==== stream diagnostics: Python export vs front end
+events: python 150225  front end 150225
+kind sequence identical: True
+IMU stamps: max |dt| 1.137e-13 s, bit-identical 0.7% of samples
+non-IMU stamps bit-identical: True
+measurement payloads bit-identical: True
+flow omega: python 10299  front end 10299  stamps identical True  bit-identical True  max |diff| 0.000e+00
+front end: {"reorder_delay_s": 1.0, "max_lateness_s": 0.033172, "n_out_of_order": 0, "period_ms": 3.000568673, "resid_std_ms": 3.42472, "resid_maxabs_ms": 11.543556, "n_trimmed": 0, "t_init": 8.783972173353261, "t_init_export": 8.783972173353268, "first_range": 0.07500401139259338, "first_range_export": 0.07500401139259338, "accel_mean": [-0.0008939298743983866, 0.0008947946086179459, 9.810674621673401], "accel_mean_export": [-0.0008939298743983866, 0.0008947946086179459, 9.810674621673401]}
