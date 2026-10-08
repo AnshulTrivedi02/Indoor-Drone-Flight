@@ -84,9 +84,14 @@ class TagBridgeFwd(Node):
         if self.audit_every > 0 and self.n_img % self.audit_every == 0:
             self.pub_audit.publish(m)
         gray = np.frombuffer(m.data, np.uint8).reshape(m.height, m.step)[:, :m.width]
-        dets = self.det.detect(np.ascontiguousarray(gray))
+        # wall tag only, pose on a crop around it (tag_measure.detect_pose_roi; 2026-10-08: from the far spawn a floor tag
+        # at a grazing angle broke pupil_apriltags' pose solver and crashed this node; /tags/raw is now the wall tag only)
+        dets = T.detect_pose_roi(self.det, np.ascontiguousarray(gray), WALL_ID)
         rows = []; best = None
         for (i, R, tt, cn, cc, dm, hm) in dets:
+            if not (np.linalg.det(R) > 0.5):            # an improper pose is never used (belt and braces)
+                self.get_logger().warn(f"tag {i}: improper pose rotation (det {np.linalg.det(R):.3f}), frame skipped")
+                continue
             r = PoseStamped(); r.header = m.header; r.header.frame_id = f"tag_{i}"
             r.pose.position.x, r.pose.position.y, r.pose.position.z = (float(v) for v in tt)
             qx, qy, qz, qw = Rot.from_matrix(R).as_quat()

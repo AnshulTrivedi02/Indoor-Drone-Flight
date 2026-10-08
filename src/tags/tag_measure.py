@@ -62,6 +62,30 @@ class TagDetector:
         return out
 
 
+def detect_pose_roi(det, gray, want_id, margin=40):
+    """Experiment H (2026-10-08): detect WITHOUT pose on the full frame, then estimate the pose of `want_id` only, by
+    running the same detector WITH pose on a crop around it (principal point shifted by the crop origin). Reason: from
+    the far spawn a floor tag at a grazing angle is in view; pupil_apriltags' pose solver fails on it ("more than one
+    new minima", an improper R) and afterwards the detector's results on IDENTICAL frames change (the wall tag is lost)
+    and it can segfault, i.e. its state is corrupted. Returns detect()'s tuples for want_id only (pose in the full
+    frame's camera); [] if absent."""
+    fx, fy, cx, cy = det.cam
+    out = []
+    for d in det.det.detect(gray):
+        if int(d.tag_id) != want_id:
+            continue
+        c = np.array(d.corners); x0 = max(int(c[:, 0].min()) - margin, 0); y0 = max(int(c[:, 1].min()) - margin, 0)
+        x1 = min(int(c[:, 0].max()) + margin + 1, gray.shape[1]); y1 = min(int(c[:, 1].max()) + margin + 1, gray.shape[0])
+        crop = np.ascontiguousarray(gray[y0:y1, x0:x1])
+        for e in det.det.detect(crop, estimate_tag_pose=True, camera_params=(fx, fy, cx - x0, cy - y0), tag_size=det.tag_size):
+            if int(e.tag_id) != want_id:
+                continue
+            off = np.array([x0, y0], float)
+            out.append((want_id, np.array(e.pose_R), np.array(e.pose_t).ravel(), np.array(e.corners) + off,
+                        np.array(e.center) + off, float(e.decision_margin), int(e.hamming)))
+    return out
+
+
 def vehicle_pose(tag_world, R_ct, t_ct, convention=None):
     """World pose of the body from one tag: (p_world_body (3,), R_world_body 3x3)."""
     M = CONVENTIONS[convention or TEXTURE_CONVENTION]

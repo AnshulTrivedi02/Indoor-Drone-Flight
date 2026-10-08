@@ -11435,3 +11435,30 @@ wrapped (negative) ages; excluding them, (i) reaches 246 ms.
 - The cause is not yet traced. The live path differs from the replay in how `/imu/time_ref` messages are paired with
   IMU samples as they arrive.
 - **The flight configuration for the FGO safety tests and S3 is put to the user.**
+
+### H safety test UKF (a), attempt 1 (`H_safety_ukf_a_abort1`): ABORTED before arming. The tag bridge crashed on a floor tag. Fixed by a wall-tag-only ROI pose (verified equivalent)
+- **The fail-closed watcher worked.** `tag_bridge_fwd.py` died on its first frame, the watcher reported `bridge=0`,
+  and `fly_trial` refused to arm ("REFUSING TO ARM: watcher not confirming"). The vehicle never left the ground.
+- **Cause.**
+  - From the far spawn (camera ~0.2 m above the floor), the T-experiment floor tag 5 at world (0, 3) is in view at a
+    grazing angle.
+  - pupil_apriltags' pose solver fails on it ("more than one new minima"): an IMPROPER rotation (det −1). Converting
+    that to a quaternion for `/tags/raw` raised, and the node died.
+  - **A static render** (`gz sim` with no SITL, 40 frames, under the flight lock) also showed the detector's results
+    changing on IDENTICAL frames after the failure (the wall tag was lost from frame 6 on), plus a segfault. The
+    detector's state is corrupted by that failure.
+  - S1 never hit this: from the S1 hold at 1.5 m the floor is not in view short of the wall.
+- **Fix** (`tag_measure.detect_pose_roi`, used by `tag_bridge_fwd`):
+  - detection WITHOUT pose on the full frame;
+  - then the same detector WITH pose on a crop around the wall tag only (principal point shifted by the crop origin);
+  - an improper rotation is skipped;
+  - `/tags/raw` now carries the wall tag only (H uses nothing else).
+- **Equivalence check, on S0a's full forward stream** (every 10th frame, 426 frames):
+  - the same 235 wall-tag detections as the full-frame pose;
+  - position difference median 0.2 µm, p99 0.8 mm, max 1.6 mm;
+  - rotation difference max 0.30°.
+  The characterisation (σ 0.02 m) therefore carries over.
+- **At the far spawn** (static render, 200 detections):
+  - the wall tag is found in every frame with a proper rotation, deterministically;
+  - pose N_W −3.886, E −0.017 m against the spawn (−3.898, 0): **12 mm, yaw 0.23°** (F1 is measured in flight).
+- **The world is unchanged.** Tag 5 lies under the S1 hold point (downward-flow texture), so it stays.
