@@ -87,3 +87,49 @@ def find_convention(samples, tag_map):
             pe.append(np.linalg.norm(p - p_true)); ye.append(abs((yaw_of(Rw) - yaw_true + math.pi) % (2 * math.pi) - math.pi))
         res[k] = (float(np.median(pe)), float(np.degrees(np.median(ye))))
     return res
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Experiment H (wall tag, FORWARD camera; ruling 2026-10-08). Added; the floor-tag functions above are unchanged (T).
+# Forward camera (iris_fwd_standoffs): level, along body +x, at body (0.15, 0, 0). Optical frame in body FLU:
+# optical z = +x_body, optical x = -y_body (image right = body right), optical y = -z_body (image down = body down).
+R_BODY_CAM_FWD = np.array([[0.0, 0.0, 1.0],     # columns: optical x, y, z expressed in the body frame
+                           [-1.0, 0.0, 0.0],
+                           [0.0, -1.0, 0.0]])
+T_BODY_CAM_FWD_POS = np.array([0.15, 0.0, 0.0])
+
+
+def rx(a):
+    c, s = math.cos(a), math.sin(a)
+    return np.array([[1, 0, 0], [0, c, -s], [0, s, c]], float)
+
+
+# Candidate image->tag-model mappings for a VERTICAL tag (the floor CONVENTIONS composed with the mount rotation are
+# tested by find_convention_full on the S0 check flight and then FROZEN, as TEXTURE_CONVENTION was for the floor).
+def vehicle_pose_full(R_wt, p_wt, R_ct, t_ct, R_body_cam=R_BODY_CAM_FWD, t_body_cam=T_BODY_CAM_FWD_POS):
+    """World pose of the body from one detection, for a tag of known world pose (R_wt: tag frame -> world, the tag
+    frame in AprilTag convention: x right, y down, z into the tag) and any camera mount. Returns (p_wb, R_wb)."""
+    R_tc = R_ct.T; p_tc = -R_ct.T @ t_ct
+    R_cb = R_body_cam.T; p_cb = -R_body_cam.T @ t_body_cam
+    R_wb = R_wt @ R_tc @ R_cb
+    return p_wt + R_wt @ (p_tc + R_tc @ p_cb), R_wb
+
+
+def wall_tag_R_wt(mount_rpy, convention):
+    """Tag-frame -> world rotation for a model mounted with SDF rpy (roll, pitch, yaw) whose top face carries the
+    texture under `convention` (a key of CONVENTIONS: the texture's axes on the model's top face)."""
+    r, p, y = mount_rpy
+    R_mount = rz(y) @ (np.array([[math.cos(p), 0, math.sin(p)], [0, 1, 0], [-math.sin(p), 0, math.cos(p)]])) @ rx(r)
+    return R_mount @ CONVENTIONS[convention]
+
+
+def find_convention_full(samples, mount_rpy, p_wt):
+    """samples: [(R_ct, t_ct, p_true (3,), yaw_true)] for ONE tag. {convention: (median pos err m, median |yaw err| deg)}."""
+    res = {}
+    for k in CONVENTIONS:
+        R_wt = wall_tag_R_wt(mount_rpy, k); pe, ye = [], []
+        for R, t, p_true, yaw_true in samples:
+            p, Rw = vehicle_pose_full(R_wt, p_wt, R, t)
+            pe.append(np.linalg.norm(p - p_true)); ye.append(abs((yaw_of(Rw) - yaw_true + math.pi) % (2 * math.pi) - math.pi))
+        res[k] = (float(np.median(pe)), float(np.degrees(np.median(ye))))
+    return res

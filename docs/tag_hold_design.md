@@ -1,7 +1,55 @@
 # Experiment H — marker-relative position holding (supervisor item 3): DESIGN and DRAFT pre-registration
 
-**Status:** design for supervisor review, 2026-10-08. **No flights until reviewed.** It becomes binding when copied
-into METHODOLOGY after review, with any changes the review makes.
+**Status:** REVIEWED 2026-10-08. The supervisor ruled: proceed with S0 + S1 before the Fri 16 Oct freeze; S2/S3 on Mon
+19–Fri 23 Oct (the simulation freeze is extended for H only; the 23 Oct experiment freeze stands). The ruling's
+further instructions are in §R below. The binding pre-registration is METHODOLOGY "Experiment H: pre-registration".
+
+## R. Supervisor ruling 2026-10-08 (incorporated)
+
+**R1. During tag loss, position hold falls back to optical flow (with IMU and rangefinder) until the tag returns.**
+Loss segments of pre-registered duration (**5, 15 and 30 s**), both **while hovering** and **during a lateral move**.
+
+**R2. EKF3, source check:** **one source set suffices; no switching is needed.**
+- `EK3_SRC1_POSXY 6` (ExternalNav), `EK3_SRC1_VELXY 5` (OpticalFlow) and `EK3_SRC1_YAW 6` (ExternalNav) coexist in one
+  set.
+- `readyToUseOptFlow()` requires only that the velocity source is OpticalFlow, flow fresher than 200 ms, tilt
+  alignment and gyro-bias learning (`AP_NavEKF3_Control.cpp:551-559`). It does not exclude an ExtNav position source.
+- **Shown in our own data:** T used exactly this set. In T_D_r1's 46 s gaps between tag fixes, EKF3 kept fusing flow
+  (`XKF5` flow innovations non-zero on 100% of 400 rows in 35–75 s) and kept a relative position
+  (`horiz_pos_rel` 1.00).
+- **The known discontinuity is not a source switch but `posTimeout`.**
+  - After > 10 s without an accepted ExtNav fix (with flow), `posTimeout` latches (`horiz_pos_abs` false: T_D_r1 gaps
+    0.80–1.00).
+  - The next fix **resets** the horizontal position to the fix (`ResetPosition`): a jump equal to the accumulated
+    dead-reckoning error. Later fixes fuse **without the innovation gate** until the timeout clears.
+  - Below 10 s, the returning fix goes through the 5σ position gate (and 3σ for yaw), so a large drift could be
+    rejected: a lockout until the timeout makes the reset happen.
+  - The H metrics measure both effects (§c).
+
+**R3. UKF and FGO: identical inputs** — the same tag fixes when visible (the `/tags/sent` stream EKF3 received), flow,
+IMU and range. No gate on the tag fixes (as in T), no reset; they simply resume fusing.
+
+**R4. Loss metrics:**
+- drift at the end of each loss against its duration;
+- re-lock time;
+- position and yaw jump at re-lock;
+- **lockout**: whether any estimator rejects the returning tag (EKF3 `VISP`/innovation-gate records; the UKF/FGO by
+  construction do not gate).
+
+**R5. A pre-registered prediction for drift and re-lock per estimator** (METHODOLOGY pre-registration).
+
+**R6. Recording** (no full-rate forward-camera stream). The exact bag topics:
+- **Simulator truth and clock:** `/clock`, `/ground_truth/pose`.
+- **All estimator inputs:** `/imu/data_raw`, `/imu/time_ref`, `/attitude/angular_rates`, `/optical_flow/measurement`,
+  `/downward_lidar/range`.
+- **Tag measurement:** `/tags/raw` (every detection, camera-from-tag pose) and `/tags/sent` (the fixes sent to EKF3).
+- **Audit images:** `/forward_camera/image_audit` (the forward image republished at **2 Hz**, every 15th frame, by the
+  tag bridge) and `/forward_camera/camera_info`.
+- **Estimator outputs:** `/ekf/pose` (the AHRS output), plus the dataflash log with `XKF*`, `VISP`, `XUK*`/`XFG*`
+  where those backends run.
+- **Not recorded:** `/forward_camera/image` at 30 Hz (~3.3 GB per 5 min) and `/downward_camera/image`.
+- S0's characterisation flights are the exception: short flights that record the full forward stream, because the
+  characterisation needs every frame.
 
 ## 0. Task
 
@@ -83,10 +131,13 @@ on the recorded `/tags/sent` (the room replays, with the forward measurement).
    - At 1.5 m, a 0.5 m offset puts the tag centre ~185 px from the image centre. S0 must confirm that this is inside
      the validity region; if not, the amplitude is reduced to the region's edge **before** registration.
 4. **Return and hold 30 s.**
-5. **Tag-loss segment:** a visual-only occluder (a grey panel, `gz service .../set_pose`, scripted by the harness at
-   a logged sim time) covers the tag for **5 s**, then hold 20 s, then **15 s** (beyond EKF3's 10 s timeout), then
-   hold 30 s.
-   - The vehicle keeps holding on its own dead reckoning (flow + IMU) while the tag is covered.
+5. **Tag-loss segments (ruling R1):** a visual-only occluder (a grey 1.6 m panel 0.3 m in front of the tag,
+   `gz service .../set_pose`, scripted by the harness at a logged sim time) covers the tag.
+   - **While hovering** at the hold point: **5 s**, then 20 s re-acquired hold; **15 s**, then 20 s; **30 s**, then
+     30 s.
+   - **During a lateral move:** a centre → +0.5 m → centre move at 0.2 m/s (5 s each way, 2 s pause), with the tag
+     covered for the **whole 12 s move** (a 12 s loss), then 20 s hold.
+   - The vehicle keeps holding (or tracking) on flow + IMU + range alone while the tag is covered.
 6. **Land.** Repeats: 3 per stage and estimator. Open loop is not used, since this is a closed-loop task.
 
 ## c. Metrics (against ground truth; all positions in W via the known tag pose)
@@ -136,6 +187,9 @@ Each stage has pre-registered gates. A failed gate stops the stage and is report
   - After the **5 s** occlusion (no timeout), the jumps are within 1.5× of each other.
 - **P-H5 (drift during loss, prediction):** GT drift during the 15 s occlusion ≤ 0.3 m for every estimator.
   - Basis: hovering flow dead reckoning, with T's single-tag condition drifting ~0.1–0.2 m over ~45 s of motion.
+
+**Flight length with the ruling's loss segments:** ~60 + 75 (lateral cycles) + 30 + 25 + 35 + 60 (hover losses) + 32
+(loss during a move) ≈ **317 s** plus take-off and landing (~6 min of sim time).
 
 ## Effort (days, sim time only)
 

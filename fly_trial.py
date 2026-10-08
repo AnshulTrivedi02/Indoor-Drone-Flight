@@ -40,7 +40,9 @@ Usage:
 """
 
 import argparse
+import json
 import math
+import subprocess
 import os
 import sys
 import time
@@ -478,6 +480,88 @@ def outback(master, align_m: float, align_speed: float, out_m: float, speed: flo
     log(f"OUTBACK END t_sim={t0 + total_s:.3f}")
 
 
+def occluder(world: str, on: bool) -> None:
+    """Experiment H: move the world's visual-only `occluder` panel in front of the wall tag (on) or back below the
+    floor (off), via the Gazebo set_pose service. Logged with the sim time by the caller."""
+    pos = "x: 0, y: 4.7, z: 1.5" if on else "x: 0, y: 4.7, z: -5"
+    r = subprocess.run(["gz", "service", "-s", f"/world/{world}/set_pose", "--reqtype", "gz.msgs.Pose",
+                        "--reptype", "gz.msgs.Boolean", "--timeout", "3000",
+                        "--req", f'name: "occluder", position: {{{pos}}}'], capture_output=True, text=True, timeout=10)
+    if "data: true" not in r.stdout:
+        raise TrialFailure(f"occluder set_pose failed: {r.stdout.strip()} {r.stderr.strip()}")
+
+
+def hprofile(master, path: str, alt_m: float, world: str) -> None:
+    """Experiment H (2026-10-08): a scripted profile from a JSON file, in the vehicle's LOCAL_NED frame (with
+    AHRS_EKF_TYPE 10, simulator truth: N = world +y, E = world +x; with EKF3 flying on the wall tag: the tag frame W).
+    Segments, each logged as 'HSEG <i> <type> START t_sim=<s>':
+      {"type": "move", "to": [N, E], "speed": v}  moving position setpoint (+ velocity feed-forward), yaw held
+      {"type": "hold", "s": T}                    hold the current target for T sim seconds
+      {"type": "occluder", "on": true|false}      cover / uncover the wall tag (logged 'OCCLUDER ON/OFF t_sim')
+      {"type": "wait_fix", "near": [N, E], "tol": m, "timeout": s}
+          closed loop only: wait (holding position commands off) until LOCAL_POSITION_NED is within tol of `near`
+          for 2 s, i.e. EKF3's ExtNav reset has put the estimate in the tag frame. Fails the trial on timeout.
+    Ends with 'HPROFILE END t_sim=<s>'."""
+    segs = json.load(open(path))
+    msg = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=5.0)
+    att = master.recv_match(type='ATTITUDE', blocking=True, timeout=5.0)
+    if msg is None or att is None:
+        raise TrialFailure("no LOCAL_POSITION_NED/ATTITUDE at profile start")
+    cur = [msg.x, msg.y]; yaw0 = att.yaw
+    log(f"HPROFILE: {len(segs)} segments from {path}, start N {cur[0]:.2f} E {cur[1]:.2f}, yaw {math.degrees(yaw0):.1f} deg, alt {alt_m:.2f} m")
+
+    def send(pn, pe, vn, ve):
+        master.mav.set_position_target_local_ned_send(
+            0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            TYPE_MASK_POS_VEL_YAW, pn, pe, -alt_m, vn, ve, 0, 0, 0, 0, yaw0, 0)
+
+    for i, sg in enumerate(segs):
+        t0 = sim_time_now_s(master); log(f"HSEG {i} {sg['type']} START t_sim={t0:.3f}")
+        if sg["type"] == "occluder":
+            occluder(world, bool(sg["on"])); log(f"OCCLUDER {'ON' if sg['on'] else 'OFF'} t_sim={sim_time_now_s(master):.3f}")
+            continue
+        if sg["type"] == "wait_fix":
+            tw = time.time(); ok_since = None
+            while time.time() - tw < float(sg["timeout"]) / MIN_ASSUMED_RTF + 30:
+                m = master.recv_match(type='LOCAL_POSITION_NED', blocking=True, timeout=1.0)
+                if m is None:
+                    continue
+                inside = math.hypot(m.x - sg["near"][0], m.y - sg["near"][1]) <= float(sg["tol"])
+                now = m.time_boot_ms / 1000.0
+                ok_since = (ok_since or now) if inside else None
+                if ok_since is not None and now - ok_since >= 2.0:
+                    cur = [m.x, m.y]; yaw0 = master.recv_match(type='ATTITUDE', blocking=True, timeout=2.0).yaw
+                    log(f"WAIT_FIX ok at N {m.x:.2f} E {m.y:.2f} t_sim={now:.3f}"); break
+                if now - t0 > float(sg["timeout"]):
+                    raise TrialFailure(f"wait_fix: no tag-frame position within {sg['timeout']} s")
+            else:
+                raise TrialFailure("wait_fix: wall-clock cap")
+            continue
+        if sg["type"] == "move":
+            to = sg["to"]; v = float(sg["speed"]); d = math.hypot(to[0] - cur[0], to[1] - cur[1]); T = d / v if v > 0 else 0.0
+            un, ue = ((to[0] - cur[0]) / d, (to[1] - cur[1]) / d) if d > 1e-9 else (0.0, 0.0)
+        else:
+            T = float(sg["s"]); un = ue = 0.0; v = 0.0
+        tw = time.time(); cap = T / MIN_ASSUMED_RTF + 60.0
+        while time.time() - tw < cap:
+            try:
+                now = sim_time_now_s(master, timeout_s=0.5)
+            except TrialFailure:
+                now = None
+            if now is not None:
+                el = now - t0
+                if el >= T:
+                    break
+                send(cur[0] + un * v * el, cur[1] + ue * v * el, un * v, ue * v)
+            time.sleep(0.05)
+        else:
+            raise TrialFailure(f"profile segment {i} did not complete within {cap:.0f} s wall-clock")
+        if sg["type"] == "move":
+            cur = [float(to[0]), float(to[1])]
+        send(cur[0], cur[1], 0, 0)
+    log(f"HPROFILE END t_sim={sim_time_now_s(master):.3f}")
+
+
 def stop(master, settle_sim_s: float = 2.0) -> None:
     log(f"Stopping (holding zero velocity for {settle_sim_s:.1f}s sim time)...")
     start_sim_t = sim_time_now_s(master)
@@ -538,6 +622,8 @@ def main() -> int:
         if os.environ.get("LAPS"):          # experiments T/L: "n_laps,side_m,speed"; unset = the corridor cruise, unchanged
             n_, side_, v_ = os.environ["LAPS"].split(",")
             laps(master, int(n_), float(side_), float(v_), args.altitude)
+        elif os.environ.get("HPROFILE"):    # experiment H: JSON profile path; HWORLD = the Gazebo world name (occluder)
+            hprofile(master, os.environ["HPROFILE"], args.altitude, os.environ.get("HWORLD", ""))
         elif os.environ.get("OUTBACK"):     # experiment O: "align_m,align_speed,out_m,speed,gate_n"
             a_, as_, o_, v_, g_ = (float(x) for x in os.environ["OUTBACK"].split(","))
             outback(master, a_, as_, o_, v_, g_, args.altitude)

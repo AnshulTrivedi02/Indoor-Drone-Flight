@@ -10619,3 +10619,84 @@ Mean cost per update over the flight, by 1000-keyframe block (≈ 33 s of flight
 with preintegrated IMU and flow between keyframes), bounded landmark sets or marginalisation, and compiled factors.
 The 30 Hz retained-history design here was chosen so the flow information equals the thesis FGO's. It is an offline
 capability demonstration, not a real-time design.
+
+### Experiment H (marker-relative position holding): pre-registration of S0 and S1 (written before any H flight)
+
+The design, including the supervisor's ruling of 2026-10-08 (§R: flow fallback during tag loss, losses while hovering
+and during a lateral move, the EKF3 single-source-set finding, identical inputs, loss metrics, recorded topics) is in
+`docs/tag_hold_design.md`.
+- S0 + S1 run before the Fri 16 Oct freeze. S2 (UKF flies) and S3 (FGO flies) run Mon 19–Fri 23 Oct, each with its own
+  pre-registration.
+- World: `room_wall_tag` (wall tag id 10 at (0, 5.0, 1.5) facing the room; occluder panel; `iris_fwd` spawned at the
+  hold point).
+- Navigation frame W = the tag frame as NED (N into the wall, E right, origin at the tag centre). The hold point is W
+  (−1.5, 0) at 1.5 m height.
+
+**S0 (no estimator uses the wall tag yet).**
+- **S0a, characterisation:** open loop on simulator truth (`AHRS_EKF_TYPE 10`), the 47-segment sweep
+  `batches/expH/s0a_sweep.json`.
+  - Distances 1.0 / 1.5 / 2.0 / 2.5 m × lateral −0.8…+0.8 m at the tag's height, 2 s holds; the occluder tested at
+    the end.
+  - The full forward stream is recorded (`FWD_RECORD_FULL=1`); `tag_bridge_fwd.py` runs with `send` false.
+  - Fixed **from the S0a data, by these rules, before S0b**:
+    - **Texture convention** (the vertical-tag `CONVENTIONS` candidate): unique, median position error < 0.05 m and
+      median |yaw error| < 1°. Otherwise stop and report.
+    - **Validity rule:** the largest image radius r_valid (10 px steps) for which the p95 horizontal position error
+      (W, against GT) is ≤ 0.05 m over the detections at 1.0–2.0 m.
+    - **σ_pos** = the p95 horizontal error of valid detections at 1.5 m, rounded up to 0.01 m. σ_yaw is the EKF3
+      5° floor.
+    - **Lateral amplitude:** if the tag centre at E = ±0.5 m from 1.5 m falls outside r_valid, the lateral amplitude is
+      reduced to the largest 0.1 m step inside r_valid. This is recorded before S0b.
+    - **Detection rate** (tag fully in view), **ids** (no wrong ids allowed), **range**, **time per frame**:
+      reported.
+- **S0b, check flight:** open loop on simulator truth. `TAG_FWD_SEND=1`; EKF3 runs ExtNav with `EK3_SRC1_POSXY 6`,
+  `VELXY 5`, `YAW 6`, `POSZ 2`, `VISO_POS_M_NSE` = σ_pos, `VISO_YAW_M_NSE 0.05`, `ARMING_SKIPCHK 262144`, and the
+  H profile minus the long losses.
+  - **`VISO_DELAY_MS`** = round(minimum VISP receipt − capture), by D2/D20 (receipt measure). Use it only if
+    ≤ 60 ms (the horizon).
+  - **Checks:** `VISP` count = `/tags/sent` count; EKF3 yaw aligned at the first fix; EKF3 position reset to W at
+    the first fix (`XKF1` near (−1.5, 0)); flow fused throughout (`XKF5`); IMU-gap rule ok.
+  - A failure stops H and is reported.
+
+**S1 (EKF3 flies; `AHRS_EKF_TYPE 3`, closed loop on the tag-relative estimate):** the H profile of the design, 3
+flights, with nothing else running on the machine.
+- **Profile:** wait for the first fix (`wait_fix`, EKF3 within 0.5 m of W (−1.5, 0)); hold 60 s; 3 lateral cycles
+  (±amplitude at 0.2 m/s, 5 s pauses); return and hold 30 s; covered while hovering 5 s / 15 s / 30 s, each followed
+  by a 20/20/30 s hold; covered for a whole 12 s lateral move; hold 20 s; land.
+- **The UKF and FGO in S1** are shadows on the recorded inputs: identical tag fixes (`/tags/sent`), flow, IMU and
+  range, through `room_ukf_replay.py` / `room_fgo_replay.py` (T's tag model, re-anchor at the first fix, no gate,
+  EKF3's effective noise).
+  - They do not fly in S1, so for them "hold error" is not defined. Their **estimate** errors along EKF3's flown
+    trajectory are scored, as are all loss metrics.
+- **Gates (per flight; a failure stops S1):**
+  - **G1:** the profile completes, every `HSEG` and `OCCLUDER ON/OFF` marker present, landed;
+  - **G2:** `VISP` = `/tags/sent`;
+  - **G3:** max sent-fix error vs GT ≤ 3 × σ_pos (no wrong ids);
+  - **G4:** IMU-gap rule ok;
+  - **G5 (safety):** GT stays ≥ 0.5 m from every wall.
+- **Metrics (GT in W from the known tag pose):**
+  - hold error of the flying EKF3 (mean, max) per hold window, excluding 5 s after each profile change;
+  - lateral tracking error (RMSE, max, end overshoot);
+  - gyro activity (body-rate RMS, high-passed at 1 Hz) in the holds;
+  - for each estimator and each loss: drift at the end of the loss (|estimate − GT|) against duration; re-lock time
+    (occluder OFF → first fused fix); position and yaw jump at re-lock (the largest estimate step in the 2 s after the
+    first fused fix);
+  - **lockout:** EKF3 (no `VISP`-driven correction for > 2 s while fixes arrive, i.e. |estimate − fix| > 3σ_pos
+    sustained); the UKF/FGO (none possible: no gate).
+- **Hypotheses and predictions:**
+  - **H-H1 (primary, EKF3 flying):** mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3
+    flights.
+  - **P-H5 (drift during loss, per estimator):**
+    - **EKF3 and FGO:** drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m.
+    - **UKF:** ≤ 2× those.
+    - **Loss during the move (12 s):** ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF.
+    - **Basis:** in T, a dead-reckoning drift of ~0.003–0.005 m/s per unit time from velocity bias, with the UKF
+      drifting about twice as fast in T's sparse conditions.
+  - **P-H6 (re-lock):**
+    - **EKF3:** after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m. After the 15 s and 30 s losses
+      (`posTimeout`), the first fix **resets** position: re-lock ≤ 0.2 s with a **jump equal to the accumulated
+      drift** (within 0.02 m of it).
+    - **UKF and FGO:** re-lock at the first fix (≤ 0.1 s), no reset; the largest single step ≤ the accumulated drift.
+  - **P-H7 (lockout):** no estimator locks out the returning tag in any loss. For EKF3 this follows when the drift
+    stays below its 5σ gate (5 × σ_pos at 15 s and below); above 10 s the timeout bypasses the gate anyway.
+- **Not tested in S1:** comparative hold error (H-H2) and smoothness across estimators (P-H3). They need S2/S3.

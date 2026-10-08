@@ -76,13 +76,16 @@ fi
 declare -a FWD_BRIDGE_ARGS=()
 declare -a FWD_RECORD_TOPICS=()
 FWD_CAMERA=false
-if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WORLD" == *_fwdplainc ]]; then
+if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WORLD" == *_fwdplainc || "$WORLD" == room_wall_tag ]]; then
     FWD_CAMERA=true
     FWD_BRIDGE_ARGS=(
         /forward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image
         /forward_camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
     )
     FWD_RECORD_TOPICS=(/forward_camera/image /forward_camera/camera_info)
+    # Experiment H (room_wall_tag; ruling 2026-10-08): no full-rate forward stream in the bag (the tag bridge records
+    # the detections and a 2 Hz audit stream); FWD_RECORD_FULL=1 (S0 characterisation only) keeps the full stream.
+    if [ "$WORLD" = room_wall_tag ] && [ -z "${FWD_RECORD_FULL:-}" ]; then FWD_RECORD_TOPICS=(/forward_camera/camera_info); fi
     # DIAGNOSTIC ONLY (Phase 1 RTF diagnosis, METHODOLOGY): FWD_DIAG=no_record keeps
     # the bridge but drops the forward topics from the bag; FWD_DIAG=no_bridge also
     # drops them from the bridge (camera still rendered). Unset = the normal path.
@@ -139,6 +142,14 @@ if [ -n "${TAG_BRIDGE:-}" ]; then
     [ -z "${HEADING_BRIDGE:-}" ] || { echo "ERROR: TAG_BRIDGE and HEADING_BRIDGE share SERIAL1" >&2; exit 1; }
     : "${TAG_IDS:?TAG_IDS required with TAG_BRIDGE}" "${TAG_SIGMA_POS:?TAG_SIGMA_POS required with TAG_BRIDGE}"
     SERIAL1_ARG=(--serial1=udpclient:127.0.0.1:14557)
+fi
+# Optional TAG_BRIDGE_FWD=1 (experiment H, 2026-10-08; unset = unchanged): tag_bridge_fwd.py detects the WALL tag in the
+# forward camera; records /tags/raw, /tags/sent and the 2 Hz /forward_camera/image_audit. TAG_FWD_SEND=1 also sends
+# the fixes to EKF3 as ExtNav ODOMETRY on SERIAL1 (needs TAG_FWD_CONV and TAG_FWD_RVALID from S0; TAG_SIGMA_POS).
+if [ -n "${TAG_BRIDGE_FWD:-}" ]; then
+    [ -z "${HEADING_BRIDGE:-}${TAG_BRIDGE:-}" ] || { echo "ERROR: TAG_BRIDGE_FWD shares SERIAL1" >&2; exit 1; }
+    [ "$FWD_CAMERA" = true ] || { echo "ERROR: TAG_BRIDGE_FWD needs a forward-camera world" >&2; exit 1; }
+    [ -n "${TAG_FWD_SEND:-}" ] && SERIAL1_ARG=(--serial1=udpclient:127.0.0.1:14557)
 fi
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     [ "$FWD_CAMERA" = true ] || { echo "ERROR: HEADING_BRIDGE needs a forward-camera world" >&2; exit 1; }
@@ -359,6 +370,20 @@ if [ -n "${TAG_BRIDGE:-}" ]; then
     wait_for "tag_bridge linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/tag_bridge.log'" 60
 fi
 
+if [ -n "${TAG_BRIDGE_FWD:-}" ]; then
+    start_bg "$LOG_DIR/tag_bridge_fwd.log" \
+        env PYTHONPATH="$HOME/.cache/thesis_yamlshim:${PYTHONPATH:-}" OPENBLAS_NUM_THREADS=1 MAVLINK20=1 \
+        "$HOME/venv-tags/bin/python" "$HOME/thesis_ws/tag_bridge_fwd.py" \
+        --ros-args -p use_sim_time:=true -p send:="$([ -n "${TAG_FWD_SEND:-}" ] && echo true || echo false)" \
+        -p r_valid_px:="${TAG_FWD_RVALID:-0.0}" -p convention:="${TAG_FWD_CONV:-}" -p sigma_pos_m:="${TAG_SIGMA_POS:-0.05}" \
+        -p log_path:="$LOG_DIR/tag_bridge_fwd.csv"
+    if [ -n "${TAG_FWD_SEND:-}" ]; then
+        wait_for "tag_bridge_fwd linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/tag_bridge_fwd.log'" 60
+    else
+        wait_for "tag_bridge_fwd started" "grep -q 'wall tag' '$LOG_DIR/tag_bridge_fwd.log'" 60
+    fi
+fi
+
 if [ -n "${HEADING_BRIDGE:-}" ]; then
     SHIM="$HOME/.cache/thesis_pyshim"; mkdir -p "$SHIM"
     ln -sfn "$(ls -d "$HOME"/venv-ardupilot/lib/python3*/site-packages)/pymavlink" "$SHIM/pymavlink"
@@ -405,6 +430,7 @@ setsid ros2 bag record \
     "${FWD_RECORD_TOPICS[@]}" \
     ${EXTRA_RECORD_TOPICS:-} \
     $([ -n "${TAG_BRIDGE:-}" ] && echo /tags/raw /tags/sent) \
+    $([ -n "${TAG_BRIDGE_FWD:-}" ] && echo /tags/raw /tags/sent /forward_camera/image_audit) \
     > "$LOG_DIR/ros2_bag_record.log" 2>&1 < /dev/null &
 RECORD_PID=$!
 disown

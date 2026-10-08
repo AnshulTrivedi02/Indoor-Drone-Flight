@@ -1,0 +1,274 @@
+[
+ {
+  "type": "hold",
+  "s": 5
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   -0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   -0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   0.0
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   4.0,
+   0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   4.0,
+   0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   4.0,
+   0.0
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   4.0,
+   -0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   4.0,
+   -0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.0,
+   -0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.0,
+   -0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.0,
+   0.0
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.0,
+   0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.0,
+   0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   2.5,
+   0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   2.5,
+   0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   2.5,
+   0.0
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   2.5,
+   -0.4
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   2.5,
+   -0.8
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 2
+ },
+ {
+  "type": "move",
+  "to": [
+   3.5,
+   0.0
+  ],
+  "speed": 0.3
+ },
+ {
+  "type": "hold",
+  "s": 3
+ },
+ {
+  "type": "occluder",
+  "on": true
+ },
+ {
+  "type": "hold",
+  "s": 3
+ },
+ {
+  "type": "occluder",
+  "on": false
+ },
+ {
+  "type": "hold",
+  "s": 3
+ }
+]
