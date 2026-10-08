@@ -11835,3 +11835,50 @@ The C++ node was SIGKILLed in the hold at t 72.19 s. The watcher also watched th
 - **The pre-registered criteria are inconsistent with the room geometry here:** the S-A3 drift bound (1.5 m) exceeds
   the box margin north of the hold point (0.9 m). The same physics passed in (a) (0.37 m) because the drift there
   was smaller and pointed elsewhere.
+
+### RULINGS (user, 2026-10-09) on FGO safety test (b)
+- **S-A3 is recorded as FAILED AS WORDED.** The vehicle left the room box at y 4.402 > 4.4, with a drift of ~1.4 m,
+  inside the 1.5 m drift limit.
+- **DESIGN FLAW recorded:** the drift limit (1.5 m) and the box clearance north of the hold point (0.9 m) were
+  inconsistent.
+- **Options 2 (no LAND pause) and 3 (re-fly until pass) are REJECTED.** EKF3's standard LAND stays.
+- **1. EKF3 reference test** (pre-registered below): EKF3 flying, the same profile and the same failure (kill the
+  tag bridge and the flow bridge in the hover). It measures EKF3's attitude error after the failure and its landing
+  drift, as the reference for whether the FGO's drift is inherent to attitude-only landing.
+- **2. FGO hover tilt** against EKF3 and the UKF (below). If the FGO is clearly worse, trace it before S3 and report
+  the cause and a proposed fix before changing anything.
+- **3. For the remaining failure tests ONLY:** a hold point with ≥ 2 m clearance to the room box in every direction,
+  then FGO (b) is re-flown from it. **FGO (a) and the UKF tests stand as passed.**
+- **4. Real-flight plan:** attitude-only landing can drift > 1 m in a small volume; hold points need ≥ 2 m
+  clearance; the mocap watcher and the safety pilot are the primary protection.
+
+### Item 2: hover tilt error before the failure (ATT or XKF1 − GT; from hold start + 3 s to the failure, ~17 s each)
+| flight | flying estimator: roll / pitch mean (sd) | EKF3 (XKF1, same flight): roll / pitch mean (sd) |
+|---|---|---|
+| `H_safety_ukf_a` | UKF −0.09° (0.05) / +0.06° (0.00) | +0.03° (0.02) / +0.02° (0.01) |
+| `H_safety_ukf_b` | UKF +0.14° (0.04) / −0.01° (0.01) | +0.02° (0.02) / +0.01° (0.01) |
+| `H_safety_fgo_a` | FGO +0.02° (**0.19**) / −0.08° (0.01) | +0.01° (0.02) / −0.00° (0.01) |
+| `H_safety_fgo_b` | FGO +0.04° (**0.17**) / **+0.22°** (0.02) | +0.04° (0.02) / +0.02° (0.01) |
+
+- **The FGO is clearly worse than EKF3:**
+  - its roll scatter is ~9× EKF3's (sd 0.17–0.19° against 0.02°);
+  - a pitch offset of up to +0.22° (against ≤ 0.04°).
+- The UKF sits between them (|mean| ≤ 0.14°, sd ≤ 0.05°).
+- **The offline FGO shows the same signature** (`H_s1_r1`: roll sd 0.17°, pitch +0.13°), so this is an FGO
+  property, not the C++ port or the FC predictor.
+- **By the ruling it is traced before S3.** The cause and a proposed fix are reported before anything changes
+  (delegated as an analysis-only stage).
+
+### PRE-REGISTRATION (2026-10-09, before flying): the 2 m-clearance hold point, the EKF3 reference, the FGO (b) re-fly
+- **Hold point W(−2.6, 0)** = world (0, 2.398) for the remaining failure tests.
+  - Clearance to the room box (±4.4 m): north **2.00 m**; east/west 4.40 m; south 6.8 m.
+  - Camera-to-tag ~2.45 m, inside the D18 band (0.9–2.8 m), so fixes are valid at the hold.
+  - Profile: far spawn → wait_fix → 1.3 m move → hold 20 s → failure → hold 40 s.
+- **`H_safety_ekf3_ref`** (EKF3 flying, main tree; tag bridge and flow bridge SIGKILLed in the hold; the watcher
+  watches the tag bridge with `--dep-loss land`, as UKF (b)). A REFERENCE measurement:
+  - reported: EKF3's ATT − GT from the failure to disarm; its landing drift (failure → touchdown); the touchdown
+    speed; and the max tilt;
+  - flight safety: no box/tilt breach;
+  - **prediction:** attitude error ≤ 0.2°, drift ≤ 0.5 m.
+- **`H_safety_fgo_b2`** (the FGO (b) configuration at the new hold): S-A1–S-A4 exactly as pre-registered for (b).
+  The 1.5 m drift limit is now inside the 2.0 m box clearance.

@@ -15,6 +15,10 @@ for t in "$@"; do
     fgo_a) H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$B/safety_fgo_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far "$name";;
     fgo_b) H=1 FGO=1 FGO_NODE_IMPL=cpp WATCH_EXTRA="fgo_cpp_node.--ros-args" WATCH_DEP_LOSS=land \
              HPROFILE="$B/safety_fgo_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far "$name";;
+    # 2 m-clearance hold W(-2.6, 0) (ruling 2026-10-09 item 3)
+    ekf3_ref) H=1 WATCH_DEP_LOSS=land HPROFILE="$B/safety2_ekf3_ref_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far "$name";;
+    fgo_b2) H=1 FGO=1 FGO_NODE_IMPL=cpp WATCH_EXTRA="fgo_cpp_node.--ros-args" WATCH_DEP_LOSS=land \
+             HPROFILE="$B/safety2_fgo_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far "$name";;
     *) echo "bad test $t"; flight_lock_release; exit 2;;
   esac
   flight_lock_release

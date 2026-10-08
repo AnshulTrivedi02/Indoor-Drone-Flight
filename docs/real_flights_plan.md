@@ -225,6 +225,11 @@ camera flown only once verified.
       origin-independent landing trigger is added. **This behaviour must pass on the bench AND in SITL** (kill the
       estimator in a hover, with and without the watcher) **before any real closed-loop flight.**
   - The flight script must use the estimator-independent clock (`SYSTEM_TIME`, D24) and land on failure.
+- **Attitude-only landing drifts (ruling 2026-10-09).** On estimator position loss, LAND flies the estimated level.
+  A few tenths of a degree of attitude error drifts the vehicle > 1 m over the 4 s LAND pause plus the descent
+  (SITL: 0.37–1.4 m). **Every hold point needs ≥ 2 m clearance to the watcher box in every direction.** The mocap
+  watcher and the safety pilot (RC override) are the PRIMARY protection; the FC's own estimator-loss landing is a
+  secondary layer.
 - **No arming if the flight controller has rebooted since the estimator node started (ruling 2026-10-09).** The Pi
   node's clock map is built against one FC boot. The pre-arm check compares the FC boot identity (boot counter or
   `SYSTEM_TIME` boot time / the dataflash log index) recorded at node start with the current one. On a mismatch the
