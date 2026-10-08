@@ -11733,3 +11733,14 @@ the handover's criteria adopted before the flight:
 
 **Open (from the handover):** a SITL soft reboot after the node has started would step `time_usec` backwards. It
 did not occur in (i) or (ii). `tref_max_track_err_s` flags it.
+
+### Live check `fgo_cpp_shadow_ii_fix` RESULT (`eval/results/fgo_cpp_sitl_ii_fix.json`): ALL PASS. The time_ref fix is confirmed live
+- **Check (a) PASS:** **0 wrapped ages; OV = 0 share 0.** Age median 125, p95 139, max 148 ms.
+- **Node stats PASS:**
+  - `tref_settled` true (seed 1.77 ms at th 17.8 s; 7656 inputs held and flushed, 281 flush keyframes not sent);
+  - `n_out_of_order` **0**;
+  - `max_lateness_s` **0.031**;
+  - `tref_max_track_err_s` **0.0020**.
+- **δ_att PASS:** live **2.5 ms**, same-bag time_ref replay 2.5 ms (difference 0). Causal replay: 13.5 ms.
+- **Consequence (as ruled):** the FGO safety tests and S3 fly **0.10 s with time_ref (FC clock)**. Rule A is
+  adopted, and the FC-clock choice stands on principle. The causal fallback is not needed.
