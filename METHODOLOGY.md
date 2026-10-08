@@ -11467,8 +11467,8 @@ wrapped (negative) ages; excluding them, (i) reaches 246 ms.
 **Flight.**
 - The pre-arm gate passed: EKF3 and UKF anchored, VISP growing, bridge port = SITL SERIAL1.
 - wait_fix at N −3.86, E −0.09; the 2.4 m move; hold.
-- `AHRS_UKF_TFAIL` was sent at t 63.51 s. The FC applied it 0.74 s later ("UKF TFAIL: output forced invalid",
-  63.25 + …).
+- `AHRS_UKF_TFAIL` was sent at t 63.51 s. The FC applied it 0.74 s later, at 64.25 s ("UKF TFAIL: output forced
+  invalid").
 - **In the same loop:** "Thesis nav: UKF position lost" and "EKF Failsafe: changed to Land Mode" (reason 6, EKF
   failsafe).
 - **At t 68.56 s the watcher stopped the flight on the ROOM BOX** (world y 4.401 > 4.4). The vehicle was still at
