@@ -11811,3 +11811,27 @@ node.
   - touchdown 0.53 m/s;
   - no breach.
 - **S-A4:** one LAND entry, no re-arm.
+
+### H safety test FGO (b) RESULT (`H_safety_fgo_b`, `eval/results/expH/safety_fgo_b.json`): S-A1 PASS, S-A2 PASS, S-A3 FAIL (room-box breach during the landing). SEQUENCE STOPPED
+The C++ node was SIGKILLed in the hold at t 72.19 s. The watcher also watched the node (`--dep-loss land`).
+- **S-A1 PASS:** max |ATT − GT| roll 0.42°, pitch 0.36°, yaw 0.22°.
+- **S-A2 PASS:** "Thesis nav: FGO position lost" and LAND (reason 6) at +0.68 s (≤ 0.75 s). fly_trial's
+  watcher-loss LAND followed.
+- **S-A3 FAIL:**
+  - the GT drifted steadily north-west during LAND's 4 s pause and the descent: 1.4 m in 7 s at a GT tilt of
+    0.3–0.56°;
+  - the watcher stopped the flight on the room box (world y 4.402 > 4.4) at z 0.43 m, ~0.5 s before touchdown;
+  - no disarm was recorded, because the simulation was stopped;
+  - the displacement at the breach, ~1.4 m, was itself WITHIN the pre-registered 1.5 m drift bound. The box edge is
+    only 0.9 m north of the hold point (world y 3.5 against 4.4).
+- **S-A4:** not scored (no touchdown). One LAND entry, no conflict between the two paths.
+
+**Mechanism: the same as UKF (a) run 1, smaller.**
+- During the landing the FC output predictor's attitude (FC-IMU propagated after the last FGO state) differed from GT
+  by roll **+0.28°**, pitch **+0.30°** (mean). In FGO (a) the same window was +0.06° / −0.09°.
+- Before the kill, (b)'s FGO already had pitch +0.22° (against −0.08° in (a)).
+- Attitude-only LAND flies the estimated level, so a few tenths of a degree is ~0.05 m/s². Over the 4 s pause plus
+  ~3 s of descent that is 1–1.5 m.
+- **The pre-registered criteria are inconsistent with the room geometry here:** the S-A3 drift bound (1.5 m) exceeds
+  the box margin north of the hold point (0.9 m). The same physics passed in (a) (0.37 m) because the drift there
+  was smaller and pointed elsewhere.
