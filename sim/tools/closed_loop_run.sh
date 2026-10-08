@@ -68,6 +68,7 @@ if [ -n "${H:-}" ]; then
     export TAG_BRIDGE_FWD=1 TAG_FWD_SEND=1 TAG_FWD_CONV="${TAG_FWD_CONV:-u-y_v-x}" TAG_FWD_RVALID="${TAG_FWD_RVALID:-400}" TAG_SIGMA_POS="${TAG_SIGMA_POS:-0.02}"
     export HPROFILE HWORLD="$WORLD"
     WATCH=(--watch-process tag_bridge_fwd.py --box=-4.4,4.4,-4.4,4.4)
+    export WATCH_HEARTBEAT="$OUT/watch_heartbeat"     # fail-closed: fly_trial will not arm without the watcher
     ALT=1.5
 fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
@@ -82,10 +83,16 @@ RT=$!
 set +u; source /opt/ros/jazzy/setup.bash; set -u
 # The watcher gets run_trial's PID (not its group) and stops the flight itself on a breach; it
 # exits only once run_trial has exited AND no sim process remains, so it is waited for, never killed.
-python3 "$HOME/thesis_ws/sim/tools/wall_watch.py" "$OUT" "$RT" "${WATCH[@]}" > "$OUT/wall_watch.log" 2>&1 &
-WW=$!
+if [ -n "${WATCHER_TEST_SKIP:-}" ]; then        # TEST ONLY (fail-closed check): do not start the watcher
+    rm -f "$OUT/watch_heartbeat"
+    echo "WATCHER_TEST_SKIP: watcher deliberately NOT started" | tee -a "$OUT/launch.txt"; WW=""
+else
+    rm -f "$OUT/watch_heartbeat"
+    python3 "$HOME/thesis_ws/sim/tools/wall_watch.py" "$OUT" "$RT" "${WATCH[@]}" > "$OUT/wall_watch.log" 2>&1 &
+    WW=$!
+fi
 wait "$RT"; RC=$?
-wait "$WW"; WRC=$?
+if [ -n "$WW" ]; then wait "$WW"; WRC=$?; else WRC=skipped; fi
 echo "run_trial exit $RC; watcher exit $WRC" | tee "$OUT/result.txt"
 [ -f "$OUT/BREACH.txt" ] && { echo "BREACH:"; cat "$OUT/BREACH.txt"; } | tee -a "$OUT/result.txt"
 cat "$OUT/wall_watch_summary.txt" 2>/dev/null | tee -a "$OUT/result.txt"

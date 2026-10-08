@@ -195,6 +195,18 @@ camera flown only once verified.
   vehicle breaches a box inside the capture volume or the mocap stream stops.
   - **It must not depend on the estimator under test.** ArduPilot's own fence uses the AHRS position, i.e. the estimator
     being tested, so it is a secondary layer only.
+- **FAIL-CLOSED (ruling 2026-10-08), every closed-loop flight:**
+  - **No arming** unless the mocap watcher has started and sends a confirmed heartbeat with both checks active: the
+    capture-volume box (from mocap) and the liveness of the input processes the flight depends on (tag/heading bridge,
+    flow tracker, the Pi estimator for route 1).
+  - **Mid-flight, the flight lands** if that heartbeat stops (> 3 s) or a check is withdrawn.
+  - On the vehicle this is enforced on two sides:
+    - the flight script refuses to arm and lands, as in SITL (`fly_trial.py`, `WATCH_HEARTBEAT`);
+    - the ground station watcher's heartbeat goes to the FC as a MAVLink message, with a Lua or companion-side
+      "no heartbeat → LAND" failsafe as the second layer.
+  - Tested before the first flight of each stage, by not starting the watcher (must refuse to arm) and by killing it
+    in a tethered hover (must land).
+  - Verified in SITL on 2026-10-08 (METHODOLOGY "fail-closed safety watcher").
 - **Safety pilot:** RC override to a mode that needs no estimator position (STABILIZE or ALT_HOLD; ALT_HOLD needs only
   height and attitude), on a dedicated switch. Rehearsed before every session.
 - **Estimator failsafes:**

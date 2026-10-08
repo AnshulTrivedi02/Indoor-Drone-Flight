@@ -126,7 +126,22 @@ class W(Node):
         elif self.was_high and p.z < 0.5 and p.y < a.land_after_y:
             self.breach(f"crash: height {p.z:.2f} m < 0.5 m before the landing point", m)
 
+    def heartbeat(self):
+        """Fail-closed contract (ruling 2026-10-08): <out>/watch_heartbeat = '<wall time> box=<0|1> bridge=<0|1>', every
+        tick. fly_trial (WATCH_HEARTBEAT) refuses to arm without a fresh heartbeat with both flags 1, and lands if it
+        goes stale (> 3 s) or a flag drops in flight. box=1: the room-box rule is active; bridge=1: the watched process
+        is running (1 when no process is watched)."""
+        box = 1 if a.box else 0
+        bridge = 1 if (not a.watch_process or bool(pids(a.watch_process))) else 0
+        if self.breached:
+            box = 0                      # a breach withdraws the confirmation: fly_trial lands
+        tmp = os.path.join(a.out, "watch_heartbeat.tmp")
+        with open(tmp, "w") as f:
+            f.write(f"{time.time():.3f} box={box} bridge={bridge}\n")
+        os.replace(tmp, os.path.join(a.out, "watch_heartbeat"))
+
     def tick(self):
+        self.heartbeat()
         # Safeguard (closed-loop Part 1): a dependency (the heading node) dying mid-flight stops
         # the flight. The wall/crash checks above never depend on it.
         if a.watch_process and alive(a.rt_pid) and not self.breached:

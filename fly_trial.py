@@ -299,6 +299,54 @@ def send_velocity(master, vx: float, vy: float, vz: float) -> None:
         0, 0, 0, vx, vy, vz, 0, 0, 0, 0, 0)
 
 
+# ---- fail-closed safety watcher (ruling 2026-10-08) ----
+# With WATCH_HEARTBEAT=<path> (set by closed_loop_run.sh for closed-loop flights), no arming without a fresh watcher
+# heartbeat with box=1 and bridge=1; in flight, a stale (> WATCH_STALE_S) or withdrawn heartbeat makes the flight land.
+WATCH_STALE_S = 3.0
+_watch = {"active": False, "last_check": 0.0}
+
+
+class WatcherLost(Exception):
+    """Raised when the safety watcher's heartbeat is lost in flight. Deliberately NOT a TrialFailure: the flight loops
+    catch TrialFailure around sim_time_now_s, which swallowed the first version of this check (H_wtest_kill)."""
+
+
+def watch_ok() -> tuple:
+    p = os.environ.get("WATCH_HEARTBEAT")
+    if not p:
+        return True, "no watcher required"
+    try:
+        f = open(p).read().split()
+        age = time.time() - float(f[0]); flags = dict(kv.split("=") for kv in f[1:])
+    except (OSError, ValueError, IndexError):
+        return False, "no watcher heartbeat"
+    if age > WATCH_STALE_S:
+        return False, f"watcher heartbeat stale ({age:.1f} s)"
+    if flags.get("box") != "1" or flags.get("bridge") != "1":
+        return False, f"watcher not confirming (box={flags.get('box')} bridge={flags.get('bridge')})"
+    return True, f"watcher ok (age {age:.1f} s)"
+
+
+def require_watcher_before_arming(cap_s: float = 60.0) -> None:
+    if not os.environ.get("WATCH_HEARTBEAT"):
+        return
+    t0 = time.time(); ok, why = watch_ok()
+    while not ok and time.time() - t0 < cap_s:
+        time.sleep(1.0); ok, why = watch_ok()
+    if not ok:
+        raise TrialFailure(f"REFUSING TO ARM: {why} (fail-closed safety watcher, WATCH_HEARTBEAT)")
+    log(f"Safety watcher confirmed before arming: {why}"); _watch["active"] = True
+
+
+def check_watcher_in_flight() -> None:
+    if not _watch["active"] or time.time() - _watch["last_check"] < 1.0:
+        return
+    _watch["last_check"] = time.time(); ok, why = watch_ok()
+    if not ok:
+        _watch["active"] = False         # the landing that follows must not re-trigger this
+        raise WatcherLost(f"safety watcher lost in flight: {why}; landing")
+
+
 def sim_time_now_s(master, timeout_s: float = 3.0) -> float:
     """Vehicle's own onboard clock (sim time, AP_HAL::millis()).
 
@@ -308,6 +356,7 @@ def sim_time_now_s(master, timeout_s: float = 3.0) -> float:
     before landing/disarm (D24, fgo_groundtest_half G5). SYSTEM_TIME (STREAM_EXTRA3, GCS_Common.cpp:2148) carries
     the same AP_HAL::millis() independently of any estimator; it is returned only when no LOCAL_POSITION_NED
     arrives before two SYSTEM_TIMEs (LOCAL_POSITION_NED streams ~6x faster) or before the timeout."""
+    check_watcher_in_flight()
     t0 = time.time()
     sys_ms, n_sys = None, 0
     while time.time() - t0 < timeout_s:
@@ -605,6 +654,7 @@ def main() -> int:
         healed = ensure_params(master, args.port)
         if healed is not None:
             master = healed
+        require_watcher_before_arming()
         wait_ready_to_arm(master)
         # Optional GROUND_TEST=<sim seconds> (closed-loop Part 1 SITL ground test only; unset for
         # every flight = unchanged): stay on the ground armed for that long, then disarm. No take-off.
@@ -630,8 +680,10 @@ def main() -> int:
         else:
             cruise(master, args.velocity, args.duration)
         stop(master)
+        _watch["active"] = False     # landing: the watcher check is not applied (it must not abort the landing)
         land(master)
-    except TrialFailure as e:
+    except (TrialFailure, WatcherLost) as e:
+        _watch["active"] = False
         print(f"[fly_trial] FAILED: {e}", file=sys.stderr, flush=True)
         # D24: a failure after arming must not leave the vehicle armed. Best effort, failure paths only
         # (a completed trial never reaches here): disarm on the ground test, LAND otherwise; confirmation

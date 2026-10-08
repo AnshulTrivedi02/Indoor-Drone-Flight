@@ -10919,3 +10919,70 @@ as-worded drifts differ by ≤ 5 mm.
   - a ROS 2 / MAVLink adapter for the live front end (reorder delay; bags show ≤ 0.185 s lateness);
   - the F-test variants (not ported);
   - a real Pi timing run.
+
+### RULING (user, 2026-10-08) on H S1: recorded as reported; fail-closed watcher; S2/S3 pre-registration items
+
+**S1 stands as reported, including both process faults** (the safety watcher never started; the move-loss duration).
+
+**DEVIATION (recorded): the lateral-move loss** was pre-registered as 12 s and flown as **~7 s** (6.9–7.6 s effective),
+as the pre-registered profile defines it: 0.5 m at 0.2 m/s each way plus a 2 s pause. The 12 s was my arithmetic error.
+Its prediction band (≤ 0.15 m EKF3/FGO, ≤ 0.30 m UKF) was scored as written.
+
+**OPEN FINDING (recorded):**
+- During tag loss the **flying EKF3 drifted far less (3–31 mm)** than the **shadow UKF (~1 cm/s)** and **shadow FGO
+  (~0.4 cm/s)**.
+- The **FGO's yaw wandered up to 2.6°** with its yaw cap off after the first fix (the T design).
+- **After S2/S3:** a bounded look (≤ 1 h) at the cause if the gap persists when the UKF and FGO fly. Candidates: hover
+  flow velocity bias in the UKF/FGO flow models against EKF3's; the shadow-vs-flying asymmetry; the FGO's free yaw.
+
+**Fail-closed safety watcher (ruling item 1):** `wall_watch.py` writes `watch_heartbeat` every second
+(`box=`, `bridge=` flags). `fly_trial.py` with `WATCH_HEARTBEAT` set (all H closed-loop flights):
+- **refuses to arm** unless a heartbeat ≤ 3 s old shows box=1 and bridge=1;
+- **lands** if the heartbeat goes stale or a flag drops in flight.
+
+A breach withdraws the confirmation. Tests (watcher not started → no arming; watcher SIGKILLed in flight → landing):
+results below once run.
+
+### Experiment H S2/S3: pre-registration items fixed now (before any S2/S3 flight; the rest with the backend gates)
+
+- **Re-lock time, PRIMARY:** from the **first returning tag detection** (the first `/tags/raw` wall-tag detection after
+  the loss) to the first fix fused by the flying estimator.
+  - UKF port: the first `ExtNav` position update in its log after that detection.
+  - FGO: the first keyframe whose factors include that fix.
+  - **Reason:** the S1 finding that Gazebo's occluder rendering lags `set_pose` by 0.16–1.0 s, so cover-off timing
+    measures the simulator.
+  - **Band:** ≤ 0.1 s for both (UKF: `VISO_DELAY_MS` 31 ms plus one step; FGO: ≤ one keyframe of 33 ms plus the node
+    latency).
+- **Re-lock time, SECONDARY (reported):** cover OFF → first fused fix, as in S1.
+- **Jump criterion: kept as worded** (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift
+  at re-lock; UKF/FGO converge without reset).
+- **Drift during loss, prediction per estimator (now flying):** from S1's shadow drift, the flying UKF and FGO are
+  predicted to drift as their shadows did:
+
+  | loss | UKF band | FGO band |
+  |---|---|---|
+  | 5 s | ≤ 0.10 m | ≤ 0.05 m |
+  | 15 s | ≤ 0.20 m | ≤ 0.10 m |
+  | 30 s | ≤ 0.40 m | ≤ 0.20 m |
+  | ~7 s move | ≤ 0.30 m | ≤ 0.15 m |
+
+  - These are the S1 bands. The S1 shadow values were 0.03–0.29 m (UKF) and 0.01–0.11 m (FGO).
+  - **FGO yaw wander:** ≤ 3° at the end of the 30 s loss.
+  - **Directional prediction:** both flying estimators drift more than flying EKF3 did (3–31 mm). If the gap closes
+    when they fly, that points to the shadow-vs-flying asymmetry as the cause.
+- **Lockout:** none expected (the UKF and FGO have no tag gate).
+
+**Fail-closed watcher tests (SITL, `tools/test_watch_failclosed.sh`, `room_wall_tag`, EKF3 flying on the tag):**
+- **Round 1 (`*_v1`, kept):**
+  - T1 (watcher not started): **refused to arm** ("REFUSING TO ARM: no watcher heartbeat"), no take-off. PASS.
+  - **T2 (watcher SIGKILLed during the hold): FAIL.** The heartbeat stopped at the kill, but the flight finished its
+    profile normally. **Cause:** the in-flight check raised `TrialFailure` from inside `sim_time_now_s`, and the
+    profile loops catch `TrialFailure` around that call, so the check was swallowed (and disarmed itself).
+  - **Fixed:** a separate `WatcherLost` exception, not caught by the loops, handled in `main` by landing.
+- **Round 2 (after the fix):**
+  - T1: refused to arm. PASS.
+  - T2: watcher killed at 19:36:26; `fly_trial` "safety watcher lost in flight: heartbeat stale (4.0 s); landing",
+    then landed and disarmed **mid-hold** (no `HPROFILE END`). PASS.
+  - Detection latency ≤ 4 s: the 3 s stale threshold plus the 1 s check cadence.
+- Every later closed-loop H flight runs fail-closed (`closed_loop_run.sh` H=1 sets `WATCH_HEARTBEAT`). The rule is
+  added to `docs/real_flights_plan.md` §7 for the mocap watcher.
