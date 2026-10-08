@@ -364,10 +364,10 @@ def _live_bin_since_boot():
         return None
     from pymavlink import DFReader
     lg = DFReader.DFReader_binary(bins[-1], zero_time_base=True)
-    msgs, n_visp, t_visp, t_last = [], 0, None, 0
+    msgs, n_visp, t_visp, t_last, xfgi_v = [], 0, None, 0, None
     while True:
         try:
-            m = lg.recv_match(type=["MSG", "VISP"])
+            m = lg.recv_match(type=["MSG", "VISP", "XFGI"])
         except Exception:
             break                                         # a partially written last record
         if m is None:
@@ -375,9 +375,11 @@ def _live_bin_since_boot():
         t = getattr(m, "TimeUS", 0); t_last = max(t_last, t)
         if m.get_type() == "MSG":
             msgs.append(m.Message)
+        elif m.get_type() == "XFGI":
+            xfgi_v = int(m.V)
         else:
             n_visp += 1; t_visp = t
-    return {"file": bins[-1], "msgs": msgs, "n_visp": n_visp, "t_visp": t_visp, "t_last": t_last}
+    return {"file": bins[-1], "msgs": msgs, "n_visp": n_visp, "t_visp": t_visp, "t_last": t_last, "xfgi_v": xfgi_v}
 
 
 ANCHOR_TEXT = {"EKF3": "is using external nav data", "UKF": "UKF tag re-anchor", "FGO": "FGO re-anchor"}
@@ -453,7 +455,16 @@ def require_anchor_before_arming(cap_s: float = 180.0) -> None:
         if snap is None:
             problems.append("no live dataflash log")
         else:
-            missing = [b for b in req if not any(ANCHOR_TEXT[b] in m for m in snap["msgs"])]
+            missing = [b for b in req if b != "FGO" and not any(ANCHOR_TEXT[b] in m for m in snap["msgs"])]
+            if "FGO" in req:
+                # the C++ node anchors before its FIRST state when the tag is in view pre-arm, so the FC sees no frame
+                # change (no "FGO re-anchor" text; H_safety_fgo_a attempt 1). Anchored = the current node logged
+                # "ANCHORED" AND the FC's latest FGO state (XFGI) is valid.
+                d = os.environ.get("FGO_NODE_CHECK_DIR", "")
+                rl = os.path.join(d, "fgo_node_restart.log"); nl = rl if os.path.exists(rl) else os.path.join(d, "fgo_node.log")
+                node_anch = bool(d) and os.path.exists(nl) and "ANCHORED" in open(nl, errors="replace").read()
+                if not (node_anch and snap["xfgi_v"] == 1):
+                    missing.append(f"FGO(node anchored {node_anch}, FC state valid {snap['xfgi_v']})")
             if missing:
                 problems.append(f"not anchored: {','.join(missing)}")
             if prev_n is None or snap["n_visp"] <= prev_n:

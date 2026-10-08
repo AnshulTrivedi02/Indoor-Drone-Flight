@@ -202,6 +202,10 @@ class FgoCppNode : public rclcpp::Node {
       logged_first_sent_ = true;
       RCLCPP_INFO(get_logger(), "FIRST STATE SENT (clock map settled)");
     }
+    if (o.sent && o.row != nullptr && o.row[37] > 0.5 && !logged_anchored_) {   // row[37]: anchored (re-anchor count)
+      logged_anchored_ = true;
+      RCLCPP_INFO(get_logger(), "ANCHORED to the tag frame (first state sent in it)");
+    }
     if (adapter_->clock_broken && !logged_clock_broken_) {
       logged_clock_broken_ = true;
       RCLCPP_ERROR(get_logger(), "CLOCK BROKEN: %s - every state is now sent INVALID", adapter_->clock_broken_reason.c_str());
@@ -245,7 +249,7 @@ class FgoCppNode : public rclcpp::Node {
   std::atomic<bool> stop_{false};
   size_t n_unsent_ = 0;
   std::string stats_path_, cfg_desc_;
-  bool logged_first_sent_ = false, logged_clock_broken_ = false;
+  bool logged_first_sent_ = false, logged_clock_broken_ = false, logged_anchored_ = false;
   std::vector<double> stats_;   // 10 per keyframe (write_stats columns)
   std::chrono::steady_clock::time_point cur_wall_;
 };

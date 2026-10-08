@@ -11774,3 +11774,22 @@ did not occur in (i) or (ii). `tref_max_track_err_s` flags it.
   - the old binary kept sending all 7211 keyframes as VALID, on a broken clock;
   - **the new binary sends 4232 valid, then only invalid states from the step on.**
 - **Launcher:** `closed_loop_run` now defaults the C++ node to 0.10 s / time_ref (Rule A; the FC clock confirmed live).
+
+### H safety FGO (a), attempt 1 (`H_safety_fgo_a_abort1`): ABORTED before arming. The pre-arm gate refused (FGO "not anchored"); a gate criterion fault, fixed
+- **The new reboot check worked live.**
+  - `ensure_params` found the pinned `MOT_THST_HOVER` (0.293 stored → 0.310; a one-off, since `MOT_HOVER_LEARN 1`
+    no longer saves) and rebooted SITL.
+  - `require_fgo_node_current` detected the reboot (boot log 49 → 50), stopped the node, and restarted it. Its clock
+    map settled after 15.0 s wall ("FIRST STATE SENT").
+- **The gate then refused: "not anchored: FGO".**
+  - From the far spawn the tag is in view before the node's clock map settles, so the C++ node anchors BEFORE its
+    first state.
+  - Its first ODOMETRY already carries `reset_counter` 1, in the tag frame: XFGI PN −3.886, E −0.017, valid, from
+    the first state.
+  - The FC therefore sees no frame change and prints no "FGO re-anchor". That is the intended outcome (no frame
+    change at all), but the gate looked for that text.
+- **Fix:**
+  - the node logs "ANCHORED to the tag frame" at its first anchored state (node md5 `23e01eae…`);
+  - the gate's FGO criterion is now: the current node (original or restarted) logged ANCHORED AND the FC's latest
+    XFGI state is valid;
+  - the EKF3 and UKF criteria are unchanged.
