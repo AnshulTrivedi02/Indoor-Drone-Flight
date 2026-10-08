@@ -12144,3 +12144,35 @@ configured values:
    3. S3 (corrected C++ FGO, after its equivalence check);
    4. the FGO re-flights;
    5. then the model audit and the consolidated offline re-run with both corrections.
+
+### S2 RESULT (UKF port flying on the wall tag, far spawn, ×3; `eval/results/expH/s2_r{1,2,3}.json`)
+`eval/h_score.py` now also scores the flying UKF port's own current-time output (`XUKO`) and its processed fixes
+(`XUKT`). Its hold keys are renamed `*_vehicle`: the hold measures the vehicle, whichever estimator flies.
+- **Hold (vehicle against the hold point, pre-loss windows):** mean 4.9–6.3 mm, max 15–21 mm (S1 re-fly with EKF3
+  flying: mean 7.5–8.3 mm, max 16–21 mm).
+- **Drift during loss, end of loss** (UKF port flying, mm, r1 / r2 / r3):
+
+  | loss | UKF port | EKF3 (shadow) | band (UKF) | S2 prediction (EKF3 scale) |
+  |---|---|---|---|---|
+  | 5 s | 1 / 2 / 8 | 20 / 9 / 21 | ≤ 100 | ≤ 30 |
+  | 15 s | 4 / 19 / 14 | 9 / 29 / 20 | ≤ 200 | ≤ 30 |
+  | 30 s | 7 / 7 / 8 | 6 / 17 / 10 | ≤ 400 | ≤ 50 |
+  | ~7 s move | 18 / 13 / 8 | 14 / 22 / 17 | ≤ 300 | — |
+
+  - **Every band PASSES.**
+  - **The S2 PREDICTION HOLDS:** the flying UKF drifts at EKF3's scale, not at the offline shadow's (S1 re-fly
+    shadow: 24–277 mm). This tests the UKF's FLOW FORMULATION (ruling 2026-10-08): the flying port derotates with
+    its own bias-corrected rate. It supports adopting the bias-corrected derotation offline.
+- **Re-lock, PRIMARY** (from the first returning fix to the first fused fix): **PASS** (band ≤ 0.1 s).
+  - UKF −0.092…−0.014 s. It is negative because the port stamps each fix at its event time, ~25 ms before capture
+    (EKF3's clamp, recorded in `docs/h_backends_tag_input.md` §6).
+  - EKF3 (shadow) +0.001…+0.046 s.
+- **Lockout:** none (P-H7 PASS).
+- **Jump criterion, AS WORDED** (the largest single output step in the 2 s after re-lock ≤ the drift accumulated at
+  re-lock): **FAILS in 8 of 12 losses** (the UKF's steps 6–29 mm against drifts 1–19 mm).
+  - **Context, reported:** the UKF's ordinary 40 ms output steps in the quiet hold are p99 5–6 mm, max 7–9 mm.
+  - Most post-re-lock maxima (7–10 mm) are at that level, so the criterion fails mainly because the drift is so
+    small, below the hold's own step noise.
+  - **Four are larger than any hold step:** r2 15 s **29 mm**, r2 30 s 17 mm, r3 5 s 17 mm, r3 move 12 mm. These are
+    genuine small re-lock corrections.
+- **Comparative hold (H-H2) needs S3.**
