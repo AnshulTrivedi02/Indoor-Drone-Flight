@@ -24,8 +24,18 @@ TRIAL = sys.argv[1]
 ARM = sys.argv[4] if len(sys.argv) > 4 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
+# C++-port equivalence export (docs/fgo_cpp_port.md). ALL OFF by default; with none set nothing changes.
+#   FGO_BAG_ROOT     read the bag from <root>/<trial>/ instead (e.g. a scratch copy)
+#   FGO_OUT_ROOT     write the outputs to <root>/<trial>/fgo_<arm>/ instead of the trial directory
+#   FGO_DUMP_EVENTS  path prefix: write <prefix>.init.json, <prefix>.events.f64 (the exact event stream the loop
+#                    consumes, after gap rule / dejitter / sort, with each flow's interval-averaged omega) and
+#                    <prefix>.kf.f64 (per-keyframe inputs and outputs at full float64 precision). Dump writes sit
+#                    outside the timed region and do not touch the estimator.
+if os.environ.get("FGO_BAG_ROOT"):
+    BAG = os.path.join(os.environ["FGO_BAG_ROOT"], TRIAL)
+DUMP = os.environ.get("FGO_DUMP_EVENTS")
 FV = f_variant()     # offline F-test variants (all off by default)
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
+OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -88,7 +98,8 @@ _gpj = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/imu_gaps.json")
 gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 step_ns = []; n_kf = 0
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
-for tt, kind, d in ev:
+_dump_flow_om = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
+for _ei, (tt, kind, d) in enumerate(ev):
     if tt < t_init:
         if kind == "att": omega = d
         continue
@@ -100,6 +111,7 @@ for tt, kind, d in ev:
     elif kind == "flow":
         flow_pend = d
         flow_omega = gyro_avg.average(tt, omega)   # interval-avg over the flow frame (FINDING 4)
+        if DUMP: _dump_flow_om[_ei] = flow_omega
     elif kind == "fwd":
         fwd_pend = (d[0], d[1], float(fwd_avg.average(tt, omega)[2]))   # latest forward frame
     elif kind == "imu":
@@ -110,6 +122,7 @@ for tt, kind, d in ev:
             fgo.integrate_imu(d[0], d[1], tt - t_prev_imu)
         t_prev_imu = tt
         while tt >= t_kf_next:
+            if DUMP: _d_k, _d_nr, _d_nf, _d_nrg = fgo.k, gp.n_replaced, fgo.n_flow, fgo.n_range
             t0 = time.perf_counter_ns()
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0:
                 _rpy = fgo.prev_pose.rotation().rpy()    # the FGO's flow factor uses omega - bias: zero translation in that model
@@ -123,6 +136,14 @@ for tt, kind, d in ev:
             rpy = pose.rotation().rpy()          # [roll, pitch, yaw]
             bgz = fgo.prev_bias.gyroscope()[2]
             traj.append((t_lat, pose.x(), pose.y(), pose.z(), rpy[0], rpy[1], rpy[2], bgz))
+            if DUMP:   # (t_kf, t_lat, k_before, k_after, replaced, flow factor, range factor, flow used xy, rng,
+                       #  pose t xyz, R row-major 9, vel 3, bias acc 3, bias gyro 3)
+                _fu = flow_pend[0] if flow_pend is not None else (np.nan, np.nan)
+                _dump_kf.append([t_kf_next, t_lat, _d_k, fgo.k, gp.n_replaced - _d_nr, fgo.n_flow - _d_nf,
+                                 fgo.n_range - _d_nrg, _fu[0], _fu[1], np.nan if rng_pend is None else rng_pend]
+                                + list(pose.translation()) + list(pose.rotation().matrix().reshape(-1))
+                                + list(np.asarray(vel, float)) + list(fgo.prev_bias.accelerometer())
+                                + list(fgo.prev_bias.gyroscope()))
             # diag (read-only): |V(k)| and the flow-factor residual at the converged state
             vmag.append((t_lat, float(np.linalg.norm(vel))))
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0 \
@@ -133,6 +154,29 @@ for tt, kind, d in ev:
             flow_pend = None; rng_pend = None; fwd_pend = None
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
+if DUMP:
+    assert ARM in (None, "baseline") and not any(FV[k] for k in FV), "equivalence export: baseline arm, no F-variants"
+    _K = {"imu": 0, "att": 1, "rng": 2, "flow": 3}
+    _rows = []
+    for _ei, (tt, kind, d) in enumerate(ev):
+        r = [np.nan] * 9; r[0] = _K[kind]; r[1] = tt
+        if kind == "imu":
+            r[2:8] = list(d[0]) + list(d[1])
+        elif kind == "att":
+            r[2:5] = list(d)
+        elif kind == "rng":
+            r[2] = d
+        else:
+            r[2:6] = [d[0][0], d[0][1], float(d[1]), d[2]]
+            if _ei in _dump_flow_om:
+                r[6:9] = list(_dump_flow_om[_ei])
+        _rows.append(r)
+    np.asarray(_rows, np.float64).tofile(DUMP + ".events.f64")
+    np.asarray(_dump_kf, np.float64).tofile(DUMP + ".kf.f64")
+    json.dump({"trial": TRIAL, "accel_mean": [float(a) for a in np.mean(acc_lvl, axis=0)], "first_range": float(first_rng),
+               "t_init": float(t_init), "t_arm": gp.t_arm, "window": WINDOW, "lm_iters": LM_ITERS, "kf_dt": fgo.kf_dt,
+               "n_events": len(_rows), "event_cols": 9, "n_kf": len(_dump_kf), "kf_cols": len(_dump_kf[0])},
+              open(DUMP + ".init.json", "w"), indent=1)
 fl = np.array([r[:4] for r in fgo.fwd_log]).reshape(-1, 4)          # (t, kind, nis, ok): unchanged format
 fS = np.array([r[4] for r in fgo.fwd_log])                              # innovation covariance S (Phase 5b)
 np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl,
