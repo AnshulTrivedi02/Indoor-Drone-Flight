@@ -11793,3 +11793,21 @@ did not occur in (i) or (ii). `tref_max_track_err_s` flags it.
   - the gate's FGO criterion is now: the current node (original or restarted) logged ANCHORED AND the FC's latest
     XFGI state is valid;
   - the EKF3 and UKF criteria are unchanged.
+
+### H safety test FGO (a) RESULT (`H_safety_fgo_a`, `eval/results/expH/safety_fgo_a.json`): ALL PASS
+C++ node, 0.10 s, time_ref. The node was SIGKILLed in the hold at t 65.72 s; the standard watcher did not watch the
+node.
+- **Gates:** the FGO node check passed (no reboot this time). The pre-arm anchor passed (EKF3 and FGO; VISP growing;
+  bridge port = SERIAL1). wait_fix at N −3.89, E −0.02.
+- **Hover attitude, ATT − GT:** roll +0.02°, pitch −0.08° (no tilt bias).
+- **S-A1 PASS:** max |ATT − GT| roll 0.34°, pitch 0.09°, yaw 0.36°, from the kill to disarm. The FC output
+  predictor carried the attitude.
+- **S-A2 PASS:** "Thesis nav: FGO position lost" and LAND (reason 6) at **+0.49 s** (≤ 0.75 s): the 250 ms age
+  limit plus the queued state's age.
+- **S-A3 PASS:**
+  - disarmed at +9.17 s;
+  - max tilt 0.92°;
+  - displacement to touchdown **0.37 m**;
+  - touchdown 0.53 m/s;
+  - no breach.
+- **S-A4:** one LAND entry, no re-arm.
