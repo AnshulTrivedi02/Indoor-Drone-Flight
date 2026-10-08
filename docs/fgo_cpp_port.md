@@ -164,3 +164,41 @@ trans 0.58 ms. All of these are DIAGNOSTIC workstation numbers, not onboard (Pi)
   build exists only to prove the port exact. The blank and transition baseline are
   round-off-chaotic in both languages.
 - SymForce exact Jacobians are a later step and were not started.
+
+---
+
+# Part 2: aided-regime arms, native input handling, Pi estimate (started 2026-10-08)
+
+The user ruled on part 1 (2026-10-08). The result stands as recorded above: the pre-registered band
+PASSES on textured and FAILS as worded on blank and transition, with the evidence and the post-hoc
+emulation diagnosis. The band is not re-stated. The default (Eigen) C++ build is accepted for
+real-flight use in the AIDED regime only. SymForce is dropped.
+
+## Pre-registration 2 (written and committed BEFORE any part-2 comparison was run)
+
+**Band B (unchanged from part 1).** Default Eigen build (`FGO_CPP_EMULATE_NUMPY_GEMV` OFF), same
+keyframe count, and per keyframe |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01° against the Python FGO on the same
+bag, run with the same arguments. Each row below is a separate PASS/FAIL, reported as measured. A
+failure is diagnosed and the band is not loosened.
+
+| row | Python reference | compared |
+|---|---|---|
+| B1 | `fgo_replay.py fwdc_tex_r1 0.25 2 heading` | every keyframe |
+| B2 | `room_fgo_replay.py T_A_r1`, live track | every keyframe that is anchored in both runs |
+| B3 | `room_fgo_replay.py T_D_r1`, live track | as B2 |
+| B4 | `T_A_r1` whole-flight batch (hindsight) | every batch key (X(k) of `key_t`): |Δp| ≤ 1 mm, |Δyaw| ≤ 0.01°, same key set |
+| B5 | `T_D_r1` whole-flight batch | as B4 |
+| B6 (only if time allows) | `room_fgo_replay.py O_r1 --gnss`, live (+ batch as a separate row) | as B2 / B4 |
+
+**Also reported, with no band:**
+- agreement of the per-keyframe decisions (flow replaced, flow / range / tag / GNSS factor added,
+  heading and yaw-rate gate accepted, anchored);
+- the smallest |NIS − 9| over the forward frames, which shows how close the gate came to a flip;
+- step time per keyframe (C++ vs Python, single thread).
+
+**Band C (native front end, task C).** `fgo_cpp_frontend` reads only the raw bag-order stream and the
+configuration. It must reproduce the export-driven `fgo_cpp_replay` result on the same bag: same
+keyframe count, and per keyframe |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01°. Bags: `dsn_tex_r1` (baseline),
+`fwdc_tex_r1` (heading), `T_A_r1` and `T_D_r1` (live). Also reported, with no band: the dejittered
+IMU stamps against Python's `np.polyfit` stamps (max |Δt|), whether the interval-averaged gyro and
+the init inputs (gravity levelling, first range, t_init) are bit-identical, and decision agreement.
