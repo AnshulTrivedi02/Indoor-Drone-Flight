@@ -41,6 +41,9 @@ LEFTOVER = ["ros2 bag record", "gz sim -v4 -s", "build/sitl/bin/arducopter", "ma
 
 ap = argparse.ArgumentParser(); ap.add_argument("out"); ap.add_argument("rt_pid", type=int)
 ap.add_argument("--land-after-y", type=float, default=150.0)
+ap.add_argument("--box", help="experiment H (room): 'xmin,xmax,ymin,ymax' of GT (world) allowed; outside = breach "
+                "(gate G5: >= 0.5 m from every wall). Replaces the corridor wall rule and the corridor crash-height rule; "
+                "the tilt rule stays")
 ap.add_argument("--watch-process", help="pgrep -f pattern of a process the flight depends on (e.g. heading_bridge.py); "
                 "if it dies while run_trial runs and the vehicle is airborne, the flight is stopped")
 a = ap.parse_args()
@@ -109,6 +112,13 @@ class W(Node):
         if t - self.last_log >= 0.5:
             self.track.write(f"{t:.3f},{p.x:.4f},{p.y:.4f},{p.z:.4f},{tilt:.2f}\n"); self.track.flush()
             self.last_log = t; self.summary()
+        if a.box:
+            x0, x1, y0, y1 = (float(v) for v in a.box.split(","))
+            if not (x0 <= p.x <= x1 and y0 <= p.y <= y1):
+                self.breach(f"room box left: x {p.x:.3f} y {p.y:.3f} outside [{x0},{x1}] x [{y0},{y1}]", m)
+            elif tilt > 60:
+                self.breach(f"crash: tilt {tilt:.1f} deg > 60", m)
+            return
         if abs(p.x) >= WALL_X:
             self.breach(f"wall contact: |x| = {abs(p.x):.3f} m >= {WALL_X}", m)
         elif tilt > 60:

@@ -57,6 +57,19 @@ if [ -n "${HEADING:-}" ]; then
     export HEADING_BRIDGE=1 HEADING_SIGMA_DEG HEADING_EVERY_N
     WATCH=(--watch-process heading_bridge.py)
 fi
+# H=1 (experiment H, ruling 2026-10-08): EKF3 flies on the WALL TAG (h_extnav.parm: ExtNav position + yaw, flow velocity,
+# rangefinder height, one source set), the forward tag bridge sends the fixes (TAG_BRIDGE_FWD, frozen S0a convention and
+# r_valid), fly_trial flies HPROFILE (JSON) at 1.5 m, and the watcher enforces the room box (G5) and the bridge's liveness.
+if [ -n "${H:-}" ]; then
+    P="$HOME/thesis_ws/h_extnav.parm"
+    EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$P"
+    EXPECT_OVERRIDE="$EXPECT_OVERRIDE,$(grep -Ev '^\s*(#|$)' "$P" | awk '{printf "%s%s=%s", (NR>1?",":""), $1, $2}')"
+    export LOOPBACK_ONLY=1 GZ_IP=127.0.0.1 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+    export TAG_BRIDGE_FWD=1 TAG_FWD_SEND=1 TAG_FWD_CONV="${TAG_FWD_CONV:-u-y_v-x}" TAG_FWD_RVALID="${TAG_FWD_RVALID:-400}" TAG_SIGMA_POS="${TAG_SIGMA_POS:-0.02}"
+    export HPROFILE HWORLD="$WORLD"
+    WATCH=(--watch-process tag_bridge_fwd.py --box -4.4,4.4,-4.4,4.4)
+    ALT=1.5
+fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
 if [ -n "${GROUND_TEST:-}" ]; then
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/groundtest.parm"
@@ -64,7 +77,7 @@ if [ -n "${GROUND_TEST:-}" ]; then
 fi
 echo "EXTRA_PARM_FILES=$EXTRA_PARM_FILES" > "$OUT/launch.txt"; echo "EXPECT_OVERRIDE=$EXPECT_OVERRIDE" >> "$OUT/launch.txt"
 echo "ARDUPILOT_TREE=${ARDUPILOT_TREE:-}" >> "$OUT/launch.txt"
-setsid "$HOME/thesis_ws/run_trial.sh" --world "$WORLD" --velocity 0.5 --altitude 2.0 --duration 300 --trial-name "$NAME" &
+setsid "$HOME/thesis_ws/run_trial.sh" --world "$WORLD" --velocity 0.5 --altitude "${ALT:-2.0}" --duration 300 --trial-name "$NAME" &
 RT=$!
 set +u; source /opt/ros/jazzy/setup.bash; set -u
 # The watcher gets run_trial's PID (not its group) and stops the flight itself on a breach; it
