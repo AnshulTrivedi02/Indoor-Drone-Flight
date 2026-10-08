@@ -48,6 +48,13 @@ pm("rngAb", rf.linearize(vals).augmentedJacobian())
 yf = F.yaw_prior_factor(gtsam.noiseModel.Isotropic.Sigma(1, 0.5), X(1), 0.0995)
 pm("yawAb", yf.linearize(vals).augmentedJacobian())
 print(f"wrap {F._wrap(-3.5):.17g} {F._wrap(3.5):.17g}")
+# part 2 factors
+pm("hdgAb", F.heading_factor(gtsam.noiseModel.Isotropic.Sigma(1, 0.0026), X(1), 0.0981).linearize(vals).augmentedJacobian())
+pm("yrAb", F.yawrate_factor(gtsam.noiseModel.Isotropic.Sigma(1, 0.0028), B(1), 0.0021, 0.0013).linearize(vals).augmentedJacobian())
+pm("tagAb", F.tag_factor(gtsam.noiseModel.Diagonal.Sigmas(np.array([0.05, 0.05, 0.0873])), X(1),
+                         (1.02, 1.97, 0.11)).linearize(vals).augmentedJacobian())
+pm("gnssAb", F.gnss_factor(gtsam.noiseModel.Diagonal.Sigmas(np.array([0.5, 0.5, 0.3, 0.3])), X(1), V(1),
+                           (1.1, 2.2, 0.04, 0.5)).linearize(vals).augmentedJacobian())
 
 # one FGO keyframe through the real smoother (see probe.cpp): 0 = IMU only, 1 = + yaw cap + range, 2 = + flow
 from fgo_core import FGO

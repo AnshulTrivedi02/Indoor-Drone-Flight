@@ -164,3 +164,213 @@ trans 0.58 ms. All of these are DIAGNOSTIC workstation numbers, not onboard (Pi)
   build exists only to prove the port exact. The blank and transition baseline are
   round-off-chaotic in both languages.
 - SymForce exact Jacobians are a later step and were not started.
+
+---
+
+# Part 2: aided-regime arms, native input handling, Pi estimate (started 2026-10-08)
+
+The user ruled on part 1 (2026-10-08). The result stands as recorded above: the pre-registered band
+PASSES on textured and FAILS as worded on blank and transition, with the evidence and the post-hoc
+emulation diagnosis. The band is not re-stated. The default (Eigen) C++ build is accepted for
+real-flight use in the AIDED regime only. SymForce is dropped.
+
+## Pre-registration 2 (written and committed BEFORE any part-2 comparison was run)
+
+**Band B (unchanged from part 1).** Default Eigen build (`FGO_CPP_EMULATE_NUMPY_GEMV` OFF), same
+keyframe count, and per keyframe |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01° against the Python FGO on the same
+bag, run with the same arguments. Each row below is a separate PASS/FAIL, reported as measured. A
+failure is diagnosed and the band is not loosened.
+
+| row | Python reference | compared |
+|---|---|---|
+| B1 | `fgo_replay.py fwdc_tex_r1 0.25 2 heading` | every keyframe |
+| B2 | `room_fgo_replay.py T_A_r1`, live track | every keyframe that is anchored in both runs |
+| B3 | `room_fgo_replay.py T_D_r1`, live track | as B2 |
+| B4 | `T_A_r1` whole-flight batch (hindsight) | every batch key (X(k) of `key_t`): |Δp| ≤ 1 mm, |Δyaw| ≤ 0.01°, same key set |
+| B5 | `T_D_r1` whole-flight batch | as B4 |
+| B6 (only if time allows) | `room_fgo_replay.py O_r1 --gnss`, live (+ batch as a separate row) | as B2 / B4 |
+
+**Also reported, with no band:**
+- agreement of the per-keyframe decisions (flow replaced, flow / range / tag / GNSS factor added,
+  heading and yaw-rate gate accepted, anchored);
+- the smallest |NIS − 9| over the forward frames, which shows how close the gate came to a flip;
+- step time per keyframe (C++ vs Python, single thread).
+
+**Band C (native front end, task C).** `fgo_cpp_frontend` reads only the raw bag-order stream and the
+configuration. It must reproduce the export-driven `fgo_cpp_replay` result on the same bag: same
+keyframe count, and per keyframe |Δp| ≤ 1 mm and |Δyaw| ≤ 0.01°. Bags: `dsn_tex_r1` (baseline),
+`fwdc_tex_r1` (heading), `T_A_r1` and `T_D_r1` (live). Also reported, with no band: the dejittered
+IMU stamps against Python's `np.polyfit` stamps (max |Δt|), whether the interval-averaged gyro and
+the init inputs (gravity levelling, first range, t_init) are bit-identical, and decision agreement.
+
+## Part 2: what was added
+
+- **Python export, extended (off by default).** `src/estimators/fgo/fgo_export.py` is used by both
+  `fgo_replay.py` and `room_fgo_replay.py`, and is enabled by the same three environment variables
+  (`FGO_DUMP_EVENTS`, `FGO_BAG_ROOT`, `FGO_OUT_ROOT`). It writes:
+  - the RAW bag-order stream (for the native front end);
+  - the processed stream, plus the interval-averaged gyro for forward frames;
+  - 40-column keyframe rows, including the heading and yaw-rate NIS and accept decisions, the tag and
+    GNSS factor flags, and the anchored flag;
+  - the whole-flight batch solution.
+- **C++ core.**
+  - The forward-camera heading and yaw-rate factors, with the chi-square gate on the gate-only
+    covariance recursion (`_info`, `_posterior_cov`).
+  - `reanchor` (tag, and GNSS with velocity and `keep_yawcap`), and the tag and GNSS factors.
+  - The batch record, including `batch_drop_yawcap`, and the whole-flight batch: LM, 50 iterations,
+    relative tolerance 1e-6.
+- **C++ runner** (`replay_common.cpp`). The loops of both Python harnesses are ported: corridor, and
+  room with the tag/GNSS anchoring logic.
+- **Native front end** (`fgo_cpp_frontend`):
+  - `offline_imu_timing` runs the gap rule and the IMU dejitter. It is offline only; a live node uses
+    `/imu/time_ref`.
+  - `StreamFrontEnd` takes events one at a time, in arrival order. It runs a reorder buffer
+    (1 s delay; ties broken by source rank, then arrival), the init inputs and its own
+    interval-averaged gyro (numpy pairwise summation reproduced), then the runner.
+  - The configuration is the only thing read from the export.
+- **`tools/heavy.py`.** This is the lock protocol for every compile and run: it waits on
+  `FLIGHT_LOCK` and on arducopter / `gz sim`, holds `BUILD_LOCK` for one bounded step, and runs at
+  nice 19 with one BLAS thread.
+
+All runs were made on scratch copies of the bags. `fwdc_tex_r1` was decompressed from its `.zst` into
+scratch, and its sha256 matched `PACKED.txt`. No trial directory was written.
+
+**Reference checks.**
+- `fwdc_tex_r1 heading`: the fresh Python TUM and `fwd_stats.json` are byte-identical to the stored
+  `fgo_heading/`.
+- `dsn_tex_r1 baseline`: the fresh TUM is byte-identical to the stored one.
+- The export did not change the room replay: on `T_A_r1`, the live TUM with and without the export is
+  byte-identical.
+
+## Part 2 results (band B: C++ default build vs Python, pre-registered above)
+
+| row | bag / run | keyframes Py / C++ | decisions | max / p99 \|Δp\| | max / p99 \|Δyaw\| | band |
+|---|---|---|---|---|---|---|
+| B1 | fwdc_tex_r1 heading | 10118 / 10118 | 0 mismatches (heading accepted 9480 of 9539) | 1.7e-4 / 1.6e-4 mm | 6.3e-11 / 2.5e-11 ° | **PASS** |
+| B2 | T_A_r1 live (7774 anchored) | 8015 / 8015 | 0 (2394 tag factors) | 4.6e-8 / 1.3e-8 mm | 1.7e-10 / 1.2e-10 ° | **PASS** |
+| B3 | T_D_r1 live (7755 anchored) | 8017 / 8017 | 0 (570 tag factors) | 7.8e-6 / 6.8e-6 mm | 1.3e-7 / 1.1e-7 ° | **PASS** |
+| B4 | T_A_r1 batch | 7775 / 7775 keys (ids identical) | n/a | 1.4e-8 / 9.4e-9 mm | 8.2e-11 / 4.8e-11 ° | **PASS** |
+| B5 | T_D_r1 batch | 7756 / 7756 keys (ids identical) | n/a | 1.6e-7 / 1.6e-7 mm | 1.3e-9 / 1.2e-9 ° | **PASS** |
+
+- The smallest |NIS − 9| over the 9539 heading frames was 0.167. No gate decision was near a flip.
+- The heading NIS differed between Python and C++ by at most 7.6e-8. That difference is numpy/LAPACK
+  against Eigen in the gate-only recursion (`inv`, `A.T @ A`).
+- The batch LM gave the same error to the printed digits (T_A_r1 111.673118, T_D_r1 40.574967) and
+  the same iteration count (3) in both languages.
+
+## Part 2 results (band C: native front end vs export-driven C++, pre-registered above)
+
+| bag | keyframes | decisions | max / p99 \|Δp\| | max / p99 \|Δyaw\| | band |
+|---|---|---|---|---|---|
+| dsn_tex_r1 baseline | 10197 / 10197 | 0 mismatches | 7.9e-4 / 1.3e-4 mm | 1.9e-8 / 1.5e-8 ° | **PASS** |
+| fwdc_tex_r1 heading | 10118 / 10118 | 0 | 1.1e-4 / 1.0e-4 mm | 1.3e-10 / 4.0e-11 ° | **PASS** |
+| T_A_r1 live (+ batch) | 8015 / 8015 | 0 | 7.3e-8 / 1.4e-8 mm (batch 1.8e-9) | 1.9e-10 ° | **PASS** (batch PASS) |
+| T_D_r1 live (+ batch) | 8017 / 8017 | 0 | 8.4e-6 / 4.4e-6 mm (batch 8.7e-8) | 8.4e-8 ° | **PASS** (batch PASS) |
+
+Stream diagnostics, the same on all four bags:
+- Event count, kind order, non-IMU stamps and all measurement payloads are bit-identical to Python's
+  processed stream.
+- The interval-averaged gyro is **bit-identical**: flow omega on every frame, and forward gyro-z on
+  9635 of 9635 frames.
+- Gravity levelling and the first range are bit-identical.
+- The dejittered IMU stamps differ from `np.polyfit` by at most 2.3e-13 s, so `t_init` differs in the
+  last bits. This is the only input difference: the closed-form fit is not numpy's SVD least squares.
+- The reorder buffer saw at most 0.185 s of lateness and released nothing out of order.
+
+## Finding outside the port: some stored experiment-T FGO outputs predate `imu_gaps.json`
+
+The stored `T_A_r1` and `T_D_r1` `room_fgo/` outputs are NOT reproduced by the current code. Against
+the fresh runs:
+
+| run | max \|Δp\| | median \|Δp\| |
+|---|---|---|
+| T_A_r1 live | 1.7 mm | 0.03 mm |
+| T_A_r1 batch | 1.2 mm | not computed |
+| T_D_r1 live | **163 mm** | 0.68 mm |
+| T_D_r1 batch | **90 mm** | 0.15 mm |
+
+Diagnosis (scratch copies only; nothing in the repository or the trial directories was changed):
+- Leaving the BLAS threads at their defaults changes `T_D_r1` live by only 0.001 mm.
+- Keeping `log_cov` on after the anchor changes nothing (byte-identical).
+- Running the current code **as if `imu_gaps.json` did not exist** reproduces the stored `T_D_r1`
+  `fgo_live.tum` **and** `fgo_batch.tum` byte for byte. With no file there is no D15 arming time, so
+  no ground-proximity flow rule.
+
+From the file times, the `room_fgo/` outputs of **T_A_r1, T_B_r1, T_C_r1, T_C_r3, T_D_r1 and
+T_D_r3** were written (04:48–04:49) before their `imu_gaps.json` (04:59–05:01). Their `room_ukf/`
+outputs were written afterwards (06:38–06:40), as were all r2 runs, the other T runs, O and H.
+Those FGO results therefore lack the D15 rule that the UKF had. This was flagged to the coordinator;
+nothing was re-run in the trial directories.
+
+### B6 (optional row, run): O_r1 GNSS
+
+The fresh Python `O_r1 --gnss` live and batch TUMs are byte-identical to the stored `room_fgo/` ones.
+The C++ results, compared over 6895 anchored keyframes:
+- Live: 7288 / 7288 keyframes, 533 GNSS factors, 0 decision mismatches, max / p99 |Δp| 2.6e-5 /
+  4.0e-6 mm, max |Δyaw| 3.8e-8° → **PASS**.
+- Batch: 6896 / 6896 keys with identical key ids, max |Δp| 1.1e-7 mm → **PASS**.
+
+### Part 2 numerics probe
+
+The heading, yaw-rate, tag and GNSS factors' whitened `[A|b]` are **bit-identical** between Python
+and C++. The part-1 lines are unchanged: everything is bit-identical except the flow keyframe
+(1.3e-15), whose cause is the gemv rounding found in part 1.
+
+## Timing (task D)
+
+Per-keyframe step, same timed region in both languages, single thread, nice 19. These are
+workstation numbers on an i7-8700 with a generic x86-64 build (no `-march=native`), and DIAGNOSTIC
+only. Other jobs were running at times, so medians varied by about ±40% between repeat runs (for
+example, T_A_r1 C++ 0.92 ms in one run and 0.57 ms in another).
+
+| run | Python median / p99 | C++ median / p99 (max) |
+|---|---|---|
+| dsn_tex_r1 baseline | 21.6 / 41.8 ms | 0.54–0.61 / 0.94–1.44 ms |
+| fwdc_tex_r1 heading (gate recursion every keyframe) | 43.5 / 86.1 ms | 1.14–1.19 / 1.77–2.20 ms (max 12.9 ms) |
+| T_A_r1 live (tags) | 19.4 ms (median only, from stats.json) | 0.57–0.92 / 1.36–1.80 ms |
+| T_D_r1 live (tags) | 18.4 ms | 0.55 / 1.17–1.29 ms |
+| O_r1 live (GNSS, recursion on throughout) | 19.0 ms | 0.67 / 1.53 ms |
+| whole-flight batch, T_A_r1 / T_D_r1 / O_r1 | 834 / 661 / 642 s | 1.2–1.4 s |
+
+The C++ batch is about 500× faster. It makes the hindsight batch cheap enough to run routinely.
+
+### Raspberry Pi estimate (an ESTIMATE, not a measurement)
+
+**Basis.** Published Geekbench 6 single-core scores:
+- i7-8700: about 1527 (Geekbench processor page).
+- Raspberry Pi 5: about 764–787.
+- Raspberry Pi 4: about 293–340 (Geekbench browser comparisons and published reviews).
+
+These give single-core ratios of about **1.9–2.0× (Pi 5)** and about **4.5–5.2× (Pi 4)**.
+
+**Scaling the worst observed C++ run** (the heading arm, p99 2.2 ms):
+
+| | median | p99 |
+|---|---|---|
+| Pi 5 | ~2.3 ms | **~4.3 ms** |
+| Pi 4 | ~5.4–6.2 ms | **~10–11.5 ms** |
+
+Both are inside the 33 ms keyframe budget. Even with a further 2× margin, the Pi 4 p99 (~23 ms)
+fits.
+
+**Caveats.**
+- Geekbench is a composite; it is not this workload (small dense factorisations, allocation, cache).
+- The Pi may throttle thermally.
+- The ARM build will use NEON while this x86 build uses no AVX.
+- Single spikes (max 12.9 ms here) would scale to ~25 ms on a Pi 5 and ~65 ms on a Pi 4. A live
+  node must tolerate an occasional late keyframe; the replay cadence does not drop keyframes.
+
+**Not done.** Neither a qemu run nor a cross-compile was done. qemu timing would not be
+representative, and correctness is already established on x86. A timing run on a real Pi is the next
+step.
+
+## Part 2 open issues
+
+- **Live node.**
+  - IMU stamping must come from `/imu/time_ref`; the dejitter is offline only.
+  - A ROS 2 or MAVLink adapter is needed that calls `StreamFrontEnd::push`.
+  - The reorder delay (1 s here) needs to be set for real latencies; the measured maximum lateness
+    in the bags was 0.185 s.
+- **Not ported.** The offline F-test variants (F1 robust heading, F3 injected yaw, F_MASK /
+  F_HDG_FROM_CRUISE) and the diagnostic covariance-log output. The recursion itself is ported.
+- **Experiment T.** Six stored room_fgo results predate `imu_gaps.json` (see the finding above).

@@ -62,6 +62,16 @@ int main() {
   YawPriorFactor yf(gtsam::noiseModel::Isotropic::Sigma(1, 0.5), X(1), 0.0995);
   pm("yawAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(yf.linearize(vals))->augmentedJacobian());
   std::printf("wrap %.17g %.17g\n", wrap(-3.5), wrap(3.5));
+  // part 2 factors
+  HeadingFactor hf(gtsam::noiseModel::Isotropic::Sigma(1, 0.0026), X(1), 0.0981);
+  pm("hdgAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(hf.linearize(vals))->augmentedJacobian());
+  YawRateFactor wf(gtsam::noiseModel::Isotropic::Sigma(1, 0.0028), B(1), 0.0021, 0.0013);
+  pm("yrAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(wf.linearize(vals))->augmentedJacobian());
+  TagFactor tf(gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector3(0.05, 0.05, 0.0873)), X(1), 1.02, 1.97, 0.11);
+  pm("tagAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(tf.linearize(vals))->augmentedJacobian());
+  GnssFactor gf(gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector4(0.5, 0.5, 0.3, 0.3)), X(1), V(1),
+                gtsam::Vector4(1.1, 2.2, 0.04, 0.5));
+  pm("gnssAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(gf.linearize(vals))->augmentedJacobian());
 
   // one FGO keyframe through the real smoother: variant 0 = priors + CombinedImuFactor only (pure GTSAM),
   // 1 = + yaw cap + range, 2 = + flow. Attributes any difference to the library build or to the port.
@@ -74,8 +84,8 @@ int main() {
       f.integrate_imu(a, w, 0.003);
     }
     const FlowMeas fm{Eigen::Vector2d(0.02, 0.17), true, 0.9};
-    f.keyframe_variant(10.0 + 1.0 / 30.0, variant == 2 ? &fm : nullptr, Vector3(0.011, -0.007, 0.002),
-                       variant >= 1 ? 0.08 : NAN, variant >= 1);
+    f.no_yawcap = (variant == 0);
+    f.keyframe(10.0 + 1.0 / 30.0, variant == 2 ? &fm : nullptr, Vector3(0.011, -0.007, 0.002), variant >= 1 ? 0.08 : NAN);
     std::printf("kf%d", variant);
     const gtsam::Matrix4 M = f.prev_pose.matrix();
     for (int i = 0; i < 12; ++i) std::printf(" %.17g", M(i / 4, i % 4));

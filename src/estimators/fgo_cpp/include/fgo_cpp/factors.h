@@ -189,4 +189,115 @@ class YawPriorFactor : public gtsam::NoiseModelFactorN<Pose3> {
   }
 };
 
+// ---- forward-camera heading (Phase 4): wrap(h_heading(yaw) - psi), h_heading = identity (factors.heading_factor) ----
+class HeadingFactor : public gtsam::NoiseModelFactorN<Pose3> {
+  using Base = gtsam::NoiseModelFactorN<Pose3>;
+  double psi_;
+
+ public:
+  HeadingFactor(const gtsam::SharedNoiseModel& noise, gtsam::Key kx, double psi) : Base(noise, kx), psi_(psi) {}
+
+  Vector err(const Pose3& pose) const {
+    Vector e(1);
+    e[0] = wrap(pose.rotation().yaw() - psi_);
+    return e;
+  }
+  // the 1x6 central-difference Jacobian, also used by the chi-square gate (fgo_core._forward_factors Hx)
+  Matrix H(const Pose3& pose) const {
+    auto f = [this](const Pose3& p, const Vector&, const Bias&) { return err(p); };
+    return jac_pose(f, pose, Vector(), Bias(), 1);
+  }
+
+  Vector evaluateError(const Pose3& pose, boost::optional<Matrix&> H1 = boost::none) const override {
+    if (H1) *H1 = H(pose);
+    return err(pose);
+  }
+
+  gtsam::NonlinearFactor::shared_ptr clone() const override {
+    return gtsam::NonlinearFactor::shared_ptr(new HeadingFactor(*this));
+  }
+};
+
+// ---- forward-camera yaw rate (Phase 4): (gyro_z_avg - b_gz) - omega on B(k) (factors.yawrate_factor) ----
+class YawRateFactor : public gtsam::NoiseModelFactorN<Bias> {
+  using Base = gtsam::NoiseModelFactorN<Bias>;
+  double om_, gz_;
+
+ public:
+  YawRateFactor(const gtsam::SharedNoiseModel& noise, gtsam::Key kb, double omega_meas, double gyro_z_avg)
+      : Base(noise, kb), om_(omega_meas), gz_(gyro_z_avg) {}
+
+  Vector err(const Bias& b) const {
+    Vector e(1);
+    e[0] = (gz_ - b.gyroscope()[2]) - om_;
+    return e;
+  }
+
+  Vector evaluateError(const Bias& b, boost::optional<Matrix&> H1 = boost::none) const override {
+    auto f = [this](const Pose3&, const Vector&, const Bias& bb) { return err(bb); };
+    if (H1) *H1 = jac_bias(f, Pose3(), Vector(), b, 1);
+    return err(b);
+  }
+
+  gtsam::NonlinearFactor::shared_ptr clone() const override {
+    return gtsam::NonlinearFactor::shared_ptr(new YawRateFactor(*this));
+  }
+};
+
+// ---- AprilTag absolute fix (experiments T/L): (p_E - x, p_N - y, wrap(yaw - yaw_fix)) (factors.tag_factor) ----
+class TagFactor : public gtsam::NoiseModelFactorN<Pose3> {
+  using Base = gtsam::NoiseModelFactorN<Pose3>;
+  double pE_, pN_, yaw_;
+
+ public:
+  TagFactor(const gtsam::SharedNoiseModel& noise, gtsam::Key kx, double pE, double pN, double yaw)
+      : Base(noise, kx), pE_(pE), pN_(pN), yaw_(yaw) {}
+
+  Vector err(const Pose3& pose) const {
+    const gtsam::Point3 t = pose.translation();
+    Vector e(3);
+    e << t[0] - pE_, t[1] - pN_, wrap(pose.rotation().yaw() - yaw_);
+    return e;
+  }
+
+  Vector evaluateError(const Pose3& pose, boost::optional<Matrix&> H1 = boost::none) const override {
+    auto f = [this](const Pose3& p, const Vector&, const Bias&) { return err(p); };
+    if (H1) *H1 = jac_pose(f, pose, Vector(), Bias(), 3);
+    return err(pose);
+  }
+
+  gtsam::NonlinearFactor::shared_ptr clone() const override {
+    return gtsam::NonlinearFactor::shared_ptr(new TagFactor(*this));
+  }
+};
+
+// ---- GNSS (experiment O): (p_E, p_N, v_E, v_N) - fix on X(k), V(k) (factors.gnss_factor) ----
+class GnssFactor : public gtsam::NoiseModelFactorN<Pose3, Vector> {
+  using Base = gtsam::NoiseModelFactorN<Pose3, Vector>;
+  gtsam::Vector4 z_;
+
+ public:
+  GnssFactor(const gtsam::SharedNoiseModel& noise, gtsam::Key kx, gtsam::Key kv, const gtsam::Vector4& z)
+      : Base(noise, kx, kv), z_(z) {}
+
+  Vector err(const Pose3& pose, const Vector& vel) const {
+    const gtsam::Point3 t = pose.translation();
+    Vector e(4);
+    e << t[0] - z_[0], t[1] - z_[1], vel[0] - z_[2], vel[1] - z_[3];
+    return e;
+  }
+
+  Vector evaluateError(const Pose3& pose, const Vector& vel, boost::optional<Matrix&> H1 = boost::none,
+                       boost::optional<Matrix&> H2 = boost::none) const override {
+    auto f = [this](const Pose3& p, const Vector& v, const Bias&) { return err(p, v); };
+    if (H1) *H1 = jac_pose(f, pose, vel, Bias(), 4);
+    if (H2) *H2 = jac_vec(f, pose, vel, Bias(), 4);
+    return err(pose, vel);
+  }
+
+  gtsam::NonlinearFactor::shared_ptr clone() const override {
+    return gtsam::NonlinearFactor::shared_ptr(new GnssFactor(*this));
+  }
+};
+
 }  // namespace fgo_cpp

@@ -16,7 +16,7 @@ find_package(GTSAM_UNSTABLE 4.2.1 EXACT REQUIRED)
 
 option(FGO_CPP_EMULATE_NUMPY_GEMV "Diagnostic: reproduce numpy/OpenBLAS rounding of R.T @ v in h_flow_pose" OFF)
 
-add_library(fgo_cpp_core src/fgo_core.cpp)
+add_library(fgo_cpp_core src/fgo_core.cpp src/replay_common.cpp)
 target_include_directories(fgo_cpp_core PUBLIC include)
 target_link_libraries(fgo_cpp_core PUBLIC gtsam gtsam_unstable)
 if(FGO_CPP_EMULATE_NUMPY_GEMV)
@@ -26,11 +26,15 @@ endif()
 add_executable(fgo_cpp_replay src/fgo_replay.cpp)
 target_link_libraries(fgo_cpp_replay PRIVATE fgo_cpp_core)
 
+add_executable(fgo_cpp_frontend src/fgo_frontend.cpp)
+target_link_libraries(fgo_cpp_frontend PRIVATE fgo_cpp_core)
+
 add_executable(fgo_cpp_probe src/probe.cpp)
 target_link_libraries(fgo_cpp_probe PRIVATE fgo_cpp_core)
 
-set_target_properties(fgo_cpp_replay fgo_cpp_probe PROPERTIES
+set_target_properties(fgo_cpp_replay fgo_cpp_frontend fgo_cpp_probe PROPERTIES
   BUILD_RPATH "$ENV{HOME}/opt/gtsam-4.2.1/lib" INSTALL_RPATH "$ENV{HOME}/opt/gtsam-4.2.1/lib")
 # DT_RPATH (not RUNPATH) so libgtsam.so also finds libmetis-gtsam.so in the same directory.
 target_link_options(fgo_cpp_replay PRIVATE "-Wl,--disable-new-dtags")
 target_link_options(fgo_cpp_probe PRIVATE "-Wl,--disable-new-dtags")
+target_link_options(fgo_cpp_frontend PRIVATE "-Wl,--disable-new-dtags")
