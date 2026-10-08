@@ -11697,3 +11697,39 @@ The tag bridge and the flow bridge were SIGKILLed in the hold at t 83.53 s. The 
   - no breach.
 - **S-A4 PASS:** one LAND entry, no re-arm. The two landing paths did not conflict.
 - `run_trial` ended non-zero by design: fly_trial's exit after WatcherLost. The log was copied.
+
+### C++ FGO live time_ref defect: TRACED AND FIXED offline (`docs/handovers/2026-10-08_fgo_cpp_timeref_fix.md`, merged `d1e5dc4`); live check pre-registered
+**Mechanism.**
+- In time_ref mode the node seeded its IMU clock offset from the FIRST, unsettled `/imu/time_ref` samples. After
+  that the offset could change only by the 50 µs/sample slew (16.7 ms/s).
+- The node starts before the bag recorder, so it saw imu_bridge's start-up receipt backlog: an excess of
+  ~0.45–0.55 s, inferred from the slope, not observed.
+- IMU stamps were therefore up to ~0.45 s in the future for ~30 s. Keyframes were stamped ahead of the FC clock
+  (wrapped `XFGO.Age`; all 713 in (ii) before FC 32.9 s, all in (i) before 28.4 s).
+- The reorder buffer misbehaved as a result: 2685 out-of-order releases live, against 0 in replay.
+- **δ_att is entirely this window.** With only t_k > 45 s: live 23.0 / 23.5 ms against same-bag replay 22.5 / 22.0 ms.
+- The bags start after the transient, which is why the replays never showed it.
+
+**Fix** (time_ref mode only; causal and header modes and the Python node are byte-identical):
+- seed the offset only from the D25-settled envelope;
+- hold and flush the inputs before the settle (keyframes from the flush are not sent);
+- FIFO IMU/time_ref pairing per receipt stamp (153 silent overwrites in (ii) before);
+- new stats diagnostics.
+
+**Offline verification:** synthetic start-up backlog (0.55 s), old → new: δ_att 161–171 → 1.0 ms; 476–493 → 0 states
+ahead of the SITL clock; ~2800 → 0 out-of-order. Band L rows are unchanged.
+
+**Installed:** `~/opt/fgo_cpp/bin/fgo_cpp_node` md5 `0129f940…`, built from the merged tree (clean PATH, via heavy.py).
+
+**PRE-REGISTERED live check `fgo_cpp_shadow_ii_fix`** (flight (ii) again: 0.10 s, time_ref, open loop on truth),
+the handover's criteria adopted before the flight:
+- check (a): `n_age_wrapped` = 0 and an OV = 0 share of 0 over W_a;
+- node stats: `tref_settled` true, `n_out_of_order` ≈ 0 (≤ 10), `max_lateness_s` ≤ 0.1 s,
+  `tref_max_track_err_s` < 0.020 s;
+- δ_att (live, whole flight) within 10 ms of the same-bag time_ref replay (also reported for t_k > 45 s).
+
+**If it passes:** S3 and the FGO safety tests fly 0.10 s with time_ref (Rule A, and the FC-clock principle).
+**If not:** the fallback (iii), 0.10 s causal.
+
+**Open (from the handover):** a SITL soft reboot after the node has started would step `time_usec` backwards. It
+did not occur in (i) or (ii). `tref_max_track_err_s` flags it.
