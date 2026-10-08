@@ -1,0 +1,34 @@
+{
+ "trial": "H_s0b",
+ "latency_receipt_ms": {
+  "min": 31.210454872734772,
+  "median": 38.55374361501873,
+  "p95": 41.94505310912007
+ },
+ "latency_node_ms": {
+  "min": 30.9999999999917,
+  "median": 33.00000000000125,
+  "p95": 33.00000000000125
+ },
+ "VISO_DELAY_MS_by_rule": 31,
+ "visp_n": 2518,
+ "sent_n": 2518,
+ "visp_eq_sent": true,
+ "yaw_aligned_msgs": [
+  [
+   30.15,
+   "EKF3 IMU0 yaw aligned"
+  ],
+  [
+   30.15,
+   "EKF3 IMU1 yaw aligned"
+  ]
+ ],
+ "first_fix_t": 30.14130016371406,
+ "ekf3_W_err_after_first_fix_m": {
+  "min": 5.416627961518366e-05,
+  "median": 0.004325222958788921,
+  "p95": 0.02333080238544609
+ },
+ "flow_fused_during_occlusion_share": 1.0
+}

@@ -10779,3 +10779,18 @@ Jacobians (a Pi timing estimate follows in the next port stage). `docs/real_flig
 - Checked in `numbers.md` (rows marked †, footnote added) and in the supervisor figures (fig6 caption note).
 - Not tested: whether the UKF's diverging results have the same property. They also run through NumPy, so the same
   caution applies by analogy, stated but unverified.
+
+### Experiment H S0b RESULT (`H_s0b`, `eval/results/expH/s0b_check.json`): ALL CHECKS PASS; `VISO_DELAY_MS 31`
+
+- **Fixes:** `VISP` 2,518 = `/tags/sent` 2,518.
+- **Yaw:** EKF3 "yaw aligned" at 30.15 s, at the first fix (30.14 s).
+- **Position:** after the first fix, EKF3's position is in the tag frame W, within 4 mm (median) and 23 mm (p95) of GT.
+- **Flow during occlusion:** fused through the 5 s occlusion (`XKF5` innovations non-zero on 100% of rows).
+- **IMU:** IMU-gap rule ok.
+- **Latency:** receipt − capture min **31.2 ms** (median 38.6, p95 41.9); node measure min **31.0 ms**. They agree
+  within 5 ms, unlike T's downward bridge. Hence **`VISO_DELAY_MS 31`** (D2/D20 rule; ≤ 60 ms horizon), set in
+  `h_extnav.parm` before S1.
+- **First attempt** aborted before take-off: `r_valid_px:=400` arrived as an INTEGER, fixed with dynamically typed
+  parameters. Kept as `H_s0b_ABORTED`.
+- Flown with nothing else on the machine (bag compression finished; the build lock was clear and the flight lock was
+  held).
