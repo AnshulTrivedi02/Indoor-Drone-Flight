@@ -76,7 +76,7 @@ fi
 declare -a FWD_BRIDGE_ARGS=()
 declare -a FWD_RECORD_TOPICS=()
 FWD_CAMERA=false
-if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WORLD" == *_fwdplainc || "$WORLD" == room_wall_tag ]]; then
+if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WORLD" == *_fwdplainc || "$WORLD" == room_wall_tag* ]]; then
     FWD_CAMERA=true
     FWD_BRIDGE_ARGS=(
         /forward_camera/image@sensor_msgs/msg/Image@gz.msgs.Image
@@ -85,7 +85,7 @@ if [[ "$WORLD" == *_fwd || "$WORLD" == *_fwdplain || "$WORLD" == *_fwdc || "$WOR
     FWD_RECORD_TOPICS=(/forward_camera/image /forward_camera/camera_info)
     # Experiment H (room_wall_tag; ruling 2026-10-08): no full-rate forward stream in the bag (the tag bridge records
     # the detections and a 2 Hz audit stream); FWD_RECORD_FULL=1 (S0 characterisation only) keeps the full stream.
-    if [ "$WORLD" = room_wall_tag ] && [ -z "${FWD_RECORD_FULL:-}" ]; then FWD_RECORD_TOPICS=(/forward_camera/camera_info); fi
+    if [[ "$WORLD" == room_wall_tag* ]] && [ -z "${FWD_RECORD_FULL:-}" ]; then FWD_RECORD_TOPICS=(/forward_camera/camera_info); fi
     # DIAGNOSTIC ONLY (Phase 1 RTF diagnosis, METHODOLOGY): FWD_DIAG=no_record keeps
     # the bridge but drops the forward topics from the bag; FWD_DIAG=no_bridge also
     # drops them from the bridge (camera still rendered). Unset = the normal path.
@@ -395,7 +395,8 @@ if [ -n "${TAG_BRIDGE_FWD:-}" ]; then
         "$HOME/venv-tags/bin/python" "$HOME/thesis_ws/tag_bridge_fwd.py" \
         --ros-args -p use_sim_time:=true -p send:="$([ -n "${TAG_FWD_SEND:-}" ] && echo true || echo false)" \
         -p r_valid_px:="${TAG_FWD_RVALID:-0.0}" ${TAG_FWD_CONV:+-p convention:="$TAG_FWD_CONV"} -p sigma_pos_m:="${TAG_SIGMA_POS:-0.05}" \
-        -p log_path:="$LOG_DIR/tag_bridge_fwd.csv"
+        -p log_path:="$LOG_DIR/tag_bridge_fwd.csv" -p status_path:="$LOG_DIR/tag_bridge_fwd.status"
+    export TAG_BRIDGE_STATUS="$LOG_DIR/tag_bridge_fwd.status"    # fly_trial's pre-arm port check (H_PREARM)
     if [ -n "${TAG_FWD_SEND:-}" ]; then
         wait_for "tag_bridge_fwd linked to SITL (heartbeat)" "grep -q 'heartbeat from system' '$LOG_DIR/tag_bridge_fwd.log'" 60
     else
@@ -418,7 +419,8 @@ if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
         env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 "$FGO_CPP_NODE_BIN" \
         --ros-args -p stats_path:="$OUTPUT_DIR/fgo_node_stats" -p mavlink_out:=udp:127.0.0.1:14558 \
         -p heading:="$([ -n "${HEADING_BRIDGE:-}" ] && echo true || echo false)" \
-        -p reorder_delay_s:="$FGO_CPP_DELAY" -p imu_stamp:="$FGO_CPP_IMU_STAMP" -p arm_source:="$FGO_CPP_ARM_SOURCE"
+        -p reorder_delay_s:="$FGO_CPP_DELAY" -p imu_stamp:="$FGO_CPP_IMU_STAMP" -p arm_source:="$FGO_CPP_ARM_SOURCE" \
+        ${FGO_NODE_TAGS:+-p tags:=true -p tag_sigma_pos:=${TAG_SIGMA_POS:-0.02}}
     FGO_PID="${BG_PIDS[-1]}"
     wait_for "/fgo/pose publishing" "ros2 topic list 2>/dev/null | grep -q /fgo/pose" 90
 elif [ -n "${FGO_NODE:-}" ]; then

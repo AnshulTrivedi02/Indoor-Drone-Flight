@@ -1,0 +1,14 @@
+[
+ {
+  "type": "idle",
+  "s": 10
+ },
+ {
+  "type": "occluder",
+  "on": false
+ },
+ {
+  "type": "idle",
+  "s": 25
+ }
+]

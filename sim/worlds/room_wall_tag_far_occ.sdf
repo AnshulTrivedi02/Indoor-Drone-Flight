@@ -1,0 +1,201 @@
+<?xml version="1.0" ?>
+<!-- Experiment H (marker-relative position holding; supervisor ruling 2026-10-08): room_tags.sdf (10 x 10 m room,
+       textured floor, the 8 floor tags, one collision plane; the upstream axis lines removed) plus a vertical wall tag
+       (id 10) on the north wall, a parked occluder panel for the tag-loss segments, and the forward-camera drone
+       iris_fwd spawned 3.9 m from the tag at (0, 1.1), facing it (far-spawn copy of room_wall_tag.sdf, 2026-10-08). OCCLUDED-START variant for the
+       in-flight-anchor check: the occluder starts IN FRONT of the tag, so no fix exists until fly_trial uncovers it airborne. -->
+<sdf version="1.9">
+  <world name="room_wall_tag_far_occ">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+    <plugin filename="gz-sim-navsat-system"
+      name="gz::sim::systems::NavSat">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <spherical_coordinates>
+      <latitude_deg>-35.363262</latitude_deg>
+      <longitude_deg>149.165237</longitude_deg>
+      <elevation>584</elevation>
+      <heading_deg>0</heading_deg>
+      <surface_model>EARTH_WGS84</surface_model>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="axes">
+      <static>1</static>
+      <link name="link">
+        <!-- the upstream axis-line visuals (r/g/b, 1 cm boxes 0.1 m above the floor) are REMOVED in this world: the
+             green y-axis line crossed tag 5 and broke its decoding (tag_check2img, 2026-10-08) -->
+        <sensor name="navsat_sensor" type="navsat">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- Spawn margin pad: fills the knife-edge at y=0 where the drone
+         spawns exactly on floor_tile_0's near boundary — the downward
+         LiDAR's single ray occasionally missed geometry entirely at that
+         exact edge (reproducible: `ranges: inf` at y=0, valid at y=1, see
+         CLAUDE.md Known Issues). Extends the floor 4 m behind spawn
+         (y=-4..0) plus 1 m of overlap with floor_tile_0 (y=0..1), so
+         there's always solid, well-margined floor under the spawn point
+         regardless of sub-mm pose jitter. Same checker material as
+         textured_ground (texture reused via its model:// URI, not
+         duplicated), 1 mm below floor_tile_0's surface (z=-0.001) so the
+         overlap always resolves to floor_tile_0's texture, not a
+         z-fighting flicker. -->
+
+    <!-- Floor: 8x 20x20 m textured_ground tiles tiled along Y, covering y:0..160 -->
+    <include>
+      <name>floor</name>
+      <uri>model://textured_ground_visual</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://ground_collision</uri>
+    </include>
+    <model name="wall_0">
+      <static>true</static>
+      <pose>0 5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10.4 0.2 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>10.4 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_1">
+      <static>true</static>
+      <pose>0 -5.1 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>10.4 0.2 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>10.4 0.2 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_2">
+      <static>true</static>
+      <pose>5.1 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10.4 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 10.4 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <model name="wall_3">
+      <static>true</static>
+      <pose>-5.1 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.2 10.4 3</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.2 10.4 3</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient><diffuse>0.6 0.6 0.6 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <include>
+      <name>tag_0</name>
+      <uri>model://apriltag36h11_0</uri>
+      <pose>-3 -3 0.001 0 0 0.000000</pose>
+    </include>
+    <include>
+      <name>tag_1</name>
+      <uri>model://apriltag36h11_1</uri>
+      <pose>-3 3 0.001 0 0 0.523599</pose>
+    </include>
+    <include>
+      <name>tag_2</name>
+      <uri>model://apriltag36h11_2</uri>
+      <pose>3 3 0.001 0 0 -0.785398</pose>
+    </include>
+    <include>
+      <name>tag_3</name>
+      <uri>model://apriltag36h11_3</uri>
+      <pose>3 -3 0.001 0 0 1.570796</pose>
+    </include>
+    <include>
+      <name>tag_4</name>
+      <uri>model://apriltag36h11_4</uri>
+      <pose>-3 0 0.001 0 0 0.261799</pose>
+    </include>
+    <include>
+      <name>tag_5</name>
+      <uri>model://apriltag36h11_5</uri>
+      <pose>0 3 0.001 0 0 -0.349066</pose>
+    </include>
+    <include>
+      <name>tag_6</name>
+      <uri>model://apriltag36h11_6</uri>
+      <pose>3 0 0.001 0 0 1.047198</pose>
+    </include>
+    <include>
+      <name>tag_7</name>
+      <uri>model://apriltag36h11_7</uri>
+      <pose>0 -3 0.001 0 0 -1.308997</pose>
+    </include>
+    <!-- wall tag (experiment H): tag36h11 id 10, vertical on the inner face of the north wall (y = 5.0), centre
+         x = 0, z = 1.5 m, facing -y (roll +90 deg). -->
+    <include>
+      <uri>model://apriltag36h11_10</uri>
+      <name>wall_tag_10</name>
+      <pose>0 4.999 1.5 1.5707963 0 0</pose>
+    </include>
+    <!-- occluder (experiment H tag-loss segments): visual-only grey panel, parked below the floor; fly_trial moves it
+         0.3 m in front of the wall tag (gz service set_pose) for each pre-registered loss segment. -->
+    <model name="occluder">
+      <static>true</static>
+      <pose>0 4.7 1.5 0 0 0</pose>
+      <link name="l">
+        <visual name="v"><cast_shadows>false</cast_shadows><geometry><box><size>1.6 0.02 1.6</size></box></geometry>
+          <material><ambient>0.5 0.5 0.5 1</ambient><diffuse>0.5 0.5 0.5 1</diffuse><specular>0.05 0.05 0.05 1</specular></material></visual>
+      </link>
+    </model>
+    <!-- iris_fwd = iris_with_ardupilot + the level forward camera; the instance keeps the name iris_with_ardupilot.
+         FAR SPAWN (H ruling 2026-10-08, item 2): 3.9 m in front of the wall tag (y = 4.998 - 3.9 ~ 1.1), facing it, so the
+         whole tag is in the forward camera's view ON THE GROUND (top edge needs >= 3.47 m camera-to-wall at 23.4 deg
+         half-VFOV) and every estimator anchors to the tag frame BEFORE ARMING. Otherwise identical to room_wall_tag.sdf. -->
+    <include>
+      <uri>model://iris_fwd</uri>
+      <name>iris_with_ardupilot</name>
+      <pose degrees="true">0 1.1 0.195 0 0 90</pose>
+    </include>
+
+  </world>
+</sdf>

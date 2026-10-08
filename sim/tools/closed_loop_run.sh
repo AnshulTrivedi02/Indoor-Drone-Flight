@@ -77,14 +77,26 @@ if [ -n "${H:-}" ]; then
     # S3 (FGO flies on the tag): the node takes /tags/sent (tags, sigma = the S0a sigma_pos); heading stays off
     if [ -n "${FGO:-}" ]; then export FGO_NODE_TAGS=1; fi
     ALT=1.5
+    # far spawn (ruling 2026-10-08 item 2): no arming until the FC's backends have anchored to the tag frame and fixes
+    # arrive on SITL's current SERIAL1 port (fly_trial.require_anchor_before_arming); EKF3 always runs on ExtNav here
+    if [ "$WORLD" = room_wall_tag_far ]; then          # (room_wall_tag_far_occ, the in-flight-anchor check: no gate)
+        H_PREARM=EKF3
+        if [ -n "${UKF:-}" ] && [ "${UKF}" != shadow ]; then H_PREARM="$H_PREARM,UKF"; fi
+        if [ -n "${FGO:-}" ]; then H_PREARM="$H_PREARM,FGO"; fi
+        export H_PREARM
+    fi
 fi
 # GROUND_TEST (ground test only): disable ArduCopter's landed auto-disarm so the armed hold lasts
 if [ -n "${GROUND_TEST:-}" ]; then
     EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/groundtest.parm"
     EXPECT_OVERRIDE="$EXPECT_OVERRIDE,DISARM_DELAY=0"
 fi
+# option (i) safety tests (H ruling 2026-10-08): WATCH_EXTRA = extra process patterns to watch (space-separated),
+# WATCH_DEP_LOSS=land = a watched process dying lands the vehicle via fly_trial instead of stopping the simulation
+for w in ${WATCH_EXTRA:-}; do WATCH+=(--watch-process "$w"); done
+[ -n "${WATCH_DEP_LOSS:-}" ] && WATCH+=(--dep-loss "$WATCH_DEP_LOSS")
 echo "EXTRA_PARM_FILES=$EXTRA_PARM_FILES" > "$OUT/launch.txt"; echo "EXPECT_OVERRIDE=$EXPECT_OVERRIDE" >> "$OUT/launch.txt"
-echo "ARDUPILOT_TREE=${ARDUPILOT_TREE:-}" >> "$OUT/launch.txt"
+echo "ARDUPILOT_TREE=${ARDUPILOT_TREE:-}" >> "$OUT/launch.txt"; echo "H_PREARM=${H_PREARM:-}" >> "$OUT/launch.txt"; echo "WATCH=${WATCH[*]:-}" >> "$OUT/launch.txt"
 setsid "$HOME/thesis_ws/run_trial.sh" --world "$WORLD" --velocity 0.5 --altitude "${ALT:-2.0}" --duration 300 --trial-name "$NAME" &
 RT=$!
 set +u; source /opt/ros/jazzy/setup.bash; set -u

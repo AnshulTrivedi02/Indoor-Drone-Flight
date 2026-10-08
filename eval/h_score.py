@@ -48,11 +48,14 @@ for ln in open(f"{D}/logs/fly_trial.log"):
     m_ = re.search(r"OCCLUDER (ON|OFF) t_sim=([\d.]+)", ln)
     if m_: occ.append((m_[1], to_bag(float(m_[2]))))
 m_ = [ln for ln in open(f"{D}/logs/fly_trial.log") if "HPROFILE END" in ln]; t_end = to_bag(float(re.search(r"t_sim=([\d.]+)", m_[0])[1]))
-P = json.load(open(a.profile)); H = P[0]["near"]
+P = json.load(open(a.profile))
+# the hold point = the first move's target (S1: = the wait_fix point; from the far spawn, 2026-10-08 ruling 2, the first
+# move is the ~2.4 m approach from the spawn, a DEVIATION excluded from scoring: no window below starts in it)
+H = next(sg["to"] for sg in P if sg["type"] == "move"); START = P[0]["near"]
 # setpoint timeline (N, E) from the profile and the segment start times
 sp = []; cur = None
 for i, sg in enumerate(P):
-    if sg["type"] == "wait_fix": cur = list(H); continue
+    if sg["type"] == "wait_fix": cur = list(START); continue
     if sg["type"] == "move":
         t0 = seg_t[i]; dd = math.hypot(sg["to"][0] - cur[0], sg["to"][1] - cur[1]); T = dd / sg["speed"]
         for tt in np.arange(0, T, 0.02): sp.append((t0 + tt, cur[0] + (sg["to"][0] - cur[0]) * tt / T, cur[1] + (sg["to"][1] - cur[1]) * tt / T))

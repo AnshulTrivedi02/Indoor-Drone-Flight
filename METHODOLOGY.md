@@ -11247,3 +11247,102 @@ and the tag bridge kept sending to the old port.**
    3. the re-flown S1;
    4. S2;
    5. S3.
+
+### PRE-REGISTRATION (2026-10-08, before any run): option (i) safety behaviour, far-spawn ground tests, in-flight-anchor check, S1 re-fly
+Recorded before any of these runs. The order follows ruling item 5, with two prerequisites first.
+
+**Code under test.**
+- **Port tree** (`~/ardupilot_ukf`, `ukf-port-tag`, committed with this entry):
+  - **UKF and FGO backends:** an attitude-valid state separate from position validity.
+    - FGO: the FC output predictor keeps propagating the last state from the FC IMU. A state the node flags invalid no
+      longer resets it.
+    - UKF: a HOLD state, the last valid output propagated every loop through the FC IMU delta by the UKF's own
+      process model.
+  - **Adapters:** attitude valid while holding. Horizontal position and velocity follow the old validity. Height and
+    vertical velocity stay valid for `VERT_HOLD_MS` = 15 s after the output was last valid (to land on height plus
+    attitude).
+  - **Copter `thesis_nav_check`:** every loop. Armed, AHRS type UKF/FGO, `HORIZ_POS_REL` seen since arming and now
+    lost → the EKF failsafe action (`FS_EKF_ACTION` 1 = LAND, as for EKF3), with no origin needed.
+  - **`AHRS_UKF_TFAIL`:** a SITL test hook that forces the UKF output invalid; 0 everywhere except test (a).
+- **C++ FGO node:** ODOMETRY `reset_counter` = the anchor count, as `fgo_node.py`.
+- **Harness:**
+  - `tag_bridge_fwd` drains before each send and writes a status file;
+  - `fly_trial` pre-arm gate (`H_PREARM`) and segments `kill`, `param`, `idle`;
+  - `wall_watch` takes several `--watch-process` and `--dep-loss land`;
+  - worlds `room_wall_tag_far` (spawn 3.9 m from the tag) and `room_wall_tag_far_occ` (the same, occluder starting in
+    front of the tag);
+  - `h_score` takes the hold point from the first move.
+- **Port tree eeprom cleared.** `~/ardupilot_ukf/ArduCopter/eeprom.bin` was backed up (sha256 `7544cd79…`,
+  `~/thesis_data/eeprom_backups/`) and removed, since AP_Param cannot erase one stored parameter (ruling item 4).
+  **Audit:** the first port-tree flight's PARM dump is diffed against `fgo_shadow_half_a3`'s and `H_gt_ukf`'s, and
+  every difference is reported.
+
+**0. Prerequisite: the C++ FGO SITL shadow flights (stage 5)**, as in `docs/handovers/2026-10-08_fgo_cpp_stage5_sitl_flights.md`.
+- Scored by Rules A and B(c).
+- Flown on the rebuilt port binary and node (deviation: the node now sends `reset_counter`; the corridor run never
+  anchors, so it stays 0).
+- No C++-node closed-loop flight unless Rule A passes.
+
+**1. Option (i) safety tests** (`room_wall_tag_far`, H config; profile: wait_fix at the spawn → 2.4 m move to
+W(−1.5, 0) → hold 20 s → FAILURE → hold 40 s).
+- **Runs:**
+  - **UKF (a):** UKF flying; failure = `AHRS_UKF_TFAIL` set in flight (output forced invalid); standard watcher.
+  - **UKF (b):** UKF flying; failure = SIGKILL of the tag bridge and the flow bridge (all its aiding inputs); the
+    watcher watches the tag bridge with `--dep-loss land`, so fly_trial also commands LAND.
+  - **FGO (a):** C++ node flying; failure = SIGKILL of the node; standard watcher (not watching the node).
+  - **FGO (b):** as FGO (a), with the watcher also watching the node (`--dep-loss land`).
+- **Criteria**, from the failure instant t_f to disarm, every run:
+  - **S-A1 (attitude correct, not frozen):** |AHRS roll/pitch (ATT) − GT| ≤ **3°** max, and |yaw − GT| ≤ **5°**.
+    The frozen case reached > 50°.
+  - **S-A2 (trigger):** the "Thesis nav: … position lost" text and a mode change to LAND (reason EKF failsafe):
+    - FGO: within **0.75 s** of the kill (≤ 250 ms to invalid, then the next loop);
+    - UKF (a): within **0.1 s** of TFAIL;
+    - UKF (b): within **5.5 s** of the kill (`AID_TIMEOUT` 5 s); fly_trial's LAND may come first.
+  - **S-A3 (safe landing):**
+    - disarmed within **40 s** sim of t_f;
+    - max GT tilt ≤ **15°**;
+    - GT horizontal displacement from t_f to touchdown ≤ **1.5 m** (attitude-only LAND including the 4 s pause);
+    - GT vertical speed at touchdown ≤ **1.0 m/s**;
+    - no watcher box/tilt breach.
+  - **S-A4 (b runs only):** S-A1–S-A3 with both landing paths active, and a single landing (no re-arm, no mode
+    fighting).
+- **Predictions:**
+  - S-A1: ≤ 1° error (gyro-only propagation over ≤ 30 s from a clean SITL gyro).
+  - S-A3: displacement ≤ 0.5 m and touchdown ≤ 0.6 m/s.
+- **Any failure stops the sequence** and is reported.
+
+**2. Far-spawn on-ground fix error (ruling item 2)**, measured in every far-spawn flight, over the VALID sent fixes
+before arming (`/tags/sent` against GT in W).
+- **Criterion F1:** horizontal p95 ≤ **0.10 m** (5 × σ_pos) and yaw p95 ≤ **2°**. If it fails: stop and report
+  before the S1 re-fly.
+- **Prediction:** horizontal p95 0.02–0.06 m (range ~4.0 m against S0a's 0.02 m at 1.5 m).
+- **Also reported:** each backend's |estimate − GT| just after its anchor (pre-arm).
+
+**3. Ground tests re-run** (`H_gt_ukf_far`, `H_gt_fgo_far` with the C++ node; profile `wtest_far_profile.json`).
+G1–G6 of `docs/h_backends_tag_input.md` §5, with these changes:
+- DN ≈ −3.9 m (the spawn);
+- **the anchor row and text BEFORE the arming time** (no frame change in flight);
+- wait_fix within 0.5 m of W(−3.9, 0);
+- G4's "GT moves ≤ 0.2 m toward the wall at the anchor" holds trivially on the ground and is reported;
+- the FGO timing check uses the C++ node: `XFGO.Age` ≤ 250 ms throughout (Rule A), and **OV = 1 from arming to
+  landing**.
+
+**4. In-flight-anchor transient check** (`room_wall_tag_far_occ`, no pre-arm gate; take off with the tag hidden,
+`idle` 10 s, uncover, `idle` 25 s; fly_trial sends no setpoint, so the FC holds its own GUIDED target).
+- **One flight each:** EKF3, UKF and FGO (C++) flying.
+- **Bound (per flight), in the 5 s after the anchor** (the estimator's reset), against GT:
+  - max tilt ≤ **10°**;
+  - max horizontal displacement from the pre-anchor position ≤ **0.30 m**;
+  - max |yaw change| ≤ **5°**.
+- **Prediction:** tilt ≤ 3°, displacement ≤ 0.10 m, yaw ≤ 1°. The reset is reported, so the target moves with the
+  estimate.
+- The anchor here is large (~3.9 m, own frame → W) by design.
+
+**5. S1 re-fly** (EKF3 flying, ×3, `room_wall_tag_far`, `s1_far_profile.json` = S1's profile with the start at the far
+spawn).
+- **Criteria:** S1's pre-registered criteria as worded (H-H1, P-H5, P-H6 with re-lock from the first returning
+  detection as primary, per the S2/S3 ruling, P-H7), scored by `eval/h_score.py`.
+- **The 2.4 m approach move is a DEVIATION, excluded from scoring.** No scoring window starts in it.
+- The original S1 stays recorded; the re-fly is the comparison set for S2/S3.
+
+**Then S2 and S3** per their pre-registration items, from the far spawn.

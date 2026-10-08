@@ -44,8 +44,13 @@ ap.add_argument("--land-after-y", type=float, default=150.0)
 ap.add_argument("--box", help="experiment H (room): 'xmin,xmax,ymin,ymax' of GT (world) allowed; outside = breach "
                 "(gate G5: >= 0.5 m from every wall). Replaces the corridor wall rule and the corridor crash-height rule; "
                 "the tilt rule stays")
-ap.add_argument("--watch-process", help="pgrep -f pattern of a process the flight depends on (e.g. heading_bridge.py); "
-                "if it dies while run_trial runs and the vehicle is airborne, the flight is stopped")
+ap.add_argument("--watch-process", action="append", default=[],
+                help="pgrep -f pattern of a process the flight depends on (e.g. heading_bridge.py); repeatable (all must "
+                "run); if one dies while run_trial runs and the vehicle is airborne, the flight is stopped (--dep-loss)")
+ap.add_argument("--dep-loss", choices=("stop", "land"), default="stop",
+                help="response to a watched process dying in flight: stop = breach, stop the simulation (default, unchanged); "
+                "land = withdraw the heartbeat's bridge flag only, so fly_trial lands the vehicle (as the real-flight mocap "
+                "watcher commands LAND; H ruling 2026-10-08 test (b)). Box and tilt breaches always stop.")
 a = ap.parse_args()
 os.makedirs(a.out, exist_ok=True)
 
@@ -132,7 +137,7 @@ class W(Node):
         goes stale (> 3 s) or a flag drops in flight. box=1: the room-box rule is active; bridge=1: the watched process
         is running (1 when no process is watched)."""
         box = 1 if a.box else 0
-        bridge = 1 if (not a.watch_process or bool(pids(a.watch_process))) else 0
+        bridge = 1 if all(pids(w) for w in a.watch_process) else 0
         if self.breached:
             box = 0                      # a breach withdraws the confirmation: fly_trial lands
         tmp = os.path.join(a.out, "watch_heartbeat.tmp")
@@ -145,14 +150,15 @@ class W(Node):
         # Safeguard (closed-loop Part 1): a dependency (the heading node) dying mid-flight stops
         # the flight. The wall/crash checks above never depend on it.
         if a.watch_process and alive(a.rt_pid) and not self.breached:
-            up = bool(pids(a.watch_process))
+            dead = [w for w in a.watch_process if not pids(w)]
+            up = not dead
             if up:
                 self.dep_seen = True
             elif self.dep_seen and not self.dep_dead:
                 self.dep_dead = True
-                self.note(f"watched process '{a.watch_process}' died (vehicle z = {self.z:.2f} m)")
-                if self.z > 0.5 and getattr(self, "_last_msg", None) is not None:
-                    self.breach(f"dependency died in flight: {a.watch_process}", self._last_msg)
+                self.note(f"watched process {dead} died (vehicle z = {self.z:.2f} m); response: {a.dep_loss}")
+                if a.dep_loss == "stop" and self.z > 0.5 and getattr(self, "_last_msg", None) is not None:
+                    self.breach(f"dependency died in flight: {dead}", self._last_msg)
         if alive(a.rt_pid):
             if self.breached and not self.escalated and time.monotonic() - self.t_stop > STOP_GRACE_S:
                 self.escalated = True

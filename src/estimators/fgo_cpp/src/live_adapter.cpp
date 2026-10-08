@@ -270,6 +270,9 @@ std::vector<uint8_t> LiveAdapter::odometry(const double* row, bool valid, uint64
   for (int i = 0; i < 21; ++i) m.pose_covariance[i] = m.velocity_covariance[i] = NAN;
   for (int i = 0; i < 3; ++i) m.pose_covariance[i] = float(fb[i] * ba[i]);   // accel bias, FRD (D19 backend)
   m.quality = valid ? 100 : 0;
+  // experiment H (ruling 2026-10-08): reset_counter = the number of re-anchors so far (row[37], 0/1), as fgo_node.py's
+  // n_anchors; the FC's NavFGO reports a change of it as a position + yaw reset
+  m.reset_counter = row[37] > 0.5 ? 1 : 0;
   return mav::encode_odometry(m, seq_++);
 }
 

@@ -44,7 +44,8 @@ class TagBridgeFwd(Node):
         # dynamic typing for the numeric parameters: "-p r_valid_px:=400" arrives as an INTEGER (H_s0b attempt 1);
         # every value is cast explicitly below
         dyn = ParameterDescriptor(dynamic_typing=True)
-        for n, v in (("send", False), ("r_valid_px", 0.0), ("sigma_pos_m", 0.05), ("sigma_yaw_deg", 5.0), ("audit_every", 15), ("log_path", "")):
+        for n, v in (("send", False), ("r_valid_px", 0.0), ("sigma_pos_m", 0.05), ("sigma_yaw_deg", 5.0), ("audit_every", 15), ("log_path", ""),
+                     ("status_path", "")):
             self.declare_parameter(n, v, dyn if n in ("r_valid_px", "sigma_pos_m", "sigma_yaw_deg", "audit_every") else ParameterDescriptor())
         self.declare_parameter("convention", "", ParameterDescriptor(dynamic_typing=True))
         conv = str(self.get_parameter("convention").value)
@@ -63,6 +64,9 @@ class TagBridgeFwd(Node):
         if self.log:
             self.log.write("t_capture,t_wall_done,id,valid,sent,margin,hamming,cx,cy,range_m,x_enuW,y_enuW,z,yaw_enu,proc_ms,t_sim_sent\n")
         self.master = None
+        # status file (H ruling 2026-10-08 item 4): the SITL address the fixes go to (the most recently heard SERIAL1
+        # source) and the sent count, rewritten atomically on each send; fly_trial checks it against SITL's live port
+        self.status_path = self.get_parameter("status_path").value; self.n_sent = 0
         if self.get_parameter("send").value:
             if self.R_wt is None or self.r_valid <= 0:
                 raise SystemExit("send=true needs the frozen convention and r_valid_px from S0")
@@ -117,6 +121,14 @@ class TagBridgeFwd(Node):
                                               [math.cos(yaw_ned / 2), 0.0, 0.0, math.sin(yaw_ned / 2)],
                                               nan, nan, nan, nan, nan, nan, cov, [nan] * 21, 0, 0, 100)
                 t_sent = self.get_clock().now().nanoseconds * 1e-9
+                self.n_sent += 1
+                if self.status_path:
+                    cl = getattr(self.master, "clients_last_alive", {})
+                    dest = max(cl, key=cl.get) if cl else getattr(self.master, "last_address", None)
+                    tmp = self.status_path + ".tmp"
+                    with open(tmp, "w") as f:
+                        f.write(f"{time.time():.3f} {dest[1] if dest else 0} {self.n_sent}\n")
+                    os.replace(tmp, self.status_path)
         if self.log:
             tw = time.time()
             for i, valid, dm, hm, cc, rng, pw, yaw in rows:

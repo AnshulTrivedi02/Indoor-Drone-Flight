@@ -338,6 +338,95 @@ def require_watcher_before_arming(cap_s: float = 60.0) -> None:
     log(f"Safety watcher confirmed before arming: {why}"); _watch["active"] = True
 
 
+def _sitl_serial1_ports() -> set:
+    """Local UDP ports of the running arducopter's socket(s) to 127.0.0.1:14557 (SERIAL1, the tag link); if `ss` shows no
+    peer for them, every arducopter UDP port (membership is then the check)."""
+    r = subprocess.run(["ss", "-Hunap"], capture_output=True, text=True)
+    peer, anyp = set(), set()
+    for ln in r.stdout.splitlines():
+        if '"arducopter"' not in ln:
+            continue
+        f = ln.split()
+        loc, rem = f[3], f[4]
+        port = int(loc.rsplit(":", 1)[1])
+        anyp.add(port)
+        if rem.endswith(":14557"):
+            peer.add(port)
+    return peer or anyp
+
+
+def _live_bin_since_boot():
+    """Snapshot of the running SITL's dataflash log (the newest .BIN; a new file starts at every boot, so this is since
+    the latest boot): MSG texts, the VISP count and the last VISP / last record TimeUS."""
+    d = os.path.join(os.environ.get("ARDUPILOT_TREE", os.path.expanduser("~/ardupilot")), "ArduCopter", "logs")
+    bins = sorted((os.path.join(d, f) for f in os.listdir(d) if f.endswith(".BIN")), key=os.path.getmtime)
+    if not bins:
+        return None
+    from pymavlink import DFReader
+    lg = DFReader.DFReader_binary(bins[-1], zero_time_base=True)
+    msgs, n_visp, t_visp, t_last = [], 0, None, 0
+    while True:
+        try:
+            m = lg.recv_match(type=["MSG", "VISP"])
+        except Exception:
+            break                                         # a partially written last record
+        if m is None:
+            break
+        t = getattr(m, "TimeUS", 0); t_last = max(t_last, t)
+        if m.get_type() == "MSG":
+            msgs.append(m.Message)
+        else:
+            n_visp += 1; t_visp = t
+    return {"file": bins[-1], "msgs": msgs, "n_visp": n_visp, "t_visp": t_visp, "t_last": t_last}
+
+
+ANCHOR_TEXT = {"EKF3": "is using external nav data", "UKF": "UKF tag re-anchor", "FGO": "FGO re-anchor"}
+
+
+def require_anchor_before_arming(cap_s: float = 180.0) -> None:
+    """Experiment H ruling 2026-10-08 (item 2): no arming until every listed backend has anchored to the tag frame (its own
+    anchor text in the running SITL's log since the latest boot) AND the FC is receiving fixes (VISP rows growing, the
+    last one recent), AND (item 4) the tag bridge's target port is SITL's current SERIAL1 port. H_PREARM = the backends
+    on the FC that must anchor, e.g. "EKF3" or "EKF3,UKF" or "EKF3,FGO"; unset = no gate. Offline estimators (replays)
+    anchor at their first fix, which this gate places before arming."""
+    req = [x for x in os.environ.get("H_PREARM", "").split(",") if x]
+    if not req:
+        return
+    status = os.environ.get("TAG_BRIDGE_STATUS", "")
+    t0 = time.time(); prev_n = None; why = "not checked"
+    while time.time() - t0 < cap_s:
+        problems = []
+        try:
+            ts_, port, n_sent = open(status).read().split()
+            age = time.time() - float(ts_); port = int(port)
+            live = _sitl_serial1_ports()
+            if age > 2.0:
+                problems.append(f"bridge status stale ({age:.1f} s)")
+            if port not in live:
+                problems.append(f"bridge target port {port} is not SITL's SERIAL1 port {sorted(live)}")
+        except (OSError, ValueError) as e:
+            problems.append(f"no bridge status ({e})")
+        snap = _live_bin_since_boot()
+        if snap is None:
+            problems.append("no live dataflash log")
+        else:
+            missing = [b for b in req if not any(ANCHOR_TEXT[b] in m for m in snap["msgs"])]
+            if missing:
+                problems.append(f"not anchored: {','.join(missing)}")
+            if prev_n is None or snap["n_visp"] <= prev_n:
+                problems.append(f"VISP not growing ({snap['n_visp']})")
+            elif snap["t_visp"] is None or snap["t_last"] - snap["t_visp"] > 1_000_000:
+                problems.append("last VISP older than 1 s")
+            prev_n = snap["n_visp"]
+        if not problems:
+            log(f"PREARM ANCHOR ok: {','.join(req)} anchored; VISP {snap['n_visp']} and growing; bridge port {port} = SITL "
+                f"SERIAL1; log {os.path.basename(snap['file'])}")
+            return
+        why = "; ".join(problems)
+        time.sleep(2.0)
+    raise TrialFailure(f"REFUSING TO ARM: {why} (H pre-arm anchoring gate, H_PREARM)")
+
+
 def check_watcher_in_flight() -> None:
     if not _watch["active"] or time.time() - _watch["last_check"] < 1.0:
         return
@@ -547,6 +636,12 @@ def hprofile(master, path: str, alt_m: float, world: str) -> None:
       {"type": "move", "to": [N, E], "speed": v}  moving position setpoint (+ velocity feed-forward), yaw held
       {"type": "hold", "s": T}                    hold the current target for T sim seconds
       {"type": "occluder", "on": true|false}      cover / uncover the wall tag (logged 'OCCLUDER ON/OFF t_sim')
+      {"type": "kill", "patterns": [p, ...]}     SIGKILL every process matching each pgrep -f pattern (logged 'KILL ...
+                                                  t_sim'; option (i) safety tests, H ruling 2026-10-08)
+      {"type": "param", "name": N, "value": v}    PARAM_SET in flight (logged 'PARAM N=v t_sim'; e.g. AHRS_UKF_TFAIL)
+      {"type": "idle", "s": T}                    send NO setpoint for T sim seconds: the FC holds its own GUIDED target,
+                                                  which follows an estimator reset (in-flight-anchor check; an absolute
+                                                  setpoint from here would not follow a frame change)
       {"type": "wait_fix", "near": [N, E], "tol": m, "timeout": s}
           closed loop only: wait (holding position commands off) until LOCAL_POSITION_NED is within tol of `near`
           for 2 s, i.e. EKF3's ExtNav reset has put the estimate in the tag frame. Fails the trial on timeout.
@@ -568,6 +663,28 @@ def hprofile(master, path: str, alt_m: float, world: str) -> None:
         t0 = sim_time_now_s(master); log(f"HSEG {i} {sg['type']} START t_sim={t0:.3f}")
         if sg["type"] == "occluder":
             occluder(world, bool(sg["on"])); log(f"OCCLUDER {'ON' if sg['on'] else 'OFF'} t_sim={sim_time_now_s(master):.3f}")
+            continue
+        if sg["type"] == "kill":
+            for pat in sg["patterns"]:
+                r = subprocess.run(["pkill", "-KILL", "-f", pat], capture_output=True)
+                log(f"KILL '{pat}' rc={r.returncode} t_sim={sim_time_now_s(master):.3f}")
+            continue
+        if sg["type"] == "param":
+            master.mav.param_set_send(master.target_system, master.target_component, sg["name"].encode(), float(sg["value"]),
+                                      mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
+            log(f"PARAM {sg['name']}={sg['value']} t_sim={sim_time_now_s(master):.3f}")
+            continue
+        if sg["type"] == "idle":
+            tw = time.time(); cap = float(sg["s"]) / MIN_ASSUMED_RTF + 60.0
+            while time.time() - tw < cap:
+                try:
+                    if sim_time_now_s(master, timeout_s=0.5) - t0 >= float(sg["s"]):
+                        break
+                except TrialFailure:
+                    pass
+                time.sleep(0.1)
+            else:
+                raise TrialFailure(f"profile segment {i} (idle) did not complete within {cap:.0f} s wall-clock")
             continue
         if sg["type"] == "wait_fix":
             tw = time.time(); ok_since = None
@@ -655,6 +772,7 @@ def main() -> int:
         if healed is not None:
             master = healed
         require_watcher_before_arming()
+        require_anchor_before_arming()
         wait_ready_to_arm(master)
         # Optional GROUND_TEST=<sim seconds> (closed-loop Part 1 SITL ground test only; unset for
         # every flight = unchanged): stay on the ground armed for that long, then disarm. No take-off.
