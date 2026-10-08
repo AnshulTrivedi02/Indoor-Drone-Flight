@@ -1,0 +1,42 @@
+{
+ "trial": "H_gt_fgo_far",
+ "flying": "FGO",
+ "t_arm": 28.347978,
+ "t_disarm": 123.344725,
+ "EKF3_extnav_before_arm": true,
+ "anchor": {
+  "node_logged_ANCHORED": true,
+  "first_valid_XFGI": [
+   26.109748,
+   -3.88576602935791,
+   -0.01679304800927639
+  ],
+  "first_valid_before_arm": true,
+  "first_valid_in_W": true,
+  "n_XFGR_in_flight": null
+ },
+ "fgo_timing": {
+  "n": 2375,
+  "OV0_share": 0.0,
+  "age_max_ms": 149,
+  "PASS": true
+ },
+ "wait_fix": {
+  "N": -3.88,
+  "E": -0.04,
+  "PASS": true
+ },
+ "F1": {
+  "n": 301,
+  "horiz_p95_m": 0.020795837507574685,
+  "yaw_p95_deg": 0.22587541677233922,
+  "PASS": true
+ },
+ "G6_hold": {
+  "n": 1376,
+  "horiz_mean_m": 0.005396731640122194,
+  "horiz_max_m": 0.028959312423715786,
+  "yaw_p95_deg": 0.18455079421039033,
+  "PASS": true
+ }
+}

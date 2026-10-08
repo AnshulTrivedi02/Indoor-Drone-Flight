@@ -1,0 +1,19 @@
+{
+ "trial": "H_ifa_ekf3",
+ "flying": "EKF3",
+ "t_anchor": 64.053653,
+ "reported_reset": null,
+ "after_5s": {
+  "max_tilt_deg": 19.1670426397871,
+  "max_disp_m": 2.2502025550234657,
+  "max_yaw_change_deg": 3.7706645673721937,
+  "z_mean_m": 1.6342303824152575
+ },
+ "before_5s_reference": {
+  "max_tilt_deg": 0.8909800246211727,
+  "max_disp_m": 0.03629876420850135,
+  "max_yaw_change_deg": 0.16070791553221397,
+  "z_mean_m": 1.6350464395991853
+ },
+ "PASS": false
+}

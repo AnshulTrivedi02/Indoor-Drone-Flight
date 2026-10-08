@@ -1,0 +1,31 @@
+{
+ "trial": "H_gt_ukf_far",
+ "flying": "UKF",
+ "t_arm": 24.558282,
+ "t_disarm": 119.416045,
+ "EKF3_extnav_before_arm": true,
+ "anchor": {
+  "t": 11.586228,
+  "text": "UKF tag re-anchor: dN -3.89 dE -0.01 dyaw 0.1",
+  "before_arm": true,
+  "n_anchor_texts": 1
+ },
+ "wait_fix": {
+  "N": -3.89,
+  "E": 0.02,
+  "PASS": true
+ },
+ "F1": {
+  "n": 331,
+  "horiz_p95_m": 0.020795837507574685,
+  "yaw_p95_deg": 0.22587541677233922,
+  "PASS": true
+ },
+ "G6_hold": {
+  "n": 1385,
+  "horiz_mean_m": 0.004589294476876341,
+  "horiz_max_m": 0.01825879495611141,
+  "yaw_p95_deg": 0.14660484294013512,
+  "PASS": true
+ }
+}

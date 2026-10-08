@@ -11951,3 +11951,37 @@ C++ node SIGKILLed in the hold at t 66.04 s. The watcher also watched the node (
 - The bound is unchanged (5 s after the anchor: tilt ≤ 10°, displacement ≤ 0.30 m, |yaw change| ≤ 5°).
 - **Driver:** `tools/run_h_far.sh` (ground tests `H_gt_ukf_far`, `H_gt_fgo_far`; in-flight anchor `H_ifa_ekf3`,
   `H_ifa_ukf`, `H_ifa_fgo`; S1 re-fly `H_s1far_r1..3`). It stops at the first breach or failed run.
+
+### Far-spawn ground tests RESULT (`H_gt_ukf_far`, `H_gt_fgo_far`; `eval/h_gt_far_score.py`, `eval/results/expH/gt_*_far.json`): ALL PASS
+| check | UKF flying | FGO flying (C++ node, 0.10 s, time_ref) |
+|---|---|---|
+| anchored BEFORE arming | "UKF tag re-anchor: dN −3.89 dE −0.01 dyaw 0.1" at 11.6 s; armed 24.6 s; one anchor | node "ANCHORED"; first valid XFGI at 26.1 s already in W (N −3.886); armed 28.3 s; **no XFGR (no frame change at the FC)** |
+| EKF3 on ExtNav before arming | yes | yes |
+| wait_fix (within 0.5 m of W(−3.9, 0)) | N −3.89, E +0.02 | N −3.88, E −0.04 |
+| F1 (pre-arm fixes) | p95 0.021 m, yaw 0.23° | p95 0.021 m, yaw 0.23° |
+| G6 hold: horizontal mean (max), yaw p95 | **4.6 mm** (18 mm), 0.15° | **5.4 mm** (29 mm), 0.18° |
+| FGO timing: OV = 1 and age ≤ 250 ms, arm → land | — | OV = 0 share 0; max age **149 ms** |
+
+### In-flight-anchor check `H_ifa_ekf3` RESULT (`eval/results/expH/ifa_ekf3.json`): FAIL. Large transient, room-box breach. SEQUENCE STOPPED
+EKF3 flying. The tag was hidden at take-off; the vehicle moved 1.5 m toward it in EKF3's own frame (the GUIDED
+`move` segment, a position + velocity target), then fly_trial sent no setpoints; the tag was uncovered at t 62.0 s.
+- **The anchor:** at 64.05 s EKF3 began using ExtNav ("initial pos NED = −2.5, −0.1"), a position reset of
+  dN ≈ −4.0 m (own-frame N +1.51 → W −2.50).
+- **5 s after the anchor (bound in brackets):**
+  - max tilt **19.2°** (≤ 10°);
+  - displacement **2.25 m** (≤ 0.30 m);
+  - |yaw change| 3.8° (≤ 5°, the only part within its bound).
+  - The watcher stopped the flight on the room box (world y 4.442) 1.6 s after the anchor.
+- **Mechanism (PSCN):**
+  - the position controller's target WAS shifted by the reset (TPN 1.50 → −2.51 in the same loop);
+  - **but GUIDED then drove the target back toward its own stored target (+1.5 in the old frame)**, with an accel
+    target up to 3.5 m/s². ArduCopter GUIDED keeps the last commanded position target and re-shapes the controller
+    toward it each loop; it does not move that stored target on an EKF position reset;
+  - so the vehicle flew toward N_W +1.5, i.e. into the tag wall.
+  - (In `H_gt_fgo` the target stayed shifted because no position target had been commanded before the anchor:
+    `wait_fix` sends none.)
+- **The pre-registered prediction** ("the reset is reported, so the target moves with the estimate") was **WRONG**
+  for GUIDED with a stored position target.
+- **Implication:** an in-flight frame change under GUIDED position control is UNSAFE with this ArduCopter build,
+  whichever estimator flies. This is direct evidence for the "anchor before arming" rule.
+- `H_ifa_ukf` and `H_ifa_fgo` were NOT flown (the sequence stops on a failure).
