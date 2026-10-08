@@ -25,7 +25,9 @@ if [ -n "${UKF:-}" ]; then
         EXPECT_OVERRIDE="$EXPECT_OVERRIDE,AHRS_UKF_ENABLE=1"
     else
         EXTRA_PARM_FILES="$HOME/thesis_ws/closedloop_ukf.parm"
-        EXPECT_OVERRIDE="AHRS_EKF_TYPE=12,AHRS_UKF_ENABLE=1"
+        # AHRS_UKF_TFAIL (test hook) set in flight by a safety test is SAVED to eeprom; enforce 0 at every start
+        # (H_safety_ukf_a attempt 2 fired TFAIL at arming from the previous run's stored value, 2026-10-08)
+        EXPECT_OVERRIDE="AHRS_EKF_TYPE=12,AHRS_UKF_ENABLE=1,AHRS_UKF_TFAIL=0"
     fi
     if [ -n "${HEADING:-}" ]; then
         EXTRA_PARM_FILES="$EXTRA_PARM_FILES,$HOME/thesis_ws/closedloop_ukf_heading.parm"

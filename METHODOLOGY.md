@@ -11650,3 +11650,15 @@ estimators), using the tag fix only where it is characterised:
 - The failed run's directories are renamed `H_safety_ukf_a_run1_failed` (trials/ and closed_loop/). Its scored result
   stays in `eval/results/expH/safety_ukf_a.json`, where the trial field reads `H_safety_ukf_a`. The re-run reuses the
   name `H_safety_ukf_a`.
+
+### H safety UKF (a), attempt 3 (`H_safety_ukf_a_abort2`): ABORTED on the ground. The test hook persisted in eeprom; fixed
+- Run 1 set `AHRS_UKF_TFAIL` by PARAM_SET, which ArduPilot SAVES. At this run's arming the stored 0.001 forced the
+  output invalid at once.
+- **The trigger behaved correctly on the ground:** "Thesis nav: UKF position lost" → LAND → disarmed 2 s later. There
+  was no take-off, and fly_trial's take-off wait failed.
+- The pre-arm gate had passed (EKF3 and UKF anchored, `initial pos NED = −3.9`).
+- **Fix:** `closed_loop_run` (UKF flying) now enforces `AHRS_UKF_TFAIL=0` at every start (EXPECT_OVERRIDE; fly_trial
+  resets it and reboots), so only the profile's in-flight PARAM_SET can set it.
+- **Also noted:**
+  - the D18 range rule shows in the bridge log as fixes stopping once armed;
+  - the pre-arm checks waited ~18 s on "Accels/Gyros inconsistent" (the usual SITL warm-up).
