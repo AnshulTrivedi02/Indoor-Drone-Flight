@@ -157,10 +157,12 @@ for t, kind, d in ev:
     elif kind == "flow":
         flow_xy, valid, inlier = d[:3]
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
-        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
-            omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])
-        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
-            omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
+        # MODEL CORRECTION (ruling 2026-10-08, METHODOLOGY "UKF flow derotation: the bias-corrected rate is ADOPTED"):
+        # derotate with the gyro average minus the UKF's own gyro-bias estimate (delta form -> rate: bg / DT_STEP),
+        # as EKF3, the FGO and the flying port do. Formerly the UKF_APIN=biascorr diagnostic; the raw rate is gone.
+        omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
+        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y; already
+            omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])   # bias-corrected by EKF3, so not corrected again)
         if DUMP and valid and inlier > 0:
             dump_flow.append(np.r_[t, flow_xy, U.h_flow(x, omega_flow), omega_flow])
         if valid and inlier > 0:
