@@ -89,11 +89,11 @@ void FGO::init(const Vector3& a, double first_range, double t0) {
     all_est.insert(X(0), pose0); all_est.insert(V(0), vel0); all_est.insert(B(0), bias0);
     key_t.clear();
   }
-  if (log_cov) {
-    gtsam::Vector s(15);
-    s << pose_sig, 0.1, 0.1, 0.1, bias_sig;
-    cov_prev = diag_sq(s);
-  }
+  gtsam::Vector s0(15);
+  s0 << pose_sig, 0.1, 0.1, 0.1, bias_sig;
+  if (log_cov) cov_prev = diag_sq(s0);
+  cov_gate = diag_sq(s0);
+  t_yawchk = t0;                       // as ukf_replay: the first check 140 ms after init
   prev_pose = pose0; prev_vel = vel0; prev_bias = bias0;
   t_last = t0;
 }
@@ -118,11 +118,23 @@ void FGO::keyframe(double t, const FlowMeas* flow, const Vector3& omega, double 
   vals.insert(V(kk), Vk);
   vals.insert(B(kk), prev_bias);
   g.add(gtsam::CombinedImuFactor(X(km1), V(km1), X(kk), V(kk), B(km1), B(kk), *pim_));
-  // §9.4 yaw cap: anchored to THIS keyframe's IMU-predicted yaw (zero innovation)
+  // §9.4 yaw cap: anchored to THIS keyframe's IMU-predicted yaw (zero innovation).
+  // VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2; FGO_DESIGN §9.4): at
+  // most one cap per 140 ms check, and only if the trace of THIS keyframe's predicted attitude covariance (gate-only
+  // recursion: last keyframe's filtering cov + this IMU factor, before range/flow/forward) > 0.04 rad^2.
   long i_yawcap = -1;
-  if (!no_yawcap) {
-    i_yawcap = static_cast<long>(g.size());
-    g.add(YawPriorFactor(yaw_noise_, X(kk), Xk.rotation().yaw()));
+  const bool cap_on = !no_yawcap;
+  if (cap_on && t - t_yawchk >= YAW_DT) {
+    t_yawchk = t;
+    const double tr = att_trace_pred(g, km1, kk, Xk, Vk);
+    const bool fire = tr > ATT_VAR_GATE;
+    ++n_yaw_check;
+    n_yaw_fire += fire ? 1 : 0;
+    yawgate_log.push_back({t, kk, tr, fire});
+    if (fire) {
+      i_yawcap = static_cast<long>(g.size());
+      g.add(YawPriorFactor(yaw_noise_, X(kk), Xk.rotation().yaw()));
+    }
   }
   if (!std::isnan(rng) && 0.05 <= rng && rng <= 40.0) {
     g.add(RangeFactor(range_noise_, X(kk), rng));
@@ -153,7 +165,12 @@ void FGO::keyframe(double t, const FlowMeas* flow, const Vector3& omega, double 
       else all_est.insert(kv.key, kv.value);
     }
   }
-  if (log_cov) cov_prev = posterior_cov(g, est, km1, kk);
+  if (log_cov) {
+    cov_prev = posterior_cov(g, est, km1, kk);
+    cov_gate = cov_prev;                   // the same recursion (the gate prior equals cov_prev)
+  } else if (cap_on) {
+    cov_gate = posterior_cov(g, est, km1, kk, &cov_gate);
+  }
   prev_pose = est.at<Pose3>(X(kk));
   prev_vel = est.at<Vector>(V(kk));
   prev_bias = est.at<Bias>(B(kk));
@@ -214,11 +231,10 @@ void FGO::reanchor(double pE, double pN, double yaw_fix, double sig_pos, double 
     all_est.insert(X(kk), pose); all_est.insert(V(kk), vel); all_est.insert(B(kk), bias);
     key_t.assign(1, std::make_pair(kk, t));
   }
-  if (log_cov) {
-    gtsam::Vector s(15);
-    s << pose_sig, vel_sig, bias_sig;
-    cov_prev = diag_sq(s);
-  }
+  gtsam::Vector s15(15);
+  s15 << pose_sig, vel_sig, bias_sig;
+  if (log_cov) cov_prev = diag_sq(s15);
+  cov_gate = diag_sq(s15);                 // yaw-cap gate (keep_yawcap)
   prev_pose = pose; prev_vel = vel;
   k = kk;
   no_yawcap = !keep_yawcap;
@@ -226,7 +242,8 @@ void FGO::reanchor(double pE, double pN, double yaw_fix, double sig_pos, double 
 }
 
 // ---------- Phase 4: chi-square gate via the gate-only filtering covariance (fgo_core._info etc.) ----------
-gtsam::Matrix FGO::info(const gtsam::NonlinearFactorGraph& factors, const gtsam::Values& values, int km1, int kk) const {
+gtsam::Matrix FGO::info(const gtsam::NonlinearFactorGraph& factors, const gtsam::Values& values, int km1, int kk,
+                        const gtsam::Matrix* prior) const {
   const gtsam::Key keys[6] = {X(km1), V(km1), B(km1), X(kk), V(kk), B(kk)};
   std::map<gtsam::Key, std::pair<int, int>> off;
   int o = 0;
@@ -235,7 +252,7 @@ gtsam::Matrix FGO::info(const gtsam::NonlinearFactorGraph& factors, const gtsam:
     o += DIMS[i % 3];
   }
   gtsam::Matrix L = gtsam::Matrix::Zero(o, o);
-  L.topLeftCorner(15, 15) = cov_prev.inverse();
+  L.topLeftCorner(15, 15) = (prior == nullptr ? cov_prev : *prior).inverse();
   for (size_t i = 0; i < factors.size(); ++i) {
     const auto jf = boost::dynamic_pointer_cast<gtsam::JacobianFactor>(factors.at(i)->linearize(values));
     const gtsam::Matrix A = jf->jacobian().first;
@@ -288,10 +305,18 @@ void FGO::forward_factors(gtsam::NonlinearFactorGraph& g, double t, int km1, int
   }
 }
 
-gtsam::Matrix FGO::posterior_cov(const gtsam::NonlinearFactorGraph& g, const gtsam::Values& est, int km1, int kk) const {
+gtsam::Matrix FGO::posterior_cov(const gtsam::NonlinearFactorGraph& g, const gtsam::Values& est, int km1, int kk,
+                                 const gtsam::Matrix* prior) const {
   const gtsam::Values v = values_for(km1, kk, est.at<Pose3>(X(kk)), est.at<Vector>(V(kk)), est.at<Bias>(B(kk)), &est);
-  const gtsam::Matrix cov = info(g, v, km1, kk).inverse().block(15, 15, 15, 15);
+  const gtsam::Matrix cov = info(g, v, km1, kk, prior).inverse().block(15, 15, 15, 15);
   return 0.5 * (cov + cov.transpose());
+}
+
+// §9.4 gate quantity (fgo_core._att_trace_pred): trace of X(kk)'s PREDICTED rotation-tangent covariance, from cov_gate +
+// this keyframe's IMU factor (g holds only it when called), linearised at the IMU prediction.
+double FGO::att_trace_pred(const gtsam::NonlinearFactorGraph& g, int km1, int kk, const Pose3& Xk, const Vector& Vk) const {
+  const gtsam::Matrix cov = info(g, values_for(km1, kk, Xk, Vk, prev_bias, nullptr), km1, kk, &cov_gate).inverse();
+  return cov(15, 15) + cov(16, 16) + cov(17, 17);   // left to right, as the Python
 }
 
 // ---------------- GroundProximityFlow (measurement_models.py, ruling D15) ----------------

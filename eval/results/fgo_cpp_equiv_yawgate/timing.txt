@@ -1,0 +1,20 @@
+[gate] Python dsn_tex_r1 baseline                    n  10197  median  16.081  p95  19.149  p99  31.356  max   45.487  >33ms  0.48%
+[gate] Python dsn_trans_r1 baseline                  n  10031  median  16.125  p95  19.663  p99  30.923  max   38.975  >33ms  0.21%
+[gate] Python dsn_blank_r1 baseline                  n  10048  median   1.863  p95  10.179  p99  30.936  max   37.707  >33ms  0.56%
+[gate] Python fwdc_tex_r1 heading                    n  10118  median  25.403  p95  35.439  p99  39.808  max   54.499  >33ms 30.15%
+[gate] C++ replay dsn_tex_r1_baseline                n  10197  median   0.519  p95   0.668  p99   0.889  max    3.155  >33ms  0.00%
+[gate] C++ replay fwdc_tex_r1_heading                n  10118  median   1.013  p95   1.253  p99   1.766  max    3.546  >33ms  0.00%
+[gate] C++ replay dsn_trans_r1_baseline              n  10031  median   0.529  p95   0.864  p99   1.291  max    3.908  >33ms  0.00%
+[gate] C++ replay dsn_blank_r1_baseline              n  10048  median   0.491  p95   1.038  p99   2.039  max    3.326  >33ms  0.00%
+[gate] C++ live adapter L1                           n  10197  median   0.523  p95   0.783  p99   0.898  max    3.091  >33ms  0.00%
+[gate] C++ live adapter L2                           n  10118  median   0.928  p95   1.084  p99   1.548  max    3.647  >33ms  0.00%
+[binit0] Python dsn_tex_r1 baseline                  n  10197  median  15.591  p95  17.574  p99  29.832  max   41.856  >33ms  0.10%
+[binit0] Python dsn_trans_r1 baseline                n  10031  median  14.464  p95  16.472  p99  29.451  max   42.549  >33ms  0.18%
+[binit0] Python dsn_blank_r1 baseline                n  10048  median   2.472  p95   9.955  p99  29.750  max   41.045  >33ms  0.18%
+[binit0] Python fwdc_tex_r1 heading                  n  10118  median  24.376  p95  36.401  p99  38.927  max   47.183  >33ms 45.63%
+[binit0] C++ replay dsn_tex_r1_baseline              n  10197  median   0.508  p95   0.815  p99   0.929  max    3.209  >33ms  0.00%
+[binit0] C++ replay fwdc_tex_r1_heading              n  10118  median   1.022  p95   1.124  p99   1.799  max    4.409  >33ms  0.00%
+[binit0] C++ replay dsn_trans_r1_baseline            n  10031  median   0.497  p95   0.621  p99   0.945  max    4.563  >33ms  0.00%
+[binit0] C++ replay dsn_blank_r1_baseline            n  10048  median   0.470  p95   0.587  p99   1.390  max    3.584  >33ms  0.00%
+[binit0] C++ live adapter L1                         n  10197  median   0.514  p95   0.816  p99   0.906  max    3.010  >33ms  0.00%
+[binit0] C++ live adapter L2                         n  10118  median   0.938  p95   1.132  p99   1.507  max    3.814  >33ms  0.00%

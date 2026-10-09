@@ -1,0 +1,5 @@
+96daf49847365e454db8aadb8545f967  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/yawgate2/build/fgo_cpp_frontend
+0c0e7f87108904c98eb50b6d356e50f7  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/yawgate2/build/fgo_cpp_live_replay
+a36261f5b1460d648f02dc5f780e9983  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/yawgate2/build/fgo_cpp_node
+e9e59417f594cd45bb5650c7bffb2f1f  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/yawgate2/build/fgo_cpp_probe
+816a26033110c091a27de0e260c5811e  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/yawgate2/build/fgo_cpp_replay

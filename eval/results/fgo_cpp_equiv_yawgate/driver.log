@@ -1,0 +1,57 @@
+[driver] 12:40:37 START build
+[driver] 12:41:25 END build rc=0
+[driver] 12:41:25 START probe
+[driver] 12:41:26 END probe rc=0
+[driver] 12:41:26 START fi10
+[driver] 12:41:42 END fi10 rc=0
+[driver] 12:41:42 START fi60
+[driver] 12:42:37 END fi60 rc=0
+[driver] 12:42:37 START py_dsn_tex
+[driver] 12:45:32 END py_dsn_tex rc=0
+[driver] 12:45:32 START cpp_dsn_tex
+[driver] 12:45:38 END cpp_dsn_tex rc=0
+[driver] 12:45:38 START fe_dsn_tex
+[driver] 12:45:45 END fe_dsn_tex rc=0
+[driver] 12:45:45 START L1
+[driver] 12:46:10 END L1 rc=0
+[driver] 12:46:10 START py_fwdc
+[driver] 12:50:47 END py_fwdc rc=0
+[driver] 12:50:47 START cpp_fwdc
+[driver] 12:50:57 END cpp_fwdc rc=0
+[driver] 12:50:57 START fe_fwdc
+[driver] 12:51:06 END fe_fwdc rc=0
+[driver] 12:51:06 START L2
+[driver] 12:51:37 END L2 rc=0
+[driver] 12:51:37 START py_dsn_blank_r1
+[driver] 12:52:13 END py_dsn_blank_r1 rc=0
+[driver] 12:52:13 START cpp_dsn_blank_r1
+[driver] 12:52:19 END cpp_dsn_blank_r1 rc=0
+[driver] 12:52:19 START py_dsn_trans_r1
+[driver] 12:54:11 END py_dsn_trans_r1 rc=0
+[driver] 12:54:11 START cpp_dsn_trans_r1
+[driver] 12:54:18 END cpp_dsn_trans_r1 rc=0
+[driver] 12:54:18 START emu_build
+[driver] 12:54:34 END emu_build rc=0
+[driver] 12:54:34 START emu_dsn_blank_r1
+[driver] 12:54:40 END emu_dsn_blank_r1 rc=0
+[driver] 12:54:40 START emu_dsn_trans_r1
+[driver] 12:54:47 END emu_dsn_trans_r1 rc=0
+[driver] 12:54:47 START emu_dsn_tex_r1
+[driver] 12:54:53 END emu_dsn_tex_r1 rc=0
+[driver] 12:54:53 START py_T_A_r1
+[driver] 13:11:51 END py_T_A_r1 rc=0
+[driver] 13:11:51 START cpp_T_A_r1
+[driver] 13:11:58 END cpp_T_A_r1 rc=0
+[driver] 13:11:58 START fe_T_A_r1
+[driver] 13:12:06 END fe_T_A_r1 rc=0
+[driver] 13:12:06 START py_T_D_r1
+[driver] 13:32:24 END py_T_D_r1 rc=0
+[driver] 13:32:24 START cpp_T_D_r1
+[driver] 13:32:32 END cpp_T_D_r1 rc=0
+[driver] 13:32:32 START fe_T_D_r1
+[driver] 13:32:39 END fe_T_D_r1 rc=0
+[driver] 13:32:39 START py_O_r1
+[driver] 14:01:56 END py_O_r1 rc=0
+[driver] 14:01:56 START cpp_O_r1
+[driver] 14:02:05 END cpp_O_r1 rc=0
+[driver] 14:02:05 ALL DONE
