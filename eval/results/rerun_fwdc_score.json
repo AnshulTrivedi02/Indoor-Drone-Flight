@@ -79,8 +79,8 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.582,
-     "band": "[4.189, 5.117] m",
+     "value": 4.457,
+     "band": "[-0.614, 7.017] m",
      "pass": true,
      "primary": true
     },
@@ -121,7 +121,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 5.13,
+     "value": 4.96,
      "band": "report",
      "pass": null,
      "primary": false
@@ -230,14 +230,14 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 51.099,
-     "band": "[42.136, 56.507]",
+     "value": 17.36,
+     "band": "[1.406, 49.073]",
      "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 89.4,
-     "band": "[84.534, 94.662] m",
+     "value": 93.7,
+     "band": "[88.25, 98.315] m",
      "pass": true,
      "primary": true
     },
@@ -278,13 +278,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1729.001,
+     "value": 136.666,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "46.650 / 103.5",
+     "value": "6.682 / 93.4",
      "band": "report",
      "pass": null,
      "primary": false
@@ -296,7 +296,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 1919.723,
+     "value": 569.818,
      "band": "report",
      "pass": null,
      "primary": false
@@ -304,11 +304,8 @@
    }
   },
   "fwdc_blank_r1": {
-   "primary": "FAIL",
-   "primary_fails": [
-    "P4 FGO ratio",
-    "P4 FGO onset"
-   ],
+   "primary": "PASS",
+   "primary_fails": [],
    "not_evaluated": [],
    "checks": {
     "P1 /optical_flow/measurement rate": {
@@ -390,15 +387,15 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 163.219,
-     "band": "[168.038, 212.519]",
-     "pass": false,
+     "value": 170.643,
+     "band": "[18.009, 342.823]",
+     "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 17.9,
-     "band": "[0.232, 11.58] m",
-     "pass": false,
+     "value": 18.7,
+     "band": "[12.099, 23.679] m",
+     "pass": true,
      "primary": true
     },
     "P2 latency": {
@@ -426,13 +423,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 3979.893,
+     "value": 11726.247,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "83.419 / 23.6",
+     "value": "264.847 / 20.1",
      "band": "report",
      "pass": null,
      "primary": false
@@ -444,7 +441,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 7131.007,
+     "value": 7067.091,
      "band": "report",
      "pass": null,
      "primary": false
@@ -531,8 +528,8 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.678,
-     "band": "[4.189, 5.117] m",
+     "value": 2.387,
+     "band": "[-0.614, 7.017] m",
      "pass": true,
      "primary": true
     },
@@ -573,7 +570,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 2.273,
+     "value": 1.783,
      "band": "report",
      "pass": null,
      "primary": false
@@ -682,14 +679,14 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 50.204,
-     "band": "[42.136, 56.507]",
+     "value": 23.223,
+     "band": "[1.406, 49.073]",
      "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 89.6,
-     "band": "[84.534, 94.662] m",
+     "value": 93.3,
+     "band": "[88.25, 98.315] m",
      "pass": true,
      "primary": true
     },
@@ -730,13 +727,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1785.247,
+     "value": 148.368,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "51.902 / 103.5",
+     "value": "6.328 / 92.1",
      "band": "report",
      "pass": null,
      "primary": false
@@ -748,7 +745,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 1873.476,
+     "value": 731.671,
      "band": "report",
      "pass": null,
      "primary": false
@@ -756,11 +753,8 @@
    }
   },
   "fwdc_blank_r2": {
-   "primary": "FAIL",
-   "primary_fails": [
-    "P4 FGO ratio",
-    "P4 FGO onset"
-   ],
+   "primary": "PASS",
+   "primary_fails": [],
    "not_evaluated": [],
    "checks": {
     "P1 /optical_flow/measurement rate": {
@@ -842,15 +836,15 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 141.982,
-     "band": "[168.038, 212.519]",
-     "pass": false,
+     "value": 204.289,
+     "band": "[18.009, 342.823]",
+     "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 12.3,
-     "band": "[0.232, 11.58] m",
-     "pass": false,
+     "value": 17.1,
+     "band": "[12.099, 23.679] m",
+     "pass": true,
      "primary": true
     },
     "P2 latency": {
@@ -878,13 +872,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 10373.522,
+     "value": 11333.465,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "227.365 / 16.5",
+     "value": "259.395 / 17.7",
      "band": "report",
      "pass": null,
      "primary": false
@@ -896,7 +890,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 6265.483,
+     "value": 9136.577,
      "band": "report",
      "pass": null,
      "primary": false
@@ -981,8 +975,8 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.581,
-     "band": "[4.189, 5.117] m",
+     "value": 4.533,
+     "band": "[-0.614, 7.017] m",
      "pass": true,
      "primary": true
     },
@@ -1023,7 +1017,7 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 5.131,
+     "value": 4.964,
      "band": "report",
      "pass": null,
      "primary": false
@@ -1132,14 +1126,14 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 49.405,
-     "band": "[42.136, 56.507]",
+     "value": 17.557,
+     "band": "[1.406, 49.073]",
      "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 89.6,
-     "band": "[84.534, 94.662] m",
+     "value": 93.5,
+     "band": "[88.25, 98.315] m",
      "pass": true,
      "primary": true
     },
@@ -1180,13 +1174,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 1831.023,
+     "value": 141.084,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "50.104 / 103.5",
+     "value": "7.089 / 93.2",
      "band": "report",
      "pass": null,
      "primary": false
@@ -1198,7 +1192,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 1838.242,
+     "value": 578.354,
      "band": "report",
      "pass": null,
      "primary": false
@@ -1289,14 +1283,14 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 203.521,
-     "band": "[168.038, 212.519]",
+     "value": 270.246,
+     "band": "[18.009, 342.823]",
      "pass": true,
      "primary": true
     },
     "P4 FGO onset": {
-     "value": 7.2,
-     "band": "[0.232, 11.58] m",
+     "value": 19.6,
+     "band": "[12.099, 23.679] m",
      "pass": true,
      "primary": true
     },
@@ -1325,13 +1319,13 @@
      "primary": false
     },
     "diag UKF evo -a (cruise)": {
-     "value": 13274.081,
+     "value": 8506.104,
      "band": "report",
      "pass": null,
      "primary": false
     },
     "diag UKF ratio / onset": {
-     "value": "245.134 / 22.5",
+     "value": "210.202 / 35.3",
      "band": "report",
      "pass": null,
      "primary": false
@@ -1343,7 +1337,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 9065.061,
+     "value": 12092.839,
      "band": "report",
      "pass": null,
      "primary": false

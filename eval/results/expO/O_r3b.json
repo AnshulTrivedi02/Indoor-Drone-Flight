@@ -19,44 +19,44 @@
    "max_step_before_off_m": 0.051086483925324576
   },
   "UKF live": {
-   "indoor_rmse_m": 0.6432945192034408,
-   "indoor_max_m": 1.7498228290641575,
-   "err_at_return_m": 1.7508956351867278,
-   "err_10s_after_return_m": 0.02035383867512504,
-   "max_step_after_return_m": 1.7124803065089538,
-   "max_step_before_off_m": 0.008464555983627591
+   "indoor_rmse_m": 0.7740564881904621,
+   "indoor_max_m": 2.367090968280531,
+   "err_at_return_m": 2.3685468110463,
+   "err_10s_after_return_m": 0.00779819375243086,
+   "max_step_after_return_m": 2.3028055414509057,
+   "max_step_before_off_m": 0.008774306639276063
   },
   "RTS-UKF (hindsight)": {
-   "indoor_rmse_m": 0.6016991280018591,
-   "indoor_max_m": 1.216450661247872,
-   "err_at_return_m": 0.017863269560202632,
-   "err_10s_after_return_m": 0.005482960470459666,
-   "max_step_after_return_m": 0.007535011214325503,
-   "max_step_before_off_m": 0.007530005378483283
+   "indoor_rmse_m": 0.5990277109022949,
+   "indoor_max_m": 1.0764374043501057,
+   "err_at_return_m": 0.01730269172497328,
+   "err_10s_after_return_m": 0.008327057041831483,
+   "max_step_after_return_m": 0.00753602149678639,
+   "max_step_before_off_m": 0.00754207219535934
   },
   "RTS-UKF (hindsight, cap-free forward pass)": {
-   "indoor_rmse_m": 0.9703823655844984,
-   "indoor_max_m": 1.5162717087661233,
-   "err_at_return_m": 0.005658944516913407,
-   "err_10s_after_return_m": 0.0056093690648729546,
-   "max_step_after_return_m": 0.0075860000659107585,
-   "max_step_before_off_m": 0.00750900006658564
+   "indoor_rmse_m": 0.6204061492831657,
+   "indoor_max_m": 1.112442735678337,
+   "err_at_return_m": 0.01840671819551913,
+   "err_10s_after_return_m": 0.008318608195549316,
+   "max_step_after_return_m": 0.007538021491081332,
+   "max_step_before_off_m": 0.007541076647269735
   },
   "FGO live": {
-   "indoor_rmse_m": 1.171646835697886,
-   "indoor_max_m": 3.310096290884619,
-   "err_at_return_m": 3.310096290884619,
-   "err_10s_after_return_m": 0.13614640235022166,
-   "max_step_after_return_m": 2.8762562708877315,
-   "max_step_before_off_m": 0.0185952951576478
+   "indoor_rmse_m": 0.8931824951898788,
+   "indoor_max_m": 2.660253525724783,
+   "err_at_return_m": 2.660253525724783,
+   "err_10s_after_return_m": 0.0036028500337762994,
+   "max_step_after_return_m": 2.2726447913813983,
+   "max_step_before_off_m": 0.01878911187363459
   },
   "FGO hindsight (whole-flight batch)": {
-   "indoor_rmse_m": 0.3295635976989236,
-   "indoor_max_m": 0.6323840493695866,
-   "err_at_return_m": 0.005738904501279395,
-   "err_10s_after_return_m": 0.003438281479001992,
-   "max_step_after_return_m": 0.018087000000001296,
-   "max_step_before_off_m": 0.018121000248331385
+   "indoor_rmse_m": 0.5883940695284551,
+   "indoor_max_m": 1.060343220999716,
+   "err_at_return_m": 0.01835685378125265,
+   "err_10s_after_return_m": 0.005413558229019259,
+   "max_step_after_return_m": 0.01807005603201211,
+   "max_step_before_off_m": 0.018104127706134766
   }
  },
  "ekf3": {

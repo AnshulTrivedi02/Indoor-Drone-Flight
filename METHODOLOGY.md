@@ -12764,3 +12764,21 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     `*_final.json`; the old files predate later corrections.
 - **`final_rerun_checks.py corrections`:** all four pass.
 - **Launched per stage**, with the opt-in stages enabled per rulings 2 and 4 (`FINAL_D27I3=1`, `FINAL_CL_PRED=1`).
+
+### FINAL CONSOLIDATED RE-RUN: COMPLETE (2026-10-10 05:15; started 2026-10-09 20:03)
+- **All stages ran.** One resume (20:27): the `need()` loop-variable bug, fixed in `1b978de`; only the pipeline script
+  changed, and the estimator sources were unchanged (the amendment is in `pipeline.log`).
+- **Every EKF3-unchanged hard gate passed: 9 gates, 0 differences.** They covered dsn, dsn_extra, the three
+  forward-camera sets, Phase 4, H, O and T. EKF3 is unchanged, as ruled.
+- **Confirmatory EKF3-vs-FGO test, corrected FGO, ORIGINAL decision rule:** **"no ordering claimed"**.
+  - n = 6 usable `dsn_tex` r4–r9; mean d −0.040 m; 95% CI [−0.934, +0.853] m.
+  - One-sided sign-test p: EKF3 lower 0.227, FGO lower 0.992.
+  - **The original confirmatory result used a mis-specified FGO noise model.** (The sign convention of d is to be
+    stated from `eval/dsn_paired_test.py` in the restatement.)
+- **Old vs new (`eval/results/final_old_vs_new.md`):** 1279 rows, 95 DIRECTION flags, plus VERDICT flags (O, T and
+  others).
+  - **NOT YET VERIFIED.** The corridor sections map old file names to new ones, and this produced flags even in the
+    self-test. Every flag is checked (a real change or a mapping artefact) in the restatement stage before any number
+    is quoted.
+- **Timing note:** the L no-loop-closure FGO jobs took ~3.1 h each, against ~50 min before the corrections
+  (`T_A_r1`: 7351 keyframes, 2996 s). The cause is not traced. The F3c FGO jobs, by contrast, got much faster.

@@ -1,34 +1,34 @@
-fwdc_tex_r1        cruise [30.06, 332.33] s  EKF3 4.09  UKF_baseline 5.13  FGO_baseline 4.58  UKF_heading 0.61  FGO_heading 0.08  UKF_heading_yawrate 0.61  FGO_heading_yawrate 0.08
-fwdc_trans_r1      cruise [30.38, 332.30] s  EKF3 41.48  UKF_baseline 1729.00  FGO_baseline 1919.72  UKF_heading 998.29  FGO_heading 1249.98  UKF_heading_yawrate 968.27  FGO_heading_yawrate 1275.64
-fwdc_blank_r1      cruise [29.73, 331.75] s  EKF3 43.57  UKF_baseline 3979.89  FGO_baseline 7131.01  UKF_heading 7163.43  FGO_heading 6542.76  UKF_heading_yawrate 6524.32  FGO_heading_yawrate 6499.96
-fwdc_tex_r2        cruise [30.20, 332.17] s  EKF3 3.60  UKF_baseline 2.27  FGO_baseline 4.68  UKF_heading 0.62  FGO_heading 0.09  UKF_heading_yawrate 0.62  FGO_heading_yawrate 0.09
-fwdc_trans_r2      cruise [30.08, 332.16] s  EKF3 41.49  UKF_baseline 1785.25  FGO_baseline 1873.48  UKF_heading 1106.79  FGO_heading 1231.28  UKF_heading_yawrate 1175.57  FGO_heading_yawrate 1254.63
-fwdc_blank_r2      cruise [30.30, 332.17] s  EKF3 43.54  UKF_baseline 10373.52  FGO_baseline 6265.48  UKF_heading 5812.39  FGO_heading 7231.98  UKF_heading_yawrate 8533.21  FGO_heading_yawrate 7173.71
-fwdc_tex_r3        cruise [30.02, 332.20] s  EKF3 4.08  UKF_baseline 5.13  FGO_baseline 4.58  UKF_heading 0.62  FGO_heading 0.09  UKF_heading_yawrate 0.62  FGO_heading_yawrate 0.09
-fwdc_trans_r3      cruise [30.23, 332.44] s  EKF3 41.47  UKF_baseline 1831.02  FGO_baseline 1838.24  UKF_heading 1556.67  FGO_heading 1264.06  UKF_heading_yawrate 1126.76  FGO_heading_yawrate 1214.83
-fwdc_blank_r3      cruise [29.83, 332.06] s  EKF3 43.61  UKF_baseline 13274.08  FGO_baseline 9065.06  UKF_heading 3473.32  FGO_heading 6600.24  UKF_heading_yawrate 12489.36  FGO_heading_yawrate 6790.05
+fwdc_tex_r1        cruise [30.06, 332.33] s  EKF3 4.09  UKF_baseline 4.96  FGO_baseline 4.46  UKF_heading 0.13  FGO_heading 0.06  UKF_heading_yawrate 0.13  FGO_heading_yawrate 0.06
+fwdc_trans_r1      cruise [30.38, 332.30] s  EKF3 41.48  UKF_baseline 136.67  FGO_baseline 569.82  UKF_heading 105.34  FGO_heading 635.36  UKF_heading_yawrate 114.40  FGO_heading_yawrate 620.18
+fwdc_blank_r1      cruise [29.73, 331.75] s  EKF3 43.57  UKF_baseline 11726.25  FGO_baseline 7067.09  UKF_heading 7238.63  FGO_heading 6962.66  UKF_heading_yawrate 4505.45  FGO_heading_yawrate 6634.09
+fwdc_tex_r2        cruise [30.20, 332.17] s  EKF3 3.60  UKF_baseline 1.78  FGO_baseline 2.39  UKF_heading 0.13  FGO_heading 0.06  UKF_heading_yawrate 0.13  FGO_heading_yawrate 0.06
+fwdc_trans_r2      cruise [30.08, 332.16] s  EKF3 41.49  UKF_baseline 148.37  FGO_baseline 731.67  UKF_heading 115.51  FGO_heading 577.68  UKF_heading_yawrate 114.53  FGO_heading_yawrate 617.96
+fwdc_blank_r2      cruise [30.30, 332.17] s  EKF3 43.54  UKF_baseline 11333.47  FGO_baseline 9136.58  UKF_heading 3150.31  FGO_heading 6634.55  UKF_heading_yawrate 3919.28  FGO_heading_yawrate 6462.86
+fwdc_tex_r3        cruise [30.02, 332.20] s  EKF3 4.08  UKF_baseline 4.96  FGO_baseline 4.53  UKF_heading 0.14  FGO_heading 0.06  UKF_heading_yawrate 0.14  FGO_heading_yawrate 0.06
+fwdc_trans_r3      cruise [30.23, 332.44] s  EKF3 41.47  UKF_baseline 141.08  FGO_baseline 578.35  UKF_heading 128.24  FGO_heading 614.38  UKF_heading_yawrate 129.16  FGO_heading_yawrate 631.26
+fwdc_blank_r3      cruise [29.83, 332.06] s  EKF3 43.61  UKF_baseline 8506.10  FGO_baseline 12092.84  UKF_heading 8573.73  FGO_heading 6453.64  UKF_heading_yawrate 9613.87  FGO_heading_yawrate 6273.49
 
 === evo -a (cruise) RMSE, m ===
 trial                   EKF3UKF_baselineFGO_baselineUKF_headingFGO_headingUKF_heading_yawrateFGO_heading_yawrate
-fwdc_tex_r1             4.09      5.13      4.58      0.61      0.08      0.61      0.08
-fwdc_trans_r1          41.48   1729.00   1919.72    998.29   1249.98    968.27   1275.64
-fwdc_blank_r1          43.57   3979.89   7131.01   7163.43   6542.76   6524.32   6499.96
-fwdc_tex_r2             3.60      2.27      4.68      0.62      0.09      0.62      0.09
-fwdc_trans_r2          41.49   1785.25   1873.48   1106.79   1231.28   1175.57   1254.63
-fwdc_blank_r2          43.54  10373.52   6265.48   5812.39   7231.98   8533.21   7173.71
-fwdc_tex_r3             4.08      5.13      4.58      0.62      0.09      0.62      0.09
-fwdc_trans_r3          41.47   1831.02   1838.24   1556.67   1264.06   1126.76   1214.83
-fwdc_blank_r3          43.61  13274.08   9065.06   3473.32   6600.24  12489.36   6790.05
+fwdc_tex_r1             4.09      4.96      4.46      0.13      0.06      0.13      0.06
+fwdc_trans_r1          41.48    136.67    569.82    105.34    635.36    114.40    620.18
+fwdc_blank_r1          43.57  11726.25   7067.09   7238.63   6962.66   4505.45   6634.09
+fwdc_tex_r2             3.60      1.78      2.39      0.13      0.06      0.13      0.06
+fwdc_trans_r2          41.49    148.37    731.67    115.51    577.68    114.53    617.96
+fwdc_blank_r2          43.54  11333.47   9136.58   3150.31   6634.55   3919.28   6462.86
+fwdc_tex_r3             4.08      4.96      4.53      0.14      0.06      0.14      0.06
+fwdc_trans_r3          41.47    141.08    578.35    128.24    614.38    129.16    631.26
+fwdc_blank_r3          43.61   8506.10  12092.84   8573.73   6453.64   9613.87   6273.49
 
 === failure metrics (cruise): disp_ratio / onset GT distance (m) ===
-fwdc_tex_r1       EKF3 0.97/nan  UKF_baseline 0.94/nan  FGO_baseline 0.97/nan  UKF_heading 0.99/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 0.99/nan  FGO_heading_yawrate 1.00/nan
-fwdc_trans_r1     EKF3 0.00/83  UKF_baseline 46.65/103  FGO_baseline 51.10/89  UKF_heading 27.24/102  FGO_heading 34.15/89  UKF_heading_yawrate 27.67/102  FGO_heading_yawrate 35.01/89
-fwdc_blank_r1     EKF3 0.00/15  UKF_baseline 83.42/24  FGO_baseline 163.22/18  UKF_heading 108.81/22  FGO_heading 149.72/13  UKF_heading_yawrate 148.50/22  FGO_heading_yawrate 148.71/13
-fwdc_tex_r2       EKF3 0.98/nan  UKF_baseline 0.96/nan  FGO_baseline 0.97/nan  UKF_heading 0.99/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 0.99/nan  FGO_heading_yawrate 1.00/nan
-fwdc_trans_r2     EKF3 0.00/83  UKF_baseline 51.90/103  FGO_baseline 50.20/90  UKF_heading 32.74/104  FGO_heading 33.91/89  UKF_heading_yawrate 32.58/101  FGO_heading_yawrate 34.46/89
-fwdc_blank_r2     EKF3 0.00/15  UKF_baseline 227.37/16  FGO_baseline 141.98/12  UKF_heading 119.48/17  FGO_heading 165.26/11  UKF_heading_yawrate 159.62/16  FGO_heading_yawrate 163.98/11
-fwdc_tex_r3       EKF3 0.97/nan  UKF_baseline 0.94/nan  FGO_baseline 0.97/nan  UKF_heading 0.99/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 0.99/nan  FGO_heading_yawrate 1.00/nan
-fwdc_trans_r3     EKF3 0.00/83  UKF_baseline 50.10/103  FGO_baseline 49.41/90  UKF_heading 41.70/104  FGO_heading 34.49/89  UKF_heading_yawrate 33.17/101  FGO_heading_yawrate 33.19/89
-fwdc_blank_r3     EKF3 0.00/15  UKF_baseline 245.13/22  FGO_baseline 203.52/7  UKF_heading 79.68/21  FGO_heading 143.85/5  UKF_heading_yawrate 255.86/21  FGO_heading_yawrate 150.18/5
+fwdc_tex_r1       EKF3 0.97/nan  UKF_baseline 0.95/nan  FGO_baseline 0.97/nan  UKF_heading 1.00/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 1.00/nan  FGO_heading_yawrate 1.00/nan
+fwdc_trans_r1     EKF3 0.00/83  UKF_baseline 6.68/93  FGO_baseline 17.36/94  UKF_heading 3.17/94  FGO_heading 19.10/94  UKF_heading_yawrate 3.68/94  FGO_heading_yawrate 18.53/94
+fwdc_blank_r1     EKF3 0.00/15  UKF_baseline 264.85/20  FGO_baseline 170.64/19  UKF_heading 172.50/21  FGO_heading 159.36/20  UKF_heading_yawrate 118.67/21  FGO_heading_yawrate 151.66/20
+fwdc_tex_r2       EKF3 0.98/nan  UKF_baseline 0.98/nan  FGO_baseline 0.99/nan  UKF_heading 1.00/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 1.00/nan  FGO_heading_yawrate 1.00/nan
+fwdc_trans_r2     EKF3 0.00/83  UKF_baseline 6.33/92  FGO_baseline 23.22/93  UKF_heading 4.95/94  FGO_heading 17.32/94  UKF_heading_yawrate 5.80/94  FGO_heading_yawrate 18.46/94
+fwdc_blank_r2     EKF3 0.00/15  UKF_baseline 259.39/18  FGO_baseline 204.29/17  UKF_heading 63.72/18  FGO_heading 152.04/16  UKF_heading_yawrate 105.65/18  FGO_heading_yawrate 148.14/16
+fwdc_tex_r3       EKF3 0.97/nan  UKF_baseline 0.95/nan  FGO_baseline 0.97/nan  UKF_heading 1.00/nan  FGO_heading 1.00/nan  UKF_heading_yawrate 1.00/nan  FGO_heading_yawrate 1.00/nan
+fwdc_trans_r3     EKF3 0.00/83  UKF_baseline 7.09/93  FGO_baseline 17.56/94  UKF_heading 6.81/94  FGO_heading 18.84/94  UKF_heading_yawrate 6.48/94  FGO_heading_yawrate 18.69/94
+fwdc_blank_r3     EKF3 0.00/15  UKF_baseline 210.20/35  FGO_baseline 270.25/20  UKF_heading 186.46/29  FGO_heading 148.81/21  UKF_heading_yawrate 206.55/29  FGO_heading_yawrate 143.92/21
 
 [out] /home/makerspace/thesis_ws/eval/results/phase4_fwdc_evo.json

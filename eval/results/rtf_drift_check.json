@@ -6,11 +6,11 @@
    "rtf": 0.968,
    "lat_ms": 19.41878739120284,
    "EKF3_drift_dpm_NED": 7.962247032118764,
-   "UKF_drift_dpm_ENU": -7.6234051600139034,
-   "FGO_drift_dpm_ENU": -9.137419975492328,
+   "UKF_drift_dpm_ENU": -7.624418837308384,
+   "FGO_drift_dpm_ENU": -8.041847308673004,
    "EKF3_evo": 4.033521,
-   "UKF_evo": 4.227801,
-   "FGO_evo": 4.589119
+   "UKF_evo": 3.983563,
+   "FGO_evo": 4.067897
   },
   {
    "trial": "dsn_tex_r2",
@@ -18,11 +18,11 @@
    "rtf": 0.958,
    "lat_ms": 17.28702347440958,
    "EKF3_drift_dpm_NED": 7.593004992872405,
-   "UKF_drift_dpm_ENU": -2.7024848375279795,
-   "FGO_drift_dpm_ENU": -9.397117921919824,
+   "UKF_drift_dpm_ENU": -2.29175505359277,
+   "FGO_drift_dpm_ENU": -3.6196207729291783,
    "EKF3_evo": 3.855266,
-   "UKF_evo": 2.134915,
-   "FGO_evo": 4.716604
+   "UKF_evo": 1.613988,
+   "FGO_evo": 1.929484
   },
   {
    "trial": "dsn_tex_r3",
@@ -30,11 +30,11 @@
    "rtf": 0.986,
    "lat_ms": 25.087971205906,
    "EKF3_drift_dpm_NED": 8.102744758793431,
-   "UKF_drift_dpm_ENU": -10.01235116969393,
-   "FGO_drift_dpm_ENU": -9.181520890845322,
+   "UKF_drift_dpm_ENU": -10.047421784853277,
+   "FGO_drift_dpm_ENU": -8.875920215215935,
    "EKF3_evo": 4.097549,
-   "UKF_evo": 5.374769,
-   "FGO_evo": 4.602226
+   "UKF_evo": 5.167777,
+   "FGO_evo": 4.473251
   },
   {
    "trial": "dsn_tex_r4",
@@ -42,11 +42,11 @@
    "rtf": 0.97,
    "lat_ms": 20.08524292878633,
    "EKF3_drift_dpm_NED": 8.10125093004463,
-   "UKF_drift_dpm_ENU": -10.079822610169675,
-   "FGO_drift_dpm_ENU": -9.184441615433363,
+   "UKF_drift_dpm_ENU": -10.085834364896646,
+   "FGO_drift_dpm_ENU": -8.818262348483175,
    "EKF3_evo": 4.101854,
-   "UKF_evo": 5.443684,
-   "FGO_evo": 4.608241
+   "UKF_evo": 5.217349,
+   "FGO_evo": 4.448843
   },
   {
    "trial": "dsn_tex_r5",
@@ -54,11 +54,11 @@
    "rtf": 0.951,
    "lat_ms": 18.750993534212057,
    "EKF3_drift_dpm_NED": 8.121139523032568,
-   "UKF_drift_dpm_ENU": -9.71233878167771,
-   "FGO_drift_dpm_ENU": -9.177635605558743,
+   "UKF_drift_dpm_ENU": -9.926332892925313,
+   "FGO_drift_dpm_ENU": -9.103609295649866,
    "EKF3_evo": 4.121337,
-   "UKF_evo": 5.24869,
-   "FGO_evo": 4.615457
+   "UKF_evo": 5.126069,
+   "FGO_evo": 4.599624
   },
   {
    "trial": "dsn_tex_r6",
@@ -66,11 +66,11 @@
    "rtf": 0.974,
    "lat_ms": 13.916842675939733,
    "EKF3_drift_dpm_NED": 6.0632554463659645,
-   "UKF_drift_dpm_ENU": -1.29368091629868,
-   "FGO_drift_dpm_ENU": -9.386605401422822,
+   "UKF_drift_dpm_ENU": -0.7211398104229715,
+   "FGO_drift_dpm_ENU": -2.526453392921858,
    "EKF3_evo": 3.112159,
-   "UKF_evo": 1.713248,
-   "FGO_evo": 4.719157
+   "UKF_evo": 1.174081,
+   "FGO_evo": 1.431388
   },
   {
    "trial": "dsn_tex_r7",
@@ -78,11 +78,11 @@
    "rtf": 0.954,
    "lat_ms": 19.454719482290272,
    "EKF3_drift_dpm_NED": 8.1003083510162,
-   "UKF_drift_dpm_ENU": -9.910768700874785,
-   "FGO_drift_dpm_ENU": -9.167634128934191,
+   "UKF_drift_dpm_ENU": -10.081263365533516,
+   "FGO_drift_dpm_ENU": -9.093930709557561,
    "EKF3_evo": 4.111037,
-   "UKF_evo": 5.343763,
-   "FGO_evo": 4.610834
+   "UKF_evo": 5.203367,
+   "FGO_evo": 4.595076
   },
   {
    "trial": "dsn_tex_r8",
@@ -90,11 +90,11 @@
    "rtf": 0.98,
    "lat_ms": 18.985421866460683,
    "EKF3_drift_dpm_NED": 8.109807065377888,
-   "UKF_drift_dpm_ENU": -11.217580238153545,
-   "FGO_drift_dpm_ENU": -9.195296298043926,
+   "UKF_drift_dpm_ENU": -11.428079878471923,
+   "FGO_drift_dpm_ENU": -9.036098112387263,
    "EKF3_evo": 4.105042,
-   "UKF_evo": 5.964016,
-   "FGO_evo": 4.6108
+   "UKF_evo": 5.849683,
+   "FGO_evo": 4.554497
   },
   {
    "trial": "dsn_tex_r9",
@@ -102,11 +102,11 @@
    "rtf": 0.986,
    "lat_ms": 25.111767824469666,
    "EKF3_drift_dpm_NED": 8.082381204701742,
-   "UKF_drift_dpm_ENU": -9.955613080364428,
-   "FGO_drift_dpm_ENU": -9.146040641197624,
+   "UKF_drift_dpm_ENU": -9.760563537573203,
+   "FGO_drift_dpm_ENU": -8.418325642632807,
    "EKF3_evo": 4.087794,
-   "UKF_evo": 5.365584,
-   "FGO_evo": 4.588573
+   "UKF_evo": 5.040424,
+   "FGO_evo": 4.252311
   },
   {
    "trial": "dsn_tex_r10",
@@ -124,11 +124,11 @@
    "rtf": 0.826,
    "lat_ms": 21.517439105224412,
    "EKF3_drift_dpm_NED": 8.099430524569586,
-   "UKF_drift_dpm_ENU": -9.479640914100031,
-   "FGO_drift_dpm_ENU": -9.140943122468016,
+   "UKF_drift_dpm_ENU": -9.610093994780092,
+   "FGO_drift_dpm_ENU": -8.84488962409871,
    "EKF3_evo": 4.092895,
-   "UKF_evo": 5.129638,
-   "FGO_evo": 4.582231
+   "UKF_evo": 4.959532,
+   "FGO_evo": 4.457139
   },
   {
    "trial": "fwdc_tex_r2",
@@ -136,11 +136,11 @@
    "rtf": 0.74,
    "lat_ms": 23.601135684373276,
    "EKF3_drift_dpm_NED": 7.108349098180195,
-   "UKF_drift_dpm_ENU": -3.10543813228534,
-   "FGO_drift_dpm_ENU": -9.352291883019092,
+   "UKF_drift_dpm_ENU": -2.749810476202349,
+   "FGO_drift_dpm_ENU": -4.60259915157377,
    "EKF3_evo": 3.603274,
-   "UKF_evo": 2.273273,
-   "FGO_evo": 4.677808
+   "UKF_evo": 1.783411,
+   "FGO_evo": 2.387321
   },
   {
    "trial": "fwdc_tex_r3",
@@ -148,11 +148,11 @@
    "rtf": 0.748,
    "lat_ms": 28.85451092519986,
    "EKF3_drift_dpm_NED": 8.066532029555999,
-   "UKF_drift_dpm_ENU": -9.491522041084371,
-   "FGO_drift_dpm_ENU": -9.147469394847773,
+   "UKF_drift_dpm_ENU": -9.628366095022383,
+   "FGO_drift_dpm_ENU": -9.007310484227412,
    "EKF3_evo": 4.075574,
-   "UKF_evo": 5.131106,
-   "FGO_evo": 4.581093
+   "UKF_evo": 4.963794,
+   "FGO_evo": 4.533153
   },
   {
    "trial": "fwdplainc_tex_r1",
@@ -160,11 +160,11 @@
    "rtf": 0.726,
    "lat_ms": 17.235532007774168,
    "EKF3_drift_dpm_NED": 8.065235888444032,
-   "UKF_drift_dpm_ENU": -9.564385362147453,
-   "FGO_drift_dpm_ENU": -9.132254040607727,
+   "UKF_drift_dpm_ENU": -9.743322773638996,
+   "FGO_drift_dpm_ENU": -8.987289940073,
    "EKF3_evo": 4.075241,
-   "UKF_evo": 5.169507,
-   "FGO_evo": 4.574872
+   "UKF_evo": 5.023202,
+   "FGO_evo": 4.523225
   },
   {
    "trial": "fwdplainc_tex_r2",
@@ -172,11 +172,11 @@
    "rtf": 0.814,
    "lat_ms": 16.083983318310402,
    "EKF3_drift_dpm_NED": 8.073085224612033,
-   "UKF_drift_dpm_ENU": -22.30189336845711,
-   "FGO_drift_dpm_ENU": -9.115789067309569,
+   "UKF_drift_dpm_ENU": -22.090895225844683,
+   "FGO_drift_dpm_ENU": -9.010268172308361,
    "EKF3_evo": 4.056744,
-   "UKF_evo": 11.509368,
-   "FGO_evo": 4.536391
+   "UKF_evo": 11.194393,
+   "FGO_evo": 4.50606
   },
   {
    "trial": "fwdplainc_tex_r3",
@@ -184,11 +184,11 @@
    "rtf": 0.759,
    "lat_ms": 20.6839885182859,
    "EKF3_drift_dpm_NED": 8.103129702519027,
-   "UKF_drift_dpm_ENU": -21.450016494459696,
-   "FGO_drift_dpm_ENU": -9.13437785058449,
+   "UKF_drift_dpm_ENU": -21.31558622072126,
+   "FGO_drift_dpm_ENU": -9.403295161712803,
    "EKF3_evo": 4.082146,
-   "UKF_evo": 11.093156,
-   "FGO_evo": 4.563198
+   "UKF_evo": 10.818971,
+   "FGO_evo": 4.716526
   },
   {
    "trial": "p1c_fwdc_tex",
@@ -196,11 +196,11 @@
    "rtf": 0.8,
    "lat_ms": 18.768150739603584,
    "EKF3_drift_dpm_NED": 8.18276665074134,
-   "UKF_drift_dpm_ENU": -14.31275789357717,
-   "FGO_drift_dpm_ENU": -9.134666766482809,
+   "UKF_drift_dpm_ENU": -14.406219678022936,
+   "FGO_drift_dpm_ENU": -10.345931258121063,
    "EKF3_evo": 4.136013,
-   "UKF_evo": 7.497178,
-   "FGO_evo": 4.573741
+   "UKF_evo": 7.336021,
+   "FGO_evo": 5.196101
   },
   {
    "trial": "p1c_fwdplainc_tex",
@@ -208,11 +208,11 @@
    "rtf": 0.832,
    "lat_ms": 21.40347365030948,
    "EKF3_drift_dpm_NED": 8.111238676665153,
-   "UKF_drift_dpm_ENU": -9.763706998428908,
-   "FGO_drift_dpm_ENU": -9.170372643095716,
+   "UKF_drift_dpm_ENU": -9.9138108121877,
+   "FGO_drift_dpm_ENU": -9.101930915357544,
    "EKF3_evo": 4.105147,
-   "UKF_evo": 5.264896,
-   "FGO_evo": 4.601994
+   "UKF_evo": 5.106194,
+   "FGO_evo": 4.58858
   }
  ],
  "tests": {
@@ -234,32 +234,32 @@
   "UKF_drift_dpm_ENU": {
    "n": 17,
    "spearman_rtf": [
-    -0.040465979402371365,
-    0.877452788486477
+    0.02820356140165277,
+    0.9144325507864739
    ],
    "spearman_latency": [
-    -0.03921568627450981,
-    0.8812135857007629
+    0.04656862745098039,
+    0.8591333762840924
    ],
-   "dsn_median": -9.910768700874785,
-   "fwd_median": -9.664046180288182,
+   "dsn_median": -9.926332892925313,
+   "fwd_median": -9.828566792913348,
    "mannwhitney_p": 0.6058412176059235,
    "depends_on_rtf": false
   },
   "FGO_drift_dpm_ENU": {
    "n": 17,
    "spearman_rtf": [
-    -0.4696506094275222,
-    0.0571561031248287
+    0.3298590442193302,
+    0.19600978406874286
    ],
    "spearman_latency": [
-    -0.029411764705882353,
-    0.9107803991169199
+    0.004901960784313726,
+    0.9851029592703197
    ],
-   "dsn_median": -9.181520890845322,
-   "fwd_median": -9.137804944475413,
-   "mannwhitney_p": 0.02739613327848622,
-   "depends_on_rtf": true
+   "dsn_median": -8.818262348483175,
+   "fwd_median": -9.008789328267888,
+   "mannwhitney_p": 0.16717400246812014,
+   "depends_on_rtf": false
   },
   "EKF3_evo": {
    "n": 18,
@@ -279,32 +279,32 @@
   "UKF_evo": {
    "n": 17,
    "spearman_rtf": [
-    0.040465979402371365,
-    0.877452788486477
+    -0.02820356140165277,
+    0.9144325507864739
    ],
    "spearman_latency": [
-    0.03921568627450981,
-    0.8812135857007629
+    -0.04656862745098039,
+    0.8591333762840924
    ],
-   "dsn_median": 5.343763,
-   "fwd_median": 5.2172015,
+   "dsn_median": 5.126069,
+   "fwd_median": 5.064698,
    "mannwhitney_p": 0.6058412176059235,
    "depends_on_rtf": false
   },
   "FGO_evo": {
    "n": 17,
    "spearman_rtf": [
-    0.45248322422651616,
-    0.06819593557143089
+    -0.3445739458201926,
+    0.1756036381413439
    ],
    "spearman_latency": [
-    -0.13235294117647062,
-    0.6125925983674195
+    0.02696078431372549,
+    0.9181909009189737
    ],
-   "dsn_median": 4.6108,
-   "fwd_median": 4.5779825,
-   "mannwhitney_p": 0.007897984368572603,
-   "depends_on_rtf": true
+   "dsn_median": 4.448843,
+   "fwd_median": 4.528189,
+   "mannwhitney_p": 0.1995886466474702,
+   "depends_on_rtf": false
   }
  }
 }

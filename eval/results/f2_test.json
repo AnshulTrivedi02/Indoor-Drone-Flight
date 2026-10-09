@@ -1,56 +1,56 @@
 {
  "fwdc_tex_r1": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.5271488349626304,
-   "off_xtrack_rms_m": 0.8731277954363786,
-   "on_yaw_rms_deg": 0.0985176470845811
+   "off_yaw_rms_deg": 0.35898307251622863,
+   "off_xtrack_rms_m": 0.08359379571344341,
+   "on_yaw_rms_deg": 0.06949952034836217
   },
   "FGO_live": {
-   "off_yaw_rms_deg": 1.3418172364810101,
-   "off_xtrack_rms_m": 0.5734689250677474,
-   "on_yaw_rms_deg": 0.21863554885696834
+   "off_yaw_rms_deg": 0.3588763424401929,
+   "off_xtrack_rms_m": 0.043986227690970346,
+   "on_yaw_rms_deg": 0.07038457624563131
   },
   "FGO_batch_hindsight": {
-   "off_yaw_rms_deg": 1.1237102958046756,
-   "off_xtrack_rms_m": 0.4719679275007386,
-   "on_yaw_rms_deg": 0.15048192686283818
+   "off_yaw_rms_deg": 0.06599699100379293,
+   "off_xtrack_rms_m": 0.07000479816400422,
+   "on_yaw_rms_deg": 0.05559672883946906
   }
  },
  "fwdc_tex_r2": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.21392044670196161,
-   "off_xtrack_rms_m": 0.691809829479231,
-   "on_yaw_rms_deg": 0.06705037647504895
+   "off_yaw_rms_deg": 0.32187101016983655,
+   "off_xtrack_rms_m": 0.231344854420826,
+   "on_yaw_rms_deg": 0.06519970689127168
   },
   "FGO_live": {
-   "off_yaw_rms_deg": 1.4938718102357356,
-   "off_xtrack_rms_m": 0.4440350511845475,
-   "on_yaw_rms_deg": 0.19157009231205274
+   "off_yaw_rms_deg": 0.3245910882006401,
+   "off_xtrack_rms_m": 0.32831164280157643,
+   "on_yaw_rms_deg": 0.06309426713907335
   },
   "FGO_batch_hindsight": {
-   "off_yaw_rms_deg": 1.2713071032648962,
-   "off_xtrack_rms_m": 0.4907220163810107,
-   "on_yaw_rms_deg": 0.14477217900214426
+   "off_yaw_rms_deg": 0.06345338158079715,
+   "off_xtrack_rms_m": 0.364169187194697,
+   "on_yaw_rms_deg": 0.05424918720080672
   }
  },
  "fwdc_tex_r3": {
   "UKF_live": {
-   "off_yaw_rms_deg": 0.32038634712644226,
-   "off_xtrack_rms_m": 0.9150147971687903,
-   "on_yaw_rms_deg": 0.0714110910349345
+   "off_yaw_rms_deg": 0.3487797836801785,
+   "off_xtrack_rms_m": 0.09375425246231034,
+   "on_yaw_rms_deg": 0.06893796635334626
   },
   "FGO_live": {
-   "off_yaw_rms_deg": 1.4565653749591143,
-   "off_xtrack_rms_m": 0.5945529356312166,
-   "on_yaw_rms_deg": 0.19102287479233435
+   "off_yaw_rms_deg": 0.35116479656828103,
+   "off_xtrack_rms_m": 0.029480339628955066,
+   "on_yaw_rms_deg": 0.06680010726634171
   },
   "FGO_batch_hindsight": {
-   "off_yaw_rms_deg": 1.2385776780794902,
-   "off_xtrack_rms_m": 0.49297790927172824,
-   "on_yaw_rms_deg": 0.14827008981290088
+   "off_yaw_rms_deg": 0.06566039182385247,
+   "off_xtrack_rms_m": 0.05410735030214956,
+   "on_yaw_rms_deg": 0.0588659397097241
   }
  },
  "decision": {
-  "hindsight_correction": false
+  "hindsight_correction": true
  }
 }
