@@ -41,6 +41,8 @@ struct ReplayResult {
   std::vector<long long> step_ns;
   std::vector<double> batch_rows;   // 14 per key
   std::vector<double> avg_log;      // per flow / forward frame after t_init: kind, t, omega xyz (forward: gz, NaN, NaN)
+  std::vector<double> yawgate_log;  // §9.4 yaw-cap gate checks: t, k, trace of the predicted attitude cov, fired
+  int n_yaw_check = 0, n_yaw_fire = 0;
   double batch_s = 0, batch_error = 0;
   int batch_iterations = 0;
   int n_flow = 0, n_range = 0, n_imu = 0, n_tag = 0, n_gnss = 0, n_replaced = 0, n_fail = 0;

@@ -23,8 +23,17 @@ Cases:
   B  as A, but each estimator's CONFIGURED initial bias sigmas (EKF3 2.5 deg/s, 0.2 m/s^2; UKF 0.043633*dt, 0.2*dt
      delta; FGO B(0) 0.043633, 0.2): a unit check of the delta/rate conversions.
   C  as A, with the yaw-bounding mechanisms ON: UKF update_yaw_pseudo every 140 ms (variance-gated), FGO yaw cap
-     factor (sigma 0.5 rad) at every keyframe; EKF3's fuseEulerYaw(PREDICTED) is variance-gated like the UKF's (its
-     gate is reported from the harness's quaternion trace, not simulated).
+     factor (sigma 0.5 rad); EKF3's fuseEulerYaw(PREDICTED) is variance-gated like the UKF's (its gate is reported
+     from the harness's quaternion trace, not simulated).
+  D  (yaw-cap gate stage, 2026-10-09) POSITIVE CONTROL: case B's configured bias sigmas with the yaw-bounding
+     mechanisms ON, so that the gates must open (attitude variance grows with the 2.5 deg/s gyro-bias sigma).
+FGO rows since the yaw-cap gate stage (2026-10-09, ruling "MODEL AUDIT RESULT ... RULINGS" item 2):
+  fgo           fgo_core.FGO ITSELF (window 0.25 s, LM 2) driven keyframe by keyframe with no measurements, initialised
+                with the case's priors (harness copy of FGO.init with those sigmas); its gate decides the cap. Values:
+                the core's gate-only filtering covariance (cov_gate) at each keyframe.
+  fgo_chain     the full-chain gtsam.Marginals (as the audit's FGO row) with the cap at exactly the keyframes where the
+                core fired: checks the recursion against the smoother's marginal.
+  fgo_ungated   case C/D only: the old behaviour, the cap at EVERY keyframe (full chain), for before/after.
 Usage (~/venv-fgo): python3 free_inertial.py WINDOW.npz HARNESS OUT.json [T_TOTAL]"""
 import sys, os, json, subprocess, math
 import numpy as np
@@ -178,7 +187,9 @@ def ekf3(s_bg, s_ba, constrain=1):
         times.append(v[0]); qtr.append(float(np.trace(P[0:4, 0:4])))
         rows.append(metrics((Pth[0, 0] + Pth[1, 1]) / 2, Pth[2, 2], (P[4, 4] + P[5, 5]) / 2, P[6, 6], (P[7, 7] + P[8, 8]) / 2,
                             P[9, 9], np.trace(P[10:13, 10:13]) / 3 / DTR**2, np.trace(P[13:16, 13:16]) / 3 / DTR**2))
-    return pick(times, rows), dict(stderr=r.stderr.strip(), quat_trace_max=max(qtr), yaw_gate_quat_trace=0.01)
+    t_open = next((tt for tt, q_ in zip(times, qtr) if q_ > 0.01), None)
+    return pick(times, rows), dict(stderr=r.stderr.strip(), quat_trace_max=max(qtr), yaw_gate_quat_trace=0.01,
+                                   gate_first_open_t=t_open)
 
 
 # ---------- UKF (offline cadence and port cadence) ----------
@@ -190,7 +201,7 @@ def ukf(s_bg, s_ba, cadence, yawcap=False):
     p = U.make_params(dt=DT)
     x, _ = U.init_state(am, 2.0, dt=DT)
     P = np.diag([S_P**2] * 3 + [S_V**2] * 3 + [S_ATT**2] * 3 + [(s_bg * DT) ** 2] * 3 + [(s_ba * DT) ** 2] * 3)
-    times, rows = [], []; fired = 0; tc = 0.0
+    times, rows = [], []; fired = 0; tc = 0.0; t_first = None
     def rec(tt):
         rows.append(metrics((P[6, 6] + P[7, 7]) / 2, P[8, 8], (P[3, 3] + P[4, 4]) / 2, P[5, 5], (P[0, 0] + P[1, 1]) / 2, P[2, 2],
                             np.trace(P[9:12, 9:12]) / 3 / DT**2, np.trace(P[12:15, 12:15]) / 3 / DT**2)); times.append(tt)
@@ -202,18 +213,26 @@ def ukf(s_bg, s_ba, cadence, yawcap=False):
                 x, P = U.predict(x, P, da, dv, p, dt=adt)
                 if yawcap and t[i] - T0 - tc >= p["YAW_DT"]:
                     x, P, f = U.update_yaw_pseudo(x, P, p); fired += f; tc = t[i] - T0
+                    t_first = t_first if (t_first is not None or not f) else t[i] - T0
                 rec(t[i] - T0); da = np.zeros(3); dv = np.zeros(3); adt = 0.0
     else:
         for k in range(len(bin_t)):
             x, P = U.predict(x, P, bin_da[k], bin_dv[k], p, dt=DTR)
             if yawcap and bin_t[k] - tc >= p["YAW_DT"]:
                 x, P, f = U.update_yaw_pseudo(x, P, p); fired += f; tc = bin_t[k]
+                t_first = t_first if (t_first is not None or not f) else bin_t[k]
             rec(bin_t[k])
-    return pick(times, rows), dict(step_ms=1e3 * DT, yaw_pseudo_fired=fired)
+    return pick(times, rows), dict(step_ms=1e3 * DT, yaw_pseudo_fired=fired, first_fire_t=t_first)
 
 
 # ---------- FGO ----------
-def fgo(s_bg, s_ba, yawcap=False):
+def fgo(s_bg, s_ba, yawcap=False, cap_keys=None):
+    """Full chain + gtsam.Marginals. yawcap=True: the cap at EVERY keyframe (the pre-2026-10-09 behaviour);
+    cap_keys: the cap only at these keyframe indices (the core's fired keyframes).
+    Yaw-cap gate stage (2026-10-09): the marginal at each checkpoint is now taken from the chain TRUNCATED at that
+    keyframe (the FILTERING marginal, what a fixed-lag smoother holds at its newest keyframe). The audit's version took
+    every checkpoint from the full chain (the SMOOTHED marginal); the two differ only where later factors inform earlier
+    states, i.e. with yaw caps (case C's FGO at 10 s), and agree at the last checkpoint."""
     pim = gtsam.PreintegratedCombinedMeasurements(fgo_core.make_pim_params(), gtsam.imuBias.ConstantBias())
     pose0 = gtsam.Pose3(gtsam.Rot3.Ypr(0.0, pitch0, roll0), np.array([0.0, 0.0, 2.0]))
     graph = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
@@ -224,29 +243,70 @@ def fgo(s_bg, s_ba, yawcap=False):
     vals.insert(X(0), pose0); vals.insert(V(0), np.zeros(3)); vals.insert(B(0), gtsam.imuBias.ConstantBias())
     yaw_noise = gtsam.noiseModel.Isotropic.Sigma(1, 0.5)
     k = 0; pose, vel = pose0, np.zeros(3); kf_next = T0 + 1.0 / 30.0; kts = []
+    want = {max(1, int(round(c * 30.0))) for c in CHK}
+    times, rows = [], []
     for i in range(n):
         pim.integrateMeasurement(acc[i], gyro[i], dts[i])
         if t[i] >= kf_next - 1e-9:
             nk = pim.predict(gtsam.NavState(pose, vel), gtsam.imuBias.ConstantBias())
             k += 1
             graph.add(gtsam.CombinedImuFactor(X(k - 1), V(k - 1), X(k), V(k), B(k - 1), B(k), pim))
-            if yawcap:
+            if yawcap or (cap_keys is not None and k in cap_keys):
                 graph.add(F.yaw_prior_factor(yaw_noise, X(k), nk.pose().rotation().yaw()))
             pose, vel = nk.pose(), nk.velocity()
             vals.insert(X(k), pose); vals.insert(V(k), vel); vals.insert(B(k), gtsam.imuBias.ConstantBias())
             kts.append((k, t[i] - T0)); pim.resetIntegration(); kf_next += 1.0 / 30.0
-    marg = gtsam.Marginals(graph, vals)
-    times, rows = [], []
-    want = sorted({min(kts, key=lambda kt: abs(kt[1] - c))[0] for c in CHK})
-    for kk, tt in kts:
-        if kk not in want:
-            continue
-        Rk = vals.atPose3(X(kk)).rotation().matrix()
-        Cp = marg.marginalCovariance(X(kk)); Cv = marg.marginalCovariance(V(kk)); Cb = marg.marginalCovariance(B(kk))
-        Cth = Rk @ Cp[0:3, 0:3] @ Rk.T; Ct = Rk @ Cp[3:6, 3:6] @ Rk.T
-        rows.append(metrics((Cth[0, 0] + Cth[1, 1]) / 2, Cth[2, 2], (Cv[0, 0] + Cv[1, 1]) / 2, Cv[2, 2], (Ct[0, 0] + Ct[1, 1]) / 2,
-                            Ct[2, 2], np.trace(Cb[3:6, 3:6]) / 3, np.trace(Cb[0:3, 0:3]) / 3)); times.append(tt)
+            if k not in want:
+                continue
+            kk, tt = k, t[i] - T0
+            marg = gtsam.Marginals(graph, vals)            # chain up to keyframe k: the filtering marginal
+            Rk = vals.atPose3(X(kk)).rotation().matrix()
+            Cp = marg.marginalCovariance(X(kk)); Cv = marg.marginalCovariance(V(kk)); Cb = marg.marginalCovariance(B(kk))
+            Cth = Rk @ Cp[0:3, 0:3] @ Rk.T; Ct = Rk @ Cp[3:6, 3:6] @ Rk.T
+            rows.append(metrics((Cth[0, 0] + Cth[1, 1]) / 2, Cth[2, 2], (Cv[0, 0] + Cv[1, 1]) / 2, Cv[2, 2],
+                                (Ct[0, 0] + Ct[1, 1]) / 2, Ct[2, 2], np.trace(Cb[3:6, 3:6]) / 3, np.trace(Cb[0:3, 0:3]) / 3))
+            times.append(tt)
     return pick(times, rows), dict(keyframes=k)
+
+
+def fgo_core_run(s_bg, s_ba, yawcap):
+    """fgo_core.FGO itself, no measurements, keyframes at the replay's 1/30 s IMU-clock schedule. FGO.init is copied
+    here only to set the case's prior sigmas (the core's own init uses the configured ones); everything after init
+    (keyframe(), the gate, the cap, the recursion) is the core's code."""
+    f = fgo_core.FGO(window=0.25, kf_dt=1.0 / 30.0, lm_maxiter=2)
+    f.no_yawcap = not yawcap
+    pose0 = gtsam.Pose3(gtsam.Rot3.Ypr(0.0, pitch0, roll0), np.array([0.0, 0.0, 2.0]))
+    bias0 = gtsam.imuBias.ConstantBias(np.zeros(3), np.zeros(3))
+    pose_sig = np.array([S_ATT] * 3 + [S_P] * 3); vel_sig = np.array([S_V] * 3); bias_sig = np.array([s_ba] * 3 + [s_bg] * 3)
+    g0 = gtsam.NonlinearFactorGraph(); v0 = gtsam.Values()
+    g0.add(gtsam.PriorFactorPose3(X(0), pose0, gtsam.noiseModel.Diagonal.Sigmas(pose_sig)))
+    g0.add(gtsam.PriorFactorVector(V(0), np.zeros(3), gtsam.noiseModel.Diagonal.Sigmas(vel_sig)))
+    g0.add(gtsam.PriorFactorConstantBias(B(0), bias0, gtsam.noiseModel.Diagonal.Sigmas(bias_sig)))
+    v0.insert(X(0), pose0); v0.insert(V(0), np.zeros(3)); v0.insert(B(0), bias0)
+    f.smoother.update(g0, v0, fgo_core._tsmap({X(0): T0, V(0): T0, B(0): T0}))
+    f.cov_gate = np.diag(np.concatenate([pose_sig, vel_sig, bias_sig]) ** 2)
+    if not yawcap:     # cap off: the gate recursion does not run, so read the same recursion through log_cov
+        f.log_cov = True; f.cov_prev = f.cov_gate.copy()
+    f.t_yawchk = T0
+    f.prev_pose, f.prev_vel, f.prev_bias = pose0, np.zeros(3), bias0
+    f.t_last = T0; f.last = (T0, pose0, np.zeros(3))
+    times, rows = [], []
+    kf_next = T0 + 1.0 / 30.0
+    for i in range(n):
+        f.integrate_imu(acc[i], gyro[i], dts[i])
+        if t[i] >= kf_next - 1e-9:
+            f.keyframe(kf_next)
+            C = f.cov_gate; Rk = f.prev_pose.rotation().matrix()
+            Cth = Rk @ C[0:3, 0:3] @ Rk.T; Ct = Rk @ C[3:6, 3:6] @ Rk.T
+            rows.append(metrics((Cth[0, 0] + Cth[1, 1]) / 2, Cth[2, 2], (C[6, 6] + C[7, 7]) / 2, C[8, 8],
+                                (Ct[0, 0] + Ct[1, 1]) / 2, Ct[2, 2], np.trace(C[12:15, 12:15]) / 3, np.trace(C[9:12, 9:12]) / 3))
+            times.append(kf_next - T0)
+            kf_next += 1.0 / 30.0
+    fired = [(e[0] - T0, e[1]) for e in f.yawgate_log if e[3]]
+    tr = [e[2] for e in f.yawgate_log]
+    return pick(times, rows), dict(keyframes=f.k, checks=f.n_yaw_check, fired=f.n_yaw_fire,
+                                   first_fire_t=(fired[0][0] if fired else None), trace_max=(max(tr) if tr else None),
+                                   gate=fgo_core.ATT_VAR_GATE, yaw_dt=fgo_core.YAW_DT), {k_ for _, k_ in fired}
 
 
 _SIGMA_ORIG = U._sigma_points
@@ -276,26 +336,30 @@ res = {"window": win, "t_total_s": T_TOTAL, "n_imu": int(n), "imu_period_ms": 1e
        "stated": dict(QG=QG, QA=QA, QBG=QBG, QBA=QBA), "cases": {}}
 for case, (sbg_e, sba_e, sbg_o, sba_o, yc) in {"A": (S_BG_A, S_BA_A, S_BG_A, S_BA_A, False),
                                                  "B": (S_BG_B_EKF, S_BA_B, S_BG_B_OURS, S_BA_B, False),
-                                                 "C": (S_BG_A, S_BA_A, S_BG_A, S_BA_A, True)}.items():
-    if case == "B" and T_TOTAL > 10.0:
+                                                 "C": (S_BG_A, S_BA_A, S_BG_A, S_BA_A, True),
+                                                 "D": (S_BG_B_EKF, S_BA_B, S_BG_B_OURS, S_BA_B, True)}.items():
+    if case in ("B", "D") and T_TOTAL > 10.0:
         continue
     r = {}
     r["analytic"] = analytic(sbg_o, sba_o)
     if case == "A":
         r["analytic_tv"] = analytic(sbg_o, sba_o, time_varying=True)
-    if case == "B":
+    if case in ("B", "D"):
         r["analytic_ekf3init"] = analytic(sbg_e, sba_e)
     r["ekf3"], r["ekf3_info"] = ekf3(sbg_e, sba_e, constrain=1)
     if case == "A":
         r["ekf3_noconstrain"], _ = ekf3(sbg_e, sba_e, constrain=0)
-    r["ukf_offline"], r["ukf_offline_info"] = ukf(sbg_o, sba_o, "offline", yawcap=(case == "C"))
-    r["ukf_port"], r["ukf_port_info"] = ukf(sbg_o, sba_o, "port", yawcap=(case == "C"))
+    r["ukf_offline"], r["ukf_offline_info"] = ukf(sbg_o, sba_o, "offline", yawcap=yc)
+    r["ukf_port"], r["ukf_port_info"] = ukf(sbg_o, sba_o, "port", yawcap=yc)
     if case == "A":                                   # attribution test: the same UKF with the sigma-point jitter removed
         U._sigma_points = _sigma_points_nojitter
         r["ukf_offline_nojitter"], _ = ukf(sbg_o, sba_o, "offline")
         r["ukf_port_nojitter"], _ = ukf(sbg_o, sba_o, "port")
         U._sigma_points = _SIGMA_ORIG
-    r["fgo"], r["fgo_info"] = fgo(sbg_o, sba_o, yawcap=(case == "C"))
+    r["fgo"], r["fgo_info"], fired_keys = fgo_core_run(sbg_o, sba_o, yawcap=yc)
+    r["fgo_chain"], r["fgo_chain_info"] = fgo(sbg_o, sba_o, cap_keys=fired_keys)
+    if yc:
+        r["fgo_ungated"], r["fgo_ungated_info"] = fgo(sbg_o, sba_o, yawcap=True)
     res["cases"][case] = r
     print(f"== case {case}")
     for est in [k for k in r if not k.endswith("_info")]:

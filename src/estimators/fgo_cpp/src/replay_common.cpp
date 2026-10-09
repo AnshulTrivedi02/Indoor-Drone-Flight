@@ -314,6 +314,10 @@ ReplayResult Runner::finish() {
   }
   res_.n_flow = fgo_.n_flow; res_.n_range = fgo_.n_range; res_.n_imu = fgo_.n_imu;
   res_.n_tag = fgo_.n_tag; res_.n_gnss = fgo_.n_gnss; res_.n_replaced = gp_.n_replaced;
+  res_.n_yaw_check = fgo_.n_yaw_check; res_.n_yaw_fire = fgo_.n_yaw_fire;
+  res_.yawgate_log.clear();
+  for (const auto& e : fgo_.yawgate_log)
+    res_.yawgate_log.insert(res_.yawgate_log.end(), {e.t, double(e.k), e.trace, e.fired ? 1.0 : 0.0});
   return res_;
 }
 
@@ -487,6 +491,7 @@ void write_outputs(const std::string& out, const ReplayConfig& cfg, const Replay
   write_bin(out + ".kf.f64", r.kf_rows);
   write_bin(out + ".step_ns.i64", r.step_ns);
   write_bin(out + ".avg.f64", r.avg_log);
+  write_bin(out + ".yawgate.f64", r.yawgate_log);
   write_tum(out + ".tum", r.kf_rows, KF_COLS, 1, 10, 13, cfg.mode == "room" ? 37 : -1);
   if (!r.batch_rows.empty()) {
     write_bin(out + ".batch.f64", r.batch_rows);
@@ -509,6 +514,7 @@ void print_summary(const ReplayResult& r) {
   if (!s.empty())
     std::printf("[timing] per-keyframe update: median=%.3fms p99=%.3fms\n", s[s.size() / 2] / 1e6,
                 s[std::min(s.size() - 1, size_t(0.99 * (s.size() - 1) + 0.5))] / 1e6);
+  std::printf("[yaw-cap gate] fired %d/%d checks (FGO_DESIGN §9.4)\n", r.n_yaw_fire, r.n_yaw_check);
   if (!r.batch_rows.empty())
     std::printf("[batch] %zu keys, error %.6f, %d iterations, %.1f s\n", r.batch_rows.size() / 14, r.batch_error,
                 r.batch_iterations, r.batch_s);

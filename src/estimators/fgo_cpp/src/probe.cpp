@@ -74,10 +74,15 @@ int main() {
   pm("gnssAb", boost::dynamic_pointer_cast<gtsam::JacobianFactor>(gf.linearize(vals))->augmentedJacobian());
 
   // one FGO keyframe through the real smoother: variant 0 = priors + CombinedImuFactor only (pure GTSAM),
-  // 1 = + yaw cap + range, 2 = + flow. Attributes any difference to the library build or to the port.
-  for (int variant = 0; variant < 3; ++variant) {
+  // 1 = + range (yaw-cap gate not yet checked), 2 = + flow, 3 = as 2 with a forced gate check (closed), 4 = as 3 with
+  // the gate prior's attitude variances inflated so that the cap is added (§9.4 gate, ruling 2026-10-09).
+  // Attributes any difference to the library build or to the port.
+  for (int variant = 0; variant < 5; ++variant) {
     FGO f(0.25, 1.0 / 30.0, 2);
     f.init(Vector3(-0.0009, 0.0009, 9.8107), 0.075, 10.0);
+    if (variant >= 3) f.t_yawchk = 9.0;
+    if (variant == 4)
+      for (int i = 0; i < 3; ++i) f.cov_gate(i, i) = 0.02;
     for (int i = 0; i < 11; ++i) {
       const Vector3 a(0.1 * i / 200, -0.05, 9.81 + 0.001 * i);
       const Vector3 w(0.01, -0.02 * i / 200, 0.03);
@@ -85,13 +90,17 @@ int main() {
     }
     const FlowMeas fm{Eigen::Vector2d(0.02, 0.17), true, 0.9};
     f.no_yawcap = (variant == 0);
-    f.keyframe(10.0 + 1.0 / 30.0, variant == 2 ? &fm : nullptr, Vector3(0.011, -0.007, 0.002), variant >= 1 ? 0.08 : NAN);
+    f.keyframe(10.0 + 1.0 / 30.0, variant >= 2 ? &fm : nullptr, Vector3(0.011, -0.007, 0.002), variant >= 1 ? 0.08 : NAN);
     std::printf("kf%d", variant);
     const gtsam::Matrix4 M = f.prev_pose.matrix();
     for (int i = 0; i < 12; ++i) std::printf(" %.17g", M(i / 4, i % 4));
     for (int i = 0; i < 3; ++i) std::printf(" %.17g", f.prev_vel[i]);
     for (int i = 0; i < 6; ++i) std::printf(" %.17g", f.prev_bias.vector()[i]);
     std::printf("\n");
+    if (variant >= 3) {
+      const auto& e = f.yawgate_log.at(0);
+      std::printf("gate%d %.17g %.17g %.17g %.17g\n", variant, e.t, double(e.k), e.trace, e.fired ? 1.0 : 0.0);
+    }
   }
   return 0;
 }
