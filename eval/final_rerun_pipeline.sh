@@ -47,7 +47,17 @@ runlog() { local out="$1"; shift; if [ "$DRY" = 1 ]; then printf '  %q' "$@"; ec
 stage() {   # stage NAME : true if NAME should run now
     if [ -n "$ONLY" ] && [ "$ONLY" != "$1" ]; then return 1; fi
     if [ "$DRY" = 0 ] && [ -f "$STATE/$1.done" ]; then log "skip $1 (done)"; return 1; fi
-    flight_check "$1"; log "BEGIN $1"; return 0
+    flight_check "$1"; code_check "$1"; log "BEGIN $1"; return 0
+}
+# The launcher releases the lock between stages, so code could be merged mid-run: before EVERY stage after preflight,
+# the md5 of every estimator / pipeline source must equal the preflight record, and the four corrections must still hold.
+code_check() {
+    [ "$DRY" = 1 ] && return 0
+    [ "$1" = preflight ] && return 0
+    [ -f "$STATE/provenance_md5.txt" ] || die "no preflight provenance record (run preflight first)"
+    python3 eval/final_rerun_checks.py provenance | grep '^md5' > "$STATE/provenance_now.txt"
+    cmp -s "$STATE/provenance_md5.txt" "$STATE/provenance_now.txt" || { diff "$STATE/provenance_md5.txt" "$STATE/provenance_now.txt" >> "$STATE/pipeline.log"; die "source md5 changed since preflight (before stage $1)"; }
+    python3 eval/final_rerun_checks.py corrections > "$STATE/corrections_now.txt" 2>&1 || die "corrections no longer all present (before stage $1)"
 }
 done_() { [ "$DRY" = 1 ] && { log "(dry) DONE $1"; return; }; touch "$STATE/$1.done"; log "DONE  $1"; }
 need() { [ "$DRY" = 1 ] && return 0; for s in "$@"; do [ -f "$STATE/$s.done" ] || die "stage requires $s.done"; done; }
@@ -138,6 +148,7 @@ if stage preflight; then
         python3 eval/final_rerun_checks.py corrections | sed 's/^/  /' || log "corrections check FAILS NOW (expected until the derotation change lands): the real run would DIE here"
     else
         python3 eval/final_rerun_checks.py provenance > "$STATE/provenance.txt" 2>&1 || die provenance
+        grep '^md5' "$STATE/provenance.txt" > "$STATE/provenance_md5.txt"
         cat "$STATE/provenance.txt" >> "$STATE/pipeline.log"
         python3 eval/final_rerun_checks.py corrections > "$STATE/corrections.txt" 2>&1 || { cat "$STATE/corrections.txt"; die "corrections not all present"; }
         cat "$STATE/corrections.txt" >> "$STATE/pipeline.log"
@@ -328,6 +339,14 @@ fi
 if stage h_shadows; then
     need snapshot
     unpack_trials "${H_SHADOW[@]}"                # no-op unless they have been packed since 2026-10-09
+    # PRE-SCORE with the CURRENT scorer on the EXISTING (old) shadow outputs, before any replay: the same-scorer "old" for
+    # the EKF3 gate and for old-vs-new (h_score.py renamed keys after the committed s1*.json were written). Once only.
+    PS="$STATE/prescore"; [ "$DRY" = 1 ] || mkdir -p "$PS"
+    if [ "$DRY" = 1 ] || [ ! -f "$PS/H.done" ]; then
+        for r in 1 2 3; do runlog "$PS/s1_r$r.txt" "$TAGS" eval/h_score.py "H_s1_r$r" --profile batches/expH/s1_profile.json --sigma 0.02 --json "$PS/s1_r$r.json" || die "prescore H_s1_r$r"; done
+        for r in 1 2; do runlog "$PS/s1far_r$r.txt" "$TAGS" eval/h_score.py "H_s1far_r$r" --profile batches/expH/s1_far_profile.json --sigma 0.02 --json "$PS/s1far_r$r.json" || die "prescore H_s1far_r$r"; done
+        [ "$DRY" = 1 ] || touch "$PS/H.done"
+    fi
     jobs_stage "$JOBS_DIR/room_H.jobs" final_room_H
     for r in 1 2 3; do
         runlog "$STATE/h_s1_r$r.txt" "$TAGS" eval/h_score.py "H_s1_r$r" --profile batches/expH/s1_profile.json --sigma 0.02 --json "$RES/expH/s1_r$r.json" || die "h_score H_s1_r$r"
@@ -335,7 +354,7 @@ if stage h_shadows; then
     for r in 1 2 3b; do
         runlog "$STATE/h_s1far_r$r.txt" "$TAGS" eval/h_score.py "H_s1far_r$r" --profile batches/expH/s1_far_profile.json --sigma 0.02 --json "$RES/expH/s1far_r$r.json" || die "h_score H_s1far_r$r"
     done
-    G=(); for f in s1_r1 s1_r2 s1_r3 s1far_r1 s1far_r2; do G+=("$OLD/expH/$f.json" "$RES/expH/$f.json"); done
+    G=(); for f in s1_r1 s1_r2 s1_r3 s1far_r1 s1far_r2; do G+=("$STATE/prescore/$f.json" "$RES/expH/$f.json"); done
     runlog "$STATE/gate_h.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in the H scores"
     done_ h_shadows
 fi
@@ -344,9 +363,14 @@ fi
 if stage expO; then
     need snapshot
     unpack_trials "${O_TRIALS[@]}"                # no-op unless they have been packed since 2026-10-09
+    PS="$STATE/prescore"; [ "$DRY" = 1 ] || mkdir -p "$PS"
+    if [ "$DRY" = 1 ] || [ ! -f "$PS/O.done" ]; then   # same-scorer "old" (see h_shadows)
+        for t in "${O_TRIALS[@]}"; do runlog "$PS/$t.txt" "$TAGS" eval/o_score.py "$t" --json "$PS/$t.json" || die "prescore $t"; done
+        [ "$DRY" = 1 ] || touch "$PS/O.done"
+    fi
     jobs_stage "$JOBS_DIR/room_O.jobs" final_room_O
     for t in "${O_TRIALS[@]}"; do runlog "$STATE/o_$t.txt" "$TAGS" eval/o_score.py "$t" --json "$RES/expO/$t.json" || die "o_score $t"; done
-    G=(); for t in "${O_TRIALS[@]}"; do G+=("$OLD/expO/$t.json" "$RES/expO/$t.json"); done
+    G=(); for t in "${O_TRIALS[@]}"; do G+=("$STATE/prescore/$t.json" "$RES/expO/$t.json"); done
     runlog "$STATE/gate_o.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in O"
     done_ expO
 fi
@@ -355,10 +379,15 @@ fi
 if stage expT; then
     need snapshot
     unpack_trials "${T_TRIALS[@]}"                # no-op unless they have been packed since 2026-10-09
+    PS="$STATE/prescore"; [ "$DRY" = 1 ] || mkdir -p "$PS"
+    if [ "$DRY" = 1 ] || [ ! -f "$PS/T.done" ]; then   # same-scorer "old" (see h_shadows)
+        for t in "${T_TRIALS[@]}"; do runlog "$PS/$t.txt" "$TAGS" eval/tag_score.py "$t" --json "$PS/$t.json" || die "prescore $t"; done
+        [ "$DRY" = 1 ] || touch "$PS/T.done"
+    fi
     jobs_stage "$JOBS_DIR/room_T.jobs" final_room_T
     for t in "${T_TRIALS[@]}"; do runlog "$STATE/t_$t.txt" "$TAGS" eval/tag_score.py "$t" --json "$RES/expT/$t.json" || die "tag_score $t"; done
     runlog "$STATE/t_aggregate.txt" python3 eval/t_aggregate.py --json "$RES/expT/t_aggregate.json" || die t_aggregate
-    G=(); for t in "${T_TRIALS[@]}" t_aggregate; do G+=("$OLD/expT/$t.json" "$RES/expT/$t.json"); done
+    G=(); for t in "${T_TRIALS[@]}"; do G+=("$STATE/prescore/$t.json" "$RES/expT/$t.json"); done
     runlog "$STATE/gate_t.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in T"
     done_ expT
 fi

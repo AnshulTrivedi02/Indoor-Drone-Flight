@@ -60,6 +60,10 @@ Check 4 in detail:
   subtraction was moved into the core.
 - **Today it FAILS, as intended.** Both harnesses have the subtraction only under `if APIN == "biascorr":` (lines 161 and
   152).
+- **DEPENDENCY for the parallel derotation change.** It must make the bias-corrected rate the default in BOTH
+  `ukf_replay.py` AND `room_ukf_replay.py`, or move it into `ukf_core.update_flow` / `h_flow`. The ruling covers T, O
+  and the H shadows too, which use `room_ukf_replay.py`. A change to `ukf_replay.py` alone blocks the pipeline at
+  preflight, which is correct.
 - **Tested against simulated landings:** an unconditional subtraction, `if True:`, and an opt-out
   `if not os.environ.get(...)` all PASS.
 - **One form would make it fail falsely:** a condition that still mentions `APIN`/`biascorr` (e.g.
@@ -72,9 +76,20 @@ otherwise the run dies.
   last has no EKF3 leaves and is warned only.
 - The same gate is also applied after `dsn_extra`, after each forward set, after Phase 4, and on the H, O and T scores.
 - **Checked on the committed files:** 382 EKF3 leaves in them are compared, and all are pure-EKF3 paths.
-- **Caveat (H/O/T only):** if `h_score.py`, `o_score.py` or `tag_score.py` changed after their JSONs were committed, a
-  scorer change (not an estimator change) can trip these gates. The replays are then already `.done`, so a re-run redoes
-  only the scoring.
+- **H, O and T are gated against a SAME-SCORER pre-score, not against the committed JSONs.**
+  - **Why:** `h_score.py` has renamed `hold_windows_EKF3_flying` → `hold_windows_vehicle` since the committed `s1*.json`
+    were written. A gate against those files would die on scorer drift.
+  - **How:** before any replay in `h_shadows`, `expO` and `expT`, the current scorer is run once on the EXISTING (old)
+    outputs. It writes `~/thesis_data/batches/final_rerun/prescore/*.json`, with a once-only marker. The post-replay
+    EKF3 leaves are gated against these.
+  - **Second use:** the pre-scores are also the same-scorer "old" for the old-vs-new rows of H, O and T.
+
+**Code-drift check before every stage.**
+- **Why it is needed:** the per-stage launcher releases `BUILD_LOCK` between stages, so code could be merged mid-run.
+- **What is checked:** before every stage after `preflight`, the md5 of each estimator source, each pipeline script and
+  each shared evaluator (`run_set_eval`, `three_way_eval`, `imu_gap_check`, `dsn_paired_test`, `phase4_eval`, and the
+  H/T/O/L scorers) must equal the preflight record. The four-correction check must also still pass.
+- **Otherwise:** the run dies.
 
 **Flight check.**
 - Runs at the start of every stage: `FLIGHT_LOCK`, `[a]rducopter` or `[g]z sim`.
@@ -147,7 +162,7 @@ replayed trials already have the file.
 
 ## 3. Dry run
 
-- **Output:** `docs/handovers/2026-10-09_final_rerun_dryrun.txt`, 452 lines, with every command and all 253 job lines.
+- **Output:** `docs/handovers/2026-10-09_final_rerun_dryrun.txt`, 487 lines, with every command (including the pre-scores) and all 253 job lines.
   Reproduce it with `./eval/final_rerun_pipeline.sh --dry-run`. It writes nothing outside stdout.
 - **Corrections check:** (1)–(3) ok; **(4) FAILS**, as expected until the derotation change lands.
 - **Provenance at the time of the dry run:** HEAD `7f23197`.

@@ -29,7 +29,10 @@ SOURCES = ["src/estimators/ukf_core.py", "src/estimators/measurement_models.py",
            "src/estimators/ukf_replay.py", "src/estimators/room_ukf_replay.py", "src/estimators/apin.py",
            "src/estimators/fgo/fgo_core.py", "src/estimators/fgo/factors.py", "src/estimators/fgo/fgo_replay.py",
            "src/estimators/fgo/room_fgo_replay.py", "src/estimators/fgo/lc_fgo_replay.py",
-           "src/estimators/fgo_cpp/src/fgo_core.cpp", "src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h"]
+           "src/estimators/fgo_cpp/src/fgo_core.cpp", "src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h",
+           "eval/final_rerun_pipeline.sh", "eval/final_rerun_checks.py", "eval/run_set_eval.sh", "eval/run_jobs_resumable.sh",
+           "eval/three_way_eval.py", "eval/imu_gap_check.py", "eval/dsn_paired_test.py", "eval/phase4_eval.py",
+           "eval/h_score.py", "eval/tag_score.py", "eval/o_score.py", "eval/l_score.py"]
 
 
 def md5(p):

@@ -1,5 +1,8 @@
 # BEGIN preflight
-  thesis_ws HEAD 7f231976b2bf2c822955f17e63e01f913efa89a4
+  thesis_ws HEAD 1bed43ee9ff207a69e0b3176c39b2772f29c3200 (TRACKED FILES MODIFIED)
+  M docs/handovers/2026-10-09_final_rerun_dryrun.txt
+   M eval/final_rerun_checks.py
+   M eval/final_rerun_pipeline.sh
   md5 483383f0e2646991571f060c092f0c4b  src/estimators/ukf_core.py
   md5 1054a390c2b40894c323d6fbf3571999  src/estimators/measurement_models.py
   md5 a074c7c0409f492ba11153dd1d2c38dd  src/estimators/imu_timing.py
@@ -13,6 +16,18 @@
   md5 42e31a1050308f583cc7d5affdd23d90  src/estimators/fgo/lc_fgo_replay.py
   md5 de92e852465800d45fc1d2a83cc04d87  src/estimators/fgo_cpp/src/fgo_core.cpp
   md5 46ae8131696d8f4a96a151a1f07c4cf5  src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h
+  md5 f6dc087b505ce32f5874d5b1e9cc714e  eval/final_rerun_pipeline.sh
+  md5 0729a5e62661e1faa875c48e895cf852  eval/final_rerun_checks.py
+  md5 7d9e28fd8eca4b56dbd913429b4d6d28  eval/run_set_eval.sh
+  md5 8636582a5f18c96cebc77e803f666dde  eval/run_jobs_resumable.sh
+  md5 be25c7ecd21c7dff75f2da397be8321c  eval/three_way_eval.py
+  md5 7ec3d7a57a82b4704f8afc60e9c45d59  eval/imu_gap_check.py
+  md5 5bba532712220f4a721a78e0fbfeacbc  eval/dsn_paired_test.py
+  md5 47fb26bde7b1eadae95a30bdce06ed29  eval/phase4_eval.py
+  md5 bc6879a14cdb0a897a26b9cbced41325  eval/h_score.py
+  md5 2c0cfb5db683ac51acbb8490ec8a4a48  eval/tag_score.py
+  md5 2b83c407b860073a3c7d678f96854fae  eval/o_score.py
+  md5 d953ebaa2464b1e57c54755ec62d0c7b  eval/l_score.py
   md5 714338d0dcb18556b91904c08a4a2f74  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_replay
   md5 f642cd3712939d911abd9f480db8d229  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_node
   ok   (1) FGO setBiasAccOmegaInit = 0
@@ -325,6 +340,11 @@
 # (dry) DONE f4
 # BEGIN h_shadows
   unpack (tools/bag_pack.sh unpack) 6 trials, 0 GB to restore
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r1  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r2  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r3  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r1  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r2  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r2.txt
   eval/run_jobs_resumable.sh batches/final_rerun/room_H.jobs final_room_H 6   # 12 jobs:
     job: hu__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r1
     job: hf__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r1 --no-batch
@@ -344,10 +364,13 @@
   /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r1  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r1.txt
   /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r2  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r2.txt
   /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r3b  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r3b.txt
-  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expH/s1_r1.json  eval/results/expH/s1_r1.json  eval/results_pre_final/expH/s1_r2.json  eval/results/expH/s1_r2.json  eval/results_pre_final/expH/s1_r3.json  eval/results/expH/s1_r3.json  eval/results_pre_final/expH/s1far_r1.json  eval/results/expH/s1far_r1.json  eval/results_pre_final/expH/s1far_r2.json  eval/results/expH/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_h.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r1.json  eval/results/expH/s1_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r2.json  eval/results/expH/s1_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1_r3.json  eval/results/expH/s1_r3.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r1.json  eval/results/expH/s1far_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/s1far_r2.json  eval/results/expH/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_h.txt
 # (dry) DONE h_shadows
 # BEGIN expO
   unpack (tools/bag_pack.sh unpack) 3 trials, 0 GB to restore
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r1  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r2  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r3b  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r3b.txt
   eval/run_jobs_resumable.sh batches/final_rerun/room_O.jobs final_room_O 6   # 9 jobs:
     job: ou__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss
     job: on__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss --rts-no-yawcap
@@ -361,10 +384,22 @@
   /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r1  --json  eval/results/expO/O_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r1.txt
   /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r2  --json  eval/results/expO/O_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r2.txt
   /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r3b  --json  eval/results/expO/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r3b.txt
-  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expO/O_r1.json  eval/results/expO/O_r1.json  eval/results_pre_final/expO/O_r2.json  eval/results/expO/O_r2.json  eval/results_pre_final/expO/O_r3b.json  eval/results/expO/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_o.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r1.json  eval/results/expO/O_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r2.json  eval/results/expO/O_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/O_r3b.json  eval/results/expO/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_o.txt
 # (dry) DONE expO
 # BEGIN expT
   unpack (tools/bag_pack.sh unpack) 12 trials, 0 GB to restore
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r1  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r2  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r3  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r1  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r2  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r3  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r1  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r2  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r3  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r1  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r2  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r3  --json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r3.txt
   eval/run_jobs_resumable.sh batches/final_rerun/room_T.jobs final_room_T 6   # 24 jobs:
     job: tf__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r1
     job: tu__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r1
@@ -403,7 +438,7 @@
   /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r2  --json  eval/results/expT/T_D_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_D_r2.txt
   /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r3  --json  eval/results/expT/T_D_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_D_r3.txt
   python3  eval/t_aggregate.py  --json  eval/results/expT/t_aggregate.json  > /home/makerspace/thesis_data/batches/final_rerun/t_aggregate.txt
-  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expT/T_A_r1.json  eval/results/expT/T_A_r1.json  eval/results_pre_final/expT/T_A_r2.json  eval/results/expT/T_A_r2.json  eval/results_pre_final/expT/T_A_r3.json  eval/results/expT/T_A_r3.json  eval/results_pre_final/expT/T_B_r1.json  eval/results/expT/T_B_r1.json  eval/results_pre_final/expT/T_B_r2.json  eval/results/expT/T_B_r2.json  eval/results_pre_final/expT/T_B_r3.json  eval/results/expT/T_B_r3.json  eval/results_pre_final/expT/T_C_r1.json  eval/results/expT/T_C_r1.json  eval/results_pre_final/expT/T_C_r2.json  eval/results/expT/T_C_r2.json  eval/results_pre_final/expT/T_C_r3.json  eval/results/expT/T_C_r3.json  eval/results_pre_final/expT/T_D_r1.json  eval/results/expT/T_D_r1.json  eval/results_pre_final/expT/T_D_r2.json  eval/results/expT/T_D_r2.json  eval/results_pre_final/expT/T_D_r3.json  eval/results/expT/T_D_r3.json  eval/results_pre_final/expT/t_aggregate.json  eval/results/expT/t_aggregate.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_t.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r1.json  eval/results/expT/T_A_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r2.json  eval/results/expT/T_A_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_A_r3.json  eval/results/expT/T_A_r3.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r1.json  eval/results/expT/T_B_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r2.json  eval/results/expT/T_B_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_B_r3.json  eval/results/expT/T_B_r3.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r1.json  eval/results/expT/T_C_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r2.json  eval/results/expT/T_C_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_C_r3.json  eval/results/expT/T_C_r3.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r1.json  eval/results/expT/T_D_r1.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r2.json  eval/results/expT/T_D_r2.json  /home/makerspace/thesis_data/batches/final_rerun/prescore/T_D_r3.json  eval/results/expT/T_D_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_t.txt
 # (dry) DONE expT
 # BEGIN d27item3
   # (opt-in: FINAL_D27I3=1)
