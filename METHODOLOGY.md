@@ -12745,3 +12745,22 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Implementation:** off-by-default DIAGNOSTIC toggles only, with outputs to a scratch root, never into a trial's
   stored outputs. It is built after the reproduction stage, so it does not touch files that stage uses, and it runs
   only if time allows.
+
+### Final re-run: pre-launch state (2026-10-09)
+- **Reproduction check (ruling item 5) PASSES for all four rebuilt job lists**
+  (`docs/handovers/2026-10-09_final_rerun_repro.md`). Each list's representative jobs reproduce the stored outputs
+  BYTE FOR BYTE at their producing commits:
+  - **T:** 5e9e12e / e88d403. The stored T set is consistent across its two code eras.
+  - **O:** 1558de1 / fb36114. `gnss.npz` has the same md5.
+  - **H:** 305694f / 6082c56. The stored S1-far FGO shadows predate the noise fix.
+  - **L:** 009ba2f.
+  - The scorers re-score byte-identically. The rebuilt choices are confirmed.
+  - The `s1_far` profile reproduces but cannot be told apart from the near profile in the scored windows.
+- **The old-vs-new script (`eval/rerun_compare.py`) now covers T, O, L, H, F1–F3c and 2(a).** It flags verdict and
+  band changes, V-L is "not re-scorable", and the self-test passes.
+- **Pipeline fixes made before launch:**
+  - D27 item 3 now runs on the `_v3` re-flights (ruling item 4; their `imu_gaps.json` was written, verdict ok);
+  - a `sens` stage re-runs the clock-shift and 0.20/0.40 m/s threshold rows (ruling item 8). It writes
+    `*_final.json`; the old files predate later corrections.
+- **`final_rerun_checks.py corrections`:** all four pass.
+- **Launched per stage**, with the opt-in stages enabled per rulings 2 and 4 (`FINAL_D27I3=1`, `FINAL_CL_PRED=1`).

@@ -11,7 +11,7 @@
 # (+ scale, heading share) -> phase5b -> d15_bb (kick, drift, RTF, blank behaviour) -> ftests (F1-F3c, PATnocap) -> f4
 # (2(a)) -> h_shadows -> expO -> expT -> [d27item3, opt-in] -> [cl_pred, opt-in] -> L.
 # STAGES (for --only / tools/launch_final_rerun.sh), in order:
-#   preflight snapshot unpack dsn dsn_extra bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
+#   preflight snapshot unpack dsn dsn_extra sens bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
 #   repack_corridor f4 h_shadows expO expT d27item3 cl_pred L compare
 # Resumable: each stage writes <STATE>/<stage>.done; a re-run skips finished stages, and the replay stages resume per job
 # (eval/run_jobs_resumable.sh). The snapshot and the trial-output archive DIE if their targets exist (never skip, never
@@ -224,6 +224,18 @@ if stage dsn_extra; then
     done_ dsn_extra
 fi
 
+# 2b. numbers.md sensitivity rows (ruling 2026-10-09 item 8): clock shift +-0.25/0.5 s and cruise thresholds 0.20/0.40 m/s,
+#     the same three_way_eval options as eval/results/phase0_cruise_pinned.json / threshold_{0.20,0.40}.json, on the nine
+#     corrected dsn bags. New file names (*_final.json): the old files predate later corrections, so no EKF3 gate here.
+if stage sens; then
+    need dsn
+    runlog "$STATE/sens_shift.txt" "$AP" eval/three_way_eval.py "${DSN[@]}" --shifts=-0.5,-0.25,0,0.25,0.5 --json "$RES/phase0_cruise_pinned_final.json" || die "sens shift"
+    for v in 0.20 0.40; do
+        runlog "$STATE/sens_thr_$v.txt" "$AP" eval/three_way_eval.py "${DSN[@]}" --cruise-speed "$v" --json "$RES/threshold_${v}_final.json" || die "sens thr $v"
+    done
+    done_ sens
+fi
+
 # 3. P4 bands from the corrected dsn (pre-registered formula; as D15). Exported for every later scoring step.
 if stage bands; then
     need dsn
@@ -393,19 +405,19 @@ if stage expT; then
 fi
 
 # 15. OPT-IN (needs a user ruling; off unless FINAL_D27I3=1): the D27 item 3 / D26 FGO heading-gate re-measurement with the
-#     corrected core (eval/fgo_core_replay.py --save-npz + eval/d26_fgo_gate.py) on the same D26 flights. The UKF side used
+#     corrected core (eval/fgo_core_replay.py --save-npz + eval/d26_fgo_gate.py) on the _v3 re-flights (ruling 2026-10-09 item 4; FGO side only). The UKF side used
 #     the port's SITL Replay (not an offline Python replay) and is NOT in this pipeline. The F3 prior-induced lockout is
 #     re-measured by f23_eval.py f3 in the ftests stage.
 if [ "${FINAL_D27I3:-0}" = 1 ] || [ "$DRY" = 1 ]; then
     if stage d27item3; then
         need ftests
         [ "$DRY" = 1 ] && echo "  # (opt-in: FINAL_D27I3=1)"
-        unpack_trials cl_fgo_b_tex_r1_half cl_fgo_b_tex_r3_half
-        for t in cl_fgo_b_tex_r1_half cl_fgo_b_tex_r3_half; do
+        unpack_trials cl_fgo_b_tex_r1_half_v3 cl_fgo_b_tex_r3_half_v3
+        for t in cl_fgo_b_tex_r1_half_v3 cl_fgo_b_tex_r3_half_v3; do
             runlog "$STATE/core_$t.txt" "$FGOP" eval/fgo_core_replay.py "$t" --save-npz || die "fgo_core_replay $t"
             runlog "$STATE/d26gate_$t.txt" "$FGOP" eval/d26_fgo_gate.py "$t" || die "d26_fgo_gate $t"
         done
-        repack_trials cl_fgo_b_tex_r1_half cl_fgo_b_tex_r3_half
+        repack_trials cl_fgo_b_tex_r1_half_v3 cl_fgo_b_tex_r3_half_v3
         done_ d27item3
     fi
 fi

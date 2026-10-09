@@ -19,7 +19,7 @@ TW="$HOME/thesis_ws"
 HEAVY="$TW/src/estimators/fgo_cpp/tools/heavy.py"
 PIPE="$TW/eval/final_rerun_pipeline.sh"
 STATE="$HOME/thesis_data/batches/final_rerun"
-STAGES=(preflight snapshot unpack dsn dsn_extra bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
+STAGES=(preflight snapshot unpack dsn dsn_extra sens bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
         repack_corridor f4 h_shadows expO expT)
 [ "${FINAL_D27I3:-0}" = 1 ] && STAGES+=(d27item3)
 [ "${FINAL_CL_PRED:-0}" = 1 ] && STAGES+=(cl_pred)
