@@ -12546,3 +12546,18 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
 2. S3 ×3 (`H_s3v2_r*`);
 3. the FGO corridor set (`*_v3`);
 4. then the UKF and FGO safety re-tests.
+
+### UKF heading set RE-FLOWN with the jitter-corrected UKF (`cl_ukf_b_tex_r{1,2,3}_half_v2`): ALL B criteria PASS 3/3 (the original r3 FAILED B4)
+| run | B1 max \|x\| flight | B2 max \|x\| cruise | B3 heading p95 / max / mean | B4 max lateral speed |
+|---|---|---|---|---|
+| r1 corrected / original | 0.334 / 0.389 m | 0.231 / 0.155 m | 0.382 / 0.512 / 0.242° against 0.175 / 0.284 / 0.080° | 0.012 / 0.011 m/s |
+| r2 corrected / original | 0.280 / 0.296 m | 0.253 / 0.134 m | 0.361 / 0.407 / 0.253° against 0.195 / 0.360 / 0.081° | 0.005 / 0.040 m/s |
+| r3 corrected / original | 0.274 / 0.527 m | 0.219 / 0.527 m | 0.344 / 0.406 / 0.250° against 0.213 / 1.317 / 0.024° | 0.019 / **0.296 (FAIL)** m/s |
+
+- **S2 (position valid, healthy) 100 %; B5 PASS in all.**
+- **Pattern** (the same as the corrected FGO's):
+  - a small steady heading offset, mean 0.24–0.25° against 0.02–0.08°;
+  - no heading excursions (max ≤ 0.51° against up to 1.32°);
+  - cruise lateral 0.22–0.25 m against 0.13–0.53 m;
+  - **no B4 lateral-speed episode** (the original r3's D22-type 0.30 m/s failure does not recur).
+- **Not measured:** why the jitter correction leaves a steadier ~0.25° heading offset in both corrected filters.

@@ -1,0 +1,101 @@
+{
+ "trial": "cl_ukf_b_tex_r2_half_v2",
+ "set": "b",
+ "cruise_s": [
+  30.421,
+  331.555
+ ],
+ "cruise_len_s": 301.134,
+ "clock_map": {
+  "offset_ms_start": 4.926530646989282,
+  "rate_ppm": 192.3070523163383
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 0.3600000000004356,
+   "max_deg": 0.400000000000484,
+   "mean_deg": 0.2484617940202322,
+   "diag_y_le_140": {
+    "p95": 0.35000000000043624,
+    "max": 0.400000000000484
+   },
+   "diag_y_gt_140": {
+    "p95": 0.3900000000004846,
+    "max": 0.400000000000484
+   },
+   "pass": true
+  }
+ },
+ "S2": {
+  "horiz_pos_rel_pct": 100.0,
+  "healthy_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.2801576337535722,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.25299838166432603,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.36117254376455515,
+   "max_deg": 0.4070710393195141,
+   "mean_deg": 0.2526934064814697,
+   "diag_y_le_140": {
+    "p95": 0.3590396839384582,
+    "max": 0.40345611035873563
+   },
+   "diag_y_gt_140": {
+    "p95": 0.3977593666320105,
+    "max": 0.4070710393195141
+   },
+   "pass": true,
+   "estimator": "ukf"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.005382511823312508,
+   "rms_mps": 0.001415506403690487,
+   "t_rel_cruise_of_max_s": 260.80000000004077,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.0019402198483386734,
+    "pitch": 0.0016445857459747243,
+    "yaw": 0.0027287949617821362
+   },
+   "window_s": [
+    35.421,
+    326.555
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.0019402198483386734,
+     "pitch": 0.0016445857459747243,
+     "yaw": 0.0027287949617821362
+    },
+    "window_s": [
+     35.421,
+     326.555
+    ],
+    "pass": true
+   }
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2281,
+  "sent_q_ge_50": 2195,
+  "VISP_cruise": 2281,
+  "VISP_ignored": 86
+ }
+}
