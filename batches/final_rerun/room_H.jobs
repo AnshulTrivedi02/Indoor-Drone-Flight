@@ -1,0 +1,16 @@
+# FINAL re-run, Experiment H offline shadows (RECONSTRUCTED: no committed job list existed; see the handover).
+# sigma_pos 0.02 (S0; METHODOLOGY 10730). H_s1_r*: UKF with RTS, FGO --no-batch (docs/h_backends_tag_input.md:17-20).
+# H_s1far_r1/r2: UKF --no-rts (no ukf_rts.tum in the stored output), FGO --no-batch. H_s1far_r3b: NEW shadows, as r1/r2.
+# H_s1far_r3 is EXCLUDED (IMU-gap rule: unusable).
+hu__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r1
+hf__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r1 --no-batch
+hu__H_s1_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r2
+hf__H_s1_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r2 --no-batch
+hu__H_s1_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r3
+hf__H_s1_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r3 --no-batch
+hu__H_s1far_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r1 --no-rts
+hf__H_s1far_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r1 --no-batch
+hu__H_s1far_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r2 --no-rts
+hf__H_s1far_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r2 --no-batch
+hu__H_s1far_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r3b --no-rts
+hf__H_s1far_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r3b --no-batch

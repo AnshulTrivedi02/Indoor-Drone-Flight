@@ -1,0 +1,9 @@
+# FINAL re-run, Experiment L (LAST; METHODOLOGY 10452-10563): keyframe FGO with/without loop closure on T_A_r1..r3, cut at
+# anchor + 245 s (the recorded deviation) -> lc_fgo_{lc,nolc}_t245/. FGO only (L has no UKF arm). nolc runs are the long ones.
+lnolc__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r1 --mode nolc --t-max 245
+lnolc__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r2 --mode nolc --t-max 245
+lnolc__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r3 --mode nolc --t-max 245
+llc__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r1 --mode lc --t-max 245
+llc__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r2 --mode lc --t-max 245
+llc__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r3 --mode lc --t-max 245
+lvl__dsn_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py dsn_tex_r1 --mode lc --no-tags

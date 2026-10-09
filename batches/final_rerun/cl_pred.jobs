@@ -1,0 +1,10 @@
+# FINAL re-run, closed-loop OFFLINE prediction inputs (DESCRIPTIVE ONLY; open question: whether to restate pre-registered bands).
+# batches/fgo_half_pred.jobs verbatim (offline FGO no-heading on the half-speed bags -> <trial>/fgo/).
+fgo__cl_a_tex_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_a_tex_half 0.25 2
+fgo__cl_bcpp_tex_r1_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r1_half 0.25 2
+fgo__cl_bcpp_tex_r2_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r2_half 0.25 2
+fgo__cl_bcpp_tex_r3_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r3_half 0.25 2
+fgo__cl_ukf_a_tex_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_a_tex_half 0.25 2
+fgo__cl_ukf_b_tex_r1_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r1_half 0.25 2
+fgo__cl_ukf_b_tex_r2_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r2_half 0.25 2
+fgo__cl_ukf_b_tex_r3_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r3_half 0.25 2

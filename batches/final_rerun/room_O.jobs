@@ -1,0 +1,12 @@
+# FINAL re-run, Experiment O (RECONSTRUCTED from the outputs and METHODOLOGY 10398-10447): GNSS fixes from <trial>/gnss.npz
+# (eval/extract_gnss.py; inputs, unchanged, not re-extracted). room_ukf (RTS on), the cap-free RTS check (room_ukf_rtsnocap/),
+# room_fgo with the whole-flight batch. O_r3 is EXCLUDED (IMU-gap rule; kept as O_r3_IMUGAP).
+ou__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss
+on__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss --rts-no-yawcap
+of__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r1 --gnss
+ou__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r2 --gnss
+on__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r2 --gnss --rts-no-yawcap
+of__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r2 --gnss
+ou__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r3b --gnss
+on__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r3b --gnss --rts-no-yawcap
+of__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r3b --gnss
