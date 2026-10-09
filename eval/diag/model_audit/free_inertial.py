@@ -243,7 +243,11 @@ def fgo(s_bg, s_ba, yawcap=False, cap_keys=None):
     vals.insert(X(0), pose0); vals.insert(V(0), np.zeros(3)); vals.insert(B(0), gtsam.imuBias.ConstantBias())
     yaw_noise = gtsam.noiseModel.Isotropic.Sigma(1, 0.5)
     k = 0; pose, vel = pose0, np.zeros(3); kf_next = T0 + 1.0 / 30.0; kts = []
-    want = {max(1, int(round(c * 30.0))) for c in CHK}
+    kf_n, nxt = 0, T0 + 1.0 / 30.0                     # the keyframe schedule, to cap the checkpoints at the last keyframe
+    for ti in t:
+        if ti >= nxt - 1e-9:
+            kf_n += 1; nxt += 1.0 / 30.0
+    want = {min(kf_n, max(1, int(round(c * 30.0)))) for c in CHK}
     times, rows = [], []
     for i in range(n):
         pim.integrateMeasurement(acc[i], gyro[i], dts[i])
