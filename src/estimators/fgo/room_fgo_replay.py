@@ -188,5 +188,7 @@ if DUMP:
                             "gnss_sigma_vel": float(GNSS_SIGMA_VEL), "gnss_align_speed": float(GNSS_ALIGN_SPEED),
                             "gnss_align_n": int(GNSS_ALIGN_N), "t_anchor": t_anchor,
                             "imu_gaps": (json.load(open(_gpj)) if os.path.exists(_gpj) else None)},
-                     _raw_ev, ev, _dump_flow_om, {}, _dump_kf, _batch_rows if (DO_BATCH and anchored) else None)
+                     _raw_ev, ev, _dump_flow_om, {}, _dump_kf, _batch_rows if (DO_BATCH and anchored) else None,
+                     yawgate=fgo.yawgate_log)
 print(json.dumps(stats))
+print(f"[yaw-cap gate] fired {fgo.n_yaw_fire}/{fgo.n_yaw_check} checks (the cap stops at a tag re-anchor, continues after a GNSS one; FGO_DESIGN §9.4)")

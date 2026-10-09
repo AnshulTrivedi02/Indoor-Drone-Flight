@@ -1,5 +1,5 @@
 // C++ port of src/estimators/fgo/fgo_core.py (class FGO): BatchFixedLagSmoother (window, LM max iterations),
-// CombinedImuFactor over every IMU sample, IMU-predicted zero-innovation yaw cap per keyframe, flow and range
+// CombinedImuFactor over every IMU sample, IMU-predicted zero-innovation yaw cap (variance-gated), flow and range
 // factors; the Phase 4 forward-camera heading / yaw-rate factors with the chi-square gate on the gate-only
 // filtering covariance recursion; the first-fix re-anchor with tag (experiment T) and GNSS (experiment O)
 // factors; and the whole-flight batch record. Not ported: the offline F-test variants (robust heading noise,
@@ -23,6 +23,17 @@ boost::shared_ptr<gtsam::PreintegrationCombinedParams> make_pim_params();
 
 constexpr double GYRO_B0 = 0.043633;   // EKF3 initial gyro-bias 1 sigma (rad/s)
 constexpr double ACCEL_B0 = 0.2;       // EKF3 initial accel-bias 1 sigma (m/s^2)
+// §9.4 yaw cap, VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2): as EKF3's
+// fuseEulerYaw(PREDICTED) and ukf_core.update_yaw_pseudo; fgo_core.py YAW_DT / ATT_VAR_GATE.
+constexpr double YAW_DT = 0.14;        // fire opportunity every 140 ms (MagFusion.cpp:263)
+constexpr double ATT_VAR_GATE = 0.04;  // fire only if trace(predicted attitude cov) > 0.04 rad^2 (MagFusion.cpp:274)
+
+struct YawGateEntry {   // fgo_core.yawgate_log: (t, k, trace of the predicted attitude cov, fired)
+  double t;
+  int k;
+  double trace;
+  bool fired;
+};
 
 struct FlowMeas {
   Eigen::Vector2d xy;
@@ -72,6 +83,12 @@ class FGO {
   bool no_yawcap = false;
   bool log_cov;
   gtsam::Matrix cov_prev;                // 15x15, empty until set
+  // §9.4 yaw-cap gate (ruling 2026-10-09): the same recursion, run whenever the cap is active (equal to cov_prev
+  // under log_cov); cov_prev and reanchor() keep their old semantics.
+  gtsam::Matrix cov_gate;
+  double t_yawchk = 0.0;
+  int n_yaw_check = 0, n_yaw_fire = 0;
+  std::vector<YawGateEntry> yawgate_log;
   std::vector<FwdLogEntry> fwd_log;
   gtsam::SharedNoiseModel tag_noise;     // set by reanchor (experiment T)
   gtsam::SharedNoiseModel gnss_noise;    // set by the caller (experiment O)
@@ -83,12 +100,15 @@ class FGO {
   std::vector<std::pair<int, double>> key_t;
 
  private:
-  gtsam::Matrix info(const gtsam::NonlinearFactorGraph& factors, const gtsam::Values& values, int km1, int kk) const;
+  gtsam::Matrix info(const gtsam::NonlinearFactorGraph& factors, const gtsam::Values& values, int km1, int kk,
+                     const gtsam::Matrix* prior = nullptr) const;
   gtsam::Values values_for(int km1, int kk, const Pose3& pose_k, const Vector& vel_k, const Bias& bias_k,
                            const gtsam::Values* src) const;
   void forward_factors(gtsam::NonlinearFactorGraph& g, double t, int km1, int kk, const Pose3& Xk, const Vector& Vk,
                        const FwdMeas* fwd);
-  gtsam::Matrix posterior_cov(const gtsam::NonlinearFactorGraph& g, const gtsam::Values& est, int km1, int kk) const;
+  gtsam::Matrix posterior_cov(const gtsam::NonlinearFactorGraph& g, const gtsam::Values& est, int km1, int kk,
+                              const gtsam::Matrix* prior = nullptr) const;
+  double att_trace_pred(const gtsam::NonlinearFactorGraph& g, int km1, int kk, const Pose3& Xk, const Vector& Vk) const;
 
   double window_;
   int lm_maxiter_;
