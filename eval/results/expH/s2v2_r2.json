@@ -1,0 +1,186 @@
+{
+ "trial": "H_s2v2_r2",
+ "sigma_pos": 0.02,
+ "hold_windows_vehicle": [
+  {
+   "t0": 49.09853852276533,
+   "t1": 104.09853852276532,
+   "mean_m": 0.006794691847470728,
+   "max_m": 0.021295672184823825,
+   "gyro_hp_rms_rad_s": 0.02313008049016751
+  },
+  {
+   "t0": 201.5841030878671,
+   "t1": 226.5841030878671,
+   "mean_m": 0.007431663883086989,
+   "max_m": 0.019224930419173777,
+   "gyro_hp_rms_rad_s": 0.023442393331106155
+  }
+ ],
+ "lateral_tracking_vehicle": {
+  "rmse_m": 0.10175585811005944,
+  "max_m": 0.2656563028028061
+ },
+ "losses": [
+  {
+   "t_on": 226.75216083401145,
+   "t_off": 231.93302941886796,
+   "duration_s": 5.180868584856512,
+   "EKF3_posTimeout_share": 1.0,
+   "EKF3": {
+    "drift_end_m": 0.015665558882500225,
+    "relock_s": 1.2157078162871642,
+    "jump_pos_m": 0.005850955685274905,
+    "jump_yaw_deg": 0.009999999999999377,
+    "lockout": false,
+    "err_after_relock_max_m": 0.014277849039237709,
+    "effective": {
+     "t_last_fix": 227.569,
+     "t_first_fix": 233.113,
+     "loss_s": 5.544000000000011,
+     "drift_m": 0.011057078532512216,
+     "relock_after_first_fix_s": 0.035737235155124836,
+     "jump_pos_m": 0.005850955685274905,
+     "jump_yaw_deg": 0.009999999999999377
+    }
+   },
+   "UKF_port": {
+    "drift_end_m": 0.006673964549733089,
+    "relock_s": 1.1551936709477388,
+    "jump_pos_m": 0.006602939451139808,
+    "jump_yaw_deg": 0.012898117303851845,
+    "lockout": false,
+    "err_after_relock_max_m": 0.015110837090169936,
+    "effective": {
+     "t_last_fix": 227.569,
+     "t_first_fix": 233.113,
+     "loss_s": 5.544000000000011,
+     "drift_m": 0.004975195929935752,
+     "relock_after_first_fix_s": -0.024776910184300505,
+     "jump_pos_m": 0.006602939451139808,
+     "jump_yaw_deg": 0.012898117303851845
+    }
+   }
+  },
+  {
+   "t_on": 252.06640482681428,
+   "t_off": 267.18393931718236,
+   "duration_s": 15.117534490368087,
+   "EKF3_posTimeout_share": 1.0,
+   "EKF3": {
+    "drift_end_m": 0.007608526933088443,
+    "relock_s": 1.0726818376439837,
+    "jump_pos_m": 0.007159896605368984,
+    "jump_yaw_deg": 0.019999999999998755,
+    "lockout": false,
+    "err_after_relock_max_m": 0.018364240884602905,
+    "effective": {
+     "t_last_fix": 252.418,
+     "t_first_fix": 268.225,
+     "loss_s": 15.807000000000016,
+     "drift_m": 0.00793920263334242,
+     "relock_after_first_fix_s": 0.03162115482632544,
+     "jump_pos_m": 0.007159896605368984,
+     "jump_yaw_deg": 0.019999999999998755
+    }
+   },
+   "UKF_port": {
+    "drift_end_m": 0.0068667916711400885,
+    "relock_s": 1.0121696926399295,
+    "jump_pos_m": 0.020370527826445297,
+    "jump_yaw_deg": 0.030044794082643878,
+    "lockout": false,
+    "err_after_relock_max_m": 0.01631554113884713,
+    "effective": {
+     "t_last_fix": 252.418,
+     "t_first_fix": 268.225,
+     "loss_s": 15.807000000000016,
+     "drift_m": 0.007680970898210038,
+     "relock_after_first_fix_s": -0.02889099017772878,
+     "jump_pos_m": 0.020370527826445297,
+     "jump_yaw_deg": 0.030044794082643878
+    }
+   }
+  },
+  {
+   "t_on": 287.3503202585843,
+   "t_off": 317.485372471273,
+   "duration_s": 30.13505221268872,
+   "EKF3_posTimeout_share": 1.0,
+   "EKF3": {
+    "drift_end_m": 0.02003211598185052,
+    "relock_s": 0.3104220429888187,
+    "jump_pos_m": 0.008962158027310412,
+    "jump_yaw_deg": 0.04999999999999689,
+    "lockout": false,
+    "err_after_relock_max_m": 0.01425186422403852,
+    "effective": {
+     "t_last_fix": 288.19,
+     "t_first_fix": 317.758,
+     "loss_s": 29.567999999999984,
+     "drift_m": 0.019986934390610153,
+     "relock_after_first_fix_s": 0.03779451426186142,
+     "jump_pos_m": 0.008962158027310412,
+     "jump_yaw_deg": 0.04999999999999689
+    }
+   },
+   "UKF_port": {
+    "drift_end_m": 0.010460749854966218,
+    "relock_s": 0.25004192011851956,
+    "jump_pos_m": 0.02195311899736285,
+    "jump_yaw_deg": 0.07280754297971598,
+    "lockout": false,
+    "err_after_relock_max_m": 0.013407515782460475,
+    "effective": {
+     "t_last_fix": 288.19,
+     "t_first_fix": 317.758,
+     "loss_s": 29.567999999999984,
+     "drift_m": 0.010448858981094171,
+     "relock_after_first_fix_s": -0.022585608608437724,
+     "jump_pos_m": 0.02195311899736285,
+     "jump_yaw_deg": 0.07280754297971598
+    }
+   }
+  },
+  {
+   "t_on": 348.0474962835242,
+   "t_off": 355.24170240917533,
+   "duration_s": 7.194206125651135,
+   "EKF3_posTimeout_share": 1.0,
+   "EKF3": {
+    "drift_end_m": 0.00627010088237429,
+    "relock_s": 0.7755000144093174,
+    "jump_pos_m": 0.014005077651336646,
+    "jump_yaw_deg": 0.009999999999999377,
+    "lockout": false,
+    "err_after_relock_max_m": 0.0118480705076994,
+    "effective": {
+     "t_last_fix": 347.986,
+     "t_first_fix": 355.972,
+     "loss_s": 7.98599999999999,
+     "drift_m": 0.0035063223146438237,
+     "relock_after_first_fix_s": 0.045202423584669305,
+     "jump_pos_m": 0.014005077651336646,
+     "jump_yaw_deg": 0.009999999999999377
+    }
+   },
+   "UKF_port": {
+    "drift_end_m": 0.0039524777277847355,
+    "relock_s": 0.7151198915391319,
+    "jump_pos_m": 0.009384131328941033,
+    "jump_yaw_deg": 0.010505259037030628,
+    "lockout": false,
+    "err_after_relock_max_m": 0.014434061395856321,
+    "effective": {
+     "t_last_fix": 347.986,
+     "t_first_fix": 355.972,
+     "loss_s": 7.98599999999999,
+     "drift_m": 0.0023552856420201813,
+     "relock_after_first_fix_s": -0.015177699285516155,
+     "jump_pos_m": 0.009384131328941033,
+     "jump_yaw_deg": 0.010505259037030628
+    }
+   }
+  }
+ ]
+}

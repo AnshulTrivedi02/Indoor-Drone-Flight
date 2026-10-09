@@ -12500,3 +12500,16 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
    - the UKF safety tests (a) and (b) at the 2 m-clearance hold (`H_safety_ukf_{a,b}_v2`).
    - The FGO build is merged, installed and checked BETWEEN flights. **No heavy jobs during flights** (heavy.py
      waits on the flight lock).
+
+### S2 RE-FLY with the jitter-corrected UKF (`H_s2v2_r{1,2,3}`, `eval/results/expH/s2v2_r*.json`); the original S2 is kept, labelled "old UKF (jitter)"
+- **Hold (vehicle):** mean 6.1–7.4 mm, max 17–21 mm (old: mean 4.9–6.3, max 15–21).
+- **Drift during loss, UKF flying, end of loss (mm, r1 / r2 / r3):** 5 s 5 / 7 / 8; 15 s 19 / 7 / 26; 30 s 6 / 10 / 10;
+  move 26 / 4 / 5.
+  - **Within every band.** EKF3 (shadow): 3–28 mm.
+  - **The S2 prediction (EKF3 scale) still holds.**
+- **Re-lock (primary):** −0.048…−0.015 s, PASS within ±0.1 s (event-time stamping, as before).
+- **Lockout:** none.
+- **Jump criterion AS WORDED:** fails in most losses (steps 5–30 mm against drifts 2–26 mm). This is the same pattern
+  as the old UKF.
+- **Effect of the jitter correction on S2 (the old runs against these):** no material change. The flying UKF port
+  already drifted at EKF3's scale. Comparative H-H2/P-H3 are updated in the final restatement.
