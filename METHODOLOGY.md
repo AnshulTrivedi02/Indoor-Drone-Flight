@@ -12561,3 +12561,27 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
   - cruise lateral 0.22–0.25 m against 0.13–0.53 m;
   - **no B4 lateral-speed episode** (the original r3's D22-type 0.30 m/s failure does not recur).
 - **Not measured:** why the jitter correction leaves a steadier ~0.25° heading offset in both corrected filters.
+
+### S3 RE-FLY with the final corrected FGO (noise fix + gated yaw cap; node `f642cd37…`; `H_s3v2_r{1,2,3}`, `eval/results/expH/s3v2_r*.json`)
+- **Hold (vehicle):** mean 8.1–9.0 mm, max 18–28 mm (H-H1 PASS).
+- **Drift during loss, end of loss (mm, r1 / r2 / r3):** 5 s 13 / 20 / 17; 15 s 7 / 25 / 27; 30 s 22 / 15 / 9; move
+  17 / 11 / 18. **Within every FGO band.**
+- **Re-lock:** 0.002–0.032 s (PASS). **Lockout:** none.
+- **FGO yaw wander over the 30 s loss:** −0.23° / +0.52° / +0.52° (≤ 3°, PASS).
+- **Jump criterion AS WORDED:** the steps are now close to the drift (jump/drift: r1 11/12, 7/7, 22/23, 20/18;
+  r2 34/22, 25/26, 14/15, 7/10; r3 15/16, 30/27, 9/9, 12/18). It still fails in 4 of 12 losses (r1 move; r2 5 s;
+  r3 15 s; plus ties), against most losses in the noise-fix-only S3.
+- **ABLATION (gating alone; noise-fix-only `H_s3_r*` against these):**
+  - hold mean 7.6–8.2 against 8.1–9.0 mm;
+  - loss drift 4–19 against 7–27 mm;
+  - yaw wander 0.58–0.64° against −0.23…+0.52°;
+  - post-re-lock steps 6–27 against 7–34 mm, closer to the drift.
+  - **The gating changes the hold and loss metrics only at the few-mm level.**
+- The FGO re-flights (`*_v3`) follow; the comparative H criteria are restated at the end.
+
+### FGO re-flight `cl_fgo_a_tex_half_v3` (no heading, final corrected FGO, Python node): PRIMARY PASS
+- West-wall contact at cruise **+169.9 s**, inside [+145, +196]; no contact before +100 s; no message after arming
+  before contact.
+- `XFGO.OV` 100 % from arming to contact; age max 160 ms.
+- The "position lost" + LAND at 200.3 s is the post-contact teardown, as in v2.
+- **Ablation:** noise-fix-only v2 +169.6 s, original +165.8 s.
