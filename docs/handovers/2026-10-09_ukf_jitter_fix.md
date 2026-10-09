@@ -99,6 +99,9 @@ Outputs are in `results/fi60.json`, `results/fi10.json` and `results/tables.md`.
   - the port uses (dt·NSE)² at the step's actual dt, i.e. 1.2× at the harness's 15 ms steps;
   - step 2 predates D27 and had not been re-run against Python since. The 2026-10-08 UR1 check compared only old
     against new binary.
+  - **Measured, not inferred:** the 2026-10-08 export (OLD core, post-D27) against its OLD-port output also FAILS as
+    worded. E1 max 3.08 m, E3 2.3°, E4 gyro-z 0.43 deg/min; the first divergence is the same event 53 at t = 10.80 s
+    (`results/equiv_dsn_tex_r2_oldcore_oldport.json`). So the as-worded failure predates this change.
 - **DIAGNOSTIC (labelled, post hoc), `UKF_EQ_QDIAG` = the offline per-step Q diagonal: PASS on every band.**
   - E1: max 1.04e-5 m, rms 5.4e-6 m.
   - E3: 7.3e-6°.
@@ -134,12 +137,26 @@ Outputs are in `results/fi60.json`, `results/fi10.json` and `results/tables.md`.
 - Results: `results/tierA_H_s1_r1{,_diagD27q}.json`.
 - **Cholesky:** 0 retries and 0 failures.
 
-### 3.3 Tier B (Replay of `H_s1_r1/ardupilot.bin`): NOT re-run
-- It needs a Replay run with the new binary plus a fixed-core offline `room_ukf` reference, which tier A's export now
-  provides in scratch.
-- The new Replay binary is built (md5 `874f775a…`); the run was left for time.
-- UB1–UB4 concern the input path and do not involve `sigma_points`, so they are expected unchanged. UB5 compares
-  against the offline track and would need the new reference.
+### 3.3 Tier B (Replay of `H_s1_r1/ardupilot.bin`, `UKF_EXTPOS=1 UKF_EXTYAW=1`): RUN, but NOT EVALUABLE on this log since 00b597dd
+- **Build:** Replay was rebuilt from the COMMITTED `ukf-jitter-fix` (abb0357d0f) in a fresh scratch worktree.
+  - The committed `UKF_Equiv` reproduces the tested build's free-inertial diag(P) and state **byte for byte**, with 0
+    retries.
+  - The md5s happen to equal the tested ones (Replay `874f775a…`, UKF_Equiv `8f915bf0…`).
+- **Run:** the Replay ran to completion: 9,830 shadow rows; inputs T 8,670, P 65,903, Y 76.
+- **But the port prints "UKF: first tag anchor refused (armed)", and 0 fixes are processed (no `TP` rows).**
+  - So `eval/ukf_tag_tierB.py` cannot score UB1–UB6. It stops with an IndexError on the empty TP array.
+- **Cause: the branch base, not this change.**
+  - The base `ukf-port-tag` 00b597dd ("UKF refuses the first tag anchor once armed", ruling 2026-10-09) refuses
+    H_s1_r1's first, post-arm fix.
+  - **Measured:** the base's own Replay (`~/ardupilot_ukf/build`, md5 `5cefc802…`, run read-only) shows the same
+    refusal and also 0 TP. The earlier tier-B PASS (Replay `ea486dea…`) predates 00b597dd.
+- **Consequence:** the registered tier B needs a log whose first fix comes before arming (the S2 flights). Otherwise
+  the user must rule how to re-register it.
+- **Side observation, indicative:** pseudo-yaw fusions over the Replay were 76 (fixed) against 131 (base). This is the
+  expected direction: the jitter no longer inflates the attitude variance past the gate.
+- **Cholesky over the Replay:** no "Cholesky needed jitter" message. The Replay prints GCS text (the anchor message
+  appears), so the warning would have shown.
+- Logs: `results/tierB_*`.
 
 ### 3.4 RTS-UKF
 - `rts_smooth` has its own diagonal scaling and does not rely on the jitter.
@@ -185,10 +202,18 @@ B=ardu; B=${B}copter; md5sum build/sitl/bin/$B build/sitl/tool/Replay build/sitl
 EOF
 python3 ~/thesis_ws/src/estimators/fgo_cpp/tools/heavy.py "rebuild ukf-jitter-fix" -- sh /tmp/rebuild_ukf.sh
 ```
-- **Expected md5s:** they should equal those above if the toolchain and configure are the same. The scratch build was
-  `./waf configure --board sitl --no-submodule-update`.
-- If they differ, `ukf-port-tag` was configured differently; the source diff is still the one commit.
-- **Do not reconfigure unless needed.**
+- **The md5s above are not the acceptance test.** A rebuild of the committed branch in a fresh scratch worktree did
+  give the same md5s. A rebuild in `~/ardupilot_ukf` may not: its configure and paths differ.
+- **Functional check after the rebuild:** the free-inertial diag(P) must be byte-identical to the tested build's, with
+  0 Cholesky retries.
+  ```
+  R=~/thesis_ws/eval/diag/ukf_jitter_fix/results
+  UKF_EQ_IN=$R/cfi60_A.bin UKF_EQ_OUT=/tmp/cfi_state.bin UKF_EQ_PDIAG=/tmp/cfi.pdiag ~/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+  cmp /tmp/cfi.pdiag $R/cfi60_A.pdiag && echo OK
+  ```
+  This was done for the committed branch in a fresh scratch worktree (§3.3).
+- With the OLD model the same check differs: the jitter changes P.
+- **Do not reconfigure unless needed** (the scratch build used `./waf configure --board sitl --no-submodule-update`).
 - **To return to the old model:** `git checkout ukf-port-tag`, then the same rebuild.
 
 **The offline fix is on this thesis_ws branch.** Every offline UKF replay after merging uses the corrected model.

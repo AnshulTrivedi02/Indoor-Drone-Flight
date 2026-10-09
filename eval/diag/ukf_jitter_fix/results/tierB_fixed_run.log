@@ -1,0 +1,14 @@
+874f775a8292dc5e119ac8d476c1fb3e  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/apukf/build/sitl/tool/Replay
+thesis shadow UKF: ExtNav yaw enabled (UKF_EXTYAW)
+thesis shadow UKF: ExtNav position fix enabled (UKF_EXTPOS)
+TOGCS: UKF: first tag anchor refused (armed)
+    9830 ukf_shadow.csv
+  244236 ukf_inputs.csv
+  254066 total
+tierB rc=1
+Traceback (most recent call last):
+  File "/home/makerspace/thesis_ws/.claude/worktrees/agent-af3c884451ec5bfd4/eval/ukf_tag_tierB.py", line 86, in <module>
+    ia = np.where(TP[:, 1] == 1)[0]
+                  ~~^^^^^^
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+DONE
