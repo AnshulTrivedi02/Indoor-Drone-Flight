@@ -37,6 +37,7 @@ ap = argparse.ArgumentParser(); ap.add_argument("old", nargs="?"); ap.add_argume
 ap.add_argument("--md"); ap.add_argument("--json"); ap.add_argument("--prescore")
 ap.add_argument("--selftest", metavar="RESULTS_DIR"); a = ap.parse_args()
 EXTRA_PREFIXES = ("T ", "O ", "L ", "H ", "F1", "F2", "F3", "2(a)", "file presence")
+SAME_FILE_PREFIXES = ("6.4 ", "7 P4 bands", "8 dataset")   # ruling 10: same rerun_* file on both sides
 
 
 def selftest(res):
@@ -46,9 +47,10 @@ def selftest(res):
         [sys.executable, me, o, n, "--md", f"{tmp}/{tag}.md", "--json", f"{tmp}/{tag}.json"], check=True,
         capture_output=True, text=True) and f"{tmp}/{tag}.json"))
     rows = run(res, res, "self")
-    # The corridor sections map OLD names to NEW names (e.g. dsn_dejitter_baseline -> rerun_dsn_evo), so OLD = NEW is
-    # not an identity there; the self-test covers the extended sections, whose OLD and NEW file names are the same.
-    extra = [r for r in rows if r["section"].startswith(EXTRA_PREFIXES)]
+    # Section 6.1 maps OLD dsn_dejitter_baseline -> NEW rerun_dsn_evo, so OLD = NEW is not an identity there. Since the
+    # ruling-10 fix (2026-10-10) sections 6.4, 7 and 8 read the same rerun_* files on both sides, so they ARE identities
+    # and are checked here alongside the extended sections.
+    extra = [r for r in rows if r["section"].startswith(EXTRA_PREFIXES + SAME_FILE_PREFIXES)]
     nonzero = [r for r in extra if (r["delta"] != "" and float(r["delta"]) != 0.0) or r.get("old_raw") != r.get("new_raw")]
     same = [r for r in extra if r["old"] != r["new"] and not r["new"].startswith("NOT re-scorable")]
     flagged = [r for r in extra if r["flag"]]
@@ -62,8 +64,10 @@ def selftest(res):
     def edit(rel, fn):
         p = f"{mut}/{rel}"; d = json.load(open(p)); fn(d); json.dump(d, open(p, "w"), indent=1)
     edit("expT/t_aggregate.json", lambda d: d["H-T1 (FGO live -> whole-flight batch)"].__setitem__("PASS", not d["H-T1 (FGO live -> whole-flight batch)"]["PASS"]))
-    def swap_o(d):   # ordering: FGO batch above RTS-UKF in O_r1
-        t = d["tracks"]; t["FGO hindsight (whole-flight batch)"]["indoor_rmse_m"] = t["RTS-UKF (hindsight)"]["indoor_rmse_m"] * 3
+    def swap_o(d):   # ordering: put the FGO batch on the OTHER side of the RTS-UKF in O_r1 (data-independent, 2026-10-10:
+        # the corrected FGO batch is already above the RTS-UKF, so a fixed "x3" no longer flips the sign)
+        t = d["tracks"]; fb, rts = t["FGO hindsight (whole-flight batch)"], t["RTS-UKF (hindsight)"]["indoor_rmse_m"]
+        fb["indoor_rmse_m"] = rts * 3 if fb["indoor_rmse_m"] < rts else rts / 3
     edit("expO/O_r1.json", swap_o)
     def band_h(d):   # P-H5: UKF 30 s drift beyond its 0.40 m band in s1_r1
         d["losses"][2]["UKF"]["drift_end_m"] = 0.55
@@ -71,7 +75,12 @@ def selftest(res):
     # a new-only H flight (s1far_r3b) that FAILS P-H5 must not change the both-sides counts (no flag)
     d3 = json.load(open(f"{mut}/expH/s1far_r1.json")); d3["losses"][2]["UKF"]["drift_end_m"] = 0.9
     json.dump(d3, open(f"{mut}/expH/s1far_r3b.json", "w"), indent=1)
-    rows = run(res, mut, "mut")
+    # s1far_r3b must be NEW-ONLY for this check. If the results directory already holds it (the final re-run does), the
+    # OLD side of the mutation run is a scratch copy without it (2026-10-10; previously the self-test needed a pre-r3b dir).
+    old_side = res
+    if os.path.exists(f"{res}/expH/s1far_r3b.json"):
+        old_side = f"{tmp}/old_no_r3b"; shutil.copytree(res, old_side); os.remove(f"{old_side}/expH/s1far_r3b.json")
+    rows = run(old_side, mut, "mut")
     want = {"T H-T1 verdict": lambda r: r["section"].startswith("T verdicts") and r["quantity"].startswith("H-T1 PASS"),
             "O ordering FGO batch vs RTS-UKF O_r1": lambda r: r["section"].startswith("O (§16.2) orderings") and "O_r1" in r["quantity"] and "FGO batch − RTS-UKF" in r["quantity"],
             "H P-H5 UKF 30 s s1_r1": lambda r: r["section"].startswith("H (§17) P-H5") and r["quantity"].startswith("s1_r1 loss 3") and "UKF" in r["quantity"] and "as worded" in r["quantity"]}
@@ -202,8 +211,11 @@ for t in ("dsn_tex_r3", "dsn_tex_r1", "dsn_tex_r2"):
     add("6.3 EKF3 lateral drift, heading share (pinned cruise window)", f"{t} residual (m/s)", get(oh, t, "resid_mean"), get(nh, t, "resid_mean"), "sign")
 
 # ---------- 6.4 forward-camera sets and p1c ----------
-for ds, of, nf in (("fwdc", "fwdc_evo.json", "rerun_fwdc_evo.json"), ("fwdplainc", "fwdplainc_evo.json", "rerun_fwdplainc_evo.json")):
-    od, nd_ = get(L(O, of), "trials"), get(L(N, nf), "trials")
+# FIXED 2026-10-10 (ruling 10): BOTH sides read the re-flown `rerun_*` files. The old side previously read the
+# superseded pre-re-fly fwdc_evo/fwdplainc_evo/p1c_evo/*_score.json and hard-coded bands (different flights: EKF3
+# differed although every EKF3 gate showed 0 differences), which produced 7 artefact flags in 6.4 and 8.
+for ds, nf in (("fwdc", "rerun_fwdc_evo.json"), ("fwdplainc", "rerun_fwdplainc_evo.json")):
+    od, nd_ = get(L(O, nf), "trials"), get(L(N, nf), "trials")
     for est in ("EKF3", "FGO", "UKF"):
         ov = [get(od, f"{ds}_tex_r{r}", "est", est, "ate_a_cruise", "+0.00") for r in (1, 2, 3)]
         nv = [get(nd_, f"{ds}_tex_r{r}", "est", est, "ate_a_cruise", "+0.00") for r in (1, 2, 3)]
@@ -215,7 +227,7 @@ for ds, of, nf in (("fwdc", "fwdc_evo.json", "rerun_fwdc_evo.json"), ("fwdplainc
                 nv = [get(nd_, f"{ds}_{w}_r{r}", "est", est, "failure", k) for r in (1, 2, 3)]
                 add(f"6.4 {ds} {w} failure metrics", f"{est} {m}, mean of 3", mean(ov), mean(nv),
                     "side:1" if k == "disp_ratio" else "mag", nd=2 if k == "disp_ratio" else 1)
-op, np_ = get(L(O, "p1c_evo.json"), "trials"), get(L(N, "rerun_p1c_evo.json"), "trials")
+op, np_ = get(L(O, "rerun_p1c_evo.json"), "trials"), get(L(N, "rerun_p1c_evo.json"), "trials")
 for t in ("p1c_fwdc_tex", "p1c_fwdplainc_tex"):
     for est in ("EKF3", "FGO", "UKF"):
         add("6.4 p1c check flights, textured evo -a (cruise), m", f"{t} {est}", get(op, t, "est", est, "ate_a_cruise", "+0.00"),
@@ -244,14 +256,12 @@ for ds in ("fwdc", "fwdplainc"):
     add("6.5 distance scale (textured, speed ratio)", f"flow sensor scale {ds} mean of 3", mean(ov), mean(nv), "side:1")
 
 # ---------- 7 bands ----------
-ob = {"EKF3": {"tex": {"ate": [1.26, 8.13]}, "trans": {"ratio": [0.51, 0.63], "onset": [96, 108]}, "blank": {"ratio": [0.12, 0.27], "onset": [13, 24]}},
-      "FGO": {"tex": {"ate": [4.17, 5.14]}, "trans": {"ratio": [0.67, 0.78], "onset": [90, 101]}, "blank": {"ratio": [1.45, 1.60], "onset": [28, 42]}}}
-nb = L(N, "rerun_p4_bands.json")
+ob, nb = L(O, "rerun_p4_bands.json"), L(N, "rerun_p4_bands.json")   # ruling 10: old bands from OLD/rerun_p4_bands.json
 for est in ("EKF3", "FGO"):
     for w in WORLDS:
         for k in (("ate",) if w == "tex" else ("ratio", "onset")):
             rows.append(("7 P4 bands (recomputed from the re-flown dsn, same formula)", f"{est} {w} {k}",
-                         str(ob[est][w][k]), str(get(nb, est, w, k)), "", ""))
+                         str(get(ob, est, w, k)), str(get(nb, est, w, k)), "", ""))
 ofq, nfq = L(O, "flow_quality_dsn.json"), L(N, "flow_quality_dsn.json")
 for w in WORLDS:
     for k in ("inlier_mean", "flow_y_raw_mean", "features_mean"):
@@ -259,9 +269,8 @@ for w in WORLDS:
             mean([get(nfq, f"dsn_{w}_r{r}", k) for r in (1, 2, 3)]), nd=4)
 
 # ---------- 8 pass counts ----------
-for ds, of, nf in (("fwdc", "fwdc_score.json", "rerun_fwdc_score.json"), ("fwdplainc", "fwdplainc_score.json", "rerun_fwdplainc_score.json"),
-                   ("p1c", "p1c_score.json", "rerun_p1c_score.json")):
-    o, n = get(L(O, of), "trials"), get(L(N, nf), "trials")
+for ds, nf in (("fwdc", "rerun_fwdc_score.json"), ("fwdplainc", "rerun_fwdplainc_score.json"), ("p1c", "rerun_p1c_score.json")):
+    o, n = get(L(O, nf), "trials"), get(L(N, nf), "trials")   # ruling 10: rerun_* on both sides
     cnt = lambda x: None if x is None else f"{sum(v['primary'] == 'PASS' for v in x.values())}/{len(x)}"
     rows.append(("8 dataset primary pass counts", f"{ds} primary PASS", cnt(o), cnt(n), "", ""))
     if o and n:
