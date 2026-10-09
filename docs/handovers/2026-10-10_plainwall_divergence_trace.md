@@ -20,7 +20,9 @@ EKF3's 0.1 rad (5.7°).**
   absolute heading.
 - In the heading arms the camera heading observes it. The prior then becomes a substantive claim, 17× tighter than
   the UKF's.
-- **With the UKF's 1°, the FGO reproduces the UKF on every plain-wall bag.**
+- **With the UKF's 1°, the FGO matches the UKF in yaw and gyro-z bias on every plain-wall bag** (yaw max within
+  0.02°, bgz within 0.1 deg/min). In position it matches on the textured floor. On the transition floor it falls
+  back to the FGO's own no-heading blank-half failure (§3).
 - **With the FGO's 1e-3 rad, the UKF diverges exactly as the FGO does.**
 - Hard gating is what *sustains* the failure (lockout), but the *trigger* is the prior.
 
@@ -137,13 +139,28 @@ bgz is in deg/min; the true value is +8.9 (the sign convention as in the Phase 4
 - **The behaviour follows the prior value, not the estimator.** It is symmetric: with the FGO's prior the UKF
   diverges (bias −335 / +499 deg/min). With the UKF's prior the FGO matches the UKF to ≤ 0.02° in yaw max on every
   plain-wall bag.
-- **Transition evo (560–730 m) is NOT yaw.** Yaw is fine (1.6–3.7° rms, as the UKF's). It is the known blank-half
-  position failure, the "cite the order of magnitude only" rows. Pre-correction FGO trans was about 1,060 m. Do not
+- **Transition evo (560–730 m) is NOT yaw.** Yaw is fine (1.6–3.7° rms, as the UKF's).
+  - It is the FGO's own no-heading blank-half position failure: the stored FGO **baseline** arm on the same bags is
+    726 / 557 / 584 m, against y0s1 656 / 732 / 560 m. The UKF baseline is 138 / 130 / 135 m and EKF3 41 m.
+  - These are the "cite the order of magnitude only" rows. The FGO-vs-UKF trans position gap is a baseline
+    property, not something the heading or the prior introduces. Pre-correction FGO trans was about 1,060 m. Do not
   read it as a regression from the 37–55 m "diverged" values: those were evaluated on a spinning trajectory.
 - **The controls are unaffected:** fwdc_tex_r1 is identical, and blank yaw max is 0.65 → 0.45°.
 - **NOT run:** the no-heading baseline arm with the new prior, and the C++ core. The baseline yaw is gauge-free, but
   the cap gate trace includes the yaw variance (+3e-4 rad² at init against the 0.04 gate). It should be checked if
   the correction is ruled in.
+
+## 3a. Consistency with the 2026-10-01 ruling ("the yaw-prior hypothesis was rejected")
+
+That ruling concerns a **different object**: the per-keyframe 0.5 rad zero-innovation yaw CAP.
+- METHODOLOGY "EXPLORATORY … C0/F2 pattern", Hypothesis 1, was tested with `F_NO_YAWCAP` on `fwdc_tex_r1`.
+- That was under the pre-correction IMU noise, on textured walls, where ground headings agree with truth.
+
+This stage concerns the **X(0) initial yaw σ**.
+- It matters only when the first headings disagree with the initial yaw by several σ_pred. That happens on plain
+  walls over the checker floor, about +3° on the ground.
+- It became decisive only after the `biasAccOmegaInit` correction removed the white-noise route (§1.5).
+- **No contradiction:** fwdc_tex_r1 is unchanged under the 1° prior to the printed precision (evo, yaw, bgz, fused count) (§3).
 
 ## 4. Answers to the ruling's questions
 
@@ -189,5 +206,6 @@ bgz is in deg/min; the true value is +8.9 (the sign convention as in the Phase 4
   - (a) yaw error in the first 3 s, for all four prior × estimator combinations;
   - (b) heading NIS and acceptance, FGO against UKF;
   - (c) yaw error over the flight (symlog).
-- Scratch outputs (not committed; unpacked bag copies about 26 GB, deleted after the stage):
+- Scratch outputs (not committed). The unpacked bag copies (about 26 GB) were deleted at the end of the stage;
+  the outputs remain in:
   `/tmp/claude-1000/…/scratchpad/pw/out/`.
