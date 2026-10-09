@@ -1,0 +1,114 @@
+{
+ "trial": "H_s1far_r1",
+ "reph": 9145,
+ "accepted_T": 9144,
+ "processed_P5": 9144,
+ "processed_TP": 9144,
+ "UB1": {
+  "ekf3_rule_accepts": 9144,
+  "same_count": true,
+  "ts_delay_match": true,
+  "event_time_rule_exact": true,
+  "event_time_clamped_share": 1.0,
+  "pos_max_abs_diff": 4.999694880325478e-09,
+  "yaw_max_abs_diff_rad": 3.0024684960494596e-09,
+  "rpos_max_rel_diff": 2.965169221269548e-10,
+  "ryaw_max_rel_diff": 2.0890489338398766e-10,
+  "pass": true
+ },
+ "UB2": {
+  "each_processed_once": true,
+  "time_ordered": true,
+  "min_horizon_minus_event_ms": 2,
+  "pass": true
+ },
+ "UB3": {
+  "n_anchor_rows": 1,
+  "anchor_is_first_processed": true,
+  "anchor_event_time_ms": 13714,
+  "state_eq_fix_max_abs": 0.0,
+  "pseudo_yaw_before_anchor": 6,
+  "pseudo_yaw_after_anchor": 0,
+  "pass": true
+ },
+ "UB4": {
+  "processed_eq_accepted": true,
+  "pass": true
+ },
+ "clock_map": {
+  "rate_ppm": 166.25897806276168,
+  "offset_s": 0.0031714791221350235
+ },
+ "UB5": {
+  "samples_visible": 7281,
+  "samples_total": 9429,
+  "horiz_m": {
+   "p50": 0.0005301586478533855,
+   "p95": 0.0038639764704251774,
+   "max": 0.010357509206666343
+  },
+  "yaw_deg": {
+   "p50": 0.0013386762707296026,
+   "p95": 0.004471380736434829,
+   "max": 0.01953612873592383
+  },
+  "band": "horizontal p95 <= 0.02 m, max <= 0.05 m; yaw p95 <= 1.0 deg, max <= 2.0 deg",
+  "pass": true
+ },
+ "diag_whole_after_anchor": {
+  "horiz_max_m": 0.28895362411648823,
+  "yaw_max_deg": 0.08185286442569539
+ },
+ "losses": [
+  {
+   "t_on": 226.05174783701307,
+   "t_off": 231.16759825168586,
+   "band_m": 0.1,
+   "as_worded": {
+    "t": 231.12759160132677,
+    "port_drift_m": 0.01141955060726513,
+    "offline_drift_m": 0.02780043637051448,
+    "port_minus_offline_m": 0.025137179187149347
+   },
+   "UB6_within_band": true
+  },
+  {
+   "t_on": 251.3689563505248,
+   "t_off": 266.5514801618118,
+   "band_m": 0.2,
+   "as_worded": {
+    "t": 266.53347716915016,
+    "port_drift_m": 0.009104242859469166,
+    "offline_drift_m": 0.11521997642428994,
+    "port_minus_offline_m": 0.1062552126151478
+   },
+   "UB6_within_band": true
+  },
+  {
+   "t_on": 286.6848269550402,
+   "t_off": 316.8168358392723,
+   "band_m": 0.4,
+   "as_worded": {
+    "t": 316.781830020208,
+    "port_drift_m": 0.010393564229525601,
+    "offline_drift_m": 0.2751606975895029,
+    "port_minus_offline_m": 0.2657241004833397
+   },
+   "UB6_within_band": true
+  },
+  {
+   "t_on": 346.95184522228135,
+   "t_off": 354.21305226246204,
+   "band_m": 0.3,
+   "as_worded": {
+    "t": 354.18804810598755,
+    "port_drift_m": 0.009201669046807286,
+    "offline_drift_m": 0.06441979334267889,
+    "port_minus_offline_m": 0.05661676460247181
+   },
+   "UB6_within_band": true
+  }
+ ],
+ "UB6_prediction_holds": true,
+ "pass_UB1_UB5": true
+}

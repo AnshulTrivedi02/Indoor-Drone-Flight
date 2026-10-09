@@ -12450,3 +12450,16 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
   `eval/diag/ukf_jitter_fix/results/cfi60_A.pdiag` is committed.
 - **The submodule-URL slip and its restoration are recorded** (section above): all 15 configured URLs match
   `.gitmodules`.
+
+### TIER B RESULT (re-registered on `H_s1far_r1`; corrected UKF port Replay against the corrected-core offline UKF; `eval/results/expH/ukf_tag_tierB_H_s1far_r1.json`): UB1–UB5 PASS, the UB6 prediction holds
+- **Replay:** the port anchored before arming ("UKF tag re-anchor: dN −3.89 dE −0.02 dyaw 0.2") and processed 9144
+  fixes.
+- **UB1:** EKF3's rule accepts the same 9144 fixes. Event-time rule exact; position diff ≤ 5e-9; yaw ≤ 3e-9 rad.
+- **UB2:** each fix processed once, in time order.
+- **UB3:** one anchor row, the first processed fix; state equals the fix; pseudo-yaw 6 before the anchor, 0 after.
+- **UB4:** processed = accepted.
+- **UB5:** tag-visible port − offline horizontal p95 **3.9 mm** (max 10 mm); yaw p95 0.004°.
+- **UB6 (prediction) HOLDS:** the port's own loss drift is 9–10 mm, against the offline UKF's 64–275 mm. The offline
+  core here still derotates with the RAW gyro: the derotation correction is pending for the consolidated re-run.
+- **Done BEFORE any UKF flight, as ruled.** The scratch HOME held real copies only (0 symlinks), and no stored result
+  was overwritten.
