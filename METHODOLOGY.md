@@ -12434,3 +12434,19 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
     local paths for a few minutes;
   - it restored them. Verified: the 15 configured submodule URLs equal `.gitmodules`'s, with none local;
   - nothing was fetched.
+
+### RULINGS (user, 2026-10-09) on the UKF jitter fix: accepted; tier B re-registered; step 2 / tier A as worded
+- **The UKF jitter fix is ACCEPTED and installed as reported.**
+- **Tier B RE-REGISTERED on `H_s1far_r1`** (EKF3 flying, anchored before arming), with the same bands as before
+  (UB1–UB6), and scored BEFORE any UKF flight.
+  - **Reason:** the original S1 log (`H_s1_r1`) is refused by the no-first-anchor-after-arming rule, which was adopted
+    after the bands were set. The re-registration does not follow from any result.
+  - The offline comparison track is the corrected-core offline UKF on the same flight, run into a scratch HOME so no
+    stored result is overwritten.
+- **Step 2 and tier A: FAILED AS WORDED, for the same known causes as D29** (the noise-form difference; round-off).
+  Nothing new.
+- **Acceptance input preserved permanently:** `~/thesis_data/acceptance/ukf_jitter_cfi60_A.bin`, sha256
+  `7009d33adf5167698b08c0ce08d28c43bea7284d7c0c5608009800f53c9a60da`. Its expected output
+  `eval/diag/ukf_jitter_fix/results/cfi60_A.pdiag` is committed.
+- **The submodule-URL slip and its restoration are recorded** (section above): all 15 configured URLs match
+  `.gitmodules`.
