@@ -1,0 +1,90 @@
+=== fwdplainc_tex_r1 [fgo_heading] first heading t=9.81  GT takeoff t=28.10  FGO fused 28  first-2s fused [ 9.91  9.95 10.15 10.35 10.38]
+   t=  9.813  FGO nis    358.21 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis     9.25 ok 0 sd_pred 1.009  e_yaw(UKF)  -0.000
+   t=  9.847  FGO nis    200.20 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.000 | UKF nis     9.15 ok 0 sd_pred 1.014  e_yaw(UKF)  -0.000
+   t=  9.880  FGO nis     93.62 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis     7.24 ok 1 sd_pred 1.026  e_yaw(UKF)  +2.712
+   t=  9.913  FGO nis      7.13 ok 1 sd_pred 0.367deg  e_yaw(FGO-GT)  +0.862 | UKF nis    71.87 ok 0 sd_pred 0.212  e_yaw(UKF)  +2.776
+   t=  9.947  FGO nis      1.92 ok 1 sd_pred 0.194deg  e_yaw(FGO-GT)  +0.909 | UKF nis    60.29 ok 0 sd_pred 0.259  e_yaw(UKF)  +2.816
+   t=  9.980  FGO nis     95.32 ok 0 sd_pred 0.172deg  e_yaw(FGO-GT)  +1.081 | UKF nis     0.07 ok 1 sd_pred 0.317  e_yaw(UKF)  +2.809
+   t= 10.013  FGO nis    531.52 ok 0 sd_pred 0.187deg  e_yaw(FGO-GT)  +1.252 | UKF nis   919.56 ok 0 sd_pred 0.193  e_yaw(UKF)  +2.801
+   t= 10.047  FGO nis    483.32 ok 0 sd_pred 0.204deg  e_yaw(FGO-GT)  +1.424 | UKF nis   706.20 ok 0 sd_pred 0.221  e_yaw(UKF)  +2.823
+   yaw-error slope t0+1..t0+10 s: FGO +4.765 deg/s (+285.9 deg/min)  UKF +0.009 deg/s
+=== fwdplainc_tex_r2 [fgo_heading] first heading t=12.56  GT takeoff t=28.21  FGO fused 21  first-2s fused [12.73 12.76 12.96 13.16 13.19]
+   t= 12.561  FGO nis    358.21 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis     9.25 ok 0 sd_pred 1.009  e_yaw(UKF)  -0.000
+   t= 12.594  FGO nis    162.04 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.001 | UKF nis     7.40 ok 1 sd_pred 1.014  e_yaw(UKF)  +0.585
+   t= 12.628  FGO nis    115.63 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis   896.72 ok 0 sd_pred 0.194  e_yaw(UKF)  +2.743
+   t= 12.661  FGO nis     70.00 ok 0 sd_pred 0.367deg  e_yaw(FGO-GT)  -0.001 | UKF nis   619.91 ok 0 sd_pred 0.234  e_yaw(UKF)  +2.768
+   t= 12.694  FGO nis     38.65 ok 0 sd_pred 0.444deg  e_yaw(FGO-GT)  -0.001 | UKF nis     0.01 ok 1 sd_pred 0.288  e_yaw(UKF)  +2.775
+   t= 12.728  FGO nis      3.51 ok 1 sd_pred 0.523deg  e_yaw(FGO-GT)  +0.921 | UKF nis    75.26 ok 0 sd_pred 0.209  e_yaw(UKF)  +2.790
+   t= 12.761  FGO nis      2.06 ok 1 sd_pred 0.191deg  e_yaw(FGO-GT)  +0.915 | UKF nis    68.65 ok 0 sd_pred 0.243  e_yaw(UKF)  +2.809
+   t= 12.794  FGO nis    105.52 ok 0 sd_pred 0.167deg  e_yaw(FGO-GT)  +1.041 | UKF nis     0.05 ok 1 sd_pred 0.280  e_yaw(UKF)  +2.805
+   yaw-error slope t0+1..t0+10 s: FGO +4.263 deg/s (+255.8 deg/min)  UKF +0.009 deg/s
+=== fwdplainc_tex_r3 [fgo_heading] first heading t=11.48  GT takeoff t=28.14  FGO fused 21  first-2s fused [11.64 11.68 11.88 12.08 12.11 12.18]
+   t= 11.478  FGO nis    358.20 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis     9.27 ok 0 sd_pred 1.008  e_yaw(UKF)  -0.000
+   t= 11.511  FGO nis    162.05 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.001 | UKF nis     7.45 ok 1 sd_pred 1.011  e_yaw(UKF)  +2.273
+   t= 11.544  FGO nis    115.62 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis   753.00 ok 0 sd_pred 0.212  e_yaw(UKF)  +2.739
+   t= 11.578  FGO nis     70.00 ok 0 sd_pred 0.367deg  e_yaw(FGO-GT)  -0.001 | UKF nis   501.23 ok 0 sd_pred 0.260  e_yaw(UKF)  +2.755
+   t= 11.611  FGO nis     38.66 ok 0 sd_pred 0.444deg  e_yaw(FGO-GT)  -0.002 | UKF nis     0.00 ok 1 sd_pred 0.319  e_yaw(UKF)  +2.768
+   t= 11.644  FGO nis      3.51 ok 1 sd_pred 0.523deg  e_yaw(FGO-GT)  +0.921 | UKF nis    86.02 ok 0 sd_pred 0.194  e_yaw(UKF)  +2.778
+   t= 11.678  FGO nis      2.06 ok 1 sd_pred 0.191deg  e_yaw(FGO-GT)  +0.915 | UKF nis    80.48 ok 0 sd_pred 0.222  e_yaw(UKF)  +2.792
+   t= 11.711  FGO nis    105.50 ok 0 sd_pred 0.167deg  e_yaw(FGO-GT)  +1.041 | UKF nis     0.03 ok 1 sd_pred 0.271  e_yaw(UKF)  +2.805
+   yaw-error slope t0+1..t0+10 s: FGO +4.063 deg/s (+243.8 deg/min)  UKF +0.009 deg/s
+=== fwdplainc_trans_r1 [fgo_heading] first heading t=12.23  GT takeoff t=28.02  FGO fused 19  first-2s fused [12.63]
+   t= 12.229  FGO nis    869.44 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis    22.45 ok 0 sd_pred 1.009  e_yaw(UKF)  -0.000
+   t= 12.262  FGO nis    486.04 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.001 | UKF nis    22.20 ok 0 sd_pred 1.014  e_yaw(UKF)  -0.000
+   t= 12.296  FGO nis    101.93 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis     7.88 ok 1 sd_pred 1.026  e_yaw(UKF)  +1.588
+   t= 12.329  FGO nis     53.93 ok 0 sd_pred 0.367deg  e_yaw(FGO-GT)  -0.001 | UKF nis     0.89 ok 1 sd_pred 0.194  e_yaw(UKF)  +2.797
+   t= 12.362  FGO nis     42.08 ok 0 sd_pred 0.444deg  e_yaw(FGO-GT)  -0.002 | UKF nis     0.29 ok 1 sd_pred 0.186  e_yaw(UKF)  +2.845
+   t= 12.396  FGO nis     83.54 ok 0 sd_pred 0.523deg  e_yaw(FGO-GT)  -0.002 | UKF nis    86.66 ok 0 sd_pred 0.204  e_yaw(UKF)  +2.881
+   t= 12.429  FGO nis     62.86 ok 0 sd_pred 0.603deg  e_yaw(FGO-GT)  -0.002 | UKF nis    57.20 ok 0 sd_pred 0.247  e_yaw(UKF)  +2.916
+   t= 12.462  FGO nis     48.92 ok 0 sd_pred 0.684deg  e_yaw(FGO-GT)  -0.003 | UKF nis    38.89 ok 0 sd_pred 0.295  e_yaw(UKF)  +2.950
+   yaw-error slope t0+1..t0+10 s: FGO -6.715 deg/s (-402.9 deg/min)  UKF -0.007 deg/s
+=== fwdplainc_trans_r2 [fgo_heading] first heading t=13.32  GT takeoff t=28.11  FGO fused 26  first-2s fused [13.72 13.79 13.86 14.09 14.12 14.16]
+   t= 13.322  FGO nis    337.25 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis     8.72 ok 1 sd_pred 1.008  e_yaw(UKF)  -2.930
+   t= 13.356  FGO nis    486.03 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.001 | UKF nis  1333.32 ok 0 sd_pred 0.211  e_yaw(UKF)  -2.931
+   t= 13.389  FGO nis    280.85 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis   882.43 ok 0 sd_pred 0.260  e_yaw(UKF)  -2.931
+   t= 13.422  FGO nis     61.73 ok 0 sd_pred 0.367deg  e_yaw(FGO-GT)  -0.001 | UKF nis   332.87 ok 0 sd_pred 0.318  e_yaw(UKF)  -2.931
+   t= 13.456  FGO nis    115.91 ok 0 sd_pred 0.444deg  e_yaw(FGO-GT)  -0.002 | UKF nis   405.28 ok 0 sd_pred 0.383  e_yaw(UKF)  -2.932
+   t= 13.489  FGO nis     83.54 ok 0 sd_pred 0.523deg  e_yaw(FGO-GT)  -0.002 | UKF nis   292.55 ok 0 sd_pred 0.451  e_yaw(UKF)  -2.932
+   t= 13.522  FGO nis     22.82 ok 0 sd_pred 0.603deg  e_yaw(FGO-GT)  -0.002 | UKF nis   109.22 ok 0 sd_pred 0.556  e_yaw(UKF)  -2.932
+   t= 13.556  FGO nis     48.93 ok 0 sd_pred 0.684deg  e_yaw(FGO-GT)  -0.003 | UKF nis   151.00 ok 0 sd_pred 0.628  e_yaw(UKF)  -2.933
+   yaw-error slope t0+1..t0+10 s: FGO +5.668 deg/s (+340.1 deg/min)  UKF +0.006 deg/s
+=== fwdplainc_trans_r3 [fgo_heading] first heading t=12.53  GT takeoff t=27.92  FGO fused 20  first-2s fused [12.93 13.13]
+   t= 12.535  FGO nis    315.45 ok 0 sd_pred 0.162deg  e_yaw(FGO-GT)  -0.000 | UKF nis     8.16 ok 1 sd_pred 1.008  e_yaw(UKF)  +2.834
+   t= 12.568  FGO nis    188.46 ok 0 sd_pred 0.217deg  e_yaw(FGO-GT)  -0.001 | UKF nis   902.46 ok 0 sd_pred 0.193  e_yaw(UKF)  +2.833
+   t= 12.602  FGO nis    109.22 ok 0 sd_pred 0.285deg  e_yaw(FGO-GT)  -0.001 | UKF nis     0.40 ok 1 sd_pred 0.234  e_yaw(UKF)  +2.947
+   t= 12.635  FGO nis    170.08 ok 0 sd_pred 0.367deg  e_yaw(FGO-GT)  -0.001 | UKF nis    72.05 ok 0 sd_pred 0.212  e_yaw(UKF)  +2.984
+   t= 12.668  FGO nis    115.90 ok 0 sd_pred 0.444deg  e_yaw(FGO-GT)  -0.001 | UKF nis    48.13 ok 0 sd_pred 0.255  e_yaw(UKF)  +3.018
+   t= 12.702  FGO nis     83.53 ok 0 sd_pred 0.523deg  e_yaw(FGO-GT)  -0.002 | UKF nis    32.96 ok 0 sd_pred 0.303  e_yaw(UKF)  +3.051
+   t= 12.735  FGO nis     62.86 ok 0 sd_pred 0.603deg  e_yaw(FGO-GT)  -0.002 | UKF nis    23.34 ok 0 sd_pred 0.353  e_yaw(UKF)  +3.084
+   t= 12.768  FGO nis     17.76 ok 0 sd_pred 0.684deg  e_yaw(FGO-GT)  -0.003 | UKF nis     0.30 ok 1 sd_pred 0.406  e_yaw(UKF)  +2.910
+   yaw-error slope t0+1..t0+10 s: FGO +7.227 deg/s (+433.6 deg/min)  UKF +0.010 deg/s
+=== fwdc_tex_r1 [fgo_heading] first heading t=11.23  GT takeoff t=28.20  FGO fused 9184  first-2s fused [11.23 11.27 11.3  11.33 11.37 11.4  11.43 11.47 11.5  11.53 11.57 11.6
+ 11.63 11.67 11.7  11.73 11.77 11.8  11.83 11.87 11.9  11.93 11.97 12.
+ 12.03 12.07 12.1  12.13 12.17 12.2  12.23 12.27 12.3  12.33 12.37 12.4
+ 12.43 12.47 12.5  12.53 12.57 12.6  12.63 12.67 12.7  12.73 12.77 12.8
+ 12.83 12.87 12.9  12.93 12.97 13.   13.03 13.07 13.1  13.13 13.17 13.2
+ 13.23]
+   t= 11.232  FGO nis      0.06 ok 1 sd_pred 0.180deg  e_yaw(FGO-GT)  -0.014 | UKF nis     0.00 ok 1 sd_pred 1.012  e_yaw(UKF)  -0.027
+   t= 11.265  FGO nis      0.01 ok 1 sd_pred 0.209deg  e_yaw(FGO-GT)  -0.034 | UKF nis     0.00 ok 1 sd_pred 0.222  e_yaw(UKF)  -0.044
+   t= 11.298  FGO nis      0.15 ok 1 sd_pred 0.215deg  e_yaw(FGO-GT)  -0.005 | UKF nis     0.12 ok 1 sd_pred 0.231  e_yaw(UKF)  -0.043
+   t= 11.332  FGO nis      0.04 ok 1 sd_pred 0.210deg  e_yaw(FGO-GT)  -0.024 | UKF nis     0.08 ok 1 sd_pred 0.215  e_yaw(UKF)  +0.010
+   t= 11.365  FGO nis      0.01 ok 1 sd_pred 0.200deg  e_yaw(FGO-GT)  -0.036 | UKF nis     0.03 ok 1 sd_pred 0.206  e_yaw(UKF)  -0.017
+   t= 11.398  FGO nis      0.00 ok 1 sd_pred 0.192deg  e_yaw(FGO-GT)  -0.047 | UKF nis     0.02 ok 1 sd_pred 0.199  e_yaw(UKF)  -0.035
+   t= 11.432  FGO nis      0.00 ok 1 sd_pred 0.186deg  e_yaw(FGO-GT)  -0.051 | UKF nis     0.00 ok 1 sd_pred 0.193  e_yaw(UKF)  -0.043
+   t= 11.465  FGO nis      0.01 ok 1 sd_pred 0.182deg  e_yaw(FGO-GT)  -0.053 | UKF nis     0.00 ok 1 sd_pred 0.196  e_yaw(UKF)  -0.046
+   yaw-error slope t0+1..t0+10 s: FGO -0.000 deg/s (-0.0 deg/min)  UKF -0.001 deg/s
+=== fwdc_trans_r1 [fgo_heading] first heading t=8.35  GT takeoff t=28.51  FGO fused 9318  first-2s fused [ 8.35  8.38  8.42  8.45  8.48  8.52  8.55  8.58  8.62  8.65  8.68  8.72
+  8.75  8.78  8.82  8.85  8.88  8.92  8.95  8.98  9.02  9.05  9.08  9.12
+  9.15  9.18  9.22  9.25  9.28  9.32  9.35  9.38  9.42  9.45  9.48  9.52
+  9.55  9.58  9.62  9.65  9.68  9.72  9.75  9.78  9.82  9.85  9.88  9.92
+  9.95  9.98 10.02 10.05 10.08 10.12 10.15 10.18 10.22 10.25 10.28 10.32
+ 10.35]
+   t=  8.350  FGO nis      0.06 ok 1 sd_pred 0.180deg  e_yaw(FGO-GT)  -0.014 | UKF nis     0.00 ok 1 sd_pred 1.011  e_yaw(UKF)  -0.043
+   t=  8.383  FGO nis      0.01 ok 1 sd_pred 0.209deg  e_yaw(FGO-GT)  -0.034 | UKF nis     0.00 ok 1 sd_pred 0.222  e_yaw(UKF)  -0.044
+   t=  8.417  FGO nis      0.00 ok 1 sd_pred 0.215deg  e_yaw(FGO-GT)  -0.046 | UKF nis     0.00 ok 1 sd_pred 0.211  e_yaw(UKF)  -0.044
+   t=  8.450  FGO nis      0.01 ok 1 sd_pred 0.210deg  e_yaw(FGO-GT)  -0.052 | UKF nis     0.00 ok 1 sd_pred 0.211  e_yaw(UKF)  -0.044
+   t=  8.483  FGO nis      0.01 ok 1 sd_pred 0.200deg  e_yaw(FGO-GT)  -0.055 | UKF nis     0.00 ok 1 sd_pred 0.208  e_yaw(UKF)  -0.044
+   t=  8.517  FGO nis      0.01 ok 1 sd_pred 0.192deg  e_yaw(FGO-GT)  -0.056 | UKF nis     0.00 ok 1 sd_pred 0.215  e_yaw(UKF)  -0.045
+   t=  8.550  FGO nis      0.01 ok 1 sd_pred 0.186deg  e_yaw(FGO-GT)  -0.057 | UKF nis     0.00 ok 1 sd_pred 0.200  e_yaw(UKF)  -0.044
+   t=  8.583  FGO nis      0.07 ok 1 sd_pred 0.182deg  e_yaw(FGO-GT)  -0.048 | UKF nis     0.00 ok 1 sd_pred 0.191  e_yaw(UKF)  -0.044
+   yaw-error slope t0+1..t0+10 s: FGO -0.004 deg/s (-0.2 deg/min)  UKF -0.005 deg/s
