@@ -12672,3 +12672,18 @@ Scored with `eval/h_safety_score.py --from-effect --a2-bound 0.75` (`eval/result
 - **S-A4:** PASS.
 - **The FGO's earlier (b) failure as worded and its design flaw stay recorded.** This re-test is with the
   noise-corrected FGO and the 2 m clearance hold.
+
+### RESULT: UKF safety re-test (a), `H_safety_ukf_a_v2` (re-flown after the pre-arm gate abort; `_abort1` set aside): ALL PASS
+`eval/results/expH/safety_ukf_a_v2.json`. The failure was injected with `AHRS_UKF_TFAIL` at t_f 58.32 s and took effect
+at 59.00 s ("UKF TFAIL: output forced invalid").
+- **S-A1:** roll max 0.34°, pitch 0.18°, yaw 0.28° (n 95). PASS.
+- **S-A2:** "Thesis nav: UKF position lost" and LAND (reason 6) in the same log tick as the forced-invalid text (0.00 s
+  from effect; bound 0.75 s). PASS. With this injection, effect and trigger coincide by construction. Unlike the
+  KILL test (b), there is no relay drain.
+- **S-A3:** disarmed after 8.80 s; max tilt 0.52°; touchdown vz −0.53 m/s; horizontal displacement 0.85 m; no
+  breach. PASS.
+- **S-A4:** PASS.
+- **All four re-tests are now done:**
+  - UKF (a): pass.
+  - UKF (b): S-A2 fails as worded (5.75 s against 5.5 s; relay drain), the other three pass.
+  - FGO (a) and FGO (b): pass.
