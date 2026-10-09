@@ -56,16 +56,26 @@ pm("tagAb", F.tag_factor(gtsam.noiseModel.Diagonal.Sigmas(np.array([0.05, 0.05, 
 pm("gnssAb", F.gnss_factor(gtsam.noiseModel.Diagonal.Sigmas(np.array([0.5, 0.5, 0.3, 0.3])), X(1), V(1),
                            (1.1, 2.2, 0.04, 0.5)).linearize(vals).augmentedJacobian())
 
-# one FGO keyframe through the real smoother (see probe.cpp): 0 = IMU only, 1 = + yaw cap + range, 2 = + flow
+# one FGO keyframe through the real smoother (see probe.cpp): 0 = IMU only, 1 = + range (the yaw-cap gate is not yet
+# checked, < 140 ms after init), 2 = + flow; 3 = as 2 with a forced gate check (closed), 4 = as 3 with the gate prior's
+# attitude variances inflated so that the gate opens and the cap factor is added (§9.4 gate, ruling 2026-10-09)
 from fgo_core import FGO
-for variant in range(3):
+for variant in range(5):
     f = FGO(window=0.25, kf_dt=1.0 / 30.0, lm_maxiter=2)
     f.init(np.array([-0.0009, 0.0009, 9.8107]), 0.075, 10.0)
     f.no_yawcap = variant == 0
+    if variant >= 3:
+        f.t_yawchk = 9.0
+    if variant == 4:
+        f.cov_gate = f.cov_gate.copy()
+        for i in range(3):
+            f.cov_gate[i, i] = 0.02
     for i in range(11):
         f.integrate_imu(np.array([0.1 * i / 200, -0.05, 9.81 + 0.001 * i]), np.array([0.01, -0.02 * i / 200, 0.03]), 0.003)
-    f.keyframe(10.0 + 1.0 / 30.0, flow=((np.array([0.02, 0.17]), True, 0.9) if variant == 2 else None),
+    f.keyframe(10.0 + 1.0 / 30.0, flow=((np.array([0.02, 0.17]), True, 0.9) if variant >= 2 else None),
                omega=np.array([0.011, -0.007, 0.002]), rng=(0.08 if variant >= 1 else None))
     M = f.prev_pose.matrix()
     vals = list(M[:3, :].reshape(-1)) + list(f.prev_vel) + list(f.prev_bias.vector())
     print(f"kf{variant}" + "".join(f" {v:.17g}" for v in vals))
+    if variant >= 3:
+        print(f"gate{variant}" + "".join(f" {float(v):.17g}" for v in f.yawgate_log[0]))

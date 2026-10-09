@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore, get_types_from_msg
 from fgo_core import FGO
+import fgo_core as _fc
 from measurement_models import h_flow_pose, FlowFrameGyroAverager, sitl_gyro_drift, GroundProximityFlow
 from measurement_models import FWD_ARMS, FWD_SIGMA, FWD_CHI2_GATE, forward_events, fwd_dataset, f_variant, f_filter_forward
 import json
@@ -162,7 +163,7 @@ if DUMP:
                             "fwd_sigma_psi": None if sig_fwd is None else float(sig_fwd["psi"]),
                             "fwd_sigma_omega": None if (sig_fwd is None or sig_fwd.get("omega") is None) else float(sig_fwd["omega"]),
                             "fwd_gate": float(fgo.fwd_gate), "imu_gaps": (json.load(open(_gpj)) if os.path.exists(_gpj) else None)},
-                     _raw_ev, ev, _dump_flow_om, _dump_fwd_gz, _dump_kf)
+                     _raw_ev, ev, _dump_flow_om, _dump_fwd_gz, _dump_kf, yawgate=fgo.yawgate_log)
 fl = np.array([r[:4] for r in fgo.fwd_log]).reshape(-1, 4)          # (t, kind, nis, ok): unchanged format
 fS = np.array([r[4] for r in fgo.fwd_log])                              # innovation covariance S (Phase 5b)
 np.savez_compressed(f"{OUTDIR}/timing_and_fwd.npz", t_keyframe_ns=np.array(step_ns, np.int64), fwd_log=fl,
@@ -224,6 +225,8 @@ print(f"[run] {n_kf} keyframes, window t=[{t_u[bi]:.0f},{t_u[bj-1]:.0f}]s   "
       f"flow factors {fgo.n_flow}  range factors {fgo.n_range}  imu {fgo.n_imu}")
 print(f"[timing] per-keyframe update: median={np.median(step_ms):.1f}ms  p99={np.percentile(step_ms,99):.1f}ms  "
       f"(deployability budget 33ms)")
+print(f"[yaw-cap gate] fired {fgo.n_yaw_fire}/{fgo.n_yaw_check} checks (trace(P_att) > {_fc.ATT_VAR_GATE}, "
+      f"every {_fc.YAW_DT} s; FGO_DESIGN §9.4)")
 print(f"[yaw] drift = {yaw_drift:+.2f} deg/min   (physical 9.8; EKF3 ~8.4; UKF-Euler 12.7)")
 print(f"[gyro-z bias] cruise mean = {bgz_mean:+.2f} deg/min  ({bgz_frac:.0f}% of true mean "
       f"{true_mean:.1f})   ramp d|b|/dt = {est_slope:+.2f} vs true {true_slope:+.2f} deg/min/min (ideal 3.00)")

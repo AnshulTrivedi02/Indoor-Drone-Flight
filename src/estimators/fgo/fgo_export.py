@@ -9,6 +9,7 @@ Files written for a prefix P:
                 each flow's interval-averaged omega and each forward frame's interval-averaged gyro-z
   P.kf.f64      per keyframe (KF_COLS columns, below)
   P.batch.f64   whole-flight batch solution, if any: (k, t, p xyz, R row-major 9)
+  P.yawgate.f64 §9.4 yaw-cap gate checks, if given: (t, k, trace of the predicted attitude cov, fired)
 Event rows (EV_COLS = 9): kind, t, then payload
   0 imu  acc xyz, gyro xyz          1 att  rate xyz                 2 rng  range
   3 flow fx, fy, valid, inlier, omega xyz (processed stream only; NaN in raw)
@@ -69,12 +70,14 @@ def kf_row(t_kf, t_lat, k_before, k_after, d_replaced, d_flow, d_range, flow_use
     return row
 
 
-def write(prefix, info, raw_ev, ev, flow_om, fwd_gz, kf_rows, batch_rows=None):
+def write(prefix, info, raw_ev, ev, flow_om, fwd_gz, kf_rows, batch_rows=None, yawgate=None):
     raw = event_rows(raw_ev); proc = event_rows(ev, flow_om, fwd_gz)
     raw.tofile(prefix + ".raw.f64"); proc.tofile(prefix + ".events.f64")
     np.asarray(kf_rows, np.float64).reshape(-1, KF_COLS).tofile(prefix + ".kf.f64")
     if batch_rows is not None:
         np.asarray(batch_rows, np.float64).reshape(-1, 14).tofile(prefix + ".batch.f64")
+    if yawgate is not None:
+        np.asarray(yawgate, np.float64).reshape(-1, 4).tofile(prefix + ".yawgate.f64")
     info = dict(info, event_cols=EV_COLS, kf_cols=KF_COLS, n_raw=len(raw), n_events=len(proc), n_kf=len(kf_rows),
                 n_batch=(None if batch_rows is None else len(batch_rows)))
     json.dump(info, open(prefix + ".init.json", "w"), indent=1)

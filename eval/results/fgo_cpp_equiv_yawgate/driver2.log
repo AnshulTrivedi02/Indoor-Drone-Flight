@@ -1,0 +1,13 @@
+[driver2] 14:02:30 START fe_tex
+[driver2] 14:05:22 END fe_tex rc=0
+[driver2] 14:05:22 START fd_tex
+[driver2] 14:08:18 END fd_tex rc=0
+[driver2] 14:08:18 START fe_blank
+[driver2] 14:08:52 END fe_blank rc=0
+[driver2] 14:08:52 START fd_blank
+[driver2] 14:09:25 END fd_blank rc=0
+[driver2] 14:09:25 START fe_trans
+[driver2] 14:11:21 END fe_trans rc=0
+[driver2] 14:11:21 START fd_trans
+[driver2] 14:13:10 END fd_trans rc=0
+[driver2] 14:13:10 ALL DONE

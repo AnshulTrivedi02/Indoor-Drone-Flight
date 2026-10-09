@@ -3,7 +3,7 @@ source inside. The replay harness and a future ROS2 node are thin wrappers that
 only call init()/integrate_imu()/keyframe() and read latest(). Follows
 FGO_DESIGN.md: IncrementalFixedLagSmoother, IMU-clock keyframes (§9.1),
 CombinedImuFactor over every IMU sample (§5), shared h_flow/h_range factors,
-weak yaw-prior per keyframe (§9.4).
+weak zero-innovation yaw prior, variance-gated as EKF3 (§9.4).
 """
 import numpy as np
 import gtsam
@@ -38,6 +38,11 @@ def make_pim_params():
 
 GYRO_B0 = 0.043633            # EKF3 initial gyro-bias 1σ (rad/s), FGO §5/§8
 ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
+# §9.4 yaw cap, VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2: a
+# correction of the implementation to its stated design). As EKF3's fuseEulerYaw(PREDICTED) and ukf_core.update_yaw_pseudo:
+YAW_DT = 0.14                 # fire opportunity every 140 ms (MagFusion.cpp:263; ukf_core YAW_DT)
+ATT_VAR_GATE = 0.04           # fire only if trace(predicted attitude cov) > 0.04 rad^2 (EKF3's quaternion trace > 0.01,
+#                               MagFusion.cpp:274, mapped to the attitude tangent as in ukf_core ATT_VAR_GATE)
 
 
 class FGO:
@@ -54,6 +59,12 @@ class FGO:
         self.fwd_sigma, self.fwd_gate = fwd_sigma, fwd_gate
         self.fwd_log = []          # (t, kind, nis, accepted)
         self.cov_prev = None       # gate-only filtering covariance of (X, V, B) at the last keyframe
+        # §9.4 yaw-cap gate (ruling 2026-10-09): the same gate-only recursion, run whenever the cap is active
+        # (independent of log_cov, so cov_prev and reanchor() keep their old semantics); equal to cov_prev under log_cov.
+        self.cov_gate = None
+        self.t_yawchk = None
+        self.yawgate_log = []      # (t, k, trace of the predicted attitude cov, fired) per check opportunity
+        self.n_yaw_check = self.n_yaw_fire = 0
         # BatchFixedLagSmoother re-solves the window with LM each step and is ROBUST
         # (FGO_DESIGN §6). The incremental iSAM2 path is unusable here: its
         # marginalizeLeaves cascades ("variable not in VectorValues" at the lag boundary)
@@ -114,6 +125,8 @@ class FGO:
             self.all_est = {X(0): pose0, V(0): np.array(vel0, float), B(0): bias0}; self.key_t = []
         if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
+        self.cov_gate = np.diag(np.concatenate([pose_sig, [0.1] * 3, bias_sig]) ** 2)
+        self.t_yawchk = t0                                # as ukf_replay: the first check 140 ms after init
         self.prev_pose, self.prev_vel, self.prev_bias = pose0, vel0, bias0
         self.t_last = t0; self.yaw_ref = 0.0
         self.last = (t0, pose0, vel0)
@@ -138,10 +151,20 @@ class FGO:
         # §9.4 yaw cap: anchor to THIS keyframe's IMU-predicted yaw -> zero innovation
         # (matches EKF3 fuseEulerYaw(PREDICTED), MagFusion.cpp:1062-1064/:970), bounding
         # the yaw marginal without injecting absolute heading.
+        # VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2; FGO_DESIGN §9.4):
+        # at most one cap per 140 ms check, and only if the trace of THIS keyframe's predicted attitude covariance
+        # (gate-only recursion: last keyframe's filtering cov + this IMU factor, before range/flow/forward) > 0.04 rad^2.
         i_yawcap = None
-        if not getattr(self, "no_yawcap", False):          # F3b (offline) only: off
-            i_yawcap = g.size()
-            g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
+        cap_on = not getattr(self, "no_yawcap", False)   # F3b / after a tag re-anchor: off
+        if cap_on and t - self.t_yawchk >= YAW_DT:
+            self.t_yawchk = t
+            tr = self._att_trace_pred(g, km1, k, Xk, Vk)
+            fire = bool(tr > ATT_VAR_GATE)
+            self.n_yaw_check += 1; self.n_yaw_fire += fire
+            self.yawgate_log.append((t, k, tr, fire))
+            if fire:
+                i_yawcap = g.size()
+                g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
         if rng is not None and 0.05 <= rng <= 40.0:
             g.add(F.range_factor(self.range_noise, X(k), rng)); self.n_range += 1
         if flow is not None:
@@ -173,10 +196,13 @@ class FGO:
                                      (np.array(est.atVector(key), float) if c == "v" else est.atConstantBias(key)))
         if self.log_cov:
             self.cov_prev = self._posterior_cov(g, est, km1, k)
+            self.cov_gate = self.cov_prev                     # the same recursion (the gate prior equals cov_prev)
             Rk = est.atPose3(X(k)).rotation().matrix()
             Pw = Rk @ self.cov_prev[3:6, 3:6] @ Rk.T          # body-frame translation tangent -> world
             Hy = F._jac_pose(lambda p_, v_, b_: np.array([p_.rotation().yaw()]), est.atPose3(X(k)), None, None, 1)
             self.cov_log.append((t, Pw[0, 0], Pw[0, 1], Pw[1, 1], float(Hy @ self.cov_prev[0:6, 0:6] @ Hy.T)))
+        elif cap_on:
+            self.cov_gate = self._posterior_cov(g, est, km1, k, prior=self.cov_gate)
         self.prev_pose = est.atPose3(X(k)); self.prev_vel = est.atVector(V(k)); self.prev_bias = est.atConstantBias(B(k))
         self.pim.resetIntegrationAndSetBias(self.prev_bias)
         self.k = k; self.t_last = t
@@ -224,6 +250,7 @@ class FGO:
             self.all_est = {X(k): pose, V(k): vel, B(k): bias}; self.key_t = [(k, t)]
         if self.log_cov:
             self.cov_prev = np.diag(np.concatenate([pose_sig, vel_sig, bias_sig]) ** 2)
+        self.cov_gate = np.diag(np.concatenate([pose_sig, vel_sig, bias_sig]) ** 2)   # yaw-cap gate (keep_yawcap)
         self.prev_pose, self.prev_vel = pose, vel
         self.k = k; self.no_yawcap = not keep_yawcap
         self.tag_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([sig_pos, sig_pos, sig_yaw]))
@@ -237,13 +264,13 @@ class FGO:
     # It is used ONLY to gate; the smoother's solution is untouched.
     _DIMS = (6, 3, 6)
 
-    def _info(self, factors, values, km1, k):
+    def _info(self, factors, values, km1, k, prior=None):
         keys = [X(km1), V(km1), B(km1), X(k), V(k), B(k)]
         off, o = {}, 0
         for key, dm in zip(keys, self._DIMS * 2):
             off[key] = (o, dm); o += dm
         L = np.zeros((o, o))
-        L[:15, :15] = np.linalg.inv(self.cov_prev)
+        L[:15, :15] = np.linalg.inv(self.cov_prev if prior is None else prior)
         for i in range(factors.size()):
             jf = factors.at(i).linearize(values)
             A = jf.jacobian()[0]
@@ -289,7 +316,15 @@ class FGO:
                 g.add(F.yawrate_factor(self.yawrate_noise, B(k), om, gz))
             self.fwd_log.append((t, 1, float(nis), ok, S))
 
-    def _posterior_cov(self, g, est, km1, k):
+    def _posterior_cov(self, g, est, km1, k, prior=None):
         v = self._values(km1, k, est.atPose3(X(k)), est.atVector(V(k)), est.atConstantBias(B(k)), src=est)
-        cov = np.linalg.inv(self._info(g, v, km1, k))[15:30, 15:30]
+        cov = np.linalg.inv(self._info(g, v, km1, k, prior))[15:30, 15:30]
         return 0.5 * (cov + cov.T)
+
+    def _att_trace_pred(self, g, km1, k, Xk, Vk):
+        """§9.4 gate quantity: trace of X(k)'s PREDICTED rotation-tangent covariance (rad^2), from the gate-only
+        recursion: the previous keyframe's filtering covariance (cov_gate) + this keyframe's IMU factor (g holds
+        only it when called), linearised at the IMU prediction. The trace is the same in the body and world frames.
+        As EKF3 / the UKF, the check sees the predicted covariance, before that step's other fusions."""
+        cov = np.linalg.inv(self._info(g, self._values(km1, k, Xk, Vk, self.prev_bias), km1, k, self.cov_gate))
+        return float(cov[15, 15] + cov[16, 16] + cov[17, 17])   # left to right, as the C++

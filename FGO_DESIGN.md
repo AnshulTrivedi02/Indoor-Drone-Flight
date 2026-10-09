@@ -918,6 +918,22 @@ or worse-controlled than the baselines by implementation accident.
 > frequency**. This refuted an earlier ~70–75%-confidence "Euler-vs-SO(3) formulation
 > difference" attribution. Full write-up in METHODOLOGY.md "FINDING".
 
+> **⚠️ IMPLEMENTATION CORRECTION (2026-10-09, user ruling: METHODOLOGY "MODEL AUDIT RESULT … RULINGS"
+> item 2) — the cap is now VARIANCE-GATED, as EKF3's and the UKF's.** The model audit found that the cap
+> was added at EVERY keyframe (30 Hz, ungated). In free inertial over 60 s that held the FGO's yaw variance at ×0.37
+> of EKF3's and the UKF's. The "each keyframe" wording above is superseded. Both cores (`fgo_core.py`,
+> `fgo_core.cpp`) now:
+> - check every 140 ms (`YAW_DT`: the first keyframe with t − t_check ≥ 0.14 s; t_check starts at init and is
+>   reset at every check, as `ukf_replay.py`). With 1/30 s keyframes that is every 5th keyframe (167 ms; EKF3 and
+>   the UKF check every ~150 ms);
+> - add the 0.5 rad zero-innovation cap only if the trace of THIS keyframe's PREDICTED attitude covariance exceeds
+>   0.04 rad² (`ATT_VAR_GATE`: EKF3's quaternion-trace gate 0.01, `MagFusion.cpp:274`, mapped as in `ukf_core`).
+> - "Predicted" = the gate-only filtering recursion (the previous keyframe's covariance + this keyframe's IMU
+>   factor, before range, flow and forward factors). It runs whenever the cap is active, independently of
+>   `log_cov`. Its newest-keyframe covariance equals the smoother's filtering marginal (checked against
+>   `gtsam.Marginals` in free inertial). onGround / AID_NONE are ignored, as in the UKF.
+> Handover: `docs/handovers/2026-10-09_fgo_yawcap_gate.md`.
+
 ### 9.5 Behaviour when flow aiding is lost — `[DECIDED — do NOT replicate const_pos]`
 
 **The question.** When flow is gated out (e.g. `corridor_blank`, where the NIS
