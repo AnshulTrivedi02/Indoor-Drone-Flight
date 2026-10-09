@@ -174,8 +174,8 @@ Legend: ⚑ = a verdict, ordering or wording change. Plain = a magnitude only.
 ### §6.4 Forward-camera textured (corrected old side; see §1.1)
 | quantity | old | new | flag | plain explanation |
 |---|---|---|---|---|
-| fwdc FGO r1/r2/r3 | 4.58 / 4.68 / 4.58 | 4.46 / 2.39 / 4.53 | ⚑ | mean 4.61 → 3.79, now below EKF3's 3.92 (n = 3, driven by r2) |
-| fwdc UKF r1/r2/r3 | 5.13 / 2.27 / 5.13 | 4.96 / 1.78 / 4.96 | ⚑ | mean 4.18 → 3.90, now below EKF3's (driven by r2) |
+| fwdc FGO r1/r2/r3 | 4.58 / 4.68 / 4.58 | 4.46 / 2.39 / 4.53 | ⚑ | mean 4.61 → 3.79, now 0.13 m below EKF3's 3.92 (n = 3, driven by r2) |
+| fwdc UKF r1/r2/r3 | 5.13 / 2.27 / 5.13 | 4.96 / 1.78 / 4.96 | | mean 4.18 → 3.90, equal to EKF3's 3.92 within 0.02 m (n = 3, driven by r2) |
 | fwdplainc FGO | 4.57 / 4.54 / 4.56 | 4.52 / 4.51 / 4.72 | | |
 | fwdplainc UKF | 5.17 / 11.51 / 11.09 | 5.02 / 11.19 / 10.82 | | r2/r3 take-off kick remains |
 | p1c FGO (fwdc; fwdplainc) | 4.57; 4.60 | **5.20**; 4.59 | ⚑ | p1c_fwdc 5.20 lies outside the OLD FGO band [4.189, 5.117] and passes only because the band widened (§5) |
@@ -223,6 +223,10 @@ The UKF's residual 1 % under-scale with heading is gone; it now matches the FGO.
 | Lockout total UKF_hard / FGO_hard / FGO_robust | 7 / 3 / 5 | 6 / **23** / 6 | | plain-wall hard-gate runaway |
 
 ### §15 Closed loop: §6 (contact prediction) and §7 (D27 item 3) below.
+
+The closed-loop scores themselves use no offline replay, so they are unchanged. The yaw-cap ABLATION pairs listed in
+the pipeline handover §5 (`H_s3_r*` vs `H_s3v2_r*`; `cl_fgo_*_v2` vs `_v3`; `H_safety_fgo_*_v2` vs `_v3`) are flight
+results outside this offline re-run. They are already recorded in METHODOLOGY and are not restated here.
 
 ### §16.1 T (`expT/t_aggregate.json`), mean horizontal RMSE (m), conditions A / B / C / D
 | track | old | new | flag |
@@ -302,6 +306,9 @@ Negative d means EKF3 is lower.
 | one-sided sign-test p (EKF3 lower / FGO lower) | 0.0625 / 1.0 | 0.227 / 0.992 |
 | **verdict as worded** | **EKF3 lower (both (a) and (b) met)** | **no ordering claimed**: (a) fails (5 of 7) and (b) fails (the CI contains 0) |
 
+- **The df detail does not change the verdict.** The registered text says df 6; the code uses n − 1 = 5, because r10
+  has no FGO value (as in the old run). (a) fails at 5/7 regardless, and with df 6 the interval is still about
+  ±0.85 m around −0.04, so it contains 0. The verdict holds against the original rule either way.
 - **The driver is r6.** On r6 the FGO is 1.43 m against EKF3's 3.11. Excluding r6 would be post hoc and is not done.
 - The original result came from an FGO with a mis-specified noise model.
 
@@ -375,6 +382,9 @@ Sources:
 
 - **How the weight was derived.** It comes from the window MEDIAN predicted σ, because the log has no per-heading σ
   for the outlier itself. It is consistent with the observed swing: 10.1° × 1.3 % ≈ 0.13°.
+- **R = 5° confirmed from the log, not assumed.** The heading bridge's `HEADING_SIGMA_DEG 0.148` is not the R used at
+  the gate. The logged NIS fixes it: 10.10² / (0.57² + 5²) = 4.03 matches r3's logged NIS 4.03, and
+  5.65² / 25.3 = 1.26 matches r1's logged 1.26.
 - **The structural 15.9 % FGO weighting is gone** on the corrected FGO.
 - **No FGO/UKF ratio is restated.** The UKF figure (2.9 %, σ 0.86°) is from the OLD UKF on a different flight.
   **The UKF side is OPEN** (ruling 4: it needs the port's SITL Replay).
