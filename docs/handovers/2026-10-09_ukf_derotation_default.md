@@ -5,7 +5,9 @@ Stage agent, worktree branch `worktree-agent-a84982284acff5fce`, from `fwd-camer
 implementation and its verification are in this stage.** The re-run of every offline UKF result (item 3(a)/(b)) is
 NOT done here.
 
-No simulator was run, and no trial directory was written. Every replay ran through `heavy.py`, one step at a time.
+No simulator was run, and no trial directory was written. Checked: `find` over the `H_s1far_r1`, `H_s1_r1` and
+`dsn_tex_r2` trial directories for files newer than the start of the runs (18:15) returns nothing.
+The event exporters run the replay scripts themselves (`runpy`), so they inherit the change. Every replay ran through `heavy.py`, one step at a time.
 No flight was running (`pgrep -fa '[a]rducopter'` empty, no `FLIGHT_LOCK`) before the runs or before the commits.
 
 ## 1. What changed
@@ -36,10 +38,12 @@ No flight was running (`pgrep -fa '[a]rducopter'` empty, no `FLIGHT_LOCK`) befor
   2026-10-09.
 
 **APIN modes after the change.**
-- In `flow`, `both` and `flowgyro`, the x/y derotation rate is EKF3's own bodyRate. z is the UKF's corrected average,
-  and h_flow does not use z: the lever arm is along z and `h_flow_rot` uses x/y only. These modes therefore reproduce
-  their earlier outputs. This was verified bit-identical for `flow` on dsn_tex_r2 (§2); `both` and `flowgyro` follow
-  by the same argument and were not run.
+- In `flow` and `both`, every flow event carries EKF3's own bodyRate as its x/y derotation rate. z is the UKF's
+  corrected average, and h_flow does not use z: the lever arm is along z and `h_flow_rot` uses x/y only. These modes
+  therefore reproduce their earlier outputs. This was verified bit-identical for `flow` on dsn_tex_r2 (§2); `both`
+  follows by the same argument and was not run.
+- **`flowgyro` does NOT reproduce.** Only bag frames paired to an ROFH record carry EKF3's gyro: 9445 of ~10238 on
+  dsn_tex_r2 (`apin/extract_stats.json`). The unpaired frames now get the corrected rate.
 - `imu` and `flowtime` derotate with the UKF's own corrected average, so they now differ from their stored outputs.
 
 ## 2. Verification

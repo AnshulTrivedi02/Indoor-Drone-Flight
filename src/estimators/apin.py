@@ -21,10 +21,11 @@ Range, tags, attitude rates: unchanged (bag).
 Since the 2026-10-09 default change every mode derotates with the bias-corrected rate wherever the rate comes from the
 UKF's own gyro stream (bag IMU, or the FC deltas in `imu`/`both`). Where `flow`/`both`/`flowgyro` substitute EKF3's
 bodyRate for x/y, those two components are EKF3's own (already bias-corrected) values and are not corrected again;
-only z (which h_flow does not use: the lever arm is along z) is the UKF's corrected average. Hence `flow`, `both` and
-`flowgyro` should reproduce their earlier outputs (verified for `flow` on dsn_tex_r2, see
-docs/handovers/2026-10-09_ukf_derotation_default.md), while `imu` and `flowtime` now differ from outputs stored before
-the change."""
+only z (which h_flow does not use: the lever arm is along z) is the UKF's corrected average. Hence `flow` and `both`
+(every flow event is an ROFH event carrying EKF3's gyro) reproduce their earlier outputs (verified for `flow` on
+dsn_tex_r2, see docs/handovers/2026-10-09_ukf_derotation_default.md). `flowgyro` does NOT: only the paired bag frames
+carry EKF3's gyro (9445 of ~10238 on dsn_tex_r2), and the unpaired ones now get the corrected rate. `imu` and
+`flowtime` also differ from outputs stored before the change."""
 import os
 import numpy as np
 
