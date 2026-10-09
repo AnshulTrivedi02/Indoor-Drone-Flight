@@ -116,6 +116,19 @@ H_s1far_r2, T_A_r2/r3 for L); `lvl__dsn_tex_r1` (V-L; packed bag; reported as no
   - O_r1 FGO batch set to 3× the RTS-UKF → the three O_r1 "FGO batch − …" orderings and the H-O1 count (3/3 → 2/3) flagged;
   - s1_r1 UKF 30 s drift set to 0.55 m (band 0.40) → that P-H5 row and the UKF P-H5 count (20/20 → 19/20) flagged.
   No other row in the extended sections was flagged.
+  - a new-only `s1far_r3b.json` (copy of s1far_r1 with a failing 0.9 m UKF 30 s drift) → its own "new-only" count row
+    (3/4 FAIL), **not** flagged, and the both-sides P-H5/P-H7 counts unchanged. (Added after review: the counts
+    originally mixed in flights present on one side only, so r3b alone could have flipped 20/20 to 23/24 as a
+    "VERDICT"; counts now use flights scored on both sides.)
+  - `f4_test.json` deleted on the new side → one `MISSING` row, a WARNING on stderr and exit code 3, so the pipeline's
+    `compare` stage dies instead of rendering "—" as "no change". A presence guard covers every file the extended
+    sections read (T aggregate, O ×3, L ×3, H ×6 with r3b allowed new-only, F1–F3c, F4).
+- **Loss order is checked, not assumed:** P-H5 bands are assigned by loss index (5/15/30 s, move); the script emits a
+  `LOSS ORDER` flag if a loss's `duration_s` falls outside 3–8 / 12–18 / 26–34 / 5–10 s. All five committed H files are in
+  order today (5.1–5.3, 15.1–15.6, 30.1–30.6, 7.2–7.6 s).
+- **New-side file names were checked against the dry run:** the pipeline writes `eval/results/expT/t_aggregate.json`,
+  `expO/O_*.json`, `expL/T_A_r*_t245.json`, `expH/s1*_r*.json` (including `s1far_r3b.json`) and `f1/f2/f3/f3b/f3c/f4_test.json`,
+  which are exactly the names read; the snapshot is a `cp -a eval/results eval/results_pre_final` (subdirectories included).
   - A second check with `--prescore` pointing at today's scorer's outputs on the stored data (renamed H key) gives 0
     mismatches and 0 flags in the 800 extended rows.
   - The corridor sections are NOT an identity under OLD = NEW (they map old file names to new ones,

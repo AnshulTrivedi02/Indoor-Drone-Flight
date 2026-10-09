@@ -36,7 +36,7 @@ WORLDS = ("tex", "trans", "blank")
 ap = argparse.ArgumentParser(); ap.add_argument("old", nargs="?"); ap.add_argument("new", nargs="?")
 ap.add_argument("--md"); ap.add_argument("--json"); ap.add_argument("--prescore")
 ap.add_argument("--selftest", metavar="RESULTS_DIR"); a = ap.parse_args()
-EXTRA_PREFIXES = ("T ", "O ", "L ", "H ", "F1", "F2", "F3", "2(a)")
+EXTRA_PREFIXES = ("T ", "O ", "L ", "H ", "F1", "F2", "F3", "2(a)", "file presence")
 
 
 def selftest(res):
@@ -68,6 +68,9 @@ def selftest(res):
     def band_h(d):   # P-H5: UKF 30 s drift beyond its 0.40 m band in s1_r1
         d["losses"][2]["UKF"]["drift_end_m"] = 0.55
     edit("expH/s1_r1.json", band_h)
+    # a new-only H flight (s1far_r3b) that FAILS P-H5 must not change the both-sides counts (no flag)
+    d3 = json.load(open(f"{mut}/expH/s1far_r1.json")); d3["losses"][2]["UKF"]["drift_end_m"] = 0.9
+    json.dump(d3, open(f"{mut}/expH/s1far_r3b.json", "w"), indent=1)
     rows = run(res, mut, "mut")
     want = {"T H-T1 verdict": lambda r: r["section"].startswith("T verdicts") and r["quantity"].startswith("H-T1 PASS"),
             "O ordering FGO batch vs RTS-UKF O_r1": lambda r: r["section"].startswith("O (§16.2) orderings") and "O_r1" in r["quantity"] and "FGO batch − RTS-UKF" in r["quantity"],
@@ -77,6 +80,15 @@ def selftest(res):
         good = bool(hit) and all(r["flag"] for r in hit)
         print(f"mutation '{k}': rows {len(hit)}, flagged {good}")
         ok = ok and good
+    r3 = [r for r in rows if r["section"].startswith("H verdicts (new-only") and r["quantity"] == "P-H5 UKF"]
+    good = bool(r3) and not r3[0]["flag"] and r3[0]["new"].startswith("3/4")
+    print(f"new-only s1far_r3b: row {r3[0]['new'] if r3 else None}, unflagged {good}"); ok = ok and good
+    # a missing new-side file must be flagged MISSING and make the run exit non-zero
+    mis = f"{tmp}/mis"; shutil.copytree(res, mis); os.remove(f"{mis}/f4_test.json")
+    pr = subprocess.run([sys.executable, me, res, mis, "--md", f"{tmp}/mis.md", "--json", f"{tmp}/mis.json"], capture_output=True, text=True)
+    mrow = [r for r in json.load(open(f"{tmp}/mis.json")) if r["flag"] == "MISSING"]
+    good = pr.returncode == 3 and len(mrow) == 1 and "f4_test.json" in mrow[0]["quantity"] and "WARNING" in pr.stderr
+    print(f"missing f4_test.json on the new side: exit {pr.returncode}, MISSING rows {len(mrow)}, ok {good}"); ok = ok and good
     # every other flagged row must be a consequence of the three mutations (verdict counts derived from them)
     print("flagged rows in T/O/L/H/F/2(a) after mutation (each must follow from the three mutations):")
     for r in rows:
@@ -467,6 +479,8 @@ oh = {t: LX(O, "expH", f"{t}.json", pre=True) for t in HTR}
 nh = {t: LX(N, "expH", f"{t}.json") for t in HTR}
 hold = lambda d: get(d, "hold_windows_vehicle") or get(d, "hold_windows_EKF3_flying")   # key renamed in 140d1bf
 p5o, p5n, p7o, p7n = {e: [] for e in BAND}, {e: [] for e in BAND}, {e: [] for e in BAND}, {e: [] for e in BAND}
+h_newonly = {e: ([], []) for e in BAND}
+LOSS_DUR = ((3, 8), (12, 18), (26, 34), (5, 10))   # expected loss durations (s) by index: 5 s, 15 s, 30 s, the ~7 s move
 for t in HTR:
     if oh[t] is None and nh[t] is None:
         continue
@@ -476,6 +490,10 @@ for t in HTR:
     for li, lab in enumerate(LOSS):
         ol_ = (get(oh[t], "losses") or [None] * 4)[li] if get(oh[t], "losses") else None
         nl_ = (get(nh[t], "losses") or [None] * 4)[li] if get(nh[t], "losses") else None
+        for side, l_ in (("old", ol_), ("new", nl_)):
+            du = get(l_, "duration_s")
+            if du is not None and not (LOSS_DUR[li][0] <= du <= LOSS_DUR[li][1]):
+                rows.append(("H loss order check", f"{t} {side} loss {li+1} expected {lab}", "", f"duration {du:.1f} s", "", "LOSS ORDER"))
         for e in ("EKF3", "UKF", "FGO"):
             b = BAND[e][li]
             add(f"{HA} P-H5 drift at end of loss (band {e} {'/'.join(str(x) for x in BAND[e])} m)", f"{t} loss {li+1} ({lab}) {e} as worded",
@@ -487,18 +505,22 @@ for t in HTR:
                     get(ol_, e, "effective", "relock_after_first_fix_s"), get(nl_, e, "effective", "relock_after_first_fix_s"), nd=3)
                 add(f"{HA} jump at re-lock, m", f"{t} loss {li+1} ({lab}) {e}", get(ol_, e, "jump_pos_m"), get(nl_, e, "jump_pos_m"), nd=4)
             dO, dN = get(ol_, e, "drift_end_m"), get(nl_, e, "drift_end_m")
-            if oh[t] is not None:
+            if oh[t] is not None and nh[t] is not None:   # verdict counts: flights on BOTH sides only (r3b is new-only)
                 p5o[e].append(None if dO is None else dO <= b); p7o[e].append(None if ol_ is None else not get(ol_, e, "lockout"))
-            if nh[t] is not None:
                 p5n[e].append(None if dN is None else dN <= b); p7n[e].append(None if nl_ is None else not get(nl_, e, "lockout"))
+            elif nh[t] is not None:
+                h_newonly[e][0].append(None if dN is None else dN <= b); h_newonly[e][1].append(None if nl_ is None else not get(nl_, e, "lockout"))
         for x, y in (("FGO", "UKF"), ("UKF", "EKF3"), ("FGO", "EKF3")):
             g = lambda d, e: get(d, e, "drift_end_m")
             add(f"{HA} orderings (drift at end of loss, difference), m", f"{t} loss {li+1} ({lab}) {x} − {y}",
                 None if None in (g(ol_, x), g(ol_, y)) else g(ol_, x) - g(ol_, y),
                 None if None in (g(nl_, x), g(nl_, y)) else g(nl_, x) - g(nl_, y), "sign", nd=4)
 for e in BAND:
-    cnt_row("H verdicts", f"P-H5 (as worded, all losses of all scored flights) {e}", p5o[e] or None, p5n[e] or None)
-    cnt_row("H verdicts", f"P-H7 no lockout {e}", p7o[e] or None, p7n[e] or None)
+    cnt_row("H verdicts", f"P-H5 (as worded, all losses of the flights scored on both sides) {e}", p5o[e] or None, p5n[e] or None)
+    cnt_row("H verdicts", f"P-H7 no lockout (flights on both sides) {e}", p7o[e] or None, p7n[e] or None)
+    if h_newonly[e][0]:   # new-only flights (s1far_r3b): reported, never compared
+        cnt_row("H verdicts (new-only flights, e.g. s1far_r3b; no old value)", f"P-H5 {e}", None, h_newonly[e][0])
+        cnt_row("H verdicts (new-only flights, e.g. s1far_r3b; no old value)", f"P-H7 {e}", None, h_newonly[e][1])
 
 # ---------- F tests (METHODOLOGY verdicts) ----------
 FF = ("fwdc_tex_r1", "fwdc_tex_r2", "fwdc_tex_r3")
@@ -567,6 +589,26 @@ for k in ("yaw_max_deg", "yaw_rms_deg", "xtrack_max_m"):
 for k in ("UKF_hard", "FGO_hard", "FGO_robust"):
     add("2(a) (F4) verdicts", f"lockout_total {k}", get(f4o, "decision", "lockout_total", k), get(f4n, "decision", "lockout_total", k))
 
+# ---------- file presence guard for the extended sections (a missing output must never read as "no change") ----------
+EXT_FILES = ([("expT", "t_aggregate.json", False)] + [("expO", f"{t}.json", True) for t in OTR]
+             + [("expL", f"{t}_t245.json", False) for t in LTR] + [("expH", f"{t}.json", True) for t in HTR]
+             + [("", f, False) for f in ("f1_test.json", "f2_test.json", "f3_test.json", "f3b_test.json", "f3c_test.json", "f4_test.json")])
+NEW_ONLY_OK = {"s1far_r3b.json"}
+n_missing = 0
+for sub, f, pre in EXT_FILES:
+    o_ok = (pre and PS and os.path.exists(os.path.join(PS, f))) or os.path.exists(os.path.join(O, sub, f))
+    n_ok = os.path.exists(os.path.join(N, sub, f))
+    if o_ok and n_ok:
+        continue
+    if not o_ok and not n_ok and f in NEW_ONLY_OK:
+        continue
+    if f in NEW_ONLY_OK and n_ok:
+        rows.append(("file presence (extended sections)", f"{sub}/{f}", "absent (expected: new flight)", "present", "", ""))
+        continue
+    n_missing += 1
+    rows.append(("file presence (extended sections)", f"{sub}/{f}", "present" if o_ok else "MISSING", "present" if n_ok else "MISSING", "", "MISSING"))
+    print(f"WARNING: {sub}/{f} missing on the {'new' if o_ok else 'old'} side" + ("" if o_ok or n_ok else " (and the old)"), file=sys.stderr)
+
 # ---------- write ----------
 out = ["# Consolidated re-run — old vs new (auto-generated by eval/rerun_compare.py)", "",
        f"OLD = `{O}` (pre-re-run snapshot), NEW = `{N}`. `DIRECTION` marks a changed comparison "
@@ -587,3 +629,6 @@ if a.json:
                     **({"old_raw": RAW[i][0], "new_raw": RAW[i][1]} if i in RAW else {})) for i, r in enumerate(rows)],
               open(a.json, "w"), indent=1)
 print(f"{len(rows)} rows, {nflag} direction flags -> {a.md}")
+if n_missing:
+    print(f"ERROR: {n_missing} extended-section file(s) missing on one side (rows flagged MISSING)", file=sys.stderr)
+    sys.exit(3)
