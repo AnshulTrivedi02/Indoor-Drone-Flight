@@ -27,7 +27,9 @@ BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
 FV = f_variant()     # offline F-test variants (all off by default)
 import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
 APIN = apin.mode()
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
+# UKF_OUT_ROOT (as the FGO's FGO_OUT_ROOT; off by default): write the outputs to <root>/<trial>/ukf.../ instead of
+# the trial directory. Inputs are still read from the trial directory.
+OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
