@@ -1,0 +1,100 @@
+{
+ "trial": "cl_fgo_b_tex_r3_half_v3",
+ "set": "b",
+ "cruise_s": [
+  30.077,
+  331.172
+ ],
+ "cruise_len_s": 301.095,
+ "clock_map": {
+  "offset_ms_start": 3.872825156304054,
+  "rate_ppm": 192.61230763365097
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 0.3555000000001278,
+   "max_deg": 0.6899999999998553,
+   "mean_deg": 0.17396345514964168,
+   "diag_y_le_140": {
+    "p95": 0.28000000000013525,
+    "max": 0.4400000000001762
+   },
+   "diag_y_gt_140": {
+    "p95": 0.6499999999998578,
+    "max": 0.6899999999998553
+   },
+   "pass": true
+  }
+ },
+ "S2": {
+  "fgo_output_valid_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.39229054856118495,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.39229054856118495,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.36069846630110075,
+   "max_deg": 0.6823082418440091,
+   "mean_deg": 0.18682252051414983,
+   "diag_y_le_140": {
+    "p95": 0.28918604373946627,
+    "max": 0.4445304002763403
+   },
+   "diag_y_gt_140": {
+    "p95": 0.6451067888734888,
+    "max": 0.6823082418440091
+   },
+   "pass": true,
+   "estimator": "fgo"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.24599524822102314,
+   "rms_mps": 0.0137361653000446,
+   "t_rel_cruise_of_max_s": 0.5000000000000782,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.0020667155544183036,
+    "pitch": 0.0016615817498609434,
+    "yaw": 0.002906143303255356
+   },
+   "window_s": [
+    35.32,
+    326.172
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.0020667155544183036,
+     "pitch": 0.0016615817498609434,
+     "yaw": 0.002906143303255356
+    },
+    "window_s": [
+     35.32,
+     326.172
+    ],
+    "pass": true
+   }
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2281,
+  "sent_q_ge_50": 2198,
+  "VISP_cruise": 2281,
+  "VISP_ignored": 83
+ }
+}

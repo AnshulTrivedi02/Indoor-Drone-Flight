@@ -12585,3 +12585,15 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
 - `XFGO.OV` 100 % from arming to contact; age max 160 ms.
 - The "position lost" + LAND at 200.3 s is the post-contact teardown, as in v2.
 - **Ablation:** noise-fix-only v2 +169.6 s, original +165.8 s.
+
+### FGO heading set RE-FLOWN with the final corrected FGO (`cl_fgo_b_tex_r{1,2,3}_half_v3`; Python node, corrected core)
+See the per-flight scores in `eval/results/closed_loop_cl_fgo_b_tex_r*_half_v3.json`. Summary (final / noise-only v2 / original):
+- **r1:** B2 0.118 / 0.089 / 0.059 m; B3 p95 / max / mean 0.293 / 0.340 / 0.212° (v2 0.325 / 0.397 / 0.235; orig
+  0.259 / 1.441 / 0.051).
+- **r2:** B2 0.033 / 0.074 / 0.085 m; B3 0.336 / 0.427 / 0.220° (v2 0.318 / 0.356 / 0.230; orig 0.257 / 1.279 /
+  0.070).
+- **r3:** B1 / B2 0.392 m (v2 0.047 / 0.038; original 0.249); B3 0.361 / 0.682 / 0.187°; **B4 0.246 m/s at
+  cruise +0.5 s, inside the 0.25 m/s band by 4 mm/s.** This is a D22-type start-of-cruise episode, as in the original
+  UKF r3 (0.296, FAIL). v2 had 0.017.
+- **All B criteria and S2 PASS, 3/3.** r3's B4 is the closest call of the re-flown sets.
+- **Ablation (gating alone):** heading p95/max within ±0.07° of v2; cruise lateral comparable.
