@@ -12400,3 +12400,7 @@ growth from the stated densities; flag > 2×):
 - **Machine schedule implied:** after the fixes are installed, fly S3 and S2, then the half-speed corridor
   re-flights (UKF, then FGO). Start the consolidated re-run as soon as those are done. The safety re-tests follow if
   time allows, otherwise after the freeze.
+- **Scheduling note (user ruling, 2026-10-09, SCHEDULING ONLY; no result affected):** after the FGO yaw-cap agent's
+  `O_r1` replay, the UKF jitter agent's port build and Replay check run next, and then the FGO equivalence checks
+  resume. The FGO agent's queued, not-yet-started heavy job ("yawgate fi60") was withdrawn (SIGINT while waiting for
+  the lock) so that it could not take the lock first; it is re-submitted after the UKF steps.
