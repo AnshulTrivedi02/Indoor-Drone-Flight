@@ -1,0 +1,75 @@
+{
+ "trial": "H_safety_ukf_b_v2",
+ "failure": "KILL",
+ "t_f": 58.638,
+ "t_disarm": 69.213919,
+ "attitude_err_before_failure_10s": {
+  "n": 100,
+  "roll_max_deg": 0.2636433437703205,
+  "pitch_max_deg": 0.13614612514650942,
+  "yaw_max_deg": 0.17634436821074928
+ },
+ "S-A1": {
+  "n": 106,
+  "roll_max_deg": 0.17170581414142305,
+  "pitch_max_deg": 0.282345319679239,
+  "yaw_max_deg": 0.3812955163968752,
+  "PASS": true
+ },
+ "t_failure_effect": null,
+ "S-A2": {
+  "text_delay_s": 5.747542000000003,
+  "land_delay_s": 1.8526740000000004,
+  "land_reason": 2,
+  "bound_s": 5.5,
+  "fc_text": "Thesis nav: UKF position lost",
+  "PASS": false
+ },
+ "S-A3": {
+  "disarm_delay_s": 10.575919000000006,
+  "max_tilt_deg": 1.0397458749935549,
+  "touchdown_t": 67.189651575687,
+  "horiz_disp_m": 0.6927454018424216,
+  "touchdown_vz_m_s": -0.5161058044699623,
+  "breach": false,
+  "PASS": true
+ },
+ "S-A4_single_landing": {
+  "n_land_entries_after_t_f": 1,
+  "rearmed_after_disarm": false,
+  "PASS": true
+ },
+ "modes_after_t_f": [
+  [
+   1.853,
+   9,
+   2
+  ]
+ ],
+ "msgs_after_t_f": [
+  [
+   1.856,
+   "PrecLand: Failsafe Measures"
+  ],
+  [
+   2.063,
+   "Dead Reckoning started"
+  ],
+  [
+   5.748,
+   "Thesis nav: UKF position lost"
+  ],
+  [
+   5.748,
+   "EKF Failsafe"
+  ],
+  [
+   6.053,
+   "Dead Reckoning stopped"
+  ],
+  [
+   10.576,
+   "Disarming motors"
+  ]
+ ]
+}

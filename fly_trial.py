@@ -363,7 +363,10 @@ def _live_bin_since_boot():
     if not bins:
         return None
     from pymavlink import DFReader
-    lg = DFReader.DFReader_binary(bins[-1], zero_time_base=True)
+    try:
+        lg = DFReader.DFReader_binary(bins[-1], zero_time_base=True)
+    except Exception:
+        return None                                       # a partially written last record: retry at the next poll
     msgs, n_visp, t_visp, t_last, xfgi_v = [], 0, None, 0, None
     while True:
         try:

@@ -225,6 +225,14 @@ camera flown only once verified.
       origin-independent landing trigger is added. **This behaviour must pass on the bench AND in SITL** (kill the
       estimator in a hover, with and without the watcher) **before any real closed-loop flight.**
   - The flight script must use the estimator-independent clock (`SYSTEM_TIME`, D24) and land on failure.
+- **Flow validity: inlier ratio as well as feature count (ruling 2026-10-09; planned fix for D22).** In SITL, flow
+  frames were flagged valid on the tracked-feature count alone (`flow_tracker.py:313`) while the features collapsed
+  and the inlier ratio fell. This put false lateral flow into all three estimators, giving a 0.30 m/s and a
+  0.25 m/s sideways burst (`cl_ukf_b_tex_r3_half`, `cl_fgo_b_tex_r3_half_v3`).
+  - **Before the first real flight:** add an inlier-ratio threshold to the validity rule, IDENTICAL for EKF3, the UKF
+    and the FGO (one flag, one source).
+  - **Threshold calibration:** on the simulation calibration flights only (`p1c_*`; never the datasets), recorded
+    and pre-registered.
 - **Attitude-only landing drifts (ruling 2026-10-09).** On estimator position loss, LAND flies the estimated level.
   A few tenths of a degree of attitude error drifts the vehicle > 1 m over the 4 s LAND pause plus the descent
   (SITL: 0.37–1.4 m). **Every hold point needs ≥ 2 m clearance to the watcher box in every direction.** The mocap

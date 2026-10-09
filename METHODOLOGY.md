@@ -12597,3 +12597,78 @@ See the per-flight scores in `eval/results/closed_loop_cl_fgo_b_tex_r*_half_v3.j
   UKF r3 (0.296, FAIL). v2 had 0.017.
 - **All B criteria and S2 PASS, 3/3.** r3's B4 is the closest call of the re-flown sets.
 - **Ablation (gating alone):** heading p95/max within ±0.07° of v2; cruise lateral comparable.
+
+### D22 recurrence check: `cl_fgo_b_tex_r3_half_v3` start-of-cruise lateral burst (B4 0.246 m/s): YES, the same mechanism (REPORT ONLY; no change)
+Flow messages and GT around cruise start (t = 0 at cruise start, 0.5 s bins):
+
+| t (s) | features max–min | inlier ratio | valid / msgs | mean flow_x (rad/s) | GT vE (m/s) | GT z (m) |
+|---|---|---|---|---|---|---|
+| −2.5 | 194–190 | 1.00 | 15/15 | −0.00 | −0.000 | 0.21 |
+| **−2.0** | **26–0** | **0.47** | **6/15** | **−2.27** | −0.001 | 0.40 |
+| −1.5 | 46–0 | 0.30 | 4/16 | +0.13 | −0.002 | 0.85 |
+| −1.0 | 46–36 | 0.97 | 15/15 | +0.36 | +0.014 | 1.52 |
+| −0.5 | 38–29 | 0.97 | 15/15 | −0.12 | +0.191 | 2.07 |
+| +0.0 | 34–28 | 0.98 | 15/15 | −0.20 | **+0.288** | 2.44 |
+| +0.5 | 34 | 1.00 | 15/15 | −0.09 | +0.208 | 2.62 |
+| +1.5 | 113–18 | 0.99 | 15/16 | +0.01 | −0.036 | 2.53 |
+
+- **It coincides with a flow-feature collapse at the start of the climb**, as in D22:
+  - features 194 → 0;
+  - inlier ratio 0.47, then 0.30;
+  - **6 of 15 messages flagged VALID while carrying a large spurious lateral flow** (mean flow_x −2.27 rad/s),
+    1.5–2 s before cruise start.
+  - The real eastward motion follows ~1.5 s later: GT vE peaks +0.29 m/s near cruise start and recovers by +1.5 s.
+- **Recorded under the D22 sensor-pipeline weakness:** flow validity uses the tracked-feature count only
+  (`flow_tracker.py:313`, `tracked_count >= 20`); the inlier ratio is published but not used. EKF3, the UKF and the
+  FGO all consume the same flag.
+- Here it happened at the start of the climb (z 0.2 → 0.9 m); in D22 it was at the end of the climb.
+- **No change** (report only, as ruled). It is a per-flight sensing event shared by all estimators. This flight
+  passed B4 narrowly (0.246 against 0.25); D22's failed (0.296).
+
+### UKF safety (b) RE-TEST (`H_safety_ukf_b_v2`, jitter-corrected UKF, 2 m-clearance hold): S-A1, S-A3, S-A4 PASS; **S-A2 FAILS AS WORDED**
+- **S-A1 PASS:** max |ATT − GT| 0.17° / 0.28° / 0.38°.
+- **S-A3 PASS:** drift to touchdown 0.69 m; max tilt 1.04°; touchdown 0.52 m/s; disarm +10.6 s; no breach.
+- **S-A4 PASS:** one LAND entry, no re-arm.
+- **S-A2 FAILS AS WORDED:** the FC's "Thesis nav: UKF position lost" came at **+5.75 s** after the kill, against the
+  5.5 s bound. The watcher-path LAND was at +1.85 s.
+  - **Mechanism (from the log):** the FC kept receiving flow (`OF` rows, quality > 0) until 59.38 s, **0.71 s after
+    the flow bridge was SIGKILLed** (58.67 s). These are messages already in flight through MAVProxy's 14553 relay.
+  - The trigger then fired **5.01 s after the last received flow**, exactly the UKF's 5 s aiding timeout. The FC
+    behaved as designed.
+  - The excess over the bound is the relay drain after the kill: 0.71 s here, 0.08 s in the first (b) run.
+  - **Pre-registration fault:** the 5.5 s bound assumed the flow stops at the kill instant.
+- The vehicle was already landing on the watcher's command, so safety was not affected. Recorded as failed as worded.
+
+### RULING (user, 2026-10-09): D22 is a SHARED SENSOR-PIPELINE LIMITATION; the fix is planned for real flights only
+- **Recorded as reported.** Two occurrences:
+  - the UKF S2-era failure (`cl_ukf_b_tex_r3_half`, B4 0.296 m/s, FAIL);
+  - the FGO near-miss (`cl_fgo_b_tex_r3_half_v3`, B4 0.246 m/s).
+  - Both come from flow frames flagged valid on feature count alone while the features collapse and the inlier
+    ratio drops.
+- **In the thesis:** a shared sensor-pipeline limitation, common to EKF3, the UKF and the FGO.
+- **No change to the simulation pipeline before the freeze.**
+- **Real-flight plan:** a flow-validity rule using the INLIER RATIO as well as the feature count, IDENTICAL for all
+  three estimators (it feeds EKF3 too).
+  - Its threshold is calibrated on the simulation CALIBRATION flights only (`p1c_*`, never the datasets), recorded,
+    and pre-registered before the first real flight.
+  - It is the planned fix for the D22 weakness.
+
+### RESULT: FGO safety re-test (a), `H_safety_fgo_a_v3` (final FGO f642cd37; 2 m-clearance hold): ALL PASS
+Scored with `eval/h_safety_score.py --from-effect --a2-bound 0.75` (`eval/results/expH/safety_fgo_a_v3.json`); t_f 60.44 s.
+- **S-A1 (attitude while stale):** roll max 0.34°, pitch 0.27°, yaw 0.51° (n 95). PASS.
+- **S-A2 (trigger):** "Thesis nav: FGO position lost" and LAND (reason 6) 0.54 s after the failure took effect,
+  against the 0.75 s bound. PASS.
+- **S-A3 (landing):** disarmed 9.46 s after the failure; max tilt 1.25°; touchdown vz −0.52 m/s; horizontal
+  displacement 0.83 m; no breach. PASS.
+- **S-A4:** a single landing entry and no re-arm. PASS.
+
+### RESULT: FGO safety re-test (b), `H_safety_fgo_b_v3` (node KILL; final FGO; 2 m-clearance hold): ALL PASS
+`eval/results/expH/safety_fgo_b_v3.json`; t_f 60.95 s.
+- **S-A1:** roll max 0.24°, pitch 0.38°, yaw 0.27° (n 90). PASS.
+- **S-A2:** "Thesis nav: FGO position lost" and LAND (reason 6) 0.25 s after the failure took effect (bound 0.75 s).
+  PASS.
+- **S-A3:** disarmed after 9.01 s; max tilt 0.82°; touchdown vz −0.52 m/s; horizontal displacement 1.19 m; no
+  breach. PASS.
+- **S-A4:** PASS.
+- **The FGO's earlier (b) failure as worded and its design flaw stay recorded.** This re-test is with the
+  noise-corrected FGO and the 2 m clearance hold.
