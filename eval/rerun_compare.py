@@ -12,13 +12,84 @@ direction changes, i.e. for
   - ratios against 1 (speed ratio, displacement ratio): the side of 1;
   - shares against 50% (heading-dominated or not).
 Plain magnitudes (a number moving without a comparison changing) are listed, not flagged.
-Usage: python3 eval/rerun_compare.py OLD_DIR NEW_DIR --md OUT.md [--json OUT.json]
+
+EXTENDED 2026-10-09 (final consolidated re-run, ruling "before launch"): the offline sections of T, O, L, H, the F
+tests (F1, F2, F3, F3b, F3c) and 2(a) (F4) are compared too. Their extra flag kinds:
+  - band verdicts (value <= a pre-registered band, e.g. P-H5 drift bands, P-T3/P-T4/H-O2/P-O3 ratio <= 1.5): the side of
+    the band ("le:<band>");
+  - count verdicts ("3/3", pass iff all) and the JSONs' own decision booleans: the verdict.
+H, O and T "old" values: by default OLD/expH, OLD/expO, OLD/expT (the snapshot). With --prescore DIR (the pipeline's
+same-scorer pre-score, ~/thesis_data/batches/final_rerun/prescore: s1_r*.json, s1far_r*.json, O_*.json, T_*.json) the
+per-trial H/O/T files are read from DIR first, falling back to the snapshot. The H scorer renamed
+`hold_windows_EKF3_flying` -> `hold_windows_vehicle` (140d1bf); both keys are accepted. T's aggregate (t_aggregate.json)
+always comes from OLD/expT (the pre-score does not run t_aggregate; tag_score/t_aggregate are unchanged since the T JSONs
+were written, verified by re-scoring byte-identically, docs/handovers/2026-10-09_final_rerun_repro.md).
+V-L is reported as NOT re-scorable (ruling 6, 2026-10-09): its old value is listed, no new value is made.
+Self-test: `--selftest` runs OLD = NEW = the given directory, requires every numeric delta = 0 and no flag, then mutates a
+scratch copy (one verdict, one ordering, one band) and requires each to be flagged.
+Usage: python3 eval/rerun_compare.py OLD_DIR NEW_DIR --md OUT.md [--json OUT.json] [--prescore DIR]
+       python3 eval/rerun_compare.py --selftest RESULTS_DIR
 """
-import argparse, json, math, os, statistics as st
+import argparse, copy, json, math, os, shutil, statistics as st, subprocess, sys, tempfile
 
 WORLDS = ("tex", "trans", "blank")
-ap = argparse.ArgumentParser(); ap.add_argument("old"); ap.add_argument("new")
-ap.add_argument("--md", required=True); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("old", nargs="?"); ap.add_argument("new", nargs="?")
+ap.add_argument("--md"); ap.add_argument("--json"); ap.add_argument("--prescore")
+ap.add_argument("--selftest", metavar="RESULTS_DIR"); a = ap.parse_args()
+EXTRA_PREFIXES = ("T ", "O ", "L ", "H ", "F1", "F2", "F3", "2(a)")
+
+
+def selftest(res):
+    """OLD = NEW (every delta 0, no flag), then three mutations of a scratch copy, each of which must be flagged."""
+    me, tmp = os.path.abspath(__file__), tempfile.mkdtemp(prefix="rerun_compare_selftest_")
+    run = lambda o, n, tag: json.load(open(subprocess.run(
+        [sys.executable, me, o, n, "--md", f"{tmp}/{tag}.md", "--json", f"{tmp}/{tag}.json"], check=True,
+        capture_output=True, text=True) and f"{tmp}/{tag}.json"))
+    rows = run(res, res, "self")
+    # The corridor sections map OLD names to NEW names (e.g. dsn_dejitter_baseline -> rerun_dsn_evo), so OLD = NEW is
+    # not an identity there; the self-test covers the extended sections, whose OLD and NEW file names are the same.
+    extra = [r for r in rows if r["section"].startswith(EXTRA_PREFIXES)]
+    nonzero = [r for r in extra if (r["delta"] != "" and float(r["delta"]) != 0.0) or r.get("old_raw") != r.get("new_raw")]
+    same = [r for r in extra if r["old"] != r["new"] and not r["new"].startswith("NOT re-scorable")]
+    flagged = [r for r in extra if r["flag"]]
+    print(f"self-compare: {len(rows)} rows, {len(extra)} in T/O/L/H/F/2(a): non-zero deltas {len(nonzero)}, "
+          f"old != new {len(same)}, flags {len(flagged)}")
+    for r in (nonzero + same + flagged)[:20]:
+        print("   UNEXPECTED", r)
+    ok = not nonzero and not same and not flagged and len(extra) > 0
+    # mutations, on a scratch copy of only the files touched
+    mut = f"{tmp}/mut"; shutil.copytree(res, mut)
+    def edit(rel, fn):
+        p = f"{mut}/{rel}"; d = json.load(open(p)); fn(d); json.dump(d, open(p, "w"), indent=1)
+    edit("expT/t_aggregate.json", lambda d: d["H-T1 (FGO live -> whole-flight batch)"].__setitem__("PASS", not d["H-T1 (FGO live -> whole-flight batch)"]["PASS"]))
+    def swap_o(d):   # ordering: FGO batch above RTS-UKF in O_r1
+        t = d["tracks"]; t["FGO hindsight (whole-flight batch)"]["indoor_rmse_m"] = t["RTS-UKF (hindsight)"]["indoor_rmse_m"] * 3
+    edit("expO/O_r1.json", swap_o)
+    def band_h(d):   # P-H5: UKF 30 s drift beyond its 0.40 m band in s1_r1
+        d["losses"][2]["UKF"]["drift_end_m"] = 0.55
+    edit("expH/s1_r1.json", band_h)
+    rows = run(res, mut, "mut")
+    want = {"T H-T1 verdict": lambda r: r["section"].startswith("T verdicts") and r["quantity"].startswith("H-T1 PASS"),
+            "O ordering FGO batch vs RTS-UKF O_r1": lambda r: r["section"].startswith("O (§16.2) orderings") and "O_r1" in r["quantity"] and "FGO batch − RTS-UKF" in r["quantity"],
+            "H P-H5 UKF 30 s s1_r1": lambda r: r["section"].startswith("H (§17) P-H5") and r["quantity"].startswith("s1_r1 loss 3") and "UKF" in r["quantity"] and "as worded" in r["quantity"]}
+    for k, f in want.items():
+        hit = [r for r in rows if f(r)]
+        good = bool(hit) and all(r["flag"] for r in hit)
+        print(f"mutation '{k}': rows {len(hit)}, flagged {good}")
+        ok = ok and good
+    # every other flagged row must be a consequence of the three mutations (verdict counts derived from them)
+    print("flagged rows in T/O/L/H/F/2(a) after mutation (each must follow from the three mutations):")
+    for r in rows:
+        if r["flag"] and r["section"].startswith(EXTRA_PREFIXES):
+            print(f"   {r['section']} | {r['quantity']} | {r['old']} -> {r['new']}")
+    shutil.rmtree(tmp)
+    print("SELFTEST", "PASS" if ok else "FAIL")
+    sys.exit(0 if ok else 1)
+
+
+if a.selftest:
+    selftest(a.selftest)
+assert a.old and a.new and a.md, "usage: OLD_DIR NEW_DIR --md OUT.md (or --selftest RESULTS_DIR)"
 
 
 def L(d, f):
@@ -35,6 +106,7 @@ def get(x, *ks):
 
 
 rows = []   # (section, quantity, old, new, kind, flag_note)
+RAW = {}    # row index -> (old, new) unformatted, for add() rows (written to the JSON as old_raw / new_raw)
 
 
 def fmt(v, nd=3):
@@ -59,8 +131,13 @@ def add(sec, q, old, new, kind="mag", ref=None, nd=3):
                 flag = "DIRECTION"
         elif kind == "bool" and bool(old) != bool(new):
             flag = "DIRECTION"
+        elif kind.startswith("le:"):          # band verdict: value <= band
+            r = float(kind.split(":")[1])
+            if (old <= r) != (new <= r):
+                flag = "VERDICT"
     delta = (new - old) if isinstance(old, (int, float)) and isinstance(new, (int, float)) and not isinstance(old, bool) else None
     rows.append((sec, q, fmt(old, nd), fmt(new, nd), fmt(delta, nd) if delta is not None else "", flag))
+    RAW[len(rows) - 1] = (old, new)
 
 
 def mean(v):
@@ -267,12 +344,238 @@ for grp in ("endwall_S", "checker_S"):
         add(f"P5b {grp}: median √S (deg)", k, get(o6, grp, k, "all", "median_sqrtS_deg"), get(n6, grp, k, "all", "median_sqrtS_deg"), nd=3)
         add(f"P5b {grp}: yaw-prediction NEES mean", k, get(o6, grp, k, "all", "yaw_pred_nees_mean"), get(n6, grp, k, "all", "yaw_pred_nees_mean"), "side:3", nd=2)
 
+# ====================================================================================================================
+# EXTENDED SECTIONS (2026-10-09): T, O, L, H, F1-F3c, 2(a). Headline list: docs/handovers/2026-10-09_final_rerun_pipeline.md §5.
+# ====================================================================================================================
+PS = a.prescore
+
+
+def LX(d, sub, f, pre=False):
+    """Per-trial H/O/T file: the same-scorer pre-score first (old side only, --prescore), then <d>/<sub>/<f>."""
+    if pre and PS and os.path.exists(os.path.join(PS, f)):
+        return L(PS, f)
+    return L(os.path.join(d, sub), f)
+
+
+def cnt_row(sec, q, ov, nv):
+    """A count verdict: lists of per-flight booleans -> 'k/n', PASS iff all; flagged if PASS changes."""
+    c = lambda v: None if v is None or None in v else f"{sum(bool(x) for x in v)}/{len(v)}"
+    p = lambda v: None if v is None or None in v else all(v)
+    po, pn = p(ov), p(nv)
+    fl = "VERDICT" if po is not None and pn is not None and po != pn else ""
+    rows.append((sec, q, f"{c(ov)} ({'PASS' if po else 'FAIL'})" if po is not None else "—",
+                 f"{c(nv)} ({'PASS' if pn else 'FAIL'})" if pn is not None else "—", "", fl))
+
+
+def lt(x, y):
+    return None if x is None or y is None else x < y
+
+
+def ratio(x, y):
+    return None if x is None or y is None or y == 0 else x / y
+
+
+# ---------- T (§16.1): t_aggregate.json ----------
+TA = "T (§16.1)"
+ot, nt = L(os.path.join(O, "expT"), "t_aggregate.json"), L(os.path.join(N, "expT"), "t_aggregate.json")
+TRK = ("EKF3 live", "UKF live", "FGO live", "RTS-UKF (hindsight)", "FGO hindsight (whole-flight batch)")
+for c in "ABCD":
+    for k in TRK:
+        add(f"{TA} mean horizontal RMSE by condition, m", f"{c} {k}", get(ot, "conditions", c, "mean_rmse_m", k),
+            get(nt, "conditions", c, "mean_rmse_m", k), nd=4)
+    om, nm = (get(x, "conditions", c, "mean_rmse_m") for x in (ot, nt))
+    for x, y in (("FGO hindsight (whole-flight batch)", "RTS-UKF (hindsight)"), ("FGO live", "UKF live"),
+                 ("UKF live", "EKF3 live"), ("FGO live", "EKF3 live")):
+        add(f"{TA} orderings (mean RMSE difference), m", f"{c}: {x} − {y}",
+            None if not om or om.get(x) is None or om.get(y) is None else om[x] - om[y],
+            None if not nm or nm.get(x) is None or nm.get(y) is None else nm[x] - nm[y], "sign", nd=4)
+for hk, lab in (("H-T1 (FGO live -> whole-flight batch)", "H-T1"), ("P-T2 (UKF live -> RTS)", "P-T2")):
+    for c in "ABCD":
+        add(f"{TA} {lab} hindsight gain (median), m", c, get(ot, hk, "median_gain_m", c), get(nt, hk, "median_gain_m", c), "sign", nd=4)
+    add(f"{TA} {lab} hindsight gain (median), m", "Spearman rho", get(ot, hk, "spearman_rho"), get(nt, hk, "spearman_rho"), "sign")
+    add(f"{TA} {lab} hindsight gain (median), m", "p", get(ot, hk, "p"), get(nt, hk, "p"), "le:0.01", nd=6)
+    add(f"T verdicts", f"{lab} medians strictly increasing", get(ot, hk, "strictly_increasing"), get(nt, hk, "strictly_increasing"), "bool")
+    add(f"T verdicts", f"{lab} PASS", get(ot, hk, "PASS"), get(nt, hk, "PASS"), "bool")
+for hk, lab in (("P-T3 live ratio max/min", "P-T3"), ("P-T4 hindsight ratio max/min", "P-T4")):
+    for c in "ABCD":
+        add(f"{TA} {lab} max/min ratio (band ≤ 1.5)", c, get(ot, hk, "by_condition", c), get(nt, hk, "by_condition", c), "le:1.5")
+    add(f"T verdicts", f"{lab} PASS", get(ot, hk, "PASS"), get(nt, hk, "PASS"), "bool")
+
+# ---------- O (§16.2): expO/O_r1, O_r2, O_r3b ----------
+OA, OTR = "O (§16.2)", ("O_r1", "O_r2", "O_r3b")
+OK_ = {"EKF3": "EKF3 live", "UKF": "UKF live", "FGO": "FGO live", "RTS": "RTS-UKF (hindsight)",
+       "RTSfree": "RTS-UKF (hindsight, cap-free forward pass)", "batch": "FGO hindsight (whole-flight batch)"}
+oo = {t: LX(O, "expO", f"{t}.json", pre=True) for t in OTR}
+no = {t: LX(N, "expO", f"{t}.json") for t in OTR}
+oi = lambda d, k: get(d, "tracks", OK_[k], "indoor_rmse_m")
+for t in OTR:
+    for k in OK_:
+        for m in ("indoor_rmse_m", "err_at_return_m", "max_step_after_return_m"):
+            add(f"{OA} per flight, m", f"{t} {OK_[k]} {m}", get(oo[t], "tracks", OK_[k], m), get(no[t], "tracks", OK_[k], m), nd=3)
+    for x, y in (("batch", "EKF3"), ("batch", "UKF"), ("batch", "RTS"), ("FGO", "UKF"), ("UKF", "EKF3")):
+        add(f"{OA} orderings (indoor RMSE difference), m", f"{t}: {OK_[x] if x != 'batch' else 'FGO batch'} − {OK_[y]}".replace(
+            "RTS-UKF (hindsight)", "RTS-UKF"), None if oi(oo[t], x) is None or oi(oo[t], y) is None else oi(oo[t], x) - oi(oo[t], y),
+            None if oi(no[t], x) is None or oi(no[t], y) is None else oi(no[t], x) - oi(no[t], y), "sign")
+    live = lambda d: [oi(d, k) for k in ("EKF3", "UKF", "FGO")]
+    h2 = lambda d: None if None in live(d) else max(live(d)) / min(live(d))
+    add(f"{OA} H-O2 live max/min ratio (band ≤ 1.5)", t, h2(oo[t]), h2(no[t]), "le:1.5")
+    p3 = lambda d, r: None if oi(d, "batch") is None or oi(d, r) is None else max(oi(d, "batch"), oi(d, r)) / min(oi(d, "batch"), oi(d, r))
+    add(f"{OA} P-O3 FGO batch vs RTS-UKF max/min (band ≤ 1.5)", f"{t} (capped)", p3(oo[t], "RTS"), p3(no[t], "RTS"), "le:1.5")
+    add(f"{OA} P-O3 FGO batch vs RTS-UKF max/min (band ≤ 1.5)", f"{t} (cap-free)", p3(oo[t], "RTSfree"), p3(no[t], "RTSfree"), "le:1.5")
+h1 = lambda d: None if None in (oi(d, "batch"), oi(d, "EKF3"), oi(d, "UKF")) else oi(d, "batch") < min(oi(d, "EKF3"), oi(d, "UKF"))
+cnt_row("O verdicts", "H-O1 FGO batch < EKF3 and UKF live, flights", [h1(oo[t]) for t in OTR], [h1(no[t]) for t in OTR])
+cnt_row("O verdicts", "H-O2 live max/min ≤ 1.5, flights", [None if h2(oo[t]) is None else h2(oo[t]) <= 1.5 for t in OTR],
+        [None if h2(no[t]) is None else h2(no[t]) <= 1.5 for t in OTR])
+cnt_row("O verdicts", "P-O3 batch vs RTS-UKF ≤ 1.5 (capped), flights", [None if p3(oo[t], "RTS") is None else p3(oo[t], "RTS") <= 1.5 for t in OTR],
+        [None if p3(no[t], "RTS") is None else p3(no[t], "RTS") <= 1.5 for t in OTR])
+cnt_row("O verdicts", "P-O3 batch vs RTS-UKF ≤ 1.5 (cap-free), flights", [None if p3(oo[t], "RTSfree") is None else p3(oo[t], "RTSfree") <= 1.5 for t in OTR],
+        [None if p3(no[t], "RTSfree") is None else p3(no[t], "RTSfree") <= 1.5 for t in OTR])
+
+# ---------- L (§16.3): expL/T_A_r*_t245.json; V-L not re-scorable ----------
+LA, LTR = "L (§16.3)", ("T_A_r1", "T_A_r2", "T_A_r3")
+ol = {t: L(os.path.join(O, "expL"), f"{t}_t245.json") for t in LTR}
+nl = {t: L(os.path.join(N, "expL"), f"{t}_t245.json") for t in LTR}
+lap = lambda d, k: (lambda v: None if not v else v[-1] / v[0])(get(d, "tracks", k, "per_lap_rmse_m"))
+lr = lambda d, k: get(d, "tracks", k, "rmse_m")
+for t in LTR:
+    for k in ("lc live", "lc hindsight", "nolc live", "nolc hindsight"):
+        add(f"{LA} per flight RMSE, m", f"{t} {k}", lr(ol[t], k), lr(nl[t], k), nd=4)
+    add(f"{LA} H-L1 lc live lap5/lap1 (band ≤ 1.5)", t, lap(ol[t], "lc live"), lap(nl[t], "lc live"), "le:1.5")
+    add(f"{LA} P-L4 nolc live lap5/lap1 (> 1.5 predicted)", t, lap(ol[t], "nolc live"), lap(nl[t], "nolc live"), "le:1.5")
+    for k in ("live", "hindsight"):
+        add(f"{LA} orderings (lc − nolc RMSE), m", f"{t} {k}", None if None in (lr(ol[t], f"lc {k}"), lr(ol[t], f"nolc {k}")) else lr(ol[t], f"lc {k}") - lr(ol[t], f"nolc {k}"),
+            None if None in (lr(nl[t], f"lc {k}"), lr(nl[t], f"nolc {k}")) else lr(nl[t], f"lc {k}") - lr(nl[t], f"nolc {k}"), "sign", nd=4)
+le = lambda x, b: None if x is None else x <= b
+cnt_row("L verdicts", "H-L1 lc live lap5/lap1 ≤ 1.5, flights", [le(lap(ol[t], "lc live"), 1.5) for t in LTR], [le(lap(nl[t], "lc live"), 1.5) for t in LTR])
+cnt_row("L verdicts", "H-L2 lc live < nolc live, flights", [lt(lr(ol[t], "lc live"), lr(ol[t], "nolc live")) for t in LTR],
+        [lt(lr(nl[t], "lc live"), lr(nl[t], "nolc live")) for t in LTR])
+cnt_row("L verdicts", "H-L3 lc hindsight < nolc hindsight, flights", [lt(lr(ol[t], "lc hindsight"), lr(ol[t], "nolc hindsight")) for t in LTR],
+        [lt(lr(nl[t], "lc hindsight"), lr(nl[t], "nolc hindsight")) for t in LTR])
+cnt_row("L verdicts", "P-L4 nolc live lap5 > 1.5 × lap1, flights", [None if lap(ol[t], "nolc live") is None else lap(ol[t], "nolc live") > 1.5 for t in LTR],
+        [None if lap(nl[t], "nolc live") is None else lap(nl[t], "nolc live") > 1.5 for t in LTR])
+ovl = get(L(O, "vl_dsn_tex_r1.json"), "trials", "dsn_tex_r1", "est")
+for k in ("KF_FGO_notags", "FGO_thesis"):
+    rows.append((f"{LA} V-L (dsn_tex_r1 evo -a cruise, m)", k, fmt(get(ovl, k, "ate_a_cruise", "+0.00")),
+                 "NOT re-scorable (ruling 6, 2026-10-09: labels never recorded)", "", ""))
+
+# ---------- H (§17): expH/s1_r1..3, s1far_r1, r2 (+ r3b, new only) ----------
+HA = "H (§17)"
+HTR = ("s1_r1", "s1_r2", "s1_r3", "s1far_r1", "s1far_r2", "s1far_r3b")
+LOSS = ("5 s", "15 s", "30 s", "move")
+BAND = {"EKF3": (0.05, 0.10, 0.20, 0.15), "FGO": (0.05, 0.10, 0.20, 0.15), "UKF": (0.10, 0.20, 0.40, 0.30)}
+oh = {t: LX(O, "expH", f"{t}.json", pre=True) for t in HTR}
+nh = {t: LX(N, "expH", f"{t}.json") for t in HTR}
+hold = lambda d: get(d, "hold_windows_vehicle") or get(d, "hold_windows_EKF3_flying")   # key renamed in 140d1bf
+p5o, p5n, p7o, p7n = {e: [] for e in BAND}, {e: [] for e in BAND}, {e: [] for e in BAND}, {e: [] for e in BAND}
+for t in HTR:
+    if oh[t] is None and nh[t] is None:
+        continue
+    for i in range(2):
+        add(f"{HA} H-H1 hold (EKF3 flying), m", f"{t} window {i+1} mean", get((hold(oh[t]) or [None, None])[i] if hold(oh[t]) else None, "mean_m"),
+            get((hold(nh[t]) or [None, None])[i] if hold(nh[t]) else None, "mean_m"), "le:0.05", nd=4)
+    for li, lab in enumerate(LOSS):
+        ol_ = (get(oh[t], "losses") or [None] * 4)[li] if get(oh[t], "losses") else None
+        nl_ = (get(nh[t], "losses") or [None] * 4)[li] if get(nh[t], "losses") else None
+        for e in ("EKF3", "UKF", "FGO"):
+            b = BAND[e][li]
+            add(f"{HA} P-H5 drift at end of loss (band {e} {'/'.join(str(x) for x in BAND[e])} m)", f"{t} loss {li+1} ({lab}) {e} as worded",
+                get(ol_, e, "drift_end_m"), get(nl_, e, "drift_end_m"), f"le:{b}", nd=4)
+            add(f"{HA} P-H5 drift at end of loss (band {e} {'/'.join(str(x) for x in BAND[e])} m)", f"{t} loss {li+1} ({lab}) {e} effective",
+                get(ol_, e, "effective", "drift_m"), get(nl_, e, "effective", "drift_m"), f"le:{b}", nd=4)
+            if e != "EKF3":
+                add(f"{HA} re-lock from the first returning fix, s", f"{t} loss {li+1} ({lab}) {e}",
+                    get(ol_, e, "effective", "relock_after_first_fix_s"), get(nl_, e, "effective", "relock_after_first_fix_s"), nd=3)
+                add(f"{HA} jump at re-lock, m", f"{t} loss {li+1} ({lab}) {e}", get(ol_, e, "jump_pos_m"), get(nl_, e, "jump_pos_m"), nd=4)
+            dO, dN = get(ol_, e, "drift_end_m"), get(nl_, e, "drift_end_m")
+            if oh[t] is not None:
+                p5o[e].append(None if dO is None else dO <= b); p7o[e].append(None if ol_ is None else not get(ol_, e, "lockout"))
+            if nh[t] is not None:
+                p5n[e].append(None if dN is None else dN <= b); p7n[e].append(None if nl_ is None else not get(nl_, e, "lockout"))
+        for x, y in (("FGO", "UKF"), ("UKF", "EKF3"), ("FGO", "EKF3")):
+            g = lambda d, e: get(d, e, "drift_end_m")
+            add(f"{HA} orderings (drift at end of loss, difference), m", f"{t} loss {li+1} ({lab}) {x} − {y}",
+                None if None in (g(ol_, x), g(ol_, y)) else g(ol_, x) - g(ol_, y),
+                None if None in (g(nl_, x), g(nl_, y)) else g(nl_, x) - g(nl_, y), "sign", nd=4)
+for e in BAND:
+    cnt_row("H verdicts", f"P-H5 (as worded, all losses of all scored flights) {e}", p5o[e] or None, p5n[e] or None)
+    cnt_row("H verdicts", f"P-H7 no lockout {e}", p7o[e] or None, p7n[e] or None)
+
+# ---------- F tests (METHODOLOGY verdicts) ----------
+FF = ("fwdc_tex_r1", "fwdc_tex_r2", "fwdc_tex_r3")
+f1o, f1n = L(O, "f1_test.json"), L(N, "f1_test.json")
+F1T = ("fwdplainc_tex_r1", "fwdplainc_tex_r2", "fwdplainc_tex_r3") + FF
+for arm in ("UKF_hard", "FGO_hard", "FGO_robust"):
+    for m in ("yaw_max_deg", "yaw_rms_deg", "xtrack_max_m", "wrong_accepted", "correct_rejected", "lockout_episodes"):
+        add("F1 (test, k = 2.385): mean over the 6 flights", f"{arm} {m}", mean([get(f1o, t, arm, m) for t in F1T]),
+            mean([get(f1n, t, arm, m) for t in F1T]), nd=3)
+for t in F1T:
+    add("F1 orderings: FGO_robust − FGO_hard yaw max, deg", t,
+        None if None in (get(f1o, t, "FGO_robust", "yaw_max_deg"), get(f1o, t, "FGO_hard", "yaw_max_deg")) else get(f1o, t, "FGO_robust", "yaw_max_deg") - get(f1o, t, "FGO_hard", "yaw_max_deg"),
+        None if None in (get(f1n, t, "FGO_robust", "yaw_max_deg"), get(f1n, t, "FGO_hard", "yaw_max_deg")) else get(f1n, t, "FGO_robust", "yaw_max_deg") - get(f1n, t, "FGO_hard", "yaw_max_deg"), "sign")
+add("F1 verdict", "robust_lower_yaw_max_on (flights)", get(f1o, "decision", "robust_lower_yaw_max_on"), get(f1n, "decision", "robust_lower_yaw_max_on"))
+for k in ("UKF_hard", "FGO_robust"):
+    add("F1 verdict", f"lockout_total {k}", get(f1o, "decision", "lockout_total", k), get(f1n, "decision", "lockout_total", k))
+add("F1 verdict", "robust_FGO_better (F1 met)", get(f1o, "decision", "robust_FGO_better"), get(f1n, "decision", "robust_FGO_better"), "bool")
+f2o, f2n = L(O, "f2_test.json"), L(N, "f2_test.json")
+for t in FF:
+    for arm in ("UKF_live", "FGO_live", "FGO_batch_hindsight"):
+        for m in ("off_yaw_rms_deg", "off_xtrack_rms_m", "on_yaw_rms_deg"):
+            add("F2 per flight", f"{t} {arm} {m}", get(f2o, t, arm, m), get(f2n, t, arm, m))
+    g2 = lambda d, x, y: None if None in (get(d, t, x, "off_xtrack_rms_m"), get(d, t, y, "off_xtrack_rms_m")) else get(d, t, x, "off_xtrack_rms_m") - get(d, t, y, "off_xtrack_rms_m")
+    add("F2 orderings (off-region cross-track RMS difference), m", f"{t} FGO batch − FGO live", g2(f2o, "FGO_batch_hindsight", "FGO_live"), g2(f2n, "FGO_batch_hindsight", "FGO_live"), "sign")
+    add("F2 orderings (off-region cross-track RMS difference), m", f"{t} FGO live − UKF live", g2(f2o, "FGO_live", "UKF_live"), g2(f2n, "FGO_live", "UKF_live"), "sign")
+add("F2 verdict", "hindsight_correction (F2 met)", get(f2o, "decision", "hindsight_correction"), get(f2n, "decision", "hindsight_correction"), "bool")
+for tag, f, dk in (("F3", "f3_test.json", ("fgo_advantage_grows",)), ("F3b", "f3b_test.json", ("a_fgo_at_least_as_fast", "b_advantage_grows")),
+                   ("F3c", "f3c_test.json", ("a_fgo_at_least_as_fast", "b_advantage_grows"))):
+    fo, fn = L(O, f), L(N, f)
+    deltas = [k.split("_d")[1] for k in (get(fo, FF[0]) or get(fn, FF[0]) or {}) if k.startswith("UKF_d")]
+    for t in FF:
+        for d_ in deltas:
+            for e in ("UKF", "FGO"):
+                for m in ("convergence_s", "xtrack_peak_m", "xtrack_int_60s_ms"):
+                    add(f"{tag} per flight", f"{t} {e} Δ{d_} {m}", get(fo, t, f"{e}_d{d_}", m), get(fn, t, f"{e}_d{d_}", m))
+            gi = lambda d: None if None in (get(d, t, f"FGO_d{d_}", "xtrack_int_60s_ms"), get(d, t, f"UKF_d{d_}", "xtrack_int_60s_ms")) else get(d, t, f"FGO_d{d_}", "xtrack_int_60s_ms") - get(d, t, f"UKF_d{d_}", "xtrack_int_60s_ms")
+            add(f"{tag} orderings (FGO − UKF cross-track integral), m·s", f"{t} Δ{d_}", gi(fo), gi(fn), "sign")
+        for rk in ("fgo_over_ukf_int_ratio", "ratio"):
+            rov, rnv = get(fo, t, rk), get(fn, t, rk)
+            if rov is not None or rnv is not None:
+                rows.append((f"{tag} per flight", f"{t} {rk}", str(rov), str(rnv), "", ""))
+        for bk in ("ratio_decreasing", "fgo_le_ukf_all_deltas"):
+            if get(fo, t, bk) is not None or get(fn, t, bk) is not None:
+                add(f"{tag} per flight", f"{t} {bk}", get(fo, t, bk), get(fn, t, bk), "bool")
+    for k in dk:
+        add(f"{tag} verdict", k, get(fo, "decision", k), get(fn, "decision", k), "bool")
+
+# ---------- 2(a) (F4, §15.1): f4_test.json ----------
+f4o, f4n = L(O, "f4_test.json"), L(N, "f4_test.json")
+F4T = sorted(set(k for k in (f4o or {}) if k != "decision") | set(k for k in (f4n or {}) if k != "decision"))
+for arm in ("UKF_hard", "FGO_hard", "FGO_robust"):
+    for m in ("yaw_max_deg", "yaw_rms_deg", "xtrack_max_m", "wrong_accepted", "lockout_episodes"):
+        add("2(a) (F4) mean over the usable flights", f"{arm} {m}", mean([get(f4o, t, arm, m) for t in F4T]), mean([get(f4n, t, arm, m) for t in F4T]))
+for t in F4T:
+    for m in ("yaw_max_deg", "xtrack_max_m"):
+        g4 = lambda d: None if None in (get(d, t, "FGO_robust", m), get(d, t, "FGO_hard", m)) else get(d, t, "FGO_robust", m) - get(d, t, "FGO_hard", m)
+        add(f"2(a) (F4) orderings: FGO_robust − FGO_hard", f"{t} {m}", g4(f4o), g4(f4n), "sign")
+dd = ("n_flights", "n_plain", "P1_robust_lower_yaw_max_than_hard_on", "S1_robust_fewer_wrong_accepted_plain_on", "S2_robust_xtrack_max_le_hard_on")
+for k in dd:
+    add("2(a) (F4) verdicts", k, get(f4o, "decision", k), get(f4n, "decision", k))
+for k in ("P1_pass", "S1_pass", "S2_pass"):
+    add("2(a) (F4) verdicts", k, get(f4o, "decision", k), get(f4n, "decision", k), "bool")
+for k in ("yaw_max_deg", "yaw_rms_deg", "xtrack_max_m"):
+    add("2(a) (F4) verdicts", f"reference: robust lower than UKF on ({k})", get(f4o, "decision", "reference_robust_lower_than_UKF_on", k),
+        get(f4n, "decision", "reference_robust_lower_than_UKF_on", k))
+for k in ("UKF_hard", "FGO_hard", "FGO_robust"):
+    add("2(a) (F4) verdicts", f"lockout_total {k}", get(f4o, "decision", "lockout_total", k), get(f4n, "decision", "lockout_total", k))
+
 # ---------- write ----------
 out = ["# Consolidated re-run — old vs new (auto-generated by eval/rerun_compare.py)", "",
        f"OLD = `{O}` (pre-re-run snapshot), NEW = `{N}`. `DIRECTION` marks a changed comparison "
        "(ordering sign, arm-effect sign, verdict, side of 1 / 50% / NEES 3); see the script docstring.", ""]
 sec = None
-for s, q, o, n, d, f in rows:
+_order = {}
+for r in rows:
+    _order.setdefault(r[0], len(_order))
+for s, q, o, n, d, f in sorted(rows, key=lambda r: _order[r[0]]):   # stable: one table per section (verdict rows interleave)
     if s != sec:
         out += ["", f"### {s}", "", "| quantity | old | new | Δ | flag |", "|---|---|---|---|---|"]; sec = s
     out.append(f"| {q} | {o} | {n} | {d} | {f} |")
@@ -280,5 +583,7 @@ nflag = sum(1 for r in rows if r[5])
 out.insert(3, f"**Rows: {len(rows)}; direction flags: {nflag}.**")
 open(a.md, "w").write("\n".join(out) + "\n")
 if a.json:
-    json.dump([dict(zip(("section", "quantity", "old", "new", "delta", "flag"), r)) for r in rows], open(a.json, "w"), indent=1)
+    json.dump([dict(zip(("section", "quantity", "old", "new", "delta", "flag"), r),
+                    **({"old_raw": RAW[i][0], "new_raw": RAW[i][1]} if i in RAW else {})) for i, r in enumerate(rows)],
+              open(a.json, "w"), indent=1)
 print(f"{len(rows)} rows, {nflag} direction flags -> {a.md}")

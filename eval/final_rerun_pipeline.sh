@@ -438,12 +438,13 @@ if stage L; then
     done_ L
 fi
 
-# 18. Old against new (light): the corridor headline comparison of the consolidated re-run (eval/rerun_compare.py: numbers.md
-#     sections 6-9, Phase 4/5/5b, scale, heading share). T/O/L/H/F/2(a) old-vs-new rows are NOT covered by it (handover gap).
+# 18. Old against new (light): eval/rerun_compare.py — the corridor headlines (numbers.md sections 6-9, Phase 4/5/5b, scale,
+#     heading share) and, since 2026-10-09, T, O, L, H, F1-F3c and 2(a) (handover 2026-10-09_final_rerun_repro.md). H/O
+#     "old" per-trial values come from the same-scorer pre-score ($STATE/prescore) where present, else the snapshot.
 if stage compare; then
     need L
     repack_trials "${DSN[@]}" "${EXTRA[@]}" "${P1C[@]}" "${FWDC[@]}" "${FWDPC[@]}" "${F4[@]}"   # idempotent safety net
-    runlog "$STATE/compare.txt" python3 eval/rerun_compare.py "$OLD" "$RES" --md "$STATE/final_old_vs_new.md" --json "$RES/final_old_vs_new.json" || die compare
+    runlog "$STATE/compare.txt" python3 eval/rerun_compare.py "$OLD" "$RES" --prescore "$STATE/prescore" --md "$STATE/final_old_vs_new.md" --json "$RES/final_old_vs_new.json" || die compare
     done_ compare
 fi
 
