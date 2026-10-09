@@ -1,0 +1,23 @@
+== build emu + default (patched scratch copy, replay target only) 14:54:43
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/gatecond/build_emu'
+make: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/gatecond/build_emu'
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/gatecond/build_def'
+make: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/gatecond/build_def'
+== C++ emu replay 14:55:15
+[run] 10197 keyframes, flow 10018, range 10196, imu 113282, tag 0, gnss 0, gp replaced 584, failures 0
+[timing] per-keyframe update: median=0.592ms p99=0.974ms
+[yaw-cap gate] fired 63/2039 checks (FGO_DESIGN §9.4)
+non-perturbing (emu kf vs existing emu_): identical
+non-perturbing (emu yawgate vs existing): identical
+== C++ default replay 14:55:21
+[run] 10197 keyframes, flow 10018, range 10196, imu 113282, tag 0, gnss 0, gp replaced 584, failures 0
+[timing] per-keyframe update: median=0.586ms p99=0.946ms
+[yaw-cap gate] fired 63/2039 checks (FGO_DESIGN §9.4)
+default kf vs existing cpp_: identical
+default yawgate vs existing cpp_: identical
+== Python forced to emu decisions 14:55:28
+non-perturbing (py-forced-emu kf vs existing forcedemu_): identical
+py-forced-emu kf vs C++ emu kf: identical
+== Python forced to default-build decisions 14:58:51
+non-perturbing (py-forced-def kf vs existing forced_): identical
+== done 15:02:09
