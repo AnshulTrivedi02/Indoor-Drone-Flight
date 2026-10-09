@@ -1,0 +1,26 @@
+# FINAL re-run, Experiment T (RECONSTRUCTED from the outputs; METHODOLOGY 10126-10168, 10862-10888): tag sigma 0.05 (default),
+# room_ukf (live + RTS) and room_fgo (live + whole-flight batch, ~35 min each). The *_IMUGAP originals are not replayed.
+tf__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r1
+tu__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r1
+tf__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r2
+tu__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r2
+tf__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r3
+tu__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r3
+tf__T_B_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r1
+tu__T_B_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r1
+tf__T_B_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r2
+tu__T_B_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r2
+tf__T_B_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r3
+tu__T_B_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r3
+tf__T_C_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r1
+tu__T_C_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r1
+tf__T_C_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r2
+tu__T_C_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r2
+tf__T_C_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r3
+tu__T_C_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r3
+tf__T_D_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r1
+tu__T_D_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r1
+tf__T_D_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r2
+tu__T_D_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r2
+tf__T_D_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r3
+tu__T_D_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r3

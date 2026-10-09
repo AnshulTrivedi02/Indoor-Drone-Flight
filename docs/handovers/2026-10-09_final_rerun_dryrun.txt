@@ -1,0 +1,452 @@
+# BEGIN preflight
+  thesis_ws HEAD 7f231976b2bf2c822955f17e63e01f913efa89a4
+  md5 483383f0e2646991571f060c092f0c4b  src/estimators/ukf_core.py
+  md5 1054a390c2b40894c323d6fbf3571999  src/estimators/measurement_models.py
+  md5 a074c7c0409f492ba11153dd1d2c38dd  src/estimators/imu_timing.py
+  md5 45d67568ffab379179aa7b377f2b6e82  src/estimators/ukf_replay.py
+  md5 4976840463a6e8546771b891de5da32e  src/estimators/room_ukf_replay.py
+  md5 918c1dfd015aff971b580613420c4b62  src/estimators/apin.py
+  md5 d7e5ff7d5587d671d75039403ac6a0bf  src/estimators/fgo/fgo_core.py
+  md5 223591ef5b2952cd62d9462a35914750  src/estimators/fgo/factors.py
+  md5 d3a943ec8df94267551908350c2446a1  src/estimators/fgo/fgo_replay.py
+  md5 e1bf9e5ba59128a04bc15f5757f15259  src/estimators/fgo/room_fgo_replay.py
+  md5 42e31a1050308f583cc7d5affdd23d90  src/estimators/fgo/lc_fgo_replay.py
+  md5 de92e852465800d45fc1d2a83cc04d87  src/estimators/fgo_cpp/src/fgo_core.cpp
+  md5 46ae8131696d8f4a96a151a1f07c4cf5  src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h
+  md5 714338d0dcb18556b91904c08a4a2f74  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_replay
+  md5 f642cd3712939d911abd9f480db8d229  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_node
+  ok   (1) FGO setBiasAccOmegaInit = 0
+  ok   (2) FGO yaw cap variance-gated
+  ok   (3) UKF jitter only on Cholesky failure
+  FAIL (4) UKF bias-corrected derotation is the default
+    - derotation: src/estimators/ukf_replay.py has NO default-path bias-corrected derotation (only the diagnostic UKF_APIN=biascorr variant at line(s) [161])
+    - derotation: src/estimators/room_ukf_replay.py has NO default-path bias-corrected derotation (only the diagnostic UKF_APIN=biascorr variant at line(s) [152])
+# corrections check FAILS NOW (expected until the derotation change lands): the real run would DIE here
+  imu_gaps f4_fwdplainc_tex_r1: ok
+  imu_gaps f4_fwdplainc_tex_r2: ok
+  imu_gaps f4_fwdc_tex_r2: ok
+  imu_gaps f4_fwdc_tex_r3: ok
+  imu_gaps f4_fwdplainc_tex_r4: ok
+  imu_gaps f4_fwdc_tex_r4: trim
+  imu_gaps f4_fwdplainc_tex_r5: ok
+  imu_gaps f4_fwdc_tex_r5: ok
+  imu_gaps f4_fwdplainc_tex_r6: ok
+  imu_gaps f4_fwdc_tex_r6: ok
+  imu_gaps T_A_r1: ok
+  imu_gaps T_A_r2: ok
+  imu_gaps T_A_r3: ok
+  imu_gaps T_B_r1: ok
+  imu_gaps T_B_r2: ok
+  imu_gaps T_B_r3: ok
+  imu_gaps T_C_r1: ok
+  imu_gaps T_C_r2: ok
+  imu_gaps T_C_r3: ok
+  imu_gaps T_D_r1: ok
+  imu_gaps T_D_r2: ok
+  imu_gaps T_D_r3: ok
+  imu_gaps O_r1: ok
+  imu_gaps O_r2: ok
+  imu_gaps O_r3b: ok
+  imu_gaps H_s1_r1: ok
+  imu_gaps H_s1_r2: ok
+  imu_gaps H_s1_r3: ok
+  imu_gaps H_s1far_r1: ok
+  imu_gaps H_s1far_r2: ok
+  imu_gaps H_s1far_r3b: ok
+# (dry) DONE preflight
+# BEGIN snapshot
+  cp  -a  eval/results  eval/results_pre_final
+  for every ~/thesis_data/trials/<t>: cp -a <t>/{ukf*,fgo*,room_*,lc_fgo_*} /home/makerspace/thesis_data/pre_final_trials/<t>/   (667 dirs)
+  cp -a ~/thesis_data/phase5b_d15 ~/thesis_data/batches/eval_{rerun_dsn dsn_extra rerun_p1c rerun_fwdc rerun_fwdplainc} /home/makerspace/thesis_data/pre_final_trials/_aux/
+# (dry) DONE snapshot
+# BEGIN unpack
+  unpack (tools/bag_pack.sh unpack) 40 trials, 78 GB to restore
+# (dry) DONE unpack
+# BEGIN dsn
+  eval/run_set_eval.sh  rerun_dsn  dsn_tex_r1  dsn_trans_r1  dsn_blank_r1  dsn_tex_r2  dsn_trans_r2  dsn_blank_r2  dsn_tex_r3  dsn_trans_r3  dsn_blank_r3  > /home/makerspace/thesis_data/batches/final_rerun/dsn.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/rerun_dsn_evo.json  eval/results/rerun_dsn_evo.json  eval/results_pre_final/input_timing_rerun_dsn.json  eval/results/input_timing_rerun_dsn.json  eval/results_pre_final/flow_quality_rerun_dsn.json  eval/results/flow_quality_rerun_dsn.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_dsn.txt
+  cp  eval/results/rerun_dsn_evo.json  eval/results/dsn_dejitter_baseline.json
+# (dry) DONE dsn
+# BEGIN dsn_extra
+  eval/run_set_eval.sh  dsn_extra  dsn_tex_r4  dsn_tex_r5  dsn_tex_r6  dsn_tex_r7  dsn_tex_r8  dsn_tex_r9  dsn_tex_r10  > /home/makerspace/thesis_data/batches/final_rerun/dsn_extra.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/dsn_extra_evo.json  eval/results/dsn_extra_evo.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_dsn_extra.txt
+# (dry) DONE dsn_extra
+# BEGIN bands
+  python3  eval/rerun_bands.py  eval/results/rerun_dsn_evo.json  --json  eval/results/rerun_p4_bands.json  > /home/makerspace/thesis_data/batches/final_rerun/bands.txt
+# (dry) DONE bands
+# BEGIN paired
+  python3  eval/dsn_paired_test.py  eval/results/rerun_dsn_evo.json  eval/results/dsn_extra_evo.json  --json  eval/results/dsn_paired_test.json  > /home/makerspace/thesis_data/batches/final_rerun/paired.txt
+# (dry) DONE paired
+# BEGIN set_p1c
+  eval/run_set_eval.sh  rerun_p1c  p1c_fwdc_tex  p1c_fwdplainc_tex  p1c_fwdc_trans  p1c_fwdplainc_trans  p1c_fwdc_blank  p1c_fwdplainc_blank  > /home/makerspace/thesis_data/batches/final_rerun/set_p1c.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/rerun_p1c_evo.json  eval/results/rerun_p1c_evo.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_set_p1c.txt
+# (dry) DONE set_p1c
+# BEGIN set_fwdc
+  eval/run_set_eval.sh  rerun_fwdc  fwdc_tex_r1  fwdc_trans_r1  fwdc_blank_r1  fwdc_tex_r2  fwdc_trans_r2  fwdc_blank_r2  fwdc_tex_r3  fwdc_trans_r3  fwdc_blank_r3  > /home/makerspace/thesis_data/batches/final_rerun/set_fwdc.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/rerun_fwdc_evo.json  eval/results/rerun_fwdc_evo.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_set_fwdc.txt
+# (dry) DONE set_fwdc
+# BEGIN set_fwdplainc
+  eval/run_set_eval.sh  rerun_fwdplainc  fwdplainc_tex_r1  fwdplainc_trans_r1  fwdplainc_blank_r1  fwdplainc_tex_r2  fwdplainc_trans_r2  fwdplainc_blank_r2  fwdplainc_tex_r3  fwdplainc_trans_r3  fwdplainc_blank_r3  > /home/makerspace/thesis_data/batches/final_rerun/set_fwdplainc.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/rerun_fwdplainc_evo.json  eval/results/rerun_fwdplainc_evo.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_set_fwdplainc.txt
+# (dry) DONE set_fwdplainc
+# BEGIN phase4
+  eval/run_jobs_resumable.sh batches/phase4_replays.jobs final_phase4 6   # 90 jobs:
+    job: fgo__fwdc_tex_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 baseline
+    job: ukf__fwdc_tex_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 baseline
+    job: fgo__fwdc_tex_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: ukf__fwdc_tex_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: fgo__fwdc_tex_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading_yawrate
+    job: ukf__fwdc_tex_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading_yawrate
+    job: fgo__fwdc_trans_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 baseline
+    job: ukf__fwdc_trans_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 baseline
+    job: fgo__fwdc_trans_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 heading
+    job: ukf__fwdc_trans_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading
+    job: fgo__fwdc_trans_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r1 0.25 2 heading_yawrate
+    job: ukf__fwdc_trans_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r1 heading_yawrate
+    job: fgo__fwdc_blank_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 baseline
+    job: ukf__fwdc_blank_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 baseline
+    job: fgo__fwdc_blank_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading
+    job: ukf__fwdc_blank_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading
+    job: fgo__fwdc_blank_r1__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading_yawrate
+    job: ukf__fwdc_blank_r1__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading_yawrate
+    job: fgo__fwdc_tex_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 baseline
+    job: ukf__fwdc_tex_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 baseline
+    job: fgo__fwdc_tex_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: ukf__fwdc_tex_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: fgo__fwdc_tex_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading_yawrate
+    job: ukf__fwdc_tex_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading_yawrate
+    job: fgo__fwdc_trans_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 baseline
+    job: ukf__fwdc_trans_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 baseline
+    job: fgo__fwdc_trans_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 heading
+    job: ukf__fwdc_trans_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading
+    job: fgo__fwdc_trans_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r2 0.25 2 heading_yawrate
+    job: ukf__fwdc_trans_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r2 heading_yawrate
+    job: fgo__fwdc_blank_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 baseline
+    job: ukf__fwdc_blank_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 baseline
+    job: fgo__fwdc_blank_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 heading
+    job: ukf__fwdc_blank_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading
+    job: fgo__fwdc_blank_r2__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r2 0.25 2 heading_yawrate
+    job: ukf__fwdc_blank_r2__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r2 heading_yawrate
+    job: fgo__fwdc_tex_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 baseline
+    job: ukf__fwdc_tex_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 baseline
+    job: fgo__fwdc_tex_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: ukf__fwdc_tex_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: fgo__fwdc_tex_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading_yawrate
+    job: ukf__fwdc_tex_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading_yawrate
+    job: fgo__fwdc_trans_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 baseline
+    job: ukf__fwdc_trans_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 baseline
+    job: fgo__fwdc_trans_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 heading
+    job: ukf__fwdc_trans_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading
+    job: fgo__fwdc_trans_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_trans_r3 0.25 2 heading_yawrate
+    job: ukf__fwdc_trans_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_trans_r3 heading_yawrate
+    job: fgo__fwdc_blank_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 baseline
+    job: ukf__fwdc_blank_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 baseline
+    job: fgo__fwdc_blank_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 heading
+    job: ukf__fwdc_blank_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading
+    job: fgo__fwdc_blank_r3__heading_yawrate cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r3 0.25 2 heading_yawrate
+    job: ukf__fwdc_blank_r3__heading_yawrate cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r3 heading_yawrate
+    job: fgo__fwdplainc_tex_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r1 0.25 2 baseline
+    job: ukf__fwdplainc_tex_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 baseline
+    job: fgo__fwdplainc_tex_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r1 0.25 2 heading
+    job: ukf__fwdplainc_tex_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r1 heading
+    job: fgo__fwdplainc_trans_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r1 0.25 2 baseline
+    job: ukf__fwdplainc_trans_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 baseline
+    job: fgo__fwdplainc_trans_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r1 0.25 2 heading
+    job: ukf__fwdplainc_trans_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r1 heading
+    job: fgo__fwdplainc_blank_r1__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r1 0.25 2 baseline
+    job: ukf__fwdplainc_blank_r1__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 baseline
+    job: fgo__fwdplainc_blank_r1__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r1 0.25 2 heading
+    job: ukf__fwdplainc_blank_r1__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r1 heading
+    job: fgo__fwdplainc_tex_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r2 0.25 2 baseline
+    job: ukf__fwdplainc_tex_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 baseline
+    job: fgo__fwdplainc_tex_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r2 0.25 2 heading
+    job: ukf__fwdplainc_tex_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r2 heading
+    job: fgo__fwdplainc_trans_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r2 0.25 2 baseline
+    job: ukf__fwdplainc_trans_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 baseline
+    job: fgo__fwdplainc_trans_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r2 0.25 2 heading
+    job: ukf__fwdplainc_trans_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r2 heading
+    job: fgo__fwdplainc_blank_r2__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r2 0.25 2 baseline
+    job: ukf__fwdplainc_blank_r2__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 baseline
+    job: fgo__fwdplainc_blank_r2__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r2 0.25 2 heading
+    job: ukf__fwdplainc_blank_r2__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r2 heading
+    job: fgo__fwdplainc_tex_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r3 0.25 2 baseline
+    job: ukf__fwdplainc_tex_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 baseline
+    job: fgo__fwdplainc_tex_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r3 0.25 2 heading
+    job: ukf__fwdplainc_tex_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_tex_r3 heading
+    job: fgo__fwdplainc_trans_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r3 0.25 2 baseline
+    job: ukf__fwdplainc_trans_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 baseline
+    job: fgo__fwdplainc_trans_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_trans_r3 0.25 2 heading
+    job: ukf__fwdplainc_trans_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_trans_r3 heading
+    job: fgo__fwdplainc_blank_r3__baseline cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r3 0.25 2 baseline
+    job: ukf__fwdplainc_blank_r3__baseline cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 baseline
+    job: fgo__fwdplainc_blank_r3__heading cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_blank_r3 0.25 2 heading
+    job: ukf__fwdplainc_blank_r3__heading cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdplainc_blank_r3 heading
+  /home/makerspace/venv-evo/bin/python  eval/phase4_eval.py  fwdc  fwdplainc  > /home/makerspace/thesis_data/batches/final_rerun/phase4_eval.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/phase4_fwdc_evo.json  eval/results/phase4_fwdc_evo.json  eval/results_pre_final/phase4_fwdplainc_evo.json  eval/results/phase4_fwdplainc_evo.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_phase4.txt
+# (dry) DONE phase4
+# BEGIN phase5
+  /home/makerspace/venv-ardupilot/bin/python  eval/phase5_analysis.py  --json  eval/results/phase5_analysis.json  > /home/makerspace/thesis_data/batches/final_rerun/phase5.txt
+  /home/makerspace/venv-evo/bin/python  eval/scale_check.py  --json  eval/results/scale_check.json  > /home/makerspace/thesis_data/batches/final_rerun/scale.txt
+  /home/makerspace/venv-ardupilot/bin/python  eval/heading_share.py  eval/results/rerun_dsn_evo.json  --json  eval/results/heading_share_restated.json  > /home/makerspace/thesis_data/batches/final_rerun/heading_share.txt
+# (dry) DONE phase5
+# BEGIN phase5b
+  eval/build_5b_sandbox.sh  /home/makerspace/thesis_data/phase5b_final/home  /home/makerspace/thesis_data/batches/final_rerun/phase5b.jobs  > /home/makerspace/thesis_data/batches/final_rerun/phase5b_build.txt
+  (jobs = batches/phase5b_replays.jobs with /home/makerspace/thesis_data/phase5b/home -> /home/makerspace/thesis_data/phase5b_final/home; 72 jobs)
+  eval/run_jobs_resumable.sh /home/makerspace/thesis_data/batches/final_rerun/phase5b_clean.jobs final_phase5b 6
+  /home/makerspace/venv-ardupilot/bin/python  eval/phase5b_consistency.py  --json  eval/results/phase5b_consistency.json  > /home/makerspace/thesis_data/batches/final_rerun/phase5b.txt
+# (dry) DONE phase5b
+# BEGIN d15_bb
+  /home/makerspace/venv-ardupilot/bin/python  eval/d15_kick.py  dsn_tex_r1  dsn_tex_r2  dsn_tex_r3  dsn_tex_r4  dsn_tex_r5  dsn_tex_r6  dsn_tex_r7  dsn_tex_r8  dsn_tex_r9  dsn_tex_r10  --json  eval/results/d15_kick.json  > /home/makerspace/thesis_data/batches/final_rerun/kick.txt
+  /home/makerspace/venv-ardupilot/bin/python  eval/d15_drift.py  dsn_tex_r1  dsn_tex_r2  dsn_tex_r3  dsn_tex_r4  dsn_tex_r5  dsn_tex_r6  dsn_tex_r7  dsn_tex_r8  dsn_tex_r9  dsn_tex_r10  dsn_trans_r1  dsn_trans_r2  dsn_trans_r3  --json  eval/results/d15_drift.json  > /home/makerspace/thesis_data/batches/final_rerun/drift.txt
+  python3  eval/rtf_drift_check.py  --json  eval/results/rtf_drift_check.json  > /home/makerspace/thesis_data/batches/final_rerun/rtf.txt
+  /home/makerspace/venv-evo/bin/python  eval/blank_behaviour.py  dsn_blank_r1  dsn_blank_r2  dsn_blank_r3  dsn_trans_r1  dsn_trans_r2  dsn_trans_r3  p1c_fwdc_blank  p1c_fwdc_trans  p1c_fwdplainc_blank  p1c_fwdplainc_trans  --arms  ukf\,fgo  --json  /home/makerspace/thesis_data/batches/final_rerun/bb_plain.json  > /home/makerspace/thesis_data/batches/final_rerun/bb_plain.txt
+  /home/makerspace/venv-evo/bin/python  eval/blank_behaviour.py  fwdc_blank_r1  fwdc_blank_r2  fwdc_blank_r3  fwdc_trans_r1  fwdc_trans_r2  fwdc_trans_r3  fwdplainc_blank_r1  fwdplainc_blank_r2  fwdplainc_blank_r3  fwdplainc_trans_r1  fwdplainc_trans_r2  fwdplainc_trans_r3  --arms  ukf_baseline\,fgo_baseline\,ukf_heading\,fgo_heading  --json  /home/makerspace/thesis_data/batches/final_rerun/bb_arms.json  > /home/makerspace/thesis_data/batches/final_rerun/bb_arms.txt
+  python3  eval/final_rerun_merge_bb.py  eval/results_pre_final/blank_behaviour.json  /home/makerspace/thesis_data/batches/final_rerun/bb_plain.json  /home/makerspace/thesis_data/batches/final_rerun/bb_arms.json  eval/results/blank_behaviour.json  > /home/makerspace/thesis_data/batches/final_rerun/bb_merge.txt
+# (dry) DONE d15_bb
+# BEGIN ftests
+  eval/run_jobs_resumable.sh batches/final_rerun/F.jobs final_F 6   # 73 jobs:
+    job: f1_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r1 0.25 2 heading
+    job: f1_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r2 0.25 2 heading
+    job: f1_fwdplainc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdplainc_tex_r3 0.25 2 heading
+    job: f1_fwdc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f1_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f1_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f2u_fwdc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f2f_fwdc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 F_BATCH=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3u_fwdc_tex_r1_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3f_fwdc_tex_r1_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3u_fwdc_tex_r1_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3f_fwdc_tex_r1_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3u_fwdc_tex_r1_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3f_fwdc_tex_r1_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3u_fwdc_tex_r1_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3f_fwdc_tex_r1_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f2u_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f2f_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 F_BATCH=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3u_fwdc_tex_r2_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3f_fwdc_tex_r2_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3u_fwdc_tex_r2_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3f_fwdc_tex_r2_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3u_fwdc_tex_r2_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3f_fwdc_tex_r2_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3u_fwdc_tex_r2_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3f_fwdc_tex_r2_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f2u_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f2f_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F2mask F_MASK=30/30 F_BATCH=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3u_fwdc_tex_r3_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3f_fwdc_tex_r3_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3u_fwdc_tex_r3_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3f_fwdc_tex_r3_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d30 F_YAW0_DEG=30 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3u_fwdc_tex_r3_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3f_fwdc_tex_r3_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d60 F_YAW0_DEG=60 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3u_fwdc_tex_r3_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3f_fwdc_tex_r3_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d90 F_YAW0_DEG=90 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3bu_fwdc_tex_r1_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3bf_fwdc_tex_r1_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3bu_fwdc_tex_r1_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3bf_fwdc_tex_r1_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3bu_fwdc_tex_r1_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3bf_fwdc_tex_r1_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3bu_fwdc_tex_r1_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: f3bf_fwdc_tex_r1_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: f3bu_fwdc_tex_r2_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3bf_fwdc_tex_r2_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3bu_fwdc_tex_r2_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3bf_fwdc_tex_r2_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3bu_fwdc_tex_r2_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3bf_fwdc_tex_r2_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3bu_fwdc_tex_r2_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: f3bf_fwdc_tex_r2_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: f3bu_fwdc_tex_r3_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3bf_fwdc_tex_r3_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3bu_fwdc_tex_r3_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3bf_fwdc_tex_r3_30 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3bu_fwdc_tex_r3_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3bf_fwdc_tex_r3_60 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd60 F_YAW0_DEG=60 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: f3bu_fwdc_tex_r3_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: f3bf_fwdc_tex_r3_90 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3bd90 F_YAW0_DEG=90 F_YAW0_SIGMA_DEG=90 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: ukf__fwdc_tex_r1__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: fgo__fwdc_tex_r1__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: ukf__fwdc_tex_r1__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+    job: fgo__fwdc_tex_r1__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r1 0.25 2 heading
+    job: ukf__fwdc_tex_r2__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: fgo__fwdc_tex_r2__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: ukf__fwdc_tex_r2__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r2 heading
+    job: fgo__fwdc_tex_r2__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r2 0.25 2 heading
+    job: ukf__fwdc_tex_r3__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: fgo__fwdc_tex_r3__F3cd10 cd ~/thesis_ws && F_TAG=F3cd10 F_YAW0_DEG=10 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: ukf__fwdc_tex_r3__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r3 heading
+    job: fgo__fwdc_tex_r3__F3cd30 cd ~/thesis_ws && F_TAG=F3cd30 F_YAW0_DEG=30 F_YAW0_SIGMA_DEG=30 F_NO_YAWCAP=1 F_HDG_FROM_CRUISE=1 nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_tex_r3 0.25 2 heading
+    job: d27_patu_fwdc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=PATnocap F_NO_YAWCAP=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading
+  /home/makerspace/venv-fgo/bin/python  eval/f1_eval.py  test  cauchy:2.385  --json  eval/results/f1_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f1.txt
+  /home/makerspace/venv-fgo/bin/python  eval/f23_eval.py  f2  --json  eval/results/f2_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f2.txt
+  /home/makerspace/venv-fgo/bin/python  eval/f23_eval.py  f3  --json  eval/results/f3_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f3.txt
+  /home/makerspace/venv-fgo/bin/python  eval/f3b_eval.py  --json  eval/results/f3b_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f3b.txt
+  /home/makerspace/venv-fgo/bin/python  eval/f3c_eval.py  --tag  F3cd  --deltas  10\,30  --json  eval/results/f3c_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f3c.txt
+# (dry) DONE ftests
+# BEGIN repack_corridor
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 40 trials
+# (dry) DONE repack_corridor
+# BEGIN f4
+  unpack (tools/bag_pack.sh unpack) 12 trials, 38 GB to restore
+  eval/run_jobs_resumable.sh batches/f4_replays_usable.jobs final_f4 6   # 30 jobs:
+    job: ukfh__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r1 heading
+    job: fgoh__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r1 0.25 2 heading
+    job: fgor__f4_fwdplainc_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r1 0.25 2 heading
+    job: ukfh__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r2 heading
+    job: fgoh__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r2 0.25 2 heading
+    job: fgor__f4_fwdplainc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r2 0.25 2 heading
+    job: ukfh__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r2 heading
+    job: fgoh__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r2 0.25 2 heading
+    job: fgor__f4_fwdc_tex_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r2 0.25 2 heading
+    job: ukfh__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r3 heading
+    job: fgoh__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r3 0.25 2 heading
+    job: fgor__f4_fwdc_tex_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r3 0.25 2 heading
+    job: ukfh__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r4 heading
+    job: fgoh__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r4 0.25 2 heading
+    job: fgor__f4_fwdplainc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r4 0.25 2 heading
+    job: ukfh__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r4 heading
+    job: fgoh__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r4 0.25 2 heading
+    job: fgor__f4_fwdc_tex_r4 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r4 0.25 2 heading
+    job: ukfh__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r5 heading
+    job: fgoh__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r5 0.25 2 heading
+    job: fgor__f4_fwdplainc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r5 0.25 2 heading
+    job: ukfh__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r5 heading
+    job: fgoh__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r5 0.25 2 heading
+    job: fgor__f4_fwdc_tex_r5 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r5 0.25 2 heading
+    job: ukfh__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdplainc_tex_r6 heading
+    job: fgoh__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r6 0.25 2 heading
+    job: fgor__f4_fwdplainc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdplainc_tex_r6 0.25 2 heading
+    job: ukfh__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py f4_fwdc_tex_r6 heading
+    job: fgoh__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r6 0.25 2 heading
+    job: fgor__f4_fwdc_tex_r6 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F1cauchy_2_385 F_ROBUST=cauchy:2.385 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py f4_fwdc_tex_r6 0.25 2 heading
+  /home/makerspace/venv-fgo/bin/python  eval/f4_eval.py  test  cauchy:2.385  --trials  f4_fwdplainc_tex_r1\,f4_fwdplainc_tex_r2\,f4_fwdc_tex_r2\,f4_fwdc_tex_r3\,f4_fwdplainc_tex_r4\,f4_fwdc_tex_r4\,f4_fwdplainc_tex_r5\,f4_fwdc_tex_r5\,f4_fwdplainc_tex_r6\,f4_fwdc_tex_r6  --json  eval/results/f4_test.json  > /home/makerspace/thesis_data/batches/final_rerun/f4_eval.txt
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 12 trials
+# (dry) DONE f4
+# BEGIN h_shadows
+  unpack (tools/bag_pack.sh unpack) 6 trials, 0 GB to restore
+  eval/run_jobs_resumable.sh batches/final_rerun/room_H.jobs final_room_H 6   # 12 jobs:
+    job: hu__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r1
+    job: hf__H_s1_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r1 --no-batch
+    job: hu__H_s1_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r2
+    job: hf__H_s1_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r2 --no-batch
+    job: hu__H_s1_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1_r3
+    job: hf__H_s1_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1_r3 --no-batch
+    job: hu__H_s1far_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r1 --no-rts
+    job: hf__H_s1far_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r1 --no-batch
+    job: hu__H_s1far_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r2 --no-rts
+    job: hf__H_s1far_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r2 --no-batch
+    job: hu__H_s1far_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py H_s1far_r3b --no-rts
+    job: hf__H_s1far_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 env ROOM_TAG_SIGMA_POS=0.02 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py H_s1far_r3b --no-batch
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r1  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  eval/results/expH/s1_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r2  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  eval/results/expH/s1_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1_r3  --profile  batches/expH/s1_profile.json  --sigma  0.02  --json  eval/results/expH/s1_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r1  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r2  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/h_score.py  H_s1far_r3b  --profile  batches/expH/s1_far_profile.json  --sigma  0.02  --json  eval/results/expH/s1far_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/h_s1far_r3b.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expH/s1_r1.json  eval/results/expH/s1_r1.json  eval/results_pre_final/expH/s1_r2.json  eval/results/expH/s1_r2.json  eval/results_pre_final/expH/s1_r3.json  eval/results/expH/s1_r3.json  eval/results_pre_final/expH/s1far_r1.json  eval/results/expH/s1far_r1.json  eval/results_pre_final/expH/s1far_r2.json  eval/results/expH/s1far_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_h.txt
+# (dry) DONE h_shadows
+# BEGIN expO
+  unpack (tools/bag_pack.sh unpack) 3 trials, 0 GB to restore
+  eval/run_jobs_resumable.sh batches/final_rerun/room_O.jobs final_room_O 6   # 9 jobs:
+    job: ou__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss
+    job: on__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r1 --gnss --rts-no-yawcap
+    job: of__O_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r1 --gnss
+    job: ou__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r2 --gnss
+    job: on__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r2 --gnss --rts-no-yawcap
+    job: of__O_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r2 --gnss
+    job: ou__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r3b --gnss
+    job: on__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py O_r3b --gnss --rts-no-yawcap
+    job: of__O_r3b cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py O_r3b --gnss
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r1  --json  eval/results/expO/O_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r2  --json  eval/results/expO/O_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/o_score.py  O_r3b  --json  eval/results/expO/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/o_O_r3b.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expO/O_r1.json  eval/results/expO/O_r1.json  eval/results_pre_final/expO/O_r2.json  eval/results/expO/O_r2.json  eval/results_pre_final/expO/O_r3b.json  eval/results/expO/O_r3b.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_o.txt
+# (dry) DONE expO
+# BEGIN expT
+  unpack (tools/bag_pack.sh unpack) 12 trials, 0 GB to restore
+  eval/run_jobs_resumable.sh batches/final_rerun/room_T.jobs final_room_T 6   # 24 jobs:
+    job: tf__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r1
+    job: tu__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r1
+    job: tf__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r2
+    job: tu__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r2
+    job: tf__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_A_r3
+    job: tu__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_A_r3
+    job: tf__T_B_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r1
+    job: tu__T_B_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r1
+    job: tf__T_B_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r2
+    job: tu__T_B_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r2
+    job: tf__T_B_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_B_r3
+    job: tu__T_B_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_B_r3
+    job: tf__T_C_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r1
+    job: tu__T_C_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r1
+    job: tf__T_C_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r2
+    job: tu__T_C_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r2
+    job: tf__T_C_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_C_r3
+    job: tu__T_C_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_C_r3
+    job: tf__T_D_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r1
+    job: tu__T_D_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r1
+    job: tf__T_D_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r2
+    job: tu__T_D_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r2
+    job: tf__T_D_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/room_fgo_replay.py T_D_r3
+    job: tu__T_D_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/room_ukf_replay.py T_D_r3
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r1  --json  eval/results/expT/T_A_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_A_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r2  --json  eval/results/expT/T_A_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_A_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_A_r3  --json  eval/results/expT/T_A_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_A_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r1  --json  eval/results/expT/T_B_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_B_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r2  --json  eval/results/expT/T_B_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_B_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_B_r3  --json  eval/results/expT/T_B_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_B_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r1  --json  eval/results/expT/T_C_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_C_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r2  --json  eval/results/expT/T_C_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_C_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_C_r3  --json  eval/results/expT/T_C_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_C_r3.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r1  --json  eval/results/expT/T_D_r1.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_D_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r2  --json  eval/results/expT/T_D_r2.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_D_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/tag_score.py  T_D_r3  --json  eval/results/expT/T_D_r3.json  > /home/makerspace/thesis_data/batches/final_rerun/t_T_D_r3.txt
+  python3  eval/t_aggregate.py  --json  eval/results/expT/t_aggregate.json  > /home/makerspace/thesis_data/batches/final_rerun/t_aggregate.txt
+  python3  eval/final_rerun_checks.py  ekf3-gate  eval/results_pre_final/expT/T_A_r1.json  eval/results/expT/T_A_r1.json  eval/results_pre_final/expT/T_A_r2.json  eval/results/expT/T_A_r2.json  eval/results_pre_final/expT/T_A_r3.json  eval/results/expT/T_A_r3.json  eval/results_pre_final/expT/T_B_r1.json  eval/results/expT/T_B_r1.json  eval/results_pre_final/expT/T_B_r2.json  eval/results/expT/T_B_r2.json  eval/results_pre_final/expT/T_B_r3.json  eval/results/expT/T_B_r3.json  eval/results_pre_final/expT/T_C_r1.json  eval/results/expT/T_C_r1.json  eval/results_pre_final/expT/T_C_r2.json  eval/results/expT/T_C_r2.json  eval/results_pre_final/expT/T_C_r3.json  eval/results/expT/T_C_r3.json  eval/results_pre_final/expT/T_D_r1.json  eval/results/expT/T_D_r1.json  eval/results_pre_final/expT/T_D_r2.json  eval/results/expT/T_D_r2.json  eval/results_pre_final/expT/T_D_r3.json  eval/results/expT/T_D_r3.json  eval/results_pre_final/expT/t_aggregate.json  eval/results/expT/t_aggregate.json  > /home/makerspace/thesis_data/batches/final_rerun/gate_t.txt
+# (dry) DONE expT
+# BEGIN d27item3
+  # (opt-in: FINAL_D27I3=1)
+  unpack (tools/bag_pack.sh unpack) 2 trials, 6 GB to restore
+  /home/makerspace/venv-fgo/bin/python  eval/fgo_core_replay.py  cl_fgo_b_tex_r1_half  --save-npz  > /home/makerspace/thesis_data/batches/final_rerun/core_cl_fgo_b_tex_r1_half.txt
+  /home/makerspace/venv-fgo/bin/python  eval/d26_fgo_gate.py  cl_fgo_b_tex_r1_half  > /home/makerspace/thesis_data/batches/final_rerun/d26gate_cl_fgo_b_tex_r1_half.txt
+  /home/makerspace/venv-fgo/bin/python  eval/fgo_core_replay.py  cl_fgo_b_tex_r3_half  --save-npz  > /home/makerspace/thesis_data/batches/final_rerun/core_cl_fgo_b_tex_r3_half.txt
+  /home/makerspace/venv-fgo/bin/python  eval/d26_fgo_gate.py  cl_fgo_b_tex_r3_half  > /home/makerspace/thesis_data/batches/final_rerun/d26gate_cl_fgo_b_tex_r3_half.txt
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 2 trials
+# (dry) DONE d27item3
+# BEGIN cl_pred
+  # (opt-in: FINAL_CL_PRED=1)
+  unpack (tools/bag_pack.sh unpack) 8 trials, 24 GB to restore
+  /home/makerspace/venv-evo/bin/python  eval/imu_gap_check.py  cl_a_tex_half  cl_bcpp_tex_r1_half  cl_bcpp_tex_r2_half  cl_bcpp_tex_r3_half  cl_ukf_a_tex_half  cl_ukf_b_tex_r1_half  cl_ukf_b_tex_r2_half  cl_ukf_b_tex_r3_half  --write  > /home/makerspace/thesis_data/batches/final_rerun/cl_gaps.txt
+  eval/run_jobs_resumable.sh batches/final_rerun/cl_pred.jobs final_cl_pred 6   # 8 jobs:
+    job: fgo__cl_a_tex_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_a_tex_half 0.25 2
+    job: fgo__cl_bcpp_tex_r1_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r1_half 0.25 2
+    job: fgo__cl_bcpp_tex_r2_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r2_half 0.25 2
+    job: fgo__cl_bcpp_tex_r3_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_bcpp_tex_r3_half 0.25 2
+    job: fgo__cl_ukf_a_tex_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_a_tex_half 0.25 2
+    job: fgo__cl_ukf_b_tex_r1_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r1_half 0.25 2
+    job: fgo__cl_ukf_b_tex_r2_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r2_half 0.25 2
+    job: fgo__cl_ukf_b_tex_r3_half cd ~/thesis_ws && nice -n 15 $HOME/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py cl_ukf_b_tex_r3_half 0.25 2
+  /home/makerspace/venv-evo/bin/python  eval/fgo_contact_prediction.py  cl_a_tex_half  cl_bcpp_tex_r1_half  cl_bcpp_tex_r2_half  cl_bcpp_tex_r3_half  cl_ukf_a_tex_half  cl_ukf_b_tex_r1_half  cl_ukf_b_tex_r2_half  cl_ukf_b_tex_r3_half  --json  eval/results/fgo_contact_prediction_half_final.json  > /home/makerspace/thesis_data/batches/final_rerun/cl_pred.txt
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 8 trials
+# (dry) DONE cl_pred
+# BEGIN L
+  unpack (tools/bag_pack.sh unpack) 4 trials, 0 GB to restore
+  eval/run_jobs_resumable.sh batches/final_rerun/L.jobs final_L 6   # 7 jobs:
+    job: lnolc__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r1 --mode nolc --t-max 245
+    job: lnolc__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r2 --mode nolc --t-max 245
+    job: lnolc__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r3 --mode nolc --t-max 245
+    job: llc__T_A_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r1 --mode lc --t-max 245
+    job: llc__T_A_r2 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r2 --mode lc --t-max 245
+    job: llc__T_A_r3 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py T_A_r3 --mode lc --t-max 245
+    job: lvl__dsn_tex_r1 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 nice -n 10 /home/makerspace/venv-fgo/bin/python src/estimators/fgo/lc_fgo_replay.py dsn_tex_r1 --mode lc --no-tags
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 1 trials
+  /home/makerspace/venv-tags/bin/python  eval/l_score.py  T_A_r1  --suffix  _t245  --json  eval/results/expL/T_A_r1_t245.json  > /home/makerspace/thesis_data/batches/final_rerun/l_T_A_r1.txt
+  /home/makerspace/venv-tags/bin/python  eval/l_score.py  T_A_r2  --suffix  _t245  --json  eval/results/expL/T_A_r2_t245.json  > /home/makerspace/thesis_data/batches/final_rerun/l_T_A_r2.txt
+  /home/makerspace/venv-tags/bin/python  eval/l_score.py  T_A_r3  --suffix  _t245  --json  eval/results/expL/T_A_r3_t245.json  > /home/makerspace/thesis_data/batches/final_rerun/l_T_A_r3.txt
+# (dry) DONE L
+# BEGIN compare
+  repack (verify sha256 vs PACKED.txt, then remove the restored .db3) 52 trials
+  python3  eval/rerun_compare.py  eval/results_pre_final  eval/results  --md  /home/makerspace/thesis_data/batches/final_rerun/final_old_vs_new.md  --json  eval/results/final_old_vs_new.json  > /home/makerspace/thesis_data/batches/final_rerun/compare.txt
+# (dry) DONE compare
+# PIPELINE COMPLETE
