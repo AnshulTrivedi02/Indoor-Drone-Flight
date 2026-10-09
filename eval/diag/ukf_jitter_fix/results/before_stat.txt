@@ -1,0 +1,9 @@
+677f51e30f5421f02e0d0804a93e3f3c  /home/makerspace/ardupilot_ukf/.lock-waf_linux_build
+2026-10-09 01:36:38.491881096 +1100 /home/makerspace/ardupilot_ukf/build/sitl/bin/arducopter
+2026-10-08 19:45:58.055341539 +1100 /home/makerspace/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+2026-10-09 01:36:41.251584374 +1100 /home/makerspace/ardupilot_ukf/build/sitl/tool/Replay
+2026-09-29 15:03:54.943368284 +1000 /home/makerspace/ardupilot_ukf/build/c4che/_cache.py
+7e69cb065ceaf366014322ae826d8c2a  /home/makerspace/ardupilot_ukf/build/sitl/bin/arducopter
+39486c7432ffd3fee79b125379c57b6d  /home/makerspace/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+5cefc80257ac6e5e0f92ef276e53d0ed  /home/makerspace/ardupilot_ukf/build/sitl/tool/Replay
+ukf-port-tag

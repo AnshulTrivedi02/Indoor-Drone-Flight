@@ -1,0 +1,16 @@
+[export] ENU/FLU -> NED/FRD conversion verified on 1000 random attitudes
+[imu] timing rule: pre-arm irregularity, replay starts at 9.836 s (54 events dropped)
+[imu] dejittered: period 3.00057 ms, resid std 3.39 max 12.81 ms
+[dt] predict step = 5 IMU samples = 15.0028 ms (target 12.5 ms)
+[init] t=10.34s  roll0=+0.01 pitch0=+0.01 deg  p_U0=0.195 m (range 0.075)
+[run] 22539 predict steps (80 Hz), window t=[31,333]s
+[flow] axis-X accept 10051/10238  axis-Y accept 10051/10238   [range] accept 10246/10247
+[ground-proximity] flows replaced 538; take-off detected True at t 28.612; arm t 24.78488061988103
+[pseudo-yaw] fired 63/2253 checks (3% — variance-gated, was 100%)
+[att-cov] tilt(P66+P77) median=0.00084  yaw(P88) median=0.0365 rad^2   gate=0.04 (EKF3 0.01 x4; EKF3 tilt var ~1e-4, yaw-dominated)
+[yaw] drift rate = -2.37 deg/min
+[gyro-z bias] cruise mean = -6.62 deg/min (74% of instantaneous true mean 8.9)   ramp d|b|/dt = +0.04 vs true +2.80 deg/min/min (ideal 3.00)
+[result] along-track = 146.0 m  (true 151.2 m)   ATE = 117.83 m
+[out] /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/s2/dsn_tex_r2_replay_out/ukf/ukf_traj.tum
+[export] python cholesky calls 52950, eigh fallbacks 0
+[export] 45277 events: predict 22539, range 10247, flow 10238, yaw-check 2253 -> /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/jfix/s2/dsn_tex_r2.npz / .bin

@@ -1,0 +1,88 @@
+{
+ "events": 57371,
+ "predict_steps": 25402,
+ "dt_step_s": 0.015002352442339974,
+ "live_tum_identical": false,
+ "UA1": {
+  "max_m": 0.003807222612230252,
+  "rms_m": 0.0004915738493007305,
+  "max_m_predict_steps": 0.0037869363155950166,
+  "end_m": 0.0036664817838919198,
+  "band": "max <= 1e-3 m",
+  "pass": false
+ },
+ "UA2": {
+  "max_deg": 0.03155990131691328,
+  "max_deg_predict_steps": 0.03155698542186097,
+  "band": "max <= 0.01 deg",
+  "pass": false
+ },
+ "UA3": {
+  "max_gyro_z_bias_deg_per_min": 0.04722858593414588,
+  "max_accel_bias_mps2": 0.003888026981315029,
+  "pass": false
+ },
+ "UA4": {
+  "flow_x": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 11548,
+   "identical_frac": 1.0,
+   "accepted_python": 11481,
+   "accepted_port": 11481,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 11547,
+   "identical_frac": 1.0,
+   "accepted_python": 11547,
+   "accepted_port": 11547,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 204,
+   "identical_frac": 1.0,
+   "accepted_python": 26,
+   "accepted_port": 26,
+   "count_rel_diff": 0.0
+  },
+  "pass": true
+ },
+ "UA5": {
+  "anchor_event": 4100,
+  "anchor_t": 49.138,
+  "first_tag_event_is_anchor": true,
+  "anchor_state_max_abs_diff": 0.0024610315712538695,
+  "port_state_equals_fix_exactly": true,
+  "tag_events": 8670,
+  "tag_fused_python": 8670,
+  "tag_fused_port": 8670,
+  "pseudo_yaw_checks_after_anchor_in_stream": 0,
+  "pseudo_yaw_fusions_after_anchor": {
+   "python": 0,
+   "port": 0
+  },
+  "pass": false
+ },
+ "diag_after_anchor": {
+  "dpos_max_m": 0.003807222612230252,
+  "dyaw_max_deg": 0.03155990131691328
+ },
+ "diag_before_anchor": {
+  "dpos_max_m": 0.0015229975192320839,
+  "dyaw_max_deg": 0.001314708143405725
+ },
+ "diag_first_divergence_1e-6": {
+  "event": 22,
+  "type": 0,
+  "t": 18.70340249768739,
+  "dpos_m": 1.322606819851007e-06,
+  "dyaw_deg": 5.0143861774830255e-09
+ },
+ "pass": false
+}

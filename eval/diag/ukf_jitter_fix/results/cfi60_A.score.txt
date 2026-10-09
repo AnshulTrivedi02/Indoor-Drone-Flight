@@ -1,0 +1,13 @@
+case A: C++ port vs analytic_tv (variance ratio) and vs the Python core at 12.5 ms
+  t=  1 ref:  tilt=x1.000  yaw=x1.000  vh=x0.999  vz=x1.000  ph=x0.987  pz=x0.988  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t=  2 ref:  tilt=x1.000  yaw=x1.000  vh=x0.998  vz=x1.000  ph=x0.990  pz=x0.992  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t=  5 ref:  tilt=x1.000  yaw=x1.000  vh=x0.998  vz=x1.000  ph=x0.993  pz=x0.996  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t= 10 ref:  tilt=x1.000  yaw=x1.000  vh=x0.998  vz=x1.000  ph=x0.995  pz=x0.998  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t= 30 ref:  tilt=x1.001  yaw=x1.002  vh=x0.999  vz=x1.000  ph=x0.998  pz=x0.999  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000
+  t= 60 ref:  tilt=x1.006  yaw=x1.013  vh=x0.999  vz=x0.998  ph=x0.997  pz=x0.997  bg=x1.000  ba=x1.000
+        py :  tilt=x1.000000  yaw=x1.000000  vh=x1.000000  vz=x1.000000  ph=x1.000000  pz=x1.000000  bg=x1.000000  ba=x1.000000

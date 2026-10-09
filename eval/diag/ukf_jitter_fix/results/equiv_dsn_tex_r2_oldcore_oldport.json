@@ -1,0 +1,69 @@
+{
+ "log": "tex",
+ "events": 45277,
+ "window_s": [
+  30.556,
+  333.044
+ ],
+ "events_in_window": 40510,
+ "dt_step_s": 0.015002757754876382,
+ "E1_E2": {
+  "max_m": 3.0844003897688235,
+  "rms_m": 1.423870247858566,
+  "at_end_m": 3.084280742523401,
+  "band": "max <= 0.05, rms <= 0.01",
+  "pass": false
+ },
+ "E3": {
+  "max_deg": 2.3011536906098313,
+  "pass": false
+ },
+ "E4": {
+  "max_gyro_z_bias_deg_per_min": 0.4312305314044538,
+  "max_accel_bias_mps2": 0.0007924934927815321,
+  "pass": false
+ },
+ "E5": {
+  "flow_x": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "flow_y": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9045,
+   "accepted_port": 9045,
+   "count_rel_diff": 0.0
+  },
+  "range": {
+   "n": 9166,
+   "identical_frac": 1.0,
+   "accepted_python": 9166,
+   "accepted_port": 9166,
+   "count_rel_diff": 0.0
+  },
+  "yaw_pseudo": {
+   "n": 2016,
+   "identical_frac": 0.941468253968254,
+   "accepted_python": 73,
+   "accepted_port": 73,
+   "count_rel_diff": 0.0
+  },
+  "pass": false
+ },
+ "diag_first_divergence": {
+  "event": 53,
+  "type": 0,
+  "t": 10.801456,
+  "dpos_m": 1.0382664142441945e-06,
+  "dyaw_deg": 1.3312020785984662e-08
+ },
+ "diag_first_event_diff": {
+  "dpos_m": 7.185008144111208e-11,
+  "dyaw_deg": 1.4966163664720208e-09
+ },
+ "pass": false
+}

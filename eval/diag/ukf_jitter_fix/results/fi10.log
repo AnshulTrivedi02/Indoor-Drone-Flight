@@ -1,0 +1,96 @@
+== case A
+  analytic           t=   1  tilt=0.001678  yaw=0.001678  vh=0.0419  vz=0.0408  ph=0.02706  pz=0.02681  bg=0.0001118  ba=0.006083
+  analytic           t=   2  tilt=0.002379  yaw=0.002379  vh=0.06346  vz=0.05748  ph=0.07179  pz=0.0687  bg=0.0001581  ba=0.006481
+  analytic           t=   5  tilt=0.003819  yaw=0.003819  vh=0.1422  vz=0.09362  ph=0.3389  pz=0.2687  bg=0.00025  ba=0.00755
+  analytic           t=  10  tilt=0.005683  yaw=0.005683  vh=0.3414  vz=0.1424  ph=1.424  pz=0.7909  bg=0.0003536  ba=0.009055
+  analytic_tv        t=   1  tilt=0.001678  yaw=0.001678  vh=0.04189  vz=0.0408  ph=0.02706  pz=0.02681  bg=0.0001118  ba=0.006083
+  analytic_tv        t=   2  tilt=0.002379  yaw=0.002379  vh=0.06346  vz=0.05748  ph=0.07179  pz=0.0687  bg=0.0001581  ba=0.006481
+  analytic_tv        t=   5  tilt=0.003819  yaw=0.003819  vh=0.1422  vz=0.09362  ph=0.3389  pz=0.2687  bg=0.00025  ba=0.00755
+  analytic_tv        t=  10  tilt=0.005683  yaw=0.005683  vh=0.3414  vz=0.1425  ph=1.424  pz=0.791  bg=0.0003536  ba=0.009055
+  ekf3               t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02686  pz=0.02663  bg=0.0001118  ba=0.006083
+  ekf3               t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07141  pz=0.06841  bg=0.0001581  ba=0.006481
+  ekf3               t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ekf3               t=  10  tilt=0.005682  yaw=0.005682  vh=0.341  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  ekf3_noconstrain   t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02686  pz=0.02663  bg=0.0001118  ba=0.006083
+  ekf3_noconstrain   t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07141  pz=0.06841  bg=0.0001581  ba=0.006481
+  ekf3_noconstrain   t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ekf3_noconstrain   t=  10  tilt=0.005682  yaw=0.005682  vh=0.341  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  ukf_offline        t=   1  tilt=0.001683  yaw=0.001683  vh=0.04199  vz=0.0409  ph=0.02701  pz=0.02677  bg=0.0001121  ba=0.006085
+  ukf_offline        t=   2  tilt=0.002376  yaw=0.002376  vh=0.0633  vz=0.05741  ph=0.07109  pz=0.06813  bg=0.0001579  ba=0.006479
+  ukf_offline        t=   5  tilt=0.003817  yaw=0.003817  vh=0.1419  vz=0.09358  ph=0.337  pz=0.2677  bg=0.0002499  ba=0.007548
+  ukf_offline        t=  10  tilt=0.005679  yaw=0.005679  vh=0.3406  vz=0.1424  ph=1.417  pz=0.789  bg=0.0003534  ba=0.009053
+  ukf_port           t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02688  pz=0.02664  bg=0.0001118  ba=0.006083
+  ukf_port           t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07142  pz=0.06842  bg=0.0001581  ba=0.006481
+  ukf_port           t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ukf_port           t=  10  tilt=0.005682  yaw=0.005682  vh=0.3411  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  ukf_offline_nojitter t=   1  tilt=0.001683  yaw=0.001683  vh=0.04199  vz=0.0409  ph=0.02701  pz=0.02677  bg=0.0001121  ba=0.006085
+  ukf_offline_nojitter t=   2  tilt=0.002376  yaw=0.002376  vh=0.0633  vz=0.05741  ph=0.07109  pz=0.06813  bg=0.0001579  ba=0.006479
+  ukf_offline_nojitter t=   5  tilt=0.003817  yaw=0.003817  vh=0.1419  vz=0.09358  ph=0.337  pz=0.2677  bg=0.0002499  ba=0.007548
+  ukf_offline_nojitter t=  10  tilt=0.005679  yaw=0.005679  vh=0.3406  vz=0.1424  ph=1.417  pz=0.789  bg=0.0003534  ba=0.009053
+  ukf_port_nojitter  t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02688  pz=0.02664  bg=0.0001118  ba=0.006083
+  ukf_port_nojitter  t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07142  pz=0.06842  bg=0.0001581  ba=0.006481
+  ukf_port_nojitter  t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ukf_port_nojitter  t=  10  tilt=0.005682  yaw=0.005682  vh=0.3411  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  fgo                t=   1  tilt=0.00168  yaw=0.00168  vh=0.04194  vz=0.04084  ph=0.02713  pz=0.02688  bg=0.0001119  ba=0.006084
+  fgo                t=   2  tilt=0.002379  yaw=0.002379  vh=0.06347  vz=0.05749  ph=0.07185  pz=0.06876  bg=0.0001582  ba=0.006481
+  fgo                t=   5  tilt=0.003818  yaw=0.003818  vh=0.1422  vz=0.09362  ph=0.339  pz=0.2688  bg=0.0002501  ba=0.00755
+  fgo                t=  10  tilt=0.005679  yaw=0.005679  vh=0.3412  vz=0.1424  ph=1.423  pz=0.7909  bg=0.0003536  ba=0.009056
+   ekf3_info {'stderr': 'accel-bias resets 0, gyro-bias cap hits 0', 'quat_trace_max': 2.4212953123035e-05, 'yaw_gate_quat_trace': 0.01}
+   ukf_offline_info {'step_ms': 15.002843364861983, 'yaw_pseudo_fired': 0}
+   ukf_port_info {'step_ms': 12.5, 'yaw_pseudo_fired': 0}
+   fgo_info {'keyframes': 300}
+== case B
+  analytic           t=   1  tilt=0.04367  yaw=0.04367  vh=0.2959  vz=0.204  ph=0.1258  pz=0.1035  bg=0.04363  ba=0.2
+  analytic           t=   2  tilt=0.0873  yaw=0.0873  vh=0.9471  vz=0.404  ph=0.7006  pz=0.4057  bg=0.04363  ba=0.2
+  analytic           t=   5  tilt=0.2182  yaw=0.2182  vh=5.446  vz=1.004  ph=9.268  pz=2.513  bg=0.04363  ba=0.2001
+  analytic           t=  10  tilt=0.4364  yaw=0.4364  vh=21.5  vz=2.004  ph=72.06  pz=10.03  bg=0.04363  ba=0.2001
+  analytic_ekf3init  t=   1  tilt=0.04367  yaw=0.04367  vh=0.2959  vz=0.204  ph=0.1258  pz=0.1035  bg=0.04363  ba=0.2
+  analytic_ekf3init  t=   2  tilt=0.0873  yaw=0.0873  vh=0.9471  vz=0.404  ph=0.7006  pz=0.4057  bg=0.04363  ba=0.2
+  analytic_ekf3init  t=   5  tilt=0.2182  yaw=0.2182  vh=5.446  vz=1.004  ph=9.268  pz=2.513  bg=0.04363  ba=0.2001
+  analytic_ekf3init  t=  10  tilt=0.4364  yaw=0.4364  vh=21.5  vz=2.004  ph=72.06  pz=10.03  bg=0.04363  ba=0.2001
+  ekf3               t=   1  tilt=0.04367  yaw=0.04367  vh=0.2938  vz=0.204  ph=0.1232  pz=0.1022  bg=0.04363  ba=0.2
+  ekf3               t=   2  tilt=0.0873  yaw=0.0873  vh=0.9421  vz=0.404  ph=0.6904  pz=0.4032  bg=0.04363  ba=0.2
+  ekf3               t=   5  tilt=0.2182  yaw=0.2182  vh=5.432  vz=1.005  ph=9.202  pz=2.508  bg=0.04363  ba=0.2001
+  ekf3               t=  10  tilt=0.4364  yaw=0.4364  vh=21.47  vz=2.037  ph=70.72  pz=10.06  bg=0.04363  ba=0.2001
+  ukf_offline        t=   1  tilt=0.04389  yaw=0.04389  vh=0.2958  vz=0.2051  ph=0.1242  pz=0.103  bg=0.04363  ba=0.2
+  ukf_offline        t=   2  tilt=0.0871  yaw=0.0871  vh=0.9372  vz=0.4031  ph=0.6842  pz=0.4009  bg=0.04363  ba=0.2
+  ukf_offline        t=   5  tilt=0.218  yaw=0.218  vh=5.421  vz=1.007  ph=9.167  pz=2.504  bg=0.04363  ba=0.2001
+  ukf_offline        t=  10  tilt=0.436  yaw=0.4361  vh=21.43  vz=2.085  ph=71.56  pz=10.08  bg=0.04363  ba=0.2001
+  ukf_port           t=   1  tilt=0.04367  yaw=0.04367  vh=0.2938  vz=0.204  ph=0.1232  pz=0.1022  bg=0.04363  ba=0.2
+  ukf_port           t=   2  tilt=0.0873  yaw=0.0873  vh=0.9421  vz=0.404  ph=0.6904  pz=0.4032  bg=0.04363  ba=0.2
+  ukf_port           t=   5  tilt=0.2182  yaw=0.2182  vh=5.432  vz=1.008  ph=9.202  pz=2.509  bg=0.04363  ba=0.2001
+  ukf_port           t=  10  tilt=0.4364  yaw=0.4364  vh=21.47  vz=2.078  ph=71.79  pz=10.1  bg=0.04363  ba=0.2001
+  fgo                t=   1  tilt=0.0438  yaw=0.04376  vh=0.2965  vz=0.2045  ph=0.1263  pz=0.1039  bg=0.04366  ba=0.2
+  fgo                t=   2  tilt=0.08744  yaw=0.08736  vh=0.9477  vz=0.4042  ph=0.7013  pz=0.4062  bg=0.04366  ba=0.2
+  fgo                t=   5  tilt=0.2185  yaw=0.2183  vh=5.451  vz=1.005  ph=9.279  pz=2.516  bg=0.04366  ba=0.2001
+  fgo                t=  10  tilt=0.4362  yaw=0.4364  vh=21.49  vz=2.037  ph=72.01  pz=10.07  bg=0.04362  ba=0.2001
+   ekf3_info {'stderr': 'accel-bias resets 0, gyro-bias cap hits 0', 'quat_trace_max': 0.14280586096951, 'yaw_gate_quat_trace': 0.01}
+   ukf_offline_info {'step_ms': 15.002843364861983, 'yaw_pseudo_fired': 0}
+   ukf_port_info {'step_ms': 12.5, 'yaw_pseudo_fired': 0}
+   fgo_info {'keyframes': 300}
+== case C
+  analytic           t=   1  tilt=0.001678  yaw=0.001678  vh=0.0419  vz=0.0408  ph=0.02706  pz=0.02681  bg=0.0001118  ba=0.006083
+  analytic           t=   2  tilt=0.002379  yaw=0.002379  vh=0.06346  vz=0.05748  ph=0.07179  pz=0.0687  bg=0.0001581  ba=0.006481
+  analytic           t=   5  tilt=0.003819  yaw=0.003819  vh=0.1422  vz=0.09362  ph=0.3389  pz=0.2687  bg=0.00025  ba=0.00755
+  analytic           t=  10  tilt=0.005683  yaw=0.005683  vh=0.3414  vz=0.1424  ph=1.424  pz=0.7909  bg=0.0003536  ba=0.009055
+  ekf3               t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02686  pz=0.02663  bg=0.0001118  ba=0.006083
+  ekf3               t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07141  pz=0.06841  bg=0.0001581  ba=0.006481
+  ekf3               t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ekf3               t=  10  tilt=0.005682  yaw=0.005682  vh=0.341  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  ukf_offline        t=   1  tilt=0.001683  yaw=0.001683  vh=0.04199  vz=0.0409  ph=0.02701  pz=0.02677  bg=0.0001121  ba=0.006085
+  ukf_offline        t=   2  tilt=0.002376  yaw=0.002376  vh=0.0633  vz=0.05741  ph=0.07109  pz=0.06813  bg=0.0001579  ba=0.006479
+  ukf_offline        t=   5  tilt=0.003817  yaw=0.003817  vh=0.1419  vz=0.09358  ph=0.337  pz=0.2677  bg=0.0002499  ba=0.007548
+  ukf_offline        t=  10  tilt=0.005679  yaw=0.005679  vh=0.3406  vz=0.1424  ph=1.417  pz=0.789  bg=0.0003534  ba=0.009053
+  ukf_port           t=   1  tilt=0.001678  yaw=0.001678  vh=0.04187  vz=0.0408  ph=0.02688  pz=0.02664  bg=0.0001118  ba=0.006083
+  ukf_port           t=   2  tilt=0.002379  yaw=0.002379  vh=0.06341  vz=0.05748  ph=0.07142  pz=0.06842  bg=0.0001581  ba=0.006481
+  ukf_port           t=   5  tilt=0.003819  yaw=0.003819  vh=0.1421  vz=0.09362  ph=0.3377  pz=0.2682  bg=0.00025  ba=0.00755
+  ukf_port           t=  10  tilt=0.005682  yaw=0.005682  vh=0.3411  vz=0.1425  ph=1.42  pz=0.7902  bg=0.0003536  ba=0.009055
+  fgo                t=   1  tilt=0.00168  yaw=0.001677  vh=0.04194  vz=0.04084  ph=0.02713  pz=0.02688  bg=0.0001119  ba=0.006084
+  fgo                t=   2  tilt=0.002379  yaw=0.002372  vh=0.06347  vz=0.05749  ph=0.07185  pz=0.06876  bg=0.0001582  ba=0.006481
+  fgo                t=   5  tilt=0.003818  yaw=0.003795  vh=0.1422  vz=0.09362  ph=0.339  pz=0.2688  bg=0.00025  ba=0.00755
+  fgo                t=  10  tilt=0.005679  yaw=0.005645  vh=0.3412  vz=0.1424  ph=1.423  pz=0.7909  bg=0.0003535  ba=0.009056
+   ekf3_info {'stderr': 'accel-bias resets 0, gyro-bias cap hits 0', 'quat_trace_max': 2.4212953123035e-05, 'yaw_gate_quat_trace': 0.01}
+   ukf_offline_info {'step_ms': 15.002843364861983, 'yaw_pseudo_fired': 0}
+   ukf_port_info {'step_ms': 12.5, 'yaw_pseudo_fired': 0}
+   fgo_info {'keyframes': 300}
+CHOL_STATS (fixed _sigma_points only) {'calls': 4398, 'retry': 0, 'eig_fallback': 0} file /home/makerspace/thesis_ws/.claude/worktrees/agent-af3c884451ec5bfd4/src/estimators/ukf_core.py
