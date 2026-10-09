@@ -1,0 +1,32 @@
+[
+ {
+  "type": "wait_fix",
+  "near": [
+   -3.9,
+   0.0
+  ],
+  "tol": 0.5,
+  "timeout": 60
+ },
+ {
+  "type": "move",
+  "to": [
+   -2.6,
+   0.0
+  ],
+  "speed": 0.2
+ },
+ {
+  "type": "hold",
+  "s": 20
+ },
+ {
+  "type": "param",
+  "name": "AHRS_UKF_TFAIL",
+  "value": 0.001
+ },
+ {
+  "type": "hold",
+  "s": 40
+ }
+]

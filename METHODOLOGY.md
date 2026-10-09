@@ -12463,3 +12463,40 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
   core here still derotates with the RAW gyro: the derotation correction is pending for the consolidated re-run.
 - **Done BEFORE any UKF flight, as ruled.** The scratch HOME held real copies only (0 symlinks), and no stored result
   was overwritten.
+
+### FGO yaw-cap gate stage (`docs/handovers/2026-10-09_fgo_yawcap_gate.md`) and RULINGS (user, 2026-10-09)
+**Stage result:**
+- **Review of `8dfb035`:** no error. The gate is EKF3's and the UKF's: checks every 140 ms (with the same timer
+  reset), firing if the predicted attitude trace exceeds 0.04 (EKF3's quaternion 0.01 ×4).
+  - The FGO checks only on keyframes, so its checks land ~167 ms apart against ~150 ms. This is structural.
+- **Free-inertial yaw variance, FGO against EKF3 / UKF offline / UKF port:**
+  - 10 s: 0.999 / 0.998 / 0.999;
+  - 60 s: 0.998 / 0.984 / 0.985;
+  - the old ungated cap: ×0.372 at 60 s.
+  - The audit's ×0.82 at 10 s was a smoothed marginal; the filtering value is ×0.987.
+  - Positive control: the gates open (FGO 45/60 checks, UKF 49/60).
+- **Bands:** B1–B6, C (4 bags), L1 and L2 PASS (the live adapter is bit-identical to the C++ replay).
+- **Live step time with the gate:** median 0.52 / 0.93 ms, p95 0.78 / 1.08 ms (budget 33 ms).
+
+**Rulings:**
+1. **Band A `dsn_tex` FAILED AS WORDED:** max |Δp| 1.14 mm against 1 mm. It had passed under the noise fix alone.
+   - **Cause:** a gate decision at 327.95 s flips between Python and C++, because the variance trace sits at the
+     0.04 threshold (0.0400072 against 0.0399871). States agree until then: bit-identical in the emulate-gemv build,
+     12 µm in the default build.
+   - **POST-HOC DIAGNOSIS (labelled):** with the gate decisions forced equal, the emulate-gemv build is
+     bit-identical to Python on tex, blank and trans, and the default build is within 0.15 mm on tex.
+   - Blank and trans fail as before.
+   - **Options (b), the covariance-form gate recursion, and (c), hysteresis, are REJECTED.** A threshold decision
+     can flip between any two floating-point implementations, and hysteresis would depart from EKF3's gate.
+   - **The yaw-cap build is merged and installed after its acceptance check; S3 and the FGO re-flights fly it.**
+2. **Open item (bounded 1 h, report only, not blocking):** measure the conditioning of the FGO's information-form
+   gate-covariance recursion over a long flight, in both builds. Report whether the Python–C++ trace drift (1e-10 →
+   1e-3 relative over a flight) grows without bound.
+3. **Recorded:** on corridor data the gate's variance trace sits within ±2.5 % of its threshold on ~17–20 % of
+   checks. The yaw anchor therefore fires INTERMITTENTLY there, as EKF3's would under the same rule.
+4. **The UKF flights fly NOW,** with the jitter-corrected port:
+   - S2 ×3 (`H_s2v2_r*`);
+   - the half-speed corridor set (`cl_ukf_a_tex_half_v2`, `cl_ukf_b_tex_r{1,2,3}_half_v2`; the originals' settings);
+   - the UKF safety tests (a) and (b) at the 2 m-clearance hold (`H_safety_ukf_{a,b}_v2`).
+   - The FGO build is merged, installed and checked BETWEEN flights. **No heavy jobs during flights** (heavy.py
+     waits on the flight lock).
