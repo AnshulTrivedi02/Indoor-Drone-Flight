@@ -12687,3 +12687,33 @@ at 59.00 s ("UKF TFAIL: output forced invalid").
   - UKF (a): pass.
   - UKF (b): S-A2 fails as worded (5.75 s against 5.5 s; relay drain), the other three pass.
   - FGO (a) and FGO (b): pass.
+
+### RULINGS (user, 2026-10-09): the final consolidated re-run pipeline (`eval/final_rerun_pipeline.sh`)
+Built and dry-run by a stage agent (`docs/handovers/2026-10-09_final_rerun_pipeline.md`). Estimated 8–10.5 h of
+machine time.
+1. **Launch:** one `heavy.py` call per stage.
+2. **Closed-loop FGO contact prediction:** recomputed from the corrected FGO and REPORTED ONLY. It is labelled as a
+   post-hoc consistency check: the flight has already flown, so it is not a prediction. The registered prediction
+   and its bands stand and are scored as worded.
+3. **F1's k = 2.385 is kept** (pre-registered).
+4. **D27 item 3:** use the `_v3` re-flights, FGO side only. The UKF side (it needs the port's SITL Replay) is
+   recorded as OPEN.
+5. **Rebuilt job lists (T, O, H, L):** this covers the S1-far UKF replay without RTS, the `s1_far` profile,
+   `venv-tags` for the scorers, and the reuse of `gnss.npz`.
+   - They are confirmed by REPRODUCTION, not by eye. For each list, re-run at least one representative job with the
+     OLD code; the stored output must be reproduced exactly (byte-identical, or to the stored precision).
+   - Any list that does not reproduce: stop and report before it is used.
+6. **V-L:** reported as NOT re-scorable. Its scoring labels were never recorded, and none are created after the
+   fact.
+7. **The EKF3-unchanged checks for H, O and T are FATAL**, as for the corridor.
+8. **The numbers.md clock-shift and 0.20 m/s sensitivity rows are re-run.**
+- **Before launch:**
+  - the old-vs-new script is extended to T, O, L, H, F and 2(a);
+  - the derotation fix is confirmed to reach EVERY offline UKF replay path (corridor, T, O, the H shadows).
+- **Launch only once the derotation fix is in and verified.**
+- **Known gaps, recorded:**
+  - 62 replayed bags are compressed; the pipeline unpacks and repacks them under sha256 checks;
+  - the T/O/H/L job lists were rebuilt from the stored outputs;
+  - `H_s1far_r3` is excluded under the IMU-gap rule (r3b is used);
+  - the H scorer's keys have changed since the committed H JSONs, so the EKF3 checks compare against a re-score of
+    the old outputs with the same scorer, taken before any replay.
