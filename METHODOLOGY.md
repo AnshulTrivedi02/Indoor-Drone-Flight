@@ -12816,3 +12816,18 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     L, H and the F tests.
   - For each: its status now (holds / changed / withdrawn) and the evidence.
   - It includes the UKF's corrected textured-floor standing and whether L's result changed.
+
+### CORRECTION NOTE (2026-10-10, ruling 2): "EKF3 beats the FGO on standard sensors" is WITHDRAWN
+- **What replaces it:** the confirmatory test with the corrected FGO returns "no ordering claimed" (CI [−0.93, +0.85] m).
+- **Where the withdrawn claim appears:** the following earlier entries state or rely on it and are NOT edited (append-only
+  record). Read each as superseded by this note:
+  - lines ~5515–5516, 5554, 5624–5625, 6247, 6265, 6269–6271, 6393–6395 (6395 also carries the stale FGO SD 0.13);
+  - 7207–7210, 9635–9637, 6759, 7118, 11364.
+  - Context only: 5638/5644/5649 (the pre-registered hypothesis, which stands as registered) and 8163/8190/8239.
+  - Outside METHODOLOGY: `PROGRESS.md:156`.
+- **Restatement applied (`docs/handovers/2026-10-10_restatement_applied.md`):**
+  - `numbers.md`: 71 rows restated; the old rows are kept verbatim under "Superseded by the final consolidated re-run".
+  - `rerun_compare.py`: the old-file mapping is fixed (ruling 10). The comparison is regenerated: 91 flags
+    (82 DIRECTION + 9 VERDICT). The 7 artefacts are gone; fwdc 6/9 → 8/9 and fwdplainc 8/9 → 9/9 now show.
+  - Headline-claims table: `docs/thesis/headline_claims_before_after.md` (HOLDS 15, CHANGED 17, WITHDRAWN 2,
+    PENDING 2).
