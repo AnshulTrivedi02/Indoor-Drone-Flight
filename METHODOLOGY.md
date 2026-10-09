@@ -12513,3 +12513,36 @@ Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
   as the old UKF.
 - **Effect of the jitter correction on S2 (the old runs against these):** no material change. The flying UKF port
   already drifted at EKF3's scale. Comparative H-H2/P-H3 are updated in the final restatement.
+
+### FGO yaw-cap build MERGED (`61fec8c`) and INSTALLED; acceptance PASS
+- **Installed:** `~/opt/fgo_cpp/bin/fgo_cpp_node` md5 **`f642cd37…`** (was `1123742d…`, noise fix only).
+  `fgo_cpp_replay` `714338d0…`, `fgo_cpp_live_replay` `880beefd…`.
+- **Acceptance** (`~/thesis_data/acceptance/fgo_yawcap_gate/`): `sha256sum -c` OK on all inputs; **ACCEPT replay**
+  (kf and yaw-gate log byte-identical); **ACCEPT live (node path)**.
+- **S3 and the FGO re-flights now fly this node:** `H_s3v2_r*`, `cl_fgo_*_v3`, `H_safety_fgo_*_v3`. The `*_v2` and
+  `H_s3_r*` runs are the noise-fix-only ABLATION.
+
+### FGO gate-conditioning diagnostic (open item, report only; `docs/handovers/2026-10-09_fgo_gate_conditioning.md`)
+- **The Python–C++ gate-trace drift GROWS WITHOUT BOUND with flight length.**
+  - It is rounding amplified by the conditioning of the 30×30 information matrix L. cond(L) runs 3.6e8 at the start
+    → 1.5e12 at 300 s (~t^1.6–2.7), driven by the unobserved horizontal-position variance.
+  - The relative trace difference (forced-decision runs) is 6e-8 at the start → 5.7e-4 at 340 s, roughly +1 decade
+    per 100 s. That is ~ε·cond(L): the formulation, not the port.
+  - The covariance is not diverging: the attitude trace stays ~0.037 rad².
+- **Decision flips:** exactly one on `dsn_tex_r1`, the 327.95 s flip.
+- **Extrapolated (not measured):** ~1e-3–1e-2 at ~1000 s, so more threshold flips on long flights.
+- **Candidate fixes (untested; not ruled):** horizontal position out of the gate recursion; a covariance-form
+  recursion; hysteresis (removes flips, not the growth).
+- **Agent slip:** its start-of-stage merge commit `3f03146` was made while a flight ran. Its results commit came after
+  flights cleared.
+
+### UKF no-heading re-flight `cl_ukf_a_tex_half_v2` (jitter-corrected): PRIMARY PASS
+- West-wall contact at cruise **+165.9 s**, inside [+155, +215]; no contact before +100 s.
+- The original `cl_ukf_a_tex_half` was +198.0 s. Possible reason, not measured: the faster yaw drift may follow from
+  the now-tighter gyro-bias estimate.
+
+### Scheduling (within the rulings; the cut order puts the safety re-tests last)
+1. UKF heading set ×3;
+2. S3 ×3 (`H_s3v2_r*`);
+3. the FGO corridor set (`*_v3`);
+4. then the UKF and FGO safety re-tests.
