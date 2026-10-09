@@ -33,6 +33,13 @@ falls on opposite sides. The states are bit-identical up to that check in the em
 
 That is far inside 33 ms, and unchanged from binit0.
 
+**RULING NEEDED before this build is installed or S3 is re-flown.**
+- Band A dsn_tex FAILS as worded (1.14 mm against 1 mm). Under binit0 it was a pre-registered PASS, so METHODOLOGY's
+  "S3 gate met" no longer holds as worded for this build.
+- **Evidence (post hoc; not a decision):** with the gate decisions forced equal, Python and the emulate-gemv build are
+  bit-identical on tex, blank and trans, and the default build is 0.15 mm on tex.
+- The install recipe in §6 is ready, but it is NOT cleared by this stage.
+
 ## 1. The change (`8dfb035`, both cores) and the gate definition
 Files: `src/estimators/fgo/fgo_core.py` and `src/estimators/fgo_cpp/src/fgo_core.cpp` (+ `fgo_core.h`). The rest of the
 commit is plumbing:
@@ -199,14 +206,20 @@ outputs are not reused). Logs: `eval/results/fgo_cpp_equiv_yawgate/logs/`.
 | blank | 2e-10 | 7.5e-4 (80 s) | – | 4.5e-3 (86.98 s) |
 | trans | 2e-11 | 3e-7 (81 s) | 2e-4 | 1.1e-3 (254.5 s) |
 
-**The source is the information-form recursion.** Each keyframe inverts a 30×30 information matrix whose prior block is
+**Hypothesis (consistent with the data; NOT measured): the information-form recursion.** I did not compute the
+condition number, and I did not compare `cov_gate` with the smoother's marginal over a long flight; `fgo` vs `fgo_chain`
+was checked only over 60 s of free inertial. Each keyframe inverts a 30×30 information matrix whose prior block is
 `inv(cov_gate)`. Horizontal position is unobservable, so its variance grows without bound while the bias variances
 stay ~1e-8. The conditioning therefore worsens through the flight, and the `np.linalg.inv` vs Eigen `inverse()`
-rounding is amplified through the recursion. The decisions it feeds are exact ties, so one flips:
+rounding would be amplified through the recursion. The decisions it feeds are near-exact ties, so one flips:
 - On tex, a 1.3 mm state difference follows: the emu build gives 1.28 mm, and the default build 1.14 mm.
 - **On blank and trans**, where the Python FGO itself diverges (along-track 23.8 km and 4.5 km), the flips cascade.
 - **After that divergence, the recursion loses positive definiteness:** negative traces in Python, from 144.8 s on
   blank and 294.3 s on trans.
+
+**Log names:** `logs/fe_{tex,blank,trans}.log` are forced to the EMULATE-GEMV build's decisions, and
+`logs/fd_*.log` to the default build's. Do not confuse them with the band C front-end logs `fe_dsn_tex.log`,
+`fe_fwdc.log` and `fe_T_*.log`.
 
 **Forced-gate diagnostic** (`forced_gate.py`: Python with its gate decisions forced to the C++ run's; the core is
 patched in-process only):
