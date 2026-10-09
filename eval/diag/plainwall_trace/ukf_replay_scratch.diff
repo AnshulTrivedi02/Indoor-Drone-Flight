@@ -1,0 +1,4 @@
+10a11
+> sys.path.insert(0, "/home/makerspace/thesis_ws/.claude/worktrees/agent-a375613081292d466/src/estimators")  # SCRATCH COPY
+26a28
+> if os.environ.get("UKF_BAG_ROOT"): BAG = os.path.join(os.environ["UKF_BAG_ROOT"], TRIAL)  # SCRATCH COPY: read an unpacked copy

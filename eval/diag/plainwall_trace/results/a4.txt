@@ -1,0 +1,28 @@
+fwdplainc_tex_r1     FGO stored (Phase 4)                 evo    43.54 m  yaw rms  1013.77 max  1718.45 deg  bgz   -319.4 (true 8.9) dpm  psi 28/6333
+fwdplainc_tex_r1     FGO base (scratch re-run)            evo    43.54 m  yaw rms  1013.77 max  1718.45 deg  bgz   -319.4 (true 8.9) dpm  psi 28/6333
+fwdplainc_tex_r1     UKF stored (Phase 4)                 evo     0.19 m  yaw rms     3.39 max     5.04 deg  bgz     -8.0 (true 8.9) dpm  psi 752/6377
+fwdplainc_tex_r1     UKF base (scratch re-run)            evo     0.19 m  yaw rms     3.39 max     5.04 deg  bgz     -8.0 (true 8.9) dpm  psi 752/6377
+fwdplainc_tex_r1     UKF y0 sigma 1e-3 rad (FGO value)    evo    42.99 m  yaw rms  1064.05 max  1808.92 deg  bgz   -335.3 (true 8.9) dpm  psi 21/6377
+fwdplainc_trans_r1   UKF stored (Phase 4)                 evo   119.22 m  yaw rms     1.56 max     3.92 deg  bgz     -7.7 (true 8.9) dpm  psi 5968/8502
+fwdplainc_trans_r1   UKF y0 sigma 1e-3 rad (FGO value)    evo    30.04 m  yaw rms  1604.20 max  2745.05 deg  bgz   +498.9 (true 8.9) dpm  psi 22/8502
+fwdplainc_tex_r1     FGO y0 sigma 1 deg (UKF value)       evo     0.15 m  yaw rms     3.41 max     5.03 deg  bgz     -8.0 (true 8.9) dpm  psi 747/6333
+fwdplainc_tex_r2     FGO stored (Phase 4)                 evo    42.65 m  yaw rms   889.45 max  1507.51 deg  bgz   -283.5 (true 8.9) dpm  psi 21/6197
+fwdplainc_tex_r2     FGO y0 sigma 1 deg (UKF value)       evo     0.09 m  yaw rms     3.38 max     4.92 deg  bgz     -8.4 (true 8.9) dpm  psi 653/6197
+fwdplainc_tex_r2     UKF stored (Phase 4)                 evo     0.15 m  yaw rms     3.37 max     4.94 deg  bgz     -8.4 (true 8.9) dpm  psi 653/6244
+fwdplainc_tex_r3     FGO stored (Phase 4)                 evo    43.13 m  yaw rms   838.10 max  1421.30 deg  bgz   -267.0 (true 8.9) dpm  psi 21/6258
+fwdplainc_tex_r3     FGO y0 sigma 1 deg (UKF value)       evo     0.22 m  yaw rms     3.07 max     4.59 deg  bgz     -7.6 (true 8.9) dpm  psi 778/6258
+fwdplainc_tex_r3     UKF stored (Phase 4)                 evo     0.25 m  yaw rms     3.08 max     4.59 deg  bgz     -7.6 (true 8.9) dpm  psi 781/6308
+fwdplainc_trans_r1   FGO stored (Phase 4)                 evo    36.93 m  yaw rms  1440.96 max  2469.09 deg  bgz   +447.1 (true 8.9) dpm  psi 19/8420
+fwdplainc_trans_r1   FGO y0 sigma 1 deg (UKF value)       evo   656.26 m  yaw rms     1.56 max     3.91 deg  bgz     -7.7 (true 8.9) dpm  psi 5911/8420
+fwdplainc_trans_r2   FGO stored (Phase 4)                 evo    55.29 m  yaw rms  1157.90 max  1971.61 deg  bgz   -372.4 (true 8.9) dpm  psi 26/8431
+fwdplainc_trans_r2   FGO y0 sigma 1 deg (UKF value)       evo   732.47 m  yaw rms     3.65 max     6.24 deg  bgz     -7.8 (true 8.9) dpm  psi 3582/8431
+fwdplainc_trans_r2   UKF stored (Phase 4)                 evo   122.73 m  yaw rms     3.66 max     6.25 deg  bgz     -7.8 (true 8.9) dpm  psi 3612/8510
+fwdplainc_trans_r3   FGO stored (Phase 4)                 evo    37.42 m  yaw rms  1496.51 max  2541.08 deg  bgz   -479.7 (true 8.9) dpm  psi 20/8408
+fwdplainc_trans_r3   FGO y0 sigma 1 deg (UKF value)       evo   559.78 m  yaw rms     1.83 max     4.16 deg  bgz     -7.7 (true 8.9) dpm  psi 5471/8408
+fwdplainc_trans_r3   UKF stored (Phase 4)                 evo   119.47 m  yaw rms     1.78 max     4.16 deg  bgz     -7.6 (true 8.9) dpm  psi 5517/8487
+fwdplainc_blank_r1   FGO stored (Phase 4)                 evo  8809.07 m  yaw rms     0.05 max     0.65 deg  bgz     -8.3 (true 8.9) dpm  psi 8631/8685
+fwdplainc_blank_r1   FGO y0 sigma 1 deg (UKF value)       evo  8595.74 m  yaw rms     0.05 max     0.45 deg  bgz     -8.3 (true 8.9) dpm  psi 8631/8685
+fwdplainc_blank_r1   UKF stored (Phase 4)                 evo 10560.75 m  yaw rms     0.05 max     0.45 deg  bgz     -8.3 (true 8.9) dpm  psi 8716/8773
+fwdc_tex_r1          FGO stored (Phase 4)                 evo     0.06 m  yaw rms     0.08 max     0.40 deg  bgz     -8.2 (true 8.9) dpm  psi 9184/9539
+fwdc_tex_r1          FGO y0 sigma 1 deg (UKF value)       evo     0.06 m  yaw rms     0.08 max     0.40 deg  bgz     -8.2 (true 8.9) dpm  psi 9184/9539
+fwdc_tex_r1          UKF stored (Phase 4)                 evo     0.13 m  yaw rms     0.08 max     0.40 deg  bgz     -8.2 (true 8.9) dpm  psi 9274/9635
