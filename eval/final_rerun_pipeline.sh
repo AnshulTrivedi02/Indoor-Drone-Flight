@@ -60,7 +60,7 @@ code_check() {
     python3 eval/final_rerun_checks.py corrections > "$STATE/corrections_now.txt" 2>&1 || die "corrections no longer all present (before stage $1)"
 }
 done_() { [ "$DRY" = 1 ] && { log "(dry) DONE $1"; return; }; touch "$STATE/$1.done"; log "DONE  $1"; }
-need() { [ "$DRY" = 1 ] && return 0; for s in "$@"; do [ -f "$STATE/$s.done" ] || die "stage requires $s.done"; done; }
+need() { [ "$DRY" = 1 ] && return 0; local s; for s in "$@"; do [ -f "$STATE/$s.done" ] || die "stage requires $s.done"; done; }
 
 flying() {
     [ -e "$HOME/thesis_data/FLIGHT_LOCK" ] && { echo "FLIGHT_LOCK present: $(cat "$HOME/thesis_data/FLIGHT_LOCK" 2>/dev/null)"; return 0; }
