@@ -12735,3 +12735,13 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - The reproduction check (ruling item 5) therefore uses each stored output's PRODUCING commit, not today's tree.
 - Open: the `imu`/`flowtime`/`flowgyro` diagnostic modes now differ from their stored outputs. The
   `plots/` derotation diagnostics still use the raw rate; they are historical and left as they are.
+
+### RULING (user, 2026-10-09): correction ATTRIBUTION study, added to the final re-run (after the main stages; it must not delay the freeze)
+- **Bags:** `dsn_tex_r1`–`r3` and one fwdc textured bag.
+- **UKF**, with its corrections toggled: derotation only, jitter only, both.
+- **FGO**, with its corrections toggled: noise only, yaw cap only, both.
+- **Report** how much each correction moves the headline numbers.
+- **It also tests** whether the 2.5 m non-reproduction with derotation off (`dsn_tex_r2`) comes from the jitter fix.
+- **Implementation:** off-by-default DIAGNOSTIC toggles only, with outputs to a scratch root, never into a trial's
+  stored outputs. It is built after the reproduction stage, so it does not touch files that stage uses, and it runs
+  only if time allows.
