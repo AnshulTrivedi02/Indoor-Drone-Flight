@@ -12782,3 +12782,37 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     is quoted.
 - **Timing note:** the L no-loop-closure FGO jobs took ~3.1 h each, against ~50 min before the corrections
   (`T_A_r1`: 7351 keyframes, 2996 s). The cause is not traced. The F3c FGO jobs, by contrast, got much faster.
+
+### RULINGS (user, 2026-10-10): the final restatement (`docs/thesis/final_restatement_draft.md`)
+1. **Plain-wall FGO divergence:** reported as a property of the corrected FGO WITH THE HARD GATE.
+   - A bounded offline trace (3 h) runs before the freeze. It looks at:
+     - gate decisions against heading innovations over time;
+     - the FGO's heading uncertainty against the UKF's on the same bags;
+     - whether this is gate lockout (correct headings rejected as the heading drifts).
+   - **The FGO is changed only if the trace finds a genuine inconsistency** (a D18-type model error). Otherwise it is
+     reported as a hard-gating result, alongside the robust FGO being best on plain walls.
+2. **Confirmatory test:** the new verdict ("no ordering claimed", CI [−0.93, +0.85] m) REPLACES the old one.
+   - The old verdict ("EKF3 lower") is recorded as computed with the mis-specified FGO noise model.
+   - **"EKF3 beats the FGO on standard sensors" is WITHDRAWN everywhere.**
+3. **The P4 FGO textured band** stays as computed by the registered formula, with an explicit caveat that it is too
+   wide to be informative.
+4. **F2 (NOT met → MET) and F3c (b) (TRUE → FALSE)** are accepted as worded.
+5. **O:** the P-O3 flip (FAIL → PASS) is accepted. "FGO batch ~2× better than RTS-UKF" is WITHDRAWN. The FGO batch's
+   worsening (0.33 → 0.59 m) is to be explained through the attribution study.
+6. **H** is restated as "no gap between shadow and flying estimators".
+7. **T, condition D:** the ordering (FGO live 0.082 against EKF3 live 0.096) is descriptive only (n = 3).
+8. **F1:** "NOT met (lockout tie)".
+9. **Three outdated wordings are updated:**
+   - the UKF take-off kick bound becomes ≤ 0.82°;
+   - "UKF about 2× lower yaw error than the FGO with heading" no longer holds on fwdc (they are equal);
+   - 2(a): "UKF lower yaw max 10/10" reverses (the robust FGO is lower on 8/10).
+10. **`rerun_compare.py`:** its old-file mapping is fixed and the comparison regenerated (this removes the 7 artefact
+    flags).
+11. **The contact-prediction consistency check** is accepted, with the two missing cases named (`fgo_shadow_half_a`;
+    no live XFGO).
+12. **The attribution study runs NOW**, including the plain-wall divergence and the O FGO batch.
+- **Then:** a one-page "headline claims: before vs after" table for the thesis.
+  - It covers every claim so far: corridor ranking, camera heading, C0, consistency, blank floor, closed loop, T, O,
+    L, H and the F tests.
+  - For each: its status now (holds / changed / withdrawn) and the evidence.
+  - It includes the UKF's corrected textured-floor standing and whether L's result changed.
