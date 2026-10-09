@@ -12831,3 +12831,25 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     (82 DIRECTION + 9 VERDICT). The 7 artefacts are gone; fwdc 6/9 → 8/9 and fwdplainc 8/9 → 9/9 now show.
   - Headline-claims table: `docs/thesis/headline_claims_before_after.md` (HOLDS 15, CHANGED 17, WITHDRAWN 2,
     PENDING 2).
+
+### FINDING (plain-wall trace, 2026-10-10; `docs/handovers/2026-10-10_plainwall_divergence_trace.md`): a D18-type inconsistency in the FGO's INITIAL YAW sigma. Correction PROPOSED, not applied; awaiting ruling
+- **The setting:** the FGO's X(0) yaw prior σ is 1e-3 rad (0.057°, a "gauge fix"). The UKF uses 1°, EKF3 0.1 rad.
+  Locations: `fgo_core.py:114`; `fgo_core.cpp:75` and `:200`.
+- **Mechanism** (fwdplainc tex/trans, hard gate):
+  - forward-camera headings are valid on the ground from ~10 s and read ~+3° off truth there;
+  - at the first heading the FGO's predicted heading σ is 0.16°, against the UKF's 1.01°;
+  - ONE accepted heading (9.913 s, gate statistic 7.1) drives the gyro-z bias 0 → −6.1 °/s (it settles at −287
+    deg/min; true +8.9);
+  - the heading gate then locks out within 0.5 s, permanently. The later ~20 "fused" headings are the yaw spinning
+    through truth, which is the source of the 180° yaw max.
+  - The yaw-cap gate never fired on the ground. There was no bias drift before that heading.
+- **Why it appeared only after the noise correction:** the old extra IMU noise let yaw absorb the conflict. The old
+  FGO fused 4.6–5.0 k of ~6.2 k headings.
+- **Demonstration** (off-by-default `F_YAW0_*` knobs, scratch outputs):
+  - FGO with a 1° start: it matches the UKF on all 6 plain-wall bags (yaw max within 0.02°; bias −7.6…−8.4
+    deg/min). Textured evo 0.15/0.09/0.22 m, against 43 m.
+  - The UKF given 1e-3 rad diverges in the same way (43.0 m).
+  - Transition-floor position stays 560–730 m: this is the FGO's own blank-half failure without heading, not yaw.
+- **Proposed:** yaw σ = 1° in both cores (EKF3's 0.1 rad is the alternative). Not yet re-run: the no-heading arm and
+  the C++ core.
+- **The 2026-10-01 "yaw-prior hypothesis rejected" ruling concerned the per-keyframe yaw cap**, a different setting.
