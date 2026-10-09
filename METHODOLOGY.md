@@ -12404,3 +12404,33 @@ growth from the stated densities; flag > 2×):
   `O_r1` replay, the UKF jitter agent's port build and Replay check run next, and then the FGO equivalence checks
   resume. The FGO agent's queued, not-yet-started heavy job ("yawgate fi60") was withdrawn (SIGINT while waiting for
   the lock) so that it could not take the lock first; it is re-submitted after the UKF steps.
+
+### UKF jitter correction MERGED (`a77e5f8`) and the port INSTALLED (`~/ardupilot_ukf` `ukf-jitter-fix` `abb0357d`)
+Handover: `docs/handovers/2026-10-09_ukf_jitter_fix.md`.
+- **The rule (both builds):** no jitter on the first Cholesky attempt. Only on failure, retry with 1e-12, 1e-9, 1e-6
+  (counted; the first retry warns, and in the port also sends a GCS text). It is the only option that adds exactly
+  nothing in normal propagation.
+- **Free inertial against the analytic reference:**
+  - Python core (offline and port cadence) **×0.99–1.01** on every quantity at 10 s and 60 s. The gyro-bias random
+    walk was ×24.7 / ×42.
+  - **The C++ port itself ×0.995–1.013**, matching the Python core to 6 decimal places.
+  - The UKF pseudo-yaw now fires 0 times in 60 s free inertial (was 59 / 115).
+- **The fallback NEVER fires on real data:** 0 of 52,950 (dsn_tex_r2), 0 of 85,944 (H_s1_r1 RTS), and 0 in the
+  harness, the free-inertial runs and the tier-B Replay.
+- **Equivalence, AS WORDED:**
+  - step 2 (dsn_tex_r2) FAIL, max 4.18 m. This is the known D27 noise-form difference and predates the fix: the old
+    pair fails at 3.08 m, diverging at the same event.
+  - tier A FAIL: UA1 3.8 mm, **UA2 0.032° (newly failing; was 0.0039°)**, UA3; UA4 PASS.
+  - **With the noise-form diagnostic (`UKF_EQ_QDIAG`):** step 2 PASS (1e-5 m, identical gate decisions); UA1–UA4
+    PASS by 4–5 orders of magnitude; UA5 2.16e-9 against 1e-9 (round-off carried from before the anchor).
+  - **Tier B is NOT EVALUABLE on `H_s1_r1`:** under the no-first-anchor-after-arming rule (`00b597dd`) the port
+    refuses that log's in-flight first anchor, so there are 0 fixes. A ruling is needed (see the report to the user).
+- **Install:** `~/ardupilot_ukf` checked out at `ukf-jitter-fix`, rebuilt through heavy.py: vehicle `5f94ea1a…`
+  (version `abb0357d`), Replay `e8e9feac…`, UKF_Equiv `537e0dcd…`.
+- **Functional acceptance:** the free-inertial diag(P) is **byte-identical** to the tested build's. The input is
+  preserved at `~/thesis_data/acceptance/ukf_jitter_cfi60_A.bin`; it is git-ignored in the repo.
+- **Process slip (reverted, verified):**
+  - the agent's `git config submodule.*.url` wrote to the shared `~/ardupilot_ukf/.git/config`, pointing 11 URLs at
+    local paths for a few minutes;
+  - it restored them. Verified: the 15 configured submodule URLs equal `.gitmodules`'s, with none local;
+  - nothing was fetched.
