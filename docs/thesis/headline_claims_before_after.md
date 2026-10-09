@@ -9,7 +9,8 @@ Which correction causes a change is not yet attributed (attribution study runnin
 
 | # | claim before | status | evidence now |
 |---|---|---|---|
-| 1 | **Corridor ranking, textured `dsn`:** the UKF is the worst textured estimator (median r1–r9 5.34 m, above EKF3 4.10 and FGO 4.61) | CHANGED | `rerun_dsn_evo.json`: **mean of r1–r3 FGO 3.49 < UKF 3.59 < EKF3 4.00, so on r1–r3 the UKF is NOT last** (old r1–r3: UKF 3.91 < EKF3 4.00 < FGO 4.64). With `dsn_extra_evo.json`, median r1–r9: UKF 5.13 > FGO 4.45 > EKF3 4.10, so the UKF is still highest by median and on 6/9 flights. Both FGO and UKF are bimodal (low on r2, r6). Descriptive; no ordering claimed |
+| 1a | **Corridor ranking, textured `dsn`, mean of r1–r3** (`rerun_dsn_evo.json`): UKF 3.91 < EKF3 4.00 < FGO 4.64 | CHANGED | now **FGO 3.49 < UKF 3.59 < EKF3 4.00**: the UKF is NOT last; **EKF3 is now highest**. Driven by the bimodal r2 flight (FGO 1.93, UKF 1.61). Descriptive; no ordering claimed (n = 3) |
+| 1b | **UKF textured standing, median of r1–r9** (D15 wording): UKF 5.34, above EKF3 4.10 and FGO 4.61 | HOLDS | `rerun_dsn_evo.json` + `dsn_extra_evo.json`: UKF 5.13 > FGO 4.45 > EKF3 4.10; the UKF is still highest by median and highest on 6/9 flights (lowest on r1, r2, r6). Descriptive |
 | 2 | **EKF3 beats the FGO on standard sensors** (confirmatory: "EKF3 lower", 6/7, d −0.69 m, CI [−1.16, −0.21]) | WITHDRAWN | `dsn_paired_test.json`, same rule: **"no ordering claimed"**, 5/7, d −0.040 m, CI [−0.934, +0.853]; driven by r6 (FGO 1.43 vs EKF3 3.11). The old verdict used the mis-specified FGO noise model (ruling 2) |
 | 3 | The FGO is the "tight" textured estimator (noise-floor SD 0.05–0.13 m) | CHANGED | FGO SD **1.23 m** [0.83, 2.36] (n = 9); EKF3 0.31 (unchanged) |
 | 4 | **Camera heading measurement** (Phase 3): heading valid on `fwdc` 9/9, `fwdplainc` 6/9 (checker floor fails); yaw rate `fwdc` only | HOLDS | `fwd_validation.json`: estimator-independent, not re-run |
@@ -32,7 +33,7 @@ Which correction causes a change is not yet attributed (attribution study runnin
 | 21 | O: the FGO batch is ~2× better than the RTS-UKF (0.33 vs 0.60–0.64 m) | WITHDRAWN | FGO batch 0.59 m ≈ RTS-UKF 0.58–0.60 (ruling 5) |
 | 22 | O: why the FGO batch worsened (0.33 → 0.59 m) | PENDING | attribution study running (ruling 12) |
 | 23 | **L:** loop closure keeps live error bounded; H-L1, H-L2, H-L3, P-L4 PASS 3/3 | HOLDS | `expL/T_A_r*_t245.json`: **all PASS 3/3, unchanged**; lc live 0.049–0.076 m, nolc 0.281–0.362 m; lap ratio lc 0.16–0.43, nolc 3.0–5.0. L's result did not change; only magnitudes moved (no-LC wall time ~3–10× longer, cause untraced) |
-| 24 | L, V-L: keyframe FGO matches the thesis FGO (4.63 vs 4.59 m, PASS) | WITHDRAWN | NOT re-scorable (ruling 6, 2026-10-09): its labels were never recorded; the PASS was on the old FGO |
+| 24 | L, V-L: keyframe FGO matches the thesis FGO (4.63 vs 4.59 m, PASS) | CHANGED | not re-scorable on the corrected FGO (ruling 6, 2026-10-09: labels never recorded); the old PASS was for the old FGO and is listed, not restated |
 | 25 | **H:** hold H-H1 PASS; P-H5, P-H7 PASS | HOLDS | `expH/*.json`: P-H5 20/20 each estimator (+ `s1far_r3b` 4/4); P-H7 PASS |
 | 26 | H: offline shadows drift more than the flying estimators (UKF 30 s 282–292 mm); "the S1 → S2/S3 gap closes" | CHANGED | shadows now 4–9 (UKF) / 1–8 mm (FGO) at 30 s vs EKF3 3–11 mm: **"no gap between shadow and flying estimators"** (ruling 6) |
 | 27 | **F1** NOT met | HOLDS | `f1_test.json`: **"NOT met (lockout tie)"** (ruling 8): robust lower yaw max on 6/6 (was 0/6), but lockouts 3 = 3 |
@@ -45,4 +46,4 @@ Which correction causes a change is not yet attributed (attribution study runnin
 | 34 | Dataset counts / P4 band: `fwdc` 6/9, `fwdplainc` 8/9; FGO textured band [4.189, 5.117] | CHANGED | `fwdc` **8/9**, `fwdplainc` **9/9**, `p1c` 6/6; FGO band **[−0.614, 7.017]**, too wide to be informative (ruling 3) |
 | 35 | Window/clock/threshold sensitivity is small on textured flights | HOLDS | `*_final.json`: all ≤ 0.013 m (not like-for-like with old rows) |
 
-**Counts:** HOLDS 14 · CHANGED 16 · WITHDRAWN 3 · PENDING 2 (35 claims).
+**Counts:** HOLDS 15 · CHANGED 17 · WITHDRAWN 2 · PENDING 2 (36 rows; claim 1 is split into 1a/1b).

@@ -61,6 +61,8 @@ beyond "trace / attribution pending" placeholders.
   - the "EKF3 vs FGO (claim wording)" row;
   - a new row holding the old confirmatory verdict, labelled "computed with the mis-specified FGO noise model".
 - **The new confirmatory row** reads "no ordering claimed" and REPLACES the old verdict.
+- **Spot-checked against `final_old_vs_new.json`:** the §15.2 F2 and F3/F3c values (F2 batch 0.063–0.066° vs live
+  0.32–0.36°; ratio decreasing on 1/3 bags for F3 and for F3c).
 - **Not restated (no new values in the re-run):** §14 timing; the fwdplainc/p1c take-off kick magnitudes; §16.1's
   "repeats agree within 8 mm".
 
@@ -88,20 +90,20 @@ beyond "trace / attribution pending" placeholders.
   - `docs/handovers/2026-10-09_final_rerun_pipeline.md:223`.
 
 ## 4. `docs/thesis/headline_claims_before_after.md`
-- One page, 35 claims: **HOLDS 14 · CHANGED 16 · WITHDRAWN 3 · PENDING 2**. The counts were taken from the status
-  column.
-- **Withdrawn:**
+- One page, 36 rows (claim 1 split into 1a, the r1–r3 mean ranking, and 1b, the r1–r9 median wording):
+  **HOLDS 15 · CHANGED 17 · WITHDRAWN 2 · PENDING 2**. The counts were taken from the status column by regex.
+- **Withdrawn (only what rulings 2 and 5 withdraw):**
   - EKF3 beats the FGO;
-  - FGO batch ~2× better than the RTS-UKF;
-  - V-L PASS.
+  - FGO batch ~2× better than the RTS-UKF.
+- **V-L** is CHANGED, not withdrawn: it is not re-scorable on the corrected FGO (ruling 6, 2026-10-09).
 - **Pending:**
   - the plain-wall hard-gated FGO mechanism;
   - the O batch worsening.
 - **The UKF's textured standing** (from `rerun_dsn_evo.json`):
-  - **on the mean of r1–r3: FGO 3.49 < UKF 3.59 < EKF3 4.00, so the UKF is NOT last.** On the same statistic it was
-    not last before either (UKF 3.91 < EKF3 4.00 < FGO 4.64).
+  - **on the mean of r1–r3: FGO 3.49 < UKF 3.59 < EKF3 4.00, so the UKF is NOT last and EKF3 is now highest**
+    (CHANGED). On the same statistic it was not last before either (UKF 3.91 < EKF3 4.00 < FGO 4.64).
   - **By the r1–r9 median** (the basis of the old "UKF above both" wording): UKF 5.13 > FGO 4.45 > EKF3 4.10, so the
-    UKF is still highest, and highest on 6/9 flights.
+    UKF is still highest, and highest on 6/9 flights (HOLDS).
   - The statement is descriptive; no ordering is claimed.
 - **L: unchanged.** H-L1, H-L2, H-L3 and P-L4 all PASS 3/3, old and new; only the magnitudes moved.
 

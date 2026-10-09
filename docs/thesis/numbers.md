@@ -509,7 +509,7 @@ Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 m
   EKF3 live 0.096 is **descriptive only (n = 3)** (ruling 7); no live ordering is claimed.
 - **H-T1 (primary) PASS.** The FGO hindsight gain per gap (median) is 0.010 / 0.011 / 0.023 / 0.052 m for A–D,
   strictly increasing. Spearman ρ = +0.30, p = 6e-6, n = 213 gaps.
-- **P-T2 FAIL.** The RTS-UKF gain is +0.020 / +0.032 / +0.037 / +0.029 m (all positive now, not increasing; ρ +0.11, p 0.11).
+- **P-T2 FAIL.** The RTS-UKF gain is +0.020 / +0.032 / +0.037 / +0.029 m (single-pass smoother; all positive now, not increasing; ρ +0.11, p 0.11).
 - **P-T3 FAIL.** The live max/min ratio is 1.97 / 2.36 / 1.43 / 1.59 (C now inside the band).
 - **P-T4 FAIL.** The batch-FGO vs RTS-UKF ratio is 1.31 / 2.14 / 2.07 / 3.89.
 - **EKF3 timeout:** `horiz_pos_abs` inside the gaps is A 1.00, B–D 0.05. EKF3 times out (> 10 s) and fuses the next
@@ -628,7 +628,7 @@ errors, +60 s errors, displacement ratios, onsets, runaway-size bands).
    recording (fwd-camera only), same opening text.
 
 - **`dsn` noise floor — CLOSED (ruling 2026-09-30); values restated 2026-10-10.** Established from the re-flown `dsn_tex` (n = 10 / 9):
-  EKF3 SD 0.31 m, FGO SD **1.23 m** [0.83, 2.36] (final re-run; was 0.13, itself already stale after D15's 0.05). It replaces
+  EKF3 SD 0.31 m, FGO SD **1.23 m** [0.83, 2.36] (final re-run; was 0.13, itself already stale after D15's 0.05). It replaces "n = 3 range ± one range-width" as the basis for future
   textured bands; the existing P4 bands are not re-scored retrospectively.
 
 **Remaining:**
