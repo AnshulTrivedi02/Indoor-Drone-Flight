@@ -14,7 +14,18 @@ Split of the flow path (added after the first results, 2026-10-08; DIAGNOSTIC):
   flowtime  ROFH values at EKF3's time (arrival - 60 ms); derotation gyro = the bag-IMU frame average (as (a)).
   biascorr  NO input substitution: bag inputs, but h_flow derotates with (gyro average - the UKF's own gyro-bias
             estimate), as EKF3 (delAngCorrected, flowGyroBias) and the FGO do. A FORMULATION variant, not an input one.
-Range, tags, attitude rates: unchanged (bag)."""
+            SINCE 2026-10-09 THIS IS THE DEFAULT (model correction, ruling 2026-10-08): `biascorr` is now a no-op
+            alias of the default path, kept so the mode and its `_apin_biascorr` directory suffix still resolve.
+Range, tags, attitude rates: unchanged (bag).
+
+Since the 2026-10-09 default change every mode derotates with the bias-corrected rate wherever the rate comes from the
+UKF's own gyro stream (bag IMU, or the FC deltas in `imu`/`both`). Where `flow`/`both`/`flowgyro` substitute EKF3's
+bodyRate for x/y, those two components are EKF3's own (already bias-corrected) values and are not corrected again;
+only z (which h_flow does not use: the lever arm is along z) is the UKF's corrected average. Hence `flow` and `both`
+(every flow event is an ROFH event carrying EKF3's gyro) reproduce their earlier outputs (verified for `flow` on
+dsn_tex_r2, see docs/handovers/2026-10-09_ukf_derotation_default.md). `flowgyro` does NOT: only the paired bag frames
+carry EKF3's gyro (9445 of ~10238 on dsn_tex_r2), and the unpaired ones now get the corrected rate. `imu` and
+`flowtime` also differ from outputs stored before the change."""
 import os
 import numpy as np
 
@@ -33,6 +44,8 @@ def outdir_suffix(m):
 
 
 def substitute(ev, trial_dir, m):
+    if m == "biascorr":       # no-op alias of the default since 2026-10-09: no inputs swapped, so no ap_inputs.npz needed
+        return ev
     z = np.load(f"{trial_dir}/apin/ap_inputs.npz")
     parts = MODES[m]
     keep = [e for e in ev if e[1] not in parts]

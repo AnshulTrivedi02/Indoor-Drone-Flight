@@ -61,10 +61,12 @@ def h_flow_pose(R_wb, v_world, p_U, omega_body):
 
     R_wb: 3x3 world<-body (FLU) rotation.  v_world: ENU velocity (3,).
     p_U: base_link height (m).  omega_body: FLU body rates the flow derotates
-    against. The caller decides bias handling: the UKF passes the RAW measured
-    rate (its gyro bias is applied in predict); the FGO passes the bias-CORRECTED
-    rate omega_meas - B(k).gyroscope() (FGO §2, difference #5/#8) so flow can
-    inform gyro bias through this term. The geometry below is identical either way.
+    against. The caller decides bias handling. Both estimators pass a bias-CORRECTED
+    rate: the FGO passes omega_meas - B(k).gyroscope() (FGO §2, difference #5/#8) so
+    flow can inform gyro bias through this term; the UKF (since 2026-10-09, model
+    correction per the 2026-10-08 ruling; it passed the RAW rate before) passes its
+    flow-frame gyro average minus its own gyro-bias estimate (bg / dt), evaluated at
+    the state mean, outside the sigma points. The geometry below is identical either way.
     """
     v_body = R_wb.T @ v_world                          # world velocity into FLU
     v_s = v_body + np.cross(omega_body, FLOW_LEVER_ARM_BODY)

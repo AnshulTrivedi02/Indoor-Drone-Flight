@@ -27,7 +27,9 @@ BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
 FV = f_variant()     # offline F-test variants (all off by default)
 import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
 APIN = apin.mode()
-OUTDIR = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/ukf" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
+# UKF_OUT_ROOT (as the FGO's FGO_OUT_ROOT; off by default): write the outputs to <root>/<trial>/ukf.../ instead of
+# the trial directory. Inputs are still read from the trial directory.
+OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -155,10 +157,12 @@ for t, kind, d in ev:
     elif kind == "flow":
         flow_xy, valid, inlier = d[:3]
         omega_flow = gyro_avg.average(t, omega)   # interval-avg over the flow frame (FINDING 4)
-        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
-            omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])
-        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
-            omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
+        # MODEL CORRECTION (ruling 2026-10-08, METHODOLOGY "UKF flow derotation: the bias-corrected rate is ADOPTED"):
+        # derotate with the gyro average minus the UKF's own gyro-bias estimate (delta form -> rate: bg / DT_STEP),
+        # as EKF3, the FGO and the flying port do. Formerly the UKF_APIN=biascorr diagnostic; the raw rate is gone.
+        omega_flow = omega_flow - x[U.BG_SLICE] / DT_STEP
+        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y; already
+            omega_flow = np.array([d[3][0], d[3][1], omega_flow[2]])   # bias-corrected by EKF3, so not corrected again)
         if DUMP and valid and inlier > 0:
             dump_flow.append(np.r_[t, flow_xy, U.h_flow(x, omega_flow), omega_flow])
         if valid and inlier > 0:

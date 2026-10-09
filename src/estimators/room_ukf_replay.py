@@ -34,7 +34,10 @@ GNSS = "--gnss" in sys.argv      # experiment O: GNSS fixes from <trial>/gnss.np
 #                                  GSF yaw outdoors and no yaw source indoors, where it fuses its predicted yaw)
 import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
 APIN = apin.mode()
-D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else "") + apin.outdir_suffix(APIN); os.makedirs(OUT, exist_ok=True)
+# UKF_OUT_ROOT (as the FGO's FGO_OUT_ROOT; off by default): write to <root>/<trial>/room_ukf.../ instead of the trial
+# directory. Inputs are still read from the trial directory D.
+D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}")
+OUT = (os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else D) + "/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else "") + apin.outdir_suffix(APIN); os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
 ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/OpticalFlow"))
@@ -146,10 +149,11 @@ for t, kind, d in ev:
     elif kind == "flow":
         flow_xy, valid, inlier = d[:3]
         om = gyro_avg.average(t, omega)
-        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y)
-            om = np.array([d[3][0], d[3][1], om[2]])
-        if APIN == "biascorr":                    # diagnostic formulation variant: bias-corrected derotation rate
-            om = om - x[U.BG_SLICE] / DT_STEP
+        # MODEL CORRECTION (ruling 2026-10-08, METHODOLOGY "UKF flow derotation: the bias-corrected rate is ADOPTED"):
+        # derotate with the gyro average minus the UKF's own gyro-bias estimate (bg / DT_STEP), as ukf_replay.py.
+        om = om - x[U.BG_SLICE] / DT_STEP
+        if len(d) == 4:                           # UKF_APIN flow: EKF3's derotation gyro (bodyRate, FLU x/y; already
+            om = np.array([d[3][0], d[3][1], om[2]])   # bias-corrected by EKF3, so not corrected again)
         if valid and inlier > 0:
             flow_xy = gp.replace(flow_xy, om, x[6], x[7])
         x, P, _ = U.update_flow(x, P, flow_xy, om, valid, inlier, p)
