@@ -12717,3 +12717,21 @@ machine time.
   - `H_s1far_r3` is excluded under the IMU-gap rule (r3b is used);
   - the H scorer's keys have changed since the committed H JSONs, so the EKF3 checks compare against a re-score of
     the old outputs with the same scorer, taken before any replay.
+
+### UKF bias-corrected derotation made the DEFAULT (ruling 2026-10-08 item 3), merged `29db0d8`
+Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
+- **Change:** both offline UKF harnesses (`ukf_replay.py`, `room_ukf_replay.py`) now derotate with the gyro average
+  minus the UKF's own bias estimate (bg/DT_STEP). This is the diagnostic variant's formula; `APIN=biascorr` is now a
+  no-op alias. The port-equivalence exporters (`eval/ukf_event_export.py`, `ukf_tag_event_export.py`) run these
+  harnesses unchanged, so they inherit the change.
+- **Verification:**
+  - the new default is bit-identical to the old biascorr diagnostic on `dsn_tex_r2`, `H_s1far_r1` and `H_s1_r1`;
+  - old vs new differs (`dsn_tex_r2` max 2.32 m).
+  - **First indication only (n = 1):** evo -a (cruise) on `dsn_tex_r2` goes 2.025 → 1.614 m.
+- `eval/final_rerun_checks.py corrections` now passes all four corrections.
+- **Found:** the STORED UKF outputs are not reproduced by today's code with the derotation fix off (`dsn_tex_r2` up
+  to 2.53 m; the Oct 8 biascorr diagnostics also differ). This is attributed to the jitter fix `47de1ca`, but not
+  proven.
+  - The reproduction check (ruling item 5) therefore uses each stored output's PRODUCING commit, not today's tree.
+- Open: the `imu`/`flowtime`/`flowgyro` diagnostic modes now differ from their stored outputs. The
+  `plots/` derotation diagnostics still use the raw rate; they are historical and left as they are.
