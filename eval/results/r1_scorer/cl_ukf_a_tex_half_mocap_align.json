@@ -1,0 +1,81 @@
+{
+ "clock": {
+  "gyro_src": "RISI",
+  "imu_instance": 0,
+  "risi_stamp_rule": "TimeUS(preceding RFRH) - DADT/2",
+  "risi_dadt_median_s": 0.0029980000108480453,
+  "gyro_filter_delay_ms_compensated": 0.0,
+  "features": [
+   "w"
+  ],
+  "smooth_s": 0.1,
+  "grid_s": 0.005,
+  "coarse": {
+   "rule": "xcorr",
+   "offset_s": -0.21899849987435438,
+   "peak_ratio": 4.443022082716517
+  },
+  "windows": [
+   {
+    "window_fc_s": [
+     24.210402,
+     49.210402
+    ],
+    "t_centre_fc_s": 36.710402,
+    "mocap_minus_fc_s": 0.006235373874155651,
+    "cost": 0.00012375914810910642,
+    "corr": 0.9999381204259454,
+    "valid_fraction": 1.0,
+    "resid_ms": -8.673617379884035e-16
+   },
+   {
+    "window_fc_s": [
+     208.450287,
+     236.450287
+    ],
+    "t_centre_fc_s": 222.450287,
+    "mocap_minus_fc_s": 0.036091400045836365,
+    "cost": 0.0055028704183470705,
+    "corr": 0.9972485647908265,
+    "valid_fraction": 1.0,
+    "resid_ms": 1.3877787807814457e-14
+   }
+  ],
+  "map": {
+   "form": "t_mocap = t_fc + o1 + rate (t_fc - t1)",
+   "o1_s": 0.006235373874155652,
+   "t1_fc_s": 36.710402,
+   "rate_ppm": 160.74106092873214
+  },
+  "mocap_minus_fc_early_s": 0.006235373874155651,
+  "mocap_minus_fc_late_s": 0.036091400045836365,
+  "rate_ppm": 160.74106092873214
+ },
+ "frame_4dof_initial": {
+  "yaw_deg": -0.028817069008195095,
+  "t_m": [
+   -0.021894127431646315,
+   0.033882657361744783,
+   -0.12202479133514554
+  ],
+  "segment_fc_s": [
+   24.210402,
+   54.210402
+  ],
+  "n": 300
+ },
+ "frame_4dof_whole_flight": {
+  "yaw_deg": -4.668090995876762,
+  "t_m": [
+   -1.3925117289291884,
+   0.09179866480990029,
+   -0.10326635724896471
+  ],
+  "note": "absorbs drift: use for evo -a style ATE only; drift metrics use the initial-segment fit"
+ },
+ "inputs": {
+  "bin": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin",
+  "mocap": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/cl_ukf_gt.tum",
+  "est": "XKF1"
+ }
+}
