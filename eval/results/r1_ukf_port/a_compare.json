@@ -1,0 +1,620 @@
+{
+ "dsn_tex_r1": {
+  "new": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 6.695,
+    "pos3d_max_m": 2.551327295742353,
+    "pos3d_final_m": 2.535631733907734,
+    "yaw_max_deg": 0.1910000000000025,
+    "acc_counts_old_new": [
+     [
+      10201,
+      10201
+     ],
+     [
+      10201,
+      10201
+     ],
+     [
+      9813,
+      9813
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,5292,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5793",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,6590,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 10203
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.002654741415914907,
+    "max": 0.00438095955
+   }
+  },
+  "geomsitl": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 6.695,
+    "pos3d_max_m": 2.551327295742353,
+    "pos3d_final_m": 2.535631733907734,
+    "yaw_max_deg": 0.1910000000000025,
+    "acc_counts_old_new": [
+     [
+      10201,
+      10201
+     ],
+     [
+      10201,
+      10201
+     ],
+     [
+      9813,
+      9813
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,5292,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,6590,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 10203
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.002654741415914907,
+    "max": 0.00438095955
+   }
+  },
+  "derotrofh": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5292,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5793",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,6590,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10203,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ]
+  },
+  "both": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5292,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,6590,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10203,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ]
+  }
+ },
+ "fwdplainc_tex_r1": {
+  "new": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 7.524,
+    "pos3d_max_m": 2.4055412654951494,
+    "pos3d_final_m": 2.3818730990545944,
+    "yaw_max_deg": 0.0759999999999934,
+    "acc_counts_old_new": [
+     [
+      10117,
+      10117
+     ],
+     [
+      10117,
+      10117
+     ],
+     [
+      9753,
+      9753
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,4961,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5462",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,7474,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 10118
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.0026412091242889665,
+    "max": 0.00437717047
+   }
+  },
+  "geomsitl": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 7.524,
+    "pos3d_max_m": 2.4055412654951494,
+    "pos3d_final_m": 2.3818730990545944,
+    "yaw_max_deg": 0.0759999999999934,
+    "acc_counts_old_new": [
+     [
+      10117,
+      10117
+     ],
+     [
+      10117,
+      10117
+     ],
+     [
+      9753,
+      9753
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,4961,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,7474,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 10118
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.0026412091242889665,
+    "max": 0.00437717047
+   }
+  },
+  "derotrofh": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,4961,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5462",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,7474,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10118,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ]
+  },
+  "both": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,4961,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,7474,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10118,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,10"
+   ]
+  }
+ },
+ "cl_a_tex_half": {
+  "new": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 6.396,
+    "pos3d_max_m": 0.11192086490015948,
+    "pos3d_final_m": 0.1102054898814027,
+    "yaw_max_deg": 0.05700000000001637,
+    "acc_counts_old_new": [
+     [
+      7955,
+      7955
+     ],
+     [
+      7954,
+      7954
+     ],
+     [
+      7631,
+      7631
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,4993,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5494",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,6321,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 7955
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,3"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.00010396885621757395,
+    "max": 0.0005764986799999998
+   }
+  },
+  "geomsitl": {
+   "ukf_shadow.csv": false,
+   "ukf_inputs.csv": true,
+   "shadow_diff": {
+    "same_TimeUS": true,
+    "cols_differing": [
+     "PN",
+     "PE",
+     "PD",
+     "VN",
+     "VE",
+     "VD",
+     "Roll",
+     "Pitch",
+     "Yaw",
+     "SVN",
+     "SVE"
+    ],
+    "first_diff_t_s": 6.396,
+    "pos3d_max_m": 0.11192086490015948,
+    "pos3d_final_m": 0.1102054898814027,
+    "yaw_max_deg": 0.05700000000001637,
+    "acc_counts_old_new": [
+     [
+      7955,
+      7955
+     ],
+     [
+      7954,
+      7954
+     ],
+     [
+      7631,
+      7631
+     ]
+    ]
+   },
+   "geometry": [
+    "range_lever,4993,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,6321,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 0,
+    "own_bias_swap": 7955
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,3"
+   ],
+   "swap_bias_diff_xy_rad_s": {
+    "rms": 0.00010396885621757395,
+    "max": 0.0005764986799999998
+   }
+  },
+  "derotrofh": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,4993,0,0,0.12",
+    "mode,log",
+    "resolved_at_ms,5494",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "flow_lever,6321,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 7955,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,3"
+   ]
+  },
+  "both": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,4993,0,0,0.12",
+    "mode,sitl_constants",
+    "flow_lever,6321,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 7955,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,3"
+   ]
+  }
+ },
+ "cl_ukf_b_tex_r1_half_v2": {
+  "new": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5249,0,0,0.12",
+    "flow_lever,5557,0,0,0.25",
+    "mode,log",
+    "resolved_at_ms,5750",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10189,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "geomsitl": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5249,0,0,0.12",
+    "flow_lever,5557,0,0,0.25",
+    "mode,sitl_constants"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10189,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "derotrofh": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5249,0,0,0.12",
+    "flow_lever,5557,0,0,0.25",
+    "mode,log",
+    "resolved_at_ms,5750",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10189,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "both": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "range_lever,5249,0,0,0.12",
+    "flow_lever,5557,0,0,0.25",
+    "mode,sitl_constants"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 10189,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  }
+ },
+ "H_s2v2_r1": {
+  "new": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "mode,log",
+    "resolved_at_ms,5719",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "range_lever,9614,0,0,0.12",
+    "flow_lever,13541,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 11453,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "geomsitl": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "mode,sitl_constants",
+    "range_lever,9614,0,0,0.12",
+    "flow_lever,13541,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 11453,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "derotrofh": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "mode,log",
+    "resolved_at_ms,5719",
+    "flow_delay_ms,10,log_parm",
+    "horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm",
+    "rng1_min_max,0.05,40,log_parm",
+    "range_lever,9614,0,0,0.12",
+    "flow_lever,13541,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 11453,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  },
+  "both": {
+   "ukf_shadow.csv": true,
+   "ukf_inputs.csv": true,
+   "geometry": [
+    "mode,sitl_constants",
+    "range_lever,9614,0,0,0.12",
+    "flow_lever,13541,0,0,0.25"
+   ],
+   "derot_rule_counts": {
+    "as_delivered": 11453,
+    "own_bias_swap": 0
+   },
+   "derot_other_lines": [
+    "# F,ms,rule(0=as_delivered,1=own_bias_swap),active_bias_xyz,own_bias_xyz,gyro_used_xy",
+    "ahrs_ekf_type,0,12"
+   ]
+  }
+ }
+}

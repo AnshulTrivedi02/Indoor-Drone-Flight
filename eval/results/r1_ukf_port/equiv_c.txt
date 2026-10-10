@@ -1,0 +1,16 @@
+UKF_Equiv regression (eval/diag/r1_ukf_port/equiv_c.sh), 2026-10-11
+old = ~/ardupilot_ukf/build/sitl/examples/UKF_Equiv md5 537e0dcd808ddfe4c6d3265a44d983e3 (abb0357d0f, read-only use)
+new = scratch build of rung1-geometry 60c2d83f35, md5 3cca6bf6b665580067db9598e2465851
+tapes: the 2026-10-09 jitter-fix stage's (scratchpad/jfix), copied.
+
+events / cholesky: cfi60_A 4799, cfi60_C 5198, cfi10_B 800, dsn_tex_r2 45277 (plain and UKF_EQ_QDIAG),
+h_s1_r1 57371 (plain and UKF_EQ_QDIAG); retries 0, failures 0 on both builds.
+
+cfi60_A state IDENTICAL; pdiag IDENTICAL
+cfi60_C state IDENTICAL; pdiag IDENTICAL
+cfi10_B state IDENTICAL; pdiag IDENTICAL
+dsn_tex_r2 state IDENTICAL; dsn_tex_r2 (QDIAG) state IDENTICAL
+h_s1_r1 state IDENTICAL; h_s1_r1 (QDIAG) state IDENTICAL
+dsn_tex_r2 new == stored 2026-10-09 port output (jfix/s2/dsn_tex_r2_port.bin)
+h_s1_r1 new == stored 2026-10-09 port output (jfix/ua/h_s1_r1_port.bin)
+=> the E1-E5 / UA1-UA5 scores of 2026-10-09 carry over unchanged (not re-scored).

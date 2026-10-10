@@ -1,0 +1,78 @@
+{
+ "bin": "/home/makerspace/thesis_data/trials/cl_ukf_b_tex_r1_half_v2/ardupilot.bin",
+ "csv": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/r1ukf/a/cl_ukf_b_tex_r1_half_v2/new/ukf_shadow.csv",
+ "csv_rows": 8526,
+ "xukf_rows": 8551,
+ "paired": 8503,
+ "csv_first_s": 5.692,
+ "xukf_first_s": 4.689,
+ "all": {
+  "n": 8503,
+  "t_s": [
+   6.612,
+   346.692
+  ],
+  "E1_pos3d_max_m": 0.01841249036611771,
+  "E1_pos3d_rms_m": 0.003221580082714126,
+  "E1_pass": true,
+  "pos3d_p95_m": 0.0029065333894040778,
+  "pos3d_final_m": 0.0025126640800214642,
+  "pos3d_argmax_t_s": 9.532,
+  "E3_yaw_max_deg": 0.004877204775823429,
+  "E3_pass": true,
+  "yaw_p95_deg": 0.0004997064053895883,
+  "roll_max_deg": 0.008826443314552308,
+  "pitch_max_deg": 0.1397746706008911,
+  "vel3d_max_mps": 0.0333316938671871
+ },
+ "cruise": {
+  "n": 7518,
+  "t_s": [
+   30.652,
+   331.332
+  ],
+  "E1_pos3d_max_m": 0.0055718251470115564,
+  "E1_pos3d_rms_m": 0.002441599635061718,
+  "E1_pass": true,
+  "pos3d_p95_m": 0.002527046140369194,
+  "pos3d_final_m": 0.0025065831383159595,
+  "pos3d_argmax_t_s": 32.452,
+  "E3_yaw_max_deg": 0.003768097698696238,
+  "E3_pass": true,
+  "yaw_p95_deg": 0.0004753895044416367,
+  "roll_max_deg": 0.005801906943321222,
+  "pitch_max_deg": 0.06729822158813459,
+  "vel3d_max_mps": 0.010026889580712513
+ },
+ "E5_accepted_increments_over_paired_window": {
+  "flowX": {
+   "flying": 10154.0,
+   "replay": 10154.0,
+   "rel_diff": 0.0,
+   "cumulative_flying_replay": [
+    10188.0,
+    10183.0
+   ]
+  },
+  "flowY": {
+   "flying": 10144.0,
+   "replay": 10144.0,
+   "rel_diff": 0.0,
+   "cumulative_flying_replay": [
+    10178.0,
+    10173.0
+   ]
+  },
+  "range": {
+   "flying": 9724.0,
+   "replay": 9724.0,
+   "rel_diff": 0.0,
+   "cumulative_flying_replay": [
+    9778.0,
+    9749.0
+   ]
+  }
+ },
+ "E5_pass": true,
+ "flying_GBZ_rad_s_last": 0.004087562672793865
+}
