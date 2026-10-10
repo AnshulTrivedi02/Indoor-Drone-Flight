@@ -12853,3 +12853,28 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Proposed:** yaw σ = 1° in both cores (EKF3's 0.1 rad is the alternative). Not yet re-run: the no-heading arm and
   the C++ core.
 - **The 2026-10-01 "yaw-prior hypothesis rejected" ruling concerned the per-keyframe yaw cap**, a different setting.
+
+### RULINGS (user, 2026-10-10): FGO initial yaw sigma, a MODEL CORRECTION under D18
+- **The defect:** an initial yaw σ of 1e-3 rad claims heading knowledge that no sensor provides. It is proven by
+  swapping the value between the UKF and the FGO.
+1. **The FGO's initial yaw σ is set to 1° in both cores,** identical to the UKF. The principle: the UKF and the FGO
+   (compared with heading) must share initial uncertainties.
+   - EKF3's 0.1 rad is recorded as EKF3's design.
+   - **Caveat:** the observed on-ground heading offsets (~3°) exceed 1° at 3σ.
+   - **Labelled sensitivity check:** the UKF and FGO with a 0.1 rad initial yaw σ on the six plain-wall bags and two
+     textured bags. Report whether any conclusion changes.
+2. **Before the re-run, the model audit is extended to INITIAL uncertainties** (bounded, 1 h).
+   - It compares every initial state σ in the UKF and the FGO (attitude, yaw, velocity, position, gyro and accel
+     biases), offline and in the C++/port builds, and lists EKF3's for reference.
+   - Any UKF–FGO mismatch is reported. Genuine ones are fixed under D18 in the SAME change, so that one re-run covers
+     them all.
+3. **Then one FGO-only pass of the pipeline** (and the UKF as well if step 2 changes it), under the same
+   EKF3-unchanged checks.
+   - The previous FGO results become the ablation pair.
+   - Then restate, and update the before/after claims table.
+4. **Flown FGO results** (S3, the half-speed `_v3` corridor set, the FGO safety tests): NO re-fly before the freeze.
+   - Recorded: they flew with the 1e-3 rad initial yaw.
+   - Before any REAL FGO flight, the corrected C++ node must pass its equivalence checks and the safety tests (after
+     the freeze is fine).
+5. **The attribution study finishes on the pre-correction code** and reports which earlier correction exposed this
+   one.
