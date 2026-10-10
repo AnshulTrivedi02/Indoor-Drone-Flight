@@ -103,8 +103,16 @@
 
 ## 4. Implication for the candidate fixes (future work, not implemented)
 
-- **(b) the scale check and (c) the climb-rate check measure the same quantity.** The fitted −(s−1)/dt equals GT
-  ż/h_cam to within about 1% (median; per-frame 0.92–1.12).
+- **(b) the scale check and (c) the climb-rate check measure the same quantity.** On the two analogues, the fitted
+  −(s−1)/dt equals GT ż/h_cam to within about 1% (median; per-frame 0.92–1.12).
+- **Cost of (b)/(c), as a check for the ruling, not a conclusion.**
+  - At a 0.1 rad/s allowed bias, the derived gate rejects every frame with |ż/h| > about 0.17 /s.
+  - From the UKF flight's table (`climb.py`), ż/h stays above 0.17 until t − lift-off ≈ 2.3 s (z ≈ 2.6 m). That is
+    a ~2.3 s flow outage after lift-off.
+  - Today the outage is ~0.66 s (no valid frame from t ≈ 0.15 to 0.81 s after lift-off).
+  - Compare with the §7.2 B8 invalidity timers (FGO 0.75 s, UKF 5.5 s). In the corridor, with no tags, these may key
+    on flow alone, in which case a 2.3 s take-off gate could trip the FGO's timer. Check this before ruling on
+    (b)/(c). It is the main practical difference from (a), which keeps the frames.
   - The worst-case bias is (ż/h)·(W/2)/F ≈ 0.58·ż/h rad/s, with the median at the image edge.
   - At the D22 plateau start, |s−1| ≈ 5.5% per frame (ż/h ≈ 1.65 /s at 30 Hz). Either gate would flag it easily.
   - For comparison, cruise frames have ż ≈ 0.
