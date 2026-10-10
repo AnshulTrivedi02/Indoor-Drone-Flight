@@ -13165,3 +13165,14 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
      - **the watcher build:** done and merged (`0502282`, 73 offline tests). Its hardware items are open.
 - **Rung-1 software continues as CODING ONLY alongside** (the converter; the UKF-port geometry, the parameters, the
   pre-registration and cards; the mocap recorder, the alignment and the scorer).
+
+### RULING (user, 2026-10-10): the attribution study is STOPPED (not resumed); attribution wording in the thesis
+- **Stopped** after its running jobs finish. The completed replays (17/64 at 12:35, plus any that finish) are KEPT
+  and reported, labelled PARTIAL.
+- **In the thesis:** the four corrections were applied TOGETHER, and their individual effects are NOT attributed,
+  except where traced directly. The one direct trace: in the plain-wall FGO divergence, the noise fix removed slack
+  that had hidden the over-tight initial yaw (plain-wall trace).
+- **Revises ruling 5 of "the final restatement":** the O FGO batch change (0.33 → 0.59 m) is reported as a consequence
+  of the JOINT corrections, without per-fix attribution. "FGO batch ~2× better than RTS-UKF" stays WITHDRAWN.
+- **Then proceed:** the audit verification and the FGO initial-yaw correction; the FGO-only re-run overnight; the
+  restatement and the before/after claims table.
