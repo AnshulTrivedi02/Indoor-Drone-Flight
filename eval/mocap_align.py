@@ -472,6 +472,8 @@ def main(argv=None):
         early, late, init, wsrc = resolve_windows(fc, a.early, a.late, a.init_seg)
         res, tfc, mo_in_est, _ = align(fc, mo, early, late, init, use=use, coarse=a.coarse, coarse_offset=a.coarse_offset)
         res["window_sources"] = wsrc
+        res["sync_window_rule"] = {"w_thr_rad_s": SYNC_W_THR, "pad_s": SYNC_PAD_S, "merge_s": SYNC_MERGE_S,
+                                   "min_burst_s": SYNC_MIN_S}      # checked by real_score against the prereg
         q = Rot.from_quat(mo["q"]); q4 = (Rot.from_euler("z", res["frame_4dof_initial"]["yaw_deg"], degrees=True) * q).as_quat()
         np.savetxt(f"{a.out_dir}/mocap_fc_clock_est_frame.tum", np.c_[tfc, mo_in_est, q4], fmt="%.6f")
         res["inputs"] = {"bin": os.path.abspath(a.bin), "mocap": os.path.abspath(a.mocap), "est": a.est}

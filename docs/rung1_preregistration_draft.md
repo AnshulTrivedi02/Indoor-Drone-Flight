@@ -1,15 +1,17 @@
-# Rung 1 pre-registration: DRAFT, ON HOLD
+# Rung 1 pre-registration: DRAFT for user sign-off
 
-> **ON HOLD (user triage, 2026-10-10): until the supervisor confirms the hardware.** Committed as it stood; not
-> reviewed for sign-off. **Two known defects to fix when work resumes** (both are pre-registered definitions; neither
-> affects the primary metric, since evo -a refits each estimator):
-> 1. §4.3 start-aligned drift: the 4-DoF fit on [t_to + 25 s, t_to + 30 s] is a hover, where the horizontal spread is a
->    few centimetres, so the fitted yaw is noise. The fit segment must include motion (e.g. from t_to + 25 s to the end
->    of the first leg, or the first N m of mocap path). `mocap_align`'s default initial segment (arm to arm + 30 s) has
->    the same problem for this profile.
-> 2. The mocap clock map: `mocap_align`'s default early window is (arm, arm + 25 s), which misses the PRE-ARM sync
->    wiggle the profile relies on. §1/§8 must state that the early and late windows are the two DISARMED wiggle periods
->    (`RISI` |ω| above a threshold while disarmed), passed explicitly with `--early`/`--late` (also an R8 requirement).
+> **Unheld 2026-10-11** (METHODOLOGY ruling 2026-10-11, item 1: "the scorer with a pre-registered window"). The two
+> known defects of the 2026-10-10 draft are FIXED here:
+> 1. **The start-aligned drift segment** (§4.3) was [t_to + 25 s, t_to + 30 s], inside the 30 s hover, where the
+>    4-DoF yaw is noise. It is now the first `init_path_m` = 2.0 m of mocap horizontal travel after the motion onset
+>    (the start of the first leg), from mocap only.
+> 2. **The mocap clock-map windows** (§1, §8 step 2): `mocap_align`'s old default early window (arm, arm + 25 s) missed
+>    the PRE-ARM sync wiggle. Its default is now the two DISARMED wiggle bursts (the last |ω| > 2 rad/s burst before
+>    arming and the first after disarming, ± 2 s), and the scorer refuses a flight scored with other windows.
+>
+> **The machine-readable definitions** (window, metrics, drift segment, estimator records, clock-map rule) are in
+> `docs/rung1_preregistration_draft.json`, which `eval/real_score.py` reads strictly (every key required, unknown keys
+> refused, nothing defaulted). This text and that file must agree; the JSON is what the scorer applies.
 
 **Status: DRAFT (R10), written 2026-10-10. Not signed off. Nothing in it is in force until the user signs it off (§11).**
 No real flight has been flown, and no real log has been scored. Every value below that depends on the vehicle, the
@@ -38,9 +40,9 @@ SAME logs:
 | estimator | how it runs | input | output |
 |---|---|---|---|
 | **EKF3** | ArduPilot Replay of the flight's `LOG_REPLAY` records | the DAL records (`RFRH/RFRF`, `RISH/RISI`, `ROFH`, `RRNH/RRNI`, …) | the replayed `XKF1`, core 0 (`C = 100` in the Replay log) |
-| **UKF port** | the fork's Replay (`~/ardupilot_ukf`, `AP_NavUKF`, branch with the R2 geometry change), the same pass | the same DAL records; sensor geometry read from the log (R2) | `ukf_shadow.csv` → `eval/ukf_csv_to_tum.py` |
+| **UKF port** | the fork's Replay (`~/ardupilot_ukf`, `AP_NavUKF`, branch with the R2 geometry change), the same pass | the same DAL records; sensor geometry read from the log (R2) | the replayed **`XUKO`** (its current-time output, the like-for-like counterpart of `XKF1`); `XUKF` (the fused state at the delayed horizon) as a secondary row |
 | **FGO** | the corrected Python FGO (initial yaw σ 1°) via the dataflash → FGO-input converter (R1) | `RISI` (IMU deltas), `ROFH` (flow), `RRNI` (range), on the FC clock | the FGO trajectory TUM |
-| **truth** | mocap, recorded throughout | mocap CSV | `eval/mocap_align.py` (time map from the sync wiggles on `RISI`, R8) → TUM on the FC clock |
+| **truth** | mocap, recorded throughout | mocap CSV | `eval/mocap_align.py` (time map fitted on the two DISARMED sync wiggles on `RISI`, found by its default rule: the last \|ω\| > 2 rad/s burst before arming and the first after disarming, ± 2 s; R8) → TUM on the FC clock |
 
 All four series are on ONE clock (the FC's `TimeUS`); only mocap needs a clock map.
 
@@ -115,27 +117,50 @@ An estimator that DIVERGES is **not** a reason to exclude: its score is reported
 
 **evo -a**: `evo_ape tum <mocap.tum> <estimator.tum> -a --t_max_diff 0.05` (Umeyama SE(3), no scale), translation RMSE
 in metres, fitted and evaluated over the window only, per estimator per flight. Reference TUM with identity quaternions
-(APE = translation part), as `eval/three_way_eval.py`. Each estimator's TUM is aligned separately by evo's own fit, so the
-estimators' arbitrary yaw and origin are absorbed (not their drift).
+(APE = translation part), as `eval/three_way_eval.py` (`real_score.py` imports its call; `t_max_diff` 0.05 is the only
+value it accepts). Each estimator's TUM is aligned separately by evo's own fit, so the estimators' arbitrary yaw and
+origin are absorbed (not their drift).
+
+**Why evo -a (SE(3)) and not the 4-DoF fit (proposed, for sign-off):** the sim-to-real statement (§7) compares the real
+DECISION CATEGORY with the simulation's, and every simulation category was decided on evo -a. A 4-DoF primary metric would
+compare categories decided on different metrics. The 4-DoF fit (yaw + translation; both frames gravity-aligned) is
+physically tighter and is reported as a **secondary** metric (`ate_4dof`); on SITL the two agree to 1 mm (handover
+`2026-10-10_r1_mocap_align_scorer.md`). If they disagree on a real flight in a way that changes a decision category, that
+is reported, but the category stands on evo -a.
+
+**Estimator records (proposed):** EKF3 = the replayed `XKF1` core 0; UKF port = the replayed **`XUKO`**; FGO = the
+converter's TUM. `XKF1` logs EKF3's output-predictor (current-time) state (`AP_NavEKF3_Logging.cpp:26-27` →
+`getPosNE`/`getVelNED`, `AP_NavEKF3_Outputs.cpp:257-263`, `outputDataNew`); `XUKO` is the port's current-time output
+(`AP_NavUKF.cpp` `log_state`). `XUKF` is the port's fused state at the delayed fusion horizon, so it is NOT the counterpart
+of `XKF1`; it is reported as a secondary row (`UKF_horizon`). Onboard EKF3 (the flight's own `XKF1`) is the secondary row
+`EKF3_onboard` (§4.3).
 
 ### 4.2 The window (defined from mocap ONLY, never from an estimator's output)
 
-On the FC clock, after `mocap_align`'s time map:
-- `z0` = median mocap height over the 3 s before arming (the resting height);
-- **t_to** = the first time mocap height exceeds `z0 + 0.30 m` after arming;
-- **t_ld** = the last time mocap height exceeds `z0 + 0.30 m` before disarming;
-- **window W = [t_to + 25 s, t_ld − 5 s].**
+On the FC clock, after `mocap_align`'s time map (rule `airborne` in the JSON; `real_score.window_from_rule`):
+- `z0` = the 5th percentile of mocap height over the WHOLE record (the resting height; the vehicle rests at both ends,
+  while the record may START with it held up for the sync wiggle, so "the median before arming" is not used);
+- airborne = mocap height > `z0 + 0.30 m`; the LONGEST airborne run of at least 1 s is the flight;
+- **t_to** = its first sample (take-off), **t_ld** = its last sample (landing);
+- **window W = [t_to + 25 s, t_ld − 5 s]**, refused if shorter than 20 s.
 
 The 25 s matches §3.1 step 3 (EKF3's aiding start plus margin); the 5 s excludes the landing flare. The same W applies to
 all three estimators on that flight. Nothing about W is tuned after scoring.
 
 ### 4.3 Secondary metrics (reported, no decision rule attached)
 
-- **Start-aligned drift:** each estimator aligned to mocap on [t_to + 25 s, t_to + 30 s] (4-DoF, `mocap_align`'s
-  initial-segment fit), then the horizontal error at t_ld − 5 s and its ratio to the mocap path length in W.
+- **4-DoF ATE** (`ate_4dof`) over W: yaw + translation fit, RMSE (§4.1).
+- **Start-aligned drift** (rule `motion_onset_path` in the JSON): each estimator aligned to mocap (4-DoF) on an initial
+  segment ONLY, then the horizontal error at t_ld − 5 s and its ratio to the mocap path length in W. The segment is
+  defined from mocap only: from the **motion onset** (the first time in W the mocap horizontal speed, 1 s boxcar, stays
+  above 0.15 m/s for 1 s) until the mocap has travelled **2.0 m** horizontally, i.e. the start of the first leg. It is
+  refused (reported as such) if it moves less than 1.0 m from its first point. 2.0 m must not exceed the first leg length
+  **[TBD-S]**; it is confirmed when the leg length is fixed, before any result flight. (Fixes defect 1; the old segment
+  [t_to + 25 s, t_to + 30 s] lay inside the hover.)
 - **Validity:** the fraction of W each estimator flags its horizontal position valid (EKF3 `XKF4.SS` bit 3; UKF `SS`
   column; FGO its own flag), and EKF3's flow-innovation rejections (`XKF5`).
-- **Onboard EKF3** (the flight's own `XKF1`, core 0) scored the same way, reported next to Replay EKF3.
+- **Onboard EKF3** (the flight's own `XKF1`, core 0; row `EKF3_onboard`) and **UKF at the horizon** (`XUKF`; row
+  `UKF_horizon`) scored the same way, reported next to the primary rows.
 
 ---
 
@@ -216,11 +241,16 @@ Replay-fidelity gate per flight, and the secondary metrics.
 ## 8. Analysis steps, in order (all offline; may run after the 23 Oct freeze, to ~30 Oct, per the freeze ruling)
 
 1. Data-integrity checklist per flight (flight cards §7); §3.3 exclusions decided and recorded.
-2. Mocap → FC clock map and the mocap TUM (`mocap_align`, R8); W computed (§4.2) and recorded.
+2. Mocap → FC clock map and the mocap TUM (`mocap_align`, R8) with its DEFAULT windows: the two disarmed sync-wiggle
+   bursts (|ω| > 2 rad/s on `RISI`: the last before arming and the first after disarming, ± 2 s; JSON `clock_map`). If
+   either burst is not found, the flight fails §3.3 item 3 ("either sync wiggle is missing"); windows are never set by
+   hand for a result flight. The residual and rate are recorded. W computed (§4.2) and recorded.
 3. EKF3 Replay (fork's Replay binary; also the stock Replay if 4.7.0 flew) → the §5 gate → EKF3 TUM.
 4. UKF port (same Replay pass) → `ukf_csv_to_tum.py --frame enu --identity-quat` → UKF TUM.
 5. FGO via the converter (R1) → FGO TUM.
-6. Scorer (R9): evo -a over W for all three; secondary metrics; §7 decisions.
+6. Scorer (R9): `eval/real_score.py --prereg docs/rung1_preregistration.json --mocap-align-json <flight>/mocap_align.json
+   ...`: evo -a over W for all three; secondary metrics; §7 decisions. The scorer refuses a prereg with missing or
+   unknown keys, a record other than the registered one, and a mocap_align JSON with non-default windows.
 7. A METHODOLOGY result entry; numbers into `docs/thesis/numbers.md` under the rules in force.
 
 ---
@@ -243,7 +273,10 @@ Replay-fidelity gate per flight, and the secondary metrics.
    UKF/FGO lack; then the like-for-like EKF3 row is a Replay with `EK3_SRC1_YAW 0`, and the onboard compass EKF3 is
    secondary.
 8. **Flow timing:** EKF3 uses its own rule; the UKF/FGO use d_cap (§6). The simulation's UKF/FGO used camera capture
-   stamps. **Derotation** uses the rate the flow backend delivers (`ROFH` gyro; with a HereFlow, the sensor's own gyro).
+   stamps. **Derotation** (ruling 2026-10-11, D18): EKF3 uses the rate the flow backend delivers (onboard behaviour); the
+   UKF port and the FGO derotate with their OWN bias-corrected gyro (`RISI`), not `ROFH.G`, which for MAV/Pixart sensors
+   carries EKF3's gyro-bias estimate. In the simulation all three derotated with the same 20 Hz-filtered gyro, so this is
+   a stated difference.
 9. **Short flights** (~90 s of cruise in a mocap volume) against 300 s / 150 m corridors: the long-duration drift results
    are not re-tested.
 10. **Mocap ↔ FC time** comes from the |ω| fit (validated on synthetic data until the hand-carried log); its residual is
@@ -258,9 +291,11 @@ Replay-fidelity gate per flight, and the secondary metrics.
 
 - Supervisor (S1–S7 of the plan): the board, the flow sensor and rangefinder, the mocap system and volume, the firmware,
   the floor, the compass variant, the safety pilot.
-- The §6 port option (capture-delay override) and the R1/R8/R9 tools, built and tested.
-- The user's rulings on: n = 5 (+1 spare); the window rule (§4.2); the "every flight" sign criterion (§7); the 1 cm /
-  0.1° Replay bound (§5).
+- The §6 port option (capture-delay override). The R1/R7/R8/R9 tools are built and tested offline (handover
+  `docs/handovers/2026-10-11_r1_converter_mocap_scorer.md`); none has seen real data.
+- The user's rulings on: n = 5 (+1 spare); the window rule (§4.2); the primary metric evo -a vs 4-DoF and the UKF record
+  `XUKO` (§4.1, proposed); the drift segment (§4.3, proposed); the "every flight" sign criterion (§7); the 1 cm / 0.1°
+  Replay bound (§5).
 
 ## 11. Sign-off
 
@@ -269,5 +304,6 @@ Replay-fidelity gate per flight, and the secondary metrics.
 | user | | | |
 | supervisor (informed) | | | |
 
-Once signed, this file is copied to `docs/rung1_preregistration.md` (status PRE-REGISTERED) and a METHODOLOGY entry
-records the commit. Any later change is a dated amendment, made before the affected data are scored.
+Once signed, this file is copied to `docs/rung1_preregistration.md` (status PRE-REGISTERED) and
+`docs/rung1_preregistration_draft.json` to `docs/rung1_preregistration.json` (only its `status` changed); a METHODOLOGY
+entry records the commit and the JSON's sha256 (which every score file carries). Any later change is a dated amendment, made before the affected data are scored.
