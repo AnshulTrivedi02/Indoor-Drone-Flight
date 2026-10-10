@@ -13092,3 +13092,29 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - **Reason:** a single take-off climb may not produce a climb bias of 0.10 rad/s, and A3 would then go untested.
    - Everything else is as drafted (the 10% allowance, the gates, the separate adoption ruling).
    - The corridor launcher's pass-through of the profile is confirmed before flying.
+
+### STANDING RULE (user, 2026-10-10): verification flights are SHORT and never result data
+- **Verification flights** (smoke tests, ground tests, safety tests, timing or pipeline checks, fix verification) use
+  the SHORTEST profile that exercises the thing being checked, typically 1–2 minutes. Each spec states why that length
+  suffices.
+- **Full-length profiles are only for result-producing experiments**, pre-registered as before.
+- **Verification flights are NEVER reused as result data.**
+- **This applies to every remaining and future verification flight, including the real-flight bench and hand-carried
+  checks.**
+- **Applied now to the pending work:**
+  - **SITL safety re-tests (a)/(b) on the corrected builds** (`safety2_*_profile.json`): ~1–1.5 min airborne:
+    - a 1.3 m move to the hold at 0.2 m/s (6.5 s);
+    - a 20 s hold;
+    - the failure;
+    - the landing (~9–10 s from failure to disarm; e.g. `H_safety_fgo_b_v3` failure at 60.95 s, disarm 69.97 s).
+    The trailing 40 s hold only bounds the wait for the landing trigger.
+    - **Why this length suffices:** the 20 s hold gives the pre-failure attitude reference for S-A1 and a settled
+      estimator. S-A2 to S-A4 need only the failure-to-disarm interval. The profiles already comply; they stay
+      unchanged.
+  - **`p1c_img_*` (~6 min each)** are CALIBRATION flights for a pre-registered validation that decides adoption (a
+    result-producing, pre-registered experiment), not verification flights. Their length is set by the segments the
+    acceptance bands need:
+    - two hovers;
+    - the take-off plus four climb ramps;
+    - a 90 m cruise crossing the transition boundary.
+    They are not datasets.
