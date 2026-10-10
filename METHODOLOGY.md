@@ -12950,3 +12950,24 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - (b) a fitted-scale check and (c) a climb/descent-rate check are recorded as FUTURE WORK for the camera-flow path.
    - The correction to the earlier mean-flow values is recorded above, in the entry "Flow-validity rule and watcher
      bench tests".
+
+### RULINGS (user, 2026-10-10): the MINIMAL real-flight path; closed-loop real flights are FUTURE WORK
+- **Why:** the full open-loop path (30–43 days) does not fit before the 23 Oct experiment freeze. The minimal path is
+  costed now, and it becomes THE PLAN if it fits.
+  - **Firmware:** stock ArduPilot. Our pinned `7bac20cbcc` built from UNMODIFIED source if the supervisor agrees,
+    otherwise the nearest stock release, with the EKF3 difference stated.
+  - **No Pi, no forward camera.** The vehicle's OWN flow sensor and rangefinder, on the flight controller.
+  - **Flying:** EKF3 or a pilot flies. `LOG_REPLAY=1`, `LOG_DISARMED=1`, mocap recording. Safety comes from
+    ArduPilot's geofence and a safety pilot; no estimator of ours steers.
+  - **Offline afterwards:**
+    - EKF3 and the UKF port via ArduPilot Replay on the real logs;
+    - the FGO via a dataflash-to-FGO-input converter;
+    - scoring against mocap with the existing alignment tool.
+- **Closed-loop real flights (UKF/FGO flying) are FUTURE WORK.**
+- **Answers to the readiness questions:**
+  - Q4 (where the UKF runs in closed loop) is moot;
+  - Q5 as above;
+  - Q6: yes, an offline-only FGO is acceptable;
+  - Q7: one person plus agents;
+  - Q1–Q3 (FC board, Pi/cameras/rangefinder, mocap system) come from the supervisor.
+- The plan's claim that board firmware had been built was corrected in `e5724ee`.
