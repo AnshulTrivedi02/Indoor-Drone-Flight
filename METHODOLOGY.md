@@ -12878,3 +12878,12 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
      the freeze is fine).
 5. **The attribution study finishes on the pre-correction code** and reports which earlier correction exposed this
    one.
+
+### RULING (user, 2026-10-10): REORDER, real-flight readiness first (real flights may start within days)
+1. The initial-uncertainty audit and the FGO correction (in progress).
+2. **The C++ FGO equivalence checks** on the corrected build.
+3. **The UKF and FGO SITL safety tests (a) and (b)** on the corrected builds.
+4. **Finalise and PRE-REGISTER in the real-flight plan, ready for the first session:**
+   - the flow-validity rule (inlier ratio plus feature count, calibrated on `p1c_*` only);
+   - the mocap watcher bench tests.
+5. **Then the FGO-only re-run**, which must still finish before the 16 Oct freeze.
