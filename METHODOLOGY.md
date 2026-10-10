@@ -13045,3 +13045,5 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **BLOCKER FOUND when this was recorded (verified):** none of the six `p1c_*` bags contains `/downward_camera/image`
   (their bag metadata lists no such topic). Validating (a) needs the images to re-run the tracker. A user ruling is
   needed on the source of the calibration images.
+
+### DRAFT (2026-10-10): `p1c_img_*` calibration flight specification + acceptance bands — `docs/p1c_img_calibration_spec.md`, AWAITING USER SIGN-OFF (nothing flies before it)
