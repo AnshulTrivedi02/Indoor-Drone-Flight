@@ -13353,3 +13353,25 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - **NOT YET VERIFIED** (some FGO rows are differences of diverged values). Each is checked in the restatement before
     it is quoted.
 - **The restatement and the claims-table update follow.**
+
+### RULINGS (user, 2026-10-10): the restatement after the FGO-only re-run
+1. **Forward-camera pass counts are reported AS COMPUTED:** textured walls 7/9, plain walls 7/9.
+   - Extended caveat: the transition P4 band is built from FGO RUNAWAY ratios on the blank half, so it is
+     uninformative whether wide (before: [1.41, 49.07]) or narrow (now: [15.91, 19.16]).
+   - The flips reflect runaway size, not sensing quality.
+2. **F3c (b): TRUE accepted as worded**, flagged FRAGILE (FGO integrals 0.2–0.5 m·s against the UKF's ~2 m·s).
+3. **C0 on plain walls: "FGO lower on all 6" accepted**, with the 0.03–0.06 m margin and the 0.1 rad sensitivity
+   result attached.
+4. **The plain-wall heading benefit is reported as CONDITIONAL on the initial yaw uncertainty**, and linked to
+   Phase 3.
+   - The affected plain-wall bags are over the CHECKERBOARD floor, where the heading measurement FAILED validation
+     (floor lines outvote the wall junctions).
+   - **No heading benefit is claimed for conditions where the heading measurement failed validation.**
+   - The plain-wall BLANK-floor case, where it passed validation, is reported separately.
+5. **The main textured corridor means (FGO 3.44, UKF 3.59, EKF3 4.00 m) are DESCRIPTIVE ONLY**, alongside the
+   confirmatory "no ordering claimed".
+6. **Recorded for the daily summary:**
+   - the hard-gated FGO lockouts 23 → 61;
+   - 2 of 48 wrong end-wall headings fused;
+   - the r3 sensitivity detail.
+   - The lockout rise is traced ONLY if it affects a stated claim.
