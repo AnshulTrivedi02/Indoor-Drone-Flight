@@ -278,8 +278,9 @@ camera flown only once verified.
       gyro terms. Residual RMS is 0.027 rad/s (x) and 0.025 rad/s (y).
     - All six flights have 23 currently valid airborne frames with a gross error (|residual| > 0.5 rad/s). The rule
       removes 19 of them, at a cost of about 0.9% of the good textured frames.
-    - The rejected frames that are not gross errors have the same median residual as the accepted ones
-      (≈ 0.002–0.004 rad/s). The rule therefore removes some good frames along with most of the gross ones.
+    - The rejected and accepted frames have about the same median residual (≈ 0.002–0.004 rad/s). Most rejected
+      frames are therefore good frames: the rule removes most of the gross errors and about 0.9% of the good frames
+      with them.
   - **Check on the D22 frames (looked at only AFTER r_min was fixed and committed):** see 7.1a below.
   - **Implementation (specified here, NOT implemented; real-flight pipeline only):**
     - **`flow_tracker.py`:**
@@ -303,6 +304,42 @@ camera flown only once verified.
       that have `inlier_ratio >= 0.85`.
     - If it is < 99%, STOP and report: the real camera's inlier statistics differ from the simulation's, and the
       threshold is not silently re-tuned. Any change is a new ruling.
+
+  **7.1a Check on the two D22 flights (read only AFTER r_min = 0.85 was committed in `eaa2011`; a check, not a
+  calibration input).**
+  - **Bags:** `cl_ukf_b_tex_r3_half` and `cl_fgo_b_tex_r3_half_v3`, the flow and GT topics only. The per-frame
+    values below are the frames flagged VALID today.
+  - **Correction to the bin means quoted in METHODOLOGY:** the "mean flow_x −1.37 / −2.27 rad/s" figures average
+    every message in the 0.5 s bin. They include one INVALID frame per flight at lift-off (feature_count 3,
+    flow_x −22.9 / −22.6 rad/s), which `flow_bridge` drops and the UKF and FGO ignore. The valid frames themselves
+    carried:
+
+    | phase (GT z) | UKF flight: valid frames | FGO flight: valid frames | rejected by the rule? |
+    |---|---|---|---|
+    | lift-off, z 0.29–0.37 m | 5 frames, flow_x +1.17…−1.25 (alternating sign), inlier ratio 0.53–0.71 | 6 frames, flow_x −4.35, −2.22, −1.29, −0.82, −0.56, −0.43; inlier ratio 0.48, 0.846, 0.92–1.00 | UKF: **all 5**. FGO: **2 of 6** (the two largest, −4.35 and −2.22); the other four (−1.29…−0.43) are KEPT |
+    | climb, z 1.07–1.6 m | 12 frames, flow_x +0.65 decaying to +0.35, inlier ratio 0.86–1.00 | 14 frames, flow_x +0.24…+0.65, inlier ratio 0.64–1.00 | UKF: **0 of 12**. FGO: 3 of 14 (inlier 0.64, 0.83, 0.75); 11 are KEPT |
+
+  - **Truth residual of the climb plateau:** the per-axis truth model (fitted on p1c) predicts ≈ 0 to +0.17 rad/s
+    there, so the plateau is up to ~0.6 rad/s in excess of truth.
+    - It starts before any roll: ωx = 0.00 at the first frame, and GT lateral velocity is 0.
+    - The vehicle's roll rate then rises (to ωx ≈ +0.2 rad/s), and GT east velocity begins to grow 0.1–0.3 s after
+      the plateau starts. The lift-off frames come about 1 s earlier.
+    - **The timing therefore points to the high-inlier climb plateau, not the lift-off frames, as the more likely
+      driver of the B4 bursts.** This cannot be confirmed without a replay, which this stage did not run.
+  - **Conclusion, plainly:** the pre-registered rule removes the low-inlier lift-off frames (all of the UKF
+    flight's, and the two largest of the FGO flight's). **It does NOT remove the climb plateau, so on this evidence
+    it is NOT a sufficient fix for D22.** r_min is not moved: the criterion was fixed before the data.
+  - **Not pre-registered, offered for a user ruling:** the plateau has a high inlier ratio because RANSAC fits a
+    similarity transform (`estimateAffinePartial2D`), and expansion during a fast climb is consistent with one. A
+    plausible mechanism is image expansion acting on an off-centre feature set, so the MEDIAN feature displacement is
+    biased. This is NOT verified (no images were inspected). Candidate fixes, all requiring a ruling:
+    - (a) take the flow as the fitted transform's translation at the principal point, not the median displacement;
+    - (b) reject frames whose fitted scale departs from 1 by more than a threshold (vertical motion);
+    - (c) reject frames during the climb/descent phases on the rangefinder rate (|ż|/h above a threshold);
+    - (d) require N consecutive valid frames after a re-detection (the plateau starts at a feature re-detection,
+      feature count 30 → 52).
+    - In p1c, the full-speed climbs show this plateau weakly or not at all: `p1c_fwdplainc_trans` has 2 frames
+      (+0.57, +0.44), and `p1c_fwdc_tex` none.
 - **FGO initial yaw σ (ruling 2026-10-10):** every SITL FGO flight so far (S3, the half-speed `_v3` corridor set, the
   FGO safety tests) flew the C++ node with an initial yaw σ of 1e-3 rad. **Before any real FGO flight:** the corrected
   node (initial yaw σ 1°, the same as the UKF) must pass its C++ equivalence checks and the SITL safety tests (a)/(b).
