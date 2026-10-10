@@ -12,11 +12,25 @@
 # (2(a)) -> h_shadows -> expO -> expT -> [d27item3, opt-in] -> [cl_pred, opt-in] -> L.
 # STAGES (for --only / tools/launch_final_rerun.sh), in order:
 #   preflight snapshot unpack dsn dsn_extra sens bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
-#   repack_corridor f4 h_shadows expO expT d27item3 cl_pred L compare
+#   [sens_yaw0, opt-in] repack_corridor f4 h_shadows expO expT d27item3 cl_pred L compare
 # Resumable: each stage writes <STATE>/<stage>.done; a re-run skips finished stages, and the replay stages resume per job
 # (eval/run_jobs_resumable.sh). The snapshot and the trial-output archive DIE if their targets exist (never skip, never
 # overwrite). Flight check at start and between every stage (FLIGHT_LOCK or arducopter / gz sim): waits up to
 # FLIGHT_WAIT_S (default 0 = die at once), checking every 60 s, then dies.
+#
+# FGO-ONLY PASS (FINAL_FGO_ONLY=1; user ruling 2026-10-10, METHODOLOGY "RULINGS (user, 2026-10-10): FGO initial yaw sigma"
+# item 3; docs/handovers/2026-10-10_initial_sigma_audit.md): the same stages and hard gates, but
+#   * NEW state / snapshot / archive / batch names: ~/thesis_data/batches/final_rerun2, eval/results_pre_final2,
+#     ~/thesis_data/pre_final2_trials, batches final2_*, Phase 5b sandbox phase5b_final2 (all DIE if they exist unstarted);
+#   * every FGO replay is re-run; UKF replays are SKIPPED (job lists filtered: lines running ukf_replay.py /
+#     room_ukf_replay.py are dropped; run_set_eval.sh SKIP_UKF=1; Phase 5b copies the UKF outputs of phase5b_final, made
+#     by the unchanged UKF code) and every scoring stage still runs on the trial-directory UKF outputs;
+#   * an extra HARD UKF GATE next to every EKF3 gate on the pure-metric files: every UKF leaf must equal the snapshot
+#     (proof that the pass was FGO-only);
+#   * the archive copies only the FGO output dirs (fgo*, room_fgo*, lc_fgo_*).
+# OPT-IN labelled sensitivity check (FINAL_SENS_YAW0=1; either mode): stage sens_yaw0 (after ftests), the UKF and the FGO
+# with a 0.1 rad initial yaw sigma (INIT_YAW_SIGMA_RAD) on 6 fwdplainc + fwdc_tex_r1 + dsn_tex_r1
+# (batches/final_rerun/sens_yaw0.jobs) -> ~/thesis_data/sensitivity_yaw0_0p1, scored into eval/results/sensitivity_yaw0_0p1/.
 #
 # Usage:  eval/final_rerun_pipeline.sh [--dry-run] [--only STAGE]
 #   --dry-run   print every command (and the job lists) without running any replay or evaluator; writes nothing
@@ -30,8 +44,15 @@ export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_TH
 DRY=0; ONLY=""
 while [ $# -gt 0 ]; do case "$1" in --dry-run) DRY=1;; --only) ONLY="$2"; shift;; *) echo "unknown arg $1" >&2; exit 2;; esac; shift; done
 
-STATE="$HOME/thesis_data/batches/final_rerun"
-RES=eval/results; OLD=eval/results_pre_final; ARCH="$HOME/thesis_data/pre_final_trials"
+FGO_ONLY="${FINAL_FGO_ONLY:-0}"
+if [ "$FGO_ONLY" = 1 ]; then
+    STATE="$HOME/thesis_data/batches/final_rerun2"; RES=eval/results; OLD=eval/results_pre_final2; ARCH="$HOME/thesis_data/pre_final2_trials"
+    BP=final2; SB5=phase5b_final2
+else
+    STATE="$HOME/thesis_data/batches/final_rerun"; RES=eval/results; OLD=eval/results_pre_final; ARCH="$HOME/thesis_data/pre_final_trials"
+    BP=final; SB5=phase5b_final
+fi
+SENS_OUT="$HOME/thesis_data/sensitivity_yaw0_0p1"
 TD="$HOME/thesis_data/trials"
 EVO="$HOME/venv-evo/bin/python"; AP="$HOME/venv-ardupilot/bin/python"; FGOP="$HOME/venv-fgo/bin/python"; TAGS="$HOME/venv-tags/bin/python"
 SHIM="$HOME/.cache/thesis_pyshim"            # pymavlink shim for venv-evo (as eval/d27_regen.sh)
@@ -77,9 +98,22 @@ flight_check() {   # before every stage: never replay while a flight runs (the r
     done
 }
 # a job-list stage: copy the vendored list into STATE, run it resumably, die unless all jobs are DONE
-jobs_stage() {   # jobs_stage <listfile> <batchname>
-    local L="$1" B="$2"
-    if [ "$DRY" = 1 ]; then
+# FGO-only filter: drop the UKF replays (ukf_replay.py / room_ukf_replay.py); every remaining job must be an FGO replay.
+UKF_JOB_RE='(ukf_replay|room_ukf_replay)\.py'
+fgo_filter() { grep -v -E '^\s*(#|$)' "$1" | grep -v -E "$UKF_JOB_RE"; }
+jobs_stage() {   # jobs_stage <listfile> <batchname> [nofilter]
+    local L="$1" B="$2" NF="${3:-}" n0 n1
+    if [ "$FGO_ONLY" = 1 ] && [ -z "$NF" ]; then
+        n0=$(grep -cv -E '^\s*(#|$)' "$L"); n1=$(fgo_filter "$L" | wc -l)
+        fgo_filter "$L" | grep -q -v 'fgo' && die "FGO-only filter: a kept job of $L is not an FGO replay"
+        if [ "$DRY" = 1 ]; then
+            echo "  eval/run_jobs_resumable.sh <$L, FGO only: $n1 of $n0 jobs> $B $PAR   # jobs:"
+            fgo_filter "$L" | sed 's/^/    job: /'
+            return 0
+        fi
+        fgo_filter "$L" > "$STATE/$B.fgo.jobs"; L="$STATE/$B.fgo.jobs"
+        log "$B: FGO-only list $n1 of $n0 jobs ($L)"
+    elif [ "$DRY" = 1 ]; then
         echo "  eval/run_jobs_resumable.sh $L $B $PAR   # $(grep -cv -E '^\s*(#|$)' "$L") jobs:"
         grep -v -E '^\s*(#|$)' "$L" | sed 's/^/    job: /'
         return 0
@@ -88,6 +122,13 @@ jobs_stage() {   # jobs_stage <listfile> <batchname>
     touch "$STATE/$B.started"
     eval/run_jobs_resumable.sh "$L" "$B" "$PAR" > "$STATE/$B.txt" 2>&1 || die "$B runner"
     [ -f "$HOME/thesis_data/batches/$B/DONE" ] || die "$B: not all jobs DONE (see ~/thesis_data/batches/$B/FAILED)"
+}
+
+# FGO-only: HARD UKF GATE on pure-metric OLD/NEW pairs (every UKF leaf unchanged); a no-op in the full re-run.
+ukfgate() {   # ukfgate <outfile> OLD NEW [OLD NEW ...]
+    [ "$FGO_ONLY" = 1 ] || return 0
+    local out="$1"; shift
+    runlog "$out" python3 eval/final_rerun_checks.py ukf-gate "$@" || { [ "$DRY" = 1 ] || cat "$out"; die "HARD UKF GATE: a UKF entry changed in the FGO-only pass ($out)"; }
 }
 
 # ---- packed bags (tools/bag_pack.sh, ruling 2026-10-08): most corridor / f4 / cl bags are stored as bag_0.db3.zst and
@@ -140,7 +181,7 @@ EVO_SETS=(rerun_dsn dsn_extra rerun_p1c rerun_fwdc rerun_fwdplainc)
 #    corrections present; no diagnostic env switch set; tracked tree clean; vendored job lists present; every trial
 #    the stages replay has an imu_gaps.json (imu_gap_check --write is run for the sets that run_set_eval does not cover).
 if stage preflight; then
-    for v in UKF_APIN FGO_BAG_ROOT FGO_OUT_ROOT FGO_DUMP_EVENTS UKF_DUMP FGO_COV_LOG F_TAG ROOM_TAG_SIGMA_POS; do
+    for v in UKF_APIN FGO_BAG_ROOT FGO_OUT_ROOT FGO_DUMP_EVENTS UKF_DUMP FGO_COV_LOG F_TAG ROOM_TAG_SIGMA_POS INIT_YAW_SIGMA_RAD UKF_OUT_ROOT UKF_BAG_ROOT SKIP_UKF; do
         [ -n "${!v:-}" ] && die "diagnostic/arm env $v is set in the pipeline environment ($v=${!v})"
     done
     if [ "$DRY" = 1 ]; then
@@ -154,7 +195,7 @@ if stage preflight; then
         cat "$STATE/corrections.txt" >> "$STATE/pipeline.log"
         [ -z "$(git status --porcelain --untracked-files=no)" ] || die "tracked files modified: commit first (provenance must be a commit)"
     fi
-    for f in "$JOBS_DIR"/{F,room_H,room_O,room_T,L,cl_pred}.jobs batches/phase4_replays.jobs batches/f4_replays_usable.jobs batches/phase5b_replays.jobs; do [ -f "$f" ] || die "missing $f"; done
+    for f in "$JOBS_DIR"/{F,room_H,room_O,room_T,L,cl_pred,sens_yaw0}.jobs batches/phase4_replays.jobs batches/f4_replays_usable.jobs batches/phase5b_replays.jobs; do [ -f "$f" ] || die "missing $f"; done
     # IMU-gap rule: every replayed trial must already carry imu_gaps.json (written by eval/imu_gap_check.py --write; the
     # dsn / forward sets are re-checked by run_set_eval.sh itself). Packed bags cannot be re-checked here, so presence and
     # the verdict are verified instead: an "unusable" trial in a replay list is fatal.
@@ -176,14 +217,19 @@ if stage snapshot; then
     [ -e "$ARCH" ] && die "archive target $ARCH already exists (refusing to skip or overwrite)"
     run cp -a "$RES" "$OLD" || die "snapshot results"
     if [ "$DRY" = 1 ]; then
-        echo "  for every ~/thesis_data/trials/<t>: cp -a <t>/{ukf*,fgo*,room_*,lc_fgo_*} $ARCH/<t>/   ($(ls -d "$TD"/*/ukf* "$TD"/*/fgo* "$TD"/*/room_* "$TD"/*/lc_fgo_* 2>/dev/null | wc -l) dirs)"
+        if [ "$FGO_ONLY" = 1 ]; then
+            echo "  FGO-only: for every ~/thesis_data/trials/<t>: cp -a <t>/{fgo*,room_fgo*,lc_fgo_*} $ARCH/<t>/   ($(ls -d "$TD"/*/fgo* "$TD"/*/room_fgo* "$TD"/*/lc_fgo_* 2>/dev/null | wc -l) dirs)"
+        else
+            echo "  for every ~/thesis_data/trials/<t>: cp -a <t>/{ukf*,fgo*,room_*,lc_fgo_*} $ARCH/<t>/   ($(ls -d "$TD"/*/ukf* "$TD"/*/fgo* "$TD"/*/room_* "$TD"/*/lc_fgo_* 2>/dev/null | wc -l) dirs)"
+        fi
         echo "  cp -a ~/thesis_data/phase5b_d15 ~/thesis_data/batches/eval_{${EVO_SETS[*]}} $ARCH/_aux/"
     else
         mkdir -p "$ARCH" || die "archive mkdir"
         n=0
         for d in "$TD"/*/; do
             t=$(basename "$d")
-            for s in "$d"ukf* "$d"fgo* "$d"room_* "$d"lc_fgo_*; do
+            if [ "$FGO_ONLY" = 1 ]; then PATS=("$d"fgo* "$d"room_fgo* "$d"lc_fgo_*); else PATS=("$d"ukf* "$d"fgo* "$d"room_* "$d"lc_fgo_*); fi
+            for s in "${PATS[@]}"; do
                 [ -e "$s" ] || continue
                 mkdir -p "$ARCH/$t" && cp -a "$s" "$ARCH/$t/" || die "archive $t/$(basename "$s")"; n=$((n + 1))
             done
@@ -207,20 +253,22 @@ fi
 # 2. dsn r1-r3 (IMU-gap rule, UKF/FGO replays, timing, flow quality, three-way evo, score), then the HARD EKF3 GATE.
 if stage dsn; then
     need snapshot
-    runlog "$STATE/dsn.txt" eval/run_set_eval.sh rerun_dsn "${DSN[@]}" || die "dsn set eval"
+    SKIP_UKF="$FGO_ONLY" runlog "$STATE/dsn.txt" eval/run_set_eval.sh rerun_dsn "${DSN[@]}" || die "dsn set eval"
     runlog "$STATE/gate_dsn.txt" python3 eval/final_rerun_checks.py ekf3-gate \
         "$OLD/rerun_dsn_evo.json" "$RES/rerun_dsn_evo.json" \
         "$OLD/input_timing_rerun_dsn.json" "$RES/input_timing_rerun_dsn.json" \
         "$OLD/flow_quality_rerun_dsn.json" "$RES/flow_quality_rerun_dsn.json" \
         || { [ "$DRY" = 1 ] || cat "$STATE/gate_dsn.txt"; die "HARD GATE: an EKF3 entry changed in the dsn stage"; }
+    ukfgate "$STATE/ukfgate_dsn.txt" "$OLD/rerun_dsn_evo.json" "$RES/rerun_dsn_evo.json"
     run cp "$RES/rerun_dsn_evo.json" "$RES/dsn_dejitter_baseline.json" || die "dsn refs"
     done_ dsn
 fi
 if stage dsn_extra; then
     need dsn
-    runlog "$STATE/dsn_extra.txt" eval/run_set_eval.sh dsn_extra "${EXTRA[@]}" || die "dsn_extra set eval"
+    SKIP_UKF="$FGO_ONLY" runlog "$STATE/dsn_extra.txt" eval/run_set_eval.sh dsn_extra "${EXTRA[@]}" || die "dsn_extra set eval"
     runlog "$STATE/gate_dsn_extra.txt" python3 eval/final_rerun_checks.py ekf3-gate "$OLD/dsn_extra_evo.json" "$RES/dsn_extra_evo.json" \
         || die "HARD GATE: an EKF3 entry changed in dsn_extra"
+    ukfgate "$STATE/ukfgate_dsn_extra.txt" "$OLD/dsn_extra_evo.json" "$RES/dsn_extra_evo.json"
     done_ dsn_extra
 fi
 
@@ -256,9 +304,10 @@ for s in p1c fwdc fwdplainc; do
     if stage "set_$s"; then
         need bands
         case $s in p1c) T=("${P1C[@]}");; fwdc) T=("${FWDC[@]}");; fwdplainc) T=("${FWDPC[@]}");; esac
-        runlog "$STATE/set_$s.txt" eval/run_set_eval.sh "rerun_$s" "${T[@]}" || die "set eval $s"
+        SKIP_UKF="$FGO_ONLY" runlog "$STATE/set_$s.txt" eval/run_set_eval.sh "rerun_$s" "${T[@]}" || die "set eval $s"
         runlog "$STATE/gate_set_$s.txt" python3 eval/final_rerun_checks.py ekf3-gate "$OLD/rerun_${s}_evo.json" "$RES/rerun_${s}_evo.json" \
             || die "HARD GATE: an EKF3 entry changed in set $s"
+        ukfgate "$STATE/ukfgate_set_$s.txt" "$OLD/rerun_${s}_evo.json" "$RES/rerun_${s}_evo.json"
         done_ "set_$s"
     fi
 done
@@ -266,11 +315,12 @@ done
 # 6. Phase 4 arms (pre-registered job list, unchanged) and evaluation; C0 is read from these outputs.
 if stage phase4; then
     need set_fwdc set_fwdplainc
-    jobs_stage batches/phase4_replays.jobs final_phase4
+    jobs_stage batches/phase4_replays.jobs ${BP}_phase4
     runlog "$STATE/phase4_eval.txt" "$EVO" eval/phase4_eval.py fwdc fwdplainc || die "phase4 eval"
     runlog "$STATE/gate_phase4.txt" python3 eval/final_rerun_checks.py ekf3-gate \
         "$OLD/phase4_fwdc_evo.json" "$RES/phase4_fwdc_evo.json" "$OLD/phase4_fwdplainc_evo.json" "$RES/phase4_fwdplainc_evo.json" \
         || die "HARD GATE: an EKF3 entry changed in Phase 4"
+    ukfgate "$STATE/ukfgate_phase4.txt" "$OLD/phase4_fwdc_evo.json" "$RES/phase4_fwdc_evo.json" "$OLD/phase4_fwdplainc_evo.json" "$RES/phase4_fwdplainc_evo.json"
     done_ phase4
 fi
 
@@ -286,15 +336,27 @@ fi
 # 8. Phase 5b: a FRESH sandbox (phase5b_final), instrumented replays, then consistency.
 if stage phase5b; then
     need phase4
-    SBH="$HOME/thesis_data/phase5b_final/home"
-    [ "$DRY" = 0 ] && [ -e "$SBH" ] && [ ! -f "$STATE/final_phase5b.started" ] && die "sandbox $SBH exists but was not built by this pipeline"
+    SBH="$HOME/thesis_data/$SB5/home"
+    [ "$DRY" = 0 ] && [ -e "$SBH" ] && [ ! -f "$STATE/${BP}_phase5b.started" ] && die "sandbox $SBH exists but was not built by this pipeline"
     runlog "$STATE/phase5b_build.txt" eval/build_5b_sandbox.sh "$SBH" "$STATE/phase5b.jobs" || die "5b sandbox"
+    if [ "$FGO_ONLY" = 1 ]; then   # the UKF instrumented outputs of the full re-run's sandbox (unchanged UKF code), copied
+        OSB="$HOME/thesis_data/phase5b_final/home/thesis_data/trials"
+        if [ "$DRY" = 1 ]; then
+            echo "  FGO-only: cp -a $OSB/<t>/ukf_{baseline,heading}{,_dump.npz} -> $SBH/thesis_data/trials/<t>/  ($(ls -d "$OSB"/*/ukf_* 2>/dev/null | wc -l) entries)"
+        else
+            n=0
+            for d in "$OSB"/*/; do t=$(basename "$d"); for u in "$d"ukf_*; do [ -e "$u" ] || continue
+                cp -a "$u" "$SBH/thesis_data/trials/$t/" || die "5b: copy $u"; n=$((n + 1)); done; done
+            [ "$n" -gt 0 ] || die "5b: no UKF outputs in $OSB to copy"
+            log "phase5b: copied $n UKF output entries from $OSB"
+        fi
+    fi
     if [ "$DRY" = 1 ]; then
-        echo "  (jobs = batches/phase5b_replays.jobs with $HOME/thesis_data/phase5b/home -> $SBH; $(grep -cv '^#' batches/phase5b_replays.jobs) jobs)"
-        echo "  eval/run_jobs_resumable.sh $STATE/phase5b_clean.jobs final_phase5b $PAR"
+        echo "  (jobs = batches/phase5b_replays.jobs with $HOME/thesis_data/phase5b/home -> $SBH; $(grep -cv '^#' batches/phase5b_replays.jobs) jobs$([ "$FGO_ONLY" = 1 ] && echo ", FGO only: $(grep -v '^#' batches/phase5b_replays.jobs | grep -v -E "$UKF_JOB_RE" | wc -l)"))"
+        echo "  eval/run_jobs_resumable.sh $STATE/phase5b_clean.jobs ${BP}_phase5b $PAR"
     else
         grep -v "^#" "$STATE/phase5b.jobs" > "$STATE/phase5b_clean.jobs"
-        jobs_stage "$STATE/phase5b_clean.jobs" final_phase5b
+        jobs_stage "$STATE/phase5b_clean.jobs" ${BP}_phase5b
     fi
     PHASE5B_SB="$SBH/thesis_data/trials" runlog "$STATE/phase5b.txt" "$AP" eval/phase5b_consistency.py --json "$RES/phase5b_consistency.json" || die 5b
     done_ phase5b
@@ -319,13 +381,31 @@ fi
 #     PATnocap; UKF and FGO arms of each (batches/final_rerun/F.jobs), then the pre-registered evaluators.
 if stage ftests; then
     need set_fwdc set_fwdplainc phase4
-    jobs_stage "$JOBS_DIR/F.jobs" final_F
+    jobs_stage "$JOBS_DIR/F.jobs" ${BP}_F
     runlog "$STATE/f1.txt" "$FGOP" eval/f1_eval.py test cauchy:2.385 --json "$RES/f1_test.json" || die f1
     runlog "$STATE/f2.txt" "$FGOP" eval/f23_eval.py f2 --json "$RES/f2_test.json" || die f2
     runlog "$STATE/f3.txt" "$FGOP" eval/f23_eval.py f3 --json "$RES/f3_test.json" || die f3
     runlog "$STATE/f3b.txt" "$FGOP" eval/f3b_eval.py --json "$RES/f3b_test.json" || die f3b
     runlog "$STATE/f3c.txt" "$FGOP" eval/f3c_eval.py --tag F3cd --deltas 10,30 --json "$RES/f3c_test.json" || die f3c
     done_ ftests
+fi
+
+# 10a. OPT-IN labelled SENSITIVITY CHECK (FINAL_SENS_YAW0=1; ruling 2026-10-10 item 1): the UKF and the FGO with a 0.1 rad
+#      initial yaw sigma, outputs to $SENS_OUT only (never a trial directory), scored against this pass's own outputs.
+if [ "${FINAL_SENS_YAW0:-0}" = 1 ] || [ "$DRY" = 1 ]; then
+    if stage sens_yaw0; then
+        need phase4 ftests
+        [ "$DRY" = 1 ] && echo "  # (opt-in: FINAL_SENS_YAW0=1; outputs $SENS_OUT)"
+        [ "$DRY" = 0 ] && [ -e "$SENS_OUT" ] && [ ! -f "$STATE/${BP}_sens_yaw0.started" ] && die "$SENS_OUT exists but was not started by this pipeline"
+        SY=(fwdplainc_tex_r1 fwdplainc_tex_r2 fwdplainc_tex_r3 fwdplainc_trans_r1 fwdplainc_trans_r2 fwdplainc_trans_r3 fwdc_tex_r1 dsn_tex_r1)
+        unpack_trials "${SY[@]}"                     # no-op while the corridor bags are still unpacked
+        jobs_stage "$JOBS_DIR/sens_yaw0.jobs" ${BP}_sens_yaw0 nofilter
+        run mkdir -p "$RES/sensitivity_yaw0_0p1"
+        runlog "$STATE/sens_yaw0.txt" "$AP" eval/sens_yaw0_eval.py "$SENS_OUT" --json "$RES/sensitivity_yaw0_0p1/summary.json" || die sens_yaw0_eval
+        [ "$DRY" = 0 ] && cp "$STATE/sens_yaw0.txt" "$RES/sensitivity_yaw0_0p1/summary.txt"
+        [ -f "$STATE/repack_corridor.done" ] && repack_trials "${SY[@]}"
+        done_ sens_yaw0
+    fi
 fi
 
 # 10b. Repack the corridor bags (their last reader is the ftests stage; L unpacks dsn_tex_r1 again for V-L).
@@ -340,7 +420,7 @@ fi
 if stage f4; then
     need snapshot
     unpack_trials "${F4[@]}"
-    jobs_stage batches/f4_replays_usable.jobs final_f4
+    jobs_stage batches/f4_replays_usable.jobs ${BP}_f4
     runlog "$STATE/f4_eval.txt" "$FGOP" eval/f4_eval.py test cauchy:2.385 --trials "$(IFS=,; echo "${F4_USABLE[*]}")" --json "$RES/f4_test.json" || die f4_eval
     repack_trials "${F4[@]}"
     done_ f4
@@ -359,7 +439,7 @@ if stage h_shadows; then
         for r in 1 2; do runlog "$PS/s1far_r$r.txt" "$TAGS" eval/h_score.py "H_s1far_r$r" --profile batches/expH/s1_far_profile.json --sigma 0.02 --json "$PS/s1far_r$r.json" || die "prescore H_s1far_r$r"; done
         [ "$DRY" = 1 ] || touch "$PS/H.done"
     fi
-    jobs_stage "$JOBS_DIR/room_H.jobs" final_room_H
+    jobs_stage "$JOBS_DIR/room_H.jobs" ${BP}_room_H
     for r in 1 2 3; do
         runlog "$STATE/h_s1_r$r.txt" "$TAGS" eval/h_score.py "H_s1_r$r" --profile batches/expH/s1_profile.json --sigma 0.02 --json "$RES/expH/s1_r$r.json" || die "h_score H_s1_r$r"
     done
@@ -368,6 +448,7 @@ if stage h_shadows; then
     done
     G=(); for f in s1_r1 s1_r2 s1_r3 s1far_r1 s1far_r2; do G+=("$STATE/prescore/$f.json" "$RES/expH/$f.json"); done
     runlog "$STATE/gate_h.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in the H scores"
+    ukfgate "$STATE/ukfgate_h.txt" "${G[@]}"
     done_ h_shadows
 fi
 
@@ -380,10 +461,11 @@ if stage expO; then
         for t in "${O_TRIALS[@]}"; do runlog "$PS/$t.txt" "$TAGS" eval/o_score.py "$t" --json "$PS/$t.json" || die "prescore $t"; done
         [ "$DRY" = 1 ] || touch "$PS/O.done"
     fi
-    jobs_stage "$JOBS_DIR/room_O.jobs" final_room_O
+    jobs_stage "$JOBS_DIR/room_O.jobs" ${BP}_room_O
     for t in "${O_TRIALS[@]}"; do runlog "$STATE/o_$t.txt" "$TAGS" eval/o_score.py "$t" --json "$RES/expO/$t.json" || die "o_score $t"; done
     G=(); for t in "${O_TRIALS[@]}"; do G+=("$STATE/prescore/$t.json" "$RES/expO/$t.json"); done
     runlog "$STATE/gate_o.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in O"
+    ukfgate "$STATE/ukfgate_o.txt" "${G[@]}"
     done_ expO
 fi
 
@@ -396,11 +478,12 @@ if stage expT; then
         for t in "${T_TRIALS[@]}"; do runlog "$PS/$t.txt" "$TAGS" eval/tag_score.py "$t" --json "$PS/$t.json" || die "prescore $t"; done
         [ "$DRY" = 1 ] || touch "$PS/T.done"
     fi
-    jobs_stage "$JOBS_DIR/room_T.jobs" final_room_T
+    jobs_stage "$JOBS_DIR/room_T.jobs" ${BP}_room_T
     for t in "${T_TRIALS[@]}"; do runlog "$STATE/t_$t.txt" "$TAGS" eval/tag_score.py "$t" --json "$RES/expT/$t.json" || die "tag_score $t"; done
     runlog "$STATE/t_aggregate.txt" python3 eval/t_aggregate.py --json "$RES/expT/t_aggregate.json" || die t_aggregate
     G=(); for t in "${T_TRIALS[@]}"; do G+=("$STATE/prescore/$t.json" "$RES/expT/$t.json"); done
     runlog "$STATE/gate_t.txt" python3 eval/final_rerun_checks.py ekf3-gate "${G[@]}" || die "HARD GATE: an EKF3 entry changed in T"
+    ukfgate "$STATE/ukfgate_t.txt" "${G[@]}"
     done_ expT
 fi
 
@@ -431,7 +514,7 @@ if [ "${FINAL_CL_PRED:-0}" = 1 ] || [ "$DRY" = 1 ]; then
         CLP=(cl_a_tex_half cl_bcpp_tex_r{1,2,3}_half cl_ukf_a_tex_half cl_ukf_b_tex_r{1,2,3}_half)
         unpack_trials "${CLP[@]}"
         runlog "$STATE/cl_gaps.txt" "$EVO" eval/imu_gap_check.py "${CLP[@]}" --write || die "cl imu gaps"   # no imu_gaps.json yet
-        jobs_stage "$JOBS_DIR/cl_pred.jobs" final_cl_pred
+        jobs_stage "$JOBS_DIR/cl_pred.jobs" ${BP}_cl_pred
         PYTHONPATH="$SHIM" runlog "$STATE/cl_pred.txt" "$EVO" eval/fgo_contact_prediction.py cl_a_tex_half cl_bcpp_tex_r{1,2,3}_half cl_ukf_a_tex_half cl_ukf_b_tex_r{1,2,3}_half \
             --json "$RES/fgo_contact_prediction_half_final.json" || die cl_pred
         repack_trials "${CLP[@]}"
@@ -444,7 +527,7 @@ fi
 if stage L; then
     need expT
     unpack_trials dsn_tex_r1 "${L_TRIALS[@]}"    # the V-L job; T_A_* are not packed (no-op)
-    jobs_stage "$JOBS_DIR/L.jobs" final_L
+    jobs_stage "$JOBS_DIR/L.jobs" ${BP}_L
     repack_trials dsn_tex_r1
     for t in "${L_TRIALS[@]}"; do runlog "$STATE/l_$t.txt" "$TAGS" eval/l_score.py "$t" --suffix _t245 --json "$RES/expL/${t}_t245.json" || die "l_score $t"; done
     done_ L

@@ -37,7 +37,15 @@ if os.environ.get("FGO_BAG_ROOT"):
     BAG = os.path.join(os.environ["FGO_BAG_ROOT"], TRIAL)
 DUMP = os.environ.get("FGO_DUMP_EVENTS")
 FV = f_variant()     # offline F-test variants (all off by default)
-OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else ""))
+# INIT_YAW_SIGMA_RAD (OFF by default; ruling 2026-10-10 item 1, the labelled sensitivity check): override the X(0)
+# initial yaw sigma (rad) with zero offset. Only into a scratch / sensitivity FGO_OUT_ROOT, never a trial directory; the
+# output dir gets the suffix _iy<value>. Not combinable with the F3 F_YAW0_* injection.
+INIT_YAW_SIGMA = os.environ.get("INIT_YAW_SIGMA_RAD") or None
+if INIT_YAW_SIGMA:
+    assert os.environ.get("FGO_OUT_ROOT"), "INIT_YAW_SIGMA_RAD needs FGO_OUT_ROOT (never into a trial directory)"
+    assert not FV["F_YAW0_DEG"], "INIT_YAW_SIGMA_RAD and F_YAW0_DEG are exclusive"
+    assert float(INIT_YAW_SIGMA) > 0, INIT_YAW_SIGMA
+OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -84,7 +92,8 @@ fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd,
 fgo.batch_record = bool(FV["F_BATCH"])
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init,
          yaw0=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else 0.0),
-         yaw_sigma=(np.radians(float(FV["F_YAW0_SIGMA_DEG"] or FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else None))
+         yaw_sigma=(np.radians(float(FV["F_YAW0_SIGMA_DEG"] or FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else
+                    (float(INIT_YAW_SIGMA) if INIT_YAW_SIGMA else None)))
 fgo.no_yawcap = bool(FV["F_NO_YAWCAP"])   # F3b: yaw-cap prior off
 print(f"[init] t={t_init:.2f}s first_range={first_rng:.3f}")
 
@@ -155,7 +164,7 @@ for _ei, (tt, kind, d) in enumerate(ev):
             t_kf_next += fgo.kf_dt
 traj = np.array(traj)
 if DUMP:
-    assert not any(FV[k] for k in FV), "equivalence export: no F-variants"
+    assert not any(FV[k] for k in FV) and not INIT_YAW_SIGMA, "equivalence export: no F-variants / INIT_YAW_SIGMA_RAD"
     fgo_export.write(DUMP, {"trial": TRIAL, "mode": "corridor", "arm": ARM,
                             "accel_mean": [float(a) for a in np.mean(acc_lvl, axis=0)], "first_range": float(first_rng),
                             "t_init": float(t_init), "t_arm": gp.t_arm, "window": WINDOW, "lm_iters": LM_ITERS,

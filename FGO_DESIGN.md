@@ -727,8 +727,8 @@ per flow message:
 |---|---|---|
 | `x, y` | 1e-3 m | **gauge fix** — horizontal position unobservable from flow+range; graph rank-deficient without it |
 | `z` | 0.5 m | `RNG_M_NSE`, since `z` is from one range sample |
-| `roll, pitch` | empirical scatter of the levelling estimate over 0.5 s | measured, not assumed |
-| `yaw` | 1e-3 rad | **gauge fix** — arbitrary but pinned |
+| `roll, pitch` | **5°** (was a fixed 2° in code, never the measured scatter planned here) | **the UKF's value** (`ukf_core.init_state`); D18 correction 2026-10-10, initial-uncertainty audit (`docs/handovers/2026-10-10_initial_sigma_audit.md`) |
+| `yaw` | **1°** (was 1e-3 rad) | **the UKF's value**; user ruling 2026-10-10 (METHODOLOGY "RULINGS (user, 2026-10-10): FGO initial yaw sigma"). 1e-3 rad was a "gauge fix" that became a substantive heading claim once the forward camera observes heading. EKF3's `CovarianceInit` is 0.1 rad per axis |
 | `V(0)` | 0.1 m/s about zero | stationary pre-arm; confirm from the bag |
 | `B(0)` | accel 0.2 m/s², gyro 0.043633 rad/s about **zero** | EKF3's own initial bias uncertainties (§5); zero mean matches EKF3 |
 
