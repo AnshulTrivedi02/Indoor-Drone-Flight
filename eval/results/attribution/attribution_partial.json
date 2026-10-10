@@ -1,0 +1,1041 @@
+{
+ "corridor": {
+  "dsn_tex_r1/ukf": {
+   "cells": {
+    "U_none": null,
+    "U_derot": null,
+    "U_jitter": null,
+    "U_both": {
+     "evo_a_cruise": 3.983563,
+     "disp_ratio": 0.9614706563620813,
+     "bgz_mean_dpm": -1.416,
+     "yaw_drift_dpm": -7.624,
+     "yaw_fire": 64.0,
+     "yaw_check": 2265.0
+    }
+   },
+   "stored_final": {
+    "evo_a_cruise": 3.983563,
+    "disp_ratio": 0.9614706563620813,
+    "bgz_mean_dpm": -1.416,
+    "yaw_drift_dpm": -7.624,
+    "yaw_fire": 64.0,
+    "yaw_check": 2265.0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.227801,
+    "disp_ratio": 0.9499305244545423,
+    "bgz_mean_dpm": -1.42,
+    "yaw_drift_dpm": -7.623,
+    "yaw_fire": 98.0,
+    "yaw_check": 2265.0
+   },
+   "identity_both_vs_stored_final": {
+    "ukf_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r2/ukf": {
+   "cells": {
+    "U_none": {
+     "evo_a_cruise": 2.134915,
+     "disp_ratio": 0.9649458916674856,
+     "bgz_mean_dpm": -6.306,
+     "yaw_drift_dpm": -2.703,
+     "yaw_fire": 96.0,
+     "yaw_check": 2253.0
+    },
+    "U_derot": null,
+    "U_jitter": null,
+    "U_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 1.613988,
+    "disp_ratio": 0.9767350260270852,
+    "bgz_mean_dpm": -6.699,
+    "yaw_drift_dpm": -2.292,
+    "yaw_fire": 63.0,
+    "yaw_check": 2253.0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 2.134915,
+    "disp_ratio": 0.9649458916674856,
+    "bgz_mean_dpm": -6.306,
+    "yaw_drift_dpm": -2.703,
+    "yaw_fire": 96.0,
+    "yaw_check": 2253.0
+   },
+   "identity_both_vs_stored_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "ukf_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r3/ukf": {
+   "cells": {
+    "U_none": null,
+    "U_derot": null,
+    "U_jitter": null,
+    "U_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 5.167777,
+    "disp_ratio": 0.948365830665855,
+    "bgz_mean_dpm": 1.006,
+    "yaw_drift_dpm": -10.047,
+    "yaw_fire": 63.0,
+    "yaw_check": 2235.0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 5.374769,
+    "disp_ratio": 0.9369088303528209,
+    "bgz_mean_dpm": 0.966,
+    "yaw_drift_dpm": -10.012,
+    "yaw_fire": 97.0,
+    "yaw_check": 2235.0
+   },
+   "identity_both_vs_stored_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "fwdc_tex_r1/ukf_heading": {
+   "cells": {
+    "U_none": null,
+    "U_derot": null,
+    "U_jitter": null,
+    "U_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 0.127393,
+    "disp_ratio": 0.9971832372883258,
+    "bgz_mean_dpm": -8.24,
+    "yaw_drift_dpm": -0.016,
+    "yaw_fire": 0.0,
+    "yaw_check": 2248.0,
+    "yaw_rms_deg": 0.0780292443726794,
+    "yaw_max_deg": 0.4018933619119125,
+    "headings_fused": 9274,
+    "headings_valid": 9635,
+    "correct_rejected": 275,
+    "lockout_episodes": 0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 0.611459,
+    "disp_ratio": 0.9865549491988898,
+    "bgz_mean_dpm": -8.769,
+    "yaw_drift_dpm": -0.016,
+    "yaw_fire": 0.0,
+    "yaw_check": 2248.0,
+    "yaw_rms_deg": 0.08089177057621962,
+    "yaw_max_deg": 0.41501274566152535,
+    "headings_fused": 9279,
+    "headings_valid": 9635,
+    "correct_rejected": 270,
+    "lockout_episodes": 0
+   },
+   "identity_both_vs_stored_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "fwdc_tex_r1/ukf_baseline": {
+   "cells": {
+    "U_none": null,
+    "U_derot": null,
+    "U_jitter": null,
+    "U_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 4.959532,
+    "disp_ratio": 0.9497276501646474,
+    "bgz_mean_dpm": 0.585,
+    "yaw_drift_dpm": -9.61,
+    "yaw_fire": 64.0,
+    "yaw_check": 2248.0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 5.129638,
+    "disp_ratio": 0.9388231950904863,
+    "bgz_mean_dpm": 0.452,
+    "yaw_drift_dpm": -9.48,
+    "yaw_fire": 98.0,
+    "yaw_check": 2248.0
+   },
+   "identity_both_vs_stored_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "ukf_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r1/fgo": {
+   "cells": {
+    "F_none": null,
+    "F_noise": null,
+    "F_cap": null,
+    "F_both": {
+     "evo_a_cruise": 4.067897,
+     "disp_ratio": 0.977926565024816,
+     "bgz_mean_dpm": -1.002,
+     "yaw_drift_dpm": -8.043,
+     "yaw_fire": null,
+     "yaw_check": null
+    }
+   },
+   "stored_final": {
+    "evo_a_cruise": 4.067897,
+    "disp_ratio": 0.977926565024816,
+    "bgz_mean_dpm": -1.002,
+    "yaw_drift_dpm": -8.043,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.589119,
+    "disp_ratio": 0.9703274776145187,
+    "bgz_mean_dpm": 0.01,
+    "yaw_drift_dpm": -9.138,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r2/fgo": {
+   "cells": {
+    "F_none": null,
+    "F_noise": null,
+    "F_cap": null,
+    "F_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 1.929484,
+    "disp_ratio": 0.99305757727687,
+    "bgz_mean_dpm": -5.388,
+    "yaw_drift_dpm": -3.62,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.716604,
+    "disp_ratio": 0.967478586341775,
+    "bgz_mean_dpm": 0.261,
+    "yaw_drift_dpm": -9.397,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r3/fgo": {
+   "cells": {
+    "F_none": null,
+    "F_noise": null,
+    "F_cap": null,
+    "F_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 4.473251,
+    "disp_ratio": 0.973690882448524,
+    "bgz_mean_dpm": -0.164,
+    "yaw_drift_dpm": -8.876,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.602226,
+    "disp_ratio": 0.9706367092010456,
+    "bgz_mean_dpm": 0.058,
+    "yaw_drift_dpm": -9.182,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "dsn_tex_r6/fgo": {
+   "cells": {
+    "F_none": null,
+    "F_noise": null,
+    "F_cap": null,
+    "F_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 1.431388,
+    "disp_ratio": 0.9953534766255581,
+    "bgz_mean_dpm": -6.442,
+    "yaw_drift_dpm": -2.526,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.719157,
+    "disp_ratio": 0.9677105625347469,
+    "bgz_mean_dpm": 0.279,
+    "yaw_drift_dpm": -9.387,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "fwdc_tex_r1/fgo_heading": {
+   "cells": {
+    "F_none": {
+     "evo_a_cruise": 0.07902,
+     "disp_ratio": 0.9984600505540344,
+     "bgz_mean_dpm": -4.889,
+     "yaw_drift_dpm": -0.011,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.1908439871522283,
+     "yaw_max_deg": 2.9562940287135606,
+     "headings_fused": 9480,
+     "headings_valid": 9539,
+     "correct_rejected": 6,
+     "lockout_episodes": 0
+    },
+    "F_noise": {
+     "evo_a_cruise": 0.056587,
+     "disp_ratio": 0.9987035476307485,
+     "bgz_mean_dpm": -8.24,
+     "yaw_drift_dpm": -0.016,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.07807326400493475,
+     "yaw_max_deg": 0.39664434707880586,
+     "headings_fused": 9184,
+     "headings_valid": 9539,
+     "correct_rejected": 277,
+     "lockout_episodes": 0
+    },
+    "F_cap": {
+     "evo_a_cruise": 0.07902,
+     "disp_ratio": 0.9984600437833644,
+     "bgz_mean_dpm": -4.889,
+     "yaw_drift_dpm": -0.011,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.19084902460444403,
+     "yaw_max_deg": 2.9562940287135606,
+     "headings_fused": 9480,
+     "headings_valid": 9539,
+     "correct_rejected": 6,
+     "lockout_episodes": 0
+    },
+    "F_both": {
+     "evo_a_cruise": 0.056587,
+     "disp_ratio": 0.9987035410099173,
+     "bgz_mean_dpm": -8.24,
+     "yaw_drift_dpm": -0.016,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.07807383315248675,
+     "yaw_max_deg": 0.39664434707880586,
+     "headings_fused": 9184,
+     "headings_valid": 9539,
+     "correct_rejected": 277,
+     "lockout_episodes": 0
+    }
+   },
+   "stored_final": {
+    "evo_a_cruise": 0.056587,
+    "disp_ratio": 0.9987035410099173,
+    "bgz_mean_dpm": -8.24,
+    "yaw_drift_dpm": -0.016,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 0.07807383315248675,
+    "yaw_max_deg": 0.39664434707880586,
+    "headings_fused": 9184,
+    "headings_valid": 9539,
+    "correct_rejected": 277,
+    "lockout_episodes": 0
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 0.07902,
+    "disp_ratio": 0.9984600505540344,
+    "bgz_mean_dpm": -4.889,
+    "yaw_drift_dpm": -0.011,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 0.1908439871522283,
+    "yaw_max_deg": 2.9562940287135606,
+    "headings_fused": 9480,
+    "headings_valid": 9539,
+    "correct_rejected": 6,
+    "lockout_episodes": 0
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "attribution": {
+    "evo_a_cruise": {
+     "total": -0.02243300000000001,
+     "dA": -0.02243300000000001,
+     "dB": 0.0,
+     "A_alone": -0.02243300000000001,
+     "B_alone": 0.0,
+     "interaction": 0.0,
+     "share_A": 1.0,
+     "share_B": -0.0
+    },
+    "yaw_max_deg": {
+     "total": -2.5596496816347547,
+     "dA": -2.5596496816347547,
+     "dB": 0.0,
+     "A_alone": -2.5596496816347547,
+     "B_alone": 0.0,
+     "interaction": 0.0,
+     "share_A": 1.0,
+     "share_B": -0.0
+    },
+    "yaw_rms_deg": {
+     "total": -0.11277015399974155,
+     "dA": -0.11277295729962541,
+     "dB": 2.8032998838634082e-06,
+     "A_alone": -0.11277072314729356,
+     "B_alone": 5.037452215722604e-06,
+     "interaction": -4.468304663718392e-06,
+     "share_A": 1.0000248585266973,
+     "share_B": -2.485852669731951e-05
+    },
+    "bgz_mean_dpm": {
+     "total": -3.351,
+     "dA": -3.351,
+     "dB": 0.0,
+     "A_alone": -3.351,
+     "B_alone": 0.0,
+     "interaction": 0.0,
+     "share_A": 1.0,
+     "share_B": -0.0
+    },
+    "headings_fused": {
+     "total": -296,
+     "dA": -296.0,
+     "dB": 0.0,
+     "A_alone": -296,
+     "B_alone": 0,
+     "interaction": 0,
+     "share_A": 1.0,
+     "share_B": -0.0
+    }
+   }
+  },
+  "fwdc_tex_r1/fgo_baseline": {
+   "cells": {
+    "F_none": null,
+    "F_noise": null,
+    "F_cap": null,
+    "F_both": null
+   },
+   "stored_final": {
+    "evo_a_cruise": 4.457139,
+    "disp_ratio": 0.9725299638492648,
+    "bgz_mean_dpm": -0.179,
+    "yaw_drift_dpm": -8.846,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 4.582231,
+    "disp_ratio": 0.9694915450643116,
+    "bgz_mean_dpm": 0.036,
+    "yaw_drift_dpm": -9.142,
+    "yaw_fire": null,
+    "yaw_check": null
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": false,
+    "ground_truth.tum": false,
+    "bgz_series.txt": false,
+    "fwd_stats.json": false,
+    "metrics.txt(no timing)": false
+   },
+   "attribution": {}
+  },
+  "fwdplainc_tex_r1/fgo_heading": {
+   "cells": {
+    "F_none": {
+     "evo_a_cruise": 0.199778,
+     "disp_ratio": 0.9976905346522839,
+     "bgz_mean_dpm": -4.908,
+     "yaw_drift_dpm": -0.325,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 1.357329116589847,
+     "yaw_max_deg": 8.326456000834321,
+     "headings_fused": 4981,
+     "headings_valid": 6333,
+     "correct_rejected": 193,
+     "lockout_episodes": 1
+    },
+    "F_noise": {
+     "evo_a_cruise": 43.218367,
+     "disp_ratio": 0.010685836149854896,
+     "bgz_mean_dpm": -290.579,
+     "yaw_drift_dpm": 283.164,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 104.27538651875481,
+     "yaw_max_deg": 179.9975496343823,
+     "headings_fused": 19,
+     "headings_valid": 6333,
+     "correct_rejected": 4445,
+     "lockout_episodes": 4
+    },
+    "F_cap": {
+     "evo_a_cruise": 0.195622,
+     "disp_ratio": 0.9976883143445281,
+     "bgz_mean_dpm": -4.908,
+     "yaw_drift_dpm": -0.325,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 1.3572228856092696,
+     "yaw_max_deg": 8.326456543895585,
+     "headings_fused": 4981,
+     "headings_valid": 6333,
+     "correct_rejected": 193,
+     "lockout_episodes": 1
+    },
+    "F_both": {
+     "evo_a_cruise": 43.539339,
+     "disp_ratio": 0.06932176118606945,
+     "bgz_mean_dpm": -319.386,
+     "yaw_drift_dpm": 323.955,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 110.31474657744955,
+     "yaw_max_deg": 179.93420315809576,
+     "headings_fused": 28,
+     "headings_valid": 6333,
+     "correct_rejected": 4445,
+     "lockout_episodes": 5
+    }
+   },
+   "stored_final": {
+    "evo_a_cruise": 43.539339,
+    "disp_ratio": 0.06932176118606945,
+    "bgz_mean_dpm": -319.386,
+    "yaw_drift_dpm": 323.955,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 110.31474657744955,
+    "yaw_max_deg": 179.93420315809576,
+    "headings_fused": 28,
+    "headings_valid": 6333,
+    "correct_rejected": 4445,
+    "lockout_episodes": 5
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 0.199778,
+    "disp_ratio": 0.9976905346522839,
+    "bgz_mean_dpm": -4.908,
+    "yaw_drift_dpm": -0.325,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 1.357329116589847,
+    "yaw_max_deg": 8.326456000834321,
+    "headings_fused": 4981,
+    "headings_valid": 6333,
+    "correct_rejected": 193,
+    "lockout_episodes": 1
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "attribution": {
+    "evo_a_cruise": {
+     "total": 43.339560999999996,
+     "dA": 43.181152999999995,
+     "dB": 0.15840799999999877,
+     "A_alone": 43.018589,
+     "B_alone": -0.004156000000000021,
+     "interaction": 0.32512799999999764,
+     "share_A": 0.9963449560552771,
+     "share_B": 0.003655043944722901
+    },
+    "yaw_max_deg": {
+     "total": 171.60774715726143,
+     "dA": 171.63942012387406,
+     "dB": -0.0316729666126383,
+     "A_alone": 171.67109363354797,
+     "B_alone": 5.430612635137777e-07,
+     "interaction": -0.06334701934780362,
+     "share_A": 1.0001845660649784,
+     "share_B": -0.0001845660649784836
+    },
+    "yaw_rms_deg": {
+     "total": 108.9574174608597,
+     "dA": 105.93779054700262,
+     "dB": 3.0196269138570813,
+     "A_alone": 102.91805740216496,
+     "B_alone": -0.00010623098057727098,
+     "interaction": 6.0394662896753175,
+     "share_A": 0.9722861739546845,
+     "share_B": 0.027713826045315443
+    },
+    "bgz_mean_dpm": {
+     "total": -314.478,
+     "dA": -300.0745,
+     "dB": -14.403500000000008,
+     "A_alone": -285.671,
+     "B_alone": 0.0,
+     "interaction": -28.807000000000016,
+     "share_A": 0.9541987038838965,
+     "share_B": 0.045801296116103535
+    },
+    "headings_fused": {
+     "total": -4953,
+     "dA": -4957.5,
+     "dB": 4.5,
+     "A_alone": -4962,
+     "B_alone": 0,
+     "interaction": 9,
+     "share_A": 1.000908540278619,
+     "share_B": -0.0009085402786190188
+    }
+   }
+  },
+  "fwdplainc_trans_r1/fgo_heading": {
+   "cells": {
+    "F_none": {
+     "evo_a_cruise": 1068.549573,
+     "disp_ratio": 29.52663032724455,
+     "bgz_mean_dpm": -4.938,
+     "yaw_drift_dpm": -0.068,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.31035300691008805,
+     "yaw_max_deg": 3.6164269653544956,
+     "headings_fused": 7854,
+     "headings_valid": 8420,
+     "correct_rejected": 51,
+     "lockout_episodes": 0
+    },
+    "F_noise": {
+     "evo_a_cruise": 41.233617,
+     "disp_ratio": 1.6498415670359337,
+     "bgz_mean_dpm": 415.06,
+     "yaw_drift_dpm": -428.0,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 104.50478214285236,
+     "yaw_max_deg": 179.99261497133384,
+     "headings_fused": 18,
+     "headings_valid": 8420,
+     "correct_rejected": 7520,
+     "lockout_episodes": 6
+    },
+    "F_cap": {
+     "evo_a_cruise": 1070.678195,
+     "disp_ratio": 29.578110123743105,
+     "bgz_mean_dpm": -4.938,
+     "yaw_drift_dpm": -0.068,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 0.30966278459164936,
+     "yaw_max_deg": 3.6165417300930356,
+     "headings_fused": 7854,
+     "headings_valid": 8420,
+     "correct_rejected": 51,
+     "lockout_episodes": 0
+    },
+    "F_both": {
+     "evo_a_cruise": 36.925857,
+     "disp_ratio": 1.4534104611240746,
+     "bgz_mean_dpm": 447.096,
+     "yaw_drift_dpm": -468.283,
+     "yaw_fire": null,
+     "yaw_check": null,
+     "yaw_rms_deg": 108.01726308063456,
+     "yaw_max_deg": 179.9903848786893,
+     "headings_fused": 19,
+     "headings_valid": 8420,
+     "correct_rejected": 7520,
+     "lockout_episodes": 7
+    }
+   },
+   "stored_final": {
+    "evo_a_cruise": 36.925857,
+    "disp_ratio": 1.4534104611240746,
+    "bgz_mean_dpm": 447.096,
+    "yaw_drift_dpm": -468.283,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 108.01726308063456,
+    "yaw_max_deg": 179.9903848786893,
+    "headings_fused": 19,
+    "headings_valid": 8420,
+    "correct_rejected": 7520,
+    "lockout_episodes": 7
+   },
+   "archived_pre_final": {
+    "evo_a_cruise": 1068.549573,
+    "disp_ratio": 29.52663032724455,
+    "bgz_mean_dpm": -4.938,
+    "yaw_drift_dpm": -0.068,
+    "yaw_fire": null,
+    "yaw_check": null,
+    "yaw_rms_deg": 0.31035300691008805,
+    "yaw_max_deg": 3.6164269653544956,
+    "headings_fused": 7854,
+    "headings_valid": 8420,
+    "correct_rejected": 51,
+    "lockout_episodes": 0
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_traj.tum": true,
+    "ground_truth.tum": true,
+    "bgz_series.txt": true,
+    "fwd_stats.json": true,
+    "metrics.txt(no timing)": true
+   },
+   "attribution": {
+    "evo_a_cruise": {
+     "total": -1031.623716,
+     "dA": -1030.5341469999998,
+     "dB": -1.0895690000000258,
+     "A_alone": -1027.315956,
+     "B_alone": 2.1286219999999503,
+     "interaction": -6.436381999999867,
+     "share_A": 0.9989438309888562,
+     "share_B": 0.001056169011143619
+    },
+    "yaw_max_deg": {
+     "total": 176.3739579133348,
+     "dA": 176.3750155772878,
+     "dB": -0.0010576639529991105,
+     "A_alone": 176.37618800597934,
+     "B_alone": 0.00011476473853999636,
+     "interaction": -0.002344857383078214,
+     "share_A": 1.000005996712698,
+     "share_B": -5.996712697907572e-06
+    },
+    "yaw_rms_deg": {
+     "total": 107.70691007372447,
+     "dA": 105.95101471599259,
+     "dB": 1.7558953577318808,
+     "A_alone": 104.19442913594227,
+     "B_alone": -0.0006902223184386824,
+     "interaction": 3.5131711601006392,
+     "share_A": 0.9836974679105548,
+     "share_B": 0.016302532089445192
+    },
+    "bgz_mean_dpm": {
+     "total": 452.034,
+     "dA": 436.01599999999996,
+     "dB": 16.018,
+     "A_alone": 419.998,
+     "B_alone": 0.0,
+     "interaction": 32.036,
+     "share_A": 0.9645646123964126,
+     "share_B": 0.035435387603587346
+    },
+    "headings_fused": {
+     "total": -7835,
+     "dA": -7835.5,
+     "dB": 0.5,
+     "A_alone": -7836,
+     "B_alone": 0,
+     "interaction": 1,
+     "share_A": 1.0000638162093172,
+     "share_B": -6.381620931716656e-05
+    }
+   }
+  }
+ },
+ "O": {
+  "O_r1": {
+   "cells": {
+    "F_none": {
+     "fgo_batch_indoor_rmse": 0.3280199613357048,
+     "fgo_live_indoor_rmse": 0.9748316505131257
+    },
+    "F_noise": {
+     "fgo_batch_indoor_rmse": 0.5576267275359428,
+     "fgo_live_indoor_rmse": 1.1097230890305971
+    },
+    "F_cap": {
+     "fgo_batch_indoor_rmse": 0.3287416782476997,
+     "fgo_live_indoor_rmse": 0.8208508342068476
+    },
+    "F_both": {
+     "fgo_batch_indoor_rmse": 0.5886197641729227,
+     "fgo_live_indoor_rmse": 0.8284554189394465
+    }
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "attribution": {
+    "fgo_batch_indoor_rmse": {
+     "total": 0.2605998028372179,
+     "dA": 0.2447424260627305,
+     "dB": 0.015857376774487397,
+     "A_alone": 0.22960676620023796,
+     "B_alone": 0.0007217169119948519,
+     "interaction": 0.03027131972498509,
+     "share_A": 0.9391504651889833,
+     "share_B": 0.06084953481101677
+    },
+    "fgo_live_indoor_rmse": {
+     "total": -0.14637623157367918,
+     "dA": 0.07124801162503519,
+     "dB": -0.21762424319871437,
+     "A_alone": 0.13489143851747143,
+     "B_alone": -0.15398081630627813,
+     "interaction": -0.12728685378487248,
+     "share_A": -0.4867457705329172,
+     "share_B": 1.4867457705329172
+    }
+   }
+  },
+  "O_r2": {
+   "cells": {
+    "F_none": {
+     "fgo_batch_indoor_rmse": 0.3316728581001405,
+     "fgo_live_indoor_rmse": 1.0083181686794955
+    },
+    "F_noise": {
+     "fgo_batch_indoor_rmse": 0.5546089912697435,
+     "fgo_live_indoor_rmse": 1.186644335312657
+    },
+    "F_cap": {
+     "fgo_batch_indoor_rmse": 0.33248248953904586,
+     "fgo_live_indoor_rmse": 0.8434402011129791
+    },
+    "F_both": {
+     "fgo_batch_indoor_rmse": 0.5895803772300081,
+     "fgo_live_indoor_rmse": 0.858708313846239
+    }
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "attribution": {
+    "fgo_batch_indoor_rmse": {
+     "total": 0.2579075191298676,
+     "dA": 0.24001701043028262,
+     "dB": 0.017890508699584973,
+     "A_alone": 0.22293613316960298,
+     "B_alone": 0.0008096314389053338,
+     "interaction": 0.03416175452135928,
+     "share_A": 0.9306320778861188,
+     "share_B": 0.06936792211388117
+    },
+    "fgo_live_indoor_rmse": {
+     "total": -0.1496098548332565,
+     "dA": 0.09679713968321069,
+     "dB": -0.2464069945164672,
+     "A_alone": 0.17832616663316148,
+     "B_alone": -0.1648779675665164,
+     "interaction": -0.16305805389990158,
+     "share_A": -0.6469970831205821,
+     "share_B": 1.6469970831205822
+    }
+   }
+  },
+  "O_r3b": {
+   "cells": {
+    "F_none": {
+     "fgo_batch_indoor_rmse": 0.3295635976989236,
+     "fgo_live_indoor_rmse": 1.171646835697886
+    },
+    "F_noise": {
+     "fgo_batch_indoor_rmse": 0.5543930273049812,
+     "fgo_live_indoor_rmse": 1.2573768244533854
+    },
+    "F_cap": {
+     "fgo_batch_indoor_rmse": 0.33032093757034536,
+     "fgo_live_indoor_rmse": 0.9353618401092548
+    },
+    "F_both": {
+     "fgo_batch_indoor_rmse": 0.5883940695284551,
+     "fgo_live_indoor_rmse": 0.8931824951898788
+    }
+   },
+   "identity_both_vs_stored_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "identity_none_vs_archived_pre_final": {
+    "fgo_live.tum": true,
+    "fgo_batch.tum": true
+   },
+   "attribution": {
+    "fgo_batch_indoor_rmse": {
+     "total": 0.25883047182953145,
+     "dA": 0.24145128078208364,
+     "dB": 0.017379191047447812,
+     "A_alone": 0.22482942960605756,
+     "B_alone": 0.0007573398714217361,
+     "interaction": 0.03324370235205215,
+     "share_A": 0.9328549265293078,
+     "share_B": 0.06714507347069218
+    },
+    "fgo_live_indoor_rmse": {
+     "total": -0.27846434050800717,
+     "dA": 0.021775321918061696,
+     "dB": -0.30023966242606887,
+     "A_alone": 0.08572998875549942,
+     "B_alone": -0.23628499558863114,
+     "interaction": -0.12790933367487556,
+     "share_A": -0.07819788299764563,
+     "share_B": 1.0781978829976455
+    }
+   }
+  }
+ }
+}

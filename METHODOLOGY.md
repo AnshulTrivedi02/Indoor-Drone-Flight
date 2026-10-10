@@ -13265,3 +13265,24 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - XUKO or XUKF;
   - the drift metric's first segment;
   - the RISI DADT is 3.0 ms in SITL (the plan says 2.0): check it on the first real log.
+
+### Attribution study STOPPED at 27/64: PARTIAL results (`eval/results/attribution/attribution_partial*.{json,md}`; handover `docs/handovers/2026-10-10_attribution_study.md`)
+- **Faithfulness:** with the toggles unset, the outputs are byte-identical to the stored final re-run on every bag
+  covered. With both corrections reverted, the archived pre-final outputs are reproduced byte for byte.
+- **The code (off-by-default `ATTRIB_*` toggles in ukf_core, the replays and fgo_core) is NOT merged.** It conflicts
+  with the FGO initial-yaw correction in fgo_core and must not change the re-run's sources. Only the results and the
+  handover are taken. The code stays on branch `worktree-agent-aa585d74c0d14c66b` (`b7a3aca`).
+- **PARTIAL findings** (none → noise only → gate only → both):
+  - **plain-wall FGO with heading:** `fwdplainc_tex_r1` evo 0.20 → 43.2 / 0.20 / 43.5 m; yaw max 8.3° → 180°
+    (tex_r1 and trans_r1). **100% noise correction; the gate 0%.** This agrees with the direct trace (the noise fix
+    removed the slack that hid the over-tight initial yaw).
+  - **O FGO batch:** 0.33 → 0.555–0.558 (noise only) / 0.33 (gate only) / 0.59 m (both): ~93% noise, ~7% gate, with
+    a +0.03 m interaction. The gate IMPROVES the O live track by 0.22–0.30 m.
+  - **The 2.5 m `dsn_tex_r2` mismatch:** the jitter fix, by elimination (both reverted reproduces the archive
+    byte for byte; the jitter-fix-only cell was not re-run).
+  - **`fwdc_tex_r1` FGO with heading:** 0.079 → 0.057 m, all from the noise correction.
+  - **Not answered:** the `dsn_tex_r6` flip, the dsn r1–r3 changes, the fwdc UKF heading gain, the fwdc FGO
+    baseline arm.
+- **Thesis wording under the ruling** (corrections applied jointly; no per-fix attribution except where traced
+  directly): these partial numbers are reported AS PARTIAL. Whether the O batch statement may cite them is a USER
+  decision (it changes the ruled wording).

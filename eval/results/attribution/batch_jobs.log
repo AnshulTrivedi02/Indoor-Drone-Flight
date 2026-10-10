@@ -1,0 +1,58 @@
+2026-10-10T10:55:57+1100  BEGIN    jobs=/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/attrib/pilot.jobs parallel=3 commit=ef7a0a5
+2026-10-10T10:55:57+1100  START    F_both__fgo__dsn_tex_r1
+2026-10-10T10:55:57+1100  START    U_both__ukf__dsn_tex_r1
+2026-10-10T10:55:57+1100  START    U_none__ukf__dsn_tex_r2
+2026-10-10T10:56:59+1100  DONE     U_none__ukf__dsn_tex_r2  wall=62s
+2026-10-10T10:57:00+1100  DONE     U_both__ukf__dsn_tex_r1  wall=63s
+2026-10-10T10:58:54+1100  DONE     F_both__fgo__dsn_tex_r1  wall=177s
+2026-10-10T10:58:54+1100  DONE     all 3/3 jobs
+2026-10-10T10:59:34+1100  BEGIN    jobs=/home/makerspace/thesis_ws/.claude/worktrees/agent-aa585d74c0d14c66b/eval/attribution/attrib.jobs parallel=6 commit=ef7a0a5
+2026-10-10T10:59:34+1100  START    F_none__fgoO__O_r1
+2026-10-10T10:59:34+1100  START    F_noise__fgoO__O_r1
+2026-10-10T10:59:34+1100  START    F_cap__fgoO__O_r1
+2026-10-10T10:59:34+1100  START    F_both__fgoO__O_r1
+2026-10-10T10:59:34+1100  START    F_none__fgoO__O_r2
+2026-10-10T10:59:34+1100  START    F_noise__fgoO__O_r2
+2026-10-10T11:38:51+1100  DONE     F_noise__fgoO__O_r2  wall=2357s
+2026-10-10T11:38:51+1100  START    F_cap__fgoO__O_r2
+2026-10-10T11:38:54+1100  DONE     F_cap__fgoO__O_r1  wall=2360s
+2026-10-10T11:38:54+1100  START    F_both__fgoO__O_r2
+2026-10-10T11:39:17+1100  DONE     F_none__fgoO__O_r2  wall=2383s
+2026-10-10T11:39:17+1100  START    F_none__fgoO__O_r3b
+2026-10-10T11:39:21+1100  DONE     F_none__fgoO__O_r1  wall=2387s
+2026-10-10T11:39:21+1100  START    F_noise__fgoO__O_r3b
+2026-10-10T12:21:15+1100  DONE     F_both__fgoO__O_r2  wall=2541s
+2026-10-10T12:21:15+1100  START    F_cap__fgoO__O_r3b
+2026-10-10T12:21:42+1100  DONE     F_cap__fgoO__O_r2  wall=2571s
+2026-10-10T12:21:42+1100  START    F_both__fgoO__O_r3b
+2026-10-10T12:22:03+1100  DONE     F_noise__fgoO__O_r3b  wall=2562s
+2026-10-10T12:22:03+1100  START    F_none__fgo__fwdplainc_tex_r1__heading
+2026-10-10T12:22:07+1100  DONE     F_none__fgoO__O_r3b  wall=2570s
+2026-10-10T12:22:07+1100  START    F_noise__fgo__fwdplainc_tex_r1__heading
+2026-10-10T12:26:27+1100  DONE     F_noise__fgo__fwdplainc_tex_r1__heading  wall=260s
+2026-10-10T12:26:27+1100  START    F_cap__fgo__fwdplainc_tex_r1__heading
+2026-10-10T12:27:54+1100  DONE     F_none__fgo__fwdplainc_tex_r1__heading  wall=351s
+2026-10-10T12:27:54+1100  START    F_both__fgo__fwdplainc_tex_r1__heading
+2026-10-10T12:31:54+1100  DONE     F_cap__fgo__fwdplainc_tex_r1__heading  wall=327s
+2026-10-10T12:31:54+1100  START    F_none__fgo__fwdplainc_trans_r1__heading
+2026-10-10T12:31:57+1100  DONE     F_both__fgo__fwdplainc_tex_r1__heading  wall=243s
+2026-10-10T12:31:57+1100  START    F_noise__fgo__fwdplainc_trans_r1__heading
+2026-10-10T12:34:00+1100  DONE     F_both__fgoO__O_r1  wall=5666s
+2026-10-10T12:34:00+1100  START    F_cap__fgo__fwdplainc_trans_r1__heading
+2026-10-10T12:34:41+1100  DONE     F_noise__fgo__fwdplainc_trans_r1__heading  wall=164s
+2026-10-10T12:34:41+1100  START    F_both__fgo__fwdplainc_trans_r1__heading
+2026-10-10T12:34:56+1100  DONE     F_noise__fgoO__O_r1  wall=5722s
+2026-10-10T12:34:56+1100  START    F_none__fgo__fwdc_tex_r1__heading
+2026-10-10T12:35:56+1100  DONE     F_none__fgo__fwdplainc_trans_r1__heading  wall=242s
+2026-10-10T12:35:56+1100  START    F_noise__fgo__fwdc_tex_r1__heading
+2026-10-10T12:37:30+1100  DONE     F_both__fgo__fwdplainc_trans_r1__heading  wall=169s
+2026-10-10T12:37:30+1100  START    F_cap__fgo__fwdc_tex_r1__heading
+2026-10-10T12:37:37+1100  DONE     F_cap__fgo__fwdplainc_trans_r1__heading  wall=217s
+2026-10-10T12:37:37+1100  START    F_both__fgo__fwdc_tex_r1__heading
+2026-10-10T12:42:20+1100  DONE     F_noise__fgo__fwdc_tex_r1__heading  wall=384s
+2026-10-10T12:42:45+1100  DONE     F_none__fgo__fwdc_tex_r1__heading  wall=469s
+2026-10-10T12:43:34+1100  DONE     F_both__fgo__fwdc_tex_r1__heading  wall=357s
+2026-10-10T12:44:17+1100  DONE     F_cap__fgo__fwdc_tex_r1__heading  wall=407s
+2026-10-10T12:48:56+1100  DONE     F_cap__fgoO__O_r3b  wall=1661s
+2026-10-10T12:49:09+1100  DONE     F_both__fgoO__O_r3b  wall=1647s
+2026-10-10T12:49:22+1100  STOPPED  27/64 done
