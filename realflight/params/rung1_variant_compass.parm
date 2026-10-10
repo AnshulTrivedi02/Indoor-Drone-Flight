@@ -1,0 +1,13 @@
+# RUNG 1 COMPASS VARIANT B: COMPASS YAW FUSED BY EKF3 (ArduPilot's usual configuration).
+# Load AFTER rung1_template.parm, and INSTEAD OF rung1_variant_nomag.parm. THE CHOICE IS THE SUPERVISOR'S (FLAG).
+# Consequence to state: EKF3 then has an absolute yaw reference that the UKF port and the FGO do NOT have (they fuse no
+# magnetometer), so the comparison is no longer like-for-like on yaw (the confound CLAUDE.md "No-Yaw / Compass-Denied
+# Investigation" removed in simulation). Indoors, steel structure and motors can bias the field: a compass calibration
+# and an in-volume check of the heading against mocap are bench items. A no-compass EKF3 can still be re-run in Replay
+# from the same log (Replay with EK3_SRC1_YAW 0) as the like-for-like row.
+# Names verified at 7bac20cbcc: libraries/AP_NavEKF/AP_NavEKF_Source.cpp (SRC1_YAW), libraries/AP_Compass/AP_Compass.cpp.
+EK3_SRC1_YAW 1           # Compass
+COMPASS_ENABLE 1         # compass driver on
+COMPASS_USE 1            # compass 1 used for yaw
+COMPASS_USE2 TODO_SUPERVISOR     # 1 only if a second compass is fitted and calibrated, else 0
+COMPASS_USE3 TODO_SUPERVISOR     # as above, third compass
