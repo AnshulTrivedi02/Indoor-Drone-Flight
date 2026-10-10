@@ -60,8 +60,14 @@ FGO_EVENTS=<x.npz> FGO_OUT_ROOT=<dir> ~/venv-fgo/bin/python src/estimators/fgo/f
 - **Implemented instead, unchanged from the simulation:** `FlowFrameGyroAverager` over the converter's raw RISI gyro, averaged over (previous flow, this flow], minus the FGO's own bias.
   - With the per-sensor delay applied to both window ends, the window is the sensor's integration interval.
   - `OF.body*` is kept in the npz as a diagnostic only.
-- **Advantage:** RISI is pre-filter, so there is no 20 Hz-filter lag.
-  - This removes the cause of the uncancellable SITL roll-tone residual (METHODOLOGY 4440-4481, "every available gyro is the filtered gyro").
+- **This is a D18 model-input change relative to the simulation, to be ruled on.** In the sim all three estimators
+  derotated with the 20 Hz-filtered gyro, so the roll-tone residual was common-mode (METHODOLOGY 4440-4481). On real
+  logs this implementation gives the FGO the PRE-filter RISI gyro, while EKF3 keeps the filtered AHRS gyro.
+  - Option A (implemented): the FGO's own raw RISI gyro, averaged over the flow interval, minus its own bias.
+  - Option B (plan §4.3 item 7): `ROFH.G`. It carries EKF3's bias estimate (above) and the INS filter lag.
+  - Option C (not implemented): the FGO's own RISI gyro passed through the INS filter, to keep the sim's
+    common-mode condition without importing EKF3's state.
+  - Whether option A reduces the roll-tone residual on real data is UNTESTED.
 - **Same exposure in the UKF port.** Its Replay flow hook passes `rawGyroRates` = `ROFH.G` (`AP_NavUKF.cpp`, plan §4.2).
   - On a real log with `AHRS_EKF_TYPE 3` the port therefore also derotates with EKF3's bias.
   - Flag this for the UKF-port stage. The ruling should cover both estimators.
@@ -102,9 +108,9 @@ FGO_EVENTS=<x.npz> FGO_OUT_ROOT=<dir> ~/venv-fgo/bin/python src/estimators/fgo/f
 
 | quantity | script | SITL truth (bag capture stamp vs FC arrival) |
 |---|---|---|
-| flow delay | **16.06 ms** (x axis, corr 0.80, gain +1.37) | **16.0 ms** median (p5 11.3, p95 22.5, mean 16.4) |
+| flow delay | **16.06 ms** (x axis, corr 0.80, gain +1.37); the per-axis rule was written AFTER seeing this, so it is consistency, not independent validation | **16.0 ms** median (p5 11.3, p95 22.5, mean 16.4) |
 | flow delay, y axis alone | −4.2 ms (corr 0.51): **biased** | — |
-| flow delay, synthetic (gyro window + noise, known d) | 16.0 and 39.7 ms | 16 and 40 ms |
+| flow delay, synthetic (flow := 1.2 x exact RISI window average + noise, known d): the independent test | 16.0 ms (d=16, no jitter); 39.7 ms (d=40, no jitter); 37.5 ms (d=40, 4 ms capture jitter: −2.5 ms bias); d=16 with jitter NOT run (the harness made non-monotonic stamps) | 16, 40 ms |
 | flow rate | 28.6 Hz median (inter-arrival 25 / 35 / 40 ms) | 30 Hz camera |
 | range update | 49.98 ms (20 Hz task) | sensor 33 ms (30 Hz) |
 | range delay vs SIM2 | 90 ms (rms 3.6 cm on one 3 s climb) | 40 ms vs the lidar's capture stamp |
@@ -151,6 +157,9 @@ FGO_EVENTS=<x.npz> FGO_OUT_ROOT=<dir> ~/venv-fgo/bin/python src/estimators/fgo/f
 
 ## 6. Default-unchanged proof
 
+- **Scope of (a):** `measurement_models`, `factors` and `fgo_core` only. The `fgo_replay.py` bag-path edits (the
+  `EVENTS` guards, the re-indented bag block, `d[2] if EVENTS`, `GEOM=None` into `h_flow_pose`, the events-only
+  take-off filter) are verified BY INSPECTION ONLY until (b) runs.
 - **(a) DONE, PASS.** `eval/bin2fgo_default_check.py` loads the base commit's (`3a2c3a8`) `measurement_models`, `factors` and `fgo_core` beside the new ones.
   - It runs **11 821 byte-identity comparisons** on random inputs, all with `.tobytes()` equality and 0 failures.
   - Covered: `h_flow_pose`, `h_flow`, `h_range`, `h_flow_rot`, the flow and range factors' unwhitened errors, Jacobians and right-hand sides, `FGO.init` plus a keyframe, and a `GroundProximityFlow` sequence.
@@ -170,3 +179,6 @@ FGO_EVENTS=<x.npz> FGO_OUT_ROOT=<dir> ~/venv-fgo/bin/python src/estimators/fgo/f
 4. The C++ FGO (`fgo_cpp`) geometry and events input: not done. Rung 1 uses the Python FGO.
 5. Pre-registration (R10): d_flow from the sync wiggles (x and y must agree within 5 ms), and d_range from the climb cycles against mocap. Record the measured rates.
 6. The UKF port (plan §4.2): pass the geometry through DAL, and decide the `ROFH.G` question above.
+7. Take-off detection (D15) in events mode: EKF3 uses the DAL `gyro_filtered`, the RISI rate through a 10 Hz 1-pole
+   low-pass (`AP_DAL_InertialSensor.cpp:53-63`, `AP_NavEKF3_VehicleStatus.cpp:470-476`). The events path now
+   reproduces that filter for `GroundProximityFlow.on_gyro` only (bag path untouched). Untested end to end (§6).

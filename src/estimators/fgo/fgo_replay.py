@@ -138,6 +138,7 @@ if not EVENTS:
 else:                           # arming time from the log's ARM record (FC clock); the log's range window
     gp = GroundProximityFlow(EV_META["t_arm"], rng_min=GEOM["rng_min"], rng_max=GEOM["rng_max"])
 step_ns = []; n_kf = 0
+_gf = None                      # events mode only: EKF3-style 10 Hz filtered gyro for take-off detection
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
 _dump_flow_om = {}; _dump_fwd_gz = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
 for _ei, (tt, kind, d) in enumerate(ev):
@@ -159,7 +160,13 @@ for _ei, (tt, kind, d) in enumerate(ev):
     elif kind == "imu":
         if EVENTS:
             omega = d[1]                            # no /attitude/angular_rates in a log: latest IMU gyro as the fallback
-        gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
+            # EKF3's take-off check uses DAL gyro_filtered = the RISI rate through a 10 Hz 1-pole low-pass
+            # (AP_DAL_InertialSensor.cpp:53-63, AP_NavEKF3_VehicleStatus.cpp:470-476), not the raw frame rate
+            _a = d[2] / (d[2] + 1.0 / (2 * np.pi * 10.0))
+            _gf = d[1] if _gf is None else _gf + (d[1] - _gf) * _a
+            gp.on_gyro(tt, _gf, fgo.prev_bias.gyroscope())
+        else:
+            gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
         gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
         fwd_avg.push(tt, d[1])
         if t_prev_imu is not None:
