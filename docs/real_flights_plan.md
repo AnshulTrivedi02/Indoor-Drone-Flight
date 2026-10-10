@@ -206,6 +206,7 @@ camera flown only once verified.
       "no heartbeat → LAND" failsafe as the second layer.
   - Tested before the first flight of each stage, by not starting the watcher (must refuse to arm) and by killing it
     in a tethered hover (must land).
+    The full bench procedure is §7.2 (B0–B10).
   - Verified in SITL on 2026-10-08 (METHODOLOGY "fail-closed safety watcher").
 - **Safety pilot:** RC override to a mode that needs no estimator position (STABILIZE or ALT_HOLD; ALT_HOLD needs only
   height and attitude), on a dedicated switch. Rehearsed before every session.
@@ -233,6 +234,119 @@ camera flown only once verified.
     and the FGO (one flag, one source).
   - **Threshold calibration:** on the simulation calibration flights only (`p1c_*`; never the datasets), recorded
     and pre-registered.
+
+  **7.1 Flow-validity rule: PRE-REGISTERED (pending user confirmation), 2026-10-10.**
+  Details: `docs/handovers/2026-10-10_flow_rule_watcher_bench.md`. The calibration criterion was written down and
+  committed (`b9706ce`) before any p1c number was read.
+  - **Rule:** `valid = (feature_count >= N_min) AND (inlier_ratio >= r_min)`, with **N_min = 20** (today's value,
+    unchanged) and **r_min = 0.85**.
+    - `feature_count` is the post-RANSAC inlier count, because `tracked_count` is overwritten by the RANSAC
+      survivors. `inlier_ratio` = survivors / tracked before RANSAC.
+    - Today the rule is `valid = feature_count >= 20` alone (`flow_tracker.py:313`). In all six p1c bags the
+      published flag equals that rule exactly (0 mismatches).
+  - **Calibration data:** `p1c_fwdc_{tex,trans,blank}` and `p1c_fwdplainc_{tex,trans,blank}` only
+    (`p1c_fwdplainc_blank_ABORTED` excluded; no dataset bag used). Each bag was decompressed to a scratch copy, which
+    was deleted afterwards. Only `/optical_flow/measurement`, `/ground_truth/pose` and `/imu/data_raw` were read.
+  - **Population:** frames valid under today's rule, airborne (GT z ≥ 0.30 m), over a textured floor. That means the
+    whole flight on the `_tex` worlds, and GT y < 78 m on the `_trans` worlds. GT is interpolated to each flow stamp.
+  - **Criterion (fixed before the data):** r_min is the LARGEST value on a 0.05 grid that keeps ≥ 99% of the pooled
+    textured-floor frames valid (`inlier_ratio >= r_min`).
+  - **Result:** 28,347 pooled textured-floor frames.
+
+    | r_min | 0.80 | **0.85** | 0.90 | 0.95 | 1.00 |
+    |---|---|---|---|---|---|
+    | textured frames kept | 99.89% | **99.11%** | 94.57% | 83.29% | 78.14% |
+
+    - The 1st percentile of the textured inlier ratio is 0.855, and the median is 1.00.
+    - Per flight, the textured frames kept at 0.85 are:
+
+      | flight | kept | rejected / frames |
+      |---|---|---|
+      | `fwdc_tex` | 99.05% | 90 / 9,464 |
+      | `fwdc_trans` (textured half) | 98.94% | 50 / 4,731 |
+      | `fwdplainc_tex` | 99.26% | 70 / 9,443 |
+      | `fwdplainc_trans` (textured half) | 99.13% | 41 / 4,709 |
+  - **Effect on the blank floor (reported, not used for the choice):** today's count rule already invalidates almost
+    every blank-floor frame. Only 16 of about 28,400 airborne blank-floor frames are valid today, pooled over the two
+    `_blank` flights and the y > 82 m part of the two `_trans` flights. The new rule rejects all 16 (inlier ratio
+    0.21–0.33). **In these simulated worlds the new rule changes almost nothing on the blank floor.** It acts on
+    the textured floor and in the climb.
+  - **Climb (z 0.3 m up to the first z > 1.9 m), where both D22 episodes happened:**
+    - 177 frames are valid today across the six flights, and the new rule rejects 39 of them;
+    - the lowest inlier ratio among the climb frames valid today is 0.45, with feature counts ≥ 21.
+  - **Truth-residual diagnostic (reported, not used for the choice):**
+    - A per-axis linear truth model was fitted on the textured frames: flow ≈ GT body velocity / camera height, plus
+      gyro terms. Residual RMS is 0.027 rad/s (x) and 0.025 rad/s (y).
+    - All six flights have 23 currently valid airborne frames with a gross error (|residual| > 0.5 rad/s). The rule
+      removes 19 of them, at a cost of about 0.9% of the good textured frames.
+    - The rejected and accepted frames have about the same median residual (≈ 0.002–0.004 rad/s). Most rejected
+      frames are therefore good frames: the rule removes most of the gross errors and about 0.9% of the good frames
+      with them.
+  - **Check on the D22 frames (looked at only AFTER r_min was fixed and committed):** see 7.1a below.
+  - **Implementation (specified here, NOT implemented; real-flight pipeline only):**
+    - **`flow_tracker.py`:**
+      - add a parameter `min_inlier_ratio` (default 0.85) next to `min_valid_features` (20);
+      - set `out.valid = tracked_count >= min_valid and inlier_ratio >= min_inlier`.
+      - **Edge case:** if `estimateAffinePartial2D` returns no mask with ≥ 4 points, the ratio currently reads 1.0
+        (no RANSAC applied). That frame is to be published INVALID, with `inlier_ratio = 0`.
+      - `run_trial.sh` / the real-flight recorder writes both thresholds into `metadata.yaml`, as it does
+        `flow_ransac_seed`.
+    - **`flow_bridge.py`: no change in logic.** It already drops every `valid == False` message (`flow_bridge.py:123`)
+      and sends `quality = round(inlier_ratio·255)`, so every sent message has quality ≥ 217.
+      - EKF3 only checks `quality > 0` (`AP_NavEKF3_Measurements.cpp:203`).
+      - The onboard UKF port does the same (`~/ardupilot_ukf` `AP_NavUKF.cpp:589`).
+      - No second threshold is added anywhere: the one flag computed in the tracker is the only source.
+    - **UKF / FGO on the Pi: no change.** They consume `msg.valid` and require `inlier_ratio > 0`
+      (`ukf_core.py:291`, `fgo_cpp/src/replay_common.cpp:250`, `fgo_cpp_node.cpp:96`).
+    - **Simulation pipeline unchanged before the freeze** (ruling 2026-10-09). Every thesis dataset stays under the
+      count-only rule.
+  - **Real-camera check (stage 0, before stage 1):**
+    - On the hand-carried mocap runs over the flight floor, report the fraction of frames valid under the count rule
+      that have `inlier_ratio >= 0.85`.
+    - If it is < 99%, STOP and report: the real camera's inlier statistics differ from the simulation's, and the
+      threshold is not silently re-tuned. Any change is a new ruling.
+
+  **7.1a Check on the two D22 flights (read only AFTER r_min = 0.85 was committed in `eaa2011`; a check, not a
+  calibration input).**
+  - **Bags:** `cl_ukf_b_tex_r3_half` and `cl_fgo_b_tex_r3_half_v3`, the flow and GT topics only. The per-frame
+    values below are the frames flagged VALID today.
+  - **Correction to the bin means quoted in METHODOLOGY:** the "mean flow_x −1.37 / −2.27 rad/s" figures average
+    every message in the 0.5 s bin. They include one INVALID frame per flight at lift-off (feature_count 3,
+    flow_x −22.9 / −22.6 rad/s), which `flow_bridge` drops and the UKF and FGO ignore. The valid frames themselves
+    carried:
+
+    | phase (GT z) | UKF flight: valid frames | FGO flight: valid frames | rejected by the rule? |
+    |---|---|---|---|
+    | lift-off, z 0.29–0.37 m | 5 frames, flow_x +1.17…−1.25 (alternating sign), inlier ratio 0.53–0.71 | 6 frames, flow_x −4.35, −2.22, −1.29, −0.82, −0.56, −0.43; inlier ratio 0.48, 0.846, 0.92–1.00 | UKF: **all 5**. FGO: **2 of 6** (the two largest, −4.35 and −2.22); the other four (−1.29…−0.43) are KEPT |
+    | climb, z 1.07–1.6 m | 12 frames, flow_x +0.65 decaying to +0.35, inlier ratio 0.86–1.00 | 14 frames, flow_x +0.24…+0.65, inlier ratio 0.64–1.00 | UKF: **0 of 12**. FGO: 3 of 14 (inlier 0.64, 0.83, 0.75); 11 are KEPT |
+
+  - **Truth residual of the climb plateau:** the per-axis truth model (fitted on p1c) predicts ≈ 0 to +0.17 rad/s
+    there, so the plateau is up to ~0.6 rad/s in excess of truth.
+    - It starts before any roll: ωx = 0.00 at the first frame, and GT lateral velocity is 0.
+    - The vehicle's roll rate then rises (to ωx ≈ +0.2 rad/s), and GT east velocity begins to grow 0.1–0.3 s after
+      the plateau starts. The lift-off frames come about 1 s earlier.
+    - **Direction agrees.** In the truth fit, flow_x rises with body-left velocity. With the vehicle heading north,
+      a plateau of flow_x ≈ +0.6 therefore reads to the estimator as a WESTWARD drift, and the controller's
+      correction pushes the vehicle EAST, as observed in both flights (the UKF flight's logged VE −0.083 against a
+      true +0.091). The FGO flight's lift-off frames are all negative (mean −1.6 rad/s); they would have pushed it
+      WEST, the opposite of what happened. The sign of the lateral coefficient is only weakly identified from p1c
+      (fit coefficient 2.2, against the ≈ 1 expected).
+    - **The timing and the direction therefore both point to the high-inlier climb plateau, not the lift-off frames,
+      as the more likely driver of the B4 bursts.** This cannot be confirmed without a replay, which this stage did not run.
+  - **Conclusion, plainly:** the pre-registered rule removes the low-inlier lift-off frames (all of the UKF
+    flight's, and the two largest of the FGO flight's). **It does NOT remove the climb plateau, so on this evidence
+    it is NOT a sufficient fix for D22.** r_min is not moved: the criterion was fixed before the data.
+  - **Not pre-registered, offered for a user ruling:** the plateau has a high inlier ratio because RANSAC fits a
+    similarity transform (`estimateAffinePartial2D`), and expansion during a fast climb is consistent with one. A
+    plausible mechanism is image expansion acting on an off-centre feature set, so the MEDIAN feature displacement is
+    biased. This is NOT verified (no images were inspected). Candidate fixes, all requiring a ruling:
+    - (a) take the flow as the fitted transform's translation at the principal point, not the median displacement;
+    - (b) reject frames whose fitted scale departs from 1 by more than a threshold (vertical motion);
+    - (c) reject frames during the climb/descent phases on the rangefinder rate (|ż|/h above a threshold);
+    - (d) require N consecutive valid frames after a re-detection (the plateau starts at a feature re-detection,
+      feature count 30 → 52).
+    - In p1c, the full-speed climbs show this plateau weakly or not at all: `p1c_fwdplainc_trans` has 2 frames
+      (+0.57, +0.44), and `p1c_fwdc_tex` none.
 - **FGO initial yaw σ (ruling 2026-10-10):** every SITL FGO flight so far (S3, the half-speed `_v3` corridor set, the
   FGO safety tests) flew the C++ node with an initial yaw σ of 1e-3 rad. **Before any real FGO flight:** the corrected
   node (initial yaw σ 1°, the same as the UKF) must pass its C++ equivalence checks and the SITL safety tests (a)/(b).
@@ -266,6 +380,219 @@ camera flown only once verified.
   3. Tethered hover with EKF3.
   4. Shadow flights.
   5. Only then any route-1 flight.
+
+### 7.2 Mocap watcher bench tests: PRE-REGISTERED (pending user confirmation), 2026-10-10
+
+**Purpose:** prove on the real system, with the props off, that every path of the fail-closed rule (§7) acts. These
+tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10), and in full after
+any change to the watcher, the flight script, the FC firmware or its failsafe parameters.
+
+**What the bench can and cannot show:** the vehicle is on the ground, so these tests verify detection and the command
+paths. On a landed, armed vehicle, ArduCopter's response to a failsafe is an immediate disarm
+(`should_disarm_on_failsafe()` → `land_complete`, `events.cpp:463`), and LAND disarms on touchdown. "LAND or disarm"
+is therefore the bench pass signal. The in-air landing behaviour is covered by the SITL tests (`H_safety_*`) and by
+repeating B2 in the first tethered hover (§7).
+
+#### 7.2.0 Not yet implemented for real hardware (each gates the test that needs it)
+
+The SITL watcher (`sim/tools/wall_watch.py`) and the flight-script side (`fly_trial.py`: `watch_ok`,
+`require_watcher_before_arming`, `check_watcher_in_flight`, `WatcherLost`) are verified in SITL only (METHODOLOGY
+"fail-closed safety watcher"). Against the real system they lack the following:
+
+| # | gap | needed for |
+|---|---|---|
+| G1 | **No mocap input.** The watcher reads Gazebo `/ground_truth/pose`. It needs the mocap rigid-body stream (e.g. VRPN or NatNet to ROS 2) in the mocap frame, aligned to the box definition. | all |
+| G2 | **No stale-pose check.** The box and tilt rules are evaluated only when a pose ARRIVES, and the `box=1` flag is static, so a stopped mocap stream triggers nothing. §7 requires it to. | B5 |
+| G3 | **No rigid-body identity check** (wrong body, or a swapped or renamed asset). | B6 |
+| G4 | **The breach action stops the simulation** (SIGTERM to `fly_trial`/`run_trial`). On hardware it must command LAND over MAVLink (`SET_MODE`/`MAV_CMD_DO_SET_MODE` LAND), one-shot and latched, and alert the safety pilot (audible). | B4, B5, B9 |
+| G5 | **No FC-side layer: the watcher sends no MAVLink HEARTBEAT, and no GCS-failsafe parameters are set.** The native mechanism needs no Lua: `FS_GCS_ENABLE` 5 (Land), `FS_GCS_TIMEOUT` 3 s (range 2–120; the default is 5), and `MAV_GCS_SYSID` set to the watcher's own system ID (`GCS.cpp:22`, `Parameters.cpp:101,838`). Verify the names on the real FC firmware. | B2b, B3 |
+| G6 | **The FC will arm without a watcher.** `failsafe_gcs_check()` returns early if the GCS has never been seen (`events.cpp:133-136`). Without the flight script, nothing on the FC enforces "no watcher, no arming". Options: (i) procedure only (arm ONLY via the flight script; stick arming disabled with `ARMING_RUDDER` 0); (ii) a Lua arming-auth check that fails until the watcher's heartbeat is seen. Neither is implemented. | B1c |
+| G7 | **Dependency liveness uses `pgrep`, which is local only.** The flow tracker, the bridges and the estimator node run on the Pi. A networked liveness signal is needed, such as topic rates seen over ROS 2 or a per-process MAVLink/ROS heartbeat. `pgrep` also misses a process that is alive but hung (SIGSTOP). | B9 |
+| G8 | **`--dep-loss stop` has no hardware meaning.** In SITL it stops the simulation. On hardware both settings must end in LAND. Pre-registered: `stop` maps to LAND plus an alert (or the option is removed). | B9 |
+| G9 | **The `watch_heartbeat` file is local.** That is valid only if the watcher and the flight script run on the same ground-station machine, which is pre-registered as a requirement. | B1, B2 |
+| G10 | **The `--box` rule is x/y only.** It has no height limit (capture-volume top or ceiling). Add z_max, and z_min only for "below the floor" sanity. | B4 |
+| G11 | **Heartbeat masking.** `handle_heartbeat` refreshes the GCS-failsafe timer for ANY HEARTBEAT, RC_OVERRIDE or MANUAL_CONTROL from a system ID in the GCS range (`GCS_Common.cpp:4231,4350,7671`; `sysid_is_gcs`). MAVProxy and pymavlink default to system ID 255 = the default `MAV_GCS_SYSID`. The watcher must therefore use a unique ID, and no other process may use it. Otherwise killing the watcher would not trip the FC. | B2b, B3 |
+
+**Pre-registered settings for the tests:**
+- stale-pose limit 0.5 s with no new mocap frame;
+- watcher tick 1 s (as SITL);
+- flight-script stale limit 3 s (`WATCH_STALE_S`, as SITL);
+- `FS_GCS_TIMEOUT` 3 s;
+- `FS_OPTIONS` keeps bit 4 (16, the default: "continue in pilot-controlled modes on GCS failsafe"), so the RC
+  override wins (B10);
+- `FS_EKF_ACTION` 1;
+- for the bench session only, `DISARM_DELAY` 0, so an armed, landed vehicle in GUIDED does not auto-disarm during a
+  test. It is restored and read back before any flight; the readback is recorded.
+
+**Common setup (every test):**
+- **Props physically removed,** checked by two people.
+- The vehicle is on the bench inside the capture volume with mocap tracking. The ground station runs the watcher, the
+  flight script and MAVProxy; the Pi runs the flow tracker, the bridges and the estimator node. The safety pilot holds
+  the transmitter.
+- **Logging:** dataflash with `LOG_DISARMED` 1 and `LOG_REPLAY` 1; the watcher's `STOP_LOG.txt`, track CSV and
+  heartbeat log; the flight-script log; the MAVProxy tlog; the mocap recording.
+- A parameter snapshot is taken before and after the session.
+- All times are on the D24/D25 clocks: the FC `SYSTEM_TIME` map, and mocap ↔ FC via `eval/mocap_align.py`.
+
+#### 7.2.1 Tests
+
+Each test is given as setup / action / pass / recorded.
+
+**B0. Control: everything up, so arming succeeds.**
+- *Setup:* common. Watcher running with both checks active.
+- *Action:* the flight script requests arming (GUIDED).
+- *Pass:* the script logs "Safety watcher confirmed before arming", and the FC arms within 60 s. No other pre-arm
+  failure occurs; one would invalidate B1.
+- *Recorded:* the script log, the FC ARM event, and the watcher heartbeat (file and MAVLink, with its system ID).
+
+**B1. No watcher → arming refused.**
+- (a) Watcher not started; the flight script requests arming.
+  - *Pass:* "REFUSING TO ARM: no watcher heartbeat", and no ARM event in the dataflash.
+- (b) Watcher running, but a watched dependency is stopped (e.g. the flow tracker).
+  - *Pass:* "REFUSING TO ARM: watcher not confirming (… bridge=0)".
+- (c) Watcher not started; the safety pilot attempts to arm from the transmitter (with `ARMING_RUDDER` as configured
+  for flight).
+  - *Pass (G6):* the FC REFUSES. If it arms, the result is recorded as a FAIL of the FC side. Until G6(ii) exists, the
+    rule "arm only via the flight script, with stick arming disabled" stands, and B1(c) is re-run with
+    `ARMING_RUDDER` 0 to confirm that stick arming is impossible.
+- *Recorded:* the script log, the dataflash ARM/ERR events, and the STATUSTEXT.
+
+**B2. Watcher killed while armed → LAND/disarm.**
+- (a) Both layers: armed (props off, GUIDED, landed); SIGKILL the watcher.
+  - *Pass:* LAND or failsafe disarm within **4.0 s** of the kill (the 3 s stale limit plus the 1 s cadence; SITL
+    measured ≤ 4 s). The layer that acted first is reported.
+- (b) FC layer alone (G5): armed; SIGKILL the flight script first (the vehicle stays armed), then SIGKILL the watcher
+  with every other process left running.
+  - *Pass:* the FC's GCS failsafe acts within **3.5 s** of the kill (`FS_GCS_TIMEOUT` 3 s plus the check cadence).
+  - This also proves that no other process refreshes the GCS timer (G11).
+- *Recorded:* the kill time (ground-station clock), the dataflash FAILSAFE_GCS ERR and MODE/DISARM events with their
+  reasons, and the STATUSTEXT.
+
+**B3. Heartbeat loss with the watcher process alive.**
+- (a) Link cut: armed; drop the watcher's MAVLink output (unplug its telemetry link, or block its UDP port), with the
+  watcher still running.
+  - *Pass:* FC GCS failsafe within **3.5 s**.
+- (b) Watcher hung: armed; SIGSTOP the watcher (no file heartbeat and no MAVLink heartbeat), then SIGCONT after the
+  test.
+  - *Pass:* LAND/disarm within **4.0 s**, and no automatic re-arm or mode change after SIGCONT.
+- *Recorded:* as B2.
+
+**B4. Geofence breach, hand-carried → the configured action.**
+- (a) Disarmed, props off: carry the vehicle out of the box through each side face and the top face (G10).
+  - *Pass:* on each face, the watcher logs BREACH within **0.1 s** of the first mocap pose outside (on its own track).
+  - It withdraws the confirmation: an arming attempt is then refused.
+  - It sends ONE LAND command; the FC mode becomes LAND if accepted while disarmed, otherwise the command and its
+    ACK are recorded.
+- (b) Armed, props off, GUIDED: carry it out of one face.
+  - *Pass:* LAND/disarm within **1.0 s** of the crossing.
+- (c) Disarmed: tilt the vehicle past 60°.
+  - *Pass:* BREACH ("tilt").
+- (d) Box geometry check: place the vehicle at each planned hold point and laps corner.
+  - *Pass:* ≥ 2 m clearance to every box face (§7 "attitude-only landing drifts").
+- *Recorded:* the mocap log, the watcher track, BREACH.txt, the LAND command time, the FC MODE/DISARM events, and
+  the measured box corners.
+
+**B5. Mocap dropout / stale pose (G2).**
+- (a) Armed: stop the mocap stream (disable streaming, or the rigid body, in the mocap software).
+  - *Pass:* the watcher declares the pose stale within **0.5 s** of the last frame and acts (LAND command, MAVLink
+    heartbeat stopped, confirmation withdrawn). LAND/disarm within **1.0 s** of the last frame.
+- (b) Armed: occlude the markers until the mocap reports the body untracked.
+  - Some systems keep sending the last pose, or a pose with a "not tracked" flag.
+  - *Pass:* treated as stale, as in (a). Frozen identical poses for 0.5 s count as stale only if the mocap gives no
+    tracking flag (state which applies).
+- (c) Disarmed: restore the stream.
+  - *Pass:* the confirmation returns only after ≥ 2 s of continuous fresh poses. No automatic action follows.
+- *Recorded:* the mocap frame times, the watcher stale-detection log, the commands and the FC events.
+
+**B6. Wrong body / rigid-body ID (G3).**
+- *Setup:* watcher started with a different rigid body (a second tracked object, or a renamed asset), disarmed.
+- *Action:* move the real vehicle by hand (roll/pitch about 10°, yaw 90°).
+- *Pass:* the watcher withholds the confirmation (arming refused), because its identity check fails:
+  - the mocap roll/pitch must agree with the FC `ATTITUDE` within 5°;
+  - a hand yaw of 90° must appear in the mocap yaw within 10° and within 1 s;
+  - with the correct body configured, the same check passes.
+- *Recorded:* both runs' check values and the script log.
+
+**B7. Clock and latency.**
+- (a) mocap → watcher: the mocap frame stamp against the watcher receipt time (mocap PC and ground station synced by
+  chrony/PTP; the sync offset reported).
+  - *Pass:* median ≤ 50 ms, p99 ≤ 100 ms.
+- (b) watcher command → FC: the LAND command send time against the FC MODE event (via the `SYSTEM_TIME` map) and
+  against the received STATUSTEXT/HEARTBEAT mode.
+  - *Pass:* p99 ≤ 0.3 s over ≥ 10 commands (issued disarmed, or in B4/B5).
+- (c) mocap ↔ FC: hand-rotate the vehicle sharply 5 times and align with `eval/mocap_align.py` (|ω| from mocap
+  against the FC gyro).
+  - *Pass:* the residual offset scatter ≤ 10 ms. The fitted offset and rate are recorded and used for scoring.
+- *Recorded:* the latency distributions, the sync offset, and the mocap_align output.
+
+**B8. Estimator invalid → FS_EKF_ACTION path (the open item in §7).** Per flying estimator, armed (props off,
+GUIDED).
+- **Isolation from the watcher (required, or the test measures the watcher instead):** on a landed vehicle, any LAND
+  disarms at once, and `thesis_nav_check` returns when disarmed. So for B8:
+  - the processes killed are NOT in the watcher's `--watch-process` list;
+  - the watcher's heartbeat (file and MAVLink) stays up throughout;
+  - the watcher, the flight script and the GCS failsafe must therefore not act.
+  - If any of them acts first, the run is void and repeated.
+- **Precondition, with a fixed fallback order (not left open):**
+  - EKF3 zeroes the flow before take-off below 0.5 m (`AP_NavEKF3_OptFlowFusion.cpp:45-48`), and the UKF port has
+    its own ground-proximity rule (`AP_NavUKF.cpp:593`). The estimator under test may therefore not report a relative
+    position (`HORIZ_POS_REL`) while landed. The thin-backend trigger needs it to have done so since arming.
+  - Check `HORIZ_POS_REL` (EKF_STATUS_REPORT / the dataflash) in this order, using the first that works:
+    1. on the bench, landed;
+    2. hand-held, armed, props off, camera ≥ 0.6 m above the floor, marker in view;
+    3. otherwise B8(b)/(c) move to the FIRST TETHERED HOVER of that estimator's stage, before any free flight, with
+       the safety pilot ready.
+  - The level used is recorded. On the bench a failsafe disarms rather than lands (`should_disarm_on_failsafe`).
+- (a) **EKF3** (`AHRS_EKF_TYPE` 3): stop the flow bridge and the tag/ExtNav bridge.
+  - *Expected from SITL `H_safety_ekf3_ref`:* EKF3 raises NO failsafe; it keeps a dead-reckoned position.
+  - *Pass:* recorded as report-only. The protection is the watcher's dependency loss (B9).
+- (b) **UKF port** (`AHRS_EKF_TYPE` 12): kill EVERY aiding input, as in SITL UKF (b) (`H_safety_ukf_b`: tag bridge and
+  flow bridge): the Pi flow bridge, the tag bridge, and the heading bridge if it is running. Killing the flow bridge
+  alone would leave the ExtNav fixes from the marker in view keeping the position alive.
+  - *Pass:* "Thesis nav: UKF position lost" (`ekf_check.cpp:355`, `thesis_nav_check`) and LAND/disarm (reason
+    EKF_FAILSAFE) within **5.5 s of the LAST aiding message received by the FC**. That is the later of the last `OF`
+    row and the last ExtNav (`VISP`) row in the dataflash; the UKF's aiding timeout is 5 s.
+  - The kill → last-received drain is reported separately (SITL: 0.08–0.71 s; METHODOLOGY UKF (b) re-test).
+- (c) **FGO port** (`AHRS_EKF_TYPE` 13): kill the FGO node.
+  - *Pass:* "Thesis nav: FGO position lost" and LAND/disarm within **0.75 s** of the last state received (as SITL
+    `H_safety_fgo_a_v3`/`_b_v3`).
+- (d) For (b) and (c), the attitude stays valid through the event: `ATT` continues with no freeze, and agrees with
+  the mocap attitude within the SITL S-A1 bound.
+- (e) Repeat (b)/(c) in ALT_HOLD: NO mode change is expected (`FS_EKF_ACTION` 1 acts only in modes that need a
+  position, `ekf_check.cpp:190`). This is part of B10.
+- *Recorded:* the HORIZ_POS_REL level used, the dataflash STATUSTEXT, ERR (EKFCHECK, FAILSAFE_EKFINAV), MODE/DISARM
+  events, the `OF`/`VISP`/ODOMETRY arrival times, and `ATT` against mocap.
+
+**B9. Dependency loss (`--dep-loss land|stop`; G7, G8).** Armed. For each watched dependency in turn (flow tracker,
+flow bridge, tag/heading bridge, Pi estimator node, and the flight script, if it is added as a dependency):
+- (a) SIGKILL it with `--dep-loss land`.
+  - *Pass:* the watcher withdraws its confirmation within **1.5 s** (1 s tick), and stops its MAVLink heartbeat.
+  - LAND/disarm within **2.5 s** of the kill. SITL measured LAND at +1.25 s (`H_safety_ekf3_ref`).
+- (b) The same with `--dep-loss stop`.
+  - *Pass:* the same LAND/disarm. On hardware `stop` must not mean "stop the processes" (G8).
+- (c) SIGSTOP it (alive but silent).
+  - *Pass:* detected by the networked liveness check (G7) and handled as (a). A `pgrep`-only watcher FAILS this case
+    by design, which is why G7 is required.
+- (d) Disarmed, with a dependency down.
+  - *Pass:* arming refused (as B1b).
+- *Recorded:* the kill time, the watcher detection time, the commands and the FC events, per dependency.
+
+**B10. RC override takes precedence.** Armed, GUIDED:
+- (a) The safety pilot switches to ALT_HOLD (and, separately, STABILIZE).
+  - *Pass:* the FC mode changes within **0.3 s**, and the flight script's GUIDED commands have no effect afterwards.
+- (b) In ALT_HOLD, trigger each automatic path in turn: watcher kill (B2b), estimator invalid (B8e), dependency loss
+  (B9a).
+  - *Pass:*
+    - the GCS failsafe and the EKF failsafe make NO mode change (`FS_OPTIONS` bit 4; `FS_EKF_ACTION` 1);
+    - the watcher and the flight script send at most ONE LAND (latched);
+    - if that LAND is accepted, the pilot regains ALT_HOLD by toggling the mode switch within 1 s, and nothing
+      re-commands LAND afterwards.
+- (c) Transmitter off (RC failsafe).
+  - *Pass:* the configured `FS_THR_ENABLE` action, here disarm on the ground.
+- *Recorded:* the RC input (`RCIN`), the MODE events with their reasons, and the commands sent.
+
+**Pass rule for stage 0:** every test passes as worded, or a deviation is recorded and ruled on before stage 1. B1(c)
+and G6 may be closed by the procedure rule plus `ARMING_RUDDER` 0 only with an explicit ruling.
 
 ## 8. Tooling built now (no hardware), with self-test results
 
@@ -394,6 +721,8 @@ The measured cost: the Python GTSAM node needs 28 ms median / 59 ms p99 per 30 H
 - tag validity rule and σ re-measured against mocap;
 - hand-carried P-HOLD and laps paths, with every estimator scored against mocap;
 - rollback rehearsed.
+- the mocap watcher bench tests B0–B10 (§7.2, PRE-REGISTERED pending confirmation), with gaps G1–G11 closed first;
+- the flow-validity real-camera check (§7.1: ≥ 99% of count-valid frames over the flight floor keep `inlier_ratio >= 0.85`).
 
 **Stage 1: open loop (route 3). EKF3 flies P-HOLD, then P-LAPS; the UKF and FGO run alongside on the Pi with
 identical data.** Safety:
