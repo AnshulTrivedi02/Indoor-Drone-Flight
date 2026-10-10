@@ -13047,3 +13047,26 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   needed on the source of the calibration images.
 
 ### DRAFT (2026-10-10): `p1c_img_*` calibration flight specification + acceptance bands — `docs/p1c_img_calibration_spec.md`, AWAITING USER SIGN-OFF (nothing flies before it)
+
+### Real-flight costing by rung (`docs/minimal_real_flight_plan.md`, `docs/real_flight_readiness_by_rung.md`, 2026-10-10; planning only)
+- **Firmware:** `7bac20cbcc` is a master commit; the nearest stable release is Copter-4.7.0.
+  - EKF3 differs: ~20 commits only on the pinned side (incl. flow-fusion and zero-velocity changes); 4 only on 4.7.0.
+  - The replay log format is identical.
+  - **Recommended:** the pinned commit, built from a clean checkout. The fork's Replay then runs the same EKF3 and the
+    UKF port in one pass. EKF3 Replay already reproduced 16 SITL logs to ≤ 1 mm (D8).
+- **Correction:** "SITL logs have LOG_REPLAY=0" holds only for the old datasets; e.g. `cl_a_tex_half` has full replay
+  records.
+- **Rung 1:** 7.5–10 d of software (agents can start now) plus 5–8 d of hardware work, i.e. 12.5–18 person-days,
+  against 10 working days to 23 Oct.
+  - **FITS ONLY IF:** the supervisor provides an H7 vehicle that already flies with its flow sensor and rangefinder by
+    ~16 Oct; mocap time ~19–21 Oct; the firmware decided by Mon 12 Oct.
+  - It does not fit if the vehicle needs assembly or tuning (+3–6 d).
+- **Rung 2: does NOT fit** (~24–37 d; 13–19.5 d of that is software that can start now). **Rung 3: does NOT fit**
+  (+17–27 d).
+- **The rung-1 claim:** a sim-to-real check of EKF3/UKF/FGO, all OFFLINE on the same real logs, against mocap.
+- **Limits:**
+  - dedicated flow sensor, not the camera pipeline; no degraded sensing without a plain floor;
+  - no closed loop; EKF3 counts as "onboard" only if Replay reproduces the log;
+  - n = 3–5 flights; short flights; no-compass yaw;
+  - flow timing follows EKF3's rule; derotation uses the sensor driver's rate;
+  - the mocap–FC time sync is validated on synthetic data only.
