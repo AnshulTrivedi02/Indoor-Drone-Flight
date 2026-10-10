@@ -1,0 +1,218 @@
+{
+ "prereg": {
+  "path": "/home/makerspace/thesis_ws/.claude/worktrees/agent-a1325f77ec99bdd6a/eval/real_score_prereg_example.json",
+  "sha256": "29d386714b06b6f3b0f90cfa521cbff240d6e138b1f3d78077cfd209eba40b3e",
+  "resolved": {
+   "window": {
+    "rule": "airborne",
+    "ground_percentile": 5.0,
+    "airborne_height_m": 0.3,
+    "hold_s": 1.0,
+    "start_after_takeoff_s": 25.0,
+    "end_before_landing_s": 5.0,
+    "min_duration_s": 20.0
+   },
+   "metrics": {
+    "primary": "evo_ape_a_se3",
+    "t_max_diff_s": 0.05,
+    "drift_init_segment_s": 10.0,
+    "drift_min_extent_m": 1.0,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
+   },
+   "name": "rung1_EXAMPLE_not_registered",
+   "status": "EXAMPLE ONLY. The rung-1 values are fixed in the R10 pre-registration, before any flight; this file only shows the schema real_score.py reads.",
+   "estimator_records": {
+    "EKF3": "XKF1 (core 0) from the Replay output log",
+    "UKF": "XUKO (current-time output, the counterpart of XKF1) from the Replay output log",
+    "FGO": "TUM from the dataflash-to-FGO converter, FC clock"
+   }
+  }
+ },
+ "mocap": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/e2e_cm/cl_ukf_a_tex_half_gt_fc_clock.tum",
+  "sha256": "8849ba5bf7c2cd6d93997179c0bc86d24647f13ba827dcb648377d8d08df7f33",
+  "n": 24720
+ },
+ "window_s": [
+  53.186287,
+  223.210271
+ ],
+ "window_info": {
+  "rule": "airborne",
+  "ground_level_m": 0.194999,
+  "takeoff_s": 28.186287,
+  "landing_s": 228.210271
+ },
+ "primary_metric": "evo_ape_a_se3",
+ "estimators": {
+  "FGO": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/e2e_cm/cl_ukf_a_tex_half_fgo_fc_clock.tum",
+   "sha256": "1a438206d36fc312eaa74c646568882943a2865e1e7e6e1db05a38f611512622",
+   "n": 5102,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.681639,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 5102,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.6816385647454362,
+    "rmse_h_m": 0.6816385542766134,
+    "rmse_v_m": 0.00011946508536200773,
+    "max_m": 1.8038774097219115,
+    "yaw_deg": -92.6519249616627
+   },
+   "drift_start_aligned": {
+    "rmse_m": 2.23705323677956,
+    "rmse_h_m": 2.237053228184917,
+    "rmse_v_m": 0.0001960952449362709,
+    "max_m": 5.936306202437016,
+    "final_m": 5.936306202437016,
+    "final_h_m": 5.936306199070444,
+    "mocap_path_length_h_m": 86.56773540839474,
+    "final_h_pct_of_path": 6.857411911106527,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.089737069946174,
+    "yaw_deg": -89.11523292984819
+   },
+   "coverage": {
+    "longest_gap_s": 0.033325000000019145,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.197856,
+    "last_s": 223.184435
+   }
+  },
+  "EKF3": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XKF1",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 1701,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.893094,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 1701,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.8930943586056969,
+    "rmse_h_m": 0.8930935806672584,
+    "rmse_v_m": 0.0011787893179624346,
+    "max_m": 2.276206258379643,
+    "yaw_deg": -5.790300650415872
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.4096213443612338,
+    "rmse_h_m": 3.4096210837995615,
+    "rmse_v_m": 0.0013329790738393153,
+    "max_m": 8.612890966803539,
+    "final_m": 8.612890966803539,
+    "final_h_m": 8.612890816851658,
+    "mocap_path_length_h_m": 86.57432604836876,
+    "final_h_pct_of_path": 9.94855081174951,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.057082144975477,
+    "yaw_deg": -0.4733029853478009
+   },
+   "coverage": {
+    "longest_gap_s": 0.10098300000001359,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.200674,
+    "last_s": 223.200169
+   }
+  },
+  "UKF": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XUKO",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 4251,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.983901,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 4251,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.9839581769632703,
+    "rmse_h_m": 0.983957458109124,
+    "rmse_v_m": 0.0011893882098700467,
+    "max_m": 2.368994259281089,
+    "yaw_deg": -5.663896750702603
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.493253651616495,
+    "rmse_h_m": 3.4932534491332734,
+    "rmse_v_m": 0.001189390796557905,
+    "max_m": 8.689315993129338,
+    "final_m": 8.689315993129338,
+    "final_h_m": 8.689315930655832,
+    "mocap_path_length_h_m": 86.5743175405739,
+    "final_h_pct_of_path": 10.036828677954636,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.087719691601815,
+    "yaw_deg": -0.31406724411093717
+   },
+   "coverage": {
+    "longest_gap_s": 0.040994000000011965,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.190674,
+    "last_s": 223.19017
+   }
+  },
+  "UKF_fused": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XUKF",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 4251,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.984042,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 4251,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.9840934660852149,
+    "rmse_h_m": 0.9840927842070835,
+    "rmse_v_m": 0.0011584744980307259,
+    "max_m": 2.3688580631510083,
+    "yaw_deg": -5.6657139243949635
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.4940883839436294,
+    "rmse_h_m": 3.4940881918500253,
+    "rmse_v_m": 0.0011586129744188556,
+    "max_m": 8.691154590042974,
+    "final_m": 8.691154590042974,
+    "final_h_m": 8.691154519257289,
+    "mocap_path_length_h_m": 86.57459500860688,
+    "final_h_pct_of_path": 10.038920214865863,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.087751673673246,
+    "yaw_deg": -0.31457975399713867
+   },
+   "coverage": {
+    "longest_gap_s": 0.040000000000020464,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.21,
+    "last_s": 223.21
+   }
+  }
+ },
+ "test_clock_alignment": {
+  "tool": "input_timing.clock_offset (SIM vs GT velocity)",
+  "windows_timeus_s": [
+   [
+    0.0,
+    70.0
+   ],
+   [
+    170.0,
+    1000000000.0
+   ]
+  ],
+  "timeus_minus_sim_early_ms": -6.000000000021207,
+  "timeus_minus_sim_late_ms": -50.75000000002024,
+  "rate_ppm": -275.04617341724133,
+  "fit_costs": [
+   0.0017898916438683298,
+   0.003675780499505584
+  ]
+ }
+}

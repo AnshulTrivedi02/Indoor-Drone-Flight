@@ -1,0 +1,80 @@
+{
+ "prereg": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/prereg_fixed.json",
+  "sha256": "35b6b84b63e752b2155057de71c582b1a3d1b8237f6efba25cd15968d077749f",
+  "resolved": {
+   "window": {
+    "rule": "fixed",
+    "ground_percentile": 5.0,
+    "airborne_height_m": 0.3,
+    "hold_s": 1.0,
+    "start_after_takeoff_s": 25.0,
+    "end_before_landing_s": 5.0,
+    "min_duration_s": 20.0,
+    "t0_s": 30.348,
+    "t1_s": 333.041
+   },
+   "metrics": {
+    "primary": "evo_ape_a_se3",
+    "t_max_diff_s": 0.05,
+    "drift_init_segment_s": 10.0,
+    "drift_min_extent_m": 1.0,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
+   },
+   "name": "regression_fixed_window_dsn_tex_r1"
+  }
+ },
+ "mocap": {
+  "path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/fgo/ground_truth.tum",
+  "sha256": "90d8450dccf842fa45b1827b302f647047f1217b24f515f5e550967e38e37555",
+  "n": 20769
+ },
+ "window_s": [
+  30.348,
+  333.041
+ ],
+ "window_info": {
+  "rule": "fixed"
+ },
+ "primary_metric": "evo_ape_a_se3",
+ "estimators": {
+  "FGO": {
+   "source": "/home/makerspace/thesis_data/trials/dsn_tex_r1/fgo/fgo_traj.tum",
+   "sha256": "f8881bedc4bc0c77bcb4cef92490de6fc1c344acce228768ad0c484116113433",
+   "n": 9081,
+   "evo_ape_a_se3": {
+    "rmse_m": 4.067897,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 9081,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 4.068584825376736,
+    "rmse_h_m": 4.068533448793786,
+    "rmse_v_m": 0.020446450351925813,
+    "max_m": 10.61462433950139,
+    "yaw_deg": -102.68391122832752
+   },
+   "drift_start_aligned": {
+    "rmse_m": 13.983561399934068,
+    "rmse_h_m": 13.983501477629872,
+    "rmse_v_m": 0.04093715731714841,
+    "max_m": 36.271258677564624,
+    "final_m": 36.271258677564624,
+    "final_h_m": 36.27123760243551,
+    "mocap_path_length_h_m": 151.2512592315809,
+    "final_h_pct_of_path": 23.98078388683072,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 4.947736703496628,
+    "yaw_deg": -90.03858875131885
+   },
+   "coverage": {
+    "longest_gap_s": 0.033334000000024844,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 30.350639,
+    "last_s": 333.017306
+   }
+  }
+ }
+}

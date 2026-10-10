@@ -1,0 +1,83 @@
+{
+ "trial": "cl_ukf_a_tex_half",
+ "windows_fc_s": [
+  [
+   24.210402,
+   49.210402
+  ],
+  [
+   208.450287,
+   236.450287
+  ]
+ ],
+ "gt_rate_hz": 111.1111111111069,
+ "risi_dadt_median_s": 0.0029980000108480453,
+ "base": {
+  "o1_ms": 6.235373874155652,
+  "rate_ppm": 160.74106092873214,
+  "t1_fc_s": 36.710402,
+  "late_offset_ms": 36.091400045836366,
+  "corr": [
+   0.9999381204259454,
+   0.9972485647908265
+  ],
+  "coarse": {
+   "rule": "xcorr",
+   "offset_s": -0.21899849987435438,
+   "peak_ratio": 4.443022082716517
+  }
+ },
+ "differential": {
+  "injected": {
+   "D_s": 1700000000.123456,
+   "k_ppm": 150.0
+  },
+  "offset_err_ms": -0.004291534423828125,
+  "rate_err_ppm": -0.06779763901329505,
+  "mapped_time_diff_ms_max": 0.01739826768698549
+ },
+ "absolute": {
+  "sim2_velocity": {
+   "early_ms": 7.385373874155808,
+   "late_ms": 33.09140004583658,
+   "rate_ppm": 138.39798690346322,
+   "r8_minus_ref_early_ms": -1.150000000000156,
+   "r8_minus_ref_late_ms": 2.9999999999997877,
+   "r8_minus_ref_rate_ppm": 22.343074025268905
+  },
+  "imu_time_ref_lower_envelope": {
+   "pi_minus_fc_at_start_s": 0.00030000064860998064,
+   "rate_ppm": 220.01302308100495,
+   "window_resid_max_ms": 3.9492390507649704,
+   "n_windows": 23,
+   "t0_fc_s": 7.840555,
+   "r8_minus_ref_early_ms": -0.4163690888104102,
+   "r8_minus_ref_late_ms": -11.425536522697898,
+   "r8_minus_ref_rate_ppm": -59.271962152272806,
+   "note": "includes the minimum bridge latency (>= 0): r8 - ref is expected <= 0 by that much"
+  }
+ },
+ "imu_path": {
+  "o1_ms": -8.977097414303792,
+  "rate_ppm": -2077.7489081163735,
+  "group_delay_ms_compensated": 11.253953951963828,
+  "imu_minus_risi_early_ms": -15.212471288459465,
+  "imu_minus_risi_late_ms": -430.98934071255115
+ },
+ "sim_selftest_risi": {
+  "truth": {
+   "offset_s": 3.4567,
+   "rate_ppm": 80.0,
+   "yaw_deg": 37.0,
+   "t_m": [
+    1.234,
+    -2.345,
+    0.111
+   ]
+  },
+  "offset_err_ms_early": -0.6509256464268809,
+  "rate_err_ppm": 4.841923952947795,
+  "yaw_err_deg": -0.09211167375109852,
+  "initial_segment_pos_resid_rms_m": 0.09765480062987886
+ }
+}

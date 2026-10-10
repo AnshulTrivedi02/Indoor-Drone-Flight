@@ -1,0 +1,198 @@
+{
+ "prereg": {
+  "path": "/home/makerspace/thesis_ws/.claude/worktrees/agent-a1325f77ec99bdd6a/eval/real_score_prereg_example.json",
+  "sha256": "29d386714b06b6f3b0f90cfa521cbff240d6e138b1f3d78077cfd209eba40b3e",
+  "resolved": {
+   "window": {
+    "rule": "airborne",
+    "ground_percentile": 5.0,
+    "airborne_height_m": 0.3,
+    "hold_s": 1.0,
+    "start_after_takeoff_s": 25.0,
+    "end_before_landing_s": 5.0,
+    "min_duration_s": 20.0
+   },
+   "metrics": {
+    "primary": "evo_ape_a_se3",
+    "t_max_diff_s": 0.05,
+    "drift_init_segment_s": 10.0,
+    "drift_min_extent_m": 1.0,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
+   },
+   "name": "rung1_EXAMPLE_not_registered",
+   "status": "EXAMPLE ONLY. The rung-1 values are fixed in the R10 pre-registration, before any flight; this file only shows the schema real_score.py reads.",
+   "estimator_records": {
+    "EKF3": "XKF1 (core 0) from the Replay output log",
+    "UKF": "XUKO (current-time output, the counterpart of XKF1) from the Replay output log",
+    "FGO": "TUM from the dataflash-to-FGO converter, FC clock"
+   }
+  }
+ },
+ "mocap": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/align_cl_ukf/mocap_fc_clock_est_frame.tum",
+  "sha256": "9a2adecef37fb156ce8a46c0675cddfa0a771e9a90782152c961be5721493351",
+  "n": 24720
+ },
+ "window_s": [
+  53.185135,
+  223.231979
+ ],
+ "window_info": {
+  "rule": "airborne",
+  "ground_level_m": 0.072975,
+  "takeoff_s": 28.185135,
+  "landing_s": 228.231979
+ },
+ "primary_metric": "evo_ape_a_se3",
+ "estimators": {
+  "FGO": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/cl_ukf_fgo_fc.tum",
+   "sha256": "e2b0b7e3370408fb72fc2f60aef52e9ceb6c497c7802b3d2e83e9cf9f15b0b7d",
+   "n": 5102,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.681639,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 5102,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.6816385652461846,
+    "rmse_h_m": 0.6816385547763926,
+    "rmse_v_m": 0.00011947061542724708,
+    "max_m": 1.8038775689834314,
+    "yaw_deg": -92.62310788497261
+   },
+   "drift_start_aligned": {
+    "rmse_m": 2.2370538512117784,
+    "rmse_h_m": 2.2370538426177156,
+    "rmse_v_m": 0.00019608865567848828,
+    "max_m": 5.936307574730901,
+    "final_m": 5.936307574730901,
+    "final_h_m": 5.936307571371846,
+    "mocap_path_length_h_m": 86.56773572128809,
+    "final_h_pct_of_path": 6.857413471555123,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.089736664450871,
+    "yaw_deg": -89.08641509065608
+   },
+   "coverage": {
+    "longest_gap_s": 0.033329000000009046,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.199563,
+    "last_s": 223.205569
+   }
+  },
+  "EKF3": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XKF1",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 1701,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.892878,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 1701,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.8928847540882917,
+    "rmse_h_m": 0.8928839859557798,
+    "rmse_v_m": 0.0011711989702668615,
+    "max_m": 2.275732395862621,
+    "yaw_deg": -5.760280694404257
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.4087183759487405,
+    "rmse_h_m": 3.4087181180182595,
+    "rmse_v_m": 0.0013260560598970814,
+    "max_m": 8.610709189052884,
+    "final_m": 8.610709189052884,
+    "final_h_m": 8.610709043297332,
+    "mocap_path_length_h_m": 86.56441487348906,
+    "final_h_pct_of_path": 9.947169464359678,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.056500949501167,
+    "yaw_deg": -0.4444256881566629
+   },
+   "coverage": {
+    "longest_gap_s": 0.10098300000001359,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.200674,
+    "last_s": 223.200169
+   }
+  },
+  "UKF": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XUKO",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 4252,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.983052,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 4252,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.9831018701476213,
+    "rmse_h_m": 0.9831011638468043,
+    "rmse_v_m": 0.0011784442325899166,
+    "max_m": 2.368844381581338,
+    "yaw_deg": -5.636027006626048
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.4932554156320688,
+    "rmse_h_m": 3.4932552168581714,
+    "rmse_v_m": 0.0011784464117173593,
+    "max_m": 8.691225991156253,
+    "final_m": 8.691225991156253,
+    "final_h_m": 8.691225925403224,
+    "mocap_path_length_h_m": 86.58480504672634,
+    "final_h_pct_of_path": 10.037818899878468,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.0871346825252175,
+    "yaw_deg": -0.28519274119149335
+   },
+   "coverage": {
+    "longest_gap_s": 0.040994000000011965,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.190674,
+    "last_s": 223.230164
+   }
+  },
+  "UKF_fused": {
+   "source": "/home/makerspace/thesis_data/trials/cl_ukf_a_tex_half/ardupilot.bin:XUKF",
+   "sha256": "10dc609df6d6109c016ef11705b536b5b02819843ee6066a7549e5aace5d6b3f",
+   "n": 4251,
+   "evo_ape_a_se3": {
+    "rmse_m": 0.982621,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 4251,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 0.9826808250688982,
+    "rmse_h_m": 0.9826801549204407,
+    "rmse_v_m": 0.0011476426399730619,
+    "max_m": 2.366892328932958,
+    "yaw_deg": -5.635693908972616
+   },
+   "drift_start_aligned": {
+    "rmse_m": 3.491958422149471,
+    "rmse_h_m": 3.491958233517664,
+    "rmse_v_m": 0.001147775595170446,
+    "max_m": 8.6874605804021,
+    "final_m": 8.6874605804021,
+    "final_h_m": 8.687460512218829,
+    "mocap_path_length_h_m": 86.5646826891939,
+    "final_h_pct_of_path": 10.035802410794613,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 5.087166925343978,
+    "yaw_deg": -0.285703297353955
+   },
+   "coverage": {
+    "longest_gap_s": 0.040000000000020464,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.21,
+    "last_s": 223.21
+   }
+  }
+ }
+}

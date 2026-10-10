@@ -1,0 +1,80 @@
+{
+ "prereg": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/prereg_fixed.json",
+  "sha256": "35b6b84b63e752b2155057de71c582b1a3d1b8237f6efba25cd15968d077749f",
+  "resolved": {
+   "window": {
+    "rule": "fixed",
+    "ground_percentile": 5.0,
+    "airborne_height_m": 0.3,
+    "hold_s": 1.0,
+    "start_after_takeoff_s": 25.0,
+    "end_before_landing_s": 5.0,
+    "min_duration_s": 20.0,
+    "t0_s": 30.348,
+    "t1_s": 333.041
+   },
+   "metrics": {
+    "primary": "evo_ape_a_se3",
+    "t_max_diff_s": 0.05,
+    "drift_init_segment_s": 10.0,
+    "drift_min_extent_m": 1.0,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
+   },
+   "name": "regression_fixed_window_dsn_tex_r1"
+  }
+ },
+ "mocap": {
+  "path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ukf/ground_truth.tum",
+  "sha256": "c5bfb9073340d107c9eedaf3e75ced19563a3c9b73517deed3c05a08769b92fe",
+  "n": 20769
+ },
+ "window_s": [
+  30.348,
+  333.041
+ ],
+ "window_info": {
+  "rule": "fixed"
+ },
+ "primary_metric": "evo_ape_a_se3",
+ "estimators": {
+  "UKF": {
+   "source": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ukf/ukf_traj.tum",
+   "sha256": "1fed141c47516a78d2b80c65e5e07ccc8e0e6d4170bc7263590cf680bb099c3a",
+   "n": 20176,
+   "evo_ape_a_se3": {
+    "rmse_m": 3.983563,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 20176,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 3.990556028106627,
+    "rmse_h_m": 3.99051181815604,
+    "rmse_v_m": 0.01878410538508657,
+    "max_m": 10.322148703626418,
+    "yaw_deg": -101.54383471434535
+   },
+   "drift_start_aligned": {
+    "rmse_m": 12.974875059701137,
+    "rmse_h_m": 12.974820408860746,
+    "rmse_v_m": 0.03765863334332322,
+    "max_m": 33.82965084659846,
+    "final_m": 33.82965084659846,
+    "final_h_m": 33.8296310834036,
+    "mocap_path_length_h_m": 151.2561508276466,
+    "final_h_pct_of_path": 22.365788695728344,
+    "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 4.9538225921290335,
+    "yaw_deg": -89.85235552553975
+   },
+   "coverage": {
+    "longest_gap_s": 0.015003000000035627,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 30.356155,
+    "last_s": 333.03852
+   }
+  }
+ }
+}
