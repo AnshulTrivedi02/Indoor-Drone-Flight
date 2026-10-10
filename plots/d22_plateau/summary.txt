@@ -1,0 +1,10 @@
+tagchar_h20: n=40 valid climb frames (z 0.5-2.0 m), inlier 1.00-1.00; peak flow_x +0.230 rad/s; median-x offset at plateau start -49.0 px (y -3.0 px); RMS flow_x 0.079; RMS flow@PP 0.0027; RMS(flow_x - flow@PP - (s-1)*offx/dt/F) 0.0025; fitted -(s-1)/dt over GT zdot/h_cam: median 1.004 (range 0.978-1.070)
+tag_check2img: n=40 valid climb frames (z 0.5-2.0 m), inlier 1.00-1.00; peak flow_x +0.218 rad/s; median-x offset at plateau start -46.5 px (y -3.0 px); RMS flow_x 0.075; RMS flow@PP 0.0019; RMS(flow_x - flow@PP - (s-1)*offx/dt/F) 0.0022; fitted -(s-1)/dt over GT zdot/h_cam: median 0.997 (range 0.917-1.119)
+cl_ukf_b_tex_r3_half c_rot=1.0 window=primary n=3 u0=-218.2px RMS(obs-pred)=0.038 RMS(obs-null)=0.576
+cl_ukf_b_tex_r3_half c_rot=1.0 window=full_z1.07-1.6 n=11 u0=-218.2px RMS(obs-pred)=0.061 RMS(obs-null)=0.452
+cl_ukf_b_tex_r3_half c_rot=1.5 window=primary n=3 u0=-218.3px RMS(obs-pred)=0.025 RMS(obs-null)=0.568
+cl_ukf_b_tex_r3_half c_rot=1.5 window=full_z1.07-1.6 n=11 u0=-218.3px RMS(obs-pred)=0.019 RMS(obs-null)=0.400
+cl_fgo_b_tex_r3_half_v3 c_rot=1.0 window=primary n=1 u0=-217.4px RMS(obs-pred)=0.004 RMS(obs-null)=0.584
+cl_fgo_b_tex_r3_half_v3 c_rot=1.0 window=full_z1.07-1.6 n=11 u0=-217.4px RMS(obs-pred)=0.080 RMS(obs-null)=0.395
+cl_fgo_b_tex_r3_half_v3 c_rot=1.5 window=primary n=1 u0=-217.5px RMS(obs-pred)=0.004 RMS(obs-null)=0.584
+cl_fgo_b_tex_r3_half_v3 c_rot=1.5 window=full_z1.07-1.6 n=11 u0=-217.5px RMS(obs-pred)=0.077 RMS(obs-null)=0.372
