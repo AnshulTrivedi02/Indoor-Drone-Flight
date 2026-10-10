@@ -13375,3 +13375,20 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - 2 of 48 wrong end-wall headings fused;
    - the r3 sensitivity detail.
    - The lockout rise is traced ONLY if it affects a stated claim.
+
+### Restatement rulings APPLIED (handover `docs/handovers/2026-10-10_final2_rulings_applied.md`)
+- **numbers.md** (8 rows replaced, 2 added, the old rows kept under "Superseded by the restatement rulings") and the
+  claims table (counts unchanged: 17/16/3/0).
+- **C0 at 0.1 rad initial yaw:** the FGO is still lower on all 4 covered bags, but the margin shrinks to 0.01–0.03 m.
+- **Phase 3 link:**
+  - checkerboard floor + plain walls: heading FAILED validation (0/3), so NO heading benefit is claimed (r2/r3, which
+    the 0.1 rad check moved, are on this floor);
+  - transition: heading PASSED 3/3, and the yaw is insensitive to 0.1 rad;
+  - **blank floor (PASSED 3/3), reported separately:** the benefit is in YAW ONLY.
+    - Heading-arm yaw RMS: UKF 0.050–0.052°, FGO 0.051–0.053°, against a 21–24° baseline; ~99% of headings fused.
+    - Position is still unbounded (at +60 s: UKF 51–78 m, FGO 137–166 m).
+    - Not covered by the 0.1 rad check.
+- **Lockout check (restatement ruling 6): NO stated claim affected.**
+  - F1's rule compares UKF_hard with FGO_robust (3 = 3, unchanged). The FGO_hard lockouts (F1 14 → 33; 2(a)
+    23 → 61) are descriptive only.
+  - 2(a) P1/S1/S2 are identical; F3's "both lock out at Δ60" holds; P-H7 passes. **Not traced** (per the ruling).
