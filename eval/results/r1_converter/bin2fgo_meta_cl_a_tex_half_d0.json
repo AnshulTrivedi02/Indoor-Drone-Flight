@@ -1,0 +1,145 @@
+{
+ "bin": "/home/makerspace/thesis_data/trials/cl_a_tex_half/ardupilot.bin",
+ "bin_sha256": "e59e0dc39c5df5ea03eca4c91c7c176c362c3bc24252ea1d84a169790d960f64",
+ "code_commit": "3a2c3a82738f356d702513132dbdcac61bced5c4",
+ "imu_instance": 0,
+ "range_instance": 0,
+ "delays_ms": {
+  "flow": 0.0,
+  "range": 0.0,
+  "imu": 0.0
+ },
+ "delay_definition": {
+  "flow": "FC arrival (OF.TimeUS) minus END of the flow integration interval",
+  "range": "emission (RRNI change frame, held at the measured update period) minus measurement",
+  "imu": "RFRH frame time minus the end of the RISI delta interval"
+ },
+ "flow_validity_rule": "valid := Qual > 0; inlier := Qual/255 (pass-through); FGO gate adds |rate| < 4.2 (EKF3 :203)",
+ "derotation": "FGO's own raw-gyro interval average (RISI); OF.bodyX/Y NOT used (AHRS gyro = EKF3-bias-corrected)",
+ "geometry": {
+  "flow_pos_frd": [
+   0.0,
+   0.0,
+   0.25
+  ],
+  "range_pos_frd": [
+   0.0,
+   0.0,
+   0.11999999731779099
+  ],
+  "rng_min": 0.05000000074505806,
+  "rng_max": 40.0
+ },
+ "parm": {
+  "AHRS_EKF_TYPE": 3.0,
+  "EK3_FLOW_DELAY": 10.0,
+  "EK3_FLOW_I_GATE": 300.0,
+  "EK3_FLOW_MAX": 2.5,
+  "EK3_FLOW_M_NSE": 0.25,
+  "EK3_FLOW_USE": 1.0,
+  "EK3_IMU_MASK": 3.0,
+  "EK3_RNG_I_GATE": 500.0,
+  "EK3_RNG_M_NSE": 0.5,
+  "EK3_RNG_USE_HGT": -1.0,
+  "EK3_RNG_USE_SPD": 2.0,
+  "EK3_SRC1_POSXY": 0.0,
+  "EK3_SRC1_POSZ": 2.0,
+  "EK3_SRC1_VELXY": 5.0,
+  "EK3_SRC1_VELZ": 0.0,
+  "EK3_SRC1_YAW": 0.0,
+  "FLOW_ADDR": 0.0,
+  "FLOW_FXSCALER": 0.0,
+  "FLOW_FYSCALER": 0.0,
+  "FLOW_OPTIONS": 0.0,
+  "FLOW_ORIENT_YAW": 0.0,
+  "FLOW_POS_X": 0.0,
+  "FLOW_POS_Y": 0.0,
+  "FLOW_POS_Z": 0.25,
+  "FLOW_TYPE": 5.0,
+  "INS_ACCEL_FILTER": 20.0,
+  "INS_GYRO_FILTER": 20.0,
+  "LOG_DISARMED": 1.0,
+  "LOG_REPLAY": 1.0,
+  "RNGFND1_ADDR": 0.0,
+  "RNGFND1_FUNCTION": 0.0,
+  "RNGFND1_GNDCLR": 0.10000000149011612,
+  "RNGFND1_MAX": 40.0,
+  "RNGFND1_MIN": 0.05000000074505806,
+  "RNGFND1_OFFSET": 0.0,
+  "RNGFND1_ORIENT": 25.0,
+  "RNGFND1_PIN": 0.0,
+  "RNGFND1_POS_X": 0.0,
+  "RNGFND1_POS_Y": 0.0,
+  "RNGFND1_POS_Z": 0.11999999731779099,
+  "RNGFND1_PWRRNG": 0.0,
+  "RNGFND1_RMETRIC": 1.0,
+  "RNGFND1_SCALING": 10.0,
+  "RNGFND1_STOP_PIN": -1.0,
+  "RNGFND1_TYPE": 10.0,
+  "RNGFND2_TYPE": 0.0,
+  "RNGFND3_TYPE": 0.0,
+  "RNGFND4_TYPE": 0.0,
+  "RNGFND5_TYPE": 0.0,
+  "RNGFND6_TYPE": 0.0,
+  "RNGFND7_TYPE": 0.0,
+  "RNGFND8_TYPE": 0.0,
+  "RNGFND9_TYPE": 0.0,
+  "RNGFNDA_TYPE": 0.0,
+  "RNGFND_FILT": 0.5,
+  "SCHED_LOOP_RATE": 400.0
+ },
+ "rrnh": {
+  "GCl": 0.10000000149011612,
+  "MaxD": 40.0,
+  "NumSensors": 1
+ },
+ "t_arm": 24.149423,
+ "init_range": 0.07999999821186066,
+ "init_range_source": "range at levelling end",
+ "t_end": null,
+ "truth": "sim2",
+ "checks": {
+  "imu_dropped_flags": 0,
+  "imu_frame_period_ms_median": 2.9979999999909523,
+  "imu_rate_hz": 333.55570380354163,
+  "imu_dvdt_ne_dadt": 0,
+  "imu_dvdt_vs_frame_dt_maxabs_ms": 0.9990004152200527,
+  "imu_dvdt_vs_frame_dt_n_gt_0p5ms": 18,
+  "imu_gaps": [],
+  "imu_n_gaps": 0,
+  "dsf_dropped_blocks": 0,
+  "flow_n": 7955,
+  "flow_rate_hz_median": 28.58122784954967,
+  "flow_interarrival_ms_p5_p50_p95": [
+   24.99999999999858,
+   34.987999999998465,
+   39.993000000009715
+  ],
+  "flow_qual_gt0_frac": 1.0,
+  "rofh_equals_of": true,
+  "rofh_posoffset_unique": [
+   [
+    0.0,
+    0.0,
+    0.25
+   ]
+  ],
+  "range_update_period_ms_from_changes": 49.983000000001,
+  "range_n_changes": 227,
+  "range_status_values": [
+   1,
+   2,
+   4
+  ],
+  "range_posoffset_unique": [
+   [
+    0.0,
+    0.0,
+    0.11999999731779099
+   ]
+  ],
+  "range_n_emitted": 5488,
+  "flow_pos_parm_matches_rofh": true,
+  "range_pos_parm_matches_rrni": true
+ }
+}

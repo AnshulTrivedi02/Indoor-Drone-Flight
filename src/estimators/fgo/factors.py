@@ -20,7 +20,7 @@ def _wrap(a):
 
 
 # ---------- flow factor: 2-DOF on X(k), V(k), B(k) ----------
-def flow_factor(noise, key_x, key_v, key_b, flow_meas, omega_meas):
+def flow_factor(noise, key_x, key_v, key_b, flow_meas, omega_meas, geom=None):
     """Predicted raw angular flow - measured, in the camera-optical frame.
     omega is bias-corrected inside (FGO §2: omega = omega_meas - B(k).gyro), so
     the flow residual can inform gyro bias through the rotational term."""
@@ -30,7 +30,7 @@ def flow_factor(noise, key_x, key_v, key_b, flow_meas, omega_meas):
         R = pose.rotation().matrix()
         p_U = pose.translation()[2]
         omega = omega_meas - bias.gyroscope()
-        return h_flow_pose(R, vel, p_U, omega) - flow_meas
+        return h_flow_pose(R, vel, p_U, omega, geom) - flow_meas
 
     def efun(this, values, H):
         pose = values.atPose3(key_x); vel = values.atVector(key_v); bias = values.atConstantBias(key_b)
@@ -44,10 +44,12 @@ def flow_factor(noise, key_x, key_v, key_b, flow_meas, omega_meas):
 
 
 # ---------- range factor: 1-DOF on X(k) ----------
-def range_factor(noise, key_x, range_meas):
-    """Flat-floor rangefinder height = base_link height - lever (FGO §3)."""
+def range_factor(noise, key_x, range_meas, geom=None):
+    """Flat-floor rangefinder height = base_link height - lever (FGO §3). geom: None = SIM lever (unchanged)."""
+    lever = RANGE_LEVER if geom is None else geom["range_lever"]
+
     def err(pose, vel, bias):
-        return np.array([pose.translation()[2] - RANGE_LEVER - range_meas])
+        return np.array([pose.translation()[2] - lever - range_meas])
 
     def efun(this, values, H):
         pose = values.atPose3(key_x)

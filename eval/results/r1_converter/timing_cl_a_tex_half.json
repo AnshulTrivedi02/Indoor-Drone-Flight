@@ -1,0 +1,58 @@
+{
+ "bin": "/home/makerspace/thesis_data/trials/cl_a_tex_half/ardupilot.bin",
+ "imu": {
+  "frame_period_ms_median": 2.9979999999909523,
+  "frame_rate_hz_mean": 399.99870341984564,
+  "dvdt_minus_frame_dt_ms_p99_abs": 2.5130475478363223e-07,
+  "n_gaps_gt_2p5x": 0,
+  "dsf_dropped_blocks": 0
+ },
+ "flow": {
+  "rate_hz_median": 28.58122784954967,
+  "interarrival_ms_p5_p50_p95": [
+   24.99999999999858,
+   34.987999999998465,
+   39.993000000009715
+  ],
+  "delay_end_ms": 16.0641479006803,
+  "delay_per_axis_ms_xy": [
+   16.0641479006803,
+   -4.202432865669158
+  ],
+  "peak_corr_per_axis_xy": [
+   0.7959253252592642,
+   0.5062501651193532
+  ],
+  "axes_agree_within_5ms": false,
+  "corr_xy_at_best": [
+   0.7959253252592642,
+   0.43999633442687397
+  ],
+  "gain_xy_at_best": [
+   1.3743703620215446,
+   0.8942779005340785
+  ],
+  "hp_gyro_std_xy_radps": [
+   0.024941059908906493,
+   0.01700086111650086
+  ],
+  "n_used": 7951,
+  "corr_xy_at_zero_lag": [
+   0.7609713811846799,
+   0.48865291048028536
+  ],
+  "sign_ok": true,
+  "definition": "arrival (OF.TimeUS) minus the END of the flow integration interval",
+  "EK3_FLOW_DELAY_parm_ms": 10.0
+ },
+ "range": {
+  "update_period_ms_from_changes": 49.983000000001,
+  "n_changes": 227,
+  "delay_ms": 90.00000000000013,
+  "rms_moving_at_best_m": 0.03620656206605432,
+  "rms_moving_at_zero_m": 0.06748232074129404,
+  "n_moving_samples": 119,
+  "truth": "SIM2",
+  "definition": "emission (RRNI change frame, held at the update period) minus measurement"
+ }
+}

@@ -36,6 +36,15 @@ BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
 if os.environ.get("FGO_BAG_ROOT"):
     BAG = os.path.join(os.environ["FGO_BAG_ROOT"], TRIAL)
 DUMP = os.environ.get("FGO_DUMP_EVENTS")
+# Rung-1 EVENTS MODE (docs/handovers/2026-10-10_r1_converter.md). OFF by default; unset = the bag path, unchanged.
+#   FGO_EVENTS  path to an eval/bin2fgo.py output (<x>.npz + <x>.json): a real or SITL dataflash log converted to the
+#               FGO's inputs on the FC clock. The bag, the gap rule, the dejitter, imu_gaps.json and the forward camera
+#               are bypassed; the geometry, arming time and initial range come from the log. Requires FGO_OUT_ROOT;
+#               writes to <FGO_OUT_ROOT>/<trial>/fgo_bin/.
+EVENTS = os.environ.get("FGO_EVENTS")
+if EVENTS:
+    assert ARM in (None, "baseline") and not DUMP, "events mode: no forward camera, no equivalence export"
+    assert os.environ.get("FGO_OUT_ROOT"), "events mode needs FGO_OUT_ROOT (never writes into a trial directory)"
 FV = f_variant()     # offline F-test variants (all off by default)
 # INIT_YAW_SIGMA_RAD (OFF by default; ruling 2026-10-10 item 1, the labelled sensitivity check): override the X(0)
 # initial yaw sigma (rad) with zero offset. Only into a scratch / sensitivity FGO_OUT_ROOT, never a trial directory; the
@@ -46,6 +55,9 @@ if INIT_YAW_SIGMA:
     assert not FV["F_YAW0_DEG"], "INIT_YAW_SIGMA_RAD and F_YAW0_DEG are exclusive"
     assert float(INIT_YAW_SIGMA) > 0, INIT_YAW_SIGMA
 OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
+if EVENTS:
+    OUTDIR = os.path.join(os.path.dirname(OUTDIR), "fgo_bin" + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "")
+                          + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -53,42 +65,66 @@ ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/O
 stamp = lambda h: h.stamp.sec + h.stamp.nanosec*1e-9
 
 ev = []; gt = []
-with Reader(BAG) as r:
-    conns = {c.topic: c for c in r.connections}
-    want = ["/imu/data_raw", "/optical_flow/measurement", "/downward_lidar/range",
-            "/attitude/angular_rates", "/ground_truth/pose"]
-    for con, t, raw in r.messages(connections=[conns[w] for w in want if w in conns]):
-        m = ts.deserialize_cdr(raw, con.msgtype); tt = stamp(m.header)
-        if con.topic == "/imu/data_raw":
-            ev.append((tt, "imu", (np.array([m.linear_acceleration.x, m.linear_acceleration.y, m.linear_acceleration.z]),
-                                   np.array([m.angular_velocity.x, m.angular_velocity.y, m.angular_velocity.z]))))
-        elif con.topic == "/downward_lidar/range":
-            ev.append((tt, "rng", float(m.range)))
-        elif con.topic == "/optical_flow/measurement":
-            ev.append((tt, "flow", (np.array([m.flow_x_rad, m.flow_y_rad]), bool(m.valid), float(m.inlier_ratio))))
-        elif con.topic == "/attitude/angular_rates":
-            ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
-        elif con.topic == "/ground_truth/pose":
-            gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
+GEOM = None; EV_META = None
+if EVENTS:                          # events mode: the converted dataflash stream replaces the bag (bag path below unchanged)
+    from measurement_models import make_geometry
+    _Z = np.load(EVENTS); EV_META = json.load(open(EVENTS[:-4] + ".json"))
+    _g = EV_META["geometry"]
+    GEOM = make_geometry(flow_pos_frd=_g["flow_pos_frd"], range_pos_frd=_g["range_pos_frd"],
+                         rng_min=_g["rng_min"], rng_max=_g["rng_max"])
+    for i in range(len(_Z["imu_t"])):          # payload (acc, gyro, dt): dt = the INS delta interval (DVDT)
+        ev.append((float(_Z["imu_t"][i]), "imu", (_Z["imu_acc"][i], _Z["imu_gyro"][i], float(_Z["imu_dt"][i]))))
+    for i in range(len(_Z["flow_t"])):
+        ev.append((float(_Z["flow_t"][i]), "flow", (np.array(_Z["flow_xy"][i], float), bool(_Z["flow_valid"][i]),
+                                                     float(_Z["flow_inlier"][i]))))
+    for i in range(len(_Z["rng_t"])):
+        ev.append((float(_Z["rng_t"][i]), "rng", float(_Z["rng"][i])))
+    gt = [tuple(row) for row in _Z["truth"]]
+    print(f"[events] {EVENTS}: imu {len(_Z['imu_t'])} flow {len(_Z['flow_t'])} range {len(_Z['rng_t'])} "
+          f"truth {len(gt)}; geometry {_g}; delays {EV_META['delays_ms']}")
+else:
+    with Reader(BAG) as r:
+        conns = {c.topic: c for c in r.connections}
+        want = ["/imu/data_raw", "/optical_flow/measurement", "/downward_lidar/range",
+                "/attitude/angular_rates", "/ground_truth/pose"]
+        for con, t, raw in r.messages(connections=[conns[w] for w in want if w in conns]):
+            m = ts.deserialize_cdr(raw, con.msgtype); tt = stamp(m.header)
+            if con.topic == "/imu/data_raw":
+                ev.append((tt, "imu", (np.array([m.linear_acceleration.x, m.linear_acceleration.y, m.linear_acceleration.z]),
+                                       np.array([m.angular_velocity.x, m.angular_velocity.y, m.angular_velocity.z]))))
+            elif con.topic == "/downward_lidar/range":
+                ev.append((tt, "rng", float(m.range)))
+            elif con.topic == "/optical_flow/measurement":
+                ev.append((tt, "flow", (np.array([m.flow_x_rad, m.flow_y_rad]), bool(m.valid), float(m.inlier_ratio))))
+            elif con.topic == "/attitude/angular_rates":
+                ev.append((tt, "att", np.array([m.vector.x, m.vector.y, m.vector.z])))
+            elif con.topic == "/ground_truth/pose":
+                gt.append((tt, m.pose.position.x, m.pose.position.y, m.pose.position.z))
 ev += forward_events(TRIAL, ARM)    # Phase 4 forward-camera measurements ([] for baseline/legacy)
 _raw_ev = list(ev) if DUMP else None  # equivalence export: the raw stream, before gap rule / dejitter / sort
-ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
-ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
-print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
+if not EVENTS:
+    ev = apply_gap_rule(ev, TRIAL)      # IMU-gap rule (METHODOLOGY, 2026-09-24)
+    ev, _imu_dj = dejitter_imu(ev)     # OI-2: regular IMU timing (METHODOLOGY, OI-2 ruling)
+    print(f"[imu] dejittered: period {_imu_dj['period_ms']:.5f} ms, resid std {_imu_dj['resid_std_ms']:.2f} max {_imu_dj['resid_maxabs_ms']:.2f} ms")
+else:                                   # FC TimeUS is already the sensor clock: no dejitter; gaps checked by the converter
+    print(f"[imu] events mode: FC clock, no dejitter; converter found {EV_META['checks'].get('imu_n_gaps')} IMU gaps, "
+          f"{EV_META['checks'].get('dsf_dropped_blocks')} dropped log blocks")
 ev.sort(key=lambda e: e[0]); gt = np.array(sorted(gt))
-ev = f_filter_forward(ev, gt[:, 0], gt[:, 1], gt[:, 2], FV)
+if not EVENTS:
+    ev = f_filter_forward(ev, gt[:, 0], gt[:, 1], gt[:, 2], FV)
 
 # init: gravity levelling over first 0.5 s + first valid range
 t_imu0 = next(t for t, k, _ in ev if k == "imu")
 acc_lvl = [d[0] for t, k, d in ev if k == "imu" and t <= t_imu0 + 0.5]
-first_rng = next(d for t, k, d in ev if k == "rng" and 0.05 <= d <= 40.0)
+first_rng = next(d for t, k, d in ev if k == "rng" and 0.05 <= d <= 40.0) if not EVENTS else float(EV_META["init_range"])
 t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 sig_fwd = FWD_SIGMA[fwd_dataset(TRIAL)] if ARM not in (None, "baseline") else None
 fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd,
           fwd_gate=(float("inf") if FV["F_ROBUST"] else FWD_CHI2_GATE), fwd_robust=FV["F_ROBUST"],
-          log_cov=bool(os.environ.get("FGO_COV_LOG")))   # diagnostic covariance log (Phase 5b)
+          log_cov=bool(os.environ.get("FGO_COV_LOG")),   # diagnostic covariance log (Phase 5b)
+          **({"geom": GEOM} if EVENTS else {}))            # events mode: the log's sensor geometry
 fgo.batch_record = bool(FV["F_BATCH"])
 fgo.init(np.mean(acc_lvl, axis=0), first_rng, t_init,
          yaw0=(np.radians(float(FV["F_YAW0_DEG"])) if FV["F_YAW0_DEG"] else 0.0),
@@ -107,8 +143,12 @@ fwd_avg = FlowFrameGyroAverager(t_init)      # gyro over the forward-frame inter
 t_kf_next = t_init + fgo.kf_dt
 # ground-proximity flow rule (ruling D15): EKF3's, identical to the UKF's (measurement_models.GroundProximityFlow)
 _gpj = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/imu_gaps.json")
-gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
+if not EVENTS:
+    gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
+else:                           # arming time from the log's ARM record (FC clock); the log's range window
+    gp = GroundProximityFlow(EV_META["t_arm"], rng_min=GEOM["rng_min"], rng_max=GEOM["rng_max"])
 step_ns = []; n_kf = 0
+_gf = None                      # events mode only: EKF3-style 10 Hz filtered gyro for take-off detection
 vmag = []; fresid = []          # diag: cruise velocity magnitude, flow-factor residual at converged state
 _dump_flow_om = {}; _dump_fwd_gz = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
 for _ei, (tt, kind, d) in enumerate(ev):
@@ -128,11 +168,19 @@ for _ei, (tt, kind, d) in enumerate(ev):
         fwd_pend = (d[0], d[1], float(fwd_avg.average(tt, omega)[2]))   # latest forward frame
         if DUMP: _dump_fwd_gz[_ei] = fwd_pend[2]
     elif kind == "imu":
-        gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
+        if EVENTS:
+            omega = d[1]                            # no /attitude/angular_rates in a log: latest IMU gyro as the fallback
+            # EKF3's take-off check uses DAL gyro_filtered = the RISI rate through a 10 Hz 1-pole low-pass
+            # (AP_DAL_InertialSensor.cpp:53-63, AP_NavEKF3_VehicleStatus.cpp:470-476), not the raw frame rate
+            _a = d[2] / (d[2] + 1.0 / (2 * np.pi * 10.0))
+            _gf = d[1] if _gf is None else _gf + (d[1] - _gf) * _a
+            gp.on_gyro(tt, _gf, fgo.prev_bias.gyroscope())
+        else:
+            gp.on_gyro(tt, d[1], fgo.prev_bias.gyroscope())
         gyro_avg.push(tt, d[1])                     # co-sampled gyro, for the flow-frame average
         fwd_avg.push(tt, d[1])
         if t_prev_imu is not None:
-            fgo.integrate_imu(d[0], d[1], tt - t_prev_imu)
+            fgo.integrate_imu(d[0], d[1], d[2] if EVENTS else tt - t_prev_imu)
         t_prev_imu = tt
         while tt >= t_kf_next:
             if DUMP: _d_k, _d_nr, _d_nf, _d_nrg, _d_nfw = fgo.k, gp.n_replaced, fgo.n_flow, fgo.n_range, len(fgo.fwd_log)
@@ -158,7 +206,7 @@ for _ei, (tt, kind, d) in enumerate(ev):
             if flow_pend is not None and flow_pend[1] and flow_pend[2] > 0.0 \
                     and abs(flow_pend[0][0]) < 4.2 and abs(flow_pend[0][1]) < 4.2:
                 om = flow_omega - fgo.prev_bias.gyroscope()
-                pred = h_flow_pose(pose.rotation().matrix(), vel, pose.translation()[2], om)
+                pred = h_flow_pose(pose.rotation().matrix(), vel, pose.translation()[2], om, GEOM)
                 fresid.append((t_lat, pred[0]-flow_pend[0][0], pred[1]-flow_pend[0][1]))
             flow_pend = None; rng_pend = None; fwd_pend = None
             t_kf_next += fgo.kf_dt
@@ -194,6 +242,10 @@ with open(f"{OUTDIR}/ground_truth.tum", "w") as f:
     for g in gt:
         f.write(f"{g[0]:.6f} {g[1]:.6f} {g[2]:.6f} {g[3]:.6f} 0 0 0 1\n")
 
+if EVENTS and len(gt) == 0:             # events mode on a real log: no truth here (mocap is scored separately)
+    print(f"[out] {OUTDIR}/fgo_traj.tum  ({n_kf} keyframes, flow factors {fgo.n_flow}, range factors {fgo.n_range}; "
+          f"no truth in the events file, apparatus metrics skipped)")
+    sys.exit(0)
 # apparatus metrics (cruise window from GT speed, origin gauge-fix, no alignment)
 t_u = traj[:, 0]
 gE = np.interp(t_u, gt[:, 0], gt[:, 1]); gN = np.interp(t_u, gt[:, 0], gt[:, 2])
