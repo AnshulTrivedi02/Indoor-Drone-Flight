@@ -13392,3 +13392,48 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - F1's rule compares UKF_hard with FGO_robust (3 = 3, unchanged). The FGO_hard lockouts (F1 14 → 33; 2(a)
     23 → 61) are descriptive only.
   - 2(a) P1/S1/S2 are identical; F3's "both lock out at Δ60" holds; P-H7 passes. **Not traced** (per the ruling).
+
+### RULING (user, 2026-10-11): PLAN AND BUILD TOWARDS REAL FLIGHTS. Simulation results FROZEN
+- **Rung 1** (the logging flight) is the PRIORITY. **Rung 3** (closed loop, UKF/FGO steering) is a PLANNED GOAL.
+  **Rung 2** (our own camera pipeline on real hardware) stays PARKED.
+- **Simulation results are FROZEN:** no new result experiments or re-runs. Verification flights for real-flight
+  readiness are allowed, short, under the standing rule.
+- **Supervisor updates:**
+  - custom firmware is APPROVED for closed-loop flight;
+  - the FC is likely a 2 MB STM32H743 board;
+  - the airframe is VTOL or cinewhoop (probably VTOL);
+  - the exact board, sensors, mocap system and booking are still to be confirmed.
+- **The work:**
+  - **0. The final results pack** (analysis only, FIRST):
+    - the final figure set, regenerated from the restated results;
+    - a tag-experiment figure (hold error and drift per tag-loss duration; all three estimators; shadow and flying);
+    - the closed-loop summary;
+    - the before/after claims table;
+    - the corrections summary (what was wrong, how it was found, its effect);
+    - ONE combined PDF with captions and sources, plus an index. Any figure still showing superseded values is
+      flagged.
+  - **1. Rung-1 software (priority):**
+    - finish the converter's replay check, and merge;
+    - the parameter template, flight cards, and a scorer with a pre-registered window;
+    - the mocap recorder and the alignment on the 400 Hz Replay IMU;
+    - the UKF port: read the sensor geometry from the log; in the Replay path, derotate the flow with its OWN
+      bias-corrected gyro, not EKF3's (D18 ruling); an equivalence check against the flying port on an existing SITL
+      log.
+    - **Firmware for rung 1:** `7bac20cbcc` built unmodified, pending the supervisor.
+  - **2. Rung-3 readiness:**
+    - (a) board firmware for a representative H743 with the UKF/FGO backends compiled in; flash and RAM against
+      2 MB, and what to compile out; a flashing and rollback plan. The final build waits for the exact board;
+    - (b) QuadPlane costing (Plane's AHRS use, the flight modes, take-off/landing, the failsafes, the QuadPlane SITL
+      re-tests), REPORTED BEFORE BUILDING;
+    - (c) the mocap watcher: unpark, G1–G11, then bench B0–B10 in SITL with a simulated mocap feed;
+    - (d) the corrected builds: the C++ FGO equivalence checks, then the UKF/FGO safety re-tests (a)/(b) as short
+      verification flights;
+    - (e) costing a "UKF-only closed loop": the onboard UKF steering with the vehicle's own flow sensor and
+      rangefinder, no Pi;
+    - (f) the FGO Pi path: build and time the C++ FGO on ARM64 (emulated until a Pi exists).
+- **Workstation order:** 0 and the rung-1 coding first; then 2a, 2b, 2e (reports); then 2c, 2d.
+  - Heavy jobs one at a time; nothing heavy during flights.
+  - Decisions go into the daily summary unless they block, affect safety or change a thesis claim.
+  - Everything is recorded in METHODOLOGY and the readiness checklist.
+- **Note on 2c:** G1–G11 were already BUILT and merged on 2026-10-10 (`0502282`, `realflight/watcher/`, 73 offline
+  tests). What remains is bench B0–B10 in SITL with a simulated mocap feed, plus the hardware items.
