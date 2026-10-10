@@ -37,6 +37,25 @@ H_MIN = 0.10
 # 2026-09-29 (never tested laterally); +1.0 from the closed-loop lateral excursion.
 SIGN_X = +1.0
 SIGN_Y = +1.0
+RNG_MIN, RNG_MAX = 0.05, 40.0                        # valid range window (m), the SIM gpu_lidar's
+
+
+def make_geometry(flow_pos_frd=None, range_pos_frd=None, h_min=None, rng_min=None, rng_max=None):
+    """Sensor geometry for a REAL vehicle (rung 1, docs/minimal_real_flight_plan.md §4.3 item 10), read from the
+    log's PARM records (FLOW_POS_X/Y/Z, RNGFND1_POS_X/Y/Z, RNGFND1_MIN/MAX) by eval/bin2fgo.py.
+
+    Positions are ArduPilot's body FRD offsets from the IMU/body origin (m). Returns a dict passed as `geom=` to
+    h_flow_pose / h_range / the FGO factors / FGO / GroundProximityFlow. `geom=None` everywhere (the default) keeps
+    the module constants above, i.e. the SIM geometry, through the IDENTICAL code path, so every simulation result
+    is unchanged. Only the vertical rangefinder offset enters h_range (flat floor, small tilt: as today)."""
+    fx, fy, fz = flow_pos_frd if flow_pos_frd is not None else (0.0, 0.0, CAM_OFFSET)
+    rz = range_pos_frd[2] if range_pos_frd is not None else RANGE_LEVER
+    return {"lever_flu": np.array([fx, -fy, -fz], float),     # FRD -> FLU
+            "cam_offset": float(fz),                           # flow sensor below the body origin (FRD +z down)
+            "range_lever": float(rz),
+            "h_min": float(H_MIN if h_min is None else h_min),
+            "rng_min": float(RNG_MIN if rng_min is None else rng_min),
+            "rng_max": float(RNG_MAX if rng_max is None else rng_max)}
 
 
 def R_world_body(roll, pitch, yaw):
@@ -50,12 +69,12 @@ def R_world_body(roll, pitch, yaw):
         [-sp,   cp*sr,            cp*cr]])
 
 
-def h_range(x):
+def h_range(x, geom=None):
     """Predicted LiDAR range = base_link height - lever arm (flat floor)."""
-    return np.array([x[2] - RANGE_LEVER])
+    return np.array([x[2] - (RANGE_LEVER if geom is None else geom["range_lever"])])
 
 
-def h_flow_pose(R_wb, v_world, p_U, omega_body):
+def h_flow_pose(R_wb, v_world, p_U, omega_body, geom=None):
     """Predicted RAW angular flow (rad/s), 2-vector (flow_x, flow_y) — the single
     shared geometric model, in the pose form the FGO factor needs.
 
@@ -67,10 +86,15 @@ def h_flow_pose(R_wb, v_world, p_U, omega_body):
     correction per the 2026-10-08 ruling; it passed the RAW rate before) passes its
     flow-frame gyro average minus its own gyro-bias estimate (bg / dt), evaluated at
     the state mean, outside the sigma points. The geometry below is identical either way.
+    geom: None = the SIM constants (default, unchanged); else make_geometry(...) for a real vehicle.
     """
+    if geom is None:
+        lever, cam_off, h_min = FLOW_LEVER_ARM_BODY, CAM_OFFSET, H_MIN
+    else:
+        lever, cam_off, h_min = geom["lever_flu"], geom["cam_offset"], geom["h_min"]
     v_body = R_wb.T @ v_world                          # world velocity into FLU
-    v_s = v_body + np.cross(omega_body, FLOW_LEVER_ARM_BODY)
-    h_cam = max(p_U - CAM_OFFSET, H_MIN)
+    v_s = v_body + np.cross(omega_body, lever)
+    h_cam = max(p_U - cam_off, h_min)
     flow_x_trans = SIGN_X * (v_s[1] / h_cam)          # lateral  -> flow_x
     flow_y_trans = SIGN_Y * (v_s[0] / h_cam)          # forward  -> flow_y (Stage A)
     # NOTE (2026-08-01): a proposed sign flip of flow_x_rot (-> +rollspeed) was tested and
@@ -234,9 +258,11 @@ GP_HEIGHT_M, GP_ARM_GUARD_S, GP_GYRO_RADPS, GP_RANGE_RISE_M = 0.5, 1.0, 0.1, 0.1
 
 
 class GroundProximityFlow:
-    def __init__(self, t_arm):
-        """t_arm: arming time on the bag clock (imu_gaps.json arm_header_s); None -> never armed (no take-off)."""
+    def __init__(self, t_arm, rng_min=0.05, rng_max=40.0):
+        """t_arm: arming time on the bag clock (imu_gaps.json arm_header_s); None -> never armed (no take-off).
+        rng_min/rng_max: the valid range window (default = the SIM sensor's; a real vehicle passes its RNGFND1_MIN/MAX)."""
         self.t_arm = t_arm
+        self.rng_min, self.rng_max = rng_min, rng_max
         self.takeoff = False
         self.rng_at_arm = None      # EKF3's rngAtStartOfFlight: the last range while on ground
         self.last_rng = None
@@ -247,7 +273,7 @@ class GroundProximityFlow:
         return self.t_arm is not None and t >= self.t_arm
 
     def on_range(self, t, rng):
-        if not (0.05 <= rng <= 40.0):
+        if not (self.rng_min <= rng <= self.rng_max):
             return
         self.last_rng = rng
         if not self.armed(t):
