@@ -32,8 +32,10 @@ camera flown only once verified.
    - Which applies? Pi placement makes the UKF and FGO share the same link latency (fairer between them), but adds a
      latency EKF3 does not have.
 3. **Hardware.**
-   - Flight controller: the Pixhawk 6X and CubeOrange firmware for this tree has been built, and the flash budget checked
-     in Part C.
+   - Flight controller: NO board firmware has been built for this tree (correction 2026-10-10: only `sitl/` builds
+     exist). Part C's flash budget used PUBLISHED Copter `.apj` sizes for Pixhawk 6X/CubeOrange. `AP_NAVUKF_ENABLED`
+     defaults to SITL only (`AP_NavUKF.h:29`), so a board build must enable it explicitly. See
+     `docs/real_flight_readiness.md`.
    - Pi 4 or Pi 5? The FGO needs a Pi 5 or the D11 speed-up (§6).
    - Downward camera and lens; forward camera and lens.
    - Rangefinder model.

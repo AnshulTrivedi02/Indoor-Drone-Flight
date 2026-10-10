@@ -12905,3 +12905,33 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - `consolidated_rerun.parm` carries `AHRS_EKF_TYPE 10` and must NEVER load on a real FC;
   - `FLOW_POS_Z` is 0.13 in `flow_ekf.parm` and 0.25 in `consolidated_rerun.parm` (SITL, later file wins). The
     real value is to be measured.
+
+### Flow-validity rule and watcher bench tests: drafted, "PRE-REGISTERED (pending user confirmation)" (`docs/real_flights_plan.md` §7; handover `docs/handovers/2026-10-10_flow_rule_watcher_bench.md`)
+- **Calibration criterion, committed (`b9706ce`) BEFORE any p1c data was read:** r_min is the largest value on a 0.05
+  grid that keeps ≥ 99% of the frames that are today-valid, airborne (z ≥ 0.3 m) and over a textured floor, pooled
+  over the textured `p1c_*` flights. N_min stays at today's 20 (the published `valid` flag is `feature_count ≥ 20`
+  exactly).
+- **Result: r_min = 0.85.**
+  - It keeps 99.11% of 28,347 frames (98.94–99.26% per flight).
+  - Blank floor: the 16 today-valid frames are all rejected.
+  - It removes 19 of the 23 gross-error frames (> 0.5 rad/s against a fitted ground-truth flow model), at ~0.9% of good
+    frames.
+- **D22 check, AFTER the choice: the rule does NOT fix D22 on its own.**
+  - It rejects the low-inlier lift-off frames (5/5 in the UKF case, 2/6 in the FGO case).
+  - Both D22 flights carry a climb plateau (z ≈ 1.1–1.6 m) of valid flow_x ≈ +0.6 rad/s at an inlier ratio of
+    0.86–1.00, against a truth model of ~0–0.17 rad/s. The rule keeps 12/12 and 11/14 of these frames. Timing and
+    direction point to this plateau as the burst cause. Unconfirmed (no replay).
+  - Four candidate extra checks are listed in §7.1a for a ruling (not pre-registered).
+- **Correction to the D22 entries above:** the bin means quoted there (−1.37 / −2.27 rad/s) are inflated by ONE
+  INVALID lift-off frame at ~−22.9 rad/s, which no estimator uses.
+- **Implementation (specified, not done):** a `min_inlier_ratio` parameter in `flow_tracker.py`. One flag, one
+  source; the flow bridge needs no change, since EKF3 and the UKF port check quality > 0.
+- **Bench tests B0–B10 and hardware gaps G1–G11.** Notably:
+  - no mocap input to the watcher, no stale-pose or rigid-body-ID check;
+  - a breach kills processes instead of sending a MAVLink LAND;
+  - no watcher heartbeat to the FC, and no `FS_GCS_*` setup;
+  - the FC arms without a watcher;
+  - the liveness check is a local `pgrep`;
+  - there is no height limit;
+  - the watcher needs its own MAVLink system ID (MAVProxy and pymavlink default to 255 and would mask its loss).
+- **Also corrected:** `real_flights_plan.md` §1 item 3 (board firmware NOT built).
