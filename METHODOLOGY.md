@@ -13332,3 +13332,9 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - New state `final_rerun2`, snapshot `results_pre_final2`, archive `pre_final2_trials` (331 dirs).
   - The EKF3 AND UKF unchanged gates are hard.
   - Estimated ~8.5–8.8 h.
+
+### RULING (user, 2026-10-10): the attribution study may resume ONLY on spare machine time
+- **Only after the FGO-only re-run and the restatement**, and only if spare machine time remains.
+- **Only at the SAME code version as its 27 completed replays**, i.e. BEFORE the initial-yaw correction (branch
+  `worktree-agent-aa585d74c0d14c66b` at `b7a3aca`, based on `ef7a0a5`). Its report states this explicitly.
+- **The current schedule is kept.** Any time freed up is BUFFER, not new scope.
