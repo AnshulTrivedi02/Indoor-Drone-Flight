@@ -3,11 +3,24 @@
 **Status: DRAFT, written 2026-10-10, not yet used.** To be walked through once with the safety pilot and the mocap
 operator before the bench day, and amended there. Placeholders: **[TBD-S]** (supervisor/vehicle input).
 
-Governing documents: `docs/rung1_preregistration_draft.md` (what is flown and scored), `docs/minimal_real_flight_plan.md`
+Governing documents: `docs/rung1_preregistration_draft.md` (what is flown and scored; ON HOLD until the supervisor
+confirms the hardware, so the RESULT card's profile follows it only once it is signed off), `docs/minimal_real_flight_plan.md`
 (the plan), `realflight/params/rung1_template.parm` + one compass variant (the parameters).
 
 **Classification (METHODOLOGY standing rule, 2026-10-10):** every card says whether it is **VERIFICATION** (shortest
 profile that exercises the check; never scored, never reused as result data) or **RESULT** (pre-registered; scored).
+
+| card | class | length | scored? |
+|---|---|---|---|
+| §2 bench B1–B8 | VERIFICATION | each ≤ 1–2 min (B8 ~5 min of checking) | **never** |
+| §3 hand-carried pass | VERIFICATION | ~2 min | **never** |
+| §4 first hover | VERIFICATION | ~1.5–2 min airborne | **never** |
+| §5 result sortie | RESULT | the pre-registered profile (~2.5–3.5 min) | yes, under the pre-registration |
+
+**Verification sorties are excluded from scoring and are never reused as result data, whatever they show.** Their logs
+may be used only for what their card states (pass/fail of the check, the pipeline rehearsal, the Replay-fidelity bound
+and the flow-delay calibration of the pre-registration §5–§6). They are stored in a separate directory from result
+sorties (§8).
 
 Rung 1 does NOT use the mocap watcher, the Pi or `realflight/params/watcher_fc.parm` (those are rungs 2–3). Nothing of
 ours steers: safety is the safety pilot, the FC's altitude fence and failsafes, and a person watching mocap.
@@ -149,7 +162,7 @@ GS, on the downloaded `.BIN` and the mocap export (a script will implement D1–
 | D5 | `PARM` dump in the log: AHRS_EKF_TYPE = 3, LOG_REPLAY = 1, the EK3_SRC1_* and sensor values as filed | as filed |
 | D6 | `ARM`/`EV` records: one arm and one disarm; both sync wiggles visible in `RISI` gyro (rates > 2 rad/s) **while disarmed** | yes |
 | D7 | **Mocap file present** (`<take>.csv`, exported as `t_s, x, y, z, qx, qy, qz, qw`, metres, z up), covering both sync wiggles; tracking loss in the flight < 0.5 s cumulative | yes |
-| D8 | **Mocap synced:** `mocap_align` run on this sortie: clock map early and late windows found, residual reported, rate within ±100 ppm | yes (residual noted) |
+| D8 | **Mocap synced:** `mocap_align` run on this sortie with the early and late windows set EXPLICITLY (`--early`, `--late`) to the two DISARMED sync-wiggle periods (`RISI` \|ω\| above threshold while disarmed; its default early window, arm to arm + 25 s, would miss the pre-arm wiggle); both found, residual reported, rate within ±100 ppm | yes (residual noted) |
 | D9 | Sortie sheet complete: class (VERIFICATION/RESULT), battery, times, take name, any deviation | yes |
 
 A RESULT sortie failing D2–D4, D7 or D8 is excluded under the pre-registration §3.3 (the reason recorded) BEFORE any

@@ -2,6 +2,16 @@
 
 One stage agent, coding and docs only (no simulator, no flights, no install). METHODOLOGY.md and numbers.md untouched.
 
+> **USER TRIAGE (2026-10-10, received mid-stage):**
+> - **A (the UKF-port geometry, `~/ardupilot_ukf`) is ON HOLD** until the supervisor confirms the hardware. Its state
+>   was committed on its own branch only (`rung1-geometry` `c25fa8980d`); no build, no install; the scratch worktree is
+>   removed. What exists and what is left: see A below and "Left to do on A when it resumes".
+> - **C (the pre-registration draft) is ON HOLD**: committed as it stood, marked DRAFT/ON HOLD, with its two known
+>   defects listed at its top.
+> - **B (parameters + `check_parm.py`) and D (flight cards, with the short-verification rule) CONTINUE**; both are done
+>   in this stage (D now carries the verification/result table and the explicit exclusion of verification sorties
+>   from scoring).
+
 ## What was done
 
 ### A. R2/R3: the UKF port reads the sensor geometry from the log
@@ -108,8 +118,35 @@ card, first-hover card, the per-sortie result card, abort criteria, the post-sor
 (LOG_REPLAY records present, RFRH continuity, DSF.Dp = 0, PARM readback, wiggles disarmed, mocap file present and synced),
 end of day.
 
-## Compile check
-See the final section ("Compile status") appended below.
+## Compile check: NOT RUN
+- Prepared as instructed: a scratch `git worktree` of `rung1-geometry` with only the submodules a SITL Replay build
+  needs (waf, mavlink, DroneCAN; `--reference` to the main checkout), and a build script for `./waf configure --board
+  sitl; ./waf replay` under `heavy.py --wait-s 1800`.
+- It never started: `BUILD_LOCK` was held throughout by the attribution study (pid 1322821), with two more heavy jobs
+  queued. Per the brief ("skip it if the lock is held for long") the waiting `heavy.py` was stopped with SIGTERM
+  before it acquired the lock (it held none), and then the triage put A on hold. The scratch worktree was removed
+  (`git worktree remove --force --force` + `prune`); `~/ardupilot_ukf` lists only its original two worktrees.
+- **So the R2 code is uncompiled.** It was written against the source read here (signatures of `AP_Param::get(const
+  char*, float&)`, `hal.util->snprintf`, `AP_DAL_RangeFinder_Backend::get_pos_offset()`,
+  `AP_DAL_InertialSensor::get_imu_pos_offset()`), but a compile error is possible.
+
+## PARM ordering in the log (checked read-only, relevant to A)
+- The port resolves its geometry ONCE, at its first `update()`. In Replay that is safe only if the log's `PARM`
+  records come before the first replay frame.
+- **On the two SITL logs checked it holds:** in `cl_a_tex_half` and `H_s1_r1` every geometry parameter (`EK3_FLOW_DELAY`,
+  `EK3_HGT_DELAY`, `RNGFND1_MIN/_MAX/_POS_Z`, `FLOW_POS_Z`, `INS_POS1_Z`) is at message index 169–915, and the first
+  `RFRH` at 1380/1390. Each logs 1396/1416 `PARM` records against 1379 names, i.e. a few later re-writes, none of them
+  these parameters.
+- **Not known for a real board's log** (logging may start before the parameter dump completes). Hence item 2 below.
+
+## Left to do on A when it resumes
+1. **Compile and regress** (the list above under "Must be re-verified").
+2. **Robustness of the geometry timing (from the review):** resolve the geometry at `initialise()` rather than at the
+   first `update()`; let the PARM hook also capture `EK3_FLOW_DELAY`, `EK3_HGT_DELAY`, `EK3_BCN_DELAY`; write a warning
+   line to `ukf_geometry.csv` if a geometry `PARM` arrives after initialisation; label each source honestly
+   ("param" / "log_parm" / "default"; today an `AP_Param::get` that returns the REGISTERED DEFAULT in Replay, before any
+   PARM, would still be labelled "param"). EKF3 re-reads `_flowDelay_ms` on every sample; the port does not.
+3. The capture-delay option (open question 2) and the GNDCLR initialisation (open question 1), each after a ruling.
 
 ## Open questions / follow-ups
 1. **Rangefinder minimum vs resting height (rung-1 blocker if it applies):** the UKF port initialises only on a `Good`
@@ -126,7 +163,8 @@ See the final section ("Compile status") appended below.
    corrected by whoever next edits them (not edited here).
 
 ## State at stop
-- thesis_ws: committed on the worktree branch (see the final reply for the SHA); not merged.
-- `~/ardupilot_ukf`: branch `rung1-geometry` committed; the scratch worktree removed and pruned; `ukf-jitter-fix`
-  untouched.
-- No locks held; no simulator or flight touched.
+- thesis_ws: committed on the worktree branch `worktree-agent-a28741f2c8a8ea439` (based on `fwd-camera` `c4e05a1`);
+  not merged.
+- `~/ardupilot_ukf`: branch `rung1-geometry` at `c25fa8980d` (ON HOLD); the scratch worktree removed and pruned;
+  `ukf-jitter-fix` (checked out) untouched; `~/ardupilot_ukf/build` untouched.
+- No locks held (the queued `heavy.py` was stopped before acquiring one); no simulator or flight touched.

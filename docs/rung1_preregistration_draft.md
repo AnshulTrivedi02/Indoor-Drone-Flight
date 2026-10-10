@@ -1,4 +1,15 @@
-# Rung 1 pre-registration: DRAFT, awaiting the user's sign-off
+# Rung 1 pre-registration: DRAFT, ON HOLD
+
+> **ON HOLD (user triage, 2026-10-10): until the supervisor confirms the hardware.** Committed as it stood; not
+> reviewed for sign-off. **Two known defects to fix when work resumes** (both are pre-registered definitions; neither
+> affects the primary metric, since evo -a refits each estimator):
+> 1. §4.3 start-aligned drift: the 4-DoF fit on [t_to + 25 s, t_to + 30 s] is a hover, where the horizontal spread is a
+>    few centimetres, so the fitted yaw is noise. The fit segment must include motion (e.g. from t_to + 25 s to the end
+>    of the first leg, or the first N m of mocap path). `mocap_align`'s default initial segment (arm to arm + 30 s) has
+>    the same problem for this profile.
+> 2. The mocap clock map: `mocap_align`'s default early window is (arm, arm + 25 s), which misses the PRE-ARM sync
+>    wiggle the profile relies on. §1/§8 must state that the early and late windows are the two DISARMED wiggle periods
+>    (`RISI` |ω| above a threshold while disarmed), passed explicitly with `--early`/`--late` (also an R8 requirement).
 
 **Status: DRAFT (R10), written 2026-10-10. Not signed off. Nothing in it is in force until the user signs it off (§11).**
 No real flight has been flown, and no real log has been scored. Every value below that depends on the vehicle, the
