@@ -13176,3 +13176,25 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   of the JOINT corrections, without per-fix attribution. "FGO batch ~2× better than RTS-UKF" stays WITHDRAWN.
 - **Then proceed:** the audit verification and the FGO initial-yaw correction; the FGO-only re-run overnight; the
   restatement and the before/after claims table.
+
+### TRIAGE (user, 2026-10-10)
+- **KEEP, in priority order:**
+  1. the initial-uncertainty audit verification and the FGO initial-yaw correction;
+  2. the FGO-only re-run overnight, then the restatement and the before/after claims table;
+  3. the 0.1 rad initial-yaw sensitivity check on 8 bags, ONLY IF it stays small.
+- **DROP:** the attribution study. The completed replays are reported as PARTIAL; the corrections were applied
+  jointly; the O FGO batch change is reported without per-fix attribution.
+- **PARK until after the freeze** (current state and notes committed; see the reprioritisation entry):
+  - the corrected C++ FGO equivalence checks;
+  - the UKF/FGO safety re-tests;
+  - the `p1c_img` calibration flights;
+  - the watcher build (G1–G11; built and merged, hardware items open);
+  - the board firmware build.
+- **Rung-1 software:**
+  - **START now (coding only):** the parameter template, the flight cards, the scorer, the dataflash-to-FGO
+    converter.
+  - **HOLD** until the supervisor confirms the hardware and a mocap booking: the mocap recorder, the alignment
+    switch, the UKF-port geometry. The rung-1 pre-registration draft is also held (not in the start list); its current
+    state is committed as DRAFT/ON HOLD.
+- **Communication:** remaining decisions are batched into ONE DAILY SUMMARY, unless something blocks, affects safety,
+  or changes a thesis claim.
