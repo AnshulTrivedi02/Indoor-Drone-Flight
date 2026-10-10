@@ -58,7 +58,8 @@ ratio 26.8 → 17.7; noise floor FGO SD 1.23 → 1.30, d 0.96 → 1.02; FGO medi
   live indoor/return, T A–C.
 
 ## 3. 0.1 rad sensitivity (`eval/results/sensitivity_yaw0_0p1/`)
-- `fwdc_tex_r1` heading arms unchanged (0.127 / 0.057 m); baselines move ≤ 0.05 m; `dsn_tex_r1` UKF 3.98 → 3.67, FGO
+- `fwdc_tex_r1` heading arms unchanged (0.127 / 0.057 m); `fwdc` baselines move ≤ 0.05 m; plain-wall baselines UKF
+  +0.84 / +0.98 m (r2 / r3, take-off-kick flights where the UKF is already highest), FGO ≤ 0.11 m; `dsn_tex_r1` UKF 3.98 → 3.67, FGO
   4.05 → 3.78 m (order unchanged; inside the FGO noise floor).
 - `fwdplainc_tex` heading arms, UKF / FGO: r1 0.19 / 0.15 → 0.21 / 0.17 m (fused 752 → 3,961); r2 0.15 / 0.09 → 0.75 /
   0.73 m (yaw max 4.9 → 14.5°); **r3 0.25 / 0.22 → 5.705 / 5.695 m** (yaw max 4.6 → 61.3°; fused 781 → 232), worse
@@ -72,7 +73,8 @@ ratio 26.8 → 17.7; noise floor FGO SD 1.23 → 1.30, d 0.96 → 1.02; FGO medi
 - Row 8 (plain-wall divergence) PENDING → WITHDRAWN (a D18 model error, corrected). Row 22 (O batch) PENDING → CHANGED
   (partial attribution). Row 7 (C0) → HOLDS (back to 6/6). Row 31 (F3c (b)) → HOLDS against the original (TRUE again).
 - UKF textured standing: mean r1–r3 FGO 3.44 < UKF 3.59 < EKF3 4.00; median r1–r9 UKF 5.13 > FGO 4.46 > EKF3 4.10.
-- **L:** the L FGO changed (V-L start takes the corrected yaw σ), but all four L verdicts PASS 3/3; L's result HOLDS.
+- **L:** the L FGO changed with the initial-uncertainty correction (the `FGO.init` priors that lc and nolc both start
+  from, and the V-L start's yaw σ; checked in `lc_fgo_replay.py`, not attributed individually), but all four L verdicts PASS 3/3; L's result HOLDS.
 
 ## 5. Questions for a user ruling (verdict flips only)
 1. **§8 counts** `fwdc` 7/9 and `fwdplainc` 7/9 (were 8/9, 9/9): the three new misses are FGO transition ratios outside
