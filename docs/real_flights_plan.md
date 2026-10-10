@@ -325,8 +325,14 @@ camera flown only once verified.
     - It starts before any roll: ωx = 0.00 at the first frame, and GT lateral velocity is 0.
     - The vehicle's roll rate then rises (to ωx ≈ +0.2 rad/s), and GT east velocity begins to grow 0.1–0.3 s after
       the plateau starts. The lift-off frames come about 1 s earlier.
-    - **The timing therefore points to the high-inlier climb plateau, not the lift-off frames, as the more likely
-      driver of the B4 bursts.** This cannot be confirmed without a replay, which this stage did not run.
+    - **Direction agrees.** In the truth fit, flow_x rises with body-left velocity. With the vehicle heading north,
+      a plateau of flow_x ≈ +0.6 therefore reads to the estimator as a WESTWARD drift, and the controller's
+      correction pushes the vehicle EAST, as observed in both flights (the UKF flight's logged VE −0.083 against a
+      true +0.091). The FGO flight's lift-off frames are all negative (mean −1.6 rad/s); they would have pushed it
+      WEST, the opposite of what happened. The sign of the lateral coefficient is only weakly identified from p1c
+      (fit coefficient 2.2, against the ≈ 1 expected).
+    - **The timing and the direction therefore both point to the high-inlier climb plateau, not the lift-off frames,
+      as the more likely driver of the B4 bursts.** This cannot be confirmed without a replay, which this stage did not run.
   - **Conclusion, plainly:** the pre-registered rule removes the low-inlier lift-off frames (all of the UKF
     flight's, and the two largest of the FGO flight's). **It does NOT remove the climb plateau, so on this evidence
     it is NOT a sufficient fix for D22.** r_min is not moved: the criterion was fixed before the data.
@@ -519,16 +525,34 @@ Each test is given as setup / action / pass / recorded.
   - *Pass:* the residual offset scatter ≤ 10 ms. The fitted offset and rate are recorded and used for scoring.
 - *Recorded:* the latency distributions, the sync offset, and the mocap_align output.
 
-**B8. Estimator invalid → FS_EKF_ACTION path (the open item in §7).** Per flying estimator, armed (props off, GUIDED,
-landed), after confirming it reports a relative position (`HORIZ_POS_REL`; the thin-backend trigger requires that it
-has done so since arming):
+**B8. Estimator invalid → FS_EKF_ACTION path (the open item in §7).** Per flying estimator, armed (props off,
+GUIDED).
+- **Isolation from the watcher (required, or the test measures the watcher instead):** on a landed vehicle, any LAND
+  disarms at once, and `thesis_nav_check` returns when disarmed. So for B8:
+  - the processes killed are NOT in the watcher's `--watch-process` list;
+  - the watcher's heartbeat (file and MAVLink) stays up throughout;
+  - the watcher, the flight script and the GCS failsafe must therefore not act.
+  - If any of them acts first, the run is void and repeated.
+- **Precondition, with a fixed fallback order (not left open):**
+  - EKF3 zeroes the flow before take-off below 0.5 m (`AP_NavEKF3_OptFlowFusion.cpp:45-48`), and the UKF port has
+    its own ground-proximity rule (`AP_NavUKF.cpp:593`). The estimator under test may therefore not report a relative
+    position (`HORIZ_POS_REL`) while landed. The thin-backend trigger needs it to have done so since arming.
+  - Check `HORIZ_POS_REL` (EKF_STATUS_REPORT / the dataflash) in this order, using the first that works:
+    1. on the bench, landed;
+    2. hand-held, armed, props off, camera ≥ 0.6 m above the floor, marker in view;
+    3. otherwise B8(b)/(c) move to the FIRST TETHERED HOVER of that estimator's stage, before any free flight, with
+       the safety pilot ready.
+  - The level used is recorded. On the bench a failsafe disarms rather than lands (`should_disarm_on_failsafe`).
 - (a) **EKF3** (`AHRS_EKF_TYPE` 3): stop the flow bridge and the tag/ExtNav bridge.
   - *Expected from SITL `H_safety_ekf3_ref`:* EKF3 raises NO failsafe; it keeps a dead-reckoned position.
   - *Pass:* recorded as report-only. The protection is the watcher's dependency loss (B9).
-- (b) **UKF port** (`AHRS_EKF_TYPE` 12): kill the Pi flow bridge (UKF aiding stops).
+- (b) **UKF port** (`AHRS_EKF_TYPE` 12): kill EVERY aiding input, as in SITL UKF (b) (`H_safety_ukf_b`: tag bridge and
+  flow bridge): the Pi flow bridge, the tag bridge, and the heading bridge if it is running. Killing the flow bridge
+  alone would leave the ExtNav fixes from the marker in view keeping the position alive.
   - *Pass:* "Thesis nav: UKF position lost" (`ekf_check.cpp:355`, `thesis_nav_check`) and LAND/disarm (reason
-    EKF_FAILSAFE) within **5.5 s of the LAST flow message received by the FC** (the last `OF` row in the dataflash).
-  - The kill → last-`OF` drain is reported separately (SITL: 0.08–0.71 s; METHODOLOGY UKF (b) re-test).
+    EKF_FAILSAFE) within **5.5 s of the LAST aiding message received by the FC**. That is the later of the last `OF`
+    row and the last ExtNav (`VISP`) row in the dataflash; the UKF's aiding timeout is 5 s.
+  - The kill → last-received drain is reported separately (SITL: 0.08–0.71 s; METHODOLOGY UKF (b) re-test).
 - (c) **FGO port** (`AHRS_EKF_TYPE` 13): kill the FGO node.
   - *Pass:* "Thesis nav: FGO position lost" and LAND/disarm within **0.75 s** of the last state received (as SITL
     `H_safety_fgo_a_v3`/`_b_v3`).
@@ -536,8 +560,8 @@ has done so since arming):
   the mocap attitude within the SITL S-A1 bound.
 - (e) Repeat (b)/(c) in ALT_HOLD: NO mode change is expected (`FS_EKF_ACTION` 1 acts only in modes that need a
   position, `ekf_check.cpp:190`). This is part of B10.
-- *Recorded:* the dataflash STATUSTEXT, ERR (EKFCHECK, FAILSAFE_EKFINAV), MODE/DISARM events, the `OF`/ODOMETRY
-  arrival times, and `ATT` against mocap.
+- *Recorded:* the HORIZ_POS_REL level used, the dataflash STATUSTEXT, ERR (EKFCHECK, FAILSAFE_EKFINAV), MODE/DISARM
+  events, the `OF`/`VISP`/ODOMETRY arrival times, and `ATT` against mocap.
 
 **B9. Dependency loss (`--dep-loss land|stop`; G7, G8).** Armed. For each watched dependency in turn (flow tracker,
 flow bridge, tag/heading bridge, Pi estimator node, and the flight script, if it is added as a dependency):

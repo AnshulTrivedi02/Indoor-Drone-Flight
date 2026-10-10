@@ -68,8 +68,10 @@ check). Commits: criterion `b9706ce` (before data) → r_min `eaa2011` → D22 c
   - It starts with zero roll rate and zero GT lateral velocity.
   - Roll and GT east velocity follow 0.1–0.3 s later.
   - The rule keeps 12/12 (UKF) and 11/14 (FGO) of these frames.
-  - The timing suggests this plateau, not the lift-off frames, drove the B4 bursts. That is unconfirmed: no replay
-    was run.
+  - Both the timing and the direction point to this plateau, not the lift-off frames, as the driver of the B4
+    bursts. Flow_x > 0 reads as a westward drift, so the correction is east, as observed; the FGO flight's lift-off
+    frames were negative and would have pushed it west. That is unconfirmed: no replay was run, and the lateral
+    sign is only weakly identified from p1c.
 - **Not pre-registered, candidates for a user ruling (§7.1a):**
   - flow from the fitted similarity transform at the principal point (not the median displacement);
   - a fitted-scale check;
@@ -90,8 +92,15 @@ These are in `docs/real_flights_plan.md` §7.2, with stage 0 (§9.4) and §7 cro
   - B5: mocap stopped or occluded;
   - B6: wrong rigid body;
   - B7: latency and clocks;
-  - B8: estimator invalid (EKF3 report-only, as in SITL; UKF port within 5.5 s of the last received `OF`; FGO within
-    0.75 s);
+  - B8: estimator invalid:
+    - EKF3 report-only, as in SITL;
+    - the UKF port with ALL aiding killed (flow, tag and heading bridges), within 5.5 s of the last `OF`/`VISP` row
+      received;
+    - the FGO within 0.75 s;
+    - the killed processes are kept out of the watcher's list, and the watcher's heartbeat stays up, so the watcher
+      does not disarm first;
+    - a fixed fallback if `HORIZ_POS_REL` is absent while landed: bench → hand-held ≥ 0.6 m (armed, props off) →
+      first tethered hover;
   - B9: dependency loss, land/stop/SIGSTOP;
   - B10: RC override precedence, and RC failsafe.
 - **Gaps that are not implemented for hardware (G1–G11):**
