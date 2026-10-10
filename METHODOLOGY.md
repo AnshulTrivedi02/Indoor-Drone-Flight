@@ -12971,3 +12971,30 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - Q7: one person plus agents;
   - Q1–Q3 (FC board, Pi/cameras/rangefinder, mocap system) come from the supervisor.
 - The plan's claim that board firmware had been built was corrected in `e5724ee`.
+
+### RULINGS (user, 2026-10-10, SUPERSEDING the scope part of the two previous entries): real flights built as RUNGS
+- **The full real-flight path stays the TARGET.** It is built as rungs, so every rung reached by 23 Oct yields a real
+  result:
+  - **Rung 1:** a minimal logging flight. Stock firmware; the vehicle's own flow sensor and rangefinder; EKF3 or the
+    pilot flying; LOG_REPLAY and mocap. EKF3 and the UKF port run via Replay, the FGO via a log converter.
+  - **Rung 2:** open loop with OUR pipeline. Pi, camera-based flow, forward camera; EKF3 flying, with the UKF and FGO
+    alongside.
+  - **Rung 3:** closed loop. Custom board firmware, UKF/FGO steering, the full watcher and the safety tests.
+- **Software for all rungs is built IN PARALLEL wherever it needs no hardware.** Hardware steps follow availability.
+- **The readiness checklist is re-costed by rung**, with rung 1's shortest path first.
+1. **The flow-validity rule** (inlier 0.85, features ≥ 20, stage-0 real-camera check) is CONFIRMED as pre-registered
+   for the real-flight camera path.
+2. **Watcher bench procedure B0–B10: CONFIRMED.** G1–G11 are added to the checklist and are to be BUILT NOW (needed
+   for rungs 2–3). This supersedes "deprioritised".
+3. **D22 climb plateau:**
+   - run the 2 h diagnostic (in progress);
+   - THEN pre-register check (b) (fitted scale) or (c) (climb/descent rate), calibrated on `p1c_*` only, IDENTICAL
+     for all three estimators, for the real-flight camera path;
+   - no change to the simulation datasets;
+   - the METHODOLOGY correction to the mean-flow values is recorded (entry "Flow-validity rule and watcher bench
+     tests").
+4. **Board firmware (rung 3):** built for the target board once the supervisor names it, with the onboard UKF/FGO
+   backends compiled in (not SITL-only), and with a rollback plan.
+- **Workstation priority:** the simulation work (the FGO correction, the initial-uncertainty audit, the FGO-only
+  re-run, the restatement) keeps priority until the 16 Oct freeze. Real-flight software runs as CODING alongside it,
+  with no heavy jobs and no simulator use that would compete.
