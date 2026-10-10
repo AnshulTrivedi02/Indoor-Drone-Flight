@@ -256,11 +256,16 @@ The C++ FGO also accepts a raw event stream (`<P>.raw.f64` + `<P>.init.json`, `f
 5. **Flow validity:** `valid := Qual > 0` and |rate| < 4.2, which is EKF3's rule (`:203`).
    - `inlier := Qual/255` is a pass-through only, because the FGO gate uses `inlier > 0`.
    - The pre-registered camera rule (inlier ≥ 0.85, features ≥ 20) **does not apply** to rung 1 (ruling 2026-10-10).
-6. **Flow time:**
-   - There is no capture stamp. Use **EKF3's own rule**: arrival − `EK3_FLOW_DELAY` − `flowTimeDeltaAvg_ms/2` (50) −
+6. **Flow time: NEEDS A RULING (proposed default below).**
+   - There is no capture stamp. "Arrival" is the `TimeUS` of the `RFRH` frame preceding the `ROFH` record (= EKF3's
+     `imuSampleTime_ms` at `writeOptFlowMeas`), not `ROFH.msecFlowMeas`.
+   - **Proposed default: EKF3's own rule**: arrival − `EK3_FLOW_DELAY` − `flowTimeDeltaAvg_ms/2` (50) −
      `filterStep/2` (6), floored at the fusion horizon. This is exactly what the port does (`AP_NavUKF.cpp:554`).
-   - **State this as a deliberate departure** from the simulated pipeline, where the UKF and FGO used capture stamps.
-     On real logs all three now share EKF3's timing.
+   - **Caveat:** `flowTimeDeltaAvg_ms = 100` is a hard-coded constant (`AP_NavEKF3.h:511` [V]). It assumes a 10 Hz
+     sensor, so the 50 ms term is wrong for a faster sensor (EKF3's own error, shared by all three under this rule).
+   - **Alternative:** arrival − `EK3_FLOW_DELAY` only, for the UKF/FGO.
+   - Either way this **changes the simulation's fairness rule**, where the UKF and FGO used capture stamps. It must be
+     ruled on and stated next to any sim-to-real comparison (§9 question 9).
 7. **Derotation rate:** use `ROFH.GX/GY` (the `bodyRate` EKF3 and the port use; D18) as the flow's omega, FRD → FLU,
    instead of the FGO's own interval average.
    - Where that rate comes from depends on the sensor:
@@ -281,7 +286,14 @@ The C++ FGO also accepts a raw event stream (`<P>.raw.f64` + `<P>.init.json`, `f
     - **Defaults stay unchanged**, so every simulation result stays byte-identical. This matters during the sim
       freeze to 16 Oct.
     - Lateral `FLOW_POS_X/Y` lever arms enter `h_flow_pose` through `FLOW_LEVER_ARM_BODY` (FLU), which today is z only.
-11. **Output:** the in-memory event list for `fgo_replay.py` (a `--bin` input mode), plus optionally `<P>.raw.f64` for the
+11. **Other hard dependencies of `fgo_replay.py`** that a `--bin` mode must replace:
+    - **Arm time.** `imu_gaps.json` → `arm_header_s` feeds `GroundProximityFlow` (the D15 rule shared with the UKF).
+      Take it from the log's `ARM`/`EV` records. This also replaces the "run `imu_gap_check --write` first" step,
+      which works on bags only.
+    - **The `att` stream** (omega fallback and pre-init omega): synthesise it from `RISI` gyro, or guard the path.
+    - **Ground truth:** the `gt` array and `f_filter_forward(ev, gt[:,0], …)` assume `/ground_truth/pose`. Feed mocap,
+      or bypass them (no forward-camera events in rung 1). An empty `gt` fails at indexing.
+12. **Output:** the in-memory event list for `fgo_replay.py` (a `--bin` input mode), plus optionally `<P>.raw.f64` for the
     C++ FGO. **Rung 1 uses the Python FGO** (the corrected build, initial yaw σ 1°). The C++ FGO is optional.
 
 **Hardware-free acceptance test (planned, not run):**
@@ -298,9 +310,10 @@ The C++ FGO also accepts a raw event stream (`<P>.raw.f64` + `<P>.init.json`, `f
 
 **Effort:**
 - converter 1.5–2 d;
+- arm time, `att` stream and ground-truth dependencies (item 11) 0.25–0.5 d;
 - geometry overrides plus regression 0.5–1 d;
 - SITL acceptance test 0.5 d;
-- **total 2.5–3.5 d** [E].
+- **total 3–4 d** [E].
 
 ### 4.4 Is the shared `h_flow` model still right for a flow sensor? (D18)
 
@@ -342,7 +355,7 @@ Efforts are [E], for one person, with agents coding in parallel. "SW now" means 
 
 | # | item | effort | depends on | SW now? | risk |
 |---|---|---|---|---|---|
-| R1 | **Converter** BIN → FGO inputs (§4.3), with geometry overrides and the SITL acceptance test on `cl_a_tex_half` | 2.5–3.5 d | — | **yes** | **Medium.** Timing rules for 400 Hz deltas; `RISI` dt quirks; the SITL band may need a justified width. |
+| R1 | **Converter** BIN → FGO inputs (§4.3), with geometry overrides and the SITL acceptance test on `cl_a_tex_half` | 3–4 d | — | **yes** | **Medium.** Timing rules for 400 Hz deltas; `RISI` dt quirks; the SITL band may need a justified width. |
 | R2 | **UKF port for real geometry** in Replay: DAL offsets, `EK3_FLOW_DELAY`, range limits; byte-identical on SITL; rebuild the fork's Replay (sitl board, light) | 0.5–1 d | — | **yes** | Low |
 | R3 | UKF CSV → TUM on the FC clock | 0.25 d | R2 | yes | Low |
 | R4 | **EKF3 Replay**: 0 d if pinned flies, 0.5 d stock Replay if 4.7.0 flies; `check_replay.py` acceptance with a pre-registered tolerance | 0.5–1 d | S6, first real log | partly | **Medium.** Not bit-exact on ARM; a non-H7 board makes it single against double. |
@@ -354,16 +367,16 @@ Efforts are [E], for one person, with agents coding in parallel. "SW now" means 
 | R10 | **Pre-registration** of rung 1: profile, n, window, metrics, Replay tolerance, converter band, claims | 0.5 d | — | **yes** | Low |
 | R11 | **Flight cards**: pre-flight (parameter readback, `DSF`, origin if a circle fence is used, mode switches, fence test), sync wiggles, profile, abort calls, post-flight (log download, `DSF`, pipeline run) | 1 d | R6 | **yes** | Low |
 | R12 | **Bench (props off)**: sensors healthy; flow orientation (rotate the vehicle and check that `OF.bodyX/Y` and `flowX/Y` agree in sign: ArduPilot's standard flow check); rangefinder on the ground and lifted; `LOG_REPLAY` log complete | 0.5–1 d | R5, R6 | no | Medium |
-| R13 | **Hand-carried check in the volume** (motors off): carry the vehicle along the profile at flight height, with sync wiggles at both ends. **The SAME DAY**, run the whole offline pipeline (R4, R2, R1, R8, R9) on that log. This is the end-to-end rehearsal and the first real Replay check. | 0.5 d + 0.5 d pipeline | R12, R7, R1–R9 | no | **Medium–high.** First contact of every tool with real data. |
+| R13 | **Hand-carried check in the volume** (motors off): carry the vehicle along the profile at flight height, with sync wiggles at both ends. **The SAME DAY**, run the whole offline pipeline (R4, R2, R1, R8, R9) on that log. This is the end-to-end rehearsal and the first real Replay check. **Limit:** disarmed, EKF3 stays `onGround` and never detects take-off (`AP_NavEKF3_VehicleStatus.cpp:466-480` [V]), so the D15 ground-proximity treatment applies and flow does not drive translation. The hand-carry therefore proves plumbing, sync, flow-sensor sign and Replay reproduction of a non-aiding EKF3. **Flow navigation is first tested in the first hover** (or by carrying the vehicle armed with props off, if the lab allows it). | 0.5 d + 0.5 d pipeline | R12, R7, R1–R9 | no | **Medium–high.** First contact of every tool with real data. |
 | R14 | Flight day(s): first hover, then n = 3–5 repeats (+3 over a plain sheet if S7) | 1–1.5 d | R13, mocap booking, safety pilot | no | **High.** Hardware, weather-free but lab-bound. |
 | R15 | Offline runs + scoring of all flights, plus a METHODOLOGY result entry | 1 d | R14 | no | Low |
 | — | *If the vehicle is not already flying:* assembly, tune, hover learn (`A1`, `A2`) | **+3–6 d** | S2 | no | **High; breaks the calendar** |
 
 **Totals [E]:**
-- software that can start now (R1–R3, R8–R11 and the R6 draft): **7–9.5 d** of work, mostly agent-coded and reviewed
+- software that can start now (R1–R3, R8–R11 and the R6 draft): **7.5–10 d** of work, mostly agent-coded and reviewed
   by one person;
 - hardware and on-site work (R4 check, R5, R6 bench, R7, R12–R15): **5–8 d**;
-- **total 12–17.5 person-days.**
+- **total 12.5–18 person-days.**
 - Because agents can run the software chain in parallel during the sim-priority week, the **elapsed** time is set by
   the hardware chain.
 
@@ -380,7 +393,7 @@ There are 10 working days (Mon 12 – Fri 23), plus this weekend. Simulation wor
 | **Mon 12** | **Supervisor inputs S1–S7**; firmware decision S6; mocap booking | **D1: inputs received.** If there is no answer by Tue 13, rung 1 is at risk. |
 | Mon 12 – Wed 14 | R1 converter, R2 port change, R8, R9 scorer, R3 (agents); R6 template draft; R11 cards | — |
 | Thu 15 – Fri 16 | R5 firmware build and flash; R6 bench readback; R12 bench (flow orientation, rangefinder, log completeness); R1/R2 SITL acceptance tests (light single replays) | **D2 (Fri 16): a flying vehicle with working flow and rangefinder on the bench, logs complete.** If not, rung 1 is NOT reached by 23 Oct. |
-| Mon 19 | R7 recorder test; **R13 hand-carried check + same-day pipeline** | **D3: Replay check passes (or its failure is characterised), the converter runs on real data, the scorer gives numbers** |
+| Mon 19 | R7 recorder test; **R13 hand-carried check + same-day pipeline** | **D3: Replay check passes on the hand-carried log (or its failure is characterised), the converter runs on real data, the scorer gives numbers.** The flow-aiding Replay check is repeated on the first hover log (Tue 20). |
 | Tue 20 | fixes; first hovers (pilot, ALT_HOLD) | — |
 | Wed 21 | R14 main flights: n = 3–5 (+ plain sheet if S7) | — |
 | Thu 22 | R15 offline runs and scoring; spare flight slot | — |
@@ -473,3 +486,5 @@ The full mapping, with efforts by rung, is `docs/real_flight_readiness_by_rung.m
 6. **Floor:** can a plain sheet be laid, to give a degraded condition?
 7. **Compass:** keep the comparison's nomag configuration for the real flights (recommended)?
 8. **Freeze scope:** does the 23 Oct freeze cover the offline analysis of logs recorded before it, or only the flying?
+9. **Flow timing on real logs (ruling needed):** the UKF/FGO adopt EKF3's arrival − delay − 50 − 6 ms rule (proposed),
+   or arrival − `EK3_FLOW_DELAY` only? Either way it replaces the simulation's capture-stamp rule for those two.

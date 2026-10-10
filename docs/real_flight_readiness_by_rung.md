@@ -35,7 +35,7 @@ These are the items rung 1 needs, in dependency order. For details see `docs/min
 | order | ID(s) | item | kind | effort |
 |---|---|---|---|---|
 | 1 | R10, H9(r1) | Rung-1 pre-registration: profile, n, window, metrics, Replay tolerance, converter band | SW | 0.5 d |
-| 2 | R1, G11(r1), C7(r1) | Converter BIN → FGO inputs, geometry overrides (defaults unchanged), SITL acceptance test on `cl_a_tex_half` | SW (+1 light replay) | 2.5–3.5 d |
+| 2 | R1, G11(r1), C7(r1) | Converter BIN → FGO inputs, geometry overrides (defaults unchanged), SITL acceptance test on `cl_a_tex_half` | SW (+1 light replay) | 3–4 d |
 | 3 | R2, R3, C7(r1) | UKF port: real geometry and flow delay from DAL/params, byte-identical on SITL; Replay rebuild; CSV → TUM | SW | 0.75–1.25 d |
 | 4 | R8, I3, I4(r1) | `mocap_align` on `RISI` (400 Hz, pre-filter), re-self-test | SW | 0.5 d |
 | 5 | R9 | Scorer `real_score.py` (pre-registered window, evo -a, start-aligned drift) | SW | 1–1.5 d |
@@ -46,14 +46,14 @@ These are the items rung 1 needs, in dependency order. For details see `docs/min
 | 10 | R12, D3(r1), D4(r1), D5(r1) | Bench (props off): flow orientation (`OF.body*` against `flow*` signs), rangefinder, mount offsets, `EK3_FLOW_DELAY` from the datasheet | HW | 0.5–1 d |
 | 11 | R7, I3 | Mocap recorder/adapter (Motive or Vicon export → CSV, Z-up) | SW+HW | 0.5–1.5 d |
 | 12 | R4 | EKF3 Replay: 0 d if pinned, 0.5 d stock Replay if 4.7.0; `check_replay.py` acceptance on the first real log | SW+HW | 0.5–1 d |
-| 13 | R13, H7, H4(r1) | Hand-carried check in the volume, with the whole offline pipeline run the same day | HW | 1 d |
+| 13 | R13, H7, H4(r1) | Hand-carried check in the volume, with the whole offline pipeline run the same day (disarmed: EKF3 stays on-ground, so flow aiding is first tested in the first hover) | HW | 1 d |
 | 14 | R14 | Flight day(s): first hovers, then n = 3–5 (+3 over a plain sheet) | HW | 1–1.5 d |
 | 15 | R15 | Offline runs, scoring, METHODOLOGY entry | SW | 1 d |
 
 **Rung 1 total:**
-- software that can start now: **7–9.5 d** (agents);
+- software that can start now: **7.5–10 d** (agents);
 - hardware and on-site work: **5–8 d**;
-- **12–17.5 person-days in all.**
+- **12.5–18 person-days in all.**
 - The elapsed time is set by the vehicle.
 
 **Verdict for rung 1: FITS ONLY IF** an already-flying H7 vehicle with its flow sensor and rangefinder is available by
