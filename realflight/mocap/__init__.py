@@ -23,6 +23,8 @@ WHAT THE REAL MOCAP SYSTEM MUST PROVIDE (the system is unknown until the supervi
   - world frame: right-handed, metres, z UP or y UP (export --up-axis; OptiTrack Motive defaults to y up, Vicon to z up).
     The yaw/origin of the mocap frame do not matter: mocap_align fits them (4-DoF).
   - the mocap clock need not be synchronised to anything: mocap_align fits offset AND rate against the FC's 400 Hz RISI
-    gyro. It must be MONOTONIC and continuous for the whole recording (no resets); sync wiggles at both ends of each log.
+    gyro. It should be MONOTONIC and continuous for the whole recording; sync wiggles at both ends of each log. A
+    restart (frame counter or mocap clock reset) no longer loses data: the recorder starts a new `segment` and logs it,
+    but a segment without both sync wiggles cannot be time-aligned, so a restart mid-flight may still cost that flight.
   - orientation noise: well under ~0.1 deg per frame (ordinary for marker sets of 4+ markers); worse noise blurs |w|.
 """

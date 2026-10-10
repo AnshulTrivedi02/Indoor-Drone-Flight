@@ -40,13 +40,14 @@ def smooth_noise(rng, n, dt, tau, rms):
     return rms * y / (np.std(y) + 1e-12)
 
 
-def synth_flight(seed, T=200.0, boot=12.0, noise=1.0, bias=1.0):
+def synth_flight(seed, T=200.0, boot=12.0, noise=1.0, bias=1.0, wiggle_gain=1.0):
     """Truth on the FC clock tf in [boot, boot + T]. Returns fc dict, mocap dict, truth map, windows."""
     rng = np.random.default_rng(seed); dt = 0.001; tf = np.arange(boot, boot + T, dt); n = len(tf); tau = tf - boot
     w = np.c_[[smooth_noise(rng, n, dt, 0.5, r) for r in (0.15, 0.15, 0.08)]].T          # gentle flight motion
     for c in (10.0, T - 12.0):                                                           # sync wiggles: 6 s, 1-2 Hz
         m = (tau > c - 3) & (tau < c + 3); ph = 2 * math.pi * 1.5 * (tau[m] - c)
-        w[m, 0] += 1.2 * np.sin(ph); w[m, 1] += 0.8 * np.sin(1.3 * ph + 0.7); w[m, 2] += 0.6 * np.sin(0.7 * ph)
+        w[m, 0] += wiggle_gain * 1.2 * np.sin(ph); w[m, 1] += wiggle_gain * 0.8 * np.sin(1.3 * ph + 0.7)
+        w[m, 2] += wiggle_gain * 0.6 * np.sin(0.7 * ph)
     dq = Rot.from_rotvec(w[:-1] * dt).as_quat()                                         # body rates -> attitude
     q = np.empty((n, 4)); q[0] = (0.0, 0.0, 0.0, 1.0); x0, y0, z0, w0 = q[0]
     for i in range(n - 1):                                                               # q_{i+1} = q_i * dq_i (x,y,z,w)
@@ -133,7 +134,7 @@ def run_sitl(trial, gt_path, timeref_path):
     fc = MA.read_fc(path, "XKF1", "RISI")
     gt = np.loadtxt(gt_path); gt = gt[np.r_[True, np.diff(gt[:, 0]) > 0]]
     mo = {"t": gt[:, 0], "p": gt[:, 1:4], "q": gt[:, 4:8]}
-    early, late, init = MA.default_windows(fc, min_dist=1.0)
+    early, late, init = MA.legacy_windows(fc, min_dist=1.0)   # SITL: no sync wiggles (pre-2026-10-11 rule)
     out = {"trial": trial, "windows_fc_s": [list(early), list(late)], "gt_rate_hz": float(1 / np.median(np.diff(gt[:, 0]))),
            "risi_dadt_median_s": fc["risi_dadt_median_s"]}
     base, _, _, _ = MA.align(fc, mo, early, late, init)

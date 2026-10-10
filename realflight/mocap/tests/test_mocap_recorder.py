@@ -133,3 +133,84 @@ def test_export_readable_by_mocap_align(tmp_path):
     EX.export(EX.load_raw(str(raw)), str(tmp_path / "m.csv"), up="z")
     mo = mod.load_mocap(str(tmp_path / "m.csv"))
     assert mo["p"].shape == (50, 3) and np.allclose(mo["q"][5], [0, 0, math.sin(math.radians(5) / 2), math.cos(math.radians(5) / 2)])
+
+
+# ---------------- restarts (2026-10-11 fix: a frame-counter reset used to drop the rest of the flight) ----------------
+def _smp(k, t, frame=None, rx=None):
+    from realflight.mocap.source import MocapSample
+    return MocapSample(frame_no=k if frame is None else frame, t_mocap=t, t_rx=(t if rx is None else rx), body_id=1,
+                       body_name="drone", tracked=1, pos=(0.01 * k, 0.0, 1.0), quat=_q_yaw(0.0), t_rx_wall=0.0)
+
+
+def _rec(tmp_path, name="r"):
+    return RC.Recorder(str(tmp_path / f"{name}.csv"), str(tmp_path / f"{name}.meta.json"), {"test": True}, body_id=1)
+
+
+def test_forwarder_restart_large_jump_keeps_writing(tmp_path):
+    rec = _rec(tmp_path)
+    rec.accept([_smp(k, 1000.0 + 0.01 * k) for k in range(200)])
+    seg2 = [_smp(200 + j, 1002.0 + 0.01 * j, frame=j) for j in range(100)]    # counter back to 0, mocap clock continues
+    seg2.insert(51, _smp(250, 1002.50, frame=50))                             # a duplicate INSIDE segment 2
+    rec.accept(seg2)
+    rec.close()
+    meta = json.load(open(tmp_path / "r.meta.json")); b = meta["bodies"]["1:drone"]
+    assert b["written"] == 300 and b["duplicates_or_out_of_order"] == 1
+    assert b["segments"] == 2 and len(b["restarts"]) == 1
+    ev = b["restarts"][0]
+    assert ev["kind"] == "frame_counter_reset" and ev["last_frame_before"] == 199 and ev["first_frame_after"] == 0
+    assert abs(ev["last_t_mocap_before"] - 1001.99) < 1e-9 and abs(ev["first_t_mocap_after"] - 1002.0) < 1e-9
+    assert b["n_clock_faults"] == 0 and b["n_time_gaps"] == 0 and b["n_frame_gaps"] == 0     # no spurious faults
+    raw = EX.load_raw(str(tmp_path / "r.csv"))
+    assert (raw["segment"] == 0).sum() == 200 and (raw["segment"] == 1).sum() == 100
+    s = EX.export(raw, str(tmp_path / "m.csv"), up="z")                       # continuous mocap clock: allowed
+    assert s["written"] == 300 and s["segments_in_log"] == [0, 1]
+
+
+def test_restart_small_jump_held_run_is_written(tmp_path):
+    rec = _rec(tmp_path)
+    rec.accept([_smp(k, 10.0 + 0.01 * k) for k in range(50)])
+    rec.accept([_smp(50 + j, 10.5 + 0.01 * j, frame=40 + j) for j in range(30)])   # counter back by 9 only
+    rec.accept([_smp(5, 10.05)])                                                   # a late stray: still a duplicate
+    rec.close()
+    b = json.load(open(tmp_path / "r.meta.json"))["bodies"]["1:drone"]
+    assert b["written"] == 80 and b["segments"] == 2 and b["duplicates_or_out_of_order"] == 1
+    rows = open(tmp_path / "r.csv").read().splitlines()[1:]
+    assert [int(r.split(",")[0]) for r in rows[50:53]] == [40, 41, 42]         # the held frames were not lost
+    assert int(rows[50].split(",")[-1]) == 1
+
+
+def test_short_backward_run_stays_duplicates(tmp_path):
+    rec = _rec(tmp_path)
+    rec.accept([_smp(k, 0.01 * k) for k in range(50)])
+    rec.accept([_smp(k, 0.01 * k) for k in range(45, 50)])                     # 5 re-sent frames: not a restart
+    rec.accept([_smp(k, 0.01 * k) for k in range(50, 60)])
+    rec.close()
+    b = json.load(open(tmp_path / "r.meta.json"))["bodies"]["1:drone"]
+    assert b["written"] == 60 and b["duplicates_or_out_of_order"] == 5 and b["segments"] == 1
+
+
+def test_mocap_clock_reset_export_refused_unless_segment_named(tmp_path):
+    rec = _rec(tmp_path)
+    rec.accept([_smp(k, 500.0 + 0.01 * k) for k in range(200)])
+    rec.accept([_smp(k, 0.01 * (k - 200), frame=k - 200) for k in range(200, 300)])   # Motive restart: frames AND clock
+    rec.close()
+    b = json.load(open(tmp_path / "r.meta.json"))["bodies"]["1:drone"]
+    assert b["written"] == 300 and b["segments"] == 2
+    raw = EX.load_raw(str(tmp_path / "r.csv"))
+    with pytest.raises(SystemExit) as e:
+        EX.export(raw, str(tmp_path / "m.csv"), up="z")
+    assert "--segment" in str(e.value)
+    s = EX.export(raw, str(tmp_path / "m1.csv"), up="z", segment=1)
+    assert s["written"] == 100 and s["segment_exported"] == 1
+    s0 = EX.export(raw, str(tmp_path / "m0.csv"), up="z", segment=0)
+    assert s0["written"] == 200
+
+
+def test_clock_reset_with_increasing_frames_is_a_segment(tmp_path):
+    rec = _rec(tmp_path)
+    rec.accept([_smp(k, 100.0 + 0.01 * k) for k in range(100)])
+    rec.accept([_smp(k, 0.01 * k) for k in range(100, 150)])                   # frames go on, the clock jumps back
+    rec.close()
+    b = json.load(open(tmp_path / "r.meta.json"))["bodies"]["1:drone"]
+    assert b["written"] == 150 and b["n_clock_faults"] == 1 and b["segments"] == 2
+    assert b["restarts"][0]["kind"] == "mocap_clock_reset"
