@@ -12998,3 +12998,27 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Workstation priority:** the simulation work (the FGO correction, the initial-uncertainty audit, the FGO-only
   re-run, the restatement) keeps priority until the 16 Oct freeze. Real-flight software runs as CODING alongside it,
   with no heavy jobs and no simulator use that would compete.
+
+### D22 climb plateau diagnostic (2026-10-10, report only; `docs/handovers/2026-10-10_d22_plateau_diag.md`)
+- **The criterion was committed (`a2213c9`) before the D22 prediction was computed.**
+- **Neither D22 bag has downward images** (forward camera only). The mechanism was tested on ANALOGUES with downward
+  images (`tagchar_h20`, `tag_check2img`).
+  - The offline tracker replay is bit-identical to the published values (except each bag's first frame).
+  - In the climb: flow_x +0.23 / +0.22 rad/s at inlier ratio 1.00, with zero roll rate and zero lateral velocity.
+  - The excess = the scale change × the median feature's sideways offset (−49 px). Residual 0.0025 / 0.0022 rad/s RMS.
+  - The fitted translation at the principal point is ≈ 0 (0.003 rad/s RMS), i.e. the truth.
+  - Fitted scale rate / GT ż/h_cam = 1.004 / 0.997.
+  - **The mechanism EXISTS, and RANSAC accepts these frames.**
+- **D22 itself (published flow + GT only):**
+  - the plateau start implies a median offset of −217/−218 px (against −49 px in the analogue), with the y-offset
+    within ~3 px of centre;
+  - the expansion model fits at 0.02–0.08 rad/s RMS, against 0.37–0.58 for roll plus lateral without expansion;
+  - the pre-registered windows held only 3/1 frames; the evidence rests on the secondary window (11 frames each).
+  - **CONSISTENT with expansion, NOT proven** (no images).
+- **Implication for the candidate checks:**
+  - (b) the fitted scale and (c) the climb rate measure the same thing; (b) reuses the existing fit and is the cleaner
+    input.
+  - BOTH reject every climb frame: at a 0.1 rad/s bias limit, a ~2.3 s flow outage after lift-off (~0.66 s today).
+    That could trip the 0.75 s estimator-loss timer.
+  - (a) flow at the principal point removes the bias WITHOUT dropping frames (measured on the analogues).
+- **Pre-registration of (b)/(c) is held for a user ruling, in the light of this trade-off.**
