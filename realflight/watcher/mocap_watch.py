@@ -155,7 +155,7 @@ class Watcher:
                 self.core.on_fc_heartbeat(now, ev[1])
             elif k == "att":
                 self.att_seen = True
-                self.core.on_fc_attitude(now, ev[1], ev[2], ev[3])
+                self.handle(self.core.on_fc_attitude(now, ev[1], ev[2], ev[3]))
             elif k == "param":
                 ok, why = self.fc.verify_params(self.exp)
                 if ok is not None and (ok, why) != (self.core.params_ok, self.core.params_why):
@@ -192,7 +192,9 @@ class Watcher:
             # FC housekeeping: params (until verified, then every 30 s) and the ATTITUDE stream
             if self.cfg.require_fc_params and now - self.last_param_req > (30.0 if self.core.params_ok else 2.0):
                 self.fc.request_params(list(self.exp)); self.last_param_req = now
-            if not self.att_seen and now - self.last_stream_req > 5.0:
+            # re-asserted every 2 s, always: MAVProxy/the FC can silently override a one-shot SET_MESSAGE_INTERVAL
+            # (the attitude_bridge.py / RANGEFINDER lesson), and the identity check needs ATTITUDE >= ~10 Hz
+            if now - self.last_stream_req > 2.0:
                 self.fc.request_streams(); self.last_stream_req = now
             self.fc.service()
             was_latched = self.core.latched is not None
@@ -227,6 +229,7 @@ class Watcher:
             f.write(f"heartbeats_sent={self.fc.hb_sent}\nsent={self.fc.sent}\nbreaches={self.core.n_breach}\n"
                     f"latched={self.core.latched}\nidentity={self.core.ident.state} ({self.core.ident.why})\n"
                     f"identity_max_rp_diff_deg={self.core.ident.max_rp_diff:.2f}\n"
+                    f"fc_attitude_rate_hz={self.core.ident.att_rate():.1f}\n"
                     f"wrong_bodies={self.core.wrong_bodies}\nmax_loop_gap_s={self.core.max_gap:.3f}\n"
                     f"land={self.fc.land}\nmocap_bad_packets={self.mocap.bad}\n")
         self.note("watcher exit: heartbeat withdrawn")

@@ -51,53 +51,77 @@ class Config:
     id_yaw_tol_deg: float = 10.0                            # B6
     id_yaw_window_s: float = 1.0                            # B6
     id_yaw_span_s: float = 3.0                              # yaw changes compared over this sliding span (drift-free)
-    att_max_age_s: float = 0.2                              # FC ATTITUDE must stream at >= 20 Hz to the watcher
+    id_rp_proof_s: float = 0.25                             # agreement while excited needed to prove roll/pitch
+    id_lag_max_s: float = 0.3                               # FC ATTITUDE latency allowance vs the mocap
     require_fc_params: bool = True
 
 
 class Identity:
     """G3 / B6. UNPROVEN until the vehicle has been hand-moved (roll/pitch >= excite, yaw >= 45 deg) with the mocap
     body agreeing with the FC ATTITUDE; FAILED (final, until restart) on a sustained disagreement. Gates CONFIRMATION
-    only. After it is proven, later disagreements are logged and alerted, never acted on (not pre-registered)."""
+    only. After it is proven, later disagreements are logged and alerted, never acted on (not pre-registered).
+
+    Evaluated on each FC ATTITUDE ARRIVAL. FC telemetry lags the mocap (50-150 ms over a radio), so each FC sample is
+    compared with the BEST-matching mocap sample received in the preceding id_lag_max_s (0.3 s): a right body then
+    agrees during a quick hand motion, while a wrong (still or differently moving) body still disagrees by the full
+    excitation. There is no fixed roll/pitch offset parameter: the mocap asset's axes must match the FC's IMU axes
+    within the 5 deg tolerance at rest (checked at B6 setup)."""
 
     def __init__(self, cfg: Config):
         self.c = cfg
         self.state = "unproven"
         self.why = "not yet excited (hand-tilt >= %.0f deg and hand-yaw >= %.0f deg)" % (
             cfg.id_rp_excite_deg, cfg.id_yaw_excite_deg)
-        self.att = None               # (t, roll, pitch, yaw) FC
-        self.fc_yaw_u = self.moc_yaw_u = None
+        self.mhist = deque()          # (t, roll, pitch, yaw_unwrapped) mocap, FRD convention
+        self.fhist = deque()          # (t, yaw_unwrapped) FC
         self.fc_prev = self.moc_prev = None
-        self.hist = deque()           # (t, fc_yaw_unwrapped, mocap_yaw_unwrapped)
+        self.fc_yaw_u = self.moc_yaw_u = None
         self.rp_bad_since = self.rp_good_since = None
         self.rp_proven = self.yaw_proven = False
         self.yaw_excite_since = None
         self.post_bad_since = None
         self.max_rp_diff = 0.0
+        self.n_att = 0
+        self.t_att0 = None
+        self.t_att_last = None
 
-    def on_att(self, now, roll, pitch, yaw):
-        self.att = (now, roll, pitch, yaw)
-        if self.fc_prev is None:
-            self.fc_yaw_u = yaw
-        else:
-            self.fc_yaw_u += wrap_pi(yaw - self.fc_prev)
-        self.fc_prev = yaw
+    def att_rate(self):
+        if self.n_att < 2 or self.t_att_last == self.t_att0:
+            return 0.0
+        return (self.n_att - 1) / (self.t_att_last - self.t_att0)
 
     def on_pose(self, now, R):
-        """Returns actions (log/alert)."""
-        acts = []
-        if self.att is None or now - self.att[0] > self.c.att_max_age_s:
-            return acts
         r_m, p_m, y_m = euler_frd(R)
         if self.moc_prev is None:
             self.moc_yaw_u = y_m
         else:
             self.moc_yaw_u += wrap_pi(y_m - self.moc_prev)
         self.moc_prev = y_m
-        _, r_f, p_f, _ = self.att
-        d = max(abs(wrap_pi(r_m - r_f)), abs(wrap_pi(p_m - p_f)))
-        dd = math.degrees(d)
+        self.mhist.append((now, r_m, p_m, self.moc_yaw_u))
+        while self.mhist and now - self.mhist[0][0] > self.c.id_yaw_span_s:
+            self.mhist.popleft()
+        return []
+
+    def on_att(self, now, r_f, p_f, yaw):
+        """Returns actions (log/alert)."""
+        self.n_att += 1
+        self.t_att0 = now if self.t_att0 is None else self.t_att0
+        self.t_att_last = now
+        if self.fc_prev is None:
+            self.fc_yaw_u = yaw
+        else:
+            self.fc_yaw_u += wrap_pi(yaw - self.fc_prev)
+        self.fc_prev = yaw
+        self.fhist.append((now, self.fc_yaw_u))
+        while self.fhist and now - self.fhist[0][0] > self.c.id_yaw_span_s:
+            self.fhist.popleft()
+        cand = [m for m in self.mhist if now - self.c.id_lag_max_s <= m[0] <= now]
+        if not cand:
+            return []
+        diffs = [max(abs(wrap_pi(m[1] - r_f)), abs(wrap_pi(m[2] - p_f))) for m in cand]
+        dd = math.degrees(min(diffs))
         self.max_rp_diff = max(self.max_rp_diff, dd)
+        acts = []
         if self.state == "confirmed":                       # monitoring only
             if dd > self.c.id_rp_tol_deg:
                 if self.post_bad_since is None:
@@ -111,11 +135,9 @@ class Identity:
             return acts
         if self.state == "failed":
             return acts
-        self.hist.append((now, self.fc_yaw_u, self.moc_yaw_u))
-        while self.hist and now - self.hist[0][0] > self.c.id_yaw_span_s:
-            self.hist.popleft()
-        # roll / pitch
-        excited = max(abs(r_f), abs(p_f), abs(r_m), abs(p_m)) >= math.radians(self.c.id_rp_excite_deg)
+        r_m, p_m = cand[-1][1], cand[-1][2]
+        excite = math.radians(self.c.id_rp_excite_deg)
+        excited = max(abs(r_f), abs(p_f)) >= excite or any(max(abs(m[1]), abs(m[2])) >= excite for m in cand)
         if dd > self.c.id_rp_tol_deg:
             self.rp_good_since = None
             if self.rp_bad_since is None:
@@ -129,18 +151,18 @@ class Identity:
             if excited:
                 if self.rp_good_since is None:
                     self.rp_good_since = now
-                if now - self.rp_good_since >= self.c.id_rp_sustain_s and not self.rp_proven:
+                if now - self.rp_good_since >= self.c.id_rp_proof_s and not self.rp_proven:
                     self.rp_proven = True
                     acts.append(("LOG", f"identity: roll/pitch agreement proven (diff {dd:.1f} deg)"))
             else:
                 self.rp_good_since = None
         # yaw CHANGES over a sliding span (the mocap/FC yaw offset is arbitrary, and slow FC yaw drift cancels)
-        t0, f0, m0 = self.hist[0]
-        dfc = math.degrees(self.fc_yaw_u - f0)
-        dmo = math.degrees(self.moc_yaw_u - m0)
-        if not self.yaw_proven and max(abs(dfc), abs(dmo)) < self.c.id_yaw_excite_deg:
+        dfc = math.degrees(self.fc_yaw_u - self.fhist[0][1])
+        dmo = math.degrees(self.mhist[-1][3] - self.mhist[0][3])
+        big = max(abs(dfc), abs(dmo)) >= self.c.id_yaw_excite_deg
+        if not self.yaw_proven and not big:
             self.yaw_excite_since = None
-        if not self.yaw_proven and max(abs(dfc), abs(dmo)) >= self.c.id_yaw_excite_deg:
+        if not self.yaw_proven and big:
             if self.yaw_excite_since is None:
                 self.yaw_excite_since = now
             if abs(dmo - dfc) <= self.c.id_yaw_tol_deg:
@@ -212,7 +234,10 @@ class WatcherCore:
         self.fc_last_hb, self.fc_armed = now, armed
 
     def on_fc_attitude(self, now, roll, pitch, yaw):
-        self.ident.on_att(now, roll, pitch, yaw)
+        """FC ATTITUDE (FRD, rad). Returns actions (identity log/alert)."""
+        if not self.c.require_identity:
+            return []
+        return self.ident.on_att(now, roll, pitch, yaw)
 
     def on_params(self, ok: bool, why: str):
         self.params_ok, self.params_why = ok, why

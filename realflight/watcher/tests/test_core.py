@@ -39,7 +39,7 @@ class Sim:
             s = MocapSample(self.frame, t, t, 1, self.name or (c.c.body_name or "quad"), self.tracked, p, self.quat)
             self.acts += c.on_pose(t, s)
         if self.frame % 2 == 0:
-            c.on_fc_attitude(t, *self.att)
+            self.acts += c.on_fc_attitude(t, *self.att)
         if self.frame % 10 == 0:
             c.on_fc_heartbeat(t, self.armed)
             for n, prog in self.beacons.items():
@@ -295,3 +295,96 @@ def _hand_motion_from(s, fc_yaw0):
     for i in range(200):
         y = math.radians(90) * min(1.0, i / 100)
         s.att = (0.0, 0.0, fc_yaw0 - y); s.quat = quat_from_euler_zup(0.0, 0.0, y); s.step()
+
+
+def test_g3_lagged_slow_fc_attitude_right_body_quick_motion_does_not_fail_and_proves():
+    """Hardware-like: FC ATTITUDE at 10 Hz, 150 ms behind the mocap, quick hand motions (10 deg roll in 0.4 s,
+    a steady 40 deg/s tilt to 30 deg and back, a held 12 deg tilt, 90 deg yaw in 0.5 s). Without the lag allowance
+    (id_lag_max_s ~ 0) the steady tilt makes the RIGHT body fail (checked by hand when this test was written)."""
+    for right in (True, False):
+        s = Sim(require_identity=True)
+        lag, fc_q, t_att = 0.15, [], 0.0
+        truth = [0.0, 0.0, 0.0]                         # roll, pitch, yaw (z-up yaw) of the VEHICLE
+
+        def tick():
+            nonlocal t_att
+            s.t += 0.01
+            c = s.c
+            s.acts += c.loop_start(s.t)
+            s.frame += 1
+            q = quat_from_euler_zup(truth[0], 0.0, truth[2]) if right else (1, 0, 0, 0)
+            s.acts += c.on_pose(s.t, MocapSample(s.frame, s.t, s.t, 1, "quad", 1,
+                                                 (1e-6 * (s.frame % 3), 0.0, 1.0), q))
+            fc_q.append((s.t + lag, (truth[0], 0.0, 0.5 - truth[2])))
+            if s.t - t_att >= 0.1:                        # 10 Hz
+                t_att = s.t
+                due = [x for x in fc_q if x[0] <= s.t]
+                if due:
+                    s.acts += c.on_fc_attitude(s.t, *due[-1][1])
+                fc_q[:] = [x for x in fc_q if x[0] > s.t]
+            if s.frame % 10 == 0:
+                c.on_fc_heartbeat(s.t, False)
+            s.acts += c.tick(s.t)
+
+        for _ in range(200):
+            tick()
+        for i in range(40):                               # quick 10 deg roll and back in 0.4 s (peak ~80 deg/s)
+            truth[0] = math.radians(10) * math.sin(math.pi * i / 40); tick()
+        truth[0] = 0.0
+        for _ in range(50):
+            tick()
+        if right:
+            for i in range(75):                           # steady hand tilt 0 -> 30 deg over 0.75 s (40 deg/s)
+                truth[0] = math.radians(30) * i / 75; tick()
+            for _ in range(50):
+                tick()
+            for i in range(75):                           # and back over 0.75 s
+                truth[0] = math.radians(30) * (1 - i / 75); tick()
+            truth[0] = 0.0
+            for _ in range(50):
+                tick()
+            assert s.c.ident.state != "failed", s.c.ident.why          # no false FAIL from the 150 ms lag
+        for i in range(20):                               # tilt to 12 deg in 0.2 s, hold 1 s, back
+            truth[0] = math.radians(12) * i / 20; tick()
+        for _ in range(100):
+            tick()
+        truth[0] = 0.0
+        for i in range(50):                               # yaw +90 deg in 0.5 s, then hold
+            truth[2] = math.radians(90) * i / 50; tick()
+        for _ in range(150):
+            tick()
+        if right:
+            assert s.c.ident.state == "confirmed", s.c.ident.why
+            assert s.confirmed()
+        else:
+            assert s.c.ident.state == "failed" and not s.confirmed() and not s.lands()
+
+
+def test_g3_fc_attitude_at_4hz_still_proves_with_a_held_tilt():
+    """If the stream falls to a 4 Hz default (MAVProxy override), a held tilt and a yaw turn still prove the body."""
+    s = Sim(require_identity=True)
+    s.att = (0.0, 0.0, 0.5)
+    s.run(1.0)
+    n = 0
+    def step_4hz():
+        nonlocal n
+        n += 1
+        s.t += 0.01; c = s.c
+        s.acts += c.loop_start(s.t); s.frame += 1
+        s.acts += c.on_pose(s.t, MocapSample(s.frame, s.t, s.t, 1, "quad", 1, (1e-6 * (s.frame % 3), 0, 1), s.quat))
+        if n % 25 == 0:
+            s.acts += c.on_fc_attitude(s.t, *s.att)
+        if n % 10 == 0:
+            c.on_fc_heartbeat(s.t, False)
+        s.acts += c.tick(s.t)
+    r = math.radians(12)
+    s.att, s.quat = (r, 0.0, 0.5), quat_from_euler_zup(r, 0, 0)
+    for _ in range(100):
+        step_4hz()
+    s.att, s.quat = (0.0, 0.0, 0.5), (1, 0, 0, 0)
+    for i in range(150):
+        y = math.radians(90) * min(1.0, i / 50)
+        s.att, s.quat = (0.0, 0.0, 0.5 - y), quat_from_euler_zup(0, 0, y)
+        step_4hz()
+    assert s.c.ident.state == "confirmed", s.c.ident.why
+    assert s.c.ident.att_rate() > 0                     # the measured rate goes into the watcher summary
