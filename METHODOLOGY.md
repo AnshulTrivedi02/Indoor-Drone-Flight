@@ -13437,3 +13437,38 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - Everything is recorded in METHODOLOGY and the readiness checklist.
 - **Note on 2c:** G1–G11 were already BUILT and merged on 2026-10-10 (`0502282`, `realflight/watcher/`, 73 offline
   tests). What remains is bench B0–B10 in SITL with a simulated mocap feed, plus the hardware items.
+
+### Reports 2b (QuadPlane) and 2e (UKF-only closed loop), 2026-10-11 (`docs/quadplane_costing.md`, `docs/ukf_only_closed_loop_costing.md`; from source, nothing built)
+- **QuadPlane: BLOCKED for rung 3 by three items of new firmware code:**
+  - B1: QLAND runs the position controller with no position-validity check, and Plane has no `FS_EKF_ACTION` (its
+    EKF failsafe is hard-wired to QHOVER/QLAND). This needs a Plane `thesis_nav_check` plus a no-position landing
+    path (~3–4 d);
+  - B2: the UKF/FGO backends have no origin, so Plane has no location (home, guided targets, scripted take-off, QRTL
+    and the altitude fence fail);
+  - B3: Plane GUIDED takes altitude-only local-NED targets and no velocity targets, so it cannot fly our profiles.
+  - Also: Plane's fence has no Land action; its GUIDED GCS failsafe never lands; the watcher sends LAND as mode 9,
+    where QLAND is 20.
+  - **Effort:** +11–17 d over the Copter path (incl. 3–5 d of SITL on the built-in quadplane model; there is no Gazebo
+    QuadPlane).
+  - **Rung 1 on a QuadPlane is NOT blocked** (pilot-flown Q modes; the EKF3 origin set by procedure).
+  - **Correction:** Plane is 3.5–7 kB SMALLER than Copter on every H7 board checked. The board sets the margin: ~150 kB
+    free (MatekH743), 268 kB (KakuteH7), 287–380 kB (Pixhawk 6X/6C/CubeOrange). The UKF/FGO parameters come with
+    AP_AHRS, so Plane needs no registration (corrects Part C).
+  - **Recommendation:** the cinewhoop (Copter), which reuses every safety layer already built and tested.
+- **UKF-only closed loop: ~14–20 d**, against 41–64 d via rung 2 then rung 3. ~8–10 working days from the hardware if
+  the software and SITL are done first. **Not reachable by 23 Oct.**
+  - **It needs:**
+    - a board build (the SITL-only guard made a build option, Replay I/O guarded, arming refused with
+      `AHRS_UKF_TFAIL` ≠ 0);
+    - `rung1-geometry` merged;
+    - **NEW fix needed:** the UKF never starts if the rangefinder reads below its minimum on the ground, so the vehicle
+      cannot arm;
+    - no compass (the UKF never uses one);
+    - `thesis_nav_check` → LAND;
+    - a live mocap client for the watcher;
+    - short SITL flights with `SIM_FLOW` (the watcher's MAVLink failsafe is first exercised in 2c);
+    - a Replay gate: the onboard UKF replayed on rung-1 logs before it ever steers;
+    - bench, hand-carried and tethered stages, and a pre-registration.
+  - **D18 note:** in closed loop the flow driver's gyro is already the UKF's own bias-corrected one. In shadow/Replay it
+    is EKF3's; the user's 2026-10-11 ruling (Replay derotates with the UKF's own gyro) addresses this and is being
+    implemented.
