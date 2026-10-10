@@ -34,9 +34,10 @@ d if QuadPlane") and `docs/real_flight_readiness_by_rung.md`. This report supers
 
 **Effort.**
 - QuadPlane delta over the Copter rung-3 path: **about 11–17 d** (§11). The previous estimate was "+1–2 d".
-- About 9–13 d of it is software that can start now, with QuadPlane SITL after the sim freeze.
-- **Two of the blockers (B2, B3) also bite rung 1** if the rung-1 vehicle is a QuadPlane, even with EKF3 flying (§5,
-  §6).
+- About 7–10.5 d of it is software that can start now, with QuadPlane SITL after the sim freeze.
+- **Rung 1 on a QuadPlane (EKF3 flying) is not blocked by B1–B3.** It needs an EKF3 origin set by procedure (about
+  0.25 d) for the Location-based features (§6), and pilot-flown Q modes, or a `DO_REPOSITION` script, in place of the
+  Copter GUIDED profile (B3, §4).
 
 **Flash: the premise that Plane is larger than Copter is not borne out.** The published stable builds put Plane
 **3.5–7 kB smaller** than Copter on every H7 board checked (§9). The binding constraint is the board, not the vehicle:
@@ -184,10 +185,10 @@ UKF and FGO arms too (fork `AP_AHRS.cpp:2346-2457`; the UKF/FGO cases at 2374-23
 | failsafe | Copter (as built and tested) | QuadPlane at `7bac20cbcc` [V] | what to set or build |
 |---|---|---|---|
 | EKF / position loss | `thesis_nav_check` → `FS_EKF_ACTION` LAND (attitude-only) | `Plane::ekf_check` is silent (§1.4); the hard-wired action is QHOVER/QLAND | §2: a Plane `thesis_nav_check` plus a position-free landing (B1) |
-| GCS heartbeat (the watcher) | `FS_GCS_ENABLE 5` (Land), `FS_GCS_TIMEOUT 3` | `FS_GCS_ENABL` 1 (heartbeat), timeout = the shared `FS_LONG_TIMEOUT` (`Parameters.cpp:452-466`; `system.cpp:370-392`). Action from `failsafe_long_on_event` (`events.cpp:111-240`): **Q modes → QLAND**, or QRTL/RTL if `Q_OPTIONS` bits 5/20 are set (`events.cpp:167-181`); **GUIDED → `FS_LONG_ACTN`** (Continue/RTL/Glide/…, never a VTOL land; `events.cpp:197-216`) | Clear `Q_OPTIONS` bits 5 and 20; **do not fly GUIDED unless it is made safe**; `FS_LONG_TIMEOUT 3`; watcher changes (§8) |
+| GCS heartbeat (the watcher) | `FS_GCS_ENABLE 5` (Land), `FS_GCS_TIMEOUT 3` | `FS_GCS_ENABL` 1 (heartbeat), timeout = the shared `FS_LONG_TIMEOUT` (`Parameters.cpp:452-466`; `system.cpp:370-392`). Action from `failsafe_long_on_event` (`events.cpp:111-240`): **Q modes → QLAND**, or QRTL/RTL if `Q_OPTIONS` bits 5/20 are set (`events.cpp:167-181`); **GUIDED → `FS_LONG_ACTN`** (Continue/RTL/Glide/…, never a VTOL land; `events.cpp:197-216`) | Clear `Q_OPTIONS` bits 5 and 20; **do not fly GUIDED unless it is made safe**; `FS_LONG_TIMEOUT 3`; watcher changes (§7) |
 | RC short | Copter `FS_THR_*` | Q modes → QLAND, or QRTL/RTL by Q_OPTIONS (`events.cpp:50-64`); **GUIDED → CIRCLE/FBWA/FBWB** (fixed-wing modes) unless `FS_SHORT_ACTN 0` (`events.cpp:77-91`) | `FS_SHORT_ACTN 0`; Q_OPTIONS bits 5/20 clear |
 | RTL anywhere | — | With `Q_RTL_MODE 0`, RTL is **fixed-wing** RTL. `Q_RTL_MODE 3` = QRTL always (`mode_rtl.cpp:21-24`). QRTL targets home/rally (`mode_qrtl.cpp:17-20`), which needs a Location (B2). | `Q_RTL_MODE 3`, and never select RTL indoors; arming requires one of `RTL_AUTOLAND`/`Q_RTL_MODE` unset (`AP_Arming_Plane.cpp:224-226`) |
-| Fence breach | `FENCE_ACTION` Land available | **No Land action on Plane.** `ALWAYS_LAND`, `SMART_RTL*` and `BRAKE` are "invalid enumeration value for Plane" (`ArduPlane/fence.cpp:116-120`); the valid actions are RTL, Guided and AUTOLAND→RTL (`AC_Fence.cpp:72`), all needing a Location | §7 |
+| Fence breach | `FENCE_ACTION` Land available | **No Land action on Plane.** `ALWAYS_LAND`, `SMART_RTL*` and `BRAKE` are "invalid enumeration value for Plane" (`ArduPlane/fence.cpp:116-120`); the valid actions are RTL, Guided and AUTOLAND→RTL (`AC_Fence.cpp:72`), all needing a Location | §6 |
 | Battery | Copter `BATT_FS_*` LAND | `BATT_FS_*` with Plane actions; QLAND is available as an action [U: check the Plane `@Values` list] | parameter only, 0.1 d |
 
 **The QuadPlane-specific hazard:** any path that selects a **fixed-wing mode** (RTL with `Q_RTL_MODE 0`, CIRCLE, FBWA,
@@ -227,7 +228,7 @@ FBWB, AUTO with fixed-wing items) is a crash indoors. Every failsafe must be che
 - **Scripted take-off** is `MAV_CMD_NAV_TAKEOFF` in GUIDED, frame `LOCAL_OFFSET_NED` → `do_user_takeoff`
   (`GCS_MAVLink_Plane.cpp:895-911`, `quadplane.cpp:4013-4039`).
   - Its target is `current_loc` raised by the requested height. **Without a Location, `current_loc` is stale or zero.**
-    So it needs B2.
+    So on types 12/13 it needs B2; with EKF3 flying, an EKF3 origin set by procedure (§6).
 - **Landing** is QLAND (position-holding descent with landing detection) or a pilot landing in QHOVER.
   - On the thesis backends, QLAND is safe only while position is valid (B1).
 - **The rangefinder in Plane** is read at 50 Hz (`Plane.cpp`, `read_rangefinder`). Landing use also needs
@@ -248,8 +249,12 @@ FBWB, AUTO with fixed-wing items) is a crash indoors. Every failsafe must be che
 - **Consequence: on a QuadPlane without B2, the mocap watcher is the only fence.** Set `FENCE_ENABLE 0`, or
   `FENCE_ACTION 0` (report only). With B2 and `Q_RTL_MODE 3`, a QRTL fence response could be tested in SITL, but QRTL
   indoors flies to home at `Q_RTL_ALT`, which is unsuitable inside a mocap volume.
-- **This also affects rung 1 on a QuadPlane, even with EKF3 flying.** EKF3 has an origin only if one is set. Rung 1's
-  "FC altitude fence" (readiness H6) carries over only with an origin set.
+- **Rung 1 on a QuadPlane (EKF3 flying) is a different, smaller problem.** B2 concerns the thesis backends only. With
+  EKF3 active, a Location exists as soon as **EKF3** has an origin. That is a procedure or parameter step, not code:
+  - a GCS `SET_GPS_GLOBAL_ORIGIN` before arming; or
+  - the recorded origin, `AHRS_OPTIONS` bit 4 `UseRecordedOriginForNonGPS` with `AHRS_ORIGIN_LAT/LON/ALT`
+    (`libraries/AP_AHRS/AP_AHRS.cpp:211-221` at the pin).
+  - About 0.25 d, including a SITL check. Rung 1's "FC altitude fence" (readiness H6) then carries over.
 
 **Effort:** 0.25 d (decision and parameters).
 
@@ -393,8 +398,10 @@ re-targeted: **1–1.5 d**. SITL bench B0–B10 on Plane: **+0.5–1 d** on top 
 - the QuadPlane VTOL tune and hover learning on the real airframe (supervisor's vehicle);
 - hardware bench steps identical to Copter's.
 
-**Rung 1 on a QuadPlane** (EKF3 flying, pilot-flown QLOITER) needs only items 5, 7, 8 and 10 (about 1.75 d). Items 3 and
-6 are needed only if rung 1 is to be scripted, or to have the FC altitude fence.
+**Rung 1 on a QuadPlane** (EKF3 flying, pilot-flown QLOITER) needs only items 5, 7, 8 and 10 (about 1.75 d).
+- For the FC altitude fence, or a scripted profile, it also needs an **EKF3 origin set by procedure** (about 0.25 d,
+  §6), not item 3.
+- A scripted rung 1 then adds item 6(i) (1.5–2 d), which works on EKF3's Location without item 3.
 
 ---
 
@@ -430,7 +437,7 @@ re-targeted: **1–1.5 d**. SITL bench B0–B10 on Plane: **+0.5–1 d** on top 
    avoids about 11–17 d of new, flight-critical Plane code.
 2. **If the supervisor's vehicle is a QuadPlane:**
    - **Rung 1:** EKF3 flying, **pilot-flown in QLOITER/QHOVER**, with the §3/§5/§8 parameters. About 1.75 d over the
-     Copter rung-1 plan. No scripted profile and no FC fence unless B2 is built.
+     Copter rung-1 plan. The FC fence and any scripted profile need an EKF3 origin set by procedure (about 0.25 d, §6), not B2.
    - **Rung 3 is BLOCKED until B1 (a position-free landing and a Plane `thesis_nav_check`) exists and passes QP3–QP5 in
      SITL.**
      - Scripted closed-loop profiles additionally need B2 and B3.

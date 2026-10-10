@@ -37,12 +37,12 @@ in SITL. On a QuadPlane, add the blockers B1–B3 of `docs/quadplane_costing.md`
 - the bench, hand-carried and tethered steps, the forced-invalidity bench test, and a stage-3 pre-registration.
 
 **Effort:**
-- **About 12–18 d in all:**
-  - software now about 4–6 d;
-  - SITL after the freeze about 2–3 d;
-  - hardware about 6–9 d.
-- That is about half of the full rung 3 (17–27 d), which sits on top of rung 2 (24–37 d), because the UKF-only option
-  **skips rung 2 entirely**: it needs no Pi, camera, FC↔Pi link, clock map, C++ FGO on ARM, or latency rehearsal.
+- **About 14–20 d in all:**
+  - software now about 4.5–8.5 d;
+  - SITL after the freeze about 2.5–3 d, plus 0.5–1 d of Replay gate after the first rung-1 log;
+  - hardware about 6.5–8 d.
+- That is roughly a third of the path through rung 2 and then rung 3 (24–37 d plus 17–27 d, i.e. 41–64 d), because the
+  UKF-only option **skips rung 2 entirely**: it needs no Pi, camera, FC↔Pi link, clock map, C++ FGO on ARM, or latency rehearsal.
 
 **How it builds on rung 1.** The vehicle, sensors, parameter template, flight cards, mocap recorder, `mocap_align`,
 scorer and `LOG_REPLAY` logs are the same.
@@ -62,19 +62,19 @@ scorer and `LOG_REPLAY` logs are the same.
 
 | # | item | status today | work | effort [E] | kind |
 |---|---|---|---|---|---|
-| U1 | **Board firmware** with `AP_NavUKF` | `#define AP_NAVUKF_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)` (fork `libraries/AP_NavUKF/AP_NavUKF.h:28-30`); no board build exists | §2 | SW 1–2 d (shared with 2(a)); HW 1 d | SW+HW |
+| U1 | **Board firmware** with `AP_NavUKF` | `#define AP_NAVUKF_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)` (fork `libraries/AP_NavUKF/AP_NavUKF.h:28-29`); no board build exists | §2 | SW 1–2 d (shared with 2(a)); HW 1 d | SW+HW |
 | U2 | **Real sensor geometry** in the port | fork-r1 `c25fa898`, on hold; **its Replay regression and `UKF_Equiv` not re-verified** (commit message) | merge after the regression | 0.5 d (needs one build slot) | SW (light build) |
 | U3 | **Flow derotation input** (D18) | the port takes the driver's `rawGyroRates` (fork `AP_NavUKF.cpp:470`) | §3; decide, then (optionally) one port change | 0–1 d | SW |
 | U4 | **Ground initialisation** when the rangefinder reads below its minimum | the port initialises only on a Good downward range above `RNG_MIN` (fork `AP_NavUKF.cpp:493,524`; fork-r1 607,641) | initialise from `RNGFNDn_GNDCLEAR` (plus the lever arm) while disarmed and `OutOfRangeLow`, as EKF3 does on ground | 0.5–1 d + a SITL check | SW + SIM |
 | U5 | **Yaw source** | the UKF has no compass input (`use_compass()` false, fork `AP_AHRS_UKF.h:27`); it uses the variance-gated zero-innovation pseudo-yaw | §4; a decision, not code | 0 d (nomag) | — |
 | U6 | **Landing trigger** | `Copter::thesis_nav_check`, a `FAST_TASK` (fork `ArduCopter/Copter.cpp:136`, `ekf_check.cpp:337-358`), SITL safety (a) PASS; **the re-run on the corrected builds is still open (H1)** | §5 | 0 d code; H1 re-run ~0.5 d (UKF only) | SIM |
 | U7 | **Failsafe parameter file** (real FC) | the SITL files exist (`closedloop_ukf.parm`); the real-FC template is rung-1 R6 | `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `AHRS_UKF_TFAIL 0`, `FS_EKF_ACTION 1`, the GCS failsafe, battery, RC | 0.5 d on top of R6 | SW |
-| U8 | **Watcher** | G1–G11 built and merged (`realflight/watcher/`, 73 offline tests); SITL bench B0–B10 is 2(c); live mocap client F1 not built | §6 | F1 1–2 d (protocol per U7 mocap); B0–B10 in 2(c); hardware bench 1 d | SW + SIM + HW |
-| U9 | **SITL verification flights** with a SITL flow sensor | none with `SIM_FLOW` | §7 | harness 0.5 d; flights 1.5–2 d | SIM (after 16 Oct) |
-| U10 | **Replay gate on rung-1 logs** | the Replay UKF exists (fork Replay hooks) | §8 | 0.5–1 d after the first rung-1 log | SW |
-| U11 | **Bench, hand-carried, tethered** | not built (readiness H4, H7, H8) | §9 | 2.5–3.5 d | HW |
-| U12 | **Safety tests on the vehicle** | the SITL analogues exist | §10 | in U11 + 0.5 d | HW |
-| U13 | **CPU and flash on the H743** | estimates only | §11 | in U1/U11 | HW |
+| U8 | **Watcher** | G1–G11 built and merged (`realflight/watcher/`, 73 offline tests); SITL bench B0–B10 is 2(c); live mocap client F1 not built | §5 | F1 1–2 d (protocol per U7 mocap); B0–B10 in 2(c); hardware bench 1 d | SW + SIM + HW |
+| U9 | **SITL verification flights** with a SITL flow sensor | none with `SIM_FLOW` | §6 | harness 0.5 d; flights 1.5–2 d | SIM (after 16 Oct) |
+| U10 | **Replay gate on rung-1 logs** | the Replay UKF exists (fork Replay hooks) | §7 | 0.5–1 d after the first rung-1 log | SW |
+| U11 | **Bench, hand-carried, tethered** | not built (readiness H4, H7, H8) | §8 | 2.5–3.5 d | HW |
+| U12 | **Safety tests on the vehicle** | the SITL analogues exist | §9 | in U11 + 0.5 d | HW |
+| U13 | **CPU and flash on the H743** | estimates only | §10 | in U1/U11 | HW |
 | U14 | **Stage-3 pre-registration** (profile, n, window, abort rules) | not written | | 1–1.5 d | SW |
 | U15 | **Flights and scoring** | | | 1 d flights + 0.5–1 d scoring | HW + SW |
 
@@ -82,11 +82,11 @@ scorer and `LOG_REPLAY` logs are the same.
 
 | kind | items | effort |
 |---|---|---|
-| Software that can start now | U1 (SW), U2, U3, U4 (code), U7, U8 (F1), U14 | about 4–6 d |
-| SITL after 16 Oct | U4 (check), U6 (H1 UKF part), U9 | about 2–3 d |
+| Software that can start now | U1 (SW), U2, U3, U4 (code), U7, U8 (F1), U14 | about 4.5–8.5 d |
+| SITL after 16 Oct | U4 (check), U6 (H1 UKF part), U9 | about 2.5–3 d |
 | After rung 1's first log | U10 | 0.5–1 d |
-| Hardware | U1 (HW), U8 (bench), U11, U12, U15 | about 6–9 d |
-| **Total** | | **about 12–18 d** |
+| Hardware | U1 (HW), U8 (bench), U11, U12, U15 | about 6.5–8 d (scoring included) |
+| **Total** | | **about 14–20 d** |
 
 ---
 
@@ -246,7 +246,7 @@ with nothing heavy during flights.
 
 **Model, option B: built-in physics** (`sim_vehicle.py -v ArduCopter -f quad`) with `SIM_FLOW`, an analog SITL
 rangefinder (the autotest `set_analog_rangefinder_parameters`) and `SIM_GPS1_ENABLE 0`.
-- No Gazebo, and no `no_time_sync` default injection (`SIM_JSON.cpp:406-414`).
+- No Gazebo. (Neither option has the `no_time_sync` `AHRS_EKF_TYPE 10` default injection, `SIM_JSON.cpp:406-414`: the vendored iris model now sets `<no_time_sync>0</no_time_sync>`.)
 - It is the lightest option.
 
 **Either way:**
@@ -263,7 +263,7 @@ rangefinder (the autotest `set_analog_rangefinder_parameters`) and `SIM_GPS1_ENA
 | V3 | Safety (a): `AHRS_UKF_TFAIL` forced invalidity in hover | `thesis_nav_check` → LAND; touchdown drift within the pre-registered bound (earlier SITL: attitude-only drift 0.37–1.4 m) |
 | V4 | Flow loss: `SIM_FLOW_ENABLE 0` mid-hover | LAND after the 5 s aiding timeout; drift recorded |
 | V5 | Rangefinder loss | Vertical hold for 15 s then … **pre-register the expected outcome** (LAND on hold height; behaviour after `VERT_HOLD_MS` [U]) |
-| V6 | Watcher heartbeat loss | `FS_GCS_ENABLE 5` → LAND within `FS_GCS_TIMEOUT` (already passed for the Copter watcher in SITL as T1/T2; repeat once on the UKF build) |
+| V6 | Watcher heartbeat loss | `FS_GCS_ENABLE 5` → LAND within `FS_GCS_TIMEOUT` (**not yet tested via MAVLink**: the SITL T1/T2 tests of `tools/test_watch_failclosed.sh` used the local heartbeat file read by `fly_trial.py`; the first MAVLink test is 2(c) B0–B10, then once on the UKF build) |
 | V7 | Arming: `TFAIL ≠ 0` refused; rangefinder below its minimum on the ground | refusal / initialisation as designed (U4) |
 
 **Effort:**
