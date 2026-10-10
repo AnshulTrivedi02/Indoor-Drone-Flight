@@ -13145,3 +13145,23 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - beacons wired into the Pi processes;
   - a real audible alert.
 - **A requirement for the real flight script:** it must not re-command LAND once the pilot has taken ALT_HOLD (B10b).
+
+### RULING (user, 2026-10-10): REPRIORITISATION, thesis results first; rungs 2 and 3 PARKED until after the 16 Oct freeze
+- **Priority order:**
+  1. the initial-uncertainty audit verification and the FGO initial-yaw correction (in progress);
+  2. the FGO-only re-run OVERNIGHT, under the EKF3-unchanged checks; then the restatement and the before/after claims
+     table;
+  3. the attribution study is RESUMED after that, if it fits before 16 Oct. Its order: the plain-wall question; the
+     O FGO batch worsening; then the 2.5 m mismatch and `dsn_tex_r6`. **It is PAUSED now, after the jobs that are
+     running finish** (resumable; 17/64 were done at 12:35);
+  4. **PARKED until after the freeze (rung 2/3 readiness), with their current state:**
+     - **the C++ FGO equivalence checks for the corrected node:** not run. The source change is committed with the
+       correction. Still required before any real FGO flight.
+     - **the UKF/FGO SITL safety re-tests on the corrected builds:** not flown. Their profiles already satisfy the
+       short-verification rule. Still required before any real closed-loop flight (`real_flights_plan.md` §7).
+     - **the `p1c_img` calibration flights:** spec signed off with the climb cycles. The driver
+       (`tools/run_p1c_img.sh`), the profile and the `alt` profile segment are committed (`306f98a`, `3a2c3a8`).
+       Not flown.
+     - **the watcher build:** done and merged (`0502282`, 73 offline tests). Its hardware items are open.
+- **Rung-1 software continues as CODING ONLY alongside** (the converter; the UKF-port geometry, the parameters, the
+  pre-registration and cards; the mocap recorder, the alignment and the scorer).
