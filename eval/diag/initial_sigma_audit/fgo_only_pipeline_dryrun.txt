@@ -1,15 +1,6 @@
 # BEGIN preflight
-  thesis_ws HEAD 73b475b6a158b7f7885859f3736cea0c87c85387 (TRACKED FILES MODIFIED)
-  M eval/final_rerun_checks.py
-   M eval/final_rerun_pipeline.sh
-   M eval/run_set_eval.sh
-   M src/estimators/fgo/fgo_core.py
-   M src/estimators/fgo/fgo_replay.py
-   M src/estimators/fgo/lc_fgo_replay.py
-   M src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h
-   M src/estimators/fgo_cpp/src/fgo_core.cpp
-   M src/estimators/ukf_replay.py
-   M tools/launch_final_rerun.sh
+  thesis_ws HEAD df50ad99ee5a6460c78a7d0480781cd77e09ba07 (TRACKED FILES MODIFIED)
+  M eval/diag/initial_sigma_audit/fgo_only_pipeline_dryrun.txt
   md5 483383f0e2646991571f060c092f0c4b  src/estimators/ukf_core.py
   md5 969ab142b35a982e68aaf3e23bcb41ad  src/estimators/measurement_models.py
   md5 a074c7c0409f492ba11153dd1d2c38dd  src/estimators/imu_timing.py

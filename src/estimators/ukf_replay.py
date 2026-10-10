@@ -24,6 +24,8 @@ TRIAL = sys.argv[1]
 ARM = sys.argv[2] if len(sys.argv) > 2 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
+if os.environ.get("UKF_BAG_ROOT"):   # off by default (as the FGO's FGO_BAG_ROOT): read the bag from <root>/<trial>/
+    BAG = os.path.join(os.environ["UKF_BAG_ROOT"], TRIAL)
 FV = f_variant()     # offline F-test variants (all off by default)
 import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
 APIN = apin.mode()
