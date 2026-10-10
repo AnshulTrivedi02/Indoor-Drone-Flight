@@ -12887,3 +12887,21 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - the flow-validity rule (inlier ratio plus feature count, calibrated on `p1c_*` only);
    - the mocap watcher bench tests.
 5. **Then the FGO-only re-run**, which must still finish before the 16 Oct freeze.
+
+### Real-flight readiness checklist (`docs/real_flight_readiness.md`, 2026-10-10; planning only)
+- **60 components:** 8 exist and are tested in SITL, 5 exist but are untested on hardware, 20 need adapting for real
+  sensors, 27 are not built.
+- **Shortest path to (a)**, an open-loop logging flight with EKF3 flying: ~30–43 working days for one person, ~24–35
+  with two. It needs no custom firmware, no GTSAM on the Pi and no forward camera.
+  - Critical path: hardware identities → FC–Pi link and 333 Hz IMU → downward camera and flow on the Pi →
+    flow-validity rule → mocap client, watcher and a heartbeat-to-FC LAND layer → bench → hand-carried → tethered
+    hover.
+- **Verified by me, a correction to `docs/real_flights_plan.md` §1 item 3:**
+  - The plan says board firmware "has been built". It has NOT: `~/ardupilot/build` and `~/ardupilot_ukf/build` hold
+    `sitl/` only. Part C's flash figures came from PUBLISHED `.apj` files, not our build.
+  - Also: `AP_NAVUKF_ENABLED` defaults to `CONFIG_HAL_BOARD == HAL_BOARD_SITL` (`AP_NavUKF.h:29`), so AP_NavUKF,
+    AP_NavFGO and `thesis_nav_check` drop out of any board build. This is the first blocker for (b).
+- **Parameter hazards, flagged:**
+  - `consolidated_rerun.parm` carries `AHRS_EKF_TYPE 10` and must NEVER load on a real FC;
+  - `FLOW_POS_Z` is 0.13 in `flow_ekf.parm` and 0.25 in `consolidated_rerun.parm` (SITL, later file wins). The
+    real value is to be measured.
