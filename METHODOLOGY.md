@@ -13070,3 +13070,25 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - n = 3–5 flights; short flights; no-compass yaw;
   - flow timing follows EKF3's rule; derotation uses the sensor driver's rate;
   - the mocap–FC time sync is validated on synthetic data only.
+
+### RULINGS (user, 2026-10-10): freeze scope; real-log flow timestamps; rung-1 software starts; `p1c_img` spec signed off
+1. **The 23 Oct freeze covers flying and new experiments.** Offline analysis of collected real data may continue to
+   ~30 Oct, bounded.
+2. **Real-log flow timestamps:**
+   - EKF3 keeps its own rule, as onboard.
+   - For the UKF and the FGO: the best estimate of the true capture time, decided from the real sensor's MEASURED
+     rate and delay, under D18. Pre-registered before any scoring.
+3. **Start the rung-1 software now** (coding only; no heavy jobs while simulation work runs):
+   - the dataflash-to-FGO converter (tested on an existing simulator log);
+   - the UKF port reading the sensor geometry from the log;
+   - the real-sensor parameter template;
+   - the mocap recorder;
+   - the alignment tool on the 400 Hz Replay IMU records;
+   - the scorer, the pre-registration and the flight cards.
+   - **Firmware:** plan for our pinned commit built unmodified, pending the supervisor.
+4. **The `p1c_img` calibration spec is SIGNED OFF, with one change made BEFORE ANY FLIGHT.**
+   - The change: two climb-and-descend cycles (2 m → 3.5 m and back, at the take-off climb rate, below any ceiling)
+     during the first hover, scored as "climb" alongside the take-off.
+   - **Reason:** a single take-off climb may not produce a climb bias of 0.10 rad/s, and A3 would then go untested.
+   - Everything else is as drafted (the 10% allowance, the gates, the separate adoption ruling).
+   - The corridor launcher's pass-through of the profile is confirmed before flying.
