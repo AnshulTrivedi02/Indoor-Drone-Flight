@@ -62,20 +62,20 @@
     }
    },
    "FGO": {
-    "drift_end_m": 0.00921268487853558,
+    "drift_end_m": 0.009212705582252036,
     "relock_s": 0.6663294715447137,
-    "jump_pos_m": 0.006496857778957467,
-    "jump_yaw_deg": 0.01269004878268602,
+    "jump_pos_m": 0.006495562177364038,
+    "jump_yaw_deg": 0.012685822388599758,
     "lockout": false,
     "err_after_relock_max_m": 0.010761795507151135,
     "effective": {
      "t_last_fix": 234.169,
      "t_first_fix": 239.746,
      "loss_s": 5.576999999999998,
-     "drift_m": 0.009279946505234372,
+     "drift_m": 0.00928102233946454,
      "relock_after_first_fix_s": 0.0,
-     "jump_pos_m": 0.006496857778957467,
-     "jump_yaw_deg": 0.01269004878268602
+     "jump_pos_m": 0.006495562177364038,
+     "jump_yaw_deg": 0.012685822388599758
     }
    }
   },
@@ -119,20 +119,20 @@
     }
    },
    "FGO": {
-    "drift_end_m": 0.0042873453802561344,
+    "drift_end_m": 0.004288330521843538,
     "relock_s": 0.3176239359469264,
-    "jump_pos_m": 0.010198117718481189,
-    "jump_yaw_deg": 0.02408526781440226,
+    "jump_pos_m": 0.010199117706939164,
+    "jump_yaw_deg": 0.02408646759921831,
     "lockout": false,
-    "err_after_relock_max_m": 0.010325098200254878,
+    "err_after_relock_max_m": 0.010326098180602391,
     "effective": {
      "t_last_fix": 260.47,
      "t_first_fix": 274.924,
      "loss_s": 14.45399999999995,
-     "drift_m": 0.004247550928324143,
+     "drift_m": 0.0042484893589071066,
      "relock_after_first_fix_s": 0.0,
-     "jump_pos_m": 0.010198117718481189,
-     "jump_yaw_deg": 0.02408526781440226
+     "jump_pos_m": 0.010199117706939164,
+     "jump_yaw_deg": 0.02408646759921831
     }
    }
   },
@@ -176,20 +176,20 @@
     }
    },
    "FGO": {
-    "drift_end_m": 0.006333793559875274,
+    "drift_end_m": 0.006331856075695871,
     "relock_s": 0.333475465440074,
-    "jump_pos_m": 0.02199093085796963,
-    "jump_yaw_deg": 0.0344538912410616,
+    "jump_pos_m": 0.021989936266392424,
+    "jump_yaw_deg": 0.03446920610010616,
     "lockout": false,
-    "err_after_relock_max_m": 0.00779463706889979,
+    "err_after_relock_max_m": 0.007796630696622625,
     "effective": {
      "t_last_fix": 294.988,
      "t_first_fix": 325.678,
      "loss_s": 30.689999999999998,
-     "drift_m": 0.006451456871102044,
+     "drift_m": 0.006449526853593053,
      "relock_after_first_fix_s": 0.0,
-     "jump_pos_m": 0.02199093085796963,
-     "jump_yaw_deg": 0.0344538912410616
+     "jump_pos_m": 0.021989936266392424,
+     "jump_yaw_deg": 0.03446920610010616
     }
    }
   },
@@ -233,20 +233,20 @@
     }
    },
    "FGO": {
-    "drift_end_m": 0.00931127007109771,
+    "drift_end_m": 0.009310666811963205,
     "relock_s": 0.9634448262683577,
-    "jump_pos_m": 0.010100128018990628,
-    "jump_yaw_deg": 0.008756038237586644,
+    "jump_pos_m": 0.010099042033777211,
+    "jump_yaw_deg": 0.008647559095578735,
     "lockout": false,
-    "err_after_relock_max_m": 0.011917362157795142,
+    "err_after_relock_max_m": 0.011916362415126742,
     "effective": {
      "t_last_fix": 356.599,
      "t_first_fix": 363.859,
      "loss_s": 7.259999999999991,
      "drift_m": 0.0005123054828114638,
      "relock_after_first_fix_s": 0.0,
-     "jump_pos_m": 0.010100128018990628,
-     "jump_yaw_deg": 0.008756038237586644
+     "jump_pos_m": 0.010099042033777211,
+     "jump_yaw_deg": 0.008647559095578735
     }
    }
   }

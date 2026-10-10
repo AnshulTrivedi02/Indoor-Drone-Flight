@@ -79,7 +79,7 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.449,
+     "value": 4.461,
      "band": "[4.17, 5.14] m",
      "pass": true,
      "primary": true
@@ -206,7 +206,7 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.6,
+     "value": 4.61,
      "band": "[4.17, 5.14] m",
      "pass": true,
      "primary": true
@@ -335,7 +335,7 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 1.431,
+     "value": 1.267,
      "band": "[4.17, 5.14] m",
      "pass": false,
      "primary": true
@@ -462,7 +462,7 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.595,
+     "value": 4.609,
      "band": "[4.17, 5.14] m",
      "pass": true,
      "primary": true
@@ -589,7 +589,7 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.554,
+     "value": 4.565,
      "band": "[4.17, 5.14] m",
      "pass": true,
      "primary": true

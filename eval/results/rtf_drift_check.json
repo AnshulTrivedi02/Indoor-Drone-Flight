@@ -7,10 +7,10 @@
    "lat_ms": 19.41878739120284,
    "EKF3_drift_dpm_NED": 7.962247032118764,
    "UKF_drift_dpm_ENU": -7.624418837308384,
-   "FGO_drift_dpm_ENU": -8.041847308673004,
+   "FGO_drift_dpm_ENU": -7.999955719598687,
    "EKF3_evo": 4.033521,
    "UKF_evo": 3.983563,
-   "FGO_evo": 4.067897
+   "FGO_evo": 4.04733
   },
   {
    "trial": "dsn_tex_r2",
@@ -19,10 +19,10 @@
    "lat_ms": 17.28702347440958,
    "EKF3_drift_dpm_NED": 7.593004992872405,
    "UKF_drift_dpm_ENU": -2.29175505359277,
-   "FGO_drift_dpm_ENU": -3.6196207729291783,
+   "FGO_drift_dpm_ENU": -3.3337468649082145,
    "EKF3_evo": 3.855266,
    "UKF_evo": 1.613988,
-   "FGO_evo": 1.929484
+   "FGO_evo": 1.796584
   },
   {
    "trial": "dsn_tex_r3",
@@ -31,10 +31,10 @@
    "lat_ms": 25.087971205906,
    "EKF3_drift_dpm_NED": 8.102744758793431,
    "UKF_drift_dpm_ENU": -10.047421784853277,
-   "FGO_drift_dpm_ENU": -8.875920215215935,
+   "FGO_drift_dpm_ENU": -8.894026435524651,
    "EKF3_evo": 4.097549,
    "UKF_evo": 5.167777,
-   "FGO_evo": 4.473251
+   "FGO_evo": 4.482524
   },
   {
    "trial": "dsn_tex_r4",
@@ -43,10 +43,10 @@
    "lat_ms": 20.08524292878633,
    "EKF3_drift_dpm_NED": 8.10125093004463,
    "UKF_drift_dpm_ENU": -10.085834364896646,
-   "FGO_drift_dpm_ENU": -8.818262348483175,
+   "FGO_drift_dpm_ENU": -8.842980168646928,
    "EKF3_evo": 4.101854,
    "UKF_evo": 5.217349,
-   "FGO_evo": 4.448843
+   "FGO_evo": 4.461126
   },
   {
    "trial": "dsn_tex_r5",
@@ -55,10 +55,10 @@
    "lat_ms": 18.750993534212057,
    "EKF3_drift_dpm_NED": 8.121139523032568,
    "UKF_drift_dpm_ENU": -9.926332892925313,
-   "FGO_drift_dpm_ENU": -9.103609295649866,
+   "FGO_drift_dpm_ENU": -9.124121567717799,
    "EKF3_evo": 4.121337,
    "UKF_evo": 5.126069,
-   "FGO_evo": 4.599624
+   "FGO_evo": 4.609847
   },
   {
    "trial": "dsn_tex_r6",
@@ -67,10 +67,10 @@
    "lat_ms": 13.916842675939733,
    "EKF3_drift_dpm_NED": 6.0632554463659645,
    "UKF_drift_dpm_ENU": -0.7211398104229715,
-   "FGO_drift_dpm_ENU": -2.526453392921858,
+   "FGO_drift_dpm_ENU": -2.1511837143343278,
    "EKF3_evo": 3.112159,
    "UKF_evo": 1.174081,
-   "FGO_evo": 1.431388
+   "FGO_evo": 1.267449
   },
   {
    "trial": "dsn_tex_r7",
@@ -79,10 +79,10 @@
    "lat_ms": 19.454719482290272,
    "EKF3_drift_dpm_NED": 8.1003083510162,
    "UKF_drift_dpm_ENU": -10.081263365533516,
-   "FGO_drift_dpm_ENU": -9.093930709557561,
+   "FGO_drift_dpm_ENU": -9.12173088737774,
    "EKF3_evo": 4.111037,
    "UKF_evo": 5.203367,
-   "FGO_evo": 4.595076
+   "FGO_evo": 4.608819
   },
   {
    "trial": "dsn_tex_r8",
@@ -91,10 +91,10 @@
    "lat_ms": 18.985421866460683,
    "EKF3_drift_dpm_NED": 8.109807065377888,
    "UKF_drift_dpm_ENU": -11.428079878471923,
-   "FGO_drift_dpm_ENU": -9.036098112387263,
+   "FGO_drift_dpm_ENU": -9.05708718902172,
    "EKF3_evo": 4.105042,
    "UKF_evo": 5.849683,
-   "FGO_evo": 4.554497
+   "FGO_evo": 4.56482
   },
   {
    "trial": "dsn_tex_r9",
@@ -103,10 +103,10 @@
    "lat_ms": 25.111767824469666,
    "EKF3_drift_dpm_NED": 8.082381204701742,
    "UKF_drift_dpm_ENU": -9.760563537573203,
-   "FGO_drift_dpm_ENU": -8.418325642632807,
+   "FGO_drift_dpm_ENU": -8.417348122722498,
    "EKF3_evo": 4.087794,
    "UKF_evo": 5.040424,
-   "FGO_evo": 4.252311
+   "FGO_evo": 4.25188
   },
   {
    "trial": "dsn_tex_r10",
@@ -125,10 +125,10 @@
    "lat_ms": 21.517439105224412,
    "EKF3_drift_dpm_NED": 8.099430524569586,
    "UKF_drift_dpm_ENU": -9.610093994780092,
-   "FGO_drift_dpm_ENU": -8.84488962409871,
+   "FGO_drift_dpm_ENU": -8.865404598717616,
    "EKF3_evo": 4.092895,
    "UKF_evo": 4.959532,
-   "FGO_evo": 4.457139
+   "FGO_evo": 4.467123
   },
   {
    "trial": "fwdc_tex_r2",
@@ -137,10 +137,10 @@
    "lat_ms": 23.601135684373276,
    "EKF3_drift_dpm_NED": 7.108349098180195,
    "UKF_drift_dpm_ENU": -2.749810476202349,
-   "FGO_drift_dpm_ENU": -4.60259915157377,
+   "FGO_drift_dpm_ENU": -4.33885676204116,
    "EKF3_evo": 3.603274,
    "UKF_evo": 1.783411,
-   "FGO_evo": 2.387321
+   "FGO_evo": 2.262089
   },
   {
    "trial": "fwdc_tex_r3",
@@ -149,10 +149,10 @@
    "lat_ms": 28.85451092519986,
    "EKF3_drift_dpm_NED": 8.066532029555999,
    "UKF_drift_dpm_ENU": -9.628366095022383,
-   "FGO_drift_dpm_ENU": -9.007310484227412,
+   "FGO_drift_dpm_ENU": -9.030061426430736,
    "EKF3_evo": 4.075574,
    "UKF_evo": 4.963794,
-   "FGO_evo": 4.533153
+   "FGO_evo": 4.544273
   },
   {
    "trial": "fwdplainc_tex_r1",
@@ -161,10 +161,10 @@
    "lat_ms": 17.235532007774168,
    "EKF3_drift_dpm_NED": 8.065235888444032,
    "UKF_drift_dpm_ENU": -9.743322773638996,
-   "FGO_drift_dpm_ENU": -8.987289940073,
+   "FGO_drift_dpm_ENU": -9.0136839090835,
    "EKF3_evo": 4.075241,
    "UKF_evo": 5.023202,
-   "FGO_evo": 4.523225
+   "FGO_evo": 4.536324
   },
   {
    "trial": "fwdplainc_tex_r2",
@@ -173,10 +173,10 @@
    "lat_ms": 16.083983318310402,
    "EKF3_drift_dpm_NED": 8.073085224612033,
    "UKF_drift_dpm_ENU": -22.090895225844683,
-   "FGO_drift_dpm_ENU": -9.010268172308361,
+   "FGO_drift_dpm_ENU": -9.033320815383162,
    "EKF3_evo": 4.056744,
    "UKF_evo": 11.194393,
-   "FGO_evo": 4.50606
+   "FGO_evo": 4.51762
   },
   {
    "trial": "fwdplainc_tex_r3",
@@ -185,10 +185,10 @@
    "lat_ms": 20.6839885182859,
    "EKF3_drift_dpm_NED": 8.103129702519027,
    "UKF_drift_dpm_ENU": -21.31558622072126,
-   "FGO_drift_dpm_ENU": -9.403295161712803,
+   "FGO_drift_dpm_ENU": -9.451701961318204,
    "EKF3_evo": 4.082146,
    "UKF_evo": 10.818971,
-   "FGO_evo": 4.716526
+   "FGO_evo": 4.740214
   },
   {
    "trial": "p1c_fwdc_tex",
@@ -197,10 +197,10 @@
    "lat_ms": 18.768150739603584,
    "EKF3_drift_dpm_NED": 8.18276665074134,
    "UKF_drift_dpm_ENU": -14.406219678022936,
-   "FGO_drift_dpm_ENU": -10.345931258121063,
+   "FGO_drift_dpm_ENU": -10.486455192391384,
    "EKF3_evo": 4.136013,
    "UKF_evo": 7.336021,
-   "FGO_evo": 5.196101
+   "FGO_evo": 5.265873
   },
   {
    "trial": "p1c_fwdplainc_tex",
@@ -209,10 +209,10 @@
    "lat_ms": 21.40347365030948,
    "EKF3_drift_dpm_NED": 8.111238676665153,
    "UKF_drift_dpm_ENU": -9.9138108121877,
-   "FGO_drift_dpm_ENU": -9.101930915357544,
+   "FGO_drift_dpm_ENU": -9.12571215552408,
    "EKF3_evo": 4.105147,
    "UKF_evo": 5.106194,
-   "FGO_evo": 4.58858
+   "FGO_evo": 4.600492
   }
  ],
  "tests": {
@@ -249,16 +249,16 @@
   "FGO_drift_dpm_ENU": {
    "n": 17,
    "spearman_rtf": [
-    0.3298590442193302,
-    0.19600978406874286
+    0.33231152781947393,
+    0.19250543334385992
    ],
    "spearman_latency": [
-    0.004901960784313726,
-    0.9851029592703197
+    -0.012254901960784315,
+    0.9627675753886974
    ],
-   "dsn_median": -8.818262348483175,
-   "fwd_median": -9.008789328267888,
-   "mannwhitney_p": 0.16717400246812014,
+   "dsn_median": -8.842980168646928,
+   "fwd_median": -9.031691120906949,
+   "mannwhitney_p": 0.13879062114356233,
    "depends_on_rtf": false
   },
   "EKF3_evo": {
@@ -301,8 +301,8 @@
     0.02696078431372549,
     0.9181909009189737
    ],
-   "dsn_median": 4.448843,
-   "fwd_median": 4.528189,
+   "dsn_median": 4.461126,
+   "fwd_median": 4.5402985,
    "mannwhitney_p": 0.1995886466474702,
    "depends_on_rtf": false
   }

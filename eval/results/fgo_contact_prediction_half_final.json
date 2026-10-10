@@ -1,58 +1,58 @@
 [
  {
   "trial": "cl_a_tex_half",
-  "east_err_c0_m": -0.21526677844444417,
-  "east_err_end_m": -9.82677635388889,
-  "contact_s": 215.543994,
+  "east_err_c0_m": -0.21573077844444416,
+  "east_err_end_m": -10.65457935388889,
+  "contact_s": 191.44399399999998,
   "wall": "east"
  },
  {
   "trial": "cl_bcpp_tex_r1_half",
-  "east_err_c0_m": -0.259312343777778,
-  "east_err_end_m": -18.155542,
-  "contact_s": 139.14958000000001,
+  "east_err_c0_m": -0.25981334377777804,
+  "east_err_end_m": -19.545066,
+  "contact_s": 135.64958000000001,
   "wall": "east"
  },
  {
   "trial": "cl_bcpp_tex_r2_half",
-  "east_err_c0_m": 0.06165805066666669,
-  "east_err_end_m": 46.10945923055555,
-  "contact_s": 154.044157,
+  "east_err_c0_m": 0.06157505066666669,
+  "east_err_end_m": 46.161387230555555,
+  "contact_s": 153.94415700000002,
   "wall": "west"
  },
  {
   "trial": "cl_bcpp_tex_r3_half",
-  "east_err_c0_m": 0.003611466999999993,
-  "east_err_end_m": 44.523786814699996,
-  "contact_s": 162.89622,
+  "east_err_c0_m": 0.0018064669999999932,
+  "east_err_end_m": 44.4190198147,
+  "contact_s": 163.19621999999998,
   "wall": "west"
  },
  {
   "trial": "cl_ukf_a_tex_half",
-  "east_err_c0_m": -0.08958079200000006,
-  "east_err_end_m": 3.6438012093333336,
+  "east_err_c0_m": -0.08930579200000006,
+  "east_err_end_m": 3.449548209333334,
   "contact_s": null,
   "wall": null
  },
  {
   "trial": "cl_ukf_b_tex_r1_half",
-  "east_err_c0_m": -0.028058493333333323,
-  "east_err_end_m": 37.83552668666667,
-  "contact_s": 182.151273,
+  "east_err_c0_m": -0.027978493333333323,
+  "east_err_end_m": 37.85937268666667,
+  "contact_s": 182.084606,
   "wall": "west"
  },
  {
   "trial": "cl_ukf_b_tex_r2_half",
-  "east_err_c0_m": -0.06609199555555556,
-  "east_err_end_m": 32.8189464,
-  "contact_s": 197.76722700000002,
+  "east_err_c0_m": -0.06586999555555556,
+  "east_err_end_m": 32.8610314,
+  "contact_s": 197.667227,
   "wall": "west"
  },
  {
   "trial": "cl_ukf_b_tex_r3_half",
-  "east_err_c0_m": -0.17937579166666648,
-  "east_err_end_m": -30.880603375,
-  "contact_s": 116.279292,
+  "east_err_c0_m": -0.17934879166666648,
+  "east_err_end_m": -30.537468375,
+  "contact_s": 116.91262499999999,
   "wall": "east"
  }
 ]

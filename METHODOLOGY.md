@@ -13338,3 +13338,18 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Only at the SAME code version as its 27 completed replays**, i.e. BEFORE the initial-yaw correction (branch
   `worktree-agent-aa585d74c0d14c66b` at `b7a3aca`, based on `ef7a0a5`). Its report states this explicitly.
 - **The current schedule is kept.** Any time freed up is BUFFER, not new scope.
+
+### FGO-ONLY RE-RUN: COMPLETE (2026-10-10 21:35; started 13:02)
+- **All stages ran, with no resume needed.**
+- **All 18 hard gates pass with 0 differences:** 9 EKF3, 8 UKF, plus the H/O/T gates. Only the FGO changed, as
+  intended.
+- **Confirmatory EKF3-vs-FGO test** (original rule; FGO with the initial-yaw/roll/pitch correction): "no ordering
+  claimed", UNCHANGED.
+  - d = EKF3 − FGO per flight (r4–r9): −0.359, −0.489, +1.845, −0.498, −0.460, −0.164;
+  - mean −0.021 m; 95% CI [−0.989, +0.947] m.
+- **Old vs new** (`eval/results/final2_old_vs_new.md`; old = the first final re-run): 1272 rows, 12 DIRECTION flags.
+  - These include 3 transition-world P4 FGO ratio verdicts PASS → FAIL (`fwdc_trans_r3`, `fwdplainc_trans_r2`/`r3`)
+    and sign changes in FGO arm effects.
+  - **NOT YET VERIFIED** (some FGO rows are differences of diverged values). Each is checked in the restatement before
+    it is quoted.
+- **The restatement and the claims-table update follow.**

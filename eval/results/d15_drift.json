@@ -13,8 +13,8 @@
   "FGO_old": -9.206446383947286,
   "FGO_old_contact_s": 176.79611145851902,
   "FGO_old_wall": "west",
-  "FGO_new": -8.041847308673004,
-  "FGO_new_contact_s": 189.16501161258168,
+  "FGO_new": -7.999955719598687,
+  "FGO_new_contact_s": 189.65964409983232,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r2": {
@@ -31,8 +31,8 @@
   "FGO_old": -8.54842515199913,
   "FGO_old_contact_s": 183.47448025200129,
   "FGO_old_wall": "west",
-  "FGO_new": -3.6196207729291783,
-  "FGO_new_contact_s": 281.9597954643717,
+  "FGO_new": -3.3337468649082145,
+  "FGO_new_contact_s": 293.80042026728495,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r3": {
@@ -49,8 +49,8 @@
   "FGO_old": -9.26107768312951,
   "FGO_old_contact_s": 176.2738780946625,
   "FGO_old_wall": "west",
-  "FGO_new": -8.875920215215935,
-  "FGO_new_contact_s": 180.0578366749121,
+  "FGO_new": -8.894026435524651,
+  "FGO_new_contact_s": 179.87446484585857,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r4": {
@@ -67,8 +67,8 @@
   "FGO_old": -9.185296939926358,
   "FGO_old_contact_s": 176.999533818666,
   "FGO_old_wall": "west",
-  "FGO_new": -8.818262348483175,
-  "FGO_new_contact_s": 180.64552818524197,
+  "FGO_new": -8.842980168646928,
+  "FGO_new_contact_s": 180.39288211972664,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r5": {
@@ -85,8 +85,8 @@
   "FGO_old": -9.154126485719523,
   "FGO_old_contact_s": 177.30062575102252,
   "FGO_old_wall": "west",
-  "FGO_new": -9.103609295649866,
-  "FGO_new_contact_s": 177.79187806332789,
+  "FGO_new": -9.124121567717799,
+  "FGO_new_contact_s": 177.5919153959367,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r6": {
@@ -103,8 +103,8 @@
   "FGO_old": -9.523333038322226,
   "FGO_old_contact_s": 173.8298024966157,
   "FGO_old_wall": "west",
-  "FGO_new": -2.526453392921858,
-  "FGO_new_contact_s": 337.4916850429786,
+  "FGO_new": -2.1511837143343278,
+  "FGO_new_contact_s": 365.74632592199515,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r7": {
@@ -121,8 +121,8 @@
   "FGO_old": -9.156004389276996,
   "FGO_old_contact_s": 177.2824425711283,
   "FGO_old_wall": "west",
-  "FGO_new": -9.093930709557561,
-  "FGO_new_contact_s": 177.88646402652807,
+  "FGO_new": -9.12173088737774,
+  "FGO_new_contact_s": 177.61518607183038,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r8": {
@@ -139,8 +139,8 @@
   "FGO_old": -9.19484066175778,
   "FGO_old_contact_s": 176.907652244143,
   "FGO_old_wall": "west",
-  "FGO_new": -9.036098112387263,
-  "FGO_new_contact_s": 178.45480823270745,
+  "FGO_new": -9.05708718902172,
+  "FGO_new_contact_s": 178.24791090916037,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r9": {
@@ -157,8 +157,8 @@
   "FGO_old": -9.130021877742045,
   "FGO_old_contact_s": 177.53452140930713,
   "FGO_old_wall": "west",
-  "FGO_new": -8.418325642632807,
-  "FGO_new_contact_s": 184.88678141835194,
+  "FGO_new": -8.417348122722498,
+  "FGO_new_contact_s": 184.89751670341616,
   "FGO_new_wall": "west"
  },
  "dsn_tex_r10": {
@@ -193,8 +193,8 @@
   "FGO_old": -9.184855771630303,
   "FGO_old_contact_s": 177.0037846009883,
   "FGO_old_wall": "west",
-  "FGO_new": -8.803840606365291,
-  "FGO_new_contact_s": 180.79342711338992,
+  "FGO_new": -8.812371402942189,
+  "FGO_new_contact_s": 180.70589758715371,
   "FGO_new_wall": "west"
  },
  "dsn_trans_r2": {
@@ -211,8 +211,8 @@
   "FGO_old": -9.2767804818362,
   "FGO_old_contact_s": 176.1246255836339,
   "FGO_old_wall": "west",
-  "FGO_new": -9.012541996588098,
-  "FGO_new_contact_s": 178.68787005394154,
+  "FGO_new": -9.045780861068714,
+  "FGO_new_contact_s": 178.3592722179006,
   "FGO_new_wall": "west"
  },
  "dsn_trans_r3": {
@@ -229,8 +229,8 @@
   "FGO_old": -9.181653826363657,
   "FGO_old_contact_s": 177.03464543706158,
   "FGO_old_wall": "west",
-  "FGO_new": -8.99664238215115,
-  "FGO_new_contact_s": 178.84569638418503,
+  "FGO_new": -9.075395005114538,
+  "FGO_new_contact_s": 178.0680301759817,
   "FGO_new_wall": "west"
  }
 }

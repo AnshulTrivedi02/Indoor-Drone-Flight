@@ -79,8 +79,8 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 5.196,
-     "band": "[-0.614, 7.017] m",
+     "value": 5.266,
+     "band": "[-0.889, 7.168] m",
      "pass": true,
      "primary": true
     },
@@ -206,8 +206,8 @@
      "primary": true
     },
     "P4 FGO evo -a (cruise)": {
-     "value": 4.589,
-     "band": "[-0.614, 7.017] m",
+     "value": 4.6,
+     "band": "[-0.889, 7.168] m",
      "pass": true,
      "primary": true
     },
@@ -357,8 +357,8 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 21.598,
-     "band": "[1.406, 49.073]",
+     "value": 17.702,
+     "band": "[15.908, 19.159]",
      "pass": true,
      "primary": true
     },
@@ -423,7 +423,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 672.055,
+     "value": 571.817,
      "band": "report",
      "pass": null,
      "primary": false
@@ -532,8 +532,8 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 17.252,
-     "band": "[1.406, 49.073]",
+     "value": 16.4,
+     "band": "[15.908, 19.159]",
      "pass": true,
      "primary": true
     },
@@ -598,7 +598,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 566.384,
+     "value": 543.342,
      "band": "report",
      "pass": null,
      "primary": false
@@ -689,8 +689,8 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 231.68,
-     "band": "[18.009, 342.823]",
+     "value": 221.372,
+     "band": "[61.764, 324.045]",
      "pass": true,
      "primary": true
     },
@@ -743,7 +743,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 10285.712,
+     "value": 9746.068,
      "band": "report",
      "pass": null,
      "primary": false
@@ -834,8 +834,8 @@
      "primary": true
     },
     "P4 FGO ratio": {
-     "value": 163.148,
-     "band": "[18.009, 342.823]",
+     "value": 165.491,
+     "band": "[61.764, 324.045]",
      "pass": true,
      "primary": true
     },
@@ -888,7 +888,7 @@
      "primary": false
     },
     "diag FGO evo -a (cruise)": {
-     "value": 7219.546,
+     "value": 6938.564,
      "band": "report",
      "pass": null,
      "primary": false

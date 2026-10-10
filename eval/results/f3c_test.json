@@ -9,10 +9,10 @@
   },
   "FGO_d10": {
    "convergence_s": 0.006071999999999633,
-   "xtrack_peak_m": 0.042611719734553036,
-   "xtrack_int_60s_ms": 1.1291644779207484,
+   "xtrack_peak_m": 0.044539719734553035,
+   "xtrack_int_60s_ms": 1.0346521280097485,
    "first40_accepted": 39,
-   "first40_pred_sigma_deg": 0.16634859353108222
+   "first40_pred_sigma_deg": 0.16637994095773734
   },
   "UKF_d30": {
    "convergence_s": 0.011079999999999757,
@@ -23,15 +23,15 @@
   },
   "FGO_d30": {
    "convergence_s": 0.006071999999999633,
-   "xtrack_peak_m": 0.04150688388513417,
-   "xtrack_int_60s_ms": 1.8726974140302484,
+   "xtrack_peak_m": 0.04087688388513416,
+   "xtrack_int_60s_ms": 1.8067625477027485,
    "first40_accepted": 39,
-   "first40_pred_sigma_deg": 0.16645303813640927
+   "first40_pred_sigma_deg": 0.16648512824379144
   },
   "fgo_le_ukf_all_deltas": true,
   "ratio": [
-   1.3741897656859208,
-   2.4343638318070595
+   1.2591685207581838,
+   2.3486535335815364
   ],
   "ratio_decreasing": false
  },
@@ -45,10 +45,10 @@
   },
   "FGO_d10": {
    "convergence_s": 0.05746300000000204,
-   "xtrack_peak_m": 0.35353440291953797,
-   "xtrack_int_60s_ms": 20.631349342294897,
+   "xtrack_peak_m": 0.35209940291953795,
+   "xtrack_int_60s_ms": 20.520601725795395,
    "first40_accepted": 36,
-   "first40_pred_sigma_deg": 0.16819525825493808
+   "first40_pred_sigma_deg": 0.16822725387408757
   },
   "UKF_d30": {
    "convergence_s": 0.03299300000000116,
@@ -59,15 +59,15 @@
   },
   "FGO_d30": {
    "convergence_s": 0.05746300000000204,
-   "xtrack_peak_m": 0.365393402919538,
-   "xtrack_int_60s_ms": 21.334435962194398,
+   "xtrack_peak_m": 0.36674540291953794,
+   "xtrack_int_60s_ms": 21.3956627956619,
    "first40_accepted": 36,
-   "first40_pred_sigma_deg": 0.1681960311193334
+   "first40_pred_sigma_deg": 0.168228026143329
   },
   "fgo_le_ukf_all_deltas": false,
   "ratio": [
-   1.05786808535432,
-   0.9816457091461906
+   1.0521895246804573,
+   0.9844628943984507
   ],
   "ratio_decreasing": true
  },
@@ -81,10 +81,10 @@
   },
   "FGO_d10": {
    "convergence_s": 0.03165400000000318,
-   "xtrack_peak_m": 0.07329586367231183,
-   "xtrack_int_60s_ms": 0.32130032549693005,
+   "xtrack_peak_m": 0.08030886367231184,
+   "xtrack_int_60s_ms": 0.5461722094029364,
    "first40_accepted": 39,
-   "first40_pred_sigma_deg": 0.16837586095827425
+   "first40_pred_sigma_deg": 0.1683998843002885
   },
   "UKF_d30": {
    "convergence_s": 0.024998000000000076,
@@ -95,20 +95,20 @@
   },
   "FGO_d30": {
    "convergence_s": 0.03165400000000318,
-   "xtrack_peak_m": 0.06253986367231183,
-   "xtrack_int_60s_ms": 0.33523476791778023,
+   "xtrack_peak_m": 0.06893886367231183,
+   "xtrack_int_60s_ms": 0.20464003221679755,
    "first40_accepted": 39,
-   "first40_pred_sigma_deg": 0.1683778433052317
+   "first40_pred_sigma_deg": 0.16840322258037427
   },
   "fgo_le_ukf_all_deltas": false,
   "ratio": [
-   0.1468272892575452,
-   0.16457655663076234
+   0.24958886938694905,
+   0.10046377963788328
   ],
-  "ratio_decreasing": false
+  "ratio_decreasing": true
  },
  "decision": {
   "a_fgo_at_least_as_fast": false,
-  "b_advantage_grows": false
+  "b_advantage_grows": true
  }
 }

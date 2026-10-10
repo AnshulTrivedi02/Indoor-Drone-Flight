@@ -43,17 +43,17 @@
    "max_step_before_off_m": 0.007523029310057607
   },
   "FGO live": {
-   "indoor_rmse_m": 0.858708313846239,
-   "indoor_max_m": 2.576970011839131,
-   "err_at_return_m": 2.576970011839131,
-   "err_10s_after_return_m": 0.006098929778852521,
-   "max_step_after_return_m": 2.2036375022296655,
-   "max_step_before_off_m": 0.01875921600174218
+   "indoor_rmse_m": 0.8587789742890028,
+   "indoor_max_m": 2.5776089191629676,
+   "err_at_return_m": 2.5776089191629676,
+   "err_10s_after_return_m": 0.006096332701022724,
+   "max_step_after_return_m": 2.204223510067207,
+   "max_step_before_off_m": 0.01875916629277591
   },
   "FGO hindsight (whole-flight batch)": {
-   "indoor_rmse_m": 0.5895803772300081,
-   "indoor_max_m": 1.0641098089792134,
-   "err_at_return_m": 0.01875025758289919,
+   "indoor_rmse_m": 0.5897035665655384,
+   "indoor_max_m": 1.0643297473633127,
+   "err_at_return_m": 0.01875523973401601,
    "err_10s_after_return_m": 0.005124845839961819,
    "max_step_after_return_m": 0.018066083720608545,
    "max_step_before_off_m": 0.018064106399157728
