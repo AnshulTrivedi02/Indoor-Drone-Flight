@@ -1,0 +1,13 @@
+# RUNG 1 COMPASS VARIANT A: NO-COMPASS YAW ("nomag"), the simulation's comparison configuration (gnss_denied_nomag.parm).
+# Load AFTER rung1_template.parm, and INSTEAD OF rung1_variant_compass.parm. THE CHOICE IS THE SUPERVISOR'S (FLAG).
+# Recommended in docs/minimal_real_flight_plan.md section 3.3: all three estimators then lack absolute yaw, as in the
+# simulated comparison. A compass-on EKF3 Replay remains possible as a labelled sensitivity row (the RMG* records are logged).
+# Names verified at 7bac20cbcc: libraries/AP_NavEKF/AP_NavEKF_Source.cpp (SRC1_YAW), libraries/AP_Compass/AP_Compass.cpp.
+EK3_SRC1_YAW 0           # None: EKF3 receives no yaw measurement (only its zero-innovation synthetic yaw)
+COMPASS_ENABLE 1         # DELIBERATELY 1: Copter's arm_checks() has an unconditional compass-health gate
+                         # (AP_Arming_Copter.cpp ~575); with COMPASS_ENABLE 0 arming fails "Compass 1 not healthy"
+                         # (CLAUDE.md Hidden Configuration Audit section 3). On hardware the compass must therefore be
+                         # present, healthy and CALIBRATED even though it is never fused (bench item).
+COMPASS_USE 0            # compass 1 not used for yaw
+COMPASS_USE2 0           # compass 2 not used for yaw
+COMPASS_USE3 0           # compass 3 not used for yaw
