@@ -13022,3 +13022,26 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     That could trip the 0.75 s estimator-loss timer.
   - (a) flow at the principal point removes the bias WITHOUT dropping frames (measured on the analogues).
 - **Pre-registration of (b)/(c) is held for a user ruling, in the light of this trade-off.**
+
+### RULINGS (user, 2026-10-10): D22 wording; flow for the REAL-FLIGHT camera path = option 2
+- **D22 diagnostic: recorded as reported.**
+  - Thesis wording for D22 itself: **"consistent with image expansion, not proven"**.
+  - The mechanism is CONFIRMED on the two analogue bags (`tagchar_h20`, `tag_check2img`).
+- **Real-flight camera path, option 2:**
+  - flow = the fitted transform's translation at the IMAGE CENTRE (a);
+  - (b) is a backstop that rejects a frame only when the fitted transform itself is implausible (thresholds set on
+    `p1c_*` only);
+  - identical for all three estimators.
+- **Before adoption: a PRE-REGISTERED validation on the `p1c_*` calibration flights (never the datasets).**
+  - It compares (a) against the current median-feature flow, both against ground truth, separately for hover, cruise
+    and climb.
+  - Acceptance bands are stated in advance: for example, no worse than the current method in hover and cruise, and
+    removes the climb bias.
+  - Reported before adoption.
+- **Recorded:** the simulation datasets keep the ORIGINAL flow computation; real flights would use (a). Any
+  sim-to-real comparison states this difference.
+- **Recorded: the 0.75 s estimator-loss timer has been reviewed** against the expected flow outage for rung 3. With
+  (a) there is no added outage: no frames are dropped in the climb, unlike (b)/(c) as primary checks (~2.3 s).
+- **BLOCKER FOUND when this was recorded (verified):** none of the six `p1c_*` bags contains `/downward_camera/image`
+  (their bag metadata lists no such topic). Validating (a) needs the images to re-run the tracker. A user ruling is
+  needed on the source of the calibration images.
