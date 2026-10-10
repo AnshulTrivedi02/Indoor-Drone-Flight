@@ -1,6 +1,6 @@
 UKF_Equiv regression (eval/diag/r1_ukf_port/equiv_c.sh), 2026-10-11
 old = ~/ardupilot_ukf/build/sitl/examples/UKF_Equiv md5 537e0dcd808ddfe4c6d3265a44d983e3 (abb0357d0f, read-only use)
-new = scratch build of rung1-geometry 60c2d83f35, md5 3cca6bf6b665580067db9598e2465851
+new = scratch build of rung1-geometry 60c2d83f35 (md5 3cca6bf6…) and again of 16535f9a29 (md5 0c9dd9047287d83a6a666e9359b45068): same result both times
 tapes: the 2026-10-09 jitter-fix stage's (scratchpad/jfix), copied.
 
 events / cholesky: cfi60_A 4799, cfi60_C 5198, cfi10_B 800, dsn_tex_r2 45277 (plain and UKF_EQ_QDIAG),
