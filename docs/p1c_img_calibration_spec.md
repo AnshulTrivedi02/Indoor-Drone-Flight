@@ -17,7 +17,7 @@ simulation datasets keep the original flow computation.
 
 - **Configuration:** the `run_trial.sh` defaults, as for every recent corridor trial: nomag, `sim_noise.parm`,
   `consolidated_rerun.parm`, so `AHRS_EKF_TYPE 10` (it flies on simulator truth, the same trajectory in every world).
-  `--with-images` records `/downward_camera/image` and `/downward_camera/camera_info`.
+  `EXTRA_RECORD_TOPICS="/downward_camera/image /downward_camera/camera_info"` records the downward images (run_trial.sh has no `--with-images` flag; corrected 2026-10-10).
 - **Profile** (identical in all three; a `HPROFILE` JSON, `batches/p1c_img/profile.json`):
   1. take-off to 2.0 m: **the CLIMB segment** (the natural GUIDED take-off, as in the D22 flights);
   2. **the first hover, with two climb cycles inserted** (change made 2026-10-10, BEFORE any flight). The reason: a
@@ -93,3 +93,14 @@ simulation datasets keep the original flow computation.
 - `eval/results/p1c_img_validation.json`, the figures in `plots/p1c_img/`, and a handover.
 - METHODOLOGY records the verdict as worded.
 - **Adoption is a separate user ruling after the report.**
+
+## 6. Launcher pass-through (confirmed 2026-10-10, before any flight)
+- `tools/run_p1c_img.sh {tex,trans,blank}` sets `HPROFILE` and `EXTRA_RECORD_TOPICS` in `run_trial.sh`'s environment.
+  `run_trial.sh` does not touch `HPROFILE`, so `fly_trial.py` inherits it. After the take-off `wait_altitude`,
+  `main()` takes the `HPROFILE` branch (`fly_trial.py:875`), then `stop()` and land.
+- `HWORLD` is used only by the occluder segment (unused here). `WATCH_HEARTBEAT` is not set, so the room-world
+  watcher and the pre-arm tag gate do not apply.
+- **The driver checks the flight log for "HPROFILE: 11 segments" and STOPS if it is missing,** so a failed
+  pass-through cannot go unnoticed.
+- **The `alt` segment was mock-tested offline:** the setpoints ramp 2.0 → 3.5 → 2.0 m with vz feed-forward
+  ∓1.1 m/s, and the hold/move setpoints are unchanged. It is first exercised in flight on `p1c_img_tex`.
