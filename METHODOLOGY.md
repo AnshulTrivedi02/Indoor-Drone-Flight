@@ -13118,3 +13118,30 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     - the take-off plus four climb ramps;
     - a 90 m cruise crossing the transition boundary.
     They are not datasets.
+
+### Real-hardware mocap watcher BUILT (G1–G11), offline-tested (`realflight/watcher/`; handover `docs/handovers/2026-10-10_mocap_watcher_build.md`)
+- **73 offline tests pass.** `wall_watch.py` and the SITL tooling are untouched.
+- **Gaps closed:**
+  - G1: a swappable mocap input with a UDP pose adapter.
+  - G2: a stale-pose check every loop (LAND 0.4–0.7 s after the stream stops).
+  - G3: a rigid-body ID check plus a hand-motion check against the FC attitude, lag-tolerant.
+  - G4: a breach sends ONE MAVLink LAND, re-sent until acknowledged, with no process kills (LAND ≤ 0.3 s).
+  - G5/G11: a heartbeat from the watcher's own system ID (not 255 and not the FC's), sent only while confirmed; it
+    never sends RC override or manual control. The FC parameters are read back.
+  - G7: remote liveness via per-process UDP beacons with progress counters (SIGSTOP, SIGKILL and hangs are caught).
+  - G8: `--dep-loss stop` maps to LAND plus an alert. G9: the heartbeat file format. G10: a mandatory height limit.
+- **FC arming finding** (verified at `7bac20cbcc`): stock ArduCopter refuses to arm only AFTER the watcher was seen
+  and then lost. **If the watcher was never started, the FC ARMS.** Two mitigations:
+  - (i) arm only via the flight script, with ARMING_RUDDER 0 and no RC arm switch;
+  - (ii) the draft Lua arming-authorisation script `watcher_arming_auth.lua` (untested; needs scripting on the board,
+    and ARMING_SKIPCHK bit 17 clear).
+  - A force-arm bypasses both.
+- **Parameter names in this version:** `ARMING_CHECK` → `ARMING_SKIPCHK`, `SYSID_MYGCS` → `MAV_GCS_SYSID`
+  (`realflight/params/watcher_fc.parm`).
+- **Still hardware-dependent:**
+  - the mocap SDK forwarder, the frames and the box corners;
+  - FC failsafe timing and the LAND acknowledgement;
+  - the Lua script on the board;
+  - beacons wired into the Pi processes;
+  - a real audible alert.
+- **A requirement for the real flight script:** it must not re-command LAND once the pilot has taken ALT_HOLD (B10b).
