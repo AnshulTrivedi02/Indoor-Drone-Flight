@@ -13216,3 +13216,32 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - **UKF-port geometry** (`~/ardupilot_ukf` branch `rung1-geometry` `c25fa8980d`): UNCOMPILED. It is to be verified
     byte-identical on SITL logs and with `UKF_Equiv` once a build is allowed.
   - **The pre-registration draft:** two known defects are listed at its top.
+
+### Rung-1 converter BUILT (branch `worktree-agent-a323ce1f90a749262` `eb629a6`; handover `docs/handovers/2026-10-10_r1_converter.md`): NOT MERGED YET
+- **Built:**
+  - `eval/bin2fgo.py`: LOG_REPLAY `.BIN` → IMU (from RISI deltas, FRD→FLU), flow and range events. The geometry,
+    arming time and initial height come from the log; the per-sensor delays are required arguments.
+  - an off-by-default `FGO_EVENTS` input mode in `fgo_replay.py`; the FGO geometry made a parameter (default = the sim
+    constants);
+  - `eval/sensor_timing_from_log.py`.
+- **Flow-sensor conventions (from source and the log):**
+  - `OF.flowX/Y` are raw, not compensated, in the same convention as the FGO's `h_flow`, so the mapping is the
+    identity.
+  - Validity: Qual > 0, with inlier := Qual/255. This equals EKF3's gate.
+  - `OF.bodyX/Y` is the AHRS gyro (the filtered gyro minus EKF3's bias) for the MAV/Pixart drivers; HereFlow sends its
+    own gyro.
+- **SITL check (`cl_a_tex_half`):**
+  - IMU rest means match the bag to ~1e-5;
+  - flow: 7900/7900 float32-identical;
+  - range: rms 3.9 mm;
+  - flow-delay estimate 16.06 against 16.0 ms (the per-axis rule was written after seeing a pitch bias, so the
+    independent evidence is synthetic);
+  - range delay 90 ms, which includes ~42 ms of Gazebo lidar render lag.
+- **Default-unchanged proof:** (a) passes (11,821 byte-identical comparisons on the models/factors/core). **(b), the
+  replay through `fgo_replay.py`, is NOT RUN** (the build lock was busy).
+- **NOT merged before the FGO-only re-run.** It edits `fgo_replay.py`'s bag path, and that is only read-checked. It is
+  merged after the re-run, once (b) and the events-mode smoke test pass.
+- **For a ruling (daily summary): the rung-1 derotation input (D18).**
+  - The converter has the FGO derotate with its own raw RISI gyro, not `ROFH.G`, which would import EKF3's bias. In
+    the sim, all three estimators derotated with the filtered gyro.
+  - The UKF port's Replay flow hook takes `ROFH.G`.
