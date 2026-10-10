@@ -1,0 +1,5 @@
+FGO stored (yaw 1e-3 rad, r/p 2 deg)     evo -a (cruise)   43.539 m  yaw rms 1013.773 max  1718.455 deg  bgz  -319.39 dpm  psi fused 28/6333
+FGO trace y0s1 (F_YAW0 knob, 1 deg)      evo -a (cruise)    0.150 m  yaw rms    3.413 max     5.028 deg  bgz    -8.04 dpm  psi fused 747/6333
+FGO corrected, yaw only                  evo -a (cruise)    0.150 m  yaw rms    3.413 max     5.028 deg  bgz    -8.04 dpm  psi fused 747/6333
+FGO corrected, yaw + roll/pitch 5 deg    evo -a (cruise)    0.150 m  yaw rms    3.413 max     5.028 deg  bgz    -8.04 dpm  psi fused 747/6333
+UKF stored                               evo -a (cruise)    0.188 m  yaw rms    3.389 max     5.038 deg  bgz    -8.04 dpm  psi fused 752/6377

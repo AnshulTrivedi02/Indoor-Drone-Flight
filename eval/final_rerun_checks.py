@@ -17,9 +17,19 @@ Light (no replays, no ROS), standard-library only, so it runs under any python3.
             models h_flow themselves reference BG_SLICE (the subtraction moved into the core). Written so that it FAILS
             on the tree as of 2026-10-09 (diagnostic-only `if APIN == "biascorr"`) and PASSES once the parallel
             derotation change lands as the default.
+        (5) FGO INITIAL sigmas = the UKF's (user ruling 2026-10-10, METHODOLOGY "RULINGS (user, 2026-10-10): FGO initial
+            yaw sigma"; initial-uncertainty audit, docs/handovers/2026-10-10_initial_sigma_audit.md): yaw 1 deg and
+            roll/pitch 5 deg in BOTH FGO cores (fgo_core.py YAW0_SIGMA / ROLLPITCH0_SIGMA used in the X(0) prior and the
+            reanchor fallback; fgo_core.h constexpr, used at fgo_core.cpp's two sites), no 1e-3 yaw / 2 deg roll-pitch
+            left, lc_fgo_replay's V-L start takes the yaw sigma from cov_prev, and ukf_core.init_state still has
+            5/5/1 deg (the UKF side unchanged).
   final_rerun_checks.py ekf3-gate OLD NEW [OLD NEW ...]
         exit 1 if any JSON leaf whose key path contains an EKF3 key ("EKF3", "ekf3", "EKF3 live", ...) differs between
         OLD and NEW (exact equality after JSON load), or if an EKF3 leaf exists on one side only. Prints every difference.
+  final_rerun_checks.py ukf-gate OLD NEW [OLD NEW ...]
+        the same for UKF leaves (key path contains "ukf", and no "fgo"): the FGO-only pass (FINAL_FGO_ONLY=1) must leave
+        every UKF number unchanged. Apply it to pure-metric files (evo / track scores), not to band-scored files whose
+        UKF "band"/"pass" leaves depend on bands recomputed from other estimators.
 """
 import ast, hashlib, json, os, re, subprocess, sys
 
@@ -166,13 +176,45 @@ def _check_derotation():
     return errs, notes
 
 
+def _check_initsigma():
+    errs = []
+    py = _src("src/estimators/fgo/fgo_core.py")
+    if not re.search(r"^YAW0_SIGMA\s*=\s*np\.radians\(1\)\s*$", py, re.M):
+        errs.append("fgo_core.py: YAW0_SIGMA = np.radians(1) not defined")
+    if not re.search(r"^ROLLPITCH0_SIGMA\s*=\s*np\.radians\(5\)\s*$", py, re.M):
+        errs.append("fgo_core.py: ROLLPITCH0_SIGMA = np.radians(5) not defined")
+    if "pose_sig = np.array([ROLLPITCH0_SIGMA, ROLLPITCH0_SIGMA, YAW0_SIGMA, 1e-3, 1e-3, 0.5])" not in py:
+        errs.append("fgo_core.py: X(0) pose prior does not use ROLLPITCH0_SIGMA / YAW0_SIGMA")
+    if "[ROLLPITCH0_SIGMA] * 2 + [YAW0_SIGMA] + [1e-3] * 2 + [0.5]" not in py:
+        errs.append("fgo_core.py: reanchor fallback covariance does not use ROLLPITCH0_SIGMA / YAW0_SIGMA")
+    if re.search(r"np\.radians\(2\)", py) or re.search(r"1e-3,\s*1e-3,\s*1e-3", py) or "[1e-3] * 3" in py:
+        errs.append("fgo_core.py: a 2 deg roll/pitch or 1e-3 yaw initial sigma is still present")
+    h = _src("src/estimators/fgo_cpp/include/fgo_cpp/fgo_core.h"); cpp = _src("src/estimators/fgo_cpp/src/fgo_core.cpp")
+    if not re.search(r"constexpr\s+double\s+YAW0_SIGMA\s*=\s*1\.0\s*\*\s*\(3\.14159265358979323846\s*/\s*180\.0\)\s*;", h):
+        errs.append("fgo_core.h: constexpr YAW0_SIGMA = 1 deg not defined")
+    if not re.search(r"constexpr\s+double\s+ROLLPITCH0_SIGMA\s*=\s*5\.0\s*\*\s*\(3\.14159265358979323846\s*/\s*180\.0\)\s*;", h):
+        errs.append("fgo_core.h: constexpr ROLLPITCH0_SIGMA = 5 deg not defined")
+    if len(re.findall(r"ROLLPITCH0_SIGMA,\s*ROLLPITCH0_SIGMA,\s*YAW0_SIGMA,\s*1e-3,\s*1e-3,\s*0\.5", cpp)) != 2:
+        errs.append("fgo_core.cpp: the X(0) prior and the reanchor fallback (2 sites) do not both use the new sigmas")
+    if re.search(r"np_radians\(2\)", cpp) or re.search(r"1e-3,\s*1e-3,\s*1e-3", cpp):
+        errs.append("fgo_core.cpp: a 2 deg roll/pitch or 1e-3 yaw initial sigma is still present")
+    lc = _src("src/estimators/fgo/lc_fgo_replay.py")
+    if "np.sqrt(C[2, 2]), 1e-3, 1e-3, np.sqrt(C[5, 5])" not in lc or re.search(r"1e-3,\s*1e-3,\s*1e-3", lc):
+        errs.append("lc_fgo_replay.py: the V-L start does not take its yaw sigma from cov_prev")
+    u = _src("src/estimators/ukf_core.py")
+    if "np.radians(5)**2, np.radians(5)**2, np.radians(1)**2" not in u:
+        errs.append("ukf_core.py: init_state roll/pitch/yaw are no longer 5/5/1 deg (the FGO was matched to these)")
+    return errs
+
+
 def corrections():
-    errs = _check_binit() + _check_yawgate() + _check_jitter()
+    errs = _check_binit() + _check_yawgate() + _check_jitter() + _check_initsigma()
     e4, notes = _check_derotation(); errs += e4
     for n in notes:
         print("ok  ", n)
     for name, f in (("(1) FGO setBiasAccOmegaInit = 0", _check_binit), ("(2) FGO yaw cap variance-gated", _check_yawgate),
-                    ("(3) UKF jitter only on Cholesky failure", _check_jitter)):
+                    ("(3) UKF jitter only on Cholesky failure", _check_jitter),
+                    ("(5) FGO initial yaw / roll / pitch sigmas = the UKF's (D18, 2026-10-10)", _check_initsigma)):
         print(("ok  " if not f() else "FAIL"), name)
     print(("ok  " if not e4 else "FAIL"), "(4) UKF bias-corrected derotation is the default")
     for e in errs:
@@ -181,6 +223,7 @@ def corrections():
 
 
 EKF3_KEY = re.compile(r"ekf3", re.I)
+UKF_KEY, FGO_KEY = re.compile(r"ukf", re.I), re.compile(r"fgo", re.I)
 
 
 def _leaves(o, path=()):
@@ -194,24 +237,24 @@ def _leaves(o, path=()):
         yield path, o
 
 
-def ekf3_gate(pairs):
+def ekf3_gate(pairs, sel=lambda p: any(EKF3_KEY.search(x) for x in p), name="EKF3"):
     bad = 0; n = 0
     for old, new in pairs:
         if not os.path.exists(old):
             print(f"FAIL {old}: snapshot file missing"); bad += 1; continue
         if not os.path.exists(new):
             print(f"FAIL {new}: new file missing"); bad += 1; continue
-        a = {p: v for p, v in _leaves(json.load(open(old))) if any(EKF3_KEY.search(x) for x in p)}
-        b = {p: v for p, v in _leaves(json.load(open(new))) if any(EKF3_KEY.search(x) for x in p)}
+        a = {p: v for p, v in _leaves(json.load(open(old))) if sel(p)}
+        b = {p: v for p, v in _leaves(json.load(open(new))) if sel(p)}
         for p in sorted(set(a) | set(b)):
             n += 1
             if p not in a or p not in b:
-                print(f"FAIL {os.path.basename(new)}: EKF3 leaf only in {'new' if p in b else 'old'}: {'/'.join(p)}"); bad += 1
+                print(f"FAIL {os.path.basename(new)}: {name} leaf only in {'new' if p in b else 'old'}: {'/'.join(p)}"); bad += 1
             elif json.dumps(a[p]) != json.dumps(b[p]):
                 print(f"FAIL {os.path.basename(new)}: {'/'.join(p)}: {a[p]!r} -> {b[p]!r}"); bad += 1
         if not a:
-            print(f"WARN {os.path.basename(new)}: no EKF3 leaves found (nothing gated in this file)")
-    print(f"ekf3-gate: {n} EKF3 leaves compared, {bad} differences")
+            print(f"WARN {os.path.basename(new)}: no {name} leaves found (nothing gated in this file)")
+    print(f"{name.lower()}-gate: {n} {name} leaves compared, {bad} differences")
     return 1 if bad else 0
 
 
@@ -228,4 +271,10 @@ if __name__ == "__main__":
         if not r or len(r) % 2:
             sys.exit("ekf3-gate needs OLD NEW pairs")
         sys.exit(ekf3_gate(list(zip(r[::2], r[1::2]))))
+    if cmd == "ukf-gate":
+        r = sys.argv[2:]
+        if not r or len(r) % 2:
+            sys.exit("ukf-gate needs OLD NEW pairs")
+        sys.exit(ekf3_gate(list(zip(r[::2], r[1::2])),
+                           sel=lambda p: any(UKF_KEY.search(x) for x in p) and not any(FGO_KEY.search(x) for x in p), name="UKF"))
     sys.exit(__doc__)

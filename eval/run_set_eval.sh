@@ -14,6 +14,8 @@
 #   5. merged evo JSON, then eval/phase2_score.py with the pre-registered bands
 # Run it only when no trial is flying: the replays load the CPU, which is the confound
 # the Phase 1 checks measure.
+# SKIP_UKF=1 (off by default; the FGO-only pass, eval/final_rerun_pipeline.sh FINAL_FGO_ONLY=1): step 2 runs the FGO
+# replays only; steps 3-5 then read the UKF outputs already in the trial directories (unchanged code).
 set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 [ $# -ge 2 ] || { echo "Usage: $0 <tag> TRIAL [TRIAL...]" >&2; exit 1; }
@@ -34,13 +36,15 @@ done
 echo "[2/5] replays (${#OK[@]} bags)"
 : > "$LOGD/jobs.txt"
 for t in "${OK[@]}"; do
-    echo "$EVO src/estimators/ukf_replay.py $t > $LOGD/ukf_$t.log 2>&1; echo rc=\$? >> $LOGD/ukf_$t.log" >> "$LOGD/jobs.txt"
+    [ "${SKIP_UKF:-0}" = 1 ] || echo "$EVO src/estimators/ukf_replay.py $t > $LOGD/ukf_$t.log 2>&1; echo rc=\$? >> $LOGD/ukf_$t.log" >> "$LOGD/jobs.txt"
     echo "$FGO src/estimators/fgo/fgo_replay.py $t 0.25 > $LOGD/fgo_$t.log 2>&1; echo rc=\$? >> $LOGD/fgo_$t.log" >> "$LOGD/jobs.txt"
 done
 [ "${#OK[@]}" -gt 0 ] && xargs -P 4 -I{} bash -c '{}' < "$LOGD/jobs.txt"
-if grep -L "rc=0" "$LOGD"/ukf_*.log "$LOGD"/fgo_*.log 2>/dev/null | grep -q .; then
-    echo "ERROR: a replay failed:"; grep -L "rc=0" "$LOGD"/ukf_*.log "$LOGD"/fgo_*.log; exit 1
+RLOGS=(); for t in "${OK[@]}"; do [ "${SKIP_UKF:-0}" = 1 ] || RLOGS+=("$LOGD/ukf_$t.log"); RLOGS+=("$LOGD/fgo_$t.log"); done
+if [ "${#RLOGS[@]}" -gt 0 ] && grep -L "rc=0" "${RLOGS[@]}" 2>/dev/null | grep -q .; then
+    echo "ERROR: a replay failed:"; grep -L "rc=0" "${RLOGS[@]}"; exit 1
 fi
+for f in "${RLOGS[@]}"; do [ -f "$f" ] || { echo "ERROR: missing replay log $f"; exit 1; }; done
 
 echo "[3/5] input timing, flow quality"
 "$EVO" eval/input_timing.py "${TRIALS[@]}" --json "$RES/input_timing_$TAG.json" > "$LOGD/input_timing.txt" 2>&1 || exit 1

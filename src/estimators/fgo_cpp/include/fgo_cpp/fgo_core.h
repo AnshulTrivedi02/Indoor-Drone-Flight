@@ -23,6 +23,12 @@ boost::shared_ptr<gtsam::PreintegrationCombinedParams> make_pim_params();
 
 constexpr double GYRO_B0 = 0.043633;   // EKF3 initial gyro-bias 1 sigma (rad/s)
 constexpr double ACCEL_B0 = 0.2;       // EKF3 initial accel-bias 1 sigma (m/s^2)
+// X(0) initial yaw 1 sigma (rad) = the UKF's 1 deg; fgo_core.py YAW0_SIGMA (np.radians(1): x * (pi / 180)). MODEL
+// CORRECTION under D18 (user ruling 2026-10-10, METHODOLOGY "RULINGS (user, 2026-10-10): FGO initial yaw sigma"): was 1e-3.
+constexpr double YAW0_SIGMA = 1.0 * (3.14159265358979323846 / 180.0);
+// X(0) initial roll/pitch 1 sigma (rad) = the UKF's 5 deg; fgo_core.py ROLLPITCH0_SIGMA (np.radians(5)). D18, same change
+// (initial-uncertainty audit, docs/handovers/2026-10-10_initial_sigma_audit.md): was np_radians(2).
+constexpr double ROLLPITCH0_SIGMA = 5.0 * (3.14159265358979323846 / 180.0);
 // §9.4 yaw cap, VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2): as EKF3's
 // fuseEulerYaw(PREDICTED) and ukf_core.update_yaw_pseudo; fgo_core.py YAW_DT / ATT_VAR_GATE.
 constexpr double YAW_DT = 0.14;        // fire opportunity every 140 ms (MagFusion.cpp:263)

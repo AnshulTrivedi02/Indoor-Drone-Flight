@@ -152,10 +152,12 @@ def start_isam(t_now, meas):
 
 
 def start_isam_plain(t_now):
-    """V-L: start the retained graph from the thesis FGO's first keyframe state, thesis gauge (x, y, yaw 1e-3)."""
+    """V-L: start the retained graph from the thesis FGO's first keyframe state, thesis gauge (x, y 1e-3). The yaw sigma
+    is the thesis FGO's own (cov_prev; from fgo_core.YAW0_SIGMA), no longer a hard 1e-3 (D18 initial-sigma audit,
+    2026-10-10)."""
     global isam, k, prev, pim, t_anchor
     pose, vel, bias = fgo.prev_pose, np.asarray(fgo.prev_vel, float), fgo.prev_bias; C = fgo.cov_prev
-    pose_sig = np.array([np.sqrt(C[0, 0]), np.sqrt(C[1, 1]), 1e-3, 1e-3, 1e-3, np.sqrt(C[5, 5])])
+    pose_sig = np.array([np.sqrt(C[0, 0]), np.sqrt(C[1, 1]), np.sqrt(C[2, 2]), 1e-3, 1e-3, np.sqrt(C[5, 5])])
     prm = gtsam.ISAM2Params(); prm.setFactorization("QR"); isam = gtsam.ISAM2(prm)
     k = 0; g = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
     g.add(PriorFactorPose3(X(k), pose, gtsam.noiseModel.Diagonal.Sigmas(pose_sig)))

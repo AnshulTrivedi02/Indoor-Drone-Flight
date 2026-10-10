@@ -38,6 +38,14 @@ def make_pim_params():
 
 GYRO_B0 = 0.043633            # EKF3 initial gyro-bias 1σ (rad/s), FGO §5/§8
 ACCEL_B0 = 0.2                # EKF3 initial accel-bias 1σ (m/s²)
+# X(0) initial yaw 1σ (rad): the UKF's (ukf_core.init_state P[8,8] = 1 deg^2). MODEL CORRECTION under D18 (user ruling
+# 2026-10-10, METHODOLOGY "RULINGS (user, 2026-10-10): FGO initial yaw sigma"): was 1e-3 rad, a "gauge fix" that became
+# a substantive heading claim once the forward camera observes absolute heading. The UKF and the FGO share initial sigmas.
+YAW0_SIGMA = np.radians(1)
+# X(0) initial roll/pitch 1σ (rad): the UKF's 5 deg (ukf_core.init_state). D18, same change (initial-uncertainty audit,
+# docs/handovers/2026-10-10_initial_sigma_audit.md): was a fixed 2 deg, neither the "measured levelling scatter" FGO_DESIGN §8
+# describes nor the UKF's value, with no estimator-design reason for the difference. EKF3: 0.1 rad (5.73 deg).
+ROLLPITCH0_SIGMA = np.radians(5)
 # §9.4 yaw cap, VARIANCE-GATED (user ruling 2026-10-09, METHODOLOGY "MODEL AUDIT RESULT ... RULINGS" item 2: a
 # correction of the implementation to its stated design). As EKF3's fuseEulerYaw(PREDICTED) and ukf_core.update_yaw_pseudo:
 YAW_DT = 0.14                 # fire opportunity every 140 ms (MagFusion.cpp:263; ukf_core YAW_DT)
@@ -110,8 +118,8 @@ class FGO:
         vel0 = np.zeros(3)
         bias0 = gtsam.imuBias.ConstantBias(np.zeros(3), np.zeros(3))
         g = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
-        # X(0) prior: [roll,pitch,yaw, x,y,z] tangent sigmas (§8); x,y,yaw gauge-fixed
-        pose_sig = np.array([np.radians(2), np.radians(2), 1e-3, 1e-3, 1e-3, 0.5])
+        # X(0) prior: [roll,pitch,yaw, x,y,z] tangent sigmas (§8); x,y gauge-fixed; roll/pitch/yaw = the UKF's (D18)
+        pose_sig = np.array([ROLLPITCH0_SIGMA, ROLLPITCH0_SIGMA, YAW0_SIGMA, 1e-3, 1e-3, 0.5])
         if yaw_sigma is not None:                           # F3 only: a consistent prior sigma = the injected yaw offset
             pose_sig[2] = yaw_sigma
         g.add(PriorFactorPose3(X(0), pose0, gtsam.noiseModel.Diagonal.Sigmas(pose_sig)))
@@ -228,7 +236,7 @@ class FGO:
         pose = Pose3(Rot3.Ypr(yaw_fix, pch, r), np.array([p_EN[0], p_EN[1], self.prev_pose.translation()[2]]))
         vel = R3 @ np.asarray(self.prev_vel, float); bias = self.prev_bias
         C = self.cov_prev if self.cov_prev is not None else np.diag(
-            np.concatenate([[np.radians(2)] * 2 + [1e-3] * 3 + [0.5], [0.1] * 3, [ACCEL_B0] * 3 + [GYRO_B0] * 3]) ** 2)
+            np.concatenate([[ROLLPITCH0_SIGMA] * 2 + [YAW0_SIGMA] + [1e-3] * 2 + [0.5], [0.1] * 3, [ACCEL_B0] * 3 + [GYRO_B0] * 3]) ** 2)
         pose_sig = np.array([np.sqrt(C[0, 0]), np.sqrt(C[1, 1]), sig_yaw, sig_pos, sig_pos, np.sqrt(C[5, 5])])
         vel_sig = np.sqrt(np.diag(R3 @ C[6:9, 6:9] @ R3.T)); bias_sig = np.sqrt(np.diag(C[9:15, 9:15]))
         if vel_EN is not None:                      # experiment O: velocity reset to the GNSS sample (as EKF3's alignment)

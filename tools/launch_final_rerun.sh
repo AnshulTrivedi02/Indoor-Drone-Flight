@@ -18,9 +18,13 @@ set -uo pipefail
 TW="$HOME/thesis_ws"
 HEAVY="$TW/src/estimators/fgo_cpp/tools/heavy.py"
 PIPE="$TW/eval/final_rerun_pipeline.sh"
-STATE="$HOME/thesis_data/batches/final_rerun"
-STAGES=(preflight snapshot unpack dsn dsn_extra sens bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests
-        repack_corridor f4 h_shadows expO expT)
+# FGO-only pass (ruling 2026-10-10 item 3): FINAL_FGO_ONLY=1 (exported, so the pipeline sees it) -> state final_rerun2.
+# Labelled sensitivity check: FINAL_SENS_YAW0=1 adds stage sens_yaw0 after ftests.
+export FINAL_FGO_ONLY="${FINAL_FGO_ONLY:-0}" FINAL_SENS_YAW0="${FINAL_SENS_YAW0:-0}"
+if [ "$FINAL_FGO_ONLY" = 1 ]; then STATE="$HOME/thesis_data/batches/final_rerun2"; else STATE="$HOME/thesis_data/batches/final_rerun"; fi
+STAGES=(preflight snapshot unpack dsn dsn_extra sens bands paired set_p1c set_fwdc set_fwdplainc phase4 phase5 phase5b d15_bb ftests)
+[ "$FINAL_SENS_YAW0" = 1 ] && STAGES+=(sens_yaw0)
+STAGES+=(repack_corridor f4 h_shadows expO expT)
 [ "${FINAL_D27I3:-0}" = 1 ] && STAGES+=(d27item3)
 [ "${FINAL_CL_PRED:-0}" = 1 ] && STAGES+=(cl_pred)
 STAGES+=(L compare)                           # L LAST of the replays (ruled: its cost); compare is light

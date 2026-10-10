@@ -24,12 +24,21 @@ TRIAL = sys.argv[1]
 ARM = sys.argv[2] if len(sys.argv) > 2 else None
 assert ARM in (None,) + FWD_ARMS, ARM
 BAG = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}/bag")
+if os.environ.get("UKF_BAG_ROOT"):   # off by default (as the FGO's FGO_BAG_ROOT): read the bag from <root>/<trial>/
+    BAG = os.path.join(os.environ["UKF_BAG_ROOT"], TRIAL)
 FV = f_variant()     # offline F-test variants (all off by default)
 import apin          # input-path diagnostic (2026-10-08): env UKF_APIN, OFF by default (unset = unchanged path)
 APIN = apin.mode()
 # UKF_OUT_ROOT (as the FGO's FGO_OUT_ROOT; off by default): write the outputs to <root>/<trial>/ukf.../ instead of
 # the trial directory. Inputs are still read from the trial directory.
-OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN))
+# INIT_YAW_SIGMA_RAD (OFF by default; ruling 2026-10-10 item 1, the labelled sensitivity check): override the initial
+# yaw sigma P[8,8] (rad) with zero offset. Only into a scratch / sensitivity UKF_OUT_ROOT; output dir suffix _iy<value>.
+INIT_YAW_SIGMA = os.environ.get("INIT_YAW_SIGMA_RAD") or None
+if INIT_YAW_SIGMA:
+    assert os.environ.get("UKF_OUT_ROOT"), "INIT_YAW_SIGMA_RAD needs UKF_OUT_ROOT (never into a trial directory)"
+    assert not FV["F_YAW0_DEG"], "INIT_YAW_SIGMA_RAD and F_YAW0_DEG are exclusive"
+    assert float(INIT_YAW_SIGMA) > 0, INIT_YAW_SIGMA
+OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN) + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -92,6 +101,8 @@ first_rng = next(d for t, k, d in ev if k == "rng" and p['RNG_MIN'] <= d <= p['R
 x, P = U.init_state(np.mean(acc_lvl, axis=0), first_rng, dt=DT_STEP)
 if FV["F_YAW0_DEG"]:                               # F3: initial yaw offset, sigma = the offset
     x[8] += np.radians(float(FV["F_YAW0_DEG"])); P[8, 8] = np.radians(float(FV["F_YAW0_SIGMA_DEG"] or FV["F_YAW0_DEG"])) ** 2
+elif INIT_YAW_SIGMA:                                # sensitivity check (off by default): initial yaw sigma only
+    P[8, 8] = float(INIT_YAW_SIGMA) ** 2
 t_init = t_imu0 + 0.5
 print(f"[init] t={t_init:.2f}s  roll0={math.degrees(x[6]):+.2f} pitch0={math.degrees(x[7]):+.2f} deg  "
       f"p_U0={x[2]:.3f} m (range {first_rng:.3f})")

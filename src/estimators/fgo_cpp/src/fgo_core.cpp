@@ -72,7 +72,7 @@ void FGO::init(const Vector3& a, double first_range, double t0) {
   gtsam::NonlinearFactorGraph g;
   gtsam::Values vals;
   gtsam::Vector6 pose_sig;
-  pose_sig << np_radians(2), np_radians(2), 1e-3, 1e-3, 1e-3, 0.5;   // [roll,pitch,yaw, x,y,z] (§8)
+  pose_sig << ROLLPITCH0_SIGMA, ROLLPITCH0_SIGMA, YAW0_SIGMA, 1e-3, 1e-3, 0.5;   // [roll,pitch,yaw, x,y,z] (§8); r/p/yaw: D18
   g.add(gtsam::PriorFactor<Pose3>(X(0), pose0, gtsam::noiseModel::Diagonal::Sigmas(pose_sig)));
   g.add(gtsam::PriorFactor<Vector>(V(0), vel0, gtsam::noiseModel::Isotropic::Sigma(3, 0.1)));
   gtsam::Vector6 bias_sig;
@@ -197,7 +197,7 @@ void FGO::reanchor(double pE, double pN, double yaw_fix, double sig_pos, double 
     C = cov_prev;
   } else {
     gtsam::Vector s(15);
-    s << np_radians(2), np_radians(2), 1e-3, 1e-3, 1e-3, 0.5, 0.1, 0.1, 0.1, ACCEL_B0, ACCEL_B0, ACCEL_B0, GYRO_B0,
+    s << ROLLPITCH0_SIGMA, ROLLPITCH0_SIGMA, YAW0_SIGMA, 1e-3, 1e-3, 0.5, 0.1, 0.1, 0.1, ACCEL_B0, ACCEL_B0, ACCEL_B0, GYRO_B0,
         GYRO_B0, GYRO_B0;
     C = diag_sq(s);
   }
