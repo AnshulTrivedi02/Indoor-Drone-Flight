@@ -1,0 +1,50 @@
+# watcher_fc.parm -- FC-side parameters for the mocap safety watcher (gaps G5, G6, G11; docs/real_flights_plan.md 7.2)
+# TEMPLATE for the REAL flight controller. NOT used by any SITL flight (do not add it to run_trial.sh/closed_loop_run.sh).
+#
+# Every name below was verified in ~/ardupilot at 7bac20cbcc (2026-10-10). Re-verify on the firmware actually flashed
+# on the board (names moved in 4.7: SYSID_MYGCS -> MAV_GCS_SYSID, ARMING_CHECK -> ARMING_SKIPCHK), and read every value
+# back after loading (the eeprom-persistence gotcha applies to a real FC too). mocap_watch.py reads these back at
+# startup and withholds its confirmation until they match (fc_link.expected_params).
+#
+# The watcher's MAVLink system ID: 211 below. It must be unique on the network: NOT 255 (MAVProxy/pymavlink default),
+# NOT the FC's MAV_SYSID, NOT the companion computer's or the flight script's. Pass the same value to
+# `mocap_watch.py --sysid`.
+
+# --- G5: native GCS failsafe = the FC-side "no watcher heartbeat -> LAND" layer (ArduCopter/events.cpp:127-233) ---
+FS_GCS_ENABLE   5     # 5 = Land (Parameters.cpp:96-101). Armed + landed -> immediate disarm (should_disarm_on_failsafe)
+FS_GCS_TIMEOUT  3     # s, range 2-120, default 5 (Parameters.cpp:831-838); pre-registered 3 s (B2b/B3a pass <= 3.5 s;
+                      # failsafe_gcs_check runs in three_hz_loop, Copter.cpp:187/745)
+FS_OPTIONS      16    # bit 4 (16, the DEFAULT): continue in pilot-controlled modes on GCS failsafe, so the safety
+                      # pilot's ALT_HOLD/STABILIZE wins (B10). Keep any other bits the vehicle needs; bit 4 must stay set.
+
+# --- G11: only the watcher refreshes the GCS-failsafe timer (GCS.cpp:45-59, sysid_is_gcs GCS.cpp:699-705) ---
+MAV_GCS_SYSID     211 # = the watcher's own system ID (default 255). Only HEARTBEAT / RC_CHANNELS_OVERRIDE /
+                      # MANUAL_CONTROL from this ID refresh the timer (GCS_Common.cpp:4345-4351, 4184, 7652-7679).
+MAV_GCS_SYSID_HI  0   # 0 (< MAV_GCS_SYSID) = exactly one GCS ID. A range [MAV_GCS_SYSID, HI] would let other IDs
+                      # refresh the timer and mask a dead watcher.
+MAV_OPTIONS       0   # bit 0 must stay CLEAR: set, the FC would drop all traffic not from the GCS ID, including the
+                      # flight script's (sysid 255) commands (GCS_Common.cpp:7393 accept_packet).
+# Consequence to accept: with MAV_GCS_SYSID 211, RC_CHANNELS_OVERRIDE/MANUAL_CONTROL from MAVProxy (255) are ignored.
+# The safety pilot uses the real transmitter (RC input), not MAVProxy overrides, so nothing is lost.
+
+# --- G6: no arming without the watcher ---
+# Stock ArduCopter refuses to arm only while the GCS failsafe is LATCHED (AP_Arming_Copter.cpp:519-525), i.e. after
+# the watcher was seen and then lost. If the watcher was NEVER started, failsafe_gcs_check returns early
+# (events.cpp:134-136) and the FC arms. Two layers close this:
+#   (i)  procedure + parameters (works on stock firmware): arm ONLY via the flight script, which refuses without a
+#        confirmed watcher heartbeat (fly_trial.py require_watcher_before_arming); stick arming disabled:
+ARMING_RUDDER   0     # 0 = Disabled (AP_Arming.cpp:140-146). Also: no RCx_OPTION 153/154/165 (arm/disarm,
+                      # arm-airmode, arm/emergency-stop switches; RC_Channel.h:320-341) assigned.
+#   (ii) Lua auxiliary arming authorisation (DRAFT, untested): realflight/params/watcher_arming_auth.lua refuses to
+#        arm unless gcs:last_seen() (the watcher) is younger than FS_GCS_TIMEOUT. Needs a board with scripting:
+# SCR_ENABLE    1     # uncomment only when the script is installed in APM/scripts and bench-tested (B1c);
+#                     # then start mocap_watch.py with --lua-auth so it verifies SCR_ENABLE too.
+ARMING_SKIPCHK  0     # skip nothing (AP_Arming.cpp:195-201). In particular bit 17 (AUX_AUTH, AP_Arming.h:45) must be
+                      # clear and the value must not be -1 (skip all non-mandatory checks, which skips aux auth too).
+# Never force-arm (MAV_CMD_COMPONENT_ARM_DISARM param2 2989/21196 skips all pre-arm checks, GCS_Common.cpp:5271).
+
+# --- related, set elsewhere (listed so the bench readback covers them; values as pre-registered in 7.2) ---
+# FS_EKF_ACTION 1     # Land, only in modes that need a position (ekf_check.cpp:190)
+# LOG_DISARMED  1
+# LOG_REPLAY    1
+# DISARM_DELAY  0     # BENCH SESSION ONLY (7.2); restore and read back before any flight
