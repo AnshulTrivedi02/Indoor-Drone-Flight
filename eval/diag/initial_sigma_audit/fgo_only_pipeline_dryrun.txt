@@ -1,10 +1,9 @@
 # BEGIN preflight
-  thesis_ws HEAD df50ad99ee5a6460c78a7d0480781cd77e09ba07 (TRACKED FILES MODIFIED)
-  M eval/diag/initial_sigma_audit/fgo_only_pipeline_dryrun.txt
+  thesis_ws HEAD 5e0eba55726c0ca174c8539fa5da6cf08e732c7a
   md5 483383f0e2646991571f060c092f0c4b  src/estimators/ukf_core.py
   md5 969ab142b35a982e68aaf3e23bcb41ad  src/estimators/measurement_models.py
   md5 a074c7c0409f492ba11153dd1d2c38dd  src/estimators/imu_timing.py
-  md5 fcb8cfc0ae714bb4b2e8f5a8f8588fd3  src/estimators/ukf_replay.py
+  md5 c613dfe9bf9c4ed911fa681bf099a58f  src/estimators/ukf_replay.py
   md5 7f4d0ffb472276ae38004fae3c1408ab  src/estimators/room_ukf_replay.py
   md5 ad59db9fd77bb988cc81992b3d114cea  src/estimators/apin.py
   md5 95a20dafcc768af4d7717e1e637344e9  src/estimators/fgo/fgo_core.py
@@ -28,7 +27,7 @@
   md5 d953ebaa2464b1e57c54755ec62d0c7b  eval/l_score.py
   md5 714338d0dcb18556b91904c08a4a2f74  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_replay
   md5 f642cd3712939d911abd9f480db8d229  /home/makerspace/opt/fgo_cpp/bin/fgo_cpp_node
-  ok   derotation: src/estimators/ukf_replay.py default-path bias subtraction at line(s) [172]
+  ok   derotation: src/estimators/ukf_replay.py default-path bias subtraction at line(s) [174]
   ok   derotation: src/estimators/room_ukf_replay.py default-path bias subtraction at line(s) [154]
   ok   (1) FGO setBiasAccOmegaInit = 0
   ok   (2) FGO yaw cap variance-gated
