@@ -121,8 +121,8 @@ on a real FC too.
 
 | ID | component | status | needed by | evidence | effort (assumption) | depends on |
 |---|---|---|---|---|---|---|
-| G1a | Baseline firmware image for (a): the pinned `7bac20cbcc` (tag `thesis-baseline`) built for the real board, or a stock release; `.apj` and parameter dump archived (plan §9.2 step 1) | not built | a | `~/ardupilot` has SITL builds only. The pinned commit is preferred over a stock release so that `LOG_REPLAY` logs replay in the fork's Replay (same DAL format) [E]. | 0.5 d build and flash, plus 0.5 d rollback rehearsal | U1 |
-| G1b | Thesis firmware (fork `~/ardupilot_ukf`, branch `ukf-jitter-fix`) for the real board: `AP_NavUKF`, `AP_NavFGO`, `AP_AHRS_UKF/FGO`, `thesis_nav_check` | not built | b (and a, only if the UKF shadows onboard) | **BLOCKER: the port is compiled for SITL only.** `AP_NavUKF.h:29` reads `#define AP_NAVUKF_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)`, so every backend, the 52 AHRS switch arms and `thesis_nav_check` drop out of a board build. `~/ardupilot_ukf/build/` contains only `sitl/`. **`real_flights_plan.md:35` says the Pixhawk 6X / CubeOrange firmware "has been built"; Part C §5.5 says no firmware was built, and its flash figures (270–325 kB free) come from published STOCK `.apj` files.** The plan statement is not supported by anything on disk (not edited here). | 2–4 d: guard change, ChibiOS compile fixes, flash-size check (`size_compare_branches.py`), bench boot, and the "backends disabled reproduces EKF3" check (plan §9.2 step 2). The port is assumed to compile for ChibiOS with minor fixes [U]. | U1, U2 |
+| G1a | Baseline firmware image for (a): the pinned `7bac20cbcc` (tag `thesis-baseline`) built for the real board, or a stock release; `.apj` and parameter dump archived (plan §9.2 step 1) | not built | a | `~/ardupilot/build/` contains only `sitl/` (checked). The pinned commit is preferred over a stock release so that `LOG_REPLAY` logs replay in the fork's Replay (same DAL format) [E]. | 0.5 d build and flash, plus 0.5 d rollback rehearsal | U1 |
+| G1b | Thesis firmware (fork `~/ardupilot_ukf`, branch `ukf-jitter-fix`) for the real board: `AP_NavUKF`, `AP_NavFGO`, `AP_AHRS_UKF/FGO`, `thesis_nav_check` | not built | b (and a, only if the UKF shadows onboard) | **BLOCKER: the port is compiled for SITL only.** `AP_NavUKF.h:29` reads `#define AP_NAVUKF_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)`, so every backend, the 52 AHRS switch arms and `thesis_nav_check` drop out of a board build. `~/ardupilot_ukf/build/` contains only `sitl/`. **`real_flights_plan.md:35` says the Pixhawk 6X / CubeOrange firmware "has been built"; Part C §5.5 says no firmware was built, and its flash figures (270–325 kB free) come from published STOCK `.apj` files.** Neither build directory (the fork's, or `~/ardupilot/build/`) has a board build (not edited here). | 2–4 d: guard change, ChibiOS compile fixes, flash-size check (`size_compare_branches.py`), bench boot, and the "backends disabled reproduces EKF3" check (plan §9.2 step 2). The port is assumed to compile for ChibiOS with minor fixes [U]. | U1, U2 |
 | G2 | UKF CPU load on the FC MCU at 80 Hz predict plus updates; loop-time margin | not built | b (onboard UKF) | Estimate only: 5–8% CPU, 0.3–0.4 ms per predict in double on H7 (Part C §5.3). Never measured. | 0.5 d bench (scheduler `PM` / perf logging) | G1b |
 | G3 | UKF port algorithm: shadow and flying, tag ExtNav input, option (i) attitude hold on invalid output, first tag anchor refused once armed, jitter fix | exists and tested in SITL | b | Installed `ukf-jitter-fix` `abb0357d` (METHODOLOGY "UKF jitter correction MERGED"). S2v2 ×3; `cl_ukf_*_v2` PASS; tier B UB1–UB5 PASS; safety (a) v2 ALL PASS; safety (b) v2 S-A2 failed as worded (relay drain; safety unaffected). **The SITL safety (a)/(b) re-run on the corrected builds is still scheduled** (ruling 2026-10-10 item 3; see H1). If the initial-uncertainty audit changes the UKF, it is re-installed and re-gated. | 0 d new code; gates in H1 | audit (ruling 2026-10-10 item 2), H1 |
 | G4 | `thesis_nav_check`: origin-independent "position lost → LAND" for types 12/13 | exists and tested in SITL | b | `ArduCopter/ekf_check.cpp:330-340` in the fork. SITL safety tests (a) PASS for both estimators. **Copter only; a QuadPlane would need its own (U2).** It is compiled out of board builds today (G1b). | in G1b; +1–2 d if QuadPlane | G1b |
@@ -187,25 +187,27 @@ Order (cumulative effort, one person; hardware assembled; [E]):
 | step | items | effort | cumulative |
 |---|---|---|---|
 | 0 | Hardware identities answered (U1–U8); airframe assembled (A1) | 2–4 d | 2–4 d |
-| 1 | Baseline image built and flashed, archived, rollback rehearsed (G1a); stock manual tune, hover learn, notch (A2, C5, C6) | 2–3 d | 4–7 d |
-| 2 | FC↔Pi link and router; IMU stream; Pi time base (B1, A10, B4, B2 bench) | 2 d | 6–9 d |
-| 3 | Rangefinder on the FC and its parameters (A8, C2); range republisher, or dataflash `RFND` for replay (A9) | 1 d | 7–10 d |
-| 4 | Downward camera capture, calibration and flow on the Pi; flow bridge (A3, D1, A4, A5) | 3–4 d (**+3–5 d** if flow needs C++) | 10–14 d |
-| 5 | Flow-validity rule coded and calibrated per its pre-registration (E1) | 1.5 d | 11.5–15.5 d |
-| 6 | Real parameter file with logging (C1, C3, I1) | 1.5 d | 13–17 d |
-| 7 | Mocap client, watcher, heartbeat to the FC with an FC-side LAND layer, bench tests (F1, F2, F3, F4); geofence (H6); RC override (H5) | 5–7 d | 18–24 d |
-| 8 | Extrinsics, time offsets, flow sign (D3, D4, D5); Pi recorder (I2); flight script (H10); mocap alignment (I3, I4) | 4–5 d | 22–29 d |
-| 9 | *(only if P-HOLD)* tag detector, S0 re-validation, ExtNav parameters (A7, D7, C4) | +3–4 d | (25–33 d) |
-| 10 | Stage 0 bench (H4); hand-carried (H7); stage-1 pre-registration (H9); tethered EKF3 hover (H8); then the first (a) flight | 3–4 d | **25–33 d** (28–37 d with P-HOLD) |
+| 1 | Baseline image built and flashed, archived, rollback rehearsed (G1a); stock manual tune, hover learn, notch (A2, C5, C6) | 2.5–3.5 d | 4.5–7.5 d |
+| 2 | FC↔Pi link and router; IMU stream; Pi time base; clock-map bench (B1, A10, B4, B2) | 3 d | 7.5–10.5 d |
+| 3 | Rangefinder on the FC and its parameters (A8, C2); range republisher, or dataflash `RFND` for replay (A9) | 1.5–2 d | 9–12.5 d |
+| 4 | Downward camera capture, calibration and flow on the Pi; flow bridge (A3, D1, A4, A5) | 3–5 d (**+3–5 d** if flow needs C++) | 12–17.5 d |
+| 5 | Flow-validity rule coded and calibrated per its pre-registration (E1) | 1.5 d | 13.5–19 d |
+| 6 | Real parameter file with logging (C1, C3, I1) | 2 d | 15.5–21 d |
+| 7 | Mocap client, watcher, heartbeat to the FC with an FC-side LAND layer, bench tests (F1, F2, F3, F4); geofence (H6); RC override (H5) | 6–8 d | 21.5–29 d |
+| 8 | Extrinsics, time offsets, flow sign (D3, D4, D5); Pi recorder (I2); flight script (H10); mocap alignment (I3, I4) | 5.5–8 d | 27–37 d |
+| 9 | *(only if P-HOLD)* tag detector, S0 re-validation, ExtNav parameters (A7, D7, C4) | +2.5–3.5 d | (29.5–40.5 d) |
+| 10 | Stage 0 bench (H4); hand-carried (H7); stage-1 pre-registration (H9); tethered EKF3 hover (H8); then the first (a) flight | 3–6 d | **30–43 d** (32.5–46.5 d with P-HOLD) |
 | after | Offline replay adapted to real logs, with the lever-arm parametrisation and its equivalence re-runs (C7, G11). Needed to score, not to fly. | 3–5 d | — |
 
-**Total to the first (a) flight: about 25–33 working days** (5–7 weeks for one person). Add 3–5 d if flow needs C++,
-3–4 d for P-HOLD, and the procurement time for any missing hardware.
+Each step figure is the sum of its rows' own estimates; no overlap inside a step is assumed.
+
+**Total to the first (a) flight: about 30–43 working days** (6–9 weeks for one person). Add 3–5 d if flow needs C++,
+2.5–3.5 d for P-HOLD, and the procurement time for any missing hardware.
 
 **Critical path:** hardware identities → link and IMU stream (B1, A10) → camera and flow on the Pi (A3, A4) → flow-validity
 rule (E1) → mocap client → watcher → FC heartbeat layer (F1, F2, F3, F4) → stage-0 bench → hand-carried → tethered hover.
-The watcher chain (F1–F4, 5–7 d) and the camera/flow chain (A3/A4/E1, 4–6 d) can run in parallel with two people,
-which shortens the path to about 18–24 d.
+The watcher chain (step 7, 6–8 d) and the camera/flow chain (steps 4–5, 4.5–6.5 d) can run in parallel with two
+people, which shortens the path to about 24–35 d.
 
 ## 4. Then to (b): additional items
 
@@ -259,6 +261,8 @@ which shortens the path to about 18–24 d.
   `~/ardupilot_ukf` (read only).
 - **Discrepancy recorded, not corrected:** `docs/real_flights_plan.md:35` ("the Pixhawk 6X and CubeOrange firmware for
   this tree has been built") against Part C §5.5 ("no firmware was built") and `~/ardupilot_ukf/build/` (SITL only).
-  That file is being edited by another agent, so the correction is left to the user.
+  That file is being edited by another agent, so the correction is left to the user. What was checked: the fork's
+  `build/` and `~/ardupilot/build/` (both contain only `sitl/`), and the compile guard at `AP_NavUKF.h:29`. A board
+  build elsewhere on another machine cannot be ruled out from here; the guard keeps the port out of it in any case.
 - E1 and F4 are deliberately left at "not built": their content is being pre-registered elsewhere. This checklist only
   tracks them.
