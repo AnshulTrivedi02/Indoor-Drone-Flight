@@ -3,7 +3,7 @@
  "status": "EXAMPLE ONLY. The rung-1 values are fixed in the R10 pre-registration, before any flight; this file only shows the schema real_score.py reads.",
  "window": {
   "rule": "airborne",
-  "ground_ref_s": 3.0,
+  "ground_percentile": 5.0,
   "airborne_height_m": 0.30,
   "hold_s": 1.0,
   "start_after_takeoff_s": 25.0,
@@ -14,7 +14,9 @@
   "primary": "evo_ape_a_se3",
   "t_max_diff_s": 0.05,
   "drift_init_segment_s": 10.0,
-  "max_gap_s": 0.5
+  "drift_min_extent_m": 1.0,
+  "max_gap_s": 0.5,
+  "max_mocap_interp_gap_s": 0.05
  },
  "estimator_records": {
   "EKF3": "XKF1 (core 0) from the Replay output log",

@@ -4,6 +4,45 @@
 Stored trial data only read: one packed bag (`cl_ukf_a_tex_half`) was decompressed to the scratchpad, the GT pose and
 `/imu/time_ref` were extracted, and the copy was deleted.
 Branch: `worktree-agent-a1325f77ec99bdd6a` (based on `fwd-camera` 3a2c3a8). Not merged.
+A check (`find ~/thesis_data/trials -newermt '2026-10-10 12:00'`) found that no file in the stored trial data was
+modified.
+
+## STATUS AFTER THE USER'S TRIAGE (2026-10-10): R7 and R8 ON HOLD, R9 continued
+
+R7 and R8 are **ON HOLD** until the supervisor confirms the hardware and a mocap booking. Both are committed in their
+current state (`b13c494` R8, `d60b77b` R7). No further work was done on them after the triage.
+
+**What exists:** everything described in the R8 and R7 sections below, tested as described there.
+
+**What is left before either is used on real data.** These are review findings, NOT fixed because of the hold.
+
+- **R8, blocks R13:** `mocap_align.main()` calls `default_windows(fc)` unconditionally.
+  - That function takes the first `ArmState == 1` event. A disarmed hand-carry log (R13) has none, so the call raises
+    `IndexError` even when `--early/--late/--init-seg` are given.
+  - The default early window `(arm, arm + 25 s)` also starts AFTER the pre-arm sync wiggle (plan §3.2 step 1).
+  - The late window is anchored on the last rangefinder reading above 0.5 m.
+  - **Fix:** compute defaults only for the missing arguments. Make the early window run from log start (or first
+    motion) to arm + N, and the late window from landing − N to log end. With no ARM record, stop with a clear request
+    for explicit windows.
+  - **Test:** a synthetic log with wiggles before arming and after disarming, and one with no ARM record.
+- **R8:** the 25 Hz `IMU` fallback fails with the new fine-fit settings (see below). Remove it, or give it its own
+  settings and re-validate.
+- **R8:** absolute accuracy on real data is unmeasured. Measure it on the R13 log.
+- **R7, blocks real use:** the recorder drops every frame with `frame_no <= last` as a duplicate.
+  - A forwarder or Motive restart resets the frame counter, so the rest of the flight would be silently discarded.
+  - **Fix:** treat a large backward jump (or N consecutive rejections) as a restart. Log an event, reset that body's
+    state, and keep writing.
+  - `export.py` must then refuse a log with a restart or clock faults unless a segment is named, because sorting by
+    `t_mocap` would interleave the segments.
+  - Add a test.
+- **R7:** write the system-specific forwarder (NatNet / Vicon / VRPN → MCP1) once the system is known. Unify
+  `realflight/mocap/source.py` with the watcher's `mocap.py`.
+
+**R9 after the triage:**
+- The end-to-end SITL test now aligns ground truth to the FC clock with the EXISTING tool,
+  `input_timing.clock_offset`, not R8 (script `eval/results/r1_scorer/e2e_cl_ukf_clockmap.py`).
+- Three review fixes were made, with synthetic tests in `eval/real_score_test.py` (3 tests, pass). See "R9 updates"
+  below.
 
 ## R8: `eval/mocap_align.py` on the 400 Hz RISI records
 
@@ -91,6 +130,49 @@ The prereg names the primary metric.
 | UKF (XUKF) | 0.983 | 0.983 | 8.69 | 10.0 |
 
 These are SITL plumbing numbers, NOT results: a straight half-speed corridor flight with the UKF flying.
+(Re-run with the updated scorer: `eval/results/r1_scorer/cl_ukf_a_tex_half_r8align_gt_as_mocap.json`; unchanged.)
+
+### R9 updates after the triage (three review fixes, then re-tests)
+
+**1. Mocap dropouts.**
+- The in-house metrics (`ate_4dof`, `drift_start_aligned`) interpolate mocap only where the two bracketing samples
+  are at most `max_mocap_interp_gap_s` apart (default 0.05 s). Other estimator samples are dropped from these metrics
+  and counted (`n_dropped_mocap_gap`).
+- evo is still given the full cropped estimate (it associates by nearest stamp within `t_max_diff`), so it stays
+  identical to `three_way_eval`.
+
+**2. Ground level for the airborne rule.**
+- It is now the 5th percentile of mocap z over the WHOLE record. It was the median of the first 3 s, which a record
+  starting with the vehicle held up for the sync wiggle would have broken.
+- The prereg key changed from `ground_ref_s` to `ground_percentile`.
+
+**3. Drift-segment guard.**
+- `drift_start_aligned` is refused when its initial segment moves less than `drift_min_extent_m` (default 1.0 m)
+  horizontally, because the yaw fit is undefined in a hover.
+- The segment's extent is reported. **R10 must place the initial segment on horizontal motion.** The example's
+  take-off + 25 s window start falls on the rectangle only if the hover ends by then.
+
+**Re-tests:**
+
+- **Synthetic** (`eval/real_score_test.py`, 3 tests, pass):
+  - the window ignores a held start (ground 0.000 m, not 1.0 m);
+  - a 1.5 s mocap gap across a rectangle corner drops 70–80 samples, with ATE < 10 µm. Without the mask the max error
+    exceeds 0.1 m;
+  - 1 cm/s drift is recovered within 0.15 m;
+  - a hover initial segment is refused.
+- **Regression `dsn_tex_r1`:** UKF 3.983563, FGO 4.067897, still identical to `three_way_eval`.
+- **End-to-end `cl_ukf_a_tex_half` with the `input_timing.clock_offset` alignment** (TimeUS − sim: −6.0 ms early,
+  −50.75 ms late, −275 ppm; the late window was moved to TimeUS > 170 s because this flight is 236 s long):
+
+| est | evo -a SE3 (m) | 4-DoF (m) | drift final (m) | drift % of path |
+|---|---|---|---|---|
+| FGO | 0.682 | 0.682 | 5.94 | 6.9 |
+| EKF3 (XKF1) | 0.893 | 0.893 | 8.61 | 10.0 |
+| UKF (XUKO) | 0.984 | 0.984 | 8.69 | 10.0 |
+| UKF (XUKF) | 0.984 | 0.984 | 8.69 | 10.0 |
+
+  - This is within 1 mm of the R8-aligned run.
+  - The two clock maps differ by ~15 ms late (the 10 Hz SIM-based fit is coarser), which does not move these metrics.
 
 ## R7: `realflight/mocap/` (the recorder)
 
@@ -148,7 +230,9 @@ packet and interface. When both branches are merged, keep one module and import 
    - the window parameters (the example uses +25 s / −5 s and 0.30 m);
    - the primary metric: `evo_ape_a_se3` (the sim's standing rule) or `ate_4dof` (the plan text says "evo -a (4-DoF)").
      The two are nearly equal on SITL, but a short real flight may differ;
-   - the UKF record, `XUKO` or `XUKF`. The example uses `XUKO`, the like-for-like counterpart of `XKF1`.
+   - the UKF record, `XUKO` or `XUKF`. The example uses `XUKO`, the like-for-like counterpart of `XKF1`;
+   - the drift metric's initial segment, which must lie on horizontal motion (`drift_min_extent_m`), and
+     `max_mocap_interp_gap_s` for the real mocap rate.
 2. **RISI DADT is 3.0 ms in SITL against 2.5 ms frames.** Check `DADT` against the `RFRH` spacing on the first real
    log, as the converter spec already asks (R1).
 3. **Absolute sync accuracy on real data is not yet measured.** It is synthetic plus SITL only (≤ 0.7 ms synthetic,

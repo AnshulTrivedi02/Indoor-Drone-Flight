@@ -13,20 +13,26 @@ Inputs (TUM: t x y z qx qy qz qw; all on the FC clock; z UP, gravity-aligned; an
   --prereg  the pre-registration JSON (window rule, metric settings). Its sha256 goes into the output.
 
 WINDOW (computed from mocap ONLY, applied identically to every estimator):
-  rule "airborne" (rung-1 default): height h = z - ground level (median z over the first `ground_ref_s` seconds of
-      mocap); airborne = h > `airborne_height_m`; the LONGEST airborne run of at least `hold_s` is the flight;
+  rule "airborne" (rung-1 default): height h = z - ground level (the `ground_percentile` percentile of mocap z over
+      the WHOLE record: the vehicle rests at both ends, while the record may START with it held up for the sync
+      wiggle); airborne = h > `airborne_height_m`; the LONGEST airborne run of at least `hold_s` is the flight;
       window = [take-off + `start_after_takeoff_s`, landing - `end_before_landing_s`]; refused if shorter than
       `min_duration_s`.
   rule "speed": three_way_eval's pinned cruise rule (largest run of smoothed horizontal speed > `speed_mps`).
   rule "fixed": `t0_s`, `t1_s` given (regression tests only; never for results).
 
-METRICS per estimator, on the window (estimator samples inside it; mocap interpolated at their stamps):
+METRICS per estimator, on the window (estimator samples inside it; mocap interpolated at their stamps, but ONLY where
+the two bracketing mocap samples are <= `max_mocap_interp_gap_s` apart: across a mocap dropout the truth would be
+invented, so those estimator samples are dropped from the in-house metrics and counted; evo is given the full set):
   evo_ape_a_se3        evo_ape -a (Umeyama SE(3), no scale), RMSE, t_max_diff from the prereg; the SAME call as
                        three_way_eval (the simulation's STANDING metric, "evo -a (cruise)").
   ate_4dof             yaw + translation fit over the window (both frames gravity-aligned), RMSE 3-D / horizontal /
                        vertical. The plan's "evo -a (4-DoF)": evo has no yaw-only alignment, so it is computed here.
   drift_start_aligned  4-DoF fit on the first `drift_init_segment_s` of the window ONLY, then the error over the whole
                        window: RMSE, max, final, and final horizontal error / mocap path length (% of distance).
+                       The yaw of that fit is only defined if the segment MOVES horizontally: the metric is refused
+                       when the segment's horizontal extent (largest distance from its first point) is below
+                       `drift_min_extent_m`. The pre-registration must put that segment on horizontal motion.
   coverage             samples, longest gap, fraction of the window within `max_gap_s` of a sample.
   The pre-registration names the PRIMARY metric; all are reported and labelled.
 
@@ -42,9 +48,10 @@ from cruise_window import cruise_bounds
 from three_way_eval import evo_ape_a, crop, write_tum      # identical evo call and TUM format to the simulation metric
 
 DEFAULT_PREREG = {
-    "window": {"rule": "airborne", "ground_ref_s": 3.0, "airborne_height_m": 0.30, "hold_s": 1.0,
+    "window": {"rule": "airborne", "ground_percentile": 5.0, "airborne_height_m": 0.30, "hold_s": 1.0,
                "start_after_takeoff_s": 25.0, "end_before_landing_s": 5.0, "min_duration_s": 20.0},
-    "metrics": {"primary": "evo_ape_a_se3", "t_max_diff_s": 0.05, "drift_init_segment_s": 10.0, "max_gap_s": 0.5},
+    "metrics": {"primary": "evo_ape_a_se3", "t_max_diff_s": 0.05, "drift_init_segment_s": 10.0,
+                "drift_min_extent_m": 1.0, "max_gap_s": 0.5, "max_mocap_interp_gap_s": 0.05},
 }
 
 
@@ -108,7 +115,7 @@ def window_from_rule(mo, w):
         return t0, t1, {"rule": "speed", "speed_mps": w.get("speed_mps")}
     if w["rule"] != "airborne":
         raise SystemExit(f"unknown window rule {w['rule']}")
-    g = float(np.median(z[t <= t[0] + w["ground_ref_s"]]))
+    g = float(np.percentile(z, w["ground_percentile"]))
     i, j = longest_run(z - g > w["airborne_height_m"])
     if j == i or t[j - 1] - t[i] < w["hold_s"]:
         raise SystemExit("no airborne segment in the mocap record")
@@ -140,25 +147,41 @@ def score_one(mo, est, t0, t1, m, tmp, label):
     e = e[(e[:, 0] >= mo[0, 0]) & (e[:, 0] <= mo[-1, 0])]
     if len(e) < 10:
         return {"error": f"only {len(e)} estimator samples inside the window"}
-    gt = np.c_[[np.interp(e[:, 0], mo[:, 0], mo[:, k]) for k in (1, 2, 3)]].T
-    pe = e[:, 1:4]
-    # evo -a (SE(3)), the standing simulation metric: reference = mocap cropped to the same window
+    # evo -a (SE(3)), the standing simulation metric: reference = mocap cropped to the same window. evo associates by
+    # nearest stamp within t_max_diff (no interpolation), so it is given the full cropped estimate, as three_way_eval.
     rc, ec = f"{tmp}/{label}_ref.tum", f"{tmp}/{label}_est.tum"
     write_tum(rc, crop(mo, t0, t1)); write_tum(ec, e)
     out = {"n": int(len(e)), "evo_ape_a_se3": {"rmse_m": evo_ape_a(rc, ec), "t_max_diff_s": m["t_max_diff_s"]}}
+    # in-house metrics: interpolate mocap only where it is bracketed closely (no truth invented across a dropout)
+    j = np.searchsorted(mo[:, 0], e[:, 0]).clip(1, len(mo) - 1)
+    ok = (mo[j, 0] - mo[j - 1, 0]) <= m["max_mocap_interp_gap_s"]
+    ok |= np.isin(e[:, 0], mo[:, 0])                                   # exact stamp matches are always fine
+    out["n_in_house"] = int(ok.sum()); out["n_dropped_mocap_gap"] = int((~ok).sum())
+    e = e[ok]
+    if len(e) < 10:
+        out["error"] = f"only {len(e)} estimator samples with bracketing mocap"
+        return out
+    gt = np.c_[[np.interp(e[:, 0], mo[:, 0], mo[:, k]) for k in (1, 2, 3)]].T
+    pe = e[:, 1:4]
     # 4-DoF over the window (mocap -> estimator frame)
     yaw, Rz, tr = fit_4dof(gt, pe); res = pe - ((Rz @ gt.T).T + tr)
     out["ate_4dof"] = {**err_stats(res), "yaw_deg": math.degrees(yaw)}
     # start-aligned drift
     s = e[:, 0] <= t0 + m["drift_init_segment_s"]
-    if s.sum() >= 5:
+    ext = float(np.max(np.linalg.norm(gt[s, :2] - gt[s][0, :2], axis=1))) if s.sum() else 0.0
+    if s.sum() >= 5 and ext < m["drift_min_extent_m"]:
+        out["drift_start_aligned"] = {"error": f"initial segment moves only {ext:.3f} m horizontally "
+                                               f"(< drift_min_extent_m = {m['drift_min_extent_m']}): yaw undefined",
+                                      "init_segment_extent_h_m": ext}
+    elif s.sum() >= 5:
         yaw0, R0, tr0 = fit_4dof(gt[s], pe[s]); r0 = pe - ((R0 @ gt.T).T + tr0)
         path = float(np.sum(np.linalg.norm(np.diff(gt[:, :2], axis=0), axis=1)))
         fh = float(np.linalg.norm(r0[-1, :2]))
         out["drift_start_aligned"] = {**err_stats(r0), "final_m": float(np.linalg.norm(r0[-1])), "final_h_m": fh,
                                       "mocap_path_length_h_m": path,
                                       "final_h_pct_of_path": 100.0 * fh / path if path > 0 else None,
-                                      "init_segment_s": m["drift_init_segment_s"], "yaw_deg": math.degrees(yaw0)}
+                                      "init_segment_s": m["drift_init_segment_s"], "init_segment_extent_h_m": ext,
+                                      "yaw_deg": math.degrees(yaw0)}
     else:
         out["drift_start_aligned"] = {"error": "fewer than 5 samples in the initial segment"}
     # coverage

@@ -5,7 +5,7 @@
   "resolved": {
    "window": {
     "rule": "fixed",
-    "ground_ref_s": 3.0,
+    "ground_percentile": 5.0,
     "airborne_height_m": 0.3,
     "hold_s": 1.0,
     "start_after_takeoff_s": 25.0,
@@ -18,7 +18,9 @@
     "primary": "evo_ape_a_se3",
     "t_max_diff_s": 0.05,
     "drift_init_segment_s": 10.0,
-    "max_gap_s": 0.5
+    "drift_min_extent_m": 1.0,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
    },
    "name": "regression_fixed_window_dsn_tex_r1"
   }
@@ -45,6 +47,8 @@
     "rmse_m": 4.067897,
     "t_max_diff_s": 0.05
    },
+   "n_in_house": 9081,
+   "n_dropped_mocap_gap": 0,
    "ate_4dof": {
     "rmse_m": 4.068584825376736,
     "rmse_h_m": 4.068533448793786,
@@ -62,6 +66,7 @@
     "mocap_path_length_h_m": 151.2512592315809,
     "final_h_pct_of_path": 23.98078388683072,
     "init_segment_s": 10.0,
+    "init_segment_extent_h_m": 4.947736703496628,
     "yaw_deg": -90.03858875131885
    },
    "coverage": {
