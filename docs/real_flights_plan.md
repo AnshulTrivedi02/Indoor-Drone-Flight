@@ -233,6 +233,76 @@ camera flown only once verified.
     and the FGO (one flag, one source).
   - **Threshold calibration:** on the simulation calibration flights only (`p1c_*`; never the datasets), recorded
     and pre-registered.
+
+  **7.1 Flow-validity rule: PRE-REGISTERED (pending user confirmation), 2026-10-10.**
+  Details: `docs/handovers/2026-10-10_flow_rule_watcher_bench.md`. The calibration criterion was written down and
+  committed (`b9706ce`) before any p1c number was read.
+  - **Rule:** `valid = (feature_count >= N_min) AND (inlier_ratio >= r_min)`, with **N_min = 20** (today's value,
+    unchanged) and **r_min = 0.85**.
+    - `feature_count` is the post-RANSAC inlier count, because `tracked_count` is overwritten by the RANSAC
+      survivors. `inlier_ratio` = survivors / tracked before RANSAC.
+    - Today the rule is `valid = feature_count >= 20` alone (`flow_tracker.py:313`). In all six p1c bags the
+      published flag equals that rule exactly (0 mismatches).
+  - **Calibration data:** `p1c_fwdc_{tex,trans,blank}` and `p1c_fwdplainc_{tex,trans,blank}` only
+    (`p1c_fwdplainc_blank_ABORTED` excluded; no dataset bag used). Each bag was decompressed to a scratch copy, which
+    was deleted afterwards. Only `/optical_flow/measurement`, `/ground_truth/pose` and `/imu/data_raw` were read.
+  - **Population:** frames valid under today's rule, airborne (GT z ≥ 0.30 m), over a textured floor. That means the
+    whole flight on the `_tex` worlds, and GT y < 78 m on the `_trans` worlds. GT is interpolated to each flow stamp.
+  - **Criterion (fixed before the data):** r_min is the LARGEST value on a 0.05 grid that keeps ≥ 99% of the pooled
+    textured-floor frames valid (`inlier_ratio >= r_min`).
+  - **Result:** 28,347 pooled textured-floor frames.
+
+    | r_min | 0.80 | **0.85** | 0.90 | 0.95 | 1.00 |
+    |---|---|---|---|---|---|
+    | textured frames kept | 99.89% | **99.11%** | 94.57% | 83.29% | 78.14% |
+
+    - The 1st percentile of the textured inlier ratio is 0.855, and the median is 1.00.
+    - Per flight, the textured frames kept at 0.85 are:
+
+      | flight | kept | rejected / frames |
+      |---|---|---|
+      | `fwdc_tex` | 99.05% | 90 / 9,464 |
+      | `fwdc_trans` (textured half) | 98.94% | 50 / 4,731 |
+      | `fwdplainc_tex` | 99.26% | 70 / 9,443 |
+      | `fwdplainc_trans` (textured half) | 99.13% | 41 / 4,709 |
+  - **Effect on the blank floor (reported, not used for the choice):** today's count rule already invalidates almost
+    every blank-floor frame. Only 16 of about 28,400 airborne blank-floor frames are valid today, pooled over the two
+    `_blank` flights and the y > 82 m part of the two `_trans` flights. The new rule rejects all 16 (inlier ratio
+    0.21–0.33). **In these simulated worlds the new rule changes almost nothing on the blank floor.** It acts on
+    the textured floor and in the climb.
+  - **Climb (z 0.3 m up to the first z > 1.9 m), where both D22 episodes happened:**
+    - 177 frames are valid today across the six flights, and the new rule rejects 39 of them;
+    - the lowest inlier ratio among the climb frames valid today is 0.45, with feature counts ≥ 21.
+  - **Truth-residual diagnostic (reported, not used for the choice):**
+    - A per-axis linear truth model was fitted on the textured frames: flow ≈ GT body velocity / camera height, plus
+      gyro terms. Residual RMS is 0.027 rad/s (x) and 0.025 rad/s (y).
+    - All six flights have 23 currently valid airborne frames with a gross error (|residual| > 0.5 rad/s). The rule
+      removes 19 of them, at a cost of about 0.9% of the good textured frames.
+    - The rejected frames that are not gross errors have the same median residual as the accepted ones
+      (≈ 0.002–0.004 rad/s). The rule therefore removes some good frames along with most of the gross ones.
+  - **Check on the D22 frames (looked at only AFTER r_min was fixed and committed):** see 7.1a below.
+  - **Implementation (specified here, NOT implemented; real-flight pipeline only):**
+    - **`flow_tracker.py`:**
+      - add a parameter `min_inlier_ratio` (default 0.85) next to `min_valid_features` (20);
+      - set `out.valid = tracked_count >= min_valid and inlier_ratio >= min_inlier`.
+      - **Edge case:** if `estimateAffinePartial2D` returns no mask with ≥ 4 points, the ratio currently reads 1.0
+        (no RANSAC applied). That frame is to be published INVALID, with `inlier_ratio = 0`.
+      - `run_trial.sh` / the real-flight recorder writes both thresholds into `metadata.yaml`, as it does
+        `flow_ransac_seed`.
+    - **`flow_bridge.py`: no change in logic.** It already drops every `valid == False` message (`flow_bridge.py:123`)
+      and sends `quality = round(inlier_ratio·255)`, so every sent message has quality ≥ 217.
+      - EKF3 only checks `quality > 0` (`AP_NavEKF3_Measurements.cpp:203`).
+      - The onboard UKF port does the same (`~/ardupilot_ukf` `AP_NavUKF.cpp:589`).
+      - No second threshold is added anywhere: the one flag computed in the tracker is the only source.
+    - **UKF / FGO on the Pi: no change.** They consume `msg.valid` and require `inlier_ratio > 0`
+      (`ukf_core.py:291`, `fgo_cpp/src/replay_common.cpp:250`, `fgo_cpp_node.cpp:96`).
+    - **Simulation pipeline unchanged before the freeze** (ruling 2026-10-09). Every thesis dataset stays under the
+      count-only rule.
+  - **Real-camera check (stage 0, before stage 1):**
+    - On the hand-carried mocap runs over the flight floor, report the fraction of frames valid under the count rule
+      that have `inlier_ratio >= 0.85`.
+    - If it is < 99%, STOP and report: the real camera's inlier statistics differ from the simulation's, and the
+      threshold is not silently re-tuned. Any change is a new ruling.
 - **FGO initial yaw σ (ruling 2026-10-10):** every SITL FGO flight so far (S3, the half-speed `_v3` corridor set, the
   FGO safety tests) flew the C++ node with an initial yaw σ of 1e-3 rad. **Before any real FGO flight:** the corrected
   node (initial yaw σ 1°, the same as the UKF) must pass its C++ equivalence checks and the SITL safety tests (a)/(b).
