@@ -13286,3 +13286,21 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Thesis wording under the ruling** (corrections applied jointly; no per-fix attribution except where traced
   directly): these partial numbers are reported AS PARTIAL. Whether the O batch statement may cite them is a USER
   decision (it changes the ruled wording).
+
+### RULING (user, 2026-10-10): O attribution stated as a PARTIAL ATTRIBUTION FINDING (revises the joint-only wording for O)
+- **The finding, with its scope.** On all three O flights:
+  - ~93% of the FGO batch's indoor change (0.33 → 0.59 m) comes from the NOISE fix;
+  - ~7% from the YAW CAP;
+  - plus a small +0.03 m interaction;
+  - the yaw cap IMPROVES O's live track by 0.22–0.30 m.
+- **Reported alongside the directly traced plain-wall case** (100% noise fix; the gate 0%).
+- **The earlier "FGO batch ~2× better than RTS-UKF" result was largely an ARTEFACT of the mis-specified FGO noise
+  model.** It stays withdrawn.
+- **The 2.5 m `dsn_tex_r2` mismatch is stated as caused by the UKF jitter fix** (by elimination).
+- **NOT answered by the partial study** (listed in the thesis):
+  - the `dsn_tex_r6` flip;
+  - the main corridor (dsn r1–r3) changes;
+  - the textured-wall UKF heading gain;
+  - the textured-wall FGO baseline.
+- **Outside these items,** the corrections were applied jointly and are not attributed.
+- **The attribution code is NOT merged before tonight's re-run.**
