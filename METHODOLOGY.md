@@ -13304,3 +13304,31 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - the textured-wall FGO baseline.
 - **Outside these items,** the corrections were applied jointly and are not attributed.
 - **The attribution code is NOT merged before tonight's re-run.**
+
+### Initial-uncertainty audit RESULT and the FGO-only re-run LAUNCHED (2026-10-10 13:02; handover `docs/handovers/2026-10-10_initial_sigma_audit.md`)
+- **Audit** (UKF offline = port; FGO Python = C++; EKF3 `CovarianceInit` for reference):
+  - **yaw:** UKF 1°, FGO 1e-3 rad, EKF3 0.1 rad. GENUINE (ruled); FIXED, the FGO is now 1°.
+  - **roll/pitch:** UKF 5°, FGO 2°, EKF3 5.73°. GENUINE; FIXED, the FGO is now 5°. This was applied under ruling
+    item 2 ("genuine mismatches fixed in the same change"). The code had a fixed 2°, not the measured levelling scatter
+    FGO_DESIGN §8 planned. Effect on the C1 bag: the metrics are unchanged to printed precision, positions within
+    2.7 mm.
+  - **x, y:** UKF 31.6 mm, FGO 1 mm. JUSTIFIED gauge: absolute room fixes enter only after `reanchor()` resets x, y and
+    yaw in both estimators.
+  - **biases:** UKF delta form, FGO rate form, the same 2.5 °/s and 0.2 m/s². Equivalent units.
+  - **z, velocity, cross-covariances:** match.
+  - **The UKF is UNCHANGED:** off-by-default knobs only, and its default path is byte-identical.
+- **Changed:**
+  - fgo_core (Python; C++ source committed but NOT built or verified: post-freeze);
+  - `lc_fgo_replay`: the V-L start takes its yaw σ from `cov_prev`, so L changes;
+  - `final_rerun_checks.py` check (5) plus a UKF gate.
+- **Verification:**
+  - C1: with the yaw fix alone, the output is byte-identical to the trace's F_YAW0 = 1° demonstration (0.150 m, yaw max
+    5.03°, 747/6333 headings fused);
+  - all five corrections checks pass.
+- **FLOWN FGO results and the installed `~/opt/fgo_cpp` binary still carry the OLD priors** (1e-3 rad yaw, 2°
+  roll/pitch).
+- **LAUNCHED:** the FGO-only pipeline pass at `4fb721f` (13:02), with `FINAL_FGO_ONLY=1 FINAL_SENS_YAW0=1
+  FINAL_D27I3=1 FINAL_CL_PRED=1`.
+  - New state `final_rerun2`, snapshot `results_pre_final2`, archive `pre_final2_trials` (331 dirs).
+  - The EKF3 AND UKF unchanged gates are hard.
+  - Estimated ~8.5–8.8 h.
