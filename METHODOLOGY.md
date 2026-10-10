@@ -13198,3 +13198,21 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     state is committed as DRAFT/ON HOLD.
 - **Communication:** remaining decisions are batched into ONE DAILY SUMMARY, unless something blocks, affects safety,
   or changes a thesis claim.
+
+### Rung-1 software: the parameter template and flight cards DONE; the port geometry and pre-registration ON HOLD (handover `docs/handovers/2026-10-10_r1_port_params_cards.md`)
+- **Parameter template** (`realflight/params/rung1_template.parm`, plus nomag/compass variants for the supervisor):
+  - all 66 names were verified at `7bac20cbcc`;
+  - `check_parm.py` refuses `AHRS_EKF_TYPE 10`, `SIM_*`, a non-zero `ARMING_SKIPCHK` and unknown names (self-test:
+    `consolidated_rerun.parm` is refused);
+  - 27 `TODO_SUPERVISOR` placeholders remain;
+  - the fence is ALTITUDE-ONLY: circle and polygon fences need a position the vehicle won't have without GPS.
+- **Stale parameter names in our docs** (not edited; in the daily summary):
+  - `ARMING_CHECK` is `ARMING_SKIPCHK` at this commit;
+  - `RNGFND1_GNDCLEAR` is `RNGFND1_GNDCLR`.
+  - They appear in CLAUDE.md and `docs/minimal_real_flight_plan.md`.
+- **Flight cards** (`docs/rung1_flight_cards.md`): every sortie is classed verification or result. Verification
+  sorties are short, with a justification, and never scored.
+- **ON HOLD:**
+  - **UKF-port geometry** (`~/ardupilot_ukf` branch `rung1-geometry` `c25fa8980d`): UNCOMPILED. It is to be verified
+    byte-identical on SITL logs and with `UKF_Equiv` once a build is allowed.
+  - **The pre-registration draft:** two known defects are listed at its top.
