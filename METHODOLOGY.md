@@ -12935,3 +12935,18 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - there is no height limit;
   - the watcher needs its own MAVLink system ID (MAVProxy and pymavlink default to 255 and would mask its loss).
 - **Also corrected:** `real_flights_plan.md` §1 item 3 (board firmware NOT built).
+
+### RULINGS (user, 2026-10-10): flow rule and watcher work belong to the CAMERA-FLOW path; the MINIMAL logging flight
+- **Scope:** the full camera-flow path will not fit before the 23 Oct freeze (date as stated by the user). The minimal
+  logging flight uses the vehicle's OWN flow sensor.
+1. **The flow-validity rule** (inlier ratio ≥ 0.85, features ≥ 20, stage-0 real-camera check) is CONFIRMED as
+   pre-registered for the camera-flow path. It is NOT needed for the minimal logging flight.
+2. **B0–B10 and gaps G1–G11** are CONFIRMED in the readiness checklist, and DEPRIORITISED.
+   - For the minimal flight nothing of ours steers. Safety is ArduPilot's geofence plus a safety pilot, with mocap
+     monitored by a person.
+3. **The D22 climb plateau:** a bounded 2 h diagnostic (images and fitted scale around the plateau), REPORT ONLY. It
+   confirms the mechanism for the thesis's explanation of D22 and the r3 near-miss.
+   - No change to the simulation pipeline.
+   - (b) a fitted-scale check and (c) a climb/descent-rate check are recorded as FUTURE WORK for the camera-flow path.
+   - The correction to the earlier mean-flow values is recorded above, in the entry "Flow-validity rule and watcher
+     bench tests".

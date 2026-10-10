@@ -237,7 +237,7 @@ camera flown only once verified.
   - **Threshold calibration:** on the simulation calibration flights only (`p1c_*`; never the datasets), recorded
     and pre-registered.
 
-  **7.1 Flow-validity rule: PRE-REGISTERED (pending user confirmation), 2026-10-10.**
+  **7.1 Flow-validity rule: PRE-REGISTERED (confirmed by the user 2026-10-10, for the camera-flow path), 2026-10-10.**
   Details: `docs/handovers/2026-10-10_flow_rule_watcher_bench.md`. The calibration criterion was written down and
   committed (`b9706ce`) before any p1c number was read.
   - **Rule:** `valid = (feature_count >= N_min) AND (inlier_ratio >= r_min)`, with **N_min = 20** (today's value,
@@ -383,7 +383,7 @@ camera flown only once verified.
   4. Shadow flights.
   5. Only then any route-1 flight.
 
-### 7.2 Mocap watcher bench tests: PRE-REGISTERED (pending user confirmation), 2026-10-10
+### 7.2 Mocap watcher bench tests: PRE-REGISTERED (confirmed by the user 2026-10-10, for the camera-flow path), 2026-10-10
 
 **Purpose:** prove on the real system, with the props off, that every path of the fail-closed rule (§7) acts. These
 tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10), and in full after
