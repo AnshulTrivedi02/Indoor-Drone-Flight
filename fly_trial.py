@@ -699,6 +699,8 @@ def hprofile(master, path: str, alt_m: float, world: str) -> None:
       {"type": "idle", "s": T}                    send NO setpoint for T sim seconds: the FC holds its own GUIDED target,
                                                   which follows an estimator reset (in-flight-anchor check; an absolute
                                                   setpoint from here would not follow a frame change)
+      {"type": "alt", "to": H, "speed": v}       ramp the altitude setpoint to H m at v m/s (+ vertical velocity feed-forward),
+                                                  horizontal target and yaw held (p1c_img climb cycles, ruling 2026-10-10)
       {"type": "wait_fix", "near": [N, E], "tol": m, "timeout": s}
           closed loop only: wait (holding position commands off) until LOCAL_POSITION_NED is within tol of `near`
           for 2 s, i.e. EKF3's ExtNav reset has put the estimate in the tag frame. Fails the trial on timeout.
@@ -711,10 +713,12 @@ def hprofile(master, path: str, alt_m: float, world: str) -> None:
     cur = [msg.x, msg.y]; yaw0 = att.yaw
     log(f"HPROFILE: {len(segs)} segments from {path}, start N {cur[0]:.2f} E {cur[1]:.2f}, yaw {math.degrees(yaw0):.1f} deg, alt {alt_m:.2f} m")
 
-    def send(pn, pe, vn, ve):
+    cur_alt = alt_m                                   # changed only by "alt" segments; other segments send it unchanged
+
+    def send(pn, pe, vn, ve, alt=None, vd=0):
         master.mav.set_position_target_local_ned_send(
             0, master.target_system, master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            TYPE_MASK_POS_VEL_YAW, pn, pe, -alt_m, vn, ve, 0, 0, 0, 0, yaw0, 0)
+            TYPE_MASK_POS_VEL_YAW, pn, pe, -(cur_alt if alt is None else alt), vn, ve, vd, 0, 0, 0, yaw0, 0)
 
     for i, sg in enumerate(segs):
         t0 = sim_time_now_s(master); log(f"HSEG {i} {sg['type']} START t_sim={t0:.3f}")
@@ -759,6 +763,26 @@ def hprofile(master, path: str, alt_m: float, world: str) -> None:
                     raise TrialFailure(f"wait_fix: no tag-frame position within {sg['timeout']} s")
             else:
                 raise TrialFailure("wait_fix: wall-clock cap")
+            continue
+        if sg["type"] == "alt":
+            h1 = float(sg["to"]); v = float(sg["speed"]); dh = h1 - cur_alt; T = abs(dh) / v if v > 0 else 0.0
+            sgn = 1.0 if dh >= 0 else -1.0; h0 = cur_alt
+            tw = time.time(); cap = T / MIN_ASSUMED_RTF + 60.0
+            while time.time() - tw < cap:
+                try:
+                    now = sim_time_now_s(master, timeout_s=0.5)
+                except TrialFailure:
+                    now = None
+                if now is not None:
+                    el = now - t0
+                    if el >= T:
+                        break
+                    send(cur[0], cur[1], 0, 0, alt=h0 + sgn * v * el, vd=-sgn * v)
+                time.sleep(0.05)
+            else:
+                raise TrialFailure(f"profile segment {i} (alt) did not complete within {cap:.0f} s wall-clock")
+            cur_alt = h1; send(cur[0], cur[1], 0, 0)
+            log(f"ALT reached setpoint {h1:.2f} m t_sim={sim_time_now_s(master):.3f}")
             continue
         if sg["type"] == "move":
             to = sg["to"]; v = float(sg["speed"]); d = math.hypot(to[0] - cur[0], to[1] - cur[1]); T = d / v if v > 0 else 0.0

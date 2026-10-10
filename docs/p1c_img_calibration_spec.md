@@ -1,4 +1,4 @@
-# Calibration flights `p1c_img_*`: specification and pre-registered acceptance bands (DRAFT, awaiting user sign-off)
+# Calibration flights `p1c_img_*`: specification and pre-registered acceptance bands (SIGNED OFF by the user 2026-10-10, with the climb-cycle change below made BEFORE any flight)
 
 **Purpose:** validate the real-flight camera-path flow (option 2, ruling 2026-10-10). Option (a) takes the flow as the
 fitted similarity transform's translation at the image centre. It is compared against the current median-feature
@@ -20,11 +20,17 @@ simulation datasets keep the original flow computation.
   `--with-images` records `/downward_camera/image` and `/downward_camera/camera_info`.
 - **Profile** (identical in all three; a `HPROFILE` JSON, `batches/p1c_img/profile.json`):
   1. take-off to 2.0 m: **the CLIMB segment** (the natural GUIDED take-off, as in the D22 flights);
-  2. hold 30 s: **HOVER**;
+  2. **the first hover, with two climb cycles inserted** (change made 2026-10-10, BEFORE any flight). The reason: a
+     single take-off climb may not produce a climb bias of 0.10 rad/s, and A3 would then go untested. The sequence:
+     hold 10 s (**HOVER**); then 2.0 → 3.5 → 2.0 → 3.5 → 2.0 m at 1.1 m/s (**CLIMB**, both directions), with a 3 s
+     hold at each turn (not scored); then hold 10 s (**HOVER**). The climb rate is the take-off climb rate measured on
+     `cl_fgo_b_tex_r3_half_v3` (mean 1.11 m/s over z 0.3–1.9 m; peak 1.41 m/s). 3.5 m stays well below the 5 m walls,
+     and these corridor worlds have no ceiling. A new profile segment type, `alt`, was added to `fly_trial.py` for
+     this (it is additive: existing segments send byte-identical setpoints; mock-tested);
   3. move to N = 90 m, E = 0 at 0.5 m/s (~180 s; it crosses the transition boundary at y = 80 m): **CRUISE**;
   4. hold 20 s: a second **HOVER**;
   5. land.
-- **Cost:** ~5.5 min of sim time per flight, ~10 min wall time with set-up, so **~35 min for the three**.
+- **Cost:** ~6 min of sim time per flight, ~10 min wall time with set-up, so **~35 min for the three**.
   - Images: ~8 GB per flight (~24 GB; 249 GB free).
   - Recording 30 Hz images loads the machine. The RTF is logged and reported, but no band depends on it.
 - **Schedule:** after the SITL safety re-tests, before the overnight FGO-only re-run. If they would delay the
@@ -47,7 +53,9 @@ simulation datasets keep the original flow computation.
      must lie within 0.85–1.15 (the known flow scale error is about +8–13%). Outside that range, STOP: the truth
      model is wrong, not the method.
 4. **Segments** (from GT and the profile log):
-   - **CLIMB:** from GT z ≥ 0.3 m to the first time z ≥ 1.9 m;
+   - **CLIMB:** the take-off (from GT z ≥ 0.3 m to the first time z ≥ 1.9 m) PLUS the four `alt` ramps (from each
+     `HSEG … alt START` to its `ALT reached` log line, excluding the first and last 0.3 s of each ramp). Ascents and
+     descents are pooled for A3; the bias is also reported per direction;
    - **HOVER:** both holds, excluding the first 3 s of each;
    - **CRUISE:** the move segment, excluding the first and last 3 s.
    - **The floor class is per frame:** textured, or blank in the transition world for y > 80 m.
