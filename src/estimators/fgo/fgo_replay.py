@@ -68,12 +68,16 @@ ev = []; gt = []
 GEOM = None; EV_META = None
 if EVENTS:                          # events mode: the converted dataflash stream replaces the bag (bag path below unchanged)
     from measurement_models import make_geometry
-    _Z = np.load(EVENTS); EV_META = json.load(open(EVENTS[:-4] + ".json"))
+    # load every array ONCE: an NpzFile re-reads (decompresses) the whole array on each _Z[key], and a row view kept in
+    # `ev` then pins its own full copy (O(N^2) memory: the first smoke run was OOM-killed at 13.8 GB, 2026-10-11)
+    with np.load(EVENTS) as _npz:
+        _Z = {k: np.array(_npz[k]) for k in _npz.files}
+    EV_META = json.load(open(EVENTS[:-4] + ".json"))
     _g = EV_META["geometry"]
     GEOM = make_geometry(flow_pos_frd=_g["flow_pos_frd"], range_pos_frd=_g["range_pos_frd"],
                          rng_min=_g["rng_min"], rng_max=_g["rng_max"])
     for i in range(len(_Z["imu_t"])):          # payload (acc, gyro, dt): dt = the INS delta interval (DVDT)
-        ev.append((float(_Z["imu_t"][i]), "imu", (_Z["imu_acc"][i], _Z["imu_gyro"][i], float(_Z["imu_dt"][i]))))
+        ev.append((float(_Z["imu_t"][i]), "imu", (_Z["imu_acc"][i].copy(), _Z["imu_gyro"][i].copy(), float(_Z["imu_dt"][i]))))
     for i in range(len(_Z["flow_t"])):
         ev.append((float(_Z["flow_t"][i]), "flow", (np.array(_Z["flow_xy"][i], float), bool(_Z["flow_valid"][i]),
                                                      float(_Z["flow_inlier"][i]))))

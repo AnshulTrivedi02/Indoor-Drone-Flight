@@ -5,9 +5,8 @@ Modules:
   recorder.py  - the executable recorder: raw CSV + JSON metadata sidecar (counts, duplicates, malformed, dropouts).
   export.py    - raw CSV -> the mocap_align CSV (`t_s, x, y, z, qx, qy, qz, qw`, metres, z UP, scalar-last quaternion).
 
-The live safety watcher (another worktree, realflight/watcher/mocap.py) defines the SAME packet and the same
-MocapSample/PoseSource shape. source.py here is an identical, independent copy (no import across worktrees); the two
-MUST be unified into one module when the branches are merged.
+The packet, MocapSample and PoseSource are defined ONCE, in realflight/mcp1.py, shared with the live safety watcher
+(realflight/watcher/mocap.py). source.py re-exports them (unified 2026-10-11).
 
 WHAT THE REAL MOCAP SYSTEM MUST PROVIDE (the system is unknown until the supervisor names it; plan input S5):
   - a forwarder from the vendor SDK (OptiTrack NatNet, Vicon DataStream, or a VRPN client) to the MCP1 UDP packet below,
