@@ -13245,3 +13245,23 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - The converter has the FGO derotate with its own raw RISI gyro, not `ROFH.G`, which would import EKF3's bias. In
     the sim, all three estimators derotated with the filtered gyro.
   - The UKF port's Replay flow hook takes `ROFH.G`.
+
+### Rung-1 scorer BUILT (R9); the mocap recorder (R7) and alignment (R8) ON HOLD (handover `docs/handovers/2026-10-10_r1_mocap_align_scorer.md`)
+- **R9 `eval/real_score.py`:** it reproduces `three_way_eval`'s evo -a exactly on `dsn_tex_r1` (UKF 3.983563, FGO
+  4.067897; the speed-rule window is identical).
+  - End-to-end on `cl_ukf_a_tex_half`, with GT standing in for mocap: a plumbing check only, NOT results.
+  - Fixed after review: no interpolation across mocap dropouts; robust ground level; the drift metric is refused when
+    its first segment is a hover.
+- **R8 (held):**
+  - sync accuracy: synthetic ≤ 0.64 ms and ≤ 4.4 ppm; SITL with an injected offset −0.004 ms; against an independent
+    reference ±1–3 ms;
+  - it fixes an inverse-time-map bug that would have cost hours of error with an epoch-stamped mocap clock;
+  - **left:** it crashes on a disarmed hand-carry log; its early window misses the pre-arm sync wiggle.
+- **R7 (held):** it uses the same UDP pose format as the watcher (one forwarder feeds both; the duplicated adapter
+  code is to be merged later).
+  - **Left:** a frame-counter reset would silently drop the rest of a flight.
+- **Questions for the pre-registration (on hold):**
+  - the primary metric (evo -a SE3 or a 4-DoF fit);
+  - XUKO or XUKF;
+  - the drift metric's first segment;
+  - the RISI DADT is 3.0 ms in SITL (the plan says 2.0): check it on the first real log.
