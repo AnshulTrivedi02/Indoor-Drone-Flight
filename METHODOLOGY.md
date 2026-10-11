@@ -13472,3 +13472,36 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - **D18 note:** in closed loop the flow driver's gyro is already the UKF's own bias-corrected one. In shadow/Replay it
     is EKF3's; the user's 2026-10-11 ruling (Replay derotates with the UKF's own gyro) addresses this and is being
     implemented.
+
+### Rung-1 UKF port: geometry from the log, and the D18 derotation rule (`~/ardupilot_ukf` `rung1-geometry` `16535f9a29`, NOT merged or installed; handover `docs/handovers/2026-10-11_r1_ukf_port.md`)
+- **Geometry** is read at init. A late PARM writes a warning (untested: no log has one).
+- **Derotation rule, IDENTICAL in flight and in Replay:** the active backend's gyro bias is swapped for the UKF's
+  OWN. When the UKF is the active backend (type 12), the output is bit-for-bit unchanged.
+  - In Replay, the active backend comes from the log's AHRS_EKF_TYPE (3: EKF3 primary-core bias; 10: zero; 12:
+    unchanged). `UKF_DEROT_ROFH=1` restores the old rule.
+  - **A FLOW_TYPE gate:** the swap applies only to drivers that pair the AHRS gyro (2, 4, 5, 7, 8). Types 1, 3, 6
+    and 10 send their own gyro and are used AS DELIVERED with a warning (a ruling is needed).
+- **Built in a temporary worktree:** Replay `a1f67e7d`, UKF_Equiv `0c9dd904`, copter `76a4757d`, 0 warnings. The
+  installed binaries are unchanged.
+- **(a) Byte-identity on 5 SITL logs:**
+  - with `UKF_DEROT_ROFH=1`, both CSVs are identical on all 5;
+  - under the new rule, identical on the two type-12 logs;
+  - on type-10/3 logs only the 11 state/sigma columns change (max 2.55 m `dsn_tex_r1`, 2.41 m `fwdplainc_tex_r1`,
+    0.11 m `cl_a_tex_half`).
+- **(b) Replay against the flying port's XUKF** (no pre-registered Replay-vs-flying band; the E1–E5
+  port-equivalence bands were applied UNCHANGED):
+  - `H_s2v2_r1`: E1/E3/E5 PASS.
+  - `cl_ukf_b_tex_r1_half_v2`: E1 PASS (0.018 / 0.003 m), E3 PASS (0.005°).
+  - **E5 FAILS AS WORDED** (cumulative counts, range 0.30%; the Replay starts 1.0 s after the flying port, which
+    predates this change). It passes on increments over the shared window, a form adopted POST HOC.
+  - E4 (biases) cannot be scored (no bias column).
+  - These are type-12 logs, so (b) validates the geometry and Replay fidelity, NOT the bias swap. No flying log with
+    the swap active exists.
+- **(c) UKF_Equiv** on the 2026-10-09 tapes: byte-identical. The 2026-10-09 equivalence scores carry over.
+- **Open, for the daily summary:**
+  - the own-gyro flow drivers (FLOW_TYPE 1/3/6/10);
+  - other AHRS types in Replay;
+  - multi-IMU boards (the swap can mix IMUs);
+  - whether E5's post-hoc increment form is accepted;
+  - merging/installing `rung1-geometry` (the user's call);
+  - GNDCLR initialisation, the capture-delay option, the compass variant.
