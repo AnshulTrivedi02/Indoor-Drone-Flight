@@ -1,0 +1,41 @@
+[live] 10197 keyframes, 9919 ODOMETRY sent (278 before the clock map settled), 10197 valid; reinits 0, gaps 0, gap-invalid 0; heading rejected 0; IMU unpaired 0; max lateness 0.033 s, out-of-order 0
+[timing] per-keyframe step: median 22.076 ms, p99 38.655 ms, max 148.227 ms
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:16.21
+	Maximum resident set size (kbytes): 52412
+==== arm64 live adapter vs x86 live adapter (L1): files bit-identical?
+kf.f64: no
+live.f64: no
+mav.bin: no
+==== arm64 live adapter checked by compare_live.py against the x86 export-driven C++ cpp_dsn_tex_r1_baseline
+[mavlink] parsed 9919 ODOMETRY frames (bad CRC / parse errors: 0); sent keyframes 9919
+[mavlink] pymavlink re-encoding byte-identical to the adapter's frames: True
+[clock] time_usec equal to the independent _sitl_us on 9919 of 9919 frames
+[states] keyframes: adapter 10197  reference 10197  -> count IDENTICAL
+[states] decision mismatches by column {2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 32: 0, 35: 0}
+[states] adapter rows vs reference: |dp| max 7.371e-02 p99 8.319e-03 mm; |dyaw| max 4.275e-05 p99 5.814e-06 deg
+[odometry] decoded states vs reference (9919 sent keyframes): |dp| max 7.493e-02 p99 1.239e-02 mm; |dyaw| max 4.185e-05 p99 6.753e-06 deg
+[valid] quality matches the valid flag on 9919 of 9919 frames; invalid keyframes 0 of 10197 (first [])
+BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg; rows and decoded ODOMETRY): PASS   time_usec all equal: True   frames byte-identical to pymavlink: True
+==== arm64 live kf vs x86 live kf (L1)
+keyframe rows: ref 10197  test 10197  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 584]
+flow factor        mismatches: 0   [ref total 10018]
+range factor       mismatches: 0   [ref total 10196]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10197]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 583 rows; max |diff| 2.201e-13
+first row with |dp| > 1e-9 m: 930 (t 39.8173, |dp| 1.046e-09)
+position   max 7.371e-02  p99 8.319e-03  median 4.545e-04 mm
+yaw        max 4.275e-05  p99 5.814e-06  median 7.436e-07 deg
+velocity   max 3.548e-04  p99 4.555e-05  median 5.791e-06 mm/s
+accel bias max 1.775e-07  p99 1.410e-09  median 5.678e-10 m/s^2
+gyro bias  max 9.274e-09  p99 3.629e-10  median 8.234e-11 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False

@@ -39,6 +39,7 @@ This is VERIFICATION, not result data. The pre-statement was written before any 
 | probe: keyframe solves kf1–kf4, gate3/gate4 | rel ≤ 1.4e-9 / 2.5e-11 |
 | dsn_tex_r1_baseline (whole flight, 10197 kf) | count and every decision flag identical; **0/2039 gate decision mismatches** (63/63 fired); max / p99 \|Δp\| **0.074 / 0.0083 mm**, max \|Δyaw\| 4.3e-5° |
 | fwdc_tex_r1_heading (whole flight, 10118 kf; heading 9184 accepted) | identical decisions; 0/2023 gate mismatches; max \|Δp\| **1.3e-4 mm**, \|Δyaw\| 3e-10° |
+| live adapter L1 (dsn_tex tape, 2d args; `live_L1.txt`) | band PASS: 10197 kf, 0 decision mismatches, 9919 ODOMETRY with 0 CRC errors and byte-identical to pymavlink, `time_usec` 9919/9919, \|Δp\| max 0.074 mm; not bit-identical to the x86 L1 |
 | the same runs against the Python export | dsn_tex max \|Δp\| 0.205 mm, fwdc 1.3e-4 mm (inside the 1 mm / 0.01° band) |
 
 - **dsn_tex is the band A/C bag.** Its closest yaw-cap check came within 2.4e-6 of the 0.04 threshold
@@ -47,6 +48,10 @@ This is VERIFICATION, not result data. The pre-statement was written before any 
   This is stated, not tested further.
 - **Cause of the residual:** most likely Eigen NEON against SSE2 (reduction order and fused vector multiply-add) and
   libm. qemu-user emulates aarch64 FP exactly, so a real Pi should reproduce these arm64 outputs [U].
+
+- **OS floor of the cross-built binaries:** they need glibc ≥ 2.38 and GLIBCXX_3.4.32.
+  - Ubuntu 24.04 arm64 meets this.
+  - Raspberry Pi OS bookworm (glibc 2.36) does not, so it would need a native rebuild.
 
 ## Timing
 - **qemu (RELATIVE ONLY):** arm64 under qemu runs at a median of 22.0 / 28.3 ms per keyframe (dsn_tex / fwdc), which

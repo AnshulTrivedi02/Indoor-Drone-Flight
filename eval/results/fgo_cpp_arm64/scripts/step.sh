@@ -70,5 +70,18 @@ replay)            # export-driven replay under qemu: replay <prefix>; compared 
   echo "==== arm64 C++ vs the Python export ($p)"
   $PY $SRC/fgo_cpp/tools/compare_kf.py $D/$p $OUT/arm_$p || true
   ;;
+live)              # live adapter (the flown node's path, live_adapter.cpp) under qemu, same args as 2d band L1:
+                   # live <row> <tape> <prefix>; compared with the x86 adapter output d18/dump/<row> and cpp_<prefix>
+  row=$1; tape=$2; p=$3
+  /usr/bin/time -v env LD_LIBRARY_PATH=$RUNLIB $QEMU $FB/fgo_cpp_live_replay $tape $D/$p.init.json $OUT/arm_$row \
+    --imu-stamp header --arm-source param --delay 0.20 2> $OUT/arm_$row.time.txt
+  grep -E "Maximum resident|Elapsed" $OUT/arm_$row.time.txt
+  echo "==== arm64 live adapter vs x86 live adapter ($row): files bit-identical?"
+  for e in kf.f64 live.f64 mav.bin; do echo "$e: $(cmp -s $D/$row.$e $OUT/arm_$row.$e && echo yes || echo no)"; done
+  echo "==== arm64 live adapter checked by compare_live.py against the x86 export-driven C++ cpp_$p"
+  $HOME/venv-ardupilot/bin/python $SRC/fgo_cpp/tools/compare_live.py $tape $OUT/arm_$row $D/cpp_$p || true
+  echo "==== arm64 live kf vs x86 live kf ($row)"
+  $PY $SRC/fgo_cpp/tools/compare_kf.py $D/$row $OUT/arm_$row || true
+  ;;
 *) echo "unknown step $step"; exit 2;;
 esac
