@@ -13760,3 +13760,29 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - A KakuteH7 test build: 245,276 B free, 0 warnings.
   - The script's stack sub-check had a bug, now fixed but not yet re-tested by a build. The `--extra-hwdef` path
     (ALLOW_ARM_NO_COMPASS) has never been built.
+
+### RULINGS (user, 2026-10-12): start the no-hardware coding; rung-1 pre-registration SIGNED OFF; E5; watcher bench
+1. **Start the no-hardware rung-1 and UKF-only closed-loop coding NOW** (coding only, no heavy simulation):
+   - the LAND-resend fix (F6);
+   - the capture-delay option;
+   - the XUKO check;
+   - the rangefinder start fix (U4);
+   - the converter band;
+   - the alignment 25 Hz IMU path;
+   - the parameter-name fixes;
+   - the failsafe parameters.
+   - **Draft for the user's sign-off:** the Replay-gate (U10) band and the closed-loop (stage-3) pre-registration.
+   - **The Replay-gate band must be SIGNED OFF before rung-1 day 3.**
+2. **The rung-1 pre-registration is SIGNED OFF:** evo -a SE(3) primary; XUKO as the UKF record.
+   - **Added BEFORE ANY DATA, as secondary metrics:** cross-track drift per minute and heading drift in deg/min
+     (UNALIGNED), for comparability with the simulation corridor results.
+3. **E5** (`cl_ukf_b_tex_r1_half_v2` Replay vs flying) is recorded as FAILED AS WORDED (the Replay starts 1.0 s after
+   the flying port, a pre-existing offset).
+   - The geometry branch (`rung1-geometry`) is accepted for merge on the other checks plus the increment comparison,
+     LABELLED POST HOC.
+   - Merge it, and install its Replay.
+4. **Watcher bench:**
+   - B5 may be RE-WORDED now (no real bench run has happened), recording the old wording;
+   - B8a is repeated ONLY if its first run was invalidated by a HARNESS FAULT, not by its outcome. Otherwise the
+     specifics are reported to the user.
+- **The final firmware build runs the day the board is named.**
