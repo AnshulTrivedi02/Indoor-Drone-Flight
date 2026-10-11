@@ -13505,3 +13505,23 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - whether E5's post-hoc increment form is accepted;
   - merging/installing `rung1-geometry` (the user's call);
   - GNDCLR initialisation, the capture-delay option, the compass variant.
+
+### Rung-1 converter MERGED; mocap/alignment fixes; scorer with a pre-registration JSON (handover `docs/handovers/2026-10-11_r1_converter_mocap_scorer.md`)
+- **Converter proofs** (`eval/results/r1_converter/proofs_2026-10-11.txt`):
+  - **(b) PASS:** a default replay of `cl_a_tex_half` on the current fgo_core is byte-identical to the stored FGO-only
+    re-run output, at the merge commit and again at `fcd67df`.
+  - **Smoke:** the first run was OOM-killed (13.8 GB; events mode re-read the `.npz` on every access). Fixed in
+    `b9da351`; the bag path is unchanged. It then completes (2565 keyframes; take-off at 28.05 s). Plumbing only.
+- **R8 fixes:**
+  - a disarmed log asks for explicit windows instead of crashing;
+  - the default windows are the two disarmed sync wiggles; grid points outside a record are masked.
+- **R7 fix:** a frame-counter or clock reset starts a new segment, and the export refuses ambiguous multi-segment logs.
+- **One shared pose adapter** for the watcher and the recorder: 83 realflight tests pass.
+- **The scorer** reads a strict pre-registration JSON (9 tests). It matches `three_way_eval` exactly on `dsn_tex_r1`.
+  - **Bug fixed:** a Replay output log holds both the onboard and the replayed EKF3. `XKF1` must now name its core
+    (`XKF1@100` replayed, `XKF1@0` onboard).
+- **Pre-registration draft** (still DRAFT for user sign-off):
+  - the drift segment starts at motion onset;
+  - the clock-map windows are the disarmed wiggles;
+  - **proposed:** primary metric evo -a SE(3), to match the simulation's decision categories, with 4-DoF as
+    secondary (they agree to 1 mm on SITL); UKF record XUKO (current-time output, like XKF1).
