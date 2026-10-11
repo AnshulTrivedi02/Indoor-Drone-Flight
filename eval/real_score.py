@@ -187,7 +187,10 @@ def check_clock_map(cm, align):
     want = {k: cm[k] for k in ("w_thr_rad_s", "pad_s", "merge_s", "min_burst_s")}
     if any(abs(float(rule.get(k, float("nan"))) - float(v)) > 1e-9 for k, v in want.items()):
         raise SystemExit(f"mocap_align sync_window_rule {rule} differs from the prereg clock_map {want}")
-    return {"window_sources": src, "sync_window_rule": rule}
+    clk = align.get("clock") or {}
+    # 2026-10-12: which gyro fitted the map (RISI, or the ~25 Hz IMU fallback with its stated <= ~3.5 ms bias), reported
+    return {"window_sources": src, "sync_window_rule": rule, "gyro_src": clk.get("gyro_src"),
+            "gyro_src_auto": clk.get("gyro_src_auto")}
 
 
 def sha256(path):

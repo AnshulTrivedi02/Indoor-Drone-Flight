@@ -25,6 +25,16 @@ angles that EKF3 itself consumes:
   * NO group-delay shift: RISI deltas are accumulated from the RAW gyro, before apply_gyro_filters
     (AP_InertialSensor_Backend.cpp:364-371). The old IMU path (`--gyro-src IMU`, ~25 Hz logged, INS_GYRO_FILTER
     2-pole low-pass) keeps its sqrt(2)/(2 pi fc) group-delay shift (11.3 ms at 20 Hz).
+  * THE 25 Hz IMU PATH (`--gyro-src IMU`, or `auto` when the log has no RISI; re-validated 2026-10-12 with the default
+    sync-wiggle windows, eval/mocap_align_test.py test_imu_25hz_path_*). Synthetic flights (8 seeds; the RISI-like
+    truth through the INS 2-pole 20 Hz filter, sampled at 25 Hz): mapped-time error mean +0.27...+0.62 ms, |max|
+    0.96 ms, against |max| 0.26 ms for RISI. COST: (a) about +0.5 ms of bias left by the DC group-delay model; (b) the
+    IMU record's TimeUS is the LOGGING time, up to one main-loop period after the filtered sample (<= 2.5 ms at
+    400 Hz; not modelled, so it adds up to +2.5 ms of bias: +2.8...+3.1 ms with 2.5 ms in the synthetic test);
+    (c) harmonic-notch filters add a small extra lag at the wiggle frequency (not modelled). Together: a bias of
+    <= ~3.5 ms (<= 1.8 mm at 0.5 m/s), no worse spread. The 2026-10-10 failure (-431 ms) was on the OLD arm-anchored
+    SITL windows with no wiggle, not on the sync wiggles. A log with no RISI cannot be replayed or converted either,
+    so with this path only the onboard EKF3 row (XKF1@0) is scorable (prereg sec. 8).
 
 TIME FIT:
   1. coarse: cross-correlation of the standardised |w| over the whole overlap on a 20 ms grid (`--coarse xcorr`,
@@ -64,7 +74,18 @@ from pymavlink import mavutil
 # ---------------------------------------------------------------------------------------------- FC log
 def read_fc(path, est="XKF1", gyro_src="RISI", imu_instance=0):
     """Read the FC dataflash log. `gyro` is (t, gx, gy, gz) on the FC clock from RISI (see the module docstring for the
-    stamping rule) or from IMU."""
+    stamping rule) or from IMU. gyro_src "auto" (2026-10-12): RISI when the log has RISI records of the instance, else
+    the ~25 Hz IMU records (the fallback path; its accuracy cost is in the module docstring); the choice and its reason
+    are recorded (out["gyro_src_auto"])."""
+    if gyro_src == "auto":
+        try:
+            out = read_fc(path, est, "RISI", imu_instance)
+            out["gyro_src_auto"] = "RISI records present"
+            return out
+        except SystemExit as e:
+            out = read_fc(path, est, "IMU", imu_instance)
+            out["gyro_src_auto"] = f"IMU fallback: {e}"
+            return out
     m = mavutil.mavlink_connection(path); G, R, A, E, S, S2, ARM, P = [], [], [], [], [], [], [], {}
     t_frame = None; dadt = []
     types = ["RFND", "ATT", est, "SIM", "SIM2", "ARM", "PARM"] + (["RFRH", "RISI"] if gyro_src == "RISI" else ["IMU"])
@@ -90,12 +111,14 @@ def read_fc(path, est="XKF1", gyro_src="RISI", imu_instance=0):
         elif ty == "PARM": P[r.Name] = r.Value
     if not G:
         raise SystemExit(f"no {gyro_src} gyro records (instance {imu_instance}) in {path}"
-                         + (": is LOG_REPLAY set?" if gyro_src == "RISI" else ""))
+                         + (": is LOG_REPLAY set? (--gyro-src auto falls back to the ~25 Hz IMU records)"
+                            if gyro_src == "RISI" else ""))
     out = {k: np.array(v) for k, v in (("gyro", G), ("rfnd", R), ("att", A), ("est", E), ("sim", S), ("sim2", S2))}
     g = out["gyro"]; keep = np.r_[True, np.diff(g[:, 0]) > 0]       # monotonic stamps only
     out["gyro"] = g[keep]
     out |= {"arm": ARM, "params": P, "gyro_src": gyro_src, "imu_instance": imu_instance,
-            "risi_dadt_median_s": float(np.median(dadt)) if dadt else None}
+            "risi_dadt_median_s": float(np.median(dadt)) if dadt else None,
+            "gyro_period_ms_median": 1e3 * float(np.median(np.diff(out["gyro"][:, 0])))}
     return out
 
 
@@ -320,7 +343,8 @@ def clock_fit(fc, mo, windows, use=("w",), coarse="xcorr", coarse_offset=None):
         f["resid_ms"] = 1e3 * (f["mocap_minus_fc_s"] - (o1 + rate * (f["t_centre_fc_s"] - t1)))
     o1, rate = float(o1), float(rate)
     to_fc = lambda tm: (tm - o1 + rate * t1) / (1.0 + rate)        # inverse of tm = tf + o1 + rate (tf - t1)
-    res = {"gyro_src": fc.get("gyro_src", "IMU"), "imu_instance": fc.get("imu_instance", 0),
+    res = {"gyro_src": fc.get("gyro_src", "IMU"), "gyro_src_auto": fc.get("gyro_src_auto"),
+           "gyro_period_ms_median": fc.get("gyro_period_ms_median"), "imu_instance": fc.get("imu_instance", 0),
            "risi_stamp_rule": "TimeUS(preceding RFRH) - DADT/2" if fc.get("gyro_src") == "RISI" else None,
            "risi_dadt_median_s": fc.get("risi_dadt_median_s"),
            "gyro_filter_delay_ms_compensated": 1e3 * gyro_group_delay_s(fc), "features": list(use),
@@ -458,7 +482,7 @@ def selftest(trial, out_dir, use=("w",), gyro_src="RISI"):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(); ap.add_argument("--bin"); ap.add_argument("--mocap"); ap.add_argument("--est", default="XKF1")
-    ap.add_argument("--gyro-src", default="RISI", choices=["RISI", "IMU"]); ap.add_argument("--imu-instance", type=int, default=0)
+    ap.add_argument("--gyro-src", default="RISI", choices=["RISI", "IMU", "auto"]); ap.add_argument("--imu-instance", type=int, default=0)
     ap.add_argument("--pi-bag"); ap.add_argument("--out-dir", required=True); ap.add_argument("--selftest")
     ap.add_argument("--features", default="w", help="w (|gyro|, default), vz (rangefinder vertical speed; latency unknown), or w,vz")
     ap.add_argument("--coarse", default="xcorr", choices=["xcorr", "takeoff"]); ap.add_argument("--coarse-offset", type=float)
