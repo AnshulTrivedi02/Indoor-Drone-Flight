@@ -13539,3 +13539,18 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
      v2/v3).
   3. The H comparative criteria (H-H2, P-H3, H-H4) were never restated on S2v2/S3v2.
   4. Four numbers.md values are off by one in the last digit (rounding).
+
+### Results-pack flags FIXED (handover `docs/handovers/2026-10-11_pack_flags_fixed.md`); the pack regenerated at `4f91ac6`: ALL 17 figures and both tables CURRENT
+- numbers.md §16.3 (L cost) and §15 (the closed-loop sets incl. UKF v2, FGO v2 ablation and v3, the safety rows; the
+  flown FGO noted as old priors) are updated. The superseded rows are kept.
+- **H comparative criteria on the RE-FLOWN S2v2/S3v2** (computed from the stored h_score outputs by the new
+  `eval/h_comparative.py`, which reproduces the earlier adjudicated table exactly; numbers.md §17.2, "PENDING user
+  ruling"):
+  - H-H2, P-H3 and H-H4 (15 s and 5 s parts) ALL FAIL, the SAME verdicts as on S2/S3.
+  - Wording changes: the FGO's hold error is now the HIGHEST (8.3–8.6 mm against EKF3 7.8–7.9 mm), not tied; EKF3's
+    15 s jump is now strictly the smallest.
+- **Daily-summary items:**
+  - the window flag: the UKF v2 contact is checked against EKF3's window [+155, +215] instead of the UKF's
+    [+146, +218]; +165.9 s is inside both, so the verdict is unchanged;
+  - the four last-digit values (three are double rounding, one a true tie): a rounding rule is proposed;
+  - the S1-far shadows have no numbers.md rows.
