@@ -1,6 +1,6 @@
 # Final results pack: index (2026-10-11)
 
-PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`. Built by `eval/figs_final_pack.py` at commit `e6d9f74` (run with `~/venv-evo/bin/python`; analysis only, no replays). Tables: T1 from `docs/thesis/headline_claims_before_after.md`, T2 from `docs/thesis/final_results_pack_corrections.md`.
+PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`. Built by `eval/figs_final_pack.py` at commit `4f91ac6` (run with `~/venv-evo/bin/python`; analysis only, no replays). Tables: T1 from `docs/thesis/headline_claims_before_after.md`, T2 from `docs/thesis/final_results_pack_corrections.md`.
 
 **Status key:** CURRENT = regenerated from the restated results and every check matches numbers.md / METHODOLOGY; FLAGGED = shows superseded values or a check mismatches (reason given); NOT REGENERATED = kept as is, reason given.
 
@@ -15,25 +15,24 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 | F05 | `plots/final_results_pack/F05_drift_decomposition.png`: Heading-driven against residual cross-track, with and without the camera heading | CURRENT (JSON only, unchecked) | `eval/figs_final_pack.py`; eval/results/phase5_analysis.json (decomposition: xtrack_head_m, xtrack_resid_m) | none (METHODOLOGY Phase 5 only; numbers.md §6.3 'not recomputed' note) | 0/0 |
 | F06 | `plots/final_results_pack/F06_blank_flow_loss.png`: Loss of flow aiding on the blank floor | CURRENT | `eval/figs_final_pack.py`; eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60/+120 s; EKF3 validity) | §6.2 (+10/+30/+60 s rows, end-of-cruise †, EKF3 invalid); claim 10 | 3/3 |
 | F07 | `plots/final_results_pack/F07_f1_robust_tradeoff.png`: F1: robust heading weighting trade-off | CURRENT | `eval/figs_final_pack.py`; eval/results/f1_test.json | §15.2 F1 row; claim 27 | 4/4 |
-| F08 | `plots/final_results_pack/F08_closed_loop_paths_half.png`: Closed-loop true paths at half speed: EKF3, UKF (original and v2), FGO (original, v3, robust) | CURRENT | `eval/figs_final_pack.py`; paths: dataflash SIM of the trials named in each panel title (cl_*_half, *_v2, *_v3); contact and B2: eval/results/closed_loop_<trial>.json | §15 rows (contact EKF3/UKF/FGO/FGO v3 half; B2); METHODOLOGY re-flight sections (UKF v2, FGO v3: no numbers.md row); claim 14 | 4/4 |
+| F08 | `plots/final_results_pack/F08_closed_loop_paths_half.png`: Closed-loop true paths at half speed: EKF3, UKF (original and v2), FGO (original, v3, robust) | CURRENT | `eval/figs_final_pack.py`; paths: dataflash SIM of the trials named in each panel title (cl_*_half, *_v2, *_v3); contact and B2: eval/results/closed_loop_<trial>.json | §15 rows (contact EKF3/UKF/UKF v2/FGO/FGO v2/FGO v3 half; B2; re-flown B1/B2/B4 and B3 rows); claim 14 | 4/4 |
 | F09 | `plots/final_results_pack/F09_T_hindsight_gain_vs_gap.png`: T: the hindsight gain grows with the gap for the FGO, not for the single-pass RTS-UKF | CURRENT | `eval/figs_final_pack.py`; eval/results/expT/T_*.json (gaps), t_aggregate.json | §16.1 (H-T1, P-T2); claim 17 | 3/3 |
 | F10 | `plots/final_results_pack/F10_T_rmse_by_condition.png`: T: horizontal error by tag density, live and hindsight | CURRENT | `eval/figs_final_pack.py`; eval/results/expT/T_*.json (tracks.*.horiz_err_m.rmse); t_aggregate.json (means) | §16.1 table, P-T3, P-T4, condition D bullet; claims 17, 18 | 4/4 |
 | F11 | `plots/final_results_pack/F11_O_indoor_hindsight.png`: O: indoor error with GNSS outside only; hindsight reconstruction and EKF3's return jump | CURRENT | `eval/figs_final_pack.py`; eval/results/expO/O_*.json; curves: O_r1 room_ukf/, room_fgo/ TUMs (FGO-only re-run outputs), dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map) | §16.2 table and bullets (H-O1, H-O2, P-O3, WITHDRAWN, partial attribution); §18; claims 19–22 | 8/8 |
 | F12 | `plots/final_results_pack/F12_L_lap_by_lap.png`: L: tag re-identification bounds the drift lap by lap | CURRENT | `eval/figs_final_pack.py`; eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m) | §16.3 table and bullets; claims 23, 24 | 5/5 |
-| F13 | `plots/final_results_pack/F13_L_compute_cost.png`: L: per-update solve time and wall time (diagnostic) | FLAGGED (check mismatch) | `eval/figs_final_pack.py`; ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json (mtime 2026-10-10 19:00–21:35) | §16.3 'Computational cost' bullets (DIAGNOSTIC) | 0/3 |
-| F14 | `plots/final_results_pack/F14_H_tag_loss_drift.png`: H: hold error and tag-loss drift per loss duration, EKF3 / UKF / FGO, shadow and flying | CURRENT | `eval/figs_final_pack.py`; eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s2_r*.json, s3v2_r*.json, s3_r*.json (losses[*].<est>.effective.drift_m, drift_end_m; hold_windows_vehicle) | §17 (S1 table; tag-loss drift table; P-H5, P-H7; ruling 6 note); claims 25, 26; METHODOLOGY S2/S3 and RE-FLY sections (no numbers.md rows) | 9/9 |
-| F15a | `plots/final_results_pack/F15a_closed_loop_summary_corridor.png`: Closed-loop summary (1/2): corridor sets, every flown build | CURRENT | `eval/figs_final_pack.py`; eval/results/closed_loop_<trial>.json for cl_a_tex, cl_b_tex_r*, cl_bcpp_tex_r*(_half), cl_a_tex_half, cl_ukf_a_tex(_half)(_v2), cl_ukf_b_tex_r*(_half)(_v2), cl_fgo_a_tex_half(_v2)(_v3), cl_fgo_b_tex_r*_half(_v2)(_v3), cl_fgo_b_robust_tex_r*_half | §15 rows (contacts, B1–B5 counts, B2, B3); claim 14; METHODOLOGY re-flight sections | 5/5 |
-| F15b | `plots/final_results_pack/F15b_closed_loop_summary_H_safety.png`: Closed-loop summary (2/2): H hold sets and the safety tests | CURRENT | `eval/figs_final_pack.py`; eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json; expH/safety_*.json | §17 (S1); claim 25; METHODOLOGY H S2/S3, safety RESULT sections | 4/4 |
+| F13 | `plots/final_results_pack/F13_L_compute_cost.png`: L: per-update solve time and wall time (diagnostic) | CURRENT | `eval/figs_final_pack.py`; ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json (mtime 2026-10-10 19:00–21:35) | §16.3 'Computational cost' bullets (DIAGNOSTIC) | 3/3 |
+| F14 | `plots/final_results_pack/F14_H_tag_loss_drift.png`: H: hold error and tag-loss drift per loss duration, EKF3 / UKF / FGO, shadow and flying | CURRENT | `eval/figs_final_pack.py`; eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s2_r*.json, s3v2_r*.json, s3_r*.json (losses[*].<est>.effective.drift_m, drift_end_m; hold_windows_vehicle) | §17 (S1 table; tag-loss drift table; P-H5, P-H7; ruling 6 note); §17.1 (S2/S2v2/S3/S3v2); §17.2 (comparative criteria, PENDING); claims 25, 26 | 11/11 |
+| F15a | `plots/final_results_pack/F15a_closed_loop_summary_corridor.png`: Closed-loop summary (1/2): corridor sets, every flown build | CURRENT | `eval/figs_final_pack.py`; eval/results/closed_loop_<trial>.json for cl_a_tex, cl_b_tex_r*, cl_bcpp_tex_r*(_half), cl_a_tex_half, cl_ukf_a_tex(_half)(_v2), cl_ukf_b_tex_r*(_half)(_v2), cl_fgo_a_tex_half(_v2)(_v3), cl_fgo_b_tex_r*_half(_v2)(_v3), cl_fgo_b_robust_tex_r*_half | §15 rows (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14 | 6/6 |
+| F15b | `plots/final_results_pack/F15b_closed_loop_summary_H_safety.png`: Closed-loop summary (2/2): H hold sets and the safety tests | CURRENT | `eval/figs_final_pack.py`; eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json; expH/safety_*.json | §17 (S1), §17.1 (S2/S3 sets), §17.2 (comparative criteria, PENDING); §15 safety rows; claim 25 | 4/4 |
 | T1 | Headline claims before/after (36 rows) | CURRENT | rendered by `eval/figs_final_pack.py` from `docs/thesis/headline_claims_before_after.md` | all rows cited in its evidence column | 2/2 |
 | T2 | Corrections summary (18 rows) | CURRENT | `docs/thesis/final_results_pack_corrections.md` (quotes METHODOLOGY, numbers.md, eval/results) | §6.1, §6.5, §6.6, §15, §16.2, §17, §18 | 1/1 |
 
 ## FLAGGED items
 
 - **F05** (CURRENT (JSON only, unchecked)): . No numbers.md row: CURRENT against its JSON only.
-- **F13** (FLAGGED (check mismatch)): L LC median (ms): computed `35–41`, expected `36–41` (numbers.md §16.3 (first final re-run)); L no-LC median (ms): computed `50–61`, expected `47–54` (numbers.md §16.3 (first final re-run)); L no-LC wall (s): computed `7276–9583`, expected `9868–11175` (numbers.md §16.3 (first final re-run)). Check mismatch is a numbers.md staleness (first final re-run vs FGO-only re-run), not a plotting error.
-- **numbers.md §15 is behind METHODOLOGY:** it lists the ORIGINAL UKF half-speed heading set (2/3, r3 B4) and has no rows for the UKF v2 no-heading contact (+165.9 s) or the UKF v2 / FGO v2 / FGO v3 heading sets (all 3/3). F08 and F15a show both; numbers.md was not edited (out of scope).
-- **Experiment H comparative criteria (H-H2, P-H3, H-H4) were adjudicated on S2/S3 (old builds) and NOT restated on S2v2/S3v2** (METHODOLOGY: "Comparative H-H2/P-H3 are updated in the final restatement"; the restatement draft does not contain them). F14 shows per-flight values without a verdict. S2/S2v2/S3/S3v2, the S1-far shadows and the safety tests have no numbers.md rows.
-- **Rounding-boundary transcriptions in numbers.md (not superseded values; ≤ one unit in the last printed digit):** confirmatory d per flight r4–r9: file `-0.359 -0.488 +1.845 -0.498 -0.460 -0.164`, numbers.md `-0.359 -0.489 +1.845 -0.498 -0.460 -0.164`; T A: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.039 0.037 0.020 0.014 0.010`, numbers.md `0.039 0.037 0.020 0.014 0.011`; T C: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.074 0.076 0.054 0.039 0.019`, numbers.md `0.074 0.076 0.053 0.039 0.019`; L nolc live overall (m): file `0.263–0.361`, numbers.md `0.262–0.361`. Accepted as matches; listed for a later numbers.md tidy.
+- **RESOLVED 2026-10-11 (pack flags 1–2):** numbers.md §16.3 cost bullets restated from the FGO-only re-run outputs; numbers.md §15 now carries the UKF v2 contact (+165.9 s) and the UKF v2 / FGO v2 (ablation) / FGO v3 heading sets (all 3/3), plus the safety-test rows (handover `docs/handovers/2026-10-11_pack_flags_fixed.md`).
+- **Experiment H comparative criteria (H-H2, P-H3, H-H4): COMPUTED on S2v2/S3v2 on 2026-10-11, PENDING a user ruling** (numbers.md §17.2; `eval/h_comparative.py`, a reduction of the stored h_score outputs). Same verdicts as the adjudicated S2/S3 set (all FAIL); wording changes only (the FGO hold is now highest, not tied with EKF3; EKF3's 15 s jump strictly smallest). S2/S2v2/S3/S3v2 rows: numbers.md §17.1. The S1-far shadows still have no numbers.md rows.
+- **Rounding-boundary transcriptions in numbers.md (not superseded values; ≤ one unit in the last printed digit):** confirmatory d per flight r4–r9: file `-0.359 -0.488 +1.845 -0.498 -0.460 -0.164`, numbers.md `-0.359 -0.489 +1.845 -0.498 -0.460 -0.164`; T A: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.039 0.037 0.020 0.014 0.010`, numbers.md `0.039 0.037 0.020 0.014 0.011`; T C: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.074 0.076 0.054 0.039 0.019`, numbers.md `0.074 0.076 0.053 0.039 0.019`; L nolc live overall (m): file `0.263–0.361`, numbers.md `0.262–0.361`. Accepted as matches; listed with both readings in numbers.md 'Flags: remaining' item 8 (values unchanged).
 - **Historical supervisor figures** (below) carry superseded values or captions; they are kept unchanged as meeting records.
 
 ## Checks per figure (computed from the result files against the value typed from the cited source)
@@ -107,9 +106,9 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| contacts EKF3 / UKF / UKF v2 / FGO / FGO v3 (s) | `+242.1 / +198.0 / +165.9 / +165.8 / +169.9` | `+242.1 / +198.0 / +165.9 / +165.8 / +169.9` | numbers.md §15 (EKF3, UKF, FGO, FGO v3); METHODOLOGY (UKF v2) | yes |
-| UKF v2 heading B2 (m) | `0.231 / 0.253 / 0.219` | `0.231 / 0.253 / 0.219` | METHODOLOGY 'UKF heading set RE-FLOWN' | yes |
-| FGO v3 heading B2 (m) | `0.118 / 0.033 / 0.392` | `0.118 / 0.033 / 0.392` | METHODOLOGY 'FGO heading set RE-FLOWN' (r3 B1/B2 0.392) | yes |
+| contacts EKF3 / UKF / UKF v2 / FGO / FGO v3 (s) | `+242.1 / +198.0 / +165.9 / +165.8 / +169.9` | `+242.1 / +198.0 / +165.9 / +165.8 / +169.9` | numbers.md §15 (EKF3, UKF, UKF v2, FGO, FGO v3) | yes |
+| UKF v2 heading B2 (m) | `0.231 / 0.253 / 0.219` | `0.231 / 0.253 / 0.219` | numbers.md §15 re-flown B1/B2/B4 row | yes |
+| FGO v3 heading B2 (m) | `0.118 / 0.033 / 0.392` | `0.118 / 0.033 / 0.392` | numbers.md §15 re-flown B1/B2/B4 row | yes |
 | EKF3 half / UKF orig / FGO hard / FGO robust B2 range (m) | `0.24–0.33 ; 0.13–0.53 ; 0.06–0.25 ; 0.05–0.14` | `0.24–0.33 ; 0.13–0.53 ; 0.06–0.25 ; 0.05–0.14` | numbers.md §15 B2 row | yes |
 
 ### F09: T: the hindsight gain grows with the gap for the FGO, not for the single-pass RTS-UKF
@@ -156,9 +155,9 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| L LC median (ms) | `35–41` | `36–41` | numbers.md §16.3 (first final re-run) | **NO** |
-| L no-LC median (ms) | `50–61` | `47–54` | numbers.md §16.3 (first final re-run) | **NO** |
-| L no-LC wall (s) | `7276–9583` | `9868–11175` | numbers.md §16.3 (first final re-run) | **NO** |
+| L LC median (ms) | `35–41` | `35–41` | numbers.md §16.3 (FGO-only re-run; restated 2026-10-11) | yes |
+| L no-LC median (ms) | `50–61` | `50–61` | numbers.md §16.3 (FGO-only re-run; restated 2026-10-11) | yes |
+| L no-LC wall (s) | `7276–9583` | `7276–9583` | numbers.md §16.3 (FGO-only re-run; restated 2026-10-11) | yes |
 
 ### F14: H: hold error and tag-loss drift per loss duration, EKF3 / UKF / FGO, shadow and flying
 
@@ -173,6 +172,8 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 | S2v2 hold mean / max (mm) | `6.1–7.4 / 17–21` | `6.1–7.4 / 17–21` | METHODOLOGY S2 RE-FLY | yes |
 | S3v2 hold mean / max (mm) | `8.1–9.0 / 18–28` | `8.1–9.0 / 18–28` | METHODOLOGY S3 RE-FLY | yes |
 | lockouts in any loss | `0` | `0` | numbers.md §17 (P-H7 PASS); METHODOLOGY S2v2/S3v2 | yes |
+| H comparative on S2v2/S3v2 (H-H2; P-H3; H-H4 15 s; H-H4 5 s) | `FAIL; FAIL; FAIL; FAIL` | `FAIL; FAIL; FAIL; FAIL` | numbers.md §17.2 (computed 2026-10-11, PENDING ruling) | yes |
+| S2v2 / S3v2 run-mean hold error (mm) | `6.4–7.1 / 8.3–8.6` | `6.4–7.1 / 8.3–8.6` | numbers.md §17.2 table | yes |
 
 ### F15a: Closed-loop summary (1/2): corridor sets, every flown build
 
@@ -180,7 +181,8 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 |---|---|---|---|---|
 | EKF3 half contact MISS | `MISS` | `MISS` | numbers.md §15 (D21) | yes |
 | UKF half orig heading pass | `2/3` | `2/3` | numbers.md §15 (r3 B4) | yes |
-| UKF v2 / FGO v3 heading pass | `3/3 / 3/3` | `3/3 / 3/3` | METHODOLOGY re-flight sections | yes |
+| UKF v2 / FGO v3 heading pass | `3/3 / 3/3` | `3/3 / 3/3` | numbers.md §15 (re-flown sets) | yes |
+| FGO v2 heading pass (ablation) | `3/3` | `3/3` | numbers.md §15 (re-flown sets) | yes |
 | FGO hard / robust heading pass (D28) | `3/3 / 3/3` | `3/3 / 3/3` | numbers.md §15 (D28) | yes |
 | EKF3 full C++ / half heading pass | `3/3 / 3/3` | `3/3 / 3/3` | numbers.md §15 | yes |
 
@@ -318,14 +320,14 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 ### F13: L: per-update solve time and wall time (diagnostic)
 
 - **Kind:** DIAGNOSTIC (not a pre-registered metric)
-- **Caption:** Per-replay cost of the keyframe FGO (30 Hz keyframes, retained history), T_A_r1–r3, from the CURRENT outputs (FGO-only re-run, 2026-10-10): median solve time LC 35.3–41.3 ms, no-LC 50.2–60.6 ms; no-LC p99 1096–1742 ms; no-LC wall time 7276–9583 s. numbers.md §16.3 quotes the FIRST final re-run (LC 36–41, no-LC 47–54 ms, wall 9,868–11,175 s); the FGO-only re-run values differ (FLAGGED, diagnostic only; results unaffected). Workstation Python with parallel jobs: says nothing about onboard feasibility. Replaces the per-1000-keyframe curve, whose logs pre-date the final re-runs.
+- **Caption:** Per-replay cost of the keyframe FGO (30 Hz keyframes, retained history), T_A_r1–r3, from the CURRENT outputs (FGO-only re-run, 2026-10-10): median solve time LC 35.3–41.3 ms, no-LC 50.2–60.6 ms; no-LC p99 1096–1742 ms; no-LC wall time 7276–9583 s (numbers.md §16.3, restated 2026-10-11; the first final re-run's LC 36–41, no-LC 47–54 ms, wall 9,868–11,175 s are superseded). Diagnostic only; results unaffected. Workstation Python with six parallel jobs: says nothing about onboard feasibility. Replaces the per-1000-keyframe curve, whose logs pre-date the final re-runs.
 - **Inputs:** ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json (mtime 2026-10-10 19:00–21:35)
 - **Replaces:** plots/supervisor_2026-10-08/fig15_L_compute_cost.png (NOT REGENERATED: its progress logs eval/results/expL/logs/ pre-date the final re-runs)
 
 ### F14: H: hold error and tag-loss drift per loss duration, EKF3 / UKF / FGO, shadow and flying
 
 - **Kind:** DESCRIPTIVE (per-flight values; pre-registered bands all PASS)
-- **Caption:** Bottom: drift at re-acquisition after each tag loss (5, 15, 30 s in the hover; ~7 s during a move), per flight, in mm, EFFECTIVE metric (from the last fix to the first returning fix; numbers.md §17's metric). Filled = the estimator flying the vehicle: EKF3 in S1 (near spawn, r1–r3) and the S1 far-spawn re-fly (r1, r2, r3b); the UKF port in S2v2 (jitter-corrected); the C++ FGO in S3v2 (noise fix + gated yaw cap; OLD priors). Open = shadow: the UKF and FGO replayed offline on the S1 flights (final re-runs), and EKF3 running passively on the S2v2/S3v2 flights. Faint = earlier builds (S2 old UKF port with jitter; S3 FGO noise fix only), shown as ablations. Every value is inside its pre-registered band (UKF ≤ 100 / 200 / 400 / 300 mm, FGO ≤ 50 / 100 / 200 / 150 mm); no lockout (P-H7 PASS). The shadows now drift at EKF3's scale: "there is no gap between the shadow and the flying estimators" (ruling 6; claim 26). Top: vehicle hold error (window means). The comparative criteria H-H2 / P-H3 / H-H4 were adjudicated on S2/S3 (old builds) and have NOT been restated on S2v2/S3v2; the per-flight values are shown without a verdict. Each estimator flew its own flights: pairing is by run index, not trajectory. METHODOLOGY quotes S2v2/S3v2 with the end-of-loss metric; the two differ by ≤ 5 mm (index cross-check).
+- **Caption:** Bottom: drift at re-acquisition after each tag loss (5, 15, 30 s in the hover; ~7 s during a move), per flight, in mm, EFFECTIVE metric (from the last fix to the first returning fix; numbers.md §17's metric). Filled = the estimator flying the vehicle: EKF3 in S1 (near spawn, r1–r3) and the S1 far-spawn re-fly (r1, r2, r3b); the UKF port in S2v2 (jitter-corrected); the C++ FGO in S3v2 (noise fix + gated yaw cap; OLD priors). Open = shadow: the UKF and FGO replayed offline on the S1 flights (final re-runs), and EKF3 running passively on the S2v2/S3v2 flights. Faint = earlier builds (S2 old UKF port with jitter; S3 FGO noise fix only), shown as ablations. Every value is inside its pre-registered band (UKF ≤ 100 / 200 / 400 / 300 mm, FGO ≤ 50 / 100 / 200 / 150 mm); no lockout (P-H7 PASS). The shadows now drift at EKF3's scale: "there is no gap between the shadow and the flying estimators" (ruling 6; claim 26). Top: vehicle hold error (window means). The comparative criteria H-H2 / P-H3 / H-H4 were adjudicated on S2/S3 (old builds, all FAIL); computed on S2v2/S3v2 on 2026-10-11 (numbers.md §17.2) they give the SAME verdicts (all FAIL), PENDING a user ruling. Each estimator flew its own flights: pairing is by run index, not trajectory. METHODOLOGY quotes S2v2/S3v2 with the end-of-loss metric; the two differ by ≤ 5 mm (index cross-check).
 - **Inputs:** eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s2_r*.json, s3v2_r*.json, s3_r*.json (losses[*].<est>.effective.drift_m, drift_end_m; hold_windows_vehicle)
 - **Replaces:** — (new)
 
@@ -339,7 +341,7 @@ PDF: `docs/thesis/final_results_pack.pdf`. Figures: `plots/final_results_pack/`.
 ### F15b: Closed-loop summary (2/2): H hold sets and the safety tests
 
 - **Kind:** SUMMARY (pre-registered criteria)
-- **Caption:** Verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded; H-H2, P-H3 and H-H4 FAIL as adjudicated on S2/S3 (old builds) and are NOT restated on S2v2/S3v2. H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning fix (negative for the UKF: event-time stamping) and lockouts, computed from the H score files. Safety: the final run of each test and its history. UKF (b) fails S-A2 as worded (the FC declared position lost 5.75 s after the kill against a 5.5 s bound; 0.71 s of relay drain after the SIGKILL; the watcher had already commanded the landing). The EKF3 reference drifted 1.40 m against a prediction of ≤ 0.5 m (the prediction was wrong; no breach). The FGO safety re-tests flew the final FGO with the OLD priors.
+- **Caption:** Verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded; H-H2, P-H3 and H-H4 FAIL as adjudicated on S2/S3 (old builds); computed on S2v2/S3v2 on 2026-10-11 they give the same verdicts (numbers.md §17.2, PENDING a user ruling). H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning fix (negative for the UKF: event-time stamping) and lockouts, computed from the H score files. Safety: the final run of each test and its history. UKF (b) fails S-A2 as worded (the FC declared position lost 5.75 s after the kill against a 5.5 s bound; 0.71 s of relay drain after the SIGKILL; the watcher had already commanded the landing). The EKF3 reference drifted 1.40 m against a prediction of ≤ 0.5 m (the prediction was wrong; no breach). The FGO safety re-tests flew the final FGO with the OLD priors.
 - **Inputs:** eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json; expH/safety_*.json
 - **Replaces:** — (new)
 
