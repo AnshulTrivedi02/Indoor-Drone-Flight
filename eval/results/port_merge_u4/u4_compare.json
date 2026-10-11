@@ -1,0 +1,66 @@
+{
+ "dsn_tex_r1": {
+  "rows_paired": 8581,
+  "rows_reg": 8581,
+  "rows_low": 8581,
+  "first_row_us": [
+   5735000,
+   5735000
+  ],
+  "t_airborne_us": 28575000,
+  "ground_h_reg_m": [
+   0.2,
+   0.202
+  ],
+  "ground_h_low_m": [
+   0.22,
+   0.242
+  ],
+  "ground_SS_low_equal_reg": true,
+  "ground_healthy_low": [
+   "1"
+  ],
+  "Ra_at_airborne_reg_low": [
+   "652",
+   "100"
+  ],
+  "max_dPD_m_whole": 0.165,
+  "max_dH_m_whole": 1.5671,
+  "max_dYaw_deg_whole_wrapped": 1.194,
+  "max_dPD_m_from_air+30s": 0.0343,
+  "max_dH_m_from_air+30s": 1.5671,
+  "first_identical_row_after_airborne_us": null
+ },
+ "cl_ukf_b_tex_r1_half_v2": {
+  "rows_paired": 8526,
+  "rows_reg": 8526,
+  "rows_low": 8526,
+  "first_row_us": [
+   5692000,
+   5692000
+  ],
+  "t_airborne_us": 28572000,
+  "ground_h_reg_m": [
+   0.2,
+   0.2002
+  ],
+  "ground_h_low_m": [
+   0.22,
+   0.2227
+  ],
+  "ground_SS_low_equal_reg": true,
+  "ground_healthy_low": [
+   "1"
+  ],
+  "Ra_at_airborne_reg_low": [
+   "652",
+   "99"
+  ],
+  "max_dPD_m_whole": 0.0982,
+  "max_dH_m_whole": 0.0099,
+  "max_dYaw_deg_whole_wrapped": 0.001,
+  "max_dPD_m_from_air+30s": 0.0382,
+  "max_dH_m_from_air+30s": 0.0086,
+  "first_identical_row_after_airborne_us": null
+ }
+}

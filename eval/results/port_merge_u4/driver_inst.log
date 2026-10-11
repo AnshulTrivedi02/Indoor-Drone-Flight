@@ -1,0 +1,51 @@
+dsn_tex_r1 derotrofh:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 derotrofh ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT dsn_tex_r1 derotrofh ukf_inputs.csv IDENTICAL to old installed Replay
+dsn_tex_r1 new:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 new ukf_shadow.csv IDENTICAL to tested scratch build
+RESULT dsn_tex_r1 new ukf_inputs.csv IDENTICAL to tested scratch build
+RESULT dsn_tex_r1 new ukf_derot.csv IDENTICAL to tested scratch build
+RESULT dsn_tex_r1 new ukf_geometry.csv IDENTICAL to tested scratch build
+RESULT dsn_tex_r1 new ukf_shadow.csv differs from old installed Replay
+RESULT dsn_tex_r1 new ukf_inputs.csv IDENTICAL to old installed Replay
+fwdplainc_tex_r1 derotrofh:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 derotrofh ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT fwdplainc_tex_r1 derotrofh ukf_inputs.csv IDENTICAL to old installed Replay
+fwdplainc_tex_r1 new:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 new ukf_shadow.csv IDENTICAL to tested scratch build
+RESULT fwdplainc_tex_r1 new ukf_inputs.csv IDENTICAL to tested scratch build
+RESULT fwdplainc_tex_r1 new ukf_derot.csv IDENTICAL to tested scratch build
+RESULT fwdplainc_tex_r1 new ukf_geometry.csv IDENTICAL to tested scratch build
+RESULT fwdplainc_tex_r1 new ukf_shadow.csv differs from old installed Replay
+RESULT fwdplainc_tex_r1 new ukf_inputs.csv IDENTICAL to old installed Replay
+cl_a_tex_half derotrofh:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half derotrofh ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT cl_a_tex_half derotrofh ukf_inputs.csv IDENTICAL to old installed Replay
+cl_a_tex_half new:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half new ukf_shadow.csv IDENTICAL to tested scratch build
+RESULT cl_a_tex_half new ukf_inputs.csv IDENTICAL to tested scratch build
+RESULT cl_a_tex_half new ukf_derot.csv IDENTICAL to tested scratch build
+RESULT cl_a_tex_half new ukf_geometry.csv IDENTICAL to tested scratch build
+RESULT cl_a_tex_half new ukf_shadow.csv differs from old installed Replay
+RESULT cl_a_tex_half new ukf_inputs.csv IDENTICAL to old installed Replay
+cl_ukf_b_tex_r1_half_v2 derotrofh:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 derotrofh ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT cl_ukf_b_tex_r1_half_v2 derotrofh ukf_inputs.csv IDENTICAL to old installed Replay
+cl_ukf_b_tex_r1_half_v2 new:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_shadow.csv IDENTICAL to tested scratch build
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_inputs.csv IDENTICAL to tested scratch build
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_derot.csv IDENTICAL to tested scratch build
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_geometry.csv IDENTICAL to tested scratch build
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT cl_ukf_b_tex_r1_half_v2 new ukf_inputs.csv IDENTICAL to old installed Replay
+H_s2v2_r1 derotrofh:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 derotrofh ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT H_s2v2_r1 derotrofh ukf_inputs.csv IDENTICAL to old installed Replay
+H_s2v2_r1 new:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 new ukf_shadow.csv IDENTICAL to tested scratch build
+RESULT H_s2v2_r1 new ukf_inputs.csv IDENTICAL to tested scratch build
+RESULT H_s2v2_r1 new ukf_derot.csv IDENTICAL to tested scratch build
+RESULT H_s2v2_r1 new ukf_geometry.csv IDENTICAL to tested scratch build
+RESULT H_s2v2_r1 new ukf_shadow.csv IDENTICAL to old installed Replay
+RESULT H_s2v2_r1 new ukf_inputs.csv IDENTICAL to old installed Replay
+DRIVER_DONE

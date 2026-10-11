@@ -1,0 +1,19 @@
+075d7671d5e59f22e9d3e95e519fb791  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/apu4/build/sitl/examples/UKF_Equiv
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+RESULT cfi60_A state IDENTICAL
+RESULT cfi60_A pdiag IDENTICAL
+RESULT cfi60_C state IDENTICAL
+RESULT cfi60_C pdiag IDENTICAL
+RESULT cfi10_B state IDENTICAL
+RESULT cfi10_B pdiag IDENTICAL
+RESULT dsn_tex_r2 state IDENTICAL
+RESULT dsn_tex_r2_q state IDENTICAL
+RESULT h_s1_r1 state IDENTICAL
+RESULT h_s1_r1_q state IDENTICAL
+EQUIV_DONE

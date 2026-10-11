@@ -1,0 +1,40 @@
+dsn_tex_r1 reg:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 reg ukf_shadow.csv IDENTICAL to installed Replay
+RESULT dsn_tex_r1 reg ukf_inputs.csv IDENTICAL to installed Replay
+RESULT dsn_tex_r1 reg ukf_derot.csv IDENTICAL to installed Replay
+RESULT dsn_tex_r1 reg ukf_geometry.csv IDENTICAL to installed Replay
+fwdplainc_tex_r1 reg:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 reg ukf_shadow.csv IDENTICAL to installed Replay
+RESULT fwdplainc_tex_r1 reg ukf_inputs.csv IDENTICAL to installed Replay
+RESULT fwdplainc_tex_r1 reg ukf_derot.csv IDENTICAL to installed Replay
+RESULT fwdplainc_tex_r1 reg ukf_geometry.csv IDENTICAL to installed Replay
+cl_a_tex_half reg:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half reg ukf_shadow.csv IDENTICAL to installed Replay
+RESULT cl_a_tex_half reg ukf_inputs.csv IDENTICAL to installed Replay
+RESULT cl_a_tex_half reg ukf_derot.csv IDENTICAL to installed Replay
+RESULT cl_a_tex_half reg ukf_geometry.csv IDENTICAL to installed Replay
+cl_ukf_b_tex_r1_half_v2 reg:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 reg ukf_shadow.csv IDENTICAL to installed Replay
+RESULT cl_ukf_b_tex_r1_half_v2 reg ukf_inputs.csv IDENTICAL to installed Replay
+RESULT cl_ukf_b_tex_r1_half_v2 reg ukf_derot.csv IDENTICAL to installed Replay
+RESULT cl_ukf_b_tex_r1_half_v2 reg ukf_geometry.csv IDENTICAL to installed Replay
+H_s2v2_r1 reg:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 reg ukf_shadow.csv IDENTICAL to installed Replay
+RESULT H_s2v2_r1 reg ukf_inputs.csv IDENTICAL to installed Replay
+RESULT H_s2v2_r1 reg ukf_derot.csv IDENTICAL to installed Replay
+RESULT H_s2v2_r1 reg ukf_geometry.csv IDENTICAL to installed Replay
+dsn_tex_r1 low:     8582 ukf_shadow.csv   197071 ukf_inputs.csv   205653 total 
+u4_gndclr_first,5292,rng_inst,0,gnd_rng,0.1,lever_z,0.12
+resolved_at_ms,5793
+u4_init_from_gndclr,5793,gnd_rng,0.1,lever_z,0.12,h,0.22
+TOGCS: UKF: rangefinder below minimum on ground; using GNDCLR 0.100 m
+TOGCS: UKF geometry: flow delay 10 ms (log_parm), horizon 60 ms, rng1 0.05-40.00 m (log_parm)
+TOGCS: UKF shadow initialised: roll 0.0 pitch -0.0 h 0.22
+cl_ukf_b_tex_r1_half_v2 low:     8527 ukf_shadow.csv   202992 ukf_inputs.csv   211519 total 
+u4_gndclr_first,5249,rng_inst,0,gnd_rng,0.1,lever_z,0.12
+resolved_at_ms,5750
+u4_init_from_gndclr,5750,gnd_rng,0.1,lever_z,0.12,h,0.22
+TOGCS: UKF: rangefinder below minimum on ground; using GNDCLR 0.100 m
+TOGCS: UKF geometry: flow delay 10 ms (log_parm), horizon 60 ms, rng1 0.05-40.00 m (log_parm)
+TOGCS: UKF shadow initialised: roll 0.0 pitch -0.0 h 0.22
+DRIVER_DONE

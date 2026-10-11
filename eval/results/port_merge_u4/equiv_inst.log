@@ -1,0 +1,19 @@
+180cf2d81cc004b8212b5bc447eb1113  /home/makerspace/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+RESULT cfi60_A state IDENTICAL
+RESULT cfi60_A pdiag IDENTICAL
+RESULT cfi60_C state IDENTICAL
+RESULT cfi60_C pdiag IDENTICAL
+RESULT cfi10_B state IDENTICAL
+RESULT cfi10_B pdiag IDENTICAL
+RESULT dsn_tex_r2 state IDENTICAL
+RESULT dsn_tex_r2_q state IDENTICAL
+RESULT h_s1_r1 state IDENTICAL
+RESULT h_s1_r1_q state IDENTICAL
+EQUIV_DONE

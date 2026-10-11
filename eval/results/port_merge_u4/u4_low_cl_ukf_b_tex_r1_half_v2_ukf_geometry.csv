@@ -1,0 +1,9 @@
+u4_gndclr_first,5249,rng_inst,0,gnd_rng,0.1,lever_z,0.12
+flow_lever,5557,0,0,0.25
+mode,log
+resolved_at_ms,5750
+flow_delay_ms,10,log_parm
+horizon_ms,60,hgt_delay,60,log_parm,bcn_delay,50,log_parm
+rng1_min_max,0.05,40,log_parm
+u4_init_from_gndclr,5750,gnd_rng,0.1,lever_z,0.12,h,0.22
+range_lever,28394,0,0,0.12
