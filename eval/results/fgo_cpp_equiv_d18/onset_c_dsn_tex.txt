@@ -1,0 +1,6 @@
+dsn_tex_r1_baseline: gate checks 2039; decision mismatches 16
+first mismatch at check 1393, keyframe 6970, t 241.117 s: trace cpp 0.0400063654 (fired 1) fe 0.0399997313 (fired 0); rel trace diff there 0.000166; max rel before 0.000221
+before it (rows < 6970): max |dp| 0.008562 mm, max |dyaw| 1.09e-05 deg
+after it: max |dp| 1.95 mm, max |dyaw| 0.00244 deg
+mismatch times (s): 241.12 241.28 253.95 254.12 266.95 267.12 280.12 280.28 293.45 293.62 306.78 306.95 320.95 321.12 335.45 335.62
+whole run: max |dp| 1.95 mm, max |dyaw| 0.00244 deg

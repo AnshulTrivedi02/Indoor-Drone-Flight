@@ -1,0 +1,170 @@
+=== Trial 'H_safety_ukf_a_v3' ===
+World: room_wall_tag_far  Velocity: 0.5 m/s  Altitude: 1.5 m  Duration: 300 sim-s
+Output: /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3
+
+
+--- Launching Gazebo (headless) ---
+Waiting for: Gazebo model spawned (/downward_lidar/range on the gz bus) (cap 60s)...
+  ready after 5s
+
+--- Launching ArduPilot SITL ---
+Waiting for: SITL MAVLink port open (tcp 5760) (cap 60s)...
+  ready after 1s
+
+--- Launching MAVProxy (relay for the bridge scripts' UDP ports) ---
+Waiting for: MAVProxy relaying (vehicle detected) (cap 240s)...
+  ready after 1s
+
+--- Launching ROS2 bridge + nodes ---
+Waiting for: /ground_truth/pose publishing (cap 60s)...
+  ready after 1s
+Waiting for: /downward_lidar/range on ROS2 (cap 60s)...
+  ready after 1s
+Waiting for: /attitude/angular_rates publishing (cap 60s)...
+  ready after 3s
+Waiting for: /optical_flow/measurement publishing (cap 60s)...
+  ready after 4s
+Waiting for: /ekf/pose publishing (cap 60s)...
+  ready after 2s
+Waiting for: /imu/data_raw publishing (cap 60s)...
+  ready after 2s
+Waiting for: tag_bridge_fwd linked to SITL (heartbeat) (cap 60s)...
+  ready after 2s
+
+--- Full stack up ---
+
+--- Starting bag recording ---
+Recording (pid 1551008) -> /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3/bag
+
+--- Flying trial ---
+[fly_trial] Connecting to SITL on udp:127.0.0.1:14550 ...
+[fly_trial] Heartbeat received from system 1 component 0
+[fly_trial] Verifying baseline params...
+[fly_trial] Mismatched params (eeprom persistence gotcha): {'AHRS_UKF_TFAIL': 0.0} - fixing and rebooting...
+[fly_trial] Connecting to SITL on udp:127.0.0.1:14550 ...
+[fly_trial] Heartbeat received from system 1 component 0
+[fly_trial] Params corrected and verified after reboot.
+[fly_trial] Safety watcher confirmed before arming: watcher ok (age 0.6 s)
+[fly_trial] PREARM ANCHOR ok: EKF3,UKF anchored; VISP 109 and growing; bridge port 49473 = SITL SERIAL1; log 00000091.BIN
+[fly_trial] Waiting for vehicle to become armable...
+[fly_trial] Mode is 0, not GUIDED: re-asserting GUIDED before arming
+[fly_trial] Armed.
+[fly_trial] Commanding takeoff to 1.50 m, waiting for >= 1.35 m (measured, wall-clock cap 120s)...
+[fly_trial] Reached 1.36 m after 6.7s wall-clock.
+[fly_trial] HPROFILE: 5 segments from /home/makerspace/thesis_ws/.claude/worktrees/agent-a16391ff0a1144fd8/batches/expH/safety2_ukf_a_profile.json, start N -3.93 E -0.02, yaw 0.3 deg, alt 1.50 m
+[fly_trial] HSEG 0 wait_fix START t_sim=51.270
+[fly_trial] WAIT_FIX ok at N -3.77 E -0.03 t_sim=53.315
+[fly_trial] HSEG 1 move START t_sim=53.348
+[fly_trial] HSEG 2 hold START t_sim=59.255
+[fly_trial] HSEG 3 param START t_sim=79.321
+[fly_trial] PARAM AHRS_UKF_TFAIL=0.001 t_sim=79.353
+[fly_trial] HSEG 4 hold START t_sim=79.386
+[fly_trial] HPROFILE END t_sim=119.449
+[fly_trial] Stopping (holding zero velocity for 2.0s sim time)...
+[fly_trial] Landing (wall-clock cap 180s)...
+[fly_trial] Disarmed - landed.
+[fly_trial] Trial flight complete.
+
+--- Stopping recording ---
+Copied ArduPilot log: 00000091.BIN -> ardupilot.bin
+
+=== Trial 'H_safety_ukf_a_v3' complete ===
+Bag:      /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3/bag
+ArduPilot log: /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3/ardupilot.bin
+Metadata: /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3/metadata.yaml
+Per-process logs: /home/makerspace/thesis_data/trials/H_safety_ukf_a_v3/logs/
+
+Evaluate with: ./evaluate_trial.sh H_safety_ukf_a_v3
+
+=== Cleaning up (exit code 0) ===
+Cleanup complete.
+run_trial exit 0; watcher exit 0
+max_abs_x=0.5572
+min_clearance_to_9.58=9.0228
+max_abs_x_at t=87.748 x=0.557 y=2.190 z=0.195
+run_trial exit 0; watcher exit 0
+max_abs_x=0.5572
+min_clearance_to_9.58=9.0228
+max_abs_x_at t=87.748 x=0.557 y=2.190 z=0.195
+ukfrefly: H_safety_ukf_a_v3 flown
+=== Trial 'H_safety_ukf_b_v3' ===
+World: room_wall_tag_far  Velocity: 0.5 m/s  Altitude: 1.5 m  Duration: 300 sim-s
+Output: /home/makerspace/thesis_data/trials/H_safety_ukf_b_v3
+
+
+--- Launching Gazebo (headless) ---
+Waiting for: Gazebo model spawned (/downward_lidar/range on the gz bus) (cap 60s)...
+  ready after 5s
+
+--- Launching ArduPilot SITL ---
+Waiting for: SITL MAVLink port open (tcp 5760) (cap 60s)...
+  ready after 1s
+
+--- Launching MAVProxy (relay for the bridge scripts' UDP ports) ---
+Waiting for: MAVProxy relaying (vehicle detected) (cap 240s)...
+  ready after 1s
+
+--- Launching ROS2 bridge + nodes ---
+Waiting for: /ground_truth/pose publishing (cap 60s)...
+  ready after 1s
+Waiting for: /downward_lidar/range on ROS2 (cap 60s)...
+  ready after 1s
+Waiting for: /attitude/angular_rates publishing (cap 60s)...
+  ready after 0s
+Waiting for: /optical_flow/measurement publishing (cap 60s)...
+  ready after 4s
+Waiting for: /ekf/pose publishing (cap 60s)...
+  ready after 2s
+Waiting for: /imu/data_raw publishing (cap 60s)...
+  ready after 3s
+Waiting for: tag_bridge_fwd linked to SITL (heartbeat) (cap 60s)...
+  ready after 2s
+
+--- Full stack up ---
+
+--- Starting bag recording ---
+Recording (pid 1552321) -> /home/makerspace/thesis_data/trials/H_safety_ukf_b_v3/bag
+
+--- Flying trial ---
+[fly_trial] Connecting to SITL on udp:127.0.0.1:14550 ...
+[fly_trial] Heartbeat received from system 1 component 0
+[fly_trial] Verifying baseline params...
+[fly_trial] Mismatched params (eeprom persistence gotcha): {'AHRS_UKF_TFAIL': 0.0} - fixing and rebooting...
+[fly_trial] Connecting to SITL on udp:127.0.0.1:14550 ...
+[fly_trial] Heartbeat received from system 1 component 0
+[fly_trial] Params corrected and verified after reboot.
+[fly_trial] Safety watcher confirmed before arming: watcher ok (age 0.8 s)
+[fly_trial] PREARM ANCHOR ok: EKF3,UKF anchored; VISP 99 and growing; bridge port 41448 = SITL SERIAL1; log 00000093.BIN
+[fly_trial] Waiting for vehicle to become armable...
+[fly_trial] Mode is 0, not GUIDED: re-asserting GUIDED before arming
+[fly_trial] Mode is 0, not GUIDED: re-asserting GUIDED before arming
+[fly_trial] Armed.
+[fly_trial] Commanding takeoff to 1.50 m, waiting for >= 1.35 m (measured, wall-clock cap 120s)...
+[fly_trial] Reached 1.37 m after 6.8s wall-clock.
+[fly_trial] HPROFILE: 5 segments from /home/makerspace/thesis_ws/.claude/worktrees/agent-a16391ff0a1144fd8/batches/expH/safety2_ukf_b_profile.json, start N -3.90 E -0.03, yaw 0.3 deg, alt 1.50 m
+[fly_trial] HSEG 0 wait_fix START t_sim=48.335
+[fly_trial] WAIT_FIX ok at N -3.84 E -0.02 t_sim=50.380
+[fly_trial] HSEG 1 move START t_sim=50.415
+[fly_trial] HSEG 2 hold START t_sim=56.685
+[fly_trial] HSEG 3 kill START t_sim=76.748
+[fly_trial] KILL '[v]env-tags/bin/python .*tag_bridge_fwd' rc=0 t_sim=76.780
+[fly_trial] KILL '[t]hesis_ws/flow_bridge.py' rc=0 t_sim=76.813
+[fly_trial] HSEG 4 hold START t_sim=76.848
+[fly_trial] FAILED: safety watcher lost in flight: watcher not confirming (box=1 bridge=0); landing
+[fly_trial] Landing (wall-clock cap 180s)...
+[fly_trial] Disarmed - landed.
+
+=== Cleaning up (exit code 1) ===
+Stopping bag recorder (pid 1552321)...
+Cleanup complete.
+run_trial exit 1; watcher exit 0
+max_abs_x=1.0058
+min_clearance_to_9.58=8.5742
+max_abs_x_at t=86.132 x=-1.006 y=2.876 z=0.195
+ardupilot.bin copied from /home/makerspace/ardupilot_ukf/ArduCopter/logs/00000093.BIN (flight stopped before run_trial's own copy)
+run_trial exit 1; watcher exit 0
+max_abs_x=1.0058
+min_clearance_to_9.58=8.5742
+max_abs_x_at t=86.132 x=-1.006 y=2.876 z=0.195
+ardupilot.bin copied from /home/makerspace/ardupilot_ukf/ArduCopter/logs/00000093.BIN (flight stopped before run_trial's own copy)
+ukfrefly: H_safety_ukf_b_v3 flown

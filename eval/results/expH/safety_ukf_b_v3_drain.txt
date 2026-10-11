@@ -1,0 +1,2 @@
+H_safety_ukf_b_v2: kill 58.638 s; last OF (qual>0) 59.384 s (drain +0.75 s); 'position lost' 64.386 s = kill +5.75 s = last OF +5.00 s
+H_safety_ukf_b_v3: kill 76.780 s; last OF (qual>0) 77.470 s (drain +0.69 s); 'position lost' 82.474 s = kill +5.69 s = last OF +5.00 s

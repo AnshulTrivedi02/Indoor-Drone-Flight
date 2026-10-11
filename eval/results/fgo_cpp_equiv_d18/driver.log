@@ -1,0 +1,49 @@
+[driver] 13:31:17 START build
+[driver] 13:32:03 END build rc=0
+[driver] 13:32:03 START probe
+[driver] 13:32:04 END probe rc=0
+[driver] 13:32:04 START py_dsn_tex
+[driver] 13:34:59 END py_dsn_tex rc=0
+[driver] 13:34:59 START cpp_dsn_tex
+[driver] 13:35:06 END cpp_dsn_tex rc=0
+[driver] 13:35:06 START fe_dsn_tex
+[driver] 13:35:12 END fe_dsn_tex rc=0
+[driver] 13:35:12 START L1
+[driver] 13:35:38 END L1 rc=0
+[driver] 13:35:38 START py_fwdc
+[driver] 13:40:14 END py_fwdc rc=0
+[driver] 13:40:14 START cpp_fwdc
+[driver] 13:40:23 END cpp_fwdc rc=0
+[driver] 13:40:23 START fe_fwdc
+[driver] 13:40:33 END fe_fwdc rc=0
+[driver] 13:40:33 START L2
+[driver] 13:41:01 END L2 rc=0
+[driver] 13:41:01 START py_T_A_r1
+[driver] 13:57:27 END py_T_A_r1 rc=0
+[driver] 13:57:27 START cpp_T_A_r1
+[driver] 13:57:34 END cpp_T_A_r1 rc=0
+[driver] 13:57:34 START fe_T_A_r1
+[driver] 13:57:41 END fe_T_A_r1 rc=0
+[driver] 13:57:41 START py_T_D_r1
+[driver] 14:15:29 END py_T_D_r1 rc=0
+[driver] 14:15:29 START cpp_T_D_r1
+[driver] 14:15:36 END cpp_T_D_r1 rc=0
+[driver] 14:15:36 START fe_T_D_r1
+[driver] 14:15:44 END fe_T_D_r1 rc=0
+[driver] 14:15:44 START py_dsn_blank_r1
+[driver] 14:16:16 END py_dsn_blank_r1 rc=0
+[driver] 14:16:16 START cpp_dsn_blank_r1
+[driver] 14:16:22 END cpp_dsn_blank_r1 rc=0
+[driver] 14:16:22 START py_dsn_trans_r1
+[driver] 14:18:07 END py_dsn_trans_r1 rc=0
+[driver] 14:18:07 START cpp_dsn_trans_r1
+[driver] 14:18:13 END cpp_dsn_trans_r1 rc=0
+[driver] 14:18:13 START py_O_r1
+[driver] 14:44:09 END py_O_r1 rc=0
+[driver] 14:44:09 START cpp_O_r1
+[driver] 14:44:18 END cpp_O_r1 rc=0
+[driver] 14:44:18 START emu_build
+[driver] 14:44:33 END emu_build rc=0
+[driver] 14:44:33 START emu_dsn_tex_r1
+[driver] 14:44:39 END emu_dsn_tex_r1 rc=0
+[driver] 14:44:39 ALL DONE
