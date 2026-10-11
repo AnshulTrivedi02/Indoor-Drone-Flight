@@ -146,3 +146,15 @@ class GroundProximityFlow {
 };
 
 }  // namespace fgo_cpp
+
+// EQUIVALENCE TESTING ONLY (ruling 2026-10-11 item 1, Band C option (ii)); OFF by default. Only a build configured with
+// -DFGO_CPP_FORCED_GATE=ON (never the installed / flown build) compiles it. The §9.4 yaw-cap gate decision at keyframe
+// kk is then read from a recorded Python gate log (env FGO_CPP_FORCED_GATE_LOG: fgo_core.yawgate_log rows t, k, trace,
+// fired) instead of trace > ATT_VAR_GATE; the trace is still computed and logged. It aborts if the variable is unset or
+// if a check falls on a keyframe that the Python log never checked.
+#ifdef FGO_CPP_FORCED_GATE
+namespace fgo_cpp { bool forced_gate_fire(int kk, double trace); }
+#define FGO_GATE_FIRE(kk, tr) ::fgo_cpp::forced_gate_fire((kk), (tr))
+#else
+#define FGO_GATE_FIRE(kk, tr) ((tr) > ATT_VAR_GATE)
+#endif

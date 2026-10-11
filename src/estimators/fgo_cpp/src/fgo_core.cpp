@@ -127,7 +127,7 @@ void FGO::keyframe(double t, const FlowMeas* flow, const Vector3& omega, double 
   if (cap_on && t - t_yawchk >= YAW_DT) {
     t_yawchk = t;
     const double tr = att_trace_pred(g, km1, kk, Xk, Vk);
-    const bool fire = tr > ATT_VAR_GATE;
+    const bool fire = FGO_GATE_FIRE(kk, tr);
     ++n_yaw_check;
     n_yaw_fire += fire ? 1 : 0;
     yawgate_log.push_back({t, kk, tr, fire});
@@ -348,3 +348,37 @@ Eigen::Vector2d GroundProximityFlow::replace(const Eigen::Vector2d& flow_xy, con
 }
 
 }  // namespace fgo_cpp
+
+#ifdef FGO_CPP_FORCED_GATE   // equivalence testing only: see FGO_GATE_FIRE in fgo_core.h
+#include <cstdio>
+#include <cstdlib>
+#include <unordered_map>
+namespace fgo_cpp {
+bool forced_gate_fire(int kk, double /*trace*/) {
+  static const std::unordered_map<int, bool> dec = [] {
+    const char* path = std::getenv("FGO_CPP_FORCED_GATE_LOG");
+    FILE* f = (path != nullptr && *path != '\0') ? std::fopen(path, "rb") : nullptr;
+    if (f == nullptr) {
+      std::fprintf(stderr, "[forced gate] FGO_CPP_FORCED_GATE_LOG unset or unreadable\n");
+      std::abort();
+    }
+    std::unordered_map<int, bool> m;
+    double r[4];
+    int n_fire = 0;
+    while (std::fread(r, sizeof(double), 4, f) == 4) {
+      m[static_cast<int>(r[1])] = (r[3] == 1.0);
+      n_fire += (r[3] == 1.0) ? 1 : 0;
+    }
+    std::fclose(f);
+    std::fprintf(stderr, "[forced gate] %zu checks, %d fired, from %s\n", m.size(), n_fire, path);
+    return m;
+  }();
+  const auto it = dec.find(kk);
+  if (it == dec.end()) {
+    std::fprintf(stderr, "[forced gate] check at keyframe %d is not in the Python log\n", kk);
+    std::abort();
+  }
+  return it->second;
+}
+}  // namespace fgo_cpp
+#endif
