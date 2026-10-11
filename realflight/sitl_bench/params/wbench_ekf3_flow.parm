@@ -1,0 +1,49 @@
+# SITL ONLY (watcher bench 2c, docs/handovers/2026-10-11_watcher_sitl_bench.md). Loaded after copter.parm and
+# gazebo-iris.parm by realflight/sitl_bench/bench.py, in its OWN SITL working directory. Never used by a thesis flight.
+# EKF3 flies as rung 1 would: no GPS, a downward optical-flow sensor for horizontal velocity, a downward rangefinder
+# for height, compass yaw (amendments A4/A5 below: the thesis camera-flow and Gazebo-LiDAR paths).
+AHRS_EKF_TYPE 3
+EK2_ENABLE 0
+EK3_ENABLE 1
+GPS1_TYPE 0
+SIM_GPS1_ENABLE 0
+EK3_SRC1_POSXY 0
+EK3_SRC1_VELXY 5
+EK3_SRC1_POSZ 2
+EK3_SRC1_VELZ 0
+EK3_SRC1_YAW 1
+EK3_FLOW_USE 1
+# Amendment A5 (smoke run 5): SITL's own flow sensor (FLOW_TYPE 10) drifted ~0.25 m/s in the hover (3 m in 12 s): with
+# the JSON/Gazebo model SITL's height above ground is offset (see A4), and SIM_FLOW scales by it. REPLACED by the
+# thesis's verified camera-flow path (downward camera -> flow_tracker -> flow_bridge -> OPTICAL_FLOW; flow_ekf.parm,
+# FLOW_TYPE 5, loaded before this file) over the textured mat of iris_textured (20 x 20 m, no walls; box +-3 m).
+SIM_FLOW_ENABLE 0
+FLOW_POS_Z 0.25
+FS_EKF_ACTION 1
+FS_THR_ENABLE 3
+LOG_DISARMED 1
+LOG_REPLAY 1
+# links: SERIAL1 = the watcher (through the relay), SERIAL2 = the bench operator, SERIAL3 = the B6b observer watcher
+SERIAL1_PROTOCOL 2
+SERIAL2_PROTOCOL 2
+SERIAL3_PROTOCOL 2
+# mode switch (channel 5): <=1230 GUIDED, 1231-1360 ALT_HOLD, 1361-1490 STABILIZE, 1491-1620 GUIDED (SITL's 1500
+# default), 1621-1749 ALT_HOLD, >=1750 LAND
+FLTMODE_CH 5
+FLTMODE1 4
+FLTMODE2 2
+FLTMODE3 0
+FLTMODE4 4
+FLTMODE5 2
+FLTMODE6 9
+# Amendment A2/A4 (2026-10-11, smoke runs 2-4): the SITL analog rangefinder (gazebo-iris.parm, SIM_SONAR) read 0.0 m
+# on the ground and up to ~1.3 m, then ~1.4 m short of the truth, so EKF3 had no pre-arm relative position ("Need
+# Position Estimate") and later a wrong height (take-off to 3.7 m true). REPLACED by the thesis stack's own verified
+# rangefinder: the Gazebo gpu_lidar via lidar_bridge.py (MAVLink DISTANCE_SENSOR), with lidar_rangefinder.parm loaded
+# before this file (RNGFND1_TYPE 10, MIN 0.05: it reads 0.075 m at rest, as a real downward rangefinder would).
+# Amendment A3 (smoke run 4): at the default 2.5 m/s climb the take-off overshot to 3.0 m true height (EKF3's
+# rangefinder height lags in the fast climb) and breached the box top. Climb at 0.5 m/s. Precision landing (from
+# gazebo-iris.parm, no IR-LOCK here) is switched off: it only adds "PrecLand: Failsafe Measures" messages.
+WPNAV_SPEED_UP 50
+PILOT_SPEED_UP 50
+PLND_ENABLED 0

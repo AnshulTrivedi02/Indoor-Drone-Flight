@@ -1,0 +1,3 @@
+# SITL ONLY (watcher bench 2c): GROUND session only, as real_flights_plan.md 7.2 ("for the bench session only,
+# DISARM_DELAY 0"): an armed, landed vehicle does not auto-disarm during a ground test.
+DISARM_DELAY 0

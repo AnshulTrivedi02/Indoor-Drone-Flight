@@ -86,14 +86,14 @@ after this commit is added as a dated AMENDMENT below; no criterion is edited af
 | **B6b** (motion identity, D1) | Hover under the primary watcher. Observer watcher (system ID 212, `--identity require`). Manoeuvre: a commanded roll of 12° held 0.8 s, then a 90° yaw. Run 1: the observer gets the right body. Run 2: the observer gets a STATIC other body under the right name. | Run 1: observer identity CONFIRMED. Run 2: observer identity FAILED and never confirmed. |
 | **B7a** | All hover sessions: the watcher track's `t_rx_wall − t_mocap`. | median ≤ 50 ms, p99 ≤ 100 ms — on the FORWARDER → WATCHER path only (the true exposure latency is hardware-only). Plus an OBSERVATION: 150 ms added latency is logged and NOT acted on (staleness uses receipt time). |
 | **B7b** | Ground, disarmed: ≥ 10 LAND commands with the watcher's own `FcLink` (system ID 213), each followed by a GUIDED reset; plus every in-flight LAND of B4/B5/B9. | Command send → FC MODE event: **p99 ≤ 0.3 s W** over ≥ 10 commands. |
-| **B8a** | Hover, EKF3. Aiding loss: `SIM_FLOW_ENABLE 0` (the flow sensor stops). Watcher heartbeat and deps untouched; 20 s observed, then flow restored and landed. | Report-only (§7.2). Expected from `H_safety_ekf3_ref`: EKF3 raises NO failsafe and keeps a dead-reckoned position. If the watcher or the flight script acts first, the run is VOID. |
+| **B8a** | Hover, EKF3. Aiding loss (amendment A5): SIGKILL `flow_bridge.py` (the flow stops reaching the FC). Watcher heartbeat and deps untouched; 20 s observed, then flow restored and landed. | Report-only (§7.2). Expected from `H_safety_ekf3_ref`: EKF3 raises NO failsafe and keeps a dead-reckoned position. If the watcher or the flight script acts first, the run is VOID. |
 | **B9a** | Hover, `--dep-loss land`. SIGKILL (1) the `flow_tracker` stub (in-process beacon), (2) the `flow_bridge` stub (proc sidecar). One hover each. | Watcher withdraws within **1.5 s W** of the kill and stops its heartbeat AND LAND within **2.5 s W** of the kill. |
 | **B9b** | Hover, `--dep-loss stop`. SIGKILL the `flow_tracker` stub. | As B9a (stop must mean LAND, G8). |
 | **B9c** | Hover. SIGSTOP (1) the `flow_tracker` stub, (2) the `flow_bridge` stub. | Detected and handled as B9a (same bounds). |
 | **B9-hang** (observation) | Hover. The `flow_tracker` stub keeps beaconing but freezes its progress counter. | No pre-registered bound (§7.2 gives none); expected: withdrawal ~2 s (progress timeout) + tick, then LAND. |
 | **B9d** | = B1b. | As B1b. |
 | **B10a** | Hover in GUIDED. RC mode switch to ALT_HOLD; later STABILIZE briefly, then ALT_HOLD. | FC mode changes within **0.3 s W** of the RC change, AND the flight script's GUIDED setpoints have no effect afterwards (no mode change back; vehicle holds). |
-| **B10b** | Hover in ALT_HOLD (pilot). In turn: (1) watcher SIGKILL; (2) a NEW watcher confirms, then dependency loss (SIGKILL `flow_tracker`); (3) aiding loss (`SIM_FLOW_ENABLE 0`). | GCS failsafe and EKF failsafe make NO mode change; the watcher and the flight script send at most ONE LAND (latched); if that LAND is accepted, the pilot regains ALT_HOLD by one switch move within 1 s, and nothing re-commands LAND afterwards (10 s observed). The flight script used carries an H10 guard (no LAND when the FC is in a pilot mode or already in LAND), labelled an H10 PROTOTYPE; the log also states whether `fly_trial.py`'s as-is `WatcherLost` path would have commanded LAND. |
+| **B10b** | Hover in ALT_HOLD (pilot). In turn: (1) watcher SIGKILL; (2) a NEW watcher confirms, then dependency loss (SIGKILL `flow_tracker`); (3) aiding loss (A5: SIGKILL `flow_bridge.py`). | GCS failsafe and EKF failsafe make NO mode change; the watcher and the flight script send at most ONE LAND (latched); if that LAND is accepted, the pilot regains ALT_HOLD by one switch move within 1 s, and nothing re-commands LAND afterwards (10 s observed). The flight script used carries an H10 guard (no LAND when the FC is in a pilot mode or already in LAND), labelled an H10 PROTOTYPE; the log also states whether `fly_trial.py`'s as-is `WatcherLost` path would have commanded LAND. |
 | **B10c** | Ground, armed (GUIDED, `DISARM_DELAY` 0). `SIM_RC_FAIL 1` (no pulses). | The configured `FS_THR_ENABLE` 3 action: disarm on the ground (a MODEL of a receiver failsafe only). |
 | obs. | Frame-counter reset (in a hover); wrong body ID mid-hover. | Observations: reset → no effect expected; wrong ID mid-hover → the samples are ignored, so stale → LAND within 1.0 s W expected. |
 
@@ -113,7 +113,27 @@ after this commit is added as a dated AMENDMENT below; no criterion is edited af
 
 ### 1.4 Amendments
 
-(none yet)
+All five come from the SMOKE session (`wbench_smoke`, a plumbing check: arm through the gate, 15 s hover, land), before
+any B-test was run. None changes a pass criterion; they change the vehicle set-up so it can hover as rung 1 would.
+
+- **A1 — EKF origin.** EKF3 on flow had no position estimate pre-arm ("Arm: Need Position Estimate"). The operator sends
+  `SET_GPS_GLOBAL_ORIGIN` once at start-up (the pre-registered fallback 1; normal for a non-GPS ArduPilot vehicle).
+- **A2/A4 — rangefinder: the Gazebo LiDAR, not SITL's analog sonar.** The SITL analog rangefinder read 0.0 m on the
+  ground and up to ~1.3 m, then ~1.4 m short of the truth, so EKF3 had no pre-arm position and took off to 3.7 m true
+  (a box-top breach that the watcher caught: BREACH + LAND in the same millisecond, GCS failsafe 2.7 s later). Replaced by
+  the thesis stack's verified rangefinder: the Gazebo `gpu_lidar` → `lidar_bridge.py` → MAVLink `DISTANCE_SENSOR`
+  (`lidar_rangefinder.parm`; 0.075 m at rest, RNGFND1_MIN 0.05, as a real downward rangefinder reads at rest).
+- **A3 — climb rate 0.5 m/s** (`WPNAV_SPEED_UP`, `PILOT_SPEED_UP` 50) and `PLND_ENABLED 0` (gazebo-iris.parm's
+  precision landing, no IR-LOCK here). Not a criterion change.
+- **A5 — flow: the thesis camera-flow path, world `iris_textured`.** SITL's own flow sensor (`FLOW_TYPE 10`) drifted
+  ~0.25 m/s in the hover (3 m in 12 s; SITL's height above ground is offset with this JSON model, see A4, and SIM_FLOW
+  scales by it). Replaced by the verified camera path (downward camera → `flow_tracker` → `flow_bridge.py` →
+  `OPTICAL_FLOW`, `flow_ekf.parm`, `FLOW_POS_Z 0.25`) over the 20 × 20 m textured mat of **`iris_textured`** (no walls;
+  the ±3 m box lies inside the mat). Hover drift in the smoke run: x −0.06…+0.08 m, y −0.00…+0.04 m.
+  - Consequence for B8a: the aiding loss is now "stop the flow bridge" (`flow_bridge.py`, SIGKILL), exactly as §7.2 B8(a)
+    words it, instead of `SIM_FLOW_ENABLE 0`. `flow_bridge.py` is NOT a watched dependency (the stubs are), so B8's
+    isolation holds. For B10b(3) the same.
+  - The takeoff overshoots to ~2.4 m true before the 1.5 m hold (box top 3.0 m).
 
 ## 2. Results
 
