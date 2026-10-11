@@ -3,8 +3,14 @@
 
 docs/minimal_real_flight_plan.md §4.3; handover docs/handovers/2026-10-10_r1_converter.md.
 
-  python3 eval/bin2fgo.py <log.BIN> -o <out.npz> --flow-delay-ms D --range-delay-ms D
+  python3 eval/bin2fgo.py <log.BIN> -o <out.npz> (--delays-json DELAYS.json [--result-flight]
+                                                    | --flow-delay-ms D --range-delay-ms D [--imu-delay-ms D])
                           [--imu-instance 0] [--range-instance auto] [--truth sim2|none] [--t-end S]
+
+CAPTURE DELAYS (2026-10-12; docs/rung1_preregistration.md sec. 6): the per-sensor delays are a CONFIGURATION file
+(--delays-json, load_delays: values, the verification logs they were measured on, their uncertainty, the method) whose
+path, sha256 and status are recorded in the output json. A result flight is converted with --result-flight, which refuses
+anything but a PRE-REGISTERED file. The command-line form stays for SITL checks and is recorded as such.
 
 Writes <out.npz> (arrays) and <out.json> (metadata: every PARM value read, the geometry, delays, measured rates,
 checks, the BIN sha256 and the code commit). fgo_replay.py reads the npz through its OFF-BY-DEFAULT events mode
@@ -50,10 +56,10 @@ RANGE (RRNI, the DAL record of what EKF3 reads, written ONLY ON CHANGE at the fr
   - time = emission - d_range (--range-delay-ms, pre-registered like the flow delay).
 
 GEOMETRY from PARM (never hard-coded): FLOW_POS_X/Y/Z, RNGFND<n>_POS_X/Y/Z, RNGFND<n>_MIN/MAX, RNGFND<n>_ORIENT,
-FLOW_ORIENT_YAW, FLOW_TYPE, scalers, EK3_FLOW_DELAY, RNGFND<n>_GNDCLEAR; ROFH.posOffset and RRNI.pos_offset must agree.
+FLOW_ORIENT_YAW, FLOW_TYPE, scalers, EK3_FLOW_DELAY, RNGFND<n>_GNDCLR; ROFH.posOffset and RRNI.pos_offset must agree.
 
 ARMING from the ARM record (ArmState 1). INIT height: the first Good range sample at or before the levelling end
-(first IMU + 0.5 s) if there is one, else the first Good one before arming, else RRNH.GCl (= RNGFND_GNDCLEAR), which
+(first IMU + 0.5 s) if there is one, else the first Good one before arming, else RRNH.GCl (= RNGFNDn_GNDCLR), which
 covers a sensor that reads out of range on the ground.
 
 TRUTH (diagnostics only, never an input): --truth sim2 (SITL logs) stores SIM2 as ENU (PE, PN, -PD) on the same clock.
@@ -109,18 +115,74 @@ def read_bin(path, imu_inst, want_truth):
             np.array(sim2))
 
 
-def main():
+DELAY_KEYS = {"name", "status", "delays_ms", "uncertainty_ms", "measured_on", "method"}
+DELAY_OPTIONAL = {"notes", "definition", "rates_measured"}
+DELAY_STATUS = ("PRE-REGISTERED", "PROVISIONAL")
+
+
+def load_delays(path):
+    """The per-sensor capture-delay configuration (2026-10-12; docs/rung1_preregistration.md sec. 6), read STRICTLY:
+      {"name", "status": "PRE-REGISTERED" | "PROVISIONAL", "delays_ms": {"flow", "range", "imu"},
+       "uncertainty_ms": {"flow", "range"}, "measured_on": [{"log", "sha256", "sortie"}...], "method",
+       optional "notes", "definition", "rates_measured"}.
+    Every value is a number (no null), unknown keys are refused. A template (status anything else) is refused."""
+    d = json.load(open(path))
+    miss, extra = sorted(DELAY_KEYS - set(d)), sorted(set(d) - DELAY_KEYS - DELAY_OPTIONAL)
+    if miss or extra:
+        raise SystemExit(f"delays {path}: missing keys {miss}, unknown keys {extra}")
+    if d["status"] not in DELAY_STATUS:
+        raise SystemExit(f"delays {path}: status {d['status']!r} is not one of {DELAY_STATUS} (a template is not usable)")
+    if set(d["delays_ms"]) != {"flow", "range", "imu"} or set(d["uncertainty_ms"]) != {"flow", "range"}:
+        raise SystemExit(f"delays {path}: delays_ms needs exactly flow/range/imu, uncertainty_ms exactly flow/range")
+    for k, v in list(d["delays_ms"].items()) + list(d["uncertainty_ms"].items()):
+        if not isinstance(v, (int, float)) or isinstance(v, bool) or not np.isfinite(v):
+            raise SystemExit(f"delays {path}: {k} = {v!r} is not a number")
+    if not isinstance(d["measured_on"], list) or not d["measured_on"]:
+        raise SystemExit(f"delays {path}: measured_on must list the verification logs it was measured on")
+    return d
+
+
+def resolve_delays(a):
+    """(delays_ms {flow, range, imu}, source dict) from EITHER --delays-json OR the three CLI values, never both.
+    --result-flight requires a PRE-REGISTERED --delays-json (the ruling: d_cap is fixed before any scoring)."""
+    cli = [a.flow_delay_ms, a.range_delay_ms]
+    if a.delays_json:
+        if any(v is not None for v in cli) or a.imu_delay_ms is not None:
+            raise SystemExit("give EITHER --delays-json OR --flow-delay-ms/--range-delay-ms[/--imu-delay-ms], not both")
+        d = load_delays(a.delays_json)
+        if a.result_flight and d["status"] != "PRE-REGISTERED":
+            raise SystemExit(f"--result-flight: {a.delays_json} has status {d['status']!r}, not PRE-REGISTERED")
+        if d["status"] != "PRE-REGISTERED":
+            print(f"[warn] capture delays are {d['status']}: not for scoring a result flight")
+        return ({k: float(v) for k, v in d["delays_ms"].items()},
+                {"kind": "delays_json", "path": os.path.abspath(a.delays_json), "sha256": sha256(a.delays_json),
+                 "status": d["status"], "name": d["name"], "uncertainty_ms": d["uncertainty_ms"],
+                 "measured_on": d["measured_on"], "method": d["method"]})
+    if a.result_flight:
+        raise SystemExit("--result-flight needs --delays-json (the pre-registered capture delays)")
+    if any(v is None for v in cli):
+        raise SystemExit("give --delays-json, or both --flow-delay-ms and --range-delay-ms (no silent default)")
+    return ({"flow": float(a.flow_delay_ms), "range": float(a.range_delay_ms),
+             "imu": float(a.imu_delay_ms) if a.imu_delay_ms is not None else 0.0}, {"kind": "command_line"})
+
+
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("bin"); ap.add_argument("-o", "--out", required=True)
-    ap.add_argument("--flow-delay-ms", type=float, required=True,
+    ap.add_argument("--delays-json", default=None,
+                    help="the per-sensor capture-delay configuration (load_delays); replaces the three *-delay-ms flags")
+    ap.add_argument("--result-flight", action="store_true",
+                    help="a result flight: requires --delays-json with status PRE-REGISTERED")
+    ap.add_argument("--flow-delay-ms", type=float, default=None,
                     help="arrival minus END of the flow integration interval (ms); pre-registered (0 is allowed, stated)")
-    ap.add_argument("--range-delay-ms", type=float, required=True, help="range arrival minus measurement time (ms)")
-    ap.add_argument("--imu-delay-ms", type=float, default=0.0)
+    ap.add_argument("--range-delay-ms", type=float, default=None, help="range arrival minus measurement time (ms)")
+    ap.add_argument("--imu-delay-ms", type=float, default=None, help="default 0 (command-line form only)")
     ap.add_argument("--imu-instance", type=int, default=0)
     ap.add_argument("--range-instance", default="auto", help="'auto' = the instance with Orient 25 (down)")
     ap.add_argument("--truth", choices=["sim2", "none"], default="none")
     ap.add_argument("--t-end", type=float, default=None, help="drop everything after this FC time (s); smoke tests only")
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
+    delays, delay_src = resolve_delays(a)
 
     P, frames, risi, of, rofh, rrni, rrnh, arm, dsf_dp, sim2 = read_bin(a.bin, a.imu_instance, a.truth == "sim2")
     chk = {}
@@ -140,14 +202,16 @@ def main():
     per = float(np.median(np.diff(frames)))
     chk["imu_frame_period_ms_median"] = 1e3 * per
     chk["imu_rate_hz"] = 1.0 / per
+    chk["imu_frame_period_ms_mean"] = 1e3 * float(np.mean(np.diff(frames)))       # acceptance band A4 (2026-10-12)
     chk["imu_dvdt_ne_dadt"] = int((np.abs(dvdt - dadt) > 1e-6).sum())
+    chk["imu_dvdt_ne_dadt_gt_0p5ms"] = int((np.abs(dvdt - dadt) > 5e-4).sum())     # acceptance band A3 (2026-10-12)
     chk["imu_dvdt_vs_frame_dt_maxabs_ms"] = float(1e3 * np.max(np.abs(dvdt[1:] - dtf))) if len(dtf) else None
     chk["imu_dvdt_vs_frame_dt_n_gt_0p5ms"] = int((np.abs(dvdt[1:] - dtf) > 5e-4).sum())
     gaps = np.where(dtf > 2.5 * per)[0]
     chk["imu_gaps"] = [(float(t[i]), float(1e3 * dtf[i])) for i in gaps[:50]]
     chk["imu_n_gaps"] = int(len(gaps))
     chk["dsf_dropped_blocks"] = int(dsf_dp)
-    t_imu = t - a.imu_delay_ms * 1e-3
+    t_imu = t - delays["imu"] * 1e-3
     imu_dt = dvdt                 # the INS's own integration interval (DVDT; DADT differs on chk["imu_dvdt_ne_dadt"] samples)
 
     # ---------------- flow ----------------
@@ -166,7 +230,7 @@ def main():
         chk["rofh_equals_of"] = f"count differs: ROFH {len(rofh)} OF {len(of)}"
     if len(rofh):
         chk["rofh_posoffset_unique"] = np.unique(rofh[:, 6:9], axis=0).tolist()
-    t_flow = t_arr - a.flow_delay_ms * 1e-3
+    t_flow = t_arr - delays["flow"] * 1e-3
     valid = qual > 0
     inlier = qual / 255.0
 
@@ -201,7 +265,7 @@ def main():
         k = np.arange(t0, t1 - 1e-9, T_r)
         rt.append(k); rd.append(np.full(len(k), ch_d[i]))
     rt = np.concatenate(rt) if rt else np.zeros(0); rd = np.concatenate(rd) if rd else np.zeros(0)
-    t_rng = rt - a.range_delay_ms * 1e-3
+    t_rng = rt - delays["range"] * 1e-3
     chk["range_n_emitted"] = int(len(rt))
 
     # ---------------- arming, init ----------------
@@ -213,7 +277,7 @@ def main():
     elif t_arm is not None and np.any(t_rng < t_arm):
         init_range, init_src = float(rd[np.where(t_rng < t_arm)[0][0]]), "first Good range before arming"
     else:
-        init_range, init_src = float(rrnh["GCl"]), "RRNH.GCl (RNGFND_GNDCLEAR)"
+        init_range, init_src = float(rrnh["GCl"]), "RRNH.GCl (RNGFNDn_GNDCLR)"
 
     if a.t_end is not None:
         mI, mF, mR = t_imu <= a.t_end, t_flow <= a.t_end, t_rng <= a.t_end
@@ -240,7 +304,7 @@ def main():
         code = None
     meta = {"bin": os.path.abspath(a.bin), "bin_sha256": sha256(a.bin), "code_commit": code,
             "imu_instance": a.imu_instance, "range_instance": rng_inst,
-            "delays_ms": {"flow": a.flow_delay_ms, "range": a.range_delay_ms, "imu": a.imu_delay_ms},
+            "delays_ms": delays, "delays_source": delay_src,
             "delay_definition": {"flow": "FC arrival (OF.TimeUS) minus END of the flow integration interval",
                                  "range": "emission (RRNI change frame, held at the measured update period) minus measurement",
                                  "imu": "RFRH frame time minus the end of the RISI delta interval"},

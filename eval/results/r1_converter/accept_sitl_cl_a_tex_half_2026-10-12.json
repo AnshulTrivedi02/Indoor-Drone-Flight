@@ -1,0 +1,140 @@
+{
+ "accepted": true,
+ "tests": {
+  "A1_log_replay": {
+   "value": 1.0,
+   "pass": true
+  },
+  "A2_dsf_dropped": {
+   "value": 0,
+   "pass": true
+  },
+  "A3_imu_internal": {
+   "dropped_flags": 0,
+   "dvdt_ne_dadt_frac": 0.0,
+   "dvdt_vs_frame_frac": 0.9998323397913562,
+   "pass": true
+  },
+  "A4_imu_rate": {
+   "frame_period_ms_mean": 2.5000081036522324,
+   "SCHED_LOOP_RATE": 400.0,
+   "rel_err": 3.2414608930331212e-06,
+   "pass": true
+  },
+  "A5_imu_vs_onboard_IMU": {
+   "instance": 0,
+   "best_lag_ms": -0.9999999999999836,
+   "lag_bound_ms": 10.0,
+   "n_samples": 6685,
+   "filters_hz": {
+    "gyro": 20.0,
+    "acc": 20.0
+   },
+   "frame_rate_hz": 399.99870341984564,
+   "gyro": {
+    "rms_diff_xyz": [
+     0.00032960705358144976,
+     0.00020865363515811536,
+     0.00037536564770151163
+    ],
+    "bound": 0.05,
+    "corr_xyz": [
+     null,
+     null,
+     null
+    ],
+    "corr_tested_if_std_gt": 0.1,
+    "pass": true
+   },
+   "acc": {
+    "rms_diff_xyz": [
+     0.02759023754455796,
+     0.009873483190833358,
+     0.005629620158780073
+    ],
+    "bound": 0.3,
+    "corr_xyz": [
+     null,
+     null,
+     null
+    ],
+    "corr_tested_if_std_gt": 0.5,
+    "pass": true
+   },
+   "pass": true
+  },
+  "A6_rest": {
+   "tested": true,
+   "specific_force": 9.810843142108029,
+   "gyro_abs_mean_max": 0.00032932846731556644,
+   "pass": true
+  },
+  "A7_flow_equals_rofh": {
+   "value": true,
+   "pass": true
+  },
+  "A8_geometry": {
+   "flow": true,
+   "range": true,
+   "pass": true
+  },
+  "A9_range_vs_RFND": {
+   "n_pairs": 5488,
+   "median_abs_m": 0.0,
+   "p95_abs_m": 0.0,
+   "pass": true
+  },
+  "A10_flow_sign": {
+   "tested": true,
+   "sign_ok": true,
+   "gain_xy": [
+    1.3743703620215446,
+    0.8942779005340785
+   ],
+   "peak_corr_xy": [
+    0.7959253252592642,
+    0.5062501651193532
+   ],
+   "pass": true
+  }
+ },
+ "reported": {
+  "flow_rate_hz_median": 28.58122784954967,
+  "flow_interarrival_ms_p5_p50_p95": [
+   24.99999999999858,
+   34.987999999998465,
+   39.993000000009715
+  ],
+  "range_update_period_ms": 49.983000000001,
+  "flow_qual_gt0_frac": 1.0,
+  "init_range": 0.07999999821186066,
+  "init_range_source": "range at levelling end",
+  "RNGFND1_GNDCLR": 0.10000000149011612,
+  "init_minus_gndclr_m": -0.020000003278255463
+ },
+ "band": {
+  "dvdt_ne_dadt_frac_max": 0.001,
+  "dvdt_vs_frame_frac_min": 0.99,
+  "imu_rate_rel_tol": 0.02,
+  "gyro_rms_max": 0.05,
+  "acc_rms_max": 0.3,
+  "corr_min": 0.95,
+  "gyro_corr_std": 0.1,
+  "acc_corr_std": 0.5,
+  "lag_max_ms": 10.0,
+  "rest_g": 9.80665,
+  "rest_g_tol": 0.15,
+  "rest_gyro_max": 0.05,
+  "range_pair_s": 0.06,
+  "range_med_max": 0.02,
+  "range_p95_max": 0.05,
+  "range_min_pairs": 50,
+  "flow_corr_min": 0.5
+ },
+ "inputs": {
+  "conv": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/conv_json.npz",
+  "bin": "/home/makerspace/thesis_data/trials/cl_a_tex_half/ardupilot.bin",
+  "bin_sha256_in_meta": "e59e0dc39c5df5ea03eca4c91c7c176c362c3bc24252ea1d84a169790d960f64",
+  "timing_json": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/timing.json"
+ }
+}
