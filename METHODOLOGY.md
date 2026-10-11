@@ -13616,3 +13616,22 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   receiver failsafe, Lua on the board, the Pi beacons, the audible alert.
 - **No watcher code changed.** run_trial.sh, closed_loop_run.sh and fly_trial.py are unchanged; SITL ran in its own
   working directory (the shared eeprom was untouched).
+
+### 2d: C++ equivalence for the corrected FGO node: Band C FAILS as worded, so it is NOT installed; UKF safety re-tests (handover `docs/handovers/2026-10-11_2d_cpp_equiv_safety.md`)
+- **The install gate** was pre-written (`eval/results/fgo_cpp_equiv_d18/INSTALL_GATE.md`), with the 2026-10-09 bands
+  and bags, run against the current Python core:
+  - Band A: dsn_tex PASS (0.139 mm); blank/trans fail as worded (as before);
+  - B1–B5 and B6: PASS;
+  - L1/L2: PASS (bit-identical);
+  - Band C: fwdc, T_A and T_D PASS; **dsn_tex FAILS, 1.95 mm against 1 mm.**
+- **Cause of the Band C failure:** the states agree to 8.6 µm until a yaw-cap gate check at 241.1 s falls on opposite
+  sides of 0.04 (0.0400064 against 0.0399997); 16 paired mismatches follow.
+  - It is the same kind of threshold tie that was accepted for Band A on 2026-10-09, but that exception covered
+    Band A only.
+- **NOT installed:** `fgo_cpp_node` stays `f642cd37`; the scratch build is `28636bf9`.
+- **The FGO safety re-tests (`H_safety_fgo_{a,b}_v4`) were NOT flown** (driver cases `sa4`/`sb4` added).
+- **UKF safety re-tests** (installed port abb0357d; the short profiles unchanged; VERIFICATION):
+  - `H_safety_ukf_a_v3`: S-A1–S-A4 PASS;
+  - `H_safety_ukf_b_v3`: S-A1/S-A3/S-A4 PASS; **S-A2 FAILS AS WORDED, 5.69 s against 5.5 s.** The relay drain recurs:
+    flow was still received for 0.69 s after the kill, and the trigger fired exactly 5.00 s after the last flow.
+- **A ruling is needed on Band C** (the options are in handover §4.2).
