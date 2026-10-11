@@ -13786,3 +13786,32 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - B8a is repeated ONLY if its first run was invalidated by a HARNESS FAULT, not by its outcome. Otherwise the
      specifics are reported to the user.
 - **The final firmware build runs the day the board is named.**
+
+### The port geometry branch MERGED, Replay INSTALLED; U4; U10 and stage-3 DRAFTS (handover `docs/handovers/2026-10-12_port_merge_u4_drafts.md`)
+- **`~/ardupilot_ukf` `ukf-jitter-fix` fast-forwarded to `16535f9a29`** (rung1-geometry: Replay, AP_NavUKF and argument
+  passing only).
+- **Installed:** Replay `e8e9feac` → `be7c4d18`; UKF_Equiv `537e0dcd` → `180cf2d8`. Backup in
+  `~/opt/ukf_port_backup_abb0357d_2026-10-12/`. The SITL copter is UNCHANGED at `5f94ea1a`.
+- **Re-checks on the installed Replay:**
+  - with `UKF_DEROT_ROFH=1`: identical to the old Replay on 5 logs;
+  - default: identical to the 2026-10-11 scratch build;
+  - type 12: identical to the old Replay;
+  - UKF_Equiv: 10/10 identical.
+- **E5:** failed as worded; accepted post hoc on increments (ruled).
+- **The SITL copter reinstall is not needed for type-12 flights** (the rule is the identity there; the Copter fork has
+  no DCM fallback for the UKF backend).
+  - **A new SITL copter build IS needed before SITL check V1** (UKF shadow with EKF3 flying), otherwise V1 tests the
+    old rule.
+- **U4 FINDING:**
+  - At `7bac20cbcc`, EKF3 does NOT use GNDCLR for an OutOfRangeLow rangefinder: it pushes nothing and falls back to
+    baro.
+  - The "as EKF3 does" wording is WRONG in three places: the costing U4 row, plan R-e, and rung-1 prereg §9 item 11.
+  - **Implemented as a PORT rule** (branch `u4-gndclr` `53bac01636`; NOT merged or installed): while disarmed and
+    OutOfRangeLow, the UKF uses `max(GNDCLR, 0.05)` to initialise and as a ~5 Hz range sample, until arming.
+  - **Proof:** 20/20 CSVs and UKF_Equiv 10/10 identical; a test hook initialised from GNDCLR at the normal instant.
+  - **Open:** the UKF's vertical flags lapse if take-off comes > 5 s after arming (a ruling is needed); the board
+    frame-size check on U4; the merge order with `board-h743`.
+- **DRAFTS for user sign-off:**
+  - `docs/u10_replay_gate_band_draft.md`: U10 must be signed off BEFORE rung-1 day 3. Precondition: no Replay output
+    reports `_n_chol_fail` today; a line must be added before day 3.
+  - `docs/stage3_ukf_closed_loop_preregistration_draft.md`.
