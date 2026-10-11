@@ -179,6 +179,31 @@ few tens of ms (one operator mode command was mapped 33 ms before its own send),
 | `wbench_hoverB_20261011_125941` | B5b-noflag, B6b ×2, B8a, B9a ×2, B9b (then stopped: tip-over, F2) |
 | `wbench_hoverB2_20261011_130644` | B9c ×2, B9-hang |
 | `wbench_hoverC_20261011_130923` | B10a, B10b |
+| `wbench_b4a_20261011_131756` | B4a (four side faces + top), B4c (amendment A8) |
+
+**Why each non-standard profile's length suffices** (the standard hover is justified in §1.1):
+- B4b: a 15 s north (or 6 s up) velocity leg after the 10 s hold. The face is 3 m away at 0.5 m/s, so it is crossed ~6 s
+  into the leg (~3 s for the top face). The breach and the LAND come on the first outside pose; nothing later is scored.
+- B6b: 8 s hold, then a 0.8 s 12° roll and a 90° yaw (~3 s at 30°/s), then land. The identity check needs only ≥ 0.25 s
+  of agreement while tilted ≥ 8° and a ≥ 45° yaw change within 1 s; the wrong body fails within 0.5 s of the tilt.
+- B8a: 35 s hold with the flow stopped 20 s. The EKF3 aiding timeout is 5 s, so 20 s covers the timeout plus 15 s for
+  any EKF failsafe to show; the run was void at +6.35 s anyway.
+- B10a: ~18 s of RC switching inside a 60 s hold (three changes, 8 s and 1.5 s apart); only the switch-to-mode intervals
+  and the absence of mode changes are scored.
+- B10b: ~55 s of a 200 s hold used. The 200 s only bounds the wait: the three paths take 10 s, ~16 s and 15 s of
+  observation, each long enough to see the 3 s GCS failsafe, the one LAND and the 10 s "no re-command" window.
+- Ground tests: no take-off; arming acceptance or refusal is immediate.
+
+**Summary:**
+- **PASS:** B0, B1a, B1b/B9d, B1c(ii), B1-native, B1c-Lua, B2a, B2b, B3a, B3b, B4a (5 faces), B4b side, B4b top, B4c,
+  B5b, B5c, B6a, B6b (both runs), B7a (forwarder path only), B7b, B9a ×2, B9b, B9c ×2, B10a, B10b (H10 guard; F6), B10c
+  (model).
+- **FAIL as worded:** B5a and B5b-noflag. The stale declaration came 8 / 10 ms after the 0.5 s bound (F5); LAND within
+  1.0 s passed in both.
+- **Recorded as predicted (stock FC side):** B1c(i) ARMS by stick at `ARMING_RUDDER` 2; B1c(iii) ARMS by a non-force
+  MAVLink arm; B1c(iv) ARMS by force.
+- **VOID, not repeated:** B8a (F1).
+- **Hardware only:** see §3.
 
 ### 2.1 Per test (result as worded against §1.2)
 
@@ -229,6 +254,14 @@ airborne): the watcher logged "watcher stalled: own loop gap 3.87 s … no LAND 
 LAND commands, and re-confirmed (heartbeat resumed) only 2.6 s after the disarm (the 2 s episode clear). No mode change other than the
 landing and no re-arm in the 10 s observed after the disarm (the next MODE GUIDED is the operator's, after the window).
 
+**B4a — PASS (all five faces; amendment A8).** Disarmed, carried out through each face (`wbench_b4a`): on each, BREACH
+on the first pose outside (**+0.000–0.001 s**, ≤ 0.1 s; the pose arrives 0.34–0.37 s after the `set_pose` call),
+confirmation withdrawn on the same sample, ONE LAND sent and ACKed after 1 send, the FC mode became LAND (accepted while
+disarmed). North (0, 3.50), east (3.50, 0), south (0, −3.50), west (−3.50, 0), top (0, 0, 3.298). After the north face,
+the flight script's arming attempt: "REFUSING TO ARM: watcher not confirming (box=0 bridge=0)".
+
+**B4c — PASS.** Carried to roll 65°: "BREACH: tilt 65.0 deg > 60.0", one LAND (ACKed), FC mode LAND.
+
 **B4b side face (y = 3 m) — PASS** (`hoverA2`). First pose outside (0.481, 3.007, 1.602): watcher BREACH at **+0.000 s**
 (same sample) ≤ 0.1 s; LAND command +0.001 s; FC MODE LAND at **+0.038 s W** ≤ 1.0 s; exactly ONE LAND decision and one
 send (ACKed). (Attempt 1 in `hoverA`: identical behaviour, BREACH and MODE LAND in the same millisecond; that session then
@@ -277,7 +310,9 @@ until it has received a packet, so the first send was lost and the 0.3 s retry d
 the ACK arrived although the mode had already changed (the ACK of the first send was not received). In flight, every
 watcher LAND reached MODE LAND in 0.003–0.05 s.
 
-**B8a — VOID (report-only test; the watcher acted first).** Hover; `flow_bridge.py` SIGKILLed. EKF3 raised **no
+**B8a — VOID, NOT repeated (a deviation from §7.2's "void and repeated"; ruling needed).** Reason for not repeating:
+the same excursion would breach any box that fits the 20 × 20 m textured mat, so a repeat would be void again; a bigger
+box needs the LiDAR/flow off the mat (Known Issue #6). Report-only test; the watcher acted first. Hover; `flow_bridge.py` SIGKILLed. EKF3 raised **no
 failsafe** (no EKFCHECK / FAILSAFE_EKFINAV / EKF_FAILSAFE mode change). At +5.06 s "EKF3 IMU0/IMU1 stopped aiding";
 the vehicle then accelerated east (GT x 1.77 → 9.3 m in 2.6 s, ~3.6 m/s) and the watcher's box breach (x = 3.047) sent
 LAND at +6.35 s. Under the pre-registered isolation rule the run is VOID; it was not repeated, because the same
@@ -309,6 +344,10 @@ although the flight script kept sending GUIDED position targets at 2 Hz.
   re-commanded LAND until the pilot's own LAND switch at +49.98 s; the GCS failsafe that followed again said
   "Continuing Pilot Control";
 - (3) aiding loss (`flow_bridge.py` SIGKILL, 15 s): no mode change and no EKF failsafe.
+- **Caveat 2: the watcher's LAND retry path was NOT exercised** (all 18 watcher LANDs across every session were ACKed on
+  the first send). In B7b, 4 of 12 ACKs were lost although the mode had changed, and the watcher then re-sends LAND every
+  0.3 s (up to 5 tries). Here the pilot's toggle came 0.33 s after the LAND: had that ACK been lost, the retry would have
+  re-commanded LAND after the pilot took ALT_HOLD, which B10b forbids (finding F6).
 - **Caveat: `fly_trial.py` as-is would FAIL B10b** — its `WatcherLost` path commands LAND regardless of mode. The pass
   depends on the H10 guard, which exists only in this bench driver.
 
@@ -321,11 +360,14 @@ samples are ignored, stale at +0.489 s after the first wrong-ID frame (0.51 s af
 
 ### 2.2 Findings (not watcher bugs)
 
-- **F1 (B8a): flow loss in GUIDED on EKF3 gives no EKF failsafe, then a fast lateral excursion.** About 5 s after the
-  flow stopped reaching the FC, EKF3 "stopped aiding" and the vehicle accelerated to ~3.6 m/s sideways; only the
-  watcher's box stopped it, and the LAND then drifted ~10 m further before touchdown. For rung 1 (EKF3 flying on flow):
-  the mocap box is the protection; `FS_EKF_ACTION` will not act. Consistent with §7.2 B8(a)'s "report-only" expectation
-  but more violent than `H_safety_ekf3_ref` (ExtNav) suggested.
+- **F1 (B8a, one run, n = 1, GUIDED): flow loss on EKF3 was followed by a fast lateral excursion, with no EKF failsafe
+  in the window seen.** About 5 s after the flow stopped reaching the FC, EKF3 "stopped aiding" and the vehicle
+  accelerated to ~3.6 m/s sideways. The watcher's box sent LAND 1.3 s later. No EKF failsafe appeared in those 1.3 s;
+  after that the vehicle was in LAND, and it drifted ~10 m further before touchdown.
+  - Scope: rung 1 is pilot-flown (STABILIZE / ALT_HOLD / LAND). In ALT_HOLD, B10b(3) saw 15 s of flow loss with no
+    mode change.
+  - This shows only that, in GUIDED, the box (and the pilot) are what stopped it here. It is not a general claim about
+    `FS_EKF_ACTION`.
 - **F2: after a LAND that began with lateral motion, ArduCopter's land detector sometimes did not trip on flow-only
   EKF3** (B4b_side attempt 1: >3 min on the ground in LAND, throttle 0, still armed; B5b and the obs hover: operator
   disarm after 15 s / 4 s). Once (after B9b) the vehicle rocked and **tipped over** ("Crash: Disarming: AngErr=34>30"),
@@ -338,6 +380,11 @@ samples are ignored, stale at +0.489 s after the first wrong-ID frame (0.51 s af
   15 ("Mode change to Autotune failed"). It is harmless when the FC is already in GUIDED, but the real flight script (H10)
   must pin the FC's system ID and take the mode mapping from the FC's own heartbeat. Fixed in the bench driver only;
   `fly_trial.py` was not touched.
+- **F6: the LAND retry policy can violate B10b (the build handover's open question 5, now with evidence).** B7b lost
+  4/12 ACKs while the mode had already changed; the watcher re-sends an un-ACKed LAND every 0.3 s for up to 5 tries.
+  If that happens after the pilot has taken ALT_HOLD (B10b toggled 0.33 s after the LAND), the pilot is overridden.
+  Never seen in flight here (18/18 LANDs ACKed first time), but not excluded. Not changed in the watcher; needs a ruling,
+  e.g. stop retrying once the FC's heartbeat shows LAND, or once it shows any pilot mode.
 - **F5: B5a / B5b-noflag bound.** "Stale within 0.5 s" with a 0.5 s stale limit cannot be met (detection is 8–10 ms
   after the limit); ruling needed (see B5a).
 - **The SITL analog rangefinder and SITL optical flow** are unusable with this JSON/Gazebo model (A4/A5): relevant to
@@ -348,9 +395,9 @@ samples are ignored, stale at +0.489 s after the first wrong-ID frame (0.51 s af
 **None.** No file under `realflight/watcher/`, `realflight/mcp1.py` or `realflight/params/` was changed (git diff empty),
 so the 83 offline tests were not re-run after the bench (they passed at the start of this stage: 83 passed in 84 s).
 
-## 3. Hardware-only tests (as §1.3), confirmed
+## 3. Hardware-only tests (as §1.3, less B4a/B4c, which ran in SITL under A8)
 
-B4a (carry through each face, disarmed), B4c (60° hand tilt), B4d (box geometry), the B6 hand procedure (D1), B7a true
+B4d (box geometry against real hold points), the B6 hand procedure (D1), B7a true
 exposure latency, B7c (mocap ↔ FC alignment with hand sync wiggles), B8b/B8c (UKF/FGO ports; item 2d), the real B10c
 receiver failsafe, the Lua script on the real board, beacons inside the Pi processes, the audible alert.
 
@@ -365,8 +412,11 @@ receiver failsafe, the Lua script on the real board, beacons inside the Pi proce
 
 ## 5. For the next stage
 
-- Rulings needed: the B5a/B5b-noflag bound (F5); G6 — SITL shows the Lua aux-auth works (B1c-Lua) on stock 4.6 SITL;
-  the board must still be bench-tested.
+- Rulings needed:
+  - the B5a/B5b-noflag bound (F5);
+  - the LAND retry policy against B10b (F6);
+  - B8a not repeated (void);
+  - G6: SITL shows the Lua aux-auth works (B1c-Lua) on stock 4.6 SITL; the board must still be bench-tested.
 - H10 requirements for the real flight script: the B10b guard; pin the FC system ID and mode mapping (F4).
-- Safety procedure: the pilot disarms after any automatic LAND if the FC does not (F2); the box is the only protection
-  on EKF3 flow loss (F1).
+- Safety procedure: the pilot disarms after any automatic LAND if the FC does not (F2); on EKF3 flow loss in GUIDED, the
+  box and the pilot stopped the excursion in the one run seen (F1).
