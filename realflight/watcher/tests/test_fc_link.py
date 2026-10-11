@@ -94,16 +94,157 @@ def test_g4_land_is_retried_only_until_acked_then_never_again():
 
 
 def test_g4_land_gives_up_after_max_tries_without_ack():
-    f = FakeFC(ack=False); f.start()
-    L = link(f, land_retry_s=0.05, land_max_tries=4)
+    # F6 (2026-10-12): the FC now IGNORES every command (mode stays GUIDED, no ACK). Before F6 this test used ack=False,
+    # where the fake FC still switched to LAND; that case now stops after one send (rule S2, test below).
+    f = FakeFC(drop_first_commands=100); f.start()
+    L = link(f, land_retry_s=0.05, land_max_tries=4, land_evidence_s=0.05)
     try:
         L.send_heartbeat(); L.command_land("x")
         t0 = time.monotonic()
-        while time.monotonic() - t0 < 1.0:
+        while time.monotonic() - t0 < 2.0:
             L.poll(); L.service(); time.sleep(0.01)
         assert L.land["tries"] == 4 and not L.land["acked"] and len(f.lands()) == 4
+        assert "S5" in L.land["stopped"] and f.mode == 4
     finally:
         L.close(); f.close()
+
+
+def _drive(L, secs, f=None, on_land_applied=None):
+    """Run the watcher's poll/service loop for `secs`; call on_land_applied() once, as soon as the fake FC is in LAND."""
+    t0, fired = time.monotonic(), False
+    while time.monotonic() - t0 < secs:
+        if on_land_applied and not fired and f.mode == 9:
+            on_land_applied(); fired = True
+        L.poll(); L.service(); time.sleep(0.005)
+
+
+def _guided_seen(L, f):
+    """Let the watcher see the FC's GUIDED heartbeat before the breach (M0 = GUIDED, as in flight)."""
+    L.send_heartbeat()
+    assert wait_for(lambda: (L.poll(), L.fc_mode == 4)[1], 2)
+
+
+def test_f6_pilot_takes_alt_hold_after_an_accepted_land_whose_ack_is_lost_no_further_land():
+    """F6: the FC accepts the LAND but the ACK is lost; the pilot switches to ALT_HOLD 0.33 s later (B10b's measured
+    toggle) at the FC's DEFAULT 1 Hz heartbeat, so the watcher may never see LAND in a heartbeat. The old rule re-sent
+    LAND every 0.3 s until ACKed (5 sends) and would have overridden the pilot. Now: exactly one LAND."""
+    f = FakeFC(ack=False, hb_period=1.0); f.start()
+    L = link(f, land_retry_s=0.3)
+    try:
+        _guided_seen(L, f)
+        L.command_land("box breach")
+
+        def pilot():                                            # RC mode switch, ~0.33 s after the LAND took effect
+            time.sleep(0.33); f.mode = 2
+        _drive(L, 3.0, f, on_land_applied=pilot)
+        assert len(f.lands()) == 1, f"{len(f.lands())} LANDs sent: the pilot was overridden"
+        assert f.mode == 2 and L.land["tries"] == 1 and not L.land["acked"]
+        assert L.land["stopped"] and ("S3" in L.land["stopped"] or "S2" in L.land["stopped"])
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_land_lost_then_pilot_takes_alt_hold_no_further_land():
+    """F6: the first LAND never reaches the FC (dropped); the pilot then takes ALT_HOLD. No LAND follows (S3/S4):
+    the pilot has authority, as the GCS failsafe gives it with FS_OPTIONS bit 4."""
+    f = FakeFC(drop_first_commands=1, hb_period=0.2); f.start()
+    L = link(f, land_retry_s=0.3)
+    try:
+        _guided_seen(L, f)
+        L.command_land("dependency lost")
+        time.sleep(0.05); f.mode = 2                         # pilot switch before the first re-send could be due
+        _drive(L, 2.0)
+        assert len(f.lands()) == 1 and f.mode == 2 and L.land["tries"] == 1
+        assert "ALT_HOLD" in L.land["stopped"]
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_pilot_mode_before_the_breach_still_gets_one_land_but_no_resend():
+    """The FC is already in ALT_HOLD (pilot) when the watcher decides LAND (B10b(2)): ONE LAND is sent, as before; if it
+    is lost, it is NOT re-sent (S3 applies even when M0 is the pilot mode)."""
+    f = FakeFC(drop_first_commands=1, hb_period=0.2); f.start()
+    f.mode = 2
+    L = link(f, land_retry_s=0.1)
+    try:
+        L.send_heartbeat()
+        assert wait_for(lambda: (L.poll(), L.fc_mode == 2)[1], 2)
+        L.command_land("box breach")
+        _drive(L, 1.5)
+        assert len(f.lands()) == 1 and f.mode == 2 and "S3" in L.land["stopped"]
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_unacked_land_with_no_mode_change_is_resent_as_before():
+    """An unacknowledged LAND with no mode change (FC still in GUIDED after the send): re-sent, 0.3 s apart at the
+    earliest, until the FC takes it (here the first two are dropped) and ACKs; then never again."""
+    f = FakeFC(drop_first_commands=2, hb_period=0.2); f.start()
+    L = link(f, land_retry_s=0.3)
+    try:
+        _guided_seen(L, f)
+        L.command_land("stale pose")
+        _drive(L, 3.0)
+        lands = f.lands()
+        assert len(lands) == 3 and f.mode == 9 and L.land["acked"] and L.land["tries"] == 3
+        assert all(b[0] - a[0] >= 0.29 for a, b in zip(lands, lands[1:])), [x[0] for x in lands]
+        assert "S1" in L.land["stopped"]
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_land_in_heartbeat_without_ack_stops_resending():
+    """S2: the FC switched to LAND but the ACK is lost; the next heartbeat shows LAND -> one send only."""
+    f = FakeFC(ack=False, hb_period=0.2); f.start()
+    L = link(f, land_retry_s=0.05)
+    try:
+        _guided_seen(L, f)
+        L.command_land("x")
+        _drive(L, 1.5)
+        assert len(f.lands()) == 1 and f.mode == 9 and "S2" in L.land["stopped"]
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_other_mode_change_not_commanded_by_the_watcher_stops_resending():
+    """S4: after a lost LAND the FC reports a mode other than LAND and other than the pre-LAND mode, and not a pilot
+    mode (here BRAKE 17, e.g. an FC-side failsafe action): no re-send."""
+    f = FakeFC(drop_first_commands=1, hb_period=0.2); f.start()
+    L = link(f, land_retry_s=0.1)
+    try:
+        _guided_seen(L, f)
+        L.command_land("x")
+        time.sleep(0.02); f.mode = 17
+        _drive(L, 1.5)
+        assert len(f.lands()) == 1 and "S4" in L.land["stopped"]
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_no_resend_without_a_post_send_heartbeat():
+    """R: with no FC heartbeat after the send (FC link silent), nothing is re-sent (the old rule re-sent blindly)."""
+    f = FakeFC(drop_first_commands=1, hb_period=0.2); f.start()
+    L = link(f, land_retry_s=0.05)
+    try:
+        _guided_seen(L, f)
+        f.hb_period = 1e9                                    # the FC stops sending heartbeats on this link
+        time.sleep(0.3); L.poll()
+        L.command_land("x")
+        _drive(L, 1.0)
+        assert len(f.lands()) == 1 and L.land["tries"] == 1 and L.land["stopped"] is None
+    finally:
+        L.close(); f.close()
+
+
+def test_f6_heartbeat_rate_is_requested(fc):
+    L = link(fc)
+    try:
+        L.send_heartbeat(); L.request_streams()
+        time.sleep(0.3)
+        ids = {int(r[3].param1) for r in fc.received("COMMAND_LONG", src=211) if r[3].command == 511}
+        assert ids == {30, 0}, ids                          # ATTITUDE and HEARTBEAT intervals
+    finally:
+        L.close()
 
 
 def test_g11_never_sends_rc_override_or_manual_control(fc):

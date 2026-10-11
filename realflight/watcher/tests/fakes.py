@@ -41,7 +41,7 @@ def watch_ok_copy(path, stale_s=3.0):
 
 class FakeFC(threading.Thread):
     def __init__(self, params=None, gcs_sysid=211, fs_timeout=3.0, armed=False, failsafe_model=True,
-                 drop_first_commands=0, ack=True, att_hz=50.0):
+                 drop_first_commands=0, ack=True, att_hz=50.0, hb_period=0.2):
         super().__init__(daemon=True)
         self.conn = mavutil.mavlink_connection("udpin:127.0.0.1:0", source_system=1, source_component=1)
         self.port = self.conn.port.getsockname()[1]
@@ -52,6 +52,7 @@ class FakeFC(threading.Thread):
         self.drop_first_commands, self.ack = drop_first_commands, ack
         self.att = (0.0, 0.0, 0.0)                    # roll, pitch, yaw (FRD, rad), settable by tests
         self.att_hz = att_hz
+        self.hb_period = hb_period                    # FC HEARTBEAT period (ArduPilot default 1 s; tests use 0.2 s)
         self.rx = []                                  # (t_mono, type, srcSystem, msg)
         self.events = []                              # (t_mono, text)
         self.gcs_last_seen = 0.0
@@ -75,7 +76,7 @@ class FakeFC(threading.Thread):
             if m is not None and m.get_type() != "BAD_DATA":
                 self._handle(now, m)
             if getattr(self.conn, "clients", None):                     # a peer has spoken (udpin server mode)
-                if now - t_hb >= 0.2:
+                if now - t_hb >= self.hb_period:
                     t_hb = now
                     base = mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED | (
                         mavlink.MAV_MODE_FLAG_SAFETY_ARMED if self.armed else 0)

@@ -1,0 +1,44 @@
+# =====================================================================================================================
+# UKF-ONLY CLOSED LOOP (stage 3): ESTIMATOR + FAILSAFE OVERRIDES FOR THE REAL FC  (written 2026-10-12; plan
+# docs/realflight_plan_copter.md 4.3 U-e / U7; handover docs/handovers/2026-10-12_watcher_f6_failsafe_b5_b8a.md)
+# =====================================================================================================================
+# Status: DRAFT. FORK FIRMWARE ONLY: ~/ardupilot_ukf branch board-h743 (0156bfc34e at writing), built with
+# tools/build_board_fw.sh. These parameters DO NOT EXIST on the stock 7bac20cbcc image (rung 1): there the FC would
+# drop them silently, and AHRS_EKF_TYPE 12 would select nothing.
+#
+# Load order: rung1_template.parm, ONE compass variant, rung1_failsafe_fc.parm, THEN THIS FILE (it overrides
+# AHRS_EKF_TYPE and AHRS_OPTIONS). Check with the stage-3 mode, which accepts AHRS_EKF_TYPE 12 ONLY there:
+#   python3 realflight/params/check_parm.py --stage3 --final rung1_template.parm rung1_variant_<x>.parm \
+#       rung1_failsafe_fc.parm ukfonly_failsafe_fc.parm
+# NAMES verified against the @Param tags on board-h743: AHRS_ group libraries/AP_AHRS/AP_AHRS.cpp:171-176 (EKF_TYPE
+# @Values ... 12:ThesisUKF, 13:ThesisFGO) and :238-244 (@Group UKF_ -> AP_NavUKF.cpp, FGO_ -> AP_NavFGO.cpp);
+# libraries/AP_NavUKF/AP_NavUKF.cpp:70-92; libraries/AP_NavUKF/AP_NavFGO.cpp:11-15.
+#
+# What changes against rung 1, and why (everything else, including FS_GCS_*, FS_OPTIONS, the RC, battery and
+# altitude-fence failsafes and the landing parameters, is inherited unchanged from rung1_failsafe_fc.parm):
+#   - the onboard UKF FLIES (type 12); EKF3 keeps running in shadow (EK3_ENABLE 1, rung1_template.parm) and is logged;
+#   - the EKF failsafe path for the UKF is the fork's thesis_nav_check (ArduCopter/ekf_check.cpp:330-358 on
+#     board-h743): armed, type 12, the UKF HAS reported HORIZ_POS_REL since arming and no longer does ->
+#     failsafe_ekf_event() -> FS_EKF_ACTION. It needs NO origin (unlike stock ekf_check(), which returns without one);
+#     SITL H_safety_ukf_b measured LAND within 5.5 s of the last aiding message (7.2 B8(b));
+#   - so the EKF ORIGIN of rung1_failsafe_fc.parm is switched OFF here (AHRS_OPTIONS 0): with type 12 the AHRS asks the
+#     UKF backend for the origin (AP_AHRS.cpp _get_origin, case UKF) while set_origin() writes only EKF2/EKF3, so the
+#     recorded-origin path was never exercised with type 12 (every SITL H_safety_* and V-flight ran without an origin).
+#     Keeping it off keeps the vehicle configuration identical to the one the SITL safety tests passed.
+# =====================================================================================================================
+
+AHRS_EKF_TYPE 12         # ThesisUKF: the onboard UKF steers (board-h743 AP_AHRS.cpp:174). NEVER 10 (simulator) and not
+                         # 13 (FGO: not in the UKF-only stage). check_parm.py accepts 12 only with --stage3.
+AHRS_UKF_ENABLE 1        # run the UKF (AP_NavUKF.cpp:70-74, @Values 0:Disabled,1:Enabled; AP_PARAM_FLAG_ENABLE: reboot)
+AHRS_UKF_TFAIL 0         # the forced-invalidity TEST HOOK (AP_NavUKF.cpp:88-92, s after arming; 0 = off). MUST be 0 to
+                         # fly: the board build refuses to arm with it non-zero (AP_Arming_Copter.cpp:587-592, the
+                         # AP_NAVUKF_TFAIL_ARM_GUARD, untested on hardware: bench P5); check_parm.py refuses any other value.
+AHRS_UKF_EXTYAW 0        # no external-nav yaw (AP_NavUKF.cpp:76-80): the UKF-only stage flies the vehicle's own flow
+                         # sensor and rangefinder, no forward camera / ExtNav (realflight_plan_copter.md section 4)
+AHRS_UKF_EXTPOS 0        # no external-nav position fix (AP_NavUKF.cpp:82-86), as above
+AHRS_FGO_ENABLE 0        # FGO input off (AP_NavFGO.cpp:11-15): not flown in this stage
+AHRS_OPTIONS 0           # recorded EKF origin OFF for type 12 (see the header); overrides rung1_failsafe_fc.parm's 16.
+                         # The AHRS_ORIGIN_* values there are then unused (fill them anyway: --final refuses placeholders).
+FS_EKF_ACTION 1          # restated from rung1_failsafe_fc.parm because thesis_nav_check routes through it: LAND in a
+                         # mode that needs a position (a pilot LOITER or a scripted GUIDED profile, U-d), no mode change
+                         # in ALT_HOLD (B10b). 3 would also land a pilot flying ALT_HOLD on a UKF position loss.

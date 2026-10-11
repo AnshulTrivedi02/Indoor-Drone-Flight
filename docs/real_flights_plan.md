@@ -502,14 +502,40 @@ Each test is given as setup / action / pass / recorded.
 - *Recorded:* the mocap log, the watcher track, BREACH.txt, the LAND command time, the FC MODE/DISARM events, and
   the measured box corners.
 
-**B5. Mocap dropout / stale pose (G2).**
+**B5. Mocap dropout / stale pose (G2).** *(RE-WORDED 2026-10-12 under ruling 4 of "RULINGS (user, 2026-10-12)",
+METHODOLOGY; the old wording is kept verbatim below.)*
+- **Watcher loop period, used in the bounds: 0.025 s.** The watcher evaluates staleness (and the frozen fallback) once
+  per main-loop iteration. An idle iteration waits at most **0.02 s** in `select()` (`mocap_watch.py` `Watcher.run`;
+  sooner when a packet arrives) and then does its own processing; the SITL bench measured maximum loop gaps of
+  0.020–0.024 s (`max_loop_gap_s` in every `mocap_watch_summary*.txt` under `~/thesis_data/wbench/`,
+  excluding B3b's deliberate 3.87 s SIGSTOP). The loop period is therefore taken as 0.02 s + 5 ms = 0.025 s. A
+  declaration comes up to one loop period AFTER the limit is crossed.
 - (a) Armed: stop the mocap stream (disable streaming, or the rigid body, in the mocap software).
-  - *Pass:* the watcher declares the pose stale within **0.5 s** of the last frame and acts (LAND command, MAVLink
-    heartbeat stopped, confirmation withdrawn). LAND/disarm within **1.0 s** of the last frame.
+  - *Pass:* the watcher declares the pose stale within the stale limit plus one loop period, **0.5 s + 0.025 s =
+    0.525 s**, of the last frame, and acts (LAND command, MAVLink heartbeat stopped, confirmation withdrawn).
+    LAND/disarm within **1.0 s** of the last frame.
 - (b) Armed: occlude the markers until the mocap reports the body untracked.
   - Some systems keep sending the last pose, or a pose with a "not tracked" flag.
-  - *Pass:* treated as stale, as in (a). Frozen identical poses for 0.5 s count as stale only if the mocap gives no
-    tracking flag (state which applies).
+  - *Pass:* treated as stale, as in (a): with a tracking flag, LAND/disarm within **1.0 s** of the first untracked
+    frame. Frozen (bit-identical) poses count as stale only if the mocap gives no tracking flag (state which applies);
+    then the frozen pose is declared within the frozen limit plus one loop period, **0.5 s + 0.025 s = 0.525 s**, of
+    the first frozen frame, and LAND/disarm follows within **1.0 s** of it.
+- **Old wording (2026-10-10, pre-registered), kept verbatim:**
+  > - (a) Armed: stop the mocap stream (disable streaming, or the rigid body, in the mocap software).
+  >   - *Pass:* the watcher declares the pose stale within **0.5 s** of the last frame and acts (LAND command, MAVLink
+  >     heartbeat stopped, confirmation withdrawn). LAND/disarm within **1.0 s** of the last frame.
+  > - (b) Armed: occlude the markers until the mocap reports the body untracked.
+  >   - Some systems keep sending the last pose, or a pose with a "not tracked" flag.
+  >   - *Pass:* treated as stale, as in (a). Frozen identical poses for 0.5 s count as stale only if the mocap gives no
+  >     tracking flag (state which applies).
+- **Why it was re-worded:** the old bound (0.5 s) EQUALLED the watcher's stale limit (`--stale-s 0.5`) and frozen
+  limit (`frozen_s` 0.5), and the rule is "stale when OLDER than the limit", checked once per loop, so a declaration
+  can never come at or before 0.5 s: it could not be met by a correctly working watcher. The SITL bench
+  (`docs/handovers/2026-10-11_watcher_sitl_bench.md` finding F5) declared stale at +0.508 s (B5a) and frozen at
+  +0.510 s (B5b-noflag), and LAND reached the FC at +0.559 / +0.562 s. NO real (hardware) bench run had happened when
+  this was re-worded, so no hardware result is re-scored. The SITL values meet the new wording; that is a POST HOC
+  observation (the new bound was written after they were seen) and they stay verification data only. The watcher and
+  its limits are unchanged; the 1.0 s LAND bound is unchanged.
 - (c) Disarmed: restore the stream.
   - *Pass:* the confirmation returns only after ≥ 2 s of continuous fresh poses. No automatic action follows.
 - *Recorded:* the mocap frame times, the watcher stale-detection log, the commands and the FC events.
