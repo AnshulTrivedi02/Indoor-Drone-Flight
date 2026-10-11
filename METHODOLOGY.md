@@ -13694,3 +13694,19 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - **S-A2b is not applicable:** the failure kills the node, not the flow feed.
 - **Before any real FGO flight, the corrected node's equivalence and the SITL safety tests are now DONE**, per the
   2026-10-10 real-flight gate.
+
+### HOUSEKEEPING (user, 2026-10-12): the installed FGO node's source is on fwd-camera, and a rebuild reproduces it
+- The branch the installed node was built from (`worktree-agent-a77df11041902ee58` @ `29b37f6`, incl. the switch
+  commit `2610bdb`) is MERGED into fwd-camera (`401cced`). `git diff 29b37f6 fwd-camera -- src/estimators/fgo_cpp` is
+  EMPTY.
+- **Rebuild from fwd-camera** (`401cced`): a detached worktree at a same-length path, the same cmake line, via
+  heavy.py.
+  - Compared with the installed `fgo_cpp_node` (`4c07374b`): `.text` 0 differing bytes, `.data` 0, `.rodata` 154 bytes.
+  - ALL 154 are the 7 embedded source-path strings (`__FILE__`: `provenance-fwd-rebuild0` vs
+    `agent-a77df11041902ee58`).
+  - **The installed binary is reproduced from fwd-camera apart from the build path** (and the build-id). The temporary
+    worktree is removed.
+- **Daily-summary items, recorded as reported:**
+  - `H_safety_fgo_a_v4` landing displacement 1.45 m, near its 1.5 m bound. This is consistent with the inherent
+    attitude-only landing drift (ruling 2026-10-09; EKF3 reference 1.40 m).
+  - The S-A2 margin is reduced (0.60–0.62 s against 0.75 s; v3 0.25 s); still a PASS.
