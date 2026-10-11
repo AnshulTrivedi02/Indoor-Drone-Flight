@@ -13656,3 +13656,20 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - the FC link, systemd, the clock sync;
   - the ROS node build: it needs glibc ≥ 2.38 / GCC 13 libstdc++. Ubuntu 24.04 qualifies; Pi OS bookworm needs a native
     rebuild.
+
+### RULINGS (user, 2026-10-11): Band C; UKF safety (b) S-A2; records
+1. **Band C (the corrected C++ FGO node): option (ii).**
+   - An OFF-BY-DEFAULT C++ switch makes the C++ gate follow the Python decisions, for equivalence testing ONLY.
+   - With the switch OFF, the node must be shown BYTE-IDENTICAL to the current build (`28636bf9`), so the flown
+     behaviour is unchanged.
+   - The forced-decision comparison is PRE-REGISTERED, then Band C is re-run.
+   - **If it passes:** install the node, then fly the FGO safety re-tests (short verification flights).
+2. **UKF safety (b), S-A2:** BOTH runs (`H_safety_ukf_b_v2`, `_v3`) stay recorded as FAILED AS WORDED.
+   - The cause: the SITL MAVProxy relay drain. The trigger fired 5.00 s after the last flow message.
+   - **Supplementary criterion for FUTURE tests only, PRE-REGISTERED NOW:** S-A2b is the trigger time measured from
+     the LAST FLOW MESSAGE RECEIVED BY THE FLIGHT CONTROLLER, bound 5.5 s. S-A2 stays as worded.
+   - A bench test of the trigger timing on the real FC is added to the real-flight plan.
+3. **Recorded:**
+   - the UKF safety (a) re-test PASS (`H_safety_ukf_a_v3`, all four criteria);
+   - the ARM64 results. **A Pi 5 is RECOMMENDED;** a Pi 4 would miss a keyframe on the worst spikes (~58–67 ms
+     against 33 ms).

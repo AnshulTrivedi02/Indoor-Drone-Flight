@@ -352,6 +352,14 @@ camera flown only once verified.
 - **FGO initial yaw σ (ruling 2026-10-10):** every SITL FGO flight so far (S3, the half-speed `_v3` corridor set, the
   FGO safety tests) flew the C++ node with an initial yaw σ of 1e-3 rad. **Before any real FGO flight:** the corrected
   node (initial yaw σ 1°, the same as the UKF) must pass its C++ equivalence checks and the SITL safety tests (a)/(b).
+- **Estimator-loss trigger timing on the REAL FC (ruling 2026-10-11).** A bench test on the flight controller. With
+  props off, stop the estimator's aiding input (flow) and time from the LAST flow message the FC received to the
+  "position lost" trigger and the LAND mode change, from the FC's own log.
+  - Pass: S-A2b ≤ 5.5 s (the supplementary criterion pre-registered 2026-10-11; S-A2 as worded stays for SITL).
+  - In SITL the MAVProxy relay drain added 0.69–0.71 s after a kill; the real path has no MAVProxy relay. The bench
+    measures this directly.
+- **Companion computer: a Pi 5 is recommended** (2f, estimated). A Pi 4 would miss a 33 ms keyframe on the worst FGO
+  solve spikes (~58–67 ms).
 - **Attitude-only landing drifts (ruling 2026-10-09).** On estimator position loss, LAND flies the estimated level.
   A few tenths of a degree of attitude error drifts the vehicle > 1 m over the 4 s LAND pause plus the descent
   (SITL: 0.37–1.4 m). **Every hold point needs ≥ 2 m clearance to the watcher box in every direction.** The mocap
