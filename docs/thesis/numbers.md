@@ -654,7 +654,7 @@ and S3 (FGO)", all three FAIL on the earlier sets) stand until the user rules; M
 | **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 | **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) | **FAIL** (0/3): UKF lowest 3/3 (6.4–7.1 mm); the FGO is now the HIGHEST in all three runs (8.3–8.6 against EKF3 7.8–7.9 mm), no longer a tie | **No** (wording: "tie" → "FGO highest") |
 | **P-H3**: hold gyro activity within 1.5× across estimators | **FAIL** (0/3): UKF 2.33–2.43×, FGO 2.13–2.37× EKF3's (max/min 2.37–2.43) | **FAIL** (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's (max/min 2.40–2.58) | **No** |
 | **H-H4 (15 s)**: EKF3's re-lock jump larger than the UKF's and the FGO's, 3/3 | **FAIL** (0/3): EKF3 smallest or tied (5 / 5 / 7 mm) | **FAIL** (0/3): EKF3 strictly the smallest in all three (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm) | **No** (wording: "smallest or tied" → "strictly smallest") |
-| **H-H4 (5 s)**: jumps within 1.5× of each other | **FAIL** (0/3): EKF3 4–5 against UKF 6–17, FGO 12–26 mm (max/min 3.4–5.9) | **FAIL** (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7) | **No** |
+| **H-H4 (5 s)**: jumps within 1.5× of each other | **FAIL** (0/3): EKF3 4–5 against UKF 6–17 (effective; 7–17 as scored), FGO 12–26 mm (max/min 3.4–5.9, the same under both readings) | **FAIL** (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7) | **No** |
 
 - **No verdict differs.** All three comparative criteria FAIL on both sets, for the same reasons: the flying UKF holds
   tightest, the UKF and FGO carry ~2.1–2.6× EKF3's attitude activity, and EKF3's 15 s jump is the smallest (the 15 s loss
@@ -737,8 +737,9 @@ errors, +60 s errors, displacement ratios, onsets, runaway-size bands).
 8. **Last-digit transcriptions (pack flag 4, listed 2026-10-11; values NOT changed).** Four printed values differ from
    their source files by one unit in the last digit. Each was rounded to 3 dp from the 4-dp intermediate in
    `eval/results/final2_old_vs_new.md` (or the stored 4-dp `d_m`), not from the full-precision value, and the tie
-   rule was not applied consistently. **Convention for any later tidy:** round the full-precision file value once, to
-   the printed precision, half away from zero.
+   rule was not applied consistently. This file's own convention (header) is to copy values verbatim, never re-rounded, so
+   they stay as printed. **Proposed, PENDING user ruling (not adopted):** for any later tidy, round the full-precision
+   file value once, to the printed precision, half away from zero.
 
    | value (section) | full precision (file) | 4-dp intermediate | printed here | single rounding of the file value |
    |---|---|---|---|---|

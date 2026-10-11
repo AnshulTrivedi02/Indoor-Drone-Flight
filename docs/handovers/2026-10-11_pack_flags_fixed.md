@@ -1,10 +1,10 @@
 # Handover: final results pack, the four flags (2026-10-11)
 
 **Stage:** analysis and documentation only. No replays, no flights, no heavy jobs. METHODOLOGY.md and src/ were not edited.
-**Branch:** `worktree-agent-aac9eee6d2abb4e4f`, based on `fwd-camera` `fb926d4`. Commits:
+**Branch:** `worktree-agent-adab9f4f4ce48265d` (reset to `fwd-camera` `fb926d4` at the start; it had been cut from `main`). Commits:
 - `4f91ac6`: numbers.md, the pack script and `eval/h_comparative.py`;
 - `344030f`: the pack outputs regenerated at `4f91ac6`;
-- the next commit adds this handover.
+- `c9cc39a` added this handover; a follow-up commit corrects the branch name and two wordings.
 
 Not merged.
 
@@ -34,7 +34,8 @@ Not merged.
    - Three of them are double rounding through the 4-dp table in `final2_old_vs_new.md`: 0.01048 → 0.011, 0.053504 → 0.053, and
      0.262533 → 0.262.
    - d r5 (stored as −0.4885) is a true tie.
-   - Convention noted for any later tidy: round the full-precision value once, half away from zero.
+   - The values stay as printed (numbers.md copies verbatim). A tidy rule (round the full-precision value once, half away from
+     zero) is PROPOSED, pending a user ruling.
 
 ## Flag 3 result (computed only, NOT adopted)
 - **Method.** `eval/h_comparative.py` reduces the stored `eval/h_score.py` outputs. h_score was not re-run; it is unchanged since `55edd75`,
