@@ -13673,3 +13673,24 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - the UKF safety (a) re-test PASS (`H_safety_ukf_a_v3`, all four criteria);
    - the ARM64 results. **A Pi 5 is RECOMMENDED;** a Pi 4 would miss a keyframe on the worst spikes (~58–67 ms
      against 33 ms).
+
+### Band C with forced gate decisions: PASS; corrected FGO node INSTALLED; FGO safety re-tests PASS (handover `docs/handovers/2026-10-11_bandc_forced_install_safety.md`)
+- **The switch:** the compile-time CMake option `FGO_CPP_FORCED_GATE`, OFF by default (commit `2610bdb`). It is not
+  compiled into any default or installed binary (0 strings/nm hits).
+- **Switch OFF:** byte-identical to the 2d build (replay `0981e455` and the other tools identical). The node's
+  outputs are identical on the 4 Band C bags and on L1; the node binary differs only by its path and build-id.
+- **Forced Band C, pre-registered (`b3ec6f4`) BEFORE the run: PASS.**
+  - Max |Δp|: dsn_tex 0.111 mm (1.95 unforced), fwdc 8.9e-5, T_A 2.6e-7, T_D 5.1e-4 mm.
+  - Exactly ONE decision changed: the 241.1 s threshold tie.
+  - The forced replays are otherwise byte-identical to the unforced ones.
+- **INSTALLED:** `fgo_cpp_node` `f642cd37` → **`4c07374b`** (initial yaw 1°, roll/pitch 5°). Backup in
+  `~/opt/fgo_cpp_backup_f642cd37_2026-10-11`. The new acceptance set is `~/thesis_data/acceptance/fgo_d18_bandc`; the
+  replay and live acceptance PASS.
+- **FGO safety re-tests on the corrected node** (VERIFICATION, short profiles):
+  - `H_safety_fgo_a_v4`: S-A1–S-A4 PASS as worded (S-A2 0.60 s against 0.75 s; **S-A3 displacement 1.45 m against
+    1.5 m, close to the bound**);
+  - `H_safety_fgo_b_v4`: S-A1–S-A4 PASS as worded (S-A2 0.62 s; displacement 0.21 m);
+  - the S-A2 margin is smaller than v3's (0.25 s); not investigated;
+  - **S-A2b is not applicable:** the failure kills the node, not the flow feed.
+- **Before any real FGO flight, the corrected node's equivalence and the SITL safety tests are now DONE**, per the
+  2026-10-10 real-flight gate.
