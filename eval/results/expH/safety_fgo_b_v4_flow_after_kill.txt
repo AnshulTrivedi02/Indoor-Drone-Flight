@@ -1,0 +1,2 @@
+H_safety_fgo_b_v4: kill 61.569 s; last OF (qual>0) 71.887 s (drain +10.32 s); 'position lost' 62.185 s = kill +0.62 s = last OF -9.70 s
+H_safety_fgo_a_v4: kill 62.977 s; last OF (qual>0) 107.908 s (drain +44.93 s); 'position lost' 63.578 s = kill +0.60 s = last OF -44.33 s

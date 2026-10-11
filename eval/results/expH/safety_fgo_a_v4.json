@@ -1,0 +1,79 @@
+{
+ "trial": "H_safety_fgo_a_v4",
+ "failure": "KILL",
+ "t_f": 62.977,
+ "t_disarm": 72.432837,
+ "attitude_err_before_failure_10s": {
+  "n": 100,
+  "roll_max_deg": 0.27030290715905936,
+  "pitch_max_deg": 0.25516380518322457,
+  "yaw_max_deg": 0.24519051307655104
+ },
+ "S-A1": {
+  "n": 94,
+  "roll_max_deg": 0.24299598248353915,
+  "pitch_max_deg": 0.41068677905760825,
+  "yaw_max_deg": 0.2888962434021778,
+  "PASS": true
+ },
+ "t_failure_effect": null,
+ "S-A2": {
+  "text_delay_s": 0.600674000000005,
+  "land_delay_s": 0.600674000000005,
+  "land_reason": 6,
+  "bound_s": 0.75,
+  "fc_text": "Thesis nav: FGO position lost",
+  "PASS": true
+ },
+ "S-A3": {
+  "disarm_delay_s": 9.45583700000001,
+  "max_tilt_deg": 2.2180135817343483,
+  "touchdown_t": 70.43591180867158,
+  "horiz_disp_m": 1.4541710566471362,
+  "touchdown_vz_m_s": -0.5144872202422003,
+  "breach": false,
+  "PASS": true
+ },
+ "S-A4_single_landing": {
+  "n_land_entries_after_t_f": 1,
+  "rearmed_after_disarm": false,
+  "PASS": true
+ },
+ "modes_after_t_f": [
+  [
+   0.601,
+   9,
+   6
+  ]
+ ],
+ "msgs_after_t_f": [
+  [
+   0.256,
+   "EKF3 lane switch 0"
+  ],
+  [
+   0.601,
+   "Thesis nav: FGO position lost"
+  ],
+  [
+   0.601,
+   "EKF Failsafe: changed to Land Mode"
+  ],
+  [
+   9.456,
+   "Disarming motors"
+  ],
+  [
+   11.275,
+   "PreArm: AHRS: FGO invalid or stale"
+  ],
+  [
+   42.276,
+   "PreArm: Need Alt Estimate"
+  ],
+  [
+   42.276,
+   "PreArm: AHRS: FGO invalid or stale"
+  ]
+ ]
+}
