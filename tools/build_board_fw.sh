@@ -32,8 +32,9 @@
 # that holds ~/thesis_data/BUILD_LOCK (override: --no-lock-check). --dry-run needs no lock: it validates, creates
 # and lists the worktree, prints the commands it would run, and cleans up.
 #
-# The vehicle binary name is never written on a command line here (globs only), so a pgrep for the SITL vehicle does
-# not mistake this script for a flight. Only waf's own link step names it, for a few seconds.
+# The vehicle binary name is never written literally in this script, and the ELF is copied by a shell redirect. Globs
+# still expand into the argv of cp/md5sum for an instant, and waf's link step names the binary for a few seconds, so a
+# `pgrep -f` for the SITL vehicle can briefly match this build. Use `ps -eo comm` (exact name) to look for a flight.
 set -u -o pipefail
 
 REPO="${BFW_REPO:-$HOME/ardupilot_ukf}"

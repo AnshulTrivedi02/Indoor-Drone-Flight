@@ -67,7 +67,7 @@ remaining work and the timeline see `docs/realflight_plan_copter.md` §3.
 | 15 | R15 | Offline runs, scoring, METHODOLOGY entry | SW | 1 d | WAITS |
 
 **Rung 1 total (original costing):**
-- software that can start now: 7.5–10 d (agents); **remaining 2026-10-12: about 3–4.5 d** (plan §3.2);
+- software that can start now: 7.5–10 d (agents); **remaining 2026-10-12: about 3–4.25 d** (plan §3.2);
 - hardware and on-site work: **5–8 d**;
 - **12.5–18 person-days in all.**
 - **Timeline: 6 working days from hardware arrival** (+2 contingency; +3–6 d if the vehicle is not already flying).
@@ -227,6 +227,14 @@ the fence plus the pilot.
 - forward camera (A6, D2, D6): +3.5–7 d;
 - P-HOLD (A7, D7, C4): +2.5–3.5 d;
 - a live FGO shadow on the Pi (G8): +3–5 d.
+
+**Software that could start NOW (no hardware), as costed on 2026-10-10: about 13–19.5 d.**
+- A4 (SW part), A5, A9, B1 (config), B4;
+- C7 (r2), E1;
+- F1, F2, F3 (code), i.e. the G1–G11 gaps (since BUILT, 2026-10-10);
+- G11 (r2), H6 (r2), H9 (r2), H10, I2.
+
+**Hardware-dependent: about 11–17.5 d** after the Pi, the cameras and the vehicle are in hand.
 
 **Rung-1 items reused by rung 2:**
 - the firmware image (R5);

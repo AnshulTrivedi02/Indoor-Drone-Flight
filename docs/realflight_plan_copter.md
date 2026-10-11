@@ -31,8 +31,8 @@ Every effort is for one person, in working days ("d"), and is [E].
 | What flies | Stock `7bac20cbcc` (unmodified), EKF3 (`AHRS_EKF_TYPE 3`), a safety pilot in ALT_HOLD. Nothing of ours steers | The fork (`board-h743`), `AHRS_EKF_TYPE 12`, the vehicle's own flow sensor and rangefinder; EKF3 in shadow; the watcher on the ground laptop |
 | From hardware arrival (Day 0) | **6 working days** (+2 contingency) | **14 working days** (+2–3 contingency), i.e. rung 1 first, then **8 more** |
 | Mocap days | 3 | 3 (rung 1) + 4 = 7 |
-| No-hardware work left | **~3–4.5 d** (§3.2) | **~6.5–9 d more** (§4.3) |
-| Blocking open items | §5: the pre-registration sign-off, E5/merge of `rung1-geometry`, the capture-delay option, `XUKO` in Replay, compass (if none is fitted), U4 (if the rangefinder minimum exceeds the ground clearance) | everything rung 1 blocks on, plus F6, U4, the stage-3 pre-registration, the SITL verification flights, the own-gyro driver rule (if HereFlow/PX4Flow), the H10 takeover guard (if scripted) |
+| No-hardware work left | **~3–4.25 d** (§3.2) | **~6–9.5 d more** (§4.3) |
+| Blocking open items | §5: the pre-registration sign-off, E5/merge of `rung1-geometry`, the capture-delay option, `XUKO` in Replay, compass (if none is fitted), U4 (if the rangefinder minimum exceeds the ground clearance) | everything rung 1 blocks on, plus F6, U4, the stage-3 pre-registration (with the U10 band filed before rung-1 day 3), the SITL verification flights, the own-gyro driver rule (if HereFlow/PX4Flow), the H10 takeover guard (if scripted) |
 
 **Day 0** is the day all of these are in hand:
 - the supervisor's vehicle: an STM32H743 ArduCopter, **already flying and tuned**, with its flow sensor and rangefinder on
@@ -142,12 +142,12 @@ from now. Whether flights after 23 Oct count is still the open freeze-scope ques
 | R-d | **`XUKO` from a Replay run.** The prereg's proposed UKF record is `XUKO`, but Replay's logger does not emit FMT records for the UKF's messages (METHODOLOGY "Replay logging note"), and `ukf_shadow.csv` holds the horizon-time state. Check whether `XUKO` exists in a Replay output log; if not, add a current-time CSV (or re-word the prereg to `XUKF`/CSV) | 0.25–0.5 d [U] | not checked | **YES** for the UKF row as drafted |
 | R-e | **U4: initialise from `RNGFND1_GNDCLR`** when disarmed and `OutOfRangeLow` (as EKF3 does), default unchanged; Replay regression | 0.5–1 d | needs a ruling | only if the rangefinder minimum exceeds the ground clearance; then the UKF row starts mid-climb |
 | R-f | **Converter acceptance band** (FGO-from-BIN against FGO-from-bag, full `cl_a_tex_half`): pre-register the band, then one light replay | 0.5 d | open (R1 follow-up) | no (an acceptance check of a tool already proven at default) |
-| R-g | **Flight cards:** add F2 ("after any automatic LAND, the SP disarms if the FC has not disarmed within 5 s of touchdown"), a GNDCLR line, and the compass-health line for the chosen variant | 0.1 d | not done | **YES** (a safety card line; trivial) |
+| R-g | **Flight cards:** add F2 (PROPOSED wording, the 5 s is this plan's proposal: "after any automatic LAND, the SP disarms if the FC has not disarmed within 5 s of touchdown"), a GNDCLR line, and the compass-health line for the chosen variant | 0.1 d | not done | **YES** (a safety card line; trivial) |
 | R-h | R8: remove or re-validate the 25 Hz `IMU` fallback; decide whether `--init-seg` uses the motion-onset rule | 0.25 d | open | no |
-| R-i | **Stale parameter names**: CLAUDE.md (Hidden Configuration Audit §2 says `ARMING_CHECK`; at `7bac20cbcc` it is `ARMING_SKIPCHK`) and `minimal_real_flight_plan.md` §1/§3.3 (`RNGFND1_GNDCLEAR` → `RNGFND1_GNDCLR`) | 0.1 d | not done (not edited here) | no (`check_parm.py` already refuses the stale names) |
+| R-i | **Stale parameter names** (every parameter-like token checked against `pinned_param_names.txt`, 2026-10-12): **CLAUDE.md**: `ARMING_CHECK` → `ARMING_SKIPCHK` (Hidden Configuration Audit §2); `FLOW_MAX` → `EK3_FLOW_MAX` and `FLOW_M_NSE` → `EK3_FLOW_M_NSE` (UKF Design robustness table and text); `RNGFND1_MIN_CM` is correctly cited as the pre-rename name. **`minimal_real_flight_plan.md`** §1/§3.3: `RNGFND1_GNDCLEAR` → `RNGFND1_GNDCLR`. **`ukf_only_closed_loop_costing.md`**: `ARMING_CHECK` (§5) and `RNGFND1_GNDCLEAR`/`RNGFNDn_GNDCLEAR` (§1, §8) | 0.2 d | not done (not edited here) | no (`check_parm.py` already refuses the stale names) |
 | R-j | Rung-1 firmware build ready: `build_board_fw.sh <B> --ref 7bac20cbcc --without` | 0 d | **DONE** (dry run, §6) | — |
 
-**Total ≈ 3–4.5 d** (R-a to R-i, excluding the rulings themselves).
+**Total ≈ 3–4.25 d** (R-a to R-i, excluding the rulings themselves).
 
 ### 3.3 What rung 1 waits on (hardware)
 - **Board:** the exact hwdef; the rung-1 image built for it; S6 (pinned or stock 4.7.0) approved; backup and rollback.
@@ -187,8 +187,10 @@ live mocap feed and a MAVLink link to the FC.
   handover `2026-10-11_watcher_sitl_bench.md` §2.2].
 - **Re-planned:** fly V1–V7 on the thesis camera-flow MAVLink path (`FLOW_TYPE 5`, `flow_bridge.py`, `lidar_bridge.py`),
   as the bench did.
-  - This is the better test: `FLOW_TYPE 5` pairs the AHRS gyro, so the D18 swap-gated path is exercised; `SIM_FLOW`
-    would have used the true gyro.
+  - This is the better test: `FLOW_TYPE 5` pairs the AHRS gyro, whereas `SIM_FLOW` would have used the true gyro.
+  - **The D18 bias swap runs only in V1** (UKF shadow, EKF3 flying). Under type 12 (V2–V6) the rule is the identity.
+    **V1 would be the first flying log with the swap active**, which closes open item 1 of the r1-port handover
+    (`2026-10-11_r1_ukf_port.md` §4).
   - The built-in `-f quad` model (option B) remains a fallback.
 - **The "after 16 Oct" restriction is superseded.** Short verification flights are allowed now under the standing rule
   (2026-10-11), one at a time, under the locks. So V1–V7 are in the no-hardware list.
@@ -204,7 +206,8 @@ live mocap feed and a MAVLink link to the FC.
 | U-a | **F6: the watcher's LAND retry.** Stop re-sending once the FC heartbeat shows LAND or any pilot mode (STABILIZE/ALT_HOLD); offline tests; re-run the 83 `realflight` tests | 0.5 d after the ruling | ruling needed | **YES** (a safety finding). Also blocks rung 1 if the watcher is used there |
 | U-b | **U4** (= R-e) | (in R-e) | ruling needed | **YES** if the rangefinder minimum exceeds the ground clearance (the UKF never initialises, so the vehicle cannot arm in type 12) |
 | U-c | **SITL verification flights V1–V7** on the MAVLink flow path (§4.2): harness 0.5 d, one light SITL build, flights 1.5–2 d | 2–2.5 d | not started | **YES** (the costing's SITL gate) |
-| U-d | **Stage-3 pre-registration** (U14): profile (scripted GUIDED or pilot LOITER), n, window, abort rules, the 5 s aiding-loss latency accepted (or not), the watcher box sized for it, S-A2b, the V1–V7 and bench pass criteria | 1–1.5 d | not written | **YES** |
+| U-d0 | **The U10 Replay-gate band, pre-registered** (the onboard UKF replayed on the rung-1 logs: initialises, stays `HORIZ_POS_REL` through hover and moves, `_n_chol_fail` = 0, trajectory against mocap within a band). **Due before any UKF Replay of a real log, i.e. before rung-1 day 3**; otherwise the gate is post hoc (the E5 failure class) | 0.25 d | not written | **YES** |
+| U-d | **Stage-3 pre-registration** (U14): profile (scripted GUIDED or pilot LOITER), n, window, abort rules, the 5 s aiding-loss latency accepted (or not), the watcher box sized for it, S-A2b, the V1–V7 and bench pass criteria (it incorporates U-d0) | 1–1.5 d | not written | **YES** |
 | U-e | **Real-FC failsafe parameter file** (U7): `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `AHRS_UKF_TFAIL 0`, `FS_EKF_ACTION 1`, `FS_GCS_ENABLE 5`, `FS_GCS_TIMEOUT`, `MAV_GCS_SYSID` (the watcher), `FS_OPTIONS`, RC and battery failsafes. A `check_parm.py` stage-3 mode that accepts type 12 only there | 0.5 d | not written | **YES** |
 | U-f | **H10 takeover guard + F4** in the real flight script: no LAND when the FC is in a pilot mode or already in LAND; pin the FC's system ID; take the mode mapping from the FC's own heartbeat. (`fly_trial.py` as it is would command LAND in B10b) | 1–2 d | prototype in the bench driver only | **YES if a scripted GUIDED profile is chosen**; not needed for a pilot-flown LOITER profile |
 | U-g | **F2 investigation** (why the land detector does not trip on flow-only EKF3) and the card line (R-g) | 0.25–0.5 d | open | the card line YES; the investigation no |
@@ -215,7 +218,8 @@ live mocap feed and a MAVLink link to the FC.
 | U-l | Optional: a separate `AP_NAVFGO_ENABLED` flag (a UKF-only build drops ~5 kB flash, ~15 kB RAM) | 0.25 d | optional | no |
 | U-m | Firmware build ready (`tools/build_board_fw.sh`) | 0 d | **DONE** (§6) | — |
 
-**Total ≈ 6.5–9 d beyond rung 1's §3.2** (U-a, U-c to U-k; excluding the rulings themselves and the optional U-l).
+**Total ≈ 6–9.5 d beyond rung 1's §3.2** (U-a, U-c to U-k with U-d0; excluding the rulings themselves and the
+optional U-l).
 
 ### 4.4 What the UKF-only closed loop waits on (hardware)
 Everything in §3.3, plus:
@@ -250,6 +254,7 @@ Everything in §3.3, plus:
 | 15 | **S6** firmware: pinned `7bac20cbcc` or stock 4.7.0 | **BLOCKS** day 1 | — | supervisor |
 | 16 | **Merging `board-h743`** (carries `rung1-geometry`) | no | **BLOCKS** the flown build being on a named, merged commit | user's call |
 | 17 | **Stage-3 pre-registration** (U-d) | no | **BLOCKS** | |
+| 17a | **U10 Replay-gate band pre-registered** (U-d0) | no | **BLOCKS**, and must be filed before rung-1 day 3 | otherwise the gate is post hoc |
 | 18 | **G6** arming procedure / Lua; watcher system ID | no | **BLOCKS** | |
 | 19 | **Freeze scope** (do flights after 23 Oct count?) | decides whether rung 1 is in the thesis if Day 0 is after 15 Oct | decides whether it is in the thesis at all | |
 
@@ -276,7 +281,7 @@ Everything in §3.3, plus:
   `--dry-run` needs no lock. **Nothing is ever flashed.**
 - `--extra-hwdef` (e.g. `define ALLOW_ARM_NO_COMPASS`) is wired but **untested**, as in 2a.
 
-### 6.2 Likely H743 Copter targets (hwdefs present on `board-h743` [V])
+### 6.2 Likely H743 Copter targets (all 18 hwdefs present on BOTH `board-h743` and `7bac20cbcc` [V, `git cat-file`])
 Published stable Copter `.apj` headers, `git_identity dbe79216`, fetched 2026-10-12 from
 `firmware.ardupilot.org/Copter/stable/<board>/` [V] (`eval/results/board_fw_ready/stable_dbe79216_apj_headers.txt`).
 **"Fork, projected" = stable free − 24 kB** [E], a conservative rule: the backends add 23.8–24.2 kB, while our

@@ -9,6 +9,8 @@ METHODOLOGY.md, numbers.md and CLAUDE.md are NOT edited.
   been created from the unrelated `main` root). Committed; NOT merged.
 - **`~/ardupilot_ukf`:** untouched. `board-h743` is still `0156bfc34e`; the checked-out branch is still `ukf-jitter-fix`;
   the worktree list is back to its 2 entries (the script checks this itself).
+- **Flight check before each heavy job and each commit:** no `FLIGHT_LOCK`, no `BUILD_LOCK` (other than the test
+  build's own, under `heavy.py`), and no process named `arducopter` (`ps -eo comm`, exact match).
 - **No locks held**; no leftover worktrees (every temporary worktree is in the scratchpad and was removed by the script).
 - **New data outside git:** `~/thesis_data/fw_builds/` (the KakuteH7 build, and the attempt-1 log directory renamed
   `…_FAILED_nested_submodules`).
@@ -41,7 +43,10 @@ METHODOLOGY.md, numbers.md and CLAUDE.md are NOT edited.
 - **Rung 1:** 6 working days (+2 contingency), 3 mocap days.
 - **UKF-only closed loop:** 14 working days (rung 1 first, then 8; +2–3 contingency), 7 mocap days in all.
 - **If the vehicle is not already flying, add 3–6 d.**
-- **No-hardware work left:** rung 1 about 3–4.5 d; the UKF-only loop about 6.5–9 d more (excluding the rulings).
+- **No-hardware work left:** rung 1 about 3–4.25 d; the UKF-only loop about 6–9.5 d more (excluding the rulings).
+- **New blocking item found while planning:** the U10 Replay-gate band must be pre-registered before any UKF Replay
+  of a real log (before rung-1 day 3), or the gate is post hoc (plan U-d0, §5 item 17a).
+- **All 18 target hwdefs exist on both `board-h743` and `7bac20cbcc`** (`git cat-file`).
 - **The plan corrects the costing's SITL plan (U9).** `SIM_FLOW` is unusable with the Gazebo model (2c finding), so
   V1–V7 fly on the MAVLink camera-flow path, and as verification flights they are allowed now.
 
@@ -58,7 +63,9 @@ METHODOLOGY.md, numbers.md and CLAUDE.md are NOT edited.
     - identity `0156bfc3`;
     - `.apj` md5 `8677e30a…`.
   - **Its stack sub-check failed on a SCRIPT bug** (it kept waf's `-o<path>`). Fixed afterwards, but **not
-    re-verified by a build**: the brief allowed one real build. The next real build is the fix's first test.
+    re-verified by a build**: the brief allowed one real build. The next real build is the fix's first test. The
+    joined `-o<path>` form was confirmed in the stored 2a `compile_commands.json` (MatekH743), so the fix targets the
+    real form.
 - **Nothing flashed.**
 
 ## 4. Not done / for the next stage
@@ -79,6 +86,8 @@ METHODOLOGY.md, numbers.md and CLAUDE.md are NOT edited.
    - merging `rung1-geometry` / `board-h743`;
    - G6.
 2. **The no-hardware TODO** (plan §3.2 R-a…R-i, §4.3 U-a…U-l), in that order of priority: blocking items first.
-3. **The stale names** in CLAUDE.md (`ARMING_CHECK` → `ARMING_SKIPCHK`) and in `minimal_real_flight_plan.md`
-   (`RNGFND1_GNDCLEAR` → `RNGFND1_GNDCLR`): not edited here (R-i).
+3. **The stale names** (plan R-i, an exhaustive token check against `pinned_param_names.txt`): CLAUDE.md
+   `ARMING_CHECK` → `ARMING_SKIPCHK`, `FLOW_MAX` → `EK3_FLOW_MAX`, `FLOW_M_NSE` → `EK3_FLOW_M_NSE`;
+   `minimal_real_flight_plan.md` and `ukf_only_closed_loop_costing.md` `RNGFND1_GNDCLEAR` → `RNGFND1_GNDCLR` (the
+   costing also says `ARMING_CHECK`). Not edited here.
 4. **The next real board build re-tests the stack sub-check.** The `--extra-hwdef` path is still unbuilt.
