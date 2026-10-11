@@ -13554,3 +13554,30 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     [+146, +218]; +165.9 s is inside both, so the verdict is unchanged;
   - the four last-digit values (three are double rounding, one a true tie): a rounding rule is proposed;
   - the S1-far shadows have no numbers.md rows.
+
+### 2a: board firmware BUILT for two representative H743 boards (`~/ardupilot_ukf` `board-h743` `0156bfc34e`, NOT merged; nothing flashed; `docs/board_firmware_plan.md`; handover `docs/handovers/2026-10-11_board_firmware_h743.md`)
+- **The build option** (`--enable-THESIS_NAVUKF` or an hwdef define); Replay I/O compiled out on boards; arming
+  refused when `AHRS_UKF_TFAIL` ≠ 0, including a GCS force-arm.
+- **A stack fix:** two UKF functions needed 2.3/1.8 kB against a 7,168 B main stack. Their scratch matrices are now
+  static; the deepest chain is ~1.6 kB.
+- **Flash and RAM:**
+
+  | board | free without the backends | free with UKF + FGO | flash added | static RAM added |
+  |---|---|---|---|---|
+  | MatekH743 | 158,924 B | 134,692 B | +24.2 kB | +40.3 kB |
+  | Pixhawk6X | 291,180 B | 267,348 B | +23.8 kB | +40.3 kB |
+
+  - UKF 13.7 kB flash / ~25 kB RAM; FGO 4.6 kB / ~14.8 kB; no heap.
+  - CPU ESTIMATED 2–6% at 80 Hz (the bench `PM` log gives the real figure).
+- **Compile-out candidates** (none needed): scripting ~144 kB (needed only for the Lua arming-auth draft), mount
+  ~41 kB, Ethernet ~54 kB, OSD+MSP ~40 kB, etc.
+- **SITL byte-identity:** all CSVs identical on type-3 and type-12 logs; identical to the installed Replay; UKF_Equiv
+  7/7 identical.
+- **Open for the exact board:**
+  - the hwdef rebuild (≥ 32 kB free; the stack);
+  - the arming refusal is untested (bench P5);
+  - the PM/stack/memory bench checks;
+  - `ALLOW_ARM_NO_COMPASS`;
+  - the rangefinder-below-minimum-on-ground arming block (U4);
+  - whether to keep scripting;
+  - merging `board-h743` (the user's call). Rung 1 still flies `7bac20cbcc` unmodified.
