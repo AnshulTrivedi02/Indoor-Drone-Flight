@@ -13525,3 +13525,17 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - the clock-map windows are the disarmed wiggles;
   - **proposed:** primary metric evo -a SE(3), to match the simulation's decision categories, with 4-DoF as
     secondary (they agree to 1 mm on SITL); UKF record XUKO (current-time output, like XKF1).
+
+### FINAL RESULTS PACK built (item 0; `docs/thesis/final_results_pack.pdf` 23 pp; index `docs/thesis/final_results_pack_index.md`; handover `docs/handovers/2026-10-11_final_results_pack.md`)
+- **17 figures:** 15 CURRENT (all checks match), F05 CURRENT (checked against its JSON only), F13 FLAGGED.
+  - New: F14 (the tag experiment: hold and drift per loss duration, all three estimators, shadow and flying) and
+    F15a/b (the closed-loop summary; the flown FGO marked as old priors).
+- **Tables:** T1 claims (36 rows) and T2 corrections (18) are CURRENT.
+- **Historical figures** fig3–fig14 and the supervisor PDFs are FLAGGED as superseded.
+- **Flagged for correction:**
+  1. numbers.md §16.3 L cost bullets are from the first final re-run. Current: LC 35–41 ms, no-LC 50–61 ms, wall
+     7,276–9,583 s.
+  2. numbers.md §15 lags METHODOLOGY (the UKF half heading set is still 2/3; there are no rows for UKF v2 or FGO
+     v2/v3).
+  3. The H comparative criteria (H-H2, P-H3, H-H4) were never restated on S2v2/S3v2.
+  4. Four numbers.md values are off by one in the last digit (rounding).
