@@ -1,6 +1,6 @@
-flash attributed: 1744899 B over 108 groups
+flash attributed: 1744947 B over 108 groups
     145903  AP_Scripting   (RAM 127)
-    135902  ArduCopter   (RAM 74439)
+    135950  ArduCopter   (RAM 74439)
     121703  AP_NavEKF3   (RAM 8)
     109113  toolchain/other   (RAM 27526)
     100420  AP_ROMFS   (RAM 0)

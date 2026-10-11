@@ -5,12 +5,15 @@ One stage agent. The ruling is METHODOLOGY "RULING (user, 2026-10-11)", item 2(a
 flashing and rollback plan, is `docs/board_firmware_plan.md`.
 
 ## State
-- **`~/ardupilot_ukf` branch `board-h743` → `6280a35745`**, on `rung1-geometry` `16535f9a29`. It is NOT merged.
+- **`~/ardupilot_ukf` branch `board-h743` → `0156bfc34e`**, on `rung1-geometry` `16535f9a29`. It is NOT merged.
+  It has two commits:
+  - `6280a35745`: the option, the guards and the stack fix;
+  - `0156bfc34e`: the forced-arm refusal, added after review.
   - The checked-out branch (`ukf-jitter-fix` `abb0357d0f`) and `~/ardupilot_ukf/build` are untouched. The installed
     Replay `e8e9feac` and UKF_Equiv `537e0dcd` were re-checked after the stage.
 - **The build** ran in a temporary `git worktree` in the scratchpad. Its submodules were `--reference`d to the main
   checkout (waf, mavlink + pymavlink, ChibiOS, DroneCAN ×4, littlefs, lwip, CrashDebug + CrashCatcher). All builds ran
-  under `heavy.py`, one at a time. The worktree has been removed (`git worktree remove --force`).
+  under `heavy.py`, one at a time. The worktree was removed, re-created for `0156bfc34e`, then removed again.
 - **The toolchain was present:** `/opt/gcc-arm-none-eabi-10-2020-q4-major` (10.2.1). Nothing was installed.
 - **thesis_ws (this worktree branch):**
   - `docs/board_firmware_plan.md` (new);
@@ -19,7 +22,7 @@ flashing and rollback plan, is `docs/board_firmware_plan.md`.
     deltas, the stack usage, the SITL identity outputs, `hwdef.h` per build);
   - this handover.
 
-## 1. The fork change (`6280a35745`)
+## 1. The fork change (`6280a35745` + `0156bfc34e`)
 - **`AP_NAVUKF_ENABLED` is a build option.**
   - Default unchanged: on for SITL, off for every board.
   - On a board: `--enable-THESIS_NAVUKF` (a new `build_options.py` Feature), or `define AP_NAVUKF_ENABLED 1` in a
@@ -30,24 +33,29 @@ flashing and rollback plan, is `docs/board_firmware_plan.md`.
   Replay strings are in the board ELF [V].
 - **`AP_NAVUKF_TFAIL_ARM_GUARD`** (every board, not SITL): arming is refused with `AHRS_UKF_TFAIL` ≠ 0, in
   `AP_AHRS::pre_arm_check` and unconditionally in `AP_Arming_Copter::arm_checks`.
-  - **UNTESTED:** it is compiled out of SITL. Bench check P5 and costing-doc V7 cover it.
+  - **A GCS force-arm is refused too.** It skips `arm_checks` and runs only `mandatory_checks`
+    (`AP_Arming.cpp:1885`), so `0156bfc34e` puts the refusal in `AP_Arming_Copter::mandatory_checks` as well.
+  - **UNTESTED:** it is compiled out of SITL. Bench check P5 (normal and forced arm) and costing-doc V7 cover it.
   - Copter only; Plane needs its own line.
 - **Stack fix, found by the board build.** `-Werror=frame-larger-than=1300` failed the first build:
   - `NavUKF::predict` had 2,256 B of frame, and `sigma_points` 1,848 B;
   - the main-thread stack is 7,168 B.
+  - the old predict chain was about 4.5 kB [E chain].
   `L` and `Pm` are now static scratch, zeroed every call (as the existing static `fs`). The frames are now 456 B and
-  56 B, and the deepest UKF chain is about 1.6 kB.
+  56 B, and the deepest UKF chain is about 1.6 kB [E chain].
 
 ## 2. Results (details and tables in `docs/board_firmware_plan.md` §2)
 
 | board | limit (B) | without: used / free | with UKF+FGO: used / free | Δ flash | Δ static RAM |
 |---|---|---|---|---|---|
-| MatekH743 (tight) | 1,703,936 | 1,545,012 / 158,924 | 1,569,196 / **134,740** | +24,184 | +40,296 |
-| Pixhawk6X (roomy) | 1,966,080 | 1,674,900 / 291,180 | 1,698,684 / **267,396** | +23,784 | +40,296 |
+| MatekH743 (tight) | 1,703,936 | 1,545,012 / 158,924 | 1,569,244 / **134,692** | +24,232 | +40,296 |
+| Pixhawk6X (roomy) | 1,966,080 | 1,674,900 / 291,180 | 1,698,732 / **267,348** | +23,832 | +40,296 |
+
+Against a nominal 2 MB (2,097,152 B), the images use 74.8 % (Matek) and 81.0 % (Pixhawk6X).
 
 - **All four builds have 0 warnings.**
-- **Split** [V symbols, E plumbing]:
-  - **flash:** UKF ≈ 19 kB and FGO ≈ 5 kB;
+- **Split** [V symbols]:
+  - **flash:** the named symbols are UKF 13.7 kB and FGO 4.6 kB, plus 5.8 kB of shared plumbing, not split;
   - **RAM:** UKF ≈ 25 kB (incl. 7.3 kB of static scratch) and FGO ≈ 14.8 kB (the 400-entry IMU ring buffer).
 - **No heap use.**
 - **The FGO input path is linked** (`handle_odometry` → `NavFGO::writeState`, objdump) [V].
@@ -62,7 +70,8 @@ flashing and rollback plan, is `docs/board_firmware_plan.md`.
   - **None is needed for the UKF+FGO build itself.**
 
 ## 3. SITL byte-identity (re-proved after the stack change)
-- **SITL rebuild:** Replay `acda76be`, UKF_Equiv `b4f45b98`, copter `a5070045`, all with 0 warnings.
+- **SITL rebuild** (at `6280a35745`; `0156bfc34e` is compiled out of SITL): Replay `acda76be`, UKF_Equiv `b4f45b98`,
+  copter `a5070045`, all with 0 warnings.
 - **Against `rung1-geometry` `16535f9a29`** (the stored outputs of the previous stage, `r1ukf/a2/<log>/new`):
   - `cl_a_tex_half` (type 3): all four CSVs byte-identical;
   - `cl_ukf_b_tex_r1_half_v2` (type 12, EXTYAW): all four CSVs byte-identical.
@@ -73,22 +82,24 @@ flashing and rollback plan, is `docs/board_firmware_plan.md`.
 
 ## 4. Artefacts (scratchpad; NOT committed)
 `/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/h7/out/`:
-- **`MatekH743_with/`:** `arducopter.apj` md5 `7d8652f3…`, `git_identity 6280a357`. Also there:
+- **`MatekH743_with/`:** `arducopter.apj` md5 `dc17759e…`, `git_identity 0156bfc3`. Also there:
   - `arducopter_with_bl.hex`, `arducopter.bin` and `vehicle.elf`;
   - `Linker.map` and `compile_commands.json`;
   - `size_A.txt` and `nm.txt`.
-- **`MatekH743_without/`:** `.apj` `79e2c872…`.
-- **`Pixhawk6X_with/`:** `.apj` `f68a3f5b…`.
-- **`Pixhawk6X_without/`:** `.apj` `ec7b189f…`.
-- **`MatekH743_with_precommit/`:** the first successful build. It is identical in size, but its identity is
-  `16535f9a`. Do not use it.
+- **`MatekH743_without/`:** `.apj` `79e2c872…` (`6280a357`; code-identical at `0156bfc3`).
+- **`Pixhawk6X_with/`:** `.apj` `22c3cfda…` (`0156bfc3`).
+- **`Pixhawk6X_without/`:** `.apj` `ec7b189f…` (`6280a357`; code-identical at `0156bfc3`).
+- **Superseded builds, kept only for the record:**
+  - `MatekH743_with_precommit/` (identity `16535f9a`);
+  - `MatekH743_with_6280a357/` and `Pixhawk6X_with_6280a357/` (no forced-arm refusal).
+  Do not use them.
 - **`sitl/`:** the build logs, `md5.txt` and `bin/` (Replay, UKF_Equiv and the copter SITL binary).
 - **Elsewhere:** the stack-usage `.su` files are in `../su_before`, `../su_after` and `../su_px6`; the identity outputs
   are in `../ident/`.
 
 ## 5. Open items for the exact board (and for the user)
 1. **The exact board and its hwdef.**
-   - Rebuild with `--board <it> --enable-THESIS_NAVUKF`.
+   - Rebuild with `--board <it> --enable-THESIS_NAVUKF`. The hwdef-define route (`--extra-hwdef`) was not built [U].
    - Re-measure flash (G2: ≥ 32 kB free) and the stack.
    - Check the multi-IMU question (D18 open item) on that board.
 2. **Compass.** If none is fitted, add `define ALLOW_ARM_NO_COMPASS` (an extra hwdef).

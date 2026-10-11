@@ -29,5 +29,5 @@ largest thesis symbols:
       328 T NavUKF::h(double const*, unsigned char, unsigned char) const
   object 4 B AP_AHRS::_singleton
   object 74040 B copter
-apj: {'image_size': 1698684, 'flash_total': 1966080, 'flash_free': 267396, 'git_identity': '6280a357', 'board_id': 53}
-sections: {'.text': 1693288, '.ARM.exidx': 8, '.data': 4492, '.bss': 175788, '.ram0': 0, '.heap': 335300}
+apj: {'image_size': 1698732, 'flash_total': 1966080, 'flash_free': 267348, 'git_identity': '0156bfc3', 'board_id': 53}
+sections: {'.text': 1693336, '.ARM.exidx': 8, '.data': 4492, '.bss': 175788, '.ram0': 0, '.heap': 335300}

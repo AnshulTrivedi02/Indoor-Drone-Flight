@@ -17,12 +17,13 @@ Labels:
 
 ## 1. What was built
 
-**The fork change** is `~/ardupilot_ukf` branch `board-h743`, commit `6280a35745`. It is based on `rung1-geometry`
-`16535f9a29`. It is NOT merged, and the checked-out branch and the installed SITL binaries are untouched.
+**The fork change** is `~/ardupilot_ukf` branch `board-h743`: commits `6280a35745` (the option, the guards and the stack
+fix) and `0156bfc34e` (the forced-arm refusal). It is based on `rung1-geometry` `16535f9a29`. It is NOT merged, and the checked-out branch and the installed SITL binaries are untouched.
 - **A build option instead of SITL-only.** `AP_NAVUKF_ENABLED` keeps its default: on for SITL, off for every other
   board. On a board it is switched on in one of two ways:
   - **waf:** `./waf configure --board <board> --enable-THESIS_NAVUKF` (a new `build_options.py` Feature);
-  - **hwdef:** `define AP_NAVUKF_ENABLED 1` (the board's hwdef, or an `--extra-hwdef` file).
+  - **hwdef:** `define AP_NAVUKF_ENABLED 1` (the board's hwdef, or an `--extra-hwdef` file; the option exists,
+    `wscript:423`, but this path was NOT built [U]).
   It compiles in:
   - the UKF (`AHRS_EKF_TYPE 12`);
   - the FGO input and output predictor (`AHRS_EKF_TYPE 13`);
@@ -38,21 +39,27 @@ Labels:
 - **Arming refused with `AHRS_UKF_TFAIL` ≠ 0 on a real board.** `AP_NAVUKF_TFAIL_ARM_GUARD` defaults to every board
   except SITL, because the SITL safety tests arm with the hook set. The refusal is in two places:
   - `AP_AHRS::pre_arm_check` (a pre-arm message);
-  - `AP_Arming_Copter::arm_checks`, unconditionally: like the compass gate, `ARMING_SKIPCHK` does not skip it.
+  - `AP_Arming_Copter::arm_checks`: like the compass gate, `ARMING_SKIPCHK` does not skip it;
+  - `AP_Arming_Copter::mandatory_checks` (`0156bfc34e`): a GCS force-arm (`AP_Arming::arm` with `do_arming_checks`
+    false) skips `arm_checks` and runs only `mandatory_checks` (`AP_Arming.cpp:1885`), so the refusal is there too.
+    A force-arm is therefore refused as well.
   The bench forced-invalidity test sets TFAIL **after** arming, which still works (`NavUKF::update` reads it live).
   **Untested:** it is compiled out of SITL. Bench check P5 (§5) and costing-doc V7 test it.
 - **Main-thread stack fix (found by this build).** The first board build FAILED with
   `-Werror=frame-larger-than=1300`:
   - `NavUKF::predict` had a 2,256 B frame, and `sigma_points()` 1,848 B (two `double[15][15]` locals);
   - the ChibiOS main thread has `PROCESS_STACK` = 0x1C00 = **7,168 B** on both boards (`hwdef.h`, [V]);
-  - the predict chain alone (update → predict → sigma_points → process) was about 4.9 kB of it [V, `-fstack-usage`].
+  - the predict chain alone (update 384 + predict 2,256 + the larger of sigma_points 1,848 and process 432, which it
+    calls in turn, not nested) was about 4.5 kB of it [V frames, E chain].
   The two matrices are now static scratch, zeroed on every call (exactly the former `= {}`), as the existing static
   `fs` already was. The frames are now predict 456 B and sigma_points 56 B. The deepest UKF chain is about 1.6 kB
   (update 384 → fuse_heading 512 → update_scalar 456 → h 224 → sigma_points 56) [V frames, E chain]. SITL output is
   unchanged (§2.5).
 - **Builds** (Copter, `heavy.py`, nice 19, `arm-none-eabi-gcc` 10-2020-q4-major): MatekH743 and Pixhawk6X, each with
   and without the option. All four built with **0 warnings**, as did the SITL rebuild (Replay, UKF_Equiv, copter).
-  Nothing was flashed.
+  Nothing was flashed. The `0156bfc34e` change is inside `#if AP_NAVUKF_ENABLED && AP_NAVUKF_TFAIL_ARM_GUARD`, so
+  only the two "with" builds were rebuilt. The "without" builds (`6280a357`) and SITL are unchanged by it at the
+  preprocessor level.
 
 ## 2. The budget
 
@@ -65,12 +72,15 @@ Labels:
 | board (class) | build | image (B) | free (B) | free % of limit | `.apj` md5 |
 |---|---|---|---|---|---|
 | **MatekH743** (tight) | without the option | 1,545,012 | **158,924** | 9.3 % | `79e2c872…` |
-| | **with UKF + FGO** | 1,569,196 | **134,740** | 7.9 % | `7d8652f3…` |
+| | **with UKF + FGO** | 1,569,244 | **134,692** | 7.9 % | `dc17759e…` |
 | **Pixhawk6X** (roomy) | without the option | 1,674,900 | **291,180** | 14.8 % | `ec7b189f…` |
-| | **with UKF + FGO** | 1,698,684 | **267,396** | 13.6 % | `f68a3f5b…` |
+| | **with UKF + FGO** | 1,698,732 | **267,348** | 13.6 % | `22c3cfda…` |
 
-- **The backends cost +24,184 B (Matek) and +23,784 B (Pixhawk6X)** of flash, inside Part C's 25–50 kB estimate.
+- **The backends cost +24,232 B (Matek) and +23,832 B (Pixhawk6X)** of flash, at the bottom of Part C's 25–50 kB
+  estimate. The "with" builds are `0156bfc3`; the `6280a357` builds were 48 B smaller.
 - **Both boards fit with a wide margin.** The Matek keeps 135 kB free, the Pixhawk6X 267 kB.
+- **Against a nominal 2 MB (2,097,152 B)**, the images use 74.8 % (Matek) and 81.0 % (Pixhawk6X). The binding limits
+  are the `flash_total` values above.
 - **"Without" is not exactly stock.** It is the fork with the option off. It still carries the ungated AP_DAL hook
   pointers and the empty `thesis_nav_check` task, so it is stock `7bac20cbcc` plus a few hundred bytes [E].
   For comparison, the published stable `dbe79216` Copter builds have 154,020 B (Matek) and 286,652 B (Pixhawk6X) free
@@ -80,16 +90,17 @@ Labels:
 
 | part | code (B) | static RAM (B) |
 |---|---|---|
-| UKF core (`NavUKF::`) | 13,226 | 7,320 (static scratch: `fs` 3,720, `L` 1,800, `Pm` 1,800) |
+| UKF core (`NavUKF::`) | 12,454 | 7,320 (static scratch: `fs` 3,720, `L` 1,800, `Pm` 1,800) |
 | UKF AHRS backend (`AP_AHRS_UKF::`) | 1,268 | — |
 | FGO input + output predictor (`NavFGO::`) | 3,322 | — |
 | FGO AHRS backend (`AP_AHRS_FGO::`) | 1,272 | — |
 | `thesis_nav_check` | 160 | 2 |
-| **named thesis symbols** | **19,248** | 7,322 |
-| the rest of the +24.2 kB: `AP_AHRS` switch arms, the GCS `ODOMETRY` hook, the arming lines, parameter tables, strings | ≈ 4.9 k [E, by difference] | — |
+| **named thesis symbols** | **18,476** | 7,322 |
+| shared, not split: the rest of the +24.2 kB (`AP_AHRS` switch arms, the GCS `ODOMETRY` hook, the arming lines, parameter tables, strings) | ≈ 5,756 [by difference] | — |
 
-- **UKF ≈ 19 kB of flash and FGO ≈ 5 kB** [E: the named symbols, with the plumbing split evenly]. The FGO is small,
-  because GTSAM runs off-board; this is only the state input and output predictor.
+- **Named symbols: UKF 13.7 kB, FGO 4.6 kB.** The shared 5.8 kB is not split. The FGO is small because GTSAM runs
+  off-board; this is only the state input and output predictor.
+- `nm` lists the `NavUKF` constructor twice (C1/C2 aliases at one address); it is counted once.
 - [V] **The FGO input path is linked on both boards.** `GCS_MAVLINK::handle_odometry` calls `NavFGO::writeState`
   (objdump). The `ODOMETRY` dispatch sits behind `HAL_VISUALODOM_ENABLED`, which is on for every board above 1 MB.
 
@@ -140,8 +151,7 @@ disabling a feature may leave shared code in.
 **CPU [E].** Two estimates agree:
 - **Part C §5.3** (flop count): about 5–8 % at 80 Hz in double, about 0.3–0.4 ms per predict.
 - **A quick scaling from this build.**
-  - `UKF_Equiv` replays the 45,277-event `dsn_tex_r2` tape (one ~5.5-minute flight) in 0.28 s on the workstation
-    (i7-8700). That is **6.2 µs per event** (predicts and scalar updates; harness I/O included).
+  - `UKF_Equiv` replays the 45,277-event `dsn_tex_r2` tape in 0.28 s on the workstation (i7-8700). That is **6.2 µs per event** (predicts and scalar updates; harness I/O included).
   - A 480 MHz Cortex-M7 in double is assumed to be 20–50× slower than the workstation core: 9× in clock, 2–5× in IPC
     and software transcendentals [E].
   - That gives about 0.12–0.3 ms per event. At about 80 predicts plus about 100 updates per second, that is
@@ -158,7 +168,7 @@ The SITL behaviour is byte-identical. The SITL rebuild of `board-h743` was Repla
 copter `a5070045`, all with 0 warnings.
 - **Against `rung1-geometry` `16535f9a29`** (the previous stage's stored outputs, Replay `a1f67e7d`). These logs carry
   the D18 rule, so this is the reference that includes the geometry and derotation work. Results:
-  - `cl_a_tex_half` (type 3): `ukf_shadow.csv`, `ukf_inputs.csv`, `ukf_derot.csv` and `ukf_geometry.csv` are all
+  - `cl_a_tex_half` (type 3, confirmed from its `ukf_derot.csv` `ahrs_ekf_type,0,3`): `ukf_shadow.csv`, `ukf_inputs.csv`, `ukf_derot.csv` and `ukf_geometry.csv` are all
     byte-identical;
   - `cl_ukf_b_tex_r1_half_v2` (type 12, `UKF_EXTYAW=1`): all four are byte-identical.
 - **Against the INSTALLED Replay** (`e8e9feac`, `abb0357d0f`), used only where installed equals rung1 (a type-12 log):
@@ -199,7 +209,8 @@ copter `a5070045`, all with 0 warnings.
   - **MAVProxy:** `fw flashfile <file>.apj` calls the same `uploader.py` (MAVProxy `mavproxy_firmware.py:199-201`,
     [V] in `~/venv-ardupilot`).
   - **QGroundControl:** Vehicle Setup → Firmware → "Advanced settings" → "Custom firmware file". Mission Planner:
-    "Install Firmware" → "Load custom firmware".
+    "Install Firmware" → "Load custom firmware". [U] These menu paths are from recall; check them against the
+    installed GCS version.
 - **A board with no ArduPilot bootloader** (for example a Matek board shipped with Betaflight or INAV): DFU once, with
   `arducopter_with_bl.hex` (STM32CubeProgrammer or `dfu-util`, BOOT button held). From then on use the `.apj` path.
   This is a one-time step, done with the supervisor.
@@ -217,7 +228,7 @@ copter `a5070045`, all with 0 warnings.
 | P2 | Parameters read back: every value of the rung's parameter file (`check_parm.py` then a full readback; the eeprom gotcha, Known Issue #10, applies on hardware) | 0 mismatches |
 | P3 | **Backends compiled in:** the parameters `AHRS_UKF_ENABLE`, `AHRS_UKF_TFAIL`, `AHRS_FGO_ENABLE` exist (stock firmware has no such parameters) | present |
 | P4 | `AHRS_EKF_TYPE 3`, `AHRS_UKF_ENABLE 0`, `AHRS_FGO_ENABLE 0`: the vehicle is stock EKF3 ("backends disabled reproduces EKF3", costing doc §2) | EKF3 active; the same pre-arm and arming behaviour as stock |
-| P5 | `AHRS_UKF_TFAIL 1`, then try to arm | **refused**: "AHRS_UKF_TFAIL is set (test hook)" (pre-arm and at arming). Then set it back to 0 |
+| P5 | `AHRS_UKF_TFAIL 1`, then try to arm: normally, and with a GCS force-arm | **both refused**: "AHRS_UKF_TFAIL is set (test hook)". Then set it back to 0 |
 | P6 | Shadow on: `AHRS_UKF_ENABLE 1`, `AHRS_EKF_TYPE` still 3; hand-carry | `XUKF`/`XUKO`/`XUKS` logged; the UKF initialises (the rangefinder must read above its minimum: see §8) |
 | P7 | **Main-thread stack margin:** MAVFTP `@SYS/threads.txt` after 10 min with the shadow on | the main thread's free stack is reported; ≥ 1 kB free [E threshold] |
 | P8 | CPU: `PM` log messages (load, long loops) with the shadow on, against P4 | no new long loops; load increase within the [E] budget of §2.4 |
@@ -241,7 +252,8 @@ image boots.
 6. Note the leftovers. The fork's `AHRS_UKF_*`/`AHRS_FGO_*` values (AP_AHRS sub-groups 22 and 23) stay in parameter
    storage. Stock firmware ignores them (no such group), so they are harmless.
    - On a board that keeps parameters in flash (MatekH743, KakuteH7) they also survive a reflash.
-   - If they must go: `FORMAT_VERSION 0` + reboot resets ALL parameters, so restore the backup afterwards.
+   - If they must go: `FORMAT_VERSION 0` + reboot resets ALL parameters [U, from recall: check the board's docs], so
+     restore the backup afterwards.
 7. Bench-check as P1, P2 and P4.
 
 **If the board does not boot** (a hard fault in the fork):
@@ -281,7 +293,7 @@ Every item must be **go**. One **no-go** means stock firmware stays on the vehic
 - **The rangefinder below its minimum on the ground:** the UKF does not initialise until the range exceeds
   `RNGFNDn_MIN`, so with the UKF active it cannot arm. This is a known open port change (costing doc U4), not part of
   this build.
-- **QuadPlane:** the arming refusal of `AHRS_UKF_TFAIL` is wired into Copter's `arm_checks` only. Plane needs its own
+- **QuadPlane:** the arming refusal of `AHRS_UKF_TFAIL` is wired into Copter's `arm_checks` and `mandatory_checks` only. Plane needs its own
   line, plus B1–B3 of `docs/quadplane_costing.md`.
 - **Numerics:** board and SITL are not bit-identical (newlib against glibc, FMA). Equivalence transfers statistically:
   replay a board log in SITL Replay (costing doc U10).

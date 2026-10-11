@@ -1,10 +1,10 @@
 == with - without
-image_size delta: 24184  flash_free with/without: 134740 158924
+image_size delta: 24232  flash_free with/without: 134692 158924
   .bss              129196 ->    169492  (+40296)
-  .crash_log        158924 ->    134740  (-24184)
+  .crash_log        158924 ->    134692  (-24232)
   .debug_frame       10640 ->     10684  (+44)
   .heap             119756 ->     79460  (-40296)
-  .text            1539620 ->   1563808  (+24188)
+  .text            1539620 ->   1563856  (+24236)
   .textalign             4 ->         0  (-4)
    copter 39712 -> 72680
    AP_AHRS::_singleton 4 -> 4
@@ -12,8 +12,8 @@ image_size delta: 24184  flash_free with/without: 134740 158924
       +32968 copter
        +3720 NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::fs
        +2100 NavUKF::update()
-       +1800 NavUKF::sigma_points()::L
        +1800 NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::Pm
+       +1800 NavUKF::sigma_points()::L
        +1028 NavFGO::writeState(unsigned long long, Vector3<float> const&, Vector3<float> const&, QuaternionT<float> const&, Vector3<float> const&, Vecto
         +848 NavUKF::log_state(unsigned long long)
         +772 NavUKF::NavUKF()
