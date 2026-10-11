@@ -1,0 +1,101 @@
+{
+ "H1": {
+  "dsn_tex_r1/ukf": {
+   "real_score_ned": 7.624418837308386,
+   "stored_enu": -7.624418837308384,
+   "diff": 1.7763568394002505e-15,
+   "pass": true
+  },
+  "dsn_tex_r1/fgo": {
+   "real_score_ned": 7.999955719598687,
+   "stored_enu": -7.999955719598687,
+   "diff": 0.0,
+   "pass": true
+  },
+  "dsn_tex_r2/ukf": {
+   "real_score_ned": 2.29175505359277,
+   "stored_enu": -2.29175505359277,
+   "diff": 0.0,
+   "pass": true
+  },
+  "dsn_tex_r2/fgo": {
+   "real_score_ned": 3.333746864908215,
+   "stored_enu": -3.3337468649082145,
+   "diff": 4.440892098500626e-16,
+   "pass": true
+  },
+  "dsn_tex_r3/ukf": {
+   "real_score_ned": 10.047421784853277,
+   "stored_enu": -10.047421784853277,
+   "diff": 0.0,
+   "pass": true
+  },
+  "dsn_tex_r3/fgo": {
+   "real_score_ned": 8.894026435524653,
+   "stored_enu": -8.894026435524651,
+   "diff": 1.7763568394002505e-15,
+   "pass": true
+  }
+ },
+ "H2": {
+  "dsn_tex_r8": {
+   "real_score_ned": 9.293967387040064,
+   "stored_ned": 9.293967387040064,
+   "diff": 0.0,
+   "pass": true
+  }
+ },
+ "X1": {
+  "dsn_tex_r1": {
+   "stored_xtrack_err_m": 39.27451716046325,
+   "stored_window_s": 302.600093,
+   "stored_m_per_min": 7.787410130200438,
+   "X1_velocity_variant_m_per_min": 7.787348234051403,
+   "X1_rel_diff": -7.948232852883486e-06,
+   "X1_pass": true,
+   "X2_position_growth_m_per_min": 7.061084235587857,
+   "X2_registered_rule_m_per_min": 7.060724712410227,
+   "X2_rel_diff": -5.091614341856676e-05,
+   "X2_pass": true,
+   "info_int_VE_minus_dPE_m": 3.6646057537434515,
+   "info_takeoff_anchor_at_window_start_m_per_min": 7.030958496340114,
+   "info_anchor_yaw_deg_enu": 0.06000000000000817
+  },
+  "dsn_tex_r2": {
+   "stored_xtrack_err_m": 36.70414517100985,
+   "stored_window_s": 302.40015200000005,
+   "stored_m_per_min": 7.2825648257630196,
+   "X1_velocity_variant_m_per_min": 7.2825490486786695,
+   "X1_rel_diff": -2.1664186625747206e-06,
+   "X1_pass": true,
+   "X2_position_growth_m_per_min": 6.558363376210131,
+   "X2_registered_rule_m_per_min": 6.558044215502765,
+   "X2_rel_diff": -4.866468798059298e-05,
+   "X2_pass": true,
+   "info_int_VE_minus_dPE_m": 3.651506194618804,
+   "info_takeoff_anchor_at_window_start_m_per_min": 6.544092184564579,
+   "info_anchor_yaw_deg_enu": 0.0280000013695809
+  },
+  "dsn_tex_r3": {
+   "stored_xtrack_err_m": 40.18916913661042,
+   "stored_window_s": 302.400083,
+   "stored_m_per_min": 7.974039306717469,
+   "X1_velocity_variant_m_per_min": 7.973716019309628,
+   "X1_rel_diff": -4.0542489873174326e-05,
+   "X1_pass": true,
+   "X2_position_growth_m_per_min": 7.244999028892442,
+   "X2_registered_rule_m_per_min": 7.244478036234649,
+   "X2_rel_diff": -7.191065943767949e-05,
+   "X2_pass": true,
+   "info_int_VE_minus_dPE_m": 3.6753604434771034,
+   "info_takeoff_anchor_at_window_start_m_per_min": 7.20290914463167,
+   "info_anchor_yaw_deg_enu": 0.08399999999756307
+  }
+ },
+ "all_pass": true,
+ "tolerances": {
+  "heading_deg_per_min": 1e-06,
+  "X1_relative": 0.005,
+  "X2_relative": 0.005
+ }
+}
