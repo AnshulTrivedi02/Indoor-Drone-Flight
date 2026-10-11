@@ -1,0 +1,25 @@
+# 2d build (scratch d18/build; source fwd-camera cca8e90 in worktree agent-a16391ff0a1144fd8)
+28636bf9d5788a8a527fae2572c71980  fgo_cpp_node
+0981e455e598c770c61e22c20d8f77c3  fgo_cpp_replay
+9e4648b03bd859a1299cf15b447c3f94  fgo_cpp_live_replay
+ed058257984a763d18d94a81bd8bb3fa  fgo_cpp_frontend
+9511c13a1a64325f118008cd2c824daa  fgo_cpp_probe
+# control: unmodified HEAD b908abf (src/estimators identical to cca8e90), scratch bcf/build
+8c1169540618d0e27a3e49043d50c141  fgo_cpp_node
+0981e455e598c770c61e22c20d8f77c3  fgo_cpp_replay
+9e4648b03bd859a1299cf15b447c3f94  fgo_cpp_live_replay
+ed058257984a763d18d94a81bd8bb3fa  fgo_cpp_frontend
+9511c13a1a64325f118008cd2c824daa  fgo_cpp_probe
+# switch OFF: 2610bdb (FGO_CPP_FORCED_GATE not set), same source and build paths, rebuilt (all 8 objects recompiled)
+8c1169540618d0e27a3e49043d50c141  fgo_cpp_node
+0981e455e598c770c61e22c20d8f77c3  fgo_cpp_replay
+9e4648b03bd859a1299cf15b447c3f94  fgo_cpp_live_replay
+ed058257984a763d18d94a81bd8bb3fa  fgo_cpp_frontend
+9511c13a1a64325f118008cd2c824daa  fgo_cpp_probe
+# => the switch-OFF binaries are byte-identical to the unmodified control; replay/live_replay/frontend/probe are
+#    byte-identical to the 2d build.
+# node 28636bf9 vs 8c116954 (same size 4064144 B): identical after replacing the worktree path string
+#   agent-a16391ff0a1144fd8 -> agent-a77df11041902ee58 (7 occurrences: __FILE__ in rcutils logging), except the
+#   20 bytes at 0x378-0x38b = .note.gnu.build-id (a hash over the binary).
+# strings / nm of the OFF fgo_cpp_node, fgo_cpp_replay, fgo_cpp_frontend, fgo_cpp_live_replay: 0 matches for
+#   FORCED_GATE and forced_gate_fire (the switch is not compiled into any default binary).

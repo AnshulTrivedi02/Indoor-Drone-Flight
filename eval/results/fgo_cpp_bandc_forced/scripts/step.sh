@@ -45,8 +45,10 @@ forced)       # forced <prefix>: forced replay + forced front end, decisions fro
   $BF/fgo_cpp_frontend $D/$p $OT/fe_$p
   unset FGO_CPP_FORCED_GATE_LOG
   echo "==== construction check: Python vs forced export-driven C++"
+  $PY $SC/construct_check.py $D/$p.yawgate.f64 $OT/cpp_$p.yawgate.f64 || true
   $PY $SC2D/cmp_gate.py $D/$p.yawgate.f64 $OT/cpp_$p.yawgate.f64 || true
   echo "==== construction check: Python vs forced front end"
+  $PY $SC/construct_check.py $D/$p.yawgate.f64 $OT/fe_$p.yawgate.f64 || true
   $PY $SC2D/cmp_gate.py $D/$p.yawgate.f64 $OT/fe_$p.yawgate.f64 || true
   echo "==== FORCED BAND C: forced export-driven C++ vs forced native front end"
   $PY $TOOLS/compare_kf.py $OT/cpp_$p $OT/fe_$p || true
