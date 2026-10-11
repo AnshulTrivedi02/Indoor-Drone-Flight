@@ -84,6 +84,10 @@ Five SITL `LOG_REPLAY` logs, each with the flight's own UKF options (as the 2026
 - **Consequence:** SITL V1 (UKF shadow, EKF3 flying; plan §4.2) needs a SITL build of the branch to be flown.
   - With the installed copter, V1 would test the OLD derotation rule.
   - That is one light build, and also needed for U4 if merged.
+- **Checked: no DCM fallback under type 12 on Copter.** In the fork, `AP_AHRS::_active_EKF_type()` returns `UKF`
+  unconditionally for `AHRS_EKF_TYPE 12`. The DCM fallback block runs only for FIXED_WING/GROUND vehicle classes
+  (`AP_AHRS.cpp:2334-2400`). So `activeIsOwn` is true throughout a Copter type-12 flight, including the initialisation
+  gap and the TFAIL / aiding-timeout periods: the identity rule always applies there.
 - **Caution:** the installed copter is still `abb0357d` while the branch HEAD has moved to `16535f9a29`. Any
   `sim_vehicle.py` run WITHOUT `--no-rebuild` would silently rebuild it from the new HEAD (`run_trial.sh` passes
   `--no-rebuild`).
@@ -145,6 +149,10 @@ Five SITL `LOG_REPLAY` logs, each with the flight's own UKF options (as the 2026
 2. GNDCLR comes from the FIRST downward backend (`ground_clearance_orient`), as EKF3. The lever comes from the backend
    that reads low. These differ only with two downward rangefinders.
 3. The flying path compiles but is untested: it needs SITL V1/V7 (with a raised `RNGFND1_MIN`) and bench S8.
+4. **SITL build only.** The board's `-Werror=frame-larger-than=1300` was not exercised; `update()` gained a few locals.
+   That flag caught the predict stack problem in 2a.
+5. **`u4-gndclr` branches from `ukf-jitter-fix`, not from `board-h743`.** The merge order needs choosing, and the first
+   board build of the merged head is U4's first frame-size check.
 
 ## 3. Drafts for the user's sign-off (both marked DRAFT)
 ### (a) `docs/u10_replay_gate_band_draft.md`: must be signed off BEFORE rung-1 day 3
@@ -160,8 +168,9 @@ Five SITL `LOG_REPLAY` logs, each with the flight's own UKF options (as the 2026
   | G5 | start-aligned drift ≤ D_max | [TBD-S], proposed 1.0 m |
   | G6 | only with the fork-in-shadow option: Replay vs onboard `XUKF` | E1 0.05/0.01 m, E3 0.05°, E5 increments 0.1 %, pairing from the later initialisation + 10 s; [TBD-V] confirmed or widened once on H/V |
 
-- **The basis of G4:** the SITL textured UKF/EKF3 ratio was ≤ 1.43 on all 9 `dsn_tex` flights and ≤ 1.21 on `fwdc`.
-  Only the two take-off-kick `fwdplainc` flights (2.74, 2.65) would fail it.
+- **The basis of G4:** the per-flight SITL textured UKF/EKF3 ratios, recomputed from the evo JSONs, were ≤ 1.43 on
+  all 9 `dsn_tex` flights, ≤ 1.22 on `fwdc` and 1.23 on `fwdplainc` r1. Only the two take-off-kick `fwdplainc` flights
+  (2.76, 2.65) would fail it.
 - **Found, a precondition:** **no Replay output carries `_n_chol_fail`** [V, source]. One summary line must be added
   before day 3.
 - **The record:** `XUKO`, else `ukf_shadow.csv`, if R-d is unresolved by day 3.

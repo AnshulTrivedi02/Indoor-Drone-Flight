@@ -88,8 +88,8 @@ under §3.3 or failed under §7, and reported.
 - With no heading source, the UKF's yaw drifts.
   - SITL, no heading: shadow and offline |drift| 3–70 deg/min, typically 24–30 deg/min (METHODOLOGY D9
     pre-registration).
-  - The jitter-corrected no-heading closed loop flew 300 s before wall contact at cruise +165.9 s on a 20 m corridor
-    (`cl_ukf_a_tex_half_v2`).
+  - The jitter-corrected no-heading closed loop (`cl_ukf_a_tex_half_v2`) touched the west wall of the 20 m corridor at
+    cruise +165.9 s, inside its pre-registered window.
 - A position error from yaw grows like L·Δψ. One short leg keeps the excursion inside a mocap volume while still
   exercising hover, acceleration, cruise, stop and return. It is NOT a long-duration test (§9).
 - About 2 min airborne (plus the wiggles) per sortie.
@@ -175,7 +175,7 @@ re-run (as a minimum S3 and S4).
 - **The velocity-bias drift v_b** = the largest |cross-track drift per minute| over the same flights, in m/s.
 - **Predicted maximum physical excursion over the sortie** (duration T from take-off to the end of the leg, ~70 s):
 
-  **E_pred = L · sin(ψ̇ · T) + v_b · T + 0.10 m**
+  **E_pred = L · sin(ψ̇ · T / 60 · π / 180) + v_b · T + 0.10 m**, with ψ̇ in deg/min, T in s, v_b in m/s and L in m
   - L · sin(ψ̇ · T): the far-end displacement from a yaw error;
   - v_b · T: dead-reckoned velocity bias;
   - 0.10 m: hover hold and mocap [E].

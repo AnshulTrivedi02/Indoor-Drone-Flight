@@ -92,11 +92,12 @@ least 4 usable flights.
   rung-1 rules; none is re-flown because of a UKF result.
 
 **Basis of G4:**
-- **SITL, textured, open-loop UKF against EKF3 on the same flight** (evo -a cruise; numbers.md):
-  - `dsn_tex` r1–r9: UKF 1.17–5.85 m, median 5.13 m, against EKF3 median 4.10 m. **The UKF/EKF3 ratio was ≤ 1.43 on
-    all 9 flights;**
-  - `fwdc_tex` r1–r3: ratio ≤ 1.21;
-  - `fwdplainc_tex` r2, r3: **2.74 and 2.65**. These are the D15 residual take-off-kick flights.
+- **SITL, textured, open-loop UKF against EKF3 on the same flight.** These are per-flight ratios of evo -a (cruise),
+  recomputed 2026-10-12 from `eval/results/rerun_dsn_evo.json`, `dsn_extra_evo.json`, `rerun_fwdc_evo.json` and
+  `rerun_fwdplainc_evo.json`:
+  - `dsn_tex` r1–r9: 0.99, 0.42, 1.26, 1.27, 1.24, 0.38, 1.27, **1.43** (r8), 1.23. **Every one is ≤ 1.43;**
+  - `fwdc_tex` r1–r3: 1.21, 0.49, 1.22;
+  - `fwdplainc_tex` r1–r3: 1.23, **2.76, 2.65**. r2 and r3 are the D15 residual take-off-kick flights.
 - **The factor 2.0** therefore passes every SITL textured flight except the two take-off-kick flights. Those are
   exactly the behaviour a closed-loop gate should catch.
 - **The + 0.10 m floor** keeps the band meaningful when EKF3 itself is near the mocap and alignment floor on a short
