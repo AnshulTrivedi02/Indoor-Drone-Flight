@@ -43,7 +43,9 @@ clock = {"tool": "input_timing.clock_offset (SIM vs GT velocity)", "windows_time
          "timeus_minus_sim_early_ms": 1e3 * o1, "timeus_minus_sim_late_ms": 1e3 * o2, "rate_ppm": 1e6 * s,
          "fit_costs": [fits[0][2], fits[1][2]]}
 print(json.dumps(clock, indent=1))
-subprocess.run([IT.PY_AP, os.path.join(EVAL, "real_score.py"), "--prereg", os.path.join(EVAL, "real_score_prereg_example.json"),
+# 2026-10-11: the example prereg was replaced by the strict draft (no clock_map check here: GT clock map, not R8).
+# Re-running needs a prereg without clock_map and with UKF_fused: "XUKF" in estimator_records.
+subprocess.run([IT.PY_AP, os.path.join(EVAL, "real_score.py"), "--prereg", os.path.join(EVAL, "..", "docs", "rung1_preregistration_draft.json"),
                 "--mocap", mo_path, "--bin", binp, "--est-bin", "EKF3=XKF1", "--est-bin", "UKF=XUKO",
                 "--est-bin", "UKF_fused=XUKF", "--est", f"FGO={fgo_path}", "--work-dir", f"{scratch}/rs_{trial}",
                 "--out", out], check=True)

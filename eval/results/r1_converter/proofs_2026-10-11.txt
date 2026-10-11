@@ -1,0 +1,33 @@
+# R1 converter proofs, 2026-10-11. Code at fcd67df (fgo_replay.py / fgo_core.py / factors.py / measurement_models.py
+# unchanged since b9da351). Both run under src/estimators/fgo_cpp/tools/heavy.py, one at a time, no flight running.
+
+## (b) default-unchanged replay: PASS
+# ONE default (bag-mode) FGO replay of cl_a_tex_half, args "0.25 2" (as batches/final_rerun/cl_pred.jobs), through the
+# merged fgo_replay.py, on the CURRENT fgo_core (initial-yaw correction), against the STORED output of the FGO-only
+# re-run (~/thesis_data/trials/cl_a_tex_half/fgo/, written 2026-10-10 18:51). Bag decompressed to scratch, sha256
+# checked against PACKED.txt, scratch bag deleted. Also passed once before at 4608637 (the merge commit).
+IDENTICAL fgo_traj.tum
+IDENTICAL ground_truth.tum
+IDENTICAL bgz_series.txt
+6096e8e1990c1b710afede47fbe2aa2d4be4b38c83026eaa8edbd2364194d44d  replay fgo_traj.tum   = stored fgo_traj.tum
+5f3c0a0a77de28d385557c577ff55066e70ba92d4934ea1a8786ad841c8d0a16  replay ground_truth.tum = stored ground_truth.tum
+1e294b55c74047d19cf6c142e1f912997a9ee08043c6ccf31982c055048f0f52  replay bgz_series.txt  = stored bgz_series.txt
+
+## events-mode end-to-end smoke (eval/r1_followup_replays.sh smoke): RUNS END TO END. PLUMBING ONLY, NOT A RESULT.
+# bin2fgo.py on the first 90 s (FC clock) of cl_a_tex_half/ardupilot.bin, delays 16 / 40 ms (the SITL truth), then
+# FGO_EVENTS replay. The [result]/[yaw]/[gyro-z bias] lines are the corridor diagnostics of fgo_replay.py; they are not
+# meaningful for this flight or a 90 s cut and are not quoted. Scale and flow residual match the bag-mode run
+# (|V| median 0.4881 vs 0.4879 m/s; flow residual -0.0057/-0.0055 vs -0.0058/-0.0058 rad/s).
+[events] <scratch>/conv/cl_a_tex_half_smoke.npz: imu 34404 flow 2490 range 1763 truth 34805; geometry flow (0,0,0.25), range (0,0,0.12), rng 0.05..40; delays flow 16, range 40, imu 0 ms
+[imu] events mode: FC clock, no dejitter; converter found 0 IMU gaps, 0 dropped log blocks
+[init] t=4.49s first_range=0.080
+[ground-proximity] flows replaced 620; take-off detected True at t 28.049067; arm t 24.149423
+[run] 2565 keyframes, window t=[30,90]s   flow factors 2345  range factors 1710  imu 34203
+[timing] per-keyframe update: median=16.7ms  p99=30.7ms  (deployability budget 33ms)
+[scale] cruise |V(k)| median = 0.4881 m/s   (true ~0.50; EKF3 ~0.556)
+[flow resid] cruise median (pred-meas): x=-0.0057  y=-0.0055 rad/s
+
+## The first smoke attempt (at 4608637) was OOM-KILLED (kernel log 10:30:29, 13.8 GB anon RSS).
+# Cause: in events mode, np.load(npz) returns a lazy NpzFile; `_Z["imu_acc"][i]` re-read the whole array for every
+# event, and each stored row was a VIEW pinning its own full copy (O(N^2) memory). Fixed in b9da351: every array is
+# loaded once, rows copied. The bag path is untouched (the edit is inside `if EVENTS:`); (b) re-passed after it.

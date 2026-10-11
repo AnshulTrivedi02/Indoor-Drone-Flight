@@ -162,7 +162,7 @@ GS, on the downloaded `.BIN` and the mocap export (a script will implement D1–
 | D5 | `PARM` dump in the log: AHRS_EKF_TYPE = 3, LOG_REPLAY = 1, the EK3_SRC1_* and sensor values as filed | as filed |
 | D6 | `ARM`/`EV` records: one arm and one disarm; both sync wiggles visible in `RISI` gyro (rates > 2 rad/s) **while disarmed** | yes |
 | D7 | **Mocap file present** (`<take>.csv`, exported as `t_s, x, y, z, qx, qy, qz, qw`, metres, z up), covering both sync wiggles; tracking loss in the flight < 0.5 s cumulative | yes |
-| D8 | **Mocap synced:** `mocap_align` run on this sortie with the early and late windows set EXPLICITLY (`--early`, `--late`) to the two DISARMED sync-wiggle periods (`RISI` \|ω\| above threshold while disarmed; its default early window, arm to arm + 25 s, would miss the pre-arm wiggle); both found, residual reported, rate within ±100 ppm | yes (residual noted) |
+| D8 | **Mocap synced:** `mocap_align` run on this sortie; its default windows (since 2026-10-11) are the two DISARMED sync-wiggle bursts (`RISI` \|ω\| > 2 rad/s: the last burst before arming and the first after disarming, ± 2 s; the old default, arm to arm + 25 s, missed the pre-arm wiggle). Check `window_sources` in the JSON. A hand-carried (never armed) log needs `--early`, `--late` and `--init-seg` given explicitly. Both found, residual reported, rate within ±100 ppm | yes (residual noted) |
 | D9 | Sortie sheet complete: class (VERIFICATION/RESULT), battery, times, take name, any deviation | yes |
 
 A RESULT sortie failing D2–D4, D7 or D8 is excluded under the pre-registration §3.3 (the reason recorded) BEFORE any

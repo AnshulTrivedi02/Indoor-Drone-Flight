@@ -1,0 +1,21 @@
+{
+ "trial": "dsn_tex_r1",
+ "three_way_window_s": [
+  30.348,
+  333.041
+ ],
+ "speed_rule_window_s": [
+  30.348,
+  333.041
+ ],
+ "UKF": {
+  "three_way_evo_a": 3.983563,
+  "real_score_evo_a": 3.983563,
+  "identical": true
+ },
+ "FGO": {
+  "three_way_evo_a": 4.04733,
+  "real_score_evo_a": 4.04733,
+  "identical": true
+ }
+}

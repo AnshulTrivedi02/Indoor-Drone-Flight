@@ -55,8 +55,11 @@ ATT_VAR_GATE = 0.04           # fire only if trace(predicted attitude cov) > 0.0
 
 class FGO:
     def __init__(self, window=1.0, kf_dt=1.0/30.0, solver="batch", lm_maxiter=2, fwd_sigma=None, fwd_gate=9.0, fwd_robust=None,
-                 log_cov=False):
+                 log_cov=False, geom=None):
         self.kf_dt = kf_dt
+        # Sensor geometry (rung 1, real vehicle): None = the SIM constants in measurement_models (default; every
+        # simulation result unchanged); else measurement_models.make_geometry(...) from the log's PARM records.
+        self.geom = geom
         self._window, self._lm_maxiter, self._solver = window, lm_maxiter, solver   # kept for reanchor() (experiment T)
         self.tag_noise = None      # experiment T: set by reanchor(); None = no tag factors (every other use)
         # Diagnostic (Phase 5b): run the gate-only filtering covariance recursion and log the
@@ -114,7 +117,7 @@ class FGO:
         ax, ay, az = accel_mean
         roll0 = np.arctan2(ay, az)
         pitch0 = np.arctan2(-ax, np.hypot(ay, az))
-        pose0 = Pose3(Rot3.Ypr(yaw0, pitch0, roll0), np.array([0.0, 0.0, first_range + 0.12]))   # yaw0: F3 only
+        pose0 = Pose3(Rot3.Ypr(yaw0, pitch0, roll0), np.array([0.0, 0.0, first_range + (0.12 if self.geom is None else self.geom["range_lever"])]))   # yaw0: F3 only
         vel0 = np.zeros(3)
         bias0 = gtsam.imuBias.ConstantBias(np.zeros(3), np.zeros(3))
         g = gtsam.NonlinearFactorGraph(); vals = gtsam.Values()
@@ -173,12 +176,13 @@ class FGO:
             if fire:
                 i_yawcap = g.size()
                 g.add(F.yaw_prior_factor(self.yaw_noise, X(k), Xk.rotation().yaw()))
-        if rng is not None and 0.05 <= rng <= 40.0:
-            g.add(F.range_factor(self.range_noise, X(k), rng)); self.n_range += 1
+        r_lo, r_hi = (0.05, 40.0) if self.geom is None else (self.geom["rng_min"], self.geom["rng_max"])
+        if rng is not None and r_lo <= rng <= r_hi:
+            g.add(F.range_factor(self.range_noise, X(k), rng, self.geom)); self.n_range += 1
         if flow is not None:
             flow_xy, valid, inlier = flow
             if valid and inlier > 0.0 and abs(flow_xy[0]) < 4.2 and abs(flow_xy[1]) < 4.2:
-                g.add(F.flow_factor(self.flow_noise, X(k), V(k), B(k), flow_xy, omega)); self.n_flow += 1
+                g.add(F.flow_factor(self.flow_noise, X(k), V(k), B(k), flow_xy, omega, self.geom)); self.n_flow += 1
         if self.fwd_sigma is not None:
             self._forward_factors(g, vals, t, km1, k, Xk, fwd)
         if tag is not None and self.tag_noise is not None:      # experiment T: tag fix (no gate, pre-registered)

@@ -30,8 +30,10 @@ TIME FIT:
   1. coarse: cross-correlation of the standardised |w| over the whole overlap on a 20 ms grid (`--coarse xcorr`,
      default; robust to an epoch-sized mocap clock), or the take-off climb match (`--coarse takeoff`, the old rule), or a
      user value (`--coarse-offset`).
-  2. fine: in each fit window (default: an early window from arming and a late window around landing, i.e. where the sync
-     wiggles are), the offset minimising the squared difference of the two STANDARDISED (zero-mean, unit-RMS within the
+  2. fine: in each fit window (default since 2026-10-11, `resolve_windows`: the pre-arm and the post-disarm SYNC WIGGLES,
+     found as the last / first burst of FC |w| > 2 rad/s before arming / after disarming, +-2 s; defaults are computed
+     only for windows not given; a log with no ARM record needs --early/--late/--init-seg; grid points outside either
+     record are masked, never interpolated as held end values), the offset minimising the squared difference of the two STANDARDISED (zero-mean, unit-RMS within the
      window) features, i.e. maximising their normalised correlation. Both features pass through the identical pipeline
      (interpolate to a common grid, differentiate where needed, boxcar). Grid search coarse -> fine -> finer.
   3. linear map: offset(t_fc) = o1 + rate * (t_fc - t1), least squares over the window offsets (exact for two windows;
@@ -146,7 +148,8 @@ def fc_raw_curves(fc):
     """FC features on the FC clock. The IMU gyro is shifted EARLIER by the INS filter's group delay, so the fitted offset
     maps clocks rather than absorbing the filter lag (zero for RISI)."""
     g = fc["gyro"]; dg = gyro_group_delay_s(fc)
-    c = {"w": (g[:, 0] - dg, np.linalg.norm(g[:, 1:4], axis=1)), "gaps": find_gaps(g[:, 0] - dg)}
+    c = {"w": (g[:, 0] - dg, np.linalg.norm(g[:, 1:4], axis=1)), "gaps": find_gaps(g[:, 0] - dg),
+         "span": (float(g[0, 0] - dg), float(g[-1, 0] - dg))}
     if len(fc.get("rfnd", [])):
         rf = clean_rfnd(fc["rfnd"]); c["z"] = (rf[:, 0], rf[:, 1])
     return c
@@ -154,7 +157,7 @@ def fc_raw_curves(fc):
 
 def mocap_raw_curves(mo):
     tw, w = ang_speed_mocap(mo["t"], mo["q"])
-    return {"w": (tw, w), "z": (mo["t"], mo["p"][:, 2]), "gaps": find_gaps(mo["t"])}
+    return {"w": (tw, w), "z": (mo["t"], mo["p"][:, 2]), "gaps": find_gaps(mo["t"]), "span": (float(mo["t"][0]), float(mo["t"][-1]))}
 
 
 GAP_FACTOR = 3.0      # a sample spacing > GAP_FACTOR x the median spacing is a dropout
@@ -171,6 +174,8 @@ def valid_mask(curves, grid, smooth=None):
     pad = 0.5 * (smooth or SMOOTH_S) + 2 * GRID_S; ok = np.ones(len(grid), bool)
     for a, b in curves.get("gaps", ()):
         ok &= ~((grid >= a - pad) & (grid <= b + pad))
+    if "span" in curves:        # outside a record np.interp holds the end value: flat fake data, never fitted (2026-10-11)
+        ok &= (grid >= curves["span"][0] + pad) & (grid <= curves["span"][1] - pad)
     return ok
 
 
@@ -350,9 +355,75 @@ def align(fc, mo, early, late, init_seg, use=("w",), coarse="xcorr", coarse_offs
     return res, tfc, mo_in_est, to_fc
 
 
-def default_windows(fc, early_len=25.0, late_before=20.0, late_after=8.0, min_dist=0.5):
-    arm = [t for t, st in fc["arm"] if st == 1][0]
-    land = fc["rfnd"][np.where(fc["rfnd"][:, 1] > min_dist)[0][-1], 0]
+SYNC_W_THR = 2.0        # rad/s: a sync wiggle (flight cards D6: RISI rates > 2 rad/s while disarmed)
+SYNC_MERGE_S = 1.0      # samples above the threshold closer than this belong to one burst
+SYNC_MIN_S = 1.0        # a burst shorter than this is not a wiggle (a set-down knock)
+SYNC_PAD_S = 2.0        # the fit window extends the burst by this much on each side
+
+
+def sync_bursts(fc, thr=SYNC_W_THR, merge_s=SYNC_MERGE_S, min_s=SYNC_MIN_S):
+    """Bursts of FC |w| (0.1 s boxcar on the gyro samples) above thr, as [(start, end)] on the FC clock."""
+    g = fc["gyro"]; t = g[:, 0]; w = np.linalg.norm(g[:, 1:4], axis=1)
+    n = max(1, int(round(0.1 / max(float(np.median(np.diff(t))), 1e-4)))); ws = np.convolve(w, np.ones(n) / n, "same")
+    hi = t[ws > thr]
+    if not len(hi):
+        return []
+    cut = np.where(np.diff(hi) > merge_s)[0]
+    starts, ends = np.r_[hi[0], hi[cut + 1]], np.r_[hi[cut], hi[-1]]
+    return [(float(a), float(b)) for a, b in zip(starts, ends) if b - a >= min_s]
+
+
+def default_windows(fc, pad=SYNC_PAD_S, init_len=30.0, thr=SYNC_W_THR):
+    """The rung-1 default fit windows (2026-10-11; flight cards D6/D8, pre-registration sec. 8):
+      early = the LAST |w| burst ending before the first arming, +-pad (the pre-arm, disarmed sync wiggle);
+      late  = the FIRST |w| burst starting after the last disarming, +-pad (the post-disarm sync wiggle);
+      init  = (arm, arm + init_len) (the initial frame-fit segment).
+    Each is None when it cannot be found. NO ARM record (a disarmed hand-carry log): SystemExit asking for explicit
+    windows. (The old arm-anchored rule, kept as legacy_windows for SITL logs without wiggles, started the early window
+    AT arming and so missed the pre-arm wiggle.)"""
+    arms = [t for t, st in fc["arm"] if st == 1]
+    if not arms:
+        raise SystemExit("mocap_align: the log has no ARM record (ArmState 1), e.g. a disarmed hand-carry log. Give the "
+                         "windows explicitly on the FC clock (s): --early T0 T1 and --late T0 T1 (the two sync-wiggle "
+                         "periods) and --init-seg T0 T1 (the initial frame-fit segment).")
+    arm = arms[0]; dis = [t for t, st in fc["arm"] if st == 0 and t > arm]; disarm = dis[-1] if dis else None
+    b = sync_bursts(fc, thr)
+    pre = [x for x in b if x[1] <= arm]; post = [x for x in b if disarm is not None and x[0] >= disarm]
+    early = (pre[-1][0] - pad, pre[-1][1] + pad) if pre else None
+    late = (post[0][0] - pad, post[0][1] + pad) if post else None
+    return early, late, (arm, arm + init_len)
+
+
+def resolve_windows(fc, early=None, late=None, init=None):
+    """Defaults ONLY for the missing arguments (an explicit window is never replaced, and a log with no ARM record
+    works when all three are given). Returns (early, late, init, sources)."""
+    src = {"early": "given", "late": "given", "init_seg": "given"}
+    if early is not None and late is not None and init is not None:
+        return tuple(early), tuple(late), tuple(init), src
+    e0, l0, i0 = default_windows(fc)
+    missing = []
+    if early is None:
+        early, src["early"] = e0, "default: last |w| burst before arming"
+        if e0 is None: missing.append("--early (no |w| burst > %.1f rad/s before arming)" % SYNC_W_THR)
+    if late is None:
+        late, src["late"] = l0, "default: first |w| burst after disarming"
+        if l0 is None: missing.append("--late (no disarm record, or no |w| burst > %.1f rad/s after it)" % SYNC_W_THR)
+    if init is None:
+        init, src["init_seg"] = i0, "default: arm to arm + 30 s"
+    if missing:
+        raise SystemExit("mocap_align: cannot find the default window(s); give them explicitly: " + "; ".join(missing))
+    return tuple(early), tuple(late), tuple(init), src
+
+
+def legacy_windows(fc, early_len=25.0, late_before=20.0, late_after=8.0, min_dist=0.5):
+    """The pre-2026-10-11 arm-anchored windows, for SITL logs WITHOUT sync wiggles (selftest, mocap_align_validate's
+    SITL check; their stored results in eval/results/r1_mocap_sync/ used this rule). Not for real flights."""
+    arms = [t for t, st in fc["arm"] if st == 1]
+    rf = fc.get("rfnd", np.zeros((0, 2)))
+    hi = np.where(rf[:, 1] > min_dist)[0] if len(rf) else []
+    if not arms or not len(hi):
+        raise SystemExit("legacy_windows needs an ARM record and a rangefinder reading above %.2f m" % min_dist)
+    arm = arms[0]; land = rf[hi[-1], 0]
     return (arm, arm + early_len), (land - late_before, land + late_after), (arm, arm + 30.0)
 
 
@@ -371,7 +442,7 @@ def selftest(trial, out_dir, use=("w",), gyro_src="RISI"):
     q = Rot.from_euler("ZYX", np.c_[np.radians(s[:, 6]), np.radians(s[:, 5]), np.radians(s[:, 4])]).as_quat()
     t_mo = s[:, 0] + TRUE["offset_s"] + TRUE["rate_ppm"] * 1e-6 * (s[:, 0] - s[0, 0])
     mo = {"t": t_mo, "p": p_mo, "q": q}          # SIM is logged at only 10 Hz: this limits the self-test's time resolution
-    early, late, init = default_windows(fc, min_dist=1.0)
+    early, late, init = legacy_windows(fc, min_dist=1.0)       # SITL log: no sync wiggles
     res, tfc, mo_in_est, _ = align(fc, mo, early, late, init, use=use)
     res["features_used"] = list(use)
     t_e = 0.5 * (early[0] + early[1])
@@ -385,23 +456,24 @@ def selftest(trial, out_dir, use=("w",), gyro_src="RISI"):
     return res
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(); ap.add_argument("--bin"); ap.add_argument("--mocap"); ap.add_argument("--est", default="XKF1")
     ap.add_argument("--gyro-src", default="RISI", choices=["RISI", "IMU"]); ap.add_argument("--imu-instance", type=int, default=0)
     ap.add_argument("--pi-bag"); ap.add_argument("--out-dir", required=True); ap.add_argument("--selftest")
     ap.add_argument("--features", default="w", help="w (|gyro|, default), vz (rangefinder vertical speed; latency unknown), or w,vz")
     ap.add_argument("--coarse", default="xcorr", choices=["xcorr", "takeoff"]); ap.add_argument("--coarse-offset", type=float)
     ap.add_argument("--early", type=float, nargs=2); ap.add_argument("--late", type=float, nargs=2); ap.add_argument("--init-seg", type=float, nargs=2)
-    a = ap.parse_args(); os.makedirs(a.out_dir, exist_ok=True)
+    a = ap.parse_args(argv); os.makedirs(a.out_dir, exist_ok=True)
     use = tuple(a.features.split(","))
     if a.selftest:
         res = selftest(a.selftest, a.out_dir, use=use, gyro_src=a.gyro_src)
     else:
         fc = read_fc(a.bin, a.est, a.gyro_src, a.imu_instance); mo = load_mocap(a.mocap)
-        e0, l0, i0 = default_windows(fc)
-        early = tuple(a.early) if a.early else e0; late = tuple(a.late) if a.late else l0
-        init = tuple(a.init_seg) if a.init_seg else i0
+        early, late, init, wsrc = resolve_windows(fc, a.early, a.late, a.init_seg)
         res, tfc, mo_in_est, _ = align(fc, mo, early, late, init, use=use, coarse=a.coarse, coarse_offset=a.coarse_offset)
+        res["window_sources"] = wsrc
+        res["sync_window_rule"] = {"w_thr_rad_s": SYNC_W_THR, "pad_s": SYNC_PAD_S, "merge_s": SYNC_MERGE_S,
+                                   "min_burst_s": SYNC_MIN_S}      # checked by real_score against the prereg
         q = Rot.from_quat(mo["q"]); q4 = (Rot.from_euler("z", res["frame_4dof_initial"]["yaw_deg"], degrees=True) * q).as_quat()
         np.savetxt(f"{a.out_dir}/mocap_fc_clock_est_frame.tum", np.c_[tfc, mo_in_est, q4], fmt="%.6f")
         res["inputs"] = {"bin": os.path.abspath(a.bin), "mocap": os.path.abspath(a.mocap), "est": a.est}
@@ -409,6 +481,7 @@ def main():
             res["pi_fc_clock"] = pi_fc_map(a.pi_bag)
     json.dump(res, open(f"{a.out_dir}/mocap_align.json", "w"), indent=1)
     print(json.dumps(res, indent=1))
+    return res
 
 
 if __name__ == "__main__":

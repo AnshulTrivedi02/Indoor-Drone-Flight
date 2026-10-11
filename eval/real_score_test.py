@@ -9,6 +9,7 @@ import real_score as RS
 
 M = dict(RS.DEFAULT_PREREG["metrics"])
 W = dict(RS.DEFAULT_PREREG["window"])
+DT = {"segment_rule": "window_start_time", "init_segment_s": 10.0, "min_extent_m": 1.0}   # the pre-2026-10-11 segment
 
 
 def flight(rate=120.0, held_start=True):
@@ -63,14 +64,142 @@ def test_drift_metric_and_hover_guard():
     mo = flight(); est = as_est(mo, drift=(0.01, 0.0))       # 1 cm/s drift in x
     t0, t1, _ = RS.window_from_rule(mo, W)                   # starts at 45.5 s: moving
     with tempfile.TemporaryDirectory() as d:
-        r = RS.score_one(mo, est, t0, t1, M, d, "drift")
+        r = RS.score_one(mo, est, t0, t1, M, d, "drift", DT)
         assert "error" not in r["drift_start_aligned"]
         assert r["drift_start_aligned"]["init_segment_extent_h_m"] > 1.0
         assert abs(r["drift_start_aligned"]["final_h_m"] - 0.01 * (t1 - t0)) < 0.15
-        h = RS.score_one(mo, est, 25.0, 140.0, M, d, "hover")   # initial segment in the hover
+        h = RS.score_one(mo, est, 25.0, 140.0, M, d, "hover", DT)   # initial segment in the hover
         assert "error" in h["drift_start_aligned"] and h["drift_start_aligned"]["init_segment_extent_h_m"] < 1e-6
 
 
+
+# ---------------- 2026-10-11: the pre-registered drift segment, the strict prereg JSON, the clock-map check ----------------
+def test_motion_onset_segment_skips_the_hover():
+    mo = flight(); est = as_est(mo, drift=(0.01, 0.0))
+    w = {**W, "start_after_takeoff_s": 10.0}                  # window from 30.5 s: 14.5 s of hover before the legs
+    t0, t1, _ = RS.window_from_rule(mo, w)
+    D = dict(RS.DEFAULT_PREREG["drift"])                       # motion_onset_path, init_path_m 2.0
+    s0, s1, why = RS.drift_segment(mo, t0, t1, D)
+    assert why is None and 44.5 <= s0 <= 46.0 and abs((s1 - s0) - 2.0 / 0.4) < 0.6     # on the first leg, ~2 m
+    with tempfile.TemporaryDirectory() as d:
+        r = RS.score_one(mo, est, t0, t1, M, d, "onset", D)["drift_start_aligned"]
+        legacy = RS.score_one(mo, est, t0, t1, M, d, "legacy", DT)["drift_start_aligned"]
+    assert "error" not in r and r["init_segment_extent_h_m"] >= 1.9
+    assert abs(r["final_h_m"] - 0.01 * (t1 - s0)) < 0.15       # drift accrued since the segment
+    assert "error" in legacy                                   # the draft's old segment: inside the hover, refused
+
+
+def _files(d):
+    mo = flight(); est = as_est(mo)
+    pm, pe = f"{d}/mocap.tum", f"{d}/fgo.tum"
+    RS.write_tum(pm, mo); RS.write_tum(pe, est)
+    return pm, pe
+
+
+def _prereg(d, name, **chg):
+    import copy, json
+    p = copy.deepcopy(RS.DEFAULT_PREREG)
+    for k, v in chg.items():
+        sec, key = k.split("__")
+        p[sec][key] = v
+    path = f"{d}/{name}.json"
+    json.dump(p, open(path, "w"))
+    return path
+
+
+def test_prereg_is_strict():
+    import copy, pytest
+    ok = copy.deepcopy(RS.DEFAULT_PREREG)
+    RS.load_prereg(ok)
+    for bad in ({"metrics": {**ok["metrics"], "primary": "rpe"}},
+                {"metrics": {**ok["metrics"], "t_max_diff_s": 0.1}},                 # evo is called with 0.05 only
+                {"metrics": {k: v for k, v in ok["metrics"].items() if k != "max_gap_s"}},
+                {"window": {**ok["window"], "start_after_takeof_s": 25.0}},          # a typo: unknown key
+                {"drift": {**ok["drift"], "segment_rule": "first_10_s"}},
+                {"estimator_records": {"UKF": "XUKZ"}},
+                {"extra_section": 1}):
+        with pytest.raises(SystemExit):
+            RS.load_prereg({**copy.deepcopy(ok), **bad})
+    with pytest.raises(SystemExit):
+        RS.load_prereg({k: v for k, v in ok.items() if k != "drift"})
+
+
+def test_prereg_json_drives_window_primary_and_records():
+    import pytest
+    with tempfile.TemporaryDirectory() as d:
+        pm, pe = _files(d)
+        a = RS.main(["--prereg", _prereg(d, "a"), "--mocap", pm, "--est", f"FGO={pe}",
+                     "--work-dir", f"{d}/wa", "--out", f"{d}/a.json"])
+        b = RS.main(["--prereg", _prereg(d, "b", window__start_after_takeoff_s=30.0, metrics__primary="ate_4dof"),
+                     "--mocap", pm, "--est", f"FGO={pe}", "--work-dir", f"{d}/wb", "--out", f"{d}/b.json"])
+        assert abs((b["window_s"][0] - a["window_s"][0]) - 5.0) < 1e-9 and b["window_s"][1] == a["window_s"][1]
+        assert a["primary_metric"] == "evo_ape_a_se3" and a["primary"]["FGO"] == a["estimators"]["FGO"]["evo_ape_a_se3"]["rmse_m"]
+        assert b["primary_metric"] == "ate_4dof" and b["primary"]["FGO"] == b["estimators"]["FGO"]["ate_4dof"]["rmse_m"]
+        assert a["prereg"]["sha256"] != b["prereg"]["sha256"]
+        with pytest.raises(SystemExit):                       # the prereg says UKF = XUKO: a TUM may not stand in for it
+            RS.main(["--prereg", _prereg(d, "c"), "--mocap", pm, "--est", f"UKF={pe}",
+                     "--work-dir", f"{d}/wc", "--out", f"{d}/c.json"])
+
+
+def test_draft_prereg_loads_and_matches_the_tested_defaults():
+    p = RS.load_prereg(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs",
+                                    "rung1_preregistration_draft.json"))
+    assert "DRAFT for user sign-off" in p["status"]
+    for sec in ("window", "metrics", "drift"):
+        assert p[sec] == RS.DEFAULT_PREREG[sec], sec            # the tests exercise exactly the draft's definitions
+    assert p["estimator_records"]["UKF"] == "XUKO" and p["metrics"]["primary"] == "evo_ape_a_se3"
+
+
+def test_xkf1_core_is_explicit_and_filtered():
+    """A Replay output log holds the onboard XKF1 (C = 0) AND the replayed one (C = 100): the record names the core."""
+    import pytest
+    from types import SimpleNamespace as NS
+    assert RS.parse_record("XKF1@100") == ("XKF1", 100) and RS.parse_record("XUKO") == ("XUKO", None)
+    for bad in ("XKF1", "XKF1@x", "XUKO@100", "XKF9"):
+        with pytest.raises(SystemExit):
+            RS.parse_record(bad)
+    with pytest.raises(SystemExit):
+        RS.load_prereg({**RS.DEFAULT_PREREG, "estimator_records": {"EKF3": "XKF1"}})
+
+    class Reader:
+        def __init__(self, rows): self.rows = list(rows)
+        def recv_match(self, type):
+            while self.rows:
+                r = self.rows.pop(0)
+                if r.get_type() in type:
+                    return r
+            return None
+
+    def rec(ty, t, pn, c=None):
+        x = NS(TimeUS=int(t * 1e6), PN=pn, PE=0.0, PD=0.0, get_type=lambda: ty)
+        if c is not None:
+            x.C = c
+        return x
+    rows = [rec("XKF1", 1.0, 1.0, 0), rec("XKF1", 1.0, 2.0, 1), rec("XKF1", 1.0, 3.0, 100), rec("XKF1", 1.0, 4.0, 101),
+            rec("XUKO", 1.0, 5.0), rec("XKF1", 2.0, 10.0, 0), rec("XKF1", 2.0, 30.0, 100)]
+    tr = RS.bin_trajs(None, ["XKF1@100", "XKF1@0", "XUKO"], reader=Reader(rows))
+    assert tr["XKF1@100"][:, 1].tolist() == [3.0, 30.0]       # the replayed core 0 only
+    assert tr["XKF1@0"][:, 1].tolist() == [1.0, 10.0]         # the onboard core 0 only
+    assert tr["XUKO"][:, 1].tolist() == [5.0]
+
+
+def test_clock_map_check():
+    import pytest
+    cm = {"rule": "disarmed_wiggles", "w_thr_rad_s": 2.0, "pad_s": 2.0, "merge_s": 1.0, "min_burst_s": 1.0}
+    rule = {"w_thr_rad_s": 2.0, "pad_s": 2.0, "merge_s": 1.0, "min_burst_s": 1.0}
+    good = {"window_sources": {"early": "default: last |w| burst before arming",
+                               "late": "default: first |w| burst after disarming", "init_seg": "given"},
+            "sync_window_rule": rule}
+    RS.check_clock_map(cm, good)
+    with pytest.raises(SystemExit):
+        RS.check_clock_map(cm, {**good, "window_sources": {"early": "given", "late": "default: x"}})
+    with pytest.raises(SystemExit):
+        RS.check_clock_map(cm, {**good, "sync_window_rule": {**rule, "w_thr_rad_s": 1.5}})
+    import mocap_align as MA                                   # the constants mocap_align writes match the draft
+    assert (MA.SYNC_W_THR, MA.SYNC_PAD_S, MA.SYNC_MERGE_S, MA.SYNC_MIN_S) == (2.0, 2.0, 1.0, 1.0)
+
 if __name__ == "__main__":
-    for f in (test_airborne_window_ignores_held_start, test_gap_masking_and_exact_recovery, test_drift_metric_and_hover_guard):
+    for f in (test_airborne_window_ignores_held_start, test_gap_masking_and_exact_recovery, test_drift_metric_and_hover_guard,
+              test_motion_onset_segment_skips_the_hover, test_prereg_is_strict, test_prereg_json_drives_window_primary_and_records,
+              test_clock_map_check):
         f(); print("ok", f.__name__)
