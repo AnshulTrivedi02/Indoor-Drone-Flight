@@ -86,7 +86,7 @@ def save(fig, fid, name, title, kind, caption, inputs, rows, replaces="", note="
     p = os.path.join(OUT, name); fig.savefig(p, dpi=150, bbox_inches="tight"); plt.close(fig)
     ok = all(c[4] for c in CHK)
     ITEMS.append(dict(id=fid, png=p, title=title, kind=kind, caption=caption, inputs=inputs, rows=rows, checks=CHK,
-                      status="CURRENT" if ok else "FLAGGED (check mismatch)", replaces=replaces, note=note))
+                      status=("CURRENT" if CHK else "CURRENT (JSON only, unchecked)") if ok else "FLAGGED (check mismatch)", replaces=replaces, note=note))
     print(f"wrote {p}  checks {sum(c[4] for c in CHK)}/{len(CHK)}")
     for c in CHK:
         if not c[4]:
@@ -404,7 +404,7 @@ save(fig, "F06", "F06_blank_flow_loss.png", "Loss of flow aiding on the blank fl
      "Position error magnitude after flow is lost on the blank floor, UKF and FGO baselines (thin lines: each of the 11 flights, dsn, p1c, fwdc "
      "and fwdplainc blank; thick: median). UKF 6.4–8.2 / 27.3–36.5 / 60–108 m and FGO 6.4–8.2 / 28.0–37.0 / 154–204 m at +10 / +30 / +60 s. "
      "EKF3 has no curve: its position is flagged invalid for the whole flight and it outputs the origin, which is not scored. Behaviour under "
-     "total loss, not accuracy. † From +60 s the curves are runaway magnitudes (end of cruise 22–41 km): evidence of divergence with its "
+     "total loss, not accuracy. † From +60 s the curves are runaway magnitudes (end of cruise UKF 29–40 km, FGO 22–41 km): evidence of divergence with its "
      "order of magnitude, not precise values (not bit-reproducible across BLAS builds; numbers.md †). The heading does not bound position "
      "without flow either (claim 10).",
      "eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60/+120 s; EKF3 validity)",
@@ -912,12 +912,15 @@ for (rows, cols, widths, y0, hh, ttl) in (
     for (r_, c_), cell in tab.get_celld().items():
         cell.set_edgecolor(GRID); cell.set_facecolor(SURF if r_ else "#f0efec")
         if r_ == 0: cell.set_text_props(weight="bold")
-fig.text(0.01, 0.035, "All bands PASS for every H set; P-H6 as worded fails (occluder render lag); the jump criterion as worded fails in most losses (drift below the hold's own step noise). "
-         "Flown FGO = OLD priors.", fontsize=10.5, color=INK2)
+fig.text(0.01, 0.05, "H verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded (occluder render lag); H-H2, P-H3 and H-H4 FAIL as adjudicated on "
+         "S2/S3 (old builds), NOT restated on S2v2/S3v2.", fontsize=10.5, color=INK2)
+fig.text(0.01, 0.02, "All drift bands PASS for every set; the jump criterion as worded fails in most losses (drift below the hold's own step noise). Flown FGO = OLD priors.",
+         fontsize=10.5, color=INK2)
 fig.suptitle("Closed-loop summary (2/2): marker-relative hold (H) and the safety tests", x=0.01, ha="left", fontsize=15)
 save(fig, "F15b", "F15b_closed_loop_summary_H_safety.png", "Closed-loop summary (2/2): H hold sets and the safety tests",
      "SUMMARY (pre-registered criteria)",
-     "H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning "
+     "Verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded; H-H2, P-H3 and H-H4 FAIL as adjudicated on S2/S3 (old "
+     "builds) and are NOT restated on S2v2/S3v2. H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning "
      "fix (negative for the UKF: event-time stamping) and lockouts, computed from the H score files. Safety: the final run of each test and "
      "its history. UKF (b) fails S-A2 as worded (the FC declared position lost 5.75 s after the kill against a 5.5 s bound; 0.71 s of "
      "relay drain after the SIGKILL; the watcher had already commanded the landing). The EKF3 reference drifted 1.40 m against a "
@@ -1053,10 +1056,13 @@ HIST = [
     ("plots/supervisor_2026-10-08/fig14_L_lap_by_lap.png", "F12", "FLAGGED-superseded: '4.5–5.5×', pre-final L values"),
     ("plots/supervisor_2026-10-08/fig15_L_compute_cost.png", "F13", "NOT REGENERATED: per-1000-keyframe logs (eval/results/expL/logs/, 2026-10-08) pre-date the final re-runs; replaced by the per-replay summary F13"),
     ("plots/supervisor_2026-10-0{1,8}/figures.pdf", "this PDF", "FLAGGED-superseded as a set (historical record of the supervisor meetings; kept unchanged)"),
-    ("plots/*.png (top level: ate_by_condition, nomag_*, textured_*, ekf3_diag_*, ukf_diag_*, alongtrack_vs_travel, pn_vs_truey, inlier_ratio_transition, "
-     "ekf3_diag_4_flowresid_tilt) and plots/lateral_diag/, plots/phase5/, plots/plainwall_trace/, plots/d22_plateau/", "—",
-     "NOT REGENERATED: diagnostic/historical figures from before the 2026-09-29 consolidated re-fly or single-purpose traces; any values in them are "
-     "pre-correction and must not be quoted (inlier_ratio_transition and the fwd_camera frame grids are sensor-level/render records, unaffected)"),
+    ("plots/*.png (top level: ate_by_condition, nomag_*, textured_*, ekf3_diag_*, ukf_diag_*, alongtrack_vs_travel, pn_vs_truey, "
+     "ekf3_diag_4_flowresid_tilt; last committed 2026-08-01), plots/lateral_diag/ (2026-09-23), plots/phase5/ (2026-09-29)", "—",
+     "NOT REGENERATED, FLAGGED-superseded: pre-correction diagnostics (before the consolidated re-fly / final re-runs); their estimator values must "
+     "not be quoted. plots/inlier_ratio_transition.png and the plots/fwd_camera/ frame grids are sensor-level/render records, unaffected"),
+    ("plots/plainwall_trace/, plots/d22_plateau/ (2026-10-10)", "—",
+     "NOT REGENERATED, not superseded: recent single-purpose diagnostics (the D18 plain-wall trace cited in numbers.md §6.6/§18; the D22 plateau "
+     "diagnostic). Kept as is"),
 ]
 with open(INDEX, "w") as f:
     f.write("# Final results pack: index (2026-10-11)\n\n")
