@@ -451,28 +451,36 @@ are pre-correction, receipt-stamp values and are listed in the superseded sectio
 
 ---
 
-## 15. Closed loop (the estimator flies the vehicle) — CURRENT after D28 (2026-10-02)
+## 15. Closed loop (the estimator flies the vehicle) — CURRENT after D28 (2026-10-02); re-flown sets added 2026-10-11 (pack flag 2)
 
 Textured corridor, 0.5 m/s, 300 s cruise. Full speed = `corridor_textured_fwdc`; half speed = `corridor_textured_half_fwdc` (loopback-pinned, `VISO_DELAY_MS` 25). No cross-speed comparison is claimed (D21). n = 1 per no-heading cell; closed-loop run-to-run variability is unmeasured. **All flown FGO results here (incl. `_v3`) used the OLD FGO priors (initial yaw σ 1e-3 rad, roll/pitch 2°); no re-fly before the freeze (ruling 2026-10-10, item 4).**
+
+**Builds flown (labels used below).** UKF: *old UKF (jitter)* = the original port (`cl_ukf_*`, full and half speed); *jitter-corrected UKF* = the re-flown half-speed set `cl_ukf_*_tex*_half_v2` (port `abb0357d`; ruling 2026-10-09: the full-speed set stays as recorded with the old model, labelled). FGO: *original FGO* = `cl_fgo_*_half` (pre-correction); ***FGO noise fix only (yaw cap ungated)*** = `cl_fgo_*_half_v2`, kept as the labelled **ABLATION** (ruling 2026-10-09); *final FGO* = `cl_fgo_*_half_v3` (noise fix + gated yaw cap, node `f642cd37…`). Every FGO flight, including `_v3`, flew the OLD initial priors. Replaced rows: "Superseded by the closed-loop re-flight restatement (2026-10-11)" at the end.
 
 | Quantity | Value | Unit | Status | Source |
 |---|---|---|---|---|
 | No heading, west-wall contact (cruise +): EKF3 full / half | +186.2 (PASS, window [+155, +215]) / +242.1 (MISS, D21) | s | CURRENT | json:closed_loop_cl_a_tex.json, closed_loop_cl_a_tex_half.json |
-| No heading, contact: UKF full / half | +163.0 (PASS, [+146, +218]) / +198.0 (PASS, [+146, +218]) | s | CURRENT | M: "cl_ukf_a_tex"; json:closed_loop_cl_ukf_a_tex_half.json |
+| No heading, contact: UKF full (old UKF, jitter) / half, re-flown `cl_ukf_a_tex_half_v2` (jitter-corrected UKF) | +163.0 (PASS, [+146, +218]) / **+165.9** (PRIMARY PASS; west wall; no contact before +100 s). Original half (old UKF): +198.0 (PASS). ⚑ **Window:** the scorer's key is `contact_if_any_west_in_155_215` (EKF3's window), and METHODOLOGY quotes the re-flight against [+155, +215]; the UKF's registered window is [+146, +218]. +165.9 is inside both, so the verdict does not depend on which applies | s | CURRENT (re-flown 2026-10-09) | json:closed_loop_cl_ukf_a_tex_half_v2.json; M: "UKF no-heading re-flight `cl_ukf_a_tex_half_v2`" |
 | No heading, contact: FGO (half only) | +165.8 (PASS, [+145, +196]; open-loop prediction +169.6) | s | CURRENT | json:closed_loop_cl_fgo_a_tex_half.json |
 | No heading, contact: final corrected FGO re-flight `cl_fgo_a_tex_half_v3` | +169.9 west (U3 PASS, inside the registered [+145, +196]; U1/U2 PASS). The registered prediction and its band stand | s | CURRENT | M: "FGO re-flight `cl_fgo_a_tex_half_v3`" |
+| No heading, contact: **FGO noise fix only (yaw cap ungated)**, `cl_fgo_a_tex_half_v2` (labelled ABLATION) | +169.6 west (U1, U2, U3 PASS; S2 `XFGO.OV` 100 %, age max 163 ms). Gating alone: +169.6 → +169.9 s | s | ABLATION (ruling 2026-10-09) | json:closed_loop_cl_fgo_a_tex_half_v2.json |
 | **Contact-prediction consistency check (POST-HOC, corrected FGO replayed open loop; not a prediction)** | n = 8 of the original 10 realisations: 4 west (+154 … +198 s), 3 east, 1 no contact; median of the 7 contacts +163.2 s. The corrected FGO no longer drifts consistently west, so the method would not have given a tight west cluster. **Two cases missing: `fgo_shadow_half_a` (offline, not recomputed) and the live `XFGO` (no live XFGO recomputation exists)** | s | DESCRIPTIVE (post hoc; ruling 11; FGO-only re-run) | json:fgo_contact_prediction_half_final.json |
 | No heading, yaw drift over first 150 s of cruise: EKF3 full / half; UKF full / half; FGO half | 4.31 / 2.13; 5.45 / 3.89; 5.48 | deg/min | DESCRIPTIVE (n = 1 each) | M: D21; "cl_fgo_a_tex_half" |
 | With heading, flights passing B1–B5 (+S2 UKF/FGO): EKF3 full (Python / C++) / half | 3/3, 3/3 / 3/3 | — | CURRENT | json:closed_loop_cl_b*_tex*.json |
-| With heading: UKF full / half | 3/3 / 2/3 (r3 B4, D22 flow validity) | — | CURRENT | json:closed_loop_cl_ukf_b_tex*.json |
-| With heading: FGO hard-gated / robust (half) | **3/3 / 3/3** (D28; first scored 2/3 each, B5 window artefact) | — | CURRENT (D28) | json:closed_loop_cl_fgo_b*_tex_r*_half.json |
-| With heading, B2 max cross-track (EKF3 full C++, EKF3 half, UKF full, UKF half, FGO hard, FGO robust) | 0.23–0.34, 0.24–0.33, 0.16–0.29, 0.13–0.53, 0.06–0.25, 0.05–0.14 | m | CURRENT | same |
-| With heading, B3 yaw error p95 / max (same order) | 0.28–0.31/0.40–0.42, 0.28–0.32/0.33–0.39, 0.17–0.21/0.26–0.31, 0.18–0.21/0.28–1.32, 0.26–0.38/1.28–1.88, 0.26–0.30/0.86–1.15 | deg | CURRENT | same |
+| With heading: UKF full (old UKF, jitter) / half, re-flown `cl_ukf_b_tex_r{1,2,3}_half_v2` (jitter-corrected UKF) | 3/3 / **3/3, ALL B criteria and S2 PASS** (the original half set, old UKF, was 2/3: r3 FAILED B4, 0.296 m/s, D22 flow validity; kept as recorded) | — | CURRENT (re-flown 2026-10-09) | json:closed_loop_cl_ukf_b_tex*.json, closed_loop_cl_ukf_b_tex_r*_half_v2.json |
+| With heading: original FGO, hard-gated / robust (half) | **3/3 / 3/3** (D28; first scored 2/3 each, B5 window artefact) | — | CURRENT (D28) | json:closed_loop_cl_fgo_b*_tex_r*_half.json |
+| With heading: **FGO noise fix only (yaw cap ungated)** `cl_fgo_b_tex_r{1,2,3}_half_v2` (ABLATION) / **final FGO** `cl_fgo_b_tex_r{1,2,3}_half_v3` | **3/3 / 3/3**, ALL B criteria and S2 PASS in both. Final FGO r3: **B4 0.246 m/s at cruise +0.5 s, inside the 0.25 m/s band by 4 mm/s** (the closest call of the re-flown sets; a D22-type start-of-climb flow-feature collapse, recorded as a shared sensor-pipeline limitation, ruling 2026-10-09); v2 r3 had 0.017 | — | CURRENT (final FGO, re-flown 2026-10-09; OLD priors) / ABLATION | json:closed_loop_cl_fgo_b_tex_r*_half_v2.json, _v3.json; M: "D22 recurrence check" |
+| With heading, re-flown sets, per flight r1 / r2 / r3: B1 max \|x\| in flight; B2 max \|x\| in cruise; B4 max lateral speed | jitter-corrected UKF: B1 0.334 / 0.280 / 0.274, B2 0.231 / 0.253 / 0.219 m, B4 0.012 / 0.005 / 0.019 m/s. FGO noise fix only (ablation): B1 0.112 / 0.170 / 0.047, B2 0.089 / 0.074 / 0.038 m, B4 0.008 / 0.014 / 0.017 m/s. Final FGO: B1 0.120 / 0.033 / 0.392, B2 0.118 / 0.033 / 0.392 m, B4 0.050 / 0.012 / **0.246** m/s | m, m/s | CURRENT / ABLATION (as the row above) | same |
+| With heading, re-flown sets, B3 heading error p95 / max / mean, r1; r2; r3 | jitter-corrected UKF: 0.382 / 0.512 / 0.242; 0.361 / 0.407 / 0.253; 0.344 / 0.406 / 0.250. FGO noise fix only (ablation): 0.325 / 0.397 / 0.235; 0.318 / 0.356 / 0.230; 0.294 / 0.330 / 0.224. Final FGO: 0.293 / 0.340 / 0.212; 0.336 / 0.427 / 0.220; 0.361 / 0.682 / 0.187. Pattern in both corrected filters: a small steady heading offset (mean 0.19–0.25° against 0.00–0.08° originally) and no excursion above 0.7° (originals up to 1.32° UKF, 1.88° FGO); why the corrections leave this offset is NOT measured. Gating alone (v2 → v3): p95/max within ±0.07° except r3 max (0.330 → 0.682°) | deg | CURRENT / ABLATION | same; M: "UKF heading set RE-FLOWN", "FGO heading set RE-FLOWN" |
+| With heading, B2 max cross-track (EKF3 full C++, EKF3 half, UKF full, UKF half, FGO hard, FGO robust; **original builds**: old UKF (jitter), original FGO; re-flown sets in the rows above) | 0.23–0.34, 0.24–0.33, 0.16–0.29, 0.13–0.53, 0.06–0.25, 0.05–0.14 | m | CURRENT (original builds, as recorded) | same |
+| With heading, B3 yaw error p95 / max (same order) | 0.28–0.31/0.40–0.42, 0.28–0.32/0.33–0.39, 0.17–0.21/0.26–0.31, 0.18–0.21/0.28–1.32, 0.26–0.38/1.28–1.88, 0.26–0.30/0.86–1.15 | deg | CURRENT (original builds, as recorded) | same |
 | FGO climb-top true overshoot (no heading / with heading r1–r3 / robust) | +0.94 / 0, +0.11, +0.24 / descriptive | m | DESCRIPTIVE (D23 artefact; scales with short LiDAR returns 7 / 0, 1, 3) | json:climb_top_response_cl_fgo_*.json |
 | FGO heading timing: applied after capture (median / max) | 17 / 33 | ms | CLOSED as negligible (≈0.015°) | json:fgo_heading_timing.json |
 | Per-heading weight at equal sensor noise: FGO / UKF (closed loop, 5° R) | FGO **≈ 1.3–1.4 %** on the `_v3` re-flights (window-median predicted σ 0.57–0.59°; R = 5° confirmed from the logged NIS) (was 15.9 %, σ 2.17°); **UKF: OPEN** (the 2.9 % is the old UKF on a different flight). **No FGO/UKF ratio is stated** | % | FGO CURRENT (final re-run 2026-10-10); UKF OPEN | final_restatement_draft.md §7; batches/final_rerun/d26gate_*_v3.txt |
 | Fast yaw jitter (cruise): FGO hard / robust / EKF3 / UKF | 0.031–0.041 / 0.030–0.037 / 0.006–0.007 / 0.007–0.009 | deg | DESCRIPTIVE (EXPLORATORY) | json:d26_jitter_control.json, p2b_jitter_control.json |
 | Coupling corr(true yaw rate, −de/dt): FGO hard / robust / EKF3 / UKF / passive shadow | +0.68…+0.74 / +0.67…+0.70 / +0.09…+0.13 / +0.24…+0.28 / ≈0 | — | DESCRIPTIVE (EXPLORATORY) | same |
+| **Safety tests (H config, 2 m-clearance hold; added 2026-10-11): final run of each** — UKF (a) `H_safety_ukf_a_v2` (PARAM failure) / UKF (b) `H_safety_ukf_b_v2` (KILL) / FGO (a) `H_safety_fgo_a_v3` / FGO (b) `H_safety_fgo_b_v3` (final FGO, OLD priors) | UKF (a) **ALL PASS** (trigger 0.00 s from effect, bound 0.75 s; drift to touchdown 0.85 m). UKF (b) S-A1, S-A3, S-A4 PASS; **S-A2 FAILS AS WORDED**: "position lost" 5.75 s after the kill against a 5.5 s bound (0.71 s of MAVProxy relay drain after the SIGKILL; the trigger fired 5.01 s after the last received flow, the UKF's 5 s timeout; the watcher LAND was at +1.85 s; drift 0.69 m). FGO (a) **ALL PASS** (0.54 s, bound 0.75 s; 0.83 m). FGO (b) **ALL PASS** (0.25 s; 1.19 m). No breach in any | s, m | CURRENT (S-A2 of UKF (b) failed as worded; pre-registration fault: the bound assumed flow stops at the kill) | json:expH/safety_ukf_a_v2.json, safety_ukf_b_v2.json, safety_fgo_a_v3.json, safety_fgo_b_v3.json |
+| Safety tests, history and ablation | FGO noise fix only (ABLATION): (a) `_v2` ALL PASS (0.29 s; 0.78 m), (b) `_v2` ALL PASS (0.43 s; 1.27 m). Earlier builds and holds, kept as recorded: UKF (a) first run S-A2 FAIL as worded, S-A3 FAIL (watcher breach), re-run ALL PASS (0.42 m); UKF (b) ALL PASS (4.81 s against 5.5 s; 0.28 m); FGO (a) ALL PASS (0.37 m, old hold); FGO (b) S-A3 FAIL (room-box breach in the landing), (b2) at the 2 m-clearance hold PASS (1.25 m). EKF3 reference (KILL): drift 1.40 m against a prediction of ≤ 0.5 m (the prediction was wrong; no breach) | m, s | RECORDED | json:expH/safety_*.json; M: "H safety test …" entries |
 
 ### 15.1 Robust heading weighting (plan step 2)
 
@@ -559,11 +567,16 @@ Horizontal RMSE in the first tag's frame. Source: `eval/results/expL/T_A_r*_t245
 
 - **V-L: NOT re-scorable** (ruling 6, 2026-10-09: its labels were never recorded and none are made after the fact). The old result (keyframe FGO 4.63 m vs thesis FGO 4.59 m on `dsn_tex_r1`, PASS) was on the old FGO and is not restated.
 - **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3** (unchanged in both re-runs; L's result HOLDS, magnitudes moved). The L FGO changed in the FGO-only re-run with the initial-uncertainty correction (the `FGO.init` priors, which both lc and nolc start from, and the V-L start `lc_fgo_replay.start_isam_plain`, whose yaw σ now comes from the thesis FGO's own covariance instead of a hard 1e-3 rad); not attributed individually. With loop closure unchanged to printed precision, without: live 0.281–0.362 → 0.262–0.361 m, lap ratio 3.0–5.0 → 2.9–4.5.
-- **Computational cost (DIAGNOSTIC, workstation Python):**
-  - LC: median 36–41 ms per update (final re-run).
-  - no-LC: median 47–54 ms, p99 1.3–1.7 s (final re-run; graph size identical). Wall time per no-LC job rose from
-    1,044–2,996 s to 9,868–11,175 s, from rare steps beyond p99 from about keyframe 3,000–4,000. Cause untraced; results
-    unaffected.
+- **Computational cost (DIAGNOSTIC, workstation Python; restated 2026-10-11 from the FGO-only re-run outputs, pack flag 1; the first-final-re-run bullets are in "Superseded by the FGO-only re-run"):**
+  - LC: median 35–41 ms per update (35.3 / 41.3 / 39.2 ms, T_A_r1 / r2 / r3); p99 80–94 ms; wall time 299–519 s per job.
+  - no-LC: median 50–61 ms (50.2 / 51.7 / 60.6 ms), p99 1.1–1.7 s (1,096 / 1,107 / 1,742 ms; graph size identical: 7,351
+    keyframes, 41 landmarks). Wall time per no-LC job 7,276–9,583 s (8,796 / 7,276 / 9,583 s; first final re-run
+    9,868–11,175 s; before the final re-runs 1,044–2,996 s). The wall time breaks away from rare steps beyond p99 from
+    about keyframe 4,000–6,000 (progress logs: r1 between 5,000 and 6,000, r2 between 6,000 and 7,000, r3 between 4,000
+    and 5,000). Cause untraced; results unaffected. Six jobs ran in parallel (`parallel=6`).
+  - Source: `~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json` (mtime 2026-10-10 19:00–21:35);
+    progress logs `~/thesis_data/batches/final2_L/logs/l{lc,nolc}__T_A_r*.log` (job list
+    `~/thesis_data/batches/final_rerun2/final2_L.fgo.jobs`, commit `2cc08a2`).
   - Cause: the 30 Hz whole-history graph, plus a landmark per pass without loop closure.
   - Deviations: the replays are cut at anchor + 245 s, and hindsight uses iSAM2's full estimate.
 
@@ -600,6 +613,54 @@ No lockout in any loss (P-H7 PASS). P-H5 PASS (20/20 each estimator; new-only `s
 **Final re-run (2026-10-10), ruling 6:** the UKF/FGO shadow columns are restated; EKF3 (flying) is unchanged. The shadows
 now drift at EKF3's scale, so the statement is **"there is no gap between the shadow and the flying estimators"**
 (it replaces "the S1 → S2/S3 gap closes"). The old shadow values are in the superseded block.
+
+### 17.1 S2 and S3: the UKF and the FGO FLYING (far spawn, ×3 each; added 2026-10-11, pack flag 3)
+
+Drift is the END-OF-LOSS metric as METHODOLOGY quotes it (`drift_end_m`); the §17 table above uses the EFFECTIVE metric
+(last fix → first returning fix). The two differ by ≤ 5 mm on these flights (pack index cross-check). Every FGO flight
+used the OLD initial priors. Source: `eval/results/expH/s2*_r*.json`, `s3*_r*.json`; METHODOLOGY "S2 RE-FLY …",
+"S3 RESULT …", "S3 RE-FLY …".
+
+| set (flying estimator, build) | hold mean / max (mm) | drift at end of loss, r1 / r2 / r3 (mm): 5 s; 15 s; 30 s; ~7 s move | re-lock after the first returning fix (primary) | other | status |
+|---|---|---|---|---|---|
+| **S2v2** `H_s2v2_r*` (UKF port, jitter-corrected) | 6.1–7.4 / 17–21 | 5 / 7 / 8; 19 / 7 / 26; 6 / 10 / 10; 26 / 4 / 5 (every UKF band PASSES; EKF3 shadow 3–28) | −0.048…−0.015 s, PASS (event-time stamping) | no lockout; jump criterion AS WORDED fails in most losses (steps 5–30 mm against drifts 2–26 mm), as with the old UKF | CURRENT |
+| S2 `H_s2_r*` (UKF port, old UKF with jitter) | 4.9–6.3 / 15–21 | UKF 1–19 mm over all losses (every band PASSES) | −0.092…−0.014 s, PASS | jump AS WORDED fails in 8 of 12 losses; jitter correction: no material change | RECORDED (old UKF, labelled) |
+| **S3v2** `H_s3v2_r*` (C++ FGO node `f642cd37…`, final FGO: noise fix + gated yaw cap) | 8.1–9.0 / 18–28 (H-H1 PASS) | 13 / 20 / 17; 7 / 25 / 27; 22 / 15 / 9; 17 / 11 / 18 (every FGO band PASSES) | 0.002–0.032 s, PASS | yaw wander over the 30 s loss −0.23 / +0.52 / +0.52° (≤ 3°, PASS); no lockout; jump AS WORDED fails in 4 of 12 losses | CURRENT (OLD priors) |
+| S3 `H_s3_r*` (C++ FGO node `1123742d…`, **FGO noise fix only (yaw cap ungated)**) | 7.6–8.2 / 17–28 (H-H1 PASS) | 13 / 11 / 9; 8 / 10 / 7; 19 / 13 / 13; 13 / 18 / 4 (every FGO band PASSES; EKF3 shadow 10–20) | 0.003–0.029 s, PASS | yaw wander 0.58 / 0.59 / 0.64°; jump AS WORDED fails in most losses | ABLATION (ruling 2026-10-09; gating changes hold and loss metrics only at the few-mm level) |
+
+### 17.2 H comparative criteria (H-H2, P-H3, H-H4) — computed 2026-10-11 on the re-flown sets, PENDING user ruling
+
+**Not adopted.** The adjudicated verdicts (METHODOLOGY "H comparative criteria across S1 re-fly (EKF3 flying), S2 (UKF)
+and S3 (FGO)", all three FAIL on the earlier sets) stand until the user rules; METHODOLOGY says the comparison is
+"updated in the final restatement", and this is that computation, not a ruling.
+- **Method:** `eval/h_comparative.py`, a reduction of the STORED `eval/h_score.py` outputs (h_score.py was NOT re-run;
+  it is unchanged since `55edd75`, before S2v2/S3v2 were scored, and the score files have identical key sets). Hold
+  error and gyro activity are the means of the two vehicle hold windows; the re-lock jump is the flying estimator's
+  `jump_pos_m`; EKF3 is the flying S1 far-spawn re-fly (`s1far_r1`, `s1far_r2`, `s1far_r3b`), paired by run index as
+  before. **Check:** the script reproduces the adjudicated earlier-set table exactly; its r2 UKF 5 s jump (6 mm)
+  matches the EFFECTIVE reading (7 mm as scored). The verdicts are identical under both jump readings.
+- **Output:** `eval/results/expH/h_comparative_2026-10-11.json`.
+
+| run | mean hold error EKF3 / UKF / FGO (mm) | hold gyro activity, high-pass rms (rad/s) | 15 s re-lock jump (mm) | 5 s re-lock jump (mm) |
+|---|---|---|---|---|
+| 1 | 7.8 / **6.4** / 8.3 | 0.0093 / 0.0223 / 0.0195 | 5 / 30 / 7 | 4 / 16 / 11 |
+| 2 | 7.9 / **7.1** / 8.3 | 0.0090 / 0.0233 / 0.0214 | 5 / 20 / 25 | 4 / 7 / 34 |
+| 3 | 7.8 / **6.7** / 8.6 | 0.0090 / 0.0225 / 0.0193 | 7 / 26 / 30 | 5 / 16 / 15 |
+
+(UKF = S2v2, FGO = S3v2; EKF3 = the S1 far re-fly, as before. On the re-flown sets the effective-reading jumps equal these in every cell.)
+
+| criterion (pre-registered, `docs/tag_hold_design.md` §e) | earlier sets (S2 old UKF, S3 noise-fix-only FGO), as adjudicated | re-flown sets (S2v2, S3v2), computed 2026-10-11 | verdict differs? |
+|---|---|---|---|
+| **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 | **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) | **FAIL** (0/3): UKF lowest 3/3 (6.4–7.1 mm); the FGO is now the HIGHEST in all three runs (8.3–8.6 against EKF3 7.8–7.9 mm), no longer a tie | **No** (wording: "tie" → "FGO highest") |
+| **P-H3**: hold gyro activity within 1.5× across estimators | **FAIL** (0/3): UKF 2.33–2.43×, FGO 2.13–2.37× EKF3's (max/min 2.37–2.43) | **FAIL** (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's (max/min 2.40–2.58) | **No** |
+| **H-H4 (15 s)**: EKF3's re-lock jump larger than the UKF's and the FGO's, 3/3 | **FAIL** (0/3): EKF3 smallest or tied (5 / 5 / 7 mm) | **FAIL** (0/3): EKF3 strictly the smallest in all three (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm) | **No** (wording: "smallest or tied" → "strictly smallest") |
+| **H-H4 (5 s)**: jumps within 1.5× of each other | **FAIL** (0/3): EKF3 4–5 against UKF 6–17, FGO 12–26 mm (max/min 3.4–5.9) | **FAIL** (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7) | **No** |
+
+- **No verdict differs.** All three comparative criteria FAIL on both sets, for the same reasons: the flying UKF holds
+  tightest, the UKF and FGO carry ~2.1–2.6× EKF3's attitude activity, and EKF3's 15 s jump is the smallest (the 15 s loss
+  does not trigger a `posTimeout` reset at a size that matters).
+- **P-H5 and the drift bands** are unaffected (§17.1: every band passes in both sets).
+- **Caveat (unchanged):** each estimator flew its own flights; the pairing is by run index, not trajectory.
 
 ## 18. Attribution, the FGO initial-uncertainty correction, and the 0.1 rad sensitivity check (2026-10-10)
 
@@ -673,6 +734,21 @@ errors, +60 s errors, displacement ratios, onsets, runaway-size bands).
    commit message; the snapshot records no regression result. Phase 4 has no results yet.
 7. **Phase 1 flow → EKF3 latency baseline:** "median 10.9 ms and p95 42.7 ms" (M:L1594) used
    the single-offset clock; superseded by the linear-map `dsn` values (M:L1752-L1753).
+8. **Last-digit transcriptions (pack flag 4, listed 2026-10-11; values NOT changed).** Four printed values differ from
+   their source files by one unit in the last digit. Each was rounded to 3 dp from the 4-dp intermediate in
+   `eval/results/final2_old_vs_new.md` (or the stored 4-dp `d_m`), not from the full-precision value, and the tie
+   rule was not applied consistently. **Convention for any later tidy:** round the full-precision file value once, to
+   the printed precision, half away from zero.
+
+   | value (section) | full precision (file) | 4-dp intermediate | printed here | single rounding of the file value |
+   |---|---|---|---|---|
+   | confirmatory d, r5 (§6.1) | −0.4885 (`dsn_paired_test.json` `d_m`, stored at 4 dp) | −0.4885 | −0.489 | −0.489 half away / −0.488 half even (a true tie at the stored precision) |
+   | T condition A, FGO batch (§16.1) | 0.010480 (`expT/t_aggregate.json`) | 0.0105 | 0.011 | **0.010** (double rounding) |
+   | T condition C, FGO live (§16.1) | 0.053504 (same) | 0.0535 | 0.053 | **0.054** |
+   | L no-LC live, lower bound (§16.3, T_A_r2) | 0.262533 (`expL/T_A_r2_t245.json`) | 0.2625 | 0.262 | **0.263** |
+
+   None changes a range's meaning, a verdict or an ordering. The pack's checker accepts all four as last-digit
+   matches (`docs/thesis/final_results_pack_index.md`).
 
 ---
 
@@ -1086,6 +1162,11 @@ Labelled: **first final re-run (FGO with 1e-3 rad initial yaw)** (and 2° roll/p
 | §16.2 |   by the attribution study: PENDING.** |
 | §16.3 | ¦ without loop closure ¦ 0.281–0.362 m ¦ 0.221–0.271 m ¦ 3.0–5.0 ¦ |
 | §16.3 | - **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3** (unchanged in the final re-run; L's result HOLDS, magnitudes moved). |
+| §16.3 | - **Computational cost (DIAGNOSTIC, workstation Python):** |
+| §16.3 |   - LC: median 36–41 ms per update (final re-run). |
+| §16.3 |   - no-LC: median 47–54 ms, p99 1.3–1.7 s (final re-run; graph size identical). Wall time per no-LC job rose from |
+| §16.3 |     1,044–2,996 s to 9,868–11,175 s, from rare steps beyond p99 from about keyframe 3,000–4,000. Cause untraced; results |
+| §16.3 |     unaffected. *(Moved here 2026-10-11, pack flag 1: these were not updated when the FGO-only re-run replaced the L outputs.)* |
 | Flags |   EKF3 SD 0.31 m, FGO SD **1.23 m** [0.83, 2.36] (final re-run; was 0.13, itself already stale after D15's 0.05). It replaces "n = 3 range ± one range-width" as the basis for future |
 
 ### Superseded by the restatement rulings (2026-10-10, items 1–5): wording rows replaced (values unchanged); kept verbatim (cell separators shown as ¦)
@@ -1102,3 +1183,16 @@ Source: METHODOLOGY "RULINGS (user, 2026-10-10): the restatement after the FGO-o
 | §8 | ¦ `fwdplainc` primary †¦ **7/9 pass** as computed (first final re-run 9/9). Misses: `fwdplainc_trans_r2` and `r3` FGO ratio 20.75 / 21.64 outside [15.908, 19.159] (same band-collapse artefact, †). Verdict as registered; **wording awaits a ruling** ¦ — ¦ CURRENT (FGO-only re-run 2026-10-10) ¦ json:rerun_fwdplainc_score.json ¦ |
 | §15.2 | ¦ F3c (a) / (b) ¦ FALSE / **TRUE** as computed (first final re-run FALSE; originally TRUE). Ratio decreasing on 2/3 bags (r2, r3; 2 needed). **Fragile:** the r3 flip rests on FGO cross-track integrals of 0.2–0.5 m·s moving by 0.1–0.2 m·s (r3 ratios 0.147 / 0.165 → 0.250 / 0.100) against UKF integrals of ~2 m·s. **Verdict flip against ruling 4: awaits a ruling** ¦ — ¦ CURRENT (FGO-only re-run 2026-10-10) (verdict flip) ¦ json:f3c_test.json ¦ |
 | §18 | ¦ **0.1 rad initial-yaw sensitivity (labelled check, not a result), UKF and FGO, 6 plain-wall + 2 textured bags** ¦ `fwdc_tex_r1` heading arms unchanged (0.127 / 0.057 m); `fwdc` baselines move ≤ 0.05 m; plain-wall baselines UKF +0.84 / +0.98 m (r2 / r3, the take-off-kick flights where the UKF is already highest), FGO ≤ 0.11 m; `dsn_tex_r1` UKF 3.98 → 3.67, FGO 4.05 → 3.78 m (UKF stays below the FGO; both shifts inside the FGO noise-floor SD 1.30). **Plain-wall heading arms change strongly, for both estimators together:** `fwdplainc_tex` r1 0.19 / 0.15 → 0.21 / 0.17 m (headings fused 752 → 3,961), r2 0.15 / 0.09 → 0.75 / 0.73 m (yaw max 4.9 → 14.5°), **r3 0.25 / 0.22 → 5.70 / 5.70 m (UKF 5.705, FGO 5.695; yaw max 4.6 → 61.3°)**, where the FGO heading arm becomes worse than its own baseline (4.85 m). Transition arms are runaway sizes (†; FGO 557–717 → 562–756 m). **No UKF-vs-FGO ordering changes; the conclusion "the heading bounds plain-wall position" does NOT survive a 0.1 rad initial yaw σ on r3** (gate lockout depends on the initial σ) ¦ m ¦ SENSITIVITY (ruled; report only) ¦ json:sensitivity_yaw0_0p1/summary.json ¦ |
+
+### Superseded by the closed-loop re-flight restatement (2026-10-11, pack flag 2): §15 rows as they stood before the re-flown sets were added; kept verbatim (cell separators shown as ¦)
+
+Source: METHODOLOGY "UKF heading set RE-FLOWN with the jitter-corrected UKF", "UKF no-heading re-flight `cl_ukf_a_tex_half_v2`", "FGO heading set RE-FLOWN with the final corrected FGO", "FGO re-flight `cl_fgo_*_half_v2`". The original-build values are unchanged; only the labelling and the re-flown values were added.
+
+| section | row (verbatim) |
+|---|---|
+| §15 | ¦ No heading, contact: UKF full / half ¦ +163.0 (PASS, [+146, +218]) / +198.0 (PASS, [+146, +218]) ¦ s ¦ CURRENT ¦ M: "cl_ukf_a_tex"; json:closed_loop_cl_ukf_a_tex_half.json ¦ |
+| §15 | ¦ With heading: UKF full / half ¦ 3/3 / 2/3 (r3 B4, D22 flow validity) ¦ — ¦ CURRENT ¦ json:closed_loop_cl_ukf_b_tex*.json ¦ |
+| §15 | ¦ With heading: FGO hard-gated / robust (half) ¦ **3/3 / 3/3** (D28; first scored 2/3 each, B5 window artefact) ¦ — ¦ CURRENT (D28) ¦ json:closed_loop_cl_fgo_b*_tex_r*_half.json ¦ |
+| §15 | ¦ With heading, B2 max cross-track (EKF3 full C++, EKF3 half, UKF full, UKF half, FGO hard, FGO robust) ¦ 0.23–0.34, 0.24–0.33, 0.16–0.29, 0.13–0.53, 0.06–0.25, 0.05–0.14 ¦ m ¦ CURRENT ¦ same ¦ |
+| §15 | ¦ With heading, B3 yaw error p95 / max (same order) ¦ 0.28–0.31/0.40–0.42, 0.28–0.32/0.33–0.39, 0.17–0.21/0.26–0.31, 0.18–0.21/0.28–1.32, 0.26–0.38/1.28–1.88, 0.26–0.30/0.86–1.15 ¦ deg ¦ CURRENT ¦ same ¦ |
+| §15 | ## 15. Closed loop (the estimator flies the vehicle) — CURRENT after D28 (2026-10-02) |

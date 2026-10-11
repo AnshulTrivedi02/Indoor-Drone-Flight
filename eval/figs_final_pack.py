@@ -464,9 +464,9 @@ for i, (nm, est, off, ons, ls) in enumerate(HALF):
     axs[i, 0].set_ylabel("true East x (m)")
 axs[-1, 0].set_xlabel("distance along corridor, true North y (m)"); axs[-1, 1].set_xlabel("distance along corridor, true North y (m)")
 check("contacts EKF3 / UKF / UKF v2 / FGO / FGO v3 (s)", " / ".join(f"+{CT8[n]:.1f}" for n in [h[0] for h in HALF[:5]]),
-      "+242.1 / +198.0 / +165.9 / +165.8 / +169.9", "numbers.md §15 (EKF3, UKF, FGO, FGO v3); METHODOLOGY (UKF v2)")
-check("UKF v2 heading B2 (m)", " / ".join(f"{x:.3f}" for x in B28["UKF v2 (jitter-corrected)"]), "0.231 / 0.253 / 0.219", "METHODOLOGY 'UKF heading set RE-FLOWN'")
-check("FGO v3 heading B2 (m)", " / ".join(f"{x:.3f}" for x in B28["FGO v3 (final; OLD priors)"]), "0.118 / 0.033 / 0.392", "METHODOLOGY 'FGO heading set RE-FLOWN' (r3 B1/B2 0.392)")
+      "+242.1 / +198.0 / +165.9 / +165.8 / +169.9", "numbers.md §15 (EKF3, UKF, UKF v2, FGO, FGO v3)")
+check("UKF v2 heading B2 (m)", " / ".join(f"{x:.3f}" for x in B28["UKF v2 (jitter-corrected)"]), "0.231 / 0.253 / 0.219", "numbers.md §15 re-flown B1/B2/B4 row")
+check("FGO v3 heading B2 (m)", " / ".join(f"{x:.3f}" for x in B28["FGO v3 (final; OLD priors)"]), "0.118 / 0.033 / 0.392", "numbers.md §15 re-flown B1/B2/B4 row")
 check("EKF3 half / UKF orig / FGO hard / FGO robust B2 range (m)",
       " ; ".join(rng(B28[n]) for n in ("EKF3", "UKF original (pre-jitter fix)", "FGO original (old noise model)", "FGO robust (original)")),
       "0.24–0.33 ; 0.13–0.53 ; 0.06–0.25 ; 0.05–0.14", "numbers.md §15 B2 row")
@@ -482,9 +482,9 @@ save(fig, "F08", "F08_closed_loop_paths_half.png", "Closed-loop true paths at ha
      "The FGO v2 (noise fix only) ablation is in F15. ALL flown FGO results used the OLD FGO priors (initial yaw σ 1e-3 rad, roll/pitch 2°); "
      "they were not re-flown before the freeze. n = 1 per no-heading flight. Dashed = robust heading weighting (plan step 2(b)).",
      "paths: dataflash SIM of the trials named in each panel title (cl_*_half, *_v2, *_v3); contact and B2: eval/results/closed_loop_<trial>.json",
-     "§15 rows (contact EKF3/UKF/FGO/FGO v3 half; B2); METHODOLOGY re-flight sections (UKF v2, FGO v3: no numbers.md row); claim 14",
+     "§15 rows (contact EKF3/UKF/UKF v2/FGO/FGO v2/FGO v3 half; B2; re-flown B1/B2/B4 and B3 rows); claim 14",
      replaces="plots/supervisor_2026-10-01/fig10_closed_loop_paths_half.png (FLAGGED: lacks the UKF v2 and FGO v3 re-flights)",
-     note="UKF v2 contact and the v2/v3 heading sets have no numbers.md row (METHODOLOGY only); see FLAG list.")
+     note="numbers.md §15 rows for the UKF v2 and FGO v2/v3 re-flights added 2026-10-11 (pack flag 2).")
 
 # =============================================================================================== T, O, L
 TRK = {"EKF3 live": (C["EKF3"], "-", "EKF3"), "UKF live": (C["UKF"], "-", "UKF"), "FGO live": (C["FGO"], "-", "FGO"),
@@ -674,9 +674,9 @@ for j, (key, lab, sc) in enumerate((("step_median_ms", "median solve time per up
     ax.set_xticks(range(3)); ax.set_xticklabels(["T_A_r1", "T_A_r2", "T_A_r3"]); ax.set_ylabel(lab); ax.set_yscale("log")
     ax.set_title(lab, loc="left", fontsize=12)
 axs[0].legend(frameon=False)
-check("L LC median (ms)", rng(ST[("lc", "step_median_ms")], 0), "36–41", "numbers.md §16.3 (first final re-run)", exact=True)
-check("L no-LC median (ms)", rng(ST[("nolc", "step_median_ms")], 0), "47–54", "numbers.md §16.3 (first final re-run)", exact=True)
-check("L no-LC wall (s)", rng(ST[("nolc", "wall_s")], 0), "9868–11175", "numbers.md §16.3 (first final re-run)", exact=True)
+check("L LC median (ms)", rng(ST[("lc", "step_median_ms")], 0), "35–41", "numbers.md §16.3 (FGO-only re-run; restated 2026-10-11)", exact=True)
+check("L no-LC median (ms)", rng(ST[("nolc", "step_median_ms")], 0), "50–61", "numbers.md §16.3 (FGO-only re-run; restated 2026-10-11)", exact=True)
+check("L no-LC wall (s)", rng(ST[("nolc", "wall_s")], 0), "7276–9583", "numbers.md §16.3 (FGO-only re-run; restated 2026-10-11)", exact=True)
 fig.suptitle("L: computational cost per replay, keyframe FGO (diagnostic; workstation Python)", x=0.01, ha="left", fontsize=14)
 fig.tight_layout(rect=(0, 0, 1, 0.92))
 lc_m, nl_m, nl_w = ST[("lc", "step_median_ms")], ST[("nolc", "step_median_ms")], ST[("nolc", "wall_s")]
@@ -684,13 +684,13 @@ save(fig, "F13", "F13_L_compute_cost.png", "L: per-update solve time and wall ti
      "DIAGNOSTIC (not a pre-registered metric)",
      f"Per-replay cost of the keyframe FGO (30 Hz keyframes, retained history), T_A_r1–r3, from the CURRENT outputs (FGO-only re-run, "
      f"2026-10-10): median solve time LC {rng(lc_m, 1)} ms, no-LC {rng(nl_m, 1)} ms; no-LC p99 {rng(ST[('nolc', 'step_p99_ms')], 0)} ms; no-LC "
-     f"wall time {rng(nl_w, 0)} s. numbers.md §16.3 quotes the FIRST final re-run (LC 36–41, no-LC 47–54 ms, wall 9,868–11,175 s); the "
-     "FGO-only re-run values differ (FLAGGED, diagnostic only; results unaffected). Workstation Python with parallel jobs: says nothing about "
+     f"wall time {rng(nl_w, 0)} s (numbers.md §16.3, restated 2026-10-11; the first final re-run's LC 36–41, no-LC 47–54 ms, wall "
+     "9,868–11,175 s are superseded). Diagnostic only; results unaffected. Workstation Python with six parallel jobs: says nothing about "
      "onboard feasibility. Replaces the per-1000-keyframe curve, whose logs pre-date the final re-runs.",
      "~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json (mtime 2026-10-10 19:00–21:35)",
      "§16.3 'Computational cost' bullets (DIAGNOSTIC)",
      replaces="plots/supervisor_2026-10-08/fig15_L_compute_cost.png (NOT REGENERATED: its progress logs eval/results/expL/logs/ pre-date the final re-runs)",
-     note="Check mismatch is a numbers.md staleness (first final re-run vs FGO-only re-run), not a plotting error.")
+     note="numbers.md §16.3 restated 2026-10-11 (pack flag 1); the earlier mismatch was numbers.md staleness, not a plotting error.")
 
 # =============================================================================================== F14 H tag experiment
 HJ = lambda t: L(f"expH/{t}.json")
@@ -774,6 +774,12 @@ check("S3v2 hold mean / max (mm)", f"{rng(HOLD['FGO final (S3v2)'], 1)} / {rng([
       "8.1–9.0 / 18–28", "METHODOLOGY S3 RE-FLY")
 lock = [lo[k]["lockout"] for t in S1 + S1F + S2V + S3V for lo in HJ(t)["losses"] for k in lo if isinstance(lo[k], dict) and "lockout" in lo[k]]
 check("lockouts in any loss", sum(bool(x) for x in lock), 0, "numbers.md §17 (P-H7 PASS); METHODOLOGY S2v2/S3v2")
+_hc = [v for k, v in L("expH/h_comparative_2026-10-11.json")["sets"].items() if k.startswith("re-flown")][0]
+check("H comparative on S2v2/S3v2 (H-H2; P-H3; H-H4 15 s; H-H4 5 s)",
+      "; ".join(_hc["criteria"][k].split()[0] for k in ("H-H2", "P-H3", "H-H4 (15 s)", "H-H4 (5 s)")),
+      "FAIL; FAIL; FAIL; FAIL", "numbers.md §17.2 (computed 2026-10-11, PENDING ruling)")
+check("S2v2 / S3v2 run-mean hold error (mm)",
+      " / ".join(rng([r["hold_mean_mm"] for r in _hc[e]], 1) for e in ("UKF", "FGO")), "6.4–7.1 / 8.3–8.6", "numbers.md §17.2 table")
 fig.suptitle("Experiment H (marker-relative hold, wall tag): hold error and drift per tag-loss duration, shadow and flying", x=0.01, ha="left", fontsize=15)
 save(fig, "F14", "F14_H_tag_loss_drift.png", "H: hold error and tag-loss drift per loss duration, EKF3 / UKF / FGO, shadow and flying",
      "DESCRIPTIVE (per-flight values; pre-registered bands all PASS)",
@@ -784,13 +790,13 @@ save(fig, "F14", "F14_H_tag_loss_drift.png", "H: hold error and tag-loss drift p
      "on the S2v2/S3v2 flights. Faint = earlier builds (S2 old UKF port with jitter; S3 FGO noise fix only), shown as ablations. Every value is "
      "inside its pre-registered band (UKF ≤ 100 / 200 / 400 / 300 mm, FGO ≤ 50 / 100 / 200 / 150 mm); no lockout (P-H7 PASS). The shadows "
      "now drift at EKF3's scale: \"there is no gap between the shadow and the flying estimators\" (ruling 6; claim 26). Top: vehicle hold "
-     "error (window means). The comparative criteria H-H2 / P-H3 / H-H4 were adjudicated on S2/S3 (old builds) and have NOT been restated on "
-     "S2v2/S3v2; the per-flight values are shown without a verdict. Each estimator flew its own flights: pairing is by run index, not "
+     "error (window means). The comparative criteria H-H2 / P-H3 / H-H4 were adjudicated on S2/S3 (old builds, all FAIL); computed on "
+     "S2v2/S3v2 on 2026-10-11 (numbers.md §17.2) they give the SAME verdicts (all FAIL), PENDING a user ruling. Each estimator flew its own flights: pairing is by run index, not "
      "trajectory. METHODOLOGY quotes S2v2/S3v2 with the end-of-loss metric; the two differ by ≤ 5 mm (index cross-check).",
      "eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s2_r*.json, s3v2_r*.json, s3_r*.json "
      "(losses[*].<est>.effective.drift_m, drift_end_m; hold_windows_vehicle)",
-     "§17 (S1 table; tag-loss drift table; P-H5, P-H7; ruling 6 note); claims 25, 26; METHODOLOGY S2/S3 and RE-FLY sections (no numbers.md rows)",
-     note="NEW figure. S2/S2v2/S3/S3v2 and the S1-far shadows have no numbers.md rows (METHODOLOGY only).")
+     "§17 (S1 table; tag-loss drift table; P-H5, P-H7; ruling 6 note); §17.1 (S2/S2v2/S3/S3v2); §17.2 (comparative criteria, PENDING); claims 25, 26",
+     note="NEW figure. The S1-far shadows have no numbers.md rows (METHODOLOGY only).")
 
 # =============================================================================================== F15 closed-loop summary (two pages)
 def setb(trs):
@@ -825,7 +831,8 @@ rowsA = [
 ]
 check("EKF3 half contact MISS", rowsA[2][2].split(",")[1].strip().split()[0], "MISS", "numbers.md §15 (D21)")
 check("UKF half orig heading pass", rowsA[4][3].split()[0], "2/3", "numbers.md §15 (r3 B4)")
-check("UKF v2 / FGO v3 heading pass", f"{rowsA[5][3]} / {rowsA[9][3]}", "3/3 / 3/3", "METHODOLOGY re-flight sections")
+check("UKF v2 / FGO v3 heading pass", f"{rowsA[5][3]} / {rowsA[9][3]}", "3/3 / 3/3", "numbers.md §15 (re-flown sets)")
+check("FGO v2 heading pass (ablation)", rowsA[8][3], "3/3", "numbers.md §15 (re-flown sets)")
 check("FGO hard / robust heading pass (D28)", f"{rowsA[6][3]} / {rowsA[7][3]}", "3/3 / 3/3", "numbers.md §15 (D28)")
 check("EKF3 full C++ / half heading pass", f"{rowsA[0][3]} / {rowsA[2][3]}", "3/3 / 3/3", "numbers.md §15")
 
@@ -852,8 +859,8 @@ fig = table_fig(rowsA, ["flying estimator, speed", "build", "no heading: wall co
                  "No cross-speed comparison is claimed (D21).",
                  "ALL flown FGO results used the OLD FGO priors (initial yaw σ 1e-3 rad, roll/pitch 2°); no re-fly before the freeze. B4 failures (UKF half r3 0.296 m/s) and the FGO v3 r3 "
                  "near-miss (0.246) are D22,",
-                 "a shared sensor-pipeline limitation (flow validity on feature count only). numbers.md §15 still lists the ORIGINAL UKF half set (2/3); the v2/v3 re-flights are recorded "
-                 "in METHODOLOGY only (FLAGGED in the index)."], fs=10, scale=2.1, h=8.0)
+                 "a shared sensor-pipeline limitation (flow validity on feature count only). numbers.md §15 carries the original sets and the v2/v3 re-flights "
+                 "(rows added 2026-10-11)."], fs=10, scale=2.1, h=8.0)
 save(fig, "F15a", "F15a_closed_loop_summary_corridor.png", "Closed-loop summary (1/2): corridor sets, every flown build",
      "SUMMARY (pre-registered criteria)",
      "What flew in the textured corridor and how it scored, computed from the closed-loop score files. Original sets and the corrected "
@@ -862,7 +869,7 @@ save(fig, "F15a", "F15a_closed_loop_summary_corridor.png", "Closed-loop summary 
      "0.19–0.24°). The per-heading weight comparison is CHANGED: FGO ≈ 1.3–1.4 % on the v3 flights, UKF side OPEN, no ratio stated (claim 15).",
      "eval/results/closed_loop_<trial>.json for cl_a_tex, cl_b_tex_r*, cl_bcpp_tex_r*(_half), cl_a_tex_half, cl_ukf_a_tex(_half)(_v2), "
      "cl_ukf_b_tex_r*(_half)(_v2), cl_fgo_a_tex_half(_v2)(_v3), cl_fgo_b_tex_r*_half(_v2)(_v3), cl_fgo_b_robust_tex_r*_half",
-     "§15 rows (contacts, B1–B5 counts, B2, B3); claim 14; METHODOLOGY re-flight sections",
+     "§15 rows (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14",
      replaces="plots/supervisor_2026-10-01/fig9_closed_loop_summary.png (FLAGGED: lacks the re-flights; caption '~5x per-heading weight' superseded)")
 
 
@@ -913,20 +920,20 @@ for (rows, cols, widths, y0, hh, ttl) in (
         cell.set_edgecolor(GRID); cell.set_facecolor(SURF if r_ else "#f0efec")
         if r_ == 0: cell.set_text_props(weight="bold")
 fig.text(0.01, 0.05, "H verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded (occluder render lag); H-H2, P-H3 and H-H4 FAIL as adjudicated on "
-         "S2/S3 (old builds), NOT restated on S2v2/S3v2.", fontsize=10.5, color=INK2)
+         "S2/S3 (old builds); computed on S2v2/S3v2 (numbers.md §17.2): same verdicts, PENDING a user ruling.", fontsize=10.5, color=INK2)
 fig.text(0.01, 0.02, "All drift bands PASS for every set; the jump criterion as worded fails in most losses (drift below the hold's own step noise). Flown FGO = OLD priors.",
          fontsize=10.5, color=INK2)
 fig.suptitle("Closed-loop summary (2/2): marker-relative hold (H) and the safety tests", x=0.01, ha="left", fontsize=15)
 save(fig, "F15b", "F15b_closed_loop_summary_H_safety.png", "Closed-loop summary (2/2): H hold sets and the safety tests",
      "SUMMARY (pre-registered criteria)",
      "Verdicts: H-H1 PASS on every set; P-H5 and P-H7 PASS; P-H6 FAILS as worded; H-H2, P-H3 and H-H4 FAIL as adjudicated on S2/S3 (old "
-     "builds) and are NOT restated on S2v2/S3v2. H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning "
+     "builds); computed on S2v2/S3v2 on 2026-10-11 they give the same verdicts (numbers.md §17.2, PENDING a user ruling). H: per flight set, the vehicle hold error, the effective tag-loss drift over all four losses, the re-lock time after the first returning "
      "fix (negative for the UKF: event-time stamping) and lockouts, computed from the H score files. Safety: the final run of each test and "
      "its history. UKF (b) fails S-A2 as worded (the FC declared position lost 5.75 s after the kill against a 5.5 s bound; 0.71 s of "
      "relay drain after the SIGKILL; the watcher had already commanded the landing). The EKF3 reference drifted 1.40 m against a "
      "prediction of ≤ 0.5 m (the prediction was wrong; no breach). The FGO safety re-tests flew the final FGO with the OLD priors.",
-     "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json; expH/safety_*.json", "§17 (S1); claim 25; METHODOLOGY H S2/S3, safety RESULT sections",
-     note="S2/S3 and safety results have no numbers.md rows (METHODOLOGY only).")
+     "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json; expH/safety_*.json", "§17 (S1), §17.1 (S2/S3 sets), §17.2 (comparative criteria, PENDING); §15 safety rows; claim 25",
+     note="numbers.md rows added 2026-10-11 (pack flags 2, 3).")
 
 
 # =============================================================================================== tables T1, T2 (markdown -> text pages)
@@ -1086,14 +1093,16 @@ with open(INDEX, "w") as f:
         bad = [c for c in it["checks"] if not c[4]]
         f.write(f"- **{it['id']}** ({it['status']}): " + "; ".join(f"{c[0]}: computed `{c[1]}`, expected `{c[2]}` ({c[3]})" for c in bad) +
                 (f". {it['note']}" if it["note"] else "") + "\n")
-    f.write("- **numbers.md §15 is behind METHODOLOGY:** it lists the ORIGINAL UKF half-speed heading set (2/3, r3 B4) and has no rows for the UKF v2 "
-            "no-heading contact (+165.9 s) or the UKF v2 / FGO v2 / FGO v3 heading sets (all 3/3). F08 and F15a show both; numbers.md was not edited (out of scope).\n")
-    f.write("- **Experiment H comparative criteria (H-H2, P-H3, H-H4) were adjudicated on S2/S3 (old builds) and NOT restated on S2v2/S3v2** "
-            "(METHODOLOGY: \"Comparative H-H2/P-H3 are updated in the final restatement\"; the restatement draft does not contain them). F14 shows "
-            "per-flight values without a verdict. S2/S2v2/S3/S3v2, the S1-far shadows and the safety tests have no numbers.md rows.\n")
+    f.write("- **RESOLVED 2026-10-11 (pack flags 1–2):** numbers.md §16.3 cost bullets restated from the FGO-only re-run outputs; numbers.md §15 "
+            "now carries the UKF v2 contact (+165.9 s) and the UKF v2 / FGO v2 (ablation) / FGO v3 heading sets (all 3/3), plus the safety-test rows "
+            "(handover `docs/handovers/2026-10-11_pack_flags_fixed.md`).\n")
+    f.write("- **Experiment H comparative criteria (H-H2, P-H3, H-H4): COMPUTED on S2v2/S3v2 on 2026-10-11, PENDING a user ruling** "
+            "(numbers.md §17.2; `eval/h_comparative.py`, a reduction of the stored h_score outputs). Same verdicts as the adjudicated S2/S3 set (all "
+            "FAIL); wording changes only (the FGO hold is now highest, not tied with EKF3; EKF3's 15 s jump strictly smallest). S2/S2v2/S3/S3v2 rows: "
+            "numbers.md §17.1. The S1-far shadows still have no numbers.md rows.\n")
     if ROUNDING:
         f.write("- **Rounding-boundary transcriptions in numbers.md (not superseded values; ≤ one unit in the last printed digit):** " +
-                "; ".join(f"{r[0]}: file `{r[1]}`, numbers.md `{r[2]}`" for r in ROUNDING) + ". Accepted as matches; listed for a later numbers.md tidy.\n")
+                "; ".join(f"{r[0]}: file `{r[1]}`, numbers.md `{r[2]}`" for r in ROUNDING) + ". Accepted as matches; listed with both readings in numbers.md 'Flags: remaining' item 8 (values unchanged).\n")
     f.write("- **Historical supervisor figures** (below) carry superseded values or captions; they are kept unchanged as meeting records.\n\n")
     f.write("## Checks per figure (computed from the result files against the value typed from the cited source)\n\n")
     for it in ITEMS + [dict(id="T1", checks=T1_CHECKS, title="claims table"), dict(id="T2", checks=T2_CHECKS, title="corrections table")]:
