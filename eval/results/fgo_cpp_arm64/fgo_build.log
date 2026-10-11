@@ -1,0 +1,80 @@
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/aarch64-linux-gnu-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Boost: /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/sysroot/usr/lib/aarch64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found suitable version "1.83.0", minimum required is "1.65") found components: serialization filesystem program_options timer chrono 
+-- GTSAM include directory:  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/gtsam-4.2.1/lib/cmake/GTSAM/../../../include
+-- GTSAM include directory:  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/gtsam-4.2.1/lib/cmake/GTSAM/../../../include
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo
+make: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 50%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/live_adapter.cpp.o
+[ 50%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/fgo_core.cpp.o
+[ 50%] Building CXX object CMakeFiles/fgo_cpp_core.dir/src/replay_common.cpp.o
+[ 66%] Linking CXX static library libfgo_cpp_core.a
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 66%] Built target fgo_cpp_core
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 83%] Building CXX object CMakeFiles/fgo_cpp_replay.dir/src/fgo_replay.cpp.o
+[100%] Linking CXX executable fgo_cpp_replay
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[100%] Built target fgo_cpp_replay
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 66%] Built target fgo_cpp_core
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 83%] Building CXX object CMakeFiles/fgo_cpp_live_replay.dir/src/fgo_live_replay.cpp.o
+[100%] Linking CXX executable fgo_cpp_live_replay
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[100%] Built target fgo_cpp_live_replay
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 66%] Built target fgo_cpp_core
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 83%] Building CXX object CMakeFiles/fgo_cpp_frontend.dir/src/fgo_frontend.cpp.o
+[100%] Linking CXX executable fgo_cpp_frontend
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[100%] Built target fgo_cpp_frontend
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[2]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 66%] Built target fgo_cpp_core
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[3]: Entering directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[ 83%] Building CXX object CMakeFiles/fgo_cpp_probe.dir/src/probe.cpp.o
+[100%] Linking CXX executable fgo_cpp_probe
+make[3]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+[100%] Built target fgo_cpp_probe
+make[2]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make[1]: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+make: Leaving directory '/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo'
+d86da22ef18fc7473ee32ed247d7558c  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo/fgo_cpp_replay
+667e820a6a166716a5b7485c0dbbff1c  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo/fgo_cpp_live_replay
+68c7d11e6bd2d82aea84d3512445d601  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo/fgo_cpp_frontend
+50bb2b17228fb988f8b827065b0f5c56  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo/fgo_cpp_probe

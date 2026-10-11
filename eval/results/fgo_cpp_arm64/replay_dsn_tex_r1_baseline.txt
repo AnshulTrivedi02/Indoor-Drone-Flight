@@ -1,0 +1,87 @@
+[run] 10197 keyframes, flow 10018, range 10196, imu 113282, tag 0, gnss 0, gp replaced 584, failures 0
+[timing] per-keyframe update: median=21.973ms p99=38.362ms
+[yaw-cap gate] fired 63/2039 checks (FGO_DESIGN §9.4)
+	Command being timed: "env LD_LIBRARY_PATH=/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/gtsam-4.2.1/lib:/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/sysroot/usr/lib/aarch64-linux-gnu qemu-aarch64 -L /usr/aarch64-linux-gnu /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/build-fgo/fgo_cpp_replay /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/d18/dump/dsn_tex_r1_baseline /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/arm64/out/arm_dsn_tex_r1_baseline"
+	User time (seconds): 248.52
+	System time (seconds): 0.02
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:08.64
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 42896
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7047
+	Voluntary context switches: 34
+	Involuntary context switches: 2877
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 9032
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+==== arm64 C++ vs x86 C++ (cpp_dsn_tex_r1_baseline, 2d scratch build replay 0981e455)
+keyframe rows: ref 10197  test 10197  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 584]
+flow factor        mismatches: 0   [ref total 10018]
+range factor       mismatches: 0   [ref total 10196]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10197]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 583 rows; max |diff| 2.201e-13
+first row with |dp| > 1e-9 m: 930 (t 39.8173, |dp| 1.046e-09)
+position   max 7.371e-02  p99 8.319e-03  median 4.545e-04 mm
+yaw        max 4.275e-05  p99 5.814e-06  median 7.436e-07 deg
+velocity   max 3.548e-04  p99 4.555e-05  median 5.791e-06 mm/s
+accel bias max 1.775e-07  p99 1.410e-09  median 5.678e-10 m/s^2
+gyro bias  max 9.274e-09  p99 3.629e-10  median 8.234e-11 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[timing test] median 21.973 ms  p99 38.362 ms  max 147.340 ms  n 10197
+per-keyframe export bit-identical: no
+==== yaw-cap gate: x86 C++ vs arm64 C++
+checks 2039 / 2039; fired 63 / 63
+check times identical: True; fired keyframe sets identical: True (only first 0, only second 0)
+decision mismatches 0; max |d trace| 5.97e-06 (rel 0.000149); bit-identical traces 0/2039
+smallest |trace - 0.04| = 2.37e-06 at t 84.617 (trace 0.0399976, fired 0); first fire t 13.450638840019918
+==== onset (before / after the first gate decision mismatch)
+rows 10197; first row with |dp| > 0: 0 (t 8.817 s)
+gate checks 2039; decision mismatches 0
+WHOLE run: max |dp| 0.07371 mm, p99 0.008319 mm, max |dyaw| 4.28e-05 deg
+step ms x86 (2d run) median/p99/max 0.525 / 0.921 / 2.957
+step ms arm64 UNDER QEMU median/p99/max 21.973 / 38.362 / 147.340
+emulation slowdown (relative only) median 41.8x, p99 41.6x
+==== arm64 C++ vs the Python export (dsn_tex_r1_baseline)
+keyframe rows: ref 10197  test 10197  -> count IDENTICAL
+t_kf identical: True   t_lat identical: True
+k_before           mismatches: 0
+k_after            mismatches: 0
+flow replaced      mismatches: 0   [ref total 584]
+flow factor        mismatches: 0   [ref total 10018]
+range factor       mismatches: 0   [ref total 10196]
+heading accepted   mismatches: 0   [ref total 0]
+yaw-rate accepted  mismatches: 0   [ref total 0]
+tag factor         mismatches: 0   [ref total 0]
+gnss factor        mismatches: 0   [ref total 0]
+anchored           mismatches: 0   [ref total 10197]
+keyframe failed    mismatches: 0   [ref total 0]
+flow-used xy not bit-identical: 583 rows; max |diff| 2.201e-13
+first row with |dp| > 1e-9 m: 822 (t 36.2173, |dp| 1.038e-09)
+position   max 2.050e-01  p99 9.060e-03  median 5.286e-04 mm
+yaw        max 1.458e-04  p99 6.541e-06  median 7.715e-07 deg
+velocity   max 9.970e-04  p99 4.168e-05  median 5.154e-06 mm/s
+accel bias max 3.531e-07  p99 5.308e-09  median 2.907e-10 m/s^2
+gyro bias  max 8.091e-09  p99 3.401e-10  median 8.544e-11 rad/s
+PRE-REGISTERED BAND (same count, |dp|<=1 mm, |dyaw|<=0.01 deg): PASS
+bit-identical per-keyframe state: False
+[timing test] median 21.973 ms  p99 38.362 ms  max 147.340 ms  n 10197

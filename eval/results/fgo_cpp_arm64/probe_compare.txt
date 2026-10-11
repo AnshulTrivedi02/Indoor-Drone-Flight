@@ -1,0 +1,54 @@
+==== arm64 C++ probe vs x86 C++ probe (2d, d18/dump/probe_cpp.txt)
+R         n=  9 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yaw       n=  1 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rpy       n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+Pret+     n= 16 bit-identical=False max|d|=2.776e-17 max rel=1.742e-16
+Pret-     n= 16 bit-identical=False max|d|=1.110e-16 max rel=1.805e-16
+deltaRij  n=  9 bit-identical=False max|d|=8.674e-19 max rel=1.219e-16
+deltaPij  n=  3 bit-identical=False max|d|=1.735e-18 max rel=2.030e-16
+deltaVij  n=  3 bit-identical=False max|d|=6.939e-18 max rel=2.054e-16
+cov       n=225 bit-identical=False max|d|=5.421e-20 max rel=7.672e-13
+predP     n= 16 bit-identical=False max|d|=1.110e-16 max rel=1.678e-16
+predV     n=  3 bit-identical=False max|d|=2.220e-16 max rel=1.243e-16
+flowAb    n= 32 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rngAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yawAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+wrap      n=  2 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+hdgAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yrAb      n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+tagAb     n= 21 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+gnssAb    n= 40 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+kf0       n= 21 bit-identical=False max|d|=5.421e-20 max rel=1.014e+00
+kf1       n= 21 bit-identical=False max|d|=5.551e-17 max rel=2.541e-13
+kf2       n= 21 bit-identical=False max|d|=1.420e-14 max rel=1.445e-09
+kf3       n= 21 bit-identical=False max|d|=1.420e-14 max rel=1.445e-09
+gate3     n=  4 bit-identical=False max|d|=2.182e-13 max rel=1.404e-11
+kf4       n= 21 bit-identical=False max|d|=1.427e-14 max rel=6.084e-10
+gate4     n=  4 bit-identical=False max|d|=1.493e-12 max rel=2.489e-11
+==== arm64 C++ probe vs Python probe (2d, d18/dump/probe_py.txt)
+R         n=  9 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yaw       n=  1 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rpy       n=  3 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+Pret+     n= 16 bit-identical=False max|d|=2.776e-17 max rel=1.742e-16
+Pret-     n= 16 bit-identical=False max|d|=1.110e-16 max rel=1.805e-16
+deltaRij  n=  9 bit-identical=False max|d|=8.674e-19 max rel=1.219e-16
+deltaPij  n=  3 bit-identical=False max|d|=1.735e-18 max rel=2.030e-16
+deltaVij  n=  3 bit-identical=False max|d|=6.939e-18 max rel=2.054e-16
+cov       n=225 bit-identical=False max|d|=5.421e-20 max rel=7.672e-13
+predP     n= 16 bit-identical=False max|d|=1.110e-16 max rel=1.678e-16
+predV     n=  3 bit-identical=False max|d|=2.220e-16 max rel=1.243e-16
+flowAb    n= 32 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+rngAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yawAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+wrap      n=  2 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+hdgAb     n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+yrAb      n=  7 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+tagAb     n= 21 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+gnssAb    n= 40 bit-identical=True  max|d|=0.000e+00 max rel=0.000e+00
+kf0       n= 21 bit-identical=False max|d|=5.421e-20 max rel=1.014e+00
+kf1       n= 21 bit-identical=False max|d|=5.551e-17 max rel=2.541e-13
+kf2       n= 21 bit-identical=False max|d|=1.420e-14 max rel=1.445e-09
+kf3       n= 21 bit-identical=False max|d|=1.420e-14 max rel=1.445e-09
+gate3     n=  4 bit-identical=False max|d|=6.592e-14 max rel=4.242e-12
+kf4       n= 21 bit-identical=False max|d|=1.427e-14 max rel=6.084e-10
+gate4     n=  4 bit-identical=False max|d|=2.826e-12 max rel=4.709e-11
