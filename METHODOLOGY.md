@@ -13710,3 +13710,13 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - `H_safety_fgo_a_v4` landing displacement 1.45 m, near its 1.5 m bound. This is consistent with the inherent
     attitude-only landing drift (ruling 2026-10-09; EKF3 reference 1.40 m).
   - The S-A2 margin is reduced (0.60–0.62 s against 0.75 s; v3 0.25 s); still a PASS.
+
+### RULING (user, 2026-10-12): ArduCopter confirmed for the real vehicle (for now)
+- **The supervisor confirmed ArduCopter.**
+- **The QuadPlane work and its costings are DROPPED from the active plan.** `docs/quadplane_costing.md` is kept as
+  reference only.
+- **The rung-1 and UKF-only closed-loop plans and timelines are re-stated for ArduCopter**, listing exactly:
+  - what needs NO hardware (to do now, coding only);
+  - what waits on the board, the sensors and mocap.
+- **The board firmware build is kept READY for the likely H743 targets**, so the final build is quick once the exact
+  board is known.
