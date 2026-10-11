@@ -1,0 +1,18 @@
+COMPILE FAILED ../../libraries/AP_AHRS/AP_AHRS_FGO.cpp cc1plus: error: too many filenames given; type 'cc1plus --help' for usage
+compilation terminated due to -Wfatal-errors.
+
+COMPILE FAILED ../../libraries/AP_AHRS/AP_AHRS_UKF.cpp cc1plus: error: too many filenames given; type 'cc1plus --help' for usage
+compilation terminated due to -Wfatal-errors.
+
+COMPILE FAILED ../../libraries/AP_NavUKF/AP_NavFGO.cpp cc1plus: error: too many filenames given; type 'cc1plus --help' for usage
+compilation terminated due to -Wfatal-errors.
+
+COMPILE FAILED ../../libraries/AP_NavUKF/AP_NavUKF.cpp cc1plus: error: too many filenames given; type 'cc1plus --help' for usage
+compilation terminated due to -Wfatal-errors.
+
+COMPILE FAILED ../../libraries/AP_AHRS/AP_AHRS.cpp cc1plus: error: too many filenames given; type 'cc1plus --help' for usage
+compilation terminated due to -Wfatal-errors.
+
+LIMIT 1300
+MAXFRAME -1
+CHAIN6 0

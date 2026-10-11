@@ -1,0 +1,46 @@
+{
+ "board": "KakuteH7",
+ "mcu": "STM32H743xx",
+ "variant": "with",
+ "ref_commit": "0156bfc34e812156a1c1ebfb884f9a93ffc7a58d",
+ "apj": {
+  "board_id": 1048,
+  "image_size": 1458660,
+  "flash_total": 1703936,
+  "flash_free": 245276,
+  "git_identity": "0156bfc3",
+  "image_maxsize": 1703936
+ },
+ "apj_file": [
+  "arducopter.apj"
+ ],
+ "n_warnings": 0,
+ "symbols": {
+  "NavUKF": true,
+  "NavFGO": true
+ },
+ "sections": {
+  ".text": 1453564,
+  ".data": 4236,
+  ".bss": 158444,
+  ".heap": 90756,
+  ".pstack": 7168
+ },
+ "stack": {
+  "frame_limit_B": 1300,
+  "main_stack_B": 7168,
+  "largest_thesis_frame_B": -1,
+  "conservative_chain_6_largest_B": 0,
+  "note": "chain bound = sum of the 6 largest thesis frames (an upper bound, not a call chain); the real margin is bench check P7 (@SYS/threads.txt)"
+ },
+ "checks": {
+  "flash_free_ge_32k": true,
+  "zero_warnings": true,
+  "backends_as_requested": true,
+  "identity_matches_ref": true,
+  "max_thesis_frame_le_limit": false,
+  "conservative_chain_le_half_main_stack": true
+ },
+ "pass": false,
+ "flashed": false
+}
