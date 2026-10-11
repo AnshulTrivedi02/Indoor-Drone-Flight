@@ -13815,3 +13815,27 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - `docs/u10_replay_gate_band_draft.md`: U10 must be signed off BEFORE rung-1 day 3. Precondition: no Replay output
     reports `_n_chol_fail` today; a line must be added before day 3.
   - `docs/stage3_ukf_closed_loop_preregistration_draft.md`.
+
+### F6 fixed; failsafe parameter files; B5 re-worded; B8a = HARNESS FAULT (handover `docs/handovers/2026-10-12_watcher_f6_failsafe_b5_b8a.md`)
+- **F6** (`realflight/watcher/fc_link.py`): LAND is re-sent only while the FC still shows its pre-LAND mode (a
+  heartbeat ≥ 0.2 s after the last send, and ≥ 0.3 s elapsed).
+  - It stops for good on an ACK, LAND shown, ANY pilot mode, any mode change the watcher did not command, or 5 sends.
+    FC heartbeats are requested at 5 Hz.
+  - The scripted case (ACK lost, pilot ALT_HOLD 0.33 s later): 5 LANDs before, 1 now.
+  - 8 new tests; 91/91 realflight tests pass.
+  - **§7.2 requires the FULL watcher bench to be repeated after ANY watcher change** (not yet run). B7b could fail its
+    0.3 s bound on a cold link unless the driver warms it first.
+- **Failsafe files:** `rung1_failsafe_fc.parm` and `ukfonly_failsafe_fc.parm` (fork only, AHRS_EKF_TYPE 12,
+  TFAIL 0).
+  - Names verified at 7bac20cbcc / board-h743. The landing speed is `LAND_SPD_MS` ("LAND_SPEED" does not exist).
+  - `check_parm.py --stage3`. 30 TODO_SUPERVISOR values remain.
+- **B5 re-worded:** stale/frozen declared within 0.5 s + one loop period (0.025 s) = 0.525 s; LAND within 1.0 s. The
+  old wording is kept verbatim, with the reason.
+- **B8a verdict: HARNESS FAULT, so it is to be REPEATED (ruling 4).**
+  - The bench's EKF origin was sent before EKF3 initialised and was rejected (no origin record).
+  - With no origin, after aiding loss EKF3 reports (0, 0). The GUIDED hold point was then 3.03 m away, so the vehicle
+    ran east at ~3.6 m/s, and the watcher's box (+6.32 s) acted first.
+  - The stock EKF failsafe returns at once without an origin (`ekf_check.cpp:35`).
+  - From source, with an origin it would have commanded LAND at ~+2.1 s.
+- **SAFETY decision for the user:** the failsafe file sets an EKF origin (`AHRS_OPTIONS 16` + `AHRS_ORIGIN_*`).
+  **Without an origin, the stock EKF failsafe never runs.**
