@@ -11,8 +11,9 @@ Fail-closed contract, two layers:
      ONLY while confirmed. With FS_GCS_ENABLE 5 / FS_GCS_TIMEOUT 3 / MAV_GCS_SYSID = --sysid (watcher_fc.parm) the FC
      lands (disarms if landed) 3 s after the heartbeat stops, and refuses to arm while that failsafe is latched.
 On a breach (box incl. height, tilt, stale/untracked/frozen pose, dependency lost) it: latches, alerts (terminal
-bell, --alert-cmd, STATUSTEXT to the FC), sends ONE LAND (MAV_CMD_DO_SET_MODE, retried only until ACKed), stops the
-MAVLink heartbeat and withdraws the file flags. It never kills processes (G4).
+bell, --alert-cmd, STATUSTEXT to the FC), sends ONE LAND (MAV_CMD_DO_SET_MODE; re-sent only under fc_link's F6 rule:
+never once the FC reports LAND, a pilot mode or any mode change it did not command), stops the MAVLink heartbeat and
+withdraws the file flags. It never kills processes (G4).
 
 Usage (ground station):
   python3 -m realflight.watcher.mocap_watch OUT_DIR --fc udpin:0.0.0.0:14560 --sysid 211 \
@@ -67,6 +68,9 @@ def parse(argv=None):
     ap.add_argument("--lua-auth", action="store_true", help="also require SCR_ENABLE 1 (the G6(ii) arming-auth script)")
     ap.add_argument("--alert-cmd", help="shell command run (non-blocking) on every alert, e.g. an audible alarm")
     ap.add_argument("--land-retry-s", type=float, default=0.3)
+    ap.add_argument("--land-evidence-s", type=float, default=0.2,
+                    help="F6: a LAND is re-sent only after an FC heartbeat this long after the send still shows the "
+                         "pre-LAND autopilot mode")
     ap.add_argument("--exit-after-s", type=float, help="tests only")
     a = ap.parse_args(argv)
     a.box = tuple(float(v) for v in a.box.split(","))
@@ -95,7 +99,8 @@ class Watcher:
         self.host = socket.gethostname()
         self.mocap = UdpPoseSource(a.mocap_host, a.mocap_port)
         self.live = UdpLivenessSocket(a.liveness_host, a.liveness_port)
-        self.fc = FcLink(a.fc, a.sysid, a.compid, a.fc_sysid, log=self.note, land_retry_s=a.land_retry_s)
+        self.fc = FcLink(a.fc, a.sysid, a.compid, a.fc_sysid, log=self.note, land_retry_s=a.land_retry_s,
+                        land_evidence_s=a.land_evidence_s)
         self.exp = expected_params(a.sysid, a.fs_gcs_timeout, a.lua_auth)
         self.running = True
         self.last_conf = None

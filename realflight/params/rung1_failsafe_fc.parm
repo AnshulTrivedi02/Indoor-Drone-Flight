@@ -1,0 +1,168 @@
+# =====================================================================================================================
+# RUNG 1 FAILSAFE PARAMETERS FOR THE REAL FLIGHT CONTROLLER  (written 2026-10-12; handover
+# docs/handovers/2026-10-12_watcher_f6_failsafe_b5_b8a.md; plan docs/realflight_plan_copter.md U-e / U7)
+# =====================================================================================================================
+# Status: DRAFT. Not loaded on any vehicle. Stock ArduCopter at the pinned commit 7bac20cbcc, EKF3 flying
+# (AHRS_EKF_TYPE 3), a safety pilot in ALT_HOLD, the mocap watcher on the ground station.
+#
+# Load order on the FC (later files override earlier ones):
+#   1. the vehicle's own parameter dump;   2. rung1_template.parm;   3. ONE compass variant (rung1_variant_*.parm);
+#   4. THIS file;   [UKF-only closed loop: 5. ukfonly_failsafe_fc.parm, see that file].
+# Then reboot, and read every value back (the eeprom gotcha, CLAUDE.md Known Issue #10, applies on hardware too).
+#   python3 realflight/params/check_parm.py --final rung1_template.parm rung1_variant_<x>.parm rung1_failsafe_fc.parm
+#
+# This file holds EVERY failsafe, fence and landing parameter of rung 1 (the FAILSAFES and GEOFENCE sections moved
+# here from rung1_template.parm on 2026-10-12, values unchanged). The watcher-side lines repeat
+# realflight/params/watcher_fc.parm with IDENTICAL values (check_parm.py --selftest checks that they agree, and
+# mocap_watch.py reads them back at start-up via fc_link.expected_params and withholds its confirmation on a mismatch).
+#
+# NAMES AND RANGES: every name below is in pinned_param_names.txt (the PARM dump of a SITL build of 7bac20cbcc), and
+# every value was checked against the @Param tag (@Values / @Range / @Bitmask) in ~/ardupilot at 7bac20cbcc; the file
+# and line of each tag are given. Where a value lies outside a DOCUMENTED @Range, the code path that accepts it is cited
+# (FENCE_ALT_MAX). Notably: the landing speed is LAND_SPD_MS (m/s), NOT "LAND_SPEED" (cm/s, renamed before this commit).
+#
+# How the layers fit (the watcher bench, docs/handovers/2026-10-11_watcher_sitl_bench.md, tests B0-B10):
+#   - the WATCHER commands ONE LAND on a box/height/tilt breach, a stale/untracked/frozen pose or a dependency loss, and
+#     stops its MAVLink heartbeat (B4, B5, B9). It re-sends that LAND only under the F6 rule (fc_link.py): never once
+#     the FC reports LAND, a pilot mode or a mode change it did not command;
+#   - the FC's GCS FAILSAFE lands when the watcher's heartbeat stops for FS_GCS_TIMEOUT (B2a/B2b/B3a: <= 3.5 s), but
+#     CONTINUES in a pilot mode (FS_OPTIONS bit 4, B10b);
+#   - the EKF FAILSAFE lands when EKF3 loses its position in a mode that needs one (GUIDED/LOITER), and only if an EKF
+#     ORIGIN exists (see the first section: B8a's run had none);
+#   - the RC failsafe lands on transmitter loss; the altitude fence lands above FENCE_ALT_MAX;
+#   - in every case the safety pilot can retake control with the mode switch (B10a: <= 0.3 s), and must be ready to
+#     DISARM after any automatic LAND (bench finding F2: the land detector did not always trip on flow-only EKF3).
+# =====================================================================================================================
+
+# ---------------------------------------------------------------------------------------------------------------------
+# EKF ORIGIN: WITHOUT ONE, THE EKF FAILSAFE NEVER RUNS  (bench finding, 2026-10-12, B8a determination)
+# Copter::ekf_check() returns at its FIRST statement when the AHRS has no origin (ArduCopter/ekf_check.cpp:35-39:
+# "exit immediately if ekf has no origin yet"), so FS_EKF_ACTION/FS_EKF_THRESH below are INERT on a no-GPS vehicle
+# unless an origin is set. In the SITL watcher bench the origin was sent before EKF3 had initialised and was silently
+# rejected (AP_NavEKF3_Control.cpp:692, setOriginLLH refuses until statesInitialised): no ORGN record, no
+# GPS_GLOBAL_ORIGIN message, and no EKF failsafe in B8a although HORIZ_POS_REL had been false for 5 s.
+# The missing origin ALSO caused B8a's 3.6 m/s runaway: in constant-position mode (aiding lost) EKF3 reports the last
+# known position only if it has an origin; without one it reports (0, 0) (NavEKF3_core::getPosNE,
+# AP_NavEKF3_Outputs.cpp:266-291). The GUIDED hold target, 3 m from (0, 0), could then never be reached.
+# Fix on the real FC: AHRS sets the origin itself, from these parameters, as soon as EKF3 accepts it, and retries every
+# update until it does (AP_AHRS.cpp:446-447 -> use_recorded_origin_maybe, :1540-1570; it never acts when a GPS is used
+# for position). The value only needs to be the lab's approximate location: with no GPS, the origin is a reference
+# for Location arithmetic (home, the fence's "above home" frame, the EKF failsafe's origin gate), not a measurement.
+# Side effects to state: home is then set at arming (the altitude fence is measured from it, which is what B6 checks);
+# the earth-field table is read at the origin (compass variant only; nomag fuses no magnetometer). EKF3's flow
+# fusion and states are unchanged.
+# BENCH CHECK (flight cards B6): the STATUSTEXT "AHRS: using recorded origin:..." at boot, and an ORGN record in the
+# log. If it is missing, the EKF failsafe is not live: do not fly a profile that relies on it.
+# FLAG (user/supervisor): adopting the origin makes the EKF failsafe live on rung 1; it is a change from every SITL
+# run so far (none had an origin), so it is listed in the handover for a ruling. In ALT_HOLD (rung 1) it makes NO mode
+# change (FS_EKF_ACTION 1); it matters for GUIDED/LOITER and for the bench test B8.
+# ---------------------------------------------------------------------------------------------------------------------
+AHRS_OPTIONS 16          # bit 4 = UseRecordedOriginForNonGPS (AP_AHRS.cpp:208-213 @Bitmask 0..4; AP_AHRS.h:1082).
+                         # Bit 3 (RecordOrigin) NOT set: the parameters below are written by us, never by the FC.
+AHRS_ORIGIN_LAT TODO_SUPERVISOR  # deg, the lab's latitude (AP_AHRS.cpp:215-221, @Range -180 180). Never all three 0
+                                 # (an all-zero origin is ignored, AP_AHRS.cpp:1547-1550)
+AHRS_ORIGIN_LON TODO_SUPERVISOR  # deg, the lab's longitude (AP_AHRS.cpp:223-228, @Range -180 180)
+AHRS_ORIGIN_ALT TODO_SUPERVISOR  # m above mean sea level, approximate (AP_AHRS.cpp:230-235, @Range -200 5000)
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GCS FAILSAFE = the FC-side "no watcher heartbeat -> LAND" layer (G5, G11). IDENTICAL to watcher_fc.parm.
+# ArduCopter/Parameters.cpp; libraries/GCS_MAVLink/GCS.cpp.
+# ---------------------------------------------------------------------------------------------------------------------
+FS_GCS_ENABLE 5          # 5 = Land (Parameters.cpp:96-101 @Values 0..7). Armed and landed: immediate disarm.
+FS_GCS_TIMEOUT 3         # s (Parameters.cpp:831-838, @Range 2 120, default 5). Pre-registered 3 s: B2b/B3a measured
+                         # the FC failsafe at +2.37 s / +3.29 s (bound 3.5 s; failsafe_gcs_check runs at 3 Hz).
+                         # Bench day 8 (realflight_plan_copter.md 4.1) measures the telemetry link's worst gap; if it
+                         # exceeds ~2 s, raise this (and the watcher's --fs-gcs-timeout) together, re-run B2/B3.
+FS_OPTIONS 16            # bitmask (Parameters.cpp:785-790; default 16): bit 4 = continue in PILOT-controlled modes on a
+                         # GCS failsafe, so the safety pilot's ALT_HOLD/STABILIZE wins (B10b: "Continuing Pilot Control").
+                         # Bits 0-2 (continue in AUTO/GUIDED on RC or GCS failsafe) and 3 (continue if landing) are
+                         # CLEAR: an RC or GCS failsafe in GUIDED must land. check_parm.py refuses bit 4 clear or bits 0-2 set.
+MAV_GCS_SYSID 211        # = the watcher's own MAVLink system ID (GCS.cpp:45-51, @Range 1 255, default 255). Only
+                         # HEARTBEAT/RC_CHANNELS_OVERRIDE/MANUAL_CONTROL from this ID refresh the GCS-failsafe timer, so
+                         # MAVProxy (255) cannot mask a dead watcher (B2b). 211 is the bench's placeholder: the final ID
+                         # is ruling U-k; pass the same value to mocap_watch.py --sysid.
+MAV_GCS_SYSID_HI 0       # (GCS.cpp:53-59, @Range 0 255) 0 < MAV_GCS_SYSID = exactly one GCS ID, never a range.
+MAV_OPTIONS 0            # (GCS.cpp:61-66) bit 0 CLEAR: set, the FC would drop the flight script's (255) traffic.
+
+# ---------------------------------------------------------------------------------------------------------------------
+# EKF FAILSAFE  (ArduCopter/Parameters.cpp; ArduCopter/ekf_check.cpp). LIVE ONLY WITH AN ORIGIN (first section).
+# ---------------------------------------------------------------------------------------------------------------------
+FS_EKF_ACTION 1          # 1 = Land only if the current mode requires a position (Parameters.cpp:267-272 @Values 0..3;
+                         # ekf_check.cpp:190 no_action_in_current_mode). In ALT_HOLD/STABILIZE: a message, no mode
+                         # change (B10b(3), B8(e)); in GUIDED/LOITER: LAND. NOT 3 ("land from all modes"): that would
+                         # take the vehicle from the pilot in ALT_HOLD, against B10b. The UKF port's origin-independent
+                         # trigger (thesis_nav_check, fork only) uses this same action.
+FS_EKF_THRESH 0.8        # variance threshold (Parameters.cpp:274-280, @Values 0.6/0.8/1.0, @Range 0 1; default 0.8).
+                         # Written out so the readback proves it is not 0 (0 disables the EKF failsafe entirely,
+                         # ekf_check.cpp:41-48). Position LOSS (no HORIZ_POS_REL, or const_pos_mode) fails the check
+                         # regardless of the threshold, after 1 s (EKF_CHECK_ITERATIONS_MAX 10 at 10 Hz).
+
+# ---------------------------------------------------------------------------------------------------------------------
+# RC (TRANSMITTER) FAILSAFE  (ArduCopter/Parameters.cpp; libraries/RC_Channel/RC_Channels_VarInfo.h)
+# ---------------------------------------------------------------------------------------------------------------------
+FS_THR_ENABLE 3          # 3 = Enabled always Land (Parameters.cpp:124-129 @Values 0..7). On the ground armed: disarm
+                         # (B10c, SITL model only; the real receiver's failsafe is a hardware bench item).
+FS_THR_VALUE 975         # PWM (Parameters.cpp:131-138, @Range 910 1100, default 975). The receiver must be set to output
+                         # throttle BELOW this (or no pulses) on signal loss, and the normal low stick must stay at least
+                         # ~10 PWM ABOVE it (RC3_MIN): both checked on the bench with the transmitter switched off.
+RC_FS_TIMEOUT 1.0        # s after the last valid RC frame (RC_Channels_VarInfo.h:107-113, @Range 0.1 10.0, default 1.0).
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BATTERY FAILSAFE  (libraries/AP_BattMonitor/AP_BattMonitor_Params.cpp)
+# ---------------------------------------------------------------------------------------------------------------------
+BATT_FS_LOW_ACT 1        # low battery: Land (@Values{Copter} 0..7, :143). A pilot mode does NOT protect against this:
+                         # battery failsafes land from every mode; the pilot can re-take with the switch after landing
+                         # begins if needed (no FS_OPTIONS bit covers the battery).
+BATT_FS_CRT_ACT 1        # critical battery: Land (@Values{Copter}, :155)
+BATT_LOW_VOLT TODO_SUPERVISOR    # V (:111), for the vehicle's pack (e.g. 3.5 V/cell under load)
+BATT_CRT_VOLT TODO_SUPERVISOR    # V (:127), below BATT_LOW_VOLT (e.g. 3.3 V/cell)
+BATT_LOW_TIMER 10        # s below the threshold before acting (:95-102, @Range 0 120, default 10)
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GEOFENCE: MAXIMUM ALTITUDE ONLY  (libraries/AC_Fence/AC_Fence.cpp). Moved unchanged from rung1_template.parm.
+# Circle/polygon fences need a home and a relative position ("Fence requires position", AC_Fence.cpp:510-516) and
+# would follow EKF3's DRIFTING flow position; the horizontal limit is the watcher's box (mocap, B4) and the pilot.
+# ---------------------------------------------------------------------------------------------------------------------
+FENCE_ENABLE 1           # (AC_Fence.cpp:52) fence on
+FENCE_TYPE 1             # bitmask (AC_Fence.cpp:59-65 @Bitmask{Copter}): bit 0 = maximum altitude ONLY
+FENCE_ALT_MAX_TP 1       # 1 = Above Home (AC_Fence.cpp:168-173 @Values 0..3; default 1). Not 3 (terrain: needs a
+                         # terrain database). Not 0 (sea level). Home is set at arming once the origin exists.
+FENCE_ALT_MAX TODO_SUPERVISOR    # m: the volume's usable top minus a margin, e.g. 2.5. NOTE: @Range 10 1000
+                         # (AC_Fence.cpp:77-84) is GCS documentation only; the code accepts any value >= 0
+                         # (pre_arm_check_alt, AC_Fence.cpp:464-476) provided FENCE_ALT_MAX - FENCE_ALT_MIN > 2 *
+                         # FENCE_MARGIN (AC_Fence.cpp:568-571; FENCE_ALT_MIN default -10, unused with TYPE bit 3 clear).
+                         # A GCS may warn when writing it: write it anyway and read it back. Must sit BELOW the
+                         # watcher's box top (--box zmax), so the fence acts first only if the watcher has not.
+FENCE_MARGIN TODO_SUPERVISOR     # m (AC_Fence.cpp:94-100, @Range 1 10, default 2): only the autopilot's "keep away"
+                                 # distance (margin breach notices, AC_Fence.cpp:670-671); the breach itself is at
+                                 # FENCE_ALT_MAX. 1.0 suggested for a small volume.
+FENCE_ACTION 2           # 2 = Always Land (AC_Fence.cpp:67-75 @Values{Copter}). RTL needs a position this vehicle lacks.
+FENCE_AUTOENABLE 0       # (AC_Fence.cpp:136-143, default 0): the fence is on from boot via FENCE_ENABLE, not
+                         # auto-enabled (1/2 are deprecated and warn, AC_Fence.cpp:492-501)
+FENCE_OPTIONS 0          # (AC_Fence.cpp:145-150, Copter default 0): bit 0 CLEAR, so after a fence LAND the pilot can
+                         # switch modes at once (manual recovery, 10 s, AC_Fence.cpp:36); set, the pilot would be locked
+                         # out of the mode switch until below the fence.
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LANDING  (ArduCopter/mode_land.cpp, LAND_ group = Parameters.cpp:1128; ArduCopter/Parameters.cpp)
+# ---------------------------------------------------------------------------------------------------------------------
+LAND_SPD_MS 0.5          # m/s final descent (mode_land.cpp:6-13, @Range 0.3 2, default 0.5 = config.h:322). Indoors
+                         # the whole descent is below LAND_ALT_LOW_M, so this is THE landing speed: ~5 s from 2.5 m.
+LAND_ALT_LOW_M 10        # m (mode_land.cpp:24-31, @Range 1 100, default 10): above it LAND descends at LAND_SPD_HIGH_MS;
+                         # every indoor height is below it. Written out for the readback.
+LAND_REPOSITION 1        # 1 = the pilot can steer roll/pitch during LAND (Parameters.cpp:260-265, default 1). REQUIRED:
+                         # a LAND without a position (EKF failsafe, attitude-only landing, ModeLand::nogps_run uses it
+                         # at mode_land.cpp:163) drifts (bench F1: ~10 m in the drifting B8a LAND); the pilot corrects it.
+DISARM_DELAY 10          # s after landing in a manual-throttle mode (Parameters.cpp:242-248, @Range 0 127, default 10
+                         # = config.h:528). The watcher bench used 0 for its GROUND session only (7.2): restore 10 and
+                         # read it back before any flight. The pilot disarms at once after any automatic LAND if the FC
+                         # does not (F2).
+FS_CRASH_CHECK 1         # crash check on (Parameters.cpp:282-287, default 1): disarms on a sustained attitude error
+                         # after a crash (seen once in the bench: "Crash: Disarming: AngErr=34>30", F2)
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ARMING: only through the flight script, which requires the watcher (G6). IDENTICAL to watcher_fc.parm.
+# ---------------------------------------------------------------------------------------------------------------------
+ARMING_RUDDER 0          # stick arming disabled (AP_Arming.cpp:140-146 @Values; B1c(ii) PASS). Also: no RCx_OPTION
+                         # 153/154/165 (arm/disarm switches) assigned. Never force-arm (B1c(iv) arms regardless).
+# ARMING_SKIPCHK 0 is in rung1_template.parm (required by check_parm.py).

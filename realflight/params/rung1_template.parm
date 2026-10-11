@@ -4,10 +4,12 @@
 # Status: DRAFT. Not yet loaded on any vehicle. Load order on the flight controller (FC):
 #   1. the vehicle's own existing parameter dump (its tune, RC calibration, motor setup: we do not change those);
 #   2. THIS file;
-#   3. EXACTLY ONE compass variant: rung1_variant_nomag.parm OR rung1_variant_compass.parm (supervisor's decision).
+#   3. EXACTLY ONE compass variant: rung1_variant_nomag.parm OR rung1_variant_compass.parm (supervisor's decision);
+#   4. rung1_failsafe_fc.parm (every failsafe, fence and landing parameter; added 2026-10-12).
 # Then reboot, and read every value back from the FC (the eeprom gotcha, CLAUDE.md Known Issue #10, applies on hardware).
 #
-# Before loading:  python3 realflight/params/check_parm.py --final rung1_template.parm rung1_variant_<x>.parm
+# Before loading:  python3 realflight/params/check_parm.py --final rung1_template.parm rung1_variant_<x>.parm \
+#                      rung1_failsafe_fc.parm
 # It refuses AHRS_EKF_TYPE 10, any SIM_* line, any TODO_SUPERVISOR value left in --final mode, and a missing or
 # duplicated compass/yaw choice.
 #
@@ -123,31 +125,11 @@ GPS1_TYPE 0              # no GPS fitted. With a GPS configured, the GPS arming 
 ARMING_SKIPCHK 0         # skip nothing: every arming check runs (rangefinder, compass health, INS, logging, ...)
 
 # ---------------------------------------------------------------------------------------------------------------------
-# GEOFENCE: the box set by the mocap volume  (libraries/AC_Fence/AC_Fence.cpp)
-# With no GPS there is no absolute position: circle/polygon fences need a home and a relative position
-# ("Fence requires position", AC_Fence.cpp:509-516), and would follow EKF3's DRIFTING flow position. Only the MAXIMUM
-# ALTITUDE fence is used. The horizontal limit is the safety pilot's, with a person watching mocap (flight cards).
-# ---------------------------------------------------------------------------------------------------------------------
-FENCE_ENABLE 1           # fence on
-FENCE_TYPE 1             # bitmask: bit 0 = maximum altitude ONLY (bits 1-3 circle/polygon/min alt are NOT set)
-FENCE_ALT_MAX_TP 1       # the max-altitude frame: 1 = above home (EKF3's height). NOT 3 "above terrain", which needs a
-                         # terrain database and a location and would read as a permanent breach without GPS
-FENCE_ALT_MAX TODO_SUPERVISOR    # m: the mocap volume's usable top minus a margin (e.g. 0.5-1.0 m below the ceiling/net)
-FENCE_MARGIN TODO_SUPERVISOR     # m: kept from the fence (default 2; reduce for a small volume)
-FENCE_ACTION 2           # 2 = Always Land (Copter @Values). RTL needs a position this vehicle does not have.
-# BENCH CHECK (flight cards B6): the fence pre-arm passes and FENCE_STATUS reports the altitude fence enabled. The
-# above-home height without a GPS home is EKF3's origin-relative height: confirm the reported height on the bench.
-
-# ---------------------------------------------------------------------------------------------------------------------
-# FAILSAFES  (ArduCopter/Parameters.cpp; libraries/AP_BattMonitor/AP_BattMonitor_Params.cpp)
-# The vehicle's own tune is kept; these are read back and set only if the vehicle's values are weaker.
-# ---------------------------------------------------------------------------------------------------------------------
-FS_EKF_ACTION 1          # EKF failsafe: Land if the mode needs a position (ALT_HOLD does not; LOITER would)
-FS_THR_ENABLE 3          # RC loss: always Land (@Values 3)
-BATT_FS_LOW_ACT 1        # battery low: Land
-BATT_FS_CRT_ACT 1        # battery critical: Land
-BATT_LOW_VOLT TODO_SUPERVISOR    # V, for the vehicle's pack
-BATT_CRT_VOLT TODO_SUPERVISOR    # V, for the vehicle's pack
+# GEOFENCE and FAILSAFES: MOVED (2026-10-12) to rung1_failsafe_fc.parm, values unchanged (FENCE_ENABLE 1, FENCE_TYPE 1,
+# FENCE_ALT_MAX_TP 1, FENCE_ALT_MAX/FENCE_MARGIN TODO_SUPERVISOR, FENCE_ACTION 2, FS_EKF_ACTION 1, FS_THR_ENABLE 3,
+# BATT_FS_LOW_ACT 1, BATT_FS_CRT_ACT 1, BATT_LOW_VOLT/BATT_CRT_VOLT TODO_SUPERVISOR), together with the GCS failsafe for
+# the watcher, the RC failsafe, the EKF origin that makes the EKF failsafe live, and the landing parameters. Load it
+# AFTER the compass variant (see the load order at the top).
 
 # ---------------------------------------------------------------------------------------------------------------------
 # FLIGHT MODES on the mode switch  (ArduCopter/Parameters.cpp FLTMODE_CH, FLTMODE1-6; mode numbers ArduCopter/mode.h)

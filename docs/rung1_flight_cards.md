@@ -46,7 +46,7 @@ Calls are spoken and acknowledged ("ABORT" → SP: "landing"). One person speaks
 - [ ] Vehicle: props, battery count (≥ 6 charged packs for n = 5 + spare + verification), spare props, LiPo bag.
 - [ ] Firmware on the vehicle recorded (version string from the boot messages). If newly flashed: the `.apj` archived, the
       previous image and parameter dump kept for rollback (`minimal_real_flight_plan.md` R5).
-- [ ] `python3 realflight/params/check_parm.py --final rung1_template.parm rung1_variant_<x>.parm` → **OK (final)**
+- [ ] `python3 realflight/params/check_parm.py --final rung1_template.parm rung1_variant_<x>.parm rung1_failsafe_fc.parm` → **OK (final)**
       (no TODO_SUPERVISOR left; never AHRS_EKF_TYPE 10; no SIM_*).
 - [ ] The offline pipeline runs on an existing SITL log end to end (Replay with the R2 port, converter, scorer), so
       that the same-day rehearsal after H is only a data change.
@@ -62,12 +62,12 @@ line passes; any FAIL stops the day's flying until fixed.**
 
 | # | check | how | duration and why it suffices | pass |
 |---|---|---|---|---|
-| B1 | **Parameter readback** | download all parameters from the FC; diff against `rung1_template.parm` + the variant; **AHRS_EKF_TYPE = 3**, LOG_REPLAY = 1, LOG_DISARMED = 1, ARMING_SKIPCHK = 0, GPS1_TYPE = 0, EK3_SRC1_* as filed. If any differs: PARAM_SET, reboot, read back again (eeprom gotcha) | ~2 min: a readback is a single dump | every value as filed |
+| B1 | **Parameter readback** | download all parameters from the FC; diff against `rung1_template.parm` + the variant + `rung1_failsafe_fc.parm` (2026-10-12); **AHRS_EKF_TYPE = 3**, LOG_REPLAY = 1, LOG_DISARMED = 1, ARMING_SKIPCHK = 0, GPS1_TYPE = 0, EK3_SRC1_* as filed. If any differs: PARAM_SET, reboot, read back again (eeprom gotcha) | ~2 min: a readback is a single dump | every value as filed |
 | B2 | **Sensors healthy** | ground station status: flow sensor, rangefinder, compass (healthy even in nomag: arming gate), IMU, logging | ~1 min: a status screen | all healthy; no pre-arm message other than the expected "props off" items |
 | B3 | **Rangefinder** | on the ground: reading ≈ `RNGFND1_GNDCLR`; then lift the vehicle by hand to ~1 m and back | ~30 s: one lift spans the range used | ground reading within ±2 cm of GNDCLR (or "out of range low" if RNGFND1_MIN > resting height: RECORD, it is a known limit, §9 item 11 of the pre-registration); ~1 m when lifted |
 | B4 | **Flow sign (ArduPilot's standard flow check)** | over the textured floor, at ~0.5–1 m, roll the vehicle by hand left/right, then pitch forward/back, ~3 cycles each | ~1 min: three cycles per axis show the sign unambiguously | in the log, `OF.flowX` follows `OF.bodyX` and `OF.flowY` follows `OF.bodyY` (same sign, similar size). If not: `FLOW_ORIENT_YAW` is wrong; fix and repeat |
 | B5 | **Arming checks run** | attempt to arm with props off (motor safety per lab rules) | ~30 s | arming either succeeds with every check run, or fails only on the props-off/safety item; never a skipped check |
-| B6 | **Fence** | ground station fence status | ~30 s | altitude fence enabled, FENCE_ALT_MAX as filed, no pre-arm fence error; the reported height ≈ 0 on the ground |
+| B6 | **Fence and EKF origin** | ground station fence status; the boot messages and the log for the EKF origin (2026-10-12: without an origin Copter's EKF failsafe never runs, `rung1_failsafe_fc.parm`) | ~30 s | altitude fence enabled, FENCE_ALT_MAX as filed, no pre-arm fence error; the reported height ≈ 0 on the ground; STATUSTEXT "AHRS: using recorded origin" seen and an `ORGN` record in the log |
 | B7 | **Failsafes** | RC transmitter off for 2 s (props off, disarmed): RC failsafe message; battery failsafe values read back | ~1 min | messages as expected; values as filed |
 | B8 | **Log completeness** | download the bench log; run §7 items D2–D5 on it | ~5 min of checking; the log is the B1–B7 period | LOG_REPLAY records present; `DSF.Dp` = 0 |
 
