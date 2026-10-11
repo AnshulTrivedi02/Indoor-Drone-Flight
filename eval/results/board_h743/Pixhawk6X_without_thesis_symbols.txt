@@ -1,0 +1,10 @@
+== thesis symbols in /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/h7/out/Pixhawk6X_without
+code (B): {'thesis_nav_check': 6} total 6
+static data (B): {} total 0
+largest thesis symbols:
+        4 W void Functor<void>::method_wrapper<Copter, &Copter::thesis_nav_check>(void*)
+        2 T Copter::thesis_nav_check()
+  object 4 B AP_AHRS::_singleton
+  object 41072 B copter
+apj: {'image_size': 1674900, 'flash_total': 1966080, 'flash_free': 291180, 'git_identity': '6280a357', 'board_id': 53}
+sections: {'.text': 1669504, '.ARM.exidx': 8, '.data': 4492, '.bss': 135492, '.ram0': 0, '.heap': 375596}

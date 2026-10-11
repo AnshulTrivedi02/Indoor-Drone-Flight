@@ -1,0 +1,30 @@
+== with - without
+image_size delta: 23832  flash_free with/without: 267348 291180
+  .bss              135492 ->    175788  (+40296)
+  .crash_log        291180 ->    267348  (-23832)
+  .debug_frame       10640 ->     10684  (+44)
+  .heap             375596 ->    335300  (-40296)
+  .text            1669504 ->   1693336  (+23832)
+   copter 41072 -> 74040
+   AP_AHRS::_singleton 4 -> 4
+  largest per-symbol changes:
+      +32968 copter
+       +3720 NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::fs
+       +2100 NavUKF::update()
+       +1800 NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::Pm
+       +1800 NavUKF::sigma_points()::L
+       +1028 NavFGO::writeState(unsigned long long, Vector3<float> const&, Vector3<float> const&, QuaternionT<float> const&, Vector3<float> const&, Vecto
+        +848 NavUKF::log_state(unsigned long long)
+        +772 NavUKF::NavUKF()
+        +760 NavFGO::propagate(NavFGO::Imu const&)
+        +728 NavUKF::fuse_heading(NavUKF::Ev const&)
+        +648 NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double) [clone .part.0]
+        +600 NavUKF::fuse_tag(NavUKF::Ev const&)
+        +576 NavUKF::tag_update(double, double, double, double, double)
+        +556 NavUKF::writeExtNavData(Vector3<float> const&, QuaternionT<float> const&, float, float, unsigned long, unsigned short)
+        +548 NavFGO::update()
+        +536 NavUKF::update_scalar(double, unsigned char, unsigned char, double, double, double&) [clone .part.0]
+        +536 NavUKF::load_geometry()
+        +508 NavUKF::process(double const*, double*, Vector3<double> const&, Vector3<double> const&, double)
+        +504 NavUKF::sigma_points()
+        +428 NavUKF::initialise(double, double)
