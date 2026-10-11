@@ -4,7 +4,7 @@
 > known defects of the 2026-10-10 draft are FIXED here:
 > 1. **The start-aligned drift segment** (§4.3) was [t_to + 25 s, t_to + 30 s], inside the 30 s hover, where the
 >    4-DoF yaw is noise. It is now the first `init_path_m` = 2.0 m of mocap horizontal travel after the motion onset
->    (the start of the first leg), from mocap only.
+>    (normally the start of the first leg; §4.3), from mocap only.
 > 2. **The mocap clock-map windows** (§1, §8 step 2): `mocap_align`'s old default early window (arm, arm + 25 s) missed
 >    the PRE-ARM sync wiggle. Its default is now the two DISARMED wiggle bursts (the last |ω| > 2 rad/s burst before
 >    arming and the first after disarming, ± 2 s), and the scorer refuses a flight scored with other windows.
@@ -128,8 +128,11 @@ physically tighter and is reported as a **secondary** metric (`ate_4dof`); on SI
 `2026-10-10_r1_mocap_align_scorer.md`). If they disagree on a real flight in a way that changes a decision category, that
 is reported, but the category stands on evo -a.
 
-**Estimator records (proposed):** EKF3 = the replayed `XKF1` core 0; UKF port = the replayed **`XUKO`**; FGO = the
-converter's TUM. `XKF1` logs EKF3's output-predictor (current-time) state (`AP_NavEKF3_Logging.cpp:26-27` →
+**Estimator records (proposed):** EKF3 = the replayed `XKF1` core 0, record **`XKF1@100`**; UKF port = the replayed
+**`XUKO`**; FGO = the converter's TUM. The core is part of the record because an ArduPilot Replay output log carries BOTH
+the flight's original records (`C` = 0, 1, …) and the replayed ones (`C` = 100 + core; `Tools/Replay/check_replay.py`
+pairs C with C + 100): a bare `XKF1` would silently be the ONBOARD EKF3. The scorer refuses `XKF1` without a core.
+Stock rung-1 firmware runs no UKF, so every `XUKO`/`XUKF` record in that log is the fork's Replay. `XKF1` logs EKF3's output-predictor (current-time) state (`AP_NavEKF3_Logging.cpp:26-27` →
 `getPosNE`/`getVelNED`, `AP_NavEKF3_Outputs.cpp:257-263`, `outputDataNew`); `XUKO` is the port's current-time output
 (`AP_NavUKF.cpp` `log_state`). `XUKF` is the port's fused state at the delayed fusion horizon, so it is NOT the counterpart
 of `XKF1`; it is reported as a secondary row (`UKF_horizon`). Onboard EKF3 (the flight's own `XKF1`) is the secondary row
@@ -153,13 +156,16 @@ all three estimators on that flight. Nothing about W is tuned after scoring.
 - **Start-aligned drift** (rule `motion_onset_path` in the JSON): each estimator aligned to mocap (4-DoF) on an initial
   segment ONLY, then the horizontal error at t_ld − 5 s and its ratio to the mocap path length in W. The segment is
   defined from mocap only: from the **motion onset** (the first time in W the mocap horizontal speed, 1 s boxcar, stays
-  above 0.15 m/s for 1 s) until the mocap has travelled **2.0 m** horizontally, i.e. the start of the first leg. It is
-  refused (reported as such) if it moves less than 1.0 m from its first point. 2.0 m must not exceed the first leg length
-  **[TBD-S]**; it is confirmed when the leg length is fixed, before any result flight. (Fixes defect 1; the old segment
-  [t_to + 25 s, t_to + 30 s] lay inside the hover.)
+  above 0.15 m/s for 1 s) until the mocap has travelled **2.0 m** horizontally: the first 2 m of mocap travel after
+  the onset. This is normally the start of the first leg, but not guaranteed: ALT_HOLD has no horizontal position hold,
+  so a hover correction can exceed 0.15 m/s for 1 s. The segment is then partly a drift correction; it is refused
+  (reported as such) only if it moves less than 1.0 m from its first point, which keeps the fitted yaw defined.
+  **[TBD-S]**, confirmed when the profile is fixed and before any result flight: 2.0 m must not exceed the first leg length,
+  and `onset_speed_mps` (0.15) must lie well below the leg speed (0.3–0.5 m/s) and above typical hover-correction
+  speeds. (Fixes defect 1; the old segment [t_to + 25 s, t_to + 30 s] lay inside the hover.)
 - **Validity:** the fraction of W each estimator flags its horizontal position valid (EKF3 `XKF4.SS` bit 3; UKF `SS`
   column; FGO its own flag), and EKF3's flow-innovation rejections (`XKF5`).
-- **Onboard EKF3** (the flight's own `XKF1`, core 0; row `EKF3_onboard`) and **UKF at the horizon** (`XUKF`; row
+- **Onboard EKF3** (the flight's own `XKF1`, core 0, record `XKF1@0` in the same Replay log; row `EKF3_onboard`) and **UKF at the horizon** (`XUKF`; row
   `UKF_horizon`) scored the same way, reported next to the primary rows.
 
 ---

@@ -6,7 +6,8 @@ Inputs (TUM: t x y z qx qy qz qw; all on the FC clock; z UP, gravity-aligned; an
   --mocap   mocap truth on the FC clock: eval/mocap_align.py's `mocap_fc_clock_est_frame.tum`.
   --est LABEL=PATH.tum           an estimator trajectory (e.g. the FGO from the dataflash converter), ENU.
   --est-bin LABEL=RECORD --bin LOG.bin
-                                 an estimator read from a dataflash log (the Replay output): XKF1 (core 0) for EKF3,
+                                 an estimator read from a dataflash log (the Replay output): XKF1@100 (replayed core 0)
+                                 or XKF1@0 (the flight's onboard core 0, also present in the Replay log) for EKF3,
                                  XUKO (the UKF's current-time output, the counterpart of XKF1) or XUKF (its fused state
                                  at the delayed horizon) for the UKF port, XFGO if present. NED -> ENU; written as TUM
                                  (identity quaternions) to --work-dir and scored from there.
@@ -21,8 +22,9 @@ PRE-REGISTRATION SCHEMA (2026-10-11):
   metrics            {"primary": "evo_ape_a_se3" | "ate_4dof", "t_max_diff_s": 0.05 (the only value: evo is called
                       exactly as three_way_eval), "max_gap_s", "max_mocap_interp_gap_s"}
   drift              {"segment_rule": "motion_onset_path" | "window_start_time", + that rule's keys (below)}
-  estimator_records  {LABEL: "XKF1" | "XUKO" | "XUKF" | "XFGO" | "TUM"}: every scored label must be listed, and a
-                      --est-bin LABEL=RECORD must name exactly this record (a TUM input needs "TUM")
+  estimator_records  {LABEL: "XKF1@<core>" | "XUKO" | "XUKF" | "XFGO" | "TUM"}: every scored label must be listed,
+                      and a --est-bin LABEL=RECORD must name exactly this record (a TUM input needs "TUM"). XKF1 needs
+                      its core: a Replay output log holds the onboard (C = 0) AND the replayed (C = 100) records.
   clock_map          optional {"rule": "disarmed_wiggles", "w_thr_rad_s", "pad_s", "merge_s", "min_burst_s"}
   name, status, notes, rationale   free text (kept in the output)
 
@@ -72,7 +74,7 @@ DEFAULT_PREREG = {      # a COMPLETE, valid pre-registration for the tests; main
     "metrics": {"primary": "evo_ape_a_se3", "t_max_diff_s": 0.05, "max_gap_s": 0.5, "max_mocap_interp_gap_s": 0.05},
     "drift": {"segment_rule": "motion_onset_path", "onset_speed_mps": 0.15, "onset_smooth_s": 1.0, "onset_hold_s": 1.0,
               "init_path_m": 2.0, "min_extent_m": 1.0},
-    "estimator_records": {"EKF3": "XKF1", "UKF": "XUKO", "FGO": "TUM"},
+    "estimator_records": {"EKF3": "XKF1@100", "UKF": "XUKO", "FGO": "TUM"},
 }
 
 WINDOW_KEYS = {"airborne": {"ground_percentile", "airborne_height_m", "hold_s", "start_after_takeoff_s",
@@ -82,7 +84,24 @@ DRIFT_KEYS = {"motion_onset_path": {"onset_speed_mps", "onset_smooth_s", "onset_
               "window_start_time": {"init_segment_s", "min_extent_m"}}
 METRIC_KEYS = {"primary", "t_max_diff_s", "max_gap_s", "max_mocap_interp_gap_s"}
 PRIMARY = ("evo_ape_a_se3", "ate_4dof")
-RECORDS = ("XKF1", "XUKO", "XUKF", "XFGO", "TUM")
+RECORDS = ("XKF1", "XUKO", "XUKF", "XFGO", "TUM")     # XKF1 MUST carry its core: "XKF1@<C>" (see parse_record)
+
+
+def parse_record(rec):
+    """'XKF1@100' -> ('XKF1', 100); 'XUKO' -> ('XUKO', None). XKF1 needs an explicit core: an ArduPilot Replay output
+    log holds BOTH the original onboard records (C = 0, 1, ...) and the replayed ones (C = 100 + core;
+    AP_DAL logging_core, Tools/Replay/check_replay.py pairs C with C + 100), so a bare 'XKF1' is ambiguous.
+    Replayed EKF3 core 0 = 'XKF1@100'; the flight's own onboard EKF3 core 0 = 'XKF1@0'."""
+    base, _, core = str(rec).partition("@")
+    if base not in RECORDS:
+        raise SystemExit(f"record {rec!r}: not one of {RECORDS}")
+    if base == "XKF1":
+        if not core.isdigit():
+            raise SystemExit(f"record {rec!r}: XKF1 needs its core, 'XKF1@100' (replayed core 0) or 'XKF1@0' (onboard)")
+        return base, int(core)
+    if core:
+        raise SystemExit(f"record {rec!r}: only XKF1 carries a core")
+    return base, None
 CLOCK_KEYS = {"rule", "w_thr_rad_s", "pad_s", "merge_s", "min_burst_s"}
 TOP_KEYS = {"window", "metrics", "drift", "estimator_records"}
 TOP_OPTIONAL = {"clock_map", "name", "status", "notes", "rationale"}
@@ -116,8 +135,10 @@ def load_prereg(src):
         raise SystemExit(f"prereg drift.segment_rule must be one of {sorted(DRIFT_KEYS)}")
     _exact(d, DRIFT_KEYS[d["segment_rule"]] | {"segment_rule"}, "drift")
     er = pre["estimator_records"]
-    if not isinstance(er, dict) or not er or any(v not in RECORDS for v in er.values()):
-        raise SystemExit(f"prereg estimator_records: {{LABEL: one of {RECORDS}}}")
+    if not isinstance(er, dict) or not er:
+        raise SystemExit(f"prereg estimator_records: {{LABEL: one of {RECORDS} (XKF1 as XKF1@<core>)}}")
+    for v in er.values():
+        parse_record(v)
     if "clock_map" in pre:
         _exact(pre["clock_map"], CLOCK_KEYS, "clock_map")
         if pre["clock_map"]["rule"] != "disarmed_wiggles":
@@ -153,18 +174,22 @@ def load_tum(path):
 
 
 # ---------------------------------------------------------------------------------------------- inputs
-def bin_trajs(path, records):
-    """{record: (N, 4) [t, PN, PE, PD]} from a dataflash log; XKF1 core 0 only."""
-    from pymavlink import mavutil
-    m = mavutil.mavlink_connection(path); out = {r: [] for r in records}
+def bin_trajs(path, records, reader=None):
+    """{record spec: (N, 4) [t, PN, PE, PD]} from a dataflash log. 'XKF1@C' keeps only core C (parse_record).
+    reader: an object with recv_match(type=[...]) (tests); default pymavlink on `path`."""
+    if reader is None:
+        from pymavlink import mavutil
+        reader = mavutil.mavlink_connection(path)
+    specs = {r: parse_record(r) for r in records}
+    types = sorted({b for b, _ in specs.values()}); out = {r: [] for r in records}
     while True:
-        x = m.recv_match(type=list(records))
+        x = reader.recv_match(type=types)
         if x is None:
             break
         ty = x.get_type()
-        if ty == "XKF1" and getattr(x, "C", 0) != 0:
-            continue
-        out[ty].append((x.TimeUS / 1e6, x.PN, x.PE, x.PD))
+        for r, (b, core) in specs.items():
+            if b == ty and (core is None or getattr(x, "C", None) == core):
+                out[r].append((x.TimeUS / 1e6, x.PN, x.PE, x.PD))
     return {k: np.array(v) for k, v in out.items()}
 
 
@@ -344,7 +369,7 @@ def main(argv=None):
         for lab, rec in pairs:
             if not len(tr[rec]):
                 raise SystemExit(f"no {rec} records in {a.bin}")
-            p = f"{a.work_dir}/{lab}_{rec}.tum"; write_tum(p, ned_tum(tr[rec]))
+            p = f"{a.work_dir}/{lab}_{rec.replace('@', '_C')}.tum"; write_tum(p, ned_tum(tr[rec]))
             ests[lab] = {"source": f"{os.path.abspath(a.bin)}:{rec}", "sha256": sha256(a.bin), "traj": load_tum(p),
                          "record": rec}
     prim = pre["metrics"]["primary"]

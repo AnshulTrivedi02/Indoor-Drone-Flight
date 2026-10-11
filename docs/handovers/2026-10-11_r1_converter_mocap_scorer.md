@@ -73,19 +73,21 @@ Implements METHODOLOGY "RULING (user, 2026-10-11): PLAN AND BUILD TOWARDS REAL F
   | `window` | `airborne` / `speed` / `fixed` |
   | `metrics` | primary `evo_ape_a_se3` \| `ate_4dof` |
   | `drift` | NEW `motion_onset_path` (or `window_start_time` for regressions) |
-  | `estimator_records` | `--est-bin LABEL=REC` must equal the registered record; a TUM needs `"TUM"` |
+  | `estimator_records` | `--est-bin LABEL=REC` must equal the registered record; a TUM needs `"TUM"`. **`XKF1` must carry its core** (`XKF1@100` = replayed core 0, `XKF1@0` = onboard): a Replay output log holds BOTH (`C` and `C + 100`, as `Tools/Replay/check_replay.py` pairs them, checked in source). The old `bin_trajs` kept `C == 0`, so on a Replay log it would have scored the ONBOARD EKF3 as "EKF3". It is fixed and tested (`test_xkf1_core_is_explicit_and_filtered`, fake records). |
   | `clock_map` (optional) | with `--mocap-align-json`, refuses a flight aligned with non-default windows or a different burst rule |
 
 - **The output** carries `primary` per estimator, each estimator's record, and the prereg's sha256.
-- **Tests** (`eval/real_score_test.py`, 8, pass):
+- **Tests** (`eval/real_score_test.py`, 9, pass):
   - the old 3 tests;
   - the motion-onset segment skips the hover (the old segment is refused);
   - strictness (7 bad variants);
   - the JSON drives the window (+5 s) and the primary metric through `main()`;
   - the record mismatch is refused;
   - the clock-map check;
-  - the draft JSON loads and equals the tested definitions.
-- **Regression** (`eval/results/r1_scorer/regression_dsn_tex_r1_strict_prereg_2026-10-11.json`), against
+  - the draft JSON loads and equals the tested definitions;
+  - the XKF1 core parse and filter.
+- **Regression** (`eval/results/r1_scorer/regression_dsn_tex_r1_strict_prereg_2026-10-11.json`, script
+  `regress_dsn_tex_r1_strict_prereg.py` next to it; run before the XKF1-core change, which touches only `--est-bin`), against
   `three_way_eval`'s call on the CURRENT stored outputs:
   - **UKF 3.983563, identical**;
   - **FGO 4.04733, identical**. It was 4.067897 before the FGO-only re-run; the new value matches numbers.md's 4.05;
@@ -94,8 +96,9 @@ Implements METHODOLOGY "RULING (user, 2026-10-11): PLAN AND BUILD TOWARDS REAL F
   `docs/rung1_preregistration_draft.json` holds the machine-readable values. `eval/real_score_prereg_example.json` is
   removed.
 - **Both known defects are fixed:**
-  1. **The drift segment** runs from the mocap motion onset (> 0.15 m/s for 1 s) for 2.0 m of travel, which is the start
-     of the first leg. 2.0 m must be ≤ the first leg [TBD-S].
+  1. **The drift segment** is the first 2.0 m of mocap travel after the motion onset (> 0.15 m/s for 1 s), normally the
+     start of the first leg. ALT_HOLD has no horizontal position hold, so a hover correction can trigger the onset; the
+     1 m extent guard keeps the yaw defined. 2.0 m ≤ the first leg and `onset_speed_mps` are [TBD-S].
   2. **The clock-map windows** are the disarmed wiggle bursts, found by `mocap_align`'s default and checked by the
      scorer. A missing wiggle is §3.3 exclusion item 3, and windows are never set by hand for a result flight.
 - **Also corrected:**
@@ -106,15 +109,17 @@ Implements METHODOLOGY "RULING (user, 2026-10-11): PLAN AND BUILD TOWARDS REAL F
     categories were decided on evo -a. The 4-DoF fit is secondary; it agrees to 1 mm on SITL.
   - **UKF record: `XUKO`.** `XKF1` logs EKF3's current-time output predictor (`AP_NavEKF3_Logging.cpp:26-27` →
     `AP_NavEKF3_Outputs.cpp:257-263`, `outputDataNew`, checked in source). `XUKO` is the port's current-time output.
-    `XUKF` (the delayed horizon) is the secondary row `UKF_horizon`, and onboard EKF3 is `EKF3_onboard`.
+    `XUKF` (the delayed horizon) is the secondary row `UKF_horizon`, and onboard EKF3 is `EKF3_onboard` (`XKF1@0`,
+    from the same Replay log). The primary EKF3 row is `XKF1@100`.
 - `eval/results/r1_scorer/e2e_cl_ukf_clockmap.py` (a stored script of a past run) now points at the draft. A comment
   says a re-run needs a prereg without `clock_map` and with `UKF_fused`.
 
 ## State at stop
 
 - **Commits on the branch:** `4608637` (merge), `b9da351` (npz fix and adapter unification), `0d04efe` (R7/R8),
-  `fcd67df` (R9/R10), and the handover commit after them.
-- No locks held. No uncommitted work, apart from the untracked files the checkout already had.
+  `fcd67df` (R9/R10), `3573aff` (handover), and the XKF1-core commit after them.
+- No locks held (`BUILD_LOCK` absent; both `heavy.py` jobs ended). The working tree is clean: no uncommitted or
+  untracked files.
 
 ## Follow-ups
 

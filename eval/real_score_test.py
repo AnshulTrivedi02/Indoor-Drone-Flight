@@ -150,6 +150,39 @@ def test_draft_prereg_loads_and_matches_the_tested_defaults():
     assert p["estimator_records"]["UKF"] == "XUKO" and p["metrics"]["primary"] == "evo_ape_a_se3"
 
 
+def test_xkf1_core_is_explicit_and_filtered():
+    """A Replay output log holds the onboard XKF1 (C = 0) AND the replayed one (C = 100): the record names the core."""
+    import pytest
+    from types import SimpleNamespace as NS
+    assert RS.parse_record("XKF1@100") == ("XKF1", 100) and RS.parse_record("XUKO") == ("XUKO", None)
+    for bad in ("XKF1", "XKF1@x", "XUKO@100", "XKF9"):
+        with pytest.raises(SystemExit):
+            RS.parse_record(bad)
+    with pytest.raises(SystemExit):
+        RS.load_prereg({**RS.DEFAULT_PREREG, "estimator_records": {"EKF3": "XKF1"}})
+
+    class Reader:
+        def __init__(self, rows): self.rows = list(rows)
+        def recv_match(self, type):
+            while self.rows:
+                r = self.rows.pop(0)
+                if r.get_type() in type:
+                    return r
+            return None
+
+    def rec(ty, t, pn, c=None):
+        x = NS(TimeUS=int(t * 1e6), PN=pn, PE=0.0, PD=0.0, get_type=lambda: ty)
+        if c is not None:
+            x.C = c
+        return x
+    rows = [rec("XKF1", 1.0, 1.0, 0), rec("XKF1", 1.0, 2.0, 1), rec("XKF1", 1.0, 3.0, 100), rec("XKF1", 1.0, 4.0, 101),
+            rec("XUKO", 1.0, 5.0), rec("XKF1", 2.0, 10.0, 0), rec("XKF1", 2.0, 30.0, 100)]
+    tr = RS.bin_trajs(None, ["XKF1@100", "XKF1@0", "XUKO"], reader=Reader(rows))
+    assert tr["XKF1@100"][:, 1].tolist() == [3.0, 30.0]       # the replayed core 0 only
+    assert tr["XKF1@0"][:, 1].tolist() == [1.0, 10.0]         # the onboard core 0 only
+    assert tr["XUKO"][:, 1].tolist() == [5.0]
+
+
 def test_clock_map_check():
     import pytest
     cm = {"rule": "disarmed_wiggles", "w_thr_rad_s": 2.0, "pad_s": 2.0, "merge_s": 1.0, "min_burst_s": 1.0}

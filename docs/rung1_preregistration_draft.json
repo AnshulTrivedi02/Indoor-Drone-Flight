@@ -32,11 +32,11 @@
   "min_extent_m": 1.0
  },
  "estimator_records": {
-  "EKF3": "XKF1",
+  "EKF3": "XKF1@100",
   "UKF": "XUKO",
   "FGO": "TUM",
   "UKF_horizon": "XUKF",
-  "EKF3_onboard": "XKF1"
+  "EKF3_onboard": "XKF1@0"
  },
  "clock_map": {
   "rule": "disarmed_wiggles",
@@ -45,5 +45,5 @@
   "merge_s": 1.0,
   "min_burst_s": 1.0
  },
- "notes": "max_mocap_interp_gap_s 0.05 assumes mocap >= 100 Hz (the R7 requirement); it is confirmed once the mocap rate is known [TBD-S]. PRIMARY rows: EKF3 (Replay XKF1 core 0), UKF (XUKO), FGO (converter TUM). SECONDARY rows: UKF_horizon (XUKF, the same Replay log) and EKF3_onboard (the flight's own XKF1, scored in a second run with --bin = the flight log)."
+ "notes": "max_mocap_interp_gap_s 0.05 assumes mocap >= 100 Hz (the R7 requirement); it is confirmed once the mocap rate is known [TBD-S]. PRIMARY rows: EKF3 (XKF1@100: the REPLAYED core 0; an ArduPilot Replay output log carries the original onboard records with C = 0, 1, ... and the replayed ones with C = 100 + core, as Tools/Replay/check_replay.py pairs them), UKF (XUKO), FGO (converter TUM). SECONDARY rows: UKF_horizon (XUKF) and EKF3_onboard (XKF1@0, the flight's own onboard core 0), all from the same Replay output log. Stock rung-1 firmware runs no UKF onboard, so every XUKO/XUKF record in that log comes from the fork's Replay."
 }
