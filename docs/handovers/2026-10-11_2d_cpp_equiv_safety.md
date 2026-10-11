@@ -71,17 +71,25 @@ Live step time (L1 / L2): median 0.53 / 0.96 ms, p99 0.91 / 1.69 ms (budget 33 m
   and consistent with the recorded growth of the gate-trace drift with flight length (conditioning diagnostic,
   2026-10-09). Consistent, not proven: the flip moved from the A comparison (now passing, 0 mismatches) to the C
   comparison with the new prior.
-- **Which path flies:** `fgo_cpp_node` uses `live_adapter.cpp` (in `fgo_cpp_core`), not `fgo_frontend.cpp`. L1/L2 show
-  the live adapter bit-identical to the export-driven replay, which passes band A. The native front end is not the
-  flown path.
+- **Which path flies:** `fgo_cpp_node` uses `live_adapter.cpp` (in `fgo_cpp_core`), not `fgo_frontend.cpp`, so the
+  native front end is not the flown path. **But the flown configuration is NOT protected from the tie either.** L1/L2
+  ran the live adapter on dejittered tapes with `--imu-stamp header --delay 0.20`; the flown node runs with
+  `FGO_CPP_IMU_STAMP=time_ref`, `FGO_CPP_DELAY=0.10` (`closed_loop_run.sh`, `FGO_NODE_IMPL=cpp`), which no band covers
+  (the live IMU-stamp reports were not re-run). In flight the node's input stream differs from any offline reference
+  by far more than the front end's ≤ 1e-13 s, so the band-C mechanism (stream-level differences flipping a
+  near-threshold gate check) applies to the flown node too. Accepting the tie in band C is the same as accepting it in
+  flight.
 - Extra post-hoc row: the emulate-gemv build against Python on dsn_tex also flips (14 gate mismatches, 1.67 mm),
   while the default build matches Python's decisions. Diagnostic only, not a band.
 
 ### 4.2 The ruling needed (options; none chosen here)
 1. Accept band C dsn_tex as the ruled threshold-tie mode (extend the 2026-10-09 item 1 exception from band A to band C)
    and install the D18 node via the established recipe, then fly `H_safety_fgo_{a,b}_v4`.
-2. Require the forced-gate check for band C first (front end forced to the export-driven run's decisions, then re-band
-   it), and install only if that comes back within 1 mm.
+2. Require a forced-gate check for band C first (front end forced to the export-driven run's decisions, then re-band
+   it), and install only if that comes back within 1 mm. **This needs new C++ code (post-freeze):** `forced_gate.py`
+   patches the Python core in-process, and the C++ front end / core has no hook to inject gate decisions (grep of
+   `fgo_frontend.cpp`, `replay_common.cpp`, `fgo_core.{h,cpp}`). What is already shown: the states agree to 8.6 µm
+   until the first flip.
 3. Hold the install (the flown node stays `f642cd37`, old priors) until the gate recursion is made reproducible (the
    2026-10-09 rejected options would need re-opening).
 
