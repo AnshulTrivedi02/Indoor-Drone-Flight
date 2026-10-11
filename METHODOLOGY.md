@@ -13581,3 +13581,38 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - the rangefinder-below-minimum-on-ground arming block (U4);
   - whether to keep scripting;
   - merging `board-h743` (the user's call). Rung 1 still flies `7bac20cbcc` unmodified.
+
+### 2c: watcher bench B0–B10 in SITL with a simulated mocap feed (VERIFICATION only; `wbench_*`; handover `docs/handovers/2026-10-11_watcher_sitl_bench.md`, pre-registration plus amendments A1–A8)
+- **PASS:**
+  - B0, B1a/b/c(ii)/native/Lua;
+  - B2a (watcher kill → LAND +2.77 s), B2b (FC GCS failsafe +2.37 s, with MAVProxy's sysid-255 heartbeat running);
+  - B3a (+3.29 s), B3b;
+  - B4a (all five faces; pre-registered amendment A8: vehicle moved by Gazebo set_pose), B4b side and top, B4c;
+  - B5b, B5c, B6a, B6b, B7a (the forwarder-to-watcher path only), B7b (p99 0.248 s);
+  - B9a–c, B10a (≤ 0.24 s), B10b, B10c (SITL model only).
+  - **B10b passed ONLY because the bench driver has an H10 guard. `fly_trial.py` as it is would command LAND there.**
+- **FAIL AS WORDED:**
+  - B5a and B5b-noflag: stale declared 8–10 ms after the 0.5 s bound.
+  - The bound equals the watcher's own stale limit, so it cannot be met; LAND within 1.0 s passed in both.
+  - A ruling is needed.
+- **VOID, not repeated:**
+  - B8a: the watcher's box acted first after a ~3.6 m/s excursion.
+  - Not repeating it departs from §7.2's "void and repeated"; a ruling is needed.
+- **Stock-firmware arming, CONFIRMED in SITL:** with the watcher never started, the FC ARMS by stick, by a non-force
+  MAVLink arm and by force-arm.
+  - ARMING_RUDDER 0 blocks only the stick.
+  - The draft Lua script blocks stick and MAVLink arming ("Watcher: never seen") and is bypassed only by force-arm.
+  - Started-then-killed refuses natively.
+- **Findings:**
+  - **F6 (SAFETY):** the LAND retry (every 0.3 s until acknowledged) could override a pilot who has taken ALT_HOLD.
+    7/12 B7b commands needed a 2nd send; 18/18 in-flight LANDs were acknowledged first time.
+  - **F2 (SAFETY):** ArduCopter's land detector sometimes did not trip on flow-only EKF3. Once the vehicle tipped over
+    ~9 s after touchdown.
+  - F4: `fly_trial.connect()` latches onto the first heartbeat it sees (mode-mapping risk); fixed in the bench driver
+    only.
+  - SITL's own flow sensor and analog rangefinder were unusable with this Gazebo model; the thesis camera-flow and
+    LiDAR paths were used instead.
+- **Hardware only:** B4d, the B6 hand procedure, the B7a true latency, B7c, B8b/c (UKF/FGO, item 2d), the real B10c
+  receiver failsafe, Lua on the board, the Pi beacons, the audible alert.
+- **No watcher code changed.** run_trial.sh, closed_loop_run.sh and fly_trial.py are unchanged; SITL ran in its own
+  working directory (the shared eeprom was untouched).
