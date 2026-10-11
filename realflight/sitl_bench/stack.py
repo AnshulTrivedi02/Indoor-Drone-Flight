@@ -110,6 +110,7 @@ class Stack:
         gz_env = dict(self.renv)
         gz_env["GZ_SIM_RESOURCE_PATH"] = f"{REPO}/sim/models:{HOME}/ardupilot_gazebo/models:{HOME}/ardupilot_gazebo/worlds"
         gz_env["GZ_SIM_SYSTEM_PLUGIN_PATH"] = f"{HOME}/ardupilot_gazebo/build"
+        self.gz_env = gz_env
         self.spawn("gz", ["gz", "sim", "-v3", "-s", "-r", f"{REPO}/sim/worlds/{WORLD}.sdf"], env=gz_env,
                    cwd=f"{HOME}/ardupilot_gazebo")
         self.wait_for("gz world up", lambda: f"/world/{WORLD}/dynamic_pose/info" in subprocess.run(
@@ -196,13 +197,22 @@ class Stack:
             subprocess.run(["pkill", "-9", "-f", "--", pat])
         self.log("teardown complete")
 
+    def carry_home(self):
+        """The bench analogue of carrying the landed, DISARMED vehicle back to the spawn point (Gazebo set_pose)."""
+        req = ('name: "iris_with_ardupilot", position: {x: 0, y: 0, z: 0.2}, '
+               'orientation: {w: 0.70710678, x: 0, y: 0, z: 0.70710678}')
+        r = subprocess.run(["gz", "service", "-s", f"/world/{WORLD}/set_pose", "--reqtype", "gz.msgs.Pose",
+                            "--reptype", "gz.msgs.Boolean", "--timeout", "3000", "--req", req],
+                           capture_output=True, text=True, env=self.gz_env, timeout=10)
+        self.log(f"carry_home (set_pose to the spawn point): {r.stdout.strip()} {r.stderr.strip()[:200]}")
+
     # ---------- watchers ----------
     def watcher_cmd(self, *extra, name="watcher", sysid=211, fc_port=None, mocap_port=None, box=BOX, deps=True,
                     identity="off", fc_params="require"):
         out = os.path.join(self.out, name)
         cmd = [VENV_PY, "-m", "realflight.watcher.mocap_watch", out,
                "--fc", f"udpin:127.0.0.1:{fc_port or P['watcher_fc']}", "--sysid", str(sysid),
-               "--mocap-port", str(mocap_port or P["mocap"]), "--body-name", "thesis_quad",
+               "--mocap-port", str(mocap_port or P["mocap"]), "--body-name", "thesis_quad", "--body-id", "1",
                f"--box={box}", "--identity", identity, "--fc-params", fc_params]
         if deps:
             cmd += ["--dep", "flow_tracker", "--dep", "flow_bridge", "--liveness-port", str(P["live"])]

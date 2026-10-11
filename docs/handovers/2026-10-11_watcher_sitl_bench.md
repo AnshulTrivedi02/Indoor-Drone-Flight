@@ -135,6 +135,228 @@ any B-test was run. None changes a pass criterion; they change the vehicle set-u
     isolation holds. For B10b(3) the same.
   - The takeoff overshoots to ~2.4 m true before the 1.5 m hold (box top 3.0 m).
 
+**Amendments made DURING the runs** (each after a run had stopped; no criterion changed):
+- **A6 — B5b-noflag set-up.** With `tracked = −1` from the start, the vehicle at rest gives bit-identical Gazebo poses,
+  so the frozen fallback never let the watcher confirm (`wbench_hoverB_…125723`, session stopped; fail-closed, see
+  finding F3). The source now switches to "no tracking flag" once airborne, holds 3 s (moving poses), then freezes.
+- **A7 — harness only.** (a) Before each hover the landed, DISARMED vehicle is put back at the spawn point with Gazebo
+  `set_pose` (the bench analogue of carrying it back). Needed because after B4b_side it had landed at y = 3.34 m,
+  outside the box, and the watcher (correctly) stayed latched; and after B9b it tipped over (finding F2). (b) If the
+  vehicle sits on the ground in LAND, still armed, the operator disarms it (as the safety pilot would): first after
+  15 s, then after 4 s (finding F2). Every such disarm is logged ("OPERATOR DISARM") and is AFTER the criterion's event.
+- **Harness fix while a session ran (disclosed against the standing "no edits during a batch" rule):** the flight
+  script's mode-name mapping (finding F4) was fixed in `flight_script.py` at ~12:50:30 while `hoverA2` was starting; the
+  first flight-script process of that session was spawned after the edit (12:50:35), so every hoverA2 flight used the
+  fixed script. hoverA (B2a–B3b) used the old one; there, its only effect was a mis-mapped "GUIDED" re-assert (mode 15,
+  refused) while the FC was already in GUIDED; its LAND mapped correctly (B3a, mode 9 at the WatcherLost instant).
+
 ## 2. Results
 
-(to be filled in after the runs)
+**Sessions** (all under `~/thesis_data/wbench/`; verification data only, never result data). Every number below is
+produced by `python3 -m realflight.sitl_bench.results <session>` (intervals) and `analyse` (merged per-test timelines in
+`<session>/analysis/`). W = wall clock, F = FC clock (SITL sim time; RTF ≈ 0.93–0.99 here). The F↔W map residual is a
+few tens of ms (one operator mode command was mapped 33 ms before its own send), so W/F intervals are good to ±0.04 s.
+
+| session | content |
+|---|---|
+| `wbench_smoke_20261011_122220` | plumbing (amendments A1–A5) |
+| `wbench_ground_20261011_122619` | B1a, B1c(i–iv), B0, B1b, B5c, B6a, B1-native, B7b, B10c, B1c-Lua (confounded, see below) |
+| `wbench_lua_20261011_123502` | B1c-Lua re-run (45 s settle after each reboot) |
+| `wbench_hoverA_20261011_123756` | B2a, B2b, B3a, B3b; B4b_side attempt 1 (stopped: finding F2) |
+| `wbench_hoverA2_20261011_125023` | B4b_side (then stopped: landed outside the box) |
+| `wbench_hoverA3_20261011_125342` | B4b_top, B5a, B5b, observations (latency, frame reset, wrong ID) |
+| `wbench_hoverB_20261011_125723` | B5b-noflag attempt 1 (never confirmed at rest; A6) |
+| `wbench_hoverB_20261011_125941` | B5b-noflag, B6b ×2, B8a, B9a ×2, B9b (then stopped: tip-over, F2) |
+| `wbench_hoverB2_20261011_130644` | B9c ×2, B9-hang |
+| `wbench_hoverC_20261011_130923` | B10a, B10b |
+
+### 2.1 Per test (result as worded against §1.2)
+
+**B0 — PASS.** Ground. "Safety watcher confirmed before arming: watcher ok (age 0.6 s)", then "Armed." 0.8 s after the
+script started (EV ARMED at W 2070.881); no pre-arm failure message before it. The watcher's MAVLink heartbeat from
+system ID 211 was flowing (the FC's GCS failsafe later latched/cleared on it, e.g. "GCS Failsafe Cleared" each time it
+resumed). Duration: ground only — arming acceptance needs no take-off.
+
+**B1a — PASS.** "REFUSING TO ARM: no watcher heartbeat (fail-closed safety watcher, WATCH_HEARTBEAT)" after the 60 s cap;
+no EV ARMED in the dataflash in that window (the first ARM of the boot is B1c(i), 4 s later).
+
+**B1b (= B9d) — PASS.** `flow_tracker` stub SIGKILLed; "REFUSING TO ARM: watcher not confirming (box=0 bridge=0)". (box
+is 0 too because the dependency loss latched an episode; bridge=0 as worded.) No ARM.
+
+**B1c (G6), stock firmware, watcher never started in the boot:**
+- (i) `ARMING_RUDDER 2`, stick arm in STABILIZE: **the FC ARMED** (EV ARMED W 2055.123) → **FAIL of the stock FC side,
+  as predicted** (the known finding, confirmed in SITL).
+- (ii) `ARMING_RUDDER 0`, same stick input: **did not arm → PASS** (mitigation (i) blocks stick arming).
+- (iii) non-force MAVLink arm from system ID 255: **ARMED** (ACK 0) — as predicted: mitigation (i) is procedural only.
+- (iv) force-arm (2989): **ARMED** — as predicted.
+
+**B1-native — PASS.** Watcher confirmed, SIGKILLed while disarmed, 6 s later a non-force arm: ACK 4 (denied), the only
+message "Arm: GCS failsafe on". After the restart: "GCS Failsafe Cleared" 3.4 s later, and the flight script armed.
+
+**B1c-Lua (G6 ii) — PASS** (re-run `wbench_lua`). The draft `watcher_arming_auth.lua`, run in SITL:
+- (a) watcher never seen: non-force MAVLink arm REFUSED, the only message "Arm: Watcher: never seen"; stick arm with
+  `ARMING_RUDDER 2` REFUSED ("Arm: Watcher: never seen", "PreArm: Watcher: never seen");
+- (b) watcher confirmed (`--lua-auth`, it read back `SCR_ENABLE 1`): the flight script ARMED — so the script does not
+  simply always fail;
+- (c) watcher SIGKILLed, 6 s: REFUSED ("Arm: GCS failsafe on", "Arm: Watcher: heartbeat 6.5s old");
+- (d) after a reboot (never seen), force-arm: ARMED (bypass, as predicted).
+- In the ground session the same sequence was confounded: (a) also showed "Gyros inconsistent" (12 s settle after the
+  reboot), so it is not used; the re-run waited 45 s.
+
+**B2a — PASS.** Hover, watcher SIGKILL → MODE LAND (reason GCS_FAILSAFE) at **+2.767 s W** (+2.755 s F) ≤ 4.0 s. Layer
+first: the **FC's GCS failsafe**; the flight script's LAND followed at +3.485 s W (FC already in LAND).
+
+**B2b (G5, G11) — PASS.** Flight script SIGKILLed 2.0 s before the watcher; watcher SIGKILL → ERR FAILSAFE_GCS and MODE
+LAND (GCS_FAILSAFE) at **+2.366 s F** ≤ 3.5 s, with MAVProxy (system ID 255) sending its heartbeat throughout: nothing
+else refreshed the GCS timer.
+
+**B3a — PASS.** Relay drop (both directions) → ERR FAILSAFE_GCS at **+3.286 s F** ≤ 3.5 s. As expected, the watcher
+withdrew on "FC link lost: no FC HEARTBEAT for 3.0 s" at +2.16 s W with **no LAND** (0 LAND commands); the first actor was
+the flight script (WatcherLost → LAND, MODE LAND GCS_COMMAND at +2.937 s W), the FC failsafe 0.35 s later.
+
+**B3b — PASS.** SIGSTOP → MODE LAND (GCS_FAILSAFE) at **+2.848 s W** ≤ 4.0 s. SIGCONT 1.0 s after LAND was seen (still
+airborne): the watcher logged "watcher stalled: own loop gap 3.87 s … no LAND sent, heartbeat stays withdrawn", sent 0
+LAND commands, and re-confirmed (heartbeat resumed) only 2.6 s after the disarm (the 2 s episode clear). No mode change other than the
+landing and no re-arm in the 10 s observed after the disarm (the next MODE GUIDED is the operator's, after the window).
+
+**B4b side face (y = 3 m) — PASS** (`hoverA2`). First pose outside (0.481, 3.007, 1.602): watcher BREACH at **+0.000 s**
+(same sample) ≤ 0.1 s; LAND command +0.001 s; FC MODE LAND at **+0.038 s W** ≤ 1.0 s; exactly ONE LAND decision and one
+send (ACKed). (Attempt 1 in `hoverA`: identical behaviour, BREACH and MODE LAND in the same millisecond; that session then
+stopped on finding F2.)
+
+**B4b top face (z = 3.0 m, G10) — PASS** (`hoverA3`). First pose outside (0.053, 0.048, 3.005): BREACH +0.000 s, MODE
+LAND **+0.004 s W**; one LAND.
+
+**B5a — FAIL as worded (stale declaration 8 ms late); LAND part PASS.** Last frame sent 0.011 s before the stop
+command. Watcher "mocap pose stale (0.51 s > 0.5 s)" at **+0.508 s** after the last frame: the criterion "within 0.5 s"
+is missed by 8 ms. LAND command at +0.508 s, FC MODE LAND at **+0.559 s W** ≤ 1.0 s (PASS); confirmation withdrawn at
++0.508 s; MAVLink heartbeat: the last one at +0.14 s (pose still fresh), the next only after the disarm + 2 s.
+- **Why:** the watcher's rule is "stale when older than `stale_s` = 0.5 s", evaluated each ~20 ms loop, so detection is
+  necessarily a little AFTER 0.5 s; the pre-registered bound equals the limit itself and leaves no room for the loop
+  period. This is a criterion/limit mismatch, not a malfunction; the watcher was NOT changed. **A ruling is needed**
+  (e.g. bound = stale limit + one loop period, or `--stale-s 0.45`). Per the instructions this line stopped here.
+
+**B5b — PASS** (as worded for the untracked case). (1) Frozen poses WITH a tracking flag (tracked = 1) for 3 s: no
+watcher event, no mode change (observation, by design). (2) tracked = 0: BREACH "reported NOT TRACKED" on the first
+untracked frame (+0.000 s), MODE LAND **+0.052 s W** ≤ 1.0 s; heartbeat stopped (none after).
+
+**B5b-noflag — FAIL as worded (10 ms late); LAND part PASS; case: the frozen fallback.** (A6.) Freeze in a hover with no
+tracking flag: "mocap pose frozen (bit-identical for 0.51 s, no tracked flag)" at **+0.510 s** after the first frozen
+frame (bound 0.5 s: missed by 10 ms, same cause as B5a); MODE LAND **+0.562 s W** ≤ 1.0 s.
+
+**B5c — PASS.** Ground. Stream stopped 3 s (the stale breach sent its one LAND to the landed FC), restored: first fresh
+frame W 2142.131, confirmation W 2144.144 = **2.013 s** ≥ 2.0 s; no LAND or mode command after the restore.
+
+**B6a (stream level) — PASS.** Body `other_body`/ID 2 only: never confirmed (stale, as the samples are ignored),
+"REFUSING TO ARM: watcher not confirming (box=0 bridge=0)".
+
+**B6b (motion identity, D1) — PASS (both runs).** Observer watcher (system ID 212, SERIAL3, ATTITUDE 24.7 Hz), manoeuvre
+roll 12° for 0.8 s then yaw 90°:
+- right body: `identity=confirmed (proven (roll/pitch and yaw change agree))`, max roll/pitch difference 1.05°;
+- static other body under the right name: `identity=failed (FAILED: roll/pitch disagree by 12.2 deg > 5.0 for 0.5 s
+  (mocap r/p 0.0/0.0, FC 12.2/-4.7))`; it never confirmed (0 heartbeats sent).
+
+**B7a — PASS on the forwarder → watcher path only** (n = 93,903 poses, all hover sessions, the injected-latency window
+excluded): median **0.10 ms**, p99 **0.50 ms** (localhost). The maximum, 3.85 s, is the B3b SIGSTOP backlog. The true
+exposure → watcher latency is hardware-only. **Observation:** +150 ms added latency was logged (median 0.152 s in the
+track's latency column) and not acted on, as designed.
+
+**B7b — PASS.** 12 LAND commands from the watcher's own `FcLink` (system ID 213) on the watcher's link, disarmed:
+send → MODE LAND median **0.008 s**, **p99 0.248 s** ≤ 0.3 s, max 0.274 s (the first command: a `udpin` link cannot send
+until it has received a packet, so the first send was lost and the 0.3 s retry delivered it). 4/12 needed a retry before
+the ACK arrived although the mode had already changed (the ACK of the first send was not received). In flight, every
+watcher LAND reached MODE LAND in 0.003–0.05 s.
+
+**B8a — VOID (report-only test; the watcher acted first).** Hover; `flow_bridge.py` SIGKILLed. EKF3 raised **no
+failsafe** (no EKFCHECK / FAILSAFE_EKFINAV / EKF_FAILSAFE mode change). At +5.06 s "EKF3 IMU0/IMU1 stopped aiding";
+the vehicle then accelerated east (GT x 1.77 → 9.3 m in 2.6 s, ~3.6 m/s) and the watcher's box breach (x = 3.047) sent
+LAND at +6.35 s. Under the pre-registered isolation rule the run is VOID; it was not repeated, because the same
+excursion would breach any box that fits the mat (finding F1).
+
+**B9a — PASS.** `--dep-loss land`.
+- `flow_tracker` stub (in-process beacon) SIGKILL: withdrawal **+1.004 s** ≤ 1.5 s, MODE LAND **+1.034 s W** ≤ 2.5 s.
+- `flow_bridge` stub (`proc` sidecar) SIGKILL: withdrawal **+0.820 s**, MODE LAND **+0.867 s W**.
+- In both, the MAVLink heartbeat stopped at detection (any heartbeat after the injection was before detection, within
+  the 1.0 s beacon timeout) and resumed only after the disarm + 2 s.
+
+**B9b — PASS.** `--dep-loss stop`, `flow_tracker` SIGKILL: "…(--dep-loss stop has no hardware meaning: mapped to LAND +
+alert, G8)", withdrawal **+0.922 s**, MODE LAND **+0.952 s W**.
+
+**B9c — PASS.** SIGSTOP of the `flow_tracker` stub: withdrawal **+0.895 s**, MODE LAND **+0.942 s W**; SIGSTOP of the
+`flow_bridge` stub (sidecar sees state T): **+0.860 s**, MODE LAND **+0.917 s W**.
+
+**B9-hang (observation).** Beacon alive, progress frozen: "no progress for 2.00 s (hung)" at +1.813 s, MODE LAND +1.822 s.
+
+**B10a — PASS.** RC mode switch: ALT_HOLD **+0.225 s**, STABILIZE **+0.218 s**, ALT_HOLD **+0.221 s**, LAND **+0.242 s**
+(all W, ≤ 0.3 s; reason RC_COMMAND). Between ALT_HOLD and the LAND switch the only MODE events are the three RC ones,
+although the flight script kept sending GUIDED position targets at 2 Hz.
+
+**B10b — PASS, with the H10 caveat.** In ALT_HOLD:
+- (1) watcher SIGKILL: "GCS Failsafe - Continuing Pilot Control", no mode change; the flight script (H10 PROTOTYPE guard)
+  logged "H10 guard: FC in ALT_HOLD -> NOT commanding LAND (fly_trial.py as-is WOULD command LAND here)";
+- (2) a new watcher confirmed mid-air ("GCS Failsafe Cleared"); dependency loss → its ONE LAND (MODE LAND +19.385 s);
+  the pilot's switch move at +19.712 s → ALT_HOLD at **+19.934 s** (0.22 s after the toggle, ≤ 1 s); nothing
+  re-commanded LAND until the pilot's own LAND switch at +49.98 s; the GCS failsafe that followed again said
+  "Continuing Pilot Control";
+- (3) aiding loss (`flow_bridge.py` SIGKILL, 15 s): no mode change and no EKF failsafe.
+- **Caveat: `fly_trial.py` as-is would FAIL B10b** — its `WatcherLost` path commands LAND regardless of mode. The pass
+  depends on the H10 guard, which exists only in this bench driver.
+
+**B10c (model only) — PASS.** Armed on the ground, `SIM_RC_FAIL 1`: "Radio Failsafe - Disarming" 1.1 s W later
+(`FS_THR_ENABLE 3`).
+
+**Observations:** frame-counter reset mid-hover — no watcher event, no mode change; wrong body ID mid-hover — the
+samples are ignored, stale at +0.489 s after the first wrong-ID frame (0.51 s after the last good one), MODE LAND
++0.507 s W.
+
+### 2.2 Findings (not watcher bugs)
+
+- **F1 (B8a): flow loss in GUIDED on EKF3 gives no EKF failsafe, then a fast lateral excursion.** About 5 s after the
+  flow stopped reaching the FC, EKF3 "stopped aiding" and the vehicle accelerated to ~3.6 m/s sideways; only the
+  watcher's box stopped it, and the LAND then drifted ~10 m further before touchdown. For rung 1 (EKF3 flying on flow):
+  the mocap box is the protection; `FS_EKF_ACTION` will not act. Consistent with §7.2 B8(a)'s "report-only" expectation
+  but more violent than `H_safety_ekf3_ref` (ExtNav) suggested.
+- **F2: after a LAND that began with lateral motion, ArduCopter's land detector sometimes did not trip on flow-only
+  EKF3** (B4b_side attempt 1: >3 min on the ground in LAND, throttle 0, still armed; B5b and the obs hover: operator
+  disarm after 15 s / 4 s). Once (after B9b) the vehicle rocked and **tipped over** ("Crash: Disarming: AngErr=34>30"),
+  ~9 s after touchdown. For real flights: the safety pilot must be ready to disarm after any automatic LAND.
+- **F3 (B5b-noflag set-up): a source with no tracking flag and a perfectly still vehicle never confirms** (bit-identical
+  poses = frozen). Fail-closed and correct; on hardware, mocap noise normally breaks bit-identity, but a VRPN-type source
+  that repeats the last pose exactly would keep the watcher from confirming at rest.
+- **F4: `fly_trial.connect()` takes the FIRST heartbeat it sees.** With other MAVLink senders on the link (MAVProxy, and
+  the watcher's heartbeat that the FC routes to its other links) it pinned "system 0" and pymavlink mapped "GUIDED" to
+  15 ("Mode change to Autotune failed"). It is harmless when the FC is already in GUIDED, but the real flight script (H10)
+  must pin the FC's system ID and take the mode mapping from the FC's own heartbeat. Fixed in the bench driver only;
+  `fly_trial.py` was not touched.
+- **F5: B5a / B5b-noflag bound.** "Stale within 0.5 s" with a 0.5 s stale limit cannot be met (detection is 8–10 ms
+  after the limit); ruling needed (see B5a).
+- **The SITL analog rangefinder and SITL optical flow** are unusable with this JSON/Gazebo model (A4/A5): relevant to
+  the SITL plan for the UKF-only closed loop (`docs/ukf_only_closed_loop_costing.md` assumes `SIM_FLOW`).
+
+### 2.3 Bugs found in the watcher
+
+**None.** No file under `realflight/watcher/`, `realflight/mcp1.py` or `realflight/params/` was changed (git diff empty),
+so the 83 offline tests were not re-run after the bench (they passed at the start of this stage: 83 passed in 84 s).
+
+## 3. Hardware-only tests (as §1.3), confirmed
+
+B4a (carry through each face, disarmed), B4c (60° hand tilt), B4d (box geometry), the B6 hand procedure (D1), B7a true
+exposure latency, B7c (mocap ↔ FC alignment with hand sync wiggles), B8b/B8c (UKF/FGO ports; item 2d), the real B10c
+receiver failsafe, the Lua script on the real board, beacons inside the Pi processes, the audible alert.
+
+## 4. Files
+
+- Driver (new, SITL only): `realflight/sitl_bench/` — `bench.py` (sessions), `stack.py` (launch, operator link, RC
+  model), `flight_script.py` (flight-script layer using `fly_trial.py`'s gate), `mocap_forwarder.py`, `udp_link.py`,
+  `dep_stub.py`, `analyse.py`, `results.py`, `arm_events.py`, `params/`; `tools/run_wbench.sh <session>` (FLIGHT_LOCK).
+- Not modified: `run_trial.sh`, `sim/tools/closed_loop_run.sh`, `fly_trial.py`, `realflight/watcher/`,
+  METHODOLOGY.md, numbers.md. SITL ran in its own working directory (`~/thesis_data/wbench/sitl_cwd`), so the shared
+  `~/ardupilot/ArduCopter/eeprom.bin` was never written.
+
+## 5. For the next stage
+
+- Rulings needed: the B5a/B5b-noflag bound (F5); G6 — SITL shows the Lua aux-auth works (B1c-Lua) on stock 4.6 SITL;
+  the board must still be bench-tested.
+- H10 requirements for the real flight script: the B10b guard; pin the FC system ID and mode mapping (F4).
+- Safety procedure: the pilot disarms after any automatic LAND if the FC does not (F2); the box is the only protection
+  on EKF3 flow loss (F1).

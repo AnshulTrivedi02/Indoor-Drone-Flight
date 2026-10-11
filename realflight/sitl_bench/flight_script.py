@@ -11,6 +11,7 @@ Profile (JSON list), steps:
   {"vel": [vn, ve, vd], "s": S}            velocity setpoints at 5 Hz for S sim s
   {"roll": DEG, "s": S}                    SET_ATTITUDE_TARGET roll DEG (hover thrust) for S sim s, then level
   {"yaw": DEG}                             MAV_CMD_CONDITION_YAW relative DEG, then 4 s sim hold
+  {"ground": S}                            stay on the ground, armed, S sim s (ground tests; DISARM_DELAY 0)
   {"land": true}                           fly_trial.land
 Markers "STEP <i> <kind> start/end" are logged (wall time) for the operator. After the profile the script lands.
 It exits when the FC reports DISARMED (whichever layer landed it).
@@ -49,6 +50,17 @@ class Script:
         self.m = ft.connect(a.port)
         # the first HEARTBEAT through MAVProxy can come from another GCS (MAVProxy relays them): pin the FC (system 1)
         self.m.target_system, self.m.target_component = 1, 1
+        # pymavlink's set_mode_apm() maps mode names with the vehicle type of the system `self.m.sysid` (the first
+        # HEARTBEAT seen, here often a GCS): GUIDED was mapped to 15 ("Mode change to Autotune failed") in hoverA.
+        # Use the FC's own heartbeat for the mapping.
+        t0 = time.time()
+        while time.time() - t0 < 30:
+            hb = self.m.recv_match(type="HEARTBEAT", blocking=True, timeout=2)
+            if hb is not None and hb.get_srcSystem() == 1 and hb.type != M.MAV_TYPE_GCS:
+                break
+        self.m.sysid = 1
+        log(f"mode mapping from the FC heartbeat: GUIDED={self.m.mode_mapping().get('GUIDED')} "
+            f"LAND={self.m.mode_mapping().get('LAND')}")
         self.was_armed = False
         self.landing_cmded = False
 
@@ -118,6 +130,10 @@ class Script:
                                          abs(st["yaw"]), 30, 1 if st["yaw"] > 0 else -1, 1, 0, 0, 0)
             t0 = self.now()
             while self.now() - t0 < 4.0:
+                pass
+        elif k == "ground":
+            t0 = self.now()
+            while self.now() - t0 < st["ground"]:
                 pass
         elif k == "land":
             self.land("profile end")
