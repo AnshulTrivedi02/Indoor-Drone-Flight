@@ -13720,3 +13720,43 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - what waits on the board, the sensors and mocap.
 - **The board firmware build is kept READY for the likely H743 targets**, so the final build is quick once the exact
   board is known.
+
+### The ArduCopter real-flight plan re-stated (`docs/realflight_plan_copter.md`; the readiness-by-rung table updated; handover `docs/handovers/2026-10-12_copter_plan.md`)
+- **Day 0** = an H743 Copter already flying and tuned, the board named, mocap booked.
+  - **Rung 1:** 6 working days (+2 contingency), 3 mocap days.
+  - **UKF-only closed loop:** 14 working days (rung 1 + 8; +2–3 contingency), 7 mocap days.
+  - +3–6 d if the vehicle is not already flying. Rung 1 finishes by 23 Oct only if Day 0 ≤ 15 Oct; the UKF-only
+    loop cannot finish by 23 Oct.
+- **No-hardware TODO, rung 1 (~3–4.25 d):**
+  - the pre-registration sign-off and applying it;
+  - merging/installing `rung1-geometry` Replay;
+  - the capture-delay option;
+  - checking XUKO in a Replay output;
+  - the U4 GNDCLR init;
+  - the converter acceptance band;
+  - the F2 card line;
+  - the 25 Hz IMU path in the alignment;
+  - the stale parameter names.
+- **No-hardware TODO, UKF-only (~6–9.5 d more):**
+  - the F6 LAND-retry fix;
+  - SITL checks V1–V7 (on the MAVLink camera-flow path; SITL's own flow sensor is unusable with the Gazebo model);
+  - **U-d0: the U10 Replay-gate band must be PRE-REGISTERED before rung-1 day 3, or the gate becomes post hoc**;
+  - the stage-3 pre-registration;
+  - the real-FC failsafe parameters;
+  - the H10/F4 guard (scripted profiles only);
+  - the F2 investigation;
+  - the own-gyro driver rule;
+  - the multi-IMU swap;
+  - the B5/B8a/G6 rulings.
+- **Waits on hardware:**
+  - **board:** the exact build, bench P1–P10 (P5 arming refusal untested), the FC trigger-timing test, the IMU count,
+    the compass, the KakuteH7 revision (board_id 1048 shared);
+  - **sensors:** FLOW_TYPE, the rangefinder minimum against the ground clearance, the TODO_SUPERVISOR values, a
+    mocap-IR check;
+  - **mocap:** the system and protocol, the volume, the booking.
+- **Firmware kept ready:** `tools/build_board_fw.sh <BOARD>` (a temporary worktree; size and stack checks; never
+  flashes).
+  - 18 likely targets have hwdefs; MambaH743v4 is the tightest (~89 kB free projected).
+  - A KakuteH7 test build: 245,276 B free, 0 warnings.
+  - The script's stack sub-check had a bug, now fixed but not yet re-tested by a build. The `--extra-hwdef` path
+    (ALLOW_ARM_NO_COMPASS) has never been built.
