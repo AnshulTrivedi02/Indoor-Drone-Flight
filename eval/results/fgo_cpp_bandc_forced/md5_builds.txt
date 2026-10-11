@@ -23,3 +23,6 @@ ed058257984a763d18d94a81bd8bb3fa  fgo_cpp_frontend
 #   20 bytes at 0x378-0x38b = .note.gnu.build-id (a hash over the binary).
 # strings / nm of the OFF fgo_cpp_node, fgo_cpp_replay, fgo_cpp_frontend, fgo_cpp_live_replay: 0 matches for
 #   FORCED_GATE and forced_gate_fire (the switch is not compiled into any default binary).
+# installed ~/opt/fgo_cpp/bin/fgo_cpp_node 4c07374b5c18ce1eda556d5bb9ad0768 (re-checked after both v4 flights): .text (858311 B)
+#   and .rodata byte-identical to the scratch switch-OFF node 8c116954 (objcopy --only-section + cmp); the md5 differs
+#   only through the install build dir / RPATH (.dynstr/.dynamic) and the build-id.

@@ -61,6 +61,9 @@ Results directory: `eval/results/fgo_cpp_bandc_forced/`.
   - **`fgo_cpp_node` `f642cd37…` → `4c07374b5c18ce1eda556d5bb9ad0768`**;
   - replay `138962e5…`, live replay `358d9c53…`, front end `1e5c946d…`.
   - These md5s differ from the scratch build's because of the build and install paths (RPATH, `__FILE__`).
+  - **Installed node vs the scratch OFF node `8c116954`:** `.text` (858,311 B) and `.rodata` are byte-identical
+    (`objcopy --only-section` + `cmp`, re-checked after both v4 flights with the md5 still `4c07374b`). So the flown
+    node is the proven switch-OFF code.
 - **Acceptance** (`~/thesis_data/acceptance/fgo_d18_bandc/`, SHA256SUMS; inputs from the 2d dump, which §2 shows are
   the OFF build's outputs): inputs OK, **ACCEPT replay** (kf + yawgate `cmp`), **ACCEPT live (node path)** (L1 kf `cmp`).
   Log: `logs/install.log`.
