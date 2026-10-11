@@ -1,0 +1,33 @@
+== thesis symbols in /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/h7/out/MatekH743_with
+code (B): {'AP_AHRS_FGO': 1272, 'AP_AHRS_UKF': 1268, 'thesis_nav_check': 160, 'NavUKF': 13226, 'NavFGO': 3322} total 19248
+static data (B): {'thesis_nav_check': 2, 'NavUKF': 7320} total 7322
+largest thesis symbols:
+     3720 b NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::fs
+     2100 T NavUKF::update()
+     1800 b NavUKF::sigma_points()::L
+     1800 b NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double)::Pm
+     1028 T NavFGO::writeState(unsigned long long, Vector3<float> const&, Vector3<float> const&, QuaternionT<float> const&, Vector3<float> const&, Vector3<float> 
+      848 T NavUKF::log_state(unsigned long long)
+      772 T NavUKF::NavUKF()
+      772 T NavUKF::NavUKF()
+      760 T NavFGO::propagate(NavFGO::Imu const&)
+      728 T NavUKF::fuse_heading(NavUKF::Ev const&)
+      648 t NavUKF::predict(Vector3<double> const&, Vector3<double> const&, double) [clone .part.0]
+      600 T NavUKF::fuse_tag(NavUKF::Ev const&)
+      576 T NavUKF::tag_update(double, double, double, double, double)
+      556 T NavUKF::writeExtNavData(Vector3<float> const&, QuaternionT<float> const&, float, float, unsigned long, unsigned short)
+      548 T NavFGO::update()
+      536 t NavUKF::update_scalar(double, unsigned char, unsigned char, double, double, double&) [clone .part.0]
+      536 T NavUKF::load_geometry()
+      508 T NavUKF::process(double const*, double*, Vector3<double> const&, Vector3<double> const&, double)
+      504 T NavUKF::sigma_points()
+      428 T NavUKF::initialise(double, double)
+      410 T AP_AHRS_FGO::get_results(AP_AHRS_Backend::Estimates&)
+      392 t NavUKF::yaw_pseudo() [clone .part.0]
+      378 T AP_AHRS_UKF::get_results(AP_AHRS_Backend::Estimates&)
+      344 T NavUKF::writeOptFlowMeas(unsigned char, Vector2<float> const&, Vector2<float> const&, unsigned long, Vector3<float> const&, Vector3<float> const&, boo
+      328 T NavUKF::h(double const*, unsigned char, unsigned char) const
+  object 4 B AP_AHRS::_singleton
+  object 72680 B copter
+apj: {'image_size': 1569196, 'flash_total': 1703936, 'flash_free': 134740, 'git_identity': '6280a357', 'board_id': 1013}
+sections: {'.text': 1563808, '.ARM.exidx': 8, '.data': 4484, '.bss': 169492, '.ram0': 0, '.heap': 79460}

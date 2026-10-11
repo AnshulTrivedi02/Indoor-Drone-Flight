@@ -1,0 +1,4 @@
+Target          Text (B)  Data (B)  BSS (B)  Total Flash Used (B)  Free Flash (B)  External Flash Used (B)
+----------------------------------------------------------------------------------------------------------
+bin/arducopter   1564552      4636   178196               1569188          134740  Not Applicable         
+'copter' finished successfully (1m42.430s)

@@ -1,0 +1,29 @@
+537e0dcd808ddfe4c6d3265a44d983e3  /home/makerspace/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+b4f45b98ee9aef658e646d5f22be6b07  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/aph7/build/sitl/examples/UKF_Equiv
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+equiv cfi60_A state IDENTICAL (new vs installed)
+equiv cfi60_A pdiag IDENTICAL (new vs installed)
+equiv cfi60_C state IDENTICAL (new vs installed)
+equiv cfi60_C pdiag IDENTICAL (new vs installed)
+equiv cfi10_B state IDENTICAL (new vs installed)
+equiv cfi10_B pdiag IDENTICAL (new vs installed)
+equiv dsn_tex_r2 state IDENTICAL (new vs installed)
+equiv dsn_tex_r2_q state IDENTICAL (new vs installed)
+equiv h_s1_r1 state IDENTICAL (new vs installed)
+equiv h_s1_r1_q state IDENTICAL (new vs installed)
+equiv dsn_tex_r2 new == stored 2026-10-09 port output
+equiv h_s1_r1 new == stored 2026-10-09 port output
+IDENTITY_DONE

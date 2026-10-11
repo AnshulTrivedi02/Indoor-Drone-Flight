@@ -1,0 +1,3 @@
+acda76be0a7d07baac85d3f26067960f  build/sitl/tool/Replay
+b4f45b98ee9aef658e646d5f22be6b07  build/sitl/examples/UKF_Equiv
+a5070045f557395ed443aa8d4bfde060  build/sitl/bin/arducopter

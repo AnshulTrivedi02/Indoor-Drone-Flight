@@ -1,0 +1,80 @@
+{
+ "MatekH743_with": {
+  "board_id": 1013,
+  "image_size": 1569196,
+  "flash_total": 1703936,
+  "flash_free": 134740,
+  "git_identity": "6280a357",
+  "apj_md5": "7d8652f31e4ee51c47b710648554a0ac",
+  "text": 1563808,
+  "data": 4484,
+  "bss": 169492,
+  "heap_ram0": 79460,
+  "pstack": 7168,
+  "n_warnings": 0
+ },
+ "MatekH743_without": {
+  "board_id": 1013,
+  "image_size": 1545012,
+  "flash_total": 1703936,
+  "flash_free": 158924,
+  "git_identity": "6280a357",
+  "apj_md5": "79e2c872b4e180b49e604b5e08f47574",
+  "text": 1539620,
+  "data": 4484,
+  "bss": 129196,
+  "heap_ram0": 119756,
+  "pstack": 7168,
+  "n_warnings": 0
+ },
+ "Pixhawk6X_with": {
+  "board_id": 53,
+  "image_size": 1698684,
+  "flash_total": 1966080,
+  "flash_free": 267396,
+  "git_identity": "6280a357",
+  "apj_md5": "f68a3f5b33cc6f6bdf7cd425313d0176",
+  "text": 1693288,
+  "data": 4492,
+  "bss": 175788,
+  "heap_ram0": 335300,
+  "pstack": 7168,
+  "n_warnings": 0
+ },
+ "Pixhawk6X_without": {
+  "board_id": 53,
+  "image_size": 1674900,
+  "flash_total": 1966080,
+  "flash_free": 291180,
+  "git_identity": "6280a357",
+  "apj_md5": "ec7b189f32eea2fdd605b2c0015e023a",
+  "text": 1669504,
+  "data": 4492,
+  "bss": 135492,
+  "heap_ram0": 375596,
+  "pstack": 7168,
+  "n_warnings": 0
+ },
+ "MatekH743_with_precommit": {
+  "board_id": 1013,
+  "image_size": 1569196,
+  "flash_total": 1703936,
+  "flash_free": 134740,
+  "git_identity": "16535f9a",
+  "apj_md5": "e1dccf8fd2a67d94aac55b3b298d4ca2",
+  "text": 1563808,
+  "data": 4484,
+  "bss": 169492,
+  "heap_ram0": 79460,
+  "pstack": 7168,
+  "n_warnings": 0
+ },
+ "MatekH743_delta": {
+  "image_size": 24184,
+  "bss": 40296
+ },
+ "Pixhawk6X_delta": {
+  "image_size": 23784,
+  "bss": 40296
+ }
+}
