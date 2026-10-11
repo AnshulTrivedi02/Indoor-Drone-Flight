@@ -99,8 +99,7 @@ after this commit is added as a dated AMENDMENT below; no criterion is edited af
 
 ### 1.3 Hardware only (not exercisable meaningfully in SITL), with the reason
 
-- **B4a** (carrying through each face, disarmed) and **B4c** (a 60° hand tilt): SITL can only fake these by injecting
-  poses into the forwarder; the in-flight B4b side and top faces exercise the same code path with real motion.
+- ~~B4a, B4c~~: run in SITL after all (amendment A8).
 - **B4d** box geometry against real hold points and the capture volume.
 - **B6 hand procedure** (hand roll/pitch 10°, hand yaw 90° before arming), see D1.
 - **B7a true latency** (mocap exposure → watcher, chrony/PTP); in SITL `t_mocap` is the forwarder's wall clock.
@@ -144,6 +143,17 @@ any B-test was run. None changes a pass criterion; they change the vehicle set-u
   outside the box, and the watcher (correctly) stayed latched; and after B9b it tipped over (finding F2). (b) If the
   vehicle sits on the ground in LAND, still armed, the operator disarms it (as the safety pilot would): first after
   15 s, then after 4 s (finding F2). Every such disarm is logged ("OPERATOR DISARM") and is AFTER the criterion's event.
+- **A8 — B4a and B4c ARE run in SITL (pre-registered here, committed before the run).** §1.3 listed them as
+  hardware-only because SITL "can only inject poses". That reason does not hold: the harness moves the REAL simulated
+  vehicle with Gazebo `set_pose` (A7), the same "carry" used between hovers. Session `b4a` (ground parameters):
+  - **B4a:** disarmed, watcher confirmed; the vehicle is carried out through each side face ((0, 3.5), (3.5, 0),
+    (0, −3.5), (−3.5, 0) at z 0.2) and the top face ((0, 0, 3.3), from where it falls back). **Pass (§7.2, as worded):**
+    on each face, BREACH within **0.1 s** of the first pose outside (the watcher's own track); confirmation withdrawn;
+    ONE LAND sent (the FC mode becomes LAND if accepted while disarmed, otherwise the command and ACK are recorded); after
+    the first face, an arming attempt by the flight script is refused. Carried home and re-confirmed between faces.
+  - **B4c:** disarmed, the vehicle is carried to roll 65° (dropped from 0.6 m). **Pass:** BREACH "tilt".
+  - Duration: ground only, ~3 s per face — the breach is decided on the first outside pose.
+  - B4d (the box geometry against real hold points) stays hardware-only.
 - **Harness fix while a session ran (disclosed against the standing "no edits during a batch" rule):** the flight
   script's mode-name mapping (finding F4) was fixed in `flight_script.py` at ~12:50:30 while `hoverA2` was starting; the
   first flight-script process of that session was spawned after the edit (12:50:35), so every hoverA2 flight used the

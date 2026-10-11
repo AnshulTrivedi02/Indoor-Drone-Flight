@@ -116,6 +116,21 @@ def report(sess):
                   len(allm(ev, c, end, "WATCHER", "LAND command")), "; FC MODE events:",
                   [e[3] for e in allm(ev, c, end, "FC", "MODE|EV ARMED")])
             print(" watcher after SIGCONT:", [e[3][:100] for e in allm(ev, c, c + 5, "WATCHER")][:4])
+        elif n.startswith("B4a_") or n == "B4c_tilt65":
+            rows = track(sess)
+            tw0 = g("t_carry_w")
+            out = next((r for r in rows if r[0] > tw0 and (r[5] == 0 or n == "B4c_tilt65")), None)
+            br = first(ev, tw0, "WATCHER", "BREACH")
+            if n == "B4c_tilt65":
+                print(" breach:", iv(cm, tw0, br))
+            else:
+                print(f" first pose outside: {out[0] - tw0:+.3f} s after the carry ({out[2]:.2f},{out[3]:.2f},{out[4]:.2f})")
+                print(" first outside pose -> BREACH:", iv(cm, out[0], br))
+            print(" -> confirmation withdrawn:", iv(cm, tw0, first(ev, tw0, "WATCHER", "confirmation 0")))
+            print(" LAND sends:", [e[3][:60] for e in allm(ev, tw0, tw0 + 3, "WATCHER", "LAND (command|ACK)")])
+            print(" FC MODE:", [e[3] for e in allm(ev, tw0, tw0 + 3, "FC", "MODE")])
+            if "arm_attempt" in t:
+                print(" arm attempt:", t["arm_attempt"], t["arm_lines"])
         elif n.startswith("B4b"):
             rows = track(sess)
             m = g("t_marker_w")

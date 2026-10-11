@@ -199,12 +199,18 @@ class Stack:
 
     def carry_home(self):
         """The bench analogue of carrying the landed, DISARMED vehicle back to the spawn point (Gazebo set_pose)."""
-        req = ('name: "iris_with_ardupilot", position: {x: 0, y: 0, z: 0.2}, '
-               'orientation: {w: 0.70710678, x: 0, y: 0, z: 0.70710678}')
+        return self.teleport(0, 0, 0.2)
+
+    def teleport(self, x, y, z, q=(0.70710678, 0, 0, 0.70710678)):
+        """Gazebo set_pose of the vehicle (DISARMED only): the SITL analogue of carrying it by hand. Returns wall time."""
+        req = (f'name: "iris_with_ardupilot", position: {{x: {x}, y: {y}, z: {z}}}, '
+               f'orientation: {{w: {q[0]}, x: {q[1]}, y: {q[2]}, z: {q[3]}}}')
+        t = time.time()
         r = subprocess.run(["gz", "service", "-s", f"/world/{WORLD}/set_pose", "--reqtype", "gz.msgs.Pose",
                             "--reptype", "gz.msgs.Boolean", "--timeout", "3000", "--req", req],
                            capture_output=True, text=True, env=self.gz_env, timeout=10)
-        self.log(f"carry_home (set_pose to the spawn point): {r.stdout.strip()} {r.stderr.strip()[:200]}")
+        self.log(f"teleport ({x}, {y}, {z}) q={q}: {r.stdout.strip()} {r.stderr.strip()[:200]}")
+        return t
 
     # ---------- watchers ----------
     def watcher_cmd(self, *extra, name="watcher", sysid=211, fc_port=None, mocap_port=None, box=BOX, deps=True,

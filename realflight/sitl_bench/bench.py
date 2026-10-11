@@ -32,7 +32,7 @@ class Bench:
         os.makedirs(self.out)
         self._log = open(os.path.join(self.out, "bench.log"), "a", buffering=1)
         self.tests = open(os.path.join(self.out, "tests.jsonl"), "a", buffering=1)
-        self.stack = Stack(self.out, ground=(session in ("ground", "lua")), log=self.log)
+        self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a")), log=self.log)
         self.nfs = 0
         self.t_start = time.time()
 
@@ -553,6 +553,31 @@ class Bench:
         def unhang(fs):
             st.stop("flow_tracker", signal.SIGKILL, 3); st.start_deps(("flow_tracker",)); return {}
         self.hover("B9_hang_flow_tracker", lambda fs: self._kill("flow_tracker", signal.SIGUSR1), post=unhang)
+
+    def s_b4a(self):
+        """B4a / B4c (amendment A8): disarmed, the vehicle is 'carried' (Gazebo set_pose of the real simulated vehicle)
+        out through each side face and the top face, and tilted past 60 deg. After each: wait 3 s, record; after the
+        first face the flight script tries to arm (must be refused). Carried home and re-confirmed between faces."""
+        st = self.stack
+        faces = [("north_y+", (0, 3.5, 0.2)), ("east_x+", (3.5, 0, 0.2)), ("south_y-", (0, -3.5, 0.2)),
+                 ("west_x-", (-3.5, 0, 0.2)), ("top_z+", (0, 0, 3.3))]
+        for i, (face, pos) in enumerate(faces):
+            self.ensure_watcher()
+            t = st.teleport(*pos)
+            time.sleep(3)
+            info = {"face": face, "pos": pos, "t_carry_w": t}
+            if i == 0:
+                res, lines, fsl = self.script_arm("B4a_arm_after_breach", cap=70)
+                info.update(arm_attempt=res, arm_lines=lines)
+            self.rec(f"B4a_{face}", **info)
+            st.carry_home(); time.sleep(2); self.back_to_guided()
+        # B4c: tilt 65 deg (roll), dropped from 0.6 m
+        self.ensure_watcher()
+        t = st.teleport(0, 0, 0.6, q=(0.59637, 0.37993, 0.37993, 0.59637))
+        time.sleep(3)
+        self.rec("B4c_tilt65", t_carry_w=t)
+        st.carry_home(); time.sleep(2); self.back_to_guided()
+        self.ensure_watcher()
 
     def s_hoverB2(self):
         """hoverB from B9c on (hoverB run 2 stopped after B9b: the vehicle tipped over after touching down in LAND,
