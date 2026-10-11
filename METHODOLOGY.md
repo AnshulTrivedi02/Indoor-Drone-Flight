@@ -13635,3 +13635,24 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - `H_safety_ukf_b_v3`: S-A1/S-A3/S-A4 PASS; **S-A2 FAILS AS WORDED, 5.69 s against 5.5 s.** The relay drain recurs:
     flow was still received for 0.69 s after the kill, and the trigger fired exactly 5.00 s after the last flow.
 - **A ruling is needed on Band C** (the options are in handover §4.2).
+
+### 2f: C++ FGO on ARM64, EMULATED (handover `docs/handovers/2026-10-11_fgo_arm64.md`; `eval/results/fgo_cpp_arm64/RESULTS.md`)
+- **Toolchain** (already installed): aarch64 g++ 13.3, qemu-aarch64 8.2.2. Boost 1.83 arm64 debs were unpacked to
+  scratch; nothing was installed.
+- **Built:** GTSAM 4.2.1 (x86 flags plus `-ffp-contract=off`), the core and the replay/live-replay/frontend/probe
+  binaries. The ROS node was NOT built (no ROS 2 Jazzy arm64 here).
+- **Correctness under qemu, against the x86 2d build:**
+  - factors bit-identical;
+  - dsn_tex: 0/2039 gate mismatches, max/p99 |Δp| 0.074/0.0083 mm;
+  - fwdc heading: 1.3e-4 mm;
+  - live adapter L1: band PASS (9919 ODOMETRY frames byte-identical to pymavlink), not bit-identical.
+  - **Caveat for the Band C ruling:** one dsn_tex gate check came within 2.4e-6 of the 0.04 threshold, while ARM and
+    x86 differ by up to 6e-6. The Band C threshold tie could therefore flip on a Pi (it did not here).
+- **Pi timing, ESTIMATED** (the x86 step times × Geekbench ratios; qemu time relative only):
+  - p99 ~3.4 ms on a Pi 5 and ~8.7 ms on a Pi 4, against the 33 ms keyframe;
+  - the one 12.9 ms x86 spike scales to ~25 ms (Pi 5) / ~58–67 ms (Pi 4), i.e. one missed keyframe on a Pi 4.
+- **Needs the real Pi:**
+  - the true timing, thermal throttling and memory (43–52 MB qemu peak, an upper bound);
+  - the FC link, systemd, the clock sync;
+  - the ROS node build: it needs glibc ≥ 2.38 / GCC 13 libstdc++. Ubuntu 24.04 qualifies; Pi OS bookworm needs a native
+    rebuild.
