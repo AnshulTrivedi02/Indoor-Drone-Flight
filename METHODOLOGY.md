@@ -13991,3 +13991,17 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     - criteria 1–3 PASS: one scripted LAND; ALT_HOLD 0.22 s later; no mode records or script commands for 197 s;
     - **criterion 4 FAILS AS WORDED:** STABILIZE 0.22 s after disarm, when the TEST PILOT released its RC override
       (ch5 1295 → 1800). It is a harness (RC-release) effect, not a script command.
+
+### RULINGS (user, 2026-10-12): H10 criterion 4; U10 rules; F8 mitigations
+1. **H10 criterion 4 is recorded as FAILED AS WORDED.** The cause: the test harness released its simulated RC override
+   after disarm (ch5 1295 → 1800). The guard is ACCEPTED on criteria 1–3 plus the mock tests. No re-fly.
+2. **U10 rule 1 APPROVED:** a missing `ukf_stats.csv` fails the Cholesky check (G3).
+3. **U10 rule 2:**
+   - PREFERRED: give the replayed XUKO a DISTINCT instance or name, so onboard and replayed records cannot interleave;
+   - if that is not straightforward: scoring on the delayed-horizon UKF state for fork-flown logs is APPROVED.
+   - Report which was done, then send the COMPLETE U10 band for final sign-off.
+4. **F8 mitigations M1–M3:** each is to be sent to the user in a line.
+   - Procedural or detection-based mitigations are fine in principle.
+   - **Anything changing EKF3's configuration needs a stated reason:** EKF3 keeps its simulation settings unless real
+     hardware forces a change.
+   - **The full watcher bench is re-run ONCE, after the approved mitigations are in.**
