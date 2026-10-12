@@ -192,3 +192,14 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
     confirmation is demanded after a landing without the power-cycle). The watcher logic is unchanged.
   - **Resume:** `tools/run_wbench.sh hoverB --prefix wbench4 --checks all --from B9b` (a fresh boot). B5b-noflag, B6b
     ×2, B8a and B9a ×2 are taken from the aborted session, whose records stand.
+- **B3 (2026-10-12 ~18:08, after `wbench4_hoverC_20261012_175909`; before any further run). Harness fault; A10 repeat.**
+  - **What happened.** In B10a the vehicle drifted in ALT_HOLD and, during the pilot's LAND, crossed x = −3.003 m: a
+    box BREACH and a watcher LAND (the FC already in LAND; no mode change). That earlier "LAND command sent" line in
+    the session's STOP_LOG satisfied B10b(2)'s unanchored search at once (`t_land_cmd_seen_w` = the kill time), and the
+    follow-up check (anchored) then failed, so the simulated pilot's ALT_HOLD toggle was NEVER made: B10b(2)'s stimulus
+    was incomplete (the vehicle completed the watcher's LAND). Under A10, **B10b is NOT COMPLETED** on this attempt.
+  - **Fix:** `wait_text(..., since_bytes=nb)` for that search (harness only).
+  - **Repeat once:** `tools/run_wbench.sh hoverC --prefix wbench4 --checks all --only B10b` (a fresh boot: B10b is then
+    the first hover of its boot, unlike this attempt, which followed M1). Both attempts are reported. B10a, F6a and
+    F6b are taken from this session.
+

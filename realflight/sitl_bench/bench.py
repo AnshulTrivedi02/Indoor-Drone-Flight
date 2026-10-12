@@ -214,10 +214,10 @@ class Bench:
         self.stack.spawn(name, cmd, env=env)
         return name, os.path.join(self.out, f"{name}.log")
 
-    def wait_text(self, path, pattern, cap, proc=None):
+    def wait_text(self, path, pattern, cap, proc=None, since_bytes=0):
         t0 = time.time()
         while time.time() - t0 < cap:
-            if tail_has(path, pattern):
+            if tail_has(path, pattern, since_bytes):
                 return time.time()
             if not self.alive():
                 raise Abort("stack died")
@@ -846,7 +846,10 @@ class Bench:
             time.sleep(3)
             nb = os.path.getsize(os.path.join(self.out, "watcher", "STOP_LOG.txt"))
             r["t_dep_kill_w"] = st.send_sig("flow_tracker", 9)
-            tl = self.wait_text(os.path.join(self.out, "watcher", "STOP_LOG.txt"), r"LAND command sent", 6)
+            # amendment B3 (wbench4): search only the log written after the kill (an earlier LAND line, B10a's box
+            # breach, had satisfied the unanchored search at once, so the pilot's toggle was skipped)
+            tl = self.wait_text(os.path.join(self.out, "watcher", "STOP_LOG.txt"), r"LAND command sent", 6,
+                                since_bytes=nb)
             r["t_land_cmd_seen_w"] = tl
             if tl and tail_has(os.path.join(self.out, "watcher", "STOP_LOG.txt"), "LAND command sent", nb):
                 self.op.wait("FC in LAND", lambda: self.op.mode == LAND, 3)
