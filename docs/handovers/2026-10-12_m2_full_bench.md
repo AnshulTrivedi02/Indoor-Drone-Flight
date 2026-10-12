@@ -169,4 +169,15 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
 
 ### 1.6 Amendments (dated, after this commit)
 
-None yet.
+- **B1 (2026-10-12 ~17:16, after `wbench4_ground_20261012_170507` ABORTED; before any further run). No criterion
+  change; a resume under S6.**
+  - **What happened.** After B4c (the vehicle "carried" to roll 65° and dropped from 0.6 m, disarmed) EKF3 diverged
+    on the ground while the vehicle lay still: the watcher's `LOCAL_POSITION_NED` |v| rose from 0.8 m/s at the drop
+    to **192 m/s** within 90 s (mocap speed 0.000), and the FC yaw drifted to 24° off (mocap + tie). The watcher
+    refused with BOTH a "vel" and a "yaw" reason, so the S4 M1 fallback (vel-only) did not apply, and `ensure_watcher`
+    aborted after its 90 s cap, as registered. B1c-Lua was not reached.
+  - This is the M2 and F7 checks refusing a genuinely diverged estimator (observation for §2; in wbench2 the same B4c
+    was followed by B1c-Lua's reboot, and the watcher then had neither check).
+  - **Resume:** a new session `tools/run_wbench.sh ground --prefix wbench4 --checks all --from B1c_lua` (a fresh SITL
+    boot; B1c-Lua then reboots twice itself, as registered). Every test before B1c-Lua is taken from the aborted
+    session, whose records stand.
