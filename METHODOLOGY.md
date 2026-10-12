@@ -13839,3 +13839,26 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - From source, with an origin it would have commanded LAND at ~+2.1 s.
 - **SAFETY decision for the user:** the failsafe file sets an EKF origin (`AHRS_OPTIONS 16` + `AHRS_ORIGIN_*`).
   **Without an origin, the stock EKF failsafe never runs.**
+
+### Rung-1 pre-registration FINAL (`docs/rung1_preregistration.md` + `.json`, sha256 `884ff35171a1f767…`, signed off 2026-10-12); scoring items done (handover `docs/handovers/2026-10-12_r1_scoring_items.md`)
+- **The scored sections are identical to the draft.** Added before any data: a required `secondary` section.
+  - **Heading drift, deg/min:** the corridor `d15_drift` rule over the scoring window, unaligned. It reproduces the
+    stored values to ≤ 2e-15.
+  - **Cross-track drift, m/min:** lateral error growth over cruise, with one heading anchor at take-off. It needs the
+    mocap rigid body's x axis along the nose. It matches the corridor values to ≤ 7e-5.
+  - §9 item 11 carries the U4 FACTUAL correction (no criterion changed).
+- **Capture delay:** a strict `--delays-json` in the converter; `--result-flight` refuses anything not
+  pre-registered; the estimation procedure is fixed in prereg §6. The port side is a spec only.
+- **XUKO FINDING:** the installed fork Replay (`be7c4d18`) writes the UKF records WITHOUT their FMT, so XUKO cannot be
+  decoded from a Replay of a stock-flown log.
+  - Those undeclared records also break pymavlink (~15 XKF1 per core read instead of ~3,000). This would have broken
+    the primary EKF3 row and the gate.
+  - **Fixed on the scoring side:** `eval/df_reader.py` (strict), the scorer and `eval/replay_gate.py`.
+  - **A RULING is needed on the XUKO source:** the port emits the FMTs (preferred), or a `ukf_output.csv` with XUKO's
+    columns. `ukf_shadow.csv` is XUKF (horizon), not a substitute.
+- **Converter acceptance band** `eval/bin2fgo_accept.py` (A1–A10): on SITL all pass except the IMU check, which is
+  untestable without a wiggle. The first real acceptance log must contain the sync wiggle.
+- **The 25 Hz IMU path:** ≤ 3.5 ms bias (≤ 1.8 mm at 0.5 m/s).
+- **Parameter names fixed** in the docs, the parm comments and CLAUDE.md (current statements reworded; the historical
+  one bracketed). Plan R-e's "as EKF3 does" is corrected by the coordinator. **Open:** CLAUDE.md `FLOW_MAX`/
+  `FLOW_M_NSE`.
