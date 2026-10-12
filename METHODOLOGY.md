@@ -13905,3 +13905,30 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 8. **H10:** the bench driver's pilot-takeover guard is added to `fly_trial.py` before any scripted real flight, and
    tested.
 - **B6b's repeat pass stays recorded as POST HOC.**
+
+### F8 investigation (stored logs only; handover `docs/handovers/2026-10-12_f8_investigation.md`): CONFIRMED, stock EKF3 logic; the trigger and its size are partly SITL
+- **The mechanism** (ArduPilot 7bac20cb):
+  - flow drops out on the final descent (features 38 → 2 → 0), so EKF3 enters touchdown with 0.45 m/s wrong (true
+    −0.55 m/s);
+  - on the ground the flow range is ~0 (measured −0.04 m), so the innovation gate rejects any error above ~3σ
+    (`OptFlowFusion.cpp:665-668`): the East axis was locked out ~9 s;
+  - the North axis, still fused, blocks the 5 s fall-back to no-aiding (`Control.cpp:304-316`) and the stationary
+    zero-velocity fusion (`PosVelFusion.cpp:710-731`);
+  - no arming check looks at it (`Outputs.cpp:40-57`);
+  - the ramp is likely from a 0.9° roll error.
+- **Rate:** 5/46 arms with |V| > 0.3 m/s, ALL re-arms after a landing in the same boot; 0/10 first arms after boot
+  (SITL rates).
+- **The gate lock-out and the disabled fall-backs are REAL-vehicle behaviour.** The negative range and the size of the
+  dropout are SITL (the camera 5.5 cm below the floor).
+- **F2 FOLLOWS FROM F8:** the phantom velocity makes LAND demand up to 30° of lean on the ground, which defeats the
+  land detector (`land_detector.cpp:115,145`). This explains the B9b tip-over.
+- **B10b's second failsafe is a test-world artefact:** the vehicle drifted off the 20 × 20 m mat, so the LiDAR lost
+  the floor.
+- **Rung-1 risk:** LOW on the first arm of a boot; MODERATE on a re-arm in the same boot; a real F2 risk on any
+  LAND-mode touchdown.
+- **Proposed mitigations (NOT applied; for a ruling):**
+  - M1: power-cycle the FC before any re-arm, then re-verify the origin;
+  - M2: a card AND watcher arming check that the EKF |velocity| < 0.2 m/s for 5 s while mocap shows the vehicle
+    stationary (LOCAL_POSITION_NED; EKF_STATUS_REPORT cannot see it);
+  - M3: land in ALT_HOLD where safe; after a LAND touchdown, the pilot disarms within 2 s;
+  - M4: U4 (take off within 5 s) does not address F8.
