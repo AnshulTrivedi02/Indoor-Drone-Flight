@@ -1,0 +1,61 @@
+{
+ "flight": "H_s2v2_r1_plumbing",
+ "replay_dir": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/H_s2v2_r1",
+ "replay_bin": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/H_s2v2_r1/logs/00000001.BIN",
+ "replay_bin_sha256": "a45e1282d21b59d0aa70eb69e329d1707e827465500c604185f1576e1743b072",
+ "score": null,
+ "score_sha256": null,
+ "replay_binary_md5": "3c3b62bbe51d515b6ff0789a19fe1136",
+ "d_max_m": 1.0,
+ "g6_bands": [
+  0.05,
+  0.01,
+  0.05,
+  0.001
+ ],
+ "log_integrity": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "bad_fmt": [],
+  "redeclared_ids": []
+ },
+ "band_document": "docs/u10_replay_gate_band.md (SIGNED 2026-10-12)",
+ "preconditions": {
+  "pass": true,
+  "why": [],
+  "integrity_judged": [
+   "undeclared_types",
+   "bad_fmt",
+   "redeclared_ids"
+  ],
+  "skipped_bytes_reported": 0
+ },
+ "G1": {
+  "geometry_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/H_s2v2_r1/ukf_geometry.csv",
+  "mode": "log",
+  "resolved_at_ms": 5719,
+  "sources": {
+   "EK3_FLOW_DELAY": "log_parm",
+   "EK3_HGT_DELAY": "log_parm",
+   "EK3_BCN_DELAY": "log_parm",
+   "RNGFND1_MIN_MAX": "log_parm"
+  },
+  "late_parm": [],
+  "ukf_first_row_us": 9556000,
+  "first_arm_us": 26456629,
+  "init_before_arming": true,
+  "pass": true,
+  "why": []
+ },
+ "G3": {
+  "stats_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/H_s2v2_r1/ukf_stats.csv",
+  "n_chol_fail": 0,
+  "n_chol_retry": 0,
+  "replay_log_end_of_run": "thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0",
+  "pass": true,
+  "why": []
+ },
+ "mode": "plumbing (H log): G1 and G3 only",
+ "pass": true,
+ "verdict": "PLUMBING PASS"
+}

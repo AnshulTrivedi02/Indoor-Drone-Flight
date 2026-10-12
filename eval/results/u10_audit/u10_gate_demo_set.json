@@ -1,0 +1,20 @@
+{
+ "flights": {
+  "cl_a_tex_half": "FAIL: G5",
+  "cl_ukf_b_tex_r1_half_v2": "PASS",
+  "H_s2v2_r1": "FAIL: G5"
+ },
+ "n_usable": 3,
+ "min_flights": 4,
+ "replay_binary_md5s": [
+  "3c3b62bbe51d515b6ff0789a19fe1136"
+ ],
+ "d_max_m": 1.0,
+ "g6_bands": [
+  0.05,
+  0.01,
+  0.05,
+  0.001
+ ],
+ "verdict": "NOT EVALUABLE: 3 usable flights < 4"
+}

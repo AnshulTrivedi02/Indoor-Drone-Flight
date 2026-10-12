@@ -1,0 +1,1 @@
+--d-max 2.0: D_max is SIGNED at 1.0 m (docs/u10_replay_gate_band.md §4 G5); a different value is a dated amendment (§10), never a command-line choice

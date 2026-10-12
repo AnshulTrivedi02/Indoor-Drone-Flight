@@ -1,0 +1,9 @@
+cl_a_tex_half gated: FAIL: G5 {'preconditions': (True, []), 'G1': (True, []), 'G2': (True, []), 'G3': (True, []), 'G4': (True, []), 'G5': (False, ['start-aligned horizontal drift 5.154 m > D_max 1.0 m']), 'G6': (True, [])}
+cl_ukf_b_tex_r1_half_v2 gated: PASS {'preconditions': (True, []), 'G1': (True, []), 'G2': (True, []), 'G3': (True, []), 'G4': (True, []), 'G5': (True, []), 'G6': (True, [])}
+H_s2v2_r1 gated: FAIL: G5 {'preconditions': (True, []), 'G1': (True, []), 'G2': (True, []), 'G3': (True, []), 'G4': (True, []), 'G5': (False, ['drift not computable (initial segment moves only 0.605 m horizontally (< min_extent_m = 1.0): yaw undefined): G5 FAILS (N1)']), 'G6': (True, [])}
+H_s2v2_r1 plumbing: PLUMBING PASS
+H_s2v2_r1 verification: VERIFICATION PASS G5 reported: ['drift not computable (initial segment moves only 0.605 m horizontally (< min_extent_m = 1.0): yaw undefined): G5 FAILS (N1)']
+d-max 2.0 rc=1 : --d-max 2.0: D_max is SIGNED at 1.0 m (docs/u10_replay_gate_band.md §4 G5); a different value is a dated amendment (§10), never a command-line choice
+nostats: FAIL: G3, G5 ['ukf_stats.csv missing: the Replay run did not end normally (U10 rule 1)']
+set: NOT EVALUABLE: 3 usable flights < 4
+DEMO_DONE

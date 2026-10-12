@@ -1,0 +1,131 @@
+{
+ "flight": "cl_ukf_b_tex_r1_half_v2",
+ "replay_dir": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_ukf_b_tex_r1_half_v2",
+ "replay_bin": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_ukf_b_tex_r1_half_v2/logs/00000001.BIN",
+ "replay_bin_sha256": "1ccecdfefce6d454dad2a8e7dfe49a902312211846a6f80619de6bc50dac260a",
+ "score": "/home/makerspace/thesis_ws/.claude/worktrees/agent-a5792858aabb1c0d5/eval/results/u10_final/score_cl_ukf_b_tex_r1_half_v2_sim_truth_inst.json",
+ "score_sha256": "dc1d2b3bf9c2141486d36bfb49f1305a28f2cf14cccc897ed6c0924803fb41a9",
+ "replay_binary_md5": "3c3b62bbe51d515b6ff0789a19fe1136",
+ "d_max_m": 1.0,
+ "g6_bands": [
+  0.05,
+  0.01,
+  0.05,
+  0.001
+ ],
+ "log_integrity": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "bad_fmt": [],
+  "redeclared_ids": []
+ },
+ "band_document": "docs/u10_replay_gate_band.md (SIGNED 2026-10-12)",
+ "preconditions": {
+  "pass": true,
+  "why": [],
+  "integrity_judged": [
+   "undeclared_types",
+   "bad_fmt",
+   "redeclared_ids"
+  ],
+  "skipped_bytes_reported": 0
+ },
+ "G1": {
+  "geometry_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_ukf_b_tex_r1_half_v2/ukf_geometry.csv",
+  "mode": "log",
+  "resolved_at_ms": 5750,
+  "sources": {
+   "EK3_FLOW_DELAY": "log_parm",
+   "EK3_HGT_DELAY": "log_parm",
+   "EK3_BCN_DELAY": "log_parm",
+   "RNGFND1_MIN_MAX": "log_parm"
+  },
+  "late_parm": [],
+  "ukf_first_row_us": 5692000,
+  "first_arm_us": 24517296,
+  "init_before_arming": true,
+  "pass": true,
+  "why": []
+ },
+ "G3": {
+  "stats_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_ukf_b_tex_r1_half_v2/ukf_stats.csv",
+  "n_chol_fail": 0,
+  "n_chol_retry": 0,
+  "replay_log_end_of_run": "thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0",
+  "pass": true,
+  "why": []
+ },
+ "G2": {
+  "pass": true,
+  "why": [],
+  "W_s": [
+   53.492928,
+   338.77037
+  ],
+  "n_rows_in_W": 7131,
+  "rows_without_horiz_pos_rel": 0,
+  "rows_unhealthy": 0,
+  "rows_flow_age_ge_5000ms": 0,
+  "flow_age_max_ms": 70.0,
+  "longest_gap_incl_W_edges_s": 0.040000000000020464,
+  "max_gap_s": 0.5
+ },
+ "G4": {
+  "pass": true,
+  "ukf_evo_a_m": 0.194286,
+  "ekf3_r_evo_a_m": 0.179028,
+  "band_m": 0.358056,
+  "why": []
+ },
+ "G5": {
+  "pass": true,
+  "final_h_m": 0.667250779983793,
+  "d_max_m": 1.0,
+  "segment_fc_s": [
+   53.502674,
+   57.462674
+  ],
+  "init_segment_extent_h_m": 1.9835914780780843,
+  "why": []
+ },
+ "G6": {
+  "applies": true,
+  "pairing_start_us": 15692000,
+  "paired": 8276,
+  "paired_span_us": [
+   15692000,
+   346692000
+  ],
+  "E1_pos3d_max_m": 0.01244300756260615,
+  "E1_pos3d_rms_m": 0.002528812617319363,
+  "E3_yaw_max_deg": 0.003976944833993912,
+  "E5_increments": {
+   "FXa": {
+    "flying": 9883.0,
+    "replay": 9883.0,
+    "rel_diff": 0.0
+   },
+   "FYa": {
+    "flying": 9873.0,
+    "replay": 9873.0,
+    "rel_diff": 0.0
+   },
+   "Ra": {
+    "flying": 9465.0,
+    "replay": 9464.0,
+    "rel_diff": 0.00010565240359218173
+   }
+  },
+  "bands": {
+   "E1_max_m": 0.05,
+   "E1_rms_m": 0.01,
+   "E3_deg": 0.05,
+   "E5_rel": 0.001
+  },
+  "pass": true,
+  "why": []
+ },
+ "mode": "gated flight",
+ "pass": true,
+ "verdict": "PASS"
+}

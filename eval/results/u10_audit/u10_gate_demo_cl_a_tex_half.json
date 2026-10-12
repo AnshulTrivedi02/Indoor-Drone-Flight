@@ -1,0 +1,102 @@
+{
+ "flight": "cl_a_tex_half",
+ "replay_dir": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_a_tex_half",
+ "replay_bin": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_a_tex_half/logs/00000001.BIN",
+ "replay_bin_sha256": "7b5fc24446b13c036f55aadd0f60c26e765575dc5bbe66bd1068f841d38ed0ae",
+ "score": "/home/makerspace/thesis_ws/.claude/worktrees/agent-a5792858aabb1c0d5/eval/results/u10_final/score_cl_a_tex_half_sim_truth_inst.json",
+ "score_sha256": "b12b38ae59d1dbf1f881ed74e9279a13b3e0e4902899a0c49a3c78400069f55b",
+ "replay_binary_md5": "3c3b62bbe51d515b6ff0789a19fe1136",
+ "d_max_m": 1.0,
+ "g6_bands": [
+  0.05,
+  0.01,
+  0.05,
+  0.001
+ ],
+ "log_integrity": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "bad_fmt": [],
+  "redeclared_ids": []
+ },
+ "band_document": "docs/u10_replay_gate_band.md (SIGNED 2026-10-12)",
+ "preconditions": {
+  "pass": true,
+  "why": [],
+  "integrity_judged": [
+   "undeclared_types",
+   "bad_fmt",
+   "redeclared_ids"
+  ],
+  "skipped_bytes_reported": 0
+ },
+ "G1": {
+  "geometry_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_a_tex_half/ukf_geometry.csv",
+  "mode": "log",
+  "resolved_at_ms": 5494,
+  "sources": {
+   "EK3_FLOW_DELAY": "log_parm",
+   "EK3_HGT_DELAY": "log_parm",
+   "EK3_BCN_DELAY": "log_parm",
+   "RNGFND1_MIN_MAX": "log_parm"
+  },
+  "late_parm": [],
+  "ukf_first_row_us": 5436000,
+  "first_arm_us": 24149423,
+  "init_before_arming": true,
+  "pass": true,
+  "why": []
+ },
+ "G3": {
+  "stats_file": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_a_tex_half/ukf_stats.csv",
+  "n_chol_fail": 0,
+  "n_chol_retry": 0,
+  "replay_log_end_of_run": "thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0",
+  "pass": true,
+  "why": []
+ },
+ "G2": {
+  "pass": true,
+  "why": [],
+  "W_s": [
+   53.131053,
+   267.38137
+  ],
+  "n_rows_in_W": 5356,
+  "rows_without_horiz_pos_rel": 0,
+  "rows_unhealthy": 0,
+  "rows_flow_age_ge_5000ms": 0,
+  "flow_age_max_ms": 70.0,
+  "longest_gap_incl_W_edges_s": 0.040000000000020464,
+  "max_gap_s": 0.5
+ },
+ "G4": {
+  "pass": true,
+  "ukf_evo_a_m": 1.014846,
+  "ekf3_r_evo_a_m": 1.264794,
+  "band_m": 2.529588,
+  "why": []
+ },
+ "G5": {
+  "pass": false,
+  "final_h_m": 5.1536926079756356,
+  "d_max_m": 1.0,
+  "segment_fc_s": [
+   53.131674,
+   57.121674
+  ],
+  "init_segment_extent_h_m": 1.9886581131947374,
+  "why": [
+   "start-aligned horizontal drift 5.154 m > D_max 1.0 m"
+  ]
+ },
+ "G6": {
+  "applies": false,
+  "pass": true,
+  "why": [],
+  "note": "no onboard XUKF: stock-flown, G6 does not apply"
+ },
+ "mode": "gated flight",
+ "pass": false,
+ "verdict": "FAIL: G5"
+}
