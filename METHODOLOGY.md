@@ -13932,3 +13932,35 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     stationary (LOCAL_POSITION_NED; EKF_STATUS_REPORT cannot see it);
   - M3: land in ALT_HOLD where safe; after a LAND touchdown, the pilot disarms within 2 s;
   - M4: U4 (take off within 5 s) does not address F8.
+
+### F7 yaw pre-arm check BUILT and SITL-bench PASSED (`wbench3_f7`; handover `docs/handovers/2026-10-12_f7_cards.md`)
+- **The rule** (`realflight/watcher/yawcheck.py`):
+  - while disarmed, the FC ATTITUDE yaw must agree with the mocap heading plus a tie within 5°, for ≥ 1 s, with mocap
+    valid and the attitude fresh;
+  - armed: informational only (never withdraws confirmation, never lands);
+  - the tie is captured from the FC's first EKF-origin broadcast per boot (1 s average, the vehicle still); a reboot
+    drops it;
+  - fail-closed: the watcher must run before the origin is set.
+- **15 new tests; 106/106 realflight tests pass.**
+- **SITL (pre-registered; all PASS as worded):**
+  - never confirmed → arm refused;
+  - agree → confirmed 1.38 s, armed;
+  - rotated 15° unseen by the gyros → withdrawn +0.64 s, arm refused, no LAND;
+  - back → confirmed 1.41 s;
+  - armed with a 17° disagreement → log only.
+- **Flight cards:**
+  - §1a power-on procedure (the origin after all EKF3 cores initialise; verified by GPS_GLOBAL_ORIGIN plus ORGN; no
+    arming without it; the F7 check before every arming);
+  - B6b (agreement at +90°);
+  - B9 (the sync wiggle);
+  - U4 (take off within 5 s);
+  - the rigid-body x along the nose;
+  - ABORT–LURCH.
+  - B11 is added to §7.2; S12/S13 to the stage-3 draft.
+- **PROCESS SLIP (recorded):** the agent's final branch commit landed while the H10 verification flight held
+  FLIGHT_LOCK (the check and the commit ran in one command). It was on the agent's own branch only; the flight's code
+  was unchanged.
+- **Open:**
+  - the full §7.2 watcher bench re-run after this watcher change;
+  - a ground-station tool for the origin step;
+  - the heading sense under a gyro-sensed rotation is unverified in SITL.
