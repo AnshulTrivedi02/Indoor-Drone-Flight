@@ -1,0 +1,10 @@
+[Errno 111] Connection refused sleeping
+[Errno 111] Connection refused sleeping
+[h10_pilot 1791780132.789] link not up yet ([Errno 111] Connection refused); retrying
+[h10_pilot 1791780137.789] connected tcp:127.0.0.1:5762
+[h10_pilot 1791780165.331] FC armed in GUIDED (boot_ms 0)
+[h10_pilot 1791780179.737] FC shows LAND (the script's) (boot_ms 0)
+[h10_pilot 1791780180.107] PILOT: mode switch -> position 5 (ALT_HOLD), throttle centred, 0.370 s after LAND (boot_ms 0)
+[h10_pilot 1791780180.325] FC shows ALT_HOLD, 0.218 s after the switch move (boot_ms 0)
+[h10_pilot 1791780380.163] PILOT: mode switch -> position 2 (LAND) after a 200.1 s hold (boot_ms 0)
+[h10_pilot 1791780393.439] FC DISARMED (boot_ms 0); releasing the override
