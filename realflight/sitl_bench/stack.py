@@ -134,7 +134,8 @@ class Stack:
                                                                          text=True).stdout, 60)
         self.spawn("relay", [VENV_PY, "-m", "realflight.sitl_bench.udp_link", "--fc-side", str(P["serial1"]),
                              "--gcs-side", str(P["watcher_fc"]), "--ctl-port", str(P["relay_ctl"]),
-                             "--log", os.path.join(self.out, "relay_events.txt")])
+                             "--log", os.path.join(self.out, "relay_events.txt"),
+                             "--hb-log", os.path.join(self.out, "relay_fc_hb.csv")])
         self.spawn("mavproxy", [f"{HOME}/venv-ardupilot/bin/mavproxy.py", "--daemon", "--retries", "5",
                                 "--master", "tcp:127.0.0.1:5760", "--out", f"127.0.0.1:{P['fs']}",
                                 "--out", "127.0.0.1:14551", "--out", "127.0.0.1:14552", "--out", "127.0.0.1:14553"], cwd=self.out)
@@ -304,6 +305,7 @@ class Operator:
         self.lock = threading.Lock()
         self.run = True
         self.last_hb = 0
+        self.origins = []         # (wall, lat_e7, lon_e7, alt_mm) of every GPS_GLOBAL_ORIGIN from the FC
         threading.Thread(target=self._loop, daemon=True).start()
         threading.Thread(target=self._streams, daemon=True).start()
 
@@ -345,6 +347,10 @@ class Operator:
             elif ty == "PARAM_VALUE":
                 n = msg.param_id if isinstance(msg.param_id, str) else msg.param_id.decode()
                 self.params[n.rstrip("\0")] = (msg.param_value, t)
+            elif ty == "GPS_GLOBAL_ORIGIN" and src == 1:
+                self.note("ORIGIN", f"lat={msg.latitude} lon={msg.longitude} alt={msg.altitude}")
+                with self.lock:
+                    self.origins.append((t, msg.latitude, msg.longitude, msg.altitude))
             elif ty == "COMMAND_ACK" and src == 1:
                 self.note("ACK", f"cmd={msg.command} result={msg.result}")
                 with self.lock:

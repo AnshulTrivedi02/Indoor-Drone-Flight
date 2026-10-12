@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 """SITL ONLY (item 2c): the watcher bench B0-B10 in SITL with a simulated mocap feed, using the REAL-HARDWARE watcher
 (realflight/watcher). Pre-registered criteria: docs/handovers/2026-10-11_watcher_sitl_bench.md §1 (committed first).
-VERIFICATION flights only, named wbench_*; never result data. Run through tools/run_wbench.sh (FLIGHT_LOCK).
+VERIFICATION flights only, named wbench_* (2026-10-11) and wbench2_* (the 2026-10-12 re-run after F6, pre-registered in
+docs/handovers/2026-10-12_watcher_bench_rerun.md §1); never result data. Run through tools/run_wbench.sh (FLIGHT_LOCK):
+  bench.py <session> [--from TEST] [--prefix wbench2]
+--from skips every test before TEST in that session (recovery after an aborted session, without editing code).
 
 Every injection and observation is logged with the wall clock (tests.jsonl, op_events.csv, the watcher's STOP_LOG,
 the flight-script logs, forwarder.csv, relay_events.txt); FC events come from the session's own dataflash logs and
 are mapped to the wall clock with op_systime.csv by analyse.py.
 """
+import argparse
 import json
 import os
+import re
 import signal
+import subprocess
 import sys
 import time
 
 from realflight.sitl_bench.stack import BOX, P, REPO, RC, VENV_PY, Operator, Stack, tail_has
+
+M_REQUEST_MESSAGE = 512      # MAV_CMD_REQUEST_MESSAGE
 
 OUTROOT = os.path.expanduser("~/thesis_data/wbench")
 HOLD = [{"takeoff": 1.5}, {"hold": 10}, {"hold": 60}]          # inject at "STEP 2 hold start"
@@ -26,15 +34,31 @@ class Abort(Exception):
 
 
 class Bench:
-    def __init__(self, session):
+    def __init__(self, session, prefix="wbench2", start=None):
         self.session = session
-        self.out = os.path.join(OUTROOT, f"wbench_{session}_{time.strftime('%Y%m%d_%H%M%S')}")
+        self.start_from = start
+        self.go = start is None
+        self.out = os.path.join(OUTROOT, f"{prefix}_{session}_{time.strftime('%Y%m%d_%H%M%S')}")
         os.makedirs(self.out)
         self._log = open(os.path.join(self.out, "bench.log"), "a", buffering=1)
         self.tests = open(os.path.join(self.out, "tests.jsonl"), "a", buffering=1)
         self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a")), log=self.log)
         self.nfs = 0
         self.t_start = time.time()
+        # provenance: the code under test (watcher + driver) is pinned by the commit
+        vcs = "g" + "it"
+        head = subprocess.run([vcs, "-C", REPO, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        dirty = subprocess.run([vcs, "-C", REPO, "status", "--porcelain", "realflight/", "tools/run_wbench.sh"],
+                               capture_output=True, text=True).stdout.strip()
+        self.log(f"PROVENANCE repo {REPO} HEAD {head}; realflight/ uncommitted changes: {dirty or 'none'}")
+
+    def should_run(self, name):
+        """--from: skip tests before `start_from` (by test-name prefix) in this session."""
+        if not self.go and name.startswith(self.start_from):
+            self.go = True
+        if not self.go:
+            self.log(f"skipping {name} (--from {self.start_from})")
+        return self.go
 
     def log(self, s):
         line = f"{time.strftime('%H:%M:%S')} {time.time():.3f} {s}"
@@ -56,21 +80,65 @@ class Bench:
         self.rc = RC(self.log)
         if self.op.wait("FC heartbeat on the operator link", lambda: self.op.armed is not None, 60, self.alive) is None:
             raise Abort("no FC heartbeat on SERIAL2")
-        # Amendment A1 (pre-registered fallback 1): an EKF origin, as for any non-GPS ArduPilot vehicle; without it
-        # EKF3 on flow reports no position estimate and GUIDED arming fails ("Need Position Estimate", smoke run 1).
-        for _ in range(3):
-            self.op.m.mav.set_gps_global_origin_send(1, -353632610, 1491652300, 584000, int(time.time() * 1e6))
-            time.sleep(0.5)
-        self.op.note("OP", "SET_GPS_GLOBAL_ORIGIN sent (A1)")
+        # Amendment A1, FIXED 2026-10-12 (the B8a harness fault): the origin is sent only AFTER EKF3 has initialised
+        # and is then VERIFIED (GPS_GLOBAL_ORIGIN received). The 2026-10-11 driver sent it 3x in the first ~1.5 s,
+        # before "EKF3 IMU0 initialised", and EKF3 refused it (setOriginLLH, AP_NavEKF3_Control.cpp:692): no origin
+        # in any session, so Copter::ekf_check() returned at once (ekf_check.cpp:35-39).
+        self.establish_origin(self.t_start, 0)
         snap = {}
         for n in ("AHRS_EKF_TYPE", "FLOW_TYPE", "EK3_SRC1_VELXY", "EK3_SRC1_POSZ", "GPS1_TYPE", "FS_GCS_ENABLE",
                   "FS_GCS_TIMEOUT", "MAV_GCS_SYSID", "MAV_GCS_SYSID_HI", "FS_OPTIONS", "MAV_OPTIONS", "ARMING_RUDDER",
                   "ARMING_SKIPCHK", "FS_EKF_ACTION", "FS_THR_ENABLE", "DISARM_DELAY", "LOG_REPLAY", "LOG_DISARMED",
-                  "SIM_FLOW_ENABLE", "SIM_RC_FAIL", "SCR_ENABLE", "FLTMODE_CH"):
+                  "SIM_FLOW_ENABLE", "SIM_RC_FAIL", "SCR_ENABLE", "FLTMODE_CH", "EK3_IMU_MASK", "FS_EKF_THRESH"):
             snap[n] = self.op.param_get(n)
         self.rec("param_snapshot_start", params=snap)
         if snap["AHRS_EKF_TYPE"] != 3 or snap["MAV_GCS_SYSID"] != 211 or snap["FS_GCS_ENABLE"] != 5:
             raise Abort(f"parameters not as loaded: {snap}")
+
+    ORIGIN = (-353632610, 1491652300, 584000)    # lat/lon 1e7 deg, alt mm: SITL's default home (CMAC), as 2026-10-11
+
+    def establish_origin(self, t_since, mp_off, cap=120):
+        """Send SET_GPS_GLOBAL_ORIGIN only after EVERY EKF3 core has reported "EKF3 IMUn initialised" in this boot
+        (STATUSTEXT on the operator link since t_since, or in MAVProxy's console log after byte mp_off), then verify
+        it: a GPS_GLOBAL_ORIGIN from the FC received after the send (the AHRS sends one when the origin becomes valid,
+        AP_AHRS.cpp:439, and on MAV_CMD_REQUEST_MESSAGE 49). Retried at 1 Hz; the session aborts without a verified
+        origin. The dataflash ORGN record is checked after the session (results.py)."""
+        mask = int(self.op.param_get("EK3_IMU_MASK"))
+        cores = [f"IMU{i}" for i in range(8) if mask & (1 << i)]
+        mp = os.path.join(self.out, "mavproxy.log")
+        t0 = time.time()
+
+        def inited(c):
+            pat = f"EKF3 {c} initialised"
+            if any(pat in x[2] for x in self.op.texts_since(t_since) if x[1] == 1):
+                return True
+            try:
+                with open(mp) as f:
+                    f.seek(mp_off)
+                    return pat in f.read()
+            except OSError:
+                return False
+        if self.op.wait("EKF3 initialised (all cores)", lambda: all(inited(c) for c in cores), cap, self.alive) is None:
+            raise Abort(f"EKF3 did not report initialised for {cores} within {cap} s")
+        t_gate = time.time()
+        self.log(f"EKF3 initialised on {cores} ({t_gate - t0:.1f} s); sending the origin")
+        lat, lon, alt = self.ORIGIN
+        for k in range(1, 31):
+            t_send = time.time()
+            self.op.m.mav.set_gps_global_origin_send(1, lat, lon, alt, int(time.time() * 1e6))
+            self.op.note("OP", f"SET_GPS_GLOBAL_ORIGIN sent (A1 fixed), try {k}")
+            time.sleep(0.2)
+            self.op.m.mav.command_long_send(1, 1, M_REQUEST_MESSAGE, 0, 49, 0, 0, 0, 0, 0, 0)
+            ok = self.op.wait("GPS_GLOBAL_ORIGIN", lambda: any(o[0] >= t_send for o in self.op.origins), 1.0)
+            if ok is not None:
+                o = [o for o in self.op.origins if o[0] >= t_send][0]
+                match = (o[1], o[2]) == (lat, lon)
+                self.rec("origin", t_gate_w=t_gate, t_sent_w=t_send, t_verified_w=o[0], tries=k, cores=cores,
+                         lat=o[1], lon=o[2], alt_mm=o[3], matches_sent=match)
+                if not match:
+                    raise Abort(f"origin verified but not the one sent: {o}")
+                return o[0]
+        raise Abort("EKF origin not verified after 30 tries")
 
     def teardown(self):
         try:
@@ -176,6 +244,8 @@ class Bench:
     def hover(self, name, inject, profile=None, h10=False, marker="STEP 2 hold start", post=None, cap=180):
         """Arm via the flight-script gate, take off, hold; at `marker` (+1 s) call inject() -> dict of wall times.
         Then wait for the disarm (or `observe` seconds if given), and record."""
+        if not self.should_run(name):
+            return None
         self.log(f"===== {name}")
         self.home_if_needed()
         self.ensure_watcher()
@@ -274,12 +344,13 @@ class Bench:
 
     def reboot(self, settle=12):
         self.op.armed = None
+        try:
+            mp_off = os.path.getsize(os.path.join(self.out, "mavproxy.log"))
+        except OSError:
+            mp_off = 0
         t = self.op.reboot()
         self.op.wait("FC back after reboot", lambda: self.op.armed is not None, 90, self.alive)
-        time.sleep(3)
-        for _ in range(3):
-            self.op.m.mav.set_gps_global_origin_send(1, -353632610, 1491652300, 584000, int(time.time() * 1e6))
-            time.sleep(0.5)
+        self.establish_origin(t, mp_off)      # gated on this boot's EKF3 initialisation, then verified (A1 fixed)
         self.op.wait("EKF settled", lambda: False, settle)
         return t
 
@@ -287,102 +358,192 @@ class Bench:
     def s_ground(self):
         st = self.stack
         # ---- B1a: watcher never started
-        res, lines, fsl = self.script_arm("B1a")
-        self.rec("B1a", outcome=res, lines=lines, fs_log=fsl, armed_ever=False if res != "armed" else True)
+        if self.should_run("B1a"):
+            res, lines, fsl = self.script_arm("B1a")
+            self.rec("B1a", outcome=res, lines=lines, fs_log=fsl, armed_ever=False if res != "armed" else True)
+        self.ground_main()
+
+    def ground_main(self):
+        """Every ground test after B1a, each guarded by --from (B1c needs a boot in which no watcher ran: run it
+        only from the start of a session)."""
+        st = self.stack
         # ---- B1c (stock firmware, watcher never started in this boot)
-        self.op.param_set("ARMING_RUDDER", 2)
-        t, armed = self.stick_arm()
-        self.rec("B1c_i_stick_rudder2", t_w=t, armed=armed)
-        self.disarm_now()
-        self.op.param_set("ARMING_RUDDER", 0)
-        t, armed = self.stick_arm()
-        self.rec("B1c_ii_stick_rudder0", t_w=t, armed=armed)
-        self.disarm_now()
-        t, r, armed, texts = self.mav_arm(force=False)
-        self.rec("B1c_iii_mavlink_nonforce", t_w=t, ack=r, armed=armed, fc_texts=texts)
-        self.disarm_now()
-        t, r, armed, texts = self.mav_arm(force=True)
-        self.rec("B1c_iv_mavlink_force", t_w=t, ack=r, armed=armed, fc_texts=texts)
-        self.disarm_now()
+        if self.should_run("B1c"):
+            self.op.param_set("ARMING_RUDDER", 2)
+            t, armed = self.stick_arm()
+            self.rec("B1c_i_stick_rudder2", t_w=t, armed=armed)
+            self.disarm_now()
+            self.op.param_set("ARMING_RUDDER", 0)
+            t, armed = self.stick_arm()
+            self.rec("B1c_ii_stick_rudder0", t_w=t, armed=armed)
+            self.disarm_now()
+            t, r, armed, texts = self.mav_arm(force=False)
+            self.rec("B1c_iii_mavlink_nonforce", t_w=t, ack=r, armed=armed, fc_texts=texts)
+            self.disarm_now()
+            t, r, armed, texts = self.mav_arm(force=True)
+            self.rec("B1c_iv_mavlink_force", t_w=t, ack=r, armed=armed, fc_texts=texts)
+            self.disarm_now()
         # ---- B0
-        self.ensure_watcher()
-        res, lines, fsl = self.script_arm("B0")
-        self.rec("B0", outcome=res, lines=lines, fs_log=fsl)
+        if self.should_run("B0"):
+            self.ensure_watcher()
+            res, lines, fsl = self.script_arm("B0")
+            self.rec("B0", outcome=res, lines=lines, fs_log=fsl)
         # ---- B1b / B9d: a dependency down
-        self.ensure_watcher()
-        t = st.send_sig("flow_tracker", 9)
-        time.sleep(2.5)
-        res, lines, fsl = self.script_arm("B1b")
-        self.rec("B1b", t_dep_kill_w=t, outcome=res, lines=lines, fs_log=fsl)
-        st.start_deps(("flow_tracker",))
+        if self.should_run("B1b"):
+            self.ensure_watcher()
+            t = st.send_sig("flow_tracker", 9)
+            time.sleep(2.5)
+            res, lines, fsl = self.script_arm("B1b")
+            self.rec("B1b", t_dep_kill_w=t, outcome=res, lines=lines, fs_log=fsl)
+            st.start_deps(("flow_tracker",))
         # ---- B5c: stream stop 3 s, restore, confirmation only after >= 2 s fresh
-        self.ensure_watcher()
-        t_stop = st.fwd(0, mode="stop")
-        time.sleep(3.0)
-        t_res = st.fwd(0, mode="normal")
-        t_conf = self.op.wait("re-confirm", lambda: st.confirmed(), 60)
-        time.sleep(3)
-        self.rec("B5c", t_stop_w=t_stop, t_restore_w=t_res, t_reconfirm_file_w=t_conf)
-        self.back_to_guided()
+        if self.should_run("B5c"):
+            self.ensure_watcher()
+            t_stop = st.fwd(0, mode="stop")
+            time.sleep(3.0)
+            t_res = st.fwd(0, mode="normal")
+            t_conf = self.op.wait("re-confirm", lambda: st.confirmed(), 60)
+            time.sleep(3)
+            self.rec("B5c", t_stop_w=t_stop, t_restore_w=t_res, t_reconfirm_file_w=t_conf)
+            self.back_to_guided()
         # ---- B6a: wrong rigid body (name and ID)
-        self.ensure_watcher()
-        t = st.fwd(0, body_name="other_body", body_id=2)
-        time.sleep(2)
-        res, lines, fsl = self.script_arm("B6a", cap=90)
-        self.rec("B6a", t_wrong_w=t, outcome=res, lines=lines, fs_log=fsl)
-        st.fwd(0, body_name="thesis_quad", body_id=1)
+        if self.should_run("B6a"):
+            self.ensure_watcher()
+            t = st.fwd(0, body_name="other_body", body_id=2)
+            time.sleep(2)
+            res, lines, fsl = self.script_arm("B6a", cap=90)
+            self.rec("B6a", t_wrong_w=t, outcome=res, lines=lines, fs_log=fsl)
+            st.fwd(0, body_name="thesis_quad", body_id=1)
         # ---- B1-native: started, confirmed, killed while disarmed -> the FC refuses ("GCS failsafe on")
-        self.ensure_watcher()
-        time.sleep(3)
-        t_kill = st.send_sig("watcher", 9)
-        time.sleep(6.0)
-        t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
-        self.rec("B1_native_refusal", t_kill_w=t_kill, t_arm_w=t, ack=r, armed=armed, fc_texts=texts)
-        self.disarm_now()
-        t_restart = time.time()
-        self.ensure_watcher()
-        cleared = self.op.wait("GCS Failsafe Cleared", lambda: any("Cleared" in x[2] for x in
-                                                                  self.op.texts_since(t_restart)), 20)
-        res, lines, fsl = self.script_arm("B1_native_rearm")
-        self.rec("B1_native_after_restart", t_restart_w=t_restart, t_cleared_w=cleared, outcome=res, lines=lines)
-        # ---- B7b: 10 LAND commands through the watcher's own FcLink on the watcher's link (watcher stopped)
+        if self.should_run("B1_native"):
+            self.ensure_watcher()
+            time.sleep(3)
+            t_kill = st.send_sig("watcher", 9)
+            time.sleep(6.0)
+            t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
+            self.rec("B1_native_refusal", t_kill_w=t_kill, t_arm_w=t, ack=r, armed=armed, fc_texts=texts)
+            self.disarm_now()
+            t_restart = time.time()
+            self.ensure_watcher()
+            cleared = self.op.wait("GCS Failsafe Cleared", lambda: any("Cleared" in x[2] for x in
+                                                                      self.op.texts_since(t_restart)), 20)
+            res, lines, fsl = self.script_arm("B1_native_rearm")
+            self.rec("B1_native_after_restart", t_restart_w=t_restart, t_cleared_w=cleared, outcome=res, lines=lines)
+        if self.should_run("B7b"):
+            self.b7b()
+        if self.should_run("F6c"):
+            self.f6c()
+        # ---- B10c: RC failsafe model, armed on the ground
+        if self.should_run("B10c"):
+            self.ensure_watcher()
+            fs, fsl = self.flight([{"ground": 60}])
+            if self.wait_text(fsl, r"STEP 0 ground start", 120, fs):
+                time.sleep(2)
+                t = self.op.param_set("SIM_RC_FAIL", 1)
+                td = self.wait_disarmed(30)
+                texts = [x[2] for x in self.op.texts_since(t - 0.1) if x[1] == 1]
+                self.rec("B10c", t_rcfail_w=t, t_disarm_seen_w=td, fc_texts=texts)
+            else:
+                self.rec("B10c", result="NOT_RUN", why="did not arm", fs_log=fsl)
+            self.op.param_set("SIM_RC_FAIL", 0)
+            self.end_flight(fs); self.safe_down(); time.sleep(2); self.back_to_guided()
+        # ---- B4a / B4c (amendment A8), now inside the ground session (same ground parameters)
+        if self.should_run("B4a"):
+            self.s_b4a()
+        # ---- B1c-Lua (G6 ii): the draft aux-auth script; 45 s settle after each reboot (the 2026-10-11 re-run's
+        # value: with 12 s, (a) was confounded by "Gyros inconsistent")
+        if self.should_run("B1c_lua"):
+            self.lua_block(settle=45)
+
+    def b7b(self):
+        """B7b: 12 LAND commands through the watcher's own FcLink (system ID 213) on the watcher's link (watcher
+        stopped), disarmed, each followed by a GUIDED reset. WARM-UP (pre-registered 2026-10-12, before any run):
+        before command 0 the link must have received >= 1 FC HEARTBEAT (a udpin link cannot send before it knows its
+        peer), request_streams() is called, and >= 3 FC heartbeats must arrive within 1 s (the 5 Hz request took
+        effect); the warm-up time is recorded. During the 12 commands the link is polled continuously and
+        request_streams() is re-called every 2 s, as the watcher's own loop does (mocap_watch.py). Timing starts at
+        each command's send; command i is sent only once a heartbeat received after its GUIDED reset shows GUIDED."""
+        st = self.stack
         st.stop("watcher", 15)
         from realflight.watcher.fc_link import FcLink
         fl = FcLink(f"udpin:127.0.0.1:{P['watcher_fc']}", 213, log=self.log)
+        hbs = []
+        last_req = [0.0]
+
+        def pump(dur, until=None):
+            t_end = time.time() + dur
+            while time.time() < t_end:
+                for e in fl.poll():
+                    if e[0] == "fc_hb":
+                        hbs.append((time.time(), e[2]))
+                fl.service()
+                if time.time() - last_req[0] > 2.0:
+                    fl.request_streams(); last_req[0] = time.time()
+                if until and until():
+                    return True
+                time.sleep(0.005)
+            return False
+        t_w0 = time.time()
+        if not pump(30, lambda: len(hbs) >= 1):
+            self.rec("B7b", result="NOT_RUN", why="no FC heartbeat on the watcher link in 30 s"); fl.close(); return
+        t_first_hb = time.time()
+        fl.request_streams(); last_req[0] = time.time()
+        warm_ok = False
+        t_cap = time.time() + 15
+        while time.time() < t_cap:
+            pump(0.2)
+            n1 = [h for h in hbs if h[0] >= time.time() - 1.0 and h[0] > last_req[0]]
+            if len(n1) >= 3:
+                warm_ok = True; break
+        warm = {"t_start_w": t_w0, "t_first_hb_w": t_first_hb, "t_streams_req_w": last_req[0],
+                "t_warm_ok_w": time.time() if warm_ok else None, "warm_ok": warm_ok,
+                "warmup_s": round(time.time() - t_w0, 3)}
+        self.log(f"B7b warm-up: {warm}")
+        if not warm_ok:
+            self.rec("B7b", result="NOT_RUN", why="warm-up: < 3 FC heartbeats within 1 s after request_streams",
+                     warmup=warm); fl.close(); return
         cmds = []
         for i in range(12):
-            self.op.set_mode(GUIDED)
-            time.sleep(1.5)
+            t_reset = self.op.set_mode(GUIDED)[0]
+            pump(1.5)
+            ok = pump(3.0, lambda: any(h[0] > t_reset + 0.05 and h[1] == GUIDED for h in hbs[-5:]))
             fl.reset_episode()
             t_send = time.time()
             fl.command_land(f"B7b latency command {i}")
-            t_ack = None
-            while time.time() - t_send < 3:
-                fl.poll(); fl.service()
-                if fl.land and fl.land["acked"]:
-                    t_ack = time.time(); break
-                time.sleep(0.005)
-            cmds.append({"i": i, "t_send_w": t_send, "t_ack_w": t_ack, "tries": fl.land["tries"],
-                         "result": fl.land["result"]})
-            time.sleep(1.5)
+            t_ack = [None]
+
+            def acked():
+                if fl.land and fl.land["acked"] and t_ack[0] is None:
+                    t_ack[0] = time.time()
+                return False
+            pump(3.0, acked)
+            cmds.append({"i": i, "t_send_w": t_send, "t_ack_w": t_ack[0], "tries": fl.land["tries"],
+                         "result": fl.land["result"], "m0": fl.land["m0"], "stopped": fl.land["stopped"],
+                         "guided_seen_before_send": bool(ok)})
+            pump(1.5)
         fl.close()
-        self.rec("B7b", commands=cmds)
+        self.rec("B7b", commands=cmds, warmup=warm,
+                 hb_rate_hz=round(len([h for h in hbs if h[0] > warm["t_streams_req_w"]]) /
+                                  max(1e-3, hbs[-1][0] - warm["t_streams_req_w"]), 2))
         self.back_to_guided()
-        # ---- B10c: RC failsafe model, armed on the ground
-        self.ensure_watcher()
-        fs, fsl = self.flight([{"ground": 60}])
-        if self.wait_text(fsl, r"STEP 0 ground start", 120, fs):
-            time.sleep(2)
-            t = self.op.param_set("SIM_RC_FAIL", 1)
-            td = self.wait_disarmed(30)
-            texts = [x[2] for x in self.op.texts_since(t - 0.1) if x[1] == 1]
-            self.rec("B10c", t_rcfail_w=t, t_disarm_seen_w=td, fc_texts=texts)
-        else:
-            self.rec("B10c", result="NOT_RUN", why="did not arm", fs_log=fsl)
-        self.op.param_set("SIM_RC_FAIL", 0)
-        self.end_flight(fs); self.safe_down(); time.sleep(2); self.back_to_guided()
-        # ---- B1c-Lua (G6 ii): the draft aux-auth script
-        self.lua_block(settle=12)
+
+    def f6c(self):
+        """F6c (NEW, pre-registered 2026-10-12): the positive re-send case, on the ground (disarmed, GUIDED). The
+        relay drops the watcher's FIRST DO_SET_MODE(LAND) frame (a lost command, not a lost ACK); FC heartbeats keep
+        flowing, so rule R must re-send exactly once, after an evidence heartbeat showing GUIDED. Trigger: the
+        watcher's dependency loss (SIGKILL of the flow_tracker stub)."""
+        st = self.stack
+        self.back_to_guided()
+        self.ensure_watcher(restart=True)
+        time.sleep(3)
+        t_arm = st.relay("drop_land_once")
+        time.sleep(0.5)
+        t_kill = st.send_sig("flow_tracker", 9)
+        time.sleep(6)
+        self.rec("F6c", t_relay_drop_land_once_w=t_arm, t_flow_tracker_sig9_w=t_kill)
+        st.relay("pass")
+        st.start_deps(("flow_tracker",))
+        self.back_to_guided()
 
     def lua_block(self, settle, name="B1c_lua"):
         st = self.stack
@@ -639,6 +800,58 @@ class Bench:
             return r
         self.hover("B10b", b10b, profile=[{"takeoff": 1.5}, {"hold": 10}, {"hold": 200}], h10=True,
                    post=rc_reset, cap=240)
+        # F6a / F6b (NEW, pre-registered 2026-10-12): the watcher's LAND from GUIDED, then the pilot's ALT_HOLD
+        self.f6_inflight("F6a_acked", ack_strip=False, hb_hold=0.0)
+        self.f6_inflight("F6b_unacked", ack_strip=True, hb_hold=0.6)
+
+    def f6_inflight(self, name, ack_strip, hb_hold):
+        """Hover in GUIDED. The flight script is SIGKILLed 2.0 s before the injection (as B2b), so the watcher is the
+        only process that can command LAND (fly_trial.py's as-is WatcherLost LAND in GUIDED is the open H10 item, not
+        F6). Throttle stick centred. Optionally the relay strips every COMMAND_ACK FC -> watcher (the unacknowledged
+        LAND) and holds FC HEARTBEATs to the watcher for `hb_hold` s after the LAND frame (so the pilot's switch
+        reaches the FC before any heartbeat showing LAND reaches the watcher). Injection: SIGKILL of the flow_tracker
+        stub (dependency loss, --dep-loss land) -> the watcher's ONE LAND. The pilot moves the mode switch to ALT_HOLD
+        0.33 s after the watcher's send (B10b's measured toggle), observes 10 s, then lands with the LAND switch."""
+        st, rc = self.stack, self.rc
+        stop_log = os.path.join(self.out, "watcher", "STOP_LOG.txt")
+
+        def inject(fs):
+            r = {}
+            rc.set(ch3=1500)
+            r["t_fs_kill_w"] = st.send_sig(fs, 9)
+            time.sleep(2.0)
+            if ack_strip:
+                r["t_ack_strip_on_w"] = st.relay("ack_strip on")
+            if hb_hold:
+                r["t_hb_hold_armed_w"] = st.relay(f"hb_hold {hb_hold}")
+            time.sleep(0.2)
+            nb = os.path.getsize(stop_log)
+            r["t_flow_tracker_sig9_w"] = st.send_sig("flow_tracker", 9)
+            t_send = None
+            t_cap = time.time() + 6
+            while time.time() < t_cap and t_send is None:
+                with open(stop_log) as f:
+                    f.seek(nb)
+                    m = re.search(r"LAND command sent \(try 1, wall ([0-9.]+)", f.read())
+                if m:
+                    t_send = float(m.group(1))
+                time.sleep(0.005)
+            r["t_land_send_w"] = t_send
+            if t_send is None:
+                r["error"] = "no watcher LAND within 6 s"
+                return r
+            time.sleep(max(0.0, t_send + 0.33 - time.time()))
+            r["t_toggle_althold_w"] = rc.set(ch5=SW["alt_hold"])
+            time.sleep(10.0)
+            r["t_land_switch_w"] = rc.set(ch5=SW["land"])
+            return r
+
+        def post(fs):
+            st.relay("ack_strip off"); st.relay("hb_hold 0")
+            st.start_deps(("flow_tracker",))
+            rc.set(ch5=SW["guided"], ch3=1000); time.sleep(2)
+            return {}
+        self.hover(name, inject, profile=[{"takeoff": 1.5}, {"hold": 10}, {"hold": 60}], post=post)
 
     def s_smoke(self):
         self.ensure_watcher()
@@ -647,8 +860,13 @@ class Bench:
 
 
 def main():
-    s = sys.argv[1]
-    b = Bench(s)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("session")
+    ap.add_argument("--from", dest="start", default=None)
+    ap.add_argument("--prefix", default="wbench2")
+    a = ap.parse_args()
+    s = a.session
+    b = Bench(s, prefix=a.prefix, start=a.start)
     code = 0
     try:
         b.setup()
