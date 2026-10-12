@@ -1,0 +1,32 @@
+0a214d29d363d8dc0e9bf29f896f7571d21aa0e9
+ukf-jitter-fix
+be7c4d1880e09289d282ab8f076c7240  Replay
+180cf2d81cc004b8212b5bc447eb1113  UKF_Equiv
+before:
+be7c4d1880e09289d282ab8f076c7240  build/sitl/tool/Replay
+180cf2d81cc004b8212b5bc447eb1113  build/sitl/examples/UKF_Equiv
+5f94ea1aa7e223f90343c1948d443d32  build/sitl/bin/arducopter
+Waf: Entering directory `/home/makerspace/ardupilot_ukf/build/sitl'
+Waf: Leaving directory `/home/makerspace/ardupilot_ukf/build/sitl'
+
+BUILD SUMMARY
+Build directory: /home/makerspace/ardupilot_ukf/build/sitl
+Target       Text (B)  Data (B)  BSS (B)  Total Flash Used (B)  Free Flash (B)  External Flash Used (B)
+-------------------------------------------------------------------------------------------------------
+tool/Replay   2942477    116851   297280               3059328  Not Applicable  Not Applicable         
+
+'replay' finished successfully (8.808s)
+Waf: Entering directory `/home/makerspace/ardupilot_ukf/build/sitl'
+Waf: Leaving directory `/home/makerspace/ardupilot_ukf/build/sitl'
+
+BUILD SUMMARY
+Build directory: /home/makerspace/ardupilot_ukf/build/sitl
+Target              Text (B)  Data (B)  BSS (B)  Total Flash Used (B)  Free Flash (B)  External Flash Used (B)
+--------------------------------------------------------------------------------------------------------------
+examples/UKF_Equiv   1159913     45921   155112               1205834  Not Applicable  Not Applicable         
+
+'build' finished successfully (7.565s)
+after:
+e82c050b41cb0e76ac7d81f536370a8f  build/sitl/tool/Replay
+fe548d36f42069f34e62692a4c748ade  build/sitl/examples/UKF_Equiv
+5f94ea1aa7e223f90343c1948d443d32  build/sitl/bin/arducopter

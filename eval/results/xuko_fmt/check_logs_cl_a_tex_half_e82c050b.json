@@ -1,0 +1,203 @@
+{
+ "new": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_a_tex_half/logs/00000001.BIN",
+ "df_reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "n_resyncs": 0,
+  "bad_fmt": [],
+  "declared_UKF": [
+   "XUKF",
+   "XUKO",
+   "XUKS"
+  ],
+  "counts": {
+   "XUKO": 6673,
+   "XUKF": 6673,
+   "XUKS": 6673,
+   "XUKH": 0,
+   "XUKT": 0
+  },
+  "XKF1_per_core": {
+   "0": 2684,
+   "1": 2684,
+   "100": 2684,
+   "101": 2684
+  },
+  "XUKO_strictly_increasing": true,
+  "XUKO_dt_ms_median": 39.993,
+  "XUKO_dt_ms_max": 40.994,
+  "XUKO_rate_hz": 25.000006276230593,
+  "XUKO_first": {
+   "TimeUS": 5496437,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006080963183194399,
+   "Pitch": -0.004560100380331278,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "TimeUS": 272376370,
+   "PN": 118.33050537109375,
+   "PE": -4.436312675476074,
+   "PD": -2.3754990100860596,
+   "VN": 0.18235036730766296,
+   "VE": 0.8141942024230957,
+   "VD": -0.07371179014444351,
+   "Roll": -15.033486366271973,
+   "Pitch": -0.2012653350830078,
+   "Yaw": 284.72796630859375,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 1,
+   "GpN": 653
+  }
+ },
+ "pymavlink_fast": {
+  "reader": "mavutil.mavlink_connection (default)",
+  "XKF1_per_core": {
+   "0": 2684,
+   "1": 2684,
+   "100": 2684,
+   "101": 2684
+  },
+  "XUKO": 6673,
+  "XUKO_first": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 5496437,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006080963183194399,
+   "Pitch": -0.004560100380331278,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 272376370,
+   "PN": 118.33050537109375,
+   "PE": -4.436312675476074,
+   "PD": -2.3754990100860596,
+   "VN": 0.18235036730766296,
+   "VE": 0.8141942024230957,
+   "VD": -0.07371179014444351,
+   "Roll": -15.033486366271973,
+   "Pitch": -0.2012653350830078,
+   "Yaw": 284.72796630859375,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 1,
+   "GpN": 653
+  },
+  "XUKO_first_equals_df_reader": true
+ },
+ "pymavlink_python": {
+  "reader": "DFReader.DFReader_binary (pure Python)",
+  "XKF1_per_core": {
+   "0": 2684,
+   "1": 2684,
+   "100": 2684,
+   "101": 2684
+  },
+  "XUKO": 6673,
+  "XUKO_first": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 5496437,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006080963183194399,
+   "Pitch": -0.004560100380331278,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 272376370,
+   "PN": 118.33050537109375,
+   "PE": -4.436312675476074,
+   "PD": -2.3754990100860596,
+   "VN": 0.18235036730766296,
+   "VE": 0.8141942024230957,
+   "VD": -0.07371179014444351,
+   "Roll": -15.033486366271973,
+   "Pitch": -0.2012653350830078,
+   "Yaw": 284.72796630859375,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 1,
+   "GpN": 653
+  },
+  "XUKO_first_equals_df_reader": true
+ },
+ "time_base": {
+  "XUKO_span_s": [
+   5.496437,
+   272.37637
+  ],
+  "XKF1_0_span_s": [
+   4.086967,
+   272.38637
+  ],
+  "XUKO_inside_XKF1_span": true,
+  "XUKF_at_XUKO_stamps_horiz_diff_m": {
+   "n": 6671,
+   "median": 0.0022594956164764548,
+   "p99": 0.0051117367039404706,
+   "max": 2.1624720281008023
+  }
+ },
+ "byte_identity_vs_old": {
+  "old": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_replay/logs/00000001.BIN",
+  "old_size": 26681170,
+  "new_size": 26681569,
+  "removed_records": {
+   "FMT XUKF": 1,
+   "FMTU XUKF": 1,
+   "FMT XUKO": 1,
+   "FMTU XUKO": 1,
+   "FMT XUKS": 1,
+   "FMTU XUKS": 1
+  },
+  "ukf_type_ids": {
+   "XUKS": 228,
+   "XUKO": 229,
+   "XUKF": 230
+  },
+  "new_minus_added_fmt_equals_old": false,
+  "structural": {
+   "records_compared": 785881,
+   "old_fully_consumed": true,
+   "xuko_records_differing_in_TimeUS_only": 6673,
+   "other_differing_records": {},
+   "PASS": true
+  }
+ },
+ "PASS_a": true
+}

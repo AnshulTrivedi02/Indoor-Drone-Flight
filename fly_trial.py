@@ -826,12 +826,73 @@ def stop(master, settle_sim_s: float = 2.0) -> None:
     log("WARNING: stop settle did not confirm via sim time within cap - proceeding to land anyway.")
 
 
+# ---- H10 pilot-takeover guard (ruling 8, 2026-10-12) ----
+# Ported from the watcher bench's flight-script layer (realflight/sitl_bench/flight_script.py, --h10-guard, B10b): the
+# script does NOT command LAND when the FC is in a pilot mode (STABILIZE 0, ALT_HOLD 2) or already in LAND (9). The FC
+# mode is read PASSIVELY from the FC's own latest HEARTBEAT (pymavlink's per-system state; no extra receive), as the
+# bench driver does. Extended to the case the bench rule did not cover in fly_trial.py: once the pilot has taken a pilot
+# mode after a LAND (the script's or the watcher's), the script sends NO further LAND or mode change for the rest of the
+# run (latched), and only watches for the disarm. ArduCopter custom_mode numbers (pinned here, as in the bench).
+H10_PILOT_OR_LAND = {0: "STABILIZE", 2: "ALT_HOLD", 9: "LAND"}
+H10_PILOT_MODES = (0, 2)
+_h10 = {"pilot": None}            # the pilot mode name once a takeover is seen (latched), else None
+
+
+def _h10_fc_heartbeat(master, hb=None):
+    """The FC's own HEARTBEAT: `hb` if it is one, else the latest one already received (passive). GCS heartbeats
+    (MAVProxy relays them) and other systems are ignored."""
+    if hb is None:
+        st = getattr(master, "sysid_state", {}).get(master.target_system)
+        hb = None if st is None else st.messages.get("HEARTBEAT")
+    if hb is None or hb.get_srcSystem() != master.target_system or hb.type == mavutil.mavlink.MAV_TYPE_GCS:
+        return None
+    return hb
+
+
+def fc_mode(master):
+    hb = _h10_fc_heartbeat(master)
+    return None if hb is None else hb.custom_mode
+
+
+def _h10_note(master, hb) -> None:
+    """Called only after a LAND exists (the script's or the watcher's): latch a pilot takeover."""
+    hb = _h10_fc_heartbeat(master, hb)
+    if _h10["pilot"] is None and hb is not None and hb.custom_mode in H10_PILOT_MODES:
+        _h10["pilot"] = H10_PILOT_OR_LAND[hb.custom_mode]
+        log(f"H10: the pilot took {_h10['pilot']} after LAND; the script sends NO further LAND or mode change")
+
+
+def _h10_wait_disarm(master, wall_clock_cap_s: float) -> bool:
+    """Watch for the disarm WITHOUT sending anything (the pilot, or the FC's LAND, has the vehicle)."""
+    t0 = time.time()
+    while time.time() - t0 < wall_clock_cap_s:
+        hb = master.recv_match(type='HEARTBEAT', blocking=True, timeout=2.0)
+        fc = _h10_fc_heartbeat(master, hb)
+        if fc is None:
+            continue
+        _h10_note(master, fc)
+        if not (fc.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED):
+            log("Disarmed - landed (H10: no command sent).")
+            return True
+    return False
+
+
 def land(master, wall_clock_cap_s: float = 180.0) -> None:
+    mode = fc_mode(master)
+    if _h10["pilot"] is not None or mode in H10_PILOT_OR_LAND:
+        why = (f"the pilot took {_h10['pilot']}" if _h10["pilot"] is not None
+               else f"FC already in {H10_PILOT_OR_LAND[mode]}")
+        log(f"H10 guard: {why} -> NOT commanding LAND; watching for the disarm only "
+            f"(wall-clock cap {wall_clock_cap_s:.0f}s)")
+        if _h10_wait_disarm(master, wall_clock_cap_s):
+            return
+        raise TrialFailure(f"Did not confirm disarm within {wall_clock_cap_s:.0f}s (H10: no command sent)")
     log(f"Landing (wall-clock cap {wall_clock_cap_s:.0f}s)...")
     master.set_mode_apm('LAND')
     t0 = time.time()
     while time.time() - t0 < wall_clock_cap_s:
         hb = master.recv_match(type='HEARTBEAT', blocking=True, timeout=2.0)
+        _h10_note(master, hb)
         if hb is not None and not (hb.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED):
             log("Disarmed - landed.")
             return

@@ -1,0 +1,178 @@
+{
+ "new": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_scratch2/cl_ukf_b_tex_r1_half_v2/logs/00000001.BIN",
+ "df_reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "n_resyncs": 0,
+  "bad_fmt": [],
+  "declared_UKF": [
+   "XUKF",
+   "XUKH",
+   "XUKO",
+   "XUKS"
+  ],
+  "counts": {
+   "XUKO": 17077,
+   "XUKF": 17077,
+   "XUKS": 17077,
+   "XUKH": 4770,
+   "XUKT": 0
+  },
+  "XKF1_per_core": {
+   "0": 3425,
+   "1": 3425,
+   "100": 3425,
+   "101": 3425
+  },
+  "XUKO_strictly_increasing": false,
+  "XUKO_dt_ms_median": 37.986,
+  "XUKO_dt_ms_max": 40.994,
+  "XUKO_rate_hz": 49.92943738927498,
+  "XUKO_first": {
+   "TimeUS": 4749718,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006745487917214632,
+   "Pitch": -0.005583301652222872,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "TimeUS": 346752370,
+   "PN": 150.77870178222656,
+   "PE": 0.03352303057909012,
+   "PD": -0.19789934158325195,
+   "VN": -0.0012765274150297046,
+   "VE": -0.0017844438552856445,
+   "VD": 0.005893753841519356,
+   "Roll": -0.022860320284962654,
+   "Pitch": 0.01775040477514267,
+   "Yaw": 0.15336330235004425,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 0,
+   "GpN": 694
+  }
+ },
+ "pymavlink_fast": {
+  "reader": "mavutil.mavlink_connection (default)",
+  "XKF1_per_core": {
+   "0": 3425,
+   "1": 3425,
+   "100": 3425,
+   "101": 3425
+  },
+  "XUKO": 17077,
+  "XUKO_first": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 4749718,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006745487917214632,
+   "Pitch": -0.005583301652222872,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 346752370,
+   "PN": 150.77870178222656,
+   "PE": 0.03352303057909012,
+   "PD": -0.19789934158325195,
+   "VN": -0.0012765274150297046,
+   "VE": -0.0017844438552856445,
+   "VD": 0.005893753841519356,
+   "Roll": -0.022860320284962654,
+   "Pitch": 0.01775040477514267,
+   "Yaw": 0.15336330235004425,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 0,
+   "GpN": 694
+  },
+  "XUKO_first_equals_df_reader": true
+ },
+ "pymavlink_python": {
+  "reader": "DFReader.DFReader_binary (pure Python)",
+  "XKF1_per_core": {
+   "0": 3425,
+   "1": 3425,
+   "100": 3425,
+   "101": 3425
+  },
+  "XUKO": 17077,
+  "XUKO_first": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 4749718,
+   "PN": 0.0,
+   "PE": 0.0,
+   "PD": -0.20000000298023224,
+   "VN": 0.0,
+   "VE": 0.0,
+   "VD": 0.0,
+   "Roll": 0.006745487917214632,
+   "Pitch": -0.005583301652222872,
+   "Yaw": 0.0,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 2,
+   "GpT": 0,
+   "GpN": 0
+  },
+  "XUKO_last": {
+   "mavpackettype": "XUKO",
+   "TimeUS": 346752370,
+   "PN": 150.77870178222656,
+   "PE": 0.03352303057909012,
+   "PD": -0.19789934158325195,
+   "VN": -0.0012765274150297046,
+   "VE": -0.0017844438552856445,
+   "VD": 0.005893753841519356,
+   "Roll": -0.022860320284962654,
+   "Pitch": 0.01775040477514267,
+   "Yaw": 0.15336330235004425,
+   "OV": 1,
+   "EvO": 0,
+   "EvMx": 10,
+   "GpT": 0,
+   "GpN": 694
+  },
+  "XUKO_first_equals_df_reader": true
+ },
+ "time_base": {
+  "XUKO_span_s": [
+   4.749718,
+   346.75237
+  ],
+  "XKF1_0_span_s": [
+   4.342871,
+   346.74237
+  ],
+  "XUKO_inside_XKF1_span": true,
+  "XUKF_at_XUKO_stamps_horiz_diff_m": {
+   "n": 17073,
+   "median": 0.0027456609889587977,
+   "p99": 0.005937393020082866,
+   "max": 0.04231872228196237
+  }
+ },
+ "PASS_a": false
+}
