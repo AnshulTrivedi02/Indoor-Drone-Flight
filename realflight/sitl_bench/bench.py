@@ -1171,8 +1171,12 @@ class Bench:
         reasons_probe = self._wreasons()
         _, flags = st.watch_file()
         n_land0 = self._wlog().count("LAND command sent")
+        # amendment B5: the FC is still in LAND after the landing and the RC switch already sits at GUIDED, so the
+        # mode must be commanded (otherwise the arm is refused "Land mode not armable", not by the watcher)
+        op.set_mode(GUIDED)
+        op.wait("GUIDED", lambda: op.mode == GUIDED, 5)
         t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
-        self.rec("M2_R_probe", t_detect_w=t_det, t_last_confirmed_w=self._last_confirmed_w(), polls_confirmed=[p for p in polls if p[1]][:10],
+        self.rec("M2_R_probe", mode_at_probe=op.mode, t_detect_w=t_det, t_last_confirmed_w=self._last_confirmed_w(), polls_confirmed=[p for p in polls if p[1]][:10],
                  n_polls=len(polls), t_probe_w=t, ack=r, armed=armed, fc_texts=texts,
                  op_v_at_probe=[round(x[1], 3) for x in v_probe], watcher_last_reason_line=reasons_probe,
                  file_flags=flags, watcher_land_sends_total=self._wlog().count("LAND command sent"),

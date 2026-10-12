@@ -214,4 +214,15 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
     attempts (re-enabled for the probe's M1 step).
   - **Repeat once (A10):** `tools/run_wbench.sh m2 --prefix wbench4 --checks all`. If it also yields no runaway, M2-R
     is reported NOT COMPLETED and nothing more is run.
+- **B5 (2026-10-12 ~18:28, after `wbench4_m2_20261012_182305`, the B4 repeat; before any further run). V3 failed; one
+  further repeat under §1.3's own V3 rule; a probe harness fault fixed.**
+  - **What happened.** Attempt 1 produced a runaway (V1 met): on the ground after the disarm, the operator-link
+    |v| was 0.42 → 0.69 m/s (VN ramping, truth still) and fell below 0.2 m/s 1.9 s after the disarm (the gate
+    re-opened). The watcher withdrew with "vel EKF velocity |v| >= 0.2 m/s (F8)" and the ALERT (|v| 0.510) and
+    re-confirmed 5.0 s after the runaway ended. The probe could only be made ≥ 3.5 s after the watcher's last confirmed
+    tick (the FC-side refusal needs `FS_GCS_TIMEOUT`), at +12.4 s, when |v| was 0.02–0.06: **V3 FAILED**. Also, the
+    probe's arm was refused "Arm: Land mode not armable" (the FC was still in LAND; the RC switch already at GUIDED,
+    so `mav_arm` did not change the mode): a harness fault, not the watcher.
+  - **Fix:** the probe commands GUIDED by MAVLink before arming (harness only). Probe timing and V3 unchanged.
+  - **Repeat once (V3 rule, §1.3).** This is the last M2-R run whatever its outcome.
 
