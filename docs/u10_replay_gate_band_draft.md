@@ -7,6 +7,20 @@
   E5 failure class, and it would be reported as such.
 - No real log exists yet. Every number below comes from SITL evidence or from existing pre-registered bands, cited per
   line.
+- **Updated 2026-10-12 (stage `2026-10-12_xuko_u10_h10`, ruling 5), still a DRAFT for sign-off this week.** Changed:
+  1. §2: the binary is now `ukf-jitter-fix` = `xuko-fmt` `0a214d29d3`, installed Replay `e82c050b…`.
+  2. §3: the scored record is the **FMT-declared `XUKO` in the Replay output log** (open item R-d CLOSED). The
+     `ukf_shadow.csv` fallback (`UKF_horizon`) is removed. In Replay, XUKO's TimeUS is now the DAL frame time.
+  3. §3: a fork-flown input interleaves the onboard and the replayed XUKO under one FMT. The scorer refuses that, so
+     G6 takes its Replay side from `ukf_shadow.csv` (new paragraph).
+  4. §3 and **G3**: `_n_chol_fail` / `_n_chol_retry` come from the Replay's new `ukf_stats.csv` (and its end-of-run
+     stdout line). The precondition is MET. A missing `ukf_stats.csv` (a run that did not end normally) fails G3.
+  5. §7 item 1: the R-d choice and the counter output are settled; only the signature, D_max and the volume remain.
+  - **No band, threshold or set rule changed. TWO RULES ARE NEW and need sign-off:**
+    - (i) G3: a missing `ukf_stats.csv` FAILS G3;
+    - (ii) §3: a gated FORK-FLOWN log is scored on `UKF_horizon` (labelled) for the current-time rows, because its
+      XUKO is interleaved. The general `ukf_shadow.csv` fallback is withdrawn; this conditional one replaces it for
+      fork-flown logs only.
 
 Implements:
 - `docs/ukf_only_closed_loop_costing.md` §7 (U10);
@@ -35,8 +49,10 @@ hardware input, fixed before day 3; **[TBD-V]** fixed once on VERIFICATION logs 
 
 - **The binary:** the fork's `Tools/Replay`, built from the branch that will fly in stage 3, recorded by commit and
   md5.
-  - Today that is `ukf-jitter-fix` = `rung1-geometry` `16535f9a29`. It was installed on 2026-10-12 as Replay
-    `be7c4d18…` [V].
+  - Today that is `ukf-jitter-fix` = `xuko-fmt` `0a214d29d3` (= `rung1-geometry` `16535f9a29` + the XUKO FMT and
+    stamp fix + the Cholesky counters; Replay-only changes). It was installed on 2026-10-12 as Replay `e82c050b…`,
+    replacing `be7c4d18…` [V]. Its four CSVs are byte-identical to `be7c4d18`'s on the five SITL logs, and UKF_Equiv
+    is 10/10 identical (`eval/results/xuko_fmt/`).
   - It also carries U4 (`u4-gndclr` `53bac01636`) and `board-h743`, if those are merged before the gate runs.
   - The Replay used must come from the same source commit as the board image. The two differ only in the
     `#if` paths, which are compiled out (`AP_NAVUKF_REPLAY_IO_ENABLED`).
@@ -54,23 +70,47 @@ hardware input, fixed before day 3; **[TBD-V]** fixed once on VERIFICATION logs 
 
 - **Primary:** the replayed **`XUKO`** (current-time output, the like-for-like counterpart of `XKF1`). This is the
   signed-off rung-1 UKF record.
-- **Open item R-d:** it is not yet known whether Replay's logger writes `XUKO` (it emits no FMT for the UKF's
-  messages; METHODOLOGY "Replay logging note").
-  - **If R-d has not produced a Replay `XUKO` (or an equivalent current-time CSV) by rung-1 day 3, the gate is scored
-    on `ukf_shadow.csv`** (the fused state at the delayed horizon, = `XUKF`). It is labelled `UKF_horizon`.
-  - This choice is fixed on day 3, before any log is gated, and recorded.
+- **Source (R-d CLOSED, 2026-10-12, ruling 4): the FMT-declared `XUKO` record in the Replay output log**, read by
+  `eval/df_reader.py` (`real_score.py --est-bin UKF=XUKO`).
+  - **The fix (installed Replay `e82c050b`):** Replay now writes the FMT and FMTU of every UKF record it emits
+    (XUKF, XUKO, XUKS, XUKH, XUKT; `AP_Logger::WriteV` under `APM_BUILD_Replay`).
+  - **Verified on `cl_a_tex_half` [V]:**
+    - XUKO is decodable by df_reader and by both pymavlink readers;
+    - 0 undeclared types and 0 skipped bytes;
+    - pymavlink reads all 2 684 XKF1 per core again;
+    - `replay_gate.py` and the scorer run on it.
+  - **XUKO's TimeUS in Replay is the DAL frame time** (the replayed frame's logged time, the clock `XKF1` uses).
+    - Before the fix it was the Replay PROCESS clock: 0.025–3.14 s over a 270 s flight, different on every run.
+    - Onboard, the flying port stamps `AP_HAL::micros64()` at the write. That differs from the frame time by at most
+      one loop.
+    - Check [V]: XUKF interpolated at the XUKO stamps agrees with XUKO to a p99 of 5 mm horizontal.
+  - **The `ukf_shadow.csv` fallback (`UKF_horizon`) is withdrawn.** `UKF_horizon` (`XUKF`) stays a reported
+    secondary row, as in the rung-1 pre-registration.
+- **Fork-flown input logs** (any log the fork flew, with the UKF in shadow or active: stage-3 logs, or rung 1 if the
+  fork-in-shadow option is taken):
+  - the output then carries the onboard XUKO/XUKF, copied through, AND the replayed ones, interleaved under one FMT;
+  - verified on `cl_ukf_b_tex_r1_half_v2`: 17 077 XUKO, not increasing;
+  - the scorer refuses such a series (`real_score.bin_trajs`).
+  - **So for G6, the Replay side is `ukf_shadow.csv` (= the replayed `XUKF`), and the onboard side is `XUKF` read
+    from the INPUT log.** The G1–G5 rows of a fork-flown log use `ukf_shadow.csv` for the horizon state. For the
+    current-time output they need the port to separate the replayed records (port spec §S2a: a different name or an
+    instance field). That is not built; a gated fork-flown log would then be scored on `UKF_horizon`, labelled.
 - **Flags and health:** from `ukf_shadow.csv`:
   - `SS` (the nav_filter_status bits);
   - `Healthy`;
   - `FlowAgeMs` (ms since the last accepted flow);
   - `FXa`, `FYa`, `Ra` (accepted counts).
 - **Numerical health:** `_n_chol_fail` (Cholesky failures after all jitter retries) and `_n_chol_retry`.
-  - **Today no Replay output carries either counter** [V, source at `16535f9a29`]. Only `examples/UKF_Equiv` prints
-    them. The first retry sends one GCS text ("UKF: Cholesky needed jitter (first fallback)"), which appears in
-    `replay.log` as `TOGCS:`. A failure sends nothing.
-  - **Precondition before day 3:** add both counters to the Replay end-of-run output (one line; no behaviour change),
-    with the usual five-log byte-identity re-check of the CSVs. Otherwise G3 cannot be scored (the E4 trap of
-    2026-10-11).
+  - **Precondition MET (2026-10-12, installed Replay `e82c050b`)** [V]. At the end of every run, Replay writes both
+    counters:
+    - a NEW file `ukf_stats.csv` (`name,value` rows `n_chol_retry`, `n_chol_fail`);
+    - the stdout line `thesis shadow UKF: end of run: n_chol_retry=N n_chol_fail=M` (in `replay.log`).
+  - The four existing CSVs are unchanged: byte-identical to `be7c4d18` on the five SITL logs. All five SITL logs give
+    0 / 0.
+  - The first retry still sends its GCS text ("UKF: Cholesky needed jitter (first fallback)").
+  - **G3 reads `n_chol_fail` from `ukf_stats.csv`.** The file is written only when Replay reaches the end of the log.
+    A missing file means the run did not end normally, and G3 FAILS for that flight.
+  - (Before the fix, no Replay output carried either counter; only `examples/UKF_Equiv` printed them.)
 - **Truth:** mocap via `eval/mocap_align.py` with its default (disarmed-wiggle) windows, exactly as in rung 1.
 - **The window W:** rung 1's §4.2 rule (`[t_to + 25 s, t_ld − 5 s]`, from mocap only).
 
@@ -80,7 +120,7 @@ hardware input, fixed before day 3; **[TBD-V]** fixed once on VERIFICATION logs 
 |---|---|---|---|
 | **G1** | **Initialises before arming.** `ukf_geometry.csv` resolved with every geometry source `log_parm`. 0 late-PARM warnings, or each one listed and shown not to change a value | must hold | the arming gate in type 12 needs an initialised UKF (`AP_AHRS_UKF::pre_arm_check`). If the rangefinder reads below its minimum on the ground, this needs U4 (`u4_init_from_gndclr` line) |
 | **G2** | **Stays valid through the hover and the legs:** `SS` bit 3 (`horiz_pos_rel`) set and `Healthy` = 1 on **every** row in W; `FlowAgeMs` < 5000 throughout W | 100 % of W | in closed loop a 5 s aiding gap (`AID_TIMEOUT_MS`) makes `thesis_nav_check` command LAND. A gap in Replay means a LAND in stage 3 |
-| **G3** | **No numerical failure:** `_n_chol_fail` = 0 over the whole log. `_n_chol_retry` is reported | = 0 | the jitter fix (2026-10-09): 0 fallbacks on all SITL data [V] |
+| **G3** | **No numerical failure:** `n_chol_fail` = 0 over the whole log, read from the Replay's `ukf_stats.csv` (missing file = FAIL). `n_chol_retry` is reported | = 0 | the jitter fix (2026-10-09): 0 fallbacks on all SITL data [V]; the counters in the Replay output since `e82c050b`: 0 / 0 on the five SITL logs [V] |
 | **G4** | **Accuracy against mocap:** UKF evo -a (SE(3), `t_max_diff` 0.05) over W ≤ **max(2.0 × EKF3_R, EKF3_R + 0.10 m)**, with EKF3_R = the replayed EKF3 (`XKF1@100`) on the same flight and window | per flight | see below |
 | **G5** | **Bounded unaligned drift:** the start-aligned horizontal drift (rung-1 §4.3 rule) at t_ld − 5 s ≤ **D_max = [TBD-S] m** (proposed 1.0 m: half the smallest watcher-box half-width expected in a mocap volume) | per flight | a closed loop steers on the unaligned estimate; this is the physical excursion it would cause |
 | **G6** | **Replay fidelity:** ONLY if rung 1 flew the fork in shadow (an onboard `XUKF` exists; costing §13 option). Replay `XUKF`/CSV against onboard `XUKF`: E1 horizontal max ≤ 0.05 m, rms ≤ 0.01 m; E3 yaw ≤ 0.05°; E5 accepted-count increments within 0.1 % | per flight, **[TBD-V]** | see below |
@@ -168,7 +208,8 @@ least 4 usable flights.
 
 1. **Before day 3:**
    - this document signed (§9);
-   - the R-d choice of record and the `_n_chol_fail` output settled (§3);
+   - ~~the R-d choice of record and the `_n_chol_fail` output settled (§3)~~ DONE 2026-10-12 (Replay `e82c050b`):
+     the FMT-declared XUKO, and `ukf_stats.csv`;
    - the Replay binary built and its md5 recorded;
    - D_max and the volume entered (**[TBD-S]**).
 2. **Days 3–4 (verification logs):** G1–G3 plumbing; the G6 bounds confirmed or widened once (only with the

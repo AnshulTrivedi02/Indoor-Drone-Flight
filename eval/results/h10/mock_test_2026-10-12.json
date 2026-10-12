@@ -1,0 +1,477 @@
+{
+ "old_ref": "HEAD",
+ "all_pass": true,
+ "scenarios": {
+  "normal_trial": {
+   "kind": "identical",
+   "rc_old": 0,
+   "rc_new": 0,
+   "n_cmds_old": 65,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "identical": true,
+   "PASS": true
+  },
+  "normal_trial_gcs_heartbeats": {
+   "kind": "identical",
+   "rc_old": 0,
+   "rc_new": 0,
+   "n_cmds_old": 65,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "identical": true,
+   "PASS": true
+  },
+  "watcher_lost_in_guided": {
+   "kind": "identical",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 167,
+   "n_cmds_new": 167,
+   "lands_old": [
+    1020.06
+   ],
+   "lands_new": [
+    1020.06
+   ],
+   "identical": true,
+   "PASS": true
+  },
+  "trialfailure_in_guided_pos_outage": {
+   "kind": "identical",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 1928,
+   "n_cmds_new": 1928,
+   "lands_old": [
+    2121.0
+   ],
+   "lands_new": [
+    2121.0
+   ],
+   "identical": true,
+   "PASS": true
+  },
+  "ground_test": {
+   "kind": "identical",
+   "rc_old": 0,
+   "rc_new": 0,
+   "n_cmds_old": 3,
+   "n_cmds_new": 3,
+   "lands_old": [],
+   "lands_new": [],
+   "identical": true,
+   "PASS": true
+  },
+  "land_slow_disarm_within_cap": {
+   "kind": "identical",
+   "rc_old": 0,
+   "rc_new": 0,
+   "n_cmds_old": 65,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "identical": true,
+   "PASS": true
+  },
+  "land_never_disarms_no_pilot": {
+   "kind": "declared_no_relands",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 66,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74,
+    1187.78
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "identical_except_lands": true,
+   "PASS": true
+  },
+  "watcher_lands_then_watcher_lost": {
+   "kind": "declared_no_relands",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 167,
+   "n_cmds_new": 166,
+   "lands_old": [
+    1020.06
+   ],
+   "lands_new": [],
+   "identical_except_lands": true,
+   "PASS": true
+  },
+  "pilot_althold_after_script_land_held_past_cap": {
+   "kind": "takeover",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 66,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74,
+    1187.78
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "t_takeover": 1008.08,
+   "cmds_after_takeover_new": [],
+   "cmds_after_takeover_old": [
+    [
+     1187.78,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "identical_before_takeover": true,
+   "h10_logged": true,
+   "mode_cmds_after_takeover_new": [],
+   "mode_cmds_after_takeover_old": [
+    [
+     1187.78,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "setpoints_after_takeover_new": 0,
+   "PASS": true
+  },
+  "pilot_stabilize_after_script_land_held_past_cap": {
+   "kind": "takeover",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 66,
+   "n_cmds_new": 65,
+   "lands_old": [
+    1007.74,
+    1187.78
+   ],
+   "lands_new": [
+    1007.74
+   ],
+   "t_takeover": 1008.08,
+   "cmds_after_takeover_new": [],
+   "cmds_after_takeover_old": [
+    [
+     1187.78,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "identical_before_takeover": true,
+   "h10_logged": true,
+   "mode_cmds_after_takeover_new": [],
+   "mode_cmds_after_takeover_old": [
+    [
+     1187.78,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "setpoints_after_takeover_new": 0,
+   "PASS": true
+  },
+  "pilot_althold_then_watcher_lost_B10b1": {
+   "kind": "takeover",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 167,
+   "n_cmds_new": 166,
+   "lands_old": [
+    1020.06
+   ],
+   "lands_new": [],
+   "t_takeover": 1018.02,
+   "cmds_after_takeover_new": [
+    [
+     1018.12,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.24,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.36,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.48,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.6,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.72,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.84,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.96,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.08,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.2,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.32,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.44,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.56,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.68,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.8,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.92,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.04,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ]
+   ],
+   "cmds_after_takeover_old": [
+    [
+     1018.12,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.24,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.36,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.48,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.6,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.72,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.84,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1018.96,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.08,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.2,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.32,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.44,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.56,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.68,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.8,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.92,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.04,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.06,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "identical_before_takeover": true,
+   "h10_logged": true,
+   "mode_cmds_after_takeover_new": [],
+   "mode_cmds_after_takeover_old": [
+    [
+     1020.06,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "setpoints_after_takeover_new": 17,
+   "PASS": true
+  },
+  "pilot_althold_after_watcher_land": {
+   "kind": "takeover",
+   "rc_old": 1,
+   "rc_new": 1,
+   "n_cmds_old": 167,
+   "n_cmds_new": 166,
+   "lands_old": [
+    1020.06
+   ],
+   "lands_new": [],
+   "t_takeover": 1019.46,
+   "cmds_after_takeover_new": [
+    [
+     1019.56,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.68,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.8,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.92,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.04,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ]
+   ],
+   "cmds_after_takeover_old": [
+    [
+     1019.56,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.68,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.8,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1019.92,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.04,
+     "set_position_target_local_ned_send",
+     "(0, 1, 1, 1, 4039, 0, 0, 0, 0.4, 0.0, 0.0, 0, 0, 0, 0, 0)"
+    ],
+    [
+     1020.06,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "identical_before_takeover": true,
+   "h10_logged": true,
+   "mode_cmds_after_takeover_new": [],
+   "mode_cmds_after_takeover_old": [
+    [
+     1020.06,
+     "set_mode_apm",
+     "('LAND',)"
+    ]
+   ],
+   "setpoints_after_takeover_new": 5,
+   "PASS": true
+  }
+ }
+}

@@ -4,6 +4,8 @@
 the fork, and no real log exists. It must be signed off before the first stage-3 RESULT sortie. Verification sorties
 may fly before it, under their own cards (§2). The U10 band it relies on (`docs/u10_replay_gate_band_draft.md`) must
 be signed off earlier, before rung-1 day 3.
+- **Updated 2026-10-12 (stage `2026-10-12_xuko_u10_h10`, ruling 6): §3.1 now PROPOSES a pilot-flown LOITER for the
+  first real closed-loop flights, with the difference from the scripted simulation flights. Still a DRAFT.**
 
 Implements:
 - plan `docs/realflight_plan_copter.md` §4 (U-d / U14), which incorporates U-d0;
@@ -71,8 +73,47 @@ under §3.3 or failed under §7, and reported.
     mode or already LANDing, the FC system ID pinned, and the mode map from the FC heartbeat.
 - **Option B, pilot-flown LOITER.** It needs no U-f; the UKF holds position and the pilot's sticks command velocity.
   The legs are less repeatable, and speed is the pilot's target.
-- **Proposed default: A if U-f is done and bench-tested before the first result sortie, otherwise B.** The choice is
-  recorded before the first result sortie and does not change during the set.
+- ~~**Proposed default: A if U-f is done and bench-tested before the first result sortie, otherwise B.**~~ Superseded
+  2026-10-12 (ruling 6, below). The choice is recorded before the first result sortie and does not change during the
+  set.
+
+**PROPOSAL (2026-10-12, METHODOLOGY "RULINGS (user, 2026-10-12, safety first)" item 6): Option B, a PILOT-FLOWN
+LOITER, for the first real closed-loop flights** (the tethered and V3 sorties of §2 and the result sorties R1…Rn).
+Still a DRAFT for the user's sign-off.
+- **Why: it is simpler, and it avoids the GUIDED stored-target hazards.**
+  - In GUIDED the FC keeps flying to the last position target it received. After a link, script or watcher fault, or
+    an estimator reset that moves the frame, it steers to a stale target with no human input. The B8a bench run showed
+    the failure shape: with no EKF origin, the GUIDED hold point was 3.03 m away and the vehicle ran east at ~3.6 m/s.
+  - LOITER holds the estimate's current position, and the pilot's sticks command velocity. There is no stored target
+    to go stale, no script in the loop, and no script-to-FC link to lose.
+  - The safety pilot is already holding the RC (§1). In LOITER the pilot flies the leg; an abort is one switch move to
+    ALT_HOLD (§8). In GUIDED it is a takeover from an autonomous mode.
+  - Option A's dependencies (plan U-f) drop out for the first flights: the H10 guard in the flight script, F4 and the
+    mode map. **H10 is now implemented in `fly_trial.py` and tested in SITL** (2026-10-12; `docs/h10_guard_check_prereg.md`).
+    The guard sent nothing after the pilot's takeover, but the check FAILED AS WORDED on criterion 4, a post-disarm
+    mode change by the test harness (handover `2026-10-12_xuko_u10_h10.md` §4.3). A script that does not fly cannot
+    misbehave.
+- **The difference from the simulation flights, stated next to every stage-3 result:**
+  - Every SITL closed-loop flight (`cl_*`, `wbench*`) was SCRIPTED in GUIDED by `fly_trial.py` or the bench driver:
+    position or velocity setpoints, identical across repeats, at a fixed speed.
+  - The real flights in LOITER are flown by a pilot. The legs, speed and timing vary between sorties, and the pilot
+    corrects drift the pilot can see. So the flown path is partly human-closed-loop.
+  - **Consequences for the analysis:**
+    - per-sortie metrics are less comparable than SITL repeats;
+    - the excursion criteria (§4.1, §6) measure the UKF plus the pilot's corrections, not the UKF alone;
+    - a SITL-to-real comparison of excursions is NOT like-for-like and is not made;
+    - LOITER's position controller and stick shaping differ from GUIDED's setpoint following. The SITL flights did not
+      exercise LOITER on the UKF, so a short SITL LOITER check (UKF flying, RC sticks scripted) is proposed as a
+      verification step before the tether.
+  - The pilot flies to marked ground points at a target speed of 0.2–0.3 m/s (read from the watcher display), so the
+    legs are as repeatable as a pilot can make them. The marks and the target are fixed before R1 **[TBD-S]**.
+- **To decide with the user (flagged, not changed here):** LOITER (mode 5) is a pilot mode for the watcher (F6,
+  `realflight/watcher/fc_link.py` PILOT_MODES includes LOITER), but NOT for `fly_trial.py`'s H10 guard. That guard was
+  ported exactly from the bench rule {STABILIZE, ALT_HOLD} (+ LAND). With no flight script in a pilot-flown LOITER
+  sortie this does not matter. If a script is ever run while a pilot flies LOITER, the H10 set must first be widened
+  to the watcher's set.
+- Option A stays available for later sorties (after the first real closed-loop flights), by a dated amendment made
+  before those sorties.
 
 **The profile** (same steps in both options; lengths fixed from the volume **[TBD-S]** before R1):
 1. Disarmed, logging: the sync wiggle (~5 s), then set down on the marked start spot.
@@ -258,7 +299,8 @@ decided from the log and the recorded reason, BEFORE any estimation metric of th
   - the mocap protocol (F1);
   - the safety pilot.
 - **Rulings [RULING]:**
-  - option A or B (§3.1);
+  - option A or B (§3.1; proposed 2026-10-12: B, a pilot-flown LOITER, for the first real closed-loop flights);
+  - the H10 pilot-mode set if any script runs during LOITER sorties (§3.1);
   - n = 5 (+1 spare);
   - the C4 factor of 2;
   - E_max's 1.5 factor and 0.30 m floor;

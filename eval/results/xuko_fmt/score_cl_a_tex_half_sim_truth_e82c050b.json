@@ -1,0 +1,346 @@
+{
+ "prereg": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_score_inst/prereg_no_clockmap.json",
+  "sha256": "f8eed858b4cc31d485f0be7e4af337191a5c88cb9988224d37b909b943e2065c",
+  "resolved": {
+   "name": "rung1_preregistration",
+   "status": "PRE-REGISTERED. Signed off by the user on 2026-10-12 (METHODOLOGY 'RULINGS (user, 2026-10-12)', item 2: evo -a SE(3) primary; XUKO as the UKF record; cross-track drift per minute and heading drift in deg/min added as secondary metrics BEFORE ANY DATA). Copied from docs/rung1_preregistration_draft.json; changed: this field, the name, the rationale entries 'secondary' and 'ukf_record_implementation', and the new REQUIRED section 'secondary'. Read by eval/real_score.py (load_prereg, strict). Any later change is a dated amendment made before the affected data are scored.",
+   "rationale": {
+    "window": "docs/rung1_preregistration.md sec. 4.2: from MOCAP height only; take-off + 25 s (EKF3's flow-aiding start, ~16 s after take-off in SITL, plus margin) to landing - 5 s (the flare). Ground level = 5th percentile of the whole mocap record (the record may start with the vehicle held up for the sync wiggle).",
+    "primary_metric": "evo_ape_a_se3: the simulation's STANDING metric (evo -a, Umeyama SE(3), no scale, three_way_eval's exact call). The sim-to-real statement (sec. 7) compares DECISION CATEGORIES with the simulation's, which were all decided on evo -a; a different primary metric would compare categories decided on different metrics. ate_4dof (yaw + translation) is reported as SECONDARY: it is the physically tighter fit for gravity-aligned frames, and on SITL the two agree to 1 mm (handover 2026-10-10_r1_mocap_align_scorer).",
+    "ukf_record": "XUKO: the UKF port's CURRENT-TIME output (AP_NavUKF.cpp log_state, stamped AP_HAL::micros64()), the like-for-like counterpart of XKF1, which logs EKF3's output-predictor state (AP_NavEKF3_Logging.cpp:26-27 getVelNED/getPosNE -> AP_NavEKF3_Outputs.cpp:257-263 outputDataNew). XUKF is the fused state at the delayed fusion horizon; it is reported as a secondary row only.",
+    "ukf_record_implementation": "FLAGGED 2026-10-12 (handover docs/handovers/2026-10-12_r1_scoring_items.md, section C), the record is unchanged: the fork's Replay of a stock-flown log writes XUKO WITHOUT its FMT record (checked on stored Replay outputs), so XUKO is not decodable from the Replay output log, and pymavlink cannot read such a log at all. The scorer reads logs with eval/df_reader.py and refuses XUKO when its FMT is absent. Until the port is fixed, the XUKO values are taken from the port's current-time CSV with XUKO's exact columns (--est-csv; port spec in the handover); which of the two sources is used is a USER RULING, recorded before scoring.",
+    "drift": "motion_onset_path: the 4-DoF start alignment uses the first init_path_m of mocap horizontal travel after the motion onset (speed > 0.15 m/s for 1 s), i.e. the start of the first leg. Fixes draft defect 1: the old [t_to + 25 s, t_to + 30 s] lay inside the 30 s hover, where the fitted yaw is noise. init_path_m (2.0 m) must not exceed the first leg length [TBD-S]; it is confirmed when the leg length is fixed, before any result flight.",
+    "clock_map": "Fixes draft defect 2: the mocap -> FC clock map is fitted on the two DISARMED sync wiggles, found by mocap_align's default rule (the last |w| burst > 2 rad/s before arming and the first after disarming, +-2 s; flight cards D6/D8). The scorer refuses a flight whose mocap_align JSON used non-default early/late windows or a different rule.",
+    "secondary": "Ruled 2026-10-12 BEFORE ANY DATA, for comparability with the simulation corridor results; docs/rung1_preregistration.md sec. 4.4. heading_drift: the corridor rule (eval/d15_drift.py, phase4_eval, d15_port_score): yaw error = estimator heading - mocap heading, unwrapped, wrapped to +-180 unless it runs away (>= wrap_limit_deg), least-squares slope in deg/min over the window W, NED sense (clockwise positive); offset-invariant, so unaligned by construction. cross_track_drift: the lateral (right-normal of the mocap horizontal velocity) position-error growth, integrated over the cruise samples in W (mocap smoothed speed > min_speed_mps), divided by the cruise minutes; the estimator frame is rotated into the mocap frame by ONE yaw taken at take-off (the circular mean of the heading difference over the anchor_avg_s s ending at mocap take-off), no fit. On a straight northward path it equals the corridor's position-error growth across the corridor (SITL regression eval/results/r1_scorer/regression_secondary_2026-10-12.json)."
+   },
+   "window": {
+    "rule": "airborne",
+    "ground_percentile": 5.0,
+    "airborne_height_m": 0.3,
+    "hold_s": 1.0,
+    "start_after_takeoff_s": 25.0,
+    "end_before_landing_s": 5.0,
+    "min_duration_s": 20.0
+   },
+   "metrics": {
+    "primary": "evo_ape_a_se3",
+    "t_max_diff_s": 0.05,
+    "max_gap_s": 0.5,
+    "max_mocap_interp_gap_s": 0.05
+   },
+   "drift": {
+    "segment_rule": "motion_onset_path",
+    "onset_speed_mps": 0.15,
+    "onset_smooth_s": 1.0,
+    "onset_hold_s": 1.0,
+    "init_path_m": 2.0,
+    "min_extent_m": 1.0
+   },
+   "estimator_records": {
+    "EKF3": "XKF1@100",
+    "UKF": "XUKO",
+    "FGO": "TUM",
+    "UKF_horizon": "XUKF",
+    "EKF3_onboard": "XKF1@0"
+   },
+   "secondary": {
+    "heading_drift": {
+     "window": "W",
+     "sense": "NED",
+     "wrap_limit_deg": 170.0
+    },
+    "cross_track_drift": {
+     "window": "W",
+     "normal": "right_of_mocap_velocity",
+     "min_speed_mps": 0.15,
+     "smooth_s": 1.0,
+     "anchor": "takeoff_yaw",
+     "anchor_avg_s": 1.0
+    }
+   },
+   "notes": "max_mocap_interp_gap_s 0.05 assumes mocap >= 100 Hz (the R7 requirement); it is confirmed once the mocap rate is known [TBD-S]. min_speed_mps (0.15, = onset_speed_mps) must lie below the leg speed (0.3-0.5 m/s) [TBD-S, confirmed with the profile]. PRIMARY rows: EKF3 (XKF1@100: the REPLAYED core 0; an ArduPilot Replay output log carries the original onboard records with C = 0, 1, ... and the replayed ones with C = 100 + core, as Tools/Replay/check_replay.py pairs them; the scorer refuses a log whose XKF1@100 TimeUS sequence differs from XKF1@0's), UKF (XUKO; see rationale.ukf_record_implementation), FGO (converter TUM). SECONDARY rows: UKF_horizon (XUKF) and EKF3_onboard (XKF1@0, the flight's own onboard core 0), all from the same Replay output log. Stock rung-1 firmware runs no UKF onboard, so every XUKO/XUKF record in that log comes from the fork's Replay."
+  }
+ },
+ "mocap": {
+  "path": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_score_inst/sim_truth_fc_clock.tum",
+  "sha256": "78c45484424b2bb7d9d70cecd95f9df7f60249182cb271d6041aaa90d24fa2fa",
+  "n": 26941
+ },
+ "clock_map_check": null,
+ "window_s": [
+  53.131053,
+  267.38137
+ ],
+ "window_info": {
+  "rule": "airborne",
+  "ground_level_m": 0.194999,
+  "takeoff_s": 28.131053,
+  "landing_s": 272.38137
+ },
+ "primary_metric": "evo_ape_a_se3",
+ "bin_reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "n_resyncs": 0,
+  "bad_fmt": []
+ },
+ "primary": {
+  "EKF3": 1.264794,
+  "EKF3_onboard": 1.264794,
+  "UKF": 1.014846,
+  "UKF_horizon": 1.014705
+ },
+ "estimators": {
+  "EKF3": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_a_tex_half/logs/00000001.BIN:XKF1@100",
+   "record": "XKF1@100",
+   "sha256": "deb11c2bff59c651ef69c7cffe2a939d8d1c0c1dfaac44542cd8ee3fb7a3399a",
+   "n": 2142,
+   "evo_ape_a_se3": {
+    "rmse_m": 1.264794,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 2142,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 1.2653673155732046,
+    "rmse_h_m": 1.265366009606076,
+    "rmse_v_m": 0.0018179808950309036,
+    "max_m": 3.3740423522990297,
+    "yaw_deg": -4.3072810707817855
+   },
+   "drift_start_aligned": {
+    "rmse_m": 4.0267116623293315,
+    "rmse_h_m": 4.0267112446497055,
+    "rmse_v_m": 0.0018340530714575217,
+    "max_m": 10.788506155295563,
+    "final_m": 10.788506155295563,
+    "final_h_m": 10.788505930416527,
+    "mocap_path_length_h_m": 107.4110962600403,
+    "final_h_pct_of_path": 10.044126078275704,
+    "segment_rule": "motion_onset_path",
+    "segment_fc_s": [
+     53.131674,
+     57.121674
+    ],
+    "init_segment_extent_h_m": 1.9584841798483517,
+    "yaw_deg": 0.8389068068707543
+   },
+   "coverage": {
+    "longest_gap_s": 0.10098399999998264,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.186674,
+    "last_s": 267.286041
+   },
+   "heading_drift": {
+    "heading_drift_deg_per_min_ned": 4.940090731935518,
+    "n": 2142,
+    "window_min": 3.568322783333334,
+    "err_first_deg": -0.7794584047589126,
+    "err_last_deg": 16.80002282035815,
+    "runaway_unwrapped": false,
+    "sense": "NED (clockwise from above positive); ENU-sense figures are the negative"
+   },
+   "cross_track_drift": {
+    "cross_track_m": 9.063899997323036,
+    "cruise_s": 214.09936700000003,
+    "cross_track_m_per_min": 2.5401009235089522,
+    "abs_cross_track_m_per_min": 2.5401009235089522,
+    "anchor": "takeoff_yaw",
+    "anchor_yaw_deg_enu": 0.0657113934673283,
+    "n_selected": 2142,
+    "anchor_sensitivity_m_per_min_per_deg": 0.525367381302466
+   }
+  },
+  "EKF3_onboard": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_a_tex_half/logs/00000001.BIN:XKF1@0",
+   "record": "XKF1@0",
+   "sha256": "deb11c2bff59c651ef69c7cffe2a939d8d1c0c1dfaac44542cd8ee3fb7a3399a",
+   "n": 2142,
+   "evo_ape_a_se3": {
+    "rmse_m": 1.264794,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 2142,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 1.2653673155732046,
+    "rmse_h_m": 1.265366009606076,
+    "rmse_v_m": 0.0018179808950309036,
+    "max_m": 3.3740423522990297,
+    "yaw_deg": -4.3072810707817855
+   },
+   "drift_start_aligned": {
+    "rmse_m": 4.0267116623293315,
+    "rmse_h_m": 4.0267112446497055,
+    "rmse_v_m": 0.0018340530714575217,
+    "max_m": 10.788506155295563,
+    "final_m": 10.788506155295563,
+    "final_h_m": 10.788505930416527,
+    "mocap_path_length_h_m": 107.4110962600403,
+    "final_h_pct_of_path": 10.044126078275704,
+    "segment_rule": "motion_onset_path",
+    "segment_fc_s": [
+     53.131674,
+     57.121674
+    ],
+    "init_segment_extent_h_m": 1.9584841798483517,
+    "yaw_deg": 0.8389068068707543
+   },
+   "coverage": {
+    "longest_gap_s": 0.10098399999998264,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.186674,
+    "last_s": 267.286041
+   },
+   "heading_drift": {
+    "heading_drift_deg_per_min_ned": 4.940090731935518,
+    "n": 2142,
+    "window_min": 3.568322783333334,
+    "err_first_deg": -0.7794584047589126,
+    "err_last_deg": 16.80002282035815,
+    "runaway_unwrapped": false,
+    "sense": "NED (clockwise from above positive); ENU-sense figures are the negative"
+   },
+   "cross_track_drift": {
+    "cross_track_m": 9.063899997323036,
+    "cruise_s": 214.09936700000003,
+    "cross_track_m_per_min": 2.5401009235089522,
+    "abs_cross_track_m_per_min": 2.5401009235089522,
+    "anchor": "takeoff_yaw",
+    "anchor_yaw_deg_enu": 0.0657113934673283,
+    "n_selected": 2142,
+    "anchor_sensitivity_m_per_min_per_deg": 0.525367381302466
+   }
+  },
+  "UKF": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_a_tex_half/logs/00000001.BIN:XUKO",
+   "record": "XUKO",
+   "sha256": "deb11c2bff59c651ef69c7cffe2a939d8d1c0c1dfaac44542cd8ee3fb7a3399a",
+   "n": 5357,
+   "evo_ape_a_se3": {
+    "rmse_m": 1.014846,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 5357,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 1.0150539622225812,
+    "rmse_h_m": 1.0150522967824225,
+    "rmse_v_m": 0.0018387551469717675,
+    "max_m": 2.5184570976837946,
+    "yaw_deg": 0.7295687963222336
+   },
+   "drift_start_aligned": {
+    "rmse_m": 1.916005556115337,
+    "rmse_h_m": 1.9160045814761297,
+    "rmse_v_m": 0.0019325701340082392,
+    "max_m": 5.153692631845014,
+    "final_m": 5.153692631845014,
+    "final_h_m": 5.1536926079756356,
+    "mocap_path_length_h_m": 107.48195739507929,
+    "final_h_pct_of_path": 4.794937432179274,
+    "segment_rule": "motion_onset_path",
+    "segment_fc_s": [
+     53.131674,
+     57.121674
+    ],
+    "init_segment_extent_h_m": 1.9886581131947374,
+    "yaw_deg": 2.700884223169837
+   },
+   "coverage": {
+    "longest_gap_s": 0.040994000000011965,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.136674,
+    "last_s": 267.376988
+   },
+   "heading_drift": {
+    "heading_drift_deg_per_min_ned": 3.1307521342225137,
+    "n": 5357,
+    "window_min": 3.5706719,
+    "err_first_deg": -2.5349647251312604,
+    "err_last_deg": 8.590673386737876,
+    "runaway_unwrapped": false,
+    "sense": "NED (clockwise from above positive); ENU-sense figures are the negative"
+   },
+   "cross_track_drift": {
+    "cross_track_m": -0.7389530219815756,
+    "cruise_s": 214.24031399999998,
+    "cross_track_m_per_min": -0.20695069238413524,
+    "abs_cross_track_m_per_min": 0.20695069238413524,
+    "anchor": "takeoff_yaw",
+    "anchor_yaw_deg_enu": 0.3123643377936556,
+    "n_selected": 5357,
+    "anchor_sensitivity_m_per_min_per_deg": 0.525367381302466
+   }
+  },
+  "UKF_horizon": {
+   "source": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_a_tex_half/logs/00000001.BIN:XUKF",
+   "record": "XUKF",
+   "sha256": "deb11c2bff59c651ef69c7cffe2a939d8d1c0c1dfaac44542cd8ee3fb7a3399a",
+   "n": 5356,
+   "evo_ape_a_se3": {
+    "rmse_m": 1.014705,
+    "t_max_diff_s": 0.05
+   },
+   "n_in_house": 5356,
+   "n_dropped_mocap_gap": 0,
+   "ate_4dof": {
+    "rmse_m": 1.0147491433653388,
+    "rmse_h_m": 1.0147475637367456,
+    "rmse_v_m": 0.001790489047294182,
+    "max_m": 2.517954335785115,
+    "yaw_deg": 0.7300134972509851
+   },
+   "drift_start_aligned": {
+    "rmse_m": 1.9155331884696416,
+    "rmse_h_m": 1.9155322633762177,
+    "rmse_v_m": 0.0018825762814043965,
+    "max_m": 5.152531862014271,
+    "final_m": 5.152531862014271,
+    "final_h_m": 5.152531843633664,
+    "mocap_path_length_h_m": 107.46168978580091,
+    "final_h_pct_of_path": 4.794761606581843,
+    "segment_rule": "motion_onset_path",
+    "segment_fc_s": [
+     53.131674,
+     57.121674
+    ],
+    "init_segment_extent_h_m": 1.9886107035682496,
+    "yaw_deg": 2.7011407683384236
+   },
+   "coverage": {
+    "longest_gap_s": 0.040000000000020464,
+    "fraction_within_max_gap": 1.0,
+    "first_s": 53.156,
+    "last_s": 267.356
+   },
+   "heading_drift": {
+    "heading_drift_deg_per_min_ned": 3.130794863746652,
+    "n": 5356,
+    "window_min": 3.57,
+    "err_first_deg": -2.538329277213819,
+    "err_last_deg": 8.587095941096607,
+    "runaway_unwrapped": false,
+    "sense": "NED (clockwise from above positive); ENU-sense figures are the negative"
+   },
+   "cross_track_drift": {
+    "cross_track_m": -0.7388274250538767,
+    "cruise_s": 214.2,
+    "cross_track_m_per_min": -0.20695446079940524,
+    "abs_cross_track_m_per_min": 0.20695446079940524,
+    "anchor": "takeoff_yaw",
+    "anchor_yaw_deg_enu": 0.311865609687415,
+    "n_selected": 5356,
+    "anchor_sensitivity_m_per_min_per_deg": 0.525367381302466
+   }
+  }
+ },
+ "xuko_test": {
+  "truth": "SIM2 PN/PE/PD + SIM Yaw from the same log, FC clock, 100 Hz",
+  "prereg_source": "docs/rung1_preregistration.json",
+  "prereg_source_sha256": "884ff35171a1f7679d6aec5b55ed99f0807c69bdfac5bc761778268afda0ed19",
+  "prereg_change": "clock_map section removed (SITL truth is on the FC clock); nothing else"
+ }
+}

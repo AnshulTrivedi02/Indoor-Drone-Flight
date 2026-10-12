@@ -1,0 +1,1 @@
+12f1bc0e6f976b18a38333f803c67cb3  /home/makerspace/ardupilot/ArduCopter/eeprom.bin

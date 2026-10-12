@@ -496,7 +496,8 @@ set +u
 source ~/venv-ardupilot/bin/activate
 set -u
 set +e
-python3 "$HOME/thesis_ws/fly_trial.py" \
+# FLY_TRIAL (2026-10-12, H10 check): another fly_trial.py to run (e.g. a worktree's); unset = the default, unchanged.
+python3 "${FLY_TRIAL:-$HOME/thesis_ws/fly_trial.py}" \
     --port 14550 --altitude "$ALTITUDE" --velocity "$VELOCITY" --duration "$DURATION" \
     2>&1 | tee "$LOG_DIR/fly_trial.log"
 FLIGHT_STATUS=${PIPESTATUS[0]}

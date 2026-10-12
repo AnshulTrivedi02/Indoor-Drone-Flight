@@ -1,0 +1,77 @@
+{
+ "modes_in_flight": [
+  {
+   "t_s": 24.538289,
+   "mode": "GUIDED",
+   "num": 4,
+   "rsn": 2
+  },
+  {
+   "t_s": 39.223674,
+   "mode": "LAND",
+   "num": 9,
+   "rsn": 2
+  },
+  {
+   "t_s": 39.790674,
+   "mode": "ALT_HOLD",
+   "num": 2,
+   "rsn": 1
+  },
+  {
+   "t_s": 237.073838,
+   "mode": "LAND",
+   "num": 9,
+   "rsn": 1
+  },
+  {
+   "t_s": 249.740709,
+   "mode": "STABILIZE",
+   "num": 0,
+   "rsn": 1
+  }
+ ],
+ "arm_s": 24.538289,
+ "disarm_s": 249.520746,
+ "parm": {
+  "FLTMODE2": 9.0,
+  "FLTMODE5": 2.0,
+  "FLTMODE_CH": 5.0,
+  "AHRS_EKF_TYPE": 10.0,
+  "RC_OVERRIDE_TIME": 3.0,
+  "MAV_GCS_SYSID": 255.0
+ },
+ "reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0
+ },
+ "pilot": {
+  "switch_after_land_s": 0.37,
+  "althold_seen_after_switch_s": 0.218,
+  "hold_wall_s": 200.1
+ },
+ "fly_trial": {
+  "landing_lines": [
+   11
+  ],
+  "latch_line": 12,
+  "guard_line": 14,
+  "lines_after_latch": [
+   "[fly_trial] H10: the pilot took ALT_HOLD after LAND; the script sends NO further LAND or mode change",
+   "[fly_trial] FAILED: Did not confirm disarm within 180s",
+   "[fly_trial] H10 guard: the pilot took ALT_HOLD -> NOT commanding LAND; watching for the disarm only (wall-clock cap 180s)",
+   "[fly_trial] Disarmed - landed (H10: no command sent)."
+  ]
+ },
+ "criteria": {
+  "void_fltmode5": false,
+  "1_one_gcs_land": true,
+  "2_takeover_rc_althold_within_1s": true,
+  "3a_no_mode_record_until_pilot_land": true,
+  "3b_hold_sim_s": 197.283164,
+  "3c_fly_trial_no_landing_after_latch": true,
+  "3d_latch_and_guard_logged": true,
+  "4_pilot_land_then_disarm_only": false,
+  "PASS": false
+ }
+}

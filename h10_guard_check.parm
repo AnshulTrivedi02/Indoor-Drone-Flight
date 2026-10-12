@@ -1,0 +1,8 @@
+# H10 verification flight `h10_guard_check` ONLY (2026-10-12; docs/h10_guard_check_prereg.md). VERIFICATION, not data.
+# Passed to run_trial.sh as EXTRA_PARM_FILES, i.e. as a DEFAULTS file: it is never PARAM_SET, so nothing is written to
+# ~/ardupilot/ArduCopter/eeprom.bin (shared with every dataset trial). If FLTMODE5 is already stored in the eeprom, the
+# default does not apply; the flight log's PARM dump is checked (FLTMODE5 = 2), otherwise the flight is VOID.
+# Mode switch = channel 5 (the copter default). Stock copter.parm has no ALT_HOLD position (FLTMODE1-6 = 7 9 6 3 5 0).
+FLTMODE_CH 5
+FLTMODE2 9    # 1231-1360 us: LAND (the pilot's landing position; the copter.parm value, restated)
+FLTMODE5 2    # 1621-1749 us: ALT_HOLD (the pilot's takeover position)

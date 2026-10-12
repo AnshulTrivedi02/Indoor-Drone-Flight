@@ -1,0 +1,47 @@
+35f667dbc3b9338253aa36b04412256b  build/sitl/tool/Replay
+3a555dba707d698278bfe55575319a62  build/sitl/examples/UKF_Equiv
+fe538b4aa69145f74a1fefa20a450bf4  build/sitl/bin/arducopter
+/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xukobuild/replay.log:0
+/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xukobuild/equiv.log:0
+/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xukobuild/copter.log:0
+35f667dbc3b9338253aa36b04412256b  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/apx/build/sitl/tool/Replay
+cl_a_tex_half:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+dsn_tex_r1:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+fwdplainc_tex_r1:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+cl_ukf_b_tex_r1_half_v2:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+H_s2v2_r1:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+DRIVER_DONE
+    6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_scratch2/cl_a_tex_half/logs/00000001.BIN /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_scratch2_rep/cl_a_tex_half/logs/00000001.BIN differ: byte 250977, line 1460
+RESULT determinism: logs DIFFER
+STAGE2_DONE

@@ -1,0 +1,57 @@
+e82c050b41cb0e76ac7d81f536370a8f  /home/makerspace/ardupilot_ukf/build/sitl/tool/Replay
+cl_a_tex_half:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT cl_a_tex_half ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+dsn_tex_r1:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT dsn_tex_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+fwdplainc_tex_r1:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT fwdplainc_tex_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+cl_ukf_b_tex_r1_half_v2:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+H_s2v2_r1:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 ukf_shadow.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_inputs.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_derot.csv IDENTICAL to installed be7c4d18
+RESULT H_s2v2_r1 ukf_geometry.csv IDENTICAL to installed be7c4d18
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+name,value n_chol_retry,0 n_chol_fail,0 
+DRIVER_DONE
+fe548d36f42069f34e62692a4c748ade  /home/makerspace/ardupilot_ukf/build/sitl/examples/UKF_Equiv
+UKF_Equiv: 4799 events done; cholesky retries 0, failures 0
+UKF_Equiv: 5198 events done; cholesky retries 0, failures 0
+UKF_Equiv: 800 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 45277 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+UKF_Equiv: 57371 events done; cholesky retries 0, failures 0
+RESULT cfi60_A state IDENTICAL
+RESULT cfi60_A pdiag IDENTICAL
+RESULT cfi60_C state IDENTICAL
+RESULT cfi60_C pdiag IDENTICAL
+RESULT cfi10_B state IDENTICAL
+RESULT cfi10_B pdiag IDENTICAL
+RESULT dsn_tex_r2 state IDENTICAL
+RESULT dsn_tex_r2_q state IDENTICAL
+RESULT h_s1_r1 state IDENTICAL
+RESULT h_s1_r1_q state IDENTICAL
+EQUIV_DONE
+RECHECK_DONE
