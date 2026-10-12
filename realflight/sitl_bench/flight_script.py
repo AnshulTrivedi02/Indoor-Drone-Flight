@@ -16,7 +16,7 @@ Profile (JSON list), steps:
 Markers "STEP <i> <kind> start/end" are logged (wall time) for the operator. After the profile the script lands.
 It exits when the FC reports DISARMED (whichever layer landed it).
 
-H10 PROTOTYPE (--h10-guard; real_flights_plan.md §7.2 B10b, the build handover §5 item 6): on WatcherLost the script
+H10 (--h10-guard; since 2026-10-12 the decision calls the merged fly_trial.fc_mode / fly_trial.H10_PILOT_OR_LAND; real_flights_plan.md §7.2 B10b, the build handover §5 item 6): on WatcherLost the script
 does NOT command LAND if the FC is in a pilot mode (STABILIZE 0, ALT_HOLD 2) or already in LAND (9); it logs that
 fly_trial.py as-is WOULD have commanded LAND there. Without the flag it behaves as fly_trial.py (LAND on WatcherLost).
 """
@@ -165,9 +165,14 @@ class Script:
                     self.run_step(i, st)
                 except ft.WatcherLost as e:
                     mode = self.mode()
-                    if self.a.h10_guard and mode in PILOT_OR_LAND:
-                        log(f"WatcherLost: {e}. H10 guard: FC in {PILOT_OR_LAND[mode]} -> NOT commanding LAND "
-                            "(fly_trial.py as-is WOULD command LAND here)")
+                    # wbench4 (2026-10-12): the guard decision uses the MERGED fly_trial.py code (ft.fc_mode, the
+                    # FC's own latest HEARTBEAT read passively, and ft.H10_PILOT_OR_LAND); the bench's own copy above
+                    # is kept for the log line. fly_trial.land()'s takeover latch is not exercised here (mock test).
+                    fmode = ft.fc_mode(self.m)
+                    if self.a.h10_guard and fmode in ft.H10_PILOT_OR_LAND:
+                        log(f"WatcherLost: {e}. H10 guard (fly_trial.fc_mode={fmode}, bench copy {mode}): FC in "
+                            f"{ft.H10_PILOT_OR_LAND[fmode]} -> NOT commanding LAND "
+                            "(the pre-H10 fly_trial.py WOULD command LAND here)")
                     else:
                         log(f"WatcherLost: {e} (FC mode {mode})")
                         self.land("watcher lost (fly_trial behaviour)")

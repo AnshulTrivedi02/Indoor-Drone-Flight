@@ -24,6 +24,11 @@ F7 pre-arm yaw check (yawcheck.py; ON by default, fail-closed): while the FC is 
 FC's ATTITUDE yaw agrees with the mocap heading (+ the tie) within 5 deg for >= 1 s with mocap valid; informational
 only once armed. --yaw-tie origin (default) captures the tie at the FC's EKF-origin broadcast, so the watcher MUST be
 running before the origin is set (flight cards); --yaw-tie <deg> is a surveyed constant (compass variant only).
+
+M2 pre-arm EKF velocity check (velcheck.py; ON by default, fail-closed; F8 mitigation M2): while the FC is disarmed, no
+confirmation unless the FC's LOCAL_POSITION_NED velocity (3-D norm of vx, vy, vz) stays < 0.2 m/s for >= 5 s while the
+mocap shows the vehicle stationary (speed over a 0.5 s baseline < 0.05 m/s), with mocap valid and LOCAL_POSITION_NED
+fresh (<= 0.5 s); informational only once armed. LOCAL_POSITION_NED exists only once the EKF origin is set.
 """
 import argparse
 import math
@@ -79,6 +84,12 @@ def parse(argv=None):
                          "watcher must be running before the origin is set); or a number: the surveyed NED bearing of "
                          "the mocap +x axis in deg (compass variant only)")
     ap.add_argument("--yaw-tol-deg", type=float, default=5.0)
+    ap.add_argument("--vel-check", choices=("require", "off"), default="require",
+                    help="M2 pre-arm EKF velocity check (velcheck.py); 'off' only for offline tests and bench tests "
+                         "that are not about it")
+    ap.add_argument("--vel-max", type=float, default=0.2, help="M2: EKF |v| limit, m/s (3-D norm)")
+    ap.add_argument("--vel-sustain-s", type=float, default=5.0)
+    ap.add_argument("--vel-still-mps", type=float, default=0.05, help="M2: mocap 'stationary' speed limit, m/s")
     ap.add_argument("--lua-auth", action="store_true", help="also require SCR_ENABLE 1 (the G6(ii) arming-auth script)")
     ap.add_argument("--alert-cmd", help="shell command run (non-blocking) on every alert, e.g. an audible alarm")
     ap.add_argument("--land-retry-s", type=float, default=0.3)
@@ -109,7 +120,9 @@ class Watcher:
                           dep_loss=a.dep_loss, stall_s=a.stall_s, body_name=a.body_name, body_id=a.body_id,
                           up_axis=a.up_axis, body_yaw_offset_deg=a.body_yaw_offset_deg,
                           require_identity=a.identity == "require", require_fc_params=a.fc_params == "require",
-                          require_yaw=a.yaw_check == "require", yaw_tie_deg=a.yaw_tie_deg, yaw_tol_deg=a.yaw_tol_deg)
+                          require_yaw=a.yaw_check == "require", yaw_tie_deg=a.yaw_tie_deg, yaw_tol_deg=a.yaw_tol_deg,
+                          require_vel=a.vel_check == "require", vel_max_mps=a.vel_max,
+                          vel_sustain_s=a.vel_sustain_s, vel_still_mps=a.vel_still_mps)
         self.core = WatcherCore(self.cfg)
         self.slog = open(os.path.join(a.out, "STOP_LOG.txt"), "a")
         self.track = open(os.path.join(a.out, "mocap_watch_track.csv"), "a")
@@ -121,6 +134,9 @@ class Watcher:
         self.ylog = open(os.path.join(a.out, "mocap_watch_yaw.csv"), "a")
         if self.ylog.tell() == 0:
             self.ylog.write("t_wall,fc_armed,fc_yaw_deg,mocap_hdg_deg,tie_deg,diff_deg,gate_ok,why\n")
+        self.vlog = open(os.path.join(a.out, "mocap_watch_vel.csv"), "a")
+        if self.vlog.tell() == 0:
+            self.vlog.write("t_wall,fc_armed,vx,vy,vz,vnorm,mocap_speed,still_for_s,gate_ok,why\n")
         self.host = socket.gethostname()
         self.mocap = UdpPoseSource(a.mocap_host, a.mocap_port)
         self.live = UdpLivenessSocket(a.liveness_host, a.liveness_port)
@@ -169,7 +185,7 @@ class Watcher:
     def write_file(self, now, hb_sent):
         f, reasons = self.core.flags(now)
         line = (f"{time.time():.3f} box={f['box']} bridge={f['bridge']} pose={f['pose']} id={f['id']} fc={f['fc']} "
-                f"latch={f['latch']} yaw={f['yaw']} host={self.host}\n")
+                f"latch={f['latch']} yaw={f['yaw']} vel={f['vel']} host={self.host}\n")
         tmp = os.path.join(self.a.out, "watch_heartbeat.tmp")
         with open(tmp, "w") as fh:
             fh.write(line)
@@ -188,6 +204,10 @@ class Watcher:
                 self.handle(self.core.on_fc_attitude(now, ev[1], ev[2], ev[3], ev[4]))
                 if self.cfg.require_yaw:
                     self.log_yaw(now)
+            elif k == "lpn":
+                self.handle(self.core.on_fc_lpn(now, ev[1], ev[2], ev[3]))
+                if self.cfg.require_vel:
+                    self.log_vel(now)
             elif k == "origin":
                 self.note(f"FC GPS_GLOBAL_ORIGIN lat={ev[1]} lon={ev[2]}")
                 self.handle(self.core.on_fc_origin(now))
@@ -208,6 +228,16 @@ class Watcher:
         self.ylog.write(f"{time.time():.3f},{self.core.fc_armed},{deg(y.fc_yaw)},{deg(y.moc_hdg)},{deg(y.tie)},"
                         f"{deg(y.diff)},{int(ok)},\"{why}\"\n")
         self.ylog.flush()
+
+    def log_vel(self, now):
+        v = self.core.vel
+        ok, why = v.ok(now, self.core.fc_armed, self.core.pose_fresh(now)[0])
+        f = lambda x: "" if x is None else f"{x:.4f}"  # noqa: E731
+        still = None if v.good_since is None else now - v.good_since
+        vx, vy, vz = v.v if v.v is not None else (None, None, None)
+        self.vlog.write(f"{time.time():.3f},{self.core.fc_armed},{f(vx)},{f(vy)},{f(vz)},{f(v.vnorm)},"
+                        f"{f(v.moc_speed)},{f(still)},{int(ok)},\"{why}\"\n")
+        self.vlog.flush()
 
     def run(self):
         a = self.a
@@ -277,7 +307,10 @@ class Watcher:
                     f"land={self.fc.land}\nmocap_bad_packets={self.mocap.bad}\n"
                     f"yaw_check={'require' if self.cfg.require_yaw else 'off'} ({self.core.yaw.tie_why})\n"
                     f"yaw_max_diff_disarmed_deg={self.core.yaw.max_diff_disarmed:.2f}\n"
-                    f"yaw_max_diff_armed_deg={self.core.yaw.max_diff_armed:.2f}\n")
+                    f"yaw_max_diff_armed_deg={self.core.yaw.max_diff_armed:.2f}\n"
+                    f"vel_check={'require' if self.cfg.require_vel else 'off'}\n"
+                    f"vel_max_disarmed_mps={self.core.vel.max_v_disarmed:.3f}\n"
+                    f"vel_max_armed_mps={self.core.vel.max_v_armed:.3f}\n")
         self.note("watcher exit: heartbeat withdrawn")
         for c in (self.mocap, self.live, self.fc):
             c.close()

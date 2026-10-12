@@ -5,7 +5,9 @@ Outputs:
   - `flags(now)`: the confirmation flags. box=1 means "the geofence is armed and every non-dependency check passes"
     (fresh tracked pose for >= recover_s, inside the 3-D box, tilt OK, rigid-body identity proven, FC parameters
     verified, FC link up, no latched episode, and, while the FC is DISARMED, the F7 yaw check: the FC yaw agrees with
-    the mocap heading + tie within 5 deg for >= 1 s, yawcheck.py; once ARMED that check is informational only). bridge=1 means "every watched dependency is alive" (and no latched
+    the mocap heading + tie within 5 deg for >= 1 s, yawcheck.py, and the M2 velocity check: the FC's EKF velocity
+    (LOCAL_POSITION_NED, 3-D norm) < 0.2 m/s for >= 5 s with the mocap showing the vehicle still, velcheck.py; once
+    ARMED both are informational only). bridge=1 means "every watched dependency is alive" (and no latched
     episode). CONFIRMED = box and bridge. Only while CONFIRMED does the watcher send its MAVLink HEARTBEAT.
   - actions returned by the event methods: ("LAND", reason) at most once per episode, ("ALERT", text), ("LOG", text).
 
@@ -25,6 +27,7 @@ from typing import Optional, Tuple
 
 from realflight.watcher.frames import FrameConverter, euler_frd, tilt_deg, wrap_pi
 from realflight.watcher.liveness import LivenessMonitor
+from realflight.watcher.velcheck import VelCheck
 from realflight.watcher.yawcheck import YawCheck
 
 
@@ -62,6 +65,12 @@ class Config:
     yaw_tie_deg: Optional[float] = None                     # None = capture at the FC's EKF-origin broadcast
     yaw_tol_deg: float = 5.0                                # ruling 2 (2026-10-12)
     yaw_sustain_s: float = 1.0                              # agreement sustained >= 1 s
+    # M2 pre-arm EKF velocity check (velcheck.py; F8): OFF by default in the library (the unit-test fixtures); the CLI
+    # (mocap_watch.py --vel-check) defaults it ON, fail-closed
+    require_vel: bool = False
+    vel_max_mps: float = 0.2                                # ruling 2026-10-12 (M2)
+    vel_sustain_s: float = 5.0                              # held >= 5 s
+    vel_still_mps: float = 0.05                             # mocap "stationary"
 
 
 class Identity:
@@ -197,6 +206,7 @@ class WatcherCore:
         self.conv = FrameConverter(cfg.up_axis, cfg.body_yaw_offset_deg)
         self.ident = Identity(cfg)
         self.yaw = YawCheck(cfg.yaw_tie_deg, cfg.yaw_tol_deg, cfg.yaw_sustain_s)
+        self.vel = VelCheck(cfg.vel_max_mps, cfg.vel_sustain_s, cfg.vel_still_mps)
         self.live = LivenessMonitor(cfg.deps, cfg.dep_timeout_s, cfg.progress_timeout_s)
         # pose
         self.last_frame = None
@@ -251,6 +261,12 @@ class WatcherCore:
             acts += self.ident.on_att(now, roll, pitch, yaw)
         return acts
 
+    def on_fc_lpn(self, now, vx, vy, vz):
+        """FC LOCAL_POSITION_NED velocity (NED, m/s). Returns actions (M2 velocity check LOG or ALERT only)."""
+        if not self.c.require_vel:
+            return []
+        return self.vel.on_lpn(now, vx, vy, vz, armed=self.fc_armed)
+
     def on_fc_origin(self, now):
         """The FC's GPS_GLOBAL_ORIGIN (the EKF-origin event): the yaw-check tie is captured at the first in a boot."""
         if not self.c.require_yaw:
@@ -304,6 +320,9 @@ class WatcherCore:
         if self.c.require_yaw:
             self.yaw.set_mocap_valid(now, True)
             self.yaw.on_pose(now, euler_frd(self.R)[2])
+        if self.c.require_vel:
+            self.vel.set_mocap_valid(now, True)
+            self.vel.on_pose(now, self.p)
         if not self.inside:
             acts += self._breach(f"box left: ({x:.3f}, {y:.3f}, {z:.3f}) outside x[{x0},{x1}] y[{y0},{y1}] "
                                  f"z[{z0},{z1}]", land=True)
@@ -317,6 +336,8 @@ class WatcherCore:
         pose_fresh, why = self.pose_fresh(now)
         if self.c.require_yaw and not pose_fresh:
             self.yaw.set_mocap_valid(now, False)
+        if self.c.require_vel and not pose_fresh:
+            self.vel.set_mocap_valid(now, False)
         if not pose_fresh:
             self.fresh_since = None
             if self.was_confirmed and self.latched is None:
@@ -384,6 +405,11 @@ class WatcherCore:
             yok, ywhy = self.yaw.ok(now, self.fc_armed, fresh)
             if not yok:
                 reasons.append(f"yaw {ywhy}")
+        if self.c.require_vel:
+            # M2: gates ONLY while the FC is not reported armed; armed -> informational (never withdraws, never lands)
+            vok, vwhy = self.vel.ok(now, self.fc_armed, fresh)
+            if not vok:
+                reasons.append(f"vel {vwhy}")
         if self.fc_last_hb is None or now - self.fc_last_hb > self.c.fc_link_timeout_s:
             reasons.append("FC link down")
         if self.collision:
@@ -404,7 +430,8 @@ class WatcherCore:
         return {"box": int(box_ok and not lat), "bridge": int(bridge_ok and not lat), "pose": int(fresh),
                 "id": int(self.ident.state == "confirmed" or not self.c.require_identity),
                 "fc": int(self.params_ok is True), "latch": int(lat),
-                "yaw": int(not self.c.require_yaw or self.yaw.ok(now, self.fc_armed, fresh)[0])}, reasons
+                "yaw": int(not self.c.require_yaw or self.yaw.ok(now, self.fc_armed, fresh)[0]),
+                "vel": int(not self.c.require_vel or self.vel.ok(now, self.fc_armed, fresh)[0])}, reasons
 
     def confirmed(self, now):
         f, _ = self.flags(now)

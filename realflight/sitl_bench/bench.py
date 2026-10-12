@@ -34,7 +34,7 @@ class Abort(Exception):
 
 
 class Bench:
-    def __init__(self, session, prefix="wbench2", start=None, only=None):
+    def __init__(self, session, prefix="wbench2", start=None, only=None, checks="none"):
         self.session = session
         self.only = only
         self.start_from = start
@@ -47,6 +47,16 @@ class Bench:
         self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a", "f7")), log=self.log,
                            extra_defaults=[f"{REPO}/realflight/sitl_bench/params/wbench_f7.parm"] if f7 else [],
                            lua_at_boot=f7)
+        # wbench4 (`--checks all`, pre-registered in docs/handovers/2026-10-12_m2_full_bench.md §1): every watcher
+        # runs the F7 yaw check AND the M2 velocity check; the F7 session keeps its no-compass origin tie, the others
+        # (compass, EK3_SRC1_YAW 1) use the fixed SITL tie 90 deg, which survives the watcher restarts; every flight
+        # script carries the H10 guard; the simulated pilot disarms 2 s (M3) after a LAND touchdown; and M1 (an FC
+        # reboot + the origin re-verified) precedes every hover that follows a landing in the same boot.
+        self.all_checks = checks == "all"
+        if self.all_checks:
+            self.stack.wdef = dict(yaw_check="require", yaw_tie="origin" if f7 else "90", vel_check="require")
+        self.op_disarm_s = 2.0 if self.all_checks else 4.0
+        self.landed_in_boot = False
         self.nfs = 0
         self.t_start = time.time()
         # provenance: the code under test (watcher + driver) is pinned by the commit
@@ -55,6 +65,9 @@ class Bench:
         dirty = subprocess.run([vcs, "-C", REPO, "status", "--porcelain", "realflight/", "tools/run_wbench.sh"],
                                capture_output=True, text=True).stdout.strip()
         self.log(f"PROVENANCE repo {REPO} HEAD {head}; realflight/ uncommitted changes: {dirty or 'none'}")
+        self.log(f"CHECKS {checks}: watcher defaults {self.stack.wdef}; H10 on every flight {self.all_checks}; "
+                 f"operator disarm after {self.op_disarm_s} s on the ground in LAND; M1 before re-arms "
+                 f"{self.all_checks}")
 
     def should_run(self, name):
         """--from: skip tests before `start_from` (by test-name prefix) in this session. --only: run only the tests
@@ -171,6 +184,18 @@ class Bench:
         if restart or not self.stack.alive("watcher"):
             self.stack.start_watcher(*extra)
         if self.op.wait("watcher confirmed", lambda: self.stack.confirmed(), cap, self.alive) is None:
+            # wbench4 safety net (pre-registered, handover 2026-10-12_m2_full_bench.md §1.1 S4): if the ONLY reasons are
+            # the M2 velocity check ("vel ..."), apply M1 once (FC reboot + origin re-verified + watcher restart), as
+            # the cards prescribe, and wait again; recorded. Anything else aborts the session as before.
+            line = self._wreasons() or ""
+            rs = line.split("confirmation 0: ", 1)[1].split("; ") if "confirmation 0: " in line else []
+            if self.all_checks and rs and all(r.startswith("vel ") for r in rs):
+                self.rec("M1_fallback", why=line)
+                self.landed_in_boot = True
+                self.m1_if_needed("ensure_watcher (M2 refused for the whole cap)")
+                if self.op.wait("watcher confirmed", lambda: self.stack.confirmed(), cap, self.alive) is not None:
+                    self.log(f"watcher confirmed after the M1 fallback: {self.stack.watch_file()[1]}")
+                    return
             raise Abort(f"watcher did not confirm within {cap} s: {self.stack.watch_file()}")
         self.log(f"watcher confirmed: {self.stack.watch_file()[1]}")
 
@@ -181,7 +206,7 @@ class Bench:
         json.dump(profile, open(pf, "w"))
         env = dict(self.stack.penv, WATCH_HEARTBEAT=os.path.join(self.out, "watcher", "watch_heartbeat"))
         cmd = [VENV_PY, "-m", "realflight.sitl_bench.flight_script", "--port", str(P["fs"]), "--profile", pf]
-        if h10:
+        if h10 or self.all_checks:
             cmd.append("--h10-guard")
         self.stack.spawn(name, cmd, env=env)
         return name, os.path.join(self.out, f"{name}.log")
@@ -225,9 +250,10 @@ class Bench:
             z = self.gt_z()
             if self.op.mode == LAND and z is not None and z < 0.25:
                 low_since = low_since or time.time()
-                if time.time() - low_since > 4:
-                    self.log("OPERATOR DISARM: landed in LAND for 4 s, land detector did not trip")
-                    self.op.note("OP", "operator disarm: on the ground in LAND 4 s, not disarmed by the FC")
+                if time.time() - low_since > self.op_disarm_s:
+                    self.log(f"OPERATOR DISARM: landed in LAND for {self.op_disarm_s} s, land detector did not trip")
+                    self.op.note("OP", f"operator disarm: on the ground in LAND {self.op_disarm_s} s, not disarmed "
+                                       "by the FC")
                     self.op.disarm()
                     low_since = time.time() + 1e9
             else:
@@ -258,9 +284,12 @@ class Bench:
             return None
         self.log(f"===== {name}")
         self.home_if_needed()
+        self.m1_if_needed(name)
         self.ensure_watcher()
         fs, fsl = self.flight(profile or HOLD, h10=h10)
         t_arm = self.wait_text(fsl, r"Armed\.", 120, fs)
+        if t_arm is not None:
+            self.landed_in_boot = True
         if t_arm is None:
             self.rec(name, result="NOT_RUN", why="flight script did not arm", fs_log=fsl)
             self.safe_down(); self.end_flight(fs)
@@ -283,6 +312,21 @@ class Bench:
         self.end_flight(fs)
         self.back_to_guided()
         return info
+
+    def m1_if_needed(self, before):
+        """M1 (ruling 2026-10-12; wbench4 only): before a hover that follows a landing in the same FC boot, power-cycle
+        the FC (a SITL reboot), re-establish and VERIFY the origin (establish_origin), then restart the watcher with
+        its last arguments (the fixed tie survives; a stopped watcher cannot latch "FC link lost" during the reboot)."""
+        if not (self.all_checks and self.landed_in_boot):
+            return
+        st = self.stack
+        self.log(f"M1: FC power-cycle before {before} (a landing happened in this boot)")
+        st.stop("watcher", signal.SIGTERM, 10)
+        t = self.reboot(settle=45)
+        extra, kw = st.last_watcher
+        st.start_watcher(*extra, **kw)
+        self.landed_in_boot = False
+        self.rec("M1_reboot", before=before, t_reboot_w=t)
 
     def home_if_needed(self):
         """A vehicle that landed outside (or near the edge of) the box keeps the watcher latched, correctly; carry it
@@ -670,9 +714,11 @@ class Bench:
         st = self.stack
         st.stop("observer", 15)
         st.fwd(1, mode=mode, tracked=1)
+        # the B6b observer never gates arming: its yaw and velocity checks stay off in every session
         st.spawn("observer", st.watcher_cmd(name="observer", sysid=212, fc_port=P["observer_fc"],
                                             mocap_port=P["observer_mocap"], box="-100,100,-100,100,-10,100",
-                                            deps=False, identity="require", fc_params="off"))
+                                            deps=False, identity="require", fc_params="off", yaw_check="off",
+                                            vel_check="off"))
 
     def s_hoverB(self):
         st = self.stack
@@ -691,6 +737,8 @@ class Bench:
         for run, mode in (("right_body", "normal"), ("static_other_body", "static")):
             if not self.should_run(f"B6b_{run}"):
                 continue
+            self.home_if_needed()
+            self.m1_if_needed(f"B6b_{run}")      # before the observer starts (a reboot would latch its FC link)
             self.observer(mode)
             t0 = time.time()
             info = self.hover(f"B6b_{run}", lambda fs: {}, profile=man, marker="STEP 2 roll start")
@@ -998,6 +1046,172 @@ class Bench:
         self.rec("F7_end", t_rotate_back_w=t_back, t_confirmed_file_w=t_conf,
                  land_sends_total=self._wlog().count("LAND command sent"), breach_in_log="BREACH" in self._wlog())
 
+    # ------------------------------------------------------------------ wbench4_m2 (the M2 runaway test, B12-SITL)
+    def truth_speed(self, base=0.5):
+        """Ground-truth horizontal+vertical speed (m/s) over the last `base` s, from the forwarder log (dest 0)."""
+        try:
+            with open(os.path.join(self.out, "forwarder.csv"), "rb") as f:
+                f.seek(-60000, 2)
+                rows = [l.split(",") for l in f.read().decode(errors="replace").splitlines() if l.count(",") == 9]
+            rows = [(float(r[0]), float(r[7]), float(r[8]), float(r[9])) for r in rows
+                    if r[1] == "0" and r[4] == "normal"]
+        except (OSError, ValueError, IndexError):
+            return None
+        if len(rows) < 2:
+            return None
+        t1, x1, y1, z1 = rows[-1]
+        old = [r for r in rows if r[0] <= t1 - base]
+        if not old:
+            return None
+        t0, x0, y0, z0 = old[-1]
+        return ((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2) ** 0.5 / (t1 - t0)
+
+    def _wreasons(self):
+        rows = [l for l in self._wlog().splitlines() if "confirmation " in l]
+        return rows[-1] if rows else None
+
+    def m2_attempt(self, k, flow_kill):
+        """One landing in the same boot, then up to 20 s watching for an EKF3 ground runaway (pre-registered
+        handover 2026-10-12_m2_full_bench.md §1.4 M2-R). Returns the detection wall time or None."""
+        st, op = self.stack, self.op
+        name = f"M2_attempt{k}" + ("_flowkill" if flow_kill else "")
+        self.log(f"===== {name}")
+        self.home_if_needed()
+        self.ensure_watcher()
+        fs, fsl = self.flight([{"takeoff": 1.5}, {"hold": 5}, {"land": True}])
+        t_arm = self.wait_text(fsl, r"Armed\.", 120, fs)
+        if t_arm is None:
+            self.rec(name, result="NOT_RUN", why="flight script did not arm", fs_log=fsl)
+            self.safe_down(); self.end_flight(fs)
+            return None
+        self.landed_in_boot = True
+        info = {"t_arm_w": t_arm, "fs_log": fsl}
+        if flow_kill:
+            t_l = self.wait_text(fsl, r"STEP 2 land start", 120, fs)
+            info["t_land_step_w"] = t_l
+            if op.wait("descent below 0.75 m", lambda: (self.gt_z() or 9) < 0.75, 60, self.alive):
+                info["t_flow_bridge_kill_w"] = st.send_sig("flow_bridge_real", 9)
+                op.wait("touchdown", lambda: (self.gt_z() or 9) < 0.23 or op.armed is False, 60, self.alive)
+                st.spawn("flow_bridge_real", [VENV_PY, f"{REPO}/flow_bridge.py", "--ros-args", "-p",
+                                              "use_sim_time:=true"], env=st.renv)
+                info["t_flow_bridge_restart_w"] = time.time()
+        t_dis = self.wait_disarmed(150)
+        info["t_disarm_seen_w"] = t_dis
+        self.end_flight(fs)
+        if t_dis is None:
+            self.safe_down()
+            self.rec(name, result="NOT_RUN", why="no disarm", **info)
+            return None
+        # watch for a runaway: operator-link |v| >= 0.2 for >= 1.0 s continuously, disarmed, truth still (< 0.05 m/s)
+        run_since, t_det, vmax = None, None, 0.0
+        t_end = time.time() + 20.0
+        while time.time() < t_end and t_det is None:
+            if not self.alive():
+                raise Abort("stack died")
+            v = op.vnorm_since(time.time() - 0.3)
+            vs = self.truth_speed()
+            bad = bool(v) and min(x[1] for x in v) >= 0.2 and op.armed is False and vs is not None and vs < 0.05
+            if v:
+                vmax = max(vmax, max(x[1] for x in v))
+            if bad:
+                run_since = run_since or time.time()
+                if time.time() - run_since >= 1.0:
+                    t_det = time.time()
+            else:
+                run_since = None
+            time.sleep(0.1)
+        info.update(t_runaway_onset_w=run_since, t_runaway_detected_w=t_det, op_vmax_20s=round(vmax, 3))
+        self.rec(name, result="RUNAWAY" if t_det else "no runaway within 20 s", **info)
+        return t_det
+
+    def s_m2(self):
+        """M2-R (pre-registered, handover 2026-10-12_m2_full_bench.md §1.4): induce an EKF3 ground velocity runaway as
+        F8 occurred (a re-arm after a landing in the same boot; the flow dropout on the final descent), show the
+        watcher refuses arming, then M1 (reboot + origin re-verified) and show arming is allowed."""
+        st, op = self.stack, self.op
+        t_det = None
+        for k in range(1, 4):
+            t_det = self.m2_attempt(k, flow_kill=False)
+            if t_det:
+                break
+        if not t_det:
+            for k in range(4, 6):
+                t_det = self.m2_attempt(k, flow_kill=True)
+                if t_det:
+                    break
+        if not t_det:
+            self.rec("M2_R", result="NOT_COMPLETED", why="no runaway in 3 natural + 2 flow-kill landings")
+            return
+        # ---- the refusal while the runaway is on
+        polls = []
+        # the probe: >= 0.5 s after detection AND >= 3.5 s after the watcher's last confirmed tick (its heartbeat
+        # stopped: FS_GCS_TIMEOUT 3 s), so the FC-side refusal is in force; cap 20 s after detection
+        while True:
+            c = st.confirmed()
+            polls.append((round(time.time(), 3), int(c)))
+            t_lc = self._last_confirmed_w()
+            if time.time() >= t_det + 0.5 and not c and (t_lc is None or time.time() - t_lc >= 3.5):
+                break
+            if time.time() - t_det > 20:
+                break
+            time.sleep(0.05)
+        v_probe = op.vnorm_since(time.time() - 0.3)
+        reasons_probe = self._wreasons()
+        _, flags = st.watch_file()
+        n_land0 = self._wlog().count("LAND command sent")
+        t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
+        self.rec("M2_R_probe", t_detect_w=t_det, t_last_confirmed_w=self._last_confirmed_w(), polls_confirmed=[p for p in polls if p[1]][:10],
+                 n_polls=len(polls), t_probe_w=t, ack=r, armed=armed, fc_texts=texts,
+                 op_v_at_probe=[round(x[1], 3) for x in v_probe], watcher_last_reason_line=reasons_probe,
+                 file_flags=flags, watcher_land_sends_total=self._wlog().count("LAND command sent"),
+                 breach_in_log="BREACH" in self._wlog(),
+                 alert_logged="arming refused (F8)" in self._wlog(), vel_row=self._vel_last())
+        if armed:
+            self.disarm_now()
+        else:
+            self.rc.set(ch5=SW["guided"], ch3=1000)
+        # observe up to 6 s more (the refusal while the runaway lasts), then M1
+        obs = []
+        t_end = time.time() + 6
+        while time.time() < t_end:
+            obs.append((round(time.time(), 2), int(st.confirmed()),
+                        round(max([x[1] for x in op.vnorm_since(time.time() - 0.3)] or [-1]), 3)))
+            time.sleep(0.25)
+        self.rec("M2_R_after_probe", obs=obs, land_sends_since_probe=self._wlog().count("LAND command sent") - n_land0)
+        # ---- M1: power-cycle (SITL reboot) + the origin re-established and VERIFIED, then the watcher restarted
+        st.stop("watcher", signal.SIGTERM, 10)
+        t_rb = self.reboot(settle=45)
+        t_orig = [o for o in self.op.origins if o[0] >= t_rb]
+        extra, kw = st.last_watcher
+        st.start_watcher(*extra, **kw)
+        self.landed_in_boot = False
+        t_w = time.time()
+        t_conf = op.wait("watcher confirmed after M1", lambda: st.confirmed(), 90, self.alive)
+        v_conf = op.vnorm_since(time.time() - 5.0)
+        res, lines, fsl = self.script_arm("M2_R_after_M1")
+        self.rec("M2_R_M1", t_reboot_w=t_rb, origin_verified=[o for o in t_orig][:1], t_watcher_start_w=t_w,
+                 t_confirmed_w=t_conf, op_vmax_5s_before_confirm=round(max([x[1] for x in v_conf] or [-1]), 3),
+                 outcome=res, lines=lines, fs_log=fsl)
+
+    def _last_confirmed_w(self):
+        """Wall time of the watcher's last confirmed heartbeat-file row (mocap_watch_heartbeat.csv), or None."""
+        try:
+            rows = open(os.path.join(self.out, "watcher", "mocap_watch_heartbeat.csv")).read().splitlines()[1:]
+        except OSError:
+            return None
+        for l in reversed(rows):
+            p = l.split(",")
+            if len(p) > 1 and p[1] == "1":
+                return float(p[0])
+        return None
+
+    def _vel_last(self):
+        try:
+            rows = open(os.path.join(self.out, "watcher", "mocap_watch_vel.csv")).read().splitlines()[1:]
+            return rows[-1] if rows else None
+        except OSError:
+            return None
+
     def s_smoke(self):
         self.ensure_watcher()
         self.hover("wbench_smoke", lambda fs: {}, profile=[{"takeoff": 1.5}, {"hold": 15}, {"land": True}],
@@ -1010,9 +1224,12 @@ def main():
     ap.add_argument("--from", dest="start", default=None)
     ap.add_argument("--prefix", default="wbench2")
     ap.add_argument("--only", default=None)
+    ap.add_argument("--checks", choices=("none", "all"), default="none",
+                    help="'all' (wbench4): the watcher's F7 yaw and M2 velocity checks on, H10 on every flight, M1 "
+                         "before re-arms, the 2 s M3 disarm")
     a = ap.parse_args()
     s = a.session
-    b = Bench(s, prefix=a.prefix, start=a.start, only=a.only)
+    b = Bench(s, prefix=a.prefix, start=a.start, only=a.only, checks=a.checks)
     code = 0
     try:
         getattr(b, f"setup_{s}", b.setup)()

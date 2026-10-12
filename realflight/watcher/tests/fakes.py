@@ -52,6 +52,8 @@ class FakeFC(threading.Thread):
         self.drop_first_commands, self.ack = drop_first_commands, ack
         self.att = (0.0, 0.0, 0.0)                    # roll, pitch, yaw (FRD, rad), settable by tests
         self.att_hz = att_hz
+        self.vel = None                               # (vx, vy, vz) NED m/s: LOCAL_POSITION_NED at lpn_hz when set
+        self.lpn_hz = 10.0                            # (the FC sends it only with an EKF origin: None = no origin)
         self.hb_period = hb_period                    # FC HEARTBEAT period (ArduPilot default 1 s; tests use 0.2 s)
         self.rx = []                                  # (t_mono, type, srcSystem, msg)
         self.events = []                              # (t_mono, text)
@@ -69,7 +71,7 @@ class FakeFC(threading.Thread):
         return True, "armed"
 
     def run(self):
-        t_hb = t_att = t_fs = 0.0
+        t_hb = t_att = t_fs = t_lpn = 0.0
         while not self.stop_ev.is_set():
             now = time.monotonic()
             m = self.conn.recv_match(blocking=True, timeout=0.005)
@@ -86,6 +88,10 @@ class FakeFC(threading.Thread):
                     t_att = now
                     r, p, y = self.att
                     self.conn.mav.attitude_send(int(now * 1000) & 0xFFFFFFFF, r, p, y, 0, 0, 0)
+                if self.vel is not None and now - t_lpn >= 1.0 / self.lpn_hz:
+                    t_lpn = now
+                    vx, vy, vz = self.vel
+                    self.conn.mav.local_position_ned_send(int(now * 1000) & 0xFFFFFFFF, 0, 0, -1, vx, vy, vz)
             if self.failsafe_model and now - t_fs >= 1 / 3.0:            # three_hz_loop
                 t_fs = now
                 self._gcs_check(now)
