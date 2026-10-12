@@ -104,7 +104,8 @@ failsafe, the Lua script on the real board, beacons inside the Pi processes, the
   - **A finding for the safety case, not a watcher issue (F7).** Stock EKF3 on flow can pass its arming checks with
     a ~22° yaw error, and then fly away on take-off. Here the box caught it.
 - **A10 (2026-10-12, ~11:58, after the hoverB re-run `wbench2_hoverB_20261012_114206` and hoverC; before the run it
-  governs). The incomplete-stimulus rule (general, applies to every test of this stage).**
+  governs). The incomplete-stimulus rule (general, applies to every test of this stage). LABELLED POST HOC: it was
+  written after the incomplete B6b attempt had been seen.**
   - **Rule:** a test whose stimulus is never applied, because an event outside the test's own mechanism happened
     first, is NOT COMPLETED. It is repeated ONCE, and both attempts are reported. If the repeat is also cut short,
     the test is reported "not completed" and nothing more is run.
@@ -153,12 +154,26 @@ ac5fada (the hoverB re-run, hoverC) and 8d384fc (the B6b repeat). None had uncom
 **Take-off lateral excursion (observation, F8):** 0.06–0.57 m in every counted hover, except the first B6b run 1
 attempt (2.08 m).
 
+**R2 check (an EKF failsafe before a test's own criterion event voids that test), all counted sessions.** ERR
+EKFCHECK and ERR FAILSAFE_EKFINAV appear in B8a and B10b (3) (+31.5 s and +49.2 s), as registered. They also appear in
+five other places, every one AFTER that test's criterion event, so **no test is voided**:
+- B4b side: +4.66 s after the BREACH;
+- B5b: +4.24 s after the first untracked frame;
+- B5b-noflag: +4.9 s after the frozen declaration;
+- B9-hang: +10.7 s after its LAND.
+  In each of these four the vehicle was already descending in LAND, and `HORIZ_POS_REL` was lost near the ground. LAND
+  does not need a position, so no mode change followed.
+- ground: after the B4c tilt carry, disarmed (`failsafe_ekf_event` takes no action when disarmed).
+
+The only EKF-failsafe mode change in the whole re-run is B8a's LAND.
+
 ### 2.1 Summary
 
 - **PASS (as worded):** B0, B1a, B1b/B9d, B1c (ii), B1-native, B1c-Lua, B2a, B2b, B3a, B3b, B4a (5 faces), B4b side,
   B4b top, B4c, B5a (re-worded), B5b, B5b-noflag (re-worded), B5c, B6a, B6b run 2.
 - **PASS, continued:**
-  - B6b run 1: on the A10 repeat. The first attempt was NOT COMPLETED.
+  - B6b run 1: PASS on a repeat under A10, LABELLED POST HOC (the rule was written after the incomplete attempt was
+    seen). The first attempt was NOT COMPLETED.
   - B7a: on the forwarder path only.
   - **B7b**, with the registered warm-up.
   - **B8a**, repeated with an origin.
@@ -408,8 +423,9 @@ link cut.
 
 ### 2.4 Watcher changes
 
-**None.** `realflight/watcher/` was not modified in this stage. The offline result from the start of the stage stands:
-`pytest realflight/` → **91 passed**.
+**None.** `realflight/watcher/` was not modified in this stage:
+`git diff 140a946 f877884 --stat -- realflight/watcher/ realflight/mcp1.py realflight/params/` prints nothing. The
+offline result from the start of the stage therefore stands: `pytest realflight/` → **91 passed**.
 
 ## 3. Harness fix (the B8a origin-timing fault)
 
