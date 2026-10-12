@@ -119,7 +119,7 @@ def text_events(sess):
             ev.append((float(parts[0]), None, "RELAY", parts[1].strip()))
     for l in open(os.path.join(sess, "op_events.csv")):
         w, kind, txt = l.rstrip("\n").split(",", 2)
-        if kind in ("TEXT", "HB", "OP", "PARAM", "ACK"):
+        if kind in ("TEXT", "HB", "OP", "PARAM", "ACK", "ORIGIN"):
             ev.append((float(w), None, f"op.{kind}", txt.strip('"')))
     for l in open(os.path.join(sess, "forwarder.csv")):
         if ",CTL," in l:
