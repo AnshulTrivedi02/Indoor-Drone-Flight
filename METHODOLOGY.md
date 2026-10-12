@@ -14118,3 +14118,20 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     refuses during it;
   - a MANUAL re-arm in that window is stopped only by M1 and the card.
 - **Decisions for the user:** M2's norm (3-D vs horizontal; F7-a depends on it); whether to re-register M2-R.
+
+### RULINGS (user, 2026-10-12): on the full watcher bench `wbench4`
+1. **M2 keeps EKF3's 3-D velocity** (fail-closed).
+   - **F7-a is recorded as FAILED AS WORDED.** The cause: a simulated teleport produced a 0.31 m/s vertical spike,
+     which cannot occur on a real vehicle.
+2. **M2-R is RE-REGISTERED before running:**
+   - a DEPENDABLE sustained ground runaway (e.g. stop the flow on descent and re-arm in the same boot, as in F8);
+   - a timing criterion INDEPENDENT of the runaway's duration;
+   - run it (~30 min) and report.
+3. **B10a is re-worded for the REAL bench:** "the pilot retains control and no watcher LAND is sent" (drift in
+   ALT_HOLD is expected). The simulation run stays recorded as FAILED AS WORDED under the old wording.
+4. **X1 is recorded as FAILED AS WORDED** against the operator-link timing. It holds on the watcher's own view of the
+   FC. A real-bench check of the same timing is added.
+5. **Flight card: NO RE-ARM WITHIN 10 s OF ANY DISARM.** This codifies M1's implication and closes the ~3.3 s
+   FS_GCS_TIMEOUT gap.
+- **Evidence for M2, recorded:** in wbench4 the watcher refused two persistent EKF3 ground runaways that never
+  recovered: 42.6 m/s after a B9a landing, and 192 m/s after the B4c tilt-drop. They caused the two aborted sessions.
