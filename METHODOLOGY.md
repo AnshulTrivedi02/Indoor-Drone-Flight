@@ -13887,3 +13887,21 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - F8: EKF3's velocity runs away on the ground before arming (cause unknown);
   - a second EKF failsafe after the flow was restored in B10b (not investigated).
 - **Open:** the EKF-origin decision (the user's); H10 (`fly_trial.py` would command LAND in B10b(1)).
+
+### RULINGS (user, 2026-10-12, safety first)
+1. **EKF origin:** set and VERIFIED on EVERY real flight (the flight card and procedure), per the B8a result.
+2. **F7:** a pre-arm check that the estimator's yaw agrees with mocap within 5°. It goes in as a flight-card step AND
+   as a WATCHER ARMING CHECK (the watcher refuses arming otherwise), and is tested on the bench.
+3. **F8:** a bounded investigation (2 h) from the stored bench logs of EKF3's pre-arm velocity runaway, folding in the
+   B10b second failsafe. Reported BEFORE rung 1.
+4. **XUKO:** the port writes the missing format definitions; verify the record is present and decodable in Replay
+   output.
+5. **The Replay-gate band (U10):** drafted for the user's sign-off THIS WEEK. The draft exists
+   (`docs/u10_replay_gate_band_draft.md`); its `_n_chol_fail` precondition is to be implemented with the XUKO fix.
+6. **The closed-loop pre-registration** is LOW priority. When drafted, it proposes a PILOT FLYING LOITER for the first
+   real closed-loop flights (simpler; avoids the GUIDED stored-target hazards), noting the difference from the
+   scripted simulation flights.
+7. **U4:** a flight-card rule NOW: take off within 5 s of arming. A proper fix is deferred to the closed-loop work.
+8. **H10:** the bench driver's pilot-takeover guard is added to `fly_trial.py` before any scripted real flight, and
+   tested.
+- **B6b's repeat pass stays recorded as POST HOC.**
