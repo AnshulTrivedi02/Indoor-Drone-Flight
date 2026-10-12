@@ -13862,3 +13862,28 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Parameter names fixed** in the docs, the parm comments and CLAUDE.md (current statements reworded; the historical
   one bracketed). Plan R-e's "as EKF3 does" is corrected by the coordinator. **Open:** CLAUDE.md `FLOW_MAX`/
   `FLOW_M_NSE`.
+
+### Watcher bench RE-RUN after F6 (`wbench2_*`, VERIFICATION; re-registered `e4fc256` before any run, amendments A9/A10 `ac5fada`/`8d384fc`; handover `docs/handovers/2026-10-12_watcher_bench_rerun.md`)
+- **No test FAILED as worded.** The watcher code is unchanged since 140a946 (the 91 offline tests stand).
+- **B6b run 1 was INCOMPLETE:** a 1.9 m take-off drift took the roll across the box edge, so the yaw half was never
+  flown. It PASSED on one repeat under A10, a rule written AFTER seeing the incomplete attempt, so that pass is
+  LABELLED POST HOC.
+- **B5a/B5b-noflag** (re-worded): stale at 0.513 s and frozen at 0.510 s, against 0.525 s; LAND within 1.0 s. PASS.
+- **B7b** (link warm-up defined before running): p99 0.027 s against 0.3 s. PASS.
+- **B8a REPEATED with the origin set and verified:** the stock EKF failsafe was the first and only actor.
+  - LAND (EKF_FAILSAFE) 1.94 s after the last flow row (bound 3.0 s); max displacement 1.67 m (bound 2.0 m); no box
+    breach; no (0, 0) jump. PASS.
+- **F6 in flight:** F6a (ACK delivered) and F6b (ACK stripped, heartbeats held 0.6 s) each sent exactly ONE LAND, and
+  there was no mode change after the pilot's ALT_HOLD. F6c (first LAND dropped, on the ground) re-sent once after
+  0.311 s. PASS.
+- **B10b(3)** is no longer vacuous: the EKF failsafe fired in ALT_HOLD without a mode change.
+- **Harness fix:** the origin is sent only after every EKF3 core is initialised, then confirmed by GPS_GLOBAL_ORIGIN
+  and an ORGN log record (1 try in 8/8 boots).
+- **A9:** the first hoverB session was aborted and kept unused. Carrying the vehicle home also rotated it unseen by
+  the gyros, so it armed with a 22° yaw error and flew away on take-off. The carry now keeps the heading; > 5° yaw
+  error at arming voids a hover.
+- **New findings:**
+  - F7: arming is allowed with a 22° yaw error;
+  - F8: EKF3's velocity runs away on the ground before arming (cause unknown);
+  - a second EKF failsafe after the flow was restored in B10b (not investigated).
+- **Open:** the EKF-origin decision (the user's); H10 (`fly_trial.py` would command LAND in B10b(1)).
