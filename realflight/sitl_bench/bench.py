@@ -320,7 +320,7 @@ class Bench:
         """M1 (ruling 2026-10-12; wbench4 only): before a hover that follows a landing in the same FC boot, power-cycle
         the FC (a SITL reboot), re-establish and VERIFY the origin (establish_origin), then restart the watcher with
         its last arguments (the fixed tie survives; a stopped watcher cannot latch "FC link lost" during the reboot)."""
-        if not (self.all_checks and self.landed_in_boot):
+        if not (self.all_checks and self.landed_in_boot) or getattr(self, "no_m1", False):
             return
         st = self.stack
         self.log(f"M1: FC power-cycle before {before} (a landing happened in this boot)")
@@ -1092,6 +1092,9 @@ class Bench:
             return None
         self.landed_in_boot = True
         info = {"t_arm_w": t_arm, "fs_log": fsl}
+        # amendment B4: the operator link must have SEEN the arming before the disarm wait (a stale pre-arm
+        # "disarmed" let wait_disarmed return at once in the first m2 session)
+        info["t_armed_seen_w"] = self.wait_armed(30)
         if flow_kill:
             t_l = self.wait_text(fsl, r"STEP 2 land start", 120, fs)
             info["t_land_step_w"] = t_l
@@ -1136,6 +1139,7 @@ class Bench:
         watcher refuses arming, then M1 (reboot + origin re-verified) and show arming is allowed."""
         st, op = self.stack, self.op
         t_det = None
+        self.no_m1 = True          # amendment B4: as registered, NO M1 between the attempts (same-boot re-arms)
         for k in range(1, 4):
             t_det = self.m2_attempt(k, flow_kill=False)
             if t_det:
@@ -1146,9 +1150,11 @@ class Bench:
                 if t_det:
                     break
         if not t_det:
+            self.no_m1 = False
             self.rec("M2_R", result="NOT_COMPLETED", why="no runaway in 3 natural + 2 flow-kill landings")
             return
         # ---- the refusal while the runaway is on
+        self.no_m1 = False
         polls = []
         # the probe: >= 0.5 s after detection AND >= 3.5 s after the watcher's last confirmed tick (its heartbeat
         # stopped: FS_GCS_TIMEOUT 3 s), so the FC-side refusal is in force; cap 20 s after detection

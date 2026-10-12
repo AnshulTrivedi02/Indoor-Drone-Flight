@@ -202,4 +202,16 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
   - **Repeat once:** `tools/run_wbench.sh hoverC --prefix wbench4 --checks all --only B10b` (a fresh boot: B10b is then
     the first hover of its boot, unlike this attempt, which followed M1). Both attempts are reported. B10a, F6a and
     F6b are taken from this session.
+- **B4 (2026-10-12 ~18:25, after `wbench4_m2_20261012_181437`; before any further run). Two harness faults; the one
+  A10 repeat of M2-R.**
+  - **What happened.** M2-R was recorded NOT COMPLETED (no runaway in 5 attempts), but the attempts did not run as
+    registered: (i) in attempts 1–3 `wait_disarmed` returned at once on the operator link's stale pre-arm "disarmed"
+    (`t_disarm_seen_w` = `t_arm_w`), so the 20 s runaway watch ran DURING the flight (no valid ground window);
+    (ii) amendment B2's M1-in-`ensure_watcher` rebooted the FC before every attempt, contrary to §1.3 ("M1
+    deliberately NOT applied between the attempts"). Attempts 4–5 (flow-kill) had valid ground windows: operator
+    |v| max 0.015 and 0.267 m/s, never ≥ 0.2 for 1 s.
+  - **Fix:** the attempt waits for the operator link to see ARMED before the disarm wait; M1 is suppressed during the
+    attempts (re-enabled for the probe's M1 step).
+  - **Repeat once (A10):** `tools/run_wbench.sh m2 --prefix wbench4 --checks all`. If it also yields no runaway, M2-R
+    is reported NOT COMPLETED and nothing more is run.
 
