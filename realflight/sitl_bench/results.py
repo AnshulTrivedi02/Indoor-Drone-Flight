@@ -276,7 +276,13 @@ def report(sess):
             k = g("t_flow_bridge_kill_w"); r = g("t_flow_bridge_restart_w")
             kF = cm.w2f(k)
             rows = df_rows(sess, ["OF", "XKF4", "XKF1", "MODE", "ERR", "ORGN", "EV"])
-            boot = max(b for b, f, m in rows)          # hover sessions: one boot
+            # the BIN whose span holds the kill (wbench4: M1 reboots give one BIN per hover; SITL keeps its clock)
+            span = {}
+            for b_, f_, _m in rows:
+                lo, hi = span.get(b_, (f_, f_))
+                span[b_] = (min(lo, f_), max(hi, f_))
+            cover = [b_ for b_, (lo, hi) in span.items() if lo <= kF <= hi]
+            boot = max(cover) if cover else max(span)
             rows = [x for x in rows if x[0] == boot]
             org = [f for b, f, m in rows if m.get_type() == "ORGN" and f < kF]
             print(f" PRECONDITION origin: ORGN record(s) before the kill at F {[round(x, 2) for x in org]}")
