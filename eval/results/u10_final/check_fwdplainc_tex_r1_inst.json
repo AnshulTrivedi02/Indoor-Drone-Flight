@@ -1,0 +1,85 @@
+{
+ "new": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/fwdplainc_tex_r1/logs/00000001.BIN",
+ "ref": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/fwdplainc_tex_r1/logs/00000001.BIN",
+ "input": null,
+ "df_reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "bad_fmt": [],
+  "redeclared_ids": [],
+  "ukf_type_ids": {
+   "RUKF": [
+    230
+   ],
+   "RUKO": [
+    229
+   ],
+   "RUKS": [
+    228
+   ]
+  }
+ },
+ "counts": {
+  "XUKF": 0,
+  "XUKO": 0,
+  "XUKS": 0,
+  "XUKH": 0,
+  "XUKT": 0,
+  "RUKF": 8529,
+  "RUKO": 8529,
+  "RUKS": 8529,
+  "RUKH": 0,
+  "RUKT": 0
+ },
+ "xkf1_per_core": {
+  "0": 3426,
+  "1": 3426,
+  "100": 3426,
+  "101": 3426
+ },
+ "strictly_increasing": {
+  "RUKF": true,
+  "RUKO": true,
+  "RUKS": true
+ },
+ "stock": {
+  "no_XUK_in_new": true,
+  "RUK_equals_ref_XUK": {
+   "UKF": true,
+   "UKO": true,
+   "UKS": true
+  }
+ },
+ "bytecmp_vs_ref": {
+  "records_new": 1007008,
+  "records_ref": 1007008,
+  "differing": {
+   "FMT name XUK->RUK only": 3,
+   "FMTU (process-clock stamp)": 3
+  },
+  "PASS": true
+ },
+ "pymavlink": {
+  "mavlink_connection": {
+   "XKF1@0": 3426,
+   "XKF1@1": 3426,
+   "XKF1@100": 3426,
+   "XKF1@101": 3426,
+   "RUKF": 8529,
+   "RUKO": 8529
+  },
+  "DFReader_binary": {
+   "XKF1@0": 3426,
+   "XKF1@1": 3426,
+   "XKF1@100": 3426,
+   "XKF1@101": 3426,
+   "RUKF": 8529,
+   "RUKO": 8529
+  }
+ },
+ "pymavlink_matches_df_reader": {
+  "mavlink_connection": true,
+  "DFReader_binary": true
+ },
+ "PASS": true
+}

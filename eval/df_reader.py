@@ -14,6 +14,12 @@ header of a DECLARED type starts AND is followed, at exactly that record's lengt
 of the file). Every undeclared type id and every skipped byte is counted and returned, so a caller can refuse a log
 whose integrity it cannot confirm (real_score.bin_trajs asserts that the replayed XKF1 cores match the onboard ones).
 
+UPDATE 2026-10-12: Replay e82c050b and later emit those FMT records, so pymavlink reads such outputs again; this reader
+remains the scorer's reader (strict, with the diagnostics below). From the U10 rule-2 Replay (port `replay-rukx`), Replay
+writes the UKF records under DISTINCT names RUKF/RUKO/RUKS/RUKH/RUKT; a Replay output's XUK* records are then only ever
+the onboard ones (copied through from a fork-flown input log). Selecting replayed vs onboard is done by the caller
+(real_score.parse_record / bin_trajs), by name.
+
   recs, info = read_records(path, ["XKF1", "XUKO"])     # {name: [dict(field -> value), ...]}, {...diagnostics...}
 """
 import struct
@@ -60,7 +66,10 @@ def read_records(path, names, data=None):
     """Decode every record of the given type NAMES. Returns (records, info).
     info: n_records (per declared name, all types), undeclared_types {type id at a resync point: count; later
     undeclared records inside the same skipped run are not counted separately}, skipped_bytes, n_resyncs,
-    declared (names with an FMT), bad_fmt (FMTs whose format/length/labels disagree)."""
+    declared (names with an FMT), bad_fmt (FMTs whose format/length/labels disagree),
+    redeclared_ids (2026-10-12: a type id declared again with a DIFFERENT name, format or length; the later records of
+    that id decode under the new FMT, so a caller must refuse such a log: e.g. an input-log FMT in Replay's dynamic id
+    window [220, 230] colliding with a record Replay itself allocates), type_ids {name: [type ids declared for it]}."""
     d = open(path, "rb").read() if data is None else data
     n = len(d); want = set(names)
     fmts = {FMT_TYPE: _Fmt(FMT_TYPE, FMT_LEN, "FMT", "BBnNZ", "Type,Length,Name,Format,Columns")}
@@ -68,6 +77,7 @@ def read_records(path, names, data=None):
     counts, undeclared = {}, {}
     skipped = resyncs = 0
     bad_fmt = []
+    redeclared, ids = [], {}
 
     def valid_at(j):
         return j + 3 <= n and d[j] == 0xA3 and d[j + 1] == 0x95 and d[j + 2] in fmts
@@ -101,7 +111,11 @@ def read_records(path, names, data=None):
             if not nf.ok:
                 bad_fmt.append(nf.name)
             if ty != FMT_TYPE:
+                old = fmts.get(ty)
+                if old is not None and (old.name, old.fmt, old.length) != (nf.name, nf.fmt, nf.length):
+                    redeclared.append({"type": int(ty), "was": old.name, "now": nf.name, "offset": int(i)})
                 fmts[ty] = nf
+                ids.setdefault(nf.name, set()).add(int(ty))
             counts["FMT"] = counts.get("FMT", 0) + 1
         else:
             counts[f.name] = counts.get(f.name, 0) + 1
@@ -109,7 +123,8 @@ def read_records(path, names, data=None):
                 recs[f.name].append(f.decode(d, i))
         i += f.length
     info = {"n_records": counts, "undeclared_types": undeclared, "skipped_bytes": skipped, "n_resyncs": resyncs,
-            "declared": sorted({f.name for f in fmts.values()}), "bad_fmt": bad_fmt}
+            "declared": sorted({f.name for f in fmts.values()}), "bad_fmt": bad_fmt,
+            "redeclared_ids": redeclared, "type_ids": {k: sorted(v) for k, v in sorted(ids.items())}}
     return recs, info
 
 

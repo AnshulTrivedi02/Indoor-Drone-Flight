@@ -16,6 +16,10 @@ Inputs (TUM: t x y z qx qy qz qw; all on the FC clock; z UP, gravity-aligned; an
                                  exits or drops ~99.5% of the XKF1 records). Refused: XKF1@1xx whose TimeUS sequence
                                  differs from XKF1@(C-100)'s; a record with no FMT (XUKO in a stock-log Replay); a
                                  non-increasing XUKO/XUKF series (a fork-flown log: onboard and replayed interleaved).
+                                 U10 rule 2 (2026-10-12): XUKO/XUKF mean the REPLAYED records and are read from the
+                                 names the current Replay writes them under, RUKO/RUKF (port replay-rukx); the onboard
+                                 records of a fork-flown log are XUKO@onboard/XUKF@onboard. The output JSON gives both
+                                 the registered record and the physical message name read.
   --est-csv LABEL=PATH           the UKF port's current-time output as CSV with XUKO's exact columns (port spec 2026-10-12),
                                  only for a label registered as XUKO (its use instead of the log needs the user's ruling).
   --prereg  the pre-registration JSON. Its sha256 goes into the output. It is read STRICTLY (load_prereg): every key
@@ -105,13 +109,19 @@ DRIFT_KEYS = {"motion_onset_path": {"onset_speed_mps", "onset_smooth_s", "onset_
 METRIC_KEYS = {"primary", "t_max_diff_s", "max_gap_s", "max_mocap_interp_gap_s"}
 PRIMARY = ("evo_ape_a_se3", "ate_4dof")
 RECORDS = ("XKF1", "XUKO", "XUKF", "XFGO", "TUM")     # XKF1 MUST carry its core: "XKF1@<C>" (see parse_record)
+UKF_RENAMED = {"XUKO": "RUKO", "XUKF": "RUKF"}      # replayed UKF record -> its name in a Replay output (U10 rule 2)
+REPLAY_ID_WINDOW = (220, 230)                       # AP_Logger_config.h REPLAY_LOG_NEW_MSG_MIN/MAX: Replay's own ids
 
 
 def parse_record(rec):
-    """'XKF1@100' -> ('XKF1', 100); 'XUKO' -> ('XUKO', None). XKF1 needs an explicit core: an ArduPilot Replay output
-    log holds BOTH the original onboard records (C = 0, 1, ...) and the replayed ones (C = 100 + core;
-    AP_DAL logging_core, Tools/Replay/check_replay.py pairs C with C + 100), so a bare 'XKF1' is ambiguous.
-    Replayed EKF3 core 0 = 'XKF1@100'; the flight's own onboard EKF3 core 0 = 'XKF1@0'."""
+    """'XKF1@100' -> ('XKF1', 100); 'XUKO' -> ('XUKO', None); 'XUKO@onboard' -> ('XUKO', 'onboard'). XKF1 needs an
+    explicit core: an ArduPilot Replay output log holds BOTH the original onboard records (C = 0, 1, ...) and the
+    replayed ones (C = 100 + core; AP_DAL logging_core, Tools/Replay/check_replay.py pairs C with C + 100), so a bare
+    'XKF1' is ambiguous. Replayed EKF3 core 0 = 'XKF1@100'; the flight's own onboard EKF3 core 0 = 'XKF1@0'.
+    The UKF (U10 rule 2, 2026-10-12): 'XUKO' / 'XUKF' are the REPLAYED records, as the signed rung-1 pre-registration
+    means them. From the replay-rukx Replay on, Replay writes them under distinct names, RUKO / RUKF (physical_name), so
+    they cannot interleave with the onboard XUKO / XUKF that a fork-flown input log carries. The flying port's own
+    records are named explicitly: 'XUKO@onboard' / 'XUKF@onboard'."""
     base, _, core = str(rec).partition("@")
     if base not in RECORDS:
         raise SystemExit(f"record {rec!r}: not one of {RECORDS}")
@@ -119,9 +129,18 @@ def parse_record(rec):
         if not core.isdigit():
             raise SystemExit(f"record {rec!r}: XKF1 needs its core, 'XKF1@100' (replayed core 0) or 'XKF1@0' (onboard)")
         return base, int(core)
+    if base in UKF_RENAMED and core == "onboard":
+        return base, "onboard"
     if core:
-        raise SystemExit(f"record {rec!r}: only XKF1 carries a core")
+        raise SystemExit(f"record {rec!r}: only XKF1 carries a core; only XUKO/XUKF take '@onboard'")
     return base, None
+
+
+def physical_name(base, sel):
+    """The dataflash message name a parsed record is read from: the replayed UKF records are RUKO / RUKF."""
+    if base in UKF_RENAMED and sel is None:
+        return UKF_RENAMED[base]
+    return base
 CLOCK_KEYS = {"rule", "w_thr_rad_s", "pad_s", "merge_s", "min_burst_s"}
 SECONDARY_KEYS = {"heading_drift": {"window", "sense", "wrap_limit_deg"},
                   "cross_track_drift": {"window", "normal", "min_speed_mps", "smooth_s", "anchor", "anchor_avg_s"}}
@@ -224,9 +243,14 @@ def bin_trajs(path, records, reader=None, info_out=None):
     with C + 100); XUKO/XUKF/XFGO must have strictly increasing TimeUS (a Replay of a FORK-flown log carries the onboard
     XUKO copied through AND the replayed one, interleaved and indistinguishable: checked on d17_v2, 8 654 + 8 629);
     and a requested record whose type has NO FMT in the log is refused with the reason.
+    U10 rule 2 (2026-10-12): 'XUKO'/'XUKF' (the replayed UKF) are read from RUKO/RUKF, the names the replay-rukx Replay
+    writes them under; 'XUKO@onboard'/'XUKF@onboard' from XUKO/XUKF (refused if declared in Replay's own id window
+    [220, 230], i.e. written by an older Replay). A log with no RUKO but an XUKO is refused with the reason (older
+    Replay, or a flight log). A log with any type id re-declared under a different FMT is refused.
     reader: an object with recv_match(type=[...]) (tests, the old interface); then no integrity checks are possible."""
     specs = {r: parse_record(r) for r in records}
-    types = sorted({b for b, _ in specs.values()}); out = {r: [] for r in records}
+    phys = {r: physical_name(*specs[r]) for r in records}
+    types = sorted(set(phys.values())); out = {r: [] for r in records}
     if reader is not None:
         while True:
             x = reader.recv_match(type=types)
@@ -234,21 +258,37 @@ def bin_trajs(path, records, reader=None, info_out=None):
                 break
             ty = x.get_type()
             for r, (b, core) in specs.items():
-                if b == ty and (core is None or getattr(x, "C", None) == core):
+                if phys[r] == ty and (b != "XKF1" or getattr(x, "C", None) == core):
                     out[r].append((x.TimeUS / 1e6, x.PN, x.PE, x.PD, getattr(x, "Yaw", float("nan"))))
         return {k: np.array(v).reshape(-1, 5) for k, v in out.items()}
     from df_reader import read_records
     recs, info = read_records(path, types)
     if info_out is not None:
-        info_out.update({k: info[k] for k in ("undeclared_types", "skipped_bytes", "n_resyncs", "bad_fmt")})
-    for r, (b, core) in specs.items():
+        info_out.update({k: info[k] for k in ("undeclared_types", "skipped_bytes", "n_resyncs", "bad_fmt",
+                                               "redeclared_ids")})
+    if info["redeclared_ids"]:
+        raise SystemExit(f"{path}: type ids re-declared under a different FMT {info['redeclared_ids'][:5]}: the records "
+                         "after the re-declaration decode under the wrong format, so the log is refused")
+    for r, (b0, core) in specs.items():
+        if b0 in UKF_RENAMED and core is None and phys[r] not in info["declared"] and b0 in info["declared"]:
+            raise SystemExit(
+                f"record {r}: no {phys[r]} in {path}. The replayed UKF record is {phys[r]} from the U10 rule-2 Replay "
+                f"(port replay-rukx) on. This log has {b0}: either the ONBOARD record (a flight log, or one copied through "
+                f"by Replay: name it '{b0}@onboard') or the replayed one from an older Replay (e82c050b or before): "
+                "re-run the current Replay")
+        if core == "onboard" and b0 in info["declared"]:
+            bad = [i for i in info["type_ids"].get(b0, []) if REPLAY_ID_WINDOW[0] <= i <= REPLAY_ID_WINDOW[1]]
+            if bad:
+                raise SystemExit(f"record {r}: {b0} is declared with type id {bad}, inside Replay's own id window "
+                                 f"{list(REPLAY_ID_WINDOW)}: it was written by an older Replay (replayed, not onboard)")
+        b = phys[r]
         if b not in info["declared"]:
             why = (" The thesis fork's Replay writes XUKF/XUKO/XUKS without their FMT records when the input log does not "
                    "declare them (every stock-flown rung-1 log; undeclared type ids here: "
                    f"{sorted(info['undeclared_types'])}). XUKO is NOT scorable from this Replay output until the port "
                    "emits the FMT records in Replay or writes the current-time CSV (spec: docs/handovers/"
                    "2026-10-12_r1_scoring_items.md, section C); give it with --est-csv UKF=<ukf_output.csv>."
-                   if b.startswith("XU") else "")
+                   if b[1:3] == "UK" else "")
             raise SystemExit(f"record {r}: no FMT for {b} in {path}.{why}")
     by = {}
     for b in types:
@@ -256,7 +296,7 @@ def bin_trajs(path, records, reader=None, info_out=None):
             by.setdefault((b, x.get("C") if b == "XKF1" else None), []).append(
                 (x["TimeUS"] / 1e6, x["PN"], x["PE"], x["PD"], x.get("Yaw", float("nan"))))
     for r, (b, core) in specs.items():
-        out[r] = np.array(by.get((b, core), [])).reshape(-1, 5)
+        out[r] = np.array(by.get((phys[r], core if b == "XKF1" else None), [])).reshape(-1, 5)
     for r, (b, core) in specs.items():
         a = out[r]
         if b == "XKF1" and core >= 100:
@@ -602,8 +642,10 @@ def main(argv=None):
                 raise SystemExit(f"no {rec} records in {a.bin}")
             b = _sorted_unique(tr[rec])
             p = f"{a.work_dir}/{lab}_{rec.replace('@', '_C')}.tum"; write_tum(p, ned_tum(b))
-            ests[lab] = {"source": f"{os.path.abspath(a.bin)}:{rec}", "sha256": sha256(a.bin), "traj": load_tum(p),
-                         "record": rec, "yaw": b[:, 4]}
+            pn = physical_name(*parse_record(rec))
+            ests[lab] = {"source": f"{os.path.abspath(a.bin)}:{rec}" + (f" (message {pn})" if pn != rec.split("@")[0] else ""),
+                         "sha256": sha256(a.bin), "traj": load_tum(p), "record": rec, "physical_record": pn,
+                         "yaw": b[:, 4]}
     prim = pre["metrics"]["primary"]
     out = {"prereg": {"path": os.path.abspath(a.prereg), "sha256": sha256(a.prereg), "resolved": pre},
            "mocap": {"path": os.path.abspath(a.mocap), "sha256": sha256(a.mocap), "n": int(len(mo))},
@@ -615,6 +657,8 @@ def main(argv=None):
         r = score_one(mo, d["traj"], t0, t1, pre["metrics"], a.work_dir, lab, pre["drift"], est_yaw=d["yaw"],
                       secondary=pre["secondary"], t_anchor=winfo.get("takeoff_s"))
         out["estimators"][lab] = {"source": d["source"], "record": d["record"], "sha256": d["sha256"], **r}
+        if "physical_record" in d:
+            out["estimators"][lab]["physical_record"] = d["physical_record"]
         out["primary"][lab] = r[prim]["rmse_m"] if prim in r else None
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     json.dump(out, open(a.out, "w"), indent=1)

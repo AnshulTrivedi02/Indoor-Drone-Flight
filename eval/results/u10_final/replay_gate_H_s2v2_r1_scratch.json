@@ -1,0 +1,22 @@
+{
+ "core": 0,
+ "armed_span_us": [
+  26456629,
+  393191370
+ ],
+ "n": 3667,
+ "max_horizontal_m": 0.0,
+ "max_height_m": 0.0,
+ "max_yaw_deg": 0.0,
+ "bounds": {
+  "horizontal_m": 0.01,
+  "height_m": 0.01,
+  "yaw_deg": 0.1
+ },
+ "pass": true,
+ "reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "n_resyncs": 0
+ }
+}

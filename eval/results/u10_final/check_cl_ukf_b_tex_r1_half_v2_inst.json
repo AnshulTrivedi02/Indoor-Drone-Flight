@@ -1,0 +1,135 @@
+{
+ "new": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/u10f/rep_inst/cl_ukf_b_tex_r1_half_v2/logs/00000001.BIN",
+ "ref": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/s12/xuko_inst/cl_ukf_b_tex_r1_half_v2/logs/00000001.BIN",
+ "input": "/home/makerspace/thesis_data/trials/cl_ukf_b_tex_r1_half_v2/ardupilot.bin",
+ "df_reader": {
+  "undeclared_types": {},
+  "skipped_bytes": 0,
+  "bad_fmt": [],
+  "redeclared_ids": [],
+  "ukf_type_ids": {
+   "RUKF": [
+    230
+   ],
+   "RUKH": [
+    227
+   ],
+   "RUKO": [
+    229
+   ],
+   "RUKS": [
+    228
+   ],
+   "XUKF": [
+    249
+   ],
+   "XUKH": [
+    246
+   ],
+   "XUKO": [
+    248
+   ],
+   "XUKS": [
+    247
+   ]
+  }
+ },
+ "counts": {
+  "XUKF": 8551,
+  "XUKO": 8551,
+  "XUKS": 8551,
+  "XUKH": 2385,
+  "XUKT": 0,
+  "RUKF": 8526,
+  "RUKO": 8526,
+  "RUKS": 8526,
+  "RUKH": 2385,
+  "RUKT": 0
+ },
+ "xkf1_per_core": {
+  "0": 3425,
+  "1": 3425,
+  "100": 3425,
+  "101": 3425
+ },
+ "strictly_increasing": {
+  "XUKF": true,
+  "XUKO": true,
+  "XUKS": true,
+  "XUKH": true,
+  "RUKF": true,
+  "RUKO": true,
+  "RUKS": true,
+  "RUKH": true
+ },
+ "fork": {
+  "input_skipped_bytes": 49,
+  "XUK_equals_input": {
+   "UKF": true,
+   "UKO": true,
+   "UKS": true,
+   "UKH": true
+  },
+  "ref_XUKO_count_interleaved": 17077,
+  "RUKF_vs_ukf_shadow_csv": {
+   "TimeUS_identical": true,
+   "max_abs_diff_pos_vel": 5.6396484382048584e-05
+  },
+  "bands_RUKF_vs_onboard_XUKF": {
+   "paired": 8503,
+   "E1_max_m": 0.01838862591926636,
+   "E1_rms_m": 0.003221488141061773,
+   "E3_yaw_max_deg": 0.004457615315914154,
+   "E5": {
+    "FXa": {
+     "replay": 10154.0,
+     "flying": 10154.0,
+     "rel_diff": 0.0
+    },
+    "FYa": {
+     "replay": 10144.0,
+     "flying": 10144.0,
+     "rel_diff": 0.0
+    },
+    "Ra": {
+     "replay": 9724.0,
+     "flying": 9724.0,
+     "rel_diff": 0.0
+    }
+   }
+  },
+  "stored_from_csv": {
+   "paired": 8503,
+   "E1_max_m": 0.01841249036611771,
+   "E1_rms_m": 0.003221580082714126,
+   "E3_yaw_max_deg": 0.004877204775823429
+  }
+ },
+ "pymavlink": {
+  "mavlink_connection": {
+   "XKF1@0": 3425,
+   "XKF1@1": 3425,
+   "XKF1@100": 3425,
+   "XKF1@101": 3425,
+   "XUKF": 8551,
+   "XUKO": 8551,
+   "RUKF": 8526,
+   "RUKO": 8526
+  },
+  "DFReader_binary": {
+   "XKF1@0": 3425,
+   "XKF1@1": 3425,
+   "XKF1@100": 3425,
+   "XKF1@101": 3425,
+   "XUKF": 8551,
+   "XUKO": 8551,
+   "RUKF": 8526,
+   "RUKO": 8526
+  }
+ },
+ "pymavlink_matches_df_reader": {
+  "mavlink_connection": true,
+  "DFReader_binary": true
+ },
+ "PASS": true
+}

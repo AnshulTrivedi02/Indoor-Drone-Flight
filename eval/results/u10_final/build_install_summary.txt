@@ -1,0 +1,25 @@
+U10 rule 2 (2026-10-12): port branch replay-rukx = ukf-jitter-fix 0a214d29d3 + f30f6ffa2f
+("Replay logs the UKF records as RUKF/RUKO/RUKS/RUKH/RUKT"). One file: libraries/AP_NavUKF/AP_NavUKF.cpp
+(UKF_LOG_NAME(): "R" + name under APM_BUILD_Replay, "X" + name otherwise).
+
+SCRATCH build (worktree scratchpad/apr, removed afterwards), 0 warnings (replay, UKF_Equiv, copter compile check):
+  tool/Replay        55420d3aab59808e47fa1179a197bd53   (scratch path; never installed)
+  examples/UKF_Equiv 50d8b199cef09531049e9e311135f7ce   (scratch path)
+  bin/arducopter     a0f8ba21160d4717038e949cc0757863   (compile check only; never installed)
+  (c) 25/25 CSVs (ukf_shadow/inputs/derot/geometry/stats x 5 SITL logs) IDENTICAL to installed e82c050b
+      (rep_scratch; reference = the xuko_u10_h10 stage's e82c050b outputs, scratchpad s12/xuko_inst)
+  (d) UKF_Equiv scratch: 10/10 IDENTICAL (s12/equiv_inst.sh ... u10scr)
+  (a)(b) check_<log>_scratch.json, replay_gate_*_scratch.json, score_*_sim_truth_scratch.json: all PASS / run
+
+INSTALL (eval/diag/u10_final/install_build.sh under heavy.py; no flight running; ~/ardupilot_ukf ukf-jitter-fix
+fast-forwarded 0a214d29d3 -> f30f6ffa2f; in-place ./waf replay + ./waf build --target examples/UKF_Equiv; 0 warnings)
+  backup: ~/opt/ukf_port_backup_e82c050b_2026-10-12/ (Replay e82c050b41cb0e76ac7d81f536370a8f,
+          UKF_Equiv fe548d36f42069f34e62692a4c748ade, MD5SUMS)
+  tool/Replay        e82c050b41cb0e76ac7d81f536370a8f -> 3c3b62bbe51d515b6ff0789a19fe1136
+  examples/UKF_Equiv fe548d36f42069f34e62692a4c748ade -> fe548d36f42069f34e62692a4c748ade (recompiled AP_NavUKF.cpp;
+                     byte-identical binary: the non-Replay names expand to the same literals)
+  bin/arducopter     5f94ea1aa7e223f90343c1948d443d32 (NOT rebuilt; unchanged)
+
+RECHECK on the installed binaries: recheck_installed_3c3b62bb.log
+  (c) 25/25 CSVs IDENTICAL to e82c050b; (a)/(b) check_<log>_inst.json PASS x5; replay_gate PASS x3;
+  scorer runs (score_*_sim_truth_inst.json); (d) UKF_Equiv 10/10 IDENTICAL.
