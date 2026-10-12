@@ -14045,3 +14045,13 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - `board-h743` and `u4-gndclr` need a rebase onto `f30f6ffa2f`;
   - the FGO's XFG* records were not renamed;
   - scoring a fork-flown log's own UKF needs `XUKO@onboard`.
+
+### SIGNATURE (user, 2026-10-12): the U10 Replay-gate band SIGNED OFF, before rung-1 day 1
+- **`docs/u10_replay_gate_band.md` is SIGNED OFF on 2026-10-12, including N1–N6, with D_max = 1.0 m.** The basis:
+  half the 2 m clearance required at every hold point. It is in force from 2026-10-12. No real log exists yet, so the
+  gate is pre-registered.
+- **Before any real data:**
+  - find why G5's drift cannot be computed on `H_s2v2_r1` (the N1 failure); fix the computation if it is a tooling
+    issue, and re-run the simulator demo. **N1 itself stays fail-closed;**
+  - confirm `eval/u10_gate.py` implements the signed document exactly (one check per criterion, with a test);
+  - rebase `board-h743` and `u4-gndclr` onto the new port commit (`f30f6ffa2f`).

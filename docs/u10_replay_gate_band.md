@@ -1,6 +1,6 @@
 # U10: the Replay gate on rung-1 logs. FOR FINAL SIGN-OFF
 
-**Status: FOR FINAL SIGN-OFF, written 2026-10-12 (stage `2026-10-12_u10_final`). NOT signed, NOT yet in force.**
+**Status: SIGNED OFF by the user on 2026-10-12, including N1–N6, with D_max = 1.0 m (basis: half the 2 m clearance required at every hold point). IN FORCE from 2026-10-12, before rung-1 day 1.** (Written as "for final sign-off" by stage `2026-10-12_u10_final`.)
 - It must be SIGNED OFF before rung-1 day 3 (ruling 2026-10-12 item 1; plan U-d0). Day 3 is the first day a real log
   with the UKF port replayed on it can exist. A UKF Replay of a real log made before the signature makes the gate
   **post hoc** (the E5 failure class), and that would be reported.
@@ -25,7 +25,7 @@ every usable rung-1 result flight and checks, per flight:
 | G2 | valid throughout W: `horiz_pos_rel`, healthy, flow age | 100 % of W | `ukf_shadow.csv` `SS` bit 3, `Healthy`, `FlowAgeMs` |
 | G3 | no Cholesky failure | `n_chol_fail` = 0; **a missing `ukf_stats.csv` FAILS** | `ukf_stats.csv` |
 | G4 | accuracy against mocap | UKF evo -a ≤ max(2.0 × EKF3_R, EKF3_R + 0.10 m) | `real_score.py`: UKF = `XUKO` (message `RUKO`), EKF3_R = `XKF1@100` |
-| G5 | bounded start-aligned drift at t_ld − 5 s | ≤ D_max **[TBD-S]** (proposed 1.0 m) | `real_score.py` `drift_start_aligned.final_h_m` |
+| G5 | bounded start-aligned drift at t_ld − 5 s | ≤ D_max = **1.0 m** (signed 2026-10-12) | `real_score.py` `drift_start_aligned.final_h_m` |
 | G6 | Replay fidelity (fork-in-shadow only) | E1 3-D max ≤ 0.05 m, rms ≤ 0.01 m; E3 ≤ 0.05°; E5 ≤ 0.1 % **[TBD-V]** | the Replay output log: `RUKF`/`RUKS` vs `XUKF`/`XUKS` |
 
 **Set rule.** PASS only if every gated flight passes G1–G5 (and G6 where it applies), with at least 4 usable result
@@ -192,7 +192,7 @@ flights; fewer than 4 → NOT EVALUABLE; one failing flight fails the gate. All 
 | **G2** | **Stays valid through the hover and the legs:** `SS` bit 3 (`horiz_pos_rel`) set and `Healthy` = 1 on **every** `ukf_shadow.csv` row in W; `FlowAgeMs` < 5000 on every row in W; the rows cover W (§4.1) | 100 % of W | in closed loop a 5 s aiding gap (`AID_TIMEOUT_MS`) makes `thesis_nav_check` command LAND. A gap in Replay means a LAND in stage 3 |
 | **G3** | **No numerical failure:** `n_chol_fail` = 0 over the whole log, read from the Replay's `ukf_stats.csv`. **A missing `ukf_stats.csv`, or one without an `n_chol_fail` row, FAILS G3** (U10 rule 1). `n_chol_retry` is reported | = 0 | the jitter fix (2026-10-09): 0 fallbacks on all SITL data [V]; the counters in the Replay output since `e82c050b`: 0 / 0 on the five SITL logs [V] |
 | **G4** | **Accuracy against mocap:** UKF (`XUKO`, message `RUKO`) evo -a (SE(3), `t_max_diff` 0.05) over W ≤ **max(2.0 × EKF3_R, EKF3_R + 0.10 m)**, with EKF3_R = the replayed EKF3 (`XKF1@100`) on the same flight, window and Replay output | per flight | see below |
-| **G5** | **Bounded unaligned drift:** the start-aligned horizontal drift (rung-1 §4.3 rule; `drift_start_aligned.final_h_m`, the error at the last estimator sample in W, i.e. at t_ld − 5 s) ≤ **D_max = [TBD-S] m** (proposed 1.0 m: half the smallest watcher-box half-width expected in a mocap volume). **Not computable** (the rung-1 rule refuses the segment) **= FAIL** | per flight | a closed loop steers on the unaligned estimate; this is the physical excursion it would cause |
+| **G5** | **Bounded unaligned drift:** the start-aligned horizontal drift (rung-1 §4.3 rule; `drift_start_aligned.final_h_m`, the error at the last estimator sample in W, i.e. at t_ld − 5 s) ≤ **D_max = 1.0 m** (SIGNED 2026-10-12; basis: half the 2 m clearance required at every hold point; the draft had proposed it as half the smallest watcher-box half-width). **Not computable** (the rung-1 rule refuses the segment) **= FAIL** | per flight | a closed loop steers on the unaligned estimate; this is the physical excursion it would cause |
 | **G6** | **Replay fidelity:** ONLY if rung 1 flew the fork in shadow (the Replay output holds onboard `XUKF`). Replayed `RUKF`/`RUKS` against onboard `XUKF`/`XUKS` in the same Replay output: **E1 3-D position max ≤ 0.05 m, rms ≤ 0.01 m; E3 yaw max ≤ 0.05°; E5 accepted-count increments within 0.1 %** (definition §4.1) | per flight, **[TBD-V]** | see below |
 
 **Set rule:** **the gate PASSES only if G1–G5 (and G6 where it applies) hold on EVERY usable result flight**, with at
