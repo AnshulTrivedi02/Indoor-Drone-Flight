@@ -134,6 +134,27 @@ def relay_lines(sess, t0, t1, pat):
     return out
 
 
+_YAW = {}
+
+
+def yaw_at_arm(sess, cm, t_arm_w):
+    """Amendment A9 check: EKF yaw (ATT) minus the simulator's true yaw (SIM) at the ARM event nearest before the
+    flight script's "Armed." line (a hover with |diff| > 5 deg at arming is VOID)."""
+    if sess not in _YAW:
+        rows = df_rows(sess, ["ATT", "SIM", "EV"])
+        _YAW[sess] = rows
+    rows = _YAW[sess]
+    fa = cm.w2f(t_arm_w)
+    arm = [f for b, f, m in rows if m.get_type() == "EV" and int(m.Id) == 10 and fa - 10 < f <= fa + 0.5]
+    if not arm:
+        return "EKF-vs-true yaw at arming: no ARM event found"
+    f0 = arm[-1]
+    att = min((x for x in rows if x[2].get_type() == "ATT"), key=lambda x: abs(x[1] - f0))
+    sim = min((x for x in rows if x[2].get_type() == "SIM"), key=lambda x: abs(x[1] - f0))
+    d = (att[2].Yaw - sim[2].Yaw + 180) % 360 - 180
+    return f"EKF-vs-true yaw at arming (F {f0:.2f}): {d:+.1f} deg (A9: |diff| <= 5 deg required)"
+
+
 def report(sess):
     cm, ev, tests = load(sess)
     print(f"\n######## {os.path.basename(sess)}")
@@ -147,6 +168,8 @@ def report(sess):
             continue
         print(f"\n=== {n}")
         g = lambda k: t.get(k)  # noqa: E731
+        if t.get("t_arm_w"):
+            print("  " + yaw_at_arm(sess, cm, t["t_arm_w"]))
         LAND = r"MODE LAND|EV DISARMED"
         if n in ("B2a",):
             k = g("t_watcher_sig9_w")

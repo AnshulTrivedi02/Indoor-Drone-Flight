@@ -12,6 +12,7 @@ Stack (all ports outside 14550-14560; SITL instance 0 because the Gazebo ArduPil
   deps: flow_tracker stub (in-process beacon) and flow_bridge stub (+ proc sidecar) -> liveness 9871
 gz-transport and ROS 2 are isolated (GZ_PARTITION, ROS_DOMAIN_ID, loopback).
 """
+import math
 import os
 import re
 import signal
@@ -198,9 +199,32 @@ class Stack:
             subprocess.run(["pkill", "-9", "-f", "--", pat])
         self.log("teardown complete")
 
+    def current_q(self):
+        """The vehicle's current Gazebo orientation (w, x, y, z), from one dynamic_pose/info message."""
+        for _ in range(3):
+            out = subprocess.run(["gz", "topic", "-e", "-n", "1", "-t", f"/world/{WORLD}/dynamic_pose/info"],
+                                 capture_output=True, text=True, env=self.gz_env, timeout=15).stdout
+            i = out.find('name: "iris_with_ardupilot"')
+            if i < 0:
+                continue
+            j = out.find("orientation {", i)
+            k = out.find("}", j)
+            if j < 0 or k < 0:
+                continue
+            v = dict(re.findall(r"([wxyz]): (-?[0-9.eE+-]+)", out[j:k]))
+            return tuple(float(v.get(c, 0.0)) for c in "wxyz")
+        raise RuntimeError("could not read the vehicle orientation from Gazebo")
+
     def carry_home(self):
-        """The bench analogue of carrying the landed, DISARMED vehicle back to the spawn point (Gazebo set_pose)."""
-        return self.teleport(0, 0, 0.2)
+        """The bench analogue of carrying the landed, DISARMED vehicle back to the spawn point (Gazebo set_pose).
+        Amendment A9 (2026-10-12): the vehicle KEEPS ITS CURRENT HEADING (levelled, yaw unchanged). A teleport that
+        also rotates it back to the spawn heading is a rotation the FC's gyros never see: after B6b's 90 deg yaw it
+        left EKF3's yaw 77 deg off the truth, the compass corrected it at ~1.4 deg/s, the FC armed at 22 deg error and
+        the vehicle flew away on take-off (wbench2_hoverB_20261012_112751, B6b_static_other_body)."""
+        w, x, y, z = self.current_q()
+        yaw = math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+        self.log(f"carry home keeping the heading: Gazebo yaw {math.degrees(yaw):.1f} deg (ENU)")
+        return self.teleport(0, 0, 0.2, q=(math.cos(yaw / 2), 0, 0, math.sin(yaw / 2)))
 
     def teleport(self, x, y, z, q=(0.70710678, 0, 0, 0.70710678)):
         """Gazebo set_pose of the vehicle (DISARMED only): the SITL analogue of carrying it by hand. Returns wall time."""

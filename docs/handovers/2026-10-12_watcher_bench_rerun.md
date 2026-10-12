@@ -80,7 +80,29 @@ failsafe, the Lua script on the real board, beacons inside the Pi processes, the
 
 ### 1.5 Amendments (dated, after this commit)
 
-(none yet)
+- **A9 (2026-10-12, ~11:45, after `wbench2_hoverB_20261012_112751` was stopped; before any further run). Harness
+  only; no criterion changes.**
+  - **What happened.** After B6b's 90° yaw manoeuvre the landed vehicle was "carried home" by Gazebo `set_pose`, which
+    ALSO rotated it back to the spawn heading. The FC's gyros never saw that rotation. From the dataflash (ATT vs SIM):
+    EKF3's yaw was 77° off the truth after the teleport, and the compass corrected it at ~1.4°/s. The FC armed (the
+    "Check mag field" pre-arm passed below 100) at a 22° yaw error. On take-off the vehicle flew away west at ~6 m/s.
+    The watcher's box caught it at x = −3.02 m (BREACH and LAND in the same millisecond, ACKed on the first send).
+    Every later hover in that session then started with a large yaw error, and the vehicle crashed (roll ~180°). B8a
+    and B9a never reached their injection ("NOT_RUN"). The session was stopped with SIGINT, which runs the driver's
+    teardown.
+  - **Why it did not show on 2026-10-11:** not established. The only set-up difference is the origin (R1). With an
+    origin, EKF3 and the arming checks use the earth-field table at the location.
+  - **Fix (A9).** `Stack.carry_home` now keeps the vehicle's CURRENT heading (levelled, yaw read from Gazebo), so the
+    carry contains no rotation the FC cannot sense. A real carry is sensed by the gyros, so this matches the hardware
+    better.
+  - **New validity check (all hover tests, A9):** EKF yaw minus true yaw at the ARM event (dataflash ATT − SIM). A
+    hover with |diff| > 5° at arming is VOID.
+    - Already flown, from `results.py`: hoverA, all 9 hovers within ±1.5° (valid).
+    - The aborted hoverB: B5b-noflag −0.0° and B6b right body −0.1° (valid, but superseded by the full re-run).
+  - **hoverB is re-run IN FULL** (all 10 hovers) with A9. The stopped session is kept on disk and is not used for any
+    criterion.
+  - **A finding for the safety case, not a watcher issue (F7).** Stock EKF3 on flow can pass its arming checks with
+    a ~22° yaw error, and then fly away on take-off. Here the box caught it.
 
 ## 2. Results
 
