@@ -14014,3 +14014,34 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **M3 (procedural):** land in ALT_HOLD where safe; after any LAND-mode touchdown, the pilot disarms within 2 s.
 - **Then:** M1–M3 on the flight cards, and ONE full watcher bench run with everything in (the F7 yaw check, the F8
   mitigations, the H10 guard), reported.
+
+### U10 rule 2: the PREFERRED fix done and installed: replayed UKF records renamed (handover `docs/handovers/2026-10-12_u10_final.md`)
+- **Replay writes RUKF/RUKO/RUKS/RUKH/RUKT; the flying port keeps XUK*.**
+  - An instance field like EKF3's C=100 was not straightforward: the records have no core field; Replay-only would
+    put two FMTs named XUKO in one log; everywhere would change the flying format and need a board rebuild.
+  - **The UKF_horizon fallback is WITHDRAWN** (not needed).
+- **Port:** `replay-rukx` (`f30f6ffa2f`); `ukf-jitter-fix` fast-forwarded.
+  - Replay `e82c050b` → `3c3b62bb`; UKF_Equiv byte-identical; the SITL copter not rebuilt.
+  - Backup `~/opt/ukf_port_backup_e82c050b_2026-10-12/`.
+- **Checks:**
+  - (a) stock-flown: RUK* = the old XUK* value for value; replay_gate PASS; the scorer unchanged (1.0148 m);
+  - (b) fork-flown: the onboard XUK* is unchanged and both streams are strictly increasing; E1 recomputed equals the
+    stored values; the scorer reads RUKO (onboard only as `XUKO@onboard`);
+  - (c) 25/25 CSVs byte-identical;
+  - (d) UKF_Equiv 10/10.
+- **Implementation note to the signed rung-1 pre-registration** (dated 2026-10-12; no criterion changed): the
+  pre-registered "XUKO"/"XUKF" are read from Replay messages RUKO/RUKF. The prereg JSON is unchanged.
+- `replay_gate.py` stays the rung-1 §5 EKF3 fidelity check. **U10 is implemented in the NEW `eval/u10_gate.py`**
+  (G1–G6 plus the set rule).
+- **The COMPLETE band `docs/u10_replay_gate_band.md` is FOR FINAL SIGN-OFF.** Rules 1 and 2 are built in; no
+  threshold changed. Six NEW decisions need signature:
+  - N1: G5 fails when the drift cannot be computed. This CAN change a verdict: the H_s2v2_r1 SITL demo fails on it;
+  - N2: G2 requires coverage of W with no gap > 0.5 s;
+  - N3: a late geometry PARM passes only if it repeats the value in use or is a lever arm; no ARM record fails G1;
+  - N4: one Replay binary for the whole set;
+  - N5: each score computed on its own Replay log;
+  - N6: G6 E1 is 3-D (the draft table said "horizontal").
+- **Follow-ups:**
+  - `board-h743` and `u4-gndclr` need a rebase onto `f30f6ffa2f`;
+  - the FGO's XFG* records were not renamed;
+  - scoring a fork-flown log's own UKF needs `XUKO@onboard`.
