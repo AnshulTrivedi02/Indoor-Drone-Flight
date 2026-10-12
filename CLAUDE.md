@@ -831,12 +831,13 @@ Two costs, documented rather than discovered later:
 separate question: whether a GPS is **fitted at all**. With `GPS1_TYPE` at its
 SITL default, arming fails with `Arm: GPS 1: Bad fix`.
 
-`AP_Arming::gps_checks()` runs whenever the GPS bit (`1<<3`, i.e. 8) is set in
-`ARMING_CHECK`, **independently of the `EK3_SRC` selections**, and rejects any
+`AP_Arming::gps_checks()` runs unless the GPS bit (`1<<3`, i.e. 8) is set in
+`ARMING_SKIPCHK` (at `7bac20cbcc`; the 4.7 rename of `ARMING_CHECK`, now a mask of checks to SKIP,
+`AP_Arming.cpp:195-201,324-327`), **independently of the `EK3_SRC` selections**, and rejects any
 configured instance below `FIX_3D`. With `GPS1_TYPE=0` the check takes its
 `continue` branch and skips the instance entirely (`AP_Arming.cpp`, ~line 714).
 
-`ARMING_CHECK` was **not** modified on the old machine — it does not appear in
+`ARMING_CHECK` (now `ARMING_SKIPCHK` at 7bac20cbcc) was **not** modified on the old machine — it does not appear in
 `stage_c_textured`'s PARM dump at all. The GPS check was never disabled;
 ArduPilot was simply told no GPS is fitted. Now pinned in `gnss_denied.parm`
 and added to `fly_trial.py`'s `EXPECTED_PARAMS` (it carries
@@ -849,7 +850,7 @@ and added to `fly_trial.py`'s `EXPECTED_PARAMS` (it carries
 `AP_Arming_Copter::arm_checks()` (`AP_Arming_Copter.cpp:575`, `#ifndef
 ALLOW_ARM_NO_COMPASS`, not defined for this SITL build) has its own
 compass-health gate, separate from the generic `AP_Arming::compass_checks()`.
-It is unconditional — not gated behind `ARMING_CHECK`, and it runs before
+It is unconditional — not gated behind `ARMING_SKIPCHK` (the 4.7 name of `ARMING_CHECK`), and it runs before
 `should_skip_all_checks()` — so no bitmask can bypass it. It only skips when
 `ahrs.using_noncompass_for_yaw()` is true, which requires a recent (<5 s)
 non-compass yaw fusion event that cannot occur in this no-GPS config. The

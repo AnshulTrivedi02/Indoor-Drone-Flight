@@ -1,0 +1,20 @@
+{
+ "question": "Does a Replay output of the UKF port contain XUKO records (vs XUKF)? (rung-1 pre-registration: UKF record = XUKO)",
+ "method": "eval/diag/r1_scoring/rawscan.py (a strict dataflash walk: FMT table, records of undeclared types counted) and eval/df_reader.py on stored Replay outputs; one new light Replay by the INSTALLED binary (eval/diag/r1_scoring/xuko_replay.sh under heavy.py). Input logs only read.",
+ "verdict": "XUKO is ABSENT (undecodable) in a Replay output of a log that does not already declare it, i.e. of every stock-flown rung-1 log: the fork's Replay writes XUKF/XUKO/XUKS (and XUKH) records WITHOUT their FMT records. The records are there under per-run dynamic type ids with no FMT. In a Replay of a FORK-flown log (whose input declares XUKO), the output carries the onboard XUKO copied through AND the replayed XUKO under one FMT, interleaved and indistinguishable (no instance field).",
+ "consequence_for_reading": "pymavlink cannot read these outputs: its fast indexer stops the process ('Invalid length in FMT message'), its pure-Python reader returns about 15 XKF1 per core instead of thousands. eval/df_reader.py reads them in full (XKF1@100 TimeUS sequence = XKF1@0's).",
+ "logs": [
+  {"output": "scratchpad s12/xuko_replay/logs/00000001.BIN (NEW, 2026-10-12)", "replay_binary_md5": "be7c4d1880e09289d282ab8f076c7240 (installed, rung1-geometry)",
+   "input": "~/thesis_data/trials/cl_a_tex_half/ardupilot.bin (EKF3-flown; 0 XUKO FMT)", "XU_FMTs": [], "XUKO": 0, "XUKF": 0,
+   "undeclared_type_ids_counts": {"230": 6673, "229": 6672, "228": 6672}, "XKF1_per_core": {"0": 2684, "1": 2684, "100": 2684, "101": 2684}},
+  {"output": "~/thesis_data/d15_port/dsn_tex_r8/logs/00000001.BIN (2026-09-30)", "input": "dsn_tex_r8 (stock SITL; 0 XUKO FMT)",
+   "XU_FMTs": [], "XUKO": 0, "undeclared_type_ids_counts": {"230": 8606, "229": 8604, "228": 8606}, "XKF1_per_core": {"0": 3457, "100": 3457},
+   "pymavlink": "fast indexer exits at offset 252491; pure-Python reader: 15 XKF1 per core"},
+  {"output": "scratchpad ub/replay/logs/00000001.BIN (2026-10-08)", "input": "H_s1_r1 (0 XUKO FMT)", "XU_FMTs": [], "XUKO": 0,
+   "undeclared_type_ids_counts": {"230": 9829, "229": 9825, "228": 9829, "227": 8670}, "XKF1_per_core": {"0": 3956, "100": 3956}},
+  {"output": "~/thesis_data/d17_v2/ukf_shadow_hdg_v2/logs/00000001.BIN (2026-09-30)", "input": "ukf_shadow_hdg_v2 (FORK-flown, UKF in shadow: 8 654 onboard XUKO)",
+   "XU_FMTs": ["XUKF", "XUKH", "XUKO", "XUKS"], "XUKO": 17283, "note": "17 283 = 8 654 copied onboard + 8 629 replayed, interleaved under one FMT"}
+ ],
+ "what_the_scorer_must_use": "Until the port is fixed: the port's CURRENT-TIME output as a CSV with XUKO's exact columns (TimeUS,PN,PE,PD,VN,VE,VD,Roll,Pitch,Yaw,OV,EvO,EvMx,GpT,GpN), read with real_score.py --est-csv UKF=<ukf_output.csv>. The existing ukf_shadow.csv is NOT a substitute: it holds the HORIZON-time state (= XUKF). Preferred port fix: emit the FMT records of the UKF messages in Replay, so XUKO is read from the Replay output log itself. Port spec: docs/rung1_port_spec_capture_delay_xuko.md. Which source is used is a user ruling (the pre-registration names the record, not its file).",
+ "scope": "Replay builds e8e9feac (2026-10-08) and earlier (stored outputs) and the installed be7c4d18 (new run). The rung1-geometry outputs of 2026-10-11 were not kept (run_one.sh deletes logs/)."
+}
