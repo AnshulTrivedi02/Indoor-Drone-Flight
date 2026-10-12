@@ -16,7 +16,11 @@
   4. §3 and **G3**: `_n_chol_fail` / `_n_chol_retry` come from the Replay's new `ukf_stats.csv` (and its end-of-run
      stdout line). The precondition is MET. A missing `ukf_stats.csv` (a run that did not end normally) fails G3.
   5. §7 item 1: the R-d choice and the counter output are settled; only the signature, D_max and the volume remain.
-  No band, criterion, set rule or threshold changed.
+  - **No band, threshold or set rule changed. TWO RULES ARE NEW and need sign-off:**
+    - (i) G3: a missing `ukf_stats.csv` FAILS G3;
+    - (ii) §3: a gated FORK-FLOWN log is scored on `UKF_horizon` (labelled) for the current-time rows, because its
+      XUKO is interleaved. The general `ukf_shadow.csv` fallback is withdrawn; this conditional one replaces it for
+      fork-flown logs only.
 
 Implements:
 - `docs/ukf_only_closed_loop_costing.md` §7 (U10);
