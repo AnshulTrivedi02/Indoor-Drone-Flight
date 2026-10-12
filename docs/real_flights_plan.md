@@ -422,7 +422,7 @@ camera flown only once verified.
 
 **Purpose:** prove on the real system, with the props off, that every path of the fail-closed rule (§7) acts. These
 tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10, and B11(a) and
-B12(a) since 2026-10-12), and in full after any change to the watcher, the flight script, the FC firmware or its
+B12(a) since 2026-10-12; B13 reads their logs, no extra stimulus), and in full after any change to the watcher, the flight script, the FC firmware or its
 failsafe parameters.
 
 **What the bench can and cannot show:** the vehicle is on the ground, so these tests verify detection and the command
@@ -643,7 +643,16 @@ flow bridge, tag/heading bridge, Pi estimator node, and the flight script, if it
 
 **B10. RC override takes precedence.** Armed, GUIDED:
 - (a) The safety pilot switches to ALT_HOLD (and, separately, STABILIZE).
-  - *Pass:* the FC mode changes within **0.3 s**, and the flight script's GUIDED commands have no effect afterwards.
+  - *Pass (RE-WORDED 2026-10-12 for the real bench, ruling 3 on `wbench4`, METHODOLOGY "RULINGS (user, 2026-10-12): on
+    the full watcher bench `wbench4`"):* the FC mode changes within **0.3 s**, and **the pilot retains control and no
+    watcher LAND is sent** (no mode change back to GUIDED, and the watcher's `STOP_LOG.txt` shows no "LAND command
+    sent", from the switch until the disarm). Drift in ALT_HOLD is expected and is not a criterion.
+  - *Previous wording (kept verbatim):* "*Pass:* the FC mode changes within **0.3 s**, and the flight script's GUIDED
+    commands have no effect afterwards." **Why re-worded:** the SITL version of this test (`wbench4_hoverC`, handover
+    `2026-10-12_m2_full_bench.md` §2.1) carried "no mode change back; vehicle holds". With nobody correcting in
+    ALT_HOLD the simulated vehicle drifted to the box face, so a strict reading ("holds" = a position hold) failed.
+    That simulation run stays recorded as FAILED AS WORDED under the old wording. The property B10(a) exists for is that
+    the pilot's switch wins, not that ALT_HOLD holds a position.
 - (b) In ALT_HOLD, trigger each automatic path in turn: watcher kill (B2b), estimator invalid (B8e), dependency loss
   (B9a).
   - *Pass:*
@@ -733,6 +742,27 @@ before any hardware run; the SITL version, including a real EKF3 ground runaway,
 - *Length:* ground only, ~4 min. Each response is expected within ~1 s; each re-confirmation needs the 5 s hold.
 - *Recorded:* `STOP_LOG.txt`, `mocap_watch_vel.csv` (vx, vy, vz, |v|, the mocap speed, the hold time, the verdict at
   the `LOCAL_POSITION_NED` rate), the FC STATUSTEXT and ARM events, the flight-script log.
+
+**B13. X1 timing on the real links: the watcher's own view of the FC against the GCS link's.** *(Added 2026-10-12
+under ruling 4 on `wbench4`, METHODOLOGY "RULINGS (user, 2026-10-12): on the full watcher bench `wbench4`". In SITL
+`wbench4`, X1 "no yaw/vel withdrawal while the FC is armed" FAILED AS WORDED against the operator link's timing: 24 of
+26 such withdrawals fell 0.03–0.95 s before the operator link saw the disarm, because the watcher's own link saw it
+first; it held on the watcher's own FC state. The real links (the watcher's telemetry radio and the GCS link) have
+their own latencies, so the same timing is measured here.)*
+- *Setup:* common, props off, the watcher with `--yaw-check require` and `--vel-check require`. Uses the ARM/DISARM
+  cycles of B0, B11 and B12 (no extra stimulus); at least 3 arm–disarm cycles, at least one disarmed by the pilot's
+  stick and one by the GCS.
+- *Pass:*
+  - (a) **The watcher's own state.** In `mocap_watch_vel.csv` and `mocap_watch_yaw.csv`, 0 samples with
+    `fc_armed=True` and a failing gate; 0 watcher LANDs and 0 BREACHes caused by either check (`STOP_LOG.txt`).
+  - (b) **Against the GCS link.** Every `STOP_LOG.txt` "confirmation 0" line with a "yaw" or "vel" reason that falls
+    inside the GCS link's armed span (between its ARM and DISARM) lies AFTER the watcher's own first FC heartbeat
+    showing DISARMED (or before its own first ARMED one), i.e. the difference is explained by the two links' lag.
+- *Recorded (not a pass item):* for every ARM and DISARM, the time each link first showed it (the watcher's
+  `mocap_watch_heartbeat.csv`/`STOP_LOG.txt`, the GCS tlog) and the lag between them; the maximum lag. A lag
+  > 1.0 s (SITL ≤ 0.95 s) is reported for a ruling: it is how long the GCS operator could see the watcher withdraw
+  while the GCS still shows the vehicle armed.
+- *Length:* none extra (it reads B0/B11/B12's logs).
 
 **Pass rule for stage 0:** every test passes as worded, or a deviation is recorded and ruled on before stage 1. B1(c)
 and G6 may be closed by the procedure rule plus `ARMING_RUDDER` 0 only with an explicit ruling.

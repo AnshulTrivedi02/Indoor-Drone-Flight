@@ -22,6 +22,12 @@ None of them changes EKF3's configuration:
 - M4 (stated): U4 (take off within 5 s of arming) does NOT address F8; the bad velocity exists before arming.
 The verification/result classification below is unchanged.
 
+**Amended 2026-10-12 (latest)**, ruling 5 of "RULINGS (user, 2026-10-12): on the full watcher bench `wbench4`"
+(METHODOLOGY): **NO RE-ARM WITHIN 10 s OF ANY DISARM** (§1a "M1", §5 pre-arm, §7 D12). It codifies M1's implication
+and closes the ~3.3 s gap in which the FC itself still accepts an arm after the watcher has withdrawn (the FC refuses
+only once `FS_GCS_TIMEOUT` (3 s) has passed without the watcher's heartbeat; handover
+`docs/handovers/2026-10-12_m2_full_bench.md` §4 item 3).
+
 Governing documents: `docs/rung1_preregistration_draft.md` (what is flown and scored; ON HOLD until the supervisor
 confirms the hardware, so the RESULT card's profile follows it only once it is signed off), `docs/minimal_real_flight_plan.md`
 (the plan), `realflight/params/rung1_template.parm` + one compass variant (the parameters).
@@ -157,6 +163,14 @@ Steps (GS; repeated after ANY reboot of the FC, including a parameter reboot):
   **[TBD-S] confirm the real power wiring**; otherwise a deliberate reboot), then §1a steps 1–7 again: the origin set
   and RE-VERIFIED, the tie, F7, M2.
 - A battery change between sorties is therefore also a §1a restart.
+- **No re-arm within 10 s of ANY disarm** (ruling 5, 2026-10-12), whatever the reason for the disarm (a landing, an
+  aborted arm, a bench arm, a disarm on the ground without a flight). GS calls the 10 s from the disarm; SP does not
+  touch the arm input before the call.
+  - Why: after a disarm the watcher withdraws at once if EKF3's velocity runs away (M2), but the FC itself refuses
+    an arm only ~3.3 s later (`FS_GCS_TIMEOUT` 3 s without the watcher's heartbeat). Inside that gap only M1 and this
+    rule stop a manual re-arm. 10 s covers the gap with margin, and M2's own 5 s hold.
+  - After a landing M1 applies as well (the power-cycle and §1a take far longer than 10 s); this rule is the one that
+    still applies to a disarm WITHOUT a landing.
 
 ---
 
@@ -232,6 +246,8 @@ Pre-arm (GS reads, SP confirms):
       received with the lat/lon that were set. **NO ARMING without it.**
 - [ ] **M1:** NO landing earlier in this FC boot (after any landing in this boot → power-cycle and redo §1a; a
       props-off bench arm without a flight does not count)
+- [ ] **No re-arm within 10 s of any disarm** (ruling 5, 2026-10-12): last disarm at __:__:__; GS calls "10 s" before
+      the arm
 - [ ] **F7 yaw check** (§1a step 6): tie __°; FC yaw __°; mocap heading __°; |diff| = __° **≤ 5°**, steady ≥ 1 s,
       rigid body tracked. Rungs 2–3: the watcher shows confirmed (no "yaw" reason).
 - [ ] **M2 EKF velocity check** (§1a step 7): vehicle still (MO); `LOCAL_POSITION_NED` |v| max over 5 s = __ m/s
@@ -298,7 +314,7 @@ GS, on the downloaded `.BIN` and the mocap export (a script will implement D1–
 | D9 | Sortie sheet complete: class (VERIFICATION/RESULT), battery, times, take name, any deviation | yes |
 | D10 | **EKF origin in the log** (ruling 1): an `ORGN` record in this boot's dataflash BEFORE the ARM event; the boot's "EKF3 IMUn initialised" messages (every core) precede the origin | yes. If not: no further sortie until the cause is found (a safety stop; NOT a scoring exclusion, since the pre-registration §3.3 is unchanged) |
 | D11 | **F7 and U4 as flown:** the sheet's yaw-check line filled in (\|diff\| ≤ 5°); the `ARM` event to take-off (the first `CTUN`/`RFND` climb) ≤ 5 s | yes. A deviation is recorded; it does not change the classification |
-| D12 | **M1/M2/M3 as flown (2026-10-12):** no landing (`EV` LAND_COMPLETE / LAND_COMPLETE_MAYBE after a take-off) before this sortie's `ARM` in this boot's log (M1); the sheet's M2 line filled in, and `XKF1` (core 0) √(VN²+VE²+VD²) < 0.2 m/s over the 5 s before `ARM`; if the landing was in LAND mode, the disarm ≤ 2 s after touchdown (`EV` LAND_COMPLETE_MAYBE) (M3) | yes. A deviation is recorded and is a safety stop for the day until understood; it does not change the classification |
+| D12 | **M1/M2/M3 as flown (2026-10-12):** no landing (`EV` LAND_COMPLETE / LAND_COMPLETE_MAYBE after a take-off) before this sortie's `ARM` in this boot's log (M1); the sheet's M2 line filled in, and `XKF1` (core 0) √(VN²+VE²+VD²) < 0.2 m/s over the 5 s before `ARM`; if the landing was in LAND mode, the disarm ≤ 2 s after touchdown (`EV` LAND_COMPLETE_MAYBE) (M3); every `ARM` ≥ 10 s after the previous disarm `ARM` record in the same boot (ruling 5, 2026-10-12) | yes. A deviation is recorded and is a safety stop for the day until understood; it does not change the classification |
 
 A RESULT sortie failing D2–D4, D7 or D8 is excluded under the pre-registration §3.3 (the reason recorded) BEFORE any
 estimator is run on it.

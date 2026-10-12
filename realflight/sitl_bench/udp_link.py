@@ -14,7 +14,8 @@ SITL's UDP serial output can pack several MAVLink frames into one datagram, so e
 (v1 0xFE and v2 0xFD, v2 signature honoured); only the selected frames are removed, the rest is forwarded unchanged
 (an unparseable tail is forwarded as is). Every removed frame is logged. FC HEARTBEAT arrivals (system 1, component 1)
 are logged to --hb-log (wall time, custom_mode, forwarded 1/0): this measures whether the watcher's 5 Hz HEARTBEAT
-request took effect (F6 depends on it).
+request took effect (F6 depends on it). Watcher -> FC HEARTBEAT frames that are FORWARDED to the FC are logged to
+--gcs-hb-log (wall time, system ID; added for wbench5_m2r: the FC-side time of the watcher's withdrawal).
 """
 import argparse
 import select
@@ -73,12 +74,14 @@ def main():
     ap.add_argument("--ctl-port", type=int, required=True)
     ap.add_argument("--log", required=True)
     ap.add_argument("--hb-log", default=None)
+    ap.add_argument("--gcs-hb-log", default=None)
     a = ap.parse_args()
     A = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); A.bind(("127.0.0.1", a.fc_side))
     B = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); B.bind(("127.0.0.1", 0))
     C = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); C.bind(("127.0.0.1", a.ctl_port))
     log = open(a.log, "a", buffering=1)
     hbl = open(a.hb_log, "a", buffering=1) if a.hb_log else None
+    ghl = open(a.gcs_hb_log, "a", buffering=1) if a.gcs_hb_log else None
     fc_addr = None
     drop = False
     ack_strip = False
@@ -145,6 +148,8 @@ def main():
                         else:
                             log.write(f"{now:.4f} watcher DO_SET_MODE(LAND) passed\n")
                     keep.append(raw)
+                    if ghl and msgid == MSG_HEARTBEAT:
+                        ghl.write(f"{now:.4f},{sysid}\n")
                 if keep:
                     A.sendto(b"".join(keep), fc_addr); n[1] += 1
 

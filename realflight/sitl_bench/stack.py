@@ -32,7 +32,7 @@ AP = f"{HOME}/ardupilot"
 VENV_PY = f"{HOME}/venv-ardupilot/bin/python3"
 WORLD = "iris_textured"   # amendment A5 (was iris_runway): the camera-flow path needs the textured mat
 P = dict(serial1=14571, watcher_fc=14572, op=14575, observer_fc=14577, fs=14581, mocap=9870, observer_mocap=9880,
-         fwd_ctl=9879, relay_ctl=9878, live=9871, rc=5501)
+         fwd_ctl=9879, relay_ctl=9878, live=9871, rc=5501, flow_ctl=9877)
 BOX = "-3,3,-3,3,-0.5,3.0"
 ISO = {"GZ_PARTITION": "wbench", "GZ_IP": "127.0.0.1", "ROS_DOMAIN_ID": "57",
        "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST"}
@@ -48,8 +48,11 @@ def ros_env():
 
 
 class Stack:
-    def __init__(self, out, ground=False, log=print, extra_defaults=(), lua_at_boot=False):
+    def __init__(self, out, ground=False, log=print, extra_defaults=(), lua_at_boot=False, flow_bias=False):
         self.out, self.ground, self.log = out, ground, log
+        # wbench5_m2r: flow_bridge_real is flow_bias_bridge.py (flow_bridge.py + a controllable one-axis bias; "pass"
+        # mode, the start state, sends exactly what flow_bridge.py sends)
+        self.flow_bias_on = flow_bias
         self.extra_defaults, self.lua_at_boot = list(extra_defaults), lua_at_boot
         os.makedirs(out, exist_ok=True)
         self.procs = {}
@@ -146,7 +149,8 @@ class Stack:
         self.spawn("relay", [VENV_PY, "-m", "realflight.sitl_bench.udp_link", "--fc-side", str(P["serial1"]),
                              "--gcs-side", str(P["watcher_fc"]), "--ctl-port", str(P["relay_ctl"]),
                              "--log", os.path.join(self.out, "relay_events.txt"),
-                             "--hb-log", os.path.join(self.out, "relay_fc_hb.csv")])
+                             "--hb-log", os.path.join(self.out, "relay_fc_hb.csv"),
+                             "--gcs-hb-log", os.path.join(self.out, "relay_gcs_hb.csv")])
         self.spawn("mavproxy", [f"{HOME}/venv-ardupilot/bin/mavproxy.py", "--daemon", "--retries", "5",
                                 "--master", "tcp:127.0.0.1:5760", "--out", f"127.0.0.1:{P['fs']}",
                                 "--out", "127.0.0.1:14551", "--out", "127.0.0.1:14552", "--out", "127.0.0.1:14553"], cwd=self.out)
@@ -168,8 +172,7 @@ class Stack:
                    env=self.renv)
         self.spawn("flow_tracker_real", ["ros2", "run", "optical_flow_node", "flow_tracker", "--ros-args", "-p",
                                          "use_sim_time:=true", "-p", "ransac_seed:=42"], env=self.renv)
-        self.spawn("flow_bridge_real", [VENV_PY, f"{REPO}/flow_bridge.py", "--ros-args", "-p", "use_sim_time:=true"],
-                   env=self.renv)
+        self.spawn("flow_bridge_real", self.flow_bridge_cmd(), env=self.renv)
         self.spawn("gtpub", ["python3", f"{REPO}/ground_truth_pub.py", WORLD], env=self.renv)
         self.spawn("forwarder", ["python3", "-m", "realflight.sitl_bench.mocap_forwarder",
                                  "--dest", f"127.0.0.1:{P['mocap']}", "--dest", f"127.0.0.1:{P['observer_mocap']}",
@@ -178,6 +181,22 @@ class Stack:
         self.wait_for("mocap packets flowing", lambda: os.path.getsize(os.path.join(self.out, "forwarder.csv")) > 5000,
                       90)
         self.start_deps()
+
+    def flow_bridge_cmd(self):
+        if self.flow_bias_on:
+            return [VENV_PY, "-m", "realflight.sitl_bench.flow_bias_bridge", "--ctl-port", str(P["flow_ctl"]),
+                    "--log", os.path.join(self.out, "flow_bias.csv"), "--ros-args", "-p", "use_sim_time:=true"]
+        return [VENV_PY, f"{REPO}/flow_bridge.py", "--ros-args", "-p", "use_sim_time:=true"]
+
+    def flow_bias(self, **kw):
+        """wbench5_m2r: {"mode": "pass"} or {"mode": "bias", "v": .., "ramp_s": .., "max_rad": ..} to the bias bridge."""
+        import json
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        t = time.time()
+        s.sendto(json.dumps(kw).encode(), ("127.0.0.1", P["flow_ctl"]))
+        s.close()
+        self.log(f"flow_bias {kw}")
+        return t
 
     def start_deps(self, which=("flow_tracker", "flow_bridge", "sidecar")):
         live = f"127.0.0.1:{P['live']}"
@@ -205,7 +224,8 @@ class Stack:
                     "realflight.watcher.sidecars", f"serial2=udpclient:127.0.0.1:{P['op']}",
                     f"--out 127.0.0.1:{P['fs']}", f"/world/{WORLD}/dynamic_pose/info@geometry_msgs",
                     f"ground_truth_pub.py {WORLD}", f"{REPO}/lidar_bridge.py", f"{REPO}/flow_bridge.py", f"{REPO}/attitude_bridge.py",
-                    "optical_flow_node/flow_tracker", "/downward_camera/image@sensor_msgs"):
+                    "optical_flow_node/flow_tracker", "/downward_camera/image@sensor_msgs",
+                    "sitl_bench.flow_bias_bridge"):
             subprocess.run(["pkill", "-9", "-f", "--", pat])
         self.log("teardown complete")
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Watcher SITL bench (item 2c; docs/handovers/2026-10-11_watcher_sitl_bench.md). VERIFICATION flights only (wbench_*),
 # never result data. One session per call, under FLIGHT_LOCK (waits for BUILD_LOCK first; released on exit).
-#   tools/run_wbench.sh <session> [--from TEST] [--prefix P] [--checks none|all]   sessions: smoke ground hoverA hoverB hoverC f7 m2
+#   tools/run_wbench.sh <session> [--from TEST] [--prefix P] [--checks none|all]   sessions: smoke ground hoverA hoverB hoverC f7 m2 m2r
 #   (2026-10-12 wbench4: --prefix wbench4 --checks all = the F7 yaw + M2 velocity checks, H10, M1, M3 in every session)
+#   (2026-10-12 wbench5: tools/run_wbench.sh m2r --prefix wbench5 --checks all = the re-registered M2-R, handover 2026-10-12_m2r_rerun.md)
 #   (2026-10-12 re-run: output wbench2_<session>_<stamp>; --prefix wbench reproduces the 2026-10-11 naming)
 # Separate driver: run_trial.sh / closed_loop_run.sh / fly_trial.py are not modified (fly_trial.py is imported read-only
 # by realflight/sitl_bench/flight_script.py for its watcher gate).

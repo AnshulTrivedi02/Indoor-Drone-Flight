@@ -46,7 +46,7 @@ class Bench:
         f7 = session == "f7"
         self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a", "f7")), log=self.log,
                            extra_defaults=[f"{REPO}/realflight/sitl_bench/params/wbench_f7.parm"] if f7 else [],
-                           lua_at_boot=f7)
+                           lua_at_boot=f7, flow_bias=(session == "m2r"))
         # wbench4 (`--checks all`, pre-registered in docs/handovers/2026-10-12_m2_full_bench.md §1): every watcher
         # runs the F7 yaw check AND the M2 velocity check; the F7 session keeps its no-compass origin tie, the others
         # (compass, EK3_SRC1_YAW 1) use the fixed SITL tie 90 deg, which survives the watcher restarts; every flight
@@ -1227,6 +1227,214 @@ class Bench:
             return rows[-1] if rows else None
         except OSError:
             return None
+
+    # ------------------------------------------------------------------ wbench5_m2r (M2-R RE-REGISTERED, 2026-10-12)
+    # Pre-registered in docs/handovers/2026-10-12_m2r_rerun.md §1 (committed before this session ran). The stimulus:
+    # a one-axis velocity-equivalent flow bias on the final descent (flow_bias_bridge.py), landing in ALT_HOLD (M3),
+    # the pilot's disarm 1.0 s after touchdown, then the probes while the EKF3 ground runaway lasts; M1 between attempts.
+    M2R_V = (1.0, 1.0, 1.5, 1.5)          # m/s, the fixed attempt schedule (no adaptation)
+
+    def truth_xyz(self):
+        try:
+            with open(os.path.join(self.out, "forwarder.csv"), "rb") as f:
+                f.seek(-3000, 2)
+                rows = [l.split(",") for l in f.read().decode(errors="replace").splitlines() if l.count(",") == 9]
+            r = [x for x in rows if x[1] == "0" and x[4] == "normal"][-1]
+            return float(r[7]), float(r[8]), float(r[9])
+        except (OSError, ValueError, IndexError):
+            return None
+
+    def _last_gcs_hb_w(self):
+        """Wall time of the last watcher (system 211) HEARTBEAT the relay forwarded to the FC (relay_gcs_hb.csv)."""
+        try:
+            rows = open(os.path.join(self.out, "relay_gcs_hb.csv")).read().splitlines()
+        except OSError:
+            return None
+        for l in reversed(rows):
+            p = l.split(",")
+            if len(p) == 2 and p[1] == "211":
+                return float(p[0])
+        return None
+
+    def m2r_fc_probe(self):
+        """One operator non-force MAVLink arm in GUIDED (system ID 255); refused or (if armed) disarmed at once."""
+        op = self.op
+        if op.mode != GUIDED:
+            op.set_mode(GUIDED)
+            op.wait("GUIDED", lambda: op.mode == GUIDED, 3)
+        v = op.vnorm_since(time.time() - 0.3)
+        t, res = op.arm(force=False)
+        armed = op.wait("armed by MAVLink", lambda: op.armed is True, 2.0) is not None
+        texts = [x[2] for x in op.texts_since(t - 0.1) if x[1] == 1]
+        if armed:
+            self.log("M2R FC PROBE ARMED: disarming at once")
+            self.disarm_now()
+        return {"t_w": t, "ack": res, "armed": armed, "mode": op.mode, "fc_texts": texts,
+                "op_v_0p3s": [round(x[1], 3) for x in v]}
+
+    def m2r_attempt(self, k, v):
+        st, op, rc = self.stack, self.op, self.rc
+        name = f"M2R_attempt{k}_v{v}"
+        self.log(f"===== {name}")
+        self.home_if_needed()
+        self.m1_if_needed(name)               # every attempt starts from a fresh boot (after attempt 1)
+        self.ensure_watcher()
+        st.flow_bias(mode="pass")
+        fs, fsl = self.flight([{"takeoff": 1.5}, {"hold": 4}, {"hold": 200}])
+        t_arm = self.wait_text(fsl, r"Armed\.", 120, fs)
+        if t_arm is None:
+            self.rec(name, result="NOT_RUN", why="flight script did not arm", fs_log=fsl)
+            self.safe_down(); self.end_flight(fs)
+            return
+        self.landed_in_boot = True
+        info = {"v_mps": v, "t_arm_w": t_arm, "fs_log": fsl, "t_armed_seen_w": self.wait_armed(30)}
+        t_m = self.wait_text(fsl, "STEP 2 hold start", 120, fs)
+        if t_m is None:
+            self.rec(name, result="NOT_RUN", why="hold not reached", **info)
+            self.safe_down(); self.end_flight(fs)
+            return
+        time.sleep(1.0)
+        p0 = self.truth_xyz()
+        info["truth_at_althold"] = p0
+        # the pilot takes ALT_HOLD (stick centred), then the bias ramps in, then the pilot descends
+        rc.set(ch3=1500); time.sleep(0.5)
+        info["t_althold_w"] = rc.set(ch5=SW["alt_hold"])
+        info["t_althold_seen_w"] = op.wait("ALT_HOLD", lambda: op.mode == ALT_HOLD, 5)
+        time.sleep(1.0)
+        info["t_bias_on_w"] = st.flow_bias(mode="bias", v=v, ramp_s=1.0, max_rad=2.0)
+        time.sleep(2.0)
+        info["t_descent_w"] = rc.set(ch3=1300)
+        exc, t_td = 0.0, None
+        t0 = time.time()
+        while time.time() - t0 < 20:
+            if not self.alive():
+                raise Abort("stack died")
+            p = self.truth_xyz()
+            if p and p0:
+                exc = max(exc, ((p[0] - p0[0]) ** 2 + (p[1] - p0[1]) ** 2) ** 0.5)
+            if p and p[2] < 0.23:
+                t_td = time.time(); break
+            time.sleep(0.05)
+        info.update(t_touchdown_w=t_td, truth_excursion_before_td_m=round(exc, 3))
+        info["t_pass_cmd_w"] = st.flow_bias(mode="pass")     # the bias is off by touchdown at the latest
+        rc.set(ch3=1000)
+        if t_td is None:
+            self.rec(name, result="VOID", why="no touchdown within 20 s of the descent", **info)
+            rc.set(ch5=SW["land"]); self.safe_down(); self.end_flight(fs); self.back_to_guided()
+            return
+        time.sleep(max(0.0, t_td + 1.0 - time.time()))
+        info["t_disarm_cmd_w"] = time.time()
+        if op.armed:
+            op.disarm()                       # the pilot's disarm, 1.0 s after touchdown (M3: within 2 s)
+        t_dis = op.wait("disarmed", lambda: op.armed is False, 10, self.alive)
+        info["t_disarm_seen_w"] = t_dis
+        # the hover script's hold loop does not exit on a disarm: stop it now (frees --port for the gate script, and
+        # it can send nothing after the disarm), THEN the switch back at GUIDED (disarmed)
+        self.stack.stop(fs, signal.SIGTERM, 5)
+        rc.set(ch5=SW["guided"], ch3=1000)
+        if t_dis is None:
+            self.rec(name, result="VOID", why="not disarmed", **info)
+            self.safe_down()
+            return
+        # ---- while the runaway lasts: 20 Hz polls of the file gate (thread), the flight-script gate, FC-side probes
+        import threading
+        polls, stop = [], {"s": False}
+
+        def poller():
+            while not stop["s"]:
+                now = time.time()
+                vv = op.vnorm_since(now - 0.25)
+                age, fl = st.watch_file()
+                polls.append((round(now, 3), fl.get("box"), fl.get("bridge"), None if age is None else round(age, 2),
+                              round(vv[-1][1], 3) if vv else None))
+                time.sleep(0.05)
+        th = threading.Thread(target=poller, daemon=True)
+        th.start()
+        n_land0 = self._wlog().count("LAND command sent")
+        t_on = t_end = None
+        fs2 = fs2_log = None
+        next_fc, below = 0.0, None
+        probes = []
+        t_cap = t_dis + 40.0
+        while time.time() < t_cap:
+            if not self.alive():
+                stop["s"] = True
+                raise Abort("stack died")
+            now = time.time()
+            vv = op.vnorm_since(now - 0.25)
+            vc = vv[-1][1] if vv else None
+            if t_on is None:
+                if vc is not None and vc >= 0.2:
+                    t_on = now
+                elif now > t_dis + 5.0:
+                    break                          # no runaway after the disarm
+            if t_on is not None:
+                if fs2 is None and now >= t_on + 0.5:
+                    fs2, fs2_log = self.flight([])     # the flight-script gate (fly_trial.watch_ok) during the runaway
+                # an FC-side probe only outside the FS_GCS_TIMEOUT gap, re-checked before EVERY probe: >= 3.5 s after
+                # the latest watcher HEARTBEAT forwarded to the FC, the file gate shows box=0, op |v| >= 0.2;
+                # >= 2.0 s after the previous probe
+                t_hb = self._last_gcs_hb_w()
+                if (now >= (next_fc or 0.0) and (t_hb is None or now >= t_hb + 3.5) and vc is not None
+                        and vc >= 0.2 and st.watch_file()[1].get("box") == "0"):
+                    pr = self.m2r_fc_probe()
+                    pr["t_last_gcs_hb_w"] = t_hb
+                    probes.append(pr)
+                    next_fc = time.time() + 2.0
+                if vc is not None and vc < 0.2:
+                    below = below or now
+                    if now - below >= 1.0:
+                        t_end = below
+                        break
+                else:
+                    below = None
+            time.sleep(0.05)
+        info.update(t_on_op_w=t_on, t_end_op_w=t_end, capped=(t_on is not None and t_end is None))
+        if fs2 is not None:
+            info["fs2_armed_before_kill"] = tail_has(fs2_log, r"Armed\.")
+            self.stack.stop(fs2, signal.SIGTERM, 5)
+            info["fs2_log"] = fs2_log
+            info["fs2_lines"] = [l.strip() for l in open(fs2_log) if "REFUS" in l or "confirmed before arming" in l
+                                 or "Armed." in l or "FAILED" in l]
+            if info["fs2_armed_before_kill"]:
+                self.safe_down()
+        # observation: does the watcher re-confirm in the same boot (M2's 5 s hold after the runaway)?
+        info["t_reconfirm_same_boot_w"] = (op.wait("re-confirm", lambda: st.confirmed(), 8.0, self.alive)
+                                           if t_end is not None else None)
+        stop["s"] = True
+        th.join(2)
+        json.dump(polls, open(os.path.join(self.out, f"{name}_polls.json"), "w"))
+        info.update(fc_probes=probes, n_polls=len(polls),
+                    polls_box1_after_on=[p for p in polls if t_on and p[0] >= t_on + 0.5
+                                         and (t_end is None or p[0] <= t_end) and p[1] == "1"][:10],
+                    watcher_land_sends_since_disarm=self._wlog().count("LAND command sent") - n_land0,
+                    breach_in_log="BREACH" in self._wlog(), alert_logged="arming refused (F8)" in self._wlog(),
+                    fc_texts_since_arm=[x[2] for x in op.texts_since(t_arm) if x[1] == 1])
+        self.rec(name, result="RUNAWAY" if t_on else "no runaway (op |v| < 0.2 for 5 s after the disarm)", **info)
+
+    def s_m2r(self):
+        """M2-R re-registered (handover 2026-10-12_m2r_rerun.md §1): the fixed attempt schedule M2R_V, then M1 and
+        the flight-script arm (arming allowed after M1)."""
+        if not self.all_checks:
+            raise Abort("m2r needs --checks all")
+        st, op = self.stack, self.op
+        for k, v in enumerate(self.M2R_V, 1):
+            self.m2r_attempt(k, v)
+        # ---- after M1 arming is allowed (T4): reboot, origin re-verified, the watcher restarted, the script arms
+        self.home_if_needed()
+        st.stop("watcher", signal.SIGTERM, 10)
+        t_rb = self.reboot(settle=45)
+        t_orig = [o for o in op.origins if o[0] >= t_rb]
+        extra, kw = st.last_watcher
+        st.start_watcher(*extra, **kw)
+        self.landed_in_boot = False
+        t_w = time.time()
+        t_conf = op.wait("watcher confirmed after M1", lambda: st.confirmed(), 90, self.alive)
+        v_conf = op.vnorm_since(time.time() - 5.0)
+        res, lines, fsl = self.script_arm("M2R_after_M1")
+        self.rec("M2R_M1", t_reboot_w=t_rb, origin_verified=t_orig[:1], t_watcher_start_w=t_w, t_confirmed_w=t_conf,
+                 op_vmax_5s_before_confirm=round(max([x[1] for x in v_conf] or [-1]), 3), outcome=res, lines=lines,
+                 fs_log=fsl)
 
     def s_smoke(self):
         self.ensure_watcher()
