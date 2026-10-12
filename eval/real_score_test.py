@@ -162,7 +162,9 @@ def test_xkf1_core_is_explicit_and_filtered():
     import pytest
     from types import SimpleNamespace as NS
     assert RS.parse_record("XKF1@100") == ("XKF1", 100) and RS.parse_record("XUKO") == ("XUKO", None)
-    for bad in ("XKF1", "XKF1@x", "XUKO@100", "XKF9"):
+    assert RS.parse_record("XUKO@onboard") == ("XUKO", "onboard") and RS.parse_record("XUKF@onboard") == ("XUKF", "onboard")
+    assert RS.physical_name("XUKO", None) == "RUKO" and RS.physical_name("XUKO", "onboard") == "XUKO"
+    for bad in ("XKF1", "XKF1@x", "XUKO@100", "XKF9", "XFGO@onboard", "XKF1@onboard", "XUKO@0"):
         with pytest.raises(SystemExit):
             RS.parse_record(bad)
     with pytest.raises(SystemExit):
@@ -183,11 +185,12 @@ def test_xkf1_core_is_explicit_and_filtered():
             x.C = c
         return x
     rows = [rec("XKF1", 1.0, 1.0, 0), rec("XKF1", 1.0, 2.0, 1), rec("XKF1", 1.0, 3.0, 100), rec("XKF1", 1.0, 4.0, 101),
-            rec("XUKO", 1.0, 5.0), rec("XKF1", 2.0, 10.0, 0), rec("XKF1", 2.0, 30.0, 100)]
-    tr = RS.bin_trajs(None, ["XKF1@100", "XKF1@0", "XUKO"], reader=Reader(rows))
+            rec("RUKO", 1.0, 5.0), rec("XUKO", 1.0, 7.0), rec("XKF1", 2.0, 10.0, 0), rec("XKF1", 2.0, 30.0, 100)]
+    tr = RS.bin_trajs(None, ["XKF1@100", "XKF1@0", "XUKO", "XUKO@onboard"], reader=Reader(rows))
     assert tr["XKF1@100"][:, 1].tolist() == [3.0, 30.0]       # the replayed core 0 only
     assert tr["XKF1@0"][:, 1].tolist() == [1.0, 10.0]         # the onboard core 0 only
-    assert tr["XUKO"][:, 1].tolist() == [5.0]
+    assert tr["XUKO"][:, 1].tolist() == [5.0]                 # the replayed UKF: message RUKO (U10 rule 2)
+    assert tr["XUKO@onboard"][:, 1].tolist() == [7.0]         # the flying port's own XUKO
 
 
 def test_clock_map_check():
@@ -314,14 +317,19 @@ def test_secondary_section_is_strict():
             RS.load_prereg(p)
 
 
-def _df_log(xuko_fmt=True, replay_mismatch=False, dup_xuko=False, undeclared=True):
-    """A tiny dataflash log: XKF1 cores 0 and 100, XUKO (with or without its FMT), and an undeclared record type."""
+def _df_log(xuko_fmt=True, replay_mismatch=False, dup_xuko=False, undeclared=True, name="RUKO", uk_id=151,
+            onboard_id=None, redeclare=False):
+    """A tiny dataflash log: XKF1 cores 0 and 100, a UKF current-time record `name` (RUKO = the replayed one, from the
+    U10 rule-2 Replay on; XUKO = the onboard one or an older Replay's) with or without its FMT, optionally an onboard
+    XUKO as well (onboard_id: its type id, as a fork-flown Replay output carries), and an undeclared record type."""
     import df_reader as D
     kf = ("QBffffffffffff", "TimeUS,C,Roll,Pitch,Yaw,VN,VE,VD,dPD,PN,PE,PD,GX,GY")
     uk = ("QfffffffffBIBBI", ",".join(RS.XUKO_COLUMNS))
     b = D.write_fmt(150, "XKF1", *kf)
     if xuko_fmt:
-        b += D.write_fmt(151, "XUKO", *uk)
+        b += D.write_fmt(uk_id, name, *uk)
+    if onboard_id is not None:
+        b += D.write_fmt(onboard_id, "XUKO", *uk)
     for i in range(20):
         t = 1_000_000 + 100_000 * i
         b += D.write_rec(150, kf[0], t, 0, 0, 0, 10.0, 0, 0, 0, 0, 1.0 * i, 0.5 * i, -1.0, 0, 0)
@@ -329,8 +337,12 @@ def _df_log(xuko_fmt=True, replay_mismatch=False, dup_xuko=False, undeclared=Tru
             b += D.write_rec(229, "Qff", t, 1.0, 2.0)                  # a UKF-like record with NO FMT
         if not (replay_mismatch and i == 7):
             b += D.write_rec(150, kf[0], t, 100, 0, 0, 11.0, 0, 0, 0, 0, 2.0 * i, 0.5 * i, -1.0, 0, 0)
-        b += D.write_rec(151, uk[0], t + (0 if not (dup_xuko and i == 5) else -200_000), 3.0 * i, 0, -1, 0, 0, 0,
+        b += D.write_rec(uk_id, uk[0], t + (0 if not (dup_xuko and i == 5) else -200_000), 3.0 * i, 0, -1, 0, 0, 0,
                          0, 0, 12.0, 1, 0, 0, 0, 0)
+        if onboard_id is not None:                                     # the onboard series, at its own stamps
+            b += D.write_rec(onboard_id, uk[0], t + 20_000, 3.0 * i + 0.5, 0, -1, 0, 0, 0, 0, 0, 13.0, 1, 0, 0, 0, 0)
+        if redeclare and i == 10:
+            b += D.write_fmt(uk_id, "ZZZZ", "Qff", "TimeUS,A,B")
     return b
 
 
@@ -343,20 +355,47 @@ def test_df_reader_survives_undeclared_records_and_bin_trajs_checks():
         assert len(tr["XKF1@100"]) == 20 and tr["XKF1@100"][3, 1] == 6.0 and tr["XKF1@0"][3, 1] == 3.0
         assert tr["XKF1@100"][0, 4] == 11.0 and tr["XUKO"][2, 1] == 6.0 and tr["XUKO"][0, 4] == 12.0
         assert info["undeclared_types"] and info["skipped_bytes"] == 20 * (3 + 16)
-        open(p, "wb").write(_df_log(xuko_fmt=False))                   # a stock-log Replay: XUKO written without FMT
+        open(p, "wb").write(_df_log(xuko_fmt=False))                   # a stock-log Replay: UKF written without FMT
         with pytest.raises(SystemExit) as e:
             RS.bin_trajs(p, ["XUKO"])
-        assert "no FMT for XUKO" in str(e.value) and "--est-csv" in str(e.value)
+        assert "no FMT for RUKO" in str(e.value) and "--est-csv" in str(e.value)
         tr = RS.bin_trajs(p, ["XKF1@100"])                             # ... but EKF3 is still read in full
         assert len(tr["XKF1@100"]) == 20
         open(p, "wb").write(_df_log(replay_mismatch=True))
         with pytest.raises(SystemExit) as e:
             RS.bin_trajs(p, ["XKF1@100"])
         assert "TimeUS" in str(e.value)
-        open(p, "wb").write(_df_log(dup_xuko=True))                    # two interleaved XUKO series
+        open(p, "wb").write(_df_log(dup_xuko=True))                    # two interleaved series under one name
         with pytest.raises(SystemExit) as e:
             RS.bin_trajs(p, ["XUKO"])
         assert "interleaved" in str(e.value)
+
+
+def test_u10_rule2_replayed_and_onboard_ukf_records_are_separate():
+    """U10 rule 2 (2026-10-12): the replayed UKF is RUKO, the onboard XUKO; both readable, never mixed; an XUKO-only log
+    is refused for the replayed record (older Replay or a flight log); an XUKO in Replay's id window is refused as
+    'onboard'; a re-declared type id is refused."""
+    import pytest
+    with tempfile.TemporaryDirectory() as d:
+        p = f"{d}/x.bin"
+        open(p, "wb").write(_df_log(undeclared=False, uk_id=229, onboard_id=248))   # a fork-flown Replay output
+        tr = RS.bin_trajs(p, ["XUKO", "XUKO@onboard", "XKF1@100"])
+        assert len(tr["XUKO"]) == 20 and len(tr["XUKO@onboard"]) == 20
+        assert tr["XUKO"][3, 1] == 9.0 and tr["XUKO@onboard"][3, 1] == 9.5            # each its own series
+        assert tr["XUKO"][0, 4] == 12.0 and tr["XUKO@onboard"][0, 4] == 13.0
+        open(p, "wb").write(_df_log(undeclared=False, name="XUKO", uk_id=248))       # a flight log (onboard only)
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XUKO"])
+        assert "no RUKO" in str(e.value) and "@onboard" in str(e.value)
+        assert len(RS.bin_trajs(p, ["XUKO@onboard"])["XUKO@onboard"]) == 20
+        open(p, "wb").write(_df_log(undeclared=False, name="XUKO", uk_id=229))       # an older (e82c050b) Replay output
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XUKO@onboard"])
+        assert "id window" in str(e.value)
+        open(p, "wb").write(_df_log(undeclared=False, redeclare=True))
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XKF1@100"])
+        assert "re-declared" in str(e.value)
 
 
 def test_xuko_csv_source():

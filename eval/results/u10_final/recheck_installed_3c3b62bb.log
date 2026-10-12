@@ -1,0 +1,101 @@
+3c3b62bbe51d515b6ff0789a19fe1136  /home/makerspace/ardupilot_ukf/build/sitl/tool/Replay
+cl_a_tex_half:     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half ukf_shadow.csv IDENTICAL to installed e82c050b
+RESULT cl_a_tex_half ukf_inputs.csv IDENTICAL to installed e82c050b
+RESULT cl_a_tex_half ukf_derot.csv IDENTICAL to installed e82c050b
+RESULT cl_a_tex_half ukf_geometry.csv IDENTICAL to installed e82c050b
+RESULT cl_a_tex_half ukf_stats.csv IDENTICAL to installed e82c050b
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+dsn_tex_r1:     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 ukf_shadow.csv IDENTICAL to installed e82c050b
+RESULT dsn_tex_r1 ukf_inputs.csv IDENTICAL to installed e82c050b
+RESULT dsn_tex_r1 ukf_derot.csv IDENTICAL to installed e82c050b
+RESULT dsn_tex_r1 ukf_geometry.csv IDENTICAL to installed e82c050b
+RESULT dsn_tex_r1 ukf_stats.csv IDENTICAL to installed e82c050b
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+fwdplainc_tex_r1:     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 ukf_shadow.csv IDENTICAL to installed e82c050b
+RESULT fwdplainc_tex_r1 ukf_inputs.csv IDENTICAL to installed e82c050b
+RESULT fwdplainc_tex_r1 ukf_derot.csv IDENTICAL to installed e82c050b
+RESULT fwdplainc_tex_r1 ukf_geometry.csv IDENTICAL to installed e82c050b
+RESULT fwdplainc_tex_r1 ukf_stats.csv IDENTICAL to installed e82c050b
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+cl_ukf_b_tex_r1_half_v2:     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_shadow.csv IDENTICAL to installed e82c050b
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_inputs.csv IDENTICAL to installed e82c050b
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_derot.csv IDENTICAL to installed e82c050b
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_geometry.csv IDENTICAL to installed e82c050b
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_stats.csv IDENTICAL to installed e82c050b
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+H_s2v2_r1:     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 ukf_shadow.csv IDENTICAL to installed e82c050b
+RESULT H_s2v2_r1 ukf_inputs.csv IDENTICAL to installed e82c050b
+RESULT H_s2v2_r1 ukf_derot.csv IDENTICAL to installed e82c050b
+RESULT H_s2v2_r1 ukf_geometry.csv IDENTICAL to installed e82c050b
+RESULT H_s2v2_r1 ukf_stats.csv IDENTICAL to installed e82c050b
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+DRIVER_DONE
+cl_a_tex_half: PASS {'XUKF': 0, 'XUKO': 0, 'XUKS': 0, 'XUKH': 0, 'XUKT': 0, 'RUKF': 6673, 'RUKO': 6673, 'RUKS': 6673, 'RUKH': 0, 'RUKT': 0} {'FMT name XUK->RUK only': 3, 'FMTU (process-clock stamp)': 3}
+dsn_tex_r1: PASS {'XUKF': 0, 'XUKO': 0, 'XUKS': 0, 'XUKH': 0, 'XUKT': 0, 'RUKF': 8581, 'RUKO': 8581, 'RUKS': 8581, 'RUKH': 0, 'RUKT': 0} {'FMT name XUK->RUK only': 3, 'FMTU (process-clock stamp)': 3}
+fwdplainc_tex_r1: PASS {'XUKF': 0, 'XUKO': 0, 'XUKS': 0, 'XUKH': 0, 'XUKT': 0, 'RUKF': 8529, 'RUKO': 8529, 'RUKS': 8529, 'RUKH': 0, 'RUKT': 0} {'FMT name XUK->RUK only': 3, 'FMTU (process-clock stamp)': 3}
+cl_ukf_b_tex_r1_half_v2: PASS {'XUKF': 8551, 'XUKO': 8551, 'XUKS': 8551, 'XUKH': 2385, 'XUKT': 0, 'RUKF': 8526, 'RUKO': 8526, 'RUKS': 8526, 'RUKH': 2385, 'RUKT': 0} {'UKF': True, 'UKO': True, 'UKS': True, 'UKH': True} {'paired': 8503, 'E1_max_m': 0.01838862591926636, 'E1_rms_m': 0.003221488141061773, 'E3_yaw_max_deg': 0.004457615315914154, 'E5': {'FXa': {'replay': 10154.0, 'flying': 10154.0, 'rel_diff': 0.0}, 'FYa': {'replay': 10144.0, 'flying': 10144.0, 'rel_diff': 0.0}, 'Ra': {'replay': 9724.0, 'flying': 9724.0, 'rel_diff': 0.0}}} {'paired': 8503, 'E1_max_m': 0.01841249036611771, 'E1_rms_m': 0.003221580082714126, 'E3_yaw_max_deg': 0.004877204775823429}
+H_s2v2_r1: PASS {'XUKF': 9606, 'XUKO': 9606, 'XUKS': 9606, 'XUKH': 0, 'XUKT': 9001, 'RUKF': 9606, 'RUKO': 9606, 'RUKS': 9606, 'RUKH': 0, 'RUKT': 9001} {'UKF': True, 'UKO': True, 'UKS': True, 'UKT': True} {'paired': 9606, 'E1_max_m': 0.0005358634481220237, 'E1_rms_m': 2.7556884739480393e-05, 'E3_yaw_max_deg': 0.00014294683933258057, 'E5': {'FXa': {'replay': 11452.0, 'flying': 11452.0, 'rel_diff': 0.0}, 'FYa': {'replay': 11451.0, 'flying': 11451.0, 'rel_diff': 0.0}, 'Ra': {'replay': 10984.0, 'flying': 10984.0, 'rel_diff': 0.0}}} {'paired': 9606, 'E1_max_m': 0.0005540114787327371, 'E1_rms_m': 5.738099630189912e-05, 'E3_yaw_max_deg': 0.0006282112598512413}
+== cl_a_tex_half
+replay_gate PASS 2483 0.0 0.0 0.0 {'undeclared_types': {}, 'skipped_bytes': 0, 'n_resyncs': 0}
+ "EKF3": {
+  "evo": 1.264794
+ },
+ "EKF3_onboard": {
+  "evo": 1.264794
+ },
+ "UKF": {
+  "evo": 1.014846
+ },
+ "UKF_horizon": {
+  "evo": 1.014705
+ }
+}
+{'EKF3': 'XKF1', 'EKF3_onboard': 'XKF1', 'UKF': 'RUKO', 'UKF_horizon': 'RUKF'}
+== cl_ukf_b_tex_r1_half_v2
+replay_gate PASS 3218 0.0 0.0 0.0 {'undeclared_types': {}, 'skipped_bytes': 0, 'n_resyncs': 0}
+ "UKF": {
+  "evo": 0.194286
+ },
+ "UKF_horizon": {
+  "evo": 0.194425
+ },
+ "UKF_onboard": {
+  "evo": 0.194263
+ },
+ "UKF_horizon_onboard": {
+  "evo": 0.194402
+ }
+}
+{'EKF3': 'XKF1', 'EKF3_onboard': 'XKF1', 'UKF': 'RUKO', 'UKF_horizon': 'RUKF', 'UKF_onboard': 'XUKO', 'UKF_horizon_onboard': 'XUKF'}
+== H_s2v2_r1
+replay_gate PASS 3667 0.0 0.0 0.0 {'undeclared_types': {}, 'skipped_bytes': 0, 'n_resyncs': 0}
+ "UKF": {
+  "evo": 0.008307
+ },
+ "UKF_horizon": {
+  "evo": 0.007966
+ },
+ "UKF_onboard": {
+  "evo": 0.008307
+ },
+ "UKF_horizon_onboard": {
+  "evo": 0.007966
+ }
+}
+{'EKF3': 'XKF1', 'EKF3_onboard': 'XKF1', 'UKF': 'RUKO', 'UKF_horizon': 'RUKF', 'UKF_onboard': 'XUKO', 'UKF_horizon_onboard': 'XUKF'}
+RESULT cfi60_A state IDENTICAL
+RESULT cfi60_A pdiag IDENTICAL
+RESULT cfi60_C state IDENTICAL
+RESULT cfi60_C pdiag IDENTICAL
+RESULT cfi10_B state IDENTICAL
+RESULT cfi10_B pdiag IDENTICAL
+RESULT dsn_tex_r2 state IDENTICAL
+RESULT dsn_tex_r2_q state IDENTICAL
+RESULT h_s1_r1 state IDENTICAL
+RESULT h_s1_r1_q state IDENTICAL
+RECHECK_DONE
