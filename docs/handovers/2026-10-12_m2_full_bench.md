@@ -226,3 +226,205 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
   - **Fix:** the probe commands GUIDED by MAVLink before arming (harness only). Probe timing and V3 unchanged.
   - **Repeat once (V3 rule, §1.3).** This is the last M2-R run whatever its outcome.
 
+
+## 2. Results (`wbench4_*`, VERIFICATION data only, never result data)
+
+All under `~/thesis_data/wbench/`; driver logs `run4_*.out`; per-session `analysis/results.txt`
+(`python3 -m realflight.sitl_bench.results <session>`). Every session's `bench.log` PROVENANCE shows the committed HEAD
+of its run and no uncommitted change under `realflight/`. One simulation at a time, each under FLIGHT_LOCK.
+
+| session | content |
+|---|---|
+| `wbench4_ground_20261012_170507` | B1a, B1c (i)–(iv), B0, B1b, B5c, B6a, B1-native, B7b, F6c, B10c, B4a ×5, B4c; then ABORTED (B1) |
+| `wbench4_ground_20261012_171552` | B1c-Lua (resume, B1) |
+| `wbench4_hoverA_20261012_171840` | B2a, B2b, B3a, B3b, B4b side, B4b top, B5a, B5b, observations |
+| `wbench4_hoverB_20261012_173841` | B5b-noflag, B6b ×2, B8a, B9a ×2; then ABORTED (B2) |
+| `wbench4_hoverB_20261012_175117` | B9b, B9c ×2, B9-hang (resume, B2) |
+| `wbench4_hoverC_20261012_175909` | B10a, B10b (attempt 1, NOT COMPLETED, B3), F6a, F6b |
+| `wbench4_hoverC_20261012_180710` | B10b repeat (A10, B3) |
+| `wbench4_f7_20261012_180923` | F7-0, F7-a, F7-b, F7-c, F7-d |
+| `wbench4_m2_20261012_181437`, `…_182305`, `…_182609` | M2-R: the void first run (B4), the repeat (V3 failed, B5), the final repeat |
+
+**Set-up checks.** All 37 origin establishments of wbench4 (initial boots, the Lua reboots and every M1 reboot) were
+verified on the first try (**X2 PASS**). A9: |EKF − true yaw| at every hover ARM ≤ 0.2°. R2: every EKF failsafe falls
+after its test's criterion event, except in B8a and B10b(3), where it IS the criterion; no test is voided.
+
+### 2.1 Per test, as worded
+
+- **B0 PASS** ("confirmed before arming", armed). **B1a PASS.** **B1b PASS** ("watcher not confirming (box=0 bridge=0)").
+- **B1c:** (i) ARMED (predicted; stock FC side); **(ii) PASS** (not armed); (iii) ARMED (predicted); (iv) ARMED
+  (predicted).
+- **B1-native PASS:** refused ("Arm: GCS failsafe on"); after the restart "GCS Failsafe Cleared" (+6.48 s, M2's hold
+  included) and the script armed.
+- **B1c-Lua PASS:** (a) MAVLink and stick both refused "Watcher: never seen"; (b) the script armed; (c) refused ("GCS
+  failsafe on", "heartbeat 6.1s old"); (d) force armed (predicted bypass).
+- **B2a PASS:** LAND +2.22 s W (bound 4.0). First to act: the flight script's WatcherLost LAND (FC in GUIDED, so the
+  H10 guard did not apply); the FC's GCS failsafe followed at +2.41 s.
+- **B2b PASS:** FAILSAFE_GCS and MODE LAND +3.199 s F (bound 3.5).
+- **B3a PASS:** +2.747 s F (bound 3.5); the watcher withdrew on "FC link lost", 0 LAND.
+- **B3b PASS:** LAND +2.17 s W (bound 4.0); after SIGCONT 0 watcher LAND and no FC mode events.
+- **B4a PASS (5 faces):** BREACH on the first outside pose (+0.000 s), one LAND each, ACKed, FC LAND; the arm after the
+  north face refused.
+- **B4b side PASS** (BREACH +0.001 s, FC LAND +0.032 s W, one LAND). **B4b top PASS** (+0.001 s, +0.007 s).
+- **B4c PASS** ("BREACH: tilt 65.0 deg > 60.0", one LAND, ACKed, FC LAND).
+- **B5a PASS:** stale +0.502 s (bound 0.525), LAND +0.561 s W (bound 1.0), withdrawn; the one heartbeat after the stop
+  (+0.25 s) precedes the detection.
+- **B5b PASS:** (1) no event while frozen with tracked = 1; (2) BREACH on the first untracked frame, LAND +0.075 s W.
+- **B5b-noflag PASS:** frozen +0.500 s (bound 0.525), LAND +0.567 s W.
+- **B5c PASS**, as predicted: the confirmation returned 7.53 s after the restore (≥ 2.0 s). M2's 5 s hold dominates,
+  so the test no longer isolates `recover_s`. No command followed.
+- **B6a PASS** (never confirmed; the script refused).
+- **B6b run 1 PASS** (observer identity CONFIRMED, max roll/pitch diff 0.91°). **Run 2 PASS** (identity FAILED, 12.5°;
+  0 heartbeats).
+- **B7a PASS:** n = 66,155 poses (the +150 ms and SIGSTOP windows excluded), median 0.1 ms, p99 0.5 ms.
+- **B7b PASS:** warm-up 0.93 s; 12 commands, all S1; send → MODE LAND median 0.006 s, **p99 0.042 s** (bound 0.3).
+- **B8a PASS:** preconditions met (ORGN before the kill; HORIZ_POS_REL true for the 3 s before). MODE LAND reason
+  EKF_FAILSAFE **+1.920 s F** after the last OF row (bound 3.0). It was the first protective action (the script's
+  WatcherLost at +11.4 s and the GCS failsafe at +13.2 s came later). Max true excursion **1.218 m** (bound 2.0); no
+  BREACH; no reported-position jump.
+- **B9a PASS:** flow_tracker stub: withdrawal +0.959 s (bound 1.5), LAND +1.003 s W (bound 2.5); flow_bridge stub:
+  +0.807 s, +0.847 s.
+- **B9b PASS:** +0.856 s, +1.039 s. **B9c PASS:** tracker SIGSTOP +0.925/+0.960 s; bridge SIGSTOP +0.911/+0.955 s.
+- **B9-hang (observation):** "no progress for 2.00 s" at +1.982 s; LAND +1.994 s.
+- **B10a:** the four RC changes reached the FC in 0.205/0.216/0.218/0.237 s (bound 0.3), with no mode change back:
+  **PASS on the mode criteria.** In ALT_HOLD with no pilot correction the vehicle drifted, and during the pilot's LAND
+  it crossed x = −3.003 m: a watcher BREACH and one LAND (the FC already in LAND, so no mode change). The criterion's
+  "vehicle holds" is therefore **not met as worded** (an ALT_HOLD drift, as in wbench2's B10b; not a watcher matter).
+- **B10b attempt 1: NOT COMPLETED** (B3: the pilot's toggle was never made). (1) and (3) behaved as registered.
+- **B10b repeat (A10, fresh boot) PASS:**
+  - (1) "GCS Failsafe - Continuing Pilot Control", no mode change; the H10 guard (merged `fly_trial.fc_mode` = 2) logged
+    NOT commanding LAND;
+  - (2) the new watcher confirmed; ONE LAND (ACKed, S1); the pilot's switch → ALT_HOLD **+0.219 s** (bound 1.0); nothing
+    re-commanded LAND until the pilot's LAND switch (+49.6 s);
+  - (3) "EKF Failsafe" 1.94 s after the kill, **no mode change**.
+- **B10c PASS** ("Radio Failsafe - Disarming", disarm +1.15 s W).
+- **F6a PASS:** one send; LAND +0.004 s; ALT_HOLD +0.213 s after the switch; no FC mode change in 9.79 s; S1.
+- **F6b PASS, valid:** COMMAND_ACK 176 stripped, no "LAND ACK", 5 heartbeats held; one send; LAND +0.003 s; ALT_HOLD
+  +0.214 s; no mode change in 9.79 s; stop S3.
+- **F6c PASS, valid:** exactly one dropped DO_SET_MODE(LAND); 2 sends 0.312 s apart (window 0.30–0.60); FC LAND
+  −0.001 s after send 2; no third send (S1).
+- **F7-0 PASS:** never confirmed, the reasons yaw only (`vel=1`); MAVLink arm refused "Arm: Watcher: never seen"; the
+  script refused.
+- **F7-a FAIL AS WORDED:** re-confirmed **7.59 s** after the rotate-back (bound 5.0 s).
+  - The yaw agreed after 1.4 s.
+  - But the `rotate_in_place` teleport (set to z 0.2 m; rest 0.195 m) gave EKF3 a vertical-velocity transient: vz
+    0.314 m/s, below 0.2 m/s only ~2.3 s later. The mocap speed stayed 0.000.
+  - M2 (the 3-D norm) refused on it, then held 5 s. The §1.2 prediction considered the mocap side only and missed the
+    EKF vz transient. The script then armed.
+- **F7-b PASS:** withdrawn +0.38 s (bound 1.0); arm refused ("GCS failsafe on", "Watcher: heartbeat 5.6s old");
+  0 LAND, no BREACH, latch 0.
+- **F7-c PASS:** re-confirmed +1.41 s (bound 5.0; no vz transient this time); the script armed after "GCS Failsafe
+  Cleared".
+- **F7-d PASS:** armed, rotated +15° (diff 18°): 0 of ~160 polls unconfirmed, 0 LAND, no BREACH, armed in GUIDED
+  throughout, "INFORMATIONAL" logged. (The script's early exit and the missing re-confirmation at the end recur as in
+  wbench3.)
+- **X1 (no yaw/vel withdrawal while armed): FAILS AS WORDED against `op_events.csv`; holds on the watcher's own FC
+  state.**
+  - 26 "confirmation 0" lines with a yaw/vel reason fall inside the operator link's ARMED span.
+  - 24 of them lie 0.03–0.95 s before the operator link saw the disarm: the watcher's own link saw it first.
+  - The other 2 are B10b(2)'s new watcher before its first FC heartbeat (an unknown arming state counts as disarmed,
+    as §1.2's B10b note registered).
+  - In every session the watcher's `mocap_watch_vel.csv` and `mocap_watch_yaw.csv` have **0** samples with
+    `fc_armed=True` and a failing gate. **0** watcher LANDs or BREACHes came from either check.
+- **X2 PASS** (above).
+
+### 2.2 M2-R (the M2 runaway test): NOT COMPLETED
+
+- **First run (`…181437`): void** (B4: in attempts 1–3 the runaway window ran in flight; M1 was wrongly applied between
+  attempts). The driver recorded it NOT COMPLETED.
+- **Repeat (`…182305`): a runaway was produced (V1 met), but V3 FAILED.**
+  - Attempt 1, natural landing: after the disarm, the operator-link |v| was 0.42 → 0.69 m/s (VN ramping on the ground,
+    the truth still). It dropped below 0.2 m/s 1.9 s after the disarm.
+  - **The watcher refused at once:** "vel EKF velocity |v| >= 0.2 m/s (F8)" and the ALERT (|v| 0.510) at the first
+    sample over the limit; `box=0` throughout (so `watch_ok` and the flight script would refuse); 0 LAND, no BREACH. It
+    re-confirmed ~5 s after |v| fell below 0.2.
+  - The FC-side probe needs ≥ 3.5 s of heartbeat absence. It came at +12.4 s, when |v| was 0.02–0.06: V3 failed. The
+    probe's arm was also refused for a harness reason ("Land mode not armable", B5).
+  - After M1 the origin was re-verified, the watcher confirmed (|v| ≤ 0.001 over the 5 s before) and the flight script
+    armed: criteria (e)–(g) were met.
+- **Final repeat (`…182609`): NOT COMPLETED.**
+  - 3 natural + 2 flow-kill landings. Operator-link |v| maxima 0.10, 0.30, 0.10, 0.25 and 0.29 m/s; none ≥ 0.2 for 1.0 s.
+  - The watcher refused on each short excursion (ALERTs at 0.33, 0.30, 0.25, 0.25 and 0.31 m/s).
+  - Per §1.3 nothing more was run. V1b (the dataflash check) was therefore not evaluated.
+- **So the registered M2-R (a)–(d) were never evaluated on a valid probe.** What stands is the observational evidence
+  (§2.3) and the unit/e2e tests.
+
+### 2.3 Observations (not pass items): M2 refusing REAL ground runaways in this bench
+
+- **After B9a (flow_bridge stub) in `hoverB_…173841`.**
+  - EKF3's |v| ran from 0.93 m/s at the disarm to **42.6 m/s** over 90 s with the vehicle still (mocap speed 0.000;
+    910 of 923 samples ≥ 0.2). The EKF yaw drifted to 9.6° off.
+  - The watcher refused for the whole 90 s (vel AND yaw), with no LAND. This is an F8-type runaway that did NOT
+    re-capture. It caused the B2 abort.
+- **After B4c (the 65° tilt drop, ground session).** EKF3 diverged to **192 m/s** on the ground (vz first, then
+  horizontal) with 24° of yaw error. It was refused throughout (the B1 abort).
+- **Short excursions.** There were 34 M2 ALERTs across all sessions, |v| 0.21–2.56 m/s, at touchdowns and at the
+  carry/rotate teleports (vz spikes from the z 0.2 m set-down). Each held the confirmation for ≥ 5 s afterwards.
+- **Interpretation, stated as such.** M2 also refuses on brief, physically real vz transients after a set-down (the 3-D
+  norm). On hardware a hand set-down is gentler than a SITL teleport, but this is the cost behind F7-a's fail and
+  B5c's longer re-confirmation.
+
+### 2.4 Summary
+
+- **PASS as worded:** B0, B1a, B1b, B1c (ii), B1-native, B1c-Lua, B2a, B2b, B3a, B3b, B4a ×5, B4b side, B4b top, B4c,
+  B5a, B5b, B5b-noflag, B5c, B6a, B6b ×2, B7a, B7b, B8a, B9a ×2, B9b, B9c ×2, B10b (repeat, A10), B10c, F6a, F6b, F6c,
+  F7-0, F7-b, F7-c, F7-d, X2; B10a on its mode criteria.
+- **Recorded as predicted (stock FC side):** B1c (i), (iii), (iv); B1c-Lua (d).
+- **FAIL as worded:**
+  - **F7-a** (7.59 s > 5.0 s: M2 on a teleport vz transient);
+  - **B10a's "vehicle holds"** (an ALT_HOLD drift to the box face);
+  - **X1** against the operator link's timing (it holds on the watcher's own FC state).
+- **NOT COMPLETED:**
+  - **M2-R**, the runaway test: the one valid runaway ended 1.9 s after the disarm, before the FC-side probe, and the
+    final repeat produced none;
+  - B10b attempt 1 (repeated, PASS).
+- **Observation:** B9-hang.
+
+## 3. Code changes
+
+- **Watcher (under test):**
+  - new `realflight/watcher/velcheck.py`;
+  - `core.py`: Config `require_vel` etc.; `on_fc_lpn`; the `vel` reason only while not armed; the `vel=` flag;
+  - `fc_link.py`: the `LOCAL_POSITION_NED` 10 Hz request and the `lpn` event;
+  - `mocap_watch.py`: `--vel-check` (default require), `--vel-max`, `--vel-sustain-s`, `--vel-still-mps`,
+    `mocap_watch_vel.csv`, summary lines.
+  - The reason texts are static (the values are in the CSV and the ALERT), so the STOP_LOG does not log a line per
+    sample.
+  - No watcher change after the pre-registration commit.
+- **Tests:**
+  - `realflight/watcher/tests/test_vel.py` (12 tests);
+  - `fakes.py` (FakeFC `LOCAL_POSITION_NED`);
+  - `conftest.py` (`vel_check="off"` default);
+  - `test_fc_link.py` (the interval set now includes id 32).
+  - **`pytest realflight/` → 118 passed**, before the runs and again at the end.
+- **Bench harness:**
+  - `bench.py`: `--checks all`, M1 (`m1_if_needed`, plus amendment B2), the S4 fallback, the 2 s M3 disarm, the `m2`
+    session, amendments B3–B5;
+  - `stack.py`: the watcher defaults, `--vel-check`, the last-args restart, the operator's `LOCAL_POSITION_NED`;
+  - `flight_script.py`: the H10 decision through `fly_trial.fc_mode` and `H10_PILOT_OR_LAND`;
+  - `results.py`: B8a picks the BIN that holds the kill;
+  - `tools/run_wbench.sh`: the usage line.
+  - `fly_trial.py` was NOT modified.
+- **Docs:**
+  - `docs/rung1_flight_cards.md`: M1 in §1a; M2 as §1a step 7 and a §5 pre-arm line; M3 in §0, §5 step 4 and §6; M4
+    stated; ABORT – LURCH; bench B10; D12.
+  - `docs/real_flights_plan.md`: the §7 bullet; the §7.2 daily list; **B12**.
+
+## 4. Open (for the user / the next stage)
+
+1. **M2-R is not completed.** The SITL runaways here were either short (the gate re-opened 1.9 s after the disarm) or
+   persistent and gross (42.6 and 192 m/s, both refused). A valid FC-side probe of a short runaway would need the
+   probe inside the runaway, but the FC only refuses once FS_GCS_TIMEOUT has passed. A re-registered test is the
+   user's call: for example, probe the file gate at detection and the FC at +3.5 s regardless of |v|, or use a
+   persistent runaway.
+2. **F7-a failed as worded on M2's vz term.** Options for a ruling:
+   - keep the 3-D norm (stricter; costs ~5–8 s after a set-down);
+   - a horizontal-only norm (what F8 was);
+   - a separate vz limit.
+   No logic was changed here.
+3. **The FC-side lag.** The watcher's refusal reaches the FC only after `FS_GCS_TIMEOUT` (3 s) without its heartbeat
+   (the Lua path is similar). M2's 5 s hold after a runaway covers that lag for short runaways. The flight-script gate
+   is immediate. Worth stating in the safety case.
+4. **EKF3 runaways that never re-capture** (§2.3: 42.6 and 192 m/s on the ground) are new relative to the F8
+   investigation, where every case re-captured. Not investigated; M1 is the cure on the cards.
+5. B12 on hardware (props off) and the rung-1 manual M2 step are untested.
