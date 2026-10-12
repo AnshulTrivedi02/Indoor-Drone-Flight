@@ -198,8 +198,10 @@ class FcLink:
     # ---- incoming ----
     def poll(self):
         """Drain received messages. Returns a list of (kind, data) events:
-        ('fc_hb', armed, custom_mode), ('att', roll, pitch, yaw), ('param', name, value), ('ack', cmd, result),
-        ('collision', text), ('fc_text', text)."""
+        ('fc_hb', armed, custom_mode), ('att', roll, pitch, yaw, time_boot_ms), ('param', name, value),
+        ('ack', cmd, result), ('collision', text), ('fc_text', text), ('origin', lat_e7, lon_e7) (GPS_GLOBAL_ORIGIN:
+        the AHRS broadcasts it on every channel when the EKF origin first becomes valid, AP_AHRS.cpp:428-440; the F7
+        yaw-check tie is captured at the first one in an FC boot)."""
         ev = []
         while True:
             m = self.conn.recv_match(blocking=False)
@@ -221,7 +223,9 @@ class FcLink:
                 self._land_on_fc_mode(m.custom_mode, t_rx)
                 ev.append(("fc_hb", bool(m.base_mode & mavlink.MAV_MODE_FLAG_SAFETY_ARMED), m.custom_mode))
             elif t == "ATTITUDE":
-                ev.append(("att", m.roll, m.pitch, m.yaw))
+                ev.append(("att", m.roll, m.pitch, m.yaw, m.time_boot_ms))
+            elif t == "GPS_GLOBAL_ORIGIN":
+                ev.append(("origin", m.latitude, m.longitude))
             elif t == "PARAM_VALUE":
                 name = m.param_id if isinstance(m.param_id, str) else m.param_id.decode()
                 name = name.rstrip("\0")

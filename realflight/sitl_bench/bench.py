@@ -43,7 +43,10 @@ class Bench:
         os.makedirs(self.out)
         self._log = open(os.path.join(self.out, "bench.log"), "a", buffering=1)
         self.tests = open(os.path.join(self.out, "tests.jsonl"), "a", buffering=1)
-        self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a")), log=self.log)
+        f7 = session == "f7"
+        self.stack = Stack(self.out, ground=(session in ("ground", "lua", "b4a", "f7")), log=self.log,
+                           extra_defaults=[f"{REPO}/realflight/sitl_bench/params/wbench_f7.parm"] if f7 else [],
+                           lua_at_boot=f7)
         self.nfs = 0
         self.t_start = time.time()
         # provenance: the code under test (watcher + driver) is pinned by the commit
@@ -862,6 +865,139 @@ class Bench:
             return {}
         self.hover(name, inject, profile=[{"takeoff": 1.5}, {"hold": 10}, {"hold": 60}], post=post)
 
+    # ------------------------------------------------------------------ wbench3_f7 (F7 yaw check)
+    def _wlog(self):
+        try:
+            return open(os.path.join(self.out, "watcher", "STOP_LOG.txt")).read()
+        except OSError:
+            return ""
+
+    def _yaw_last(self):
+        try:
+            rows = open(os.path.join(self.out, "watcher", "mocap_watch_yaw.csv")).read().splitlines()[1:]
+            return rows[-1] if rows else None
+        except OSError:
+            return None
+
+    def setup_f7(self):
+        """wbench3_f7 set-up (pre-registered in docs/handovers/2026-10-12_f7_cards.md §1 before any run). Differs from
+        setup() in ONE respect: the watcher (yaw check on, tie captured at the origin broadcast, --lua-auth) is started
+        BEFORE the origin is sent, as the flight cards require, and the flow_tracker stub is held down until F7-0's
+        rotation so the watcher cannot confirm before it (the yaw check must be the only remaining reason)."""
+        st = self.stack
+        st.start()
+        self.op = Operator(self.out, self.log)
+        self.rc = RC(self.log)
+        if self.op.wait("FC heartbeat on the operator link", lambda: self.op.armed is not None, 60, self.alive) is None:
+            raise Abort("no FC heartbeat on SERIAL2")
+        self.t_fc_up = time.time()
+        st.stop("flow_tracker", signal.SIGKILL, 3)
+        st.start_watcher("--lua-auth", yaw_check="require", yaw_tie="origin")
+        yc = os.path.join(self.out, "watcher", "mocap_watch_yaw.csv")
+        if self.op.wait("watcher receiving FC ATTITUDE", lambda: os.path.exists(yc) and
+                        sum(1 for _ in open(yc)) > 26, 60, self.alive) is None:
+            raise Abort("the watcher saw no FC ATTITUDE before the origin step")
+        self.establish_origin(self.t_start, 0)
+        if self.op.wait("yaw tie", lambda: "tie " in self._wlog() and ("captured" in self._wlog() or
+                                                                       "FAILED" in self._wlog()), 15) is None:
+            raise Abort("the watcher logged no yaw-tie outcome within 15 s of the origin")
+        tie = [l for l in self._wlog().splitlines() if "yaw check: " in l and ("captured" in l or "FAILED" in l)]
+        snap = {}
+        for n in ("AHRS_EKF_TYPE", "EK3_SRC1_YAW", "COMPASS_USE", "SCR_ENABLE", "FS_GCS_ENABLE", "FS_GCS_TIMEOUT",
+                  "MAV_GCS_SYSID", "ARMING_RUDDER", "ARMING_SKIPCHK", "DISARM_DELAY", "EK3_IMU_MASK"):
+            snap[n] = self.op.param_get(n)
+        self.rec("f7_setup", tie_lines=tie, params=snap, gz_yaw_enu_deg=self._gz_yaw())
+        if snap["EK3_SRC1_YAW"] != 0 or snap["SCR_ENABLE"] != 1 or snap["AHRS_EKF_TYPE"] != 3:
+            raise Abort(f"parameters not as loaded: {snap}")
+        if not tie or "FAILED" in tie[0]:
+            raise Abort(f"precondition P1 (tie captured) not met: {tie}")
+
+    def _gz_yaw(self):
+        import math
+        w, x, y, z = self.stack.current_q()
+        return math.degrees(math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)))
+
+    def s_f7(self):
+        """F7-0, F7-a, F7-b, F7-c, F7-d as pre-registered (docs/handovers/2026-10-12_f7_cards.md §1.2)."""
+        st, op = self.stack, self.op
+        yaw0 = self._gz_yaw()
+        rot = 15.0
+        texts_of = lambda t: [x[2] for x in op.texts_since(t - 0.1) if x[1] == 1]  # noqa: E731
+        # ---- F7-0: a disagreement before the watcher has ever confirmed in this boot (only the Lua path can refuse)
+        t_rot = st.rotate_in_place(yaw0 + rot)
+        time.sleep(1.5)
+        st.start_deps(("flow_tracker",))
+        time.sleep(8.0)
+        # B1c-Lua settle: no arm attempt before 45 s after the FC came up ("Gyros inconsistent" confound, 2026-10-11)
+        time.sleep(max(0.0, self.t_fc_up + 45.0 - time.time()))
+        _, fl = st.watch_file()
+        last = [l for l in self._wlog().splitlines() if "confirmation " in l]
+        t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
+        self.rec("F7_0_mav_arm", t_rotate_w=t_rot, ever_confirmed="CONFIRMED: all checks pass" in self._wlog(),
+                 file_flags=fl, last_confirmation_line=last[-1] if last else None, yaw_row=self._yaw_last(),
+                 t_arm_w=t, ack=r, armed=armed, fc_texts=texts)
+        self.disarm_now()
+        res, lines, fsl = self.script_arm("F7_0_script")
+        self.rec("F7_0_script_arm", outcome=res, lines=lines, fs_log=fsl,
+                 ever_confirmed="CONFIRMED: all checks pass" in self._wlog())
+        # ---- F7-a: rotated back -> agreement -> allowed
+        t_back = st.rotate_in_place(yaw0)
+        t_conf = op.wait("watcher confirmed", lambda: st.confirmed(), 30, self.alive)
+        res, lines, fsl = self.script_arm("F7_a")
+        self.rec("F7_a", t_rotate_back_w=t_back, t_confirmed_file_w=t_conf, outcome=res, lines=lines, fs_log=fsl)
+        # ---- F7-b: confirmed, then rotated unseen by the gyros -> withdrawn, no LAND, FC cannot arm
+        op.wait("watcher confirmed", lambda: st.confirmed(), 30, self.alive)
+        time.sleep(3.0)
+        n_land0 = self._wlog().count("LAND command sent")
+        t_rot = st.rotate_in_place(yaw0 + rot)
+        t_wd = op.wait("watcher withdrawn", lambda: not st.confirmed(), 10, self.alive)
+        time.sleep(6.0)
+        t, r, armed, texts = self.mav_arm(force=False, mode=GUIDED)
+        self.rec("F7_b", t_rotate_w=t_rot, t_withdrawn_file_w=t_wd, yaw_row=self._yaw_last(), t_arm_w=t, ack=r,
+                 armed=armed, fc_texts=texts, watcher_land_sends=self._wlog().count("LAND command sent") - n_land0,
+                 breach_in_log="BREACH" in self._wlog(), latched_flag=st.watch_file()[1].get("latch"))
+        self.disarm_now()
+        # ---- F7-c: rotated back -> re-confirmed -> allowed
+        t_back = st.rotate_in_place(yaw0)
+        t_conf = op.wait("watcher re-confirmed", lambda: st.confirmed(), 30, self.alive)
+        t_clr = op.wait("GCS Failsafe Cleared", lambda: any("Cleared" in x for x in texts_of(t_back)), 20)
+        res, lines, fsl = self.script_arm("F7_c")
+        self.rec("F7_c", t_rotate_back_w=t_back, t_confirmed_file_w=t_conf, t_gcs_fs_cleared_seen_w=t_clr,
+                 outcome=res, lines=lines, fs_log=fsl)
+        # ---- F7-d: armed (on the ground, GUIDED) -> a disagreement is INFORMATIONAL only
+        op.wait("watcher confirmed", lambda: st.confirmed(), 30, self.alive)
+        time.sleep(2.0)
+        fs, fsl = self.flight([{"ground": 25}])
+        t_g = self.wait_text(fsl, r"STEP 0 ground start", 120, fs)
+        if t_g is None:
+            self.rec("F7_d", result="NOT_RUN", why="did not arm", fs_log=fsl)
+        else:
+            time.sleep(2.0)
+            n_land0 = self._wlog().count("LAND command sent")
+            mode0 = op.mode
+            t_rot = st.rotate_in_place(yaw0 + rot)
+            unconf = []
+            t_end = time.time() + 8.0
+            while time.time() < t_end:
+                if not st.confirmed():
+                    unconf.append(round(time.time() - t_rot, 3))
+                time.sleep(0.05)
+            self.rec("F7_d", t_rotate_w=t_rot, armed_at_end=op.armed, mode_before=mode0, mode_at_end=op.mode,
+                     file_unconfirmed_at=unconf[:20], n_unconfirmed_polls=len(unconf),
+                     watcher_land_sends=self._wlog().count("LAND command sent") - n_land0,
+                     breach_in_log="BREACH" in self._wlog(), informational_logged="INFORMATIONAL" in self._wlog(),
+                     yaw_row=self._yaw_last(), fc_texts=texts_of(t_rot))
+            td = self.wait_disarmed(90)
+            time.sleep(3.0)
+            self.rec("F7_d_after_disarm", t_disarm_seen_w=td, confirmed_3s_after_disarm=st.confirmed(),
+                     yaw_row=self._yaw_last())
+        self.end_flight(fs)
+        self.safe_down()
+        t_back = st.rotate_in_place(yaw0)
+        t_conf = op.wait("watcher re-confirmed", lambda: st.confirmed(), 30, self.alive)
+        self.rec("F7_end", t_rotate_back_w=t_back, t_confirmed_file_w=t_conf,
+                 land_sends_total=self._wlog().count("LAND command sent"), breach_in_log="BREACH" in self._wlog())
+
     def s_smoke(self):
         self.ensure_watcher()
         self.hover("wbench_smoke", lambda fs: {}, profile=[{"takeoff": 1.5}, {"hold": 15}, {"land": True}],
@@ -879,7 +1015,7 @@ def main():
     b = Bench(s, prefix=a.prefix, start=a.start, only=a.only)
     code = 0
     try:
-        b.setup()
+        getattr(b, f"setup_{s}", b.setup)()
         getattr(b, f"s_{s}")()
     except Exception as e:  # noqa: BLE001
         b.log(f"SESSION ABORTED: {e!r}")

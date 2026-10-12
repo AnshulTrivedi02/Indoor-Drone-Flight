@@ -382,6 +382,21 @@ camera flown only once verified.
 - **Frame anchoring completes before arming (ruling 2026-10-08).** Every estimator that re-anchors to the marker/mocap
   frame must have anchored on the ground before arming (the vehicle placed where the marker is in view), and the FC must
   be receiving valid fixes. No frame change in flight. Gate it in the flight script, as `wait_fix` before arming.
+- **EKF origin on every real flight (ruling 1, 2026-10-12).** Without an origin Copter's EKF failsafe never runs
+  (`ekf_check.cpp:35-39`), and a no-origin EKF3 reports (0, 0) after an aiding loss (the SITL B8a runaway).
+  - The origin is sent (or set by AHRS from `AHRS_ORIGIN_*`) only after EVERY EKF3 core has reported initialised.
+  - It is verified by a `GPS_GLOBAL_ORIGIN` from the FC, and afterwards by an `ORGN` record in the log.
+  - NO ARMING without it. The procedure is `docs/rung1_flight_cards.md` §1a.
+- **F7 pre-arm yaw check (ruling 2, 2026-10-12).** The stock arming checks allowed arming with a 22° EKF yaw error,
+  and the vehicle flew away on take-off (SITL wbench2, amendment A9).
+  - **Rule.** While the FC is disarmed, the mocap watcher withholds its confirmation unless the FC's ATTITUDE yaw
+    agrees with the mocap heading plus the tie within 5°, sustained ≥ 1 s, with mocap valid. With no confirmation it
+    sends no heartbeat, so the FC cannot arm.
+  - **Once armed** the check is informational only: it never lands the vehicle.
+  - **The tie** is captured at the FC's EKF-origin broadcast (no compass), or is a surveyed constant (compass).
+  - **Code and tests:** `realflight/watcher/yawcheck.py`; bench test B11 below; SITL `wbench3_f7`
+    (`docs/handovers/2026-10-12_f7_cards.md`).
+  - **Rung 1** has no watcher, so it is a manual card step there.
 - **Physical:** prop guards, tether or net (question 7), conservative speed (0.25–0.5 m/s), the lowest workable
   height (≥ 1 m for the flow and range geometry), and a battery failsafe.
 - **Staged bring-up:**
@@ -394,8 +409,9 @@ camera flown only once verified.
 ### 7.2 Mocap watcher bench tests: PRE-REGISTERED (confirmed by the user 2026-10-10, for the camera-flow path), 2026-10-10
 
 **Purpose:** prove on the real system, with the props off, that every path of the fail-closed rule (§7) acts. These
-tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10), and in full after
-any change to the watcher, the flight script, the FC firmware or its failsafe parameters.
+tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10, and B11(a) since
+2026-10-12), and in full after any change to the watcher, the flight script, the FC firmware or its failsafe
+parameters.
 
 **What the bench can and cannot show:** the vehicle is on the ground, so these tests verify detection and the command
 paths. On a landed, armed vehicle, ArduCopter's response to a failsafe is an immediate disarm
@@ -626,6 +642,53 @@ flow bridge, tag/heading bridge, Pi estimator node, and the flight script, if it
 - (c) Transmitter off (RC failsafe).
   - *Pass:* the configured `FS_THR_ENABLE` action, here disarm on the ground.
 - *Recorded:* the RC input (`RCIN`), the MODE events with their reasons, and the commands sent.
+
+**B11. F7: estimator yaw disagrees with the mocap → arming refused (the watcher yaw check).** *(Added 2026-10-12 under
+ruling 2 of "RULINGS (user, 2026-10-12, safety first)", METHODOLOGY. Pre-registered here before any hardware run; the
+SITL version is `wbench3_f7`, `docs/handovers/2026-10-12_f7_cards.md`.)*
+- *Setup:* common, disarmed, props off.
+  - The watcher runs with `--yaw-check require` and the session's tie: `--yaw-tie origin` (no compass), or the surveyed
+    `--yaw-tie <deg>` (compass).
+  - The power-on procedure (`docs/rung1_flight_cards.md` §1a) is complete: the origin is verified and the tie
+    recorded. With `origin`, the watcher must be running before the FC boots.
+  - The Lua arming-auth script is installed if G6(ii) is in use (`--lua-auth`).
+- **Why the stimulus is on the mocap side:** a real carry is sensed by the gyros, so F7's mechanism (a rotation the FC
+  never sees) cannot be produced on hardware. A disagreement is created instead by giving the watcher a tie 10° off
+  the recorded one.
+- (a) **Control (also daily).** At rest, |diff| ≤ 5°: the watcher confirms, and the flight script arms as in B0.
+  Disarmed again, hand-yaw the vehicle +90°, HOLD IT STILL there for ≥ 5 s, then turn it back.
+  - *Pass:* |diff| ≤ 5° and the watcher confirmed at rest before the turn, **while held at +90° (for ≥ 2 s of the
+    hold)**, and after the turn back. Any withdrawal while the vehicle moves is recorded (the 0.3 s FC-latency allowance
+    should absorb a hand-speed turn); it must clear within 5.0 s of the vehicle coming to rest.
+  - **Why the hold at +90°:** this is the first end-to-end test of the comparison's SENSE and axes under a rotation the
+    FC senses. Every SITL stimulus (`wbench3_f7`) was a rotation the gyros never saw. A wrong heading sense, or a wrong
+    up-axis or body offset (`frames.py` calls these hardware-dependent), would show as |diff| ≈ 180° at +90° and ≈ 0°
+    again after the return. A pass on "before and after" alone would therefore miss it.
+- (b) **Disagreement → refused.** Restart the watcher with `--yaw-tie <recorded tie + 10>`. (A fixed tie is used here
+  even in the no-compass case: an `origin` watcher restarted within a boot never re-ties.)
+  - *Pass:*
+    - it never confirms, and its reason is "yaw … disagree (diff ≈ 10 deg > 5.0)";
+    - after ≥ 5 s, a non-force MAVLink arm from the GCS is REFUSED. The FC refuses with "GCS failsafe on" if the
+      watcher was seen earlier in this boot, otherwise with the Lua "Watcher: never seen" / "heartbeat … old";
+    - the flight script logs "REFUSING TO ARM: watcher not confirming";
+    - the watcher sends NO LAND and logs no BREACH.
+  - Then restart it with `--yaw-tie <recorded tie>`.
+  - *Pass:* it confirms within **5.0 s** of seeing the FC attitude, and the flight script arms (after the FC's "GCS
+    Failsafe Cleared").
+- (c) **Mocap invalid → refused.** Disarmed and confirmed: occlude the markers until the body is reported untracked,
+  then restore them.
+  - *Pass:* the confirmation is withdrawn, with "yaw mocap pose not valid" among the reasons, and it returns only after
+    ≥ 2 s of fresh poses and ≥ 1 s of yaw agreement.
+- (d) **Origin tie path** (no-compass sessions only).
+  - Start an `origin` watcher AFTER the FC has booted and set its origin. *Pass:* it never confirms ("no tie yet").
+  - Reboot the FC with the watcher running. *Pass:* it logs "tie … captured at the EKF-origin broadcast", and the tie
+    agrees within 5° with the GS's §1a step-5 value. It confirms.
+- **Armed (informational only):** the no-LAND property under a REAL disagreement is not tested on hardware. A
+  disagreement cannot be created while armed without a fault injection. It is covered by the unit tests and by SITL
+  `wbench3_f7` F7-d. On the bench, B0/B2 confirm only that an armed, agreeing vehicle keeps its confirmation.
+- *Length:* ground only, ~5 min. Each response is expected within ~1.5 s, and a restart and its re-tie within ~10 s.
+- *Recorded:* the watcher's `STOP_LOG.txt` and `mocap_watch_yaw.csv` (the FC yaw, the mocap heading, the tie and the
+  difference at 25 Hz); the tie on the sheet; the FC STATUSTEXT and ARM events; the flight-script log.
 
 **Pass rule for stage 0:** every test passes as worded, or a deviation is recorded and ruled on before stage 1. B1(c)
 and G6 may be closed by the procedure rule plus `ARMING_RUDDER` 0 only with an explicit ruling.

@@ -23,13 +23,14 @@ class Rig:
         self.fc = self.feeder = self.w = None
 
     def start(self, fc_kwargs=None, extra=(), deps=(), body_name="quad", identity="off", recover_s=0.5,
-              feeder_body="quad"):
+              feeder_body="quad", yaw_check="off"):
         self.fc = FakeFC(**(fc_kwargs or {})); self.fc.start()
         self.out = str(self.tmp / "out")
         cmd = [sys.executable, "-m", "realflight.watcher.mocap_watch", self.out,
                "--fc", f"udpout:127.0.0.1:{self.fc.port}", "--sysid", "211",
                "--mocap-host", "127.0.0.1", "--mocap-port", "0", "--liveness-host", "127.0.0.1",
                "--box=-2,2,-2,2,0,2.5", "--body-name", body_name, "--identity", identity,
+               "--yaw-check", yaw_check,
                "--recover-s", str(recover_s), "--land-retry-s", "0.3"]
         for d in deps:
             cmd += ["--dep", d]
