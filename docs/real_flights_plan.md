@@ -656,9 +656,14 @@ SITL version is `wbench3_f7`, `docs/handovers/2026-10-12_f7_cards.md`.)*
   never sees) cannot be produced on hardware. A disagreement is created instead by giving the watcher a tie 10° off
   the recorded one.
 - (a) **Control (also daily).** At rest, |diff| ≤ 5°: the watcher confirms, and the flight script arms as in B0.
-  Disarmed again, hand-yaw the vehicle 90° and back.
-  - *Pass:* confirmed at rest before and after the turn. Any withdrawal during the turn is recorded (the 0.3 s
-    FC-latency allowance should absorb a hand-speed turn); it must clear within 5.0 s of the vehicle coming to rest.
+  Disarmed again, hand-yaw the vehicle +90°, HOLD IT STILL there for ≥ 5 s, then turn it back.
+  - *Pass:* |diff| ≤ 5° and the watcher confirmed at rest before the turn, **while held at +90° (for ≥ 2 s of the
+    hold)**, and after the turn back. Any withdrawal while the vehicle moves is recorded (the 0.3 s FC-latency allowance
+    should absorb a hand-speed turn); it must clear within 5.0 s of the vehicle coming to rest.
+  - **Why the hold at +90°:** this is the first end-to-end test of the comparison's SENSE and axes under a rotation the
+    FC senses. Every SITL stimulus (`wbench3_f7`) was a rotation the gyros never saw. A wrong heading sense, or a wrong
+    up-axis or body offset (`frames.py` calls these hardware-dependent), would show as |diff| ≈ 180° at +90° and ≈ 0°
+    again after the return. A pass on "before and after" alone would therefore miss it.
 - (b) **Disagreement → refused.** Restart the watcher with `--yaw-tie <recorded tie + 10>`. (A fixed tie is used here
   even in the no-compass case: an `origin` watcher restarted within a boot never re-ties.)
   - *Pass:*
