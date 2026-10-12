@@ -14,9 +14,12 @@ same log (the DAL replay records and the FC's logged sensor records), so it need
   A4  IMU frame rate (MEAN frame period: SITL frames alternate 2/3 ms) within +-2 % of SCHED_LOOP_RATE
   A5  IMU against the FC's own logged IMU record (same instance; INS-filtered, ~25 Hz): the converter's raw rates passed
       through the INS 2-pole low-pass filters (INS_GYRO_FILTER / INS_ACCEL_FILTER) and interpolated at the IMU record
-      stamps, over the whole log (the sync wiggles included). Best common lag within +-10 ms; per axis RMS difference
+      stamps, over the DISARMED spans only (log start to the first arming, the last disarming to the log end: the sync
+      wiggles, the best excitation; in flight, prop vibration point-sampled at 25 Hz would leave tenths of m/s^2 that
+      the replica does not model, a false rejection). Best common lag within +-10 ms; per axis RMS difference
       <= 0.05 rad/s (gyro) and <= 0.3 m/s^2 (accel); correlation >= 0.95 on every axis whose IMU-record std exceeds
-      0.1 rad/s / 0.5 m/s^2. Tests the FRD -> FLU frame, the units, the instance, the delta/dt scaling and the stamps
+      0.1 rad/s / 0.5 m/s^2. If no gyro axis exceeds 0.1 rad/s there (no wiggle), A5 is NOT TESTED and the converter is
+      NOT accepted on that log. Tests the FRD -> FLU frame, the units, the instance, the delta/dt scaling and the stamps
       (a sign or axis error gives RMS ~ the signal, a unit error ~1000x; the bounds leave room for the notch filters and
       the record's logging time, which the replica does not model).
   A6  Rest: over [arming - 3 s, arming - 0.5 s], if the vehicle is still (gyro std < 0.05 rad/s): |mean specific force|
@@ -58,15 +61,24 @@ def lpf2p(x, fs, fc):
     return np.column_stack([lfilter(bb, aa, x[:, k], zi=zi * x[0, k])[0] for k in range(x.shape[1])])
 
 
-def imu_vs_onboard(conv_t, conv_g, conv_a, imu, fs, f_gyro, f_acc, band=BAND):
+def imu_vs_onboard(conv_t, conv_g, conv_a, imu, fs, f_gyro, f_acc, band=BAND, spans=None):
     """A5 from arrays: conv_* (FLU, the RAW RISI rates at the frame stamps) through the INS low-pass filters
     (INS_GYRO_FILTER / INS_ACCEL_FILTER, at the frame rate fs), interpolated at the logged IMU record stamps (FRD ->
-    FLU), sample by sample over the whole overlap (the disarmed sync wiggles included: the best excitation). The best
+    FLU), sample by sample over the overlap, restricted to `spans` [(t0, t1), ...] (the DISARMED spans). The best
     common lag (-20...+20 ms, 0.5 ms steps; minimum total gyro RMS) must lie within +-lag_max_ms; at that lag, per axis
     RMS difference <= the bound, and correlation >= corr_min on every axis whose IMU-record std exceeds corr_std."""
     ti, gi, ai = imu[0], imu[1] * FRD2FLU, imu[2] * FRD2FLU
     m = (ti >= conv_t[0] + 0.5) & (ti <= conv_t[-1] - 0.5)
+    if spans is not None:
+        m &= np.any([(ti >= a) & (ti <= b) for a, b in spans], axis=0) if spans else np.zeros(len(ti), bool)
     ti, gi, ai = ti[m], gi[m], ai[m]
+    if len(ti) < 100:
+        return {"error": f"only {len(ti)} IMU records in the disarmed spans {spans}", "pass": False}
+    if not np.any(np.std(gi, axis=0) > band["gyro_corr_std"]):
+        # no rotation to test signs, axes or the lag against: NOT TESTED, which does not accept (a sync wiggle or a
+        # bench rotation is required in the disarmed spans)
+        return {"not_tested": f"no gyro axis with record std > {band['gyro_corr_std']} rad/s in the disarmed spans "
+                              "(a sync wiggle is required)", "gyro_std_xyz": np.std(gi, axis=0).tolist(), "pass": False}
     gf, af = lpf2p(conv_g, fs, f_gyro), lpf2p(conv_a, fs, f_acc)
     at = lambda x, L: np.c_[[np.interp(ti - L, conv_t, x[:, k]) for k in range(3)]].T
     lags = np.arange(-0.020, 0.02001, 0.0005)
@@ -106,12 +118,23 @@ def evaluate(meta, npz, recs, timing=None, band=BAND):
     inst = meta["imu_instance"]
     I = [r for r in recs["IMU"] if r["I"] == inst]
     arm = [r["TimeUS"] / 1e6 for r in recs["ARM"] if r["ArmState"] == 1]
+    dis = [r["TimeUS"] / 1e6 for r in recs["ARM"] if r["ArmState"] == 0]
+    t_lo, t_hi = float(npz["imu_t"][0]), float(npz["imu_t"][-1])
+    spans = [(t_lo, arm[0])] if arm else [(t_lo, t_hi)]                 # disarmed: before the first arming ...
+    if arm and dis and dis[-1] > arm[-1]:
+        spans.append((dis[-1], t_hi))                                    # ... and after the last disarming
     imu = (np.array([r["TimeUS"] / 1e6 for r in I]), np.array([[r["GyrX"], r["GyrY"], r["GyrZ"]] for r in I]),
            np.array([[r["AccX"], r["AccY"], r["AccZ"]] for r in I]))
     fs = 1e3 / c["imu_frame_period_ms_mean"] if c.get("imu_frame_period_ms_mean") else None
     a5 = (imu_vs_onboard(npz["imu_t"], npz["imu_gyro"], npz["imu_acc"], imu, fs, P.get("INS_GYRO_FILTER"),
-                         P.get("INS_ACCEL_FILTER"), band) if len(I) > 100 and fs else None)
-    T["A5_imu_vs_onboard_IMU"] = {"instance": inst, **(a5 or {"error": "no IMU records or no frame rate"}),
+                         P.get("INS_ACCEL_FILTER"), band, spans) if len(I) > 100 and fs else None)
+    if a5 is not None and "not_tested" in a5:          # DIAGNOSTIC only (not counted): the replica on the whole log
+        d = imu_vs_onboard(npz["imu_t"], npz["imu_gyro"], npz["imu_acc"], imu, fs, P.get("INS_GYRO_FILTER"),
+                           P.get("INS_ACCEL_FILTER"), {**band, "gyro_corr_std": 0.0, "acc_corr_std": 1e9}, None)
+        a5["diagnostic_whole_log_not_counted"] = {k: d.get(k) for k in ("best_lag_ms", "n_samples")} | {
+            "gyro_rms_diff_xyz": d.get("gyro", {}).get("rms_diff_xyz"), "acc_rms_diff_xyz": d.get("acc", {}).get("rms_diff_xyz")}
+    T["A5_imu_vs_onboard_IMU"] = {"instance": inst, "disarmed_spans_fc_s": spans,
+                                  **(a5 or {"error": "no IMU records or no frame rate"}),
                                   "pass": bool(a5 and a5["pass"])}
     if arm:
         w = (npz["imu_t"] >= arm[0] - 3.0) & (npz["imu_t"] <= arm[0] - 0.5)

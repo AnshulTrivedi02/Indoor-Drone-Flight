@@ -92,6 +92,20 @@
    "info_anchor_yaw_deg_enu": 0.08399999999756307
   }
  },
+ "H3": {
+  "dsn_tex_r1": {
+   "ekf3_xkf1_ned_deg_per_min": 7.964442859287455,
+   "inside_6p6_11p1": true
+  },
+  "dsn_tex_r2": {
+   "ekf3_xkf1_ned_deg_per_min": 7.593004992872404,
+   "inside_6p6_11p1": true
+  },
+  "dsn_tex_r3": {
+   "ekf3_xkf1_ned_deg_per_min": 8.104944411795788,
+   "inside_6p6_11p1": true
+  }
+ },
  "all_pass": true,
  "tolerances": {
   "heading_deg_per_min": 1e-06,

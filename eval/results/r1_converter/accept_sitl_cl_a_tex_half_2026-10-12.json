@@ -1,5 +1,5 @@
 {
- "accepted": true,
+ "accepted": false,
  "tests": {
   "A1_log_replay": {
    "value": 1.0,
@@ -23,45 +23,33 @@
   },
   "A5_imu_vs_onboard_IMU": {
    "instance": 0,
-   "best_lag_ms": -0.9999999999999836,
-   "lag_bound_ms": 10.0,
-   "n_samples": 6685,
-   "filters_hz": {
-    "gyro": 20.0,
-    "acc": 20.0
-   },
-   "frame_rate_hz": 399.99870341984564,
-   "gyro": {
-    "rms_diff_xyz": [
+   "disarmed_spans_fc_s": [
+    [
+     3.9909999999999997,
+     24.149423
+    ]
+   ],
+   "not_tested": "no gyro axis with record std > 0.1 rad/s in the disarmed spans (a sync wiggle is required)",
+   "gyro_std_xyz": [
+    9.095094876180273e-05,
+    9.683816028566045e-05,
+    9.15298253686155e-05
+   ],
+   "pass": false,
+   "diagnostic_whole_log_not_counted": {
+    "best_lag_ms": -0.9999999999999836,
+    "n_samples": 6685,
+    "gyro_rms_diff_xyz": [
      0.00032960705358144976,
      0.00020865363515811536,
      0.00037536564770151163
     ],
-    "bound": 0.05,
-    "corr_xyz": [
-     null,
-     null,
-     null
-    ],
-    "corr_tested_if_std_gt": 0.1,
-    "pass": true
-   },
-   "acc": {
-    "rms_diff_xyz": [
+    "acc_rms_diff_xyz": [
      0.02759023754455796,
      0.009873483190833358,
      0.005629620158780073
-    ],
-    "bound": 0.3,
-    "corr_xyz": [
-     null,
-     null,
-     null
-    ],
-    "corr_tested_if_std_gt": 0.5,
-    "pass": true
-   },
-   "pass": true
+    ]
+   }
   },
   "A6_rest": {
    "tested": true,

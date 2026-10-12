@@ -56,6 +56,8 @@
     stored `score.json`.
   - **X1:** cross-track with `XKF1` VE/VN given reproduces the stored `heading_share_restated.json` `xtrack_err_m` to
     ≤ 4e-5 relative.
+  - **H3 (information):** EKF3 `XKF1@0` against SIM on the pinned window: +7.96 / +7.59 / +8.10 deg/min, inside
+    +6.6…+11.1.
   - **X2:** the REGISTERED position rule equals the corridor's position-growth form (`ukf_shadow_replay_check.py`
     cross_E) to ≤ 7e-5 relative. The values for EKF3 on `dsn_tex_r1..r3` are 7.06 / 6.56 / 7.24 m/min.
   - **Why X1 and X2 differ by ~9 %:** EKF3's logged VE is not integrally consistent with its PE (∫VE − ΔPE ≈ 3.65 m
@@ -116,6 +118,11 @@
     - `XKF1@1xx` whose TimeUS sequence differs from `XKF1@(C−100)`'s;
     - a record with no FMT (XUKO here), with the reason;
     - non-increasing XUKO/XUKF stamps (the fork-flown case).
+- **The §5 Replay-fidelity gate tool had the same problem.** `Tools/Replay/check_replay.py` uses pymavlink (checked:
+  `mavutil.mavlink_connection`), so on the fork's output it would exit or compare ~15 samples.
+  - New: `eval/replay_gate.py`, the same criterion computed via df_reader. SITL `be7c4d18` on `cl_a_tex_half`: 0 / 0 /
+    0, PASS (`eval/results/r1_scorer/replay_gate_sitl_cl_a_tex_half_be7c4d18_2026-10-12.json`).
+  - A TimeUS mismatch between `XKF1@100` and `@0` counts as §3.3 item 2 (prereg §8).
 - **What the scorer must use instead (prereg §4.1; user ruling needed):** either one of these, per port spec §S2:
   - **(a)** the port emits the FMTs in Replay. Preferred: XUKO is then read from the log, as registered.
   - **(b)** `ukf_output.csv`, with EXACTLY XUKO's columns and current-time values, read by
@@ -132,16 +139,22 @@
   - A2 DSF = 0;
   - A3 RISI flags 0, DVDT≠DADT ≤ 0.1 %, DVDT vs frame ≥ 99 %;
   - A4 rate ± 2 % of `SCHED_LOOP_RATE`;
-  - A5 the converter IMU through the INS 2-pole filters against the FC `IMU` record: lag ± 10 ms, RMS ≤ 0.05 rad/s and
-    ≤ 0.3 m/s², correlation ≥ 0.95 on excited axes;
+  - A5 the converter IMU through the INS 2-pole filters against the FC `IMU` record, on the DISARMED spans only (the
+    sync wiggles; in flight, prop vibration would cause false rejections): lag ± 10 ms, RMS ≤ 0.05 rad/s and ≤ 0.3 m/s²,
+    correlation ≥ 0.95 on excited axes. With no gyro axis above 0.1 rad/s there, A5 is NOT TESTED, so NOT accepted;
   - A6 rest specific force 9.80665 ± 0.15 (or NOT TESTED);
   - A7 OF == ROFH, exact;
   - A8 geometry PARM == ROFH/RRNI;
   - A9 range vs RFND: median ≤ 2 cm, p95 ≤ 5 cm;
   - A10 flow sign and correlation ≥ 0.5 from `sensor_timing_from_log` on a wiggle (required).
 - **Accepted** = all pass, with A6 allowed to be NOT TESTED.
-- **SITL `cl_a_tex_half`: ACCEPTED.** A5 residual 0.2–0.4 mrad/s, lag −1 ms; A9 exact
-  (`eval/results/r1_converter/accept_sitl_cl_a_tex_half_2026-10-12.json`).
+  - A2 covers the whole log: a log with a drop cannot accept, and another verification log is used.
+- **SITL `cl_a_tex_half`** (`eval/results/r1_converter/accept_sitl_cl_a_tex_half_2026-10-12.json`):
+  - A1–A4 and A6–A10 pass;
+  - A5 is NOT TESTED, by design: SITL has no disarmed wiggle;
+  - the replica on the whole log, as a diagnostic: RMS 0.2–0.4 mrad/s, lag −1 ms;
+  - A9 exact.
+  - So the first real acceptance log must contain a wiggle (B rotations, H or V).
 - **Synthetic tests:** an axis flip, a ROFH mismatch, no flow-sign evidence, a wrong loop rate and a 10 cm range error
   are all rejected.
 - **bin2fgo gained two check keys** (`imu_dvdt_ne_dadt_gt_0p5ms`, `imu_frame_period_ms_mean`); the npz is unchanged.
@@ -222,7 +235,9 @@
   - `d692127` (scorer, reader, secondary metrics, final JSON);
   - `b7a7003` (converter delays and acceptance band);
   - `62e9127` (25 Hz IMU path);
-  - the final commit (prereg doc, port spec, XUKO check, parameter names, this handover).
+  - `306cd20` (prereg doc, port spec, XUKO check, parameter names, this handover);
+  - the last commit, after review: `eval/replay_gate.py` (the §5 gate via df_reader), A5 restricted to the disarmed
+    spans with an excitation requirement, the H3 information check, and the doc updates.
 - **Tests:** `real_score_test` 15, `mocap_align_test` 6, `bin2fgo_test` 3; all pass (`~/venv-ardupilot`).
 - No locks held. The scratch outputs are in the session scratchpad `s12/`, not in the repo.
 

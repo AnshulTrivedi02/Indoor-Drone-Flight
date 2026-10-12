@@ -89,6 +89,15 @@ def main():
                          "info_int_VE_minus_dPE_m": rv["cross_track_m"] - rp["cross_track_m"],
                          "info_takeoff_anchor_at_window_start_m_per_min": ra.get("cross_track_m_per_min"),
                          "info_anchor_yaw_deg_enu": ra.get("anchor_yaw_deg_enu")}
+    # H3 (information; no stored per-bag value with a stated window exists): EKF3's heading drift from XKF1@0 Yaw (the
+    # bin path, read with df_reader) against SIM Yaw on the pinned window: inside METHODOLOGY's +6.6...+11.1 deg/min?
+    out["H3"] = {}
+    for tr in ("dsn_tex_r1", "dsn_tex_r2", "dsn_tex_r3"):
+        x, g, gy, v = sim_enu(f"{TD}/trials/{tr}/ardupilot.bin")
+        t0, t1 = wins[tr]["window_s"]
+        r = RS.heading_drift(x[:, 0], x[:, 4], g[:, 0], gy, t0, t1)
+        h = r["heading_drift_deg_per_min_ned"]
+        out["H3"][tr] = {"ekf3_xkf1_ned_deg_per_min": h, "inside_6p6_11p1": bool(6.6 <= h <= 11.1)}
     out["all_pass"] = bool(ok)
     out["tolerances"] = {"heading_deg_per_min": TOL_H, "X1_relative": TOL_X1, "X2_relative": TOL_X2}
     json.dump(out, open(f"{HERE}/regression_secondary_2026-10-12.json", "w"), indent=1)

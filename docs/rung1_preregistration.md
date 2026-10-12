@@ -241,6 +241,8 @@ and per flight next to §4.1–4.3, with **no decision rule** (§7 is unchanged)
   - reproduces the stored corridor values to rounding (≤ 2e-15 deg/min): `d15_drift.json` UKF and FGO on
     `dsn_tex_r1..r3` (TUM path, sign-flipped from ENU);
   - and `d15_port/dsn_tex_r8` `cruise_yaw_drift_dpm_NED` 9.294 (the NED-yaw path).
+  - As information: EKF3 `XKF1@0` against SIM on the pinned window gives +7.96 / +7.59 / +8.10 deg/min on
+    `dsn_tex_r1..r3`, inside METHODOLOGY's +6.6…+11.1.
 
 **Cross-track drift, m/min** (`cross_track`). This is the corridor's cross-track generalised to a closed path:
 - **In the corridor**, cross-track was the lateral (East, across the corridor) error growth over the pinned cruise
@@ -306,6 +308,15 @@ Before scoring, Replay EKF3 is compared with the onboard EKF3 of the same flight
   plan's proposal; **[TBD-V]: it is confirmed or widened ONCE, on the verification logs (H and V), before any result
   flight is scored, and the reason is recorded.** After that it is fixed.
 
+**Implementation note (2026-10-12; the criterion is unchanged, only the tool):** `Tools/Replay/check_replay.py` reads
+through pymavlink, which cannot read the FORK's Replay output of a stock-flown log (§4.1). It exits, or compares about
+15 samples per core. The gate is computed with `eval/replay_gate.py`, which uses `eval/df_reader.py`: the same `XKF1`
+core 0 against core 100, over the armed period, with the same bounds.
+- On SITL, the installed `be7c4d18` Replay of `cl_a_tex_half` gives 0 / 0 / 0 (PASS),
+  `eval/results/r1_scorer/replay_gate_sitl_cl_a_tex_half_be7c4d18_2026-10-12.json`.
+- `check_replay.py` stays usable on a STOCK Replay's output.
+- The port fix S2a (FMT records emitted) would make the fork's output readable by pymavlink again.
+
 Pre-conditions (all from verification or SITL, before scoring):
 - the R2 UKF port passes its regression (byte-identical on existing SITL `LOG_REPLAY` logs; handover
   `docs/handovers/2026-10-10_r1_port_params_cards.md`);
@@ -324,7 +335,12 @@ inputs and the FC's own sensor records in the same log, so it needs no bag and n
 - `eval/bin2fgo_accept.py --conv <out.npz> --bin <flight.BIN> --timing-json <sensor_timing.json>`;
 - tests in `eval/bin2fgo_test.py`, which inject an axis-sign fault, a ROFH mismatch, a missing flow-sign test, a wrong
   loop rate and a 10 cm range error, and each is caught;
-- SITL `cl_a_tex_half`: ACCEPTED (`eval/results/r1_converter/accept_sitl_cl_a_tex_half_2026-10-12.json`).
+- SITL `cl_a_tex_half` (`eval/results/r1_converter/accept_sitl_cl_a_tex_half_2026-10-12.json`):
+  - A1–A4 and A6–A10 pass;
+  - A5 is NOT TESTED, as designed: a SITL log has no disarmed wiggle;
+  - the replica on the whole log, reported as a diagnostic and not counted: RMS 0.2–0.4 mrad/s (gyro), 0.006–0.028 m/s²
+    (accel), lag −1 ms.
+  - Hence the first real acceptance log must contain a sync wiggle, i.e. B with rotations, H, or V.
 
 | test | what | bound |
 |---|---|---|
@@ -332,7 +348,7 @@ inputs and the FC's own sensor records in the same log, so it needs no bag and n
 | A2 | `DSF` dropped blocks, whole log | = 0 |
 | A3 | `RISI` samples dropped for flags; \|DVDT − DADT\| > 0.5 ms; DVDT within 0.5 ms of the frame spacing | 0; ≤ 0.1 % of samples; ≥ 99 % of samples |
 | A4 | IMU frame rate (mean frame period) against `SCHED_LOOP_RATE` | within ± 2 % |
-| A5 | the converter's raw IMU through the INS 2-pole filters (`INS_GYRO_FILTER`/`INS_ACCEL_FILTER`) against the FC's logged `IMU` record (same instance), sample by sample over the whole log (sync wiggles included) | best common lag within ± 10 ms; per-axis RMS ≤ 0.05 rad/s and ≤ 0.3 m/s²; correlation ≥ 0.95 on every axis whose record std > 0.1 rad/s / 0.5 m/s² |
+| A5 | the converter's raw IMU through the INS 2-pole filters (`INS_GYRO_FILTER`/`INS_ACCEL_FILTER`) against the FC's logged `IMU` record (same instance), sample by sample over the DISARMED spans only (log start → first arming; last disarming → log end: the sync wiggles). In flight, prop vibration point-sampled at 25 Hz would leave residuals the replica does not model. | best common lag within ± 10 ms; per-axis RMS ≤ 0.05 rad/s and ≤ 0.3 m/s²; correlation ≥ 0.95 on every axis whose record std > 0.1 rad/s / 0.5 m/s². If no gyro axis exceeds 0.1 rad/s there (no wiggle): NOT TESTED, so NOT accepted |
 | A6 | rest, [arming − 3 s, arming − 0.5 s], if still (gyro std < 0.05 rad/s) | \|specific force\| = 9.80665 ± 0.15 m/s²; \|gyro mean\| < 0.05 rad/s (else NOT TESTED, not a failure) |
 | A7 | flow = EKF3's flow input: `OF` vs `ROFH` (counts; flowX/Y, bodyX/Y float32-identical; Qual) | exact |
 | A8 | geometry: `FLOW_POS_*` vs `ROFH.posOffset`; `RNGFNDn_POS_*` vs `RRNI.pos_offset` | to 1e-6 |
@@ -345,6 +361,8 @@ inputs and the FC's own sensor records in the same log, so it needs no bag and n
   - the fraction with Qual > 0;
   - the initial-height source, and |init range − `RNGFNDn_GNDCLR`|.
 - **ACCEPTED** = A1–A5 and A7–A10 pass, and A6 passes or is NOT TESTED.
+- **A2 covers the whole log.** A verification log with a dropped block anywhere cannot accept the converter; the band
+  is then run on another verification log. That is not a converter failure, and it is recorded.
 - **Why these bounds:** the band is meant to catch CONVERSION faults.
   - A sign or axis error gives an RMS of the order of the signal (2–3 rad/s in a wiggle); a units error gives ~1000×; a
     stamp error gives a lag.
@@ -472,11 +490,13 @@ Replay-fidelity gate per flight, and the secondary metrics.
    - A log without `RISI` cannot be replayed or converted, so it fails §3.3 item 2 for the EKF3, UKF and FGO rows.
      Only `EKF3_onboard` (`XKF1@0`) is then scorable, as a descriptive row.
    - The scorer records which gyro fitted the map.
-3. **EKF3:** Replay (the fork's Replay binary; also the stock Replay if 4.7.0 flew) → the §5 gate → EKF3 read from the
+3. **EKF3:** Replay (the fork's Replay binary; also the stock Replay if 4.7.0 flew) → the §5 gate (`eval/replay_gate.py`) → EKF3 read from the
    Replay output log as `XKF1@100`.
    - The log is read with `eval/df_reader.py`, NOT pymavlink: the fork's Replay output carries undeclared UKF records,
      §4.1.
-   - The scorer refuses a log whose `XKF1@100` TimeUS sequence differs from `XKF1@0`'s.
+   - The scorer (and `eval/replay_gate.py`) refuses a log whose `XKF1@100` TimeUS sequence differs from `XKF1@0`'s.
+     Such a mismatch counts as §3.3 item 2: the log is incomplete for replay. It is decided from the logs before any
+     estimator is scored.
 4. **UKF port** (same Replay pass, `UKF_FLOW_DCAP_MS` / `UKF_RNG_DCAP_MS` from the §6 file) → `XUKO`, from the source
    the user rules on (§4.1: the Replay log once the port emits the FMT records, or `ukf_output.csv` via `--est-csv`).
 5. **FGO:**

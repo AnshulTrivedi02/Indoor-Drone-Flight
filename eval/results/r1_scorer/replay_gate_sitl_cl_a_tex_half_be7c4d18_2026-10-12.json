@@ -1,0 +1,24 @@
+{
+ "core": 0,
+ "armed_span_us": [
+  24149423,
+  272386370
+ ],
+ "n": 2483,
+ "max_horizontal_m": 0.0,
+ "max_height_m": 0.0,
+ "max_yaw_deg": 0.0,
+ "bounds": {
+  "horizontal_m": 0.01,
+  "height_m": 0.01,
+  "yaw_deg": 0.1
+ },
+ "pass": true,
+ "reader": {
+  "undeclared_types": {
+   "230": 6673
+  },
+  "skipped_bytes": 1181121,
+  "n_resyncs": 6673
+ }
+}
