@@ -1,0 +1,11 @@
+{
+ "name": "rung1_capture_delays",
+ "status": "TEMPLATE (refused by eval/bin2fgo.py load_delays). Filled from the VERIFICATION logs (B, H, V) by the procedure in docs/rung1_preregistration.md sec. 6, then set to PRE-REGISTERED and committed, with its sha256 recorded in a METHODOLOGY entry, BEFORE any result flight is scored.",
+ "delays_ms": {"flow": null, "range": null, "imu": 0.0},
+ "uncertainty_ms": {"flow": null, "range": null},
+ "measured_on": [{"log": "<path of each verification .BIN>", "sha256": "<sha256>", "sortie": "B|H|V", "window_fc_s": [null, null]}],
+ "method": "eval/sensor_timing_from_log.py <commit>: flow = the per-axis rule on the sync wiggles / bench rotations; range = truth-height method on the climbs and descents against mocap (mocap_align TUM on the FC clock)",
+ "definition": {"flow": "FC arrival (OF.TimeUS) minus the END of the flow integration interval", "range": "emission (RRNI change frame, held at the measured update period) minus measurement", "imu": "RFRH frame time minus the end of the RISI delta interval (0: the IMU is the time base)"},
+ "rates_measured": {"flow_hz_median": null, "range_update_period_ms": null, "imu_frame_hz": null},
+ "notes": "One file per vehicle and sensor set; a sensor change needs a new file measured on new verification logs."
+}

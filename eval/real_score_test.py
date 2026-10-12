@@ -141,13 +141,20 @@ def test_prereg_json_drives_window_primary_and_records():
                      "--work-dir", f"{d}/wc", "--out", f"{d}/c.json"])
 
 
-def test_draft_prereg_loads_and_matches_the_tested_defaults():
-    p = RS.load_prereg(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs",
-                                    "rung1_preregistration_draft.json"))
-    assert "DRAFT for user sign-off" in p["status"]
-    for sec in ("window", "metrics", "drift"):
-        assert p[sec] == RS.DEFAULT_PREREG[sec], sec            # the tests exercise exactly the draft's definitions
+def test_final_prereg_loads_and_matches_the_tested_defaults():
+    """2026-10-12: the SIGNED-OFF prereg (the draft has no `secondary` section and no longer loads)."""
+    import json, pytest
+    docs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs")
+    p = RS.load_prereg(os.path.join(docs, "rung1_preregistration.json"))
+    assert p["status"].startswith("PRE-REGISTERED") and "2026-10-12" in p["status"]
+    for sec in ("window", "metrics", "drift", "secondary"):
+        assert p[sec] == RS.DEFAULT_PREREG[sec], sec            # the tests exercise exactly the registered definitions
     assert p["estimator_records"]["UKF"] == "XUKO" and p["metrics"]["primary"] == "evo_ape_a_se3"
+    d = json.load(open(os.path.join(docs, "rung1_preregistration_draft.json")))
+    for sec in ("window", "metrics", "drift", "estimator_records", "clock_map"):
+        assert d[sec] == p[sec], sec                            # signed off unchanged; only `secondary` was added
+    with pytest.raises(SystemExit):
+        RS.load_prereg(d)
 
 
 def test_xkf1_core_is_explicit_and_filtered():
@@ -197,6 +204,175 @@ def test_clock_map_check():
         RS.check_clock_map(cm, {**good, "sync_window_rule": {**rule, "w_thr_rad_s": 1.5}})
     import mocap_align as MA                                   # the constants mocap_align writes match the draft
     assert (MA.SYNC_W_THR, MA.SYNC_PAD_S, MA.SYNC_MERGE_S, MA.SYNC_MIN_S) == (2.0, 2.0, 1.0, 1.0)
+
+# ---------------- 2026-10-12: secondary metrics, the strict dataflash reader, the XUKO source ----------------
+def _yaw_quat(yaw_enu_rad):
+    from scipy.spatial.transform import Rotation as Rot
+    return Rot.from_euler("z", np.asarray(yaw_enu_rad).reshape(-1, 1)).as_quat()
+
+
+def _mocap_with_heading(mo, psi0_deg=30.0):
+    """The synthetic flight's mocap with a real orientation: a constant ENU heading psi0 (the rigid body's yaw)."""
+    out = mo.copy(); out[:, 4:8] = _yaw_quat(np.full(len(mo), math.radians(psi0_deg)))
+    return out
+
+
+def _est_dead_reckoned(mo, rate=50.0, frame_yaw_deg=20.0, yaw_rate_dpm=6.0, t_start=None, psi0_deg=30.0):
+    """An estimator that dead-reckons the TRUE horizontal velocity rotated by its growing heading error
+    e(t) = yaw_rate_dpm * (t - t_start) (NED sense: clockwise), expressed in its own frame (rotated by frame_yaw_deg
+    from the mocap frame, ENU). Its heading = truth heading + e (NED) in its frame."""
+    te = np.arange(mo[0, 0], mo[-1, 0], 1.0 / rate)
+    t_start = mo[0, 0] if t_start is None else t_start
+    vx, vy = np.gradient(mo[:, 1], mo[:, 0]), np.gradient(mo[:, 2], mo[:, 0])
+    vx, vy = np.interp(te, mo[:, 0], vx), np.interp(te, mo[:, 0], vy)
+    e = np.radians(yaw_rate_dpm / 60.0 * np.clip(te - t_start, 0, None))     # NED sense: ENU rotation by -e
+    c, s = np.cos(-e), np.sin(-e)
+    wx, wy = c * vx - s * vy, s * vx + c * vy                                  # velocity in the mocap frame, mis-headed
+    f = math.radians(frame_yaw_deg); cf, sf = math.cos(-f), math.sin(-f)       # into the estimator frame
+    ex, ey = cf * wx - sf * wy, sf * wx + cf * wy
+    tz = lambda v: np.r_[0.0, np.cumsum(0.5 * (v[1:] + v[:-1]) * np.diff(te))]     # trapezoidal dead reckoning
+    px, py = tz(ex), tz(ey)
+    pz = np.interp(te, mo[:, 0], mo[:, 3])
+    yaw_enu = math.radians(psi0_deg) - f - e                                   # truth heading, frame-rotated, + error
+    return np.c_[te, px, py, pz, _yaw_quat(yaw_enu)], 90.0 - np.degrees(yaw_enu)
+
+
+def test_heading_drift_rate_sign_and_offset_invariance():
+    mo = _mocap_with_heading(flight())
+    t0, t1, info = RS.window_from_rule(mo, W)
+    for rate, fyaw in ((6.0, 20.0), (-9.0, -135.0)):
+        est, yaw_ned = _est_dead_reckoned(mo, frame_yaw_deg=fyaw, yaw_rate_dpm=rate)
+        r = RS.heading_drift(est[:, 0], yaw_ned, mo[:, 0], RS.yaw_ned_from_tum(mo), t0, t1)
+        assert abs(r["heading_drift_deg_per_min_ned"] - rate) < 1e-6, r       # NED sense, any frame offset
+        r2 = RS.heading_drift(est[:, 0], RS.yaw_ned_from_tum(est), mo[:, 0], RS.yaw_ned_from_tum(mo), t0, t1)
+        assert abs(r2["heading_drift_deg_per_min_ned"] - rate) < 1e-6       # the same from the TUM quaternions
+    # wrap: a whole-turn offset is wrapped away (as the corridor rule); a runaway (>= 170 deg) is left unwrapped
+    te = np.linspace(0, 120, 1201); tm = te.copy()
+    r = RS.heading_drift(te, 370.0 + 0.5 * te / 60, tm, np.zeros_like(tm), 0, 120)
+    assert abs(r["heading_drift_deg_per_min_ned"] - 0.5) < 1e-9 and not r["runaway_unwrapped"]
+    r = RS.heading_drift(te, 200.0 * te / 60, tm, np.zeros_like(tm), 0, 120)
+    assert abs(r["heading_drift_deg_per_min_ned"] - 200.0) < 1e-6 and r["runaway_unwrapped"]
+
+
+def test_cross_track_closed_path_known_value_and_anchor():
+    """A heading error growing at k deg/min makes the dead-reckoned path veer; for a small error the lateral error RATE
+    is v * e(t) (to the RIGHT for a clockwise, NED-positive error: the corridor sign, +8 deg/min with +40 m East),
+    whatever the leg direction; on a closed rectangle a fixed-axis
+    (East) measure would cancel, the path-normal one accumulates."""
+    mo = _mocap_with_heading(flight())
+    t0, t1, info = RS.window_from_rule(mo, W)
+    cfg = dict(RS.DEFAULT_PREREG["secondary"]["cross_track_drift"])
+    k = 6.0
+    est, yaw_ned = _est_dead_reckoned(mo, frame_yaw_deg=20.0, yaw_rate_dpm=k, t_start=info["takeoff_s"])
+    r = RS.cross_track(est[:, 0], est[:, 1:4], yaw_ned, mo[:, 0], mo[:, 1:4], RS.yaw_ned_from_tum(mo), t0, t1, cfg,
+                       t_anchor=info["takeoff_s"])
+    assert abs(r["anchor_yaw_deg_enu"] - 20.0) < 1e-4                           # est -> mocap rotation, at take-off
+    # expected: integral over cruise samples of +v * sin(e(t)) (right = positive), v = 0.4 m/s on the legs
+    te = np.arange(t0, t1, 0.001); sp = np.hypot(np.gradient(np.interp(te, mo[:, 0], mo[:, 1]), te),
+                                                   np.gradient(np.interp(te, mo[:, 0], mo[:, 2]), te))
+    cr = RS._boxcar_t(te, sp, 1.0) > 0.15
+    e = np.radians(k / 60.0 * (te - info["takeoff_s"]))
+    want = float(np.sum(sp * np.sin(e) * cr) * 0.001)
+    assert r["cross_track_m"] > 0 and abs(r["cross_track_m"] / want - 1) < 0.03, (r, want)
+    assert abs(r["cruise_s"] - 75.0) < 1.5                                     # legs 45 s .. 120 s; hovers excluded
+    # the corridor's fixed-East integral nearly cancels on the closed path; the path normal does not
+    east = float(np.sum(np.gradient(est[:, 1], est[:, 0])[(est[:, 0] >= t0) & (est[:, 0] <= t1)]) * 0.02)
+    assert abs(r["cross_track_m"]) > 2 * abs(east - (np.interp(t1, mo[:, 0], mo[:, 1]) - np.interp(t0, mo[:, 0], mo[:, 1])))
+    # no heading error -> zero cross-track, whatever the frame yaw
+    e0, y0 = _est_dead_reckoned(mo, frame_yaw_deg=-75.0, yaw_rate_dpm=0.0)
+    z = RS.cross_track(e0[:, 0], e0[:, 1:4], y0, mo[:, 0], mo[:, 1:4], RS.yaw_ned_from_tum(mo), t0, t1, cfg,
+                       t_anchor=info["takeoff_s"])
+    assert abs(z["cross_track_m_per_min"]) < 0.01, z
+
+
+def test_main_reports_secondary_from_the_final_prereg():
+    import json
+    mo = _mocap_with_heading(flight())
+    est, _ = _est_dead_reckoned(mo, frame_yaw_deg=20.0, yaw_rate_dpm=6.0)
+    pre = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "rung1_preregistration.json")
+    p = json.load(open(pre)); del p["clock_map"]                    # no mocap_align JSON in this synthetic test
+    with tempfile.TemporaryDirectory() as d:
+        pm, pe = f"{d}/mocap.tum", f"{d}/fgo.tum"
+        RS.write_tum(pm, mo); RS.write_tum(pe, est); json.dump(p, open(f"{d}/p.json", "w"))
+        out = RS.main(["--prereg", f"{d}/p.json", "--mocap", pm, "--est", f"FGO={pe}", "--work-dir", f"{d}/w",
+                       "--out", f"{d}/o.json"])
+    r = out["estimators"]["FGO"]
+    assert abs(r["heading_drift"]["heading_drift_deg_per_min_ned"] - 6.0) < 1e-3
+    assert r["cross_track_drift"]["cross_track_m"] > 0 and r["cross_track_drift"]["anchor"] == "takeoff_yaw"
+    assert r["cross_track_drift"]["anchor_sensitivity_m_per_min_per_deg"] > 0.3     # ~0.4 m/s * 1 deg * 60 s
+
+
+def test_secondary_section_is_strict():
+    import copy, pytest
+    ok = copy.deepcopy(RS.DEFAULT_PREREG)
+    for bad in ({"heading_drift": {**ok["secondary"]["heading_drift"], "sense": "ENU"}},
+                {"cross_track_drift": {**ok["secondary"]["cross_track_drift"], "anchor": "identity"}},
+                {"cross_track_drift": {k: v for k, v in ok["secondary"]["cross_track_drift"].items() if k != "smooth_s"}},
+                {"lateral": {}}):
+        p = copy.deepcopy(ok); p["secondary"] = {**p["secondary"], **bad}
+        with pytest.raises(SystemExit):
+            RS.load_prereg(p)
+
+
+def _df_log(xuko_fmt=True, replay_mismatch=False, dup_xuko=False, undeclared=True):
+    """A tiny dataflash log: XKF1 cores 0 and 100, XUKO (with or without its FMT), and an undeclared record type."""
+    import df_reader as D
+    kf = ("QBffffffffffff", "TimeUS,C,Roll,Pitch,Yaw,VN,VE,VD,dPD,PN,PE,PD,GX,GY")
+    uk = ("QfffffffffBIBBI", ",".join(RS.XUKO_COLUMNS))
+    b = D.write_fmt(150, "XKF1", *kf)
+    if xuko_fmt:
+        b += D.write_fmt(151, "XUKO", *uk)
+    for i in range(20):
+        t = 1_000_000 + 100_000 * i
+        b += D.write_rec(150, kf[0], t, 0, 0, 0, 10.0, 0, 0, 0, 0, 1.0 * i, 0.5 * i, -1.0, 0, 0)
+        if undeclared:
+            b += D.write_rec(229, "Qff", t, 1.0, 2.0)                  # a UKF-like record with NO FMT
+        if not (replay_mismatch and i == 7):
+            b += D.write_rec(150, kf[0], t, 100, 0, 0, 11.0, 0, 0, 0, 0, 2.0 * i, 0.5 * i, -1.0, 0, 0)
+        b += D.write_rec(151, uk[0], t + (0 if not (dup_xuko and i == 5) else -200_000), 3.0 * i, 0, -1, 0, 0, 0,
+                         0, 0, 12.0, 1, 0, 0, 0, 0)
+    return b
+
+
+def test_df_reader_survives_undeclared_records_and_bin_trajs_checks():
+    import pytest
+    with tempfile.TemporaryDirectory() as d:
+        p = f"{d}/x.bin"; open(p, "wb").write(_df_log())
+        info = {}
+        tr = RS.bin_trajs(p, ["XKF1@100", "XKF1@0", "XUKO"], info_out=info)
+        assert len(tr["XKF1@100"]) == 20 and tr["XKF1@100"][3, 1] == 6.0 and tr["XKF1@0"][3, 1] == 3.0
+        assert tr["XKF1@100"][0, 4] == 11.0 and tr["XUKO"][2, 1] == 6.0 and tr["XUKO"][0, 4] == 12.0
+        assert info["undeclared_types"] and info["skipped_bytes"] == 20 * (3 + 16)
+        open(p, "wb").write(_df_log(xuko_fmt=False))                   # a stock-log Replay: XUKO written without FMT
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XUKO"])
+        assert "no FMT for XUKO" in str(e.value) and "--est-csv" in str(e.value)
+        tr = RS.bin_trajs(p, ["XKF1@100"])                             # ... but EKF3 is still read in full
+        assert len(tr["XKF1@100"]) == 20
+        open(p, "wb").write(_df_log(replay_mismatch=True))
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XKF1@100"])
+        assert "TimeUS" in str(e.value)
+        open(p, "wb").write(_df_log(dup_xuko=True))                    # two interleaved XUKO series
+        with pytest.raises(SystemExit) as e:
+            RS.bin_trajs(p, ["XUKO"])
+        assert "interleaved" in str(e.value)
+
+
+def test_xuko_csv_source():
+    import pytest
+    with tempfile.TemporaryDirectory() as d:
+        p = f"{d}/ukf_output.csv"
+        rows = [[1_000_000 + 40_000 * i, 0.1 * i, 0.2 * i, -1.0, 0, 0, 0, 0, 0, 5.0, 1, 0, 3, 0, 0] for i in range(30)]
+        open(p, "w").write(",".join(RS.XUKO_COLUMNS) + "\n" + "\n".join(",".join(str(v) for v in r) for r in rows))
+        a = RS.csv_traj(p, "XUKO")
+        assert a.shape == (30, 5) and a[2, 0] == 1.08 and a[2, 2] == 0.4 and a[0, 4] == 5.0
+        with pytest.raises(SystemExit):
+            RS.csv_traj(p, "XUKF")
+        open(p, "w").write("TimeUS,PN,PE,PD,VN,VE,VD,Roll,Pitch,Yaw,SVN,SVE,SS,Healthy,FlowAgeMs,FXa,FYa,Ra\n1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n")
+        with pytest.raises(SystemExit):                                # the horizon-state ukf_shadow.csv is NOT XUKO
+            RS.csv_traj(p, "XUKO")
+
 
 if __name__ == "__main__":
     for f in (test_airborne_window_ignores_held_start, test_gap_masking_and_exact_recovery, test_drift_metric_and_hover_guard,

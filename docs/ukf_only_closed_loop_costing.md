@@ -65,7 +65,7 @@ scorer and `LOG_REPLAY` logs are the same.
 | U1 | **Board firmware** with `AP_NavUKF` | `#define AP_NAVUKF_ENABLED (CONFIG_HAL_BOARD == HAL_BOARD_SITL)` (fork `libraries/AP_NavUKF/AP_NavUKF.h:28-29`); no board build exists | §2 | SW 1–2 d (shared with 2(a)); HW 1 d | SW+HW |
 | U2 | **Real sensor geometry** in the port | fork-r1 `c25fa898`, on hold; **its Replay regression and `UKF_Equiv` not re-verified** (commit message) | merge after the regression | 0.5 d (needs one build slot) | SW (light build) |
 | U3 | **Flow derotation input** (D18) | the port takes the driver's `rawGyroRates` (fork `AP_NavUKF.cpp:470`) | §3; decide, then (optionally) one port change | 0–1 d | SW |
-| U4 | **Ground initialisation** when the rangefinder reads below its minimum | the port initialises only on a Good downward range above `RNG_MIN` (fork `AP_NavUKF.cpp:493,524`; fork-r1 607,641) | initialise from `RNGFNDn_GNDCLEAR` (plus the lever arm) while disarmed and `OutOfRangeLow`, as EKF3 does on ground | 0.5–1 d + a SITL check | SW + SIM |
+| U4 | **Ground initialisation** when the rangefinder reads below its minimum | the port initialises only on a Good downward range above `RNG_MIN` (fork `AP_NavUKF.cpp:493,524`; fork-r1 607,641) | initialise from `RNGFNDn_GNDCLR` (plus the lever arm) while disarmed and `OutOfRangeLow` [correction 2026-10-12: NOT "as EKF3 does": at 7bac20cbcc EKF3 pushes no range sample for `OutOfRangeLow` and falls back to baro (METHODOLOGY U4 FINDING); this is a port rule] | 0.5–1 d + a SITL check | SW + SIM |
 | U5 | **Yaw source** | the UKF has no compass input (`use_compass()` false, fork `AP_AHRS_UKF.h:27`); it uses the variance-gated zero-innovation pseudo-yaw | §4; a decision, not code | 0 d (nomag) | — |
 | U6 | **Landing trigger** | `Copter::thesis_nav_check`, a `FAST_TASK` (fork `ArduCopter/Copter.cpp:136`, `ekf_check.cpp:337-358`), SITL safety (a) PASS; **the re-run on the corrected builds is still open (H1)** | §5 | 0 d code; H1 re-run ~0.5 d (UKF only) | SIM |
 | U7 | **Failsafe parameter file** (real FC) | the SITL files exist (`closedloop_ukf.parm`); the real-FC template is rung-1 R6 | `AHRS_EKF_TYPE 12`, `AHRS_UKF_ENABLE 1`, `AHRS_UKF_TFAIL 0`, `FS_EKF_ACTION 1`, the GCS failsafe, battery, RC | 0.5 d on top of R6 | SW |
@@ -213,7 +213,7 @@ scorer and `LOG_REPLAY` logs are the same.
   `realflight/watcher/fc_link.py:31-40` checks);
 - RC throttle failsafe → LAND;
 - battery failsafe → LAND;
-- `ARMING_CHECK` default;
+- `ARMING_SKIPCHK` default (0: no check skipped; the 4.7 name of `ARMING_CHECK`);
 - `AHRS_UKF_TFAIL 0` (and refused at arming, §2).
 
 **Fence.**
@@ -292,7 +292,7 @@ rangefinder (the autotest `set_analog_rangefinder_parameters`) and `SIM_GPS1_ENA
 
 | step | content | effort |
 |---|---|---|
-| Bench 0 (props off) | U1 bench (boot, readback, backends off = EKF3, shadow on, `PM` CPU); flow sign and orientation; rangefinder; `RNGFND1_GNDCLEAR`; arming refusal with `TFAIL ≠ 0`; watcher heartbeat → FC; GCS failsafe → LAND (mode change seen); link worst-gap measurement | 1–1.5 d |
+| Bench 0 (props off) | U1 bench (boot, readback, backends off = EKF3, shadow on, `PM` CPU); flow sign and orientation; rangefinder; `RNGFND1_GNDCLR`; arming refusal with `TFAIL ≠ 0`; watcher heartbeat → FC; GCS failsafe → LAND (mode change seen); link worst-gap measurement | 1–1.5 d |
 | Forced invalidity (props off, armed on the bench with motors disabled or `MOT_SAFE_DISARM`-style procedure) | `AHRS_UKF_TFAIL` > 0 → `thesis_nav_check` → LAND mode change (readiness H4(b); ruling 2026-10-08 "bench AND SITL") | 0.5 d |
 | Hand-carried (motors off, in the mocap volume) | UKF shadow and **type 12 active** (disarmed: the output is computed, nothing steers); UKF vs mocap; flow sign under hand motion; watcher live on mocap | 0.5–1 d |
 | Tethered hover | EKF3 flying first (the tune), then **UKF flying**; short hovers; forced invalidity once on the tether | 0.5–1 d |
@@ -341,7 +341,7 @@ rangefinder (the autotest `set_analog_rangefinder_parameters`) and `SIM_GPS1_ENA
 
 | risk | effect | mitigation |
 |---|---|---|
-| Rangefinder reads below its minimum on the ground | The UKF never initialises; no arming ("UKF not initialised") | U4 (initialise from `GNDCLEAR`); pick a sensor with a low minimum |
+| Rangefinder reads below its minimum on the ground | The UKF never initialises; no arming ("UKF not initialised") | U4 (initialise from `GNDCLR`); pick a sensor with a low minimum |
 | **Mocap IR strobes disturbing a ToF rangefinder or flow sensor** [E, common indoor issue] | Range dropouts, then the 15 s vertical hold, then LAND; or flow quality collapse | Bench check inside the volume with the cameras running (U11 hand-carried) |
 | Low-texture mocap floor | Flow quality low, then the 5 s timeout and LAND | Textured mats (as rung 1) |
 | 5 s inertial dead reckoning before the trigger | Drift of the order of metres if velocity was biased | Watcher box sized for it; pre-registered |

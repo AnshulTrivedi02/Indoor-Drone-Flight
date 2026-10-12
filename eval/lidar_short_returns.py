@@ -41,7 +41,7 @@ for tr in a.trials:
                 ts_s.append(t); med.append(sorted(buf)[1])
     ts_s, med = np.array(ts_s), np.array(med)
     msh = (np.interp(ts_s, S[:, 0], h) > 1.0) & (med < 0.5 * np.interp(ts_s, S[:, 0], h))
-    r = {"AHRS_EKF_TYPE": P.get("AHRS_EKF_TYPE"), "RNGFND1_GNDCLEAR": P.get("RNGFND1_GNDCLEAR"),
+    r = {"AHRS_EKF_TYPE": P.get("AHRS_EKF_TYPE"), "RNGFND1_GNDCLR": P.get("RNGFND1_GNDCLR"),   # was GNDCLEAR (no such PARM)
          "EK3_RNG_I_GATE": P.get("EK3_RNG_I_GATE"), "n_rfnd_short": int(short.sum()),
          "short_times_s": [round(float(x), 2) for x in R[short, 0]][:20],
          "short_dist_m": [round(float(x), 3) for x in R[short, 1]][:20],

@@ -32,8 +32,8 @@
 # yaw fusion event (GPS/GSF/extnav) - none of which can ever happen in this
 # no-GPS config - so it always calls _compass.healthy(), which needs the
 # compass driver to actually exist and report healthy, i.e. COMPASS_ENABLE=1.
-# This check is unconditional - not gated behind check_enabled()/ARMING_CHECK,
-# and runs before should_skip_all_checks() - so no ARMING_CHECK bitmask
+# This check is unconditional - not gated behind check_enabled()/ARMING_SKIPCHK
+# (ARMING_CHECK before the 4.7 rename), and runs before should_skip_all_checks() - so no ARMING_SKIPCHK bitmask
 # exclusion can bypass it either; COMPASS_ENABLE=1 is the only source-backed
 # option. EKF3 still gets zero yaw information from it: EK3_SRC1_YAW=0 means
 # setYawSource() never selects COMPASS regardless of driver health, and

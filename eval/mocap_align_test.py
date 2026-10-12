@@ -78,3 +78,66 @@ def test_mocap_starting_inside_the_window_is_masked_not_held():
     res, _, _, to_fc = MA.align(fc, mo2, early, late, init)
     assert res["clock"]["windows"][0]["valid_fraction"] < 0.8                 # the part before the take is excluded
     assert _mapped_err_ms(tr, mo2, to_fc) < 1.0
+
+
+# ---------------- 2026-10-12: the 25 Hz IMU path (no RISI records, or only the IMU log rate) ----------------
+def _imu_25hz(fc, rate=25.0, fcut=20.0, log_lag=0.0):
+    """The FC's logged IMU record from the synthetic RISI-like truth: the INS 2-pole low-pass (fcut), sampled at `rate`,
+    stamped at the sample time + log_lag (the record's TimeUS is the logging time)."""
+    from scipy.signal import lfilter, lfilter_zi
+    g = fc["gyro"]; ohm = np.tan(np.pi * fcut / 400.0); c = 1 + 2 * np.cos(np.pi / 4) * ohm + ohm ** 2
+    b0 = ohm ** 2 / c; b = np.array([b0, 2 * b0, b0])
+    a = np.array([1.0, 2 * (ohm ** 2 - 1) / c, (1 - 2 * np.cos(np.pi / 4) * ohm + ohm ** 2) / c]); zi = lfilter_zi(b, a)
+    gf = np.column_stack([lfilter(b, a, g[:, k], zi=zi * g[0, k])[0] for k in (1, 2, 3)])
+    k = np.arange(0, len(g), int(round(400 / rate)))
+    out = dict(fc); out["gyro"] = np.c_[g[k, 0] + log_lag, gf[k]]
+    out.update(gyro_src="IMU", params={"INS_GYRO_FILTER": fcut}, risi_dadt_median_s=None)
+    return out
+
+
+def test_imu_25hz_path_recovers_map_on_sync_wiggles():
+    """The 2026-10-10 failure (-431 ms) was on SITL's arm-anchored windows with no wiggle; on the sync wiggles the 25 Hz
+    path works. Accuracy cost (stated in mocap_align's docstring): ~+0.5 ms bias, plus the logging lag (<= 1 loop)."""
+    for seed in (0, 3, 5):
+        fc, mo, tr, _ = _flight(seed)
+        fi = _imu_25hz(fc)
+        early, late, init, _ = MA.resolve_windows(fi)                     # the default wiggle windows at 25 Hz
+        res, _, _, to_fc = MA.align(fi, mo, early, late, init)
+        tf_true = (mo["t"] - tr["O_s"] + tr["k"] * tr["tf0"]) / (1 + tr["k"])
+        e = 1e3 * (to_fc(mo["t"]) - tf_true)
+        assert 0.0 < np.mean(e) < 1.0 and np.abs(e).max() < 1.5, (seed, np.mean(e), np.abs(e).max())
+        assert abs(res["clock"]["gyro_filter_delay_ms_compensated"] - 1e3 * np.sqrt(2) / (2 * np.pi * 20)) < 1e-9
+        fl = _imu_25hz(fc, log_lag=0.0025)                                # logged one 400 Hz loop late
+        res, _, _, to_fc = MA.align(fl, mo, *MA.resolve_windows(fl)[:3])
+        e = 1e3 * (to_fc(mo["t"]) - tf_true)
+        assert 2.0 < np.mean(e) < 3.6, (seed, np.mean(e))                 # the uncorrected lag adds as a bias
+
+
+def test_gyro_src_auto_falls_back_to_imu(monkeypatch):
+    from types import SimpleNamespace as NS
+
+    def msgs(with_risi):
+        out = [NS(get_type=lambda: "PARM", TimeUS=0, Name="INS_GYRO_FILTER", Value=20.0),
+               NS(get_type=lambda: "ARM", TimeUS=5_000_000, ArmState=1)]
+        for i in range(200):
+            t = 1_000_000 + 40_000 * i
+            out.append(NS(get_type=lambda: "IMU", TimeUS=t, I=0, GyrX=0.1, GyrY=0.0, GyrZ=0.0))
+            if with_risi:
+                out.append(NS(get_type=lambda: "RFRH", TimeUS=t))
+                out.append(NS(get_type=lambda: "RISI", I=0, DAX=0.001, DAY=0.0, DAZ=0.0, DADT=0.0025))
+        return out
+
+    class Fake:
+        def __init__(self, rows): self.rows = rows
+        def recv_match(self, type):
+            while self.rows:
+                r = self.rows.pop(0)
+                if r.get_type() in type:
+                    return r
+            return None
+    for with_risi, want in ((False, "IMU"), (True, "RISI")):
+        monkeypatch.setattr(MA.mavutil, "mavlink_connection", lambda p, w=with_risi: Fake(msgs(w)))
+        fc = MA.read_fc("x.bin", gyro_src="auto")
+        assert fc["gyro_src"] == want
+        assert fc["gyro_src_auto"].startswith("IMU fallback" if want == "IMU" else "RISI records")
+        assert abs(fc["gyro_period_ms_median"] - 40.0) < 1e-6

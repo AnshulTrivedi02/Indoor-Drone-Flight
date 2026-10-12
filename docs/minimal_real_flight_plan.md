@@ -44,7 +44,7 @@ All three are scored against mocap with the same alignment and the same window.
 | S1 | **FC board.** An H7 is assumed (Pixhawk 6X/6C, CubeOrange(+), Durandal, MatekH743, KakuteH7: all have hwdefs at the pinned commit [V]). | Firmware build target. EKF precision: on H7, `HAL_HAVE_HARDWARE_DOUBLE` is 1 (`hwdef/scripts/STM32H743xx.py:76` [V]), so EKF3 runs in double as SITL/Replay do (`board/chibios.h:63-64`, `board/sitl.h:83-84` [V]). On an F7/F4 the board runs EKF3 in single precision while Replay runs it in double, so the two cannot be bit-exact. |
 | S2 | **Is the vehicle already flying?** Which firmware version is on it? Is it tuned? | 0 d of airframe work if it is already flying. Otherwise assembly and tune cost 3–6 d (`A1`+`A2`), which **breaks the calendar** (§6). |
 | S3 | **Flow sensor** (PMW3901-class on SPI = `FLOW_TYPE 2` Pixart; HereFlow = 6 DroneCAN; MTF-01/UPFLOW/MSP = 5/8/7 [V `AP_OpticalFlow.cpp:30`]) | `FLOW_TYPE`, `FLOW_ORIENT_YAW`, `EK3_FLOW_DELAY`, and the source of the derotation rate (§4.3: Pixart and MAV/MSP use the FC's gyro; HereFlow uses the sensor's own gyro [V]). |
-| S4 | **Rangefinder** (TF-Luna/TFmini = Benewake serial; VL53L1X = I²C) | `RNGFND1_TYPE`, `MIN`/`MAX`, `GNDCLEAR`. The minimum range matters: a TF-Luna's 0.2 m minimum means it reads out of range on the ground. |
+| S4 | **Rangefinder** (TF-Luna/TFmini = Benewake serial; VL53L1X = I²C) | `RNGFND1_TYPE`, `MIN`/`MAX`, `GNDCLR`. The minimum range matters: a TF-Luna's 0.2 m minimum means it reads out of range on the ground. |
 | S5 | **Mocap system** (OptiTrack/Vicon), rate, how recordings are exported, volume size, booking dates | The recorder (§4.5), the frame convention (OptiTrack streams Y-up by default), the flight profile size, and the calendar. |
 | S6 | **Firmware choice:** the pinned `7bac20cbcc` built from unmodified source, or the nearest stock release (`Copter-4.7.0`) | §2. |
 | S7 | **Floor:** can a plain (low-texture) sheet be laid in the volume? | Whether the degraded-sensing variable can be touched at all (§7). |
@@ -139,7 +139,7 @@ trusted from memory (CLAUDE.md Conventions).
 | GPS | `GPS1_TYPE 0` | As the Hidden Configuration Audit §2. There is no `SIM_*` on hardware. |
 | compass | `COMPASS_ENABLE 1`, `COMPASS_USE/USE2/USE3 0`, `EK3_SRC1_YAW 0` | **FLAG: is the nomag config still wanted for real?** Recommended: YES, so that all three estimators have no absolute yaw, as in the comparison. Replay can re-run EKF3 with compass fusion from the same log, as a sensitivity row (`RMG*` records are logged). Real-hardware check: the compass must be present and **calibrated** to pass Copter's compass-health arming gate (Hidden Configuration Audit §3). Bench item. |
 | flow | `FLOW_TYPE` per S3; `FLOW_ORIENT_YAW` (mount); `FLOW_POS_X/Y/Z` (measured, FRD from the IMU/body origin); `FLOW_FXSCALER`/`FYSCALER` 0 unless calibrated; `EK3_FLOW_DELAY` (the sensor's documented value) | `FLOW_OPTIONS` must **not** set "Stabilised", as in SITL. |
-| rangefinder | `RNGFND1_TYPE` per S4; `RNGFND1_ORIENT 25`; `MIN`/`MAX` from the datasheet; `POS_X/Y/Z` measured; `GNDCLEAR` = the measured resting reading | `EK3_RNG_USE_HGT -1` (unchanged). |
+| rangefinder | `RNGFND1_TYPE` per S4; `RNGFND1_ORIENT 25`; `MIN`/`MAX` from the datasheet; `POS_X/Y/Z` measured; `GNDCLR` = the measured resting reading | `EK3_RNG_USE_HGT -1` (unchanged). |
 | failsafes | `FS_EKF_ACTION 1` (LAND); battery failsafe; RC loss → LAND; a dedicated RC switch to STABILIZE as the last resort | ALT_HOLD itself is the flying mode. |
 | fence | `FENCE_ENABLE 1`; `FENCE_TYPE 1` (max altitude) with the AGL/rangefinder altitude frame (parameter at `AC_Fence.cpp:170-177`; name to be checked at the flown commit); `FENCE_ALT_MAX` below the volume top; `FENCE_ACTION` LAND | **The circle/polygon fence needs an EKF origin and home.** `AC_Fence.cpp:513-535` gives "Fence requires position" [V]. With no GPS this means a `SET_GPS_GLOBAL_ORIGIN` step before arming, and it then uses EKF3's drifting relative position. It is therefore **secondary at best**. **The safety pilot, with a person watching mocap, is the primary layer.** |
 | logging | `LOG_REPLAY 1`, `LOG_DISARMED 1`, `LOG_BITMASK` with IMU and OF; raise `LOG_FILE_BUFSIZE`; check `DSF` for dropped blocks after every flight | The full-rate IMU comes from `RISI` (400 Hz deltas, §4.3), so `INS_LOG_BAT_*` is optional. |
@@ -279,7 +279,7 @@ The C++ FGO also accepts a raw event stream (`<P>.raw.f64` + `<P>.init.json`, `f
    - Out-of-range and no-data samples are dropped.
 9. **Initialisation:**
    - Levelling over the first 0.5 s of `RISI` after logging starts, as now.
-   - The initial height is taken from `RNGFND1_GNDCLEAR` (plus the lever arm), **not** "the first in-range sample". With
+   - The initial height is taken from `RNGFND1_GNDCLR` (plus the lever arm), **not** "the first in-range sample". With
      a 0.2 m-minimum sensor the first in-range sample arrives mid-climb.
 10. **Geometry:** make `RANGE_LEVER`, `CAM_OFFSET` (= the flow sensor's `FLOW_POS_Z`), `H_MIN`, `RNG_MIN`/`MAX` and
     `FOCAL_LENGTH_PX` (unused here) **overridable**. Values are read from the log's `PARM`/`ROFH`/`RRNI`.
