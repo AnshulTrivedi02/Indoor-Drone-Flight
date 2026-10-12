@@ -34,8 +34,9 @@ class Abort(Exception):
 
 
 class Bench:
-    def __init__(self, session, prefix="wbench2", start=None):
+    def __init__(self, session, prefix="wbench2", start=None, only=None):
         self.session = session
+        self.only = only
         self.start_from = start
         self.go = start is None
         self.out = os.path.join(OUTROOT, f"{prefix}_{session}_{time.strftime('%Y%m%d_%H%M%S')}")
@@ -53,7 +54,13 @@ class Bench:
         self.log(f"PROVENANCE repo {REPO} HEAD {head}; realflight/ uncommitted changes: {dirty or 'none'}")
 
     def should_run(self, name):
-        """--from: skip tests before `start_from` (by test-name prefix) in this session."""
+        """--from: skip tests before `start_from` (by test-name prefix) in this session. --only: run only the tests
+        whose name starts with `only` (a single repeat, e.g. after an incomplete manoeuvre; each use is an amendment)."""
+        if self.only is not None:
+            ok = name.startswith(self.only)
+            if not ok:
+                self.log(f"skipping {name} (--only {self.only})")
+            return ok
         if not self.go and name.startswith(self.start_from):
             self.go = True
         if not self.go:
@@ -679,6 +686,8 @@ class Bench:
         man = [{"takeoff": 1.5}, {"hold": 8}, {"roll": 12, "s": 0.8}, {"hold": 3}, {"yaw": 90}, {"hold": 4},
                {"land": True}]
         for run, mode in (("right_body", "normal"), ("static_other_body", "static")):
+            if not self.should_run(f"B6b_{run}"):
+                continue
             self.observer(mode)
             t0 = time.time()
             info = self.hover(f"B6b_{run}", lambda fs: {}, profile=man, marker="STEP 2 roll start")
@@ -864,9 +873,10 @@ def main():
     ap.add_argument("session")
     ap.add_argument("--from", dest="start", default=None)
     ap.add_argument("--prefix", default="wbench2")
+    ap.add_argument("--only", default=None)
     a = ap.parse_args()
     s = a.session
-    b = Bench(s, prefix=a.prefix, start=a.start)
+    b = Bench(s, prefix=a.prefix, start=a.start, only=a.only)
     code = 0
     try:
         b.setup()

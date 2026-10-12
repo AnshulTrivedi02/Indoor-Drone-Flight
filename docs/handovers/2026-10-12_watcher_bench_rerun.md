@@ -103,6 +103,23 @@ failsafe, the Lua script on the real board, beacons inside the Pi processes, the
     criterion.
   - **A finding for the safety case, not a watcher issue (F7).** Stock EKF3 on flow can pass its arming checks with
     a ~22° yaw error, and then fly away on take-off. Here the box caught it.
+- **A10 (2026-10-12, ~11:58, after the hoverB re-run `wbench2_hoverB_20261012_114206` and hoverC; before the run it
+  governs). The incomplete-stimulus rule (general, applies to every test of this stage).**
+  - **Rule:** a test whose stimulus is never applied, because an event outside the test's own mechanism happened
+    first, is NOT COMPLETED. It is repeated ONCE, and both attempts are reported. If the repeat is also cut short,
+    the test is reported "not completed" and nothing more is run.
+  - **Where it applies:** B6b run 1 (right body) in the hoverB re-run.
+    - A 1.9 m take-off excursion east happened first. Before arming, EKF3's velocity on the ground had diverged
+      (VE 1.0–1.8 m/s while the vehicle sat still); see F8 below.
+    - The 12° roll then crossed the east face at x = 3.007 m. The primary watcher's BREACH and LAND followed.
+    - So the 90° yaw half of the manoeuvre was never flown. The observer's verdict was "unproven (roll/pitch proven,
+      yaw not proven)".
+    - It is reported as worded (criterion "identity CONFIRMED" not met, manoeuvre incomplete) and repeated.
+  - **Where it does not apply:** no other wbench2 test meets the definition. Every other injection was applied as
+    registered.
+  - **How the repeat runs:** `tools/run_wbench.sh hoverB --only B6b_right_body` (new driver option `--only`). This
+    gives a fresh SITL boot, so the repeat is the FIRST hover after boot, whereas the first attempt followed
+    B5b-noflag and a carry. That difference is stated, not corrected for.
 
 ## 2. Results
 
