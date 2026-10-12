@@ -181,3 +181,14 @@ would have re-confirmed in the same boot); the attempts' |v| maxima.
   - **Resume:** a new session `tools/run_wbench.sh ground --prefix wbench4 --checks all --from B1c_lua` (a fresh SITL
     boot; B1c-Lua then reboots twice itself, as registered). Every test before B1c-Lua is taken from the aborted
     session, whose records stand.
+- **B2 (2026-10-12 ~17:50, after `wbench4_hoverB_20261012_173841` ABORTED; before any further run). Harness fix (S3
+  ordering) and a resume; no criterion change.**
+  - **What happened.** After B9a (flow_bridge stub) landed, the session-level `ensure_watcher("--dep-loss", "stop",
+    restart=True)` (B9b's set-up) ran BEFORE `hover()`'s M1, i.e. it demanded a confirmation after a landing in the
+    same boot. EKF3 then ran away on the ground (|v| ≥ 0.2 throughout) and its yaw drifted (8–9.6° off, compass
+    variant). The watcher refused with "vel" AND "yaw" reasons for the 90 s cap, so S4 did not apply and the session
+    aborted, as registered. This is a second unplanned F8 occurrence refused by M2 (and F7) in this bench.
+  - **Fix:** `ensure_watcher` now applies M1 first whenever a landing happened in this boot (the intent of S3: no
+    confirmation is demanded after a landing without the power-cycle). The watcher logic is unchanged.
+  - **Resume:** `tools/run_wbench.sh hoverB --prefix wbench4 --checks all --from B9b` (a fresh boot). B5b-noflag, B6b
+    ×2, B8a and B9a ×2 are taken from the aborted session, whose records stand.

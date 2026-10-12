@@ -181,6 +181,9 @@ class Bench:
 
     # ------------------------------------------------------------------ helpers
     def ensure_watcher(self, *extra, cap=90, restart=False):
+        # amendment B2 (wbench4): M1 also precedes any wait for a confirmation after a landing in this boot (a
+        # session-level watcher restart between hovers, e.g. B9b's, came before hover()'s own M1)
+        self.m1_if_needed("ensure_watcher after a landing")
         if restart or not self.stack.alive("watcher"):
             self.stack.start_watcher(*extra)
         if self.op.wait("watcher confirmed", lambda: self.stack.confirmed(), cap, self.alive) is None:
