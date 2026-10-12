@@ -14055,3 +14055,32 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
     issue, and re-run the simulator demo. **N1 itself stays fail-closed;**
   - confirm `eval/u10_gate.py` implements the signed document exactly (one check per criterion, with a test);
   - rebase `board-h743` and `u4-gndclr` onto the new port commit (`f30f6ffa2f`).
+
+### Pre-data U10 tasks done (handover `docs/handovers/2026-10-12_u10_g5_audit_rebase.md`)
+- **N1/G5 on H_s2v2_r1 is the SIGNED RULE refusing the segment, not tooling.**
+  - Its only > 1 m move (3.5 m, the climb) ends before W opens (55.4 s).
+  - Inside W the ±0.5 m tag moves take the first 2 m of path only 0.605 m from the onset (the rule needs 1.0 m). EKF3
+    is refused the same way (0.615 m).
+  - `real_score.py` is unchanged; N1 stays fail-closed.
+- **Demo re-run:** verdicts unchanged.
+  - cl_ukf_b PASS; cl_a G5 FAIL (5.15 m); H_s2v2_r1 gated G5 FAIL (N1); the set of 3 NOT EVALUABLE; missing
+    ukf_stats → G3 FAIL.
+- **REQUIREMENT on the rung-1 profile (for G5 to be computable):** a motion onset inside W (take-off + 25 s), and a
+  straight first leg ≥ 2 m. The leg length is still TBD on the flight card. **≥ 3 m recommended:** a hover wobble can
+  trigger the onset early.
+- **Audit of `eval/u10_gate.py` against the SIGNED document:** a traceability table in the handover (clause →
+  function → tests); 57 synthetic tests (a pass and a fail per criterion) pass.
+  - **Code fixes only, no document change:**
+    - D_max = 1.0 m by default, and other values are refused;
+    - a V mode (G1–G3 judged, per §7);
+    - the N5 sha check covers every row read;
+    - missing or bad inputs FAIL instead of crashing;
+    - the set refuses duplicates, V records, and mixed bands/D_max.
+- **Rebases** (no conflicts; old tips tagged `*-pre-rukx`):
+  - `board-h743` → `6e7c373691`, plus a fix-up (`write_end_stats()` inside `AP_NAVUKF_REPLAY_IO_ENABLED`);
+  - `u4-gndclr` → `746e132a9e`.
+- **MatekH743 board build:** 134,692 B free; 0 warnings. **The script's stack check is now VERIFIED:** largest frame
+  648 B (limit 1300 B); the 6-largest sum 2960 B (limit 3584 B).
+- **u4 byte-identity after the rebase:** 25/25 CSVs identical to the installed Replay `3c3b62bb`.
+- **Before merging the two port branches together:** u4's two `fprintf` calls must become `ukf_fprintf`, or the board
+  build fails.
