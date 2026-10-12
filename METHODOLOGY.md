@@ -14005,3 +14005,12 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    - **Anything changing EKF3's configuration needs a stated reason:** EKF3 keeps its simulation settings unless real
      hardware forces a change.
    - **The full watcher bench is re-run ONCE, after the approved mitigations are in.**
+
+### RULING (user, 2026-10-12): F8 mitigations M1, M2, M3 APPROVED (none changes EKF3's configuration)
+- **M1 (procedural):** power-cycle the FC before any re-arm after a landing, then set and re-verify the EKF origin.
+- **M2 (detection):** a watcher arming check. The watcher refuses unless EKF3's velocity (LOCAL_POSITION_NED) stays
+  < 0.2 m/s for 5 s while mocap shows the vehicle stationary. It is also a manual card step.
+  - Tests include a case where EKF3's velocity runs away on the ground and arming is refused.
+- **M3 (procedural):** land in ALT_HOLD where safe; after any LAND-mode touchdown, the pilot disarms within 2 s.
+- **Then:** M1–M3 on the flight cards, and ONE full watcher bench run with everything in (the F7 yaw check, the F8
+  mitigations, the H10 guard), reported.
