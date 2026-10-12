@@ -14084,3 +14084,37 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **u4 byte-identity after the rebase:** 25/25 CSVs identical to the installed Replay `3c3b62bb`.
 - **Before merging the two port branches together:** u4's two `fprintf` calls must become `ukf_fprintf`, or the board
   build fails.
+
+### M2 built; M1–M3 on the cards; FULL watcher bench `wbench4` with everything in (F7, M2, H10, M1, M3) (handover `docs/handovers/2026-10-12_m2_full_bench.md`)
+- **M2** (`realflight/watcher/velcheck.py`, required by default): while disarmed, the 3-D norm of LOCAL_POSITION_NED
+  velocity must stay < 0.2 m/s for 5 s continuously, with mocap stationary (< 0.05 m/s), mocap valid and LPN fresh
+  (≤ 0.5 s). No origin means no LPN, so it refuses. Armed: informational only.
+  - 12 new tests, incl. a ground EKF runaway → refused, no LAND. 118 realflight tests pass.
+- **Cards:**
+  - M1: power-cycle, redo §1a and re-verify the origin before any re-arm after a landing;
+  - M2: a manual step, a pre-arm line, bench check B10;
+  - M3: land in ALT_HOLD where safe; the pilot disarms within 2 s of a LAND touchdown;
+  - M4 stated; D12; B12 added to §7.2.
+- **wbench4** (pre-registered `b4f9e50`; amendments B1–B5 for two aborts and harness faults; the watcher unchanged
+  after registration):
+  - **PASS as worded:** B0–B9 (all variants), B10b (repeated under A10), B10c, F6a–c, F7-0/b/c/d, X2.
+  - **FAIL as worded:**
+    - **F7-a:** 7.59 s against 5.0 s. A teleport gave EKF3 a vz transient of 0.31 m/s, and M2's 3-D norm refused on
+      it;
+    - **B10a "vehicle holds"** under a strict reading (differs from wbench2's): the vehicle drifted in ALT_HOLD to the
+      box face;
+    - **X1** against the operator link's timing; it holds on the watcher's own FC state (0 armed gate failures).
+  - **NOT COMPLETED: M2-R, the runaway test.**
+    - The first run was VOID (harness), with one repeat under A10.
+    - That repeat produced a REAL runaway (0.69 m/s, vehicle still). The watcher refused at the first sample over the
+      limit, and (e)–(g) passed after M1. But the runaway ended 1.9 s after the disarm, before the FC-side probe, so V3
+      FAILED.
+    - Repeated once more under V3's rule (amendment B5): the final repeat produced no runaway lasting ≥ 1 s.
+  - **Observed:** the watcher refused two persistent ground runaways (42.6 m/s after a B9a landing; 192 m/s after the
+    B4c tilt-drop), the causes of the two aborts.
+- **SAFETY STATEMENT, open:**
+  - the FC refuses only ~3.3 s after the watcher withdraws (FS_GCS_TIMEOUT);
+  - a runaway shorter than ~3 s starting at the disarm is never refused by the FC itself; only the flight-script gate
+    refuses during it;
+  - a MANUAL re-arm in that window is stopped only by M1 and the card.
+- **Decisions for the user:** M2's norm (3-D vs horizontal; F7-a depends on it); whether to re-register M2-R.
