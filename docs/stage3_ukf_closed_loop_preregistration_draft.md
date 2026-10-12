@@ -164,6 +164,8 @@ shorter than 20 s).
 | S9 | **Hand-carried H3:** the onboard `XUKO` against mocap is sane (the flow sign is correct: the UKF moves the right way on every carried leg); the onboard `XUKF` replayed with the U10 G6 bands **[TBD-V]** | as stated | §2 |
 | S10 | **The land detector trips** after a commanded LAND under type 12 (F2), on the tether; the card line "after any automatic LAND, the SP disarms if the FC has not disarmed within 5 s of touchdown" | as stated | R-g, U-g |
 | S11 | **Battery and RC failsafes** read back; G6 arming procedure; the watcher system ID set | readback | U-e, U-k |
+| S12 | **EKF origin set and VERIFIED at every boot** (ruling 1, 2026-10-12) | the origin sent (or set by AHRS from `AHRS_ORIGIN_*`) only after every EKF3 core has reported initialised; a `GPS_GLOBAL_ORIGIN` received with the lat/lon set; an `ORGN` record in the log before the ARM event. NO ARMING without it | `docs/rung1_flight_cards.md` §1a, D10 |
+| S13 | **F7 yaw check** (ruling 2, 2026-10-12): the watcher refuses arming unless the FC yaw agrees with mocap within 5° for ≥ 1 s; informational once armed | real bench B11 (a)–(d) PASS; SITL `wbench3_f7` | `docs/real_flights_plan.md` §7.2 B11 |
 
 Any gate failing stops the programme at that gate. A fix means a new image, its readback, and the gates it affects
 re-run (as a minimum S3 and S4).
@@ -243,8 +245,9 @@ decided from the log and the recorded reason, BEFORE any estimation metric of th
 9. **If U4 is in use:** the on-ground height is `RNGFND1_GNDCLR`, a port rule. EKF3 at the pinned commit falls back to
    baro there instead, and the UKF has no baro. After arming, no range is fused until the sensor reads above its
    minimum. If take-off follows arming by more than 5 s, the UKF's vertical flags lapse (`RNG_TIMEOUT_MS`) until it
-   does. The card requires take-off within 5 s of arming in that case **[RULING: or extend the GNDCLR range to "armed
-   but take-off not yet detected"]**.
+   does. **RULED 2026-10-12 (ruling 7):** a flight-card rule now, on every sortie: take off within 5 s of arming
+   (`docs/rung1_flight_cards.md` §5). The proper fix (extending the GNDCLR range to "armed but take-off not yet
+   detected") is deferred to the closed-loop work.
 
 ## 10. Open inputs before sign-off
 
@@ -259,7 +262,8 @@ decided from the log and the recorded reason, BEFORE any estimation metric of th
   - n = 5 (+1 spare);
   - the C4 factor of 2;
   - E_max's 1.5 factor and 0.30 m floor;
-  - the take-off-within-5-s card line or the U4 extension (§9 item 9);
+  - ~~the take-off-within-5-s card line or the U4 extension (§9 item 9)~~ RULED 2026-10-12: the card line now, the
+    extension deferred;
   - the own-gyro FLOW_TYPEs (U-h);
   - the multi-IMU rule (U-i).
 - **From rung 1 / U10 [TBD-V]:** ψ̇, v_b, the C4 gyro reference, the mocap clock-map bound.
