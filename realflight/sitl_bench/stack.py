@@ -56,6 +56,10 @@ class Stack:
         self.cwd = f"{HOME}/thesis_data/wbench/sitl_cwd"
         self.renv = ros_env()
         self.penv = dict(os.environ, PYTHONPATH=REPO, MAVLINK20="1", **ISO)
+        # the watcher's check defaults (wbench4, `bench.py --checks all`: the F7 yaw check with the fixed SITL tie 90 and
+        # the M2 velocity check ON; otherwise both off, as in every earlier bench session)
+        self.wdef = dict(yaw_check="off", yaw_tie="origin", vel_check="off")
+        self.last_watcher = ((), {})       # the args of the last start_watcher (M1 restarts the watcher with them)
 
     # ---------- processes ----------
     def spawn(self, name, cmd, env=None, cwd=None):
@@ -259,20 +263,26 @@ class Stack:
 
     # ---------- watchers ----------
     def watcher_cmd(self, *extra, name="watcher", sysid=211, fc_port=None, mocap_port=None, box=BOX, deps=True,
-                    identity="off", fc_params="require", yaw_check="off", yaw_tie="origin"):
+                    identity="off", fc_params="require", yaw_check=None, yaw_tie=None, vel_check=None):
+        yaw_check = self.wdef["yaw_check"] if yaw_check is None else yaw_check
+        yaw_tie = self.wdef["yaw_tie"] if yaw_tie is None else yaw_tie
+        vel_check = self.wdef["vel_check"] if vel_check is None else vel_check
         out = os.path.join(self.out, name)
         cmd = [VENV_PY, "-m", "realflight.watcher.mocap_watch", out,
                "--fc", f"udpin:127.0.0.1:{fc_port or P['watcher_fc']}", "--sysid", str(sysid),
                "--mocap-port", str(mocap_port or P["mocap"]), "--body-name", "thesis_quad", "--body-id", "1",
                f"--box={box}", "--identity", identity, "--fc-params", fc_params,
-               # F7 yaw check: off for the B0-B10 sessions (not about it; unchanged behaviour), on in wbench3_f7
-               "--yaw-check", yaw_check, "--yaw-tie", yaw_tie]
+               # F7 yaw check / M2 velocity check: off for the wbench/wbench2 B0-B10 sessions (unchanged behaviour),
+               # on in wbench3_f7 (yaw) and in every wbench4 session (both; `bench.py --checks all`)
+               "--yaw-check", yaw_check, "--yaw-tie", yaw_tie, "--vel-check", vel_check]
         if deps:
             cmd += ["--dep", "flow_tracker", "--dep", "flow_bridge", "--liveness-port", str(P["live"])]
         return cmd + list(extra)
 
     def start_watcher(self, *extra, **kw):
         name = kw.get("name", "watcher")
+        if name == "watcher":
+            self.last_watcher = (extra, dict(kw))
         self.stop(name, signal.SIGKILL, 3)
         return self.spawn(name, self.watcher_cmd(*extra, **kw))
 
@@ -352,6 +362,8 @@ class Operator:
         self.run = True
         self.last_hb = 0
         self.origins = []         # (wall, lat_e7, lon_e7, alt_mm) of every GPS_GLOBAL_ORIGIN from the FC
+        self.lpn = []             # (wall, vx, vy, vz) of every LOCAL_POSITION_NED from the FC (10 Hz requested)
+        self.lpn_log = open(os.path.join(out, "op_lpn.csv"), "a", buffering=1)
         threading.Thread(target=self._loop, daemon=True).start()
         threading.Thread(target=self._streams, daemon=True).start()
 
@@ -363,6 +375,8 @@ class Operator:
             try:
                 self.m.mav.command_long_send(1, 1, M.MAV_CMD_SET_MESSAGE_INTERVAL, 0, M.MAVLINK_MSG_ID_SYSTEM_TIME,
                                              100000, 0, 0, 0, 0, 0)
+                self.m.mav.command_long_send(1, 1, M.MAV_CMD_SET_MESSAGE_INTERVAL, 0,
+                                             M.MAVLINK_MSG_ID_LOCAL_POSITION_NED, 100000, 0, 0, 0, 0, 0)
             except OSError:
                 pass
             time.sleep(3)
@@ -386,6 +400,12 @@ class Operator:
                 if armed != self.armed or msg.custom_mode != self.mode:
                     self.note("HB", f"armed={int(armed)} mode={msg.custom_mode}")
                 self.armed, self.mode = armed, msg.custom_mode
+            elif ty == "LOCAL_POSITION_NED" and src == 1:
+                self.lpn_log.write(f"{t:.4f},{msg.time_boot_ms},{msg.vx:.4f},{msg.vy:.4f},{msg.vz:.4f}\n")
+                with self.lock:
+                    self.lpn.append((t, msg.vx, msg.vy, msg.vz))
+                    if len(self.lpn) > 3000:
+                        del self.lpn[:1000]
             elif ty == "STATUSTEXT":
                 self.note("TEXT", f"src{src}: {msg.text}")
                 with self.lock:
@@ -401,6 +421,11 @@ class Operator:
                 self.note("ACK", f"cmd={msg.command} result={msg.result}")
                 with self.lock:
                     self.acks.append((t, msg.command, msg.result))
+
+    def vnorm_since(self, t0):
+        """[(wall, |v| 3-D)] of the FC's LOCAL_POSITION_NED received since t0 (the operator link)."""
+        with self.lock:
+            return [(x[0], (x[1] ** 2 + x[2] ** 2 + x[3] ** 2) ** 0.5) for x in self.lpn if x[0] >= t0]
 
     def texts_since(self, t0):
         with self.lock:

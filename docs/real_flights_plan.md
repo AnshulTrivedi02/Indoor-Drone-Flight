@@ -397,6 +397,18 @@ camera flown only once verified.
   - **Code and tests:** `realflight/watcher/yawcheck.py`; bench test B11 below; SITL `wbench3_f7`
     (`docs/handovers/2026-10-12_f7_cards.md`).
   - **Rung 1** has no watcher, so it is a manual card step there.
+- **F8 mitigations M1–M3 (ruling 2026-10-12; none changes EKF3's configuration).** After a landing, EKF3's flow gate
+  can lock one axis out on the ground while the other axis keeps the fall-backs off, so EKF3's velocity runs away
+  while the vehicle sits still; no stock arming check sees it (F8, `docs/handovers/2026-10-12_f8_investigation.md`).
+  - **M1:** power-cycle the FC before any re-arm after a landing, then the origin set and re-verified
+    (`docs/rung1_flight_cards.md` §1a).
+  - **M2 (watcher arming check):** while the FC is disarmed, the watcher withholds its confirmation unless the FC's
+    `LOCAL_POSITION_NED` velocity (3-D norm of vx, vy, vz) stays < 0.2 m/s for 5 s continuously while the mocap shows
+    the vehicle stationary (speed over a 0.5 s baseline < 0.05 m/s), with mocap valid and `LOCAL_POSITION_NED` fresh
+    (≤ 0.5 s). Armed: informational only, never lands. No origin → no `LOCAL_POSITION_NED` → refused. Code:
+    `realflight/watcher/velcheck.py`; bench test B12 below; SITL `wbench4_m2` (`docs/handovers/2026-10-12_m2_full_bench.md`).
+    Rung 1: a manual card step.
+  - **M3:** land in ALT_HOLD where safe; after any LAND-mode touchdown the safety pilot disarms within 2 s.
 - **Physical:** prop guards, tether or net (question 7), conservative speed (0.25–0.5 m/s), the lowest workable
   height (≥ 1 m for the flow and range geometry), and a battery failsafe.
 - **Staged bring-up:**
@@ -409,9 +421,9 @@ camera flown only once verified.
 ### 7.2 Mocap watcher bench tests: PRE-REGISTERED (confirmed by the user 2026-10-10, for the camera-flow path), 2026-10-10
 
 **Purpose:** prove on the real system, with the props off, that every path of the fail-closed rule (§7) acts. These
-tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10, and B11(a) since
-2026-10-12), and in full after any change to the watcher, the flight script, the FC firmware or its failsafe
-parameters.
+tests are part of stage 0 (§9.4). They are repeated at the start of every flight day (B0–B2, B10, and B11(a) and
+B12(a) since 2026-10-12), and in full after any change to the watcher, the flight script, the FC firmware or its
+failsafe parameters.
 
 **What the bench can and cannot show:** the vehicle is on the ground, so these tests verify detection and the command
 paths. On a landed, armed vehicle, ArduCopter's response to a failsafe is an immediate disarm
@@ -689,6 +701,38 @@ SITL version is `wbench3_f7`, `docs/handovers/2026-10-12_f7_cards.md`.)*
 - *Length:* ground only, ~5 min. Each response is expected within ~1.5 s, and a restart and its re-tie within ~10 s.
 - *Recorded:* the watcher's `STOP_LOG.txt` and `mocap_watch_yaw.csv` (the FC yaw, the mocap heading, the tie and the
   difference at 25 Hz); the tie on the sheet; the FC STATUSTEXT and ARM events; the flight-script log.
+
+**B12. M2: EKF velocity not settled, or the vehicle not still → arming refused (the watcher velocity check).** *(Added
+2026-10-12 under "RULING (user, 2026-10-12): F8 mitigations M1, M2, M3 APPROVED", METHODOLOGY. Pre-registered here
+before any hardware run; the SITL version, including a real EKF3 ground runaway, is `wbench4_m2`,
+`docs/handovers/2026-10-12_m2_full_bench.md`.)*
+- *Setup:* common, disarmed, props off. The watcher runs with `--vel-check require` (and the B11 yaw check). The
+  power-on procedure (`docs/rung1_flight_cards.md` §1a) is complete, so the FC sends `LOCAL_POSITION_NED`.
+- **Why the stimuli are not an EKF runaway:** F8 needs a landing (a touchdown with a velocity error, then the ground
+  gate lock-out). With the props off there is no landing, so a real runaway cannot be produced on the bench. The SITL
+  `wbench4_m2` test produces one. Here the refusal path is driven by the vehicle's motion and by a lowered threshold,
+  as B11(b) uses an offset tie.
+- (a) **Control (also daily).** At rest: the watcher confirms ≥ 5 s after the last motion; its
+  `mocap_watch_vel.csv` shows |v| < 0.2 m/s throughout; the flight script arms as in B0. *Recorded:* the at-rest
+  maximum |v| (expected ≪ 0.2: SITL ≤ 0.08 m/s on the ground before every first arm).
+- (b) **Not still → refused.** Disarmed and confirmed: carry the vehicle by hand ~1 m at walking speed and set it down.
+  - *Pass:* the confirmation is withdrawn while it moves, with "vel vehicle not stationary" (or "EKF velocity …") among
+    the reasons; the watcher sends NO LAND and logs no BREACH; it re-confirms only ≥ 5.0 s after the vehicle is set
+    down (mocap), and within 8.0 s of it if the EKF velocity has settled.
+- (c) **Velocity over the limit → refused.** Restart the watcher with `--vel-max 0` (every velocity sample is then at
+  or over the limit).
+  - *Pass:* it never confirms, its reason is "vel EKF velocity |v| … >= 0.0"; after ≥ 5 s a non-force MAVLink arm from
+    the GCS is REFUSED ("GCS failsafe on", or the Lua "Watcher: …" text); the flight script logs "REFUSING TO ARM:
+    watcher not confirming"; NO LAND, no BREACH. Then restart it with the default `--vel-max 0.2`. *Pass:* it confirms
+    within 8.0 s and the flight script arms (after the FC's "GCS Failsafe Cleared").
+- (d) **No origin → refused.** Reboot the FC with the watcher running and do NOT set the origin for 20 s.
+  - *Pass:* no confirmation, the reason "vel no LOCAL_POSITION_NED from the FC"; then set and verify the origin (§1a):
+    it confirms.
+- **Armed (informational only):** not testable with the props off (an armed vehicle on the bench has ~0 velocity).
+  Covered by the unit tests (`realflight/watcher/tests/test_vel.py`) and SITL `wbench4_m2`.
+- *Length:* ground only, ~4 min. Each response is expected within ~1 s; each re-confirmation needs the 5 s hold.
+- *Recorded:* `STOP_LOG.txt`, `mocap_watch_vel.csv` (vx, vy, vz, |v|, the mocap speed, the hold time, the verdict at
+  the `LOCAL_POSITION_NED` rate), the FC STATUSTEXT and ARM events, the flight-script log.
 
 **Pass rule for stage 0:** every test passes as worded, or a deviation is recorded and ruled on before stage 1. B1(c)
 and G6 may be closed by the procedure rule plus `ARMING_RUDDER` 0 only with an explicit ruling.

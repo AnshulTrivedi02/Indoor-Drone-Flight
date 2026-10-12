@@ -122,13 +122,20 @@ class FcLink:
             self.mav.param_request_read_send(self.fc_sysid, self.fc_compid, n.encode(), -1)
             self._count("PARAM_REQUEST_READ")
 
-    def request_streams(self, attitude_hz=25.0):
+    def request_streams(self, attitude_hz=25.0, lpn_hz=10.0):
         """ATTITUDE for the identity check (>= 20 Hz); HEARTBEAT at fc_hb_hz (default 1 Hz on the FC) so the LAND
         re-send rule (F6) sees mode changes quickly. HEARTBEAT is in the FC's message-interval table
-        (GCS_Common.cpp:1045), so SET_MESSAGE_INTERVAL applies to it; the request affects this link only."""
+        (GCS_Common.cpp:1045), so SET_MESSAGE_INTERVAL applies to it; the request affects this link only.
+        LOCAL_POSITION_NED at lpn_hz for the M2 velocity check (velcheck.py); it is in the same table
+        (GCS_Common.cpp:1099, MSG_LOCAL_POSITION) and is sent only once the AHRS has a position relative to the EKF
+        origin (GCS_Common.cpp:3042-3051)."""
         self.mav.command_long_send(self.fc_sysid, self.fc_compid, mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, 0,
                                    mavlink.MAVLINK_MSG_ID_ATTITUDE, 1e6 / attitude_hz, 0, 0, 0, 0, 0)
         self._count("COMMAND_LONG")
+        if lpn_hz:
+            self.mav.command_long_send(self.fc_sysid, self.fc_compid, mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, 0,
+                                       mavlink.MAVLINK_MSG_ID_LOCAL_POSITION_NED, 1e6 / lpn_hz, 0, 0, 0, 0, 0)
+            self._count("COMMAND_LONG")
         if self.fc_hb_hz:
             self.mav.command_long_send(self.fc_sysid, self.fc_compid, mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, 0,
                                        mavlink.MAVLINK_MSG_ID_HEARTBEAT, 1e6 / self.fc_hb_hz, 0, 0, 0, 0, 0)
@@ -199,7 +206,8 @@ class FcLink:
     def poll(self):
         """Drain received messages. Returns a list of (kind, data) events:
         ('fc_hb', armed, custom_mode), ('att', roll, pitch, yaw, time_boot_ms), ('param', name, value),
-        ('ack', cmd, result), ('collision', text), ('fc_text', text), ('origin', lat_e7, lon_e7) (GPS_GLOBAL_ORIGIN:
+        ('ack', cmd, result), ('collision', text), ('fc_text', text), ('lpn', vx, vy, vz, time_boot_ms)
+        (LOCAL_POSITION_NED velocity, NED m/s, for the M2 check), ('origin', lat_e7, lon_e7) (GPS_GLOBAL_ORIGIN:
         the AHRS broadcasts it on every channel when the EKF origin first becomes valid, AP_AHRS.cpp:428-440; the F7
         yaw-check tie is captured at the first one in an FC boot)."""
         ev = []
@@ -224,6 +232,8 @@ class FcLink:
                 ev.append(("fc_hb", bool(m.base_mode & mavlink.MAV_MODE_FLAG_SAFETY_ARMED), m.custom_mode))
             elif t == "ATTITUDE":
                 ev.append(("att", m.roll, m.pitch, m.yaw, m.time_boot_ms))
+            elif t == "LOCAL_POSITION_NED":
+                ev.append(("lpn", m.vx, m.vy, m.vz, m.time_boot_ms))
             elif t == "GPS_GLOBAL_ORIGIN":
                 ev.append(("origin", m.latitude, m.longitude))
             elif t == "PARAM_VALUE":

@@ -242,7 +242,8 @@ def test_f6_heartbeat_rate_is_requested(fc):
         L.send_heartbeat(); L.request_streams()
         time.sleep(0.3)
         ids = {int(r[3].param1) for r in fc.received("COMMAND_LONG", src=211) if r[3].command == 511}
-        assert ids == {30, 0}, ids                          # ATTITUDE and HEARTBEAT intervals
+        # ATTITUDE and HEARTBEAT intervals, and (M2, 2026-10-12) LOCAL_POSITION_NED
+        assert ids == {30, 0, 32}, ids
     finally:
         L.close()
 

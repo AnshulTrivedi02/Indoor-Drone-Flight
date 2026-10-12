@@ -10,6 +10,16 @@ operator before the bench day, and amended there. Placeholders: **[TBD-S]** (sup
 - U4: take off within 5 s of arming (§4, §5);
 - the mocap rigid body's x axis along the nose (§1);
 - the sync wiggle in the first log run through the converter acceptance (B9).
+
+**Amended 2026-10-12 (later)**, "RULING (user, 2026-10-12): F8 mitigations M1, M2, M3 APPROVED" (METHODOLOGY; the
+mechanism in `docs/handovers/2026-10-12_f8_investigation.md`; handover `docs/handovers/2026-10-12_m2_full_bench.md`).
+None of them changes EKF3's configuration:
+- **M1:** power-cycle the FC before ANY re-arm after a landing, then the whole §1a again (origin set and re-verified)
+  (§1a "M1", §4, §5, §6 ABORT – LURCH, §7 D12);
+- **M2:** the EKF velocity pre-arm check: |v| < 0.2 m/s for 5 s with the vehicle still; manual on rung 1, the
+  watcher's arming check on rungs 2–3 (§1a step 7, §5, B10);
+- **M3:** land in ALT_HOLD where safe; after any LAND-mode touchdown the SP disarms within 2 s (§0, §5 step 4, §6);
+- M4 (stated): U4 (take off within 5 s of arming) does NOT address F8; the bad velocity exists before arming.
 The verification/result classification below is unchanged.
 
 Governing documents: `docs/rung1_preregistration_draft.md` (what is flown and scored; ON HOLD until the supervisor
@@ -40,7 +50,7 @@ ours steers: safety is the safety pilot, the FC's altitude fence and failsafes, 
 
 | role | who | duties | authority |
 |---|---|---|---|
-| **Safety pilot (SP)** | [TBD-S] | flies every armed sortie in ALT_HOLD; owns the transmitter, the mode switch (STABILIZE / ALT_HOLD / LAND) and the disarm | **final authority** in the air: calls and executes every abort |
+| **Safety pilot (SP)** | [TBD-S] | flies every armed sortie in ALT_HOLD; owns the transmitter, the mode switch (STABILIZE / ALT_HOLD / LAND) and the disarm; lands in ALT_HOLD where safe and, after ANY touchdown in LAND mode, disarms within 2 s (M3) | **final authority** in the air: calls and executes every abort |
 | **Mocap operator (MO)** | [TBD-S] | starts/stops the mocap take; watches the rigid body live (tracked, inside the box); calls "MOCAP LOST" / "BOUNDARY" | calls aborts on tracking loss or boundary; never touches the vehicle controls |
 | **Ground station / logger (GS)** | the student | parameter readback, arming pre-checks, sortie log sheet, log download, the data-integrity checklist (§6) | calls "NO-GO" before arming; may call an abort; never flies |
 | **Observer** (if lab rules require) | [TBD-S] | volume clear of people; fire/LiPo safety | may call an abort |
@@ -125,7 +135,28 @@ Steps (GS; repeated after ANY reboot of the FC, including a parameter reboot):
      - Once the FC is armed, the check is informational only and never lands the vehicle.
    - **Ground drift under no compass.** The EKF yaw drifts with the gyro bias (SITL in flight: +6.6…+11.1°/min).
      - A long wait between the origin step and arming can itself exceed 5°.
-     - After a sortie the FC is normally rebooted before the next one, which repeats steps 1–6.
+     - After a sortie the FC is rebooted before the next one (M1 below), which repeats steps 1–7.
+7. **M2: the EKF velocity check, before EVERY arming** (F8; ruling 2026-10-12 M2). Vehicle on the start mark, STILL.
+   - The FC's EKF velocity, `LOCAL_POSITION_NED` vx, vy, vz on the GCS (3-D magnitude), must stay **< 0.2 m/s for
+     5 s continuously** while MO confirms from mocap that the rigid body is tracked and not moving. Otherwise NO-GO:
+     do not arm; power-cycle the FC (M1) and repeat from step 1.
+   - **Why:** after a landing, EKF3's flow gate can lock one axis out on the ground while the other axis keeps every
+     fall-back off, so EKF3's velocity runs away (1–2 m/s in SITL) while the vehicle sits still, and NO stock arming
+     check looks at it (F8; 5 of 46 SITL arms, ALL re-arms after a landing in the same boot). `EKF_STATUS_REPORT`
+     cannot show it (its velocity variance stays small), so read the velocity itself.
+   - `LOCAL_POSITION_NED` exists only once the origin is set (step 4). No velocity shown = no origin = NO-GO.
+   - **Rung 1** (no watcher): a manual GS card line, signed off before "GO".
+   - **Rungs 2–3:** the watcher enforces it (`realflight/watcher/velcheck.py`, `--vel-check require`). While the FC is
+     disarmed it withholds its confirmation (reason "vel …"), so the FC cannot arm; armed, it is informational only and
+     never lands the vehicle.
+
+**M1: power-cycle the FC before any re-arm after a landing** (F8; ruling 2026-10-12 M1).
+- Every F8 runaway in SITL followed a landing in the same boot; 0 of 10 first arms of a boot showed one.
+- After ANY landing (a normal one, an abort, a bounced landing, "land and go again"), the vehicle is NOT re-armed in the
+  same boot: disarm, power-cycle the FC (a battery change does this only if the FC is powered from the flight battery:
+  **[TBD-S] confirm the real power wiring**; otherwise a deliberate reboot), then §1a steps 1–7 again: the origin set
+  and RE-VERIFIED, the tie, F7, M2.
+- A battery change between sorties is therefore also a §1a restart.
 
 ---
 
@@ -146,6 +177,7 @@ line passes; any FAIL stops the day's flying until fixed.**
 | B7 | **Failsafes** | RC transmitter off for 2 s (props off, disarmed): RC failsafe message; battery failsafe values read back | ~1 min | messages as expected; values as filed |
 | B8 | **Log completeness** | download the bench log; run §7 items D2–D5 on it | ~5 min of checking; the log is the B1–B7 period | LOG_REPLAY records present; `DSF.Dp` = 0 |
 | B9 | **Sync wiggle in the first acceptance log** (2026-10-12) | before B8's download, with the vehicle disarmed on the bench: a sync wiggle (~5 s, sharp rotations about all three axes, \|ω\| > 2 rad/s); then run `eval/bin2fgo_accept.py` on the B8 log | ~1 min: the wiggle is what A5 tests against | the converter's A5 (IMU against the FC's own IMU record) is TESTED and passes. Without a wiggle in the disarmed span, A5 is NOT TESTED and the converter is NOT accepted on that log (METHODOLOGY, rung-1 scoring items). The first real log that goes through the acceptance must contain the wiggle |
+| B10 | **M2 EKF velocity check** (2026-10-12) | §1a step 7 on the bench, vehicle still: read `LOCAL_POSITION_NED` vx, vy, vz on the GCS for 5 s; then carry the vehicle by hand ~1 m and set it down; read again for 5 s | ~1 min | \|v\| < 0.2 m/s at rest before and after the carry; the at-rest maximum on the sheet (rungs 2–3: the watcher's B12, `real_flights_plan.md` §7.2) |
 
 The B4 wiggle and the bench rotations are also the input for the flow-delay measurement (pre-registration §6).
 
@@ -175,7 +207,7 @@ the flow sign over the real floor and Replay reproduction of a non-aiding EKF3. 
 **Length: ~1.5–2 min airborne.** *Why it suffices:* 45 s of hover covers EKF3's flow-aiding start (~16 s after take-off
 in SITL) with margin; one 2 m leg and back shows that flow drives the velocity with the right sign. **Never scored.**
 
-Card: as the result card (§5), including its pre-arm block (the origin verified, the F7 yaw check, U4), with this
+Card: as the result card (§5), including its pre-arm block (M1, the origin verified, the F7 yaw check, M2, U4), with this
 profile instead: take-off to h **within 5 s of arming** → hover 45 s → 2 m forward and back at ≤ 0.3 m/s → hover 10 s →
 land. Sync wiggles before arming and after disarming as usual.
 
@@ -198,8 +230,13 @@ Pre-arm (GS reads, SP confirms):
 - [ ] FC: logging, no pre-arm errors, rangefinder reading ≈ GNDCLR, flow healthy
 - [ ] **EKF origin verified at this boot** (§1a steps 2–4): every core initialised before it; `GPS_GLOBAL_ORIGIN`
       received with the lat/lon that were set. **NO ARMING without it.**
+- [ ] **M1:** NO landing earlier in this FC boot (after any landing in this boot → power-cycle and redo §1a; a
+      props-off bench arm without a flight does not count)
 - [ ] **F7 yaw check** (§1a step 6): tie __°; FC yaw __°; mocap heading __°; |diff| = __° **≤ 5°**, steady ≥ 1 s,
       rigid body tracked. Rungs 2–3: the watcher shows confirmed (no "yaw" reason).
+- [ ] **M2 EKF velocity check** (§1a step 7): vehicle still (MO); `LOCAL_POSITION_NED` |v| max over 5 s = __ m/s
+      **< 0.2**. Rungs 2–3: the watcher shows confirmed (no "vel" reason).
+- [ ] M4 (stated): U4 below does NOT address F8. Taking off quickly cannot clear a bad pre-arm velocity; M1 and M2 do.
 - [ ] **U4 (ruling 7): take off within 5 s of arming.** SP and GS agree that the take-off follows the arming at once.
       If the take-off is delayed beyond 5 s after arming: DISARM, and re-arm when ready.
       - Why: if the rangefinder reads below its minimum on the ground, the UKF's vertical flags lapse 5 s after arming
@@ -212,7 +249,10 @@ Profile (SP flies; GS calls the times from a stopwatch started at take-off):
 1. [ ] Sync wiggle, disarmed (~5 s); set down on the start mark; stand clear
 2. [ ] Arm; **take off within 5 s of arming (U4)** to h = __ m; **hover 30 s** over the start mark
 3. [ ] **Two laps** of the rectangle/out-and-back (legs __ m) at ~__ m/s (~90 s); GS calls each corner
-4. [ ] Hover 10 s over the start mark; land; disarm
+4. [ ] Hover 10 s over the start mark; **land in ALT_HOLD** (M3: throttle down to touchdown, then disarm at once).
+      If LAND mode was used (an abort, or ALT_HOLD judged unsafe): **SP disarms within 2 s of touchdown** (M3; do not
+      wait for the FC's land detector: F2/F8, the phantom velocity can make LAND lean the vehicle on the ground). After
+      this landing, no re-arm in this boot (M1)
 5. [ ] Sync wiggle, disarmed (~5 s); MO: stop the take; GS: note the end time
 6. [ ] GS: anything unusual (gusts from air conditioning, a skipped leg, a pilot correction) noted on the sheet
 
@@ -222,6 +262,9 @@ Profile (SP flies; GS calls the times from a stopwatch started at take-off):
 
 Called by anyone; **SP executes**. Default action: **LAND mode** (switch), or SP lands manually in ALT_HOLD if LAND
 would be worse. **STABILIZE** is the last resort if ALT_HOLD misbehaves (height oscillation, climb-away).
+**M3 (2026-10-12):** where it is safe, SP lands in ALT_HOLD rather than LAND. After ANY touchdown in LAND mode, SP
+disarms **within 2 s** (this tightens the earlier F2 rule from 4 s): on the ground EKF3's phantom velocity (F8) makes
+LAND demand up to 30° of lean, the land detector never trips, and in SITL the vehicle tipped over (F2, B9b).
 
 | call | condition | action |
 |---|---|---|
@@ -230,7 +273,7 @@ would be worse. **STABILIZE** is the last resort if ALT_HOLD misbehaves (height 
 | ABORT – HEIGHT | ALT_HOLD height oscillating > ±0.3 m, or an uncommanded climb/descent | STABILIZE if needed, land |
 | ABORT – FAILSAFE | any failsafe message (EKF, battery, RC, fence) | the FC's action stands; SP takes over only if it is unsafe |
 | ABORT – VEHICLE | vibration, noise, a loose part, smoke, a motor/ESC fault | land immediately; disarm; LiPo procedure |
-| ABORT – LURCH | an uncommanded horizontal lurch or drift on take-off (F7: a yaw error; F8: EKF3's velocity diverged on the ground before arming) | SP takes ALT_HOLD/STABILIZE at once, lands, disarms; GS records it; the next arming only after §1a steps 1–6 again |
+| ABORT – LURCH | an uncommanded horizontal lurch or drift on take-off (F7: a yaw error; F8: EKF3's velocity diverged on the ground before arming) | SP takes ALT_HOLD/STABILIZE at once, lands, disarms (within 2 s of touchdown if in LAND, M3); GS records it; the next arming only after a power-cycle (M1) and §1a steps 1–7 again |
 | ABORT – PEOPLE | anyone enters the volume | land immediately |
 
 After any abort: the sortie is recorded with its reason. A result sortie aborted before the window end is excluded
@@ -255,6 +298,7 @@ GS, on the downloaded `.BIN` and the mocap export (a script will implement D1–
 | D9 | Sortie sheet complete: class (VERIFICATION/RESULT), battery, times, take name, any deviation | yes |
 | D10 | **EKF origin in the log** (ruling 1): an `ORGN` record in this boot's dataflash BEFORE the ARM event; the boot's "EKF3 IMUn initialised" messages (every core) precede the origin | yes. If not: no further sortie until the cause is found (a safety stop; NOT a scoring exclusion, since the pre-registration §3.3 is unchanged) |
 | D11 | **F7 and U4 as flown:** the sheet's yaw-check line filled in (\|diff\| ≤ 5°); the `ARM` event to take-off (the first `CTUN`/`RFND` climb) ≤ 5 s | yes. A deviation is recorded; it does not change the classification |
+| D12 | **M1/M2/M3 as flown (2026-10-12):** no landing (`EV` LAND_COMPLETE / LAND_COMPLETE_MAYBE after a take-off) before this sortie's `ARM` in this boot's log (M1); the sheet's M2 line filled in, and `XKF1` (core 0) √(VN²+VE²+VD²) < 0.2 m/s over the 5 s before `ARM`; if the landing was in LAND mode, the disarm ≤ 2 s after touchdown (`EV` LAND_COMPLETE_MAYBE) (M3) | yes. A deviation is recorded and is a safety stop for the day until understood; it does not change the classification |
 
 A RESULT sortie failing D2–D4, D7 or D8 is excluded under the pre-registration §3.3 (the reason recorded) BEFORE any
 estimator is run on it.
