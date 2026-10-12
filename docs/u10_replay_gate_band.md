@@ -54,7 +54,7 @@ flights; fewer than 4 → NOT EVALUABLE; one failing flight fails the gate. All 
    - **Verified (§8):** CSVs byte-identical to `e82c050b` on 5 SITL logs; logs decodable by df_reader and pymavlink;
      on fork-flown logs the two streams are separate and the scorer picks the replayed one; UKF_Equiv unchanged.
 
-### 0.2 What changed from the draft (all need the signature)
+### 0.2 What changed from the draft (all need the signature; items N1–N6 in point 4 are NEW decisions)
 
 1. **§3 record source:** the registered `XUKO` / `XUKF` (the replayed UKF, as the signed rung-1 pre-registration names
    them) are READ from the messages `RUKO` / `RUKF` in a Replay output from `f30f6ffa2f` on.
@@ -65,16 +65,34 @@ flights; fewer than 4 → NOT EVALUABLE; one failing flight fails the gate. All 
    `UKF_horizon` fallback is withdrawn. G6 reads both of its sides from the ONE Replay output log (`RUKF`/`RUKS`
    replayed, `XUKF`/`XUKS` onboard, copied through), not from `ukf_shadow.csv` and the input log.
 3. **G3:** rule 1 written into the criterion.
-4. **G6 E1 wording: "horizontal" corrected to "3-D".**
-   - The draft's table said "E1 horizontal max ≤ 0.05 m". But its basis says "the existing port-equivalence bands,
-     unchanged".
-   - That band is the 3-D position difference (METHODOLOGY "UKF port validation, step 1": "E1 | 3-D position
-     difference"), and the cited SITL numbers (0.0184 m, 0.00055 m) are 3-D.
-   - 3-D is the stricter reading.
-5. **Exact definitions written out (§4.1)** where the draft left them implicit: the G1 geometry sources and the
-   late-PARM rule, "initialises before arming", G2's coverage of W, G5 when the drift metric is not computable (FAIL),
-   G6 pairing and the E5 increment form, the preconditions tying a score to its Replay run, and the single-binary
-   rule for the set.
+4. **NEW DECISIONS, not wording. The user approved rules 1 and 2 only; each item below needs its own signature.**
+   They were implicit or absent in the draft. They are written out in §4.1 and implemented as written.
+   - **(N1) G5 "not computable = FAIL".** When the rung-1 drift rule refuses its initial segment (it moves < 1.0 m
+     horizontally), G5 FAILS the flight. **This one can change a verdict:** the SITL `H_s2v2_r1` demo fails on it.
+     The alternative would be to count such a flight as not usable. That is not chosen here, because a safety gate
+     should not pass on a missing number.
+   - **(N2) G2 coverage of W.** "Throughout W" is read as: the `ukf_shadow.csv` rows cover W, with no gap (including
+     the gaps to W's two ends) longer than the rung-1 `max_gap_s` (0.5 s).
+   - **(N3) G1 late-PARM rule.** A late geometry PARM passes only if:
+     - it repeats the value in use for one of the five resolved parameters; or
+     - it is a lever arm (`FLOW_POS_*`, `INS_POS*`, `RNGFNDn_POS_*`), which the port takes per sample from the sensor
+       records.
+     - Any other late parameter (e.g. `RNGFND2_MIN`) fails G1. In a gated (armed) flight, a missing `ARM` record also
+       fails G1. The draft said "each one listed and shown not to change a value"; this makes that rule mechanical.
+   - **(N4) Single binary.** Every flight in the set must carry the same Replay md5 (`binary.md5`). Mixed → INVALID; a
+     missing md5 is refused.
+   - **(N5) Score↔log precondition.** The score JSON must have been computed on the same Replay output .BIN (sha256),
+     with UKF = `XUKO`/`RUKO` and EKF3 = `XKF1@100`. The log must have 0 undeclared types, 0 bad FMT and 0 re-declared
+     ids. Otherwise the flight fails.
+   - **(N6) G6 E1 is 3-D, not "horizontal".**
+     - The draft's table said "E1 horizontal max ≤ 0.05 m". But its basis says "the existing port-equivalence bands,
+       unchanged".
+     - That band is the 3-D position difference (METHODOLOGY "UKF port validation, step 1": "E1 | 3-D position
+       difference"), and the cited SITL numbers (0.0184 m, 0.00055 m) are 3-D.
+     - 3-D is the stricter reading.
+5. **Definitions written out with no new decision (§4.1):** "initialises before arming" (the first UKF row and the
+   geometry resolution both before the first ARM), the G1 source labels required, G6 pairing (exact TimeUS from the
+   later first record + 10 s) and the E5 increment arithmetic. These are as the draft stated, made exact.
 6. **The tool:** `eval/replay_gate.py` was checked against this document.
    - It does NOT implement U10. It is the rung-1 §5 EKF3 Replay-fidelity check (`XKF1@0` against `XKF1@100`), and it
      implements rung-1 §5 exactly [V].
@@ -145,6 +163,11 @@ flights; fewer than 4 → NOT EVALUABLE; one failing flight fails the gate. All 
     `e82c050b`). Onboard, the flying port stamps `AP_HAL::micros64()` at the write, which differs by at most one loop.
     Check [V]: `XUKF` interpolated at the `XUKO` stamps agrees with `XUKO` to p99 5 mm horizontal.
   - **`UKF_horizon` (`XUKF`, read from `RUKF`)** stays a reported secondary row, as in the rung-1 pre-registration.
+  - **The signed rung-1 pre-registration is not edited.** Its §4.1 implementation note on where `XUKO` is read from
+    describes the pre-rename source; the mapping (`XUKO` → message `RUKO`) is to be recorded there as a dated
+    implementation note by the user (the record itself is unchanged).
+  - **Scoring a FLIGHT log's own UKF** (a fork-flown flight log, not a Replay output) now needs `XUKO@onboard`; a plain
+    `XUKO` is refused there with that reason.
 - **Fork-flown input logs** (any log the fork flew, UKF in shadow or active):
   - the Replay output carries the onboard `XUKF`/`XUKO`/`XUKS`/`XUKH`/`XUKT` (copied through) AND the replayed
     `RUK*`, under different names and type ids;
@@ -198,8 +221,8 @@ least 4 usable flights, all replayed by the same Replay binary (md5).
       sample from the sensor records, not from PARM (`AP_NavUKF.cpp` `note_log_param` comment).
     - Any other late parameter, or a changed value, fails G1;
   - "before arming": the first `ukf_shadow.csv` row (the first initialised state) and `resolved_at_ms` are both
-    earlier than the first `ARM` record with `ArmState` = 1 in the Replay output. On a log with no `ARM` (H), this
-    part is reported as not applicable.
+    earlier than the first `ARM` record with `ArmState` = 1 in the Replay output. On the H log (no score, disarmed)
+    a missing `ARM` makes this part not applicable. On a gated flight a missing `ARM` FAILS G1 (N3).
 - **G2:**
   - every `ukf_shadow.csv` row with TimeUS in W, inclusive;
   - "the rows cover W": the longest gap between consecutive rows, counting the gaps from W's start to the first row
@@ -365,6 +388,19 @@ stored environment, scratch build and then the installed binary:
   - the set of 3: NOT EVALUABLE (< 4);
   - the H mode (no score): "PLUMBING PASS".
   - These are plumbing checks of the tool, not results.
+- **Every pass/fail branch of `u10_gate.py` executed once** (`gate_branch_tests.json`, ALL OK; edited copies of the
+  CSVs and score in a scratch directory, base = `cl_ukf_b_tex_r1_half_v2`):
+  - G1: a non-`log_parm` source, a late PARM that changes a value, and a late `RNGFND2_MIN` each FAIL. A late PARM
+    equal to the value in use, and a late lever arm, each PASS. A gated flight with no `ARM` FAILS; on H the check is
+    not applicable;
+  - G2: a 2 s row gap, one row with `Healthy` = 0, one with `FlowAgeMs` = 5000, and one with `SS` bit 3 clear each
+    FAIL;
+  - G3: `n_chol_fail` = 1 FAILS; a missing file FAILS;
+  - G4: UKF 1 mm above the band FAILS;
+  - G6: bands below the observed differences FAIL;
+  - preconditions: a score of a different log FAILS, and so does a UKF row read from the onboard `XUKO`;
+  - set rule: 4 passing → PASS; 3 passing + 1 failing → FAIL; 3 → NOT EVALUABLE; mixed binaries → INVALID. A missing
+    md5, a duplicate flight and an H record are each refused.
 - `eval/real_score_test.py`: 16 / 16 pass, including a new test of the replayed vs onboard selection and the refusals.
 
 ## 9. What the gate does NOT claim

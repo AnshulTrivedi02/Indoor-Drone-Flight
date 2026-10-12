@@ -1,0 +1,206 @@
+{
+ "base flight (fork-flown, G6 applies)": {
+  "verdict": "PASS",
+  "expected": "PASS",
+  "ok": true,
+  "why": {}
+ },
+ "G1 source not log_parm": {
+  "verdict": "FAIL: G1",
+  "expected": "FAIL: G1",
+  "ok": true,
+  "why": {
+   "G1": [
+    "geometry sources not log_parm: {'EK3_FLOW_DELAY': 'replay_registered_default'}"
+   ]
+  }
+ },
+ "G1 late PARM changing a used value": {
+  "verdict": "FAIL: G1",
+  "expected": "FAIL: G1",
+  "ok": true,
+  "why": {
+   "G1": [
+    "a late-PARM warning that changes (or is not shown not to change) a value"
+   ]
+  }
+ },
+ "G1 late PARM equal to the used value": {
+  "verdict": "PASS",
+  "expected": "PASS",
+  "ok": true,
+  "why": {}
+ },
+ "G1 late PARM lever arm": {
+  "verdict": "PASS",
+  "expected": "PASS",
+  "ok": true,
+  "why": {}
+ },
+ "G1 late PARM other (RNGFND2_MIN)": {
+  "verdict": "FAIL: G1",
+  "expected": "FAIL: G1",
+  "ok": true,
+  "why": {
+   "G1": [
+    "a late-PARM warning that changes (or is not shown not to change) a value"
+   ]
+  }
+ },
+ "G1 gated flight with no ARM record (function level)": {
+  "pass": false,
+  "why": [
+   "no ARM record (ArmState = 1) in the Replay output of a gated flight"
+  ],
+  "ok": true
+ },
+ "G1 H log with no ARM record (function level)": {
+  "pass": true,
+  "ok": true,
+  "init_before_arming": "not applicable: no ARM record (H, disarmed log)"
+ },
+ "G2 coverage gap of 2 s inside W": {
+  "verdict": "FAIL: G2",
+  "expected": "FAIL: G2",
+  "ok": true,
+  "why": {
+   "G2": [
+    "rows do not cover W: longest gap 2.040 s > 0.5 s"
+   ]
+  }
+ },
+ "G2 one row Healthy = 0": {
+  "verdict": "FAIL: G2",
+  "expected": "FAIL: G2",
+  "ok": true,
+  "why": {
+   "G2": [
+    "Healthy != 1 on 1 rows"
+   ]
+  }
+ },
+ "G2 one row FlowAgeMs = 5000": {
+  "verdict": "FAIL: G2",
+  "expected": "FAIL: G2",
+  "ok": true,
+  "why": {
+   "G2": [
+    "FlowAgeMs >= 5000 on 1 rows"
+   ]
+  }
+ },
+ "G2 one row SS bit 3 clear": {
+  "verdict": "FAIL: G2",
+  "expected": "FAIL: G2",
+  "ok": true,
+  "why": {
+   "G2": [
+    "SS bit 3 clear on 1 rows"
+   ]
+  }
+ },
+ "G3 n_chol_fail = 1": {
+  "verdict": "FAIL: G3",
+  "expected": "FAIL: G3",
+  "ok": true,
+  "why": {
+   "G3": [
+    "n_chol_fail = 1"
+   ]
+  }
+ },
+ "G3 ukf_stats.csv missing (rule 1)": {
+  "verdict": "FAIL: G3",
+  "expected": "FAIL: G3",
+  "ok": true,
+  "why": {
+   "G3": [
+    "ukf_stats.csv missing: the Replay run did not end normally (U10 rule 1)"
+   ]
+  }
+ },
+ "G4 UKF just above the band (edited score copy)": {
+  "verdict": "FAIL: G4",
+  "expected": "FAIL: G4",
+  "ok": true,
+  "why": {
+   "G4": [
+    "UKF 0.3591 m > band 0.3581 m"
+   ]
+  }
+ },
+ "G6 bands set below the observed differences": {
+  "verdict": "FAIL: G6",
+  "expected": "FAIL: G6",
+  "ok": true,
+  "why": {
+   "G6": [
+    "E1 outside its band",
+    "E3 outside its band",
+    "E5 outside its band"
+   ]
+  }
+ },
+ "precondition: score of a different log": {
+  "verdict": "FAIL: preconditions, G4, G5",
+  "expected": "FAIL: preconditions",
+  "ok": true,
+  "why": {
+   "preconditions": [
+    "score UKF was computed on a different log (sha256)",
+    "score EKF3 was computed on a different log (sha256)"
+   ],
+   "G4": [
+    "preconditions failed"
+   ],
+   "G5": [
+    "preconditions failed"
+   ]
+  }
+ },
+ "precondition: UKF row read from the onboard XUKO": {
+  "verdict": "FAIL: preconditions, G4, G5",
+  "expected": "FAIL: preconditions",
+  "ok": true,
+  "why": {
+   "preconditions": [
+    "score UKF is XUKO/XUKO, not XUKO/RUKO"
+   ],
+   "G4": [
+    "preconditions failed"
+   ],
+   "G5": [
+    "preconditions failed"
+   ]
+  }
+ },
+ "set: 4 passing flights": {
+  "verdict": "PASS",
+  "ok": true
+ },
+ "set: 3 passing + 1 failing": {
+  "verdict": "FAIL",
+  "ok": true
+ },
+ "set: 3 flights": {
+  "verdict": "NOT EVALUABLE: 3 usable flights < 4",
+  "ok": true
+ },
+ "set: mixed binaries": {
+  "verdict": "INVALID: the flights were replayed with different binaries",
+  "ok": true
+ },
+ "set: missing md5": {
+  "refused": "a flight record has no replay_binary_md5 (binary.md5 missing in its Replay directory): the single-binary rule cannot be checked",
+  "ok": true
+ },
+ "set: duplicate flight": {
+  "refused": "duplicate flights: ['F1', 'F2', 'F3', 'F1']",
+  "ok": true
+ },
+ "set: H record refused": {
+  "refused": "the set takes gated result flights only (a plumbing H record was given)",
+  "ok": true
+ },
+ "ALL_OK": true
+}

@@ -70,7 +70,7 @@ def read_geometry(path):
     return g
 
 
-def g1(geom_path, shadow, arm_us):
+def g1(geom_path, shadow, arm_us, need_arm):
     out = {"geometry_file": geom_path}
     if not os.path.exists(geom_path):
         return {**out, "pass": False, "why": "ukf_geometry.csv missing"}
@@ -102,8 +102,11 @@ def g1(geom_path, shadow, arm_us):
     out["ukf_first_row_us"] = t_init; out["first_arm_us"] = arm_us
     if t_init is None:
         why.append("the UKF never initialised (no ukf_shadow.csv row)")
+    elif arm_us is None and need_arm:
+        out["init_before_arming"] = False
+        why.append("no ARM record (ArmState = 1) in the Replay output of a gated flight")
     elif arm_us is None:
-        out["init_before_arming"] = "not applicable: no ARM record (disarmed log)"
+        out["init_before_arming"] = "not applicable: no ARM record (H, disarmed log)"
     else:
         out["init_before_arming"] = bool(t_init < arm_us and g["resolved_at_ms"] is not None
                                          and g["resolved_at_ms"] * 1000 < arm_us)
@@ -245,7 +248,7 @@ def flight(a):
     if integrity["redeclared_ids"] or integrity["undeclared_types"] or integrity["bad_fmt"]:
         pre_why.append("Replay output log integrity (undeclared types, bad FMT or re-declared type ids)")
     out["preconditions"] = {"pass": not pre_why, "why": pre_why}
-    out["G1"] = g1(os.path.join(d, "ukf_geometry.csv"), sh, arm)
+    out["G1"] = g1(os.path.join(d, "ukf_geometry.csv"), sh, arm, need_arm=score is not None)
     if score is None:                     # the hand-carried log H: plumbing only, G1 and G3 (no window, no mocap score)
         out["mode"] = "plumbing (H log): G1 and G3 only"
         out["G3"] = g3(os.path.join(d, "ukf_stats.csv"), os.path.join(d, "replay.log"))
@@ -273,6 +276,9 @@ def gate_set(paths):
     names = [f["flight"] for f in fl]
     if len(set(names)) != len(names):
         raise SystemExit(f"duplicate flights: {names}")
+    if any(not f.get("replay_binary_md5") for f in fl):
+        raise SystemExit("a flight record has no replay_binary_md5 (binary.md5 missing in its Replay directory): the "
+                         "single-binary rule cannot be checked")
     md5 = sorted({f.get("replay_binary_md5") for f in fl})
     out = {"flights": {f["flight"]: f["verdict"] for f in fl}, "n_usable": len(fl), "min_flights": MIN_FLIGHTS,
            "replay_binary_md5s": md5}
