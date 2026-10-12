@@ -230,7 +230,8 @@ Pre-arm (GS reads, SP confirms):
 - [ ] FC: logging, no pre-arm errors, rangefinder reading ≈ GNDCLR, flow healthy
 - [ ] **EKF origin verified at this boot** (§1a steps 2–4): every core initialised before it; `GPS_GLOBAL_ORIGIN`
       received with the lat/lon that were set. **NO ARMING without it.**
-- [ ] **M1:** this is the FIRST arming of this FC boot (any earlier landing in this boot → power-cycle and redo §1a)
+- [ ] **M1:** NO landing earlier in this FC boot (after any landing in this boot → power-cycle and redo §1a; a
+      props-off bench arm without a flight does not count)
 - [ ] **F7 yaw check** (§1a step 6): tie __°; FC yaw __°; mocap heading __°; |diff| = __° **≤ 5°**, steady ≥ 1 s,
       rigid body tracked. Rungs 2–3: the watcher shows confirmed (no "yaw" reason).
 - [ ] **M2 EKF velocity check** (§1a step 7): vehicle still (MO); `LOCAL_POSITION_NED` |v| max over 5 s = __ m/s
@@ -297,7 +298,7 @@ GS, on the downloaded `.BIN` and the mocap export (a script will implement D1–
 | D9 | Sortie sheet complete: class (VERIFICATION/RESULT), battery, times, take name, any deviation | yes |
 | D10 | **EKF origin in the log** (ruling 1): an `ORGN` record in this boot's dataflash BEFORE the ARM event; the boot's "EKF3 IMUn initialised" messages (every core) precede the origin | yes. If not: no further sortie until the cause is found (a safety stop; NOT a scoring exclusion, since the pre-registration §3.3 is unchanged) |
 | D11 | **F7 and U4 as flown:** the sheet's yaw-check line filled in (\|diff\| ≤ 5°); the `ARM` event to take-off (the first `CTUN`/`RFND` climb) ≤ 5 s | yes. A deviation is recorded; it does not change the classification |
-| D12 | **M1/M2/M3 as flown (2026-10-12):** exactly ONE `ARM` event in this boot's log (M1); the sheet's M2 line filled in, and `XKF1` (core 0) √(VN²+VE²+VD²) < 0.2 m/s over the 5 s before `ARM`; if the landing was in LAND mode, the `ARM` → disarm `EV`/`ARM` record ≤ 2 s after touchdown (M3) | yes. A deviation is recorded and is a safety stop for the day until understood; it does not change the classification |
+| D12 | **M1/M2/M3 as flown (2026-10-12):** no landing (`EV` LAND_COMPLETE / LAND_COMPLETE_MAYBE after a take-off) before this sortie's `ARM` in this boot's log (M1); the sheet's M2 line filled in, and `XKF1` (core 0) √(VN²+VE²+VD²) < 0.2 m/s over the 5 s before `ARM`; if the landing was in LAND mode, the disarm ≤ 2 s after touchdown (`EV` LAND_COMPLETE_MAYBE) (M3) | yes. A deviation is recorded and is a safety stop for the day until understood; it does not change the classification |
 
 A RESULT sortie failing D2–D4, D7 or D8 is excluded under the pre-registration §3.3 (the reason recorded) BEFORE any
 estimator is run on it.

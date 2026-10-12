@@ -287,7 +287,9 @@ after its test's criterion event, except in B8a and B10b(3), where it IS the cri
 - **B9b PASS:** +0.856 s, +1.039 s. **B9c PASS:** tracker SIGSTOP +0.925/+0.960 s; bridge SIGSTOP +0.911/+0.955 s.
 - **B9-hang (observation):** "no progress for 2.00 s" at +1.982 s; LAND +1.994 s.
 - **B10a:** the four RC changes reached the FC in 0.205/0.216/0.218/0.237 s (bound 0.3), with no mode change back:
-  **PASS on the mode criteria.** In ALT_HOLD with no pilot correction the vehicle drifted, and during the pilot's LAND
+  **PASS on the mode criteria.** (Reading chosen here: "vehicle holds" read strictly, as a position hold; wbench2 passed
+  the same wording on "no mode change back" alone, so this is a stricter reading, not a regression; the drift away
+  from the GUIDED hold target is itself evidence the setpoints had no effect.) In ALT_HOLD with no pilot correction the vehicle drifted, and during the pilot's LAND
   it crossed x = −3.003 m: a watcher BREACH and one LAND (the FC already in LAND, so no mode change). The criterion's
   "vehicle holds" is therefore **not met as worded** (an ALT_HOLD drift, as in wbench2's B10b; not a watcher matter).
 - **B10b attempt 1: NOT COMPLETED** (B3: the pilot's toggle was never made). (1) and (3) behaved as registered.
@@ -422,9 +424,13 @@ after its test's criterion event, except in B8a and B10b(3), where it IS the cri
    - a horizontal-only norm (what F8 was);
    - a separate vz limit.
    No logic was changed here.
-3. **The FC-side lag.** The watcher's refusal reaches the FC only after `FS_GCS_TIMEOUT` (3 s) without its heartbeat
-   (the Lua path is similar). M2's 5 s hold after a runaway covers that lag for short runaways. The flight-script gate
-   is immediate. Worth stating in the safety case.
+3. **The FC-side lag (a safety statement).** The watcher's refusal reaches the FC only after `FS_GCS_TIMEOUT` (3 s)
+   without its heartbeat (the Lua path is similar), i.e. ~3.3 s after the withdrawal. F8 onsets come at touchdown and
+   the watcher withdraws at the disarm, so **for a runaway shorter than ~3 s that starts at the disarm, the FC never
+   refuses during it**: in `…182305` the whole above-threshold span (0–1.9 s after the disarm) fell inside that hole,
+   and only the file gate (the flight script) refused during the runaway. A manual non-force MAVLink re-arm inside
+   that window is stopped only by M1 and the card. M2's 5 s hold does make the FC refuse from withdrawal + ~3.3 s until
+   the re-confirmation. To be stated in the safety case.
 4. **EKF3 runaways that never re-capture** (§2.3: 42.6 and 192 m/s on the ground) are new relative to the F8
    investigation, where every case re-captured. Not investigated; M1 is the cure on the cards.
 5. B12 on hardware (props off) and the rung-1 manual M2 step are untested.
