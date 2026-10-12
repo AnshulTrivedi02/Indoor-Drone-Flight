@@ -14165,3 +14165,10 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - a NEW §7.2 B13 for the X1 timing on the real links;
   - the 10 s no-re-arm rule on the cards (§1a M1, the §5 pre-arm line, D12).
 - The watcher is unchanged; 121 realflight tests pass.
+
+### RULING (user, 2026-10-13): the rung-1 first-leg length (PENDING the supervisor's room size)
+- **The first leg is 3 m if the mocap volume allows it with the 2 m clearance at both ends; otherwise ≥ 2 m.** This is
+  so that U10 G5 (the start-aligned drift, which needs the first 2 m of path to end ≥ 1.0 m from the onset) can be
+  computed.
+- **PENDING:** finalised when the supervisor confirms the room size. The flight card (`docs/rung1_flight_cards.md`,
+  sortie step 3) carries the rule and the pending note.

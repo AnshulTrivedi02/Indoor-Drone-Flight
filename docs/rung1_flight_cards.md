@@ -264,7 +264,7 @@ Pre-arm (GS reads, SP confirms):
 Profile (SP flies; GS calls the times from a stopwatch started at take-off):
 1. [ ] Sync wiggle, disarmed (~5 s); set down on the start mark; stand clear
 2. [ ] Arm; **take off within 5 s of arming (U4)** to h = __ m; **hover 30 s** over the start mark
-3. [ ] **Two laps** of the rectangle/out-and-back (legs __ m) at ~__ m/s (~90 s); GS calls each corner
+3. [ ] **Two laps** of the rectangle/out-and-back (legs __ m; FIRST LEG = 3 m if the mocap volume allows it with the 2 m clearance at both ends, otherwise ≥ 2 m, so that U10 G5 can be computed; ruling 2026-10-13, PENDING the supervisor's room size) at ~__ m/s (~90 s); GS calls each corner
 4. [ ] Hover 10 s over the start mark; **land in ALT_HOLD** (M3: throttle down to touchdown, then disarm at once).
       If LAND mode was used (an abort, or ALT_HOLD judged unsafe): **SP disarms within 2 s of touchdown** (M3; do not
       wait for the FC's land detector: F2/F8, the phantom velocity can make LAND lean the vehicle on the ground). After
