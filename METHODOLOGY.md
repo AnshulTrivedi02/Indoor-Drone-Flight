@@ -14135,3 +14135,33 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
    FS_GCS_TIMEOUT gap.
 - **Evidence for M2, recorded:** in wbench4 the watcher refused two persistent EKF3 ground runaways that never
   recovered: 42.6 m/s after a B9a landing, and 192 m/s after the B4c tilt-drop. They caused the two aborted sessions.
+
+### M2-R RE-REGISTERED (`6501eff`, before running) and run (`wbench5_m2r`, VERIFICATION): PASS (handover `docs/handovers/2026-10-12_m2r_rerun.md`)
+- **The runaway recipe:**
+  - a velocity-equivalent BIAS on one flow axis during the final descent (`realflight/sitl_bench/flow_bias_bridge.py`:
+    v/r added to flow_rate_y, which cuts to real flow at |b| > 2 rad/s, before touchdown);
+  - an ALT_HOLD landing; disarm 1 s after touchdown; M1 before the next attempt;
+  - the schedule fixed in advance: v = 1.0, 1.0, 1.5, 1.5 m/s.
+- **The basis** (the stored logs): plain flow-kill peaks at only 0.27–0.29 m/s, because the dropout grows P_v or resets
+  aiding. The persistent runaways came from CORRUPT flow that EKF3 accepted near the floor (small P_v, so one axis is
+  gate-locked on the ground while the other stays fused).
+- **Criteria:**
+  - T1 (independent of duration): the watcher is unconfirmed by t_on + 0.5 s with a vel reason; no watcher HEARTBEAT
+    reaches the FC in (t_on + 0.5, t_end];
+  - T2: no arm while |v| ≥ 0.2 (the file gate, the script gate, FC probes ≥ 3.5 s after the last heartbeat);
+  - T3: no watcher LAND or BREACH;
+  - T4: after M1, the origin is re-verified, the watcher confirms and the script arms;
+  - void rules include a truth excursion > 2 m.
+- **RESULT: M2-R PASSES AS WORDED.**
+  - Attempts 1–3 are valid, with runaways of 20.7 s, 14.7 s and ≥ 41.6 s (the last never re-captured; 19 m/s while the
+    vehicle sat still).
+  - The watcher withdrew at the first |v| ≥ 0.2 sample (the vel reason alone).
+  - All 18 counted FC probes were refused ("Arm: GCS failsafe on"). T4 PASS.
+- **The recipe is dependable at v = 1.0 only.** At v = 1.5, attempt 4 is VOID (a 2.35 m truth excursion in ALT_HOLD).
+- **SAFETY OBSERVATION (void attempt 4):** an FC probe 3.52 s after the last watcher heartbeat was ACCEPTED; the GCS
+  failsafe disarmed the vehicle 5 ms later. **The FC-side gap is ~3.3–3.6 s;** the 10 s no-re-arm card rule covers it.
+- **Docs:**
+  - §7.2 B10(a) re-worded (the old wording kept);
+  - a NEW §7.2 B13 for the X1 timing on the real links;
+  - the 10 s no-re-arm rule on the cards (§1a M1, the §5 pre-arm line, D12).
+- The watcher is unchanged; 121 realflight tests pass.
