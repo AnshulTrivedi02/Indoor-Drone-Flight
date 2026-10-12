@@ -4,7 +4,8 @@ so every rule is unit-testable with a fake clock.
 Outputs:
   - `flags(now)`: the confirmation flags. box=1 means "the geofence is armed and every non-dependency check passes"
     (fresh tracked pose for >= recover_s, inside the 3-D box, tilt OK, rigid-body identity proven, FC parameters
-    verified, FC link up, no latched episode). bridge=1 means "every watched dependency is alive" (and no latched
+    verified, FC link up, no latched episode, and, while the FC is DISARMED, the F7 yaw check: the FC yaw agrees with
+    the mocap heading + tie within 5 deg for >= 1 s, yawcheck.py; once ARMED that check is informational only). bridge=1 means "every watched dependency is alive" (and no latched
     episode). CONFIRMED = box and bridge. Only while CONFIRMED does the watcher send its MAVLink HEARTBEAT.
   - actions returned by the event methods: ("LAND", reason) at most once per episode, ("ALERT", text), ("LOG", text).
 
@@ -24,6 +25,7 @@ from typing import Optional, Tuple
 
 from realflight.watcher.frames import FrameConverter, euler_frd, tilt_deg, wrap_pi
 from realflight.watcher.liveness import LivenessMonitor
+from realflight.watcher.yawcheck import YawCheck
 
 
 @dataclass
@@ -54,6 +56,12 @@ class Config:
     id_rp_proof_s: float = 0.25                             # agreement while excited needed to prove roll/pitch
     id_lag_max_s: float = 0.3                               # FC ATTITUDE latency allowance vs the mocap
     require_fc_params: bool = True
+    # F7 pre-arm yaw check (yawcheck.py): OFF by default in the library (the unit-test fixtures); the CLI
+    # (mocap_watch.py --yaw-check) defaults it ON, fail-closed
+    require_yaw: bool = False
+    yaw_tie_deg: Optional[float] = None                     # None = capture at the FC's EKF-origin broadcast
+    yaw_tol_deg: float = 5.0                                # ruling 2 (2026-10-12)
+    yaw_sustain_s: float = 1.0                              # agreement sustained >= 1 s
 
 
 class Identity:
@@ -188,6 +196,7 @@ class WatcherCore:
         self.c = cfg
         self.conv = FrameConverter(cfg.up_axis, cfg.body_yaw_offset_deg)
         self.ident = Identity(cfg)
+        self.yaw = YawCheck(cfg.yaw_tie_deg, cfg.yaw_tol_deg, cfg.yaw_sustain_s)
         self.live = LivenessMonitor(cfg.deps, cfg.dep_timeout_s, cfg.progress_timeout_s)
         # pose
         self.last_frame = None
@@ -233,11 +242,20 @@ class WatcherCore:
     def on_fc_heartbeat(self, now, armed: bool):
         self.fc_last_hb, self.fc_armed = now, armed
 
-    def on_fc_attitude(self, now, roll, pitch, yaw):
-        """FC ATTITUDE (FRD, rad). Returns actions (identity log/alert)."""
-        if not self.c.require_identity:
+    def on_fc_attitude(self, now, roll, pitch, yaw, boot_ms=None):
+        """FC ATTITUDE (FRD, rad; time_boot_ms if known). Returns actions (identity / yaw-check LOG or ALERT only)."""
+        acts = []
+        if self.c.require_yaw:
+            acts += self.yaw.on_att(now, yaw, boot_ms, armed=self.fc_armed)
+        if self.c.require_identity:
+            acts += self.ident.on_att(now, roll, pitch, yaw)
+        return acts
+
+    def on_fc_origin(self, now):
+        """The FC's GPS_GLOBAL_ORIGIN (the EKF-origin event): the yaw-check tie is captured at the first in a boot."""
+        if not self.c.require_yaw:
             return []
-        return self.ident.on_att(now, roll, pitch, yaw)
+        return self.yaw.on_origin(now)
 
     def on_params(self, ok: bool, why: str):
         self.params_ok, self.params_why = ok, why
@@ -283,6 +301,9 @@ class WatcherCore:
         x, y, z = self.p
         self.inside = x0 <= x <= x1 and y0 <= y <= y1 and z0 <= z <= z1
         acts = self.ident.on_pose(now, self.R) if self.c.require_identity else []
+        if self.c.require_yaw:
+            self.yaw.set_mocap_valid(now, True)
+            self.yaw.on_pose(now, euler_frd(self.R)[2])
         if not self.inside:
             acts += self._breach(f"box left: ({x:.3f}, {y:.3f}, {z:.3f}) outside x[{x0},{x1}] y[{y0},{y1}] "
                                  f"z[{z0},{z1}]", land=True)
@@ -294,6 +315,8 @@ class WatcherCore:
         """Evaluate time-based rules (stale pose, dependencies, FC link) and the episode state."""
         acts = []
         pose_fresh, why = self.pose_fresh(now)
+        if self.c.require_yaw and not pose_fresh:
+            self.yaw.set_mocap_valid(now, False)
         if not pose_fresh:
             self.fresh_since = None
             if self.was_confirmed and self.latched is None:
@@ -356,6 +379,11 @@ class WatcherCore:
             reasons.append(f"identity {self.ident.why}")
         if self.params_ok is not True:
             reasons.append(f"FC params {self.params_why}")
+        if self.c.require_yaw:
+            # F7: gates ONLY while the FC is not reported armed; armed -> informational (never withdraws, never lands)
+            yok, ywhy = self.yaw.ok(now, self.fc_armed, fresh)
+            if not yok:
+                reasons.append(f"yaw {ywhy}")
         if self.fc_last_hb is None or now - self.fc_last_hb > self.c.fc_link_timeout_s:
             reasons.append("FC link down")
         if self.collision:
@@ -375,7 +403,8 @@ class WatcherCore:
         fresh = self.pose_fresh(now)[0]
         return {"box": int(box_ok and not lat), "bridge": int(bridge_ok and not lat), "pose": int(fresh),
                 "id": int(self.ident.state == "confirmed" or not self.c.require_identity),
-                "fc": int(self.params_ok is True), "latch": int(lat)}, reasons
+                "fc": int(self.params_ok is True), "latch": int(lat),
+                "yaw": int(not self.c.require_yaw or self.yaw.ok(now, self.fc_armed, fresh)[0])}, reasons
 
     def confirmed(self, now):
         f, _ = self.flags(now)

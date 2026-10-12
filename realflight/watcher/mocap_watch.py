@@ -18,9 +18,15 @@ withdraws the file flags. It never kills processes (G4).
 Usage (ground station):
   python3 -m realflight.watcher.mocap_watch OUT_DIR --fc udpin:0.0.0.0:14560 --sysid 211 \
       --mocap-port 9870 --body-name thesis_quad --box=-2,2,-2,2,0,2.5 \
-      --dep flow_tracker --dep flow_bridge --liveness-port 9871
+      --dep flow_tracker --dep flow_bridge --liveness-port 9871 --yaw-tie origin
+
+F7 pre-arm yaw check (yawcheck.py; ON by default, fail-closed): while the FC is disarmed, no confirmation unless the
+FC's ATTITUDE yaw agrees with the mocap heading (+ the tie) within 5 deg for >= 1 s with mocap valid; informational
+only once armed. --yaw-tie origin (default) captures the tie at the FC's EKF-origin broadcast, so the watcher MUST be
+running before the origin is set (flight cards); --yaw-tie <deg> is a surveyed constant (compass variant only).
 """
 import argparse
+import math
 import os
 import select
 import signal
@@ -65,6 +71,14 @@ def parse(argv=None):
     ap.add_argument("--identity", choices=("require", "off"), default="require",
                     help="'off' only for offline tests; a real session requires the B6 identity proof")
     ap.add_argument("--fc-params", choices=("require", "off"), default="require")
+    ap.add_argument("--yaw-check", choices=("require", "off"), default="require",
+                    help="F7 pre-arm yaw check (yawcheck.py); 'off' only for offline tests and bench tests that are "
+                         "not about it")
+    ap.add_argument("--yaw-tie", default="origin",
+                    help="'origin' (default): capture the mocap/FC yaw tie at the FC's EKF-origin broadcast (the "
+                         "watcher must be running before the origin is set); or a number: the surveyed NED bearing of "
+                         "the mocap +x axis in deg (compass variant only)")
+    ap.add_argument("--yaw-tol-deg", type=float, default=5.0)
     ap.add_argument("--lua-auth", action="store_true", help="also require SCR_ENABLE 1 (the G6(ii) arming-auth script)")
     ap.add_argument("--alert-cmd", help="shell command run (non-blocking) on every alert, e.g. an audible alarm")
     ap.add_argument("--land-retry-s", type=float, default=0.3)
@@ -73,6 +87,13 @@ def parse(argv=None):
                          "pre-LAND autopilot mode")
     ap.add_argument("--exit-after-s", type=float, help="tests only")
     a = ap.parse_args(argv)
+    if a.yaw_tie == "origin":
+        a.yaw_tie_deg = None
+    else:
+        try:
+            a.yaw_tie_deg = float(a.yaw_tie)
+        except ValueError:
+            ap.error("--yaw-tie must be 'origin' or a number of degrees")
     a.box = tuple(float(v) for v in a.box.split(","))
     if len(a.box) != 6:
         ap.error("--box needs 6 values (x/y/z min,max): the height limit is mandatory (G10)")
@@ -87,7 +108,8 @@ class Watcher:
                           deps=tuple(a.dep), dep_timeout_s=a.dep_timeout_s, progress_timeout_s=a.progress_timeout_s,
                           dep_loss=a.dep_loss, stall_s=a.stall_s, body_name=a.body_name, body_id=a.body_id,
                           up_axis=a.up_axis, body_yaw_offset_deg=a.body_yaw_offset_deg,
-                          require_identity=a.identity == "require", require_fc_params=a.fc_params == "require")
+                          require_identity=a.identity == "require", require_fc_params=a.fc_params == "require",
+                          require_yaw=a.yaw_check == "require", yaw_tie_deg=a.yaw_tie_deg, yaw_tol_deg=a.yaw_tol_deg)
         self.core = WatcherCore(self.cfg)
         self.slog = open(os.path.join(a.out, "STOP_LOG.txt"), "a")
         self.track = open(os.path.join(a.out, "mocap_watch_track.csv"), "a")
@@ -96,6 +118,9 @@ class Watcher:
         self.hblog = open(os.path.join(a.out, "mocap_watch_heartbeat.csv"), "a")
         if self.hblog.tell() == 0:
             self.hblog.write("t_wall,confirmed,box,bridge,pose,id,fc,latch,mav_hb_sent,reasons\n")
+        self.ylog = open(os.path.join(a.out, "mocap_watch_yaw.csv"), "a")
+        if self.ylog.tell() == 0:
+            self.ylog.write("t_wall,fc_armed,fc_yaw_deg,mocap_hdg_deg,tie_deg,diff_deg,gate_ok,why\n")
         self.host = socket.gethostname()
         self.mocap = UdpPoseSource(a.mocap_host, a.mocap_port)
         self.live = UdpLivenessSocket(a.liveness_host, a.liveness_port)
@@ -144,7 +169,7 @@ class Watcher:
     def write_file(self, now, hb_sent):
         f, reasons = self.core.flags(now)
         line = (f"{time.time():.3f} box={f['box']} bridge={f['bridge']} pose={f['pose']} id={f['id']} fc={f['fc']} "
-                f"latch={f['latch']} host={self.host}\n")
+                f"latch={f['latch']} yaw={f['yaw']} host={self.host}\n")
         tmp = os.path.join(self.a.out, "watch_heartbeat.tmp")
         with open(tmp, "w") as fh:
             fh.write(line)
@@ -160,7 +185,12 @@ class Watcher:
                 self.core.on_fc_heartbeat(now, ev[1])
             elif k == "att":
                 self.att_seen = True
-                self.handle(self.core.on_fc_attitude(now, ev[1], ev[2], ev[3]))
+                self.handle(self.core.on_fc_attitude(now, ev[1], ev[2], ev[3], ev[4]))
+                if self.cfg.require_yaw:
+                    self.log_yaw(now)
+            elif k == "origin":
+                self.note(f"FC GPS_GLOBAL_ORIGIN lat={ev[1]} lon={ev[2]}")
+                self.handle(self.core.on_fc_origin(now))
             elif k == "param":
                 ok, why = self.fc.verify_params(self.exp)
                 if ok is not None and (ok, why) != (self.core.params_ok, self.core.params_why):
@@ -170,6 +200,14 @@ class Watcher:
                 self.handle(self.core.on_sysid_collision(now, ev[1]))
             elif k == "fc_text":
                 self.note(f"FC: {ev[1]}")
+
+    def log_yaw(self, now):
+        y = self.core.yaw
+        deg = lambda v: "" if v is None else f"{math.degrees(v):.3f}"  # noqa: E731
+        ok, why = y.ok(now, self.core.fc_armed, self.core.pose_fresh(now)[0])
+        self.ylog.write(f"{time.time():.3f},{self.core.fc_armed},{deg(y.fc_yaw)},{deg(y.moc_hdg)},{deg(y.tie)},"
+                        f"{deg(y.diff)},{int(ok)},\"{why}\"\n")
+        self.ylog.flush()
 
     def run(self):
         a = self.a
@@ -236,7 +274,10 @@ class Watcher:
                     f"identity_max_rp_diff_deg={self.core.ident.max_rp_diff:.2f}\n"
                     f"fc_attitude_rate_hz={self.core.ident.att_rate():.1f}\n"
                     f"wrong_bodies={self.core.wrong_bodies}\nmax_loop_gap_s={self.core.max_gap:.3f}\n"
-                    f"land={self.fc.land}\nmocap_bad_packets={self.mocap.bad}\n")
+                    f"land={self.fc.land}\nmocap_bad_packets={self.mocap.bad}\n"
+                    f"yaw_check={'require' if self.cfg.require_yaw else 'off'} ({self.core.yaw.tie_why})\n"
+                    f"yaw_max_diff_disarmed_deg={self.core.yaw.max_diff_disarmed:.2f}\n"
+                    f"yaw_max_diff_armed_deg={self.core.yaw.max_diff_armed:.2f}\n")
         self.note("watcher exit: heartbeat withdrawn")
         for c in (self.mocap, self.live, self.fc):
             c.close()

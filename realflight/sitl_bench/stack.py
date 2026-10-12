@@ -48,8 +48,9 @@ def ros_env():
 
 
 class Stack:
-    def __init__(self, out, ground=False, log=print):
+    def __init__(self, out, ground=False, log=print, extra_defaults=(), lua_at_boot=False):
         self.out, self.ground, self.log = out, ground, log
+        self.extra_defaults, self.lua_at_boot = list(extra_defaults), lua_at_boot
         os.makedirs(out, exist_ok=True)
         self.procs = {}
         self.cwd = f"{HOME}/thesis_data/wbench/sitl_cwd"
@@ -124,7 +125,12 @@ class Stack:
                     f"{REPO}/realflight/params/watcher_fc.parm"]
         if self.ground:
             defaults.append(f"{REPO}/realflight/sitl_bench/params/wbench_ground.parm")
+        defaults += self.extra_defaults
         os.makedirs(os.path.join(self.cwd, "scripts"), exist_ok=True)
+        if self.lua_at_boot:      # wbench3_f7: the G6(ii) arming-auth script runs from this boot (SCR_ENABLE 1 in the
+            import shutil         # session's extra defaults), so the Lua path is live from the first arm attempt
+            shutil.copy(os.path.join(REPO, "realflight/params/watcher_arming_auth.lua"),
+                        os.path.join(self.cwd, "scripts", "watcher_arming_auth.lua"))
         self.spawn("sitl", [f"{AP}/build/sitl/bin/arducopter", "--model", "JSON", "--speedup", "1", "--slave", "0",
                             "--defaults", ",".join(defaults),
                             f"--serial1=udpclient:127.0.0.1:{P['serial1']}",
@@ -226,6 +232,20 @@ class Stack:
         self.log(f"carry home keeping the heading: Gazebo yaw {math.degrees(yaw):.1f} deg (ENU)")
         return self.teleport(0, 0, 0.2, q=(math.cos(yaw / 2), 0, 0, math.sin(yaw / 2)))
 
+    def rotate_in_place(self, yaw_enu_deg):
+        """wbench3_f7: set the DISARMED (or, for F7-d only, armed and on the ground) vehicle's heading to an absolute
+        Gazebo ENU yaw, level, at its current x/y: a rotation the FC's gyros never see (the F7 mechanism)."""
+        x, y = self.current_xy()
+        a = math.radians(yaw_enu_deg)
+        return self.teleport(round(x, 3), round(y, 3), 0.2, q=(math.cos(a / 2), 0, 0, math.sin(a / 2)))
+
+    def current_xy(self):
+        """Latest ground-truth x/y from the forwarder log (dest 0)."""
+        with open(os.path.join(self.out, "forwarder.csv"), "rb") as f:
+            f.seek(-2000, 2)
+            p = [l.split(",") for l in f.read().decode(errors="replace").splitlines() if l.count(",") == 9]
+        return float(p[-1][7]), float(p[-1][8])
+
     def teleport(self, x, y, z, q=(0.70710678, 0, 0, 0.70710678)):
         """Gazebo set_pose of the vehicle (DISARMED only): the SITL analogue of carrying it by hand. Returns wall time."""
         req = (f'name: "iris_with_ardupilot", position: {{x: {x}, y: {y}, z: {z}}}, '
@@ -239,12 +259,14 @@ class Stack:
 
     # ---------- watchers ----------
     def watcher_cmd(self, *extra, name="watcher", sysid=211, fc_port=None, mocap_port=None, box=BOX, deps=True,
-                    identity="off", fc_params="require"):
+                    identity="off", fc_params="require", yaw_check="off", yaw_tie="origin"):
         out = os.path.join(self.out, name)
         cmd = [VENV_PY, "-m", "realflight.watcher.mocap_watch", out,
                "--fc", f"udpin:127.0.0.1:{fc_port or P['watcher_fc']}", "--sysid", str(sysid),
                "--mocap-port", str(mocap_port or P["mocap"]), "--body-name", "thesis_quad", "--body-id", "1",
-               f"--box={box}", "--identity", identity, "--fc-params", fc_params]
+               f"--box={box}", "--identity", identity, "--fc-params", fc_params,
+               # F7 yaw check: off for the B0-B10 sessions (not about it; unchanged behaviour), on in wbench3_f7
+               "--yaw-check", yaw_check, "--yaw-tie", yaw_tie]
         if deps:
             cmd += ["--dep", "flow_tracker", "--dep", "flow_bridge", "--liveness-port", str(P["live"])]
         return cmd + list(extra)

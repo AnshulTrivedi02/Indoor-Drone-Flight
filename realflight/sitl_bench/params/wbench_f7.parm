@@ -1,0 +1,14 @@
+# SITL ONLY: wbench3_f7 (the F7 watcher yaw-check bench, docs/handovers/2026-10-12_f7_cards.md §1). Loaded LAST, after
+# wbench_ekf3_flow.parm, watcher_fc.parm and wbench_ground.parm, in the bench's own SITL working directory (eeprom wiped).
+# Never used by a thesis flight.
+# 1) The rung-1 NO-COMPASS variant (realflight/params/rung1_variant_nomag.parm, the recommended one): EKF3 gets no yaw
+#    measurement, so a rotation the gyros never see stays an EKF yaw error until something else corrects it (with the
+#    compass, A9 measured a ~1.4 deg/s self-correction, which would make "rotate back -> allowed" depend on timing).
+EK3_SRC1_YAW 0
+COMPASS_ENABLE 1
+COMPASS_USE 0
+COMPASS_USE2 0
+COMPASS_USE3 0
+# 2) The G6(ii) Lua arming-auth script runs from the FIRST boot (the script is copied into the SITL cwd's scripts/
+#    before the boot by Stack(lua_at_boot=True)), so the Lua path is live for the never-confirmed case F7-0.
+SCR_ENABLE 1
