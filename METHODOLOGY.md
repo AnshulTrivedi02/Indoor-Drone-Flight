@@ -13964,3 +13964,30 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - the full §7.2 watcher bench re-run after this watcher change;
   - a ground-station tool for the origin step;
   - the heading sense under a gyro-sensed rotation is unverified in SITL.
+
+### XUKO FMT + stamp fix INSTALLED; U10 and stage-3 drafts updated; H10 guard in fly_trial.py (handover `docs/handovers/2026-10-12_xuko_u10_h10.md`)
+- **Port `xuko-fmt`** (`e88aa34a3d` FMT records + Cholesky counters; `0a214d29d3` XUKO stamp fix):
+  `ukf-jitter-fix` fast-forwarded.
+- **FINDING:** Replay stamped XUKO with its own PROCESS clock (0.025–3.14 s off over 270 s, different every run). It
+  now uses the replayed frame's log time (the XKF1 clock). The flying port is unchanged.
+- **Checks on `cl_a_tex_half`:**
+  - (a) decodable by df_reader and pymavlink, 0 undeclared types; pymavlink reads all 2,684 XKF1 per core again;
+    XUKO at 25 Hz matches XUKF to p99 5 mm;
+  - (b) replay_gate PASS; the scorer scores XUKO (a plumbing number only);
+  - (c) 20/20 CSVs byte-identical to be7c4d18;
+  - (d) UKF_Equiv 10/10 identical.
+- **INSTALLED:** Replay `be7c4d18` → `e82c050b`; UKF_Equiv `180cf2d8` → `fe548d36` (backup
+  `~/opt/ukf_port_backup_be7c4d18_2026-10-12/`). The Cholesky counters are in `ukf_stats.csv`. The SITL copter is
+  unchanged (`5f94ea1a`); the rebuild-before-V1 rule stands.
+- **U10 draft** (still DRAFT): the declared XUKO is the record; G3 reads `n_chol_fail`. **New rules for sign-off:**
+  - a missing `ukf_stats.csv` fails G3;
+  - a fork-flown log is scored on `UKF_horizon` (its onboard and replayed XUKO are interleaved).
+- **Stage-3 draft:** a pilot-flown LOITER is proposed for the first real closed-loop flights; the difference from the
+  scripted GUIDED SITL flights is stated.
+- **H10 guard MERGED into `fly_trial.py`.**
+  - **Mock test:** 6 default scenarios send identical commands. 2 declared differences: a redundant LAND is dropped
+    when already in LAND. In 4 takeover scenarios the old code re-sends LAND and the new sends none.
+  - **SITL `h10_guard_check`** (pre-registered `0aa47da`):
+    - criteria 1–3 PASS: one scripted LAND; ALT_HOLD 0.22 s later; no mode records or script commands for 197 s;
+    - **criterion 4 FAILS AS WORDED:** STABILIZE 0.22 s after disarm, when the TEST PILOT released its RC override
+      (ch5 1295 → 1800). It is a harness (RC-release) effect, not a script command.
