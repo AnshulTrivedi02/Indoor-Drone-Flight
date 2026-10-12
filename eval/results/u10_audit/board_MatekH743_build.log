@@ -1,0 +1,57 @@
+build_board_fw: board MatekH743 (STM32H743xx), with the backends; ref board-h743 = 6e7c37369113e051be14b720412756ecba34ea92
+build_board_fw: temporary worktree /tmp/bfw_MatekH743_6gSm6y; output /home/makerspace/thesis_data/fw_builds/MatekH743_with_6e7c3736_20261012_173243; dry-run=0
+build_board_fw: worktree created at 6e7c373691 (board-h743 (2026-10-12, after the rebase onto f30f6ffa2f): write_end_s)
+/home/makerspace/ardupilot_ukf   f30f6ffa2f [ukf-jitter-fix]
+/home/makerspace/ardupilot_diag  cfd20739b3 (detached HEAD)
+/tmp/bfw_MatekH743_6gSm6y        6e7c373691 (detached HEAD)
+build_board_fw: submodules initialised (by reference)
+build_board_fw: build finished
+{
+ "board": "MatekH743",
+ "mcu": "STM32H743xx",
+ "variant": "with",
+ "ref_commit": "6e7c37369113e051be14b720412756ecba34ea92",
+ "apj": {
+  "board_id": 1013,
+  "image_size": 1569244,
+  "flash_total": 1703936,
+  "flash_free": 134692,
+  "git_identity": "6e7c3736",
+  "image_maxsize": 1703936
+ },
+ "apj_file": [
+  "arducopter.apj"
+ ],
+ "n_warnings": 0,
+ "symbols": {
+  "NavUKF": true,
+  "NavFGO": true
+ },
+ "sections": {
+  ".text": 1563856,
+  ".data": 4484,
+  ".bss": 169492,
+  ".heap": 79460,
+  ".pstack": 7168
+ },
+ "stack": {
+  "frame_limit_B": 1300,
+  "main_stack_B": 7168,
+  "largest_thesis_frame_B": 648,
+  "conservative_chain_6_largest_B": 2960,
+  "note": "chain bound = sum of the 6 largest thesis frames (an upper bound, not a call chain); the real margin is bench check P7 (@SYS/threads.txt)"
+ },
+ "checks": {
+  "flash_free_ge_32k": true,
+  "zero_warnings": true,
+  "backends_as_requested": true,
+  "identity_matches_ref": true,
+  "max_thesis_frame_le_limit": true,
+  "conservative_chain_le_half_main_stack": true
+ },
+ "pass": true,
+ "flashed": false
+}
+91486aa4c633570cc74d6513d4100edd  /home/makerspace/thesis_data/fw_builds/MatekH743_with_6e7c3736_20261012_173243/arducopter.apj
+build_board_fw: PASS: /home/makerspace/thesis_data/fw_builds/MatekH743_with_6e7c3736_20261012_173243/summary.json
+build_board_fw: CLEANUP ERROR: /home/makerspace/ardupilot_ukf lists 3 worktrees, 2 before

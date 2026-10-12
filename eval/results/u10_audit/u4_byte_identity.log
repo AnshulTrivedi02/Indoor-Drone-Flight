@@ -1,0 +1,37 @@
+0f3644a29deb4712722a930c61288910  /tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/g5a/u4wt/build/sitl/tool/Replay
+cl_a_tex_half (X=0):     6674 ukf_shadow.csv   153817 ukf_inputs.csv   160491 total 
+RESULT cl_a_tex_half ukf_shadow.csv IDENTICAL
+RESULT cl_a_tex_half ukf_inputs.csv IDENTICAL
+RESULT cl_a_tex_half ukf_derot.csv IDENTICAL
+RESULT cl_a_tex_half ukf_geometry.csv IDENTICAL
+RESULT cl_a_tex_half ukf_stats.csv IDENTICAL
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+dsn_tex_r1 (X=0):     8582 ukf_shadow.csv   197692 ukf_inputs.csv   206274 total 
+RESULT dsn_tex_r1 ukf_shadow.csv IDENTICAL
+RESULT dsn_tex_r1 ukf_inputs.csv IDENTICAL
+RESULT dsn_tex_r1 ukf_derot.csv IDENTICAL
+RESULT dsn_tex_r1 ukf_geometry.csv IDENTICAL
+RESULT dsn_tex_r1 ukf_stats.csv IDENTICAL
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+fwdplainc_tex_r1 (X=0):     8530 ukf_shadow.csv   196437 ukf_inputs.csv   204967 total 
+RESULT fwdplainc_tex_r1 ukf_shadow.csv IDENTICAL
+RESULT fwdplainc_tex_r1 ukf_inputs.csv IDENTICAL
+RESULT fwdplainc_tex_r1 ukf_derot.csv IDENTICAL
+RESULT fwdplainc_tex_r1 ukf_geometry.csv IDENTICAL
+RESULT fwdplainc_tex_r1 ukf_stats.csv IDENTICAL
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+cl_ukf_b_tex_r1_half_v2 (UKF_EXTYAW=1):     8527 ukf_shadow.csv   203615 ukf_inputs.csv   212142 total 
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_shadow.csv IDENTICAL
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_inputs.csv IDENTICAL
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_derot.csv IDENTICAL
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_geometry.csv IDENTICAL
+RESULT cl_ukf_b_tex_r1_half_v2 ukf_stats.csv IDENTICAL
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+H_s2v2_r1 (UKF_EXTPOS=1 UKF_EXTYAW=1):     9607 ukf_shadow.csv   249853 ukf_inputs.csv   259460 total 
+RESULT H_s2v2_r1 ukf_shadow.csv IDENTICAL
+RESULT H_s2v2_r1 ukf_inputs.csv IDENTICAL
+RESULT H_s2v2_r1 ukf_derot.csv IDENTICAL
+RESULT H_s2v2_r1 ukf_geometry.csv IDENTICAL
+RESULT H_s2v2_r1 ukf_stats.csv IDENTICAL
+thesis shadow UKF: end of run: n_chol_retry=0 n_chol_fail=0
+DRIVER_DONE

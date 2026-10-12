@@ -1,0 +1,15 @@
+clear at 17:32:22
+REBASED board-h743 -> 53ec88be5f
+REBASED u4-gndclr -> 746e132a9e
+FIXUP board-h743 -> 6e7c373691
+removed rb_board-h743
+removed rb_u4-gndclr
+/home/makerspace/ardupilot_ukf   f30f6ffa2f [ukf-jitter-fix]
+/home/makerspace/ardupilot_diag  cfd20739b3 (detached HEAD)
+6e7c373691 board-h743 (2026-10-12, after the rebase onto f30f6ffa2f): write_end_stats() inside AP_NAVUKF_REPLAY_IO_ENABLED (Replay-only file I/O; SITL unchanged)
+53ec88be5f board-h743 (2a): refuse a FORCED arm too while AHRS_UKF_TFAIL is set (board builds only)
+5b4ca48738 board-h743 (2a, 2026-10-11): the thesis UKF/FGO backends as a build option for boards
+746e132a9e U4 (2026-10-12): UKF on-ground range from RNGFNDn_GNDCLR when the rangefinder reads below its minimum
+REBASE_DONE
+
+[exited with code 0]
