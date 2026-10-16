@@ -1,7 +1,7 @@
 # Numbers for the methodology chapter
 
-Companion to `methodology_index.md`. Every value is copied verbatim from its source. None
-has been recomputed; the displayed digits are the stored value rounded once (flag 8).
+Companion to `methodology_index.md`. Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file
+show it rounded once (flag 8). None has been recomputed.
 
 - **Sources:** `M:L123` / `C:L123` / `P:L123` are line numbers in the snapshot
   `docs/thesis/export_2026-09-29_563a989/` (METHODOLOGY.md, CLAUDE.md, PROGRESS.md; snapshot
@@ -385,7 +385,7 @@ of 2026-10-16 (open items)".
 |---|---|---|---|---|
 | Whole cruise: ceiling / no-ceiling mean (sd) | 71.87 (1.00) / 71.44 (0.58) | px/s | CURRENT | M:L2591 |
 | Whole cruise: difference, Welch t (df), p | **+0.43 px/s (+0.6%)**, 1.06 (11.2), 0.31 | px/s | CURRENT | M:L2591 |
-| Textured half: difference, t (df), p | +0.09 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2592 |
+| Textured half: difference, t (df), p | +0.09 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2592 (METHODOLOGY prints +0.10, the difference of its rounded means); json:ceiling_flow_effect.json:groups.tex_half.difference |
 | Blank half: ceiling / no-ceiling mean (sd) | −2.08 (2.43) / −2.39 (0.85) | px/s | CURRENT | M:L2593 |
 | Blank half: difference, t (df), p | +0.31 px/s, 0.34 (8.7), 0.74 | px/s | CURRENT | M:L2593 |
 | Blank-half variance ratio (Levene p) | 8.1 (Levene p = 0.17 | — | CURRENT | M:L2599 |
@@ -1263,6 +1263,7 @@ over flights); 0.262533 (`expL/T_A_r2_t245.json`).
 
 | section | row or text (verbatim) |
 |---|---|
+| header | Companion to `methodology_index.md`. Every value is copied verbatim from its source. None |
 | header | has been recomputed or re-rounded. |
 | §6.2 | ¦ UKF / FGO baseline error at +60 s after loss, transition (n = 11) †¦ 129–139 / 223–231 ¦ m ¦ CURRENT (final re-run 2026-10-10) ¦ json:blank_behaviour.json ¦ |
 | §6.6 | ¦ FGO baseline cross-track mean NEES, `fwdc` textured (mean of r1–r3) ¦ 1.70 (2.4 / 0.2 / 2.6; was 57.1 before the final re-run: the FGO's covariance is no longer ~57× over-confident; predicted yaw σ 0.476° → 0.057°) ¦ — ¦ DIAGNOSTIC (FGO-only re-run) ¦ json:phase5b_consistency.json ¦ |

@@ -9,8 +9,14 @@ files and the frozen pack (`final_results_pack*`, `eval/figs_final_pack.py`) wer
 
 Each old row is kept verbatim in the new block "Superseded by the ruling of 2026-10-16 (numbers.md rounding): double rounding
 corrected (ruling 2026-10-16)". It sits at the end of the Superseded section, just before the provenance record. Only that
-record (cited by name, never by line) moved down 40 lines. No line at or before 1254 moved; the highest line any doc cites is
-1017. **No citing doc needed an update.**
+record (cited by name, never by line) moved down 41 lines. No line at or before 1254 moved; the highest line any doc cites is
+1017, and no doc cites a line inside the rewritten flag 8 (758–773). **No line citation needed an update.** One doc described
+the old rule and was corrected in place (same line count):
+- **`docs/thesis/methodology_definitions_draft.md`, lines 196–197 and 200–202.** "numbers.md keeps full precision … including the
+  four double-rounded transcriptions" and "the cross-check records a last-digit match" now say: numbers.md shows the same single
+  rounding, the old rows are in its Superseded section, and the cross-check is exact.
+- **Not changed:** `pending_items.md` lines 16 and 32. They are the dated record of the item 3 ruling (history, not a description
+  of the current rule).
 
 | line | quantity | old → new | stored full-precision value (source) |
 |---|---|---|---|
@@ -27,8 +33,11 @@ record (cited by name, never by line) moved down 40 lines. No line at or before 
 | 577 | §16.3 H-L bullet, "→ 0.262–0.361" | → **0.263**–0.361 m | same |
 
 - **New beyond the brief:** P-T3 D (536), §6.2 +60 s (251) and §11 (388) were found by the full comparison.
-- **Line 4 (header):** "has been recomputed or re-rounded." became "has been recomputed; the displayed digits are the stored
-  value rounded once (flag 8)."
+- **Lines 3–4 (header):** "Every value is copied verbatim from its source. None has been recomputed or re-rounded." now reads
+  "Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file show it rounded once (flag 8). None has been
+  recomputed." Both old lines are in the Superseded block.
+- **Line 388 (§11):** the source cell is now "M:L2592 (METHODOLOGY prints +0.10, the difference of its rounded means);
+  json:ceiling_flow_effect.json:groups.tex_half.difference", so the row no longer disagrees with its only cited source."
 - **Flag 8 (lines 758–773):** rewritten in the same 16 lines. It records the correction and lists every changed value; its table
   now has "printed before" and "printed now" columns. The old text is in the new Superseded block.
 - **Confirmatory d r5:** −0.489 is unchanged. It is the half-away-from-zero rounding of the 4-dp stored −0.4885.

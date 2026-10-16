@@ -193,13 +193,13 @@ supervisor ruling.
 **Rule.** Every number displayed in a thesis table is the full-precision value in its result file, rounded **once**, to
 the printed precision, **half away from zero**. The rule is applied when the tables are generated (`eval/figs_thesis.py`,
 function `rd()`), not by editing any record.
-- `numbers.md` keeps full precision: its values stay as copied from their sources, including the four double-rounded
-  transcriptions listed in its flag 8.
+- `numbers.md` shows the same single rounding (ruling 2026-10-16, option (a)): its double-rounded displays were corrected
+  in place, with the old rows kept verbatim in its Superseded section (numbers.md flag 8).
 - The value is read through its shortest decimal form, so a value stored at 4 dp (for example the confirmatory r5
   difference, −0.4885) rounds as written (−0.489), not as its binary neighbour.
-- Where the generated display and a `numbers.md` cell differ in the last digit, the cross-check records a last-digit
-  match; no verdict, range or ordering changes (numbers.md flag 8).
-- Source: M:14184-14185 (RULINGS 2026-10-16, item 3); the proposed rule, `numbers.md` flag 8.
+- The thesis cross-check is EXACT: each generated display must equal its `numbers.md` cell character for character (no
+  tolerance, no last-digit acceptance); no verdict, range or ordering changed (numbers.md flag 8).
+- Source: M:14184-14185 (RULINGS 2026-10-16, item 3) and RULING 2026-10-16 "numbers.md rounding, option (a)"; `numbers.md` flag 8.
 
 ---
 
