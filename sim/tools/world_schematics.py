@@ -284,8 +284,8 @@ def draw(world, out_dir):
     sx, sy = spawn["xy"]
     if world.startswith("corridor_"):
         vel, alt, dur, src = conf_cruise(world)
-        route([(sx, sy), (sx, sy + vel * dur)], lab="planned cruise: %.1f m/s x %.0f s = %.0f m at %.1f m (%s)"
-              % (vel, dur, vel * dur, alt, src))
+        route([(sx, sy), (sx, sy + vel * dur)], lab="planned cruise: %.1f m/s x %.0f s = %.0f m at %.1f m"
+              % (vel, dur, vel * dur, alt))
         if "transition" in world:
             ys = [v["pts"][:, 1] for v in layers["floor_blank"]]
             yb = min(y.min() for y in ys)
@@ -297,52 +297,51 @@ def draw(world, out_dir):
         for dn, de in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
             c.append((c[-1][0] + de * side, c[-1][1] + dn * side))
         alt = float(re.search(r'echo "room_tags\s+\S+\s+(\S+)', open(os.path.join(REPO, "tools", "run_expT.sh")).read()).group(1))
-        route(c, lab="T/L laps: %d x %.0f m square N-E-S-W at %.1f m/s, %.1f m (tools/run_expT.sh LAPS + conf line)"
+        route(c, lab="Experiments 2 and 3: laps: %d x %.0f m square N-E-S-W at %.1f m/s, %.1f m"
               % (n, side, spd, alt))
         t = open(os.path.join(REPO, "batches", "tagchar.conf")).read().split("\n")
         t = [l.split() for l in t if l.strip() and not l.startswith("#")]
         route([(sx - 0.25, sy), (sx - 0.25, sy + float(t[0][1]) * float(t[0][3]))], style="--", lw=1.4, arrows=False,
-              lab="tagchar: %.1f m/s north for %.0f s at %s m (batches/tagchar.conf)"
+              lab="tag check flights: %.1f m/s north for %.0f s at %s m"
               % (float(t[0][1]), float(t[0][3]), "/".join(r[2] for r in t)))
     elif world == "outdoor_indoor":
         al, als, out, spd, gate = env_param("tools/run_expO.sh", "OUTBACK")
-        route([(sx, sy), (sx, sy + al)], lab="O align: %.0f m at %.1f m/s (GNSS on)" % (al, als))
-        route([(sx + 0.6, sy + al), (sx + 0.6, sy + al + out)], lab="O out: %.0f m at %.1f m/s" % (out, spd))
-        route([(sx - 0.6, sy + al + out), (sx - 0.6, sy + al)], style="--", lab="O back: reverse, same heading")
+        route([(sx, sy), (sx, sy + al)], lab="Experiment 4: align: %.0f m at %.1f m/s (GNSS on)" % (al, als))
+        route([(sx + 0.6, sy + al), (sx + 0.6, sy + al + out)], lab="Experiment 4: out: %.0f m at %.1f m/s" % (out, spd))
+        route([(sx - 0.6, sy + al + out), (sx - 0.6, sy + al)], style="--", lab="Experiment 4: back: reverse, same heading")
         ax.axvline(gate, color=REF, ls=":", lw=1.5, zorder=5)
         ax.text(gate + 0.6, 9.3, "GNSS gate N = %.0f m (off going in, on coming out)" % gate, color=INK2, fontsize=8.5)
-        notes.append("tools/run_expO.sh OUTBACK=%s" % ",".join("%g" % x for x in (al, als, out, spd, gate)))
     elif world.startswith("room_wall_tag"):
         wp = wall_p()
         m = re.search(r"--box=([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+)",
                       open(os.path.join(REPO, "sim", "tools", "closed_loop_run.sh")).read())
         x0b, x1b, y0b, y1b = (float(t) for t in m.groups())
         ax.add_patch(Rectangle((x0b, y0b), x1b - x0b, y1b - y0b, fill=False, ec=REF, ls=":", lw=1.2, zorder=5))
-        ax.text(x0b + 0.1, y0b + 0.15, "watcher room box (closed_loop_run.sh --box)", color=INK2, fontsize=8)
+        ax.text(x0b + 0.1, y0b + 0.15, "Experiment 5 safety-watcher room box", color=INK2, fontsize=8)
         if world == "room_wall_tag":
             P = h_profile_path("s0a_sweep.json", False)
-            route(P, lw=1.0, arrows=False, lab="H S0a grid sweep (s0a_sweep.json, world frame)")
+            route(P, lw=1.0, arrows=False, lab="Experiment 5 characterisation: grid sweep (world frame)")
             P = h_profile_path("s1_profile.json", True)
-            route(P, style="-", lw=2.0, arrows=False, lab="H S1: hold W(%.1f, %.1f), E steps of %.1f m (s1_profile.json)"
+            route(P, style="-", lw=2.0, arrows=False, lab="Experiment 5 EKF3-flying hold set: hold W(%.1f, %.1f), E steps of %.1f m"
                   % (P[1][1] - wall_p()[1], P[1][0], np.abs(P[:, 0]).max()))
         elif world == "room_wall_tag_far":
             P = h_profile_path("s1_far_profile.json", True); wp = wall_p()
-            route(P[:2], lab="H S1far / S2 / S3: anchor at W(%.1f, %.1f), move to the hold W(%.1f, %.1f) "
-                  "(s1_far_profile.json)" % (P[0][1] - wp[1], P[0][0], P[1][1] - wp[1], P[1][0]))
+            route(P[:2], lab="Experiment 5 hold sets, far spawn (EKF3-, UKF- and FGO-flying): anchor at W(%.1f, %.1f), "
+                  "move to the hold W(%.1f, %.1f)" % (P[0][1] - wp[1], P[0][0], P[1][1] - wp[1], P[1][0]))
             route(h_profile_path("s1_far_profile.json", True)[1:], lw=1.2, arrows=False,
                   lab="  then E steps of %.1f m at the hold" % np.abs(P[:, 0]).max())
             P = h_profile_path("safety2_fgo_profile.json", True)
             ax.plot(*tr(P[-1:]).T, "D", color=ROUTE, ms=7, mfc="white", mew=1.8, zorder=10,
-                    label="safety2_* hold W(%.1f, %.1f) (safety2_fgo_profile.json)" % (P[-1][1] - wall_p()[1], P[-1][0]))
+                    label="5S safety tests, FGO re-tests: hold W(%.1f, %.1f)" % (P[-1][1] - wall_p()[1], P[-1][0]))
         else:
             P = h_profile_path("ifanchor_profile.json", False)
             ax.annotate("", xy=(sx, sy + P[0][1]), xytext=(sx, sy), zorder=9,
                         arrowprops=dict(arrowstyle="-|>", color=ROUTE, lw=2, mutation_scale=13))
-            ax.plot([], [], color=ROUTE, lw=2, label="H_ifa: move %.1f m north in EKF3's own pre-anchor frame "
-                    "(ifanchor_profile.json), drawn from the spawn" % P[0][1])
-        notes.append("tag frame W: N_W = world y - %.3f, E_W = world x (tag_bridge_fwd.py WALL_P)" % wp[1])
+            ax.plot([], [], color=ROUTE, lw=2, label="Experiment 5 in-flight-anchor check: move %.1f m north in EKF3's own pre-anchor frame, "
+                    "drawn from the spawn" % P[0][1])
+        notes.append("tag frame W: N_W = world y - %.3f, E_W = world x" % wp[1])
     elif world.startswith("iris_"):
-        notes.append("no mission file: Stage A-C / sweep flights flew a few metres north by fly_forward/fly_trial (record only)")
+        notes.append("no mission file: the early pipeline-check and speed-sweep flights flew a few metres north (record only)")
 
     # ---- spawn
     S = tr(np.array([[sx, sy]]))[0]

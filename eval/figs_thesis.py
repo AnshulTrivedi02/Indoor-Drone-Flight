@@ -407,7 +407,7 @@ check("closed loop, half real-time, with heading: max cross-track range EKF3 / f
 check("closed loop, half real-time, with heading: flights passing all five criteria (+ estimator validity)", " / ".join(f"{passh[e]}/3" for e in EST), "3/3 / 3/3 / 3/3", "numbers.md §15")
 
 COLS = ["Experiment 1A: standard sensors (textured floor, no heading)", "Experiment 1B: with the camera heading (offline)",
-        "Experiment 1: blank floor (no flow)", "Experiment 2: known tags", "Experiment 4: outdoor–indoor (GNSS outside only)",
+        "Experiment 1: blank floor (no flow; 1A and 1B flights pooled)", "Experiment 2: known tags", "Experiment 4: outdoor–indoor (GNSS outside only)",
         "Experiment 3: loop closure (tags at unknown positions)", "Experiment 5: tag hold", "Experiment 1C: closed loop (the estimator flies)"]
 CELLS = {
     "EKF3": [("TIED", f"median {rd(med['EKF3'], 2)} m", "confirmatory test: no ordering"),
@@ -438,7 +438,8 @@ rowsT1 = [[col] + [f"{CELLS[e][j][0]}: {CELLS[e][j][1]} ({CELLS[e][j][2]})" for 
 save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the restated verdicts)",
          "Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts. "
          "Mostly ties: the FGO is best only with the camera heading, and no estimator "
-         "bounds position on a blank floor.",
+         "bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera "
+         "flights (1B: the camera calibration flights and both camera datasets).",
          ["experiment", "EKF3", "UKF", "FGO"], rowsT1, [30, 40, 40, 40],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, dsn_paired_test.json, phase4_{fwdc,fwdplainc}_evo.json, blank_behaviour.json, "
          "expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, "
@@ -610,8 +611,8 @@ for e in EST:
                    ("—" if e == "EKF3" else " / ".join(f"{rd(100 * x, 1)}" for x in hd[f"{e}_heading"]) + " cm")])
 save_tab("T2", "T2_accuracy_heading", "Position error without and with the camera heading (textured floor)",
          "Without a heading source all three drift by metres and no ordering is claimed; with the camera heading the UKF and the FGO "
-         "stay within 0.25 m, the FGO lower on all 6 bags (C1.a). A decomposition of the cross-track attributes metres of it to each "
-         "estimator's own heading error without the heading, and centimetres with it.",
+         "stay within 0.25 m, the FGO lower on all 6 bags (C1.a). The heading-error decomposition of sideways drift attributes metres "
+         "of the cross-track to each estimator's own heading error without the heading, and centimetres with it.",
          ["estimator", "no heading: standard-sensor dataset, 9 flights, median (range) (m)", "no heading: textured walls, flights 1 / 2 / 3 (m)",
           "no heading: plain walls, flights 1 / 2 / 3 (m)", "with heading: textured walls, flights 1 / 2 / 3 (m)",
           "with heading: plain walls, flights 1 / 2 / 3 (m)",
@@ -628,8 +629,8 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
                 "* Plain walls over the checkerboard floor: the heading FAILED the heading-measurement validation (H1.2) there, so no heading "
                 "benefit is claimed (conditional on the initial yaw σ). C1.a (FGO lower than the UKF with heading) holds on 6/6, margin "
                 "0.03–0.06 m on plain walls.",
-                "Decomposition: |cross-track| at the end of cruise driven by the estimator's own heading error, from the analysis of the "
-                "heading-fusion prediction (H1.3) on the FGO-only re-run (the final estimator builds)."],
+                "Heading-error decomposition of sideways drift: |cross-track| at the end of cruise driven by the estimator's own heading "
+                "error, from the analysis that the heading-fusion prediction (H1.3) is judged on, on the FGO-only re-run (the final estimator builds)."],
          fs=7.6, order=20)
 
 # =============================================================================================== TABLE T3 blank floor (was F4)
@@ -646,12 +647,13 @@ rowsT3 = [[e, f"{len(BLANK[e])}", f"{rng(BLANK[e][:, 0], 1)} (median {rd(np.medi
 rowsT3.insert(0, ["EKF3", f"{len(EK_INV)}", "invalid", "invalid", "invalid", f"invalid (for {rng(EK_INV, 0)} s of cruise)"])
 save_tab("T3", "T3_blank_floor", "Blank floor: position error after the loss of flow aiding",
          "On a blank floor nothing bounds position: the UKF and the FGO dead-reckon away to km-scale errors by the end of the cruise, and "
-         "EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy.",
+         "EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy. "
+         "The blank-floor flights pool Experiment 1A (standard sensors) and 1B (forward camera).",
          ["estimator", "flights", "+10 s (m)", "+30 s (m)", "+60 s (m)", "end of cruise"], rowsT3, [14, 10, 26, 26, 26, 30],
          "eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60 s and end; EKF3_invalid_period; valid_frames_in_cruise)",
          "§6.2; claim 10",
          notes=["Error magnitude = hypot(along, cross) at each time after the flow-loss point; UKF and FGO baselines (no heading), 11 "
-                "flights each (blank floor: the standard-sensor dataset, the camera calibration flights and both camera datasets). † runaway magnitudes: evidence of divergence with its order of "
+                "flights each (blank floor, pooled across Experiments 1A and 1B: the standard-sensor dataset (1A), the camera calibration flights and both camera datasets (1B)). † runaway magnitudes: evidence of divergence with its order of "
                 "magnitude, not bit-reproducible values.",
                 f"EKF3 'invalid': on all {len(EK_INV)} blank flights there are {max(nvalid)} valid airborne flow frames in the cruise, so flow "
                 f"aiding never starts; EKF3 flags its position invalid from take-off ({rng(EK_INV, 0)} s of cruise) and outputs exactly the "
@@ -1310,6 +1312,8 @@ MAPT = [  # (thesis label, internal code(s), search pattern, vocabulary row)
     ("5S safety tests", "`H_safety_*`; safety (a) / (b)", r"\b5S\b", "§2 row 9"),
     ("condition A–D (8 / 4 / 2 / 1 tags; kept as letters)", "Experiment T conditions A–D; `T_A` … `T_D`", r"condition [A-D]", "§8.1 row 29; §10 row 21"),
     ("standard-sensor dataset", "`dsn`", r"standard-sensor dataset", "§2 row 11"),
+    ("heading-error decomposition of sideways drift", "Phase 5 decomposition (`plots/lateral_checks.py` method)", r"heading-error decomposition", "§5 (under H1.3)"),
+    ("thesis-nav position-lost path (the Copter landing trigger)", "`thesis_nav_check`", r"thesis-nav", "§8.3"),
     ("textured-wall camera dataset (upper bound)", "`fwdc`", r"textured-wall|textured walls|camera datasets", "§2 row 13"),
     ("plain-wall camera dataset (featureless case)", "`fwdplainc`", r"plain-wall|plain walls|camera datasets", "§2 row 14"),
     ("camera calibration flights", "`p1c_*`", r"camera calibration flights", "§2 row 15"),
@@ -1350,7 +1354,7 @@ MAPT = [  # (thesis label, internal code(s), search pattern, vocabulary row)
 MAPH = [  # (thesis label, name in words, internal code) - thesis_vocabulary.md §5
     ("H1.1", "standard-sensor ordering, EKF3 vs FGO (confirmatory)", "the r4–r10 paired test"),
     ("H1.2", "heading-measurement validation", "Phase 3 validation"),
-    ("H1.3", "heading-fusion prediction", "Phase 5 prediction (its decomposition analysis has no thesis name)"),
+    ("H1.3", "heading-fusion prediction (judged on the heading-error decomposition of sideways drift)", "Phase 5 prediction; Phase 5 decomposition"),
     ("C1.a", "FGO vs UKF with heading (comparison, no decision rule)", "C0"),
     ("H1.4", "robust-weighting test", "F1 (pre-registered)"),
     ("H2.1", "FGO hindsight gain grows with the gap", "H-T1"), ("H2.2", "the same for the smoothed UKF", "P-T2"),

@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `6bb231b` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `a8ef120` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -47,7 +47,7 @@ Built by `eval/figs_thesis.py` at commit `6bb231b` (run with `/home/makerspace/v
 
 ### Table 4.1 (internal T2, table): Position error without and with the camera heading (textured floor)
 
-- **Caption:** Without a heading source all three drift by metres and no ordering is claimed; with the camera heading the UKF and the FGO stay within 0.25 m, the FGO lower on all 6 bags (C1.a). A decomposition of the cross-track attributes metres of it to each estimator's own heading error without the heading, and centimetres with it.
+- **Caption:** Without a heading source all three drift by metres and no ordering is claimed; with the camera heading the UKF and the FGO stay within 0.25 m, the FGO lower on all 6 bags (C1.a). The heading-error decomposition of sideways drift attributes metres of the cross-track to each estimator's own heading error without the heading, and centimetres with it.
 - **Inputs:** eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); dsn_paired_test.json; phase4_{fwdc,fwdplainc}_evo.json, cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m)
 - **numbers.md rows:** §6.1, §6.3 (Phase 5 decomposition), §6.4, §6.6; claims 1a, 1b, 2, 5, 7
 
@@ -68,7 +68,7 @@ Built by `eval/figs_thesis.py` at commit `6bb231b` (run with `/home/makerspace/v
 
 ### Table 4.2 (internal T3, table): Blank floor: position error after the loss of flow aiding
 
-- **Caption:** On a blank floor nothing bounds position: the UKF and the FGO dead-reckon away to km-scale errors by the end of the cruise, and EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy.
+- **Caption:** On a blank floor nothing bounds position: the UKF and the FGO dead-reckon away to km-scale errors by the end of the cruise, and EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy. The blank-floor flights pool Experiment 1A (standard sensors) and 1B (forward camera).
 - **Inputs:** eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60 s and end; EKF3_invalid_period; valid_frames_in_cruise)
 - **numbers.md rows:** §6.2; claim 10
 
@@ -194,7 +194,7 @@ Built by `eval/figs_thesis.py` at commit `6bb231b` (run with `/home/makerspace/v
 
 ### Table 7.1 (internal T1, table): Which estimator wins where (scorecard of the restated verdicts)
 
-- **Caption:** Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts. Mostly ties: the FGO is best only with the camera heading, and no estimator bounds position on a blank floor.
+- **Caption:** Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts. Mostly ties: the FGO is best only with the camera heading, and no estimator bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera flights (1B: the camera calibration flights and both camera datasets).
 - **Inputs:** eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, dsn_paired_test.json, phase4_{fwdc,fwdplainc}_evo.json, blank_behaviour.json, expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, closed_loop_cl_*_half(_v2/_v3).json
 - **numbers.md rows:** §6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25
 
@@ -325,8 +325,8 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | thesis label | internal code(s) | used in | vocabulary row |
 |---|---|---|---|
 | Experiment 1, corridor comparison | (no single code: the `dsn` / `fwdc` / `fwdplainc` datasets, Phases 3–5, the F tests, the closed-loop "Part 2") | Table 7.1 | §1; §2 row 1 |
-| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Table 7.1 | §2 row 6 |
-| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Table 7.1 | §2 row 7 |
+| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Table 4.2, Table 7.1 | §2 row 6 |
+| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Table 4.2, Table 7.1 | §2 row 7 |
 | Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Table 7.1, Table A.1 | §2 row 8 |
 | Experiment 2, known tags | Experiment T | Figure 5.1, Table 5.2, Table 7.1 | §2 row 2 |
 | Experiment 3, loop closure | Experiment L | Figure 5.2, Table 5.2, Table 7.1, Table A.3 | §2 row 3 |
@@ -335,9 +335,11 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | 5S safety tests | `H_safety_*`; safety (a) / (b) | Table 7.2, Table A.2 | §2 row 9 |
 | condition A–D (8 / 4 / 2 / 1 tags; kept as letters) | Experiment T conditions A–D; `T_A` … `T_D` | Figure 5.1, Table 5.2 | §8.1 row 29; §10 row 21 |
 | standard-sensor dataset | `dsn` | Table 4.1, Table 4.2, Table 7.1 | §2 row 11 |
+| heading-error decomposition of sideways drift | Phase 5 decomposition (`plots/lateral_checks.py` method) | Table 4.1 | §5 (under H1.3) |
+| thesis-nav position-lost path (the Copter landing trigger) | `thesis_nav_check` | Table 7.2, Table A.2 | §8.3 |
 | textured-wall camera dataset (upper bound) | `fwdc` | Table 4.1, Table 4.2, Table 7.1 | §2 row 13 |
 | plain-wall camera dataset (featureless case) | `fwdplainc` | Table 4.1, Table 4.2, Table 7.1, Table A.3 | §2 row 14 |
-| camera calibration flights | `p1c_*` | Table 4.2 | §2 row 15 |
+| camera calibration flights | `p1c_*` | Table 4.2, Table 7.1 | §2 row 15 |
 | cruise ATE | `evo -a (cruise)` | Table 4.1, Table 7.1 | §3 row 17 |
 | contact window | closed-loop set (a) PRIMARY window; U3 | Figure 4.1, Table 4.3, Table A.1 | §3 row 20 |
 | mission completion | B1 | Figure 4.1, Table 4.3, Table A.1, Table A.3 | §3 row 23 |
@@ -378,7 +380,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 |---|---|---|---|
 | H1.1 | standard-sensor ordering, EKF3 vs FGO (confirmatory) | the r4–r10 paired test | Table 4.1, Table 7.1 |
 | H1.2 | heading-measurement validation | Phase 3 validation | Table 4.1 |
-| H1.3 | heading-fusion prediction | Phase 5 prediction (its decomposition analysis has no thesis name) | Table 4.1 |
+| H1.3 | heading-fusion prediction (judged on the heading-error decomposition of sideways drift) | Phase 5 prediction; Phase 5 decomposition | Table 4.1 |
 | C1.a | FGO vs UKF with heading (comparison, no decision rule) | C0 | Table 4.1, Table 7.1 |
 | H1.4 | robust-weighting test | F1 (pre-registered) | Table A.1, Table A.3 |
 | H2.1 | FGO hindsight gain grows with the gap | H-T1 | Figure 5.1, Table 7.1 |

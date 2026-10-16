@@ -4,6 +4,10 @@
 any frozen document has been renamed.** These names are for the thesis text only. The repository keeps its own codes,
 and the appendix mapping (§9) leads back to them.*
 
+*Added 2026-10-17 (after the sweep; no row renumbered): the analysis name **heading-error decomposition of sideways drift**
+(§5, under H1.3) and the descriptive term **thesis-nav position-lost path** (§8.3). Neither is counted as a vocabulary term in §0:
+the first is an analysis name inside a hypothesis's section, and the second is descriptive, like §8.1 rows 40 and 41.*
+
 **Inputs read:** `docs/thesis/glossary.md`, `docs/thesis/glossary_flags.md` (including its §c proposed scheme),
 `docs/thesis/numbers.md`, `docs/thesis/headline_claims_before_after.md`, `docs/thesis/figures_thesis/index.md`,
 `docs/thesis/tables/T1–T8*.md`, `docs/thesis/final_results_pack_index.md`, both thesis PDFs (`pdftotext -layout`, cited as
@@ -139,6 +143,7 @@ Each label maps to its internal code and to the **operative pre-registration lin
 | H1.1 | standard-sensor ordering, EKF3 vs FGO (confirmatory) | the r4–r10 paired test ("EKF3 lower") | M:5638, rule M:5649-5656 | "no ordering claimed" (numbers.md:227; claim 2 WITHDRAWN) |
 | H1.2 | heading-measurement validation | Phase 3 validation | M:2636 | heading: `fwdc` 9/9, `fwdplainc` 6/9 (numbers.md:329) |
 | H1.3 | heading-fusion prediction | Phase 5 prediction (heading share falls; residual "roughly unchanged") | M:1332, M:1336 | part (b) FAIL as worded, 10/12 (M:3447) |
+| (analysis, H1.3) | **heading-error decomposition of sideways drift** | Phase 5 decomposition (`plots/lateral_checks.py` method) | method M:3400-3404; the Phase 5 test reads it, M:1336-1338 | the analysis H1.3 is judged on, not a hypothesis. The lateral-velocity error (estimated − true) is split into a heading-driven part, speed × (sin ψ_est − sin ψ_true), and a residual; integrated, the heading-driven part is the sideways (cross-track) drift caused by the estimator's own heading error. Values: numbers.md §6.3 (Phase 5 decomposition row) |
 | C1.a | FGO vs UKF with heading | C0 ("REPORT, no decision rule") | M:7892 | FGO lower 6/6 (numbers.md:298) |
 | H1.4 | robust-weighting test | F1 (pre-registered) | M:7899 (block M:7877) | NOT met, lockout tie (numbers.md:501) |
 | X1.b | robust vs hard-gated FGO, same bags | F1 EXPLORATORY | M:8460 | exploratory (M:8436) |
@@ -395,6 +400,12 @@ build columns) and the worlds PDF (the appendix world table), as rows 15, 16 and
 
 *Not counted (not a code): the source note "S1-far EKF3 drifts … METHODOLOGY only" (`T5_H_tag_loss_drift.md:16`; index.md:175). See `pending_items.md` item 7.*
 
+### 8.3 Added after the sweep (2026-10-17)
+
+| code | where | thesis wording and definition | source |
+|---|---|---|---|
+| thesis-nav ("EKF3 has no thesis-nav position-lost path"; "no thesis-nav text") | `T7_failure_behaviour.md` (Table 7.2, EKF3 forced-invalid cell); Table A.2 note (`A2_H_and_safety_p1.png`) | **thesis-nav position-lost path** (descriptive; not a vocabulary term): the Copter landing trigger `thesis_nav_check` in the thesis firmware fork. It runs every loop; when the vehicle is armed with the UKF or the FGO as the AHRS type and loses `HORIZ_POS_REL` after having had it since arming, it commands the EKF failsafe action (LAND), with no origin needed, and sends its status text. EKF3 flights use ArduPilot's own EKF failsafe instead, so the trigger and its text do not apply to EKF3 | M:11264-11265; fork `ArduCopter/ekf_check.cpp:337-358` (glossary.md:2964); its status text with mode LAND: glossary_flags.md:915 |
+
 ## 9. APPENDIX: mapping table (thesis name → internal code(s) → source)
 
 | thesis name | internal code(s) | source file:line |
@@ -449,6 +460,8 @@ build columns) and the worlds PDF (the appendix world table), as rows 15, 16 and
 | with / without heading | closed-loop set (b) / (a) | M:4841-4842 |
 | with / without loop closure | LC / no-LC | M:10454; numbers.md:563-566 |
 | hard-gated / robust FGO | `FGO_hard` / `FGO_robust` | M:7899; numbers.md:501 |
+| heading-error decomposition of sideways drift | Phase 5 decomposition | M:3400-3404; M:1336-1338 |
+| thesis-nav position-lost path | Copter `thesis_nav_check` | M:11264-11265 |
 | H1.1 … H5.7, C1.a, X1.b, V3 | see §5 | §5 tables |
 
 ## 10. Departures from the proposed scheme in glossary_flags.md §c
