@@ -14194,3 +14194,23 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   - "half speed" becomes "half real-time (RTF 0.5)" everywhere thesis-facing, with the one-line explanation (flight
     speed unchanged at 0.5 m/s) added to the vocabulary and the methodology draft;
   - the 24 internal codes are removed from captions in the same pass.
+
+### RULINGS (user, 2026-10-16): the open pending items
+- **Rounding check FIRST:** print the full-precision stored values behind "T condition A FGO batch" and "L no-LC lower
+  bound".
+  - If either flip comes from binary float rounding: round in DECIMAL from the stored string
+    (`decimal.Decimal(str(x))`, ROUND_HALF_UP), regenerate every rounded cell, and report every cell that changes.
+- **6:** confirm that `phase5_analysis.json` postdates the final consolidated AND the FGO-only re-runs (commit and
+  mtime).
+  - If YES: restate the numbers.md row from it, with a cross-check.
+  - If NOT: REMOVE the Phase 5 column from T2.
+- **7:** add the numbers.md row for the far-spawn EKF3 flights (r1, r2, r3b).
+- **9:** in thesis-facing material, cite a not-recomputed row ONLY where the text needs it, labelled "measured before
+  corrections; not recomputed".
+  - **Do NOT describe any of them as unaffected.** The coordinator's reasoning that "flow measurements don't depend on
+    the estimator corrections" is WITHDRAWN: the roll-gain, flow-sign and time-sync corrections changed flow,
+    attitude and latency.
+  - List which thesis-facing places cite each such row.
+- **10:** show the early S-A4 flags as "not applicable / not scored", footnoting the METHODOLOGY reason (quoted with
+  file:line); the raw score-file entries go in the appendix.
+- **Correct the stale numbers.md §10 heading.**
