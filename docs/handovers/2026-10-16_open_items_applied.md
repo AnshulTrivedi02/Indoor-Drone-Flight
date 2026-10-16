@@ -39,6 +39,8 @@ Commits on `worktree-agent-aab9fd614b0018fbe` (based on `fwd-camera` `3927c3c`):
   re-run (`425e824`, 05:15).
 - **On "postdates 21:35".** The FGO-only run's 21:35 is the end of its last stage (L), which does not feed Phase 5. The file
   is that run's own Phase 5 output, built on that run's phase4 replays.
+- **Read literally, the test fails.** The mtime (14:08) PRECEDES the 21:35 completion, so the user may overrule the YES
+  verdict. The earlier `final_rerun` phase5 copy (2026-10-09 21:19–21:22) was overwritten by this one.
 - **Action:**
   - new `numbers.md` §6.3 row, with the magnitudes of `xtrack_head_m` at 3 dp, provenance and the JSON key;
   - two T2 checks against it;
@@ -133,10 +135,14 @@ heading and paragraph are verbatim in "Superseded by the rulings of 2026-10-16 (
   PDFs' text, `limitations.md`, the vocabulary and the world index.
 - **Intended hits:** `methodology_definitions_draft.md:224-225` (the new rule itself: "Never describe one as unaffected …
   WITHDRAWN").
-- **Hits outside the thesis-facing outputs (records, not rewritten), none about the not-recomputed rows:**
-  - `final_restatement_draft.md:438` ("Results are unaffected: all H-L verdicts are unchanged"), about the L wall-time
-    slowdown;
-  - `headline_claims_before_after.md:21` and `:61`, about the 0.1 rad initial-yaw sensitivity check.
+- **Other hits, none about the four not-recomputed rows, so left unchanged:**
+  - **`headline_claims_before_after.md`, which is thesis-facing** (the previous stage removed claim 15 from it as
+    thesis-facing material). It has three hits:
+    - `:21`: "The claim (`fwdc`) is unaffected by the 0.1 rad check".
+    - `:42`: "the FGO_hard F1 lockouts … are not in the rule …, so the verdict is unaffected", about the F1 decision rule.
+    - `:61`: "`fwdc` and `dsn` are unaffected beyond the FGO noise floor", about the 0.1 rad initial-yaw sensitivity check.
+  - **`final_restatement_draft.md:438`**, a record draft: "Results are unaffected: all H-L verdicts are unchanged", about the
+    L wall-time slowdown.
 - **New code-family hits, intended by ruling 10** (the captions ruling had removed such codes):
   - "METHODOLOGY.md:11490" and "METHODOLOGY.md:11827" in the T7 footnote (`.md`/`.tex`/png/PDF);
   - `rearmed_after_disarm` in A2 p2 (cells and note).
