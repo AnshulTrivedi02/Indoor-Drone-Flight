@@ -332,7 +332,7 @@ def draw(world, out_dir):
                   lab="  then E steps of %.1f m at the hold" % np.abs(P[:, 0]).max())
             P = h_profile_path("safety2_fgo_profile.json", True)
             ax.plot(*tr(P[-1:]).T, "D", color=ROUTE, ms=7, mfc="white", mew=1.8, zorder=10,
-                    label="5S safety tests, FGO re-tests: hold W(%.1f, %.1f)" % (P[-1][1] - wall_p()[1], P[-1][0]))
+                    label="5S safety tests (FGO): hold W(%.1f, %.1f)" % (P[-1][1] - wall_p()[1], P[-1][0]))
         else:
             P = h_profile_path("ifanchor_profile.json", False)
             ax.annotate("", xy=(sx, sy + P[0][1]), xytext=(sx, sy), zorder=9,

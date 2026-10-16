@@ -105,13 +105,13 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 **Routes come from the mission and profile files, not from flown data:**
 - **Corridor cruise:** each world's line in `batches/*.conf`, as velocity × duration north from the spawn (0.5 m/s × 300 s = 150 m at 2 m). The half real-time (RTF 0.5) world's route comes from `closed_loop_run.sh`. The measured travel is 151 m (numbers §1).
 - **Experiments 2 and 3 (known tags, loop closure):** `LAPS=5,6,0.5` and the conf line in `tools/run_expT.sh`: 5 laps of a 6 m square, N–E–S–W from the spawn over tag 0, at 2.0 m.
-- **tagchar:** `batches/tagchar.conf`.
+- **Tag check flights (`tagchar_*`):** `batches/tagchar.conf`.
 - **Experiment 4 (outdoor–indoor):** `OUTBACK=15,1.5,50,0.5,20` in `tools/run_expO.sh`, with the GNSS gate at N = 20 m.
 - **Experiment 5 (tag hold):** `batches/expH/*.json`, converted from the tag frame W to world coordinates with N_W = world y − 4.998 and E_W = world x. The 4.998 is `WALL_P` in `tag_bridge_fwd.py`. `s0a` and `s0b` are flown in the world frame.
 - **Experiment 5 safety-watcher room box:** the `--box` in `closed_loop_run.sh`.
 - **iris worlds:** no mission file exists, so only the spawn is drawn.
 
-**Drawing offsets (not geometry).** The outdoor_indoor out and back legs are drawn 0.6 m either side of x = 0, and the tagchar line 0.25 m west of the lap line, so the overlapping legs stay visible. They were all flown at the spawn's x.
+**Drawing offsets (not geometry).** The outdoor_indoor out and back legs are drawn 0.6 m either side of x = 0, and the tag-check-flight line (`tagchar_*`) 0.25 m west of the lap line, so the overlapping legs stay visible. They were all flown at the spawn's x.
 
 **Colours (Okabe–Ito).** The estimator colours, EKF3 #0072B2, UKF #009E73 and FGO #D55E00, are deliberately not used because they carry fixed meanings in the thesis figures.
 
