@@ -5,7 +5,14 @@ rounding sweep". **Nothing was recomputed.** Only scripts, pipeline logs, job li
 read. METHODOLOGY.md, the result files and the frozen documents were not edited. The branch is `worktree-agent-a0cc5039e3ae685e2`,
 reset to `fwd-camera` `842ca12` (the worktree had been created from the unrelated `main` root).
 
-## Item 6: PASS on (1), (2) and (3); the record is in `numbers.md` §6.3, under the table
+## Item 6: PASS on (1), (2) and (3); the record is a new section at the END of `numbers.md`
+
+- **Placement: line-neutral, by design.** The record is the new last section, "Provenance record: the §6.3 Phase 5
+  decomposition row", placed after Superseded. The row's own provenance cell gains a same-line pointer to it.
+- **Why.** Thesis-facing docs cite `numbers.md` by line, for example `thesis_vocabulary.md:303` ("§6.4 (264-274) …") and
+  `methodology_definitions_draft.md:64` (`numbers.md:467`). In-place insertion would have shifted every citation after
+  line 263. The first commit (`98a3431`) inserted the record under the §6.3 table; the follow-up commit moved it.
+- **Check.** The diff against `842ca12` changes line 263 in place and appends from line 1252 on. No cited line moves.
 
 - **(1) PASS.** Phase 5 (`final_rerun2`, 2026-10-10 14:06:50–14:09:29) read 203 files:
   - 45 UKF `ukf_traj.tum` and 27 heading-arm UKF `timing_and_fwd.npz`, with mtimes 2026-10-09 20:52:24–21:18:53. These
@@ -66,7 +73,7 @@ reset to `fwd-camera` `842ca12` (the worktree had been created from the unrelate
 - **`figures_thesis/index.md`, the "expected" column and the "last-digit rounding matches" line.** These quote the
   numbers.md strings by design (the cross-check record). Changing the generator's expected strings would break the
   comparison with numbers.md.
-- **Frozen documents** (`final_results_pack*`, Superseded blocks, METHODOLOGY): not searched for edits and not changed.
+- **Frozen documents** (`final_results_pack*`, Superseded blocks, METHODOLOGY): not changed. Their hits are listed below.
 
 **`numbers.md` rows that DISPLAY a value differing from the single rounding, for a ruling (not changed):**
 - §16.1 table: A FGO batch 0.011 (file 0.0104796) and C FGO live 0.053 (file 0.0535044, single 0.054).
@@ -75,9 +82,56 @@ reset to `fwd-camera` `842ca12` (the worktree had been created from the unrelate
 - §16.2 P-O3 cap-free: 1.02–1.05 (file min 1.0148303; single 1.01).
 - §16.3: nolc live 0.262–0.361 (file 0.2625326; single 0.263).
 
+- §6.6 (line 305), FGO baseline cross-track NEES per bag "(2.4 / 0.2 / 2.6)": the r3 file value is 2.5456255
+  (`phase5b_consistency.json` consistency.fwdc_tex_r3.FGO_baseline.mean_nees), and its single rounding is **2.5**
+  (2.5456 → 2.55 → 2.6 is double rounding). The mean, 1.70, is correct, and the per-bag values appear in no
+  thesis-facing file.
+
 **Flag 8 (numbers.md, "four last-digit transcriptions") undercounts.** P-T4 C, the H-O2 lower bound and the P-O3 cap-free
 lower bound are three more. The generator already displays the single roundings: T6 1.71–1.84, T8 2.06, the T8 caption
 1.01–1.05.
+
+**Off-map values (hand-typed, not printed by the generator).**
+- **Screen.** I listed every value ending in 5 at its stored precision in `final2_old_vs_new.md`,
+  `final_old_vs_new.md` and `numbers.md`. Only such a value can flip under double rounding. For each, I grepped its two
+  one-digit-shorter forms in the hand-written thesis-facing docs.
+- **Same-quantity hits.** Each was checked against the full-precision file value:
+  - dsn r1–r3 means 4.00 / 3.59 / 3.44;
+  - paired d −0.021, CI [−0.989, +0.947];
+  - noise-floor SDs: FGO 1.30 [0.88, 2.49], EKF3 0.31 [0.22, 0.57];
+  - F2 live yaw 0.32–0.36° (both lives, as `f23_eval.py` tests);
+  - NEES 1.70 / 13.41 / 13.95;
+  - kick ≤ 0.82°;
+  - sensitivity ≤ 0.013 m (clock max 0.01311, threshold 0.00956);
+  - 0.1 rad check 0.75 / 0.73, 0.25 / 0.22 → 5.70 / 5.70;
+  - yaw RMS 0.07–0.08°, 3.08–3.39 / 3.07–3.41°;
+  - yaw max 4.59–5.03° (`f1_test.json`);
+  - fused 647–778 / 3,582–5,911; bias −7.6 … −8.4;
+  - transition ratios 6.8 / 17.7 (18.0 / 18.1 / 17.0);
+  - scale 0.996–0.997 / 0.998–0.999 / 0.97–0.98;
+  - contact median +163.2 s, west +154 … +198;
+  - shadows 4–9 / 1–8 mm, EKF3 3–11 mm;
+  - O attribution 0.22–0.30, +0.03.
+- **Result: all correct; no off-map hits.** The only corrections are the two above.
+- **Not traceable to a stored field:** "3.91–6.24° trans" yaw max (numbers.md §6.6 l.296; the plain-wall trace). Not
+  checked. "Before" values and METHODOLOGY quotations were not checked, as history.
+
+**Frozen documents: searched, hits left frozen** (the known double-rounded forms 0.011, 0.053, 0.262, 26.2, 2.07, 1.72,
+1.02):
+- `final_results_pack.pdf` (`pdftotext` lines):
+  - 112: P-T4 "1.31 / 2.14 / 2.07 / 3.89";
+  - 119: "H-O2 … 1.72–1.84×", "cap-free 1.02–1.05";
+  - 128: L "0.262–0.361 m";
+  - 234: claim 19 "1.72–1.84";
+  - 244 and 422: "0.281–0.362 → 0.262–0.361 m".
+- `final_results_pack_index.md`:
+  - 302: 2.07;
+  - 309: 1.72–1.84; cap-free 1.02–1.05;
+  - 316: 0.262–0.361;
+  - check-table expected strings at 35, 126, 128, 150.
+- `final_results_pack_corrections.md:45`: L "0.281–0.362 → 0.262–0.361 m".
+- `numbers.md` Superseded l.1105: old-run T table "**0.011 m**". This is a pre-re-run value, a different stored value,
+  and was not checked.
 
 ## Cross-check
 

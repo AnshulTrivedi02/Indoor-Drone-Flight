@@ -260,99 +260,7 @@ The former values are in the superseded section ("Former sections 6–9").
 | EKF3 lateral errV, `dsn_tex_r3` | 0.133 m/s (cross-track 40.2 m) | m/s | CURRENT | same |
 | EKF3 lateral flow innovation, airborne mean \|FIX\| (textured, check flight) | 7 (321 before; ~300–450 in every old dataset) | ×1000 rad/s | CURRENT | M: "Check flight `rgs_check_tex` — result" |
 | Rows of the former 6.3 not recomputed (FINDING 1 residual slopes, EKF3 bias-correction share, filter-consistency %, flow-residual partition, gyro-z ramp tracking) | pre-re-run values (in the superseded section); **must be recomputed before being cited** (sign fix and roll gains) | — | NOT RESTATED | — |
-| **Phase 5 decomposition: \|heading-driven cross-track\| at the end of cruise, `fwdc` textured r1 / r2 / r3** (added 2026-10-16, ruling on the open items, 6; not one of the NOT RESTATED rows above) | without heading: EKF3 36.276 / 29.508 / 36.070; UKF baseline 45.980 / 3.171 / 46.120; FGO baseline 41.002 / 8.630 / 42.121. With heading: UKF 0.065 / 0.064 / 0.068; FGO 0.065 / 0.063 / 0.067. Magnitudes of `xtrack_head_m` (the signs are in the file). **Provenance:** the file is the phase5-stage output of the FGO-only re-run (`final_rerun2` pipeline stage phase5, 2026-10-10 14:06:50–14:09:29; file mtime 14:08:20; all 126 inputs (`phase4_*_{arms,evo}.json`, `{ukf,fgo}_{baseline,heading,heading_yawrate}/timing_and_fwd.npz`, `fwd_meas/*.npz`) written ≤ 14:06:13, none rewritten later), committed in `819caab` (the FGO-only re-run's completion commit, 21:36); it postdates the final consolidated re-run (`425e824`, 05:15) | m | CURRENT (FGO-only re-run 2026-10-10) | json:phase5_analysis.json:decomposition.fwdc_tex_r*.{EKF3,UKF_baseline,FGO_baseline,UKF_heading,FGO_heading}.xtrack_head_m |
-
-**Phase 5 decomposition row: provenance record (item 6 ACCEPTED; METHODOLOGY "RULINGS (user, 2026-10-16): item 6 accepted with a
-provenance record; rounding sweep").** Read from the script, the pipeline logs, the job lists and the file mtimes; nothing was
-recomputed.
-
-1. **What the Phase 5 stage read.**
-   - **Writer.** The stage is `eval/final_rerun_pipeline.sh` stage `phase5` in FGO-only mode (`FINAL_FGO_ONLY=1`; state
-     `~/thesis_data/batches/final_rerun2`). It ran `eval/phase5_analysis.py --json eval/results/phase5_analysis.json` from
-     BEGIN 2026-10-10 14:06:50 to DONE 14:09:29. Its output has mtime 14:08:20 and was committed in `819caab`.
-   - **Inputs** (`phase5_analysis.py`: `TD = ~/thesis_data/trials`, `RES = eval/results`; trials `fwdc_*` and
-     `fwdplainc_*` × tex/trans/blank × r1–r3; arms `fwdc` baseline/heading/heading_yawrate, `fwdplainc` baseline/heading;
-     203 files):
-
-     | input | n | mtime range | produced by |
-     |---|---|---|---|
-     | `<trial>/ukf_<arm>/ukf_traj.tum` (`est_arm`) | 45 | 2026-10-09 20:52:24 – 21:18:53 | **final_rerun** (the consolidated re-run, `425e824`), stage phase4 (BEGIN 20:51:13, DONE 21:19:56), batch `final_phase4` |
-     | `<trial>/ukf_<heading arm>/timing_and_fwd.npz` (`endwall`, heading arms only; the baseline npz is not read) | 27 | 2026-10-09 20:52:26 – 21:18:53 | the same |
-     | `<trial>/fgo_<arm>/fgo_traj.tum` | 45 | 2026-10-10 13:46:33 – 14:06:13 | **final_rerun2** (the FGO-only re-run, `819caab`), stage phase4 (BEGIN 13:44:22, DONE 14:06:50), batch `final2_phase4` |
-     | `<trial>/fgo_<heading arm>/timing_and_fwd.npz` | 27 | 2026-10-10 13:47:57 – 14:06:13 | the same |
-     | `eval/results/phase4_{fwdc,fwdplainc}_{evo,arms}.json` (cruise windows; plain-checker counts) | 4 | 2026-10-10 14:06:31 – 14:06:50 | final_rerun2 phase4, `eval/phase4_eval.py` (md5 `47fb26bd…`, the same in both runs' provenance records) |
-     | `eval/results/fwd_calibration.json` | 1 | 2026-09-24 16:28:55 | Phase 3 (frozen) |
-     | `<trial>/fwd_meas/{gt_eval_only,meas_frozen}.npz`, `<trial>/ardupilot.bin` | 54 | 2026-09-29 15:59:45 – 21:15:48 | the recorded datasets (no estimator) |
-
-     The "126 inputs, all written ≤ 14:06:13" in the row's provenance cell is superseded by this table: the four phase4
-     JSONs were written at 14:06:31–14:06:50, still before the stage began.
-   - **The FGO-only mode skipped the UKF Phase 4 replays.**
-     - `jobs_stage` drops every `ukf_replay.py` / `room_ukf_replay.py` line in FGO-only mode (`fgo_filter`), and dies if a
-       kept job is not an FGO replay. `pipeline.log`: "final2_phase4: FGO-only list 45 of 90 jobs".
-     - `~/thesis_data/batches/final2_phase4/done/` holds 45 `fgo__*` markers and 0 `ukf__*`. `final_phase4/done/` (the
-       consolidated run) holds 45 `ukf__*` and 45 `fgo__*`.
-     - No UKF Phase 4 file has a mtime after 2026-10-09 21:18:53.
-   - **The UKF entries of the four phase4 JSONs are the consolidated run's.** final_rerun2's phase4 eval rewrote the
-     JSONs, re-scoring the trial-directory UKF outputs. Its hard UKF gate (`final_rerun2/ukfgate_phase4.txt`) reads
-     "ukf-gate: 225 UKF leaves compared, 0 differences" against the snapshot `eval/results_pre_final2`, which is the
-     consolidated run's state. The EKF3 gate reads "90 EKF3 leaves compared, 0 differences".
-   - **Verdict (1): PASS.** Phase 5 read the final UKF Phase 4 outputs of the consolidated re-run and the FGO Phase 4
-     outputs of the FGO-only re-run.
-
-2. **No later correction touched either Phase 4 path.**
-   - **Files checked.**
-     - UKF path: `src/estimators/{ukf_core,ukf_replay,measurement_models,imu_timing,apin}.py`, `eval/cruise_window.py`,
-       `src/forward_camera/` (the heading measurements reach the UKF only as the frozen `fwd_meas/meas_frozen.npz`,
-       2026-09-29), `batches/phase4_replays.jobs`, `eval/phase4_eval.py` and `eval/phase5_analysis.py`.
-     - FGO path: `src/estimators/fgo/{fgo_core,factors,fgo_replay,fgo_export}.py`, the shared `measurement_models.py` /
-       `imu_timing.py`, the same job list and evaluators, and `src/estimators/fgo_cpp/`.
-     - There are **no `ATTRIB_` toggles** in the tree: `172db50` records that the attribution-study code was not merged.
-   - **Never changed after `425e824`:** `ukf_core.py` (last `47de1ca`, 10-09), `imu_timing.py`, `apin.py`,
-     `cruise_window.py`, `src/forward_camera/` (last `f811b8a`, 10-02), `fgo_export.py`, `batches/phase4_replays.jobs`
-     (last `938fdb6`, 09-29), `eval/phase4_eval.py` and `eval/phase5_analysis.py` (last `88a8fb3`, 09-29).
-   - **Provenance md5s.** final_rerun vs final_rerun2: `ukf_core.py` and `measurement_models.py` are identical; only
-     `ukf_replay.py` differs, by the two off-by-default knobs below.
-   - **Commits after `425e824` on the UKF path:**
-
-     | commit | file | change | default behaviour |
-     |---|---|---|---|
-     | `df50ad9` (10-10 11:47; in `819caab`) | `ukf_replay.py` | `INIT_YAW_SIGMA_RAD` knob for the labelled sensitivity check (needs `UKF_OUT_ROOT`) | unchanged (unset = old path) |
-     | `5e0eba5` (10-10 13:00; in `819caab`) | `ukf_replay.py` | `UKF_BAG_ROOT` (read the bag from elsewhere) | unchanged |
-     | `0ac0983` (dated 10-10 12:46, on the R1 side branch; reached fwd-camera through the merge `4608637`, 10-11) | `measurement_models.py` | `geom=None` keyword on `h_range` / `h_flow_pose`, `make_geometry`, range window on `GroundProximityFlow` | unchanged (`geom=None` = the SIM constants through the same code) |
-     | `4608637` (10-11, merge) | the above | brings in `0ac0983` / `eb629a6` | as above |
-
-     The default UKF path was shown byte-identical after the knob edits (`docs/handovers/2026-10-10_initial_sigma_audit.md`:
-     `ukf_replay.py fwdplainc_tex_r1 heading` against the stored trial output; `ukf_traj.tum`, `metrics.txt`,
-     `bgz_series.txt`, `fwd_stats.json`, `ground_truth.tum` byte-identical). The UKF was not re-run after `425e824`, so none
-     of these commits ran in a UKF Phase 4 replay.
-   - **Commits after `819caab` on the FGO path:**
-
-     | commit | file | change | default behaviour |
-     |---|---|---|---|
-     | `0ac0983` (R1 side branch, dated before `819caab` but not its ancestor; merged by `4608637`) | `factors.py`, `fgo_core.py`, `fgo_replay.py`, `measurement_models.py` | rung-1 events mode (`FGO_EVENTS`, needs `FGO_OUT_ROOT`) and the `geom=None` keyword | unchanged (unset = the bag path; the bag block only re-indented) |
-     | `eb629a6` (the same side branch) | `fgo_replay.py` | events-mode take-off check through a 10 Hz filtered gyro, inside `if EVENTS:` | unchanged |
-     | `4608637` (10-11, merge) | `fgo_replay.py` | conflict resolution: the events block next to the `INIT_YAW_SIGMA_RAD` block | unchanged |
-     | `b9da351` (10-11) | `fgo_replay.py` | events mode loads the npz once, inside `if EVENTS:` | unchanged |
-     | `2610bdb` (10-11) | `fgo_cpp/` only | compile-time `FGO_CPP_FORCED_GATE`, off in the default build | not on the Phase 4 path (the Phase 4 jobs run the Python `fgo_replay.py`) |
-
-     No diff touches the forward-camera factors or the heading code. Proof of the default path:
-     `docs/handovers/2026-10-10_r1_converter.md` §6 (a) (old and new `measurement_models`/`factors`/`fgo_core` side by
-     side) and `docs/handovers/2026-10-11_r1_converter_mocap_scorer.md` (b): after the merge, a bag-mode replay of
-     `cl_a_tex_half` gives `fgo_traj.tum`, `ground_truth.tum` and `bgz_series.txt` **byte-identical** to the stored output of
-     the FGO-only re-run (sha256 in `eval/results/r1_converter/proofs_2026-10-11.txt`); re-passed after `b9da351`.
-   - **The FGO initial-yaw correction `df50ad9` is an ancestor of `819caab`** (`git merge-base --is-ancestor`), dated
-     10-10 11:47, before final_rerun2's preflight (13:02:52). It is IN the FGO-only run's FGO Phase 4 outputs.
-   - **Verdict (2): PASS.**
-
-3. **Why the literal test fails.** "Postdates both re-runs" fails only because the FGO-only run's completion (21:35:23;
-   `819caab` at 21:36) is the end of its last stage, L (BEGIN 18:55:34). L does not feed Phase 5:
-   - `phase5` runs before `L` in the stage order;
-   - it needs only `phase4` (`need phase4`);
-   - `phase5_analysis.py` reads none of L's inputs or outputs (L reads `T_A_r1–r3` and `dsn_tex_r1` and writes
-     `lc_fgo_*` and `eval/results/expL/`).
-
-   The file is the final Phase 5 output of the FGO-only run, built on the final UKF and FGO Phase 4 replays.
-
+| **Phase 5 decomposition: \|heading-driven cross-track\| at the end of cruise, `fwdc` textured r1 / r2 / r3** (added 2026-10-16, ruling on the open items, 6; not one of the NOT RESTATED rows above) | without heading: EKF3 36.276 / 29.508 / 36.070; UKF baseline 45.980 / 3.171 / 46.120; FGO baseline 41.002 / 8.630 / 42.121. With heading: UKF 0.065 / 0.064 / 0.068; FGO 0.065 / 0.063 / 0.067. Magnitudes of `xtrack_head_m` (the signs are in the file). **Provenance:** the file is the phase5-stage output of the FGO-only re-run (`final_rerun2` pipeline stage phase5, 2026-10-10 14:06:50–14:09:29; file mtime 14:08:20; all 126 inputs (`phase4_*_{arms,evo}.json`, `{ukf,fgo}_{baseline,heading,heading_yawrate}/timing_and_fwd.npz`, `fwd_meas/*.npz`) written ≤ 14:06:13, none rewritten later), committed in `819caab` (the FGO-only re-run's completion commit, 21:36); it postdates the final consolidated re-run (`425e824`, 05:15). **Provenance record (item 6 ACCEPTED, 2026-10-16): the section "Provenance record: the §6.3 Phase 5 decomposition row" at the end of this file** | m | CURRENT (FGO-only re-run 2026-10-10) | json:phase5_analysis.json:decomposition.fwdc_tex_r*.{EKF3,UKF_baseline,FGO_baseline,UKF_heading,FGO_heading}.xtrack_head_m |
 
 ### 6.4 Forward-camera datasets, textured, evo -a (cruise)
 
@@ -1343,3 +1251,98 @@ and the §10 correction replace the text below.
 | §10 heading | ## 10. Phase 4 (pre-registered only; results still running) |
 | §10 paragraph | **No Phase 4 results exist in the snapshot.** The replay batch was running when this pack |
 | §10 paragraph | was prepared. Only pre-registered values are listed. |
+
+---
+
+## Provenance record: the §6.3 Phase 5 decomposition row
+
+(Item 6 ACCEPTED; METHODOLOGY "RULINGS (user, 2026-10-16): item 6 accepted with a
+provenance record; rounding sweep".) Placed at the end of this file so that no line cited elsewhere by number moves. Read from the script, the pipeline logs, the job lists and the file mtimes; nothing was
+recomputed.
+
+1. **What the Phase 5 stage read.**
+   - **Writer.** The stage is `eval/final_rerun_pipeline.sh` stage `phase5` in FGO-only mode (`FINAL_FGO_ONLY=1`; state
+     `~/thesis_data/batches/final_rerun2`). It ran `eval/phase5_analysis.py --json eval/results/phase5_analysis.json` from
+     BEGIN 2026-10-10 14:06:50 to DONE 14:09:29. Its output has mtime 14:08:20 and was committed in `819caab`.
+   - **Inputs** (`phase5_analysis.py`: `TD = ~/thesis_data/trials`, `RES = eval/results`; trials `fwdc_*` and
+     `fwdplainc_*` × tex/trans/blank × r1–r3; arms `fwdc` baseline/heading/heading_yawrate, `fwdplainc` baseline/heading;
+     203 files):
+
+     | input | n | mtime range | produced by |
+     |---|---|---|---|
+     | `<trial>/ukf_<arm>/ukf_traj.tum` (`est_arm`) | 45 | 2026-10-09 20:52:24 – 21:18:53 | **final_rerun** (the consolidated re-run, `425e824`), stage phase4 (BEGIN 20:51:13, DONE 21:19:56), batch `final_phase4` |
+     | `<trial>/ukf_<heading arm>/timing_and_fwd.npz` (`endwall`, heading arms only; the baseline npz is not read) | 27 | 2026-10-09 20:52:26 – 21:18:53 | the same |
+     | `<trial>/fgo_<arm>/fgo_traj.tum` | 45 | 2026-10-10 13:46:33 – 14:06:13 | **final_rerun2** (the FGO-only re-run, `819caab`), stage phase4 (BEGIN 13:44:22, DONE 14:06:50), batch `final2_phase4` |
+     | `<trial>/fgo_<heading arm>/timing_and_fwd.npz` | 27 | 2026-10-10 13:47:57 – 14:06:13 | the same |
+     | `eval/results/phase4_{fwdc,fwdplainc}_{evo,arms}.json` (cruise windows; plain-checker counts) | 4 | 2026-10-10 14:06:31 – 14:06:50 | final_rerun2 phase4, `eval/phase4_eval.py` (md5 `47fb26bd…`, the same in both runs' provenance records) |
+     | `eval/results/fwd_calibration.json` | 1 | 2026-09-24 16:28:55 | Phase 3 (frozen) |
+     | `<trial>/fwd_meas/{gt_eval_only,meas_frozen}.npz`, `<trial>/ardupilot.bin` | 54 | 2026-09-29 15:59:45 – 21:15:48 | the recorded datasets (no estimator) |
+
+     The "126 inputs, all written ≤ 14:06:13" in the §6.3 row's provenance cell is superseded by this table: the four phase4
+     JSONs were written at 14:06:31–14:06:50, still before the stage began.
+   - **The FGO-only mode skipped the UKF Phase 4 replays.**
+     - `jobs_stage` drops every `ukf_replay.py` / `room_ukf_replay.py` line in FGO-only mode (`fgo_filter`), and dies if a
+       kept job is not an FGO replay. `pipeline.log`: "final2_phase4: FGO-only list 45 of 90 jobs".
+     - `~/thesis_data/batches/final2_phase4/done/` holds 45 `fgo__*` markers and 0 `ukf__*`. `final_phase4/done/` (the
+       consolidated run) holds 45 `ukf__*` and 45 `fgo__*`.
+     - No UKF Phase 4 file has a mtime after 2026-10-09 21:18:53.
+   - **The UKF entries of the four phase4 JSONs are the consolidated run's.** final_rerun2's phase4 eval rewrote the
+     JSONs, re-scoring the trial-directory UKF outputs. Its hard UKF gate (`final_rerun2/ukfgate_phase4.txt`) reads
+     "ukf-gate: 225 UKF leaves compared, 0 differences" against the snapshot `eval/results_pre_final2`, which is the
+     consolidated run's state. The EKF3 gate reads "90 EKF3 leaves compared, 0 differences".
+   - **Verdict (1): PASS.** Phase 5 read the final UKF Phase 4 outputs of the consolidated re-run and the FGO Phase 4
+     outputs of the FGO-only re-run.
+
+2. **No later correction touched either Phase 4 path.**
+   - **Files checked.**
+     - UKF path: `src/estimators/{ukf_core,ukf_replay,measurement_models,imu_timing,apin}.py`, `eval/cruise_window.py`,
+       `src/forward_camera/` (the heading measurements reach the UKF only as the frozen `fwd_meas/meas_frozen.npz`,
+       2026-09-29), `batches/phase4_replays.jobs`, `eval/phase4_eval.py` and `eval/phase5_analysis.py`.
+     - FGO path: `src/estimators/fgo/{fgo_core,factors,fgo_replay,fgo_export}.py`, the shared `measurement_models.py` /
+       `imu_timing.py`, the same job list and evaluators, and `src/estimators/fgo_cpp/`.
+     - There are **no `ATTRIB_` toggles** in the tree: `172db50` records that the attribution-study code was not merged.
+   - **Never changed after `425e824`:** `ukf_core.py` (last `47de1ca`, 10-09), `imu_timing.py`, `apin.py`,
+     `cruise_window.py`, `src/forward_camera/` (last `f811b8a`, 10-02), `fgo_export.py`, `batches/phase4_replays.jobs`
+     (last `938fdb6`, 09-29), `eval/phase4_eval.py` and `eval/phase5_analysis.py` (last `88a8fb3`, 09-29).
+   - **Provenance md5s.** final_rerun vs final_rerun2: `ukf_core.py` and `measurement_models.py` are identical; only
+     `ukf_replay.py` differs, by the two off-by-default knobs below.
+   - **Commits after `425e824` on the UKF path:**
+
+     | commit | file | change | default behaviour |
+     |---|---|---|---|
+     | `df50ad9` (10-10 11:47; in `819caab`) | `ukf_replay.py` | `INIT_YAW_SIGMA_RAD` knob for the labelled sensitivity check (needs `UKF_OUT_ROOT`) | unchanged (unset = old path) |
+     | `5e0eba5` (10-10 13:00; in `819caab`) | `ukf_replay.py` | `UKF_BAG_ROOT` (read the bag from elsewhere) | unchanged |
+     | `0ac0983` (dated 10-10 12:46, on the R1 side branch; reached fwd-camera through the merge `4608637`, 10-11) | `measurement_models.py` | `geom=None` keyword on `h_range` / `h_flow_pose`, `make_geometry`, range window on `GroundProximityFlow` | unchanged (`geom=None` = the SIM constants through the same code) |
+     | `4608637` (10-11, merge) | the above | brings in `0ac0983` / `eb629a6` | as above |
+
+     The default UKF path was shown byte-identical after the knob edits (`docs/handovers/2026-10-10_initial_sigma_audit.md`:
+     `ukf_replay.py fwdplainc_tex_r1 heading` against the stored trial output; `ukf_traj.tum`, `metrics.txt`,
+     `bgz_series.txt`, `fwd_stats.json`, `ground_truth.tum` byte-identical). The UKF was not re-run after `425e824`, so none
+     of these commits ran in a UKF Phase 4 replay.
+   - **Commits after `819caab` on the FGO path:**
+
+     | commit | file | change | default behaviour |
+     |---|---|---|---|
+     | `0ac0983` (R1 side branch, dated before `819caab` but not its ancestor; merged by `4608637`) | `factors.py`, `fgo_core.py`, `fgo_replay.py`, `measurement_models.py` | rung-1 events mode (`FGO_EVENTS`, needs `FGO_OUT_ROOT`) and the `geom=None` keyword | unchanged (unset = the bag path; the bag block only re-indented) |
+     | `eb629a6` (the same side branch) | `fgo_replay.py` | events-mode take-off check through a 10 Hz filtered gyro, inside `if EVENTS:` | unchanged |
+     | `4608637` (10-11, merge) | `fgo_replay.py` | conflict resolution: the events block next to the `INIT_YAW_SIGMA_RAD` block | unchanged |
+     | `b9da351` (10-11) | `fgo_replay.py` | events mode loads the npz once, inside `if EVENTS:` | unchanged |
+     | `2610bdb` (10-11) | `fgo_cpp/` only | compile-time `FGO_CPP_FORCED_GATE`, off in the default build | not on the Phase 4 path (the Phase 4 jobs run the Python `fgo_replay.py`) |
+
+     No diff touches the forward-camera factors or the heading code. Proof of the default path:
+     `docs/handovers/2026-10-10_r1_converter.md` §6 (a) (old and new `measurement_models`/`factors`/`fgo_core` side by
+     side) and `docs/handovers/2026-10-11_r1_converter_mocap_scorer.md` (b): after the merge, a bag-mode replay of
+     `cl_a_tex_half` gives `fgo_traj.tum`, `ground_truth.tum` and `bgz_series.txt` **byte-identical** to the stored output of
+     the FGO-only re-run (sha256 in `eval/results/r1_converter/proofs_2026-10-11.txt`); re-passed after `b9da351`.
+   - **The FGO initial-yaw correction `df50ad9` is an ancestor of `819caab`** (`git merge-base --is-ancestor`), dated
+     10-10 11:47, before final_rerun2's preflight (13:02:52). It is IN the FGO-only run's FGO Phase 4 outputs.
+   - **Verdict (2): PASS.**
+
+3. **Why the literal test fails.** "Postdates both re-runs" fails only because the FGO-only run's completion (21:35:23;
+   `819caab` at 21:36) is the end of its last stage, L (BEGIN 18:55:34). L does not feed Phase 5:
+   - `phase5` runs before `L` in the stage order;
+   - it needs only `phase4` (`need phase4`);
+   - `phase5_analysis.py` reads none of L's inputs or outputs (L reads `T_A_r1–r3` and `dsn_tex_r1` and writes
+     `lc_fgo_*` and `eval/results/expL/`).
+
+   The file is the final Phase 5 output of the FGO-only run, built on the final UKF and FGO Phase 4 replays.
