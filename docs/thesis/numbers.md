@@ -1,6 +1,6 @@
 # Numbers for the methodology chapter
 
-Companion to `methodology_index.md`. Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file
+**CONTENT-FROZEN 2026-10-16 (user ruling): no in-place edits; any change is a dated erratum entry in the Errata section at the end.** Frozen at commit `PENDING`; check: `python3 tools/check_numbers_frozen.py`. Companion to `methodology_index.md`. Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file
 show it rounded once (flag 8). None has been recomputed.
 
 - **Sources:** `M:L123` / `C:L123` / `P:L123` are line numbers in the snapshot
@@ -519,7 +519,7 @@ All absolute-frame metrics are world frame (T, O) or the first tag's frame (L), 
 
 ### 16.1 T — AprilTag fixes at known positions (`room_tags`, 5 laps of a 6 m square, 3 repeats per condition)
 
-Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 mm). Source: `eval/results/expT/t_aggregate.json`.
+Horizontal RMSE over the lap window, mean of 3 repeats (repeat agreement, the max − min of the 3 repeats' RMSE over every track: A–C ≤ 9.1 mm, largest C UKF live; D ≤ 18.6 mm, FGO live 18.6 and EKF3 live 16.9; json:expT/T_*_r*.json:tracks.<track>.horiz_err_m.rmse; transcription corrected, ruling 2026-10-16, was "within 8 mm"). Source: `eval/results/expT/t_aggregate.json`.
 
 | condition (tags sent; median gap) | EKF3 live | UKF live | FGO live | RTS-UKF (hindsight) | FGO batch (hindsight) |
 |---|---|---|---|---|---|
@@ -562,7 +562,7 @@ Indoor horizontal RMSE across O_r1 / O_r2 / O_r3b. Source: `eval/results/expO/O_
   was largely an ARTEFACT of the mis-specified FGO noise model. The corrected FGO batch (0.59 m) equals the RTS-UKF within 1–5 %. Also no
   longer holding: "the cap-free RTS-UKF is worse (0.97–0.98)" (now 0.60–0.62) and "live ordering UKF < FGO" on O_r1 (now a tie).
 - **Partial attribution (ruled 2026-10-10; PARTIAL study, computed on the code BEFORE the initial-yaw correction, `b7a3aca`):** on all three O flights ~93 % of the FGO batch's change (0.33 → 0.59 m) comes from the NOISE fix, ~7 % from the YAW CAP, plus a +0.03 m interaction; the yaw cap IMPROVES the live track by 0.22–0.30 m. The initial-yaw correction leaves the O batch unchanged (< 0.001 m), so the same final number is being attributed.
-- EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment.
+- EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; transcription corrected, ruling 2026-10-16: was "OFF + 4.3 s and ON + 4.4 s", transposed); `posTimeout` was set for 92% of the indoor segment.
 
 ### 16.3 L — tags at UNKNOWN positions; keyframe FGO with loop closure (T_A_r1–r3)
 
@@ -644,7 +644,7 @@ used the OLD initial priors. Source: `eval/results/expH/s2*_r*.json`, `s3*_r*.js
 | **S2v2** `H_s2v2_r*` (UKF port, jitter-corrected) | 6.1–7.4 / 17–21 | 5 / 7 / 8; 19 / 7 / 26; 6 / 10 / 10; 26 / 4 / 5 (every UKF band PASSES; EKF3 shadow 3–28) | −0.048…−0.015 s, PASS (event-time stamping) | no lockout; jump criterion AS WORDED fails in most losses (steps 5–30 mm against drifts 2–26 mm), as with the old UKF | CURRENT |
 | S2 `H_s2_r*` (UKF port, old UKF with jitter) | 4.9–6.3 / 15–21 | UKF 1–19 mm over all losses (every band PASSES) | −0.092…−0.014 s, PASS | jump AS WORDED fails in 8 of 12 losses; jitter correction: no material change | RECORDED (old UKF, labelled) |
 | **S3v2** `H_s3v2_r*` (C++ FGO node `f642cd37…`, final FGO: noise fix + gated yaw cap) | 8.1–9.0 / 18–28 (H-H1 PASS) | 13 / 20 / 17; 7 / 25 / 27; 22 / 15 / 9; 17 / 11 / 18 (every FGO band PASSES) | 0.002–0.032 s, PASS | yaw wander over the 30 s loss −0.23 / +0.52 / +0.52° (≤ 3°, PASS); no lockout; jump AS WORDED fails in 4 of 12 losses | CURRENT (OLD priors) |
-| S3 `H_s3_r*` (C++ FGO node `1123742d…`, **FGO noise fix only (yaw cap ungated)**) | 7.6–8.2 / 17–28 (H-H1 PASS) | 13 / 11 / 9; 8 / 10 / 7; 19 / 13 / 13; 13 / 18 / 4 (every FGO band PASSES; EKF3 shadow 10–20) | 0.003–0.029 s, PASS | yaw wander 0.58 / 0.59 / 0.64°; jump AS WORDED fails in most losses | ABLATION (ruling 2026-10-09; gating changes hold and loss metrics only at the few-mm level) |
+| S3 `H_s3_r*` (C++ FGO node `1123742d…`, **FGO noise fix only (yaw cap ungated)**) | 7.6–8.2 / 17–28 (H-H1 PASS) | 13 / 11 / 9; 8 / 10 / 7; 19 / 13 / 13; 13 / 18 / 4 (every FGO band PASSES; EKF3 shadow 6–20, `drift_end_m` over all 12 losses, json:expH/s3_r*.json:losses[*].EKF3.drift_end_m; transcription corrected, ruling 2026-10-16, was 10–20) | 0.003–0.029 s, PASS | yaw wander 0.58 / 0.59 / 0.64°; jump AS WORDED fails in most losses | ABLATION (ruling 2026-10-09; gating changes hold and loss metrics only at the few-mm level) |
 
 ### 17.2 H comparative criteria (H-H2, P-H3, H-H4): the re-flown sets (S2v2, S3v2) are PRIMARY (ruling 2026-10-16, item 1); computed 2026-10-11
 
@@ -1293,6 +1293,20 @@ over flights); 0.262533 (`expL/T_A_r2_t245.json`).
 | Flags, remaining 8 |    None changes a range's meaning, a verdict or an ordering. The pack's checker accepts all four as last-digit |
 | Flags, remaining 8 |    matches (`docs/thesis/final_results_pack_index.md`). |
 
+### Superseded by the ruling of 2026-10-16 (the three mismatched rows): transcription corrected (ruling 2026-10-16); kept verbatim (cell separators shown as ¦)
+
+Source: METHODOLOGY "RULINGS (user, 2026-10-16): the three mismatched numbers.md rows; thesis-facing untraceable values;
+numbers.md CONTENT-FROZEN". For each row the stored value was first confirmed to be the SAME quantity as the sentence (the
+same metric, the same conditions or subset, the same statistic). All three are; the reason for every row is
+**transcription corrected (ruling 2026-10-16)**. METHODOLOGY lines below are `METHODOLOGY.md` at `8e5d116` (not the `M:L`
+snapshot, which predates T, O and H).
+
+| section | row or text (verbatim) | why it is the same quantity; stored value now shown; origin |
+|---|---|---|
+| §16.1 header | Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 mm). Source: `eval/results/expT/t_aggregate.json`. | "Agree within" = max − min of the 3 repeats' horizontal RMSE over the lap window, every condition and every track: the same metric (`horiz_err_m.rmse`), the same 12 flights, the same statistic. Stored (json:expT/T_*_r*.json): A–C at most 9.1 mm (C UKF live 0.0717 / 0.0751 / 0.0808), D at most 18.6 mm (FGO live 0.0931 / 0.0813 / 0.0745; EKF3 live 16.9 mm); 3 of the 20 condition–track pairs exceed 8 mm. Origin: METHODOLOGY.md:10279 ("Experiment T RESULT"), written on the pre-re-run table at :10240–10253, whose own D EKF3 values (0.093 / 0.106 / 0.089) already span 17 mm, so "8 mm" never held for D. EKF3 is unchanged by the re-runs. No thesis-facing material quotes or relies on it (searched 2026-10-16) |
+| §16.2 bullet | - EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment. | "Switched source set" = the time of the `XKFS.SS` change after the GNSS OFF / ON marker, which is what `eval/o_score.py` stores as `ekf3.source_set_changes` (bag time, as are `markers_bag_s`): the same quantity, the same 3 flights. Stored: OFF + 4.37 / 4.37 / 4.34 s, ON + 4.32 / 4.32 / 4.28 s (O_r1 / O_r2 / O_r3b), i.e. OFF 4.4 / 4.4 / 4.3 and ON 4.3 rounded once. Origin: METHODOLOGY.md:10402 ("Experiment O RESULT"); the `o_check1` disclosure at METHODOLOGY.md:10372 has "flow 4.4 s after GNSS OFF and back to GPS 4.3 s after ON", so :10402 transposed the two |
+| §17.1 S3 row | ¦ S3 `H_s3_r*` (C++ FGO node `1123742d…`, **FGO noise fix only (yaw cap ungated)**) ¦ 7.6–8.2 / 17–28 (H-H1 PASS) ¦ 13 / 11 / 9; 8 / 10 / 7; 19 / 13 / 13; 13 / 18 / 4 (every FGO band PASSES; EKF3 shadow 10–20) ¦ 0.003–0.029 s, PASS ¦ yaw wander 0.58 / 0.59 / 0.64°; jump AS WORDED fails in most losses ¦ ABLATION (ruling 2026-10-09; gating changes hold and loss metrics only at the few-mm level) ¦ | "EKF3 shadow" in the end-of-loss drift cell = EKF3's `drift_end_m` (the metric §17.1 names) over the 4 losses × 3 flights of S3: the same metric, the same 12 losses, the same statistic (min–max). The S2v2 cell's "EKF3 shadow 3–28" reproduces under exactly this convention (3.3–27.6 mm). Stored (json:expH/s3_r*.json:losses[*].EKF3.drift_end_m): 6.3–20.1 mm (the effective metric is 5.1–18.9). Origin: METHODOLOGY.md:12221 ("S3 RESULT": "EKF3 (shadow): 10–20 mm"); how its lower bound 10 arose is not recorded |
+
 ---
 
 ## Provenance record: the §6.3 Phase 5 decomposition row
@@ -1387,3 +1401,25 @@ recomputed.
      `lc_fgo_*` and `eval/results/expL/`).
 
    The file is the final Phase 5 output of the FGO-only run, built on the final UKF and FGO Phase 4 replays.
+
+---
+
+## Errata
+
+numbers.md is **CONTENT-FROZEN from 2026-10-16** (user ruling; METHODOLOGY "RULINGS (user, 2026-10-16): the three
+mismatched numbers.md rows; thesis-facing untraceable values; numbers.md CONTENT-FROZEN"). Nothing above this section is
+edited in place. Every later change is an entry here, appended in date order; the frozen text above stays as it is, and a
+reader applies the errata to it. `tools/check_numbers_frozen.py` fails if anything above this heading changes.
+
+**Entry format** (one block per erratum; never edit or delete an earlier entry, add a new one that supersedes it):
+
+```
+### E<n> (YYYY-MM-DD): <section>, line <L> (as frozen)
+- Frozen text (verbatim): <the text as it stands above>
+- Corrected text: <the replacement>
+- Reason: <why; e.g. transcription, recomputation ruled, wording ruled>
+- Source: <results file:key | METHODOLOGY.md:<line> at <commit> | pre-registration doc:line | parameter file:line>
+- Ruling: <METHODOLOGY ruling heading and date>
+```
+
+(No entries yet.)
