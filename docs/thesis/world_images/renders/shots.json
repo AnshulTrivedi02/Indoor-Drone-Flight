@@ -1,0 +1,4577 @@
+{
+ "corridor_blank": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank__interior.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_blank_fwd": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwd__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwd__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwd__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwd__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwd__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwd__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_blank_fwdc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwdc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwdc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_blank_fwdplain": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwdplain__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplain__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplain__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplain__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplain__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplain__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_blank_fwdplainc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwdplainc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_blank_fwdplainc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_blank_fwdplainc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured__interior.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured_fwd": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwd__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwd__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwd__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwd__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwd__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwd__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured_fwdc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwdc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwdc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured_fwdplain": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwdplain__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplain__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplain__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplain__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplain__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplain__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured_fwdplainc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwdplainc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_fwdplainc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_fwdplainc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_textured_half_fwdc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_half_fwdc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_textured_half_fwdc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_textured_half_fwdc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_transition": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition__interior.jpg"
+   },
+   {
+    "name": "boundary",
+    "what": "the textured/blank floor boundary at y = 80 m",
+    "eye": [
+     -7,
+     70,
+     4.5
+    ],
+    "target": [
+     0,
+     82,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.313252130498558,
+     1.042721878368537
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition__boundary.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_transition_fwd": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwd__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__interior.jpg"
+   },
+   {
+    "name": "boundary",
+    "what": "the textured/blank floor boundary at y = 80 m",
+    "eye": [
+     -7,
+     70,
+     4.5
+    ],
+    "target": [
+     0,
+     82,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.313252130498558,
+     1.042721878368537
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__boundary.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwd__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_transition_fwdc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwdc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__interior.jpg"
+   },
+   {
+    "name": "boundary",
+    "what": "the textured/blank floor boundary at y = 80 m",
+    "eye": [
+     -7,
+     70,
+     4.5
+    ],
+    "target": [
+     0,
+     82,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.313252130498558,
+     1.042721878368537
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__boundary.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwdc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_transition_fwdplain": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwdplain__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__interior.jpg"
+   },
+   {
+    "name": "boundary",
+    "what": "the textured/blank floor boundary at y = 80 m",
+    "eye": [
+     -7,
+     70,
+     4.5
+    ],
+    "target": [
+     0,
+     82,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.313252130498558,
+     1.042721878368537
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__boundary.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__endwall.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplain__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_transition_fwdplainc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwdplainc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__interior.jpg"
+   },
+   {
+    "name": "boundary",
+    "what": "the textured/blank floor boundary at y = 80 m",
+    "eye": [
+     -7,
+     70,
+     4.5
+    ],
+    "target": [
+     0,
+     82,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.313252130498558,
+     1.042721878368537
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__boundary.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (plain)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (plain)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_transition_fwdplainc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_transition_fwdplainc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "corridor_tson_fwdc": {
+  "shots": [
+   {
+    "name": "top_roof",
+    "what": "whole world from above, as built (the ceiling slab covers the corridor)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_tson_fwdc__top_roof.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west, above the spawn end",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__angled.jpg"
+   },
+   {
+    "name": "interior",
+    "what": "inside the corridor at flight height (2 m) looking down the flight direction (+y)",
+    "eye": [
+     0,
+     2,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__interior.jpg"
+   },
+   {
+    "name": "wall",
+    "what": "close-up of the east wall surface (line-textured)",
+    "eye": [
+     3,
+     40,
+     2.0
+    ],
+    "target": [
+     10,
+     46,
+     2.3
+    ],
+    "rpy": [
+     0.0,
+     -0.032528091409705064,
+     0.7086262721276703
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__wall.jpg"
+   },
+   {
+    "name": "endwall",
+    "what": "approaching the end wall at y = 165 m (textured)",
+    "eye": [
+     0,
+     140,
+     2.0
+    ],
+    "target": [
+     0,
+     165,
+     2.0
+    ],
+    "rpy": [
+     0.0,
+     -0.0,
+     1.5707963267948966
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__endwall.jpg"
+   },
+   {
+    "name": "ceiling",
+    "what": "looking up at the ceiling slab (underside z = 5.0 m) from 1 m",
+    "eye": [
+     -8,
+     30,
+     1.0
+    ],
+    "target": [
+     2,
+     45,
+     5.0
+    ],
+    "rpy": [
+     0.0,
+     -0.21834287941006955,
+     0.982793723247329
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__ceiling.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__spawn.jpg"
+   },
+   {
+    "name": "top",
+    "what": "whole world from above (ceiling removed: cutaway)",
+    "eye": [
+     0,
+     72.5,
+     600.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 17.99428684213012,
+    "width": 3200,
+    "height": 400,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 650.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     190,
+     23.75
+    ],
+    "file": "corridor_tson_fwdc__top.jpg"
+   },
+   {
+    "name": "angled_cutaway",
+    "what": "three-quarter overview with the ceiling removed (cutaway)",
+    "eye": [
+     -30,
+     -32,
+     24
+    ],
+    "target": [
+     0,
+     45,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.2826485981116756,
+     1.1992784716481877
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "corridor_tson_fwdc__angled_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "iris_runway": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "the area around the spawn from above (60 m across)",
+    "eye": [
+     0,
+     0,
+     300.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 11.421186274999286,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 350.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     60,
+     60.0
+    ],
+    "file": "iris_runway__top.jpg"
+   },
+   {
+    "name": "top_wide",
+    "what": "the whole runway from above (1600 m along y, left to right)",
+    "eye": [
+     -29,
+     545,
+     3000.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 29.862834356275105,
+    "width": 2400,
+    "height": 600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 3050.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     1600,
+     400.0
+    ],
+    "file": "iris_runway__top_wide.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -15,
+     -18,
+     10
+    ],
+    "target": [
+     0,
+     2,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.3805063771123649,
+     0.9272952180016122
+    ],
+    "hfov_deg": 65,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "iris_runway__angled.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "iris_runway__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "iris_textured": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "the area around the spawn from above (60 m across)",
+    "eye": [
+     0,
+     0,
+     300.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 11.421186274999286,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 350.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     60,
+     60.0
+    ],
+    "file": "iris_textured__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -15,
+     -18,
+     10
+    ],
+    "target": [
+     0,
+     2,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.3805063771123649,
+     0.9272952180016122
+    ],
+    "hfov_deg": 65,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "iris_textured__angled.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, 0, 0.195), facing +y",
+    "eye": [
+     -1.6,
+     -2.4,
+     1.4
+    ],
+    "target": [
+     0,
+     0,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "iris_textured__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "outdoor_indoor": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above, as built (roof on)",
+    "eye": [
+     0,
+     30,
+     500.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 11.874832198963034,
+    "width": 2400,
+    "height": 500,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 550.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     104,
+     21.666666666666668
+    ],
+    "file": "outdoor_indoor__top.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -26,
+     -32,
+     18
+    ],
+    "target": [
+     0,
+     30,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.261598462363662,
+     1.1737168815699144
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "outdoor_indoor__angled.jpg"
+   },
+   {
+    "name": "entrance",
+    "what": "the 3 m entrance in the south wall (y = 20 m) seen from outside at flight height",
+    "eye": [
+     0,
+     9,
+     2.0
+    ],
+    "target": [
+     0,
+     20,
+     1.5
+    ],
+    "rpy": [
+     0.0,
+     0.04542327942157701,
+     1.5707963267948966
+    ],
+    "hfov_deg": 70,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "outdoor_indoor__entrance.jpg"
+   },
+   {
+    "name": "indoor",
+    "what": "inside the building at flight height looking north (+y)",
+    "eye": [
+     0,
+     22,
+     2.0
+    ],
+    "target": [
+     0,
+     60,
+     1.5
+    ],
+    "rpy": [
+     0.0,
+     0.013157135472755741,
+     1.5707963267948966
+    ],
+    "hfov_deg": 80,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "outdoor_indoor__indoor.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (0, -15), facing +y",
+    "eye": [
+     -1.6,
+     -17.4,
+     1.4
+    ],
+    "target": [
+     0,
+     -15,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.37937721785361295,
+     0.9827937232473287
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "outdoor_indoor__spawn.jpg"
+   },
+   {
+    "name": "top_cutaway",
+    "what": "whole world from above with the building roof removed (cutaway)",
+    "eye": [
+     0,
+     30,
+     500.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     3.141592653589793
+    ],
+    "hfov_deg": 11.874832198963034,
+    "width": 2400,
+    "height": 500,
+    "cutaway": true,
+    "near": 0.05,
+    "far": 550.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     104,
+     21.666666666666668
+    ],
+    "file": "outdoor_indoor__top_cutaway.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "room_tags": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above (the 20 x 20 m floor tile; room walls at |x|, |y| = 5.1 m)",
+    "eye": [
+     0,
+     0,
+     150.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 8.008345881418776,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 200.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     21,
+     21.0
+    ],
+    "file": "room_tags__top.jpg"
+   },
+   {
+    "name": "top_room",
+    "what": "the 10 x 10 m room from above (tags readable)",
+    "eye": [
+     0,
+     0,
+     91.55664025761199
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 6.875493541569878,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 141.556640257612,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     11,
+     11.0
+    ],
+    "file": "room_tags__top_room.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -8.5,
+     -10.5,
+     11
+    ],
+    "target": [
+     0,
+     0.5,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.6694042818187663,
+     0.9129077216126865
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_tags__angled.jpg"
+   },
+   {
+    "name": "tags",
+    "what": "inside the room from above the south wall (5 m), all eight floor tags",
+    "eye": [
+     0,
+     -4.9,
+     5.0
+    ],
+    "target": [
+     0,
+     0.6,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7378150601204649,
+     1.5707963267948966
+    ],
+    "hfov_deg": 85,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_tags__tags.jpg"
+   },
+   {
+    "name": "tag2",
+    "what": "close-up of floor tag 2 at (3, 3), yaw -45 deg (0.5 m tile, 0.4 m black square)",
+    "eye": [
+     2.2,
+     1.6,
+     1.6
+    ],
+    "target": [
+     3,
+     3,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7815221555846786,
+     1.0516502125483738
+    ],
+    "hfov_deg": 50,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_tags__tag2.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the drone at the spawn (-3, -3) over tag 0",
+    "eye": [
+     -4.6,
+     -5.4,
+     1.4
+    ],
+    "target": [
+     -3,
+     -3,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.37937721785361284,
+     0.9827937232473293
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_tags__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "room_wall_tag": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above (the 20 x 20 m floor tile; room walls at |x|, |y| = 5.1 m)",
+    "eye": [
+     0,
+     0,
+     150.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 8.008345881418776,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 200.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     21,
+     21.0
+    ],
+    "file": "room_wall_tag__top.jpg"
+   },
+   {
+    "name": "top_room",
+    "what": "the 10 x 10 m room from above (tags readable)",
+    "eye": [
+     0,
+     0,
+     91.55664025761199
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 6.875493541569878,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 141.556640257612,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     11,
+     11.0
+    ],
+    "file": "room_wall_tag__top_room.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -8.5,
+     -10.5,
+     11
+    ],
+    "target": [
+     0,
+     0.5,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.6694042818187663,
+     0.9129077216126865
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag__angled.jpg"
+   },
+   {
+    "name": "tags",
+    "what": "inside the room from above the south wall (5 m), all eight floor tags",
+    "eye": [
+     0,
+     -4.9,
+     5.0
+    ],
+    "target": [
+     0,
+     0.6,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7378150601204649,
+     1.5707963267948966
+    ],
+    "hfov_deg": 85,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag__tags.jpg"
+   },
+   {
+    "name": "tag2",
+    "what": "close-up of floor tag 2 at (3, 3), yaw -45 deg (0.5 m tile, 0.4 m black square)",
+    "eye": [
+     2.2,
+     1.6,
+     1.6
+    ],
+    "target": [
+     3,
+     3,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7815221555846786,
+     1.0516502125483738
+    ],
+    "hfov_deg": 50,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag__tag2.jpg"
+   },
+   {
+    "name": "walltag",
+    "what": "wall tag id 10 on the north wall (0, 5.0, 1.5) seen from beside the spawn",
+    "eye": [
+     0.9,
+     2.9,
+     1.7
+    ],
+    "target": [
+     0,
+     5.0,
+     1.5
+    ],
+    "rpy": [
+     0.0,
+     0.0873150488798022,
+     1.97568811307998
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag__walltag.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the forward-camera drone at the spawn (0, 3.5), facing the wall tag",
+    "eye": [
+     -1.6,
+     1.1,
+     1.4
+    ],
+    "target": [
+     0,
+     3.5,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "room_wall_tag_far": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above (the 20 x 20 m floor tile; room walls at |x|, |y| = 5.1 m)",
+    "eye": [
+     0,
+     0,
+     150.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 8.008345881418776,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 200.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     21,
+     21.0
+    ],
+    "file": "room_wall_tag_far__top.jpg"
+   },
+   {
+    "name": "top_room",
+    "what": "the 10 x 10 m room from above (tags readable)",
+    "eye": [
+     0,
+     0,
+     91.55664025761199
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 6.875493541569878,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 141.556640257612,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     11,
+     11.0
+    ],
+    "file": "room_wall_tag_far__top_room.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -8.5,
+     -10.5,
+     11
+    ],
+    "target": [
+     0,
+     0.5,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.6694042818187663,
+     0.9129077216126865
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far__angled.jpg"
+   },
+   {
+    "name": "tags",
+    "what": "inside the room from above the south wall (5 m), all eight floor tags",
+    "eye": [
+     0,
+     -4.9,
+     5.0
+    ],
+    "target": [
+     0,
+     0.6,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7378150601204649,
+     1.5707963267948966
+    ],
+    "hfov_deg": 85,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far__tags.jpg"
+   },
+   {
+    "name": "tag2",
+    "what": "close-up of floor tag 2 at (3, 3), yaw -45 deg (0.5 m tile, 0.4 m black square)",
+    "eye": [
+     2.2,
+     1.6,
+     1.6
+    ],
+    "target": [
+     3,
+     3,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7815221555846786,
+     1.0516502125483738
+    ],
+    "hfov_deg": 50,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far__tag2.jpg"
+   },
+   {
+    "name": "walltag",
+    "what": "wall tag id 10 on the north wall (0, 5.0, 1.5) seen from beside the spawn",
+    "eye": [
+     0.9,
+     0.5000000000000001,
+     1.7
+    ],
+    "target": [
+     0,
+     5.0,
+     1.5
+    ],
+    "rpy": [
+     0.0,
+     0.04355380289219997,
+     1.7681918866447774
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far__walltag.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the forward-camera drone at the spawn (0, 1.1), facing the wall tag",
+    "eye": [
+     -1.6,
+     -1.2999999999999998,
+     1.4
+    ],
+    "target": [
+     0,
+     1.1,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far__spawn.jpg"
+   }
+  ],
+  "failed": []
+ },
+ "room_wall_tag_far_occ": {
+  "shots": [
+   {
+    "name": "top",
+    "what": "whole world from above (the 20 x 20 m floor tile; room walls at |x|, |y| = 5.1 m)",
+    "eye": [
+     0,
+     0,
+     150.0
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 8.008345881418776,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 200.0,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     21,
+     21.0
+    ],
+    "file": "room_wall_tag_far_occ__top.jpg"
+   },
+   {
+    "name": "top_room",
+    "what": "the 10 x 10 m room from above (tags readable)",
+    "eye": [
+     0,
+     0,
+     91.55664025761199
+    ],
+    "target": null,
+    "rpy": [
+     0.0,
+     1.5707963267948966,
+     1.5707963267948966
+    ],
+    "hfov_deg": 6.875493541569878,
+    "width": 1600,
+    "height": 1600,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 141.556640257612,
+    "projection": "perspective, high-altitude narrow-FOV (near-orthographic)",
+    "ground_span_m": [
+     11,
+     11.0
+    ],
+    "file": "room_wall_tag_far_occ__top_room.jpg"
+   },
+   {
+    "name": "angled",
+    "what": "three-quarter overview from the south-west",
+    "eye": [
+     -8.5,
+     -10.5,
+     11
+    ],
+    "target": [
+     0,
+     0.5,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.6694042818187663,
+     0.9129077216126865
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far_occ__angled.jpg"
+   },
+   {
+    "name": "tags",
+    "what": "inside the room from above the south wall (5 m), all eight floor tags",
+    "eye": [
+     0,
+     -4.9,
+     5.0
+    ],
+    "target": [
+     0,
+     0.6,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7378150601204649,
+     1.5707963267948966
+    ],
+    "hfov_deg": 85,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far_occ__tags.jpg"
+   },
+   {
+    "name": "tag2",
+    "what": "close-up of floor tag 2 at (3, 3), yaw -45 deg (0.5 m tile, 0.4 m black square)",
+    "eye": [
+     2.2,
+     1.6,
+     1.6
+    ],
+    "target": [
+     3,
+     3,
+     0
+    ],
+    "rpy": [
+     0.0,
+     0.7815221555846786,
+     1.0516502125483738
+    ],
+    "hfov_deg": 50,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far_occ__tag2.jpg"
+   },
+   {
+    "name": "walltag",
+    "what": "wall tag id 10 on the north wall (0, 5.0, 1.5) seen from beside the spawn (occluder in front of it)",
+    "eye": [
+     0.9,
+     0.5000000000000001,
+     1.7
+    ],
+    "target": [
+     0,
+     5.0,
+     1.5
+    ],
+    "rpy": [
+     0.0,
+     0.04355380289219997,
+     1.7681918866447774
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far_occ__walltag.jpg"
+   },
+   {
+    "name": "spawn",
+    "what": "the forward-camera drone at the spawn (0, 1.1), facing the wall tag",
+    "eye": [
+     -1.6,
+     -1.2999999999999998,
+     1.4
+    ],
+    "target": [
+     0,
+     1.1,
+     0.25
+    ],
+    "rpy": [
+     0.0,
+     0.3793772178536129,
+     0.982793723247329
+    ],
+    "hfov_deg": 60,
+    "width": 1600,
+    "height": 900,
+    "cutaway": false,
+    "near": 0.05,
+    "far": 4000.0,
+    "projection": "perspective",
+    "file": "room_wall_tag_far_occ__spawn.jpg"
+   }
+  ],
+  "failed": []
+ }
+}
