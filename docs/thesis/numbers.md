@@ -1,6 +1,6 @@
 # Numbers for the methodology chapter
 
-**CONTENT-FROZEN 2026-10-16 (user ruling): no in-place edits; any change is a dated erratum entry in the Errata section at the end.** Frozen at commit `PENDING`; check: `python3 tools/check_numbers_frozen.py`. Companion to `methodology_index.md`. Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file
+**CONTENT-FROZEN 2026-10-16 (user ruling): no in-place edits; any change is a dated erratum entry in the Errata section at the end.** Frozen at commit `669f099`; check: `python3 tools/check_numbers_frozen.py`. Companion to `methodology_index.md`. Values cited to M:/C:/P: are copied verbatim; values traced to a stored result file
 show it rounded once (flag 8). None has been recomputed.
 
 - **Sources:** `M:L123` / `C:L123` / `P:L123` are line numbers in the snapshot

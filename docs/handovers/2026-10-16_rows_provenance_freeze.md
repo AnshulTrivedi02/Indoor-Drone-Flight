@@ -72,7 +72,7 @@ why the quantity is the same, and names the METHODOLOGY line where the sentence 
     warns and does not fail.
   - Self-test on temp copies (`selftest.py`): unchanged → pass; a one-character change at l.522 → FAIL; an erratum
     appended → pass; the SHA filled in → pass; Errata missing → FAIL; Errata duplicated → FAIL.
-- **Frozen commit:** the first commit of this stage. Its SHA was then written into the notice in a second commit,
+- **Frozen commit:** `669f099`, the first commit of this stage. Its SHA was then written into the notice in a second commit,
   which the hash ignores by design.
 
 ## 4. Exact cross-check: 129/129
