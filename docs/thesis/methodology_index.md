@@ -699,7 +699,7 @@ that differs), and whether it is CURRENT or SUPERSEDED. The companion file
   world-dependent medians; 27 ms = 2026-08-01 sweep; 101 ms superseded; all diagnostic).
   §2 EKF3 nomag yaw drift (+6.6…+11.1, mean ~8.1, n = 9 current; "~5" superseded). §3 UKF
   overshoot definitions A and B (thesis uses B; "245% → 336%" is mixed). §4 distance scale
-  (n = 9 current; n = 1 superseded; check 5a pending). §5 OI-2 commit (cite `9b0f5d9`).
+  (n = 9 current; n = 1 superseded; check 5a DROPPED by ruling 2026-10-16, item 2; a limitation). §5 OI-2 commit (cite `9b0f5d9`).
   §6 stale CLAUDE/PROGRESS sections brought in line. In-place annotations point to it at
   M L228-L230, L323, L433, L708-L710, L871-L874, L1106-L1108 and L1120-L1123.
 - **Source:** M L3114-L3198.
@@ -913,7 +913,7 @@ that differs), and whether it is CURRENT or SUPERSEDED. The companion file
   over cruise), corroborated by `disp_ratio` (EKF3 1.04–1.06, FGO 0.98–0.99, 12 bags). The
   n = 1 +12.6% / +4.7% (speed-magnitude, pre-correction) is SUPERSEDED (annotated at
   M L1106-L1108). Why the FGO inherits less scale is unexplained; the scale-cause check
-  ("bounded check 5a") is PENDING and not yet defined anywhere in the record.
+  ("bounded check 5a") was never defined and is DROPPED (ruling 2026-10-16, item 2): `docs/thesis/limitations.md` lists "cause of EKF3's residual along-track scale (0.97–0.98) not investigated".
 - **Source:** M L3169-L3179; M L1104-L1113; M L3090-L3092; C L1861.
 - **Commit:** `d0306d2`; `d89a902`; resolution `563a989`.
 - **Status:** CURRENT (values resolved; cause open).

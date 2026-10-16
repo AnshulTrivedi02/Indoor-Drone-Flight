@@ -368,6 +368,8 @@ The EKF3 bands are unchanged. The FGO bands follow the same formula on the corre
 
 ## 7. D27 item 3: FGO side on the `_v3` re-flights (UKF side OPEN)
 
+*Not reported in the thesis (ruling 2026-10-16, item 6: the UKF per-heading weight comparison is dropped from all thesis-facing material). Kept here and in `numbers.md` §15, marked "not reported".*
+
 Sources:
 - `~/thesis_data/batches/final_rerun/d26gate_cl_fgo_b_tex_r{1,3}_half_v3.txt`;
 - `core_*.txt` (node-core replay of the flown `_v3` heading flights, `--save-npz`, `d26_fgo_gate.py`).

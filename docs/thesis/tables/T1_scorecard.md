@@ -1,24 +1,22 @@
 # Table T1. Which estimator wins where (scorecard of the restated verdicts)
 
-Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts (numbers.md; headline_claims_before_after.md). Mostly ties: the FGO is best only with the camera heading, and no estimator bounds position on a blank floor.
+Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts. Mostly ties: the FGO is best only with the camera heading, and no estimator bounds position on a blank floor.
 
 | experiment | EKF3 | UKF | FGO |
 |---|---|---|---|
-| Standard sensors (textured, no heading) | TIED: median 4.10 m (claim 2: no ordering) | TIED: median 5.13 m (claim 1b: descriptive) | TIED: median 4.46 m (claim 2: no ordering) |
-| With the camera heading (offline) | N/A: no offline heading arm (EKF3 ruling 2026-09-29) | BEHIND: 0.13–0.25 m (claim 7 (C0)) | BEST: 0.06–0.22 m (lower on 6/6 (claim 7)) |
-| Blank floor (no flow) | FAILED: position invalid from take-off (origin output, unscored) | FAILED: 29–40 km at end † (claim 10) | FAILED: 22–41 km at end † (claim 10) |
-| T: tags at known positions | TIED: 1 tag: 9.6 cm live (ruling 7: no live order) | TIED: 1 tag: 13.1 cm live (ruling 7: no live order) | TIED: 1 tag: 8.3 cm live (batch 1.1–2.8 cm, H-T1 PASS) |
+| Standard sensors (textured, no heading) | TIED: median 4.10 m (confirmatory test: no ordering) | TIED: median 5.13 m (descriptive, n = 9) | TIED: median 4.46 m (confirmatory test: no ordering) |
+| With the camera heading (offline) | N/A: no offline heading arm (the fixed no-heading baseline) | BEHIND: 0.13–0.25 m (C0: the FGO is lower on 6/6) | BEST: 0.06–0.22 m (lower than the UKF on 6/6 (C0)) |
+| Blank floor (no flow) | FAILED: position invalid from take-off (origin output, unscored) | FAILED: 29–40 km at end † (no flow aiding) | FAILED: 22–41 km at end † (no flow aiding) |
+| T: tags at known positions | TIED: 1 tag: 9.6 cm live (no live ordering claimed) | TIED: 1 tag: 13.1 cm live (no live ordering claimed) | TIED: 1 tag: 8.3 cm live (batch 1.0–2.8 cm, H-T1 PASS) |
 | O: GNSS outside, indoors without | BEHIND: indoor 1.42–1.43 m (H-O2 FAIL; 4.10 m jump) | TIED: indoor 0.77–0.84 m (UKF ≈ FGO live) | TIED: indoor 0.83–0.89 m (batch 0.59 = RTS-UKF) |
-| L: tags at unknown positions | N/A: FGO capability only (claim 23) | N/A: no loop-closure equivalent (claim 23) | PASSED: live 4.9–7.6 cm (H-L1–P-L4 PASS 3/3) |
-| H: hold on a wall tag | TIED: hold 7.8–7.9 mm (bands PASS) | TIED: hold 6.4–7.1 mm (bands PASS) | TIED: hold 8.3–8.6 mm (bands PASS) |
-| Closed loop (the estimator flies) | TIED: 3/3 pass; B2 ≤ 0.33 m (no ordering claimed) | TIED: 3/3 pass; B2 ≤ 0.25 m (UKF v2) | TIED: 3/3 pass; B2 ≤ 0.39 m (FGO v3, OLD priors) |
+| L: tags at unknown positions | N/A: FGO capability only (the filters have no loop closure) | N/A: no loop-closure equivalent (FGO capability only) | PASSED: live 4.9–7.6 cm (H-L1–P-L4 PASS 3/3) |
+| H: hold on a wall tag | TIED: hold 7.8–7.9 mm (bands PASS; comparatives FAIL) | TIED: hold 6.4–7.1 mm (bands PASS; comparatives FAIL) | TIED: hold 8.3–8.6 mm (bands PASS; comparatives FAIL) |
+| Closed loop (the estimator flies) | TIED: 3/3 pass; B2 ≤ 0.33 m (no ordering claimed) | TIED: 3/3 pass; B2 ≤ 0.25 m (final UKF port, v2) | TIED: 3/3 pass; B2 ≤ 0.39 m (FGO v3, OLD priors) |
 
 *Categories: BEST = a stated ordering puts it first; TIED = no ordering is claimed (or all pass the same criteria); BEHIND = a stated ordering or a failed similarity verdict puts it below; FAILED = does not bound position; PASSED = met its pre-registered criteria with no comparison (L, FGO only); N/A = not run. BEHIND, PASSED and N/A are additions to best / tied / failed, used where those three do not fit.*
 
-*TIED where no ordering is claimed: standard sensors (claim 2, confirmatory test; the UKF medians are descriptive, claim 1b), T live (ruling 7), H (all drift bands PASS; the comparative criteria H-H2 / P-H3 / H-H4 FAIL as adjudicated, PENDING a ruling) and the closed loop (every half-speed set passes 3/3). BEHIND: the UKF with heading (C0: the FGO is lower on 6/6) and EKF3 in O (H-O2 FAIL; EKF3 the largest in every flight).*
+*TIED where no ordering is claimed: standard sensors (the confirmatory test; the UKF medians are descriptive), T live (n = 3, descriptive), H (all drift bands PASS; the comparative criteria H-H2 / P-H3 / H-H4 FAIL on the final-build hold sets, identical to the original-build verdicts) and the closed loop (every set at half real-time (RTF 0.5) passes 3/3). BEHIND: the UKF with heading (C0: the FGO is lower on 6/6) and EKF3 in O (H-O2 FAIL; EKF3 the largest in every flight).*
 
-*Key numbers: standard sensors = evo -a (cruise), median of dsn_tex r1–r9; heading = the 6 textured camera bags; T = horizontal RMSE with 1 tag; O = indoor RMSE; L = with loop closure; H = mean hold error; closed loop = half speed. † runaway magnitude (order only). No cell restates a WITHDRAWN claim.*
+*Key numbers: standard sensors = evo -a (cruise), median of the 9 textured dsn flights; heading = the 6 textured camera bags; T = horizontal RMSE with 1 tag; O = indoor RMSE; L = with loop closure; H = mean hold error; closed loop = at half real-time (RTF 0.5). The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s. † runaway magnitude (order only). No cell restates a WITHDRAWN claim.*
 
-Sources: eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, dsn_paired_test.json, phase4_{fwdc,fwdplainc}_evo.json, blank_behaviour.json, expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, closed_loop_cl_*_half(_v2/_v3).json. numbers.md rows: §6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25.
-
-Generated by `eval/figs_thesis.py` (commit `7778cd6`); frozen numbers only. Cross-check: see `docs/thesis/figures_thesis/index.md`, T1.
+<!-- generated by eval/figs_thesis.py (commit 0f0fcd1); frozen numbers only. Sources, numbers.md rows and the cross-checks: docs/thesis/figures_thesis/index.md, T1. -->

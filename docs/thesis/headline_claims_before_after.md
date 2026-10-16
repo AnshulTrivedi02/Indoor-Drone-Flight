@@ -27,8 +27,7 @@ directly traced plain-wall case and the ruled O partial attribution (numbers.md 
 | 11 | Transition: EKF3 freezes (invalid), UKF/FGO dead-reckon then diverge | HOLDS | ratios UKF 6.8, FGO 17.7 (1st re-run 26.8; before 45.9 / 50.0), still divergence (†); not ranked by evo |
 | 12 | Distance scale: FGO ≈ 1; UKF +heading ~1% under-scale; EKF3 along-track 0.97–0.98 | CHANGED | `scale_check.json`: UKF +heading 0.996–0.997 (under-scale gone); FGO 0.998–0.999 (unchanged by the FGO-only re-run); EKF3 unchanged |
 | 13 | UKF take-off yaw kick \|Δ\| ≤ 0.79° (`dsn_tex` r1–r9) | CHANGED | `d15_kick.json`: **≤ 0.82°** (r8; ruling 9). UKF, unchanged by the FGO-only re-run |
-| 14 | **Closed loop:** the flight scores of numbers.md §15 (contact windows, B1–B5 counts, incl. the EKF3 half-speed MISS) | HOLDS | flights, not offline replays, so unchanged. **The flown FGO results (S3, `_v3`, the FGO safety tests) used the OLD priors (1e-3 rad yaw, 2° roll/pitch); no re-fly before the freeze** (ruling, item 4) |
-| 15 | Closed loop: the FGO weights each heading ~5× more than the UKF (15.9 % vs 2.9 %) | CHANGED | FGO ≈ 1.3–1.4 % (`_v3`, flown with the OLD initial priors; window-median σ 0.57°); **UKF side OPEN**; no ratio stated |
+| 14 | **Closed loop:** the flight scores of numbers.md §15 (contact windows, B1–B5 counts, incl. the EKF3 MISS at half real-time, RTF 0.5) | HOLDS | flights, not offline replays, so unchanged. **The flown FGO results (S3, `_v3`, the FGO safety tests) used the OLD priors (1e-3 rad yaw, 2° roll/pitch); no re-fly before the freeze** (ruling, item 4) |
 | 16 | Open-loop contact prediction: a tight west cluster (+160 … +171 s) | CHANGED | post-hoc, `fgo_contact_prediction_half_final.json`, n = 8 of 10: 4 west (+154 … +198 s) / 3 east / 1 none, median +163.2 s (1st re-run 162.9). Missing: `fgo_shadow_half_a`, live XFGO (ruling 11) |
 | 17 | **T:** H-T1 PASS; P-T2, P-T3, P-T4 FAIL | HOLDS | `expT/t_aggregate.json`: same verdicts (H-T1 ρ +0.30, p 6e-6) |
 | 18 | T condition D: EKF3 live is the best live estimator (0.096 vs FGO 0.121) | CHANGED | FGO live **0.083** < EKF3 0.096: **descriptive only, n = 3** (ruling 7) |
@@ -50,9 +49,13 @@ directly traced plain-wall case and the ruled O partial attribution (numbers.md 
 | 34 | Dataset counts / P4 band: `fwdc` 6/9, `fwdplainc` 8/9; FGO textured band [4.189, 5.117] | CHANGED | as computed `fwdc` **7/9**, `fwdplainc` **7/9** (1st re-run 8/9, 9/9), `p1c` 6/6. The 3 new misses are FGO transition ratios outside a band that collapsed to [15.908, 19.159] (runaway sizes †). **Reported as computed** (restatement ruling 1): the transition band is built from FGO runaway ratios on the blank half, so it is uninformative whether wide ([1.41, 49.07]) or narrow ([15.91, 19.16]); the flips reflect runaway size, not sensing quality. FGO textured band **[−0.889, 7.168]**, too wide to be informative (ruling 3) |
 | 35 | Window/clock/threshold sensitivity is small on textured flights | HOLDS | `*_final.json`: all ≤ 0.013 m (not like-for-like with old rows) |
 
-**Counts:** HOLDS 17 · CHANGED 16 · WITHDRAWN 3 · PENDING 0 (36 rows; claim 1 is split into 1a/1b; row 8 is the 1st
+**Counts:** HOLDS 17 · CHANGED 15 · WITHDRAWN 3 · PENDING 0 (35 rows; claim 1 is split into 1a/1b; row 8 is the 1st
 re-run's plain-wall claim). Against the first version of this table: row 7 CHANGED → HOLDS, row 31 CHANGED → HOLDS
 (both flips back, accepted by restatement rulings 3 and 2), row 8 PENDING → WITHDRAWN, row 22 PENDING → CHANGED.
+
+**Row 15 removed (ruling 2026-10-16, item 6).** The closed-loop per-heading weight comparison (FGO against UKF) is dropped
+from all thesis-facing material. The claim numbers of the other rows are unchanged; the values stay in `numbers.md` §15,
+marked "not reported" (the superseded row is kept verbatim there). Before this ruling the counts were CHANGED 16, 36 rows.
 
 **0.1 rad initial-yaw sensitivity (ruled check; numbers.md §18):** no UKF-vs-FGO ordering changes, and `fwdc` and
 `dsn` are unaffected beyond the FGO noise floor. One conclusion does change: on plain walls the heading arms of BOTH

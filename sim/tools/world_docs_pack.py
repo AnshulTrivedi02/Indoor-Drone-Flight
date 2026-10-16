@@ -58,7 +58,7 @@ IDX = {
  "corridor_transition_fwdc / _fwdplainc": "numbers §6.2 (transition +60 s), §8, §9, §11 (ceiling group); " + NO_THESIS,
  "corridor_blank_fwdc / _fwdplainc": "thesis T3 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), T7, "
     "T1 blank row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9",
- "corridor_textured_half_fwdc": "thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15, claim 14",
+ "corridor_textured_half_fwdc": "thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15",
  "corridor_tson_fwdc": "numbers §6.5 note row",
  "corridor_{textured,transition,blank}_fwd": "numbers §1/§2 Phase-2 rows, §11 no-ceiling group, superseded block; "
     "not analysed",
@@ -150,10 +150,10 @@ W = {
  "corridor_blank_fwdplainc": ("CURRENT", "fwdplainc_blank_r1-3, p1c_fwdplainc_blank",
     TH["corridor_blank_fwdplainc"] + "; numbers §6.2, §6.6 (yaw-only benefit), §8, §9", "Blank floor, plain walls, ceiling.",
     "Onboard: forward frame at y = 40 m (VP valid: plain walls over a blank floor validate)."),
- "corridor_textured_half_fwdc": ("CURRENT (all half-speed closed-loop results)", "27 cl_*_half flights + FGO dev / shadow / ground-test runs and gt_heading_half* (44 trials)",
-    TH["corridor_textured_half_fwdc"] + "; pack F08, F15a; numbers §15, claim 14",
+ "corridor_textured_half_fwdc": ("CURRENT (all closed-loop results at half real-time, RTF 0.5)", "27 cl_*_half flights + FGO dev / shadow / ground-test runs and gt_heading_half* (44 trials)",
+    TH["corridor_textured_half_fwdc"] + "; pack F08, F15a; numbers §15",
     "Geometrically identical to corridor_textured_fwdc; only <real_time_factor> 0.5 differs (FGO compute headroom).",
-    "Same route (0.5 m/s x 300 s at 2 m); renders are identical to the fwdc page; no frames extracted."),
+    "The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s (same route, 300 s at 2 m). Renders as the fwdc page; no frames extracted."),
  "corridor_tson_fwdc": ("RECORD ONLY (time-sync A/B)", "tsx_on_tex", "numbers §6.5 note row",
     "corridor_textured_fwdc with the drone model iris_fwd_ts (time-sync A/B); geometry identical.",
     "Renders identical to the fwdc page; no frames extracted."),
@@ -172,7 +172,7 @@ W = {
     TH["room_tags"] + "; pack F09, F10, F12, F13; numbers §16.1, §16.3",
     "10 x 10 m room, 3 m plain walls, checker floor, floor tags 0-7 at the corners / midpoints of the 6 m lap square.",
     "Onboard: the ONLY stored downward-camera frames (tagchar_h20 hover / cruise, tagchar_h30 cruise) - same checker texture."),
- "room_wall_tag": ("CURRENT results; no new flights (closed_loop_run.sh refuses it)", "H_s0a, H_s0b, H_s1_r1-3, H_gt_*, H_wtest_*",
+ "room_wall_tag": ("CURRENT results; no new flights (the flight script refuses it)", "H_s0a, H_s0b, H_s1_r1-3, H_gt_*, H_wtest_*",
     TH["room_wall_tag"] + "; pack F14, F15b; numbers §17",
     "room_tags + wall tag id 10 on the north wall (z 1.5 m), a parked occluder, iris_fwd spawned at the hold (0, 3.5).",
     "Routes: S0a grid sweep (world frame), S1 hold W(-1.5, 0) with E steps; forward images exist in H bags but none extracted."),
@@ -183,7 +183,7 @@ W = {
  "room_wall_tag_far_occ": ("RECORD ONLY (in-flight-anchor check)", "H_ifa_ekf3 (FAIL, room-box breach)",
     "METHODOLOGY only; no numbers row, no figure",
     "room_wall_tag_far with the occluder starting in front of the wall tag (no fix until uncovered airborne).",
-    "Route: 1.5 m north in EKF3's own pre-anchor frame (ifanchor_profile.json); no frames extracted."),
+    "Route: 1.5 m north in EKF3's own pre-anchor frame; no frames extracted."),
 }
 ONBOARD = {"room_tags": ["tagchar_h20__down_hover.png", "tagchar_h20__down_cruise.png", "tagchar_h30__down_cruise.png"],
            "corridor_textured_fwdc": ["fwdc_tex_r1__fwd_y040.png", "fwdc_tex_r1__fwd_y150.png"],
@@ -223,7 +223,9 @@ def main():
             fig = plt.figure(figsize=(11.69, 8.27))
             fig.text(0.03, 0.965, w, fontsize=15, weight="bold")
             fig.text(0.03, 0.94, "status: %s   |   flown: %s" % (st, ex[:150]), fontsize=7.5, color="#4d4d4d")
-            fig.text(0.03, 0.925, "reported in: %s" % used, fontsize=7.5, color="#4d4d4d")
+            # Captions (rulings 2026-10-16): no pack-figure codes, claim numbers or commit hashes on the page; they stay in index.md.
+            used_pdf = re.sub(r",?\s*claim \d+\w*", "", re.sub(r";\s*pack [^;]*", "", used))
+            fig.text(0.03, 0.925, "reported in: %s" % used_pdf, fontsize=7.5, color="#4d4d4d")
             long_ = w.startswith("corridor") or w == "outdoor_indoor"
             if long_:
                 boxes = {"sch": [0.03, 0.56, 0.94, 0.33], "top": [0.03, 0.44, 0.94, 0.11],
@@ -251,7 +253,6 @@ def main():
                         "coverage')", fontsize=10, color="#4d4d4d", va="center")
             fig.text(0.03, 0.065, c1, fontsize=9.5)
             fig.text(0.03, 0.04, c2, fontsize=9.5)
-            fig.text(0.97, 0.015, "world_images @ %s" % COMMIT, fontsize=6, color="#999999", ha="right")
             pdf.savefig(fig); plt.close(fig)
     # ------------------------------------------------------------------------------------------------ shot table
     rows = ["| world | shot | what | eye (x, y, z) m | rpy (rad) | HFOV deg | px | projection | cutaway | top-view parallax |",

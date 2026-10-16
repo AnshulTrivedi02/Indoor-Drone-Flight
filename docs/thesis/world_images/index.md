@@ -22,11 +22,11 @@ The world for each trial comes from the `world:` field of `~/thesis_data/trials/
 | corridor_textured | CURRENT | `dsn_tex_r1–r10` (standard-sensor baseline); `ds_tex_r1–3` (compass on, reference); about 26 checks and shadow runs | thesis T1 (standard-sensor row), T2 (no-heading columns); pack F03; numbers §1, §2, §6.1, §6.5, §7, §8, §14, §18 |
 | corridor_blank | CURRENT | `dsn_blank_r1–3`, `ds_blank_r1–3`, `corridor_blank_verify` | thesis T3, T7 (blank-floor validity), T1 blank row; pack F06; numbers §6.2, §7 |
 | corridor_transition | CURRENT | `dsn_trans_r1–3`, `ds_trans_r1–3`, `corridor_trans_verify` | numbers §1 (boundary y = 80.01 m), §6.2, §7, §11; no thesis figure or table |
-| corridor_textured_fwdc | CURRENT (line-textured walls = upper bound) | `fwdc_tex_r1–3`, `p1c_fwdc_tex`, `f4_fwdc_tex_r1–6`, `tsx_off_tex`, full-speed closed loop `cl_*_tex`, `gt_heading_*`, `rgs_*`, `lfs_check_tex` | thesis T1 (heading row, C0), T2, A3; pack F01, F02, F04, F05, F07, F15a; numbers §6.3–§6.6, §8, §9, §15, §15.1, §15.2 |
+| corridor_textured_fwdc | CURRENT (line-textured walls = upper bound) | `fwdc_tex_r1–3`, `p1c_fwdc_tex`, `f4_fwdc_tex_r1–6`, `tsx_off_tex`, real-time (RTF 1.0) closed loop `cl_*_tex`, `gt_heading_*`, `rgs_*`, `lfs_check_tex` | thesis T1 (heading row, C0), T2, A3; pack F01, F02, F04, F05, F07, F15a; numbers §6.3–§6.6, §8, §9, §15, §15.1, §15.2 |
 | corridor_textured_fwdplainc | CURRENT (plain walls = featureless case) | `fwdplainc_tex_r1–3`, `p1c_fwdplainc_tex`, `f4_fwdplainc_tex_r1–6` | thesis T1 (heading row), T2, A3; pack F04, F07; numbers §6.4, §6.6, §8, §9, §15.1, §15.2 |
 | corridor_transition_fwdc / _fwdplainc | CURRENT | `fwdc_trans_r1–3` and `fwdplainc_trans_r1–3`, each plus a `p1c_*_trans` | numbers §6.2 (transition +60 s), §8, §9, §11 (ceiling group); no thesis figure or table |
 | corridor_blank_fwdc / _fwdplainc | CURRENT | `fwdc_blank_r1–3` and `fwdplainc_blank_r1–3`, each plus a `p1c_*_blank` | thesis T3 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), T7, T1 blank row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9 |
-| corridor_textured_half_fwdc | CURRENT (every half-speed closed-loop result) | 27 `cl_*_half` flights, plus FGO dev, shadow and ground-test runs and `gt_heading_half*` (44 in total) | thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15, claim 14 |
+| corridor_textured_half_fwdc | CURRENT (every closed-loop result at half real-time, RTF 0.5; the simulator ran at half real time, the commanded flight speed was unchanged at 0.5 m/s) | 27 `cl_*_half` flights, plus FGO dev, shadow and ground-test runs and `gt_heading_half*` (44 in total) | thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15 |
 | corridor_tson_fwdc | RECORD ONLY (time-sync A/B) | `tsx_on_tex` | numbers §6.5 note row |
 | corridor_{textured,transition,blank}_fwd | SUPERSEDED (the forward camera sees the sky) | `fwd_*_r1–3`, `p1_fwd_*`, `p1diag_fwd_*` | numbers §1/§2 Phase-2 rows, §11 no-ceiling group, superseded block; not analysed |
 | corridor_{textured,transition,blank}_fwdplain | SUPERSEDED; no dataset was flown | `p1plain_{tex,trans,blank}` | numbers §11 (`p1plain_trans`); METHODOLOGY only |
@@ -39,7 +39,7 @@ The world for each trial comes from the `world:` field of `~/thesis_data/trials/
 | iris_runway | RECORD ONLY | `stage_c_blank` | the Stage C blank ATE is VOID; no current row |
 
 **24 SDFs in total:**
-- 16 have current results or their underlying data: the 3 dsn corridors, 6 fwdc/fwdplainc, the half-speed world, room_tags, room_wall_tag, room_wall_tag_far, outdoor_indoor, and iris_textured for two numbers.md rows.
+- 16 have current results or their underlying data: the 3 dsn corridors, 6 fwdc/fwdplainc, the half real-time (RTF 0.5) world, room_tags, room_wall_tag, room_wall_tag_far, outdoor_indoor, and iris_textured for two numbers.md rows.
 - 3 are record-only: tson, far_occ and iris_runway.
 - 6 are superseded: `_fwd` and `_fwdplain`.
 
@@ -103,7 +103,7 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 - The checker square size, 0.3125 m, is computed from `checker.png`: 64 squares across a 20 m tile.
 
 **Routes come from the mission and profile files, not from flown data:**
-- **Corridor cruise:** each world's line in `batches/*.conf`, as velocity × duration north from the spawn (0.5 m/s × 300 s = 150 m at 2 m). The half-speed world's route comes from `closed_loop_run.sh`. The measured travel is 151 m (numbers §1).
+- **Corridor cruise:** each world's line in `batches/*.conf`, as velocity × duration north from the spawn (0.5 m/s × 300 s = 150 m at 2 m). The half real-time (RTF 0.5) world's route comes from `closed_loop_run.sh`. The measured travel is 151 m (numbers §1).
 - **T/L:** `LAPS=5,6,0.5` and the conf line in `tools/run_expT.sh`: 5 laps of a 6 m square, N–E–S–W from the spawn over tag 0, at 2.0 m.
 - **tagchar:** `batches/tagchar.conf`.
 - **O:** `OUTBACK=15,1.5,50,0.5,20` in `tools/run_expO.sh`, with the GNSS gate at N = 20 m.
@@ -169,7 +169,7 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 - **Line-textured walls, forward:** available (fwdc tex, trans and blank).
 - **Plain walls, forward:** available (fwdplainc tex and blank).
 - **Near the end wall, forward:** available for both wall types (y = 150 m).
-- **Bags exist but no frames were extracted:** `fwdplainc_trans_*`, the half-speed and full-speed closed-loop `cl_*` sets, and the H flights (`H_*` bags carry `/forward_camera/image`).
+- **Bags exist but no frames were extracted:** `fwdplainc_trans_*`, the half real-time (RTF 0.5) and real-time (RTF 1.0) closed-loop `cl_*` sets, and the H flights (`H_*` bags carry `/forward_camera/image`).
 - **Superseded no-ceiling worlds:** no frames extracted.
 
 ## 5. Per-shot camera record (generated: `shots_table.md`)

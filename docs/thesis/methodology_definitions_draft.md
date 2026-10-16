@@ -180,8 +180,37 @@ analysis behind it is shown to be invalid.
 **Draft definition.** A result or setting is *PENDING* when it has been computed or proposed but is awaiting a user or
 supervisor ruling.
 - It is not adopted.
-- The previously adjudicated verdict stands until the ruling (`numbers.md:633-635`).
+- The previously adjudicated verdict stands until the ruling (the former `numbers.md` §17.2 wording, kept verbatim in its
+  block "Superseded by the rulings of 2026-10-16").
 - PENDING is never a verdict. The thesis must not go to submission with a PENDING item, and each needs a ruling.
+- **Status after the rulings of 2026-10-16:** no thesis-facing item is PENDING. The one remaining PENDING item, the
+  rung-1 first-leg length, belongs to the real-flight plan and its flight cards, not to the thesis results.
+
+---
+
+## Rounding of displayed values (ADOPTED for thesis tables, ruling 2026-10-16, item 3)
+
+**Rule.** Every number displayed in a thesis table is the full-precision value in its result file, rounded **once**, to
+the printed precision, **half away from zero**. The rule is applied when the tables are generated (`eval/figs_thesis.py`,
+function `rd()`), not by editing any record.
+- `numbers.md` keeps full precision: its values stay as copied from their sources, including the four double-rounded
+  transcriptions listed in its flag 8.
+- The value is read through its shortest decimal form, so a value stored at 4 dp (for example the confirmatory r5
+  difference, −0.4885) rounds as written (−0.489), not as its binary neighbour.
+- Where the generated display and a `numbers.md` cell differ in the last digit, the cross-check records a last-digit
+  match; no verdict, range or ordering changes (numbers.md flag 8).
+- Source: M:14184-14185 (RULINGS 2026-10-16, item 3); the proposed rule, `numbers.md` flag 8.
+
+---
+
+## Half real-time (RTF 0.5)
+
+**Definition.** The closed-loop corridor flights ran in a copy of the textured corridor world whose real-time factor is
+0.5. **The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s.**
+- The thesis writes "half real-time (RTF 0.5)", never "half speed", which reads as half the velocity.
+- The other closed-loop world runs at the default real-time factor (1.0); no comparison across the two is claimed.
+- Source: M:14193-14195 (RULINGS 2026-10-16, captions); glossary.md:134 ("half SIM speed, not half velocity");
+  `sim/worlds/corridor_textured_half_fwdc.sdf:44`.
 
 ---
 

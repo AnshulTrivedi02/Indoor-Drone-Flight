@@ -51,7 +51,7 @@ The figure and table numbering (§6) is a scheme, not a term.
 3. **Real-flight readiness is not an experiment and gets no number.**
    - It has no simulation result. Simulation results are frozen (M:13396-13399).
    - Rung 1 is the priority, rung 3 a planned goal and rung 2 parked (M:13397-13398).
-   - It belongs in a closing chapter, "Towards real flights" (§6). Its one PENDING item is there (`docs/thesis/pending_items.md`).
+   - It belongs in a closing chapter, "Towards real flights" (§6). Its one open item, the rung-1 first-leg length, is there and only there: it is not a thesis result (ruling 2026-10-16, item 4; `docs/thesis/pending_items.md`).
 4. **Experiments 2–5 keep the order 2 T, 3 L, 4 O, 5 H, as instructed.** This differs from the order of the
    pre-registrations in the repository's record (M:10100 T, M:10290 O, M:10452 L).
 
@@ -116,7 +116,7 @@ expands the letters "ds", "dsn", "c" or "f4" (glossary.md:112). The thesis names
 | 42 | **earlier build** | UKF v1 / "old UKF (jitter)"; "original FGO" | numbers.md:458 |
 | 43 | **corrected-priors node** | FGO v4 (`4c07374b`) | flown only in the v4 safety re-tests (T7:9; M:13686) |
 | 44 | **initial-uncertainty correction** (original priors / corrected priors) | D18 model correction; OLD / NEW priors | FGO initial yaw σ 1e-3 rad → 1°, roll/pitch 2° → 5° (numbers.md:30-31; glossary:3549, 3534) |
-| 45 | **half real-time factor** (always "at RTF 0.5", never "half speed") | `_half`; "half speed"; `corridor_textured_half_fwdc` | "half SIM speed, not half velocity" (glossary.md:134; M:7795, M:7829-7830) |
+| 45 | **half real-time (RTF 0.5)** (always so written, never "half speed"). One-line explanation, used wherever it first appears: **"the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s"** (ruling 2026-10-16, captions) | `_half`; "half speed"; `corridor_textured_half_fwdc` | "half SIM speed, not half velocity" (glossary.md:134; M:7795, M:7829-7830) |
 | 46 | **forced-invalid test** / **node-kill test** | safety (a) PARAM / (b) KILL | UKF (a): `AHRS_UKF_TFAIL` set in flight; (b): SIGKILL of the aiding bridges; FGO (a)/(b): node SIGKILL without / with the watcher watching the node (M:11289-11293). Note that the FGO's (a) is also a kill |
 | 47 | **runaway magnitude** (marker †) | † | "evidence of divergence, not precise values" (numbers.md:682-690) |
 
@@ -338,7 +338,7 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | 21 | (a)/(b) safety; PARAM; KILL | `T7_failure_behaviour.md:5`; `A2_*_p2.png` | term 46 |
 | 22 | OLD priors / NEW priors | `T1_scorecard.md:14`; `T4_closed_loop.md:9`; `T7_failure_behaviour.md:9` | term 44 |
 | 23 | ABLATION | index.md:237; pdf p.14 | term 41 |
-| 24 | "half speed", `_half`, `corridor_textured_half_fwdc` | F2 caption (index.md:37); `T4_closed_loop.md:1`; A1 image; `worlds_combined.pdf` p.10 | term 45. **The caption wording "half speed" is misleading and needs changing** (glossary_flags.md:90) |
+| 24 | "half speed", `_half`, `corridor_textured_half_fwdc` | F2 caption (index.md:37); `T4_closed_loop.md:1`; A1 image; `worlds_combined.pdf` p.10 | term 45. **The caption wording "half speed" is misleading and needs changing** (glossary_flags.md:90). **DONE 2026-10-16:** every thesis-facing caption, table and both PDFs now read "half real-time (RTF 0.5)" |
 | 25 | `dsn`, `dsn_tex`, `ds_*` | `T1_scorecard.md:20`; `T2_accuracy_heading.md:5`; `worlds_combined.pdf` pp.1–3 | terms 11, 12 |
 | 26 | `fwdc`, `fwdplainc`, `fwdc_tex` | `T2_accuracy_heading.md:5`; `T1_scorecard.md:22` | terms 13, 14 |
 | 27 | `p1c`, `f4_` | `T3_blank_floor.md:11`; `worlds_combined.pdf` pp.4–9 | terms 15, 16 |
@@ -358,6 +358,13 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | 41 | watcher (watcher breach; "the watcher watches the node") | `T7_failure_behaviour.md:8, 11` | "safety watcher" (descriptive; not a vocabulary term) |
 
 ### 8.2 Left unnamed on purpose: remove from captions (24)
+
+**Applied 2026-10-16** (rulings of 2026-10-16, captions item): these families were removed from the figure and table captions,
+the table notes and cells, and the caption pages of both thesis PDFs, in one pass. The sources now live only in
+`docs/thesis/figures_thesis/index.md` (inputs, numbers.md rows and the cross-checks). Rows 22–24 are glossed at first use, as
+their handling column says, so they remain. Trial names and build hashes remain only in the appendix tables (A2's trial and
+build columns) and the worlds PDF (the appendix world table), as rows 15, 16 and 18 allow. The residual hits are listed in
+`docs/handovers/2026-10-16_pending_rulings_applied.md`.
 
 | # | code(s) | where | handling |
 |---|---|---|---|
@@ -436,7 +443,7 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | earlier build | UKF v1 (old UKF); original FGO | numbers.md:458 |
 | corrected-priors node | FGO v4 `4c07374b` | M:13686 |
 | initial-uncertainty correction | D18 model correction; OLD/NEW priors | numbers.md:30-31, 37; M:13686 |
-| half real-time factor | `_half`; "half speed" | M:7795; M:7829-7830; glossary.md:134 |
+| half real-time (RTF 0.5) | `_half`; "half speed" (banned wording) | M:7795; M:7829-7830; glossary.md:134 |
 | forced-invalid test / node-kill test | safety (a) PARAM / (b) KILL | M:11289-11293 |
 | runaway magnitude | † | numbers.md:682-690 |
 | with / without heading | closed-loop set (b) / (a) | M:4841-4842 |
@@ -466,7 +473,7 @@ Every row of `docs/thesis/glossary_flags.md:1072-1170` that this vocabulary touc
 | 8 | departure | 2(a) robust-FGO rules **RS1/RS2** (1132) | **H1.7a–c** | as row 7 |
 | 9 | departure | H stages **"H-S0a…H-S3v2"** (1086, 1130) | **written in words** ("EKF3-flying hold set", "UKF-flying hold set (final build)") | a reader needs to know who flies and which build. "S3v2" flies the FGO's **v3** node (glossary:686), so "H-S3v2" keeps that numbering trap |
 | 10 | adopted with extension | **"_v2/_v3: name the build in the text"** (1168) | adopted, with fixed names: **final / ablation / earlier build, corrected-priors node** | v3 means different things for the UKF and the FGO (glossary_flags.md:269-273). Four fixed names avoid per-sentence improvisation |
-| 11 | adopted with extension | **"_half: write 'half real-time factor (RTF 0.5)'"** (1166) | adopted. It also bans "half speed", which is in the current F2/T4/A1 captions | the current captions use "half speed" (index.md:37; `T4_closed_loop.md:1`) |
+| 11 | adopted with extension | **"_half: write 'half real-time factor (RTF 0.5)'"** (1166) | adopted. It also bans "half speed", which is in the current F2/T4/A1 captions | the current captions use "half speed" (index.md:37; `T4_closed_loop.md:1`) (fixed 2026-10-16) |
 | 12 | adopted with extension | **"shadow: always qualify who flies"** (1159) | adopted, as **"passive estimator"** plus who flies | a single noun avoids "shadow" altogether |
 | 13 | adopted | **"live / hindsight: define once per experiment"** (1160) | adopted. Defined once (M:7937-7938), with an explicit Experiment 3 redefinition | — |
 | 14 | adopted | **"batch: hindsight batch / fixed-lag smoother"** (1161) | adopted, as "FGO whole-flight batch"; the live solver is "fixed-lag smoother" | — |
