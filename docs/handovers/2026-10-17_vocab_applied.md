@@ -93,7 +93,8 @@ The scripts are in the session scratchpad (`numdiff.py`, `idxdiff.py`, `resid.py
 | figure index: the T7 check's computed/expected text `- **S-A4:** not applicable (an (a) run).` | 8 | a verbatim METHODOLOGY quote checked at build time; changing it would break the check. Table 7.2's note now paraphrases it |
 | figure index: section headings "(internal F5, figure)", summary-table id column, preamble and revision history (F1/F3/F4/F8 → tables) | ~35 | intended traceability |
 | world index: `dsn` / `fwdc` / `fwdplainc` in the "flown in it" and "reported in" cells and the onboard table | 18 | appendix world table beside trial names (vocabulary §8.2 rows 16, 18, 20 keep trial and world names there) |
-| worlds PDF | **0** | — |
+| worlds PDF, vector text (header, "flown", "reported in", captions) | **0** | — |
+| worlds PDF / `world_images/schematics/*.png`, **raster** schematic legends (not visible to pdftotext; read from `sim/tools/world_schematics.py:300-330`) | "T/L laps", "O align / out / back", "H S0a grid sweep", "H S1: hold …", "H S1far / S2 / S3: anchor …", "watcher room box" | inside the raster schematics, which this stage did **not** regenerate (brief: no re-rendering of images). Next stage: edit those `lab=` strings in `world_schematics.py` (no Gazebo needed) and re-run it, then `world_docs_pack.py` |
 
 ## Vocabulary gaps and ambiguities: listed, not resolved
 
