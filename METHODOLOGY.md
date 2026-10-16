@@ -14237,3 +14237,16 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **(2)** Change the cross-check to an EXACT comparison of each displayed thesis value against the stored value
   rounded once (no tolerance), and report the new count.
 - **The frozen pack is not touched.**
+
+### RULINGS (user, 2026-10-16): the three mismatched numbers.md rows; thesis-facing untraceable values; numbers.md CONTENT-FROZEN
+- **For each of lines 522 (T repeat agreement), 565 (O source-switch times) and 647 (S3 EKF3 shadow range):**
+  - first confirm that the stored value is the SAME quantity as the sentence (same metric, e.g. effective vs
+    end-of-loss drift; same conditions; same statistic, max vs mean);
+  - if SAME: correct it to the stored value, with the old text in the superseded block;
+  - if DIFFERENT: rewrite the sentence to name the quantity it actually reports, citing its source;
+  - for line 522: also search thesis-facing material for "8 mm" or any reliance on it, and report.
+- **Of the 769 untraceable numeric tokens,** list only those that appear in thesis-facing material (captions,
+  tables, the claims table, the vocabulary, the methodology/limitations drafts). Give each a source (a results file,
+  a METHODOLOGY line, a pre-registration line or a parameter file), and report any with NO written source at all.
+- **After this, numbers.md is CONTENT-FROZEN:** any further change is a dated ERRATUM entry at the end, not an in-place
+  edit.
