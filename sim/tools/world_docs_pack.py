@@ -224,7 +224,8 @@ def main():
             fig.text(0.03, 0.965, w, fontsize=15, weight="bold")
             fig.text(0.03, 0.94, "status: %s   |   flown: %s" % (st, ex[:150]), fontsize=7.5, color="#4d4d4d")
             # Captions (rulings 2026-10-16): no pack-figure codes, claim numbers or commit hashes on the page; they stay in index.md.
-            used_pdf = re.sub(r",?\s*claim \d+\w*", "", re.sub(r";\s*pack [^;]*", "", used))
+            # Only the thesis references are printed; the record pointers (numbers.md sections, METHODOLOGY) stay in index.md.
+            used_pdf = "; ".join(x.strip() for x in used.split(";") if x.strip().startswith(("thesis", "no thesis"))) or "no thesis figure or table"
             fig.text(0.03, 0.925, "reported in: %s" % used_pdf, fontsize=7.5, color="#4d4d4d")
             long_ = w.startswith("corridor") or w == "outdoor_indoor"
             if long_:
@@ -249,7 +250,7 @@ def main():
                     ax.set_title("onboard (bag): " + f, fontsize=6.5, loc="left", color="#4d4d4d")
             else:
                 ax = fig.add_axes(boxes["ob"]); ax.set_axis_off()
-                ax.text(0.02, 0.5, "No stored onboard frames extracted for this world.\n(see index.md, 'Onboard "
+                ax.text(0.02, 0.5, "No stored onboard frames extracted for this world.\n(see the world index, 'Onboard "
                         "coverage')", fontsize=10, color="#4d4d4d", va="center")
             fig.text(0.03, 0.065, c1, fontsize=9.5)
             fig.text(0.03, 0.04, c2, fontsize=9.5)

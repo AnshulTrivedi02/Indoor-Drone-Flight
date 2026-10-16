@@ -1084,7 +1084,8 @@ figs = table_page("Appendix A2. Experiment H hold sets and the safety tests (all
 save_table(figs, "A2", "A2_H_and_safety", "H hold sets and the safety tests (all runs)",
            "Experiment H sets (S1, S1 far, S2/S2v2, S3/S3v2) with hold error, drift, lockouts and the P-H5 bands, and every safety-test run with its "
            "as-worded verdict; the final runs are the v3 (UKF) and v4 (FGO, NEW priors) re-tests. " + PRIORS + " The comparative criteria page "
-           "gives the final-build sets (primary) beside the superseded builds.",
+           "gives the final-build sets (primary) beside the superseded builds; the final-build verdicts are identical to the "
+           "original-build verdicts (all FAIL).",
            "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json, safety_*.json", "§15 safety rows, §17, §17.1; METHODOLOGY 2d and 'Band C … FGO safety re-tests'", CHK_HS)
 rowsF = [("F1 (k = 2.385)", "robust FGO better than the hard-gated UKF on the heading", "NOT met (lockout tie)",
           f"robust FGO lower worst-case yaw on {dec1['robust_lower_yaw_max_on']}/6 bags, but lockouts FGO_robust {dec1['lockout_total']['FGO_robust']} = UKF_hard "
