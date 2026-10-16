@@ -1,7 +1,7 @@
 # Numbers for the methodology chapter
 
 Companion to `methodology_index.md`. Every value is copied verbatim from its source. None
-has been recomputed or re-rounded.
+has been recomputed; the displayed digits are the stored value rounded once (flag 8).
 
 - **Sources:** `M:L123` / `C:L123` / `P:L123` are line numbers in the snapshot
   `docs/thesis/export_2026-09-29_563a989/` (METHODOLOGY.md, CLAUDE.md, PROGRESS.md; snapshot
@@ -248,7 +248,7 @@ The former values are in the superseded section ("Former sections 6–9").
 | UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) | 6.4–8.2 / 27.3–36.5 / 60–108 | m | CURRENT (final re-run 2026-10-10) | json:blank_behaviour.json |
 | FGO baseline, same | 6.4–8.2 / 28.0–37.0 / 154–204 | m | CURRENT (FGO-only re-run 2026-10-10) | same |
 | UKF / FGO baseline error at the end of cruise, blank †| 29–40 / 22–41 | km | CURRENT (FGO-only re-run 2026-10-10) | same |
-| UKF / FGO baseline error at +60 s after loss, transition (n = 11) †| 129–139 / 223–231 | m | CURRENT (final re-run 2026-10-10) | json:blank_behaviour.json |
+| UKF / FGO baseline error at +60 s after loss, transition (n = 11) †| 128–139 / 223–231 | m | CURRENT (final re-run 2026-10-10) | json:blank_behaviour.json |
 | Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO †| 40–89 / 135–190 | m | CURRENT (FGO-only re-run 2026-10-10) (the heading still does not bound position without flow) | json:blank_behaviour.json |
 | `dsn` transition displacement ratio, UKF / FGO (mean of 3) †| 6.8 / 17.7 (per flight FGO 18.0 / 18.1 / 17.0; was 45.9 / 50.0 before the final re-run); still divergence, not accuracy. Transition and blank are NOT ranked by evo (EKF3's output there is the invalid origin, not scored) | — | CURRENT (FGO-only re-run 2026-10-10) | json:rerun_dsn_evo.json |
 
@@ -302,7 +302,7 @@ The former values are in the superseded section ("Former sections 6–9").
 | **Plain walls over the BLANK floor (`fwdplainc_blank` r1–r3; heading VALIDATED 3/3: availability 95.4–95.6%, outliers 0.06–0.10%, robust σ 0.009–0.010°), reported separately** | **Yaw benefit only, both estimators.** Heading-arm yaw-error RMS UKF 0.052 / 0.050 / 0.052°, FGO 0.051 / 0.051 / 0.053° (baselines UKF 22.1 / 22.2 / 20.7°, FGO 21.9 / 23.6 / 22.4°); end-of-cruise yaw error UKF −0.45 / −0.28 / −0.36°, FGO −0.30 / −0.48 / −0.58° (baselines −44.7 … −53.0°); headings fused UKF 8,716 / 8,696 / 8,698 of 8,773, FGO 8,631 / 8,609 / 8,611 of 8,685–8,686 (~99%). **Position is NOT bounded** (no flow): error at +60 s after flow loss UKF 73 / 51 / 78 m, FGO 158 / 137 / 166 m (baselines 73 / 60 / 80 and 161 / 154 / 170 m); evo -a (cruise) 7.5–10.6 km †. **0.1 rad sensitivity: not covered** (the check had no blank-floor bag) | deg, m | CURRENT (restatement ruling 4) | json:phase4_fwdplainc_arms.json, blank_behaviour.json, fwd_validation.json |
 | UKF +heading vs EKF3 without heading | **not a fair comparison; never stated as the UKF being better** | — | CURRENT (wording) | same |
 | `fwdplainc` textured UKF +heading mean position NEES, mean of r1–r3 | 13.41 (14.39 / 12.75 / 13.10) (was 6.11; more over-confident on plain walls) | — | DIAGNOSTIC (final re-run) | json:phase5b_consistency.json |
-| FGO baseline cross-track mean NEES, `fwdc` textured (mean of r1–r3) | 1.70 (2.4 / 0.2 / 2.6; was 57.1 before the final re-run: the FGO's covariance is no longer ~57× over-confident; predicted yaw σ 0.476° → 0.057°) | — | DIAGNOSTIC (FGO-only re-run) | json:phase5b_consistency.json |
+| FGO baseline cross-track mean NEES, `fwdc` textured (mean of r1–r3) | 1.70 (2.4 / 0.2 / 2.5; was 57.1 before the final re-run: the FGO's covariance is no longer ~57× over-confident; predicted yaw σ 0.476° → 0.057°) | — | DIAGNOSTIC (FGO-only re-run) | json:phase5b_consistency.json |
 | FGO +heading NEES, `fwdplainc` (P5b); end-wall / checker yaw-prediction NEES `fwdplainc/FGO` | 13.95 (15.2 / 13.2 / 13.5; UKF 13.41: both equally over-confident on plain walls); end wall 2.99 (UKF 3.02), checker 963 (UKF 963). Was 24.8; 6.5 × 10⁶ / 3.7 × 10⁶ (the divergence) | — | DIAGNOSTIC (FGO-only re-run) | json:phase5b_consistency.json |
 
 ## 7. Pre-registered bands — P4 recomputed from the re-flown `dsn` (same formula)
@@ -385,7 +385,7 @@ of 2026-10-16 (open items)".
 |---|---|---|---|---|
 | Whole cruise: ceiling / no-ceiling mean (sd) | 71.87 (1.00) / 71.44 (0.58) | px/s | CURRENT | M:L2591 |
 | Whole cruise: difference, Welch t (df), p | **+0.43 px/s (+0.6%)**, 1.06 (11.2), 0.31 | px/s | CURRENT | M:L2591 |
-| Textured half: difference, t (df), p | +0.10 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2592 |
+| Textured half: difference, t (df), p | +0.09 px/s (+0.07%), 0.39 (13.0), 0.70 | px/s | CURRENT | M:L2592 |
 | Blank half: ceiling / no-ceiling mean (sd) | −2.08 (2.43) / −2.39 (0.85) | px/s | CURRENT | M:L2593 |
 | Blank half: difference, t (df), p | +0.31 px/s, 0.34 (8.7), 0.74 | px/s | CURRENT | M:L2593 |
 | Blank-half variance ratio (Levene p) | 8.1 (Levene p = 0.17 | — | CURRENT | M:L2599 |
@@ -523,9 +523,9 @@ Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 m
 
 | condition (tags sent; median gap) | EKF3 live | UKF live | FGO live | RTS-UKF (hindsight) | FGO batch (hindsight) |
 |---|---|---|---|---|---|
-| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.020 m** | 0.014 m | **0.011 m** |
+| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.020 m** | 0.014 m | **0.010 m** |
 | B: corners (10.1 s) | 0.055 m | 0.061 m | **0.026 m** | 0.031 m | **0.015 m** |
-| C: 2 diagonal (22.0 s) | 0.074 m | 0.076 m | **0.053 m** | 0.039 m | **0.019 m** |
+| C: 2 diagonal (22.0 s) | 0.074 m | 0.076 m | **0.054 m** | 0.039 m | **0.019 m** |
 | D: 1 tag (46.3 s) | 0.096 m | 0.131 m | **0.083 m** (descriptive, n = 3; ruling 7) | 0.109 m | **0.028 m** |
 
 - **(Final re-run 2026-10-10, FGO restated from the FGO-only re-run; old table and bullets in the superseded blocks.) Condition D:** FGO live 0.083 against
@@ -533,8 +533,8 @@ Horizontal RMSE over the lap window, mean of 3 repeats (repeats agree within 8 m
 - **H-T1 (primary) PASS.** The FGO hindsight gain per gap (median) is 0.010 / 0.011 / 0.023 / 0.052 m for A–D,
   strictly increasing. Spearman ρ = +0.30, p = 6e-6, n = 213 gaps.
 - **P-T2 FAIL.** The RTS-UKF gain is +0.020 / +0.032 / +0.037 / +0.029 m (single-pass smoother; all positive now, not increasing; ρ +0.11, p 0.11).
-- **P-T3 FAIL.** The live max/min ratio is 1.97 / 2.36 / 1.42 / 1.58 (C inside the band).
-- **P-T4 FAIL.** The batch-FGO vs RTS-UKF ratio is 1.31 / 2.14 / 2.07 / 3.89.
+- **P-T3 FAIL.** The live max/min ratio is 1.97 / 2.36 / 1.42 / 1.57 (C inside the band).
+- **P-T4 FAIL.** The batch-FGO vs RTS-UKF ratio is 1.31 / 2.14 / 2.06 / 3.89.
 - **EKF3 timeout:** `horiz_pos_abs` inside the gaps is A 1.00, B–D 0.05. EKF3 times out (> 10 s) and fuses the next
   fix ungated from B on.
 - **Tag module** (2.26 m): detection 100% of the fully visible tags; central-third position p95 40 mm, yaw p95 0.10°;
@@ -556,8 +556,8 @@ Indoor horizontal RMSE across O_r1 / O_r2 / O_r3b. Source: `eval/results/expO/O_
 | **FGO batch (hindsight)** | **0.59 m** (was 0.33 m before the final re-run: WORSENED; partial attribution in the bullets; unchanged by the initial-yaw correction, < 0.001 m) | 0.02 m | — |
 
 - **H-O1 (primary) PASS 3/3.**
-- **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×).
-- **P-O3 PASS (was FAIL; flip accepted, ruling 5):** batch FGO vs RTS-UKF ratio 1.01–1.02 (capped), 1.02–1.05 (cap-free).
+- **H-O2 FAIL:** the live ratio is 1.71–1.84× (was about 2.2×).
+- **P-O3 PASS (was FAIL; flip accepted, ruling 5):** batch FGO vs RTS-UKF ratio 1.01–1.02 (capped), 1.01–1.05 (cap-free).
 - **WITHDRAWN (rulings 5 and "O attribution", 2026-10-10): "the FGO batch is about 1.9–2× better than the better RTS-UKF".** It
   was largely an ARTEFACT of the mis-specified FGO noise model. The corrected FGO batch (0.59 m) equals the RTS-UKF within 1–5 %. Also no
   longer holding: "the cap-free RTS-UKF is worse (0.97–0.98)" (now 0.60–0.62) and "live ordering UKF < FGO" on O_r1 (now a tie).
@@ -571,10 +571,10 @@ Horizontal RMSE in the first tag's frame. Source: `eval/results/expL/T_A_r*_t245
 | mode | live (overall) | hindsight (overall) | live lap 5 ÷ lap 1 |
 |---|---|---|---|
 | with loop closure | **0.049–0.076 m** | **0.017–0.027 m** | 0.16–0.43 |
-| without loop closure | 0.262–0.361 m | 0.221–0.266 m | 2.9–4.5 |
+| without loop closure | 0.263–0.361 m | 0.221–0.266 m | 2.9–4.5 |
 
 - **V-L: NOT re-scorable** (ruling 6, 2026-10-09: its labels were never recorded and none are made after the fact). The old result (keyframe FGO 4.63 m vs thesis FGO 4.59 m on `dsn_tex_r1`, PASS) was on the old FGO and is not restated.
-- **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3** (unchanged in both re-runs; L's result HOLDS, magnitudes moved). The L FGO changed in the FGO-only re-run with the initial-uncertainty correction (the `FGO.init` priors, which both lc and nolc start from, and the V-L start `lc_fgo_replay.start_isam_plain`, whose yaw σ now comes from the thesis FGO's own covariance instead of a hard 1e-3 rad); not attributed individually. With loop closure unchanged to printed precision, without: live 0.281–0.362 → 0.262–0.361 m, lap ratio 3.0–5.0 → 2.9–4.5.
+- **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3** (unchanged in both re-runs; L's result HOLDS, magnitudes moved). The L FGO changed in the FGO-only re-run with the initial-uncertainty correction (the `FGO.init` priors, which both lc and nolc start from, and the V-L start `lc_fgo_replay.start_isam_plain`, whose yaw σ now comes from the thesis FGO's own covariance instead of a hard 1e-3 rad); not attributed individually. With loop closure unchanged to printed precision, without: live 0.281–0.362 → 0.263–0.361 m, lap ratio 3.0–5.0 → 2.9–4.5.
 - **Computational cost (DIAGNOSTIC, workstation Python; restated 2026-10-11 from the FGO-only re-run outputs, pack flag 1; the first-final-re-run bullets are in "Superseded by the FGO-only re-run"):**
   - LC: median 35–41 ms per update (35.3 / 41.3 / 39.2 ms, T_A_r1 / r2 / r3); p99 80–94 ms; wall time 299–519 s per job.
   - no-LC: median 50–61 ms (50.2 / 51.7 / 60.6 ms), p99 1.1–1.7 s (1,096 / 1,107 / 1,742 ms; graph size identical: 7,351
@@ -755,22 +755,22 @@ errors, +60 s errors, displacement ratios, onsets, runaway-size bands).
    commit message; the snapshot records no regression result. Phase 4 has no results yet.
 7. **Phase 1 flow → EKF3 latency baseline:** "median 10.9 ms and p95 42.7 ms" (M:L1594) used
    the single-offset clock; superseded by the linear-map `dsn` values (M:L1752-L1753).
-8. **Last-digit transcriptions (pack flag 4, listed 2026-10-11; values NOT changed).** Four printed values differ from
-   their source files by one unit in the last digit. Each was rounded to 3 dp from the 4-dp intermediate in
-   `eval/results/final2_old_vs_new.md` (or the stored 4-dp `d_m`), not from the full-precision value, and the tie
-   rule was not applied consistently. This file's own convention (header) is to copy values verbatim, never re-rounded, so
-   they stay as printed. **ADOPTED for THESIS TABLES ONLY (ruling 2026-10-16, item 3), applied at generation time by `eval/figs_thesis.py` (its `rd()`): round the full-precision
-   file value once, to the printed precision, half away from zero.** This file keeps full precision: the four values above stay as printed here.
+8. **Double rounding CORRECTED (ruling 2026-10-16, "numbers.md rounding, option (a); a full scan; an exact cross-check").** Rows
+   whose display differed from SINGLE rounding of the stored full-precision value (`rd()` of `eval/figs_thesis.py`: once, at the
+   printed precision, half away from zero) now show the single rounding. The double-rounded forms came from rounding a 4-dp (or
+   coarser) intermediate, e.g. `eval/results/final2_old_vs_new.md`, the stored 4-dp `d_m`, or METHODOLOGY's rounded means.
+   Corrected in place (old rows verbatim in "Superseded by the ruling of 2026-10-16 (numbers.md rounding)"): §6.2 UKF transition
+   +60 s 129 → 128; §6.6 FGO NEES r3 2.6 → 2.5; §11 textured-half difference +0.10 → +0.09; §16.1 A FGO batch 0.011 → 0.010,
+   C FGO live 0.053 → 0.054, P-T3 D 1.58 → 1.57, P-T4 C 2.07 → 2.06; §16.2 H-O2 1.72 → 1.71, P-O3 cap-free 1.02 → 1.01; §16.3 no-LC live 0.262 → 0.263.
 
-   | value (section) | full precision (file) | 4-dp intermediate | printed here | single rounding of the file value |
+   | value (section) | full precision (file) | 4-dp intermediate | printed before | printed now (single rounding) |
    |---|---|---|---|---|
-   | confirmatory d, r5 (§6.1) | −0.4885 (`dsn_paired_test.json` `d_m`, stored at 4 dp) | −0.4885 | −0.489 | −0.489 half away / −0.488 half even (a true tie at the stored precision) |
-   | T condition A, FGO batch (§16.1) | 0.010480 (`expT/t_aggregate.json`) | 0.0105 | 0.011 | **0.010** (double rounding) |
+   | confirmatory d, r5 (§6.1) | −0.4885 (`dsn_paired_test.json` `d_m`, stored at 4 dp) | −0.4885 | −0.489 | −0.489 (unchanged; a true tie at the stored precision, half away from zero) |
+   | T condition A, FGO batch (§16.1) | 0.010480 (`expT/t_aggregate.json`) | 0.0105 | 0.011 | **0.010** |
    | T condition C, FGO live (§16.1) | 0.053504 (same) | 0.0535 | 0.053 | **0.054** |
-   | L no-LC live, lower bound (§16.3, T_A_r2) | 0.262533 (`expL/T_A_r2_t245.json`) | 0.2625 | 0.262 | **0.263** |
+   | L no-LC live, lower bound (§16.3, T_A_r2) | 0.262533 (`expL/T_A_r2_t245.json`) | 0.2625 | 0.262 | **0.263** (§16.3 table and H-L bullet) |
 
-   None changes a range's meaning, a verdict or an ordering. The pack's checker accepts all four as last-digit
-   matches (`docs/thesis/final_results_pack_index.md`).
+   None changes a range's meaning, a verdict or an ordering. The frozen pack (and its tolerant checker) keeps the old forms.
 
 ---
 
@@ -1251,6 +1251,46 @@ and the §10 correction replace the text below.
 | §10 heading | ## 10. Phase 4 (pre-registered only; results still running) |
 | §10 paragraph | **No Phase 4 results exist in the snapshot.** The replay batch was running when this pack |
 | §10 paragraph | was prepared. Only pre-registered values are listed. |
+
+### Superseded by the ruling of 2026-10-16 (numbers.md rounding): double rounding corrected (ruling 2026-10-16); kept verbatim (cell separators shown as ¦)
+
+Source: METHODOLOGY "RULING (user, 2026-10-16): numbers.md rounding, option (a); a full scan; an exact cross-check". Reason for
+every row: **double rounding corrected (ruling 2026-10-16)**; the current rows show the stored full-precision value rounded once.
+Stored values: 128.4931 (`blank_behaviour.json` fwdc_trans_r2 ukf_baseline +60 s, hypot); 2.5456 (`phase5b_consistency.json`
+fwdc_tex_r3 FGO_baseline mean_nees); 0.094607 (`ceiling_flow_effect.json` groups.tex_half.difference); 0.010480 and 0.053504
+(`expT/t_aggregate.json`); 1.574657 and 2.064862 (same, P-T3 D and P-T4 C); 1.714603 and 1.014830 (`expO/O_r*.json`, min
+over flights); 0.262533 (`expL/T_A_r2_t245.json`).
+
+| section | row or text (verbatim) |
+|---|---|
+| header | has been recomputed or re-rounded. |
+| §6.2 | ¦ UKF / FGO baseline error at +60 s after loss, transition (n = 11) †¦ 129–139 / 223–231 ¦ m ¦ CURRENT (final re-run 2026-10-10) ¦ json:blank_behaviour.json ¦ |
+| §6.6 | ¦ FGO baseline cross-track mean NEES, `fwdc` textured (mean of r1–r3) ¦ 1.70 (2.4 / 0.2 / 2.6; was 57.1 before the final re-run: the FGO's covariance is no longer ~57× over-confident; predicted yaw σ 0.476° → 0.057°) ¦ — ¦ DIAGNOSTIC (FGO-only re-run) ¦ json:phase5b_consistency.json ¦ |
+| §11 | ¦ Textured half: difference, t (df), p ¦ +0.10 px/s (+0.07%), 0.39 (13.0), 0.70 ¦ px/s ¦ CURRENT ¦ M:L2592 ¦ |
+| §16.1 table | ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.020 m** ¦ 0.014 m ¦ **0.011 m** ¦ |
+| §16.1 table | ¦ C: 2 diagonal (22.0 s) ¦ 0.074 m ¦ 0.076 m ¦ **0.053 m** ¦ 0.039 m ¦ **0.019 m** ¦ |
+| §16.1 P-T3 | - **P-T3 FAIL.** The live max/min ratio is 1.97 / 2.36 / 1.42 / 1.58 (C inside the band). |
+| §16.1 P-T4 | - **P-T4 FAIL.** The batch-FGO vs RTS-UKF ratio is 1.31 / 2.14 / 2.07 / 3.89. |
+| §16.2 H-O2 | - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). |
+| §16.2 P-O3 | - **P-O3 PASS (was FAIL; flip accepted, ruling 5):** batch FGO vs RTS-UKF ratio 1.01–1.02 (capped), 1.02–1.05 (cap-free). |
+| §16.3 table | ¦ without loop closure ¦ 0.262–0.361 m ¦ 0.221–0.266 m ¦ 2.9–4.5 ¦ |
+| §16.3 H-L bullet | - **H-L1 (primary), H-L2, H-L3 and P-L4: PASS 3/3** (unchanged in both re-runs; L's result HOLDS, magnitudes moved). The L FGO changed in the FGO-only re-run with the initial-uncertainty correction (the `FGO.init` priors, which both lc and nolc start from, and the V-L start `lc_fgo_replay.start_isam_plain`, whose yaw σ now comes from the thesis FGO's own covariance instead of a hard 1e-3 rad); not attributed individually. With loop closure unchanged to printed precision, without: live 0.281–0.362 → 0.262–0.361 m, lap ratio 3.0–5.0 → 2.9–4.5. |
+| Flags, remaining 8 | 8. **Last-digit transcriptions (pack flag 4, listed 2026-10-11; values NOT changed).** Four printed values differ from |
+| Flags, remaining 8 |    their source files by one unit in the last digit. Each was rounded to 3 dp from the 4-dp intermediate in |
+| Flags, remaining 8 |    `eval/results/final2_old_vs_new.md` (or the stored 4-dp `d_m`), not from the full-precision value, and the tie |
+| Flags, remaining 8 |    rule was not applied consistently. This file's own convention (header) is to copy values verbatim, never re-rounded, so |
+| Flags, remaining 8 |    they stay as printed. **ADOPTED for THESIS TABLES ONLY (ruling 2026-10-16, item 3), applied at generation time by `eval/figs_thesis.py` (its `rd()`): round the full-precision |
+| Flags, remaining 8 |    file value once, to the printed precision, half away from zero.** This file keeps full precision: the four values above stay as printed here. |
+| Flags, remaining 8 |  |
+| Flags, remaining 8 |    ¦ value (section) ¦ full precision (file) ¦ 4-dp intermediate ¦ printed here ¦ single rounding of the file value ¦ |
+| Flags, remaining 8 |    ¦---¦---¦---¦---¦---¦ |
+| Flags, remaining 8 |    ¦ confirmatory d, r5 (§6.1) ¦ −0.4885 (`dsn_paired_test.json` `d_m`, stored at 4 dp) ¦ −0.4885 ¦ −0.489 ¦ −0.489 half away / −0.488 half even (a true tie at the stored precision) ¦ |
+| Flags, remaining 8 |    ¦ T condition A, FGO batch (§16.1) ¦ 0.010480 (`expT/t_aggregate.json`) ¦ 0.0105 ¦ 0.011 ¦ **0.010** (double rounding) ¦ |
+| Flags, remaining 8 |    ¦ T condition C, FGO live (§16.1) ¦ 0.053504 (same) ¦ 0.0535 ¦ 0.053 ¦ **0.054** ¦ |
+| Flags, remaining 8 |    ¦ L no-LC live, lower bound (§16.3, T_A_r2) ¦ 0.262533 (`expL/T_A_r2_t245.json`) ¦ 0.2625 ¦ 0.262 ¦ **0.263** ¦ |
+| Flags, remaining 8 |  |
+| Flags, remaining 8 |    None changes a range's meaning, a verdict or an ordering. The pack's checker accepts all four as last-digit |
+| Flags, remaining 8 |    matches (`docs/thesis/final_results_pack_index.md`). |
 
 ---
 

@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16)
 
-Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (figures, then the tables rendered as pages, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables T1–T8 are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `f9c12bb` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (figures, then the tables rendered as pages, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables T1–T8 are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Revision 2026-10-16.** F1 (`F1_scorecard`) became table T1; F3 (`F3_accuracy_without_and_with_heading`) became table T2; F4 (`F4_blank_floor_flow_loss`) became table T3; F8 (`F8_H_tag_loss_drift`) became table T5. The old figure files are removed from this folder; they remain in the git history (commit `7778cd6`, `git show 7778cd6:docs/thesis/figures_thesis/<name>.png`). F2 is now one panel (the heading-error panel moved to table T4); F6 is the time trace only (the per-flight RMSE moved to table T6); F5 and F7 are unchanged. T7 (failure behaviour) and T8 (hindsight ratio) are new.
 
@@ -11,7 +11,7 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 | id | kind | files | title | status | checks | log-scale handling |
 |---|---|---|---|---|---|---|
 | F2 | figure | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall | CURRENT | 4/4 | none needed |
-| F5 | figure | `F5_T_tags_known_positions.png`, `F5_T_tags_known_positions.pdf` | Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 1–3 cm | CURRENT | 8/8 | none needed |
+| F5 | figure | `F5_T_tags_known_positions.png`, `F5_T_tags_known_positions.pdf` | Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 1–3 cm | CURRENT | 9/9 | none needed |
 | F6 | figure | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m | CURRENT | 4/4 | none needed |
 | F7 | figure | `F7_L_loop_closure.png`, `F7_L_loop_closure.pdf` | Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps | CURRENT | 5/5 | none needed |
 | T1 | table | `T1_scorecard.md`, `T1_scorecard.tex` | Which estimator wins where (scorecard of the restated verdicts) | CURRENT | 16/16 | none needed (table) |
@@ -26,9 +26,7 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 | A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p3.png` | H hold sets and the safety tests (all runs) | CURRENT | 18/18 | none needed (table) |
 | A3 | appendix | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p2.png` | F1, the L compute cost and the build ablations | CURRENT | 8/8 | none needed (table) |
 
-**Total: 128/128 checks match** (a check repeated in two items is counted in each).
-
-**Last-digit rounding matches (accepted, as in the pack):** T FGO batch A–D (m): file `0.010–0.028`, numbers.md `0.011–0.028`; O H-O2 live max/min ratio; largest = EKF3 in every flight: file `1.71–1.84; True`, numbers.md `1.72–1.84; True`; L live with / without loop closure (m): file `0.049–0.076 / 0.263–0.361`, numbers.md `0.049–0.076 / 0.262–0.361`; T 8 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.039 0.037 0.020 0.014 0.010`, numbers.md `0.039 0.037 0.020 0.014 0.011`; T 2 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.074 0.076 0.054 0.039 0.019`, numbers.md `0.074 0.076 0.053 0.039 0.019`; L nolc live overall (m): file `0.263–0.361`, numbers.md `0.262–0.361`; P-T4 max/min ratio A / B / C / D: file `1.31 / 2.14 / 2.06 / 3.89`, numbers.md `1.31 / 2.14 / 2.07 / 3.89`; T FGO batch A–D (m): file `0.010 / 0.015 / 0.019 / 0.028`, numbers.md `0.011 / 0.015 / 0.019 / 0.028`; O batch FGO vs cap-free RTS-UKF ratio, max/min per flight: file `1.01–1.05`, numbers.md `1.02–1.05`.
+**Total: 129/129 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
 
 ## Captions, sources and checks
 
@@ -47,20 +45,21 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 
 ### F5 (figure): Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 1–3 cm
 
-- **Caption:** Experiment T (the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, no alignment, against the tags sent (A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, filled = live; dashed, open = hindsight (the FGO whole-flight batch and the RTS-smoothed UKF); small marks = each of 3 flights, line = their mean. Live errors grow from 2–4 cm to 8–13 cm as tags thin out; no live ordering is claimed (in D the FGO live 8.3 cm against EKF3 9.6 cm is descriptive, n = 3). P-T3 FAILS (live max/min 1.97 / 2.36 / 1.42 / 1.58). The FGO batch stays at 1.0–2.8 cm; its hindsight gain grows with the gap (H-T1 PASS), the RTS-UKF's does not (P-T2 FAIL), and the batch-to-RTS ratio is 1.31–3.89 (P-T4 FAIL). Same tag fixes for every estimator.
+- **Caption:** Experiment T (the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, no alignment, against the tags sent (A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, filled = live; dashed, open = hindsight (the FGO whole-flight batch and the RTS-smoothed UKF); small marks = each of 3 flights, line = their mean. Live errors grow from 2–4 cm to 8–13 cm as tags thin out; no live ordering is claimed (in D the FGO live 8.3 cm against EKF3 9.6 cm is descriptive, n = 3). P-T3 FAILS (live max/min 1.97 / 2.36 / 1.42 / 1.57). The FGO batch stays at 1.0–2.8 cm; its hindsight gain grows with the gap (H-T1 PASS), the RTS-UKF's does not (P-T2 FAIL), and the batch-to-RTS ratio is 1.31–3.89 (P-T4 FAIL). Same tag fixes for every estimator.
 - **Inputs:** eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json
 - **numbers.md rows:** §16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| T 8 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.039 0.037 0.020 0.014 0.010` | `0.039 0.037 0.020 0.014 0.011` | numbers.md §16.1 table | yes (last-digit rounding) |
+| T 8 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.039 0.037 0.020 0.014 0.010` | `0.039 0.037 0.020 0.014 0.010` | numbers.md §16.1 table | yes |
 | T 4 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.055 0.061 0.026 0.031 0.015` | `0.055 0.061 0.026 0.031 0.015` | numbers.md §16.1 table | yes |
-| T 2 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.074 0.076 0.054 0.039 0.019` | `0.074 0.076 0.053 0.039 0.019` | numbers.md §16.1 table | yes (last-digit rounding) |
+| T 2 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.074 0.076 0.054 0.039 0.019` | `0.074 0.076 0.054 0.039 0.019` | numbers.md §16.1 table | yes |
 | T 1 tag: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m) | `0.096 0.131 0.083 0.109 0.028` | `0.096 0.131 0.083 0.109 0.028` | numbers.md §16.1 table | yes |
 | T median gaps A–D (s) | `4.3 / 10.1 / 22.0 / 46.3` | `4.3 / 10.1 / 22.0 / 46.3` | numbers.md §16.1 table header | yes |
 | tags per lap in B | `[0, 1, 2, 3]` | `[0, 1, 2, 3]` | T_B_r1.json gates (4 corner tags) | yes |
 | H-T1 median gain A–D (m), rho, PASS | `0.010 / 0.011 / 0.023 / 0.052 +0.30 True` | `0.010 / 0.011 / 0.023 / 0.052 +0.30 True` | numbers.md §16.1 | yes |
 | P-T2 gain A–D (m), PASS | `+0.020 / +0.032 / +0.037 / +0.029 False` | `+0.020 / +0.032 / +0.037 / +0.029 False` | numbers.md §16.1 | yes |
+| P-T3 live max/min ratio A / B / C / D | `1.97 / 2.36 / 1.42 / 1.57` | `1.97 / 2.36 / 1.42 / 1.57` | numbers.md §16.1 P-T3 | yes |
 
 ### F6 (figure): Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m
 
@@ -85,7 +84,7 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 |---|---|---|---|---|
 | L lc live overall (m) | `0.049–0.076` | `0.049–0.076` | numbers.md §16.3 | yes |
 | L lc hindsight overall (m) | `0.017–0.027` | `0.017–0.027` | numbers.md §16.3 | yes |
-| L nolc live overall (m) | `0.263–0.361` | `0.262–0.361` | numbers.md §16.3 | yes (last-digit rounding) |
+| L nolc live overall (m) | `0.263–0.361` | `0.263–0.361` | numbers.md §16.3 | yes |
 | L nolc hindsight overall (m) | `0.221–0.266` | `0.221–0.266` | numbers.md §16.3 | yes |
 | L lap5/lap1 lc live; nolc live | `0.16–0.43; 2.9–4.5` | `0.16–0.43; 2.9–4.5` | numbers.md §16.3 | yes |
 
@@ -104,11 +103,11 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 | blank end-of-cruise UKF / FGO (km) † | `29–40 / 22–41` | `29–40 / 22–41` | numbers.md §6.2 | yes |
 | EKF3 blank invalid for (s of cruise), all 14 | `301–310 (n 14)` | `301–310 (n 14)` | numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s') | yes |
 | T condition D live EKF3 / UKF / FGO (m) | `0.096 / 0.131 / 0.083` | `0.096 / 0.131 / 0.083` | numbers.md §16.1 table | yes |
-| T FGO batch A–D (m) | `0.010–0.028` | `0.011–0.028` | numbers.md §16.1 table | yes (last-digit rounding) |
+| T FGO batch A–D (m) | `0.010–0.028` | `0.010–0.028` | numbers.md §16.1 table | yes |
 | O indoor live RMSE EKF3 / UKF / FGO (m) | `1.42–1.43 / 0.77–0.84 / 0.83–0.89` | `1.42–1.43 / 0.77–0.84 / 0.83–0.89` | numbers.md §16.2 table | yes |
-| O H-O2 live max/min ratio; largest = EKF3 in every flight | `1.71–1.84; True` | `1.72–1.84; True` | numbers.md §16.2 H-O2 bullet | yes (last-digit rounding) |
+| O H-O2 live max/min ratio; largest = EKF3 in every flight | `1.71–1.84; True` | `1.71–1.84; True` | numbers.md §16.2 H-O2 bullet | yes |
 | O FGO batch / RTS-UKF indoor (m) | `0.59–0.59 / 0.58–0.60` | `0.59–0.59 / 0.58–0.60` | numbers.md §16.2 table | yes |
-| L live with / without loop closure (m) | `0.049–0.076 / 0.263–0.361` | `0.049–0.076 / 0.262–0.361` | numbers.md §16.3 | yes (last-digit rounding) |
+| L live with / without loop closure (m) | `0.049–0.076 / 0.263–0.361` | `0.049–0.076 / 0.263–0.361` | numbers.md §16.3 | yes |
 | H run-mean hold error EKF3 (S1 far) / UKF (S2v2) / FGO (S3v2) (mm) | `7.8–7.9 / 6.4–7.1 / 8.3–8.6` | `7.8–7.9 / 6.4–7.1 / 8.3–8.6` | numbers.md §17.2 table | yes |
 | H comparative H-H2; P-H3; H-H4 15 s; H-H4 5 s (re-flown) | `FAIL; FAIL; FAIL; FAIL` | `FAIL; FAIL; FAIL; FAIL` | numbers.md §17.2 (final-build sets primary, ruling 2026-10-16) | yes |
 | closed loop half, with heading: B2 range EKF3 / UKF v2 / FGO v3 (m) | `0.24–0.33 / 0.22–0.25 / 0.03–0.39` | `0.24–0.33 / 0.22–0.25 / 0.03–0.39` | numbers.md §15 B2 row (EKF3 half) and re-flown rows (UKF v2 0.231/0.253/0.219; FGO v3 0.118/0.033/0.392) | yes |
@@ -198,7 +197,7 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 | O indoor RMSE FGO live (m) | `0.83–0.89` | `0.83–0.89` | numbers.md §16.2 table | yes |
 | O indoor RMSE RTS-UKF (hindsight) (m) | `0.58–0.60` | `0.58–0.60` | numbers.md §16.2 table | yes |
 | O indoor RMSE FGO batch (hindsight) (m) | `0.59–0.59` | `0.59–0.59` | numbers.md §16.2 table | yes |
-| O H-O2 live max/min ratio; largest = EKF3 in every flight | `1.71–1.84; True` | `1.72–1.84; True` | numbers.md §16.2 H-O2 bullet | yes (last-digit rounding) |
+| O H-O2 live max/min ratio; largest = EKF3 in every flight | `1.71–1.84; True` | `1.71–1.84; True` | numbers.md §16.2 H-O2 bullet | yes |
 | H-O1: FGO batch below both filters' live tracks, flights | `3/3` | `3/3` | numbers.md §16.2 (H-O1 PASS 3/3) | yes |
 
 ### T7 (table): Failure behaviour: blank-floor validity, the O return jump and the safety tests
@@ -227,12 +226,12 @@ Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/v
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| P-T4 max/min ratio A / B / C / D | `1.31 / 2.14 / 2.06 / 3.89` | `1.31 / 2.14 / 2.07 / 3.89` | numbers.md §16.1 P-T4 | yes (last-digit rounding) |
+| P-T4 max/min ratio A / B / C / D | `1.31 / 2.14 / 2.06 / 3.89` | `1.31 / 2.14 / 2.06 / 3.89` | numbers.md §16.1 P-T4 | yes |
 | T8 table ratio = stored P-T4 ratio, all 4 conditions | `True` | `True` | t_aggregate.json P-T4 vs mean_rmse_m | yes |
 | T RTS-UKF A–D (m) | `0.014 / 0.031 / 0.039 / 0.109` | `0.014 / 0.031 / 0.039 / 0.109` | numbers.md §16.1 table | yes |
-| T FGO batch A–D (m) | `0.010 / 0.015 / 0.019 / 0.028` | `0.011 / 0.015 / 0.019 / 0.028` | numbers.md §16.1 table | yes (last-digit rounding) |
+| T FGO batch A–D (m) | `0.010 / 0.015 / 0.019 / 0.028` | `0.010 / 0.015 / 0.019 / 0.028` | numbers.md §16.1 table | yes |
 | O batch FGO vs RTS-UKF ratio, max/min per flight (capped) | `1.01–1.02` | `1.01–1.02` | numbers.md §16.2 P-O3 | yes |
-| O batch FGO vs cap-free RTS-UKF ratio, max/min per flight | `1.01–1.05` | `1.02–1.05` | numbers.md §16.2 P-O3 (cap-free) | yes (last-digit rounding) |
+| O batch FGO vs cap-free RTS-UKF ratio, max/min per flight | `1.01–1.05` | `1.01–1.05` | numbers.md §16.2 P-O3 (cap-free) | yes |
 
 ### A1 (appendix): Closed loop: every flown build against B1–B5 and the contact window
 

@@ -60,12 +60,12 @@ L = lambda f: json.load(open(os.path.join(RES, f)))
 PRIORS = ("The FGO safety re-tests (v4) used the NEW initial priors, while the flown FGO hold (S3v2) and corridor (v3) results "
           "used the OLD priors.")
 RTFX = "The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s."
-ITEMS = []; CHK = []; ROUNDING = []
+ITEMS = []; CHK = []
 
 
 def rd(v, n=2, sign=False):
     """THE THESIS ROUNDING RULE (ruling 2026-10-16, item 3; adopted for thesis tables, applied here at generation time; numbers.md
-    keeps full precision): round the full-precision file value ONCE, to the printed precision, half away from zero. The value is
+    displays the same single rounding since the ruling of 2026-10-16, option (a)): round the full-precision file value ONCE, to the printed precision, half away from zero. The value is
     read through its shortest decimal form (str), so a value stored at 4 dp (e.g. -0.4885) rounds as written, not as its binary
     neighbour. Every number this script prints goes through here."""
     from decimal import Decimal, ROUND_HALF_UP
@@ -84,21 +84,13 @@ def rng(vals, n=2, unit=""):
     return f"{rd(min(vals), n)}–{rd(max(vals), n)}{unit}"
 
 
-NUM = re.compile(r"[-+−]?\d+(?:\.\d+)?(?:e[-+]?\d+)?")
-
-
-def check(label, computed, expected, src, exact=False):
-    """Copied from figs_final_pack.py: exact string match, or a numeric match within one unit of the expected value's
-    last printed digit (recorded as a rounding-boundary note, not a mismatch)."""
+def check(label, computed, expected, src):
+    """EXACT cross-check (ruling 2026-10-16, "numbers.md rounding, option (a); a full scan; an exact cross-check"): the
+    computed string, i.e. the stored full-precision value rounded ONCE by rd() at the printed precision, must equal the
+    typed expected string (numbers.md, or METHODOLOGY where numbers.md has no row) character for character. No numeric
+    tolerance and no "last-digit" acceptance (the pack's tolerant checker, figs_final_pack.py, is frozen and unchanged)."""
     c, e = str(computed), str(expected)
-    ok = c == e
-    if not ok and not exact:
-        a = NUM.findall(c.replace("−", "-")); b = NUM.findall(e.replace("−", "-"))
-        if a and len(a) == len(b) and NUM.sub("#", c.replace("−", "-")) == NUM.sub("#", e.replace("−", "-")):
-            unit = lambda s: 10 ** -len(s.split(".")[1]) if "." in s and "e" not in s else 1
-            if all(abs(float(x) - float(y)) <= unit(y) * 1.0001 for x, y in zip(a, b)):
-                ok = True; ROUNDING.append((label, c, e, src))
-    CHK.append((label, c, e, src, ok))
+    CHK.append((label, c, e, src, c == e))
 
 
 def save(fig, fid, name, title, caption, inputs, rows, logscale="none needed", uncheck=""):
@@ -377,14 +369,14 @@ check("blank end-of-cruise UKF / FGO (km) †", f"{rng(BLANK['UKF'][:, 3] / 1e3,
 check("EKF3 blank invalid for (s of cruise), all 14", rng(EK_INV, 0) + f" (n {len(EK_INV)})", "301–310 (n 14)", "numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s')")
 mrD = agg["conditions"]["D"]["mean_rmse_m"]
 check("T condition D live EKF3 / UKF / FGO (m)", " / ".join(f"{rd(mrD[k], 3)}" for k in ("EKF3 live", "UKF live", "FGO live")), "0.096 / 0.131 / 0.083", "numbers.md §16.1 table")
-check("T FGO batch A–D (m)", rng([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3), "0.011–0.028", "numbers.md §16.1 table")
+check("T FGO batch A–D (m)", rng([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3), "0.010–0.028", "numbers.md §16.1 table")
 check("O indoor live RMSE EKF3 / UKF / FGO (m)", " / ".join(rng(OI[f"{e} live"]) for e in EST), "1.42–1.43 / 0.77–0.84 / 0.83–0.89", "numbers.md §16.2 table")
 ho2 = [max(OI[f"{e} live"][i] for e in EST) / min(OI[f"{e} live"][i] for e in EST) for i in range(3)]
 ho2_max_is_ekf3 = all(max(EST, key=lambda e: OI[f"{e} live"][i]) == "EKF3" for i in range(3))
-check("O H-O2 live max/min ratio; largest = EKF3 in every flight", f"{rng(ho2)}; {ho2_max_is_ekf3}", "1.72–1.84; True", "numbers.md §16.2 H-O2 bullet")
+check("O H-O2 live max/min ratio; largest = EKF3 in every flight", f"{rng(ho2)}; {ho2_max_is_ekf3}", "1.71–1.84; True", "numbers.md §16.2 H-O2 bullet")
 check("O FGO batch / RTS-UKF indoor (m)", f"{rng(OI['FGO hindsight (whole-flight batch)'])} / {rng(OI['RTS-UKF (hindsight)'])}", "0.59–0.59 / 0.58–0.60", "numbers.md §16.2 table")
 check("L live with / without loop closure (m)", f"{rng([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} / {rng([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)}",
-      "0.049–0.076 / 0.262–0.361", "numbers.md §16.3")
+      "0.049–0.076 / 0.263–0.361", "numbers.md §16.3")
 _hc = [v for k, v in L("expH/h_comparative_2026-10-11.json")["sets"].items() if k.startswith("re-flown")][0]
 hE = [np.mean([w["mean_m"] * 1e3 for w in HJ(t)["hold_windows_vehicle"]]) for t in S1F]
 hU = [r["hold_mean_mm"] for r in _hc["UKF"]]; hF = [r["hold_mean_mm"] for r in _hc["FGO"]]
@@ -664,22 +656,24 @@ h1 = agg["H-T1 (FGO live -> whole-flight batch)"]; p2 = agg["P-T2 (UKF live -> R
 fig.text(0.98, -0.03, f"hindsight gain (median per gap): FGO batch vs FGO live {', '.join(f'{rd(100 * h1['median_gain_m'][c], 1)}' for c in TCOND)} cm "
         f"(H-T1 {'PASS' if h1['PASS'] else 'FAIL'}, grows with the gap)\nRTS-UKF vs UKF live {', '.join(f'{rd(100 * p2['median_gain_m'][c], 1, sign=True)}' for c in TCOND)} cm "
         f"(P-T2 {'PASS' if p2['PASS'] else 'FAIL'}, not increasing)", ha="right", va="top", fontsize=9, color=INK2)
-exp10 = {"A": "0.039 0.037 0.020 0.014 0.011", "B": "0.055 0.061 0.026 0.031 0.015", "C": "0.074 0.076 0.053 0.039 0.019", "D": "0.096 0.131 0.083 0.109 0.028"}
+exp10 = {"A": "0.039 0.037 0.020 0.014 0.010", "B": "0.055 0.061 0.026 0.031 0.015", "C": "0.074 0.076 0.054 0.039 0.019", "D": "0.096 0.131 0.083 0.109 0.028"}
 for c in TCOND:
     mr = agg["conditions"][c]["mean_rmse_m"]
     check(f"T {TLAB[c]}: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m)", " ".join(f"{rd(mr[k], 3)}" for k in TRK), exp10[c], "numbers.md §16.1 table")
 check("T median gaps A–D (s)", " / ".join(f"{rd(g, 1)}" for g in gm), "4.3 / 10.1 / 22.0 / 46.3", "numbers.md §16.1 table header")
-check("tags per lap in B", str(L("expT/T_B_r1.json")["gates"]["laps_ids"][0]), "[0, 1, 2, 3]", "T_B_r1.json gates (4 corner tags)", exact=True)
+check("tags per lap in B", str(L("expT/T_B_r1.json")["gates"]["laps_ids"][0]), "[0, 1, 2, 3]", "T_B_r1.json gates (4 corner tags)")
 check("H-T1 median gain A–D (m), rho, PASS", " / ".join(f"{rd(h1['median_gain_m'][c], 3)}" for c in TCOND) + f" {rd(h1['spearman_rho'], 2, sign=True)} {h1['PASS']}",
       "0.010 / 0.011 / 0.023 / 0.052 +0.30 True", "numbers.md §16.1")
 check("P-T2 gain A–D (m), PASS", " / ".join(f"{rd(p2['median_gain_m'][c], 3, sign=True)}" for c in TCOND) + f" {p2['PASS']}", "+0.020 / +0.032 / +0.037 / +0.029 False", "numbers.md §16.1")
+P3S = " / ".join(rd(agg["P-T3 live ratio max/min"]["by_condition"][c], 2) for c in TCOND)   # was a hard-coded caption literal (D 1.58, double rounding)
+check("P-T3 live max/min ratio A / B / C / D", P3S, "1.97 / 2.36 / 1.42 / 1.57", "numbers.md §16.1 P-T3")
 save(fig, "F5", "F5_T_tags_known_positions",
      "Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 1–3 cm",
      "Experiment T (the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, no alignment, "
      "against the tags sent (A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, "
      "filled = live; dashed, open = hindsight (the FGO whole-flight batch and the RTS-smoothed UKF); small marks = each of 3 flights, line = "
      "their mean. Live errors grow from 2–4 cm to 8–13 cm as tags thin out; no live ordering is claimed (in D the FGO live 8.3 cm against "
-     "EKF3 9.6 cm is descriptive, n = 3). P-T3 FAILS (live max/min 1.97 / 2.36 / 1.42 / 1.58). The FGO batch stays at " + rng([100 * agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 1) + " cm; "
+     "EKF3 9.6 cm is descriptive, n = 3). P-T3 FAILS (live max/min " + P3S + "). The FGO batch stays at " + rng([100 * agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 1) + " cm; "
      "its hindsight gain grows with the gap (H-T1 PASS), the RTS-UKF's does not (P-T2 FAIL), and the batch-to-RTS ratio is 1.31–3.89 (P-T4 "
      "FAIL). Same tag fixes for every estimator.",
      "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
@@ -766,7 +760,7 @@ save(fig, "F6", "F6_O_outdoor_indoor",
 exO = {"EKF3 live": "1.42–1.43", "UKF live": "0.77–0.84", "FGO live": "0.83–0.89", "RTS-UKF (hindsight)": "0.58–0.60", "FGO hindsight (whole-flight batch)": "0.59–0.59"}
 for n in TRK:
     check(f"O indoor RMSE {TSHORT[n]} (m)", rng(OI[n]), exO[n], "numbers.md §16.2 table")
-check("O H-O2 live max/min ratio; largest = EKF3 in every flight", f"{rng(ho2)}; {ho2_max_is_ekf3}", "1.72–1.84; True", "numbers.md §16.2 H-O2 bullet")
+check("O H-O2 live max/min ratio; largest = EKF3 in every flight", f"{rng(ho2)}; {ho2_max_is_ekf3}", "1.71–1.84; True", "numbers.md §16.2 H-O2 bullet")
 h1ok = all(OI["FGO hindsight (whole-flight batch)"][i] < min(OI["EKF3 live"][i], OI["UKF live"][i]) for i in range(3))
 check("H-O1: FGO batch below both filters' live tracks, flights", f"{sum(OI['FGO hindsight (whole-flight batch)'][i] < min(OI['EKF3 live'][i], OI['UKF live'][i]) for i in range(3))}/3",
       "3/3", "numbers.md §16.2 (H-O1 PASS 3/3)")
@@ -800,7 +794,7 @@ axs[0].text(5, axs[0].get_ylim()[1] * 0.55, f"live lap 5 ÷ lap 1: {rng(lc5)}\n(
 axs[1].text(5, axs[0].get_ylim()[1] * 0.08, f"live lap 5 ÷ lap 1: {rng(nl5, 1)}\n(error grows over the laps)", ha="right", fontsize=9)
 check("L lc live overall (m)", rng([t["rmse_m"] for t in LL[("lc", "live")]], 3), "0.049–0.076", "numbers.md §16.3")
 check("L lc hindsight overall (m)", rng([t["rmse_m"] for t in LL[("lc", "hindsight")]], 3), "0.017–0.027", "numbers.md §16.3")
-check("L nolc live overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "live")]], 3), "0.262–0.361", "numbers.md §16.3")
+check("L nolc live overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "live")]], 3), "0.263–0.361", "numbers.md §16.3")
 check("L nolc hindsight overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "hindsight")]], 3), "0.221–0.266", "numbers.md §16.3")
 check("L lap5/lap1 lc live; nolc live", rng(lc5) + "; " + rng(nl5, 1), "0.16–0.43; 2.9–4.5", "numbers.md §16.3")
 save(fig, "F7", "F7_L_loop_closure",
@@ -1018,7 +1012,7 @@ A4ART = [f for f in ("safety_ukf_a", "safety_fgo_b") if not HJ(f)["S-A4_single_l
 check("raw S-A4 entries in the early score files (PASS, n_land_entries_after_t_f, rearmed_after_disarm)",
       ", ".join(f"{f}: {HJ(f)['S-A4_single_landing']['PASS']}, {HJ(f)['S-A4_single_landing']['n_land_entries_after_t_f']}, "
                 f"{HJ(f)['S-A4_single_landing']['rearmed_after_disarm']}" for f in A4ART),
-      "safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None", "eval/results/expH/safety_ukf_a.json, safety_fgo_b.json (the score files)", exact=True)
+      "safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None", "eval/results/expH/safety_ukf_a.json, safety_fgo_b.json (the score files)")
 CHK_HS = CHK; CHK = []
 
 f1 = L("f1_test.json"); dec1 = f1["decision"]
@@ -1031,10 +1025,10 @@ ST = {}
 for mode in ("lc", "nolc"):
     for key in ("step_median_ms", "step_p99_ms", "wall_s"):
         ST[(mode, key)] = [json.load(open(f"{TD}/T_A_r{r}/lc_fgo_{mode}_t245/stats.json"))[key] for r in (1, 2, 3)]
-check("L LC median (ms)", rng(ST[("lc", "step_median_ms")], 0), "35–41", "numbers.md §16.3 (restated 2026-10-11)", exact=True)
-check("L no-LC median (ms)", rng(ST[("nolc", "step_median_ms")], 0), "50–61", "numbers.md §16.3", exact=True)
-check("L LC p99 (ms)", rng(ST[("lc", "step_p99_ms")], 0), "80–94", "numbers.md §16.3", exact=True)
-check("L no-LC wall (s)", rng(ST[("nolc", "wall_s")], 0), "7276–9583", "numbers.md §16.3", exact=True)
+check("L LC median (ms)", rng(ST[("lc", "step_median_ms")], 0), "35–41", "numbers.md §16.3 (restated 2026-10-11)")
+check("L no-LC median (ms)", rng(ST[("nolc", "step_median_ms")], 0), "50–61", "numbers.md §16.3")
+check("L LC p99 (ms)", rng(ST[("lc", "step_p99_ms")], 0), "80–94", "numbers.md §16.3")
+check("L no-LC wall (s)", rng(ST[("nolc", "wall_s")], 0), "7276–9583", "numbers.md §16.3")
 CHK_F = CHK; CHK = []
 
 ABL = [  # build ablations: (ablation, measure, earlier build, final build, verdict)
@@ -1152,7 +1146,7 @@ def sfail(f):
 
 _ML = open(os.path.join(ROOT, "METHODOLOGY.md")).read().split("\n")
 check("METHODOLOGY.md:11490 and :11827 (the S-A4 reasons quoted in T7)", " | ".join(_ML[n - 1] for n in sorted(A4Q)),
-      " | ".join(A4Q[n] for n in sorted(A4Q)), "METHODOLOGY.md lines 11490, 11827 (read at build time)", exact=True)
+      " | ".join(A4Q[n] for n in sorted(A4Q)), "METHODOLOGY.md lines 11490, 11827 (read at build time)")
 check("EKF3 blank invalid (s of cruise); valid airborne flow frames", f"{rng(EK_INV, 0)}; max {max(nvalid)}", "301–310; max 0", "numbers.md §6.2")
 stepO = {e: [L(f"expO/{t}.json")["tracks"][f"{e} live"]["max_step_after_return_m"] for t in OFL] for e in EST}
 check("O largest step in 10 s after return EKF3 / UKF / FGO live (m)", " / ".join(rng(stepO[e]) for e in EST), "4.10–4.10 / 2.30–2.44 / 2.14–2.28", "numbers.md §16.2 table")
@@ -1217,15 +1211,15 @@ o3 = []
 for i, t in enumerate(OFL):
     b_, r_ = OI[HB][i], OI[HR][i]; o3.append(max(b_, r_) / min(b_, r_))
     rowsT8.append([f"O: flight {i + 1} (indoor)", f"{rd(100 * b_, 1)}", f"{rd(100 * r_, 1)}", "FGO batch" if b_ < r_ else "RTS-UKF", f"{rd(o3[-1], 2)}", "P-O3 PASS"])
-check("P-T4 max/min ratio A / B / C / D", " / ".join(f"{rd(p4['by_condition'][c], 2)}" for c in TCOND), "1.31 / 2.14 / 2.07 / 3.89", "numbers.md §16.1 P-T4")
+check("P-T4 max/min ratio A / B / C / D", " / ".join(f"{rd(p4['by_condition'][c], 2)}" for c in TCOND), "1.31 / 2.14 / 2.06 / 3.89", "numbers.md §16.1 P-T4")
 check("T8 table ratio = stored P-T4 ratio, all 4 conditions", all(abs(float(r[4]) - p4["by_condition"][c]) < 0.006 for r, c in zip(rowsT8, TCOND)), True,
       "t_aggregate.json P-T4 vs mean_rmse_m")
 check("T RTS-UKF A–D (m)", " / ".join(f"{rd(agg['conditions'][c]['mean_rmse_m'][HR], 3)}" for c in TCOND), "0.014 / 0.031 / 0.039 / 0.109", "numbers.md §16.1 table")
-check("T FGO batch A–D (m)", " / ".join(f"{rd(agg['conditions'][c]['mean_rmse_m'][HB], 3)}" for c in TCOND), "0.011 / 0.015 / 0.019 / 0.028", "numbers.md §16.1 table")
+check("T FGO batch A–D (m)", " / ".join(f"{rd(agg['conditions'][c]['mean_rmse_m'][HB], 3)}" for c in TCOND), "0.010 / 0.015 / 0.019 / 0.028", "numbers.md §16.1 table")
 check("O batch FGO vs RTS-UKF ratio, max/min per flight (capped)", rng(o3), "1.01–1.02", "numbers.md §16.2 P-O3")
 cf = [max(OI[HB][i], L(f"expO/{t}.json")["tracks"]["RTS-UKF (hindsight, cap-free forward pass)"]["indoor_rmse_m"]) /
       min(OI[HB][i], L(f"expO/{t}.json")["tracks"]["RTS-UKF (hindsight, cap-free forward pass)"]["indoor_rmse_m"]) for i, t in enumerate(OFL)]
-check("O batch FGO vs cap-free RTS-UKF ratio, max/min per flight", rng(cf), "1.02–1.05", "numbers.md §16.2 P-O3 (cap-free)")
+check("O batch FGO vs cap-free RTS-UKF ratio, max/min per flight", rng(cf), "1.01–1.05", "numbers.md §16.2 P-O3 (cap-free)")
 save_tab("T8", "T8_hindsight_ratio", "Hindsight: the FGO whole-flight batch against the RTS-smoothed UKF",
          "With tags at known positions (T) the FGO batch is below the RTS-UKF in every condition, by 1.3–3.9× (largest with 1 tag; P-T4 "
          "FAIL as pre-registered); indoors without GNSS (O) the two hindsight tracks are equal within 1–2% (P-O3 PASS).",
@@ -1323,13 +1317,13 @@ with open(INDEX, "w") as f:
         files = ", ".join(f"`{x}`" for x in it["files"])
         f.write(f"| {it['id']} | {it['kind']} | {files} | {it['title']} | {it['status']} | {okc}/{len(it['checks'])} | {it['logscale']} |\n")
     tot = sum(len(it["checks"]) for it in ITEMS); okt = sum(sum(c[4] for c in it["checks"]) for it in ITEMS)
-    f.write(f"\n**Total: {okt}/{tot} checks match** (a check repeated in two items is counted in each).\n")
-    if ROUNDING:
-        uniq = []
-        for r in ROUNDING:
-            if not any(u[0] == r[0] and u[1] == r[1] for u in uniq): uniq.append(r)
-        f.write("\n**Last-digit rounding matches (accepted, as in the pack):** " + "; ".join(
-            f"{r[0]}: file `{r[1]}`, numbers.md `{r[2]}`" for r in uniq) + ".\n")
+    f.write(f"\n**Total: {okt}/{tot} checks match** (a check repeated in two items is counted in each). **EXACT comparison** "
+            "(ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from "
+            "zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no "
+            "last-digit acceptance.\n")
+    bad = [c for it in ITEMS for c in it["checks"] if not c[4]]
+    if bad:
+        f.write("\n**Failures (not forced):** " + "; ".join(f"{c[0]}: computed `{c[1]}`, expected `{c[2]}`" for c in bad) + ".\n")
     f.write("\n## Captions, sources and checks\n\n")
     for it in ITEMS:
         f.write(f"### {it['id']} ({it['kind']}): {it['title']}\n\n- **Caption:** {it['caption']}\n- **Inputs:** {it['inputs']}\n- **numbers.md rows:** {it['rows']}\n")
@@ -1337,8 +1331,7 @@ with open(INDEX, "w") as f:
             f.write(f"- **Not cross-checkable:** {it['uncheck']}\n")
         f.write("\n| check | computed | expected | source | match |\n|---|---|---|---|---|\n")
         for c in it["checks"]:
-            rnd = any(r[0] == c[0] and r[1] == c[1] for r in ROUNDING)
-            f.write(f"| {c[0]} | `{c[1]}` | `{c[2]}` | {c[3]} | {('yes (last-digit rounding)' if rnd else 'yes') if c[4] else '**NO**'} |\n")
+            f.write(f"| {c[0]} | `{c[1]}` | `{c[2]}` | {c[3]} | {'yes' if c[4] else '**NO**'} |\n")
         f.write("\n")
 print("wrote", INDEX)
 for it in ITEMS:
