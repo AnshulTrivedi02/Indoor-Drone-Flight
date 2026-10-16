@@ -14172,3 +14172,25 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   computed.
 - **PENDING:** finalised when the supervisor confirms the room size. The flight card (`docs/rung1_flight_cards.md`,
   sortie step 3) carries the rule and the pending note.
+
+### RULINGS (user, 2026-10-16): the pending items (`docs/thesis/pending_items.md`) and captions
+1. **H comparative criteria:**
+   - the S2v2/S3v2 verdicts are reported as PRIMARY;
+   - the S2/S3 verdicts move to the appendix as superseded builds;
+   - the caption and numbers.md §17.2 state "identical to the original-build verdicts";
+   - PENDING is removed.
+2. **The scale-cause check "5a" is DROPPED.** It goes on the limitations list as "cause of EKF3's residual
+   along-track scale (0.97–0.98) not investigated".
+3. **The rounding rule is ADOPTED for THESIS TABLES ONLY,** applied at generation time. numbers.md keeps full
+   precision. The rule is stated in `methodology_definitions_draft.md`.
+4. **The rung-1 first-leg length** stays OPEN in the real-flight plan; it is not in the thesis results.
+5. **Final safety runs = the latest run of each test on the final build (UKF v3, FGO v4).**
+   - numbers.md is corrected to match T7/A2.
+   - Every caption citing FGO safety results states that v4 used the NEW priors, while the flown FGO hold (S3v2) and
+     corridor (v3) results used the OLD priors.
+6. **The UKF per-heading weight comparison is DROPPED from all thesis-facing material.** It is kept in numbers.md,
+   marked "not reported".
+- **Captions:**
+  - "half speed" becomes "half real-time (RTF 0.5)" everywhere thesis-facing, with the one-line explanation (flight
+    speed unchanged at 0.5 m/s) added to the vocabulary and the methodology draft;
+  - the 24 internal codes are removed from captions in the same pass.
