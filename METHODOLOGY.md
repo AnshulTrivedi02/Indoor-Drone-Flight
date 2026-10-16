@@ -14225,3 +14225,15 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Rounding sweep:** search ALL thesis-facing material (captions, tables, the claims table, the vocabulary, the
   methodology and limitations drafts) for any value produced by the old double rounding, incl. "1.1 cm" for the
   T-A FGO batch and "26.2 cm" for the L lower bound. Correct them and list each change.
+
+### RULING (user, 2026-10-16): numbers.md rounding, option (a); a full scan; an exact cross-check
+- **Correct the displayed digits in EVERY numbers.md row** where the display differs from SINGLE rounding of the
+  stored value:
+  - §16.1 P-T4 C and the two others; §16.2 H-O2 and the cap-free ratio; §16.3; §6.6 line 305 NEES;
+  - and any others found.
+  - The old values are kept in the superseded block.
+- **(1)** Confirm whether the scan compared EVERY numeric value in numbers.md against its stored source, or only
+  near-tie values. If only near ties: run the FULL comparison and fix any further mismatches.
+- **(2)** Change the cross-check to an EXACT comparison of each displayed thesis value against the stored value
+  rounded once (no tolerance), and report the new count.
+- **The frozen pack is not touched.**
