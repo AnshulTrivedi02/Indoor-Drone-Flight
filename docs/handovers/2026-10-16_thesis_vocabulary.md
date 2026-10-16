@@ -11,7 +11,7 @@ handover were created:
   - 34 abbreviations, each marked as either repo-sourced or "standard expansion, not in the repo";
   - an appendix mapping table;
   - the inventory of internal codes in thesis-facing material;
-  - 22 departures from `glossary_flags.md` §c, each with its reason.
+  - the 22 touched rows of `glossary_flags.md` §c, each classed: 11 departures (one partial), 3 adopted with an extension, 6 adopted, 2 not taken up.
 - **`docs/thesis/methodology_definitions_draft.md`** (DRAFT) gives one-paragraph definitions of: as worded, post hoc,
   descriptive, confirmatory, exploratory, withdrawn, and PENDING. Each cites the rulings that used the term and states where
   usage varied.
@@ -38,13 +38,13 @@ handover were created:
 
 | item | count |
 |---|---|
-| vocabulary terms | 47 (≤ 50) |
+| vocabulary terms | 47 rows (≤ 50); 53 distinct names (four rows bundle names) |
 | methodological labels | 7 |
 | hypothesis labels | 32, plus C1.a, X1.b and V3 |
 | abbreviations | 34 |
-| code families in thesis-facing material, none with a thesis name in the repo | 66 |
+| code families in thesis-facing material, none with a thesis name in the repo | 65 |
 | — of these, named by the vocabulary | 41 |
-| — of these, left unnamed on purpose (file names, JSON keys, hashes, trial names, ruling/claim numbers; to be removed from captions) | 25 |
+| — of these, left unnamed on purpose (file names, JSON keys, hashes, trial names, ruling/claim numbers; to be removed from captions) | 24 |
 
 ## Top rulings needed
 
@@ -74,3 +74,20 @@ T7/A2).
    - apply "half real-time factor";
    - drop the D-numbers, claim numbers and ruling numbers from captions;
    - regenerate `worlds_combined.pdf` with the current figure numbers.
+
+## Correction commit
+
+A second commit fixed the following after a full citation check of the three files. Every `M:`, `numbers.md:`, `glossary:`, `glossary_flags.md:`, `CLAUDE.md:` and `tag_hold_design.md:` citation was printed beside its target line.
+
+- **Citation offsets corrected:**
+  - the plan step 2(a) P1/S1/S2 lines (M:9730/9733/9737);
+  - the `_half` gloss (glossary.md:134);
+  - the live/hindsight clash (glossary_flags.md:94);
+  - the S3v2 entry (glossary:686);
+  - a blank-line citation (M:9728 → 9729).
+- **An unsourced run-order sentence was removed.**
+- **The departures table gained a class column.** The true departure count is 11, not 22.
+- **Term count stated as 47 rows / 53 distinct names.**
+- **The "S1-far" source note is no longer counted as a code:** 65 families, 24 left unnamed.
+
+The first commit's message says "22 departures" and "66"; this note supersedes both.

@@ -18,7 +18,7 @@ There are four categories, each counted separately. Nothing has been moved betwe
 
 | category | what it holds | count |
 |---|---|---|
-| **Vocabulary terms** (the ≤ 50 target) | experiment and sub-study names, dataset and condition names, criterion names, and label and build names (§2–§4) | **47** |
+| **Vocabulary terms** (the ≤ 50 target) | experiment and sub-study names, dataset and condition names, criterion names, and label and build names (§2–§4) | **47 rows; 53 distinct names** (rows 10, 35, 44 and 46 each bundle two or three names: +2, +1, +2, +1). The ≤ 50 target is met by rows, not by distinct names |
 | Methodological labels | as worded, post hoc, descriptive, confirmatory, exploratory, withdrawn, PENDING. These are defined in `docs/thesis/methodology_definitions_draft.md` and are not repeated here | 7 |
 | Numbered hypothesis labels | H1.1 … H5.7, plus the comparison labels C1.a and X1.b and the validation check V3 (§5) | 32 + 3 |
 | Abbreviations | §7 (front matter) | 34 |
@@ -52,8 +52,8 @@ The figure and table numbering (§6) is a scheme, not a term.
    - It has no simulation result. Simulation results are frozen (M:13396-13399).
    - Rung 1 is the priority, rung 3 a planned goal and rung 2 parked (M:13397-13398).
    - It belongs in a closing chapter, "Towards real flights" (§6). Its one PENDING item is there (`docs/thesis/pending_items.md`).
-4. **Experiments 2–5 keep the order 2 T, 3 L, 4 O, 5 H, as instructed.** This differs from the order in which they were
-   run (T, then L and O together, then H), and from the order in the repository's record (M:10100 T, M:10290 O, M:10452 L).
+4. **Experiments 2–5 keep the order 2 T, 3 L, 4 O, 5 H, as instructed.** This differs from the order of the
+   pre-registrations in the repository's record (M:10100 T, M:10290 O, M:10452 L).
 
 ## 2. Experiment, sub-study and dataset names (vocabulary terms 1–16)
 
@@ -65,7 +65,7 @@ The figure and table numbering (§6) is a scheme, not a term.
 | 4 | Experiment 4, outdoor–indoor | Experiment O | M:10290 |
 | 5 | Experiment 5, tag hold | Experiment H | M:10623 |
 | 6 | 1A standard-sensor comparison | `dsn_*` batch | glossary.md:101 ("nomag comparison batch, `gnss_denied_nomag.parm`, `EK3_SRC1_YAW=0`") |
-| 7 | 1B camera-heading studies | Phase 3, Phase 4, Phase 5, F1–F3c, plan step 2(a)/(b) | M:2636; M:2954; M:3392; M:7877; M:9728 |
+| 7 | 1B camera-heading studies | Phase 3, Phase 4, Phase 5, F1–F3c, plan step 2(a)/(b) | M:2636; M:2954; M:3392; M:7877; M:9729 |
 | 8 | 1C closed-loop corridor flights | `cl_*`; "Part 2" | M:4927; glossary.md:122-137 |
 | 9 | 5S safety tests | `H_safety_*`; safety (a)/(b) | M:11289-11293 |
 | 10 | textured floor / blank floor / transition floor | `tex` / `blank` / `trans` | glossary.md:109 |
@@ -107,7 +107,7 @@ expands the letters "ds", "dsn", "c" or "f4" (glossary.md:112). The thesis names
 
 | # | thesis name | repo code(s) | source / note |
 |---|---|---|---|
-| 36 | **live** | live | "the current (filtered) estimate at each time" (M:7937). **Defined again for Experiment 3:** "the newest keyframe after each iSAM2 update" (M:10476). glossary_flags.md:93 records the clash |
+| 36 | **live** | live | "the current (filtered) estimate at each time" (M:7937). **Defined again for Experiment 3:** "the newest keyframe after each iSAM2 update" (M:10476). glossary_flags.md:94 records the clash |
 | 37 | **hindsight** | hindsight; FGO batch; RTS-UKF | the full-trajectory estimate after the flight (M:7938). In Experiments 2 and 4 this is the FGO whole-flight batch and the smoothed UKF (M:10146). In Experiment 3 it is iSAM2's full estimate (M:10557, a deviation) |
 | 38 | **smoothed UKF** | RTS-UKF | "the unscented RTS smoother over the UKF's predict nodes" (M:10146) |
 | 39 | **passive estimator** (write who flies: "passive, EKF3 flying" or "passive, truth flying") | shadow | three meanings (glossary_flags.md:93; glossary:3596) |
@@ -116,7 +116,7 @@ expands the letters "ds", "dsn", "c" or "f4" (glossary.md:112). The thesis names
 | 42 | **earlier build** | UKF v1 / "old UKF (jitter)"; "original FGO" | numbers.md:458 |
 | 43 | **corrected-priors node** | FGO v4 (`4c07374b`) | flown only in the v4 safety re-tests (T7:9; M:13686) |
 | 44 | **initial-uncertainty correction** (original priors / corrected priors) | D18 model correction; OLD / NEW priors | FGO initial yaw σ 1e-3 rad → 1°, roll/pitch 2° → 5° (numbers.md:30-31; glossary:3549, 3534) |
-| 45 | **half real-time factor** (always "at RTF 0.5", never "half speed") | `_half`; "half speed"; `corridor_textured_half_fwdc` | "half SIM speed, not half velocity" (glossary.md:133; M:7795, M:7829-7830) |
+| 45 | **half real-time factor** (always "at RTF 0.5", never "half speed") | `_half`; "half speed"; `corridor_textured_half_fwdc` | "half SIM speed, not half velocity" (glossary.md:134; M:7795, M:7829-7830) |
 | 46 | **forced-invalid test** / **node-kill test** | safety (a) PARAM / (b) KILL | UKF (a): `AHRS_UKF_TFAIL` set in flight; (b): SIGKILL of the aiding bridges; FGO (a)/(b): node SIGKILL without / with the watcher watching the node (M:11289-11293). Note that the FGO's (a) is also a kill |
 | 47 | **runaway magnitude** (marker †) | † | "evidence of divergence, not precise values" (numbers.md:682-690) |
 
@@ -146,9 +146,9 @@ Each label maps to its internal code and to the **operative pre-registration lin
 | H1.6 | large initial heading error | F3 | M:7945 | NOT met (numbers.md:503) |
 | H1.6b | nonlinearity test, redesigned | F3b | M:8485 | (a) TRUE, (b) FALSE (numbers.md:504) |
 | H1.6c | convergence speed in the UKF's valid range | F3c | M:8943 | (a) FALSE, (b) TRUE, FRAGILE (numbers.md:505) |
-| H1.7a | robust-weighting replication: yaw maximum (primary) | plan step 2(a) P1 | M:9729 | FAIL 7/12 (numbers.md:489) |
-| H1.7b | replication: fewer wrong headings (secondary) | 2(a) S1 | M:9731 | PASS 5/6 (numbers.md:490) |
-| H1.7c | replication: cross-track (secondary) | 2(a) S2 | M:9735 | FAIL 5/12 (numbers.md:491) |
+| H1.7a | robust-weighting replication: yaw maximum (primary) | plan step 2(a) P1 | M:9730 | FAIL 7/12 (numbers.md:489) |
+| H1.7b | replication: fewer wrong headings (secondary) | 2(a) S1 | M:9733 | PASS 5/6 (numbers.md:490) |
+| H1.7c | replication: cross-track (secondary) | 2(a) S2 | M:9737 | FAIL 5/12 (numbers.md:491) |
 | H1.8 | closed loop without heading: contact prediction | set (a) PRIMARY (EKF3); U1–U3 (UKF, FGO) | M:4948; M:7350, 7352, 7513; M:8995 | EKF3 MISS at RTF 0.5 (D21); UKF, FGO PASS (numbers.md:462-465) |
 | H1.9 | closed loop with heading: criteria pass | set (b) B1–B5 (+S2) | M:4951-4966; M:7362 | 3/3 each final build (numbers.md:469-472) |
 | (criteria) | dataset-quality bands | P1–P4 | M:1711-1716 | `fwdc` 7/9, `fwdplainc` 7/9, `p1c` 6/6 (numbers.md:326-328) |
@@ -203,7 +203,7 @@ H5.1–H5.7 with 5.4a/b (8). There are also 3 labels of other kinds: C1.a, X1.b 
 
 Why not flat:
 - Five experiments over several chapters, plus an appendix, make flat numbers long and fragile when chapters move.
-- The repository's flat F/T/A codes already collide with six or more other code families (glossary_flags.md:30-53).
+- The repository's flat F/T/A codes already collide with six or more other code families (glossary_flags.md:11-53).
 
 The chapter plan is **provisional** and is the user's to set. The mapping below assumes it.
 
@@ -305,9 +305,9 @@ a definition.
 
 The sweep was a mechanical token match, plus a second pass for lowercase dataset tokens, markers, and "claim n" / "ruling n".
 
-**Result:** **66 code families** appear in that material, and **none** had a thesis name in the repository.
+**Result:** **65 code families** appear in that material, and **none** had a thesis name in the repository.
 - **This vocabulary names 41.** The thesis names are given beside each.
-- **25 are left unnamed on purpose.** These are file names, JSON keys, commit hashes, trial names, log-message names and
+- **24 are left unnamed on purpose.** These are file names, JSON keys, commit hashes, trial names, log-message names and
   ruling/claim numbers. The recommendation for these is to **remove them from captions**, and to keep them only in the
   appendix data statement or in §9.
 
@@ -357,7 +357,7 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | 40 | "Python bridge" / "C++ bridge"; `bcpp` | A1 image; `T4_closed_loop.md:13` | "EKF3 with the Python / C++ heading node" (descriptive; not a vocabulary term) |
 | 41 | watcher (watcher breach; "the watcher watches the node") | `T7_failure_behaviour.md:8, 11` | "safety watcher" (descriptive; not a vocabulary term) |
 
-### 8.2 Left unnamed on purpose: remove from captions (25)
+### 8.2 Left unnamed on purpose: remove from captions (24)
 
 | # | code(s) | where | handling |
 |---|---|---|---|
@@ -385,7 +385,8 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | 22 | MAVProxy, SIGKILL | `T7_failure_behaviour.md:11`; A2 image | technical terms; gloss at first use |
 | 23 | k = 2.385 | A3 image; numbers.md:501 | a parameter; keep, with its meaning (the M-estimator threshold, M:7905) |
 | 24 | `VISO_DELAY_MS`, `AHRS_UKF_TFAIL` | numbers.md:456, 534; M:11289 | parameter names; gloss at first use |
-| 25 | "S1-far EKF3 drifts … METHODOLOGY only" (a source note) | `T5:16`; index.md:175 | not a code; see pending_items.md |
+
+*Not counted (not a code): the source note "S1-far EKF3 drifts … METHODOLOGY only" (`T5_H_tag_loss_drift.md:16`; index.md:175). See `pending_items.md` item 7.*
 
 ## 9. APPENDIX: mapping table (thesis name → internal code(s) → source)
 
@@ -393,7 +394,7 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 |---|---|---|
 | Experiment 1, corridor comparison | `dsn`/`fwdc`/`fwdplainc` datasets; Phase 3–5; F1–F3c; plan step 2; closed-loop Part 2 | M:861; M:2636; M:2954; M:3392; M:7877; M:9728; M:4927 |
 | 1A standard-sensor comparison | `dsn_*` | M:861; glossary.md:101 |
-| 1B camera-heading studies | Phase 3/4/5; F1–F3c; 2(a)/(b) | M:2636; M:2954; M:3392; M:7877; M:9728 |
+| 1B camera-heading studies | Phase 3/4/5; F1–F3c; 2(a)/(b) | M:2636; M:2954; M:3392; M:7877; M:9729 |
 | 1C closed-loop corridor flights | `cl_*`; sets (a)/(b) | M:4927; M:4841-4842; glossary.md:122 |
 | Experiment 2, known tags | Experiment T | M:10100 |
 | Experiment 3, loop closure | Experiment L | M:10452 |
@@ -435,7 +436,7 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 | earlier build | UKF v1 (old UKF); original FGO | numbers.md:458 |
 | corrected-priors node | FGO v4 `4c07374b` | M:13686 |
 | initial-uncertainty correction | D18 model correction; OLD/NEW priors | numbers.md:30-31, 37; M:13686 |
-| half real-time factor | `_half`; "half speed" | M:7795; M:7829-7830; glossary.md:133 |
+| half real-time factor | `_half`; "half speed" | M:7795; M:7829-7830; glossary.md:134 |
 | forced-invalid test / node-kill test | safety (a) PARAM / (b) KILL | M:11289-11293 |
 | runaway magnitude | † | numbers.md:682-690 |
 | with / without heading | closed-loop set (b) / (a) | M:4841-4842 |
@@ -445,29 +446,35 @@ The sweep was a mechanical token match, plus a second pass for lowercase dataset
 
 ## 10. Departures from the proposed scheme in glossary_flags.md §c
 
-Each departure from `docs/thesis/glossary_flags.md:1072-1170`, with the reason:
+Every row of `docs/thesis/glossary_flags.md:1072-1170` that this vocabulary touches, with its class and the reason.
 
-| # | flags proposal (line) | this vocabulary | why |
-|---|---|---|---|
-| 1 | Keep the bare **H-/P-/V-** codes, "already unique" (1085) | renumbered **H2.1 …**, with H-T1 etc. kept only in the §9 mapping | The task requires hypotheses numbered within each experiment. The H-/P- split (hypothesis vs prediction) is not explained to a reader, and P-codes collide visually with the P1–P4 and P1–P10 families |
-| 2 | **D** is the bare-letter owner: "D → the D-rulings" (1082) | **no D-numbers in the thesis text** | Thesis-facing captions cite D21/D22 with no gloss. The rulings are better described by content. glossary_flags.md:54-58 shows D-codes clash in four families |
-| 3 | Figures **"Fig. 1–8"** and tables **"Table 1–8"**, flat (1084, 1119, 1121) | **by chapter**, "Figure 4.1", "Table 7.1" | Five experiments over four results chapters. The thesis now has 4 figures and 8 tables, so flat "Fig. 1–8" would not even match the current set (F2, F5–F7) |
-| 4 | Appendix tables **"Table A1–A3"** (1109) | **"Table A.1–A.3"** | consistent with "n.m" chapter numbering. A minor change |
-| 5 | Closed-loop criteria **CB1–CB5**, U → **CU1–CU3**, safety S1/S2 → **CS1/CS2** (1103, 1144, 1132) | **criteria named in words** (terms 20–28) | The task asks for criteria in words, not codes |
-| 6 | Forward-camera criteria **PC1–PC4** (1134) | **"dataset-quality bands"** (one term) | in words. The four bands are reported together as pass counts (numbers.md:326-328) |
-| 7 | Offline tests **OT1–OT4** (OT3b, OT3c), or "F-test 1" (1117) | **H1.4–H1.6c** plus names in words | They are pre-registered decision rules, so they enter the hypothesis numbering. F1's exploratory variant is kept apart as X1.b (M:8460) |
-| 8 | 2(a) robust-FGO rules **RS1/RS2** (1132) | **H1.7a–c** | as row 7 |
-| 9 | H stages **"H-S0a…H-S3v2"** (1086, 1130) | **written in words** ("EKF3-flying hold set", "UKF-flying hold set (final build)") | a reader needs to know who flies and which build. "S3v2" flies the FGO's **v3** node (glossary:505), so "H-S3v2" keeps that numbering trap |
-| 10 | **"_v2/_v3: name the build in the text"** (1168) | adopted, with fixed names: **final / ablation / earlier build, corrected-priors node** | v3 means different things for the UKF and the FGO (glossary_flags.md:269-273). Four fixed names avoid per-sentence improvisation |
-| 11 | **"_half: write 'half real-time factor (RTF 0.5)'"** (1166) | adopted. It also bans "half speed", which is in the current F2/T4/A1 captions | the current captions use "half speed" (index.md:37; `T4_closed_loop.md:1`) |
-| 12 | **"shadow: always qualify who flies"** (1159) | adopted, as **"passive estimator"** plus who flies | a single noun avoids "shadow" altogether |
-| 13 | **"live / hindsight: define once per experiment"** (1160) | adopted. Defined once (M:7937-7938), with an explicit Experiment 3 redefinition | — |
-| 14 | **"batch: hindsight batch / fixed-lag smoother"** (1161) | adopted, as "FGO whole-flight batch"; the live solver is "fixed-lag smoother" | — |
-| 15 | **"VOID / FROZEN"** wording (1162-1163) | not in this vocabulary | neither appears in the thesis-facing captions, apart from "results FROZEN" on pdf p.1, which is used as plain English |
-| 16 | **"⚑: one sense only, or replace"** (1164) | **replace with a footnote mark** | ⚑ appears in T7 in a third, informal sense ("scorer artefact") |
-| 17 | **"gt_: write 'ground-test runs'; reserve GT for ground truth"** (1165) | adopted. GT is expanded in §7 | — |
-| 18 | **"Expand the dataset abbreviations at first use … do not invent an expansion"** (1089) | adopted. Terms 11–16 are descriptions, not letter expansions | — |
-| 19 | Abbreviation list including **OF** (1169) | OF is omitted | OF (the dataflash flow message) appears in no thesis-facing caption |
-| 20 | **"as worded", "post hoc", "pre-registered", PENDING, CLOSED: define in the methodology chapter** (1170) | adopted for six terms plus PENDING (`methodology_definitions_draft.md`). **"pre-registered" and "CLOSED" are not drafted** | They were outside this stage's list. "pre-registered" appears 16 times in thesis-facing captions and should be added next |
-| 21 | Experiment T conditions **"condition A–D (never 'T1…')"** (1125) | adopted unchanged | — |
-| 22 | The many families absent from thesis-facing material (RG, WG, BG, FCB, CV, SG, RW, UQ, …) | **not named here** | they appear in no thesis-facing caption, table or PDF. They belong to the real-flight chapter, if anywhere |
+**Count:**
+- **11 departures**: rows 1–9 and 19, plus row 20, which is partial;
+- 3 adopted with an extension (rows 10–12);
+- 6 adopted (rows 13, 14, 16, 17, 18, 21);
+- 2 not taken up, as out of scope (rows 15, 22).
+
+| # | class | flags proposal (line) | this vocabulary | why |
+|---|---|---|---|---|
+| 1 | departure | Keep the bare **H-/P-/V-** codes, "already unique" (1085) | renumbered **H2.1 …**, with H-T1 etc. kept only in the §9 mapping | The task requires hypotheses numbered within each experiment. The H-/P- split (hypothesis vs prediction) is not explained to a reader, and P-codes collide visually with the P1–P4 and P1–P10 families |
+| 2 | departure | **D** is the bare-letter owner: "D → the D-rulings" (1082) | **no D-numbers in the thesis text** | Thesis-facing captions cite D21/D22 with no gloss. The rulings are better described by content. glossary_flags.md:54-58 shows D-codes clash in four families |
+| 3 | departure | Figures **"Fig. 1–8"** and tables **"Table 1–8"**, flat (1084, 1119, 1121) | **by chapter**, "Figure 4.1", "Table 7.1" | Five experiments over four results chapters. The thesis now has 4 figures and 8 tables, so flat "Fig. 1–8" would not even match the current set (F2, F5–F7) |
+| 4 | departure | Appendix tables **"Table A1–A3"** (1109) | **"Table A.1–A.3"** | consistent with "n.m" chapter numbering. A minor change |
+| 5 | departure | Closed-loop criteria **CB1–CB5**, U → **CU1–CU3**, safety S1/S2 → **CS1/CS2** (1103, 1144, 1132) | **criteria named in words** (terms 20–28) | The task asks for criteria in words, not codes |
+| 6 | departure | Forward-camera criteria **PC1–PC4** (1134) | **"dataset-quality bands"** (one term) | in words. The four bands are reported together as pass counts (numbers.md:326-328) |
+| 7 | departure | Offline tests **OT1–OT4** (OT3b, OT3c), or "F-test 1" (1117) | **H1.4–H1.6c** plus names in words | They are pre-registered decision rules, so they enter the hypothesis numbering. F1's exploratory variant is kept apart as X1.b (M:8460) |
+| 8 | departure | 2(a) robust-FGO rules **RS1/RS2** (1132) | **H1.7a–c** | as row 7 |
+| 9 | departure | H stages **"H-S0a…H-S3v2"** (1086, 1130) | **written in words** ("EKF3-flying hold set", "UKF-flying hold set (final build)") | a reader needs to know who flies and which build. "S3v2" flies the FGO's **v3** node (glossary:686), so "H-S3v2" keeps that numbering trap |
+| 10 | adopted with extension | **"_v2/_v3: name the build in the text"** (1168) | adopted, with fixed names: **final / ablation / earlier build, corrected-priors node** | v3 means different things for the UKF and the FGO (glossary_flags.md:269-273). Four fixed names avoid per-sentence improvisation |
+| 11 | adopted with extension | **"_half: write 'half real-time factor (RTF 0.5)'"** (1166) | adopted. It also bans "half speed", which is in the current F2/T4/A1 captions | the current captions use "half speed" (index.md:37; `T4_closed_loop.md:1`) |
+| 12 | adopted with extension | **"shadow: always qualify who flies"** (1159) | adopted, as **"passive estimator"** plus who flies | a single noun avoids "shadow" altogether |
+| 13 | adopted | **"live / hindsight: define once per experiment"** (1160) | adopted. Defined once (M:7937-7938), with an explicit Experiment 3 redefinition | — |
+| 14 | adopted | **"batch: hindsight batch / fixed-lag smoother"** (1161) | adopted, as "FGO whole-flight batch"; the live solver is "fixed-lag smoother" | — |
+| 15 | not taken up (out of scope) | **"VOID / FROZEN"** wording (1162-1163) | not in this vocabulary | neither appears in the thesis-facing captions, apart from "results FROZEN" on pdf p.1, which is used as plain English |
+| 16 | adopted | **"⚑: one sense only, or replace"** (1164) | **replace with a footnote mark** | ⚑ appears in T7 in a third, informal sense ("scorer artefact") |
+| 17 | adopted | **"gt_: write 'ground-test runs'; reserve GT for ground truth"** (1165) | adopted. GT is expanded in §7 | — |
+| 18 | adopted | **"Expand the dataset abbreviations at first use … do not invent an expansion"** (1089) | adopted. Terms 11–16 are descriptions, not letter expansions | — |
+| 19 | departure | Abbreviation list including **OF** (1169) | OF is omitted | OF (the dataflash flow message) appears in no thesis-facing caption |
+| 20 | partial departure | **"as worded", "post hoc", "pre-registered", PENDING, CLOSED: define in the methodology chapter** (1170) | adopted for six terms plus PENDING (`methodology_definitions_draft.md`). **"pre-registered" and "CLOSED" are not drafted** | They were outside this stage's list. "pre-registered" appears 16 times in thesis-facing captions and should be added next |
+| 21 | adopted | Experiment T conditions **"condition A–D (never 'T1…')"** (1125) | adopted unchanged | — |
+| 22 | not taken up (out of scope) | The many families absent from thesis-facing material (RG, WG, BG, FCB, CV, SG, RW, UQ, …) | **not named here** | they appear in no thesis-facing caption, table or PDF. They belong to the real-flight chapter, if anywhere |

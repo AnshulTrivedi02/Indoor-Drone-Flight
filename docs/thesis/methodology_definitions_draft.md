@@ -140,7 +140,7 @@ pre-registered test but cannot be one.
   EXPLORATORY and carries no confirmatory weight" (M:8927-8934).
 - The D26 diagnosis: "EXPLORATORY; no confirmatory weight" (M:9464).
 - An exploratory result was then tested: "the exploratory F1 benefit of robust weighting largely did not replicate on fresh
-  flights" (M:9967), the replication being plan step 2(a) (M:9728).
+  flights" (M:9967), the replication being plan step 2(a) (M:9729).
 
 **Usage varied in two ways:**
 - **Before any amendment.** In the real-flight timing work, "EXPLORATORY" marks a same-bag replay "labelled as seen before
