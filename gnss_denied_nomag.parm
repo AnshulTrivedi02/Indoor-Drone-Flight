@@ -1,4 +1,4 @@
-# THROWAWAY test config - NOT part of the standing baseline. Loaded on top
+# STANDING three-way comparison config (CLAUDE.md; METHODOLOGY "Comparison dataset - nomag"); first written as a test, loaded on top
 # of gnss_denied.parm (last in the --add-param-file chain) for a one-off
 # test of whether EKF3 can fly with no yaw source at all, matching the
 # UKF/FGO's actual sensor set. See CLAUDE.md / UKF design report for the
