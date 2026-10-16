@@ -81,7 +81,7 @@ untouched.
 
 ## Cross-check
 
-**123/123 match** (baseline 117/117; +6 new checks, all in A2: 5 for the H comparative page and 1 for the final safety
+**123/123 match** (final run at `bf97f66`; baseline 117/117; +6 new checks, all in A2: 5 for the H comparative page and 1 for the final safety
 drifts). Rounding run: 117/117. No mismatch, none forced.
 
 ## Residual grep (thesis-facing outputs)
@@ -95,7 +95,7 @@ drifts). Rounding run: 117/117. No mismatch, none forced.
 
 | family | hits | where; why they remain |
 |---|---|---|
-| half speed, PENDING, D-numbers, claim/ruling n, pack codes, ⚑, OI-2/P5b, log-message names, JSON keys, result files, scripts, S-A2b | **0** | — |
+| half speed, PENDING, D-numbers, claim/ruling n, pack codes, ⚑, OI-2/P5b, log-message names, JSON keys, result files, scripts, S-A2b, record pointers (`numbers.md`, METHODOLOGY, `*.md`, § numbers) | **0** | — (the worlds PDF's "reported in" line now prints only the thesis references; the record pointers stay in the world index) |
 | commit hashes | 7 | A2 image p1/p2, build column only (vocabulary §8.2 row 15: "appendix build table only") |
 | trial names | 22 | A2 p2 trial column (17); worlds PDF "flown:" lines (5). The appendix and the world table are allowed by rows 16 and 20 |
 | repeat indices | 2 | worlds PDF "flown:" lines only |
@@ -109,6 +109,16 @@ drifts). Rounding run: 117/117. No mismatch, none forced.
   copies in `numbers.md`.
 - **PENDING.** It remains only as a label definition, as counts or history (claims "PENDING 0"), in verbatim superseded
   blocks, and in `pending_items.md`'s own excluded list. All of these are listed in its "Excluded" table.
+
+## Scope readings (stated for the user)
+
+- **Rounding scope.** `rd()` applies to every number the generator prints, the F5 and F7 figure captions included, not
+  literally to the tables only. This keeps the T1 cell and the F5 caption in agreement ("1.0–2.8 cm"). It is reversible
+  if the user wants "tables only" read literally.
+- **The frozen pack is excluded.** `final_results_pack_index.md` and `final_results_pack.pdf` still contain PENDING and
+  "half-speed". They are the frozen pack (not regenerated), superseded for the thesis by `figures_thesis/`.
+- **Provenance.** The generator changes were committed first (`bf97f66`); the outputs were then regenerated, so their
+  stamp names a commit that contains the code that produced them, and committed after.
 
 ## Not done / for the user
 
