@@ -15,26 +15,26 @@ To reproduce, run the four scripts in the order of the table above. Only the ren
 
 ## 1. Inventory: every world and what used it
 
-The world for each trial comes from the `world:` field of `~/thesis_data/trials/<t>/metadata.yaml`, or from the `sim/worlds/<w>.sdf` path in the trial's logs. This was cross-checked against `batches/*.conf`, `tools/run_*.sh`, `sim/tools/closed_loop_run.sh` and the figure indexes. The pack figure ids (F01–F15b) were checked against `final_results_pack_index.md`, and the numbers.md sections against that file's headings. "thesis Fn / Tn / An" refers to the figures, tables and appendix pages listed in `docs/thesis/figures_thesis/index.md` (revision 2026-10-16; the tables are in `docs/thesis/tables/`). The former thesis figures F1, F3, F4 and F8 are now tables T1, T2, T3 and T5.
+The world for each trial comes from the `world:` field of `~/thesis_data/trials/<t>/metadata.yaml`, or from the `sim/worlds/<w>.sdf` path in the trial's logs. This was cross-checked against `batches/*.conf`, `tools/run_*.sh`, `sim/tools/closed_loop_run.sh` and the figure indexes. The pack figure ids (F01–F15b) were checked against `final_results_pack_index.md`, and the numbers.md sections against that file's headings. "thesis Figure n.m / Table n.m / Table A.m" is the thesis numbering (by chapter) of `docs/thesis/thesis_vocabulary.md` §6, as printed in `docs/thesis/figures_thesis/index.md` (whose appendix mapping leads from each thesis number to the internal id and the output file; the tables are in `docs/thesis/tables/`). Experiment numbers and names follow the same vocabulary (§1).
 
 | world | status | flown in it (trials/) | reported in |
 |---|---|---|---|
-| corridor_textured | CURRENT | `dsn_tex_r1–r10` (standard-sensor baseline); `ds_tex_r1–3` (compass on, reference); about 26 checks and shadow runs | thesis T1 (standard-sensor row), T2 (no-heading columns); pack F03; numbers §1, §2, §6.1, §6.5, §7, §8, §14, §18 |
-| corridor_blank | CURRENT | `dsn_blank_r1–3`, `ds_blank_r1–3`, `corridor_blank_verify` | thesis T3, T7 (blank-floor validity), T1 blank row; pack F06; numbers §6.2, §7 |
+| corridor_textured | CURRENT | `dsn_tex_r1–r10` (standard-sensor baseline); `ds_tex_r1–3` (compass on, reference); about 26 checks and passive-estimator runs | thesis Table 7.1 (Experiment 1A row), Table 4.1 (no-heading columns); pack F03; numbers §1, §2, §6.1, §6.5, §7, §8, §14, §18 |
+| corridor_blank | CURRENT | `dsn_blank_r1–3`, `ds_blank_r1–3`, `corridor_blank_verify` | thesis Table 4.2, Table 7.2 (blank-floor validity), Table 7.1 blank-floor row; pack F06; numbers §6.2, §7 |
 | corridor_transition | CURRENT | `dsn_trans_r1–3`, `ds_trans_r1–3`, `corridor_trans_verify` | numbers §1 (texture boundary y = 80 m by design, `sim/worlds/corridor_transition.sdf`: textured tile centred y = 70 m (l.175) and blank tile at y = 90 m (l.184), each 20 m), §6.2, §7, §11; no thesis figure or table |
-| corridor_textured_fwdc | CURRENT (line-textured walls = upper bound) | `fwdc_tex_r1–3`, `p1c_fwdc_tex`, `f4_fwdc_tex_r1–6`, `tsx_off_tex`, real-time (RTF 1.0) closed loop `cl_*_tex`, `gt_heading_*`, `rgs_*`, `lfs_check_tex` | thesis T1 (heading row, C0), T2, A3; pack F01, F02, F04, F05, F07, F15a; numbers §6.3–§6.6, §8, §9, §15, §15.1, §15.2 |
-| corridor_textured_fwdplainc | CURRENT (plain walls = featureless case) | `fwdplainc_tex_r1–3`, `p1c_fwdplainc_tex`, `f4_fwdplainc_tex_r1–6` | thesis T1 (heading row), T2, A3; pack F04, F07; numbers §6.4, §6.6, §8, §9, §15.1, §15.2 |
+| corridor_textured_fwdc | CURRENT (line-textured walls = upper bound) | `fwdc_tex_r1–3`, `p1c_fwdc_tex`, `f4_fwdc_tex_r1–6`, `tsx_off_tex`, real-time (RTF 1.0) closed loop `cl_*_tex`, `gt_heading_*`, `rgs_*`, `lfs_check_tex` | thesis Table 7.1 (Experiment 1B row, C1.a), Table 4.1, Table A.3; pack F01, F02, F04, F05, F07, F15a; numbers §6.3–§6.6, §8, §9, §15, §15.1, §15.2 |
+| corridor_textured_fwdplainc | CURRENT (plain walls = featureless case) | `fwdplainc_tex_r1–3`, `p1c_fwdplainc_tex`, `f4_fwdplainc_tex_r1–6` | thesis Table 7.1 (Experiment 1B row), Table 4.1, Table A.3; pack F04, F07; numbers §6.4, §6.6, §8, §9, §15.1, §15.2 |
 | corridor_transition_fwdc / _fwdplainc | CURRENT | `fwdc_trans_r1–3` and `fwdplainc_trans_r1–3`, each plus a `p1c_*_trans` | numbers §6.2 (transition +60 s), §8, §9, §11 (ceiling group); no thesis figure or table |
-| corridor_blank_fwdc / _fwdplainc | CURRENT | `fwdc_blank_r1–3` and `fwdplainc_blank_r1–3`, each plus a `p1c_*_blank` | thesis T3 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), T7, T1 blank row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9 |
-| corridor_textured_half_fwdc | CURRENT (every closed-loop result at half real-time, RTF 0.5; the simulator ran at half real time, the commanded flight speed was unchanged at 0.5 m/s) | 27 `cl_*_half` flights, plus FGO dev, shadow and ground-test runs and `gt_heading_half*` (44 in total) | thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15 |
+| corridor_blank_fwdc / _fwdplainc | CURRENT | `fwdc_blank_r1–3` and `fwdplainc_blank_r1–3`, each plus a `p1c_*_blank` | thesis Table 4.2 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), Table 7.2, Table 7.1 blank-floor row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9 |
+| corridor_textured_half_fwdc | CURRENT (every closed-loop result at half real-time, RTF 0.5; the simulator ran at half real time, the commanded flight speed was unchanged at 0.5 m/s) | 27 `cl_*_half` flights, plus FGO dev, shadow and ground-test runs and `gt_heading_half*` (44 in total) | thesis **Figure 4.1**, **Table 4.3**, Table 7.1 (Experiment 1C row), **Table A.1**; pack F08, F15a; numbers §15 |
 | corridor_tson_fwdc | RECORD ONLY (time-sync A/B) | `tsx_on_tex` | numbers §6.5 note row |
 | corridor_{textured,transition,blank}_fwd | SUPERSEDED (the forward camera sees the sky) | `fwd_*_r1–3`, `p1_fwd_*`, `p1diag_fwd_*` | numbers §1/§2 Phase-2 rows, §11 no-ceiling group, superseded block; not analysed |
 | corridor_{textured,transition,blank}_fwdplain | SUPERSEDED; no dataset was flown | `p1plain_{tex,trans,blank}` | numbers §11 (`p1plain_trans`); METHODOLOGY only |
-| room_tags | CURRENT (experiments T and L) | `T_{A,B,C,D}_r1–3` (12 reported; L replays `T_A_r1–3` and is not a separate flight set), `tagchar_h15/20/25/30`, `tag_check*`, `room_check` | thesis **F5** (T), **F7** (L), T8 (T rows), T1 (T and L rows), A3; pack F09, F10, F12, F13; numbers §16.1, §16.3 |
-| room_wall_tag | CURRENT results; no new flights (`closed_loop_run.sh` refuses this world) | `H_s0a`, `H_s0b`, `H_s1_r1–3`, `H_gt_*`, `H_wtest_*` | thesis **T5** (EKF3 S1), A2; pack F14, F15b; numbers §17 |
-| room_wall_tag_far | CURRENT (H re-flies, S2/S3, safety) | `H_s1far_r1/r2/r3b`, `H_s2(_v2)_r1–3`, `H_s3(_v2)_r1–3`, `H_gt_*_far`, about 21 `H_safety_*` | thesis T5, T7 (safety), A2, T1 H row; pack F14, F15b; numbers §15 safety rows, §17, §17.1, §17.2 |
+| room_tags | CURRENT (Experiments 2 and 3: known tags, loop closure) | `T_{A,B,C,D}_r1–3` (12 reported; Experiment 3 replays `T_A_r1–3` and is not a separate flight set), `tagchar_h15/20/25/30`, `tag_check*`, `room_check` | thesis **Figure 5.1** (Experiment 2), **Figure 5.2** (Experiment 3), Table 5.2 (Experiment 2 rows), Table 7.1 (Experiment 2 and 3 rows), Table A.3; pack F09, F10, F12, F13; numbers §16.1, §16.3 |
+| room_wall_tag | CURRENT results; no new flights (`closed_loop_run.sh` refuses this world) | `H_s0a`, `H_s0b`, `H_s1_r1–3`, `H_gt_*`, `H_wtest_*` | thesis **Table 6.1** (EKF3-flying hold set, near spawn), Table A.2; pack F14, F15b; numbers §17 |
+| room_wall_tag_far | CURRENT (Experiment 5 re-flies: far-spawn EKF3, UKF- and FGO-flying hold sets; 5S safety tests) | `H_s1far_r1/r2/r3b`, `H_s2(_v2)_r1–3`, `H_s3(_v2)_r1–3`, `H_gt_*_far`, about 21 `H_safety_*` | thesis Table 6.1, Table 7.2 (5S safety tests), Table A.2, Table 7.1 Experiment 5 row; pack F14, F15b; numbers §15 safety rows, §17, §17.1, §17.2 |
 | room_wall_tag_far_occ | RECORD ONLY (in-flight-anchor check) | `H_ifa_ekf3` (FAIL: room-box breach; the UKF and FGO runs were skipped by ruling) | METHODOLOGY only |
-| outdoor_indoor | CURRENT (experiment O) | `O_r1`, `O_r2`, `O_r3b` reported; `O_r3_IMUGAP` excluded; `o_check1` | thesis **F6**, **T6**, T7 (return jump), T8 (O rows), T1 O row; pack F11; numbers §16.2, §18 |
+| outdoor_indoor | CURRENT (Experiment 4, outdoor–indoor) | `O_r1`, `O_r2`, `O_r3b` reported; `O_r3_IMUGAP` excluded; `o_check1` | thesis **Figure 5.3**, **Table 5.1**, Table 7.2 (return jump), Table 5.2 (Experiment 4 rows), Table 7.1 Experiment 4 row; pack F11; numbers §16.2, §18 |
 | iris_textured | RECORD ONLY | 13: Stage B/C, `smoke_test`, `ekf3_diag_60s`, `imu_rate_verify`, `imu_verify2`, `nomag_test_long`, `sweep_v*`; also the watcher SITL bench (`~/thesis_data/wbench`) | numbers §2 IMU-rate rows and remaining flag 2; the Stage B/C ATE is VOID |
 | iris_runway | RECORD ONLY | `stage_c_blank` | the Stage C blank ATE is VOID; no current row |
 
@@ -74,11 +74,11 @@ So the renders of each pair are visually identical apart from those details.
   - forward-camera worlds: `wall` (the wall surface, line-textured or plain) and `endwall` (the end wall at y = 165 m);
   - ceiling worlds: `ceiling` (looking up at the slab);
   - rooms: `top_room`, `tags`, and `tag2` (floor tag 2);
-  - H worlds: `walltag` (wall tag id 10, with the occluder in front of it in `_far_occ`);
-  - O: `entrance` and `indoor`;
+  - tag-hold worlds (Experiment 5): `walltag` (wall tag id 10, with the occluder in front of it in `_far_occ`);
+  - outdoor_indoor (Experiment 4): `entrance` and `indoor`;
   - iris_runway: `top_wide`.
 
-**Cutaways.** In ceiling worlds the plain ceiling slab covers the whole corridor, so `top` and `angled_cutaway` are rendered from a second copy with the visual-only `corridor_ceiling` removed. `top_roof` and `angled` show the world as built. In O, `top` is as built (roof on) and `top_cutaway` has `bldg_roof` removed. Every cutaway is marked in the table below. Both the ceiling and the roof are visual-only and cast no shadow, so removing them does not change the floor lighting.
+**Cutaways.** In ceiling worlds the plain ceiling slab covers the whole corridor, so `top` and `angled_cutaway` are rendered from a second copy with the visual-only `corridor_ceiling` removed. `top_roof` and `angled` show the world as built. In outdoor_indoor, `top` is as built (roof on) and `top_cutaway` has `bldg_roof` removed. Every cutaway is marked in the table below. Both the ceiling and the roof are visual-only and cast no shadow, so removing them does not change the floor lighting.
 
 **Projection outcome: orthographic is NOT available; the top views are high-altitude, narrow-FOV perspective (near-orthographic).** This was checked two ways:
 1. sdformat 14.9 parses `<projection_type>orthographic</projection_type>`, but `libgz-sensors8-camera.so.8.2.2` (gz-sensors 8.2.2) references no `sdf::Camera::ProjectionType` symbol.
@@ -86,11 +86,11 @@ So the renders of each pair are visually identical apart from those details.
 
 SDF also requires `horizontal_fov ≥ 0.1 rad`, so the top views use the lowest altitude that keeps HFOV ≥ 0.12 rad:
 - 600 m for the corridors;
-- 500 m for O;
+- 500 m for outdoor_indoor;
 - 92–150 m for the rooms;
 - 300 m and 3000 m for the iris worlds.
 
-The residual parallax is the worst-case horizontal shift of the tallest object's top edge, h·r/altitude, and is given per shot. For example, the 5 m corridor walls at the far end shift by 0.80 m at 600 m. Because these altitudes exceed the directional light's shadow distance, the corridor and O top views show no cast shadows; the room top views (≤ 150 m) do. The angled and close-up views show the flights' shadows.
+The residual parallax is the worst-case horizontal shift of the tallest object's top edge, h·r/altitude, and is given per shot. For example, the 5 m corridor walls at the far end shift by 0.80 m at 600 m. Because these altitudes exceed the directional light's shadow distance, the corridor and outdoor_indoor top views show no cast shadows; the room top views (≤ 150 m) do. The angled and close-up views show the flights' shadows.
 
 **Render failures: none.** Every world and every shot rendered: 24 worlds, 33 server launches (9 cutaway copies), 165 shots. Each launch took 7–28 s.
 
@@ -104,14 +104,14 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 
 **Routes come from the mission and profile files, not from flown data:**
 - **Corridor cruise:** each world's line in `batches/*.conf`, as velocity × duration north from the spawn (0.5 m/s × 300 s = 150 m at 2 m). The half real-time (RTF 0.5) world's route comes from `closed_loop_run.sh`. The measured travel is 151 m (numbers §1).
-- **T/L:** `LAPS=5,6,0.5` and the conf line in `tools/run_expT.sh`: 5 laps of a 6 m square, N–E–S–W from the spawn over tag 0, at 2.0 m.
+- **Experiments 2 and 3 (known tags, loop closure):** `LAPS=5,6,0.5` and the conf line in `tools/run_expT.sh`: 5 laps of a 6 m square, N–E–S–W from the spawn over tag 0, at 2.0 m.
 - **tagchar:** `batches/tagchar.conf`.
-- **O:** `OUTBACK=15,1.5,50,0.5,20` in `tools/run_expO.sh`, with the GNSS gate at N = 20 m.
-- **H:** `batches/expH/*.json`, converted from the tag frame W to world coordinates with N_W = world y − 4.998 and E_W = world x. The 4.998 is `WALL_P` in `tag_bridge_fwd.py`. `s0a` and `s0b` are flown in the world frame.
-- **H watcher room box:** the `--box` in `closed_loop_run.sh`.
+- **Experiment 4 (outdoor–indoor):** `OUTBACK=15,1.5,50,0.5,20` in `tools/run_expO.sh`, with the GNSS gate at N = 20 m.
+- **Experiment 5 (tag hold):** `batches/expH/*.json`, converted from the tag frame W to world coordinates with N_W = world y − 4.998 and E_W = world x. The 4.998 is `WALL_P` in `tag_bridge_fwd.py`. `s0a` and `s0b` are flown in the world frame.
+- **Experiment 5 safety-watcher room box:** the `--box` in `closed_loop_run.sh`.
 - **iris worlds:** no mission file exists, so only the spawn is drawn.
 
-**Drawing offsets (not geometry).** The O out and back legs are drawn 0.6 m either side of x = 0, and the tagchar line 0.25 m west of the lap line, so the overlapping legs stay visible. They were all flown at the spawn's x.
+**Drawing offsets (not geometry).** The outdoor_indoor out and back legs are drawn 0.6 m either side of x = 0, and the tagchar line 0.25 m west of the lap line, so the overlapping legs stay visible. They were all flown at the spawn's x.
 
 **Colours (Okabe–Ito).** The estimator colours, EKF3 #0072B2, UKF #009E73 and FGO #D55E00, are deliberately not used because they carry fixed meanings in the thesis figures.
 
@@ -135,7 +135,7 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 
 **Forward camera (640×480 mono8).**
 - Each frame is the one nearest the requested ground-truth y.
-- The vanishing point drawn on it is the **frozen Phase 3 output for that exact frame**: row k of `meas_frozen.npz` is the k-th forward image, and the script asserts that the header stamp matches. Nothing is recomputed.
+- The vanishing point drawn on it is the **frozen heading-measurement output (Experiment 1B) for that exact frame**: row k of `meas_frozen.npz` is the k-th forward image, and the script asserts that the header stamp matches. Nothing is recomputed.
 - A filled orange marker (#E69F00) is a valid heading measurement (support ≥ `s_min` = 200, from `eval/results/fwd_calibration.json` "frozen").
 - A hollow sky-blue marker (#56B4E9) is "no measurement".
 
@@ -143,7 +143,7 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 |---|---|---|
 | `fwdc_tex_r1__fwd_y040.png` | fwdc, line-textured walls, checker | valid: u 327.0 px, support 1609, heading +0.72° (GT yaw +0.03°) |
 | `fwdc_tex_r1__fwd_y150.png` | fwdc, near the end wall | **no measurement** (support 166 < 200): the intended "no measurement near the end wall" behaviour |
-| `fwdplainc_tex_r1__fwd_y040.png` | fwdplainc, plain walls, checker | passes support (492) but heading **+5.62° against GT +0.03°**: the documented Phase 3 failure for plain walls over a checker floor (the overlay shows the frozen output, which is wrong here) |
+| `fwdplainc_tex_r1__fwd_y040.png` | fwdplainc, plain walls, checker | passes support (492) but heading **+5.62° against GT +0.03°**: the documented heading-measurement validation (H1.2) failure for plain walls over a checker floor (the overlay shows the frozen output, which is wrong here) |
 | `fwdplainc_tex_r1__fwd_y150.png` | fwdplainc, near the end wall | **no measurement** (support 137 < 200), intended |
 | `fwdc_trans_r1__fwd_y080.png` | fwdc, at the transition boundary | valid: heading +0.02°, support 1814 |
 | `fwdc_blank_r1__fwd_y040.png` | fwdc, line-textured walls, blank floor | valid: heading −0.01°, support 2140 |
@@ -169,7 +169,7 @@ The residual parallax is the worst-case horizontal shift of the tallest object's
 - **Line-textured walls, forward:** available (fwdc tex, trans and blank).
 - **Plain walls, forward:** available (fwdplainc tex and blank).
 - **Near the end wall, forward:** available for both wall types (y = 150 m).
-- **Bags exist but no frames were extracted:** `fwdplainc_trans_*`, the half real-time (RTF 0.5) and real-time (RTF 1.0) closed-loop `cl_*` sets, and the H flights (`H_*` bags carry `/forward_camera/image`).
+- **Bags exist but no frames were extracted:** `fwdplainc_trans_*`, the half real-time (RTF 0.5) and real-time (RTF 1.0) closed-loop `cl_*` sets, and the Experiment 5 flights (`H_*` bags carry `/forward_camera/image`).
 - **Superseded no-ceiling worlds:** no frames extracted.
 
 ## 5. Per-shot camera record (generated: `shots_table.md`)

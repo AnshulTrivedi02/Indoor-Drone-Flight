@@ -20,29 +20,31 @@ import world_schematics as WS
 COMMIT = subprocess.run(["git", "-C", REPO, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
 
 # Thesis figure / table / appendix references per world: the one source for the PDF "reported in" line (W below) and
-# the index.md section-1 "reported in" cells (IDX). Numbering = the 2026-10-16 revision of
-# docs/thesis/figures_thesis/index.md (commit e202552): figures F2, F5, F6, F7; tables T1-T8 (docs/thesis/tables/);
-# appendix A1-A3. The retired figures map F1 -> T1, F3 -> T2, F4 -> T3, F8 -> T5; F2's heading-error panel moved to
-# T4 and F6's per-flight RMSE to T6. Assigned from each table's "Sources" line: T3 / T7 blank = the blank flights
-# (UKF / FGO 11: dsn, p1c, fwdc, fwdplainc; EKF3 14: + ds_blank); T5 = s1_r* (room_wall_tag) and s1far / s2v2 / s3v2
-# (room_wall_tag_far); T7 safety = H_safety_* (room_wall_tag_far); T8 = T rows (room_tags) and O rows (outdoor_indoor).
-# "A3 ... F1" in the thesis index is the F1 robust-weighting EXPERIMENT, not a figure.
+# the index.md section-1 "reported in" cells (IDX). Numbering = the THESIS numbering of docs/thesis/thesis_vocabulary.md
+# §6 (by chapter), as printed by eval/figs_thesis.py (2026-10-17). Internal id -> thesis number: F2 Figure 4.1, T2 Table
+# 4.1, T3 Table 4.2, T4 Table 4.3, F5 Figure 5.1, F7 Figure 5.2, F6 Figure 5.3, T6 Table 5.1, T8 Table 5.2, T5 Table 6.1,
+# T1 Table 7.1, T7 Table 7.2, A1-A3 Table A.1-A.3 (the full mapping: docs/thesis/figures_thesis/index.md, appendix
+# mapping). Assigned from each table's "Sources" line: Table 4.2 / 7.2 blank = the blank flights (UKF / FGO 11: dsn,
+# p1c, fwdc, fwdplainc; EKF3 14: + ds_blank); Table 6.1 = s1_r* (room_wall_tag) and s1far / s2v2 / s3v2
+# (room_wall_tag_far); Table 7.2 safety = H_safety_* (room_wall_tag_far); Table 5.2 = Experiment 2 rows (room_tags) and
+# Experiment 4 rows (outdoor_indoor). Experiment names: thesis_vocabulary.md §1 (1 corridor, 2 known tags, 3 loop
+# closure, 4 outdoor-indoor, 5 tag hold).
 NO_THESIS = "no thesis figure or table"
 TH = {
- "corridor_textured": "thesis T1 (standard-sensor row), T2 (no-heading columns)",
- "corridor_blank": "thesis T3, T7 (blank-floor validity), T1 blank row",
+ "corridor_textured": "thesis Table 7.1 (Experiment 1A row), Table 4.1 (no-heading columns)",
+ "corridor_blank": "thesis Table 4.2, Table 7.2 (blank-floor validity), Table 7.1 blank-floor row",
  "corridor_transition": NO_THESIS,
- "corridor_textured_fwdc": "thesis T1 (heading row, C0), T2, A3",
- "corridor_textured_fwdplainc": "thesis T1 (heading row), T2, A3",
+ "corridor_textured_fwdc": "thesis Table 7.1 (Experiment 1B row, C1.a), Table 4.1, Table A.3",
+ "corridor_textured_fwdplainc": "thesis Table 7.1 (Experiment 1B row), Table 4.1, Table A.3",
  "corridor_transition_fwdc": NO_THESIS,
  "corridor_transition_fwdplainc": NO_THESIS,
- "corridor_blank_fwdc": "thesis T3 (11 blank flights), T7, T1 blank row",
- "corridor_blank_fwdplainc": "thesis T3, T7, T1 blank row",
- "corridor_textured_half_fwdc": "thesis F2, T4, T1 (closed-loop row), A1",
- "room_tags": "thesis F5 (T), F7 (L), T8 (T rows), T1 (T and L rows), A3",
- "room_wall_tag": "thesis T5 (EKF3 S1), A2",
- "room_wall_tag_far": "thesis T5, T7 (safety), A2, T1 H row",
- "outdoor_indoor": "thesis F6, T6, T7 (return jump), T8 (O rows), T1 O row",
+ "corridor_blank_fwdc": "thesis Table 4.2 (11 blank flights), Table 7.2, Table 7.1 blank-floor row",
+ "corridor_blank_fwdplainc": "thesis Table 4.2, Table 7.2, Table 7.1 blank-floor row",
+ "corridor_textured_half_fwdc": "thesis Figure 4.1, Table 4.3, Table 7.1 (Experiment 1C row), Table A.1",
+ "room_tags": "thesis Figure 5.1 (Experiment 2), Figure 5.2 (Experiment 3), Table 5.2 (Experiment 2 rows), Table 7.1 (Experiment 2 and 3 rows), Table A.3",
+ "room_wall_tag": "thesis Table 6.1 (EKF3-flying hold set, near spawn), Table A.2",
+ "room_wall_tag_far": "thesis Table 6.1, Table 7.2 (5S safety tests), Table A.2, Table 7.1 Experiment 5 row",
+ "outdoor_indoor": "thesis Figure 5.3, Table 5.1, Table 7.2 (return jump), Table 5.2 (Experiment 4 rows), Table 7.1 Experiment 4 row",
 }
 
 # index.md section 1: the "reported in" cell of each row, keyed on the row's first cell (backticks removed).
@@ -56,25 +58,28 @@ IDX = {
  "corridor_textured_fwdplainc": TH["corridor_textured_fwdplainc"]
     + "; pack F04, F07; numbers §6.4, §6.6, §8, §9, §15.1, §15.2",
  "corridor_transition_fwdc / _fwdplainc": "numbers §6.2 (transition +60 s), §8, §9, §11 (ceiling group); " + NO_THESIS,
- "corridor_blank_fwdc / _fwdplainc": "thesis T3 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), T7, "
-    "T1 blank row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9",
- "corridor_textured_half_fwdc": "thesis **F2**, **T4**, T1 (closed-loop row), **A1**; pack F08, F15a; numbers §15",
+ "corridor_blank_fwdc / _fwdplainc": "thesis Table 4.2 (11 blank flights = dsn 3 + p1c 2 + fwdc 3 + fwdplainc 3), Table 7.2, "
+    "Table 7.1 blank-floor row (EKF3: 14 flights, + ds 3); numbers §6.2, §6.6, §8, §9",
+ "corridor_textured_half_fwdc": "thesis **Figure 4.1**, **Table 4.3**, Table 7.1 (Experiment 1C row), **Table A.1**; pack F08, F15a; numbers §15",
  "corridor_tson_fwdc": "numbers §6.5 note row",
  "corridor_{textured,transition,blank}_fwd": "numbers §1/§2 Phase-2 rows, §11 no-ceiling group, superseded block; "
     "not analysed",
  "corridor_{textured,transition,blank}_fwdplain": "numbers §11 (`p1plain_trans`); METHODOLOGY only",
- "room_tags": "thesis **F5** (T), **F7** (L), T8 (T rows), T1 (T and L rows), A3; pack F09, F10, F12, F13; "
-    "numbers §16.1, §16.3",
- "room_wall_tag": "thesis **T5** (EKF3 S1), A2; pack F14, F15b; numbers §17",
+ "room_tags": "thesis **Figure 5.1** (Experiment 2), **Figure 5.2** (Experiment 3), Table 5.2 (Experiment 2 rows), Table 7.1 "
+    "(Experiment 2 and 3 rows), Table A.3; pack F09, F10, F12, F13; numbers §16.1, §16.3",
+ "room_wall_tag": "thesis **Table 6.1** (EKF3-flying hold set, near spawn), Table A.2; pack F14, F15b; numbers §17",
  "room_wall_tag_far": TH["room_wall_tag_far"] + "; pack F14, F15b; numbers §15 safety rows, §17, §17.1, §17.2",
  "room_wall_tag_far_occ": "METHODOLOGY only",
- "outdoor_indoor": "thesis **F6**, **T6**, T7 (return jump), T8 (O rows), T1 O row; pack F11; numbers §16.2, §18",
+ "outdoor_indoor": "thesis **Figure 5.3**, **Table 5.1**, Table 7.2 (return jump), Table 5.2 (Experiment 4 rows), Table 7.1 "
+    "Experiment 4 row; pack F11; numbers §16.2, §18",
  "iris_textured": "numbers §2 IMU-rate rows and remaining flag 2; the Stage B/C ATE is VOID",
  "iris_runway": "the Stage C blank ATE is VOID; no current row",
 }
-IDX_NOTE = ('"thesis Fn / Tn / An" refers to the figures, tables and appendix pages listed in '
-            '`docs/thesis/figures_thesis/index.md` (revision 2026-10-16; the tables are in `docs/thesis/tables/`). '
-            'The former thesis figures F1, F3, F4 and F8 are now tables T1, T2, T3 and T5.')
+IDX_NOTE = ('"thesis Figure n.m / Table n.m / Table A.m" is the thesis numbering (by chapter) of '
+            '`docs/thesis/thesis_vocabulary.md` §6, as printed in `docs/thesis/figures_thesis/index.md` (whose appendix '
+            'mapping leads from each thesis number to the internal id and the output file; the tables are in '
+            '`docs/thesis/tables/`). Experiment numbers and names follow the same vocabulary (§1).')
+NOTE_MARKS = ('"thesis Fn', '"thesis Figure n.m')   # the old and the current note (so a re-run finds it either way)
 
 
 def write_index():
@@ -85,8 +90,9 @@ def write_index():
     b = next(i for i in range(a + 1, len(L)) if L[i].startswith("## "))
     seen, note = set(), 0
     for i in range(a, b):
-        if '"thesis Fn' in L[i]:
-            L[i] = L[i][:L[i].index('"thesis Fn')] + IDX_NOTE; note += 1
+        mk = next((m for m in NOTE_MARKS if m in L[i]), None)
+        if mk:
+            L[i] = L[i][:L[i].index(mk)] + IDX_NOTE; note += 1
         if L[i].startswith("| ") and not L[i].startswith("| world |"):
             c = L[i].split(" | ")
             k = c[0][2:].replace("`", "").strip()
@@ -94,8 +100,8 @@ def write_index():
             c[-1] = IDX[k] + " |"; L[i] = " | ".join(c); seen.add(k)
     assert note == 1 and seen == set(IDX), ("index.md rows / note not all matched", note, set(IDX) - seen)
     txt = "\n".join(L)
-    # the only permitted F1/F3/F4/F8 tokens: the note's "former ... F1, F3, F4 and F8" sentence
-    assert not re.search(r"\bF[1348]\b", txt.replace(IDX_NOTE, "")), "stale F1/F3/F4/F8 in index.md"
+    # no internal thesis-figure / table ids (F1-F8, T1-T8, A1-A3) may remain in the world index
+    assert not re.search(r"\b(?:F[1-8]|T[1-8]|A[1-3])\b", txt), "stale internal figure/table id in index.md"
     open(p, "w").write(txt)
 
 
@@ -103,10 +109,10 @@ def write_index():
 # Mapping from trial metadata.yaml `world:` fields, batches/*.conf, tools/run_*.sh, closed_loop_run.sh and
 # docs/thesis/{figures_thesis/index.md, final_results_pack_index.md, numbers.md} (checked 2026-10-16).
 W = {
- "corridor_textured": ("CURRENT", "dsn_tex_r1-r10 (standard-sensor three-way baseline); ds_tex_r1-3 (compass on, reference); ~26 checks / shadow runs",
+ "corridor_textured": ("CURRENT", "dsn_tex_r1-r10 (standard-sensor three-way baseline); ds_tex_r1-3 (compass on, reference); ~26 checks / passive-estimator runs",
     TH["corridor_textured"] + "; pack F03; numbers §1, §2, §6.1, §6.5, §7, §8, §14, §18",
-    "20 x 160 m corridor, checker floor, plain 5 m walls, no ceiling, downward sensors only: the dsn baseline.",
-    "Cruise 0.5 m/s x 300 s north at 2 m from the spawn; no stored onboard images (dsn bags record no camera)."),
+    "20 x 160 m corridor, checker floor, plain 5 m walls, no ceiling, downward sensors only: the standard-sensor dataset (Experiment 1A).",
+    "Cruise 0.5 m/s x 300 s north at 2 m from the spawn; no stored onboard images (the standard-sensor dataset bags record no camera)."),
  "corridor_blank": ("CURRENT", "dsn_blank_r1-3; ds_blank_r1-3; corridor_blank_verify",
     TH["corridor_blank"] + "; pack F06; numbers §6.2, §7",
     "Same corridor with every floor tile blank (no albedo map): total loss of flow aiding.",
@@ -150,13 +156,13 @@ W = {
  "corridor_blank_fwdplainc": ("CURRENT", "fwdplainc_blank_r1-3, p1c_fwdplainc_blank",
     TH["corridor_blank_fwdplainc"] + "; numbers §6.2, §6.6 (yaw-only benefit), §8, §9", "Blank floor, plain walls, ceiling.",
     "Onboard: forward frame at y = 40 m (VP valid: plain walls over a blank floor validate)."),
- "corridor_textured_half_fwdc": ("CURRENT (all closed-loop results at half real-time, RTF 0.5)", "27 cl_*_half flights + FGO dev / shadow / ground-test runs and gt_heading_half* (44 trials)",
+ "corridor_textured_half_fwdc": ("CURRENT (all closed-loop results at half real-time, RTF 0.5)", "27 cl_*_half flights + FGO dev / passive-estimator / ground-test runs and gt_heading_half* (44 trials)",
     TH["corridor_textured_half_fwdc"] + "; pack F08, F15a; numbers §15",
     "Geometrically identical to corridor_textured_fwdc; only <real_time_factor> 0.5 differs (FGO compute headroom).",
-    "The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s (same route, 300 s at 2 m). Renders as the fwdc page; no frames extracted."),
+    "The simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s (same route, 300 s at 2 m). Renders as the corridor_textured_fwdc page; no frames extracted."),
  "corridor_tson_fwdc": ("RECORD ONLY (time-sync A/B)", "tsx_on_tex", "numbers §6.5 note row",
     "corridor_textured_fwdc with the drone model iris_fwd_ts (time-sync A/B); geometry identical.",
-    "Renders identical to the fwdc page; no frames extracted."),
+    "Renders identical to the corridor_textured_fwdc page; no frames extracted."),
  "iris_textured": ("RECORD ONLY", "stage_b_verify, stage_c_textured, smoke_test, ekf3_diag_60s, imu_rate_verify, imu_verify2, nomag_test_long, sweep_v* (13)",
     "numbers §2 IMU-rate rows, remaining flag 2; Stage B/C ATE VOID; watcher SITL bench",
     "20 x 20 m checker mat, nothing beyond it (LiDAR no-return off the mat; Known Issue #6).",
@@ -164,22 +170,22 @@ W = {
  "iris_runway": ("RECORD ONLY", "stage_c_blank", "Stage C blank ATE VOID; no current row",
     "Upstream runway world: 1500 x 100 m runway plane on a 10 km grass mesh.",
     "Flown before vendoring; no stored onboard images."),
- "outdoor_indoor": ("CURRENT (experiment O)", "O_r1, O_r2, O_r3b (reported); O_r3_IMUGAP excluded; o_check1",
+ "outdoor_indoor": ("CURRENT (Experiment 4, outdoor-indoor)", "O_r1, O_r2, O_r3b (reported); O_r3_IMUGAP excluded; o_check1",
     TH["outdoor_indoor"] + "; pack F11; numbers §16.2, §18",
     "Checker floor y = -20..80 m; 10 x 50 m building (y = 20..70) with a 3 m entrance and a non-shadowing roof.",
     "Route: 15 m GNSS-yaw alignment, 50 m out and back at 0.5 m/s; GNSS off past the gate N = 20 m; no stored onboard images."),
- "room_tags": ("CURRENT (experiments T and L)", "T_{A,B,C,D}_r1-3 (12 reported; L replays T_A_r1-3), tagchar_h15/20/25/30, tag_check*, room_check",
+ "room_tags": ("CURRENT (Experiments 2 and 3: known tags, loop closure)", "T_{A,B,C,D}_r1-3 (12 reported; Experiment 3 replays T_A_r1-3), tagchar_h15/20/25/30, tag_check*, room_check",
     TH["room_tags"] + "; pack F09, F10, F12, F13; numbers §16.1, §16.3",
     "10 x 10 m room, 3 m plain walls, checker floor, floor tags 0-7 at the corners / midpoints of the 6 m lap square.",
     "Onboard: the ONLY stored downward-camera frames (tagchar_h20 hover / cruise, tagchar_h30 cruise) - same checker texture."),
  "room_wall_tag": ("CURRENT results; no new flights (the flight script refuses it)", "H_s0a, H_s0b, H_s1_r1-3, H_gt_*, H_wtest_*",
     TH["room_wall_tag"] + "; pack F14, F15b; numbers §17",
     "room_tags + wall tag id 10 on the north wall (z 1.5 m), a parked occluder, iris_fwd spawned at the hold (0, 3.5).",
-    "Routes: S0a grid sweep (world frame), S1 hold W(-1.5, 0) with E steps; forward images exist in H bags but none extracted."),
- "room_wall_tag_far": ("CURRENT (H re-flies, S2/S3, safety)", "H_s1far_r1/r2/r3b, H_s2(_v2)_r1-3, H_s3(_v2)_r1-3, H_gt_*_far, ~21 H_safety_*",
+    "Routes: characterisation grid sweep (world frame), EKF3-flying hold W(-1.5, 0) with E steps; forward images exist in Experiment 5 bags but none extracted."),
+ "room_wall_tag_far": ("CURRENT (Experiment 5 re-flies: far-spawn EKF3, UKF- and FGO-flying hold sets; 5S safety tests)", "H_s1far_r1/r2/r3b, H_s2(_v2)_r1-3, H_s3(_v2)_r1-3, H_gt_*_far, ~21 H_safety_*",
     TH["room_wall_tag_far"] + "; pack F14, F15b; numbers §15 safety rows, §17, §17.1, §17.2",
     "room_wall_tag with the spawn 3.9 m from the wall tag (0, 1.1), so the tag is seen before arming.",
-    "Routes: anchor at W(-3.9, 0), hold W(-1.5, 0) (s1_far); safety2 hold W(-2.6, 0); no frames extracted."),
+    "Routes: anchor at W(-3.9, 0), hold W(-1.5, 0) (far-spawn hold set); safety-test hold W(-2.6, 0); no frames extracted."),
  "room_wall_tag_far_occ": ("RECORD ONLY (in-flight-anchor check)", "H_ifa_ekf3 (FAIL, room-box breach)",
     "METHODOLOGY only; no numbers row, no figure",
     "room_wall_tag_far with the occluder starting in front of the wall tag (no fix until uncovered airborne).",
