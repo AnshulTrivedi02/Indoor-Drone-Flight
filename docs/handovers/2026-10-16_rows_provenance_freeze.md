@@ -39,19 +39,21 @@ why the quantity is the same, and names the METHODOLOGY line where the sentence 
   769 class-U tokens (`cmp_s1–s4.tsv`). The pairs were then reviewed by hand, by quantity. Most pairs were coincidences:
   repeat indices, run numbers, and `rd()` table cells.
   - Scratch: `tf2.py`, `tf2_dump.py`, `compact.py`, `tf2_strong.txt` and `weak_c.txt`.
-- **Result: 43 quantities.**
+- **Result: 43 quantities** (the unit is the quantity; one quantity can span several of the 769 tokens, and the per-token tally was not done).
 
   | written source | quantities |
   |---|---|
   | a results file, METHODOLOGY line, pre-registration line or parameter file | 41 |
   | **CLAUDE.md only** (not a ruled source type) | 1: the measured transition crossing y = 80.01 m, `world_images/index.md:24` → `CLAUDE.md:1827` |
-  | **no written source at all** | 0 |
-  | **flagged** (its source contradicts the wording) | 1: `pending_items.md:17` says "all 126 inputs written ≤ …", but `docs/handovers/2026-10-16_phase5_provenance_rounding.md:27` records that timing as inaccurate. pending_items is a dated record, so it was not edited |
+  | **no ruled-type written source** | 1, and its only mention contradicts it: `pending_items.md:17` says "all 126 inputs written ≤ …", but `docs/handovers/2026-10-16_phase5_provenance_rounding.md:27` records that timing as inaccurate. pending_items is a dated record, so it was not edited |
 
 - **Read from a results file at the first-final-re-run commit `425e824`:** three historical "was" values.
-  - 838–1,014° yaw RMS. The 43 m was not re-read.
-  - L no-LC 0.281–0.362 m.
+  - 838–1,014° yaw RMS, and the 43 m (`FGO_heading.evo.ate_a_cruise` 42.65 / 43.13).
+  - L no-LC 0.281–0.362 m, and the lap ratio 3.0–5.0 (3.01–5.04 from `per_lap_rmse_m`).
   - FGO SD 1.23.
+- **Every cited results-file value was read this stage, except row 40.** The values read include `bound_s` 0.1,
+  `s_min` 200, `n_neg` 5 and `horiz_disp_m` 1.397. Row 40 ("UKF highest on 6/9") cites the claim row's own files,
+  which were not re-counted.
 - **Limits:**
   - pairing works on digit strings, so a value written with other digits could be missed;
   - thesis numerals that match no numbers.md token are out of the ruled scope (the 769) and were not chased. These are
