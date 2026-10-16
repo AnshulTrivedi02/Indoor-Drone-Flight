@@ -50,7 +50,7 @@ TH = {
 IDX = {
  "corridor_textured": TH["corridor_textured"] + "; pack F03; numbers §1, §2, §6.1, §6.5, §7, §8, §14, §18",
  "corridor_blank": TH["corridor_blank"] + "; pack F06; numbers §6.2, §7",
- "corridor_transition": "numbers §1 (boundary y = 80.01 m), §6.2, §7, §11; " + NO_THESIS,
+ "corridor_transition": "numbers §1 (texture boundary y = 80 m by design, `sim/worlds/corridor_transition.sdf`: textured tile centred y = 70 m (l.175) and blank tile at y = 90 m (l.184), each 20 m), §6.2, §7, §11; " + NO_THESIS,
  "corridor_textured_fwdc": TH["corridor_textured_fwdc"]
     + "; pack F01, F02, F04, F05, F07, F15a; numbers §6.3–§6.6, §8, §9, §15, §15.1, §15.2",
  "corridor_textured_fwdplainc": TH["corridor_textured_fwdplainc"]
@@ -112,7 +112,7 @@ W = {
     "Same corridor with every floor tile blank (no albedo map): total loss of flow aiding.",
     "Cruise as the textured corridor; no stored onboard images."),
  "corridor_transition": ("CURRENT", "dsn_trans_r1-3; ds_trans_r1-3; corridor_trans_verify",
-    "numbers §1 (boundary y = 80.01 m), §6.2, §7, §11 (no-ceiling group); " + TH["corridor_transition"],
+    "numbers §1 (texture boundary y = 80 m by design, `sim/worlds/corridor_transition.sdf`: textured tile centred y = 70 m (l.175) and blank tile at y = 90 m (l.184), each 20 m), §6.2, §7, §11 (no-ceiling group); " + TH["corridor_transition"],
     "Checker floor for y < 80 m, blank beyond: the mid-flight transition.",
     "Cruise as the textured corridor; no stored onboard images."),
  "corridor_textured_fwd": ("SUPERSEDED (camera sees sky)", "fwd_tex_r1-3, p1_fwd_tex, p1diag_fwd_*",
