@@ -14214,3 +14214,14 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **10:** show the early S-A4 flags as "not applicable / not scored", footnoting the METHODOLOGY reason (quoted with
   file:line); the raw score-file entries go in the appendix.
 - **Correct the stale numbers.md §10 heading.**
+
+### RULINGS (user, 2026-10-16): item 6 accepted with a provenance record; rounding sweep
+- **Item 6 ACCEPTED.** Beside the Phase 5 row in numbers.md, record:
+  1. the Phase 5 stage of `819caab` read the FINAL UKF Phase 4 outputs from the consolidated re-run (paths given);
+  2. no correction after `425e824` or `819caab` touched either estimator's Phase 4 path (the commits checked are
+     listed);
+  3. the literal "postdates both re-runs" test fails only because L finished later, and L does not feed Phase 5.
+  - **If (1) or (2) fails: stop and report.**
+- **Rounding sweep:** search ALL thesis-facing material (captions, tables, the claims table, the vocabulary, the
+  methodology and limitations drafts) for any value produced by the old double rounding, incl. "1.1 cm" for the
+  T-A FGO batch and "26.2 cm" for the L lower bound. Correct them and list each change.
