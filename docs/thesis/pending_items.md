@@ -4,12 +4,26 @@
 (METHODOLOGY "RULINGS (user, 2026-10-16): the pending items (`docs/thesis/pending_items.md`) and captions", M:14176-14196;
 applied in `docs/handovers/2026-10-16_pending_rulings_applied.md`). "M" means `METHODOLOGY.md`, followed by its line number.*
 
-**Status now:** **no Tier 1 item remains in the thesis.** Of the 4 literal PENDING items, three are CLOSED by ruling and the
-fourth (the rung-1 first-leg length) is moved out of the thesis list: it stays open in the real-flight plan only. Of the 7
-Tier 2 items, two are CLOSED (items 5 and 8), one was already ruled (item 11), and four still need a ruling or an action
-(items 6, 7, 9, 10).
+**Status now (updated 2026-10-16, after the rulings on the open items, M:14198-14216; applied in
+`docs/handovers/2026-10-16_open_items_applied.md`):** **no thesis-facing item remains open.** Items 6, 7, 9 and 10, the
+stale `numbers.md` §10 heading and the rounding check are CLOSED (table below). Item 11 was already ruled. The rung-1
+first-leg length stays open in the real-flight plan only.
 
-## Closed by the rulings of 2026-10-16
+## Closed by the rulings of 2026-10-16 on the open items
+
+| # | ruling | what was done |
+|---|---|---|
+| rounding check | print the full-precision values; switch `rd()` to decimal only if a flip is a binary-float artefact | T condition A FGO batch = 0.010479623174296593 m (1.0479623 cm) → 1.0; L no-LC live lower bound = 0.262532619256968 m (26.2532619 cm, T_A_r2) → 26.3. Both are the TRUE decimal roundings; the old 1.1 / 26.2 came from double rounding of the 4-dp intermediates 0.0105 / 0.2625 (numbers.md flag 8). **No float artefact; `rd()` unchanged** (it already rounds `Decimal(str(x))` half-up). A scan of every value `rd()` printed found no input within 1e-6 of a half-tie. **No displayed cell changed** |
+| 6 | if `phase5_analysis.json` postdates both re-runs, restate a numbers.md row and cross-check it; otherwise remove the T2 column | **YES.** It is the phase5-stage output of the FGO-only re-run (`final_rerun2` pipeline.log: phase5 14:06:50–14:09:29 on 2026-10-10; mtime 14:08:20; all 126 inputs written ≤ 14:06:13 and none later), committed in `819caab` (the FGO-only re-run's completion commit, 21:36); after the consolidated re-run (`425e824`, 05:15). The FGO-only run's 21:35 completion is its last stage (L), which does not feed Phase 5. New `numbers.md` §6.3 row; 2 T2 cross-checks; the T2 "not cross-checked" note and the index's "not cross-checkable" line removed. No older row existed, so nothing was superseded |
+| 7 | add the numbers.md row for the far-spawn EKF3 flights | New `numbers.md` §17 "S1 far" table (`s1far_r1`, `r2`, `r3b`; effective and end-of-loss drift per loss, from `expH/s1far_r*.json`; M:12112-12117, M:12203). 2 T5 cross-checks (effective, end of loss); the T5 note and index line removed |
+| 9 | cite a not-recomputed row only where needed, labelled "measured before corrections; not recomputed"; never "unaffected" | Searched the tables (`.md`/`.tex`), the index captions, both PDFs' text, `limitations.md`, the vocabulary, the methodology draft and the world index: **no thesis-facing place cites any of the four rows** (§1 roll/pitch and camera-dataset RTF; §2 P2 latencies; §11 ceiling effect size; §14 timing), and **none makes a ceiling-vs-`dsn` transition comparison** (T3 pools blank-floor flights, not transition). Nothing to label. The label and the "never unaffected" rule are now in `methodology_definitions_draft.md`; `numbers.md` §9's last bullet replaced (old bullet verbatim in the superseded block) |
+| 10 | show the early S-A4 flags as not applicable / not scored, footnoting METHODOLOGY with file:line; raw entries in the appendix | T7: UKF (a) run 1 "S-A4 not applicable ‡", FGO (b) run 1 "S-A4 not scored ‡"; the footnote quotes METHODOLOGY.md:11490 and :11827 verbatim (a build-time check reads those two lines). A2: the raw entries ("A4 FAIL (score file: rearmed_after_disarm null) ‡", note: one LAND entry, no disarm recorded), with a check against the two score files |
+| §10 | correct the stale heading | `numbers.md` §10 now "Phase 4 pre-registered values (the results are in §6.6)"; old heading and paragraph verbatim in "Superseded by the rulings of 2026-10-16 (open items)" |
+
+**Cross-check after these items: 128/128 match** (was 123; +2 T2, +2 T5, +1 A2; the T7 raw-entry check moved to A2 and
+was replaced in T7 by the METHODOLOGY-line check).
+
+## Closed by the earlier rulings of 2026-10-16 (pending items and captions, M:14176-14196)
 
 | # | item | ruling | what was done |
 |---|---|---|---|
@@ -23,7 +37,7 @@ Tier 2 items, two are CLOSED (items 5 and 8), one was already ruled (item 11), a
 | — | The 24 internal-code families in captions | captions item | removed from the figure and table captions, table notes and cells and both PDFs' caption text in the same pass; sources kept in `figures_thesis/index.md`. Residual hits: see the handover |
 | — | `worlds_combined.pdf` citing the old figure numbers | (done earlier, commit `25e3b2b`) | regenerated again in this stage with the caption fixes |
 
-## Still open (thesis-facing; each needs a ruling or an action)
+## Formerly open (thesis-facing) — ALL CLOSED 2026-10-16 (table above); kept as listed before the ruling
 
 | # | where | what | ruling needed: question and options |
 |---|---|---|---|
@@ -33,7 +47,7 @@ Tier 2 items, two are CLOSED (items 5 and 8), one was already ruled (item 11), a
 | 10 | `T7_failure_behaviour.md` (the ‡ marks, formerly ⚑) | S-A4 shows FAIL in two early score files (UKF (a) run 1, FGO (b) run 1). METHODOLOGY calls these not applicable or not scored (M:11490, M:11827): scorer artefacts | Show S-A4 as (a) "not applicable / not scored", following METHODOLOGY; or (b) "FAIL in the score file", with the footnote, as now |
 | 11 | `numbers.md` §18; M:13300 | The questions the partial attribution study did not answer | **Already ruled "listed in the thesis"** (M:13300); now on `docs/thesis/limitations.md`, item 2. No ruling needed |
 
-**Documentation, not a ruling (still open):** `numbers.md` §10 is headed "results still running" and says "No Phase 4
+**Documentation, not a ruling (CLOSED 2026-10-16):** `numbers.md` §10 is headed "results still running" and says "No Phase 4
 results exist". It is stale, because §6.6 has them.
 
 **Out of the thesis list (real-flight plan only):** the rung-1 first-leg length (3 m if the capture volume allows the 2 m

@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16)
 
-Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (figures, then the tables rendered as pages, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables T1–T8 are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `e727416` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (figures, then the tables rendered as pages, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables T1–T8 are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Revision 2026-10-16.** F1 (`F1_scorecard`) became table T1; F3 (`F3_accuracy_without_and_with_heading`) became table T2; F4 (`F4_blank_floor_flow_loss`) became table T3; F8 (`F8_H_tag_loss_drift`) became table T5. The old figure files are removed from this folder; they remain in the git history (commit `7778cd6`, `git show 7778cd6:docs/thesis/figures_thesis/<name>.png`). F2 is now one panel (the heading-error panel moved to table T4); F6 is the time trace only (the per-flight RMSE moved to table T6); F5 and F7 are unchanged. T7 (failure behaviour) and T8 (hindsight ratio) are new.
 
@@ -15,18 +15,18 @@ Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/v
 | F6 | figure | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m | CURRENT | 4/4 | none needed |
 | F7 | figure | `F7_L_loop_closure.png`, `F7_L_loop_closure.pdf` | Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps | CURRENT | 5/5 | none needed |
 | T1 | table | `T1_scorecard.md`, `T1_scorecard.tex` | Which estimator wins where (scorecard of the restated verdicts) | CURRENT | 16/16 | none needed (table) |
-| T2 | table | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex` | Position error without and with the camera heading (textured floor) | CURRENT | 10/10 | none needed (table) |
+| T2 | table | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex` | Position error without and with the camera heading (textured floor) | CURRENT | 12/12 | none needed (table) |
 | T3 | table | `T3_blank_floor.md`, `T3_blank_floor.tex` | Blank floor: position error after the loss of flow aiding | CURRENT | 6/6 | none needed (table) |
 | T4 | table | `T4_closed_loop.md`, `T4_closed_loop.tex` | Closed loop at half real-time (RTF 0.5): the final build of each estimator flying the vehicle | CURRENT | 9/9 | none needed (table) |
-| T5 | table | `T5_H_tag_loss_drift.md`, `T5_H_tag_loss_drift.tex` | Experiment H: drift while the wall tag is hidden, flying estimators | CURRENT | 6/6 | none needed (table) |
+| T5 | table | `T5_H_tag_loss_drift.md`, `T5_H_tag_loss_drift.tex` | Experiment H: drift while the wall tag is hidden, flying estimators | CURRENT | 8/8 | none needed (table) |
 | T6 | table | `T6_O_indoor_rmse.md`, `T6_O_indoor_rmse.tex` | Experiment O: indoor horizontal RMSE per flight (123 s, GNSS off) | CURRENT | 7/7 | none needed (table) |
 | T7 | table | `T7_failure_behaviour.md`, `T7_failure_behaviour.tex` | Failure behaviour: blank-floor validity, the O return jump and the safety tests | CURRENT | 9/9 | none needed (table) |
 | T8 | table | `T8_hindsight_ratio.md`, `T8_hindsight_ratio.tex` | Hindsight: the FGO whole-flight batch against the RTS-smoothed UKF | CURRENT | 6/6 | none needed (table) |
 | A1 | appendix | `A1_closed_loop_builds.png` | Closed loop: every flown build against B1–B5 and the contact window | CURRENT | 8/8 | none needed (table) |
-| A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p3.png` | H hold sets and the safety tests (all runs) | CURRENT | 17/17 | none needed (table) |
+| A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p3.png` | H hold sets and the safety tests (all runs) | CURRENT | 18/18 | none needed (table) |
 | A3 | appendix | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p2.png` | F1, the L compute cost and the build ablations | CURRENT | 8/8 | none needed (table) |
 
-**Total: 123/123 checks match** (a check repeated in two items is counted in each).
+**Total: 128/128 checks match** (a check repeated in two items is counted in each).
 
 **Last-digit rounding matches (accepted, as in the pack):** T FGO batch A–D (m): file `0.010–0.028`, numbers.md `0.011–0.028`; O H-O2 live max/min ratio; largest = EKF3 in every flight: file `1.71–1.84; True`, numbers.md `1.72–1.84; True`; L live with / without loop closure (m): file `0.049–0.076 / 0.263–0.361`, numbers.md `0.049–0.076 / 0.262–0.361`; T 8 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.039 0.037 0.020 0.014 0.010`, numbers.md `0.039 0.037 0.020 0.014 0.011`; T 2 tags: EKF3 / UKF / FGO live / RTS-UKF / FGO batch (m): file `0.074 0.076 0.054 0.039 0.019`, numbers.md `0.074 0.076 0.053 0.039 0.019`; L nolc live overall (m): file `0.263–0.361`, numbers.md `0.262–0.361`; P-T4 max/min ratio A / B / C / D: file `1.31 / 2.14 / 2.06 / 3.89`, numbers.md `1.31 / 2.14 / 2.07 / 3.89`; T FGO batch A–D (m): file `0.010 / 0.015 / 0.019 / 0.028`, numbers.md `0.011 / 0.015 / 0.019 / 0.028`; O batch FGO vs cap-free RTS-UKF ratio, max/min per flight: file `1.01–1.05`, numbers.md `1.02–1.05`.
 
@@ -118,11 +118,12 @@ Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/v
 
 - **Caption:** Without a heading source all three drift by metres and no ordering is claimed; with the camera heading the UKF and the FGO stay within 0.25 m, the FGO lower on all 6 bags (C0). The Phase 5 decomposition attributes metres of cross-track to each estimator's own heading error without the heading, and centimetres with it.
 - **Inputs:** eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); dsn_paired_test.json; phase4_{fwdc,fwdplainc}_evo.json, cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m)
-- **numbers.md rows:** §6.1, §6.4, §6.6; claims 1a, 1b, 2, 5, 7
-- **Not cross-checkable:** Phase 5 decomposition column: JSON only, no numbers.md row (§6.3 'NOT RESTATED')
+- **numbers.md rows:** §6.1, §6.3 (Phase 5 decomposition), §6.4, §6.6; claims 1a, 1b, 2, 5, 7
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
+| Phase 5 |heading-driven cross-track| fwdc_tex r1/r2/r3, EKF3 | UKF | FGO without heading (m) | `36.276 / 29.508 / 36.070 | 45.980 / 3.171 / 46.120 | 41.002 / 8.630 / 42.121` | `36.276 / 29.508 / 36.070 | 45.980 / 3.171 / 46.120 | 41.002 / 8.630 / 42.121` | numbers.md §6.3 Phase 5 decomposition row | yes |
+| Phase 5 |heading-driven cross-track| fwdc_tex r1/r2/r3, UKF | FGO with heading (m) | `0.065 / 0.064 / 0.068 | 0.065 / 0.063 / 0.067` | `0.065 / 0.064 / 0.068 | 0.065 / 0.063 / 0.067` | numbers.md §6.3 Phase 5 decomposition row | yes |
 | dsn_tex median r1–r9 EKF3 / UKF / FGO (m) | `4.10 / 5.13 / 4.46` | `4.10 / 5.13 / 4.46` | numbers.md §6.1 standing row | yes |
 | dsn_tex mean r1–r3 EKF3 / UKF / FGO (m) | `4.00 / 3.59 / 3.44` | `4.00 / 3.59 / 3.44` | numbers.md §6.1; claim 1a | yes |
 | dsn_tex UKF r1–r9 range (m) | `1.17–5.85` | `1.17–5.85` | numbers.md §6.1 D15 wording row | yes |
@@ -171,12 +172,13 @@ Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/v
 
 - **Caption:** Holding on a wall tag, every flying estimator drifts at most about 3 cm while the tag is hidden, inside every pre-registered band, and none locks out; each cell gives the maximum drift / its band in mm, with the range over the losses. The comparative criteria (H-H2, P-H3, H-H4) FAIL on these final-build sets, identical to the original-build verdicts (superseded builds: Table A2), so no ordering is claimed. The FGO safety re-tests (v4) used the NEW initial priors, while the flown FGO hold (S3v2) and corridor (v3) results used the OLD priors.
 - **Inputs:** eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s3v2_r*.json (losses[*].<est>.effective.drift_m, drift_end_m, lockout)
-- **numbers.md rows:** §17 (S1 table, P-H5, P-H7), §17.1 (S2v2, S3v2), §17.2; claims 25, 26
-- **Not cross-checkable:** S1-far EKF3 drifts (3 of the 6 EKF3 flights): METHODOLOGY only, no numbers.md row
+- **numbers.md rows:** §17 (S1 table, S1 far row, P-H5, P-H7), §17.1 (S2v2, S3v2), §17.2; claims 25, 26
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
 | S1 EKF3 flying drift 5/15/30/move (mm, effective) | `13–27 | 6–25 | 3–11 | 7–31` | `13–27 | 6–25 | 3–11 | 7–31` | numbers.md §17 table | yes |
+| S1 far EKF3 flying drift r1 | r2 | r3b, 5 s/15 s/30 s/move (mm, effective) | `15/12/3/4 | 17/12/26/20 | 11/17/11/13` | `15/12/3/4 | 17/12/26/20 | 11/17/11/13` | numbers.md §17 S1 far row (ruling 2026-10-16, open items 7) | yes |
+| S1 far EKF3 flying drift r1 | r2 | r3b, 5 s/15 s/30 s/move (mm, end of loss) | `15/10/3/7 | 19/12/26/23 | 12/17/11/16` | `15/10/3/7 | 19/12/26/23 | 12/17/11/16` | numbers.md §17 S1 far row (ruling 2026-10-16, open items 7) | yes |
 | S2v2 UKF flying end-of-loss drift r1/r2/r3 (mm) | `5/7/8 | 19/7/26 | 6/10/10 | 26/4/5` | `5/7/8 | 19/7/26 | 6/10/10 | 26/4/5` | numbers.md §17.1 table | yes |
 | S3v2 FGO flying end-of-loss drift r1/r2/r3 (mm) | `13/20/17 | 7/25/27 | 22/15/9 | 17/11/18` | `13/20/17 | 7/25/27 | 22/15/9 | 17/11/18` | numbers.md §17.1 table | yes |
 | effective vs end-of-loss drift, max |Δ| at printed (mm) precision | `≤ 5 mm` | `≤ 5 mm` | numbers.md §17.1 ('differ by ≤ 5 mm'); unrounded 5.1 mm (S2v2 r1, move loss) | yes |
@@ -207,7 +209,7 @@ Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/v
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| S-A4 FAIL in the early score files (no disarm recorded: rearmed_after_disarm null) | `safety_ukf_a: None, safety_fgo_b: None` | `safety_ukf_a: None, safety_fgo_b: None` | eval/results/expH/safety_ukf_a.json, safety_fgo_b.json; METHODOLOGY L11490 ('S-A4: not applicable (an (a) run)'), L11827 ('S-A4: not scored (no touchdown)') | yes |
+| METHODOLOGY.md:11490 and :11827 (the S-A4 reasons quoted in T7) | `- **S-A4:** not applicable (an (a) run). | - **S-A4:** not scored (no touchdown). One LAND entry, no conflict between the two paths.` | `- **S-A4:** not applicable (an (a) run). | - **S-A4:** not scored (no touchdown). One LAND entry, no conflict between the two paths.` | METHODOLOGY.md lines 11490, 11827 (read at build time) | yes |
 | EKF3 blank invalid (s of cruise); valid airborne flow frames | `301–310; max 0` | `301–310; max 0` | numbers.md §6.2 | yes |
 | O largest step in 10 s after return EKF3 / UKF / FGO live (m) | `4.10–4.10 / 2.30–2.44 / 2.14–2.28` | `4.10–4.10 / 2.30–2.44 / 2.14–2.28` | numbers.md §16.2 table | yes |
 | UKF (b) v2 / v3 S-A2 delay (s), verdict | `5.75 / 5.69, FAILED AS WORDED / FAILED AS WORDED` | `5.75 / 5.69, FAILED AS WORDED / FAILED AS WORDED` | numbers.md §15 history row (v2) and safety row (v3, final) | yes |
@@ -274,6 +276,7 @@ Built by `eval/figs_thesis.py` at commit `bf97f66` (run with `/home/makerspace/v
 | P-H3 max/min, final-build / superseded | `2.40–2.58 / 2.37–2.43` | `2.40–2.58 / 2.37–2.43` | numbers.md §17.2 criteria table | yes |
 | H-H4 (5 s) max/min, final-build / superseded | `3.2–7.7 / 3.4–5.9` | `3.2–7.7 / 3.4–5.9` | numbers.md §17.2 criteria table | yes |
 | final safety runs: drift to touchdown UKF (a) v3 / UKF (b) v3 / FGO (a) v4 / FGO (b) v4 (m) | `0.58 / 1.07 / 1.45 / 0.21` | `0.58 / 1.07 / 1.45 / 0.21` | numbers.md §15 safety row (final runs, restated 2026-10-16) | yes |
+| raw S-A4 entries in the early score files (PASS, n_land_entries_after_t_f, rearmed_after_disarm) | `safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None` | `safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None` | eval/results/expH/safety_ukf_a.json, safety_fgo_b.json (the score files) | yes |
 
 ### A3 (appendix): F1, the L compute cost and the build ablations
 
