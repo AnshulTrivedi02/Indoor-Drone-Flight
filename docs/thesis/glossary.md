@@ -71,18 +71,18 @@ Counts are of distinct terms (codes or labels). A term can appear in more than o
 
 | Category | Defined | Undefined | Conflicting |
 |---|---:|---:|---:|
-| 1. Experiments, studies, stages and phases | 111 | 0 | 13 |
+| 1. Experiments, studies, stages and phases | 111 | 0 | 14 |
 | 2. Trial, dataset, batch and results naming | 205 | 23 | 15 |
-| 3. Hypothesis, prediction, criterion, check, item and question codes | 214 | 11 | 71 |
-| 4. Estimator, build, binary and branch labels | 87 | 18 | 7 |
+| 3. Hypothesis, prediction, criterion, check, item and question codes | 216 | 13 | 71 |
+| 4. Estimator, build, binary and branch labels | 94 | 18 | 7 |
 | 5. Worlds and models | 78 | 1 | 0 |
-| 6. Parameters, parameter files and log messages | 135 | 0 | 0 |
+| 6. Parameters, parameter files and log messages | 137 | 1 | 0 |
 | 7. Metrics and units | 37 | 1 | 2 |
 | 8. Rulings, standing rules and status labels | 84 | 13 | 21 |
 | 9. Scripts (tools/ and eval/) | 258 | 10 | 0 |
-| **Total (category rows summed)** | 1209 | 77 | 129 |
+| **Total (category rows summed)** | 1220 | 80 | 130 |
 
-Distinct terms overall: 1209 defined, 77 undefined, 129 with conflicting meanings. Verified source records: 2168.
+Distinct terms overall: 1220 defined, 80 undefined, 130 with conflicting meanings. Verified source records: 2185.
 
 
 ## Trial-name grammar (summary)
@@ -143,7 +143,7 @@ defines the token was found.
   - `fgo_groundtest_half[_b]`
   - `ukf_groundtest_{p3,hdg_v3}`
   - `H_gt_{ukf,fgo}[_far]`
-- **Collision:** `gt_` means ground TEST in these names (M 5737), but "GT" means ground truth everywhere else.
+- **Possible collision:** `gt_` means ground TEST in these names (M 5737). The bare abbreviation "GT" is used elsewhere with no written expansion (see glossary_flags §a).
 - **Shadows:**
   - `ukf_shadow_sitl_tex[_p2|_d5|_d15]`, where the suffixes are precondition P2, ruling D5 and ruling D15
   - `ukf_shadow_hdg_v2`
@@ -278,8 +278,9 @@ defines the token was found.
 
 - [Experiment T conditions (tag count)] "| B, corners | `0,1,2,3` | 4 | ≈ 10–11 s (**straddles EKF3's 10 s timeout**: its timeout state is logged per gap as a covariate) |" — `METHODOLOGY.md:10119` — note: T condition; flights named T_<cond>_r<n>; table header at line 10116
 
-### `B0`
+### `B0` — **CONFLICT: 2 meanings** (see flags §b)
 
+- [FGO initial prior keys] "`BatchFixedLagSmoother(0.25 s, LM max 2 iterations)`, `make_pim_params`, the X0/V0/B0 priors, the" — `docs/fgo_cpp_port.md:59` — note: B0 = FGO bias prior key; clashes with watcher bench test B0
 - [watcher bench tests (§7.2 B0–B13 and SITL variants)] "**B0. Control: everything up, so arming succeeds.**" — `docs/real_flights_plan.md:479`
 - [watcher bench tests (§7.2 B0–B13 and SITL variants)] "- B0: control;" — `docs/handovers/2026-10-10_flow_rule_watcher_bench.md:87` — note: pre-registration summary B0–B10
 - [watcher bench tests (§7.2 B0–B13 and SITL variants)] "| **B0** | Ground. Watcher running (D1), deps alive. Flight script requests arming in GUIDED. | Script logs "Safety watcher confirmed before arming" AND the FC arms within 60 s; no other pre-arm failure. Recorded: the watcher's MAVLink heartbeat count from system ID 211. |" — `docs/handovers/2026-10-11_watcher_sitl_bench.md:69`
@@ -1398,7 +1399,7 @@ defines the token was found.
 
 ### `gt_`
 
-- [ground tests (gt_ / _groundtest)] `gt_ (gt_heading_*)` "### Closed-loop Part 1: SITL ground test run 1, `gt_heading_1` (2026-09-29): G4 STOP (latency above the horizon)" — `METHODOLOGY.md:5737` — note: COLLISION: "gt_" = ground test here; "GT" means ground truth everywhere else (e.g. /ground_truth/pose)
+- [ground tests (gt_ / _groundtest)] `gt_ (gt_heading_*)` "### Closed-loop Part 1: SITL ground test run 1, `gt_heading_1` (2026-09-29): G4 STOP (latency above the horizon)" — `METHODOLOGY.md:5737` — note: COLLISION: "gt_" = ground test here; the bare abbreviation "GT" is used elsewhere with no written expansion (see flags §a)
 
 ### `gt_heading_2 / gt_heading_3`
 
@@ -2175,6 +2176,10 @@ defines the token was found.
 - [UKF port equivalence bands] "| E5 | gate decisions (flow X/Y, range, yaw-pseudo firings) | **≥ 99.9% identical**; accepted counts equal to within 0.1% | Decisions compare a test ratio with 1, so a round-off-level difference can flip only near-threshold ties. |" — `METHODOLOGY.md:5471`
 - [UKF port equivalence bands] "- E5, for each of `FXa`, `FYa`, `Ra`: the increment over the paired span [first pair, last pair], taken from the" — `docs/u10_replay_gate_band.md:235` — note: replay-gate increment form of E5; the cumulative form FAILED AS WORDED and the increment form was accepted post hoc (METHODOLOGY.md:13779, 13800)
 
+### `EK3` — **UNDEFINED** (see flags §a)
+
+- [parameter prefixes] *(used, not defined here)* "| `gnss_denied.parm` | GNSS-denied EK3 source config — the standing baseline for EKF3/UKF/FGO comparison |" — `PROGRESS.md:1197` — note: ArduPilot EKF3 parameter prefix; no project definition
+
 ### `F3d` — **UNDEFINED** (see flags §a)
 
 - [offline tests (F-tests)] *(used, not defined here)* "job: f3u_fwdc_tex_r1_10 cd /home/makerspace/thesis_ws && OPENBLAS_NUM_THREADS=1 F_TAG=F3d10 F_YAW0_DEG=10 F_HDG_FROM_CRUISE=1 nice -n 10 /home/makerspace/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_tex_r1 heading" — `docs/handovers/2026-10-09_final_rerun_dryrun.txt:231` — note: run tag of the F3 injected-yaw replays (F3d10/30/60/90); no prose definition
@@ -2354,7 +2359,7 @@ defines the token was found.
 
 ### `GT` — **UNDEFINED** (see flags §a)
 
-- [abbreviations] *(used, not defined here)* "- **The flow sensor itself** (measured forward flow ÷ flow predicted from GT through the shared" — `METHODOLOGY.md:3552` — note: never expanded; ground truth is defined in CLAUDE.md "Ground Truth Bridging"
+- [abbreviations] *(used, not defined here)* "- **The flow sensor itself** (measured forward flow ÷ flow predicted from GT through the shared" — `METHODOLOGY.md:3552` — note: never expanded in writing (no inference made)
 
 ### `H1` — **CONFLICT: 3 meanings** (see flags §b)
 
@@ -2521,6 +2526,10 @@ defines the token was found.
 - [open items (OI)] "## OPEN ITEM OI-2 — IMU timestamp asymmetry between estimators (fairness)" — `METHODOLOGY.md:1193`
 - [open items (OI)] "### 3.2 IMU timestamp asymmetry (OI-2) and the dejitter ruling" — `docs/thesis/methodology_index.md:379` — note: "OI-2 dejitter" = the adopted remedy
 - [open items (OI)] "- **OI-2 residual:** the sensor-time IMU shift is not adopted. `/imu/time_ref`" — `METHODOLOGY.md:1177`
+
+### `P0` — **UNDEFINED** (see flags §a)
+
+- [initial covariance] *(used, not defined here)* "- **Method:** `eval/diag/ukf_jitter_fix/cpp_free_inertial.py` exports the same 12.5 ms bins, initial state and P0" — `docs/handovers/2026-10-09_ukf_jitter_fix.md:72` — note: used without definition
 
 ### `P1` — **CONFLICT: 6 meanings** (see flags §b)
 
@@ -3048,6 +3057,10 @@ defines the token was found.
 
 - [UKF-only no-hardware TODO items (copter plan §4.3)] "| U-l | Optional: a separate `AP_NAVFGO_ENABLED` flag (a UKF-only build drops ~5 kB flash, ~15 kB RAM) | 0.25 d | optional | no |" — `docs/realflight_plan_copter.md:218`
 
+### `U-m`
+
+- [UKF-only no-hardware TODO items (copter plan §4.3)] "| U-m | Firmware build ready (`tools/build_board_fw.sh`) | 0 d | **DONE** (§6) | — |" — `docs/realflight_plan_copter.md:219` — note: found by inventory closure
+
 ### `UA1`
 
 - [H backends UKF tier A equivalence bands] "| UA1 | 3-D position difference, every event | **max ≤ 1 mm** |" — `docs/h_backends_tag_input.md:46` — note: tier A (port harness on the offline UKF event stream) bands
@@ -3126,6 +3139,10 @@ defines the token was found.
 
 - [abbreviations] *(used, not defined here)* "heading** from the corridor vanishing point (LSD + RANSAC, per-frame confidence, "no measurement" near the end wall) and **yaw rate** from horizontal forward flow near the VP. Validated heading: textured walls 9/9, plain walls on blank/transition floors; fails plain walls over a checker floor. Yaw rate: textured walls ..." — `CLAUDE.md:157` — note: "VP" follows "vanishing point" but is never formally expanded
 
+### `X0`
+
+- [FGO initial prior keys] "`BatchFixedLagSmoother(0.25 s, LM max 2 iterations)`, `make_pim_params`, the X0/V0/B0 priors, the" — `docs/fgo_cpp_port.md:59` — note: found by inventory closure
+
 ### `X1` — **CONFLICT: 2 meanings** (see flags §b)
 
 - [m2 full-bench cross-checks] "- **In-flight tests:** no change expected. **New cross-check X1:** in every session, no watcher withdrawal whose" — `docs/handovers/2026-10-12_m2_full_bench.md:106` — note: conflicts with r1 scorer regression X1
@@ -3144,6 +3161,10 @@ defines the token was found.
 
 - [installed-binary md5 tags] "**The exact binary (recorded before P3):** `~/ardupilot_ukf/build/sitl/bin/arducopter`, md5 ... `2d631fa702ffdf77f50d996ff287abe4`." — `METHODOLOGY.md:7400`
 
+### `3c3b62bb`
+
+- [installed binary md5 / build tags] "**The binary.** Port `ukf-jitter-fix` = `replay-rukx` `f30f6ffa2f`, installed 2026-10-12 as Replay `3c3b62bbe51d515b6ff0789a19fe1136` [V]." — `docs/u10_replay_gate_band.md:37` — note: installed Replay binary md5
+
 ### `4c07374b`
 
 - [installed-binary md5 tags] "- **`fgo_cpp_node` `f642cd37…` → `4c07374b5c18ce1eda556d5bb9ad0768`**;" — `docs/handovers/2026-10-11_bandc_forced_install_safety.md:61`
@@ -3152,6 +3173,18 @@ defines the token was found.
 
 - [installed-binary md5 tags] "- **Flights:** `cl_a_tex_half` (EKF3, stock tree md5 `43a2165a…`) and `cl_ukf_a_tex_half` (UKF=1, port ... `1acfca00` md5 `fa440748…`)." — `METHODOLOGY.md:8016` — note: stock tree (EKF3) and UKF port 1acfca00 md5 fa440748
 
+### `98d448f60e83`
+
+- [file checksums] "- The file now matches the committed and batch-commit (`7a90e81`) content byte for byte (md5 `98d448f60e83` for all three)." — `METHODOLOGY.md:5126` — note: md5 of a patched file, not a binary
+
+### `0156bfc34e`
+
+- [installed binary md5 / build tags] "| **Board firmware** for H743 (2a) | `~/ardupilot_ukf` `board-h743` `0156bfc34e` (NOT merged) | MatekH743 and Pixhawk6X built with the backends: 134,692 / 267,348 B free; 0 warnings; SITL byte-identical; TFAIL arming refusal (incl. force-arm) compiled in but **untested** (bench P5) [V] |" — `docs/realflight_plan_copter.md:63` — note: board-h743 commit; .apj git_identity 0156bfc3
+
+### `447f8036`
+
+- [installed binary md5 / build tags] "- `arducopter` md5 `447f8036…` (version string `eb86bada`);" — `docs/h_backends_tag_input.md:412` — note: arducopter md5 (version string eb86bada)
+
 ### `8677e30a`
 
 - [installed-binary md5 tags] "- **attempt 2 built** (1 m 37 s for `waf copter`): `.apj` md5 `8677e30a…`, `git_identity 0156bfc3`, `board_id` 1048," — `docs/realflight_plan_copter.md:334`
@@ -3159,6 +3192,10 @@ defines the token was found.
 ### `28636bf9`
 
 - [installed-binary md5 tags] "- **NOT installed:** `fgo_cpp_node` stays `f642cd37`; the scratch build is `28636bf9`." — `METHODOLOGY.md:13631`
+
+### `91486aa4`
+
+- [installed binary md5 / build tags] "`~/thesis_data/fw_builds/MatekH743_with_6e7c3736_20261012_173243/`, apj md5 `91486aa4c633570cc74d6513d4100edd`):" — `docs/handovers/2026-10-12_u10_g5_audit_rebase.md:148` — note: MatekH743 .apj md5
 
 ### `1123742d`
 
@@ -3205,6 +3242,10 @@ defines the token was found.
 - [FGO build versions] "## 5. FGO SITL safety re-tests v4 (short verification flights, `tools/run_fgo_refly.sh sa4 sb4`): ALL PASS" — `docs/handovers/2026-10-11_bandc_forced_install_safety.md:73` — note: v4 = node 4c07374b, NEW (D18) initial priors
 - [FGO build versions] "- **Caption:** Experiment H sets (S1, S1 far, S2/S2v2, S3/S3v2) with hold error, drift, lockouts and the P-H5 bands, and every safety-test run with its as-worded verdict, including the v3 (UKF) and v4 (FGO, NEW priors) re-tests (replaces pack F15b)." — `docs/thesis/figures_thesis/index.md:254` — note: written "v4 (FGO, NEW priors)"
 - [re-flight version suffixes _v<N>] "# sa4 sb4 H_safety_fgo_{a,b}_v4 (2d, 2026-10-11: as sa/sb, D18-corrected node)" — `tools/run_fgo_refly.sh:7`
+
+### `a1f67e7d`
+
+- [installed binary md5 / build tags] "- **Against `rung1-geometry` `16535f9a29`** (the previous stage's stored outputs, Replay `a1f67e7d`). These logs carry" — `docs/board_firmware_plan.md:169` — note: Replay md5 of the rung1-geometry stage
 
 ### `abb0357d`
 
@@ -3314,6 +3355,10 @@ defines the token was found.
 ### `ea486dea`
 
 - [installed-binary md5 tags] "`eval/results/expH/ukf_tag_tierB_H_s1_r1.json`; Replay binary md5 `ea486dea…` (`ukf-port-tag`)." — `docs/h_backends_tag_input.md:299`
+
+### `ecc683b2`
+
+- [installed binary md5 / build tags] "- The binaries are installed at `~/opt/fgo_cpp/bin`. md5 of `fgo_cpp_node`: `ecc683b2773a7dd6fde3c9f96d2573dd`." — `docs/handovers/2026-10-08_fgo_cpp_stage5_sitl_flights.md:43` — note: md5 of fgo_cpp_node
 
 ### `EKF` — **UNDEFINED** (see flags §a)
 
@@ -4517,9 +4562,21 @@ defines the token was found.
 - [log messages] "// @LoggerMessage: XKV1 ... // @Description: EKF3 State variances (primary core)" — `~/ardupilot/libraries/AP_NavEKF3/LogStructure.h:380`
 - [log messages] "own logged quaternion covariance (`XKV1.V00..V03 = P[0][0..3]`) sits at **median" — `METHODOLOGY.md:922`
 
+### `XKV1.V00..V03`
+
+- [log messages] "own logged quaternion covariance (`XKV1.V00..V03 = P[0][0..3]`) sits at **median" — `METHODOLOGY.md:922` — note: XKV1 covariance fields: quaternion covariance P[0][0..3]
+
+### `XKV1.V08` — **UNDEFINED** (see flags §a)
+
+- [log messages] *(used, not defined here)* "- UKF: its own P. EKF3: `XKV1` V08, as in `plots/ekf3_state_diagnostic.py`." — `METHODOLOGY.md:3708` — note: field used; its meaning is not stated at this line
+
 ### `XKV2`
 
 - [log messages] "// @LoggerMessage: XKV2 ... // @Description: more EKF3 State Variances (primary core)" — `~/ardupilot/libraries/AP_NavEKF3/LogStructure.h:397`
+
+### `XKV2.V13–V15`
+
+- [log messages] "- `dsn_tex_r1` XKV2 (60–300 s, 480 samples): accel-bias variance V13/V14 median 4.38e-7 (σ 52.9 mm/s²) and V15" — `docs/handovers/2026-10-09_model_audit.md:193` — note: accel-bias variance fields
 
 ### `XUK*`
 

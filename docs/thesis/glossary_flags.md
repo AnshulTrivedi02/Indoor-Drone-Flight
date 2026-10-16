@@ -85,7 +85,7 @@ The codes most likely to mislead a reader of the thesis. Every meaning, with its
 10. **Trial-name tokens.**
     - **`_a`/`_b`:** heading off/on in `cl_` and the shadows, but failure-injection variants in `H_safety_`.
     - **`_v2`/`_v3`:** different builds for the UKF and the FGO, and D17 validation steps in `ukf_shadow_hdg_v2`/`ukf_groundtest_hdg_v3`.
-    - **`gt_`:** ground *test*, while **GT** means ground truth.
+    - **`gt_`:** defined as ground *test* (METHODOLOGY 5737). The bare abbreviation **GT** is used throughout with no written expansion (§a), so the two can be read as the same thing.
     - **`_p2`/`_p3`:** D9 preconditions, not phases.
     - **`_half`:** half *real-time factor*, not half speed of flight.
     - **`abort2`:** attempt 3.
@@ -125,6 +125,7 @@ Terms used in the project with no written definition found anywhere in scope. No
 | `d17_v1` | Trial, dataset, batch and results naming | `~/thesis_data/d17_v1/cl_bcpp_tex_r1`; `~/thesis_data/d17_v1`; `docs/h_backends_tag_input.md:135` |
 | `d17_v2` | Trial, dataset, batch and results naming | `docs/handovers/2026-10-12_r1_scoring_items.md:107`; `docs/handovers/2026-10-12_r1_scoring_items.md:107` |
 | `eeprom_backups / fw_builds` | Trial, dataset, batch and results naming | `~/thesis_data/fw_builds/KakuteH7_with_0156bfc3_20261012_014453_FAILED_nested_submodules` |
+| `EK3` | Hypothesis, prediction, criterion, check, item and question codes | `PROGRESS.md:1197` |
 | `EKF` | Estimator, build, binary and branch labels | `CLAUDE.md:5` |
 | `eval/diag/fgo_tilt_trace/spec.py` | Scripts (tools/ and eval/) | `eval/diag/fgo_tilt_trace/spec.py:1` |
 | `eval/diag/fgo_tilt_trace/tilt.py` | Scripts (tools/ and eval/) | `eval/diag/fgo_tilt_trace/tilt.py:1` |
@@ -160,6 +161,7 @@ Terms used in the project with no written definition found anywhere in scope. No
 | `O2` | Hypothesis, prediction, criterion, check, item and question codes | `METHODOLOGY.md:10360` |
 | `O3` | Hypothesis, prediction, criterion, check, item and question codes | `METHODOLOGY.md:10362` |
 | `offline UKF` | Estimator, build, binary and branch labels | `METHODOLOGY.md:8860` |
+| `P0` | Hypothesis, prediction, criterion, check, item and question codes | `docs/handovers/2026-10-09_ukf_jitter_fix.md:72` |
 | `p2_d15 / p3 / v2 / v3` | Trial, dataset, batch and results naming | `~/thesis_data/batches/p2_d15.log`; `~/thesis_data/batches/p3.log`; `~/thesis_data/batches/v2.log` |
 | `P5b` | Hypothesis, prediction, criterion, check, item and question codes | `docs/thesis/final_restatement_draft.md:72`; `docs/thesis/rerun_old_vs_new.md:1013` |
 | `PENDING` | Rulings, standing rules and status labels | `METHODOLOGY.md:3196`; `docs/thesis/numbers.md:631`; `METHODOLOGY.md:14173` |
@@ -188,6 +190,7 @@ Terms used in the project with no written definition found anywhere in scope. No
 | `validation` | Trial, dataset, batch and results naming | `~/thesis_data/validation/test1_yaw`; `~/thesis_data/validation/test1_yaw_slow` |
 | `VP` | Hypothesis, prediction, criterion, check, item and question codes | `CLAUDE.md:157` |
 | `wbench sub-suffixes` | Trial, dataset, batch and results naming | `~/thesis_data/wbench/run2_hoverB_b6b.out`; `~/thesis_data/wbench/run4_hoverC_b10b.out`; `~/thesis_data/wbench/run4_m2c.out` |
+| `XKV1.V08` | Parameters, parameter files and log messages | `METHODOLOGY.md:3708` |
 
 ### Not project codes (pattern matches dropped deliberately)
 
@@ -201,6 +204,8 @@ Terms used in the project with no written definition found anywhere in scope. No
 - `F7` — "On an F7/F4 the board runs EKF3 in single precision while Replay runs it in double, so the two cannot be bit-exact. |" — `docs/minimal_real_flight_plan.md:44` — STM32F7/F4 board class; not a code
 - `L7..L99` — "| Cruise window on the nine `dsn_*` bags | ~30.0 → ~332.8 s | s | CURRENT | M:L42-L43 |" — `docs/thesis/numbers.md:59` — noise: L7–L99 are line references (M:L42 = METHODOLOGY line 42, C:L99 = CLAUDE.md line 99); L8 is the Gazebo pixel format (METHODOLOGY 1369). Not codes
 - `M7` — "- A 480 MHz Cortex-M7 in double is assumed to be 20–50× slower than the workstation core: 9× in clock, 2–5× in IPC" — `docs/board_firmware_plan.md:155` — noise: Arm Cortex-M7 MCU core, not a project code
+- `PX4` — "- This matches the standard ArduPilot/PX4↔ROS frame-conversion structure" — `CLAUDE.md:389` — noise: name of another autopilot, not a project code
+- `RC3` — "interprets RC3 as a climb-rate command, not absolute throttle). Yaw result:" — `PROGRESS.md:1031` — noise: RC input channel 3, not a project code
 - `T0` — "--window T0 T1`. It cross-correlates the high-passed flow with the RISI gyro averaged over each flow interval." — `docs/rung1_preregistration.md:411` — command-line window bounds; no definition
 - `T0` — "~/venv-fgo/bin/python eval/sensor_timing_from_log.py <log.BIN> [--truth-tum mocap_FC.tum] [--window T0 T1] --json t.json" — `docs/handovers/2026-10-10_r1_converter.md:26` — also T1 here = window end
 
@@ -341,6 +346,11 @@ The same code or label carries more than one written meaning. Every meaning is l
 - **real-flight readiness checklist rows**: "| A10 | IMU stream: `HIGHRES_IMU` 333 Hz from a real FC serial port → `imu_bridge.py` → `/imu/data_raw` + `/imu/time_ref` | needs adapting for real sensors | a (offline replay inputs), b | 333 Hz is the 0.8 × `SCHED_LOOP_RATE` cap, ..." — `docs/real_flight_readiness.md:65`
 - **rung-1 converter acceptance checks**: "| A10 | flow sign and response: `eval/sensor_timing_from_log.py --window <a sync wiggle>` | gain > 0 on both axes and peak correlation ≥ 0.5 on both; without it: NOT accepted |" — `docs/rung1_preregistration.md:356` (+1 more source(s))
 - **watcher bench amendment letters (A-series)**: "- **A10 (2026-10-12, ~11:58, after the hoverB re-run `wbench2_hoverB_20261012_114206` and hoverC; before the run it" — `docs/handovers/2026-10-12_watcher_bench_rerun.md:106`
+
+### `B0` — 2 meanings
+
+- **FGO initial prior keys**: "`BatchFixedLagSmoother(0.25 s, LM max 2 iterations)`, `make_pim_params`, the X0/V0/B0 priors, the" — `docs/fgo_cpp_port.md:59`
+- **watcher bench tests (§7.2 B0–B13 and SITL variants)**: "**B0. Control: everything up, so arming succeeds.**" — `docs/real_flights_plan.md:479` (+2 more source(s))
 
 ### `B1` — 8 meanings
 
@@ -1087,7 +1097,7 @@ They are intended for the thesis *text* (chapters, captions and the appendix cod
 | G1a–G11 | real-flight readiness checklist | **RC-G1a…RC-G11** (and RC-A…, RC-B…, RC-C…, RC-D…, RC-E…, RC-F…, RC-H… for the other readiness rows) |
 | G1–G8 | board firmware go/no-go | **BG1–BG8** |
 | G1–G5 | heading ground-test gates | **HG1–HG5** |
-| G1–G6 | backend ground-test gates (D9 P3 / D17 V3 / D19) | **GT-G1…** — or better **GTG1…**, since "GT" means ground truth |
+| G1–G6 | backend ground-test gates (D9 P3 / D17 V3 / D19) | **GTG1…** (avoid "GT-", which is used elsewhere without a written expansion) |
 | G1–G6 | H backend tag-input ground tests | **TG1–TG6** |
 | G1–G4 | Experiment T / O / H per-flight gates | **T-G1…, O-G1…, H-G1…** |
 | B1–B5 | closed-loop corridor criteria (predictions) | **CB1–CB5** |
