@@ -260,6 +260,7 @@ The former values are in the superseded section ("Former sections 6–9").
 | EKF3 lateral errV, `dsn_tex_r3` | 0.133 m/s (cross-track 40.2 m) | m/s | CURRENT | same |
 | EKF3 lateral flow innovation, airborne mean \|FIX\| (textured, check flight) | 7 (321 before; ~300–450 in every old dataset) | ×1000 rad/s | CURRENT | M: "Check flight `rgs_check_tex` — result" |
 | Rows of the former 6.3 not recomputed (FINDING 1 residual slopes, EKF3 bias-correction share, filter-consistency %, flow-residual partition, gyro-z ramp tracking) | pre-re-run values (in the superseded section); **must be recomputed before being cited** (sign fix and roll gains) | — | NOT RESTATED | — |
+| **Phase 5 decomposition: \|heading-driven cross-track\| at the end of cruise, `fwdc` textured r1 / r2 / r3** (added 2026-10-16, ruling on the open items, 6; not one of the NOT RESTATED rows above) | without heading: EKF3 36.276 / 29.508 / 36.070; UKF baseline 45.980 / 3.171 / 46.120; FGO baseline 41.002 / 8.630 / 42.121. With heading: UKF 0.065 / 0.064 / 0.068; FGO 0.065 / 0.063 / 0.067. Magnitudes of `xtrack_head_m` (the signs are in the file). **Provenance:** the file is the phase5-stage output of the FGO-only re-run (`final_rerun2` pipeline stage phase5, 2026-10-10 14:06:50–14:09:29; file mtime 14:08:20; all 126 inputs (`phase4_*_{arms,evo}.json`, `{ukf,fgo}_{baseline,heading,heading_yawrate}/timing_and_fwd.npz`, `fwd_meas/*.npz`) written ≤ 14:06:13, none rewritten later), committed in `819caab` (the FGO-only re-run's completion commit, 21:36); it postdates the final consolidated re-run (`425e824`, 05:15) | m | CURRENT (FGO-only re-run 2026-10-10) | json:phase5_analysis.json:decomposition.fwdc_tex_r*.{EKF3,UKF_baseline,FGO_baseline,UKF_heading,FGO_heading}.xtrack_head_m |
 
 ### 6.4 Forward-camera datasets, textured, evo -a (cruise)
 
@@ -349,12 +350,19 @@ The former values are in the superseded section ("Former sections 6–9").
 - **§11:** the ceiling effect size. It was computed on pre-correction `fwd*`/`fwdc` bags;
   transition `flow_y_raw` has since moved from ~71.5 to ~66.3 px/s.
 - **§14:** timing figures (see the Phase 4 timing in `phase4_*_arms.json`, which is DIAGNOSTIC).
-- **These must be recomputed on the re-flown bags before being cited.**
+- **Ruling 2026-10-16 (open items, 9):** none of these is recomputed. Thesis-facing material cites one ONLY where the text needs
+  it, labelled exactly "measured before corrections; not recomputed". **None is described as unaffected:** the roll-gain,
+  flow-sign and time-sync corrections changed flow, attitude and latency (the coordinator's "the flow measurements do not
+  depend on the estimator corrections" is WITHDRAWN). At 2026-10-16 no thesis-facing table, caption, index caption,
+  `limitations.md` or vocabulary/method draft cites any of them, and none makes a ceiling-vs-`dsn` transition comparison
+  (the standing rule for §11 would then apply, with the label). The old last bullet is in "Superseded by the rulings of
+  2026-10-16 (open items)".
 
-## 10. Phase 4 (pre-registered only; results still running)
+## 10. Phase 4 pre-registered values (the results are in §6.6)
 
-**No Phase 4 results exist in the snapshot.** The replay batch was running when this pack
-was prepared. Only pre-registered values are listed.
+The Phase 4 results (offline forward-camera fusion) are in **§6.6**, restated after the final consolidated and FGO-only
+re-runs. This section lists only the pre-registered values. The old heading and paragraph are in "Superseded by the rulings
+of 2026-10-16 (open items)".
 
 | quantity | value | units | status | source |
 |---|---|---|---|---|
@@ -607,6 +615,16 @@ Source: `eval/results/expH/` (`s0a_char.json`, `s0b_check.json`, `s1_r1..3.json`
 | ~7 s during a move | 7–31 mm | 8–19 mm | 0.5–8 mm |
 | re-lock after the first returning fix (effective) | 28–44 ms | 0 ms | 0 ms |
 | re-lock as pre-registered (OFF → fused) | 0.16–1.06 s (occluder render lag; P-H6 FAIL as worded) | same | same |
+
+| S1 far (EKF3 flying, far spawn; added 2026-10-16, ruling on the open items, 7) | drift, 5 s / 15 s / 30 s / ~7 s move (mm) | source |
+|---|---|---|
+| `H_s1far_r1`, effective / end of loss | 15 / 12 / 3 / 4; 15 / 10 / 3 / 7 | json:expH/s1far_r1.json:losses[*].EKF3.{effective.drift_m, drift_end_m}; M:12112-12117 (end of loss, r1 column) |
+| `H_s1far_r2`, effective / end of loss | 17 / 12 / 26 / 20; 19 / 12 / 26 / 23 | json:expH/s1far_r2.json (same keys); M:12112-12117 (end of loss, r2 column) |
+| `H_s1far_r3b`, effective / end of loss | 11 / 17 / 11 / 13; 12 / 17 / 11 / 16 | json:expH/s1far_r3b.json (same keys); M:12203 ("loss drift 12 / 17 / 11 / 16 mm", end of loss) |
+
+The S1 far flights are the EKF3 half of Table T5's EKF3 column (with S1 near) and the EKF3 side of the §17.2 comparatives. No
+lockout in any of the 12 losses; every drift inside the EKF3 bands (50 / 100 / 200 / 150 mm). METHODOLOGY quotes the END-of-loss
+metric; T5 uses the EFFECTIVE one (they differ by ≤ 4 mm here). Status: CURRENT (EKF3 flying; unchanged by the re-runs).
 
 No lockout in any loss (P-H7 PASS). P-H5 PASS (20/20 each estimator; new-only `s1far_r3b` 4/4).
 
@@ -1220,3 +1238,16 @@ Source: METHODOLOGY "RULINGS (user, 2026-10-16): the pending items (`docs/thesis
 | §15 intro | Textured corridor, 0.5 m/s, 300 s cruise. Full speed = `corridor_textured_fwdc`; half speed = `corridor_textured_half_fwdc` (loopback-pinned, `VISO_DELAY_MS` 25). No cross-speed comparison is claimed (D21). n = 1 per no-heading cell; closed-loop run-to-run variability is unmeasured. **All flown FGO results here (incl. `_v3`) used the OLD FGO priors (initial yaw σ 1e-3 rad, roll/pitch 2°); no re-fly before the freeze (ruling 2026-10-10, item 4).** |
 | §15 intro | **Builds flown (labels used below).** UKF: *old UKF (jitter)* = the original port (`cl_ukf_*`, full and half speed); *jitter-corrected UKF* = the re-flown half-speed set `cl_ukf_*_tex*_half_v2` (port `abb0357d`; ruling 2026-10-09: the full-speed set stays as recorded with the old model, labelled). FGO: *original FGO* = `cl_fgo_*_half` (pre-correction); ***FGO noise fix only (yaw cap ungated)*** = `cl_fgo_*_half_v2`, kept as the labelled **ABLATION** (ruling 2026-10-09); *final FGO* = `cl_fgo_*_half_v3` (noise fix + gated yaw cap, node `f642cd37…`). Every FGO flight, including `_v3`, flew the OLD initial priors. Replaced rows: "Superseded by the closed-loop re-flight restatement (2026-10-11)" at the end. |
 | §17.2 | ¦ criterion (pre-registered, `docs/tag_hold_design.md` §e) ¦ earlier sets (S2 old UKF, S3 noise-fix-only FGO), as adjudicated ¦ re-flown sets (S2v2, S3v2), computed 2026-10-11 ¦ verdict differs? ¦ |
+
+### Superseded by the rulings of 2026-10-16 (open items): text replaced; kept verbatim (cell separators shown as ¦)
+
+Source: METHODOLOGY "RULINGS (user, 2026-10-16): the open pending items". Items 6 and 7 ADD rows (§6.3 Phase 5 decomposition;
+§17 S1 far) and replace no text; the §6.3 NOT RESTATED row is unchanged (it does not list the Phase 5 decomposition). Item 9
+and the §10 correction replace the text below.
+
+| section | text (verbatim) |
+|---|---|
+| §9, "Rows … NOT recomputed", last bullet | - **These must be recomputed on the re-flown bags before being cited.** |
+| §10 heading | ## 10. Phase 4 (pre-registered only; results still running) |
+| §10 paragraph | **No Phase 4 results exist in the snapshot.** The replay batch was running when this pack |
+| §10 paragraph | was prepared. Only pre-registered values are listed. |

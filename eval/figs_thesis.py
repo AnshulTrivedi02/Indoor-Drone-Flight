@@ -556,6 +556,14 @@ save_tab("T4", "T4_closed_loop", "Closed loop at half real-time (RTF 0.5): the f
 dec = L("phase5_analysis.json")["decomposition"]
 hd = {a: [abs(dec[f"fwdc_tex_r{r}"][a]["xtrack_head_m"]) for r in (1, 2, 3)] for a in ("EKF3", "UKF_baseline", "FGO_baseline", "UKF_heading", "FGO_heading")}
 nh = [x for a in ("EKF3", "UKF_baseline", "FGO_baseline") for x in hd[a]]
+# Phase 5 decomposition: restated in numbers.md §6.3 (ruling 2026-10-16 on the open items, 6: phase5_analysis.json is the phase5-stage
+# output of the FGO-only re-run, written 2026-10-10 14:08 after that run's phase4 stage and committed in 819caab).
+check("Phase 5 |heading-driven cross-track| fwdc_tex r1/r2/r3, EKF3 | UKF | FGO without heading (m)",
+      " | ".join(" / ".join(rd(x, 3) for x in hd[a]) for a in ("EKF3", "UKF_baseline", "FGO_baseline")),
+      "36.276 / 29.508 / 36.070 | 45.980 / 3.171 / 46.120 | 41.002 / 8.630 / 42.121", "numbers.md §6.3 Phase 5 decomposition row")
+check("Phase 5 |heading-driven cross-track| fwdc_tex r1/r2/r3, UKF | FGO with heading (m)",
+      " | ".join(" / ".join(rd(x, 3) for x in hd[a]) for a in ("UKF_heading", "FGO_heading")),
+      "0.065 / 0.064 / 0.068 | 0.065 / 0.063 / 0.067", "numbers.md §6.3 Phase 5 decomposition row")
 check("dsn_tex median r1–r9 EKF3 / UKF / FGO (m)", " / ".join(f2(med[e]) for e in EST), "4.10 / 5.13 / 4.46", "numbers.md §6.1 standing row")
 check("dsn_tex mean r1–r3 EKF3 / UKF / FGO (m)", " / ".join(f2(np.mean([v for i, v in DSN[e] if i <= 3])) for e in EST), "4.00 / 3.59 / 3.44", "numbers.md §6.1; claim 1a")
 check("dsn_tex UKF r1–r9 range (m)", rng([v for _, v in DSN["UKF"]]), "1.17–5.85", "numbers.md §6.1 D15 wording row")
@@ -595,7 +603,7 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
          rowsT2, [12, 24, 20, 22, 20, 22, 34],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); dsn_paired_test.json; phase4_{fwdc,fwdplainc}_evo.json, "
          "cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m)",
-         "§6.1, §6.4, §6.6; claims 1a, 1b, 2, 5, 7",
+         "§6.1, §6.3 (Phase 5 decomposition), §6.4, §6.6; claims 1a, 1b, 2, 5, 7",
          notes=["Metric: evo -a (cruise), which aligns away a constant yaw offset (so metres, not tens of metres). No ordering is claimed "
                 f"without the heading: the pre-registered EKF3 − FGO test on flights 4–10 gives '{pt['verdict']}' (mean d {rd(pt['mean_d_m'], 3, sign=True)} m, "
                 f"95% CI [{rd(pt['t95_ci_m'][0], 3, sign=True)}, {rd(pt['t95_ci_m'][1], 3, sign=True)}] m); the former 'EKF3 beats the FGO' is WITHDRAWN; the UKF "
@@ -605,8 +613,8 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
                 "(conditional on the initial yaw σ). C0 (FGO lower than the UKF with heading) holds on 6/6, margin "
                 "0.03–0.06 m on plain walls.",
                 "Phase 5 decomposition: |cross-track| at the end of cruise driven by the estimator's own heading error, from the Phase 5 "
-                "analysis of the FGO-only re-run. It has no restated row in the results record, so this column is not cross-checked."],
-         uncheck="Phase 5 decomposition column: JSON only, no numbers.md row (§6.3 'NOT RESTATED')", fs=7.6, order=20)
+                "analysis of the FGO-only re-run (the final estimator builds)."],
+         fs=7.6, order=20)
 
 # =============================================================================================== TABLE T3 blank floor (was F4)
 check("UKF +10/+30/+60 s ranges (m)", f"{rng(BLANK['UKF'][:, 0], 1)} / {rng(BLANK['UKF'][:, 1], 1)} / {rng(BLANK['UKF'][:, 2], 0)}", "6.4–8.2 / 27.3–36.5 / 60–108", "numbers.md §6.2")
@@ -813,6 +821,10 @@ FLY = {"EKF3": (S1 + S1F, "EKF3", "EKF3 (S1 + S1 far, 6 flights)"), "UKF": (S2V,
 BAND = {"EKF3": [50, 100, 200, 150], "FGO": [50, 100, 200, 150], "UKF": [100, 200, 400, 300]}
 DR = {(est, li): drifts(FLY[est][0], FLY[est][1])[li] for est in EST for li in range(4)}
 dd_ = drifts(S1, "EKF3"); check("S1 EKF3 flying drift 5/15/30/move (mm, effective)", " | ".join(rng(x, 0) for x in dd_), "13–27 | 6–25 | 3–11 | 7–31", "numbers.md §17 table")
+for met, exp in (("eff", "15/12/3/4 | 17/12/26/20 | 11/17/11/13"), ("end", "15/10/3/7 | 19/12/26/23 | 12/17/11/16")):
+    df_ = drifts(S1F, "EKF3", met)
+    check(f"S1 far EKF3 flying drift r1 | r2 | r3b, 5 s/15 s/30 s/move (mm, {'effective' if met == 'eff' else 'end of loss'})",
+          " | ".join("/".join(rd(df_[li][i], 0) for li in range(4)) for i in range(3)), exp, "numbers.md §17 S1 far row (ruling 2026-10-16, open items 7)")
 for nm, trs, key, exp in (("S2v2 UKF", S2V, "UKF_port", "5/7/8 | 19/7/26 | 6/10/10 | 26/4/5"), ("S3v2 FGO", S3V, "FGO_flying", "13/20/17 | 7/25/27 | 22/15/9 | 17/11/18")):
     de = drifts(trs, key, "end")
     check(f"{nm} flying end-of-loss drift r1/r2/r3 (mm)", " | ".join("/".join(f"{rd(x, 0)}" for x in row) for row in de), exp, "numbers.md §17.1 table")
@@ -837,16 +849,15 @@ save_tab("T5", "T5_H_tag_loss_drift", "Experiment H: drift while the wall tag is
          ["tag-loss condition", FLY["EKF3"][2] + ": max / band (mm)", FLY["UKF"][2] + ": max / band (mm)", FLY["FGO"][2] + ": max / band (mm)"],
          rowsT5, [28, 40, 40, 40],
          "eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s3v2_r*.json (losses[*].<est>.effective.drift_m, drift_end_m, lockout)",
-         "§17 (S1 table, P-H5, P-H7), §17.1 (S2v2, S3v2), §17.2; claims 25, 26",
+         "§17 (S1 table, S1 far row, P-H5, P-H7), §17.1 (S2v2, S3v2), §17.2; claims 25, 26",
          notes=["Drift = the EFFECTIVE metric (last fix → first returning fix); the end-of-loss metric differs by ≤ 5 mm "
                 f"(unrounded {rd(dmax, 1)} mm). Pre-registered bands (P-H5): EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm, UKF ≤ 100 / 200 / 400 / "
                 "300 mm. P-H5 and P-H7 PASS. The comparative criteria (H-H2, P-H3, H-H4) are reported on these final-build sets (primary); "
                 "their verdicts are identical to the original-build verdicts (all FAIL). Each estimator flew its own flights: pairing by run "
                 "index, not trajectory.",
-                "EKF3 = S1 near spawn (3 flights) and S1 far spawn (3 flights); the far-spawn drifts have no row in the results record and "
-                "are not cross-checked. UKF = the jitter-corrected port (S2v2); FGO = the final C++ node (S3v2, flown with the "
-                "OLD FGO priors)."],
-         uncheck="S1-far EKF3 drifts (3 of the 6 EKF3 flights): METHODOLOGY only, no numbers.md row", order=50)
+                "EKF3 = S1 near spawn (3 flights) and S1 far spawn (3 flights). UKF = the jitter-corrected port (S2v2); FGO = the final "
+                "C++ node (S3v2, flown with the OLD FGO priors)."],
+         order=50)
 
 # =============================================================================================== APPENDIX tables
 def setb(trs):
@@ -936,7 +947,8 @@ def srow(test, f, build, note):
     for k, nm in (("S-A1", "A1"), ("S-A2", "A2"), ("S-A3", "A3"), ("S-A4_single_landing", "A4")):
         if f == "safety_ekf3_ref" and k == "S-A2":
             fl.append("A2 n/a"); continue
-        fl.append(f"{nm} {'PASS' if j[k]['PASS'] else 'FAIL'}")
+        raw = (k == "S-A4_single_landing" and not j[k]["PASS"] and j[k].get("rearmed_after_disarm") is None)
+        fl.append(f"{nm} {'PASS' if j[k]['PASS'] else 'FAIL'}" + (" (score file: rearmed_after_disarm null) ‡" if raw else ""))
     s2 = j["S-A2"]; s3 = j["S-A3"]
     t2 = f"{rd(s2['text_delay_s'], 2)} s (bound {rd(s2['bound_s'], 2)})" if s2.get("text_delay_s") is not None else "—"
     d3 = f"{rd(s3['horiz_disp_m'], 2)} m" if s3.get("horiz_disp_m") is not None else ("breach" if s3.get("breach") else "—")
@@ -1002,6 +1014,11 @@ check("H-H4 (5 s) max/min, final-build / superseded", f"{rng([r['hh4b_ratio'] fo
 check("final safety runs: drift to touchdown UKF (a) v3 / UKF (b) v3 / FGO (a) v4 / FGO (b) v4 (m)",
       " / ".join(rd(HJ(f)["S-A3"]["horiz_disp_m"], 2) for f in ("safety_ukf_a_v3", "safety_ukf_b_v3", "safety_fgo_a_v4", "safety_fgo_b_v4")),
       "0.58 / 1.07 / 1.45 / 0.21", "numbers.md §15 safety row (final runs, restated 2026-10-16)")
+A4ART = [f for f in ("safety_ukf_a", "safety_fgo_b") if not HJ(f)["S-A4_single_landing"]["PASS"]]
+check("raw S-A4 entries in the early score files (PASS, n_land_entries_after_t_f, rearmed_after_disarm)",
+      ", ".join(f"{f}: {HJ(f)['S-A4_single_landing']['PASS']}, {HJ(f)['S-A4_single_landing']['n_land_entries_after_t_f']}, "
+                f"{HJ(f)['S-A4_single_landing']['rearmed_after_disarm']}" for f in A4ART),
+      "safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None", "eval/results/expH/safety_ukf_a.json, safety_fgo_b.json (the score files)", exact=True)
 CHK_HS = CHK; CHK = []
 
 f1 = L("f1_test.json"); dec1 = f1["decision"]
@@ -1072,8 +1089,9 @@ figs = table_page("Appendix A2. Experiment H hold sets and the safety tests (all
                   rowsS, [13, 21, 25, 30, 18, 12, 15, 26], fs=7.0,
                   notes=["FINAL = the latest run of each test on the final build (UKF v3, FGO v4). UKF (b) S-A2 FAILS AS WORDED in v2 (5.75 s) and v3 "
                          "(5.69 s) against 5.5 s: relay drain in MAVProxy (the ground-station message relay) after the SIGKILL (the forced process "
-                         "kill); both stay FAILED, by ruling. " + PRIORS + " S-A4 FAIL in the first UKF (a) and FGO (b) score files is a scorer "
-                         "artefact (no disarm recorded), see Table T7. The EKF3 reference has no thesis-nav text (S-A2 not applicable)."]) + \
+                         "kill); both stay FAILED, by ruling. " + PRIORS + " ‡ Raw score-file entries for the first UKF (a) and FGO (b) runs: S-A4 FAIL, "
+                         "one LAND entry, rearmed_after_disarm null (the scorer recorded no disarm). The results record calls these not applicable "
+                         "(an (a) run) and not scored (no touchdown); Table T7 shows them so. The EKF3 reference has no thesis-nav text (S-A2 not applicable)."]) + \
        table_page("Appendix A2 (cont.). Experiment H comparative criteria: the final-build sets (primary) and the superseded builds",
                   ["criterion", "pre-registered wording", "final-build sets: UKF S2v2, FGO S3v2 (PRIMARY)",
                    "superseded builds: UKF S2 (v1 port), FGO S3 (ablation build)", "verdict differs?"], rowsHC, [14, 34, 50, 50, 12], fs=8.0,
@@ -1106,6 +1124,13 @@ save_table(figs + figs2, "A3", "A3_F1_cost_ablations", "F1, the L compute cost a
            "§15.2 F1 row; §16.3 cost bullets; §15, §17.1", CHK_F)
 
 # =============================================================================================== TABLE T7 failure behaviour (new)
+# Ruling 2026-10-16 (open items, 10): the early S-A4 flags are shown as the results record has them, quoted with file:line;
+# the raw score-file entries are in Appendix A2.
+A4NA = {"safety_ukf_a": "not applicable", "safety_fgo_b": "not scored"}
+A4Q = {11490: "- **S-A4:** not applicable (an (a) run).",
+       11827: "- **S-A4:** not scored (no touchdown). One LAND entry, no conflict between the two paths."}
+
+
 def sfail(f):
     """As-worded outcome of one safety score file, with the S-A4 scorer artefact flagged (METHODOLOGY L11307, L11490, L11827)."""
     j = HJ(f); out = []
@@ -1113,8 +1138,8 @@ def sfail(f):
         if f == "safety_ekf3_ref" and k == "S-A2":
             continue
         if not j[k]["PASS"]:
-            if k == "S-A4_single_landing" and j[k].get("rearmed_after_disarm") is None:
-                out.append("S-A4 FAIL in the score file ‡")
+            if k == "S-A4_single_landing" and j[k].get("rearmed_after_disarm") is None and f in A4NA:
+                out.append(f"S-A4 {A4NA[f]} ‡")
             elif k == "S-A2":
                 out.append(f"S-A2 FAIL as worded ({rd(j[k]['text_delay_s'], 2)} s, bound {rd(j[k]['bound_s'], 2)} s)")
             elif k == "S-A3":
@@ -1125,11 +1150,9 @@ def sfail(f):
     return ("ALL PASS" + d) if not out else "; ".join(out)
 
 
-A4ART = [f for f in ("safety_ukf_a", "safety_fgo_b") if not HJ(f)["S-A4_single_landing"]["PASS"]]
-check("S-A4 FAIL in the early score files (no disarm recorded: rearmed_after_disarm null)",
-      ", ".join(f"{f}: {HJ(f)['S-A4_single_landing']['rearmed_after_disarm']}" for f in A4ART), "safety_ukf_a: None, safety_fgo_b: None",
-      "eval/results/expH/safety_ukf_a.json, safety_fgo_b.json; METHODOLOGY L11490 ('S-A4: not applicable (an (a) run)'), L11827 "
-      "('S-A4: not scored (no touchdown)')", exact=True)
+_ML = open(os.path.join(ROOT, "METHODOLOGY.md")).read().split("\n")
+check("METHODOLOGY.md:11490 and :11827 (the S-A4 reasons quoted in T7)", " | ".join(_ML[n - 1] for n in sorted(A4Q)),
+      " | ".join(A4Q[n] for n in sorted(A4Q)), "METHODOLOGY.md lines 11490, 11827 (read at build time)", exact=True)
 check("EKF3 blank invalid (s of cruise); valid airborne flow frames", f"{rng(EK_INV, 0)}; max {max(nvalid)}", "301–310; max 0", "numbers.md §6.2")
 stepO = {e: [L(f"expO/{t}.json")["tracks"][f"{e} live"]["max_step_after_return_m"] for t in OFL] for e in EST}
 check("O largest step in 10 s after return EKF3 / UKF / FGO live (m)", " / ".join(rng(stepO[e]) for e in EST), "4.10–4.10 / 2.30–2.44 / 2.14–2.28", "numbers.md §16.2 table")
@@ -1174,10 +1197,10 @@ save_tab("T7", "T7_failure_behaviour", "Failure behaviour: blank-floor validity,
                 "(the ground-station message relay) after the SIGKILL (the forced process kill); both stay FAILED AS WORDED, by ruling. The final "
                 "runs are the latest run of each test on the final build (UKF v3 re-test, FGO v4 re-test); v2 (UKF) and v3 (FGO) are the earlier "
                 "final-build runs. FGO v4 flew the corrected-priors node; every earlier FGO run flew the OLD priors.",
-                "‡ S-A4 in the first UKF (a) and FGO (b) score files: FAIL, because the scorer recorded no disarm. The results record cites "
-                "only S-A2 / S-A3 for these runs: UKF (a) run 1 'S-A4: not applicable (an (a) run)'; FGO (b) run 1 'S-A4: not scored (no "
-                "touchdown). One LAND entry, no conflict between the two paths' (the run was stopped at the room-box breach). So these are "
-                "scorer artefacts, not landing conflicts; the scorer also evaluates S-A4 on (a) runs.",
+                "‡ S-A4 is shown as the results record gives it for these two runs: UKF (a) run 1, 'S-A4: not applicable (an (a) run).' "
+                "(METHODOLOGY.md:11490); FGO (b) run 1, 'S-A4: not scored (no touchdown). One LAND entry, no conflict between the two "
+                "paths.' (METHODOLOGY.md:11827; the run was stopped at the room-box breach). The raw score-file entries (S-A4 FAIL, no "
+                "disarm recorded) are in Appendix A2.",
                 "UKF (a) run 1 is the v1 port; the S-A2 bound in its score file is 0.10 s (0.75 s in the later runs), shown as recorded. "
                 "† runaway magnitude (order only). 'No invalid period recorded': the blank-floor scoring records an invalid period for "
                 "EKF3 only; the UKF / FGO runaway positions are scored as errors (Table T3)."], fs=7.2, order=70)

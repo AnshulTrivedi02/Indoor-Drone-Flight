@@ -214,6 +214,22 @@ function `rd()`), not by editing any record.
 
 ---
 
+## Measured before corrections; not recomputed (ruling 2026-10-16, open items, 9)
+
+**Definition.** A value that the corrections (the roll gains, the flow sign and the time sync) may have changed, and that was
+not recomputed on the re-flown bags. These are the `numbers.md` rows listed under "Rows elsewhere in this file affected by
+the corrections but NOT recomputed": §1 cruise roll / pitch and the camera-dataset RTF; §2 P2 latencies; §11 the ceiling
+effect size (+0.43 px/s); §14 timing.
+- Cite one only where the text needs it, labelled exactly "measured before corrections; not recomputed".
+- **Never describe one as unaffected.** The corrections changed flow, attitude and latency; the reasoning that the flow
+  measurements do not depend on the estimator corrections is WITHDRAWN.
+- The ceiling effect size keeps its standing rule: any ceiling-vs-`dsn` comparison on the transition world states it, with
+  this label. At 2026-10-16 no thesis-facing material makes such a comparison or cites any of these rows.
+- Source: METHODOLOGY "RULINGS (user, 2026-10-16): the open pending items", item 9; `numbers.md` §9 (the not-recomputed
+  list).
+
+---
+
 ### Open choices for the user
 
 1. **Confirmatory:** reserve the word for H1.1 only, or use it for every pre-registered primary rule?
