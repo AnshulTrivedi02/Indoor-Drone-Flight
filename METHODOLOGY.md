@@ -14337,3 +14337,28 @@ was re-run (simulation results are frozen).
   `cross_track = 135.057` is the along-track distance). Readers: `plots/rerun_batch.py`, `plots/fgo_batch.py`. No
   numbers.md row or thesis generator reads these fields (grep, 2026-10-17); a full provenance trace of every
   cross-/along-track row in numbers.md was NOT done. Not corrected (results frozen).
+
+### FINDING (2026-10-17): axis mislabel in `eval/blank_behaviour.py` AFFECTS thesis values (blank/transition error growth, UKF and FGO); the `metrics.txt` swap affects none. AWAITING A RULING; nothing corrected
+
+From the read-only axis-swap trace ruled 2026-10-17 (full table and recomputation scripts in the session scratchpad
+`axis_swap_trace.md`, `recompute.py`, `recomputed.json`; to be copied into the repo on ruling).
+- **`metrics.txt` (`ukf_replay.py:221-294`, `fgo_replay.py:252-310`):** `along_pN`, `cross_track`, `ate_apparatus` swapped
+  in all 481 UKF/FGO files (reproduced to 3 dp, then corrected with (N, E) = (x, −y)). Readers: `plots/rerun_batch.py`,
+  `plots/fgo_batch.py` only. **No thesis value derives from them.**
+- **`eval/blank_behaviour.py` `err_growth()` (l.53-70, called l.100):** the UKF/FGO trajectory (x = North, y = West) is
+  re-referenced and differenced against ground truth in ENU (gx = East, gy = North) with no relabel, since its first
+  commit `f426c8a`. Verified by reading the code (2026-10-17). EKF3 entries are not affected. Flows into
+  `eval/results/blank_behaviour.json` → numbers.md 248–252, 1259, 1268 (and superseded rows), Tables T1, T3, T7, R4,
+  claim 10, final-pack F06.
+- **Trace counts:** CLEAR 123; AFFECTED 40 (28 with a correct value recomputed from the trajectory files; 12 superseded
+  rows whose trajectory files were overwritten); UNRESOLVED 0.
+- **Main corrected values (stored → correct; same flow-loss time and window):** UKF blank +10 / +30 / +60 s 6.4–8.2 /
+  27.3–36.5 / 60–108 m → 0.7–1.8 / 15.3–26.8 / 30–100 m; FGO 6.4–8.2 / 28.0–37.0 / 154–204 m → 0.7–1.8 / 16.6–27.7 /
+  145–201 m; end of cruise UKF / FGO 29–40 / 22–41 km → 29–40 / 23–41 km; transition +60 s 128–139 / 223–231 m →
+  128–142 / 225–232 m; heading arms blank +60 s 40–89 / 135–190 m → 21–71 / 130–172 m; R4 FGO ÷ UKF at +30 s 1.01–1.03
+  → 1.03–1.08; with ÷ without heading at +30 s UKF / FGO 0.93–1.03 / 0.92–1.09 → 0.88–1.03 / 0.88–1.15;
+  `fwdc_trans_r2` UKF baseline +60 s 128.4931 → 141.67.
+- **Effect on wording:** the "~6–8 m at +10 s" early error is an artefact of the mislabel (≈ 1 m); the kilometre-scale
+  runaway conclusion stands. The frozen final pack (F06) carries the stored values.
+- **Side flags:** UKF/FGO evo -u (unaligned) numbers compare across the 90° frame offset (no numbers.md row quotes one);
+  `figs_thesis_results.py:622` docstring calls the UKF/FGO trajectories ENU (the figure aligns, so it is correct).
