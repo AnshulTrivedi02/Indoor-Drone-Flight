@@ -411,6 +411,19 @@ def cite(path, line, phrase):
     return f"{os.path.basename(path)}:{line}"
 
 
+def vquote(path, a, b, text):
+    """A VERBATIM quote (ruling 2026-10-17, Experiment 5 wording): `text` must occur, unbroken, in lines a..b of the source as
+    read at build time, with markdown emphasis, code ticks and list bullets removed and whitespace collapsed (no ellipsis, no
+    paraphrase). Returns the citation 'file:a' or 'file:a–b'."""
+    lines = _SRC.setdefault(path, open(os.path.join(ROOT, path)).read().split("\n"))
+    src = " ".join(re.sub(r"^\s*-\s+", "", ln) for ln in lines[a - 1:b])
+    src = re.sub(r"\s+", " ", src.replace("**", "").replace("`", "")).strip()
+    got = text if text in src else src[:90]
+    ref = f"{os.path.basename(path)}:{a}" + (f"–{b}" if b != a else "")
+    check(f"verbatim quote {ref}", got, text, f"{path}:{a}-{b} (read at build time; emphasis and bullets removed)")
+    return ref
+
+
 def obasis(tag, what, metric, n, rule, result, case):
     return (f"[{tag}] Ordering basis, {what}. Metric: {metric}. n = {n}. Rule: {rule}. Result: {result}. "
             f"Verdict: {OCASE[case]}.")
@@ -571,8 +584,29 @@ def ob_l(tag):
                   f"closure, {rng(nl, 3)} m without)", "met")
 
 
+# Experiment 5 comparative hypotheses, VERBATIM (ruling 2026-10-17): their only pre-registration is the design draft §e
+# (docs/tag_hold_design.md), committed in c11fcf3 (2026-10-08 15:17), before the first Experiment 5 flight; checked unchanged below.
+_THD = "docs/tag_hold_design.md"
+H5V = {"H-H2": (_THD, 180, 180, "H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights."),
+       "P-H3": (_THD, 183, 183, "P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators."),
+       "H-H4 (15 s)": (_THD, 185, 186, "After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's "
+                                       "and the FGO's in 3/3 flights."),
+       "H-H4 (5 s)": (_THD, 187, 187, "After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other.")}
+H5V_C = "c11fcf3"
+H5V_DATE = subprocess.run(["git", "-C", ROOT, "show", "-s", "--format=%ad", "--date=format:%Y-%m-%d %H:%M", H5V_C],
+                          capture_output=True, text=True).stdout.strip()
+
+
+def h5v_unchanged():
+    """The design draft's §e hypothesis lines (176-188) are identical at c11fcf3 and now (so the quoted wording predates the runs)."""
+    old = subprocess.run(["git", "-C", ROOT, "show", f"{H5V_C}:{_THD}"], capture_output=True, text=True).stdout.split("\n")[175:188]
+    now = open(os.path.join(ROOT, _THD)).read().split("\n")[175:188]
+    check(f"{_THD}:176-188 (§e hypotheses) identical at {H5V_C} ({H5V_DATE}) and at build time", old == now, True, f"git show {H5V_C}:{_THD}")
+
+
 def ob_h5(tag, short=False):
     """Experiment 5 comparative hypotheses on the final-build sets (H5.2, H5.3, H5.4a, H5.4b)."""
+    h5v_unchanged()
     v = _HSET_["re"]; runs = v["criteria"]["runs"]
     hu = [r["hold_mean_mm"] for r in v["UKF"]]; hf = [r["hold_mean_mm"] for r in v["FGO"]]; he = [r["hold_mean_mm"] for r in _HE_]
     fl = sum(r["lowest_hold"] == "FGO" for r in runs); ul = sum(r["lowest_hold"] == "UKF" for r in runs)
@@ -584,19 +618,17 @@ def ob_h5(tag, short=False):
     check("H5.4a EKF3 15 s re-lock jump per flight (mm)", " / ".join(rd(x, 0) for x in je), "5 / 5 / 7", "numbers.md §17.2 criteria table (H-H4 (15 s))")
     check("Experiment 5 comparative verdicts H5.2; H5.3; H5.4a; H5.4b (final builds)", "; ".join(v["criteria"][k].split()[0] for k in ("H-H2", "P-H3", "H-H4 (15 s)", "H-H4 (5 s)")),
           "FAIL; FAIL; FAIL; FAIL", "numbers.md §17.2 (final-build sets primary, ruling 2026-10-16)")
-    D_ = "docs/tag_hold_design.md"
-    src = ", ".join([cite(D_, 180, "FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights"), cite(D_, 183, "within 1.5× across estimators"),
-                     cite(D_, 185, "EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's"),
-                     cite(D_, 186, "in 3/3 flights"), cite(D_, 187, "the jumps are within 1.5× of each other")])
+    q = {k: (H5V[k][3], vquote(*H5V[k])) for k in H5V}
     return obasis(tag, "Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b)",
                   "H5.2 mean hold error, mm; H5.3 hold gyro activity, max ÷ min across the estimators; H5.4a/b re-lock jump after the "
                   "15 s / 5 s tag loss, mm",
                   "3 flights per estimator (each estimator flew its own 3 flights, paired by run index, not trajectory; EKF3 = the "
                   "EKF3-flying hold set at the far spawn)",
-                  "H5.2 'FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights'; H5.3 'gyro activity … within 1.5× across "
-                  "estimators'; H5.4a after the 15 s loss 'EKF3's re-lock jump … is larger than the UKF's and the FGO's in 3/3 "
-                  f"flights'; H5.4b after the 5 s loss 'the jumps are within 1.5× of each other' (design §e, {src}; these have no "
-                  f"METHODOLOGY pre-registration line; verdicts {cite(M_, 12236, 'H-H2 FAILS')}, {cite(M_, 13549, 'ALL FAIL')})",
+                  "the pre-registered wording, verbatim: H5.2 '" + q["H-H2"][0] + f"' ({q['H-H2'][1]}); H5.3 '" + q["P-H3"][0] +
+                  f"' ({q['P-H3'][1]}); H5.4a, under 'H-H4 (tag loss)': '" + q["H-H4 (15 s)"][0] + f"' ({q['H-H4 (15 s)'][1]}); H5.4b: '" +
+                  q["H-H4 (5 s)"][0] + f"' ({q['H-H4 (5 s)'][1]}) (design §e, the only pre-registration of these four: they have no "
+                  f"METHODOLOGY pre-registration line; §e is unchanged since {H5V_C} ({H5V_DATE}), before the first Experiment 5 flight; "
+                  f"verdicts {cite(M_, 12236, 'H-H2 FAILS')}, {cite(M_, 13549, 'ALL FAIL')})",
                   f"FGO lowest in {fl} of 3 flights (hold UKF {rng(hu, 1)}, EKF3 {rng(he, 1)}, FGO {rng(hf, 1)} mm; UKF lowest in {ul} of 3); "
                   f"H5.3 max ÷ min {rng(p3)}; H5.4a EKF3's 15 s jump {' / '.join(rd(x, 0) for x in je)} mm, the smallest; H5.4b max ÷ min "
                   f"{rng(p4b, 1)}: all four FAIL", "ii")
@@ -635,8 +667,10 @@ def ob_cl(tag, with_contact=True):
 
 
 # =============================================================================================== FIG 1 scorecard
-CAT = {"BEST": ("#cfcfcf", "best"), "TIED": ("#f0f0f0", "tied"), "BEHIND": ("#ffffff", "behind"),
-       "FAILED": ("#ffffff", "failed"), "PASSED": ("#f0f0f0", "passed"), "N/A": ("#ffffff", "n/a")}
+# Ruling 2026-10-17 (scorecard): an ordering label (BEST / BEHIND, and TIED, which claims equality) is printed ONLY where a
+# pre-registered decision rule was met; no comparison in this table met one, so the ordering labels are gone. The status words
+# below are not orderings: FAILED (does not bound position), PASSED (met its own pre-registered criteria), N/A (not run).
+CAT = {"FAILED": ("#ffffff", "failed"), "PASSED": ("#f0f0f0", "passed"), "N/A": ("#ffffff", "n/a")}
 med = {e: float(np.median([v for _, v in DSN[e]])) for e in EST}
 check("standard-sensor dataset, textured floor, median of flights 1–9, EKF3 / UKF / FGO (m)", " / ".join(f2(med[e]) for e in EST), "4.10 / 5.13 / 4.46", "numbers.md §6.1 standing row")
 check("H1.1 confirmatory EKF3 − FGO verdict", pt["verdict"], "no ordering claimed", "numbers.md §6.1 confirmatory row; claim 2")
@@ -671,36 +705,38 @@ COLS = ["Experiment 1A: standard sensors (textured floor, no heading)", "Experim
         "Experiment 1: blank floor (no flow; 1A and 1B flights pooled)", "Experiment 2: known tags", "Experiment 4: outdoor–indoor (GNSS outside only)",
         "Experiment 3: loop closure (tags at unknown positions)", "Experiment 5: tag hold", "Experiment 1C: closed loop (the estimator flies)"]
 CELLS = {
-    "EKF3": [("TIED", f"median {rd(med['EKF3'], 2)} m", "confirmatory test: no ordering"),
+    "EKF3": [("", f"median {rd(med['EKF3'], 2)} m", "confirmatory test: no ordering"),
              ("N/A", "no offline heading arm", "the fixed no-heading baseline"),
              ("FAILED", "position invalid from take-off", "origin output, unscored"),
-             ("TIED", f"1 tag: {rd(mrD['EKF3 live'] * 100, 1)} cm live", "no live ordering claimed"),
-             ("BEHIND", f"indoor {rng(OI['EKF3 live'])} m", "H4.2 FAIL; 4.10 m jump"),
+             ("", f"1 tag: {rd(mrD['EKF3 live'] * 100, 1)} cm live", "no live ordering claimed"),
+             ("", f"indoor {rng(OI['EKF3 live'])} m", "no live ordering claimed; 4.10 m jump"),
              ("N/A", "FGO capability only", "the filters have no loop closure"),
-             ("TIED", f"hold {rng(hE, 1)} mm", "bands PASS; comparatives FAIL"),
-             ("TIED", f"{passh['EKF3']}/3 pass; max cross-track ≤ {rd(max(B2h['EKF3']), 2)} m", "no ordering claimed")],
-    "UKF": [("TIED", f"median {rd(med['UKF'], 2)} m", "descriptive, 9 flights"),
-            ("BEHIND", f"{rng(u6)} m", "C1.a: the FGO is lower on 6/6"),
+             ("", f"hold {rng(hE, 1)} mm", "bands PASS; comparatives FAIL"),
+             ("", f"{passh['EKF3']}/3 pass; max cross-track ≤ {rd(max(B2h['EKF3']), 2)} m", "no ordering claimed")],
+    "UKF": [("", f"median {rd(med['UKF'], 2)} m", "descriptive, 9 flights"),
+            ("", f"{rng(u6)} m", "the FGO lower on 6/6; C1.a descriptive"),
             ("FAILED", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
-            ("TIED", f"1 tag: {rd(mrD['UKF live'] * 100, 1)} cm live", "no live ordering claimed"),
-            ("TIED", f"indoor {rng(OI['UKF live'])} m", "UKF ≈ FGO live"),
+            ("", f"1 tag: {rd(mrD['UKF live'] * 100, 1)} cm live", "no live ordering claimed"),
+            ("", f"indoor {rng(OI['UKF live'])} m", "no live ordering claimed"),
             ("N/A", "no loop-closure equivalent", "FGO capability only"),
-            ("TIED", f"hold {rng(hU, 1)} mm", "bands PASS; comparatives FAIL"),
-            ("TIED", f"{passh['UKF']}/3 pass; max cross-track ≤ {rd(max(B2h['UKF']), 2)} m", "final UKF port")],
-    "FGO": [("TIED", f"median {rd(med['FGO'], 2)} m", "confirmatory test: no ordering"),
-            ("BEST", f"{rng(g6)} m", "lower than the UKF on 6/6 (C1.a)"),
+            ("", f"hold {rng(hU, 1)} mm", "bands PASS; comparatives FAIL"),
+            ("", f"{passh['UKF']}/3 pass; max cross-track ≤ {rd(max(B2h['UKF']), 2)} m", "final UKF port")],
+    "FGO": [("", f"median {rd(med['FGO'], 2)} m", "confirmatory test: no ordering"),
+            ("", f"{rng(g6)} m", "lower than the UKF on 6/6; C1.a descriptive"),
             ("FAILED", f"{rng(BLANK['FGO'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
-            ("TIED", f"1 tag: {rd(mrD['FGO live'] * 100, 1)} cm live", f"batch {rng([100 * agg['conditions'][c]['mean_rmse_m']['FGO hindsight (whole-flight batch)'] for c in TCOND], 1)} cm, H2.1 PASS"),
-            ("TIED", f"indoor {rng(OI['FGO live'])} m", "batch 0.59 = smoothed UKF"),
+            ("", f"1 tag: {rd(mrD['FGO live'] * 100, 1)} cm live", f"batch {rng([100 * agg['conditions'][c]['mean_rmse_m']['FGO hindsight (whole-flight batch)'] for c in TCOND], 1)} cm, H2.1 PASS"),
+            ("", f"indoor {rng(OI['FGO live'])} m", "batch 0.59, within 1.5× of the smoothed UKF: H4.3 PASS"),
             ("PASSED", f"live {rng([t['rmse_m'] * 100 for t in LL[('lc', 'live')]], 1)} cm", "H3.1–H3.4 PASS 3/3"),
-            ("TIED", f"hold {rng(hF, 1)} mm", "bands PASS; comparatives FAIL"),
-            ("TIED", f"{passh['FGO']}/3 pass; max cross-track ≤ {rd(max(B2h['FGO']), 2)} m", "final FGO node, original priors")]}
+            ("", f"hold {rng(hF, 1)} mm", "bands PASS; comparatives FAIL"),
+            ("", f"{passh['FGO']}/3 pass; max cross-track ≤ {rd(max(B2h['FGO']), 2)} m", "final FGO node, original priors")]}
 T1MK = ["[a, b]", "[c]", "[d]", "[e]", "[f, g]", "[h]", "[i]", "[j]"]      # ordering footnotes per row (2026-10-17)
 T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h"), ob_h5("i"), ob_cl("j")]
-rowsT1 = [[f"{col} {T1MK[j]}"] + [f"{CELLS[e][j][0]}: {CELLS[e][j][1]} ({CELLS[e][j][2]})" for e in EST] for j, col in enumerate(COLS)]
+rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + f"{CELLS[e][j][1]} ({CELLS[e][j][2]})" for e in EST]
+          for j, col in enumerate(COLS)]
 save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the restated verdicts)",
-         "Each cell gives the category, the key number and the verdict it rests on; the categories come only from the restated verdicts. "
-         "Mostly ties: the FGO is best only with the camera heading, and no estimator "
+         "Each cell gives the key number and the verdict it rests on, with a status word (FAILED, PASSED, N/A) where one applies. "
+         "No ordering label is printed: an ordering (BEST / BEHIND / TIED) is shown only where a pre-registered decision rule was met, "
+         "and no comparison in this table met one; any ordering visible in the numbers is descriptive (footnotes [a]–[j]). No estimator "
          "bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera "
          "flights (1B: the camera calibration flights and both camera datasets).",
          ["experiment", "EKF3", "UKF", "FGO"], rowsT1, [30, 40, 40, 40],
@@ -708,22 +744,23 @@ save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the res
          "expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, "
          "closed_loop_cl_*_half(_v2/_v3).json",
          "§6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25",
-         notes=["Categories: BEST = a stated ordering puts it first; TIED = no ordering is claimed (or all pass the same criteria); BEHIND = a "
-                "stated ordering or a failed similarity verdict puts it below; FAILED = does not bound position; PASSED = met its "
-                "pre-registered criteria with no comparison (Experiment 3, FGO only); N/A = not run. BEHIND, PASSED and N/A are additions to "
-                "best / tied / failed, used where those three do not fit.",
-                "TIED where no ordering is claimed: standard sensors (the confirmatory test, H1.1; the UKF medians are descriptive), "
-                "Experiment 2 live (3 flights per condition, descriptive), Experiment 5 (all drift bands PASS; the comparative hypotheses H5.2 / H5.3 / "
-                "H5.4a–b FAIL on the final-build hold "
-                "sets, identical to the original-build verdicts) and the closed loop (every set at half real-time (RTF 0.5) passes 3/3). BEHIND: the UKF with heading (C1.a: the FGO is lower on 6/6) "
-                "and EKF3 in Experiment 4 (H4.2 FAIL; EKF3 the largest in every flight).",
+         notes=["Status words (not orderings): FAILED = does not bound position (the blank floor, ruled 'not accuracy comparisons'); PASSED = met "
+                "its pre-registered criteria with no comparison (Experiment 3, FGO only: H3.1–H3.4); N/A = not run. Ordering labels (BEST / "
+                "BEHIND / TIED) are printed only where a pre-registered decision rule was met (ruling 2026-10-17); none is printed here.",
+                "Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians "
+                "descriptive [b]; with the camera heading, C1.a registered with no decision rule [c]; blank floor, no comparative test [d]; "
+                "Experiment 2 live, H2.3 FAIL [e]; Experiment 4 live, H4.2 FAIL [f] (H4.3, the FGO whole-flight batch "
+                "within 1.5× of the smoothed UKF, PASSES [g], and H4.1, the batch below both filters' live tracks, PASSES (hindsight against "
+                "live, not like with like); neither concerns the live key numbers); Experiment 3, one estimator [h]; Experiment 5, H5.2 / H5.3 / "
+                "H5.4a–b FAIL on the final-build hold sets, identical to the original-build verdicts, all drift bands PASS [i]; "
+                "closed loop, no comparative test registered, every set at half real-time (RTF 0.5) passes 3/3 [j].",
                 "Key numbers: 1A = cruise ATE, median of the 9 textured-floor flights of the standard-sensor dataset; 1B = the 6 textured-floor "
                 "bags of the two camera datasets; Experiment 2 = horizontal RMSE with 1 tag; Experiment 4 = indoor RMSE; Experiment 3 = with "
                 "loop closure; Experiment 5 = mean hold error; 1C = at half real-time "
                 "(RTF 0.5). " + RTFX + " "
                 "† runaway magnitude (order only). No cell restates a WITHDRAWN claim.",
-                "Ordering footnotes [a]–[j] (one per comparison; the letters in the experiment column): the BEST / BEHIND / TIED "
-                "categories above are unchanged; each footnote states what the category rests on. " + OCASE_KEY] + T1FN, order=10)
+                "Ordering footnotes [a]–[j] (one per comparison; the letters in the experiment column): each footnote states the rule, "
+                "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN, order=10)
 
 # =============================================================================================== FIG 2 heading stops drift (ONE panel)
 fig, ax = plt.subplots(figsize=(15.5, 6.4))
@@ -893,6 +930,13 @@ h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
      Patch(color=TRUTH, alpha=0.3, label="heading-error bound (max ≤ 2.0°)")]
 ax.legend(handles=h, loc="lower left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=1, fontsize=8.2)
 check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(ENDF9[e][2], 1)}" for e in EST), "+242.1 / +165.9 / +169.9", "numbers.md §15 contact rows")
+# ruling 2026-10-17 (F9 caption): EKF3's no-heading contact fell AFTER its pre-registered window; the window and the outcome are
+# checked by string equality against numbers.md:470, read at build time
+F9W = f"[+{WIN['EKF3'][0]}, +{WIN['EKF3'][1]}]"
+F9C = f"+{rd(ENDF9['EKF3'][2], 1)} ({'PASS' if WIN['EKF3'][0] <= ENDF9['EKF3'][2] <= WIN['EKF3'][1] else 'MISS'}"
+check("EKF3 no-heading contact at half real-time against its pre-registered window", f"{F9C}), window {F9W}", "+242.1 (MISS), window [+155, +215]",
+      "numbers.md:470 ('+186.2 (PASS, window [+155, +215]) / +242.1 (MISS, D21)')")
+F9SRC = cite("docs/thesis/numbers.md", 470, f"window {F9W}"); cite("docs/thesis/numbers.md", 470, f"{F9C}, D21)")
 check("with heading, all 9 flights: max of the heading error p95 / max of the heading error max (deg)", f"{rd(P95F9, 2)} / {rd(MAXF9, 2)}", "0.38 / 0.68",
       "numbers.md §15 re-flown B3 row (final UKF port r1 p95 0.382; final FGO node r3 max 0.682) and B3 row (EKF3 half 0.28–0.32 / 0.33–0.39); Table 4.3")
 fb3 = lambda e: "; ".join(f"{rd(b['p95_deg'], 3)} / {rd(b['max_deg'], 3)} / {rd(b['mean_deg'], 3)}" for b in B3F9[e])
@@ -917,7 +961,8 @@ save(fig, "F9", "F9_heading_error_closed_loop",
      f"the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop "
      f"flights as {TNUM['F2']}: textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}). Colour = the flying "
      f"estimator. Dashed (here: without heading, not hindsight): without a heading source (1 flight each), drawn to the wall contact (X): "
-     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s, UKF +{rd(ENDF9['UKF'][2], 1)} s, FGO +{rd(ENDF9['FGO'][2], 1)} s. Solid: with the camera heading "
+     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s (after its pre-registered window {F9W} s; {F9SRC}), UKF +{rd(ENDF9['UKF'][2], 1)} s, "
+     f"FGO +{rd(ENDF9['FGO'][2], 1)} s. Solid: with the camera heading "
      f"(3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the "
      f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
      f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
@@ -1395,6 +1440,21 @@ SAFE = [  # (test, file, build, notes)
 ]
 
 
+# The position-lost (S-A2) bounds EXACTLY as pre-registered (ruling 2026-10-17, Table 7.2 bound), METHODOLOGY.md:11298-11300. The
+# final UKF port's forced-invalid score files (safety_ukf_a_v2, _v3) were scored with the FGO bound 0.75 s on the coordinator's
+# instruction (M:14263-14264) and record bound_s 0.75; the tables show the registered 0.1 s. The score files are not changed.
+A2PRE = (("safety_fgo", 0.75, 11298, "FGO: within **0.75 s** of the kill"), ("safety_ukf_a", 0.1, 11299, "UKF (a): within **0.1 s** of TFAIL"),
+         ("safety_ukf_b", 5.5, 11300, "UKF (b): within **5.5 s** of the kill"))
+
+
+def a2pre(f):
+    return next((b for p_, b, _, _ in A2PRE if f.startswith(p_)), None)
+
+
+def a2cite():
+    return ", ".join(cite(M_, ln, ph) for _, _, ln, ph in A2PRE)
+
+
 def srow(test, f, build, note):
     j = HJ(f); fl = []
     for k, nm in (("S-A1", "attitude"), ("S-A2", "position lost"), ("S-A3", "safe landing"), ("S-A4_single_landing", "single landing")):
@@ -1403,7 +1463,7 @@ def srow(test, f, build, note):
         raw = (k == "S-A4_single_landing" and not j[k]["PASS"] and j[k].get("rearmed_after_disarm") is None)
         fl.append(f"{'PASS' if j[k]['PASS'] else 'FAIL'}" + (" (no disarm in the score file) ‡" if raw else ""))
     s2 = j["S-A2"]; s3 = j["S-A3"]
-    t2 = f"{rd(s2['text_delay_s'], 2)} s (bound {rd(s2['bound_s'], 2)})" if s2.get("text_delay_s") is not None else "—"
+    t2 = f"{rd(s2['text_delay_s'], 2)} s (bound {rd(a2pre(f), 2)})" if s2.get("text_delay_s") is not None else "—"
     d3 = f"{rd(s3['horiz_disp_m'], 2)} m" if s3.get("horiz_disp_m") is not None else ("breach" if s3.get("breach") else "—")
     allp = all(j[k]["PASS"] for k in ("S-A1", "S-A2", "S-A3", "S-A4_single_landing")) if f != "safety_ekf3_ref" else None
     verdict = "reference (no criteria)" if allp is None else ("ALL PASS" if allp else "FAILED AS WORDED")
@@ -1412,6 +1472,13 @@ def srow(test, f, build, note):
 
 rowsS = [srow(*s) for s in SAFE]
 SV = {r[1]: r for r in rowsS}
+_a2s = a2cite()
+check("score-file bound_s differs from the pre-registered S-A2 bound only for the final UKF port's forced-invalid runs",
+      ", ".join(f for _, f, _, _ in SAFE if f != "safety_ekf3_ref" and HJ(f)["S-A2"]["bound_s"] != a2pre(f)), "safety_ukf_a_v2, safety_ukf_a_v3",
+      "eval/results/expH/safety_*.json (S-A2 bound_s) against METHODOLOGY.md:11298-11300; M:14263-14264 (scored with the 0.75 s bound)")
+check("UKF forced-invalid, final UKF port runs: position-lost delay (s) against the pre-registered 0.1 s; verdict unchanged",
+      " / ".join(f"{rd(HJ(f)['S-A2']['text_delay_s'], 2)} ≤ 0.1: {HJ(f)['S-A2']['text_delay_s'] <= 0.1}, score file {HJ(f)['S-A2']['PASS']}" for f in ("safety_ukf_a_v2", "safety_ukf_a_v3")),
+      "0.00 ≤ 0.1: True, score file True / 0.00 ≤ 0.1: True, score file True", "M:11299; numbers.md §15 safety and history rows ('trigger 0.00 s from effect')")
 check("UKF node-kill test, earlier final-build run / final re-test: position-lost delay (s), verdict", f"{rd(HJ('safety_ukf_b_v2')['S-A2']['text_delay_s'], 2)} / {rd(HJ('safety_ukf_b_v3')['S-A2']['text_delay_s'], 2)}, "
       f"{SV['H_safety_ukf_b_v2'][6]} / {SV['H_safety_ukf_b_v3'][6]}", "5.75 / 5.69, FAILED AS WORDED / FAILED AS WORDED", "numbers.md §15 history row (v2) and safety row (v3, final)")
 check("UKF forced-invalid test, earlier final-build run / final re-test: verdict", f"{SV['H_safety_ukf_a_v2'][6]} / {SV['H_safety_ukf_a_v3'][6]}", "ALL PASS / ALL PASS", "numbers.md §15 history row (v2) and safety row (v3, final)")
@@ -1452,8 +1519,31 @@ def hctxt(t):
 
 
 HCR, HCO = hcomp(_HSET["re"]), hcomp(_HSET["old"])
-HCW = {"H-H2": "FGO < EKF3 and FGO < UKF mean hold error, 3/3", "P-H3": "hold gyro activity within 1.5× across estimators",
-       "H-H4 (15 s)": "EKF3's 15 s re-lock jump larger than the UKF's and the FGO's, 3/3", "H-H4 (5 s)": "5 s re-lock jumps within 1.5× of each other"}
+# the pre-registered wording, VERBATIM (ruling 2026-10-17), with its design-draft line; H5.4a/b sit under "H-H4 (tag loss)"
+HCW = {k: ("'" + H5V[k][3] + "' (" + vquote(*H5V[k]) + ")") for k in H5V}
+h5v_unchanged()
+# Table A.2 page 1: the per-estimator Experiment 5 hypotheses, VERBATIM from the S0/S1 pre-registration (M:10623, "written before
+# any H flight"), with the earlier design-draft wordings of H5.1 and H5.5 quoted beside them (two wordings; both PASS).
+_H51 = "H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights."
+_H55 = ("P-H5 (drift during loss, per estimator): EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / "
+        "0.20 m. UKF: ≤ 2× those. Loss during the move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF.")
+_H57 = "P-H7 (lockout): no estimator locks out the returning tag in any loss."
+_D51 = ("H-H1 (primary): every estimator holds within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights "
+        "per estimator.")
+_D55 = "P-H5 (drift during loss, prediction): GT drift during the 15 s occlusion ≤ 0.3 m for every estimator."
+H5A2NOTE = ("Experiment 5 hypotheses scored on this page, the pre-registered wording verbatim (Experiment 5 S0/S1 pre-registration, "
+            f"written before any Experiment 5 flight): H5.1 '{_H51}' ({vquote(M_, 10687, 10688, _H51)}); H5.5 '{_H55}' "
+            f"({vquote(M_, 10689, 10692, _H55)}; the flying UKF and FGO keep these bands, {cite(M_, 10969, 'These are the S1 bands.')}); "
+            f"H5.7 '{_H57}' ({vquote(M_, 10700, 10700, _H57)}). The design draft words two of them differently: H5.1 '{_D51}' "
+            f"({vquote(_THD, 176, 177, _D51)}) and H5.5 '{_D55}' ({vquote(_THD, 188, 188, _D55)}); the METHODOLOGY wording is the "
+            "one scored. Under either wording both PASS: every hold window of every flying hold set on this page is inside 50 mm mean "
+            "and 150 mm max, and every drift is inside its band (columns above), the 15 s drifts far below 0.3 m. H5.6 (re-lock time "
+            "and jump) is in Table 7.3.")
+_HW = [w for trs in (S1, S1F, S2O, S2V, S3O, S3V) for t in trs for w in HJ(t)["hold_windows_vehicle"]]
+check("every hold window of every flying hold set: mean ≤ 50 mm and max ≤ 150 mm (H5.1 under either wording)",
+      all(w["mean_m"] <= 0.05 and w["max_m"] <= 0.15 for w in _HW), True, "numbers.md §17, §17.1 (H-H1 PASS)")
+check("15 s loss drift of the flying final-build sets ≤ 0.3 m (H5.5, design-draft wording)", all(v <= 300 for e in EST for v in DR[(e, 1)]), True,
+      "METHODOLOGY.md:12243 ('P-H5 PASSES: every estimator drifted ≤ 30 mm over the 15 s loss (≤ 0.3 m)')")
 HCL = {"H-H2": "H5.2 FGO holds tightest", "P-H3": "H5.3 smoothness similar", "H-H4 (15 s)": "H5.4a after a 15 s loss, EKF3 jumps most",
        "H-H4 (5 s)": "H5.4b after a 5 s loss, jumps similar"}       # thesis_vocabulary.md §5, Experiment 5
 rowsHC = [(HCL[k], HCW[k], hctxt(HCR[k]), hctxt(HCO[k]), "no" if HCR[k][0].split()[0] == HCO[k][0].split()[0] else "YES") for k in HCW]
@@ -1561,11 +1651,14 @@ save_table(figs, "A1", "A1_closed_loop_builds", "Closed loop: every flown build 
            "eval/results/closed_loop_<trial>.json", "§15 (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14", CHK_A)
 figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safety tests (all runs, as-worded verdicts)",
                   ["hold set", "build", "hold error (window means)", "tag-loss drift (effective, all losses)", "lockouts", "drift band (H5.5)"],
-                  rowsH, [26, 34, 20, 26, 10, 18], fs=8.0) + \
+                  rowsH, [26, 34, 20, 26, 10, 18], fs=8.0, notes=[H5A2NOTE]) + \
        table_page("Table A.2 (cont.). Experiment 5S safety tests: failure injected in the hold; the FC must declare position lost",
                   ["test", "trial", "build", "as worded: attitude / position lost / safe landing / single landing", "'position lost' delay", "drift to touchdown", "verdict", "note"],
-                  rowsS, [19, 19, 35, 27, 22, 12, 14, 26], fs=7.0,
-                  notes=["FINAL = the latest run of each test on the final build (the final UKF port's re-test; the FGO corrected-priors node). The UKF "
+                  rowsS, [19, 19, 35, 27, 22, 12, 14, 26], fs=6.8,
+                  notes=["Bounds as pre-registered: 'FGO: within 0.75 s of the kill'; 'UKF (a): within 0.1 s of TFAIL'; 'UKF (b): within 5.5 s "
+                         f"of the kill' ({_a2s}). The final UKF port's forced-invalid score files record 0.75 s (scored with the FGO bound on "
+                         "instruction, METHODOLOGY.md:14263-14264); shown at the registered 0.10 s; delays 0.00 s, verdict unchanged.",
+                         "FINAL = the latest run of each test on the final build (the final UKF port's re-test; the FGO corrected-priors node). The UKF "
                          "node-kill test's position-lost declaration FAILS AS WORDED in the earlier final-build run (5.75 s) and the re-test "
                          "(5.69 s) against 5.5 s: relay drain in MAVProxy (the ground-station message relay) after the SIGKILL (the forced process "
                          "kill); both stay FAILED, by ruling. " + PRIORS + " ‡ Raw score-file entries for the first UKF forced-invalid and FGO node-kill runs: "
@@ -1575,7 +1668,7 @@ figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safe
                          "safety watcher watching the node). The EKF3 reference has no thesis-nav text (not applicable). Ordering footnote [b] "
                          "(the safety tests are per-run criteria, not comparisons): on the next page."]) + \
        table_page("Table A.2 (cont.). Experiment 5 comparative hypotheses: the final-build sets (primary) and the superseded builds",
-                  ["hypothesis", "pre-registered wording", "final-build sets: final UKF port, final FGO node (PRIMARY)",
+                  ["hypothesis", "pre-registered wording (verbatim; design draft §e)", "final-build sets: final UKF port, final FGO node (PRIMARY)",
                    "superseded builds: UKF earlier build, FGO ablation build", "verdict differs?"], rowsHC, [14, 34, 50, 50, 12], fs=8.0,
                   notes=["The final-build verdicts are reported as primary; they are identical to the original-build verdicts (all three comparative "
                          "criteria FAIL on both). EKF3 is the EKF3-flying far-spawn hold set in both columns (3 flights); each estimator flew its "
@@ -1625,7 +1718,7 @@ def sfail(f):
             if k == "S-A4_single_landing" and j[k].get("rearmed_after_disarm") is None and f in A4NA:
                 out.append(f"single landing {A4NA[f]} ‡")
             elif k == "S-A2":
-                out.append(f"position lost FAIL as worded ({rd(j[k]['text_delay_s'], 2)} s, bound {rd(j[k]['bound_s'], 2)} s)")
+                out.append(f"position lost FAIL as worded ({rd(j[k]['text_delay_s'], 2)} s, bound {rd(a2pre(f), 2)} s)")
             elif k == "S-A3":
                 out.append("safe landing FAIL (" + ("safety-watcher breach" if j[k].get("breach") else "criterion") + ")")
             else:
@@ -1678,8 +1771,9 @@ save_tab("T7", "T7_failure_behaviour", "Failure behaviour: blank-floor validity,
           "node-kill test, as worded"], rowsT7, [10, 34, 20, 44, 44],
          "eval/results/blank_behaviour.json; expO/O_r1.json, O_r2.json, O_r3b.json (max_step_after_return_m); expH/safety_*.json",
          "§6.2, §15 safety and history rows, §16.2; METHODOLOGY 'H safety test …' entries, 2d, rulings 2026-10-11, 'Band C … FGO safety re-tests'",
-         notes=["Safety criteria (pre-registered): attitude criterion; position-lost declaration within the bound (0.75 s; UKF node-kill "
-                "test 5.5 s); safe landing (≤ 1.5 m drift to touchdown, no safety-watcher breach); single landing, pre-registered for "
+         notes=["Safety criteria (pre-registered): attitude criterion; position-lost declaration within the bound, as pre-registered: "
+                "'FGO: within 0.75 s of the kill'; 'UKF (a): within 0.1 s of TFAIL' (the UKF forced-invalid test); 'UKF (b): within 5.5 s of "
+                f"the kill' (the UKF node-kill test) ({a2cite()}); safe landing (≤ 1.5 m drift to touchdown, no safety-watcher breach); single landing, pre-registered for "
                 "node-kill runs only. UKF node-kill test, both final-port runs, position-lost declaration: the trigger fired 5.0 s after the last flow received (the UKF's 5 s timeout), plus relay drain in MAVProxy "
                 "(the ground-station message relay) after the SIGKILL (the forced process kill); both stay FAILED AS WORDED, by ruling. The final "
                 "runs are the latest run of each test on the final build (the final UKF port's re-test, the FGO corrected-priors node's "
@@ -1690,7 +1784,10 @@ save_tab("T7", "T7_failure_behaviour", "Failure behaviour: blank-floor validity,
                 "applicable to a forced-invalid run (METHODOLOGY.md:11490); FGO node-kill test run 1, not scored (no touchdown; one LAND "
                 "entry, no conflict between the two paths) (METHODOLOGY.md:11827; the run was stopped at the room-box breach). The raw "
                 "score-file entries (single landing FAIL, no disarm recorded) are in Table A.2.",
-                "UKF forced-invalid run 1 is the earlier UKF build; the position-lost bound in its score file is 0.10 s (0.75 s in the later runs), shown as recorded. "
+                "UKF forced-invalid test: the bound is the pre-registered 0.1 s ('UKF (a): within 0.1 s of TFAIL', METHODOLOGY.md:11299). The "
+                "earlier UKF build's score files record 0.10 s; the final UKF port's (both runs) record 0.75 s, the scorer having been run with "
+                "the FGO bound on the coordinator's instruction (METHODOLOGY.md:14263-14264). Both final-port delays are 0.00 s, so the verdict "
+                "(PASS) is the same under the registered bound. "
                 "† runaway magnitude (order only). 'No invalid period recorded': the blank-floor scoring records an invalid period for "
                 "EKF3 only; the UKF / FGO runaway positions are scored as errors (Table 4.2).",
                 OCASE_KEY, ob_blank("a"), ob_ret("b"), ob_safe("c")], fs=7.2, order=70)
@@ -1908,10 +2005,10 @@ with open(INDEX, "w") as f:
             "that final numbering pass.\n\n")
     f.write(f"**Colour mapping (Okabe–Ito, colour-blind safe; fixed across every figure):** {PAL}. Solid lines / filled marks = live; dashed lines / "
             "open marks = hindsight. No log axes anywhere.\n\n")
-    f.write(f"**Scorecard categories ({TNUM['T1']}):** BEST = a stated ordering puts it first; TIED = no ordering is claimed (or all pass the same criteria); "
-            "BEHIND = a stated ordering or failed similarity verdict puts it below; FAILED = does not bound position; PASSED = met its pre-registered "
-            "criteria with no comparison (Experiment 3, FGO only); N/A = not run. BEHIND, PASSED and N/A are additions to best / tied / failed, used "
-            "where those three do not fit.\n\n")
+    f.write(f"**Scorecard labels ({TNUM['T1']}; ruling 2026-10-17):** an ordering label (BEST / BEHIND / TIED) is printed only where a "
+            "pre-registered decision rule was met; no comparison in the scorecard met one, so none is printed and the cells give the "
+            "numbers and the verdict they rest on. Status words, not orderings: FAILED = does not bound position; PASSED = met its "
+            "pre-registered criteria with no comparison (Experiment 3, FGO only); N/A = not run.\n\n")
     f.write("**Ordering footnotes (2026-10-17).** Every place a table or caption claims, or declines to claim, an ordering carries a "
             "lettered footnote ([a], [b], …) giving the metric and unit, n with its unit of replication, the "
             "pre-registered rule with its source line (each cited line is read at build time and checked to contain the quoted "
