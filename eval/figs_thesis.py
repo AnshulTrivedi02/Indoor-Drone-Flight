@@ -669,8 +669,10 @@ def ob_cl(tag, with_contact=True):
 # =============================================================================================== FIG 1 scorecard
 # Ruling 2026-10-17 (scorecard): an ordering label (BEST / BEHIND, and TIED, which claims equality) is printed ONLY where a
 # pre-registered decision rule was met; no comparison in this table met one, so the ordering labels are gone. The status words
-# below are not orderings: FAILED (does not bound position), PASSED (met its own pre-registered criteria), N/A (not run).
-CAT = {"FAILED": ("#ffffff", "failed"), "PASSED": ("#f0f0f0", "passed"), "N/A": ("#ffffff", "n/a")}
+# below are not orderings: BLANK_ST (the blank-floor status, ruling 2026-10-18: replaces the word FAILED), PASSED (met its own
+# pre-registered criteria), N/A (not run).
+BLANK_ST = "no estimator bounds position (EKF3 flags invalid; UKF and FGO diverge)"
+CAT = {BLANK_ST: ("#ffffff", "no bound"), "PASSED": ("#f0f0f0", "passed"), "N/A": ("#ffffff", "n/a")}
 med = {e: float(np.median([v for _, v in DSN[e]])) for e in EST}
 check("standard-sensor dataset, textured floor, median of flights 1–9, EKF3 / UKF / FGO (m)", " / ".join(f2(med[e]) for e in EST), "4.10 / 5.13 / 4.46", "numbers.md §6.1 standing row")
 check("H1.1 confirmatory EKF3 − FGO verdict", pt["verdict"], "no ordering claimed", "numbers.md §6.1 confirmatory row; claim 2")
@@ -707,7 +709,7 @@ COLS = ["Experiment 1A: standard sensors (textured floor, no heading)", "Experim
 CELLS = {
     "EKF3": [("", f"median {rd(med['EKF3'], 2)} m", "confirmatory test: no ordering"),
              ("N/A", "no offline heading arm", "the fixed no-heading baseline"),
-             ("FAILED", "position invalid from take-off", "origin output, unscored"),
+             (BLANK_ST, "position invalid from take-off", "origin output, unscored"),
              ("", f"1 tag: {rd(mrD['EKF3 live'] * 100, 1)} cm live", "no live ordering claimed"),
              ("", f"indoor {rng(OI['EKF3 live'])} m", "no live ordering claimed; 4.10 m jump"),
              ("N/A", "FGO capability only", "the filters have no loop closure"),
@@ -715,7 +717,7 @@ CELLS = {
              ("", f"{passh['EKF3']}/3 pass; max cross-track ≤ {rd(max(B2h['EKF3']), 2)} m", "no ordering claimed")],
     "UKF": [("", f"median {rd(med['UKF'], 2)} m", "descriptive, 9 flights"),
             ("", f"{rng(u6)} m", "the FGO lower on 6/6; C1.a descriptive"),
-            ("FAILED", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
+            (BLANK_ST, f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
             ("", f"1 tag: {rd(mrD['UKF live'] * 100, 1)} cm live", "no live ordering claimed"),
             ("", f"indoor {rng(OI['UKF live'])} m", "no live ordering claimed"),
             ("N/A", "no loop-closure equivalent", "FGO capability only"),
@@ -723,7 +725,7 @@ CELLS = {
             ("", f"{passh['UKF']}/3 pass; max cross-track ≤ {rd(max(B2h['UKF']), 2)} m", "final UKF port")],
     "FGO": [("", f"median {rd(med['FGO'], 2)} m", "confirmatory test: no ordering"),
             ("", f"{rng(g6)} m", "lower than the UKF on 6/6; C1.a descriptive"),
-            ("FAILED", f"{rng(BLANK['FGO'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
+            (BLANK_ST, f"{rng(BLANK['FGO'][:, 3] / 1e3, 0)} km at end †", "no flow aiding"),
             ("", f"1 tag: {rd(mrD['FGO live'] * 100, 1)} cm live", f"batch {rng([100 * agg['conditions'][c]['mean_rmse_m']['FGO hindsight (whole-flight batch)'] for c in TCOND], 1)} cm, H2.1 PASS"),
             ("", f"indoor {rng(OI['FGO live'])} m", "batch 0.59, within 1.5× of the smoothed UKF: H4.3 PASS"),
             ("PASSED", f"live {rng([t['rmse_m'] * 100 for t in LL[('lc', 'live')]], 1)} cm", "H3.1–H3.4 PASS 3/3"),
@@ -733,8 +735,8 @@ T1MK = ["[a, b]", "[c]", "[d]", "[e]", "[f, g]", "[h]", "[i]", "[j]"]      # ord
 T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h"), ob_h5("i"), ob_cl("j")]
 rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + f"{CELLS[e][j][1]} ({CELLS[e][j][2]})" for e in EST]
           for j, col in enumerate(COLS)]
-save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the restated verdicts)",
-         "Each cell gives the key number and the verdict it rests on, with a status word (FAILED, PASSED, N/A) where one applies. "
+save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment and estimator",
+         "Each cell gives the key number and the verdict it rests on, with a status (PASSED, N/A, or on the blank floor '" + BLANK_ST + "') where one applies. "
          "No ordering label is printed: an ordering (BEST / BEHIND / TIED) is shown only where a pre-registered decision rule was met, "
          "and no comparison of the displayed key numbers met one (H4.1 and H4.3 are met, but concern the hindsight tracks, footnote [g]); any ordering visible in the numbers is descriptive (footnotes [a]–[j]). No estimator "
          "bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera "
@@ -744,7 +746,7 @@ save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the res
          "expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, "
          "closed_loop_cl_*_half(_v2/_v3).json",
          "§6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25",
-         notes=["Status words (not orderings): FAILED = does not bound position (the blank floor, ruled 'not accuracy comparisons'); PASSED = met "
+         notes=["Statuses (not orderings): '" + BLANK_ST + "' = the blank-floor status (ruling 2026-10-18; the blank floor is ruled 'not accuracy comparisons'); PASSED = met "
                 "its pre-registered criteria with no comparison (Experiment 3, FGO only: H3.1–H3.4); N/A = not run. Ordering labels (BEST / "
                 "BEHIND / TIED) are printed only where a pre-registered decision rule was met (ruling 2026-10-17); none is printed here.",
                 "Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians "
@@ -1531,12 +1533,27 @@ _H57 = "P-H7 (lockout): no estimator locks out the returning tag in any loss."
 _D51 = ("H-H1 (primary): every estimator holds within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights "
         "per estimator.")
 _D55 = "P-H5 (drift during loss, prediction): GT drift during the 15 s occlusion ≤ 0.3 m for every estimator."
+# Item 5 (ruling 2026-10-18): the METHODOLOGY S0/S1 pre-registration is dated by its commit; check that the heading and the scored
+# H5.1 / H5.5 text are in METHODOLOGY.md at c11fcf3, and that c11fcf3 predates the first Experiment 5 flight (H_s0a; the earlier
+# attempt H_s0a_ABORTED aborted before take-off, M:10711-10712).
+_PRH = "Experiment H (marker-relative position holding): pre-registration of S0 and S1 (written before any H flight)"
+_MC11 = re.sub(r"\s+", " ", " ".join(re.sub(r"^\s*-\s+", "", ln) for ln in subprocess.run(["git", "-C", ROOT, "show", f"{H5V_C}:{M_}"],
+               capture_output=True, text=True).stdout.split("\n")).replace("**", "").replace("`", ""))
+check(f"{M_} at {H5V_C}: the S0/S1 pre-registration heading and the scored H5.1 / H5.5 wording present", all(t in _MC11 for t in (_PRH, _H51, _H55)), True,
+      f"git show {H5V_C}:{M_}")
+_c11 = subprocess.run(["git", "-C", ROOT, "show", "-s", "--format=%cI", H5V_C], capture_output=True, text=True).stdout.strip()
+_s0a = re.search(r"timestamp_utc:\s*(\S+)", open(os.path.expanduser("~/thesis_data/trials/H_s0a/metadata.yaml")).read()).group(1)
+import datetime as _dt
+_c11t = _dt.datetime.fromisoformat(_c11); _s0at = _dt.datetime.fromisoformat(_s0a.replace("Z", "+00:00"))
+_S0A = _s0at.astimezone(_c11t.tzinfo).strftime("%Y-%m-%d %H:%M")
+check(f"{H5V_C} ({_c11}) predates the first Experiment 5 flight H_s0a ({_s0a})", _c11t < _s0at, True, "git log; ~/thesis_data/trials/H_s0a/metadata.yaml")
 H5A2NOTE = ("Experiment 5 hypotheses scored on this page, the pre-registered wording verbatim (Experiment 5 S0/S1 pre-registration, "
             f"written before any Experiment 5 flight): H5.1 '{_H51}' ({vquote(M_, 10687, 10688, _H51)}); H5.5 '{_H55}' "
             f"({vquote(M_, 10689, 10692, _H55)}; the flying UKF and FGO keep these bands, {cite(M_, 10969, 'These are the S1 bands.')}); "
-            f"H5.7 '{_H57}' ({vquote(M_, 10700, 10700, _H57)}). The design draft words two of them differently: H5.1 '{_D51}' "
-            f"({vquote(_THD, 176, 177, _D51)}) and H5.5 '{_D55}' ({vquote(_THD, 188, 188, _D55)}); the METHODOLOGY wording is the "
-            "one scored. Under either wording both PASS: every hold window of every flying hold set on this page is inside 50 mm mean "
+            f"H5.7 '{_H57}' ({vquote(M_, 10700, 10700, _H57)}). The METHODOLOGY wording is the one scored (ruling 2026-10-18): it is "
+            f"the formal pre-registration ('{_PRH}', {cite(M_, 10623, _PRH)}), committed in {H5V_C} ({H5V_DATE}), before the first "
+            f"Experiment 5 flight (H_s0a, {_S0A}). Design-draft wording (not scored), tag_hold_design.md §e: H5.1 '{_D51}' "
+            f"({vquote(_THD, 176, 177, _D51)}) and H5.5 '{_D55}' ({vquote(_THD, 188, 188, _D55)}). Under either wording both PASS: every hold window of every flying hold set on this page is inside 50 mm mean "
             "and 150 mm max, and every drift is inside its band (columns above), the 15 s drifts far below 0.3 m. H5.6 (re-lock time "
             "and jump) is in Table 7.3.")
 _HW = [w for trs in (S1, S1F, S2O, S2V, S3O, S3V) for t in trs for w in HJ(t)["hold_windows_vehicle"]]
@@ -2007,7 +2024,8 @@ with open(INDEX, "w") as f:
             "open marks = hindsight. No log axes anywhere.\n\n")
     f.write(f"**Scorecard labels ({TNUM['T1']}; ruling 2026-10-17):** an ordering label (BEST / BEHIND / TIED) is printed only where a "
             "pre-registered decision rule was met; no comparison of the scorecard's key numbers met one (H4.1 and H4.3 are met but concern the hindsight tracks), so none is printed and the cells give the "
-            "numbers and the verdict they rest on. Status words, not orderings: FAILED = does not bound position; PASSED = met its "
+            "numbers and the verdict they rest on. Statuses, not orderings: on the blank floor '" + BLANK_ST + "' (ruling 2026-10-18, "
+            "replacing the word FAILED); PASSED = met its "
             "pre-registered criteria with no comparison (Experiment 3, FGO only); N/A = not run.\n\n")
     f.write("**Ordering footnotes (2026-10-17).** Every place a table or caption claims, or declines to claim, an ordering carries a "
             "lettered footnote ([a], [b], …) giving the metric and unit, n with its unit of replication, the "
