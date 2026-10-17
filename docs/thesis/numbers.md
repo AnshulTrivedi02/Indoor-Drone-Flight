@@ -1435,3 +1435,10 @@ reader applies the errata to it. `tools/check_numbers_frozen.py` fails if anythi
 - Reason: parameter attribution. The value (500, NIS gate 25) is unchanged; no number changes.
 - Source: `AP_NavEKF3_PosVelFusion.cpp:1022` (`hgtTestRatio … _hgtInnovGate`); `AP_NavEKF3_OptFlowFusion.cpp:140` (`auxRngTestRatio … _rngInnovGate`).
 - Ruling: RULINGS (user, 2026-10-17, second set), item 1 (METHODOLOGY.md:14302).
+
+### E3 (2026-10-18): §15 (safety tests), lines 490 and 491 (as frozen)
+- Frozen text (verbatim): line 490 "UKF (a) **ALL PASS** (trigger 0.00 s from effect, bound 0.75 s; drift to touchdown 0.58 m)"; line 491 "UKF (a) `H_safety_ukf_a_v2` **ALL PASS** (trigger 0.00 s from effect, bound 0.75 s; drift to touchdown 0.85 m)"
+- Corrected text: line 490 "UKF (a) **ALL PASS** (trigger 0.00 s from effect, bound 0.1 s; drift to touchdown 0.58 m)"; line 491 "UKF (a) `H_safety_ukf_a_v2` **ALL PASS** (trigger 0.00 s from effect, bound 0.1 s; drift to touchdown 0.85 m)". The FGO bounds (0.75 s) on the same lines are unchanged.
+- Reason: the bound that governed every UKF (a) run is the pre-registered 0.1 s: PRE-REGISTRATION (2026-10-08, before any run), METHODOLOGY.md:11299 ("UKF (a): within **0.1 s** of TFAIL"). The ruling of 2026-10-08 after the first run (METHODOLOGY.md:11515, item 3, l.11525) re-worded only the timing reference (from when the forced failure takes effect), not the bound. The 0.75 s came from scoring the re-tests with the FGO's bound (`--a2-bound 0.75`, METHODOLOGY.md:14263-14264). Verdict unchanged: 0.00 s ≤ 0.1 s.
+- Source: METHODOLOGY.md:11299, 11525; `eval/results/expH/safety_ukf_a_v2.json`, `safety_ukf_a_v3.json` (S-A2 delay 0.00 s).
+- Ruling: user rulings 2026-10-18, item 4 (UKF (a) timing bound).
