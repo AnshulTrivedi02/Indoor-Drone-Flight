@@ -736,7 +736,7 @@ rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else 
 save_tab("T1", "T1_scorecard", "Which estimator wins where (scorecard of the restated verdicts)",
          "Each cell gives the key number and the verdict it rests on, with a status word (FAILED, PASSED, N/A) where one applies. "
          "No ordering label is printed: an ordering (BEST / BEHIND / TIED) is shown only where a pre-registered decision rule was met, "
-         "and no comparison in this table met one; any ordering visible in the numbers is descriptive (footnotes [a]–[j]). No estimator "
+         "and no comparison of the displayed key numbers met one (H4.1 and H4.3 are met, but concern the hindsight tracks, footnote [g]); any ordering visible in the numbers is descriptive (footnotes [a]–[j]). No estimator "
          "bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera "
          "flights (1B: the camera calibration flights and both camera datasets).",
          ["experiment", "EKF3", "UKF", "FGO"], rowsT1, [30, 40, 40, 40],
@@ -2006,7 +2006,7 @@ with open(INDEX, "w") as f:
     f.write(f"**Colour mapping (Okabe–Ito, colour-blind safe; fixed across every figure):** {PAL}. Solid lines / filled marks = live; dashed lines / "
             "open marks = hindsight. No log axes anywhere.\n\n")
     f.write(f"**Scorecard labels ({TNUM['T1']}; ruling 2026-10-17):** an ordering label (BEST / BEHIND / TIED) is printed only where a "
-            "pre-registered decision rule was met; no comparison in the scorecard met one, so none is printed and the cells give the "
+            "pre-registered decision rule was met; no comparison of the scorecard's key numbers met one (H4.1 and H4.3 are met but concern the hindsight tracks), so none is printed and the cells give the "
             "numbers and the verdict they rest on. Status words, not orderings: FAILED = does not bound position; PASSED = met its "
             "pre-registered criteria with no comparison (Experiment 3, FGO only); N/A = not run.\n\n")
     f.write("**Ordering footnotes (2026-10-17).** Every place a table or caption claims, or declines to claim, an ordering carries a "
