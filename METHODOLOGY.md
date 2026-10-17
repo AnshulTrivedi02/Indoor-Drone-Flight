@@ -14315,3 +14315,25 @@ was re-run (simulation results are frozen).
 2. **Trajectory option (c):** build only if stored outputs only, shows something no existing figure shows (offline
    standard-sensor drift, Section 4.1), and under about an hour; otherwise skip and say which condition failed.
 3. **Figure 4.1b caption:** must state that EKF3's no-heading contact (+242.1 s) fell after its pre-registered window.
+
+### Outcome (2026-10-17) of the second ruling set, items 2–3, and a finding
+
+- **Item 2, trajectory option (c): BUILT** as "Figure 4.1c (provisional)" (internal R5; `eval/figs_thesis_drift.py`,
+  `docs/thesis/figures_thesis/R5_drift_unaligned.{png,pdf}`, `index_drift.md`; merge `ec50cf8`). All three conditions held:
+  stored outputs only; new (Figure 4.2 shows SE(3)-aligned paths, which bend the drift into an arc; no figure showed
+  the unaligned offline drift); ~35 min. Flight `dsn_tex_r3` by the R3 rule (the script re-derives it and stops
+  otherwise). Frame check 3/3 (take-off at the origin; heading over the first 5 m of cruise EKF3 +0.23°, UKF +0.82°,
+  FGO +0.37°). Cross-check 9/9 exact, including the recomputed cruise ATEs against `rerun_dsn_evo.json`.
+  - **Open for a ruling:** (a) the UKF/FGO files are in a take-off-heading frame (x = forward); a fixed, unfitted
+    relabel (N, E) = (x, −y) (as `eval/phase5_analysis.py:12-14`) puts them in truth's frame, relying on the known
+    spawn heading (North) — is that "unaligned"? (b) the lateral axis is at equal scale (1.0×), not stretched; the
+    36–48 m sideways drift reads at equal scale. (c) the end-of-cruise unaligned errors (sideways ≈ 36 / 48 / 41 m,
+    along-track ≈ −8 / −16 / −10 m, EKF3 / UKF / FGO) are not printed: no numbers.md row.
+- **Item 3:** the Figure 4.1b caption lacked the window statement; it is being added (EKF3 +242.1 s after its
+  pre-registered window [+155, +215] s, numbers.md:470) together with the scorecard changes.
+- **FINDING (code, no thesis number found affected yet):** `ukf_replay.py:239-289` and the FGO `metrics.txt` writer read
+  the first trajectory column as East; it is North (take-off-heading frame). The stored `along_pN`, `cross_track` and
+  `ate_apparatus` in the UKF/FGO `metrics.txt` files are therefore axis-swapped (e.g. `dsn_tex_r3/ukf`
+  `cross_track = 135.057` is the along-track distance). Readers: `plots/rerun_batch.py`, `plots/fgo_batch.py`. No
+  numbers.md row or thesis generator reads these fields (grep, 2026-10-17); a full provenance trace of every
+  cross-/along-track row in numbers.md was NOT done. Not corrected (results frozen).
