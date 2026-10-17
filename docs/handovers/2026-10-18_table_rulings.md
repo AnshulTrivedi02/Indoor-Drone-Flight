@@ -48,7 +48,8 @@ numbers.md:490-491, so nothing needed redirecting to the E3 corrected text.
   check, `git show c11fcf3:METHODOLOGY.md`).
 - **First H flight:** `H_s0a`, metadata `timestamp_utc: 2026-10-08T04:29:51Z` = 15:29:51 +1100, 12 min after the commit
   (build-time check). The first attempt `H_s0a_ABORTED` (directory created 15:20:23 +1100, still after the commit)
-  "aborted before take-off" (M:10711-10712). The S0a RESULT entry (M:10704) gives no date. First S1 (scored) flight
+  "aborted before take-off" (M:10711-10712). None of the Experiment H RESULT headings (S0a M:10704, S0b M:10783, S1
+  M:10798) carries a date, so the dates come from the commit and the trial metadata. First S1 (scored) flight
   `H_s1_r1`: 06:05:34Z = 17:05 +1100.
   - **Discrepancy flagged:** the previous handover gave `H_s1_r1` as "2026-10-08 21:50"; its metadata says 17:05 +1100.
     Either way it is after the commit.
@@ -80,6 +81,12 @@ numbers.md:490-491, so nothing needed redirecting to the E3 corrected text.
   (4 of 12, 9 of 12, the display-precision 3 of 12, the tie) and the FGO effective range "7–27". They use a new
   `jcheck()` (exact string equality against the stored json; the source column says "new value; no document line").
   The FGO 7–27 and UKF 2–26 also match Table A.2's (already cross-checked) "tag-loss drift (effective)" column.
+- **Spawn points (disclosed in the R1 note):** the comparator `H_s1_r*` is the near-spawn EKF3-flying set (the source of the
+  registered 3–31 mm); S2v2/S3v2 flew from the far spawn (numbers.md:635). **Sensitivity (handover only, no table value):**
+  against the far-spawn flying EKF3 (`s1far_r1`, `s1far_r2`, `s1far_r3b`, effective drift 2.8–26.0 mm; loss classes
+  asserted to match), UKF 4 of 12, FGO 7 of 12: still FALSE.
+- **Category rule:** the R1 rule note now reads "FAIL AS WORDED = a failure the record itself (or a user ruling) labels
+  'as worded'", since the record says only "NOT borne out" (M:12244) and "as worded" comes from the ruling.
 - **Placement (a choice, flag if wrong):** a part of label H5.5 (the prediction sits in the S2/S3 "Drift during loss"
   block), so the label count stays 35. The "Labels with parts" note now includes H5.5; the old "Not scored here" sentence
   is replaced by a scoring note.
@@ -103,6 +110,8 @@ numbers.md:490-491, so nothing needed redirecting to the E3 corrected text.
 - **A2:** page 1 PNG/PDF only (no .md/.tex): the note text. **T2–T8, R2, R4:** no change except the commit hash in the
   generated comment. Figure PDFs differ only in embedded metadata.
 - No stale `_pN` pages: R1 stays 8 pages, T1 3 pages, A2 3 pages.
+- A full line diff (not only the number count) of index_results.md and R1 .md/.tex against `0726900` shows only the lines
+  above (caption counts, notes, the new row and its checks, the H5.6 reason, the category-rule wording, commit hashes).
 
 ## Open items needing a ruling
 

@@ -158,7 +158,7 @@ def save_tab(num, name, title, caption, header, rows, widths, inputs, notes=(), 
 # =============================================================================================== R1 HYPOTHESIS SCORECARD
 # Verdict categories (rule stated in the table note and index_results.md):
 #   PASS            the record's verdict word is PASS, MET or TRUE (incl. "accepted as worded")
-#   FAIL AS WORDED  a failure that the record itself labels "as worded" (methodology_definitions_draft.md, "As worded")
+#   FAIL AS WORDED  a failure that the record itself (or a user ruling) labels "as worded" (methodology_definitions_draft.md, "As worded")
 #   NOT MET         a test run whose decision rule was not met, recorded as FAIL, NOT met, FALSE or MISS, with no "as worded" label
 #   WITHDRAWN       no longer made (methodology_definitions_draft.md, "Withdrawn"); V3 is listed, not restated
 #   DESCRIPTIVE     no comparative test: a pre-registered comparison with no decision rule (C) or an exploratory analysis (X)
@@ -449,7 +449,7 @@ R1 = [
  ("H5.5", "drift band", "S2/S3 directional prediction (UKF- and FGO-flying hold sets, final builds)",
   "Directional prediction: both flying estimators drift more than flying EKF3 did (3–31 mm).", ("M", 10971, None),
   ["Directional prediction: both flying estimators drift more than flying EKF3 did (3–31 mm)."],
-  f"FALSE AS WORDED: per matched loss (same loss and repeat, flying EKF3 = the EKF3-flying hold set), the final UKF port drifted more "
+  f"FALSE AS WORDED: per matched loss (same loss and repeat, flying EKF3 = the EKF3-flying hold set, near spawn), the final UKF port drifted more "
   f"in {H5D['n_ukf']} and the final FGO node in {H5D['n_fgo']} (strictly greater, full precision); ranges overlap (UKF {H5D['r_ukf']}, "
   f"FGO {H5D['r_fgo']}, flying EKF3 {H5D['r_ekf']} mm)",
   [("numbers.md", 644, None, [H5D["l_ukf"], "drifts 2–26 mm"]), ("numbers.md", 646, None, [H5D["l_fgo"]]),
@@ -570,7 +570,7 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
          "METHODOLOGY.md and docs/tag_hold_design.md (predictions); docs/thesis/numbers.md (outcomes); docs/thesis/headline_claims_before_after.md "
          "(claims rows); eval/results/dsn_paired_test.json, expT/t_aggregate.json, expO/O_*.json (numeric cross-checks)",
          notes=["Verdicts (the rule used here; the record's own word decides): PASS = the record says PASS, MET or TRUE (including a verdict "
-                "'accepted as worded'); FAIL AS WORDED = a failure the record itself labels 'as worded' (the literal verdict, kept although the "
+                "'accepted as worded'); FAIL AS WORDED = a failure the record itself (or a user ruling) labels 'as worded' (the literal verdict, kept although the "
                 "wording is known to be faulty or unbanded; methodology draft, 'As worded'); NOT MET = a test that was run and whose rule was not "
                 "met, recorded as FAIL, NOT met, FALSE or MISS without that label; WITHDRAWN = no longer made (methodology draft, 'Withdrawn'): V3 "
                 "is not re-scorable, so its old PASS is listed and not restated; DESCRIPTIVE = no comparative test (C1.a is a pre-registered "
@@ -589,7 +589,7 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
                 "M:12243).",
                 "H5.5 S2/S3 directional prediction (ruling 2026-10-18): 'both flying estimators drift more than flying EKF3 did (3–31 mm)' "
                 "(M:10971, in the S2/S3 pre-registration), scored as worded on the final builds (final UKF port H_s2v2_r*, final FGO node "
-                "H_s3v2_r*) against flying EKF3 (the EKF3-flying hold set H_s1_r*; the EKF3 shadows of the S2/S3 flights are not used), "
+                "H_s3v2_r*) against flying EKF3 (the EKF3-flying hold set H_s1_r*, near spawn, the source of the registered 3–31 mm; the EKF3 shadows of the S2/S3 flights are not used), "
                 "from stored drift values only. Primary: per matched loss (the same loss, 5 / 15 / 30 s hover or ~7 s move, and the same "
                 "repeat: 12 per estimator), 'more' = strictly greater at full precision, on the effective drift (last fix to first "
                 "returning fix), the metric of the registered 3–31 mm (M:10827-10828); it holds iff both estimators exceed flying EKF3 in "
@@ -597,7 +597,7 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
                 f"displayed mm precision UKF {H5D['ndisp_ukf']} (one UKF pair, repeat 2, 30 s loss, equal at that precision) and FGO "
                 f"{H5D['ndisp_fgo']}. The ranges overlap (UKF {H5D['r_ukf']}, FGO {H5D['r_fgo']}, flying EKF3 {H5D['r_ekf']} mm). FALSE AS "
                 "WORDED, counted as FAIL AS WORDED. Caveat (M:12249): each estimator flew its own flights, so the pairing is by run index, "
-                "not the same trajectory. The superseded builds were judged NOT borne out (M:12244-12245).",
+                "not the same trajectory; it also crosses spawn points (the final-build UKF and FGO sets flew from the far spawn). The superseded builds were judged NOT borne out (M:12244-12245).",
                 "H1.3 is shown as recorded on 2026-09-29 (M:3440-3448): no restated Phase 5 verdict exists after the final re-runs, only the restated "
                 "decomposition magnitudes (numbers.md:263). The criteria families without hypothesis labels (dataset-quality bands, the 5S safety "
                 "criteria) are not scored here: numbers.md §8 and Table A.2.",
