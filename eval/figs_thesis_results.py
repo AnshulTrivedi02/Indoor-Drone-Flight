@@ -96,6 +96,16 @@ def check(tab, label, computed, expected, doc, ln):
     return ok
 
 
+def jcheck(tab, label, computed, expected, src):
+    """EXACT, for a NEW value with no numbers.md / METHODOLOGY line (ruling 2026-10-18, item 6): the value recomputed from the
+    stored result file (rounded once by rd()) must equal the typed string; the source is the result file, not a document line."""
+    ok = str(computed) == str(expected)
+    CHK.append((tab, label, str(computed), str(expected), src + " (new value; no document line)", ok))
+    if not ok:
+        print("   CHECK FAIL:", tab, label, computed, expected)
+    return ok
+
+
 def found(tab, label, frags, doc, a, b=None):
     """Each fragment occurs in the cited lines, in order."""
     s, pos, ok = span(doc, a, b), 0, True
@@ -152,6 +162,43 @@ def save_tab(num, name, title, caption, header, rows, widths, inputs, notes=(), 
 #   NOT MET         a test run whose decision rule was not met, recorded as FAIL, NOT met, FALSE or MISS, with no "as worded" label
 #   WITHDRAWN       no longer made (methodology_definitions_draft.md, "Withdrawn"); V3 is listed, not restated
 #   DESCRIPTIVE     no comparative test: a pre-registered comparison with no decision rule (C) or an exploratory analysis (X)
+# ---- H5.5 S2/S3 directional prediction (ruling 2026-10-18, item 6), scored from STORED drift values only.
+# Comparator: flying EKF3 = the EKF3-flying hold set (s1_r*.json, losses[*].EKF3); the EKF3 entries inside s2v2/s3v2 are shadows
+# and are NOT used. Primary metric: the EFFECTIVE drift (last fix -> first returning fix, losses[*].<est>.effective.drift_m), the
+# metric of the registered "3–31 mm" (M:10827-10828, "Values are the effective (post hoc) drifts"); the end-of-loss metric
+# (drift_end_m) is also counted. Matching: same loss (5 / 15 / 30 s hover, ~7 s move; checked by duration class) and same repeat.
+# "More" = strictly greater at full precision. Holds iff both estimators exceed flying EKF3 in every matched loss.
+def _dcls(d):
+    return 5 if d < 6.5 else (7 if d < 10 else (15 if d < 20 else 30))
+
+
+def _h5d():
+    H = lambda f: L(f"expH/{f}.json")["losses"]
+    eff = lambda l, e: l[e]["effective"]["drift_m"] * 1e3
+    end = lambda l, e: l[e]["drift_end_m"] * 1e3
+    out = {"pairs": {}}
+    for key, tag, est in (("ukf", "s2v2", "UKF_port"), ("fgo", "s3v2", "FGO_flying")):
+        pr = []
+        for r in (1, 2, 3):
+            A, B = H(f"s1_r{r}"), H(f"{tag}_r{r}")
+            assert len(A) == len(B) == 4
+            for a, b in zip(A, B):
+                assert _dcls(a["duration_s"]) == _dcls(b["duration_s"]), (tag, r, a["duration_s"], b["duration_s"])
+                pr.append((r, _dcls(a["duration_s"]), eff(b, est), eff(a, "EKF3"), end(b, est), end(a, "EKF3")))
+        out["pairs"][key] = pr
+        out[f"n_{key}"] = f"{sum(p[2] > p[3] for p in pr)} of {len(pr)}"
+        out[f"nend_{key}"] = f"{sum(p[4] > p[5] for p in pr)} of {len(pr)}"
+        out[f"ndisp_{key}"] = f"{sum(float(rd(p[2], 0)) > float(rd(p[3], 0)) for p in pr)} of {len(pr)}"
+        out[f"ties_{key}"] = [(p[0], p[1]) for p in pr if rd(p[2], 0) == rd(p[3], 0)]
+        out[f"r_{key}"] = rng([p[2] for p in pr], 0)
+        # the end-of-loss values as numbers.md §17.1 prints them: per loss r1 / r2 / r3, losses joined by '; '
+        out[f"l_{key}"] = "; ".join(" / ".join(rd(p[4], 0) for p in pr if p[1] == c) for c in (5, 15, 30, 7))
+    out["r_ekf"] = rng([p[3] for p in out["pairs"]["ukf"]], 0)
+    out["holds"] = all(p[2] > p[3] for k in ("ukf", "fgo") for p in out["pairs"][k])
+    return out
+
+
+H5D = _h5d()
 # Each row: label, name (vocabulary §5), part, prediction text, prediction source (doc, a, b), quote fragments,
 #           outcome text, outcome source(s) [(doc, a, b, [fragments])], verdict, change note.
 R1 = [
@@ -399,6 +446,16 @@ R1 = [
   "PASS: every loss inside its band (20/20 each estimator in S1; every band passes on the UKF- and FGO-flying hold sets)",
   [("numbers.md", 629, None, ["P-H5 PASS (20/20 each estimator"]), ("numbers.md", 644, None, ["every UKF band PASSES"]), ("numbers.md", 646, None, ["every FGO band PASSES"])],
   "PASS", "no (claims row 25); the S1 shadow drifts were restated (claims row 26)"),
+ ("H5.5", "drift band", "S2/S3 directional prediction (UKF- and FGO-flying hold sets, final builds)",
+  "Directional prediction: both flying estimators drift more than flying EKF3 did (3–31 mm).", ("M", 10971, None),
+  ["Directional prediction: both flying estimators drift more than flying EKF3 did (3–31 mm)."],
+  f"FALSE AS WORDED: per matched loss (same loss and repeat, flying EKF3 = the EKF3-flying hold set), the final UKF port drifted more "
+  f"in {H5D['n_ukf']} and the final FGO node in {H5D['n_fgo']} (strictly greater, full precision); ranges overlap (UKF {H5D['r_ukf']}, "
+  f"FGO {H5D['r_fgo']}, flying EKF3 {H5D['r_ekf']} mm)",
+  [("numbers.md", 644, None, [H5D["l_ukf"], "drifts 2–26 mm"]), ("numbers.md", 646, None, [H5D["l_fgo"]]),
+   ("M", 10932, None, ["flying EKF3 drifted far less (3–31 mm)"])],
+  "FAIL AS WORDED", "new part (ruling 2026-10-18, item 6): scored from stored drift values only (eval/results/expH/s1_r*.json, "
+  "s2v2_r*.json, s3v2_r*.json); judged NOT borne out on the superseded builds (M:12244-12245)"),
  ("H5.6", "re-lock time", "as pre-registered (EKF3-flying hold set)",
   "P-H6 (re-lock): EKF3: after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m. After the 15 s and 30 s losses "
   "(posTimeout), the first fix resets position: re-lock ≤ 0.2 s with a jump equal to the accumulated drift (within 0.02 m of it). "
@@ -424,11 +481,12 @@ R1 = [
   "Jump criterion: kept as worded (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift at re-lock; "
   "UKF/FGO converge without reset).", ("M", 10957, 10958),
   ["Jump criterion: kept as worded (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift at re-lock; UKF/FGO converge without reset)."],
-  "fails as worded: final UKF port in most losses (steps 5–30 mm against drifts 2–26 mm); final FGO node in 4 of 12 losses",
+  "fails as worded: final UKF port in most losses (steps 5–30 mm against drifts 2–26 mm); final FGO node in 4 of 12 losses. Why: "
+  "the single-step correction at re-lock lands a few mm above the accumulated drift (numbers.md:644, 646)",
   [("numbers.md", 644, None, ["jump criterion AS WORDED fails in most losses (steps 5–30 mm against drifts 2–26 mm)"]),
    ("numbers.md", 646, None, ["jump AS WORDED fails in 4 of 12 losses"])],
-  "FAIL AS WORDED", "new part (ruling 2026-10-17, verbatim wording): the S2/S3 pre-registration kept this criterion as worded; its "
-  "outcome is recorded (numbers.md §17.1) but was not scored as an H5.6 part before; no new analysis"),
+  "FAIL AS WORDED", "part kept as worded (ruling 2026-10-18; added by ruling 2026-10-17, verbatim wording): the S2/S3 pre-registration "
+  "kept this criterion as worded; its outcome is recorded (numbers.md §17.1) but was not scored as an H5.6 part before; no new analysis"),
  ("H5.7", "no lockout", "",
   "P-H7 (lockout): no estimator locks out the returning tag in any loss.", ("M", 10700, None),
   ["P-H7 (lockout): no estimator locks out the returning tag in any loss."],
@@ -487,6 +545,22 @@ o_live = [mm({k: OJ[t][k]["indoor_rmse_m"] for k in LIVE}, LIVE) for t in OFL]
 check("R1", "H4.2 live max/min range", f"{rd(min(o_live), 2)}–{rd(max(o_live), 2)}×", "1.71–1.84×", "numbers.md", 559)
 o_hind = [mm({k: OJ[t][k]["indoor_rmse_m"] for k in HIND}, HIND) for t in OFL]
 check("R1", "H4.3 hindsight max/min range", f"{rd(min(o_hind), 2)}–{rd(max(o_hind), 2)}", "1.01–1.02", "numbers.md", 560)
+# H5.5 S2/S3 directional prediction (ruling 2026-10-18, item 6): inputs against their document lines, new values against the json
+found("R1", "note: H5.5 directional, the registered 3–31 mm is the effective drift", ["Values are the effective (post hoc) drifts"], "M", 10827, 10828)
+found("R1", "note: H5.5 directional, pairing caveat", ["each estimator flew its own flights, so the pairing is by run index, not the same trajectory."], "M", 12249)
+found("R1", "note: H5.5 directional, in the S2/S3 pre-registration", ["Experiment H S2/S3: pre-registration items fixed now (before any S2/S3 flight"], "M", 10946)
+_HJ = "eval/results/expH/s1_r*.json, s2v2_r*.json, s3v2_r*.json"
+check("R1", "H5.5 directional: final UKF port end-of-loss drift per loss, r1 / r2 / r3 (mm)", H5D["l_ukf"], "5 / 7 / 8; 19 / 7 / 26; 6 / 10 / 10; 26 / 4 / 5", "numbers.md", 644)
+check("R1", "H5.5 directional: final FGO node end-of-loss drift per loss, r1 / r2 / r3 (mm)", H5D["l_fgo"], "13 / 20 / 17; 7 / 25 / 27; 22 / 15 / 9; 17 / 11 / 18", "numbers.md", 646)
+check("R1", "H5.5 directional: flying EKF3 effective drift range, all 12 losses (mm)", H5D["r_ekf"], "3–31", "M", 10932)
+check("R1", "H5.5 directional: final UKF port effective drift range, all 12 losses (mm)", H5D["r_ukf"], "2–26", "numbers.md", 644)
+jcheck("R1", "H5.5 directional: final FGO node effective drift range, all 12 losses (mm)", H5D["r_fgo"], "7–27", _HJ)
+jcheck("R1", "H5.5 directional: matched losses with the UKF / FGO drift strictly above flying EKF3 (effective, full precision)",
+       f"{H5D['n_ukf']} / {H5D['n_fgo']}", "4 of 12 / 9 of 12", _HJ)
+jcheck("R1", "H5.5 directional: same count, end-of-loss metric (drift_end_m)", f"{H5D['nend_ukf']} / {H5D['nend_fgo']}", "4 of 12 / 9 of 12", _HJ)
+jcheck("R1", "H5.5 directional: same count, at the displayed mm precision (effective)", f"{H5D['ndisp_ukf']} / {H5D['ndisp_fgo']}", "3 of 12 / 9 of 12", _HJ)
+jcheck("R1", "H5.5 directional: matched losses equal at the displayed mm precision (repeat, loss s), UKF / FGO", f"{H5D['ties_ukf']} / {H5D['ties_fgo']}", "[(2, 30)] / []", _HJ)
+jcheck("R1", "H5.5 directional: prediction holds (both exceed flying EKF3 in every matched loss)", H5D["holds"], False, _HJ)
 _cnt_txt = ", ".join(f"{c} {CNT[c]}" for c in CATS)
 save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pre-registered hypothesis, comparison and check, with its restated verdict",
          f"Each row quotes the pre-registered prediction (with its source line), the outcome now (after the final re-runs and the rulings of "
@@ -502,7 +576,7 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
                 "is not re-scorable, so its old PASS is listed and not restated; DESCRIPTIVE = no comparative test (C1.a is a pre-registered "
                 "comparison with no decision rule; X1.b is exploratory).",
                 "Labels with parts are scored per part (H1.2 by wall type and floor, H1.3 (a)/(b), H1.6b and H1.6c (a)/(b), H1.8 and H1.9 per flying "
-                "estimator, H5.6 as pre-registered, as redefined and its jump criterion kept as worded), so the counts are per part, not per label.",
+                "estimator, H5.5 its bands and the S2/S3 directional prediction, H5.6 as pre-registered, as redefined and its jump criterion kept as worded), so the counts are per part, not per label.",
                 "Experiment 5 (ruling 2026-10-17): every H5 prediction is quoted VERBATIM (no ellipsis; checked unbroken in the cited lines, "
                 "markdown removed) and its verdict is judged against that wording. H5.1, H5.5, H5.6 (as pre-registered) and H5.7 are quoted from "
                 "the S0/S1 pre-registration (M:10623, 'written before any H flight'); the H5.6 redefinition and its kept jump criterion from the "
@@ -512,8 +586,18 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
                 "within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights per estimator.' (tag_hold_design.md:176-177) and 'P-H5 (drift during loss, prediction): GT drift during the 15 s "
                 "occlusion ≤ 0.3 m for every estimator.' (tag_hold_design.md:188); the METHODOLOGY wording is the one scored. Both PASS under either wording "
                 "(flying hold sets 6.1–7.4 / 17–21 mm UKF and 8.1–9.0 / 18–28 mm FGO, numbers.md:644, 646; the draft's P-H5 was scored PASS at "
-                "M:12243). Not scored here: the S2/S3 directional prediction 'both flying estimators drift more than flying EKF3 did (3–31 mm)' "
-                "(M:10971), judged NOT borne out on the superseded builds only (M:12244-12245) and not restated on the final builds.",
+                "M:12243).",
+                "H5.5 S2/S3 directional prediction (ruling 2026-10-18): 'both flying estimators drift more than flying EKF3 did (3–31 mm)' "
+                "(M:10971, in the S2/S3 pre-registration), scored as worded on the final builds (final UKF port H_s2v2_r*, final FGO node "
+                "H_s3v2_r*) against flying EKF3 (the EKF3-flying hold set H_s1_r*; the EKF3 shadows of the S2/S3 flights are not used), "
+                "from stored drift values only. Primary: per matched loss (the same loss, 5 / 15 / 30 s hover or ~7 s move, and the same "
+                "repeat: 12 per estimator), 'more' = strictly greater at full precision, on the effective drift (last fix to first "
+                "returning fix), the metric of the registered 3–31 mm (M:10827-10828); it holds iff both estimators exceed flying EKF3 in "
+                f"every matched loss. Result: UKF {H5D['n_ukf']}, FGO {H5D['n_fgo']}; the end-of-loss metric gives the same counts; at the "
+                f"displayed mm precision UKF {H5D['ndisp_ukf']} (one UKF pair, repeat 2, 30 s loss, equal at that precision) and FGO "
+                f"{H5D['ndisp_fgo']}. The ranges overlap (UKF {H5D['r_ukf']}, FGO {H5D['r_fgo']}, flying EKF3 {H5D['r_ekf']} mm). FALSE AS "
+                "WORDED, counted as FAIL AS WORDED. Caveat (M:12249): each estimator flew its own flights, so the pairing is by run index, "
+                "not the same trajectory. The superseded builds were judged NOT borne out (M:12244-12245).",
                 "H1.3 is shown as recorded on 2026-09-29 (M:3440-3448): no restated Phase 5 verdict exists after the final re-runs, only the restated "
                 "decomposition magnitudes (numbers.md:263). The criteria families without hypothesis labels (dataset-quality bands, the 5S safety "
                 "criteria) are not scored here: numbers.md §8 and Table A.2.",
