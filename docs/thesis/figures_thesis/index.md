@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `e78d419` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `82f3a95` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -19,7 +19,7 @@ Built by `eval/figs_thesis.py` at commit `e78d419` (run with `/home/makerspace/v
 | Figure 4.1 | F2 | figure | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall | CURRENT | 13/13 | none needed |
 | Figure 4.1b (provisional) | F9 | figure | `F9_heading_error_closed_loop.png`, `F9_heading_error_closed_loop.pdf` | Without a heading source the heading error grows until the wall; with the camera heading it stays near zero | CURRENT | 23/23 | none needed |
 | Table 4.1 | T2 | table | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex`, `T2_accuracy_heading.png` | Position error without and with the camera heading (textured floor) | CURRENT | 26/26 | none needed (table) |
-| Table 4.2 | T3 | table | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding | CURRENT | 8/8 | none needed (table) |
+| Table 4.2 | T3 | table | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding | CURRENT | 11/11 | none needed (table) |
 | Table 4.3 | T4 | table | `T4_closed_loop.md`, `T4_closed_loop.tex`, `T4_closed_loop.png` | Closed loop at half real-time (RTF 0.5): the final build of each estimator flying the vehicle | CURRENT | 17/17 | none needed (table) |
 | Figure 5.1 | F5 | figure | `F5_T_tags_known_positions.png`, `F5_T_tags_known_positions.pdf` | Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 1–3 cm | CURRENT | 17/17 | none needed |
 | Figure 5.2 | F7 | figure | `F7_L_loop_closure.png`, `F7_L_loop_closure.pdf` | Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps | CURRENT | 10/10 | none needed |
@@ -33,7 +33,7 @@ Built by `eval/figs_thesis.py` at commit `e78d419` (run with `/home/makerspace/v
 | Table A.2 | A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p1.pdf`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p2.pdf`, `A2_H_and_safety_p3.png`, `A2_H_and_safety_p3.pdf` | Experiment 5 hold sets and the 5S safety tests (all runs) | CURRENT | 50/50 | none needed (table) |
 | Table A.3 | A3 | appendix | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p1.pdf`, `A3_F1_cost_ablations_p2.png`, `A3_F1_cost_ablations_p2.pdf` | The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations | CURRENT | 11/11 | none needed (table) |
 
-**Total: 329/329 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
+**Total: 332/332 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
 
 ## Captions, sources and checks
 
@@ -139,6 +139,9 @@ Built by `eval/figs_thesis.py` at commit `e78d419` (run with `/home/makerspace/v
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
+| blank camera flights, UKF heading arm below its baseline at +60 s (new value; blank_behaviour.json) | `6 of 6` | `6 of 6` | eval/results/blank_behaviour.json {fwdc,fwdplainc}_blank_r1-3 ukf_heading/ukf_baseline +60s (no numbers.md row) | yes |
+| blank camera flights, UKF margin baseline − heading at +60 s (m) (new value) | `0.6–17.5` | `0.6–17.5` | eval/results/blank_behaviour.json (no numbers.md row) | yes |
+| blank camera flights, FGO heading arm below its baseline at +60 s (new value) | `5 of 6` | `5 of 6` | eval/results/blank_behaviour.json (no numbers.md row) | yes |
 | UKF +10/+30/+60 s ranges (m) | `0.7–1.8 / 15.3–26.8 / 30–100` | `0.7–1.8 / 15.3–26.8 / 30–100` | numbers.md §6.2 erratum E4 | yes |
 | FGO +10/+30/+60 s ranges (m) | `0.7–1.8 / 16.6–27.7 / 145–201` | `0.7–1.8 / 16.6–27.7 / 145–201` | numbers.md §6.2 erratum E5 | yes |
 | n flights UKF / FGO | `11/11` | `11/11` | numbers.md §6.2 | yes |

@@ -945,7 +945,7 @@ The same code or label carries more than one written meaning. Every meaning is l
 - **M2-R bench criteria**: "**T1 (timing; independent of the runaway's duration; every valid attempt with a runaway):**" — `docs/handovers/2026-10-12_m2r_rerun.md:114` (+1 more source(s))
 - **fail-closed watcher tests**: "- T1 (watcher not started): **refused to arm** ("REFUSING TO ARM: no watcher heartbeat"), no take-off. PASS." — `METHODOLOGY.md:10977` (+1 more source(s))
 - **final results pack tables**: "| T1 | Headline claims before/after (36 rows) | CURRENT | rendered by `eval/figs_final_pack.py` from `docs/thesis/headline_claims_before_after.md` | all rows cited in its evidence column | 2/2 |" — `docs/thesis/final_results_pack_index.md:27` (+1 more source(s))
-- **thesis tables**: "# Table T1. Which estimator wins where (scorecard of the restated verdicts)" — `docs/thesis/tables/T1_scorecard.md:1` (+1 more source(s))
+- **thesis tables**: "# Table T1. Scorecard of the restated verdicts by experiment and estimator" — `docs/thesis/tables/T1_scorecard.md:1` (+1 more source(s))
 
 ### `T2` — 4 meanings
 

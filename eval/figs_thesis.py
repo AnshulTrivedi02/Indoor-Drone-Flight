@@ -176,23 +176,23 @@ def tex_selfcheck(txt, ncol):
     return True
 
 
-def table_page(title, header, rows, widths, notes=(), fs=8.0):
+def table_page(title, header, rows, widths, notes=(), fs=8.0, bold=True):
     """One A4-landscape page (or more) of a wrapped text table; returns the list of figures."""
     TP_BUF.append(" ".join([title] + list(header) + [str(c) for r in rows for c in r] + list(notes)))
     figs = []; lh = fs * 1.34 / 72 / 8.27
 
     def newpage(k):
         fig = plt.figure(figsize=(11.69, 8.27))
-        fig.text(0.03, 0.965, title + (f" (continued, {k})" if k > 1 else ""), fontsize=12, weight="bold", va="top")
+        fig.text(0.03, 0.965, title + (f" (continued, {k})" if k > 1 else ""), fontsize=12, weight="bold" if bold else "normal", va="top")
         x = 0.03; y = 0.925; nh = 1
         for h, w in zip(header, widths):
             hw = textwrap.wrap(h, max(6, int(w * 0.95))); nh = max(nh, len(hw))
-            fig.text(x, y, "\n".join(hw), fontsize=fs + 0.3, weight="bold", va="top"); x += w / sum(widths) * 0.94
+            fig.text(x, y, "\n".join(hw), fontsize=fs + 0.3, weight="bold" if bold else "normal", va="top"); x += w / sum(widths) * 0.94
         return fig, y - max(3.6, 1.3 * nh + 0.9) * lh
     k = 1; fig, y = newpage(k)
     for row in rows:
         BW = ("FAILED", "FAIL", "MISS", "NOT met")      # bold per paragraph (one '\n'-separated item of a cell)
-        cells = [[(ln, any(b in para for b in BW)) for para in str(c).split("\n") for ln in (textwrap.wrap(para, max(6, int(w * 0.95))) or [""])]
+        cells = [[(ln, bold and any(b in para for b in BW)) for para in str(c).split("\n") for ln in (textwrap.wrap(para, max(6, int(w * 0.95))) or [""])]
                  for c, w in zip(row, widths)]
         n = max(len(c) for c in cells)
         if y - n * lh < 0.05:
@@ -1092,6 +1092,26 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
                        "the per-bag values in the two no-heading camera columns", "iii")],
          fs=7.6, order=20)
 
+# Heading arm vs its own baseline at +60 s, 6 blank camera flights (ruling 2026-10-18, item 5): DESCRIPTIVE, no registered rule
+_HB = {}
+for _e in ("ukf", "fgo"):
+    _m = []
+    for _ds in ("fwdc", "fwdplainc"):
+        for _i in (1, 2, 3):
+            _t = bb[f"{_ds}_blank_r{_i}"]
+            _h, _b = _t[_e + "_heading"]["+60s"], _t[_e + "_baseline"]["+60s"]
+            _m.append(float(np.hypot(_b["along_m"], _b["cross_m"]) - np.hypot(_h["along_m"], _h["cross_m"])))
+    _HB[_e] = _m
+HB_UKF_N = f"{sum(m > 0 for m in _HB['ukf'])} of {len(_HB['ukf'])}"
+HB_UKF_RNG = f"{rd(min(_HB['ukf']), 1)}–{rd(max(_HB['ukf']), 1)}"
+HB_FGO_N = f"{sum(m > 0 for m in _HB['fgo'])} of {len(_HB['fgo'])}"
+check("blank camera flights, UKF heading arm below its baseline at +60 s (new value; blank_behaviour.json)", HB_UKF_N, "6 of 6",
+      "eval/results/blank_behaviour.json {fwdc,fwdplainc}_blank_r1-3 ukf_heading/ukf_baseline +60s (no numbers.md row)")
+check("blank camera flights, UKF margin baseline − heading at +60 s (m) (new value)", HB_UKF_RNG, "0.6–17.5",
+      "eval/results/blank_behaviour.json (no numbers.md row)")
+check("blank camera flights, FGO heading arm below its baseline at +60 s (new value)", HB_FGO_N, "5 of 6",
+      "eval/results/blank_behaviour.json (no numbers.md row)")
+
 # =============================================================================================== TABLE T3 blank floor (was F4)
 check("UKF +10/+30/+60 s ranges (m)", f"{rng(BLANK['UKF'][:, 0], 1)} / {rng(BLANK['UKF'][:, 1], 1)} / {rng(BLANK['UKF'][:, 2], 0)}", "0.7–1.8 / 15.3–26.8 / 30–100", "numbers.md §6.2 erratum E4")
 check("FGO +10/+30/+60 s ranges (m)", f"{rng(BLANK['FGO'][:, 0], 1)} / {rng(BLANK['FGO'][:, 1], 1)} / {rng(BLANK['FGO'][:, 2], 0)}", "0.7–1.8 / 16.6–27.7 / 145–201", "numbers.md §6.2 erratum E5")
@@ -1118,7 +1138,10 @@ save_tab("T3", "T3_blank_floor", "Blank floor: position error after the loss of 
                 f"aiding never starts; EKF3 flags its position invalid from take-off ({rng(EK_INV, 0)} s of cruise) and outputs exactly the "
                 "origin, which is not scored (evaluation rule). This is a declared failure, not a small error.",
                 "With the camera heading the yaw is held but position still is not (+60 s: UKF 21–71 m, FGO 130–172 m †; quoted from "
-                "the results record (numbers.md erratum E8), not re-derived here).", OCASE_KEY, ob_blank("a")], order=30)
+                "the results record (numbers.md erratum E8), not re-derived here). "
+                f"Descriptive only (no registered rule uses it): the UKF heading arm is below its own baseline at +60 s on {HB_UKF_N} blank "
+                f"camera flights (margin {HB_UKF_RNG} m), the FGO on {HB_FGO_N}. Three of the six are plain-wall flights over the blank "
+                "floor, where the heading PASSED the heading-measurement validation (3/3, numbers.md §6.6); position is not bounded on any.", OCASE_KEY, ob_blank("a")], order=30)
 
 # =============================================================================================== FIG 5 T
 fig, ax = plt.subplots(figsize=(12.5, 6.0)); xc = np.arange(4); offs = dict(zip(TRK, np.linspace(-0.16, 0.16, 5)))

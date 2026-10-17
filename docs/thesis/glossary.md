@@ -1765,8 +1765,8 @@ defines the token was found.
 - [fail-closed watcher tests] "| V6 | Watcher heartbeat loss | `FS_GCS_ENABLE 5` → LAND within `FS_GCS_TIMEOUT` (**not yet tested via MAVLink**: the SITL T1/T2 tests of `tools/test_watch_failclosed.sh` used the local heartbeat file read by `fly_trial.py`; the first MAVLink test is 2(c) B0–B10, then once on the UKF build) |" — `docs/ukf_only_closed_loop_costing.md:266`
 - [final results pack tables] "| T1 | Headline claims before/after (36 rows) | CURRENT | rendered by `eval/figs_final_pack.py` from `docs/thesis/headline_claims_before_after.md` | all rows cited in its evidence column | 2/2 |" — `docs/thesis/final_results_pack_index.md:27` — note: CONFLICT: pack table T1 (claims) differs from thesis table T1 (scorecard)
 - [final results pack tables] "T1 Headline claims: before against after the final re-runs (36 rows)" — `docs/thesis/final_results_pack.pdf p.1`
-- [thesis tables] "# Table T1. Which estimator wins where (scorecard of the restated verdicts)" — `docs/thesis/tables/T1_scorecard.md:1` — note: thesis table (e202552)
-- [thesis tables] "| T1 | table | `T1_scorecard.md`, `T1_scorecard.tex` | Which estimator wins where (scorecard of the restated verdicts) | CURRENT | 16/16 | none needed (table) |" — `docs/thesis/figures_thesis/index.md:17`
+- [thesis tables] "# Table T1. Scorecard of the restated verdicts by experiment and estimator" — `docs/thesis/tables/T1_scorecard.md:1` — note: thesis table (e202552)
+- [thesis tables] "| T1 | table | `T1_scorecard.md`, `T1_scorecard.tex` | Scorecard of the restated verdicts by experiment and estimator | CURRENT | 16/16 | none needed (table) |" — `docs/thesis/figures_thesis/index.md:17`
 
 ### `T2` — **CONFLICT: 4 meanings** (see flags §b)
 
