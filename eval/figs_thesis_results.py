@@ -870,8 +870,8 @@ BASEK = lambda k, e: next(bb[k][x] for x in (e.lower(), e.lower() + "_baseline")
 B10 = {e: [hyp(BASEK(k, e), "+10s") for k in BL] for e in ("UKF", "FGO")}
 B30 = {e: [hyp(BASEK(k, e), "+30s") for k in BL] for e in ("UKF", "FGO")}
 check("R4", "blank n flights", str(len(BL)), "11", "numbers.md", 248)
-check("R4", "blank UKF +10 / +30 s ranges (m)", f"{rng(B10['UKF'], 1)} / {rng(B30['UKF'], 1)}", "6.4–8.2 / 27.3–36.5", "numbers.md", 248)
-check("R4", "blank FGO +10 / +30 s ranges (m)", f"{rng(B10['FGO'], 1)} / {rng(B30['FGO'], 1)}", "6.4–8.2 / 28.0–37.0", "numbers.md", 249)
+check("R4", "blank UKF +10 / +30 s ranges (m)", f"{rng(B10['UKF'], 1)} / {rng(B30['UKF'], 1)}", "0.7–1.8 / 15.3–26.8", "numbers.md", 1448)
+check("R4", "blank FGO +10 / +30 s ranges (m)", f"{rng(B10['FGO'], 1)} / {rng(B30['FGO'], 1)}", "0.7–1.8 / 16.6–27.7", "numbers.md", 1455)
 r30 = [B30["FGO"][i] / B30["UKF"][i] for i in range(len(BL))]
 HB = [k for k in BL if "ukf_heading" in bb[k] and bb[k]["ukf_heading"]]
 h30 = {e: [hyp(bb[k][f"{e.lower()}_heading"], "+30s") / hyp(BASEK(k, e), "+30s") for k in HB] for e in ("UKF", "FGO")}

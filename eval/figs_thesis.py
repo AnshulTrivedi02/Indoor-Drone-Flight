@@ -679,7 +679,7 @@ check("H1.1 confirmatory EKF3 − FGO verdict", pt["verdict"], "no ordering clai
 u6 = [P4[b]["UKF_heading"] for b in CAMB]; g6 = [P4[b]["FGO_heading"] for b in CAMB]
 check("C1.a with heading UKF / FGO range, 6 textured-floor bags (m)", f"{rng(u6)} / {rng(g6)}", "0.13–0.25 / 0.06–0.22", "numbers.md §6.6 heading-arm rows")
 check("C1.a FGO lower than UKF", f"{sum(a < b for a, b in zip(g6, u6))}/6", "6/6", "numbers.md §6.6 C0 row; claim 7")
-check("blank end-of-cruise UKF / FGO (km) †", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} / {rng(BLANK['FGO'][:, 3] / 1e3, 0)}", "29–40 / 22–41", "numbers.md §6.2")
+check("blank end-of-cruise UKF / FGO (km) †", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} / {rng(BLANK['FGO'][:, 3] / 1e3, 0)}", "29–40 / 23–41", "numbers.md §6.2 erratum E6")
 check("EKF3 blank invalid for (s of cruise), all 14", rng(EK_INV, 0) + f" (n {len(EK_INV)})", "301–310 (n 14)", "numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s')")
 mrD = agg["conditions"]["D"]["mean_rmse_m"]
 check("Experiment 2 condition D live EKF3 / UKF / FGO (m)", " / ".join(f"{rd(mrD[k], 3)}" for k in ("EKF3 live", "UKF live", "FGO live")), "0.096 / 0.131 / 0.083", "numbers.md §16.1 table")
@@ -1093,10 +1093,10 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
          fs=7.6, order=20)
 
 # =============================================================================================== TABLE T3 blank floor (was F4)
-check("UKF +10/+30/+60 s ranges (m)", f"{rng(BLANK['UKF'][:, 0], 1)} / {rng(BLANK['UKF'][:, 1], 1)} / {rng(BLANK['UKF'][:, 2], 0)}", "6.4–8.2 / 27.3–36.5 / 60–108", "numbers.md §6.2")
-check("FGO +10/+30/+60 s ranges (m)", f"{rng(BLANK['FGO'][:, 0], 1)} / {rng(BLANK['FGO'][:, 1], 1)} / {rng(BLANK['FGO'][:, 2], 0)}", "6.4–8.2 / 28.0–37.0 / 154–204", "numbers.md §6.2")
+check("UKF +10/+30/+60 s ranges (m)", f"{rng(BLANK['UKF'][:, 0], 1)} / {rng(BLANK['UKF'][:, 1], 1)} / {rng(BLANK['UKF'][:, 2], 0)}", "0.7–1.8 / 15.3–26.8 / 30–100", "numbers.md §6.2 erratum E4")
+check("FGO +10/+30/+60 s ranges (m)", f"{rng(BLANK['FGO'][:, 0], 1)} / {rng(BLANK['FGO'][:, 1], 1)} / {rng(BLANK['FGO'][:, 2], 0)}", "0.7–1.8 / 16.6–27.7 / 145–201", "numbers.md §6.2 erratum E5")
 check("n flights UKF / FGO", f"{len(BLANK['UKF'])}/{len(BLANK['FGO'])}", "11/11", "numbers.md §6.2")
-check("end of cruise UKF / FGO (km) †", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} / {rng(BLANK['FGO'][:, 3] / 1e3, 0)}", "29–40 / 22–41", "numbers.md §6.2")
+check("end of cruise UKF / FGO (km) †", f"{rng(BLANK['UKF'][:, 3] / 1e3, 0)} / {rng(BLANK['FGO'][:, 3] / 1e3, 0)}", "29–40 / 23–41", "numbers.md §6.2 erratum E6")
 check("EKF3 invalid, s of cruise, all 14 blank", rng(EK_INV, 0), "301–310", "numbers.md §6.2")
 nvalid = [v["valid_frames_in_cruise"] for k, v in bb.items() if "blank" in k]
 check("valid airborne flow frames in cruise, all blank bags", f"max {max(nvalid)} over {len(nvalid)}", "max 0 over 14", "numbers.md §6.2 ('0', all 14 blank bags)")
@@ -1117,8 +1117,8 @@ save_tab("T3", "T3_blank_floor", "Blank floor: position error after the loss of 
                 f"EKF3 'invalid': on all {len(EK_INV)} blank flights there are {max(nvalid)} valid airborne flow frames in the cruise, so flow "
                 f"aiding never starts; EKF3 flags its position invalid from take-off ({rng(EK_INV, 0)} s of cruise) and outputs exactly the "
                 "origin, which is not scored (evaluation rule). This is a declared failure, not a small error.",
-                "With the camera heading the yaw is held but position still is not (+60 s: UKF 40–89 m, FGO 135–190 m †; quoted from "
-                "the results record, not re-derived here).", OCASE_KEY, ob_blank("a")], order=30)
+                "With the camera heading the yaw is held but position still is not (+60 s: UKF 21–71 m, FGO 130–172 m †; quoted from "
+                "the results record (numbers.md erratum E8), not re-derived here).", OCASE_KEY, ob_blank("a")], order=30)
 
 # =============================================================================================== FIG 5 T
 fig, ax = plt.subplots(figsize=(12.5, 6.0)); xc = np.arange(4); offs = dict(zip(TRK, np.linspace(-0.16, 0.16, 5)))

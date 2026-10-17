@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `0726900` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `e78d419` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -139,10 +139,10 @@ Built by `eval/figs_thesis.py` at commit `0726900` (run with `/home/makerspace/v
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| UKF +10/+30/+60 s ranges (m) | `6.4–8.2 / 27.3–36.5 / 60–108` | `6.4–8.2 / 27.3–36.5 / 60–108` | numbers.md §6.2 | yes |
-| FGO +10/+30/+60 s ranges (m) | `6.4–8.2 / 28.0–37.0 / 154–204` | `6.4–8.2 / 28.0–37.0 / 154–204` | numbers.md §6.2 | yes |
+| UKF +10/+30/+60 s ranges (m) | `0.7–1.8 / 15.3–26.8 / 30–100` | `0.7–1.8 / 15.3–26.8 / 30–100` | numbers.md §6.2 erratum E4 | yes |
+| FGO +10/+30/+60 s ranges (m) | `0.7–1.8 / 16.6–27.7 / 145–201` | `0.7–1.8 / 16.6–27.7 / 145–201` | numbers.md §6.2 erratum E5 | yes |
 | n flights UKF / FGO | `11/11` | `11/11` | numbers.md §6.2 | yes |
-| end of cruise UKF / FGO (km) † | `29–40 / 22–41` | `29–40 / 22–41` | numbers.md §6.2 | yes |
+| end of cruise UKF / FGO (km) † | `29–40 / 23–41` | `29–40 / 23–41` | numbers.md §6.2 erratum E6 | yes |
 | EKF3 invalid, s of cruise, all 14 blank | `301–310` | `301–310` | numbers.md §6.2 | yes |
 | valid airborne flow frames in cruise, all blank bags | `max 0 over 14` | `max 0 over 14` | numbers.md §6.2 ('0', all 14 blank bags) | yes |
 | EKF3 blank invalid for (s of cruise), all 14 | `301–310 (n 14)` | `301–310 (n 14)` | numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s') | yes |
@@ -335,7 +335,7 @@ Built by `eval/figs_thesis.py` at commit `0726900` (run with `/home/makerspace/v
 | H1.1 confirmatory EKF3 − FGO verdict | `no ordering claimed` | `no ordering claimed` | numbers.md §6.1 confirmatory row; claim 2 | yes |
 | C1.a with heading UKF / FGO range, 6 textured-floor bags (m) | `0.13–0.25 / 0.06–0.22` | `0.13–0.25 / 0.06–0.22` | numbers.md §6.6 heading-arm rows | yes |
 | C1.a FGO lower than UKF | `6/6` | `6/6` | numbers.md §6.6 C0 row; claim 7 | yes |
-| blank end-of-cruise UKF / FGO (km) † | `29–40 / 22–41` | `29–40 / 22–41` | numbers.md §6.2 | yes |
+| blank end-of-cruise UKF / FGO (km) † | `29–40 / 23–41` | `29–40 / 23–41` | numbers.md §6.2 erratum E6 | yes |
 | EKF3 blank invalid for (s of cruise), all 14 | `301–310 (n 14)` | `301–310 (n 14)` | numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s') | yes |
 | Experiment 2 condition D live EKF3 / UKF / FGO (m) | `0.096 / 0.131 / 0.083` | `0.096 / 0.131 / 0.083` | numbers.md §16.1 table | yes |
 | Experiment 2 FGO whole-flight batch A–D (m) | `0.010–0.028` | `0.010–0.028` | numbers.md §16.1 table | yes |
