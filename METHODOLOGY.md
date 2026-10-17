@@ -14270,3 +14270,31 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
 - **Trajectory figure:** option (c) is described to the user in two lines BEFORE building.
 - **Numbering:** NO further renumbering now. The final numbering happens ONCE, after the chapter plan is locked, in
   section order.
+
+---
+
+## FINDING (2026-10-17): the FGO has NO flow or range innovation gate; the three flow-rate limits differ. AWAITING A RULING
+
+Found by the methodology-tables agent; verified in code and in the pinned ArduPilot source (`7bac20cbcc`). Nothing
+was re-run (simulation results are frozen).
+
+| | flow acceptance | flow innovation gate | range acceptance | range innovation gate |
+|---|---|---|---|---|
+| EKF3 | entry: quality > 0, \|flow vector\| < 4.2 and \|gyro vector\| < 4.2 rad/s (`AP_NavEKF3_Measurements.cpp:203`); fusion: per axis, flow < `FLOW_MAX` 2.5 rad/s, SIGNED, one-sided (`AP_NavEKF3_OptFlowFusion.cpp:668`) | yes, per axis, `FLOW_I_GATE` 300 (same line) | rangefinder limits | yes, `RNG_I_GATE` 500 |
+| UKF | valid, inlier > 0, \|flow_x\| and \|flow_y\| < 2.5 rad/s, TWO-sided (`ukf_core.py:293`) | yes, per axis, 300 (`ukf_core.py:295`) | 0.05–40 m | yes, 500 (`ukf_core.py:231`) |
+| FGO (Python and C++) | valid, inlier > 0, \|flow_x\| and \|flow_y\| < 4.2 rad/s (`fgo/fgo_core.py:184`, `fgo_cpp/src/fgo_core.cpp:144`) | **none** | 0.05–40 m | **none** |
+
+- `FGO_DESIGN.md` §"The innovation gate — implement it, or the FGO is *less* defended" (l.439–462) recommends a
+  matched per-axis NIS gate at factor insertion (300 flow, 500 range), and its source table (l.42) says "matched
+  R/gates". **It was never implemented.** The only NIS gates in the FGO are the forward-camera heading/yaw-rate gates
+  (`fgo_core.py` `nis <= self.fwd_gate`).
+- The direction of the asymmetry: the FGO is LESS defended against bad flow/range, not more (design doc's own
+  wording). It does not favour the FGO. It bears on any claim that the comparison used matched gates, and it is a
+  candidate explanation for FGO behaviour on the blank floor; not tested.
+- The UKF's two-sided `FLOW_MAX` vs EKF3's signed one-sided test: a large NEGATIVE flow passes EKF3's fusion test but is
+  rejected by the UKF. At 0.5 m/s and 2 m the flow is ~0.25 rad/s, so this limit is far from the operating point;
+  its effect on the frozen results is expected to be nil, but has not been counted.
+- **Ruling needed:** (a) disclose as a stated implementation difference (limitations + methods table), no re-run;
+  (b) additionally count, read-only, how many FGO flow/range factors WOULD have failed a 300/500 gate on the frozen
+  runs (offline analysis of saved residuals, if available; no new estimator runs); or (c) implement the gate (would
+  need a re-run, against the freeze).
