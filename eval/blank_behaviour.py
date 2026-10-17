@@ -97,6 +97,10 @@ for tr in a.trials:
             p = f"{d}/{s}/{s.split('_')[0]}_traj.tum"
             if os.path.exists(p):
                 t, x, y = tum(p)
+                # UKF/FGO TUMs are in the take-off-heading frame (x = North, y = West); GT is ENU. Relabel into ENU,
+                # (E, N) = (-y, x), as eval/phase5_analysis.py:12-14 (METHODOLOGY "FINDING (2026-10-17): axis mislabel in
+                # eval/blank_behaviour.py"; user rulings 2026-10-18, item 7). EKF3 (NED vs NED, below) is unaffected.
+                x, y = -y, x
                 r[s] = err_growth(t, x, y, gt_t, gx, gy, t_loss, float(c1), along)
     # EKF3: its own clock (TimeUS); map t_loss by the per-trial clock offset (tens of ms; negligible here)
     e = f"{d}/ekf3"
