@@ -135,6 +135,8 @@ ALIAS = {
     "E3H": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_core.h"), "AP_NavEKF3_core.h"),
     "E3Y": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_MagFusion.cpp"), "AP_NavEKF3_MagFusion.cpp"),
     "E3M": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_Measurements.cpp"), "AP_NavEKF3_Measurements.cpp"),
+    "E3F": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_OptFlowFusion.cpp"), "AP_NavEKF3_OptFlowFusion.cpp"),
+    "E3P": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_PosVelFusion.cpp"), "AP_NavEKF3_PosVelFusion.cpp"),
 }
 _LINES = {}; SRC = []
 
@@ -507,13 +509,13 @@ def tab_design():
          f"both at 30 Hz, same per-sample σ [{S('M', 12338, 'Flow and range fusion rates')}]",
          "both at 30 Hz, same per-sample σ (same source)"],
         ["gating",
-         f"flow NIS gate 9 (3σ), range 25 (5σ), flow above 2.5 rad/s rejected; flow quality is a binary accept "
-         f"[{S('E3', 42, 'FLOW_I_GATE_DEFAULT')}; {S('E3', 301, 'RNG_I_GATE')}; {S('E3', 312, 'FLOW_MAX')}; {S('FD', 416, 'binary accept')}]",
+         f"flow NIS gate 9 (3σ), range height 25 (5σ, HGT_I_GATE with range as the height source), flow above 2.5 rad/s rejected (signed); flow quality is a binary accept "
+         f"[{S('E3', 42, 'FLOW_I_GATE_DEFAULT')}; {S('E3F', 665, '_flowInnovGate')}; {S('E3P', 1022, '_hgtInnovGate')}; {S('E3', 312, 'FLOW_MAX')}; {S('FD', 416, 'binary accept')}]",
          f"the same values (FLOW_MAX tested two-sided, |flow| ≥ 2.5) [{S('UC', 44, 'FLOW_GATE=300, FLOW_MAX=2.5')}; "
          f"{S('UC', 45, 'RNG_GATE=500')}; {S('UK', 40, 'FLOW_GATE = 300')}]",
          f"NO flow or range NIS gate in either core; flow above 4.2 rad/s dropped; quality binary accept "
          f"[{S('FC', 184, 'abs(flow_xy[0]) < 4.2')}; {S('CC', 144, 'std::abs(flow->xy[0]) < 4.2')}; {S('M', 8659, 'no gate')}]. The design called for matched gates "
-         f"[{S('FD', 446, 'matched NIS gate at factor-insertion time')}]; no ruling found (Table 3.3)"],
+         f"[{S('FD', 446, 'matched NIS gate at factor-insertion time')}]; documented as a design deviation, not corrected (Table 3.3, exception 5)"],
         ["compute (details: Table 8.1)",
          "not measured (runs only inside ArduPilot)",
          f"offline predict 1.5–1.6 ms, forward update 0.25–0.49 ms median (DIAGNOSTIC, workstation) [{S('N', 450, 'UKF predict / forward update')}]",
@@ -525,12 +527,14 @@ def tab_design():
           grab("N", 147, r"NIS gate (\d+)"), "AP_NavEKF3.cpp:42; N:147")
     check("range NIS gate = (0.01 × EK3_RNG_I_GATE)²", rd((0.01 * int(grab("UC", 45, r"RNG_GATE=(\d+)"))) ** 2, 0),
           grab("N", 149, r"NIS gate (\d+)"), "UC:45; N:149")
+    check("EKF3 range-height NIS gate = (0.01 × EK3_HGT_I_GATE)² (range as the height source)",
+          rd((0.01 * int(grab("E3", 36, r"HGT_I_GATE_DEFAULT\s+(\d+)"))) ** 2, 0), grab("N", 149, r"NIS gate (\d+)"), "AP_NavEKF3.cpp:36; N:149")
     check("heading χ² gate of the UKF/FGO = (0.01 × 300)²", rd((0.01 * 300) ** 2, 1), grab("MM", 186, r"FWD_CHI2_GATE = ([0-9.]+)"), "MM:186")
     save_tab("Table 3.1", "methods_estimator_design", "Estimator design: EKF3, the UKF and the FGO",
              "Design of the three estimators as built (offline and in the flight software). Each cell gives its source in brackets.",
              ["", "EKF3 (fixed baseline)", "UKF", "FGO"], rows, [10, 30, 30, 30],
-             [KEY_ABBR, "The FGO's missing flow/range NIS gate is a code-versus-design difference with no ruling found; it is listed "
-              "as an exception in Table 3.3, not resolved here."], "Chapter 3 (method), estimators", fs=7.3)
+             [KEY_ABBR, "The FGO's missing flow/range NIS gate is a code-versus-design difference, ruled 2026-10-17 a documented design "
+              "deviation (Table 3.3, exception 5); it was not corrected and nothing was re-run."], "Chapter 3 (method), estimators", fs=7.3)
 
 
 # ======================================================================== Tables 3.2 and 3.3: noise parity and exceptions
@@ -618,11 +622,13 @@ def tab_fairness():
          f"{S('M', 4896, 'VISO_YAW_M_NSE = 0.05')}; ruling {S('M', 7553, 'Ruling D17')}"],
         ["4", "GTSAM integrationCovariance", "FGO only, 1e-8 (no EKF3 counterpart)",
          "documented asymmetry (a conditioning floor); no separate ruling found", f"{S('M', 9528, 'documented asymmetry')}; {S('FC', 31, 'setIntegrationCovariance')}"],
-        ["5", "FGO flow/range gating", "no flow or range NIS gate in either FGO core (only a 4.2 rad/s flow clamp); EKF3 and the UKF gate at 3σ / 5σ and 2.5 rad/s",
-         "NO RULING FOUND; recorded where it mattered (short LiDAR returns taken by the FGO)",
-         f"{S('FC', 184, '< 4.2')}; {S('CC', 144, 'std::abs(flow->xy[0]) < 4.2')}; {S('M', 8659, 'no gate')}; {S('M', 8884, 'The FGO (no gate) also took them')}; design {S('FD', 446, 'matched NIS gate')}"],
-        ["6", "FLOW_MAX sidedness", "the UKF rejects |flow| ≥ 2.5 rad/s (two-sided); the design document describes EKF3's test as signed and one-sided",
-         "NO RULING FOUND", f"{S('UC', 293, "abs(flow_xy[0]) >= p['FLOW_MAX']")}; {S('UK', 874, 'fabs(e.fr.x) < FLOW_MAX')}; {S('FD', 420, 'one-sided')}"],
+        ["5", "FGO flow/range gating (design deviation)", "EKF3 gates flow per axis at 3σ (FLOW_I_GATE 300) and range height at 5σ (HGT_I_GATE 500, range as the height source); the UKF gates both at 3σ / 5σ; NEITHER FGO core gates flow or range innovations (only a 4.2 rad/s flow clamp)",
+         "DESIGN DEVIATION, documented, not corrected or re-run (results frozen); it leaves the FGO less defended, not more. The design called for matched gates",
+         f"EKF3 {S('E3F', 665, '_flowInnovGate')}, {S('E3P', 1022, '_hgtInnovGate')}; UKF {S('UC', 295, "p['FLOW_GATE']")}, {S('UC', 231, "p['RNG_GATE']")}; "
+         f"FGO {S('FC', 184, '< 4.2')}, {S('CC', 144, 'std::abs(flow->xy[0]) < 4.2')}; design {S('FD', 446, 'matched NIS gate')}; ruling {S('M', 14302, 'FGO gating documented')}"],
+        ["6", "FLOW_MAX sidedness", "the UKF rejects |flow| ≥ 2.5 rad/s on either axis (two-sided); EKF3's fusion test is signed (flow < 2.5 rad/s per axis, one-sided)",
+         "NO RULING FOUND; at 0.5 m/s and 2 m the flow is ~0.25 rad/s, far from the limit (not counted)",
+         f"{S('UC', 293, "abs(flow_xy[0]) >= p['FLOW_MAX']")}; {S('UK', 874, 'fabs(e.fr.x) < FLOW_MAX')}; EKF3 {S('E3F', 668, 'flowRadXY.x < frontend->_maxFlowRate')}"],
         ["7", "ground-proximity flow rule", "EKF3's rule (flow zeroed and still fused below 0.5 m before take-off) applied to the UKF and FGO",
          "a sensor-validity rule, shared (not tuning)", f"ruling {S('M', 7038, 'Ruling D15')}; {S('M', 7060, 'This is a sensor-model')}"],
         ["8", "EKF3's pre-arm yaw-bias learning", "EKF3 learns gyro-z bias on the ground; not given to the UKF or FGO",
@@ -682,50 +688,50 @@ def tab_matrix():
         ["1A standard-sensor comparison", "corridor, textured / blank / transition floor", "IMU, downward flow, LiDAR; no yaw source",
          "EKF3 live but passive (truth flying); UKF, FGO replayed offline", "open",
          f"{n1a} flights (3 floors × 3 repeats) + 7 confirmatory textured repeats; unit: flight", "cruise ATE (textured); behaviour after flow loss (blank, transition)",
-         "H1.1", f"{S('V', 36, '**1A**')}; {S('M', 865, '3 corridor worlds × 3 repeats')}; {S('M', 5640, '7 new repeats')}; {S('M', 2874, 'flown on simulator truth')}; {S('V', 143, 'H1.1')}"],
+         "H1.1", f"{S('V', 41, '**1A**')}; {S('M', 865, '3 corridor worlds × 3 repeats')}; {S('M', 5640, '7 new repeats')}; {S('M', 2874, 'flown on simulator truth')}; {S('V', 148, 'H1.1')}"],
         ["1B camera-heading studies: measurement validation", "corridor with ceiling; textured or plain walls × 3 floors",
          "forward camera (heading, yaw rate)", "none (measurement only)", "open",
          f"6 calibration flights + {n1b_bags} dataset bags; unit: flight", "heading accuracy per bag; dataset-quality bands", "H1.2",
-         f"{S('M', 2692, 'the six `p1c_*` check flights only')}; {S('M', 2706, 'the 18 dataset bags')}; {S('V', 144, 'H1.2')}"],
+         f"{S('M', 2692, 'the six `p1c_*` check flights only')}; {S('M', 2706, 'the 18 dataset bags')}; {S('V', 149, 'H1.2')}"],
         ["1B: offline fusion", f"the same {n1b_bags} bags", "IMU, flow, LiDAR + forward heading (and yaw rate on textured walls)",
          "UKF and FGO offline, each with and without the heading; EKF3 the no-heading reference", "open",
          f"0 new flights; {n1b_rep} replays (bag × arm × estimator)", "cruise ATE; heading-error decomposition of sideways drift", "H1.3, C1.a",
-         f"{S('M', 2958, 'EKF3 is the fixed no-yaw-source baseline')}; {S('M', 2970, '90 replay runs')}; {S('V', 145, 'H1.3')}; {S('V', 147, 'C1.a')}"],
+         f"{S('M', 2958, 'EKF3 is the fixed no-yaw-source baseline')}; {S('M', 2970, '90 replay runs')}; {S('V', 150, 'H1.3')}; {S('V', 152, 'C1.a')}"],
         ["1B: offline tests (robust weighting, hindsight, large initial error)", "the textured- and plain-wall textured-floor bags",
          "as 1B offline fusion", "UKF and FGO offline (H1.5 adds the FGO whole-flight batch); EKF3 excluded", "open",
          "0 new flights; 6 bags (H1.4), 3 bags (H1.5, H1.6–H1.6c, × initial-error values)", "lockouts and yaw-error maximum; off-interval yaw RMS; convergence time",
-         "H1.4, X1.b, H1.5, H1.6, H1.6b, H1.6c", f"{S('M', 7880, 'existing recordings only')}; {S('M', 7922, '≥ 4 of 6')}; {S('M', 7956, 'only the UKF and FGO are compared')}; {S('V', 148, 'H1.4')}-153"],
+         "H1.4, X1.b, H1.5, H1.6, H1.6b, H1.6c", f"{S('M', 7880, 'existing recordings only')}; {S('M', 7922, '≥ 4 of 6')}; {S('M', 7956, 'only the UKF and FGO are compared')}; {S('V', 153, 'H1.4')}-158"],
         ["1B: robust-weighting replication", "corridor with ceiling, textured floor; plain and textured walls", "as 1B offline fusion",
          "UKF hard-gated, FGO hard-gated, FGO robust (offline); truth flying", "open", f"{n_f4} new flights (6 × 2 worlds); unit: flight",
          "yaw-error maximum (primary); wrong headings accepted; cross-track", "H1.7a–c",
-         f"{S('M', 9706, 'n = 6 per world (12 flights)')}; {S('F4C', 1, 'truth flies')}; {S('V', 154, 'H1.7a')}-156"],
+         f"{S('M', 9706, 'n = 6 per world (12 flights)')}; {S('F4C', 1, 'truth flies')}; {S('V', 159, 'H1.7a')}-161"],
         ["1C closed-loop corridor flights", "corridor with ceiling, textured floor, textured walls; full and half real-time (RTF 0.5)",
          "IMU, flow, LiDAR; + live camera heading (with heading)", "each estimator flies in turn (EKF3, UKF port, FGO node); FGO at half real-time only",
          "closed", "per estimator and build: 1 flight without heading + 3 with heading; unit: flight",
          "without heading: wall-contact time in the contact window; with heading: the five closed-loop criteria (+ estimator validity)", "H1.8, H1.9",
-         f"{S('V', 36, '**1C**')}; {S('N', 464, 'n = 1 per no-heading cell')}; {S('M', 7795, 'All FGO closed-loop flights fly at half')}; {S('V', 157, 'H1.8')}; {S('V', 158, 'H1.9')}"],
+         f"{S('V', 41, '**1C**')}; {S('N', 464, 'n = 1 per no-heading cell')}; {S('M', 7795, 'All FGO closed-loop flights fly at half')}; {S('V', 162, 'H1.8')}; {S('V', 163, 'H1.9')}"],
         ["2 known tags", "room with floor tags (10 × 10 m)", "IMU, flow, LiDAR + floor AprilTags (known positions)",
          "EKF3 live, passive (truth flying); UKF, FGO offline; hindsight: FGO batch, smoothed UKF", "open",
          f"{n_t} flights (4 tag conditions × 3 repeats); unit: flight (5 laps each)", "horizontal RMSE over the laps; hindsight gain per gap", "H2.1–H2.4",
-         f"{S('M', 10107, '10 × 10 m room')}; {S('M', 10123, '12 flights')}; {S('M', 10114, 'EKF3 receives it live')}; {S('V', 165, 'H2.1')}-168"],
+         f"{S('M', 10107, '10 × 10 m room')}; {S('M', 10123, '12 flights')}; {S('M', 10114, 'EKF3 receives it live')}; {S('V', 170, 'H2.1')}-173"],
         ["3 loop closure", "room with floor tags (Exp. 2's condition-A flights)", "IMU, flow, LiDAR + tags at unknown positions",
          "keyframe FGO only, replayed offline on Exp. 2 flights, with and without loop closure", "open",
          "0 new flights; 3 flights × 2 modes; validation on one corridor flight", "per-lap horizontal RMSE (live and hindsight)", "V3, H3.1–H3.4",
-         f"{S('M', 10493, 'L uses T_A_r1, T_A_r2 and T_A_r3')}; {S('M', 10456, '**FGO capability**')}; {S('V', 174, 'V3')}-178"],
+         f"{S('M', 10493, 'L uses T_A_r1, T_A_r2 and T_A_r3')}; {S('M', 10456, '**FGO capability**')}; {S('V', 179, 'V3')}-183"],
         ["4 outdoor–indoor", "outdoor–indoor world (GNSS outside only)", "IMU, flow, LiDAR; GNSS outdoors only",
          "EKF3 live, passive (truth flying); UKF, FGO offline with the same GNSS samples; hindsight tracks", "open",
          "3 flights (one re-flown unchanged); unit: flight", "indoor horizontal RMSE; jump on GNSS return", "H4.1–H4.3",
-         f"{S('M', 10301, 'open loop on simulator truth')}; {S('M', 10310, 'Three repeats.')}; {S('OG', 2, 'AHRS_EKF_TYPE 10')}; {S('V', 184, 'H4.1')}-186"],
+         f"{S('M', 10301, 'open loop on simulator truth')}; {S('M', 10310, 'Three repeats.')}; {S('OG', 2, 'AHRS_EKF_TYPE 10')}; {S('V', 189, 'H4.1')}-191"],
         ["5 tag hold", "room with a wall tag (near and far spawn)", "IMU, flow, LiDAR + wall AprilTag (forward camera)",
          "EKF3 flies (UKF, FGO passive); then the UKF port flies; then the FGO node flies", "closed",
          "3 flights per hold set; primary sets: EKF3-flying (far spawn), UKF-flying (final build), FGO-flying (final build); also an EKF3-flying "
          "near-spawn set and earlier/ablation-build sets (×3 each), and 1 characterisation + 1 check flight; unit: flight",
          "hold error (mean, max); drift during tag loss; re-lock; jump; smoothness", "H5.1–H5.7",
-         f"{S('M', 10661, 'EKF3 flies')}; {S('THD', 141, 'Repeats: 3 per stage and estimator')}; {S('N', 635, '×3 each')}; {S('N', 649, 'are PRIMARY')};{S('V', 192, 'H5.1')}-199"],
+         f"{S('M', 10661, 'EKF3 flies')}; {S('THD', 141, 'Repeats: 3 per stage and estimator')}; {S('N', 635, '×3 each')}; {S('N', 649, 'are PRIMARY')};{S('V', 197, 'H5.1')}-204"],
         ["5S safety tests", "room with a wall tag (far spawn), 2 m-clearance hold", "as Exp. 5; failure injected (forced-invalid, node-kill)",
          "the UKF port or the FGO node flies; EKF3 one reference run (no criteria)", "closed",
          "4 tests (UKF / FGO × forced-invalid / node-kill), final run of each; unit: test run", "attitude criterion, position-lost declaration, safe landing, single landing",
-         "none (criteria only)", f"{S('M', 11286, 'Option (i) safety tests')}; {S('N', 490, 'Safety tests (H config, 2 m-clearance hold)')}; {S('V', 53, 'They therefore carry criteria (S-A1–S-A4)')}"],
+         "none (criteria only)", f"{S('M', 11286, 'Option (i) safety tests')}; {S('N', 490, 'Safety tests (H config, 2 m-clearance hold)')}; {S('V', 58, 'They therefore carry criteria (S-A1–S-A4)')}"],
     ]
     save_tab("Table 3.4", "methods_experiment_matrix", "Experiment matrix",
              "Every experiment in the thesis numbering, with its worlds, sensors, estimators and their roles, loop, number of flights "

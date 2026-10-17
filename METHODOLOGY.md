@@ -14298,3 +14298,20 @@ was re-run (simulation results are frozen).
   (b) additionally count, read-only, how many FGO flow/range factors WOULD have failed a 300/500 gate on the frozen
   runs (offline analysis of saved residuals, if available; no new estimator runs); or (c) implement the gate (would
   need a re-run, against the freeze).
+
+### RULINGS (user, 2026-10-17, second set): FGO gating documented; trajectory option (c) conditional; Figure 4.1b caption
+
+1. **FGO flow/range innovation gate: DOCUMENTED AS A DESIGN DEVIATION.** No gate is added and the FGO is not re-run
+   (results frozen). It is recorded in the fairness table (Table 3.3, exception 5) with source file:line for each
+   estimator. Source check while recording: with `EK3_SRC1_POSZ = RangeFinder`, EKF3's main-filter range-height test
+   is `hgtTestRatio` with `EK3_HGT_I_GATE` (default 500, 5σ; `AP_NavEKF3_PosVelFusion.cpp:1022`), not `RNG_I_GATE`
+   (that one gates the auxiliary terrain estimator, `AP_NavEKF3_OptFlowFusion.cpp:140`). Same value (500), so no
+   number changes; the citation is corrected.
+   - The limitations.md entry as worded ("its known effect: the FGO took the short LiDAR readings at the climb top")
+     was NOT written: (i) the record says EKF3 and the UKF port ALSO accepted those readings (0 rejections; METHODOLOGY
+     line 8874, "3. What actually happened, from the logs"; `XKF4.SH` ≤ 0.68, `XUKS` Rr = 0), so taking them is not an effect of
+     the missing gate; the FGO's larger dip is attributed to EKF3's 3-sample median (D18); (ii) the dip sizes (0.75 m /
+     1.13 m) are not in numbers.md. Held for a ruling.
+2. **Trajectory option (c):** build only if stored outputs only, shows something no existing figure shows (offline
+   standard-sensor drift, Section 4.1), and under about an hour; otherwise skip and say which condition failed.
+3. **Figure 4.1b caption:** must state that EKF3's no-heading contact (+242.1 s) fell after its pre-registered window.

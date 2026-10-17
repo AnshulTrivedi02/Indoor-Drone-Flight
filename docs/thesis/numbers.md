@@ -1428,3 +1428,10 @@ reader applies the errata to it. `tools/check_numbers_frozen.py` fails if anythi
 - Reason: the frozen row was true only of the datasets recorded before 2026-09-29. Verified from each log's own PARM stream on 2026-10-17: `dsn_tex_r1`, `fwdc_tex_r1`, `ds_tex_r1`, `T_A_r1` and `H_s1_r1` record LOG_REPLAY 1 and LOG_DISARMED 1; `fwd_tex_r1` (superseded no-ceiling dataset) records 0 and 0.
 - Source: `consolidated_rerun.parm:12-14` (`LOG_REPLAY 1`, `LOG_DISARMED 1`); `~/thesis_data/trials/<trial>/ardupilot.bin` PARM records.
 - Ruling: RULINGS (user, 2026-10-17): LOG_REPLAY erratum (methodology fact sheets, conflict (b)).
+
+### E2 (2026-10-17): §2 (EKF3 parameter table), line 149 (as frozen)
+- Frozen text (verbatim): | `EK3_RNG_I_GATE` | 500 → NIS gate 25 (5σ) | — | CURRENT | C:L1124 |
+- Corrected text: | `EK3_HGT_I_GATE` (the range-height gate when the rangefinder is the height source, `EK3_SRC1_POSZ 2`; `EK3_RNG_I_GATE`, also 500, gates only the auxiliary terrain estimator) | 500 → NIS gate 25 (5σ) | — | CURRENT | `AP_NavEKF3_PosVelFusion.cpp:1022`; `AP_NavEKF3.cpp:36,226,301` (pinned `7bac20cbcc`) |
+- Reason: parameter attribution. The value (500, NIS gate 25) is unchanged; no number changes.
+- Source: `AP_NavEKF3_PosVelFusion.cpp:1022` (`hgtTestRatio … _hgtInnovGate`); `AP_NavEKF3_OptFlowFusion.cpp:140` (`auxRngTestRatio … _rngInnovGate`).
+- Ruling: RULINGS (user, 2026-10-17, second set), item 1 (METHODOLOGY.md:14302).

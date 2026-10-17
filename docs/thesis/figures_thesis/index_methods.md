@@ -1,15 +1,15 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `d5da93a` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
-**Source checks: 316/316 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 30/30 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
+**Source checks: 320/320 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 31/31 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
 **Proposed numbering** (vocabulary §6: by chapter; Chapter 3 = method, Chapter 8 = towards real flights). File names are descriptive and new; `M1`–`M3` are deliberately not used as ids because they are the F8 mitigation codes.
 
 | proposed no. | files | title | checks | proposed place |
 |---|---|---|---|---|
 | Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
-| Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 6/6 | Chapter 3 (method), estimators |
+| Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 7/7 | Chapter 3 (method), estimators |
 | Table 3.2 | `methods_noise_parity.md`, `methods_noise_parity.tex`, `methods_noise_parity.png` | Noise parity: measurement and process noise per sensor and estimator | 15/15 | Chapter 3 (method), fairness |
 | Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png` | Documented exceptions to noise and treatment parity, with their rulings | 0/0 | Chapter 3 (method), fairness |
 | Table 3.4 | `methods_experiment_matrix.md`, `methods_experiment_matrix.tex`, `methods_experiment_matrix_p1.png`, `methods_experiment_matrix_p2.png` | Experiment matrix | 4/4 | Chapter 3 (method), experiments |
@@ -59,6 +59,7 @@ Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/make
 | UKF port TARGET_DT equals EKF3's EKF_TARGET_DT (s) | `0.012` | `0.012` | AP_NavUKF.cpp:38; AP_NavEKF3_core.h:59 | yes |
 | flow NIS gate = (0.01 × EK3_FLOW_I_GATE)² | `9` | `9` | AP_NavEKF3.cpp:42; N:147 | yes |
 | range NIS gate = (0.01 × EK3_RNG_I_GATE)² | `25` | `25` | UC:45; N:149 | yes |
+| EKF3 range-height NIS gate = (0.01 × EK3_HGT_I_GATE)² (range as the height source) | `25` | `25` | AP_NavEKF3.cpp:36; N:149 | yes |
 | heading χ² gate of the UKF/FGO = (0.01 × 300)² | `9.0` | `9.0` | MM:186 | yes |
 
 ### Table 3.2: Noise parity: measurement and process noise per sensor and estimator
@@ -228,7 +229,8 @@ Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/make
 | `METHODOLOGY.md` | 12359 | `recorded as EKF3 design under D18` | yes |
 | `METHODOLOGY.md` | 12338 | `Flow and range fusion rates` | yes |
 | `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3.cpp` | 42 | `FLOW_I_GATE_DEFAULT` | yes |
-| `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3.cpp` | 301 | `RNG_I_GATE` | yes |
+| `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3_OptFlowFusion.cpp` | 665 | `_flowInnovGate` | yes |
+| `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3_PosVelFusion.cpp` | 1022 | `_hgtInnovGate` | yes |
 | `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3.cpp` | 312 | `FLOW_MAX` | yes |
 | `FGO_DESIGN.md` | 416 | `binary accept` | yes |
 | `src/estimators/ukf_core.py` | 44 | `FLOW_GATE=300, FLOW_MAX=2.5` | yes |
@@ -291,12 +293,14 @@ Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/make
 | `METHODOLOGY.md` | 7553 | `Ruling D17` | yes |
 | `METHODOLOGY.md` | 9528 | `documented asymmetry` | yes |
 | `src/estimators/fgo/fgo_core.py` | 31 | `setIntegrationCovariance` | yes |
+| `src/estimators/ukf_core.py` | 295 | `p['FLOW_GATE']` | yes |
+| `src/estimators/ukf_core.py` | 231 | `p['RNG_GATE']` | yes |
 | `src/estimators/fgo/fgo_core.py` | 184 | `< 4.2` | yes |
-| `METHODOLOGY.md` | 8884 | `The FGO (no gate) also took them` | yes |
 | `FGO_DESIGN.md` | 446 | `matched NIS gate` | yes |
+| `METHODOLOGY.md` | 14302 | `FGO gating documented` | yes |
 | `src/estimators/ukf_core.py` | 293 | `abs(flow_xy[0]) >= p['FLOW_MAX']` | yes |
 | `~/ardupilot_ukf/libraries/AP_NavUKF/AP_NavUKF.cpp` | 874 | `fabs(e.fr.x) < FLOW_MAX` | yes |
-| `FGO_DESIGN.md` | 420 | `one-sided` | yes |
+| `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3_OptFlowFusion.cpp` | 668 | `flowRadXY.x < frontend->_maxFlowRate` | yes |
 | `METHODOLOGY.md` | 7038 | `Ruling D15` | yes |
 | `METHODOLOGY.md` | 7060 | `This is a sensor-model` | yes |
 | `METHODOLOGY.md` | 7785 | `D18: no. PRINCIPLE` | yes |
@@ -326,49 +330,49 @@ Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/make
 | `METHODOLOGY.md` | 8043 | `not copied, per D18` | yes |
 | `METHODOLOGY.md` | 8281 | `Cauchy, k = 2.385 chosen` | yes |
 | `METHODOLOGY.md` | 10691 | `UKF:** ≤ 2× those` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 36 | `**1A**` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 41 | `**1A**` | yes |
 | `METHODOLOGY.md` | 865 | `3 corridor worlds × 3 repeats` | yes |
 | `METHODOLOGY.md` | 5640 | `7 new repeats` | yes |
 | `METHODOLOGY.md` | 2874 | `flown on simulator truth` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 143 | `H1.1` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 148 | `H1.1` | yes |
 | `METHODOLOGY.md` | 2692 | `the six `p1c_*` check flights only` | yes |
 | `METHODOLOGY.md` | 2706 | `the 18 dataset bags` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 144 | `H1.2` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 149 | `H1.2` | yes |
 | `METHODOLOGY.md` | 2958 | `EKF3 is the fixed no-yaw-source baseline` | yes |
 | `METHODOLOGY.md` | 2970 | `90 replay runs` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 145 | `H1.3` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 147 | `C1.a` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 150 | `H1.3` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 152 | `C1.a` | yes |
 | `METHODOLOGY.md` | 7880 | `existing recordings only` | yes |
 | `METHODOLOGY.md` | 7922 | `≥ 4 of 6` | yes |
 | `METHODOLOGY.md` | 7956 | `only the UKF and FGO are compared` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 148 | `H1.4` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 153 | `H1.4` | yes |
 | `METHODOLOGY.md` | 9706 | `n = 6 per world (12 flights)` | yes |
 | `batches/f4_robust.conf` | 1 | `truth flies` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 154 | `H1.7a` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 36 | `**1C**` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 159 | `H1.7a` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 41 | `**1C**` | yes |
 | `docs/thesis/numbers.md` | 464 | `n = 1 per no-heading cell` | yes |
 | `METHODOLOGY.md` | 7795 | `All FGO closed-loop flights fly at half` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 157 | `H1.8` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 158 | `H1.9` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 162 | `H1.8` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 163 | `H1.9` | yes |
 | `METHODOLOGY.md` | 10107 | `10 × 10 m room` | yes |
 | `METHODOLOGY.md` | 10123 | `12 flights` | yes |
 | `METHODOLOGY.md` | 10114 | `EKF3 receives it live` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 165 | `H2.1` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 170 | `H2.1` | yes |
 | `METHODOLOGY.md` | 10493 | `L uses T_A_r1, T_A_r2 and T_A_r3` | yes |
 | `METHODOLOGY.md` | 10456 | `**FGO capability**` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 174 | `V3` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 179 | `V3` | yes |
 | `METHODOLOGY.md` | 10301 | `open loop on simulator truth` | yes |
 | `METHODOLOGY.md` | 10310 | `Three repeats.` | yes |
 | `o_gnss.parm` | 2 | `AHRS_EKF_TYPE 10` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 184 | `H4.1` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 189 | `H4.1` | yes |
 | `METHODOLOGY.md` | 10661 | `EKF3 flies` | yes |
 | `docs/tag_hold_design.md` | 141 | `Repeats: 3 per stage and estimator` | yes |
 | `docs/thesis/numbers.md` | 635 | `×3 each` | yes |
 | `docs/thesis/numbers.md` | 649 | `are PRIMARY` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 192 | `H5.1` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 197 | `H5.1` | yes |
 | `METHODOLOGY.md` | 11286 | `Option (i) safety tests` | yes |
 | `docs/thesis/numbers.md` | 490 | `Safety tests (H config, 2 m-clearance hold)` | yes |
-| `docs/thesis/thesis_vocabulary.md` | 53 | `They therefore carry criteria (S-A1–S-A4)` | yes |
+| `docs/thesis/thesis_vocabulary.md` | 58 | `They therefore carry criteria (S-A1–S-A4)` | yes |
 | `METHODOLOGY.md` | 3329 | `p95 ≤ 2.1 ms` | yes |
 | `docs/thesis/numbers.md` | 448 | `transition baseline` | yes |
 | `docs/thesis/numbers.md` | 449 | `blank baseline` | yes |
