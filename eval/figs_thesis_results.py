@@ -365,66 +365,110 @@ R1 = [
   "PASS: FGO whole-flight batch ÷ smoothed UKF 1.01–1.02", [("numbers.md", 560, None, ["P-O3 PASS (was FAIL; flip accepted, ruling 5): batch FGO vs RTS-UKF ratio 1.01–1.02 (capped)"])],
   "PASS", "yes: FAIL → PASS in the first final re-run (ruling 5; claims row 20); 'FGO batch ~2× better' WITHDRAWN (claims row 21)"),
  ("H5.1", "hold accuracy (primary)", "",
-  "H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights", ("M", 10687, 10688),
+  "H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights.", ("M", 10687, 10688),
   ["H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights."],
   "PASS: hold error mean 8 mm, max 16–25 mm (EKF3 flying); also PASS on the FGO-flying hold set (final FGO node)",
   [("numbers.md", 606, None, ["8 mm / 16–25 mm (H-H1 PASS)"]), ("numbers.md", 646, None, ["8.1–9.0 / 18–28 (H-H1 PASS)"])], "PASS", "no (flights; claims row 25)"),
  ("H5.2", "FGO holds tightest", "",
-  "H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights (design draft; no METHODOLOGY "
-  "pre-registration line)", ("tag_hold_design.md", 180, None), ["H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights."],
+  ("H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights.",
+   "(design draft §e; no METHODOLOGY pre-registration line)"), ("tag_hold_design.md", 180, None), ["H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights."],
   "FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); FGO highest in all three (8.3–8.6 against EKF3 7.8–7.9 mm)",
   [("numbers.md", 675, None, ["FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); the FGO is now the HIGHEST in all three runs (8.3–8.6 against EKF3 7.8–7.9 mm)"])],
   "NOT MET", "wording only (tie → FGO highest) on the final-build sets; verdict identical to the original-build verdict"),
  ("H5.3", "smoothness similar", "",
-  "P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators", ("tag_hold_design.md", 183, None),
+  "P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators.", ("tag_hold_design.md", 183, None),
   ["P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators."],
   "FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's", [("numbers.md", 676, None, ["FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's"])],
   "NOT MET", "no: identical to the original-build verdict"),
  ("H5.4a", "after a 15 s loss, EKF3 jumps most", "",
-  "After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's in 3/3 flights",
+  "After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's in 3/3 flights.",
   ("tag_hold_design.md", 185, 186), ["After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's in 3/3 flights."],
   "FAIL (0/3): EKF3 strictly the smallest (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm)",
   [("numbers.md", 677, None, ["FAIL (0/3): EKF3 strictly the smallest in all three (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm)"])],
   "NOT MET", "wording only (smallest or tied → strictly smallest); verdict identical"),
  ("H5.4b", "after a 5 s loss, jumps similar", "",
-  "After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other", ("tag_hold_design.md", 187, None),
+  "After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other.", ("tag_hold_design.md", 187, None),
   ["After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other."],
   "FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7)",
   [("numbers.md", 678, None, ["FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7)"])], "NOT MET", "no: identical to the original-build verdict"),
  ("H5.5", "drift band", "",
-  "EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m … UKF: ≤ 2× those … Loss during the "
-  "move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF", ("M", 10690, 10692),
-  ["EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m.", "UKF: ≤ 2× those.",
-   "Loss during the move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF."],
+  "P-H5 (drift during loss, per estimator): EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m. "
+  "UKF: ≤ 2× those. Loss during the move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF.", ("M", 10689, 10692),
+  ["P-H5 (drift during loss, per estimator):", "EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m.",
+   "UKF: ≤ 2× those.", "Loss during the move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF."],
   "PASS: every loss inside its band (20/20 each estimator in S1; every band passes on the UKF- and FGO-flying hold sets)",
   [("numbers.md", 629, None, ["P-H5 PASS (20/20 each estimator"]), ("numbers.md", 644, None, ["every UKF band PASSES"]), ("numbers.md", 646, None, ["every FGO band PASSES"])],
   "PASS", "no (claims row 25); the S1 shadow drifts were restated (claims row 26)"),
  ("H5.6", "re-lock time", "as pre-registered (EKF3-flying hold set)",
-  "EKF3: after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m … UKF and FGO: re-lock at the first fix (≤ 0.1 s), no "
-  "reset; the largest single step ≤ the accumulated drift", ("M", 10696, 10699),
-  ["after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m.", "UKF and FGO: re-lock at the first fix (≤ 0.1 s), no reset; the largest single step ≤ the accumulated drift."],
+  "P-H6 (re-lock): EKF3: after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m. After the 15 s and 30 s losses "
+  "(posTimeout), the first fix resets position: re-lock ≤ 0.2 s with a jump equal to the accumulated drift (within 0.02 m of it). "
+  "UKF and FGO: re-lock at the first fix (≤ 0.1 s), no reset; the largest single step ≤ the accumulated drift.", ("M", 10695, 10699),
+  ["P-H6 (re-lock):", "EKF3: after the 5 s loss (no timeout), re-lock ≤ 0.2 s with a jump ≤ 0.05 m.",
+   "After the 15 s and 30 s losses (posTimeout), the first fix resets position: re-lock ≤ 0.2 s with a jump equal to the accumulated drift (within 0.02 m of it).",
+   "UKF and FGO: re-lock at the first fix (≤ 0.1 s), no reset; the largest single step ≤ the accumulated drift."],
   "re-lock 0.16–1.06 s for all three (occluder render lag): FAIL as worded", [("numbers.md", 617, None, ["0.16–1.06 s (occluder render lag; P-H6 FAIL as worded)"])],
   "FAIL AS WORDED", "no; the measurement-definition fault led to the redefinition (next row; correction 20)"),
  ("H5.6", "re-lock time", "redefined primary (UKF- and FGO-flying hold sets)",
   "Re-lock time, PRIMARY: from the first returning tag detection (the first /tags/raw wall-tag detection after the loss) to the "
-  "first fix fused by the flying estimator", ("M", 10948, 10949),
-  ["Re-lock time, PRIMARY: from the first returning tag detection (the first /tags/raw wall-tag detection after the loss) to the first fix fused by the flying estimator."],
+  "first fix fused by the flying estimator. UKF port: the first ExtNav position update in its log after that detection. FGO: the first "
+  "keyframe whose factors include that fix. Reason: the S1 finding that Gazebo's occluder rendering lags set_pose by 0.16–1.0 s, so "
+  "cover-off timing measures the simulator. Band: ≤ 0.1 s for both (UKF: VISO_DELAY_MS 31 ms plus one step; FGO: ≤ one keyframe of "
+  "33 ms plus the node latency).", ("M", 10948, 10955),
+  ["Re-lock time, PRIMARY: from the first returning tag detection (the first /tags/raw wall-tag detection after the loss) to the first fix fused by the flying estimator.",
+   "UKF port: the first ExtNav position update in its log after that detection.", "FGO: the first keyframe whose factors include that fix.",
+   "Reason: the S1 finding that Gazebo's occluder rendering lags set_pose by 0.16–1.0 s, so cover-off timing measures the simulator.",
+   "Band: ≤ 0.1 s for both (UKF: VISO_DELAY_MS 31 ms plus one step; FGO: ≤ one keyframe of 33 ms plus the node latency)."],
   "PASS: UKF −0.048…−0.015 s; FGO 0.002–0.032 s", [("numbers.md", 644, None, ["−0.048…−0.015 s, PASS"]), ("numbers.md", 646, None, ["0.002–0.032 s, PASS"])],
   "PASS", "a redefinition registered before the S2/S3 flights (correction 20), not a re-scoring of S1"),
+ ("H5.6", "re-lock time", "jump criterion, kept as worded (UKF- and FGO-flying hold sets)",
+  "Jump criterion: kept as worded (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift at re-lock; "
+  "UKF/FGO converge without reset).", ("M", 10957, 10958),
+  ["Jump criterion: kept as worded (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift at re-lock; UKF/FGO converge without reset)."],
+  "fails as worded: final UKF port in most losses (steps 5–30 mm against drifts 2–26 mm); final FGO node in 4 of 12 losses",
+  [("numbers.md", 644, None, ["jump criterion AS WORDED fails in most losses (steps 5–30 mm against drifts 2–26 mm)"]),
+   ("numbers.md", 646, None, ["jump AS WORDED fails in 4 of 12 losses"])],
+  "FAIL AS WORDED", "new part (ruling 2026-10-17, verbatim wording): the S2/S3 pre-registration kept this criterion as worded; its "
+  "outcome is recorded (numbers.md §17.1) but was not scored as an H5.6 part before; no new analysis"),
  ("H5.7", "no lockout", "",
-  "P-H7 (lockout): no estimator locks out the returning tag in any loss", ("M", 10700, None),
+  "P-H7 (lockout): no estimator locks out the returning tag in any loss.", ("M", 10700, None),
   ["P-H7 (lockout): no estimator locks out the returning tag in any loss."],
   "PASS: no lockout in any loss", [("numbers.md", 629, None, ["No lockout in any loss (P-H7 PASS)."])], "PASS", "no (claims row 25)"),
 ]
 CATS = ("PASS", "FAIL AS WORDED", "NOT MET", "WITHDRAWN", "DESCRIPTIVE")
 rowsR1 = []
+def vfound(tab, label, text, doc, a, b=None):
+    """VERBATIM (ruling 2026-10-17, Experiment 5 wording): `text` occurs UNBROKEN in the cited lines, with list bullets, markdown
+    emphasis and code ticks removed (no ellipsis, no paraphrase)."""
+    src = norm(" ".join(re.sub(r"^\s*-\s+", "", ln) for ln in DOCS[doc][a - 1:(b or a)])).strip()
+    ok = norm(text) in src
+    if not ok:
+        print("   VERBATIM FAIL:", tab, label, f"{DOCNAME[doc]}:{a}-{b}")
+    QCHK.append((tab, label, f"{DOCNAME[doc]}:{a}" + (f"-{b}" if b else ""), ok))
+    return ok
+
+
 for lab, name, part, pred, (pd, pa, pb), pfr, out, osrc, verdict, chg in R1:
     assert verdict in CATS
+    pq, pafter = pred if isinstance(pred, tuple) else (pred, "")
     found("R1", f"{lab} {part} prediction quote", pfr, pd, pa, pb)
+    if lab.startswith("H5."):
+        vfound("R1", f"{lab} {part} prediction quote, verbatim", pq, pd, pa, pb)
     for od, oa, ob, ofr in osrc:
         found("R1", f"{lab} {part} outcome", ofr, od, oa, ob)
-    rowsR1.append([lab + (f" {part}" if part else ""), name, (f"{pred} [{cite(pd, pa, pb)}]" if pred.startswith("(as above") else f"“{pred}” [{cite(pd, pa, pb)}]"), out,
+    rowsR1.append([lab + (f" {part}" if part else ""), name, (f"{pq} [{cite(pd, pa, pb)}]" if pq.startswith("(as above") else
+                   f"“{pq}”" + (f" {pafter}" if pafter else "") + f" [{cite(pd, pa, pb)}]"), out,
                    verdict, chg, "; ".join(cite(od, oa, ob) for od, oa, ob, _ in osrc)])
+# the Experiment 5 notes' sources (two wordings of H5.1 and H5.5; the S2/S3 directional prediction)
+vfound("R1", "note: design-draft H5.1 wording", "H-H1 (primary): every estimator holds within tag-fix accuracy. Mean hold error ≤ 0.05 m and max "
+       "≤ 0.15 m in 3/3 flights per estimator.", "tag_hold_design.md", 176, 177)
+vfound("R1", "note: design-draft H5.5 wording", "P-H5 (drift during loss, prediction): GT drift during the 15 s occlusion ≤ 0.3 m for every "
+       "estimator.", "tag_hold_design.md", 188)
+found("R1", "note: the design-draft H5.5 wording scored", ["P-H5 PASSES:", "every estimator drifted ≤ 30 mm over the 15 s loss (≤ 0.3 m)."], "M", 12243)
+found("R1", "note: flying hold sets inside the H5.1 bounds", ["6.1–7.4 / 17–21"], "numbers.md", 644)
+found("R1", "note: flying hold sets inside the H5.1 bounds (FGO)", ["8.1–9.0 / 18–28 (H-H1 PASS)"], "numbers.md", 646)
+vfound("R1", "note: S2/S3 directional prediction", "Directional prediction: both flying estimators drift more than flying EKF3 did (3–31 mm).",
+       "M", 10971, 10972)
+found("R1", "note: directional prediction not borne out (superseded builds)", ["The S2/S3 directional prediction", "is NOT borne out:"], "M", 12244, 12245)
 CNT = {c: sum(1 for r in R1 if r[8] == c) for c in CATS}
 LABELS = sorted({r[0] for r in R1}, key=lambda s: (s[0] != "H", s))
 # numeric cross-checks behind R1 (stored values, rounded once)
@@ -458,9 +502,18 @@ save_tab("Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pr
                 "is not re-scorable, so its old PASS is listed and not restated; DESCRIPTIVE = no comparative test (C1.a is a pre-registered "
                 "comparison with no decision rule; X1.b is exploratory).",
                 "Labels with parts are scored per part (H1.2 by wall type and floor, H1.3 (a)/(b), H1.6b and H1.6c (a)/(b), H1.8 and H1.9 per flying "
-                "estimator, H5.6 as pre-registered and as redefined), so the counts are per part, not per label. H5.2–H5.4b have no METHODOLOGY "
-                "pre-registration line; their only pre-registration is the design draft (tag_hold_design.md §e), quoted. H5.1 is scored on its "
-                "operative pre-registration (EKF3 flying, M:10687); the draft's 'every estimator' wording is not scored separately.",
+                "estimator, H5.6 as pre-registered, as redefined and its jump criterion kept as worded), so the counts are per part, not per label.",
+                "Experiment 5 (ruling 2026-10-17): every H5 prediction is quoted VERBATIM (no ellipsis; checked unbroken in the cited lines, "
+                "markdown removed) and its verdict is judged against that wording. H5.1, H5.5, H5.6 (as pre-registered) and H5.7 are quoted from "
+                "the S0/S1 pre-registration (M:10623, 'written before any H flight'); the H5.6 redefinition and its kept jump criterion from the "
+                "S2/S3 pre-registration (M:10946, 'before any S2/S3 flight'). H5.2–H5.4b have no METHODOLOGY pre-registration line; their only "
+                "pre-registration is the design draft (tag_hold_design.md §e), whose text is unchanged since commit c11fcf3 (2026-10-08 15:17), "
+                "before the first Experiment 5 flight. Two wordings exist for H5.1 and H5.5: the design draft says 'H-H1 (primary): every estimator holds "
+                "within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights per estimator.' (tag_hold_design.md:176-177) and 'P-H5 (drift during loss, prediction): GT drift during the 15 s "
+                "occlusion ≤ 0.3 m for every estimator.' (tag_hold_design.md:188); the METHODOLOGY wording is the one scored. Both PASS under either wording "
+                "(flying hold sets 6.1–7.4 / 17–21 mm UKF and 8.1–9.0 / 18–28 mm FGO, numbers.md:644, 646; the draft's P-H5 was scored PASS at "
+                "M:12243). Not scored here: the S2/S3 directional prediction 'both flying estimators drift more than flying EKF3 did (3–31 mm)' "
+                "(M:10971), judged NOT borne out on the superseded builds only (M:12244-12245) and not restated on the final builds.",
                 "H1.3 is shown as recorded on 2026-09-29 (M:3440-3448): no restated Phase 5 verdict exists after the final re-runs, only the restated "
                 "decomposition magnitudes (numbers.md:263). The criteria families without hypothesis labels (dataset-quality bands, the 5S safety "
                 "criteria) are not scored here: numbers.md §8 and Table A.2.",
