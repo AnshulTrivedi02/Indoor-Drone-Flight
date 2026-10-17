@@ -32,10 +32,11 @@ The offline-timing row of Table 8.1 could also go in Chapter 3. These are propos
 
 ## Checks
 
-- **Source checks: 314/314.** Every file:line in every cell, and every diagram edge, is stored as (file, line, verbatim needle). The generator asserts that the needle is on that exact line. ArduPilot citations point outside the repository:
-  - the thesis fork `~/ardupilot_ukf`, branch `ukf-jitter-fix` @ `f30f6ffa2f`;
+- **Source checks: 316/316.** Every file:line in every cell, and every diagram edge, is stored as (file, line, verbatim needle). The generator asserts that the needle is on that exact line. ArduPilot citations point outside the repository and are read with `git show <rev>:<path>`, so they do not depend on the checked-out branch:
+  - the thesis fork `~/ardupilot_ukf` @ `f30f6ffa2f` (branch `ukf-jitter-fix`);
   - the pinned `~/ardupilot` @ `7bac20cbcc`.
-  The index records both. If the fork's checked-out branch changes, re-run the generator, and a moved line will fail loudly.
+- **Every printed derived value is the checked string.** It is computed once into a variable used in both the cell and the check (counts, covariances, flash differences, keyframe times, the 12.5 ms period).
+- **Vocabulary:** no D-number, log-record code (XKF1/XUKF/XFGO), "Phase 3" or "plan step 2(b)" in any cell outside the source column (grep of the rendered `.md`). Half real-time carries its explanation in the Table 3.4 and 8.1 notes.
 - **Cross-checks: 30/30 EXACT.** The expected value is read from the cited line itself. The computed value goes through `rd()` from `eval/figs_thesis.py`. `rd()` is loaded by AST, function definitions only, because that module has no `__main__` guard and importing it would regenerate the other agent's outputs. The checks cover:
   - the GTSAM σ_c = NSE·√dt and covariance = NSE²·dt, against numbers.md §3 and the `fgo_core.py` literals;
   - EKF3's NSE defaults, read from source;

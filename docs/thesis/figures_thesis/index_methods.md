@@ -1,18 +1,18 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `337c931` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (ukf-jitter-fix @ f30f6ffa2f); pinned `~/ardupilot` (7bac20cbcc).
+Built by `eval/figs_thesis_methods.py` at commit `766900c` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
-**Source checks: 314/314 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 30/30 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
+**Source checks: 316/316 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 30/30 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
 **Proposed numbering** (vocabulary §6: by chapter; Chapter 3 = method, Chapter 8 = towards real flights). File names are descriptive and new; `M1`–`M3` are deliberately not used as ids because they are the F8 mitigation codes.
 
 | proposed no. | files | title | checks | proposed place |
 |---|---|---|---|---|
 | Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
-| Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 5/5 | Chapter 3 (method), estimators |
+| Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 6/6 | Chapter 3 (method), estimators |
 | Table 3.2 | `methods_noise_parity.md`, `methods_noise_parity.tex`, `methods_noise_parity.png` | Noise parity: measurement and process noise per sensor and estimator | 15/15 | Chapter 3 (method), fairness |
 | Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png` | Documented exceptions to noise and treatment parity, with their rulings | 0/0 | Chapter 3 (method), fairness |
-| Table 3.4 | `methods_experiment_matrix.md`, `methods_experiment_matrix.tex`, `methods_experiment_matrix_p1.png`, `methods_experiment_matrix_p2.png` | Experiment matrix | 5/5 | Chapter 3 (method), experiments |
+| Table 3.4 | `methods_experiment_matrix.md`, `methods_experiment_matrix.tex`, `methods_experiment_matrix_p1.png`, `methods_experiment_matrix_p2.png` | Experiment matrix | 4/4 | Chapter 3 (method), experiments |
 | Table 8.1 | `realflight_compute.md`, `realflight_compute.tex`, `realflight_compute.png` | Compute and deployability per estimator | 4/4 | Chapter 8 (towards real flights); the offline row may also sit in Chapter 3 |
 | Table 8.2 | `realflight_safety_findings.md`, `realflight_safety_findings.tex`, `realflight_safety_findings_p1.png`, `realflight_safety_findings_p2.png` | Safety findings from the SITL safety bench, with mitigations and status | 1/1 | Chapter 8 (towards real flights) |
 
@@ -54,7 +54,8 @@ Built by `eval/figs_thesis_methods.py` at commit `337c931` (run with `/home/make
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| EKF3 prediction period = 5 frames × 1/400 s (s) | `0.0125` | `0.0125` | N:183 | yes |
+| EKF3 prediction period = 5 frames × 1/400 s (s), printed in ms in Table 3.1 | `0.0125` | `0.0125` | N:183 | yes |
+| UKF port predict period printed in Table 3.1 (ms) = EKF3's | `12.5` | `12.5` | N:186 | yes |
 | UKF port TARGET_DT equals EKF3's EKF_TARGET_DT (s) | `0.012` | `0.012` | AP_NavUKF.cpp:38; AP_NavEKF3_core.h:59 | yes |
 | flow NIS gate = (0.01 × EK3_FLOW_I_GATE)² | `9` | `9` | AP_NavEKF3.cpp:42; N:147 | yes |
 | range NIS gate = (0.01 × EK3_RNG_I_GATE)² | `25` | `25` | UC:45; N:149 | yes |
@@ -73,13 +74,13 @@ Built by `eval/figs_thesis_methods.py` at commit `337c931` (run with `/home/make
 | EKF3 GBIAS_P_NSE default equals the value used here | `0.001` | `0.001` | AP_NavEKF3.cpp:30 | yes |
 | EKF3 ABIAS_P_NSE default equals the value used here | `0.020` | `0.020` | AP_NavEKF3.cpp:31 | yes |
 | accelerometerCovariance: σ_c = NSE·√dt / covariance = NSE²·dt | `0.03913119 / 1.53125×10⁻³` | `0.03913119 / 1.53125×10⁻³` | N:153 | yes |
-| accelerometerCovariance in fgo_core.py equals NSE²·dt | `1.53125e-3` | `1.53125e-3` | FC:27 | yes |
+| accelerometerCovariance in fgo_core.py equals NSE²·dt (printed in Table 3.2) | `1.53125e-3` | `1.53125e-3` | FC:27 | yes |
 | gyroscopeCovariance: σ_c = NSE·√dt / covariance = NSE²·dt | `0.001677051 / 2.8125×10⁻⁶` | `0.001677051 / 2.8125×10⁻⁶` | N:154 | yes |
-| gyroscopeCovariance in fgo_core.py equals NSE²·dt | `2.8125e-6` | `2.8125e-6` | FC:28 | yes |
+| gyroscopeCovariance in fgo_core.py equals NSE²·dt (printed in Table 3.2) | `2.8125e-6` | `2.8125e-6` | FC:28 | yes |
 | biasAccCovariance: σ_c = NSE·√dt / covariance = NSE²·dt | `0.002236068 / 5.0×10⁻⁶` | `0.002236068 / 5.0×10⁻⁶` | N:155 | yes |
-| biasAccCovariance in fgo_core.py equals NSE²·dt | `5.0e-6` | `5.0e-6` | FC:29 | yes |
+| biasAccCovariance in fgo_core.py equals NSE²·dt (printed in Table 3.2) | `5.0e-6` | `5.0e-6` | FC:29 | yes |
 | biasOmegaCovariance: σ_c = NSE·√dt / covariance = NSE²·dt | `0.0001118034 / 1.25×10⁻⁸` | `0.0001118034 / 1.25×10⁻⁸` | N:156 | yes |
-| biasOmegaCovariance in fgo_core.py equals NSE²·dt | `1.25e-8` | `1.25e-8` | FC:30 | yes |
+| biasOmegaCovariance in fgo_core.py equals NSE²·dt (printed in Table 3.2) | `1.25e-8` | `1.25e-8` | FC:30 | yes |
 | EKF3 effective ExtNav yaw σ at the default VISO_YAW_M_NSE 0.2 rad (deg) | `11.46` | `11.46` | M:4756 | yes |
 | VISO_YAW_M_NSE at which EKF3's 5° floor binds (rad) | `0.0873` | `0.0873` | M:4757 | yes |
 
@@ -95,7 +96,6 @@ Built by `eval/figs_thesis_methods.py` at commit `337c931` (run with `/home/make
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| 1A main set: floors × repeats, both read from M:865 | `9` | `9` | M:865 | yes |
 | 1B validation bags: 2 wall conditions × 3 floors × 3 repeats | `18` | `18` | M:2706 | yes |
 | 1B offline fusion replays: (9 textured-wall bags × 3 arms + 9 plain-wall bags × 2 arms) × 2 estimators | `90` | `90` | M:2970 | yes |
 | 1B robust-weighting replication: 6 flights × 2 worlds | `12` | `12` | M:9706 | yes |
@@ -235,6 +235,7 @@ Built by `eval/figs_thesis_methods.py` at commit `337c931` (run with `/home/make
 | `src/estimators/ukf_core.py` | 45 | `RNG_GATE=500` | yes |
 | `~/ardupilot_ukf/libraries/AP_NavUKF/AP_NavUKF.cpp` | 40 | `FLOW_GATE = 300` | yes |
 | `src/estimators/fgo/fgo_core.py` | 184 | `abs(flow_xy[0]) < 4.2` | yes |
+| `src/estimators/fgo_cpp/src/fgo_core.cpp` | 144 | `std::abs(flow->xy[0]) < 4.2` | yes |
 | `METHODOLOGY.md` | 8659 | `no gate` | yes |
 | `FGO_DESIGN.md` | 446 | `matched NIS gate at factor-insertion time` | yes |
 | `docs/thesis/numbers.md` | 450 | `UKF predict / forward update` | yes |
