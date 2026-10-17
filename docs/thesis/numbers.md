@@ -1422,4 +1422,9 @@ reader applies the errata to it. `tools/check_numbers_frozen.py` fails if anythi
 - Ruling: <METHODOLOGY ruling heading and date>
 ```
 
-(No entries yet.)
+### E1 (2026-10-17): §2 (configuration table), line 409 (as frozen)
+- Frozen text (verbatim): | Recorded logs | `LOG_REPLAY=0` and `LOG_DISARMED=0` | — | CURRENT | M:L2923 |
+- Corrected text: | Recorded logs | `LOG_REPLAY=1` and `LOG_DISARMED=1` for every dataset flown with `consolidated_rerun.parm` (added 2026-09-29, commit `45c5483`; the re-flown and later datasets); `LOG_REPLAY=0` and `LOG_DISARMED=0` only for the superseded, earlier datasets (e.g. `fwd_*`) | — | CURRENT | `consolidated_rerun.parm:12-14`; dataflash PARM stream |
+- Reason: the frozen row was true only of the datasets recorded before 2026-09-29. Verified from each log's own PARM stream on 2026-10-17: `dsn_tex_r1`, `fwdc_tex_r1`, `ds_tex_r1`, `T_A_r1` and `H_s1_r1` record LOG_REPLAY 1 and LOG_DISARMED 1; `fwd_tex_r1` (superseded no-ceiling dataset) records 0 and 0.
+- Source: `consolidated_rerun.parm:12-14` (`LOG_REPLAY 1`, `LOG_DISARMED 1`); `~/thesis_data/trials/<trial>/ardupilot.bin` PARM records.
+- Ruling: RULINGS (user, 2026-10-17): LOG_REPLAY erratum (methodology fact sheets, conflict (b)).

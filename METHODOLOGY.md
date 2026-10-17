@@ -14250,3 +14250,23 @@ Handover: `docs/handovers/2026-10-09_ukf_derotation_default.md`.
   a METHODOLOGY line, a pre-registration line or a parameter file), and report any with NO written source at all.
 - **After this, numbers.md is CONTENT-FROZEN:** any further change is a dated ERRATUM entry at the end, not an in-place
   edit.
+
+### RULINGS (user, 2026-10-17): Figure 4.2, scorecard labels, the Table 7.2 bound, LOG_REPLAY, Experiment 5 wording, trajectory figure, numbering
+- **Figure 4.2:**
+  - include EKF3's THREE with-heading half-real-time closed-loop flights;
+  - add a linear inset (about ±1°) for the with-heading flights, OR state in the caption that their bound is in
+    Table 4.2;
+  - keep ONE shared main axis.
+- **Scorecard:** BEST/BEHIND ONLY where a pre-registered rule was met; otherwise numbers without labels.
+- **Table 7.2, UKF (a) bound:** show the bound EXACTLY as pre-registered, quoting the pre-registration line. Change it
+  only if the table differs from the registered value.
+  - Coordinator's note: the pre-registration (M:11299) gives UKF (a) "within 0.1 s of TFAIL". The re-test scoring
+    used `--a2-bound 0.75` on the coordinator's instruction. The verdict is unchanged (0.00 s).
+- **LOG_REPLAY:** a dated ERRATUM in numbers.md (no in-place edit). Done as E1. Verified from the logs' PARM
+  streams: datasets flown with `consolidated_rerun.parm` (from 2026-09-29) record LOG_REPLAY 1 and LOG_DISARMED 1;
+  the superseded `fwd_*` dataset records 0.
+- **Experiment 5 hypotheses:** the VERBATIM pre-registered wording in the scorecard and the appendix; verdicts judged
+  against it.
+- **Trajectory figure:** option (c) is described to the user in two lines BEFORE building.
+- **Numbering:** NO further renumbering now. The final numbering happens ONCE, after the chapter plan is locked, in
+  section order.
