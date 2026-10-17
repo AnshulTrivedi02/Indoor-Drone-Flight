@@ -230,6 +230,53 @@ effect size (+0.43 px/s); §14 timing.
 
 ---
 
+## n (as used in the tables) (added 2026-10-17)
+
+**Definition.** *n* is the number of independent units entering a comparison, **with its unit always named**: flights
+(independent repeats of the same flight profile), bags (recorded flights replayed offline by each estimator), or tag losses
+(within the hold flights). A table never writes a bare "n = 3": it writes "3 flights per estimator", "6 bags", "7 flights
+(flights 4–10)", "24 losses over 6 flights".
+- **Paired or unpaired is stated with n.** Offline replays use the same flights or bags for every estimator (paired); in the
+  closed loop and in Experiment 5 each estimator flew its own flights (unpaired, or paired by run index only).
+- **Usable units are stated when they differ from the units flown.** The confirmatory test (H1.1) has n = 7 flights; flight 10
+  has no FGO value, so it counts as "not lower" in the sign count and the 95% interval uses the 6 usable flights (df 5)
+  (M:5650-5654, M:6237-6239).
+- **The unit is the unit of replication.** A per-condition mean over 3 flights is n = 3 flights for that condition, not n = 1
+  condition; the 5 laps within a flight are not independent units.
+- Source: the ordering footnotes of `eval/figs_thesis.py` (`obasis()`), and `thesis_vocabulary.md` §11 (the units in use).
+
+---
+
+## Ordering verdicts: three "no ordering" cases and RULE MET (added 2026-10-17)
+
+**Definition.** Every ordering claimed or not claimed in a thesis table or caption is reported with the metric and unit, n
+with its unit, the pre-registered rule with its source line, and the result against the rule. The verdict is one of four
+fixed phrases. The three cases with no ordering are different and are never merged into "TIED" without saying which:
+- **RULE MET.** A pre-registered rule was applied and met; its ordering (or similarity) is claimed. Examples: H4.1 (FGO
+  whole-flight batch below both filters' live tracks, 3/3, M:10358-10359); H3.2 and H3.3 (M:10503-10504); H4.3 (similarity).
+- **Case (i): test run, rule not met.** A pre-registered decision rule whose outcomes include "no ordering" was applied and
+  gave that outcome. Examples: H1.1 ("Otherwise: no ordering is claimed", M:5654; EKF3 lower on 5 of 7, CI includes 0); H1.4
+  (robust FGO better iff fewer lockouts AND lower yaw max on ≥ 4 of 6, M:7921-7922; lockouts tie, NOT met).
+- **Case (ii): failed as worded.** A pre-registered prediction of an ordering or of a similarity was scored literally and is
+  false (see "As worded" above). A failed prediction does not by itself establish the opposite ordering; an ordering shown
+  beside it (for example "EKF3 largest in every flight" beside H4.2) is descriptive. Examples: H2.3, H2.4, H4.2 and the
+  Experiment 5 comparatives H5.2, H5.3, H5.4a and H5.4b (`docs/tag_hold_design.md:180-187`).
+- **Case (iii): no comparative test registered.** No comparative test was pre-registered; the values are descriptive (see
+  "Descriptive" above). Examples: the 1A UKF standing (M:7187), the blank floor (ruled "Not accuracy comparisons", M:5551), the
+  closed loop across estimators (M:9355), the Experiment 2 condition-D ordering (M:12803), the Experiment 4 return jump
+  ("Reported regardless", M:10365). **Variant:** a comparison registered to be reported with no decision rule, C1.a
+  ("REPORT, no decision rule", M:7892): its ordering is descriptive, not tested.
+- Line numbers are at `337c931`; each cited line is checked at build time to contain the quoted phrase (the "rule text"
+  checks in `docs/thesis/figures_thesis/index.md`).
+
+**Open point for the user.** The Table 7.1 categories are applied unevenly against these verdicts: BEST / BEHIND in
+Experiment 1B rest on C1.a (case (iii), no decision rule), and EKF3's BEHIND in Experiment 4 rests on H4.2 failing as worded
+(case (ii)) plus a descriptive "largest in 3/3", while Experiment 2 (H2.3 fails as worded) and Experiment 5 (H5.2 fails as
+worded; the UKF lowest 3/3) are TIED. The footnotes state each basis; the categories were not changed (a category change is a
+verdict change).
+
+---
+
 ### Open choices for the user
 
 1. **Confirmatory:** reserve the word for H1.1 only, or use it for every pre-registered primary rule?
