@@ -112,7 +112,7 @@ heading +60 UKF 20.72–71.20, FGO 129.99–171.77 m.
 
 ### E10 (2026-10-18): Superseded by the ruling of 2026-10-16 (numbers.md rounding), line 1259 (as frozen)
 - Frozen text (verbatim): Stored values: 128.4931 (`blank_behaviour.json` fwdc_trans_r2 ukf_baseline +60 s, hypot);
-- Corrected text: Stored values: 141.6695 after the axis relabel of 2026-10-18 (128.4931 before it) (`blank_behaviour.json` fwdc_trans_r2 ukf_baseline +60 s, hypot); — this value is no longer the minimum of the transition UKF range (now 128.04, `fwdplainc_trans_r2`), so the double-rounding note no longer bears on the current row (E7).
+- Corrected text: Stored values: 141.6695 after the axis relabel of 2026-10-18 (128.4931 before it) (`blank_behaviour.json` fwdc_trans_r2 ukf_baseline +60 s, hypot); this value is now the MAXIMUM of the transition UKF range (128.04–141.67; the minimum, 128.04, is `fwdplainc_trans_r2`). It rounds to 142 whether rounded once or twice, so the double-rounding note no longer bears on the current row (E7).
 - Reason: as E4.
 - Source: eval/results/blank_behaviour.json: fwdc_trans_r2.ukf_baseline."+60s"; pre-fix: blank_behaviour_pre_axisfix.json.
 - Ruling: user rulings 2026-10-18, item 7.
@@ -124,21 +124,21 @@ heading +60 UKF 20.72–71.20, FGO 129.99–171.77 m.
 - Source: as E7.
 - Ruling: user rulings 2026-10-18, item 7.
 
-### E12 (2026-10-18): Superseded by the FGO-only re-run, line 1151 (as frozen)
+### E12 (2026-10-18): Superseded by the FGO-only re-run (2026-10-10), line 1151 (as frozen)
 - Frozen text (verbatim): | §6.2 | ¦ FGO baseline, same ¦ 6.4–8.2 / 28.0–37.0 / 155–204 ¦ m ¦ CURRENT (final re-run 2026-10-10) ¦ same ¦ |
 - Corrected text: method affected, not recomputable (the FGO trajectories of the first final re-run were overwritten by the FGO-only re-run). Superseded status unchanged.
 - Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17)").
 - Source: eval/results/blank_behaviour.json history (commit 425e824).
 - Ruling: user rulings 2026-10-18, item 7 (b).
 
-### E13 (2026-10-18): Superseded by the FGO-only re-run, line 1152 (as frozen)
+### E13 (2026-10-18): Superseded by the FGO-only re-run (2026-10-10), line 1152 (as frozen)
 - Frozen text (verbatim): | §6.2 | ¦ UKF / FGO baseline error at the end of cruise, blank †¦ 29–40 / 19–41 ¦ km ¦ CURRENT (final re-run 2026-10-10) ¦ same ¦ |
 - Corrected text: UKF 29–40 km (the UKF trajectories are unchanged since; recomputed, as E6); FGO: method affected, not recomputable (trajectories overwritten). Superseded status unchanged.
 - Reason: as E12; the UKF part is recomputable.
 - Source: eval/results/blank_behaviour.json (UKF, "end"); commit 425e824 (FGO).
 - Ruling: user rulings 2026-10-18, item 7 (b).
 
-### E14 (2026-10-18): Superseded by the FGO-only re-run, line 1153 (as frozen)
+### E14 (2026-10-18): Superseded by the FGO-only re-run (2026-10-10), line 1153 (as frozen)
 - Frozen text (verbatim): | §6.2 | ¦ Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO †¦ 40–89 / 132–193 ¦ m ¦ CURRENT (final re-run 2026-10-10) (the heading still does not bound position without flow) ¦ json:blank_behaviour.json ¦ |
 - Corrected text: UKF 21–71 m (recomputed, as E8); FGO: method affected, not recomputable (trajectories overwritten). Superseded status unchanged.
 - Reason: as E13.
@@ -146,24 +146,77 @@ heading +60 UKF 20.72–71.20, FGO 129.99–171.77 m.
 - Ruling: user rulings 2026-10-18, item 7 (b).
 ```
 
-E15–E24 follow the same pattern, one per row, each with Corrected text "method affected, not recomputable (the
-trajectories of that run were overwritten by later re-runs). Superseded status unchanged.", Reason as E12, Ruling
-"user rulings 2026-10-18, item 7 (b)":
+```
+### E15 (2026-10-18): Superseded by D27 (2026-10-01), line 1027 (as frozen)
+- Frozen text (verbatim): |  UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) ¦ 6.4–9.2 / 20.5–34.1 / 96–313 ¦ m ¦ CURRENT ¦ json:blank_behaviour.json  |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 2004dda (D15).
+- Ruling: user rulings 2026-10-18, item 7 (b).
 
-| entry | section (as frozen) | line | frozen text (verbatim) | source (results file of that era) |
-|---|---|---|---|---|
-| E15 | Superseded by D27 | 1027 | `\|  UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) ¦ 6.4–9.2 / 20.5–34.1 / 96–313 ¦ m ¦ CURRENT ¦ json:blank_behaviour.json  \|` | blank_behaviour.json at 2004dda |
-| E16 | Superseded by D27 | 1028 | `\|  UKF / FGO baseline error at the end of cruise, blank ¦ 10–63 / 22–31 ¦ km ¦ CURRENT (D15) ¦ same  \|` | same |
-| E17 | Superseded by D27 | 1029 | `\|  UKF / FGO baseline error at +60 s after loss, transition (n = 11) ¦ 83–315 / 939–1,049 ¦ m ¦ CURRENT (D15) ¦ json:blank_behaviour.json  \|` | same |
-| E18 | Superseded by D27 | 1030 | `\|  Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO ¦ 61–176 / 299–904 ¦ m ¦ CURRENT (D15; the heading does not bound position without flow) ¦ json:blank_behaviour.json  \|` | same |
-| E19 | Superseded by D15 | 1048 | `\| Blank behaviour: UKF / FGO transition +60 s; end-of-cruise blank; FGO blank +60 s; FGO heading blank +60 s \| 67–378 / 895–1,080; 9–63 / 23–32 km; 171–574; 299–898 \| m \| SUPERSEDED \| results_pre_d15/blank_behaviour.json \| D15 \|` | eval/results_pre_d15/blank_behaviour.json |
-| E20 | Superseded by the final consolidated re-run | 1077 | `\| §6.2 \| ¦ UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) ¦ 6.4–9.0 / 20.5–33.0 / 112–288 ¦ m ¦ CURRENT (D27) ¦ json:blank_behaviour.json ¦ \|` | blank_behaviour.json at 232be91 |
-| E21 | same | 1078 | `\| §6.2 \| ¦ FGO baseline, same ¦ 4.2–18.3 / 27–142 / 172–574 ¦ m ¦ CURRENT (D15) ¦ same ¦ \|` | same |
-| E22 | same | 1079 | `\| §6.2 \| ¦ UKF / FGO baseline error at the end of cruise, blank †¦ 13–58 / 22–31 ¦ km ¦ CURRENT (D15 + D27) ¦ same ¦ \|` | same |
-| E23 | same | 1080 | `\| §6.2 \| ¦ UKF / FGO baseline error at +60 s after loss, transition (n = 11) †¦ 31–307 / 939–1,049 ¦ m ¦ CURRENT (D15 + D27) ¦ json:blank_behaviour.json ¦ \|` | same |
-| E24 | same | 1081 | `\| §6.2 \| ¦ Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO †¦ 88–323 / 299–904 ¦ m ¦ CURRENT (D15 + D27; the heading does not bound position without flow) ¦ json:blank_behaviour.json ¦ \|` | same |
+### E16 (2026-10-18): Superseded by D27 (2026-10-01), line 1028 (as frozen)
+- Frozen text (verbatim): |  UKF / FGO baseline error at the end of cruise, blank ¦ 10–63 / 22–31 ¦ km ¦ CURRENT (D15) ¦ same  |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 2004dda (D15).
+- Ruling: user rulings 2026-10-18, item 7 (b).
 
-(When pasting E15–E24, write the frozen text without the escaping backslashes; it is the numbers.md line verbatim.)
+### E17 (2026-10-18): Superseded by D27 (2026-10-01), line 1029 (as frozen)
+- Frozen text (verbatim): |  UKF / FGO baseline error at +60 s after loss, transition (n = 11) ¦ 83–315 / 939–1,049 ¦ m ¦ CURRENT (D15) ¦ json:blank_behaviour.json  |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 2004dda (D15).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E18 (2026-10-18): Superseded by D27 (2026-10-01), line 1030 (as frozen)
+- Frozen text (verbatim): |  Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO ¦ 61–176 / 299–904 ¦ m ¦ CURRENT (D15; the heading does not bound position without flow) ¦ json:blank_behaviour.json  |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 2004dda (D15).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E19 (2026-10-18): Superseded by D15 (2026-09-30), line 1048 (as frozen)
+- Frozen text (verbatim): | Blank behaviour: UKF / FGO transition +60 s; end-of-cruise blank; FGO blank +60 s; FGO heading blank +60 s | 67–378 / 895–1,080; 9–63 / 23–32 km; 171–574; 299–898 | m | SUPERSEDED | results_pre_d15/blank_behaviour.json | D15 |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results_pre_d15/blank_behaviour.json.
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E20 (2026-10-18): Superseded by the final consolidated re-run (2026-10-10), line 1077 (as frozen)
+- Frozen text (verbatim): | §6.2 | ¦ UKF baseline position error magnitude at +10 / +30 / +60 s after loss, blank (n = 11: `dsn`, `fwdc`, `fwdplainc`, `p1c`) ¦ 6.4–9.0 / 20.5–33.0 / 112–288 ¦ m ¦ CURRENT (D27) ¦ json:blank_behaviour.json ¦ |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 232be91 (D27).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E21 (2026-10-18): Superseded by the final consolidated re-run (2026-10-10), line 1078 (as frozen)
+- Frozen text (verbatim): | §6.2 | ¦ FGO baseline, same ¦ 4.2–18.3 / 27–142 / 172–574 ¦ m ¦ CURRENT (D15) ¦ same ¦ |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 232be91 (D27).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E22 (2026-10-18): Superseded by the final consolidated re-run (2026-10-10), line 1079 (as frozen)
+- Frozen text (verbatim): | §6.2 | ¦ UKF / FGO baseline error at the end of cruise, blank †¦ 13–58 / 22–31 ¦ km ¦ CURRENT (D15 + D27) ¦ same ¦ |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 232be91 (D27).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E23 (2026-10-18): Superseded by the final consolidated re-run (2026-10-10), line 1080 (as frozen)
+- Frozen text (verbatim): | §6.2 | ¦ UKF / FGO baseline error at +60 s after loss, transition (n = 11) †¦ 31–307 / 939–1,049 ¦ m ¦ CURRENT (D15 + D27) ¦ json:blank_behaviour.json ¦ |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 232be91 (D27).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+
+### E24 (2026-10-18): Superseded by the final consolidated re-run (2026-10-10), line 1081 (as frozen)
+- Frozen text (verbatim): | §6.2 | ¦ Heading arms (n = 6, `fwdc`/`fwdplainc`), blank, +60 s: UKF / FGO †¦ 88–323 / 299–904 ¦ m ¦ CURRENT (D15 + D27; the heading does not bound position without flow) ¦ json:blank_behaviour.json ¦ |
+- Corrected text: method affected, not recomputable (the UKF/FGO trajectories of that run were overwritten by later re-runs). Superseded status unchanged.
+- Reason: computed with the eval/blank_behaviour.py axis mislabel (METHODOLOGY "FINDING (2026-10-17): axis mislabel in eval/blank_behaviour.py"), present since its first commit f426c8a.
+- Source: eval/results/blank_behaviour.json as committed at 232be91 (D27).
+- Ruling: user rulings 2026-10-18, item 7 (b).
+```
 
 **Draft count: 21 entries (E4–E24):** 8 with recomputed values (248, 249, 250, 251, 252, 302, 1259, 1268), 3 partial
 (1151 none recomputable; 1152, 1153 UKF recomputed, FGO not), 10 not recomputable (1027-1030, 1048, 1077-1081).
@@ -209,6 +262,17 @@ Unaffected checks (still pass): `figs_thesis.py:485, 486, 681, 1096, 1098, 1100,
 valid frames), `figs_thesis_results.py:788` (n = 11).
 
 ## 6. Needing a ruling / notes
+
+### Descriptive count flagged for a ruling (not a verdict; no registered rule uses it)
+Heading arm vs baseline error, per flight, on the 6 blank camera flights (`fwdc`/`fwdplainc_blank_r1-3`); "heading lower" count, old → new:
+- UKF: +10 s 3/6 → 4/6; +30 s 3/6 → 3/6; **+60 s 5/6 → 6/6** (`fwdplainc_blank_r1`: heading 72.8 vs baseline 72.5 m before, 54.1 vs 54.8 m now); end 5/6 → 5/6.
+- FGO: +10 s 3/6 → 3/6; +30 s 3/6 → 3/6; +60 s 5/6 → 5/6; end 4/6 → 4/6.
+
+Position is still unbounded with the heading (claim 10, numbers.md:252 and :302 hold). But the ruled wording "a yaw benefit
+only" (restatement ruling 4; claim 5; numbers.md:302) and R4's "(the heading holds yaw, not position)" now sit next to a
+per-flight UKF count of 6/6 at +60 s (small margins: with ÷ without at +30 s is 0.88–1.03 UKF, 0.88–1.15 FGO). Whether that
+wording needs a qualifier is for the user; it is not a verdict change under item 7.
+
 - No verdict changes, so per item 7 the (a)+(b) path applies; the errata above are drafts for the numbers.md owner.
 - numbers.md:302, claim 5 and METHODOLOGY:13389 were outside the trace's 40-item list (found here): E9 drafted for 302;
   claim 5 and M:13389 listed as wording changes. Same mechanism, no verdict effect.
