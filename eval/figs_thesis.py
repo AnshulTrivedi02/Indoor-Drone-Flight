@@ -64,16 +64,17 @@ ITEMS = []; CHK = []; TP_BUF = []
 # THESIS NUMBERING (docs/thesis/thesis_vocabulary.md §6: by chapter; 4 = Experiment 1, 5 = Experiments 2-4, 6 = Experiment 5,
 # 7 = synthesis, A = appendix). The output FILE NAMES keep the internal ids (§6: "The repository files keep their names. Only
 # the printed captions take the new numbers."); index.md carries the mapping thesis number -> internal id -> file.
-TNUM = {"F2": "Figure 4.1", "T2": "Table 4.1", "T3": "Table 4.2", "T4": "Table 4.3", "F5": "Figure 5.1", "F7": "Figure 5.2",
+TNUM = {"F2": "Figure 4.1", "F9": "Figure 4.1b (provisional)", "T2": "Table 4.1", "T3": "Table 4.2", "T4": "Table 4.3", "F5": "Figure 5.1", "F7": "Figure 5.2",
         "F6": "Figure 5.3", "T6": "Table 5.1", "T8": "Table 5.2", "T5": "Table 6.1", "T1": "Table 7.1", "T7": "Table 7.2",
         "A1": "Table A.1", "A2": "Table A.2", "A3": "Table A.3"}
 
 
 def tkey(fid):
     """Sort key in thesis order: chapter, then figures before tables, then number (appendix last)."""
-    w, n = TNUM[fid].split(" ")
+    w, n = TNUM[fid].split(" ")[:2]
     ch, k = n.split(".")
-    return (99 if ch == "A" else int(ch), 0 if w == "Figure" else 1, int(k))
+    kn = re.match(r"\d+", k).group()               # a provisional suffix ("4.1b") sorts directly after its base number
+    return (99 if ch == "A" else int(ch), 0 if w == "Figure" else 1, int(kn) + (0.5 if k != kn else 0))
 
 
 def rd(v, n=2, sign=False):
@@ -783,13 +784,154 @@ save(fig, "F2", "F2_heading_stops_sideways_drift",
      "flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s (after its "
      "pre-registered window), UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within "
      "0.39 m of the centreline and pass all five closed-loop criteria (mission completion and the cross-track, heading-error, "
-     "lateral-speed and oscillation bounds), so they overlap on the centreline at this scale; no ordering between the estimators is claimed [a]. Heading-error statistics are in Table "
-     "4.3. Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds "
+     "lateral-speed and oscillation bounds), so they overlap on the centreline at this scale; no ordering between the estimators is claimed [a]. Heading-error statistics are in "
+     f"{TNUM['T4']}; the heading error over time, the cause of this drift, is in {TNUM['F9']}. Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds "
      "are in Table A.1. n = 1 "
      "flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.",
      "paths: dataflash SIM of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_half_v3, "
      "cl_fgo_b_tex_r1–r3_half_v3; contact and B2: eval/results/closed_loop_<trial>.json",
      "§15 (contact rows, B2 row, re-flown B1/B2/B4 rows); claim 14", foot=[ob_cl("a"), OCASE_KEY])
+
+# =============================================================================================== FIG F9 heading error, same flights as F2
+# (2026-10-17) Figure 4.2. The curves are READ from the stored flight records (dataflash and bag of each trial); no estimator output
+# is recomputed. The heading error is the B3 computation of eval/closed_loop_score.py, COPIED below (importing the scorer would run it
+# and rewrite the result files): the flying estimator's logged yaw (EKF3 XKF1 core 0, UKF XUKO, FGO XFGO) minus SIM yaw, wrapped to
+# ±180°, on the SITL clock mapped to sim time by the scorer's own clock map (rebuilt here from /imu/time_ref and checked against the
+# stored clock_map), then cut to the stored cruise window (with heading) or to the stored wall-contact time (without heading).
+_TSF9 = get_typestore(Stores.ROS2_JAZZY)
+
+
+def cl_clock(tr):
+    """SITL -> sim clock of closed_loop_score.py (copied): lower envelope of receipt - time_usec in 5 s bins, linear fit."""
+    import shutil, tempfile
+    tref = []; bag = f"{TD}/{tr}/bag"; tmp = None
+    if not os.path.exists(f"{bag}/bag_0.db3") and os.path.exists(f"{bag}/bag_0.db3.zst"):
+        # PACKED bag (PACKED.txt): decompress a temporary copy to read it; the stored trial directory is not touched
+        tmp = tempfile.mkdtemp(prefix="figs_thesis_bag_"); shutil.copy(f"{bag}/metadata.yaml", tmp)
+        subprocess.run(["zstd", "-q", "-d", f"{bag}/bag_0.db3.zst", "-o", f"{tmp}/bag_0.db3"], check=True); bag = tmp
+    try:
+        with Reader(bag) as r:
+            cs = [c for c in r.connections if c.topic == "/imu/time_ref"]
+            for con, _, raw in r.messages(connections=cs):
+                m = _TSF9.deserialize_cdr(raw, con.msgtype)
+                tref.append((m.time_ref.sec + m.time_ref.nanosec * 1e-9, m.header.stamp.sec + m.header.stamp.nanosec * 1e-9))
+    finally:
+        if tmp:
+            shutil.rmtree(tmp, ignore_errors=True)
+    tref = np.array(sorted(tref)); sitl, dd = tref[:, 0], tref[:, 1] - tref[:, 0]; env = []
+    for lo in np.arange(sitl.min(), sitl.max(), 5.0):
+        q = (sitl >= lo) & (sitl < lo + 5)
+        if q.sum() > 50:
+            i = np.argmin(dd[q]); env.append((sitl[q][i], dd[q][i]))
+    env = np.array(env); kk, cc = np.polyfit(env[:, 0], env[:, 1], 1)
+    return kk, cc, float(1e3 * (kk * env[0, 0] + cc))
+
+
+def cl_yaw_err(tr, est):
+    """Signed heading error (deg, estimate - truth) of the flying estimator against time since the STORED cruise start (s)."""
+    typ = {"EKF3": "XKF1", "UKF": "XUKO", "FGO": "XFGO"}[est]
+    m = mavutil.mavlink_connection(f"{TD}/{tr}/ardupilot.bin"); sim, ek = [], []
+    while True:
+        r = m.recv_match(type=["SIM", typ])
+        if r is None:
+            break
+        if r.get_type() == "SIM":
+            sim.append((r.TimeUS / 1e6, r.Yaw))
+        elif typ != "XKF1" or r.C == 0:
+            ek.append((r.TimeUS / 1e6, r.Yaw))
+    sim, ek = np.array(sim), np.array(ek)
+    kk, cc, off = cl_clock(tr); js = L(f"closed_loop_{tr}.json")
+    te = ek[:, 0] + kk * ek[:, 0] + cc
+    simy = np.interp(ek[:, 0], sim[:, 0], np.unwrap(np.radians(sim[:, 1])))
+    err = np.degrees((np.radians(ek[:, 1]) - simy + np.pi) % (2 * np.pi) - np.pi)
+    dclk = max(abs(1e6 * kk - js["clock_map"]["rate_ppm"]) / 1e3, abs(off - js["clock_map"]["offset_ms_start"]))
+    return te - js["cruise_s"][0], err, dclk
+
+
+fig, ax = plt.subplots(figsize=(13.5, 6.4))
+ax.axhspan(-2.0, 2.0, color=TRUTH, alpha=0.16, lw=0, zorder=1)
+ax.axhline(0, color=INK2, lw=0.6, zorder=2)
+DB3 = []; DCLK = []; INSF9 = []; ENDF9 = {}; WALLF9 = {}; B3F9 = {e: [] for e in EST}
+for est in EST:                                   # with heading first (solid, thin), so the dashed no-heading lines sit on top
+    for tr in HALF[est][1]:
+        x, e, dc = cl_yaw_err(tr, est); js = L(f"closed_loop_{tr}.json"); c0b, c1b = js["cruise_s"]; b3 = js["B"]["B3"]
+        w = (x >= 0) & (x <= c1b - c0b); a = np.abs(e[w])
+        ax.plot(x[w], e[w], color=C[est], lw=1.0, ls="-", alpha=0.9, zorder=3); INSF9.append((est, x[w], e[w]))
+        DB3.append(max(abs(float(np.percentile(a, 95)) - b3["p95_deg"]), abs(float(a.max()) - b3["max_deg"]))); DCLK.append(dc)
+        B3F9[est].append(b3)
+for est in EST:
+    off = HALF[est][0]; x, e, dc = cl_yaw_err(off, est); DCLK.append(dc)
+    c0, ct = cl_meta(off); t = ct["t_rel_cruise_s"]; w = (x >= 0) & (x <= t)
+    ax.plot(x[w], e[w], color=C[est], lw=1.6, ls=(0, (5, 3)), zorder=4)
+    ax.plot(x[w][-1], e[w][-1], marker="X", ms=10, color=C[est], mec=INK, mew=1.0, zorder=6)
+    ENDF9[est] = (float(x[w][-1]), float(e[w][-1]), t); WALLF9[est] = L(f"closed_loop_{off}.json")["contact"]["wall"]
+LABF9 = {"UKF": (8, 21.6, "left"), "FGO": (8, 19.4, "left"), "EKF3": (308, 10.0, "right")}
+for est in EST:
+    xe, ye, t = ENDF9[est]; lx, ly, ha_ = LABF9[est]
+    ax.annotate(f"{est}, no heading: wall contact at cruise +{rd(t, 1)} s", (xe, ye), xytext=(lx, ly), fontsize=8.8, color=INK, ha=ha_,
+                va="center", arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
+P95F9 = max(b["p95_deg"] for e in EST for b in B3F9[e]); MAXF9 = max(b["max_deg"] for e in EST for b in B3F9[e])
+ax.text(305, -1.85, "grey band: heading-error bound, max ≤ 2.0° (p95 ≤ 1.0°); the 9 with-heading lines lie on zero at this scale (inset)",
+        ha="right", va="bottom", fontsize=8.4, color=INK2)
+ax.set_xlim(0, 310); ax.set_ylim(-17, 23)
+# LINEAR INSET (user ruling 2026-10-17): the 9 with-heading flights only, same units and time axis, y ±1°; below zero, where no line runs
+axi = ax.inset_axes([0.43, 0.07, 0.555, 0.24])
+for est, xx, ee in INSF9:
+    axi.plot(xx, ee, color=C[est], lw=0.8, ls="-", alpha=0.9)
+axi.axhline(0, color=INK2, lw=0.5)
+axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1]); axi.tick_params(labelsize=8)
+axi.set_ylabel("heading error (°)", fontsize=8)
+axi.set_title(f"inset (linear, y-axis ±1°, same time axis): with the camera heading,\n9 flights (3 per estimator); p95 ≤ {rd(P95F9, 2)}°, max ≤ {rd(MAXF9, 2)}° "
+              f"({TNUM['T4']})", fontsize=8.6, loc="left", pad=3)
+for s_ in ("top", "right"):
+    axi.spines[s_].set_visible(True)
+ax.set_xlabel("time since cruise start (s)"); ax.set_ylabel("heading error, estimate − truth (°)")
+h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
+    [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading (1 flight each; dashed = without heading)"),
+     Line2D([], [], color=INK2, lw=1.0, ls="-", label="with the camera heading (3 flights each)"),
+     Line2D([], [], color=INK2, ls="", marker="X", ms=8, mec=INK, label="wall contact"),
+     Patch(color=TRUTH, alpha=0.3, label="heading-error bound (max ≤ 2.0°)")]
+ax.legend(handles=h, loc="lower left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=1, fontsize=8.2)
+check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(ENDF9[e][2], 1)}" for e in EST), "+242.1 / +165.9 / +169.9", "numbers.md §15 contact rows")
+check("with heading, all 9 flights: max of the heading error p95 / max of the heading error max (deg)", f"{rd(P95F9, 2)} / {rd(MAXF9, 2)}", "0.38 / 0.68",
+      "numbers.md §15 re-flown B3 row (final UKF port r1 p95 0.382; final FGO node r3 max 0.682) and B3 row (EKF3 half 0.28–0.32 / 0.33–0.39); Table 4.3")
+fb3 = lambda e: "; ".join(f"{rd(b['p95_deg'], 3)} / {rd(b['max_deg'], 3)} / {rd(b['mean_deg'], 3)}" for b in B3F9[e])
+check("final UKF port heading error p95/max/mean per flight (deg)", fb3("UKF"), "0.382 / 0.512 / 0.242; 0.361 / 0.407 / 0.253; 0.344 / 0.406 / 0.250", "numbers.md §15 re-flown B3 row")
+check("final FGO node heading error p95/max/mean per flight (deg)", fb3("FGO"), "0.293 / 0.340 / 0.212; 0.336 / 0.427 / 0.220; 0.361 / 0.682 / 0.187", "numbers.md §15 re-flown B3 row")
+check("EKF3 half real-time heading error p95 / max range (deg)", f"{rng([b['p95_deg'] for b in B3F9['EKF3']])}/{rng([b['max_deg'] for b in B3F9['EKF3']])}", "0.28–0.32/0.33–0.39", "numbers.md §15 B3 row")
+B3SRC = cite(M_, 4958, "95th percentile ≤ 1.0°, maximum ≤ 2.0°")
+check("flights plotted: without / with heading, per estimator", " / ".join(f"{e} 1/{len(HALF[e][1])}" for e in EST), "EKF3 1/3 / UKF 1/3 / FGO 1/3", "numbers.md §15 (n = 1 per no-heading cell; 3 flights per heading set)")
+check("plotted with-heading curves: |heading error| p95 and max in the stored cruise window vs stored B3, all 9 flights, |Δ| <= 0.001°",
+      "ok" if max(DB3) <= 0.001 else rd(max(DB3), 4), "ok", "curve source (dataflash, read here) vs closed_loop_*.json B3")
+check("clock map rebuilt from /imu/time_ref vs stored clock_map, all 12 flights (rate ppm/1000 and offset ms), |Δ| <= 1e-6",
+      "ok" if max(DCLK) <= 1e-6 else f"{max(DCLK):.2e}", "ok", "closed_loop_*.json clock_map")
+check("plotted no-heading curves end within 0.1 s of the stored contact time, all 3", "ok" if max(ENDF9[e][2] - ENDF9[e][0] for e in EST) <= 0.1 else
+      rd(max(ENDF9[e][2] - ENDF9[e][0] for e in EST), 3), "ok", "curve source vs closed_loop_*.json contact.t_rel_cruise_s")
+check("no-heading: drift side implied by the heading-error sign at contact (positive = estimate clockwise of truth, so the vehicle turns west) "
+      "vs the stored contact wall", " / ".join("west" if ENDF9[e][1] > 0 else "east" for e in EST), " / ".join(WALLF9[e] for e in EST),
+      "closed_loop_*.json contact.wall")
+print(f"F9 curve vs B3 max |Δ| {max(DB3):.2e} deg; clock max |Δ| {max(DCLK):.2e}; ends {ENDF9}")
+save(fig, "F9", "F9_heading_error_closed_loop",
+     "Without a heading source the heading error grows until the wall; with the camera heading it stays near zero",
+     f"Heading error of the flying estimator (its own current yaw minus the simulator's true yaw; EKF3 from its logged state, the UKF and "
+     f"the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop "
+     f"flights as {TNUM['F2']}: textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}). Colour = the flying "
+     f"estimator. Dashed (here: without heading, not hindsight): without a heading source (1 flight each), drawn to the wall contact (X): "
+     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s, UKF +{rd(ENDF9['UKF'][2], 1)} s, FGO +{rd(ENDF9['FGO'][2], 1)} s. Solid: with the camera heading "
+     f"(3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the "
+     f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
+     f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
+     f"{TNUM['F2']}. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
+     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), inside the heading-error bound (p95 ≤ 1.0°, max ≤ 2.0°; grey band ±2.0°), so on the main axis "
+     "their lines lie on zero; the inset (linear, y-axis ±1°, the same time axis) shows them alone. No ordering between the estimators is claimed [a]. Builds: the final UKF port and the final FGO node "
+     "(original FGO priors), as in " + TNUM["F2"] + ". n = 1 flight per estimator without heading; closed-loop run-to-run variability is "
+     "unmeasured; no comparison across real-time factors.",
+     "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
+     "cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_half_v3, cl_fgo_b_tex_r1–r3_half_v3; cruise window, contact, B3 and "
+     f"clock_map: eval/results/closed_loop_<trial>.json; heading-error bound: {B3SRC}",
+     "§15 (contact rows, B3 row, re-flown B3 row); claim 14",
+     uncheck="the curves themselves are read from the flight records, not numbers.md rows; they are checked against the stored B3 "
+             "p95/max, clock map and contact times (the 'ok' checks)", foot=[ob_cl("a"), OCASE_KEY])
 
 # =============================================================================================== TABLE T4 closed loop per estimator
 B3h = {e: [L(f"closed_loop_{t}.json")["B"]["B3"] for t in HALF[e][1]] for e in EST}
@@ -1758,6 +1900,12 @@ with open(INDEX, "w") as f:
             f"`git show {PREV}:docs/thesis/figures_thesis/<name>.png`). F2 ({TNUM['F2']}) is now one panel (the heading-error panel moved to "
             f"{TNUM['T4']}); F6 ({TNUM['F6']}) is the time trace only (the per-flight RMSE moved to {TNUM['T6']}); F5 and F7 are unchanged. "
             f"T7 ({TNUM['T7']}, failure behaviour) and T8 ({TNUM['T8']}, hindsight ratio) are new.\n\n")
+    f.write(f"**Added 2026-10-17: F9, PROVISIONAL label \"{TNUM['F9']}\"** (heading error against time on the same closed-loop "
+            f"flights as {TNUM['F2']}, with a linear inset of the with-heading flights). By user ruling no figure or table is renumbered "
+            "now: every existing number is unchanged, and the final number is assigned once, after the chapter plan is locked. "
+            "The provisional label sorts directly after Figure 4.1. Note: the results-chapter trajectory figure R3 "
+            "(`eval/figs_thesis_results.py`, `index_results.md`) also proposes \"Figure 4.2\" provisionally; both are resolved in "
+            "that final numbering pass.\n\n")
     f.write(f"**Colour mapping (Okabe–Ito, colour-blind safe; fixed across every figure):** {PAL}. Solid lines / filled marks = live; dashed lines / "
             "open marks = hindsight. No log axes anywhere.\n\n")
     f.write(f"**Scorecard categories ({TNUM['T1']}):** BEST = a stated ordering puts it first; TIED = no ordering is claimed (or all pass the same criteria); "
