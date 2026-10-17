@@ -8,6 +8,11 @@ and the appendix mapping (§9) leads back to them.*
 (§5, under H1.3) and the descriptive term **thesis-nav position-lost path** (§8.3). Neither is counted as a vocabulary term in §0:
 the first is an analysis name inside a hypothesis's section, and the second is descriptive, like §8.1 rows 40 and 41.*
 
+*Added 2026-10-17 (ordering footnotes; no row renumbered, §0 counts unchanged): **§11, "n" as used in the tables and the
+ordering verdicts** (RULE MET; case (i) TEST RUN, RULE NOT MET; case (ii) FAILED AS WORDED; case (iii) NO COMPARATIVE TEST
+REGISTERED). These are methodological labels written in words, defined in `methodology_definitions_draft.md`; they are not
+counted as vocabulary terms in §0, which keeps its seven methodological labels.*
+
 **Inputs read:** `docs/thesis/glossary.md`, `docs/thesis/glossary_flags.md` (including its §c proposed scheme),
 `docs/thesis/numbers.md`, `docs/thesis/headline_claims_before_after.md`, `docs/thesis/figures_thesis/index.md`,
 `docs/thesis/tables/T1–T8*.md`, `docs/thesis/final_results_pack_index.md`, both thesis PDFs (`pdftotext -layout`, cited as
@@ -498,3 +503,40 @@ Every row of `docs/thesis/glossary_flags.md:1072-1170` that this vocabulary touc
 | 20 | partial departure | **"as worded", "post hoc", "pre-registered", PENDING, CLOSED: define in the methodology chapter** (1170) | adopted for six terms plus PENDING (`methodology_definitions_draft.md`). **"pre-registered" and "CLOSED" are not drafted** | They were outside this stage's list. "pre-registered" appears 16 times in thesis-facing captions and should be added next |
 | 21 | adopted | Experiment T conditions **"condition A–D (never 'T1…')"** (1125) | adopted unchanged | — |
 | 22 | not taken up (out of scope) | The many families absent from thesis-facing material (RG, WG, BG, FCB, CV, SG, RW, UQ, …) | **not named here** | they appear in no thesis-facing caption, table or PDF. They belong to the real-flight chapter, if anywhere |
+
+## 11. "n" and the ordering verdicts in the tables (added 2026-10-17)
+
+**n.** In the thesis tables and captions, **n is the number of independent units entering a comparison, and its unit is
+always named**: "n = 7 flights", "3 flights per estimator", "6 bags", "24 losses over 6 flights". A bare "n = 3" is not
+used. The units in use:
+
+| unit | meaning | where |
+|---|---|---|
+| **flights** | independent repeats of the same flight profile (a new simulator run each) | H1.1 (7 flights, flights 4–10; 6 usable for the FGO), 1A medians (9 flights), Experiments 2 (3 flights per condition, 4 conditions), 3 and 4 (3 flights each), the closed loop (1 flight per estimator without heading, 3 with) |
+| **flights per estimator** | each estimator flew its own flights (closed loop, Experiment 5): **unpaired**, or paired by run index only | Experiment 5 comparatives (3 flights per estimator; EKF3 = far-spawn hold set), Experiment 1C |
+| **bags** | recorded flights replayed offline by more than one estimator: **paired** | C1.a and H1.4 (6 bags each), the camera-dataset no-heading columns (6 bags) |
+| **losses** | tag losses within the hold flights (one of each kind per flight) | Experiment 5 drift bands (EKF3 24 over 6 flights; UKF, FGO 12 over 3 flights each) |
+
+Whether the units are paired (the same flights or bags for every estimator) or unpaired (each estimator flew its own)
+is stated with n.
+
+**Ordering verdicts.** Every place a table or caption claims, or declines to claim, an ordering carries a lettered footnote
+with the metric and unit, n with its unit, the pre-registered rule with its source line, and the result against the rule
+(`eval/figs_thesis.py`, `obasis()`). The verdict is one of four fixed phrases; the three "no ordering" cases are kept apart:
+
+| verdict phrase | meaning | instances |
+|---|---|---|
+| **RULE MET** | a pre-registered rule was applied and met, so its ordering (or similarity) is claimed | H4.1 (3/3), H3.1–H3.4 (3/3); H4.3 (similarity) |
+| **case (i), TEST RUN, RULE NOT MET** | a pre-registered decision rule whose outcomes include "no ordering" was applied and gave that outcome | H1.1 (the confirmatory test), H1.4 (the robust-weighting test) |
+| **case (ii), FAILED AS WORDED** | a pre-registered prediction of an ordering or a similarity was scored literally ("as worded") and is false. A failed criterion does not by itself establish the opposite ordering; any ordering shown beside it is descriptive | H2.3, H2.4, H4.2, H5.2, H5.3, H5.4a, H5.4b |
+| **case (iii), NO COMPARATIVE TEST REGISTERED** | no comparative test was pre-registered; the values are descriptive. Its variant **registered comparison without a decision rule** is C1.a ("REPORT, no decision rule", M:7892) | the 1A UKF standing (M:7187), the blank floor (ruled "Not accuracy comparisons", M:5551), the closed loop across estimators (M:9355), the Experiment 2 condition-D ordering (M:12803), the Experiment 4 return jump ("Reported regardless", M:10365), the safety tests across estimators, the build ablations, C1.a |
+
+**Terms written in words, not added to the counted vocabulary:** RULE MET, TEST RUN / RULE NOT MET, NO COMPARATIVE TEST
+REGISTERED, "registered comparison without a decision rule", and the units "bags" and "losses". "As worded" and
+"descriptive" are the existing methodological labels (`methodology_definitions_draft.md`).
+
+**Source lines** (line numbers at `337c931`, the commit this section was written on). Every rule line a footnote cites is read when the tables are built and checked to contain the quoted
+phrase (the "rule text …" checks in `docs/thesis/figures_thesis/index.md`). The Experiment 5 comparatives are written only in
+the design draft (`docs/tag_hold_design.md` §e, lines 180–187); METHODOLOGY has their verdicts (M:12236, M:13549) but no
+pre-registration line of its own.
+
