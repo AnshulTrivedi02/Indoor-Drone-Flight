@@ -260,6 +260,42 @@ def text_h(fig, t, fs, ls):
     return (t.count("\n") + 1) * fs * ls / 72 / PAGE_H        # height in figure fraction
 
 
+def world_page(pid, short, title, worlds, world_note, world_label, TXT):
+    """The page after each plot page: the simulated world(s) that plot's flights were flown in, as large as the page allows
+    (ruling 2026-10-19: 'one page for the plot/table, and then the next page with the actual world')."""
+    fig = plt.figure(figsize=(PAGE_W, PAGE_H), dpi=100)
+    UW = 1 - 2 * MX; ytop = 0.978
+    tt = fit(fig, title, UW * PAGE_W, 16.5, weight="bold")
+    fig.text(MX, ytop, tt, fontsize=16.5, weight="bold", va="top", ha="left", linespacing=1.12)
+    y = ytop - text_h(fig, tt, 16.5, 1.2) - 0.012
+    lab = world_label or "The world it was flown in (simulator screenshots):"
+    fig.text(MX, y, lab, fontsize=13, weight="bold", va="top", ha="left"); y -= text_h(fig, lab, 13, 1.25) + 0.012
+    bottom = 0.04
+    if world_note:
+        c = fit(fig, world_note["text"], UW * PAGE_W, 12, style="italic")
+        fig.text(MX, bottom, c, fontsize=12, va="bottom", ha="left", color=INK2, style="italic", linespacing=1.15)
+        bottom += text_h(fig, c, 12, 1.2) + 0.015
+        TXT.append(("world note", world_note))
+    n = len(worlds); rows = 1 if n <= 2 else 2; cols = -(-n // rows); gx, gy = 0.02, 0.03
+    caph = max(text_h(fig, fit(fig, w["cap"]["text"], (UW - gx * (cols - 1)) / cols * PAGE_W, 13), 13, 1.2) for w in worlds) + 0.01
+    cw = (UW - gx * (cols - 1)) / cols; ch = ((y - bottom) - gy * (rows - 1)) / rows - caph
+    # the grid uses the largest image height that fits every cell; centre it vertically in the free space
+    hmax = max(min(cw * PAGE_W, ch * PAGE_H * w["arr"].shape[1] / w["arr"].shape[0]) / (w["arr"].shape[1] / w["arr"].shape[0]) for w in worlds) / PAGE_H
+    used = rows * (hmax + caph) + gy * (rows - 1); y -= max(0.0, ((y - bottom) - used) / 2); ch = hmax
+    for i, w in enumerate(worlds):
+        r, c_ = divmod(i, cols)
+        asp = w["arr"].shape[1] / w["arr"].shape[0]
+        wi = min(cw * PAGE_W, ch * PAGE_H * asp); hi = wi / asp
+        cx = MX + c_ * (cw + gx) + (cw - wi / PAGE_W) / 2
+        top = y - r * (ch + caph + gy)
+        ax = fig.add_axes([cx, top - hi / PAGE_H, wi / PAGE_W, hi / PAGE_H]); ax.imshow(w["arr"], interpolation="none", aspect="auto"); ax.axis("off")
+        cap = fit(fig, w["cap"]["text"], wi, 13)
+        fig.text(cx, top - hi / PAGE_H - 0.008, cap, fontsize=13, va="top", ha="left", color=INK2, linespacing=1.15)
+        TXT.append((f"world caption {i + 1}", w["cap"]))
+    fig.savefig(os.path.join(OUTD, f"wt_{pid}w_{short}_world.png"), dpi=DPI)
+    return fig
+
+
 def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=None, scope=None, world_label=None, imh=0.92):
     """Title across the top; 'What this tests' (left) beside the world screenshots (right); the plot full width in the middle;
     About / Metric / Pass rule / Result at the bottom. Every text block is wrapped by measured width."""
@@ -271,33 +307,15 @@ def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=
     if tsrc is None:
         FAIL.append(f"page {pid}: title not a summary title")
     UW = 1 - 2 * MX
-    # ---- worlds (top right, from the top of the page)
-    n = len(worlds); gap = 0.010; IMH = imh                   # image height, inches
-    wws = [IMH * w["arr"].shape[1] / w["arr"].shape[0] / PAGE_W for w in worlds]
-    x1 = 1 - MX; x0 = x1 - sum(wws) - gap * (n - 1); ytop = 0.978
-    lab = fit(fig, world_label or "The world it was flown in (simulator screenshots):", (x1 - x0) * PAGE_W, 11, weight="bold")
-    fig.text(x0, ytop, lab, fontsize=11, weight="bold", va="top", ha="left", linespacing=1.15)
-    iy = ytop - text_h(fig, lab, 11, 1.25) - 0.006 - IMH / PAGE_H; x = x0; capbot = iy
-    for i, (wd, ww) in enumerate(zip(worlds, wws)):
-        ax = fig.add_axes([x, iy, ww, IMH / PAGE_H]); ax.imshow(wd["arr"], interpolation="none", aspect="auto"); ax.axis("off")
-        c = fit(fig, wd["cap"]["text"], ww * PAGE_W, 11)
-        fig.text(x, iy - 0.005, c, fontsize=11, va="top", ha="left", linespacing=1.12, color=INK2)
-        capbot = min(capbot, iy - 0.005 - text_h(fig, c, 11, 1.17))
-        TXT.append((f"world caption {i + 1}", wd["cap"])); x += ww + gap
-    if world_note:
-        c = fit(fig, world_note["text"], (x1 - x0) * PAGE_W, 11, style="italic")
-        fig.text(x0, capbot - 0.005, c, fontsize=11, va="top", ha="left", color=INK2, style="italic", linespacing=1.12)
-        capbot -= 0.005 + text_h(fig, c, 11, 1.17)
-        TXT.append(("world note", world_note))
-    # ---- title and 'What this tests' (top left, beside the worlds)
-    LW = (x0 - MX - 0.02) * PAGE_W
+    # ---- title and 'What this tests' (full width; the worlds have their own page, ruling 2026-10-19)
+    ytop = 0.978; LW = UW * PAGE_W
     tt = fit(fig, title, LW, 16.5, weight="bold")
     fig.text(MX, ytop, tt, fontsize=16.5, weight="bold", va="top", ha="left", linespacing=1.12)
     yb = ytop - text_h(fig, tt, 16.5, 1.2) - 0.014
     wt = fit(fig, "What this tests: " + what["text"], LW, 12.5, style="italic")
     fig.text(MX, yb, wt, fontsize=12.5, style="italic", color=INK2, va="top", ha="left", linespacing=1.22)
     TXT.append(("What this tests", what))
-    hdr_bot = min(yb - text_h(fig, wt, 12.5, 1.27), capbot) - 0.01
+    hdr_bot = yb - text_h(fig, wt, 12.5, 1.27) - 0.01
     # ---- footer (bottom up)
     FS, LS, GAP, LABW = 11, 1.17, 0.007, 0.13
     blocks = [(lab, fit(fig, d["text"], (UW - LABW) * PAGE_W, FS), d) for lab, d in lines]
@@ -334,7 +352,8 @@ def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=
         world_check(wkey, wnames)
     fn = f"wt_{pid}_{short}.png"
     fig.savefig(os.path.join(OUTD, fn), dpi=DPI)
-    PAGES.append(dict(id=pid, short=short, title=title, file=fn, fig=fig, txt=TXT, worlds=worlds, plot=plot, scale=scale,
+    wfig = world_page(pid, short, title, worlds, world_note, world_label, TXT)
+    PAGES.append(dict(id=pid, short=short, title=title, file=fn, fig=fig, wfig=wfig, txt=TXT, worlds=worlds, plot=plot, scale=scale,
                       plot_h=h_in, wkey=wkey))
     print(f"wrote {fn}  plot {w_in:.2f} x {h_in:.2f} in, scale {scale:.2f}")
 
@@ -452,8 +471,8 @@ for pid, sp, short, key, worlds_, note in (
 # =================================================================== contents + how-to, PDF
 figc = plt.figure(figsize=(PAGE_W, PAGE_H))
 figc.text(MX + 0.013, 0.945, "Results walkthrough: contents", fontsize=21, weight="bold", va="top")
-NOTE = snew("Each page shows one experiment: what it tests, the simulated world it was flown in (screenshots, top right), the "
-            "original detailed plot, and under it what the plot shows, the metric, the pass rule and the result. In the corridor "
+NOTE = snew("Each experiment has two pages: first what it tests and the "
+            "original detailed plot, with under it what the plot shows, the metric, the pass rule and the result; then a page with the simulated world it was flown in. In the corridor "
             "plots, dashed lines mean without the camera heading and solid lines with it. Where an experiment has no detailed "
             "plot, its summary chart is shown instead.")
 guard(NOTE["text"], "", "contents note")
@@ -463,14 +482,14 @@ for i, (n, t) in enumerate(rows_c):
     yy = 0.74 - i * 0.046
     figc.text(0.07, yy, n, fontsize=13, va="top", ha="right", color=INK2)
     figc.text(0.09, yy, t, fontsize=13, va="top")
-    figc.text(0.955, yy, f"page {i + 2}", fontsize=12, va="top", ha="right", color=INK2)
+    figc.text(0.955, yy, f"page {2 if i == 0 else 2 * i + 1}", fontsize=12, va="top", ha="right", color=INK2)
 assert 0.74 - (len(rows_c) - 1) * 0.046 > 0.03, "contents page overflows"
 figc.savefig(os.path.join(OUTD, "wt_00a_contents.png"), dpi=DPI)
 HOWTO = os.path.join(SUM, "summary_00_how_to_read.png")
 figh = plt.figure(figsize=(PAGE_W, PAGE_H)); axh = figh.add_axes([0, 0, 1, 1]); axh.imshow(np.asarray(Image.open(HOWTO).convert("RGB")), interpolation="none", aspect="auto"); axh.axis("off")
 figh.savefig(os.path.join(OUTD, "wt_00b_how_to_read.png"), dpi=DPI)
 with PdfPages(PDF) as pdf:
-    for f in [figc, figh] + [p["fig"] for p in PAGES]:
+    for f in [figc, figh] + [g for p in PAGES for g in (p["fig"], p["wfig"])]:
         pdf.savefig(f)
 plt.close("all")
 
