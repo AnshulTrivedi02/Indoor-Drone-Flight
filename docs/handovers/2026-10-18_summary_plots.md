@@ -18,9 +18,9 @@ understand and simple, it should be easy to understand for someone looking at it
 | page | experiment | metric | result on the page |
 |---|---|---|---|
 | 01 | 1A, checkerboard (textured) floor | cruise ATE, median (range) of 9 flights | H1.1 NOT MET (5 of 7, CI includes 0): no ranking |
-| 02 | 1A, blank floor (1A and 1B blank flights pooled, as Table 4.2) | error at +10 / +30 s (medians), end of cruise (km) | no rule registered; none kept a usable position |
+| 02 | Experiment 1 (1A and 1B) blank floor (flights pooled, as Table 4.2 and Table 7.1) | error at +10 / +30 s (medians), end of cruise (km) | no rule registered; none kept a usable position |
 | 03 | 1B, heading-measurement check | flights passing the pre-registered accuracy bar | textured walls 9/9 PASS; plain walls 6/9 (checkerboard floor 0/3) |
-| 04 | 1B, offline accuracy with/without heading | cruise ATE range over 6 bags | no decision rule (C1.a): UKF 0.13–0.25, FGO 0.06–0.22 m with heading; not ranked |
+| 04 | 1B, offline accuracy with/without heading | cruise ATE range over the 3 painted-line-wall bags | no decision rule (C1.a): with heading UKF 0.13–0.14, FGO 0.06 m against metres without; not ranked; plain walls on the checkerboard floor: 'no benefit claimed' (heading failed its check, numbers.md:301) |
 | 05 | 1C without heading (RTF 0.5) | wall-contact time vs the predicted window | UKF, FGO PASS; EKF3 NOT MET (+242.1 s, window 155–215 s) |
 | 06 | 1C with heading (RTF 0.5) | five closed-loop criteria; worst max cross-track | 3/3 each PASS |
 | 07 | 2, known tags | live RMSE, mean of 3 flights, 4 tag counts | H2.1 PASS; H2.3 NOT MET (FAIL as worded) |
@@ -32,21 +32,28 @@ understand and simple, it should be easy to understand for someone looking at it
 
 ## Cross-checks
 
-96/96 numbers EXACT (stored value rounded once by `rd()`, parsed from figs_thesis.py with its SHA asserted; equal to the
-typed string; the typed string found in the thesis display file; where cited, found in the numbers.md line, the blank floor
-on the Errata lines 1448/1455/1462), 40/40 rule lines (every printed bound read from its METHODOLOGY line at build time),
-6/6 counts. A number guard scans each page's text and stops the build if any printed number is not covered by that page's
+85/85 data-derived numbers EXACT (stored value rounded once by `rd()`, parsed from figs_thesis.py with its SHA asserted;
+equal to the typed string; the typed string found in the thesis display file; where cited, found in the numbers.md line,
+the blank floor on the Errata lines 1448/1455/1462), 18/18 display-only strings (labels, fixed verdict words and unit
+conversions of bounds that are not stored values: found in the display file only; counted separately), 40/40 rule lines
+(every printed bound read from its METHODOLOGY line at build time), 5/5 counts. A number guard scans each page's text and stops the build if any printed number is not covered by that page's
 checks (axis tick labels excluded).
 
 ## Decisions taken (for the user to confirm)
 
+0. **Page 04 shows only the painted-line-wall flights.** The first version used Table 7.1's 6-bag ranges under a
+   with/without framing, which would have implied a heading benefit on plain walls over the checkerboard floor, where the
+   heading failed validation (0/3) and no benefit is claimed (numbers.md:301, restatement ruling 4; Table 7.5 note). Plain
+   walls now read "no benefit claimed" with no number.
 1. **Split pages.** 1A, 1B, 1C and 5 have two pages each (one message per page, per the added requirement): 1A textured /
    blank; 1B heading check / accuracy; 1C without / with heading; 5 hold / tag loss.
 2. **Units kept as displayed.** Experiment 2 live errors are in m (3 dp, as Figure 5.1), Experiment 3 in m (3 dp, as Table
    7.3 and the Figure 5.2 checks), not converted to cm.
 3. **Experiment 5 hold, EKF3** is the far-spawn EKF3-flying set and UKF/FGO are the comparative run means (6.4–7.1 mm, not
    the per-window 6.1–7.4 mm), exactly as Table 7.1. The tag-loss page pools EKF3 near + far spawn (24 losses), exactly as
-   Table 6.1. So EKF3's flights differ between the two Experiment 5 pages; noted in the index.
+   Table 6.1. So EKF3's flights differ between the two Experiment 5 pages; noted in the index. The hold rule (every window
+   mean ≤ 0.05 m and max ≤ 0.15 m) is re-checked here from the stored windows of all four sets (all True); the recorded PASS
+   is attached to EKF3's first (near-spawn) hold flights and the FGO, as the record has it.
 4. **H5.1 for the UKF:** no recorded verdict exists for the UKF-flying set; the page says it is "also inside" the limit
    (6.4–7.1 mm against 50 mm), not "PASS".
 5. **5S final runs:** the FGO runs shown are the corrected-priors node (a different build from the FGO flown in 1C and 5);
@@ -64,6 +71,11 @@ checks (axis tick labels excluded).
 - **H2.2, H2.4, H5.6, V3, X1.b, dataset-quality bands, yaw-rate validation, EKF3 real-time contact (+186.2 s PASS), the
   Experiment 4 return jump (4.10 m), heading-error p95/max and lateral speed (Table 4.3), 5S landing drifts and earlier
   runs:** not essential to the pass/fail message of each page; listed in the index.
+
+## Housekeeping note
+
+Early in this session `patch1.py`, `patch2.py` and `patch3.py` in the shared scratchpad directory were overwritten by this
+agent's own patch scripts (later scripts are in `scratchpad/sumagent/`). If another agent owned those files, they are lost.
 
 ## Not done
 

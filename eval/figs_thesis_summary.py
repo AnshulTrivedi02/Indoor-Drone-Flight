@@ -107,6 +107,22 @@ def num(label, computed, expected, shown, nm=()):
     return c
 
 
+def disp(label, expected, shown, nm=()):
+    """A DISPLAY-ONLY string printed on a page (a label, a fixed word or a unit conversion of a bound): it is not computed from
+    a stored value, so it only has to occur in the thesis display file (and the cited numbers.md line). Counted separately."""
+    e = str(expected); ok = True; where = []
+    for k, s_ in shown:
+        f = s_ in _text(k); ok &= f
+        where.append(f"{DNAME[k]} shows '{s_}'" + ("" if f else " [NOT FOUND]"))
+    for ln, s_ in nm:
+        f = s_ in _line(NM, ln); ok &= f
+        where.append(f"numbers.md:{ln} has '{s_}'" + ("" if f else " [NOT FOUND]"))
+    CHK.append(dict(page=PAGE, kind="display", label=label, computed=e, expected=e, where="; ".join(where), ok=ok))
+    if not ok:
+        print("   DISPLAY FAIL:", PAGE, label, where)
+    return e
+
+
 def rule(path, line, phrase, label):
     """A pass bound or rule wording printed on a page: line `line` of `path` must contain `phrase` (read at build time)."""
     ok = phrase in _line(path, line)
@@ -345,7 +361,7 @@ foot(fig, meta,
 finish(fig, meta)
 
 # =================================================================== 1A, blank floor
-fig, meta = new_page("02", "1A_blank", "Experiment 1A: blank floor (nothing for the camera to track)",
+fig, meta = new_page("02", "1A_blank", "Experiment 1 (1A and 1B): blank floor, nothing for the camera to track",
                      "What each estimator does when the downward camera sees a plain floor and its motion measurements are lost.")
 nU = counted("blank-floor flights replayed by the UKF / FGO", f"{len(BLANK['UKF'])}/{len(BLANK['FGO'])}", "11/11", "blank_behaviour.json; Table 4.2 'flights' column")
 nE = counted("blank-floor flights, EKF3", len(EK_INV), 14, "blank_behaviour.json EKF3_invalid_period; Table 4.2 'flights' column")
@@ -359,7 +375,7 @@ for e, exp in (("UKF", ("0.7–1.8 (median 1.1)", "15.3–26.8 (median 19.4)", "
     VB[(e, 30)] = num(f"{e} error 30 s after flow loss: range (median), m", f"{rng(BLANK[e][:, 1], 1)} (median {rd(np.median(BLANK[e][:, 1]), 1)})",
                       exp[1], [("T3", exp[1])], [(ln, exp[1].split(" ")[0])])
     VB[(e, "end")] = num(f"{e} error at the end of the cruise (km)", rng(BLANK[e][:, 3] / 1e3, 0), exp[2], [("T3", exp[2] + " km")], [(1462, "29–40 / 23–41")])
-num("time points after flow loss used on this page (s)", " / ".join(k.strip("+s") for k in ("+10s", "+30s")), "10 / 30", [("T3", "+10 s (m)"), ("T3", "+30 s (m)")])
+disp("time points after flow loss used on this page (s)", "10 / 30", [("T3", "+10 s (m)"), ("T3", "+30 s (m)")])
 vinv = num("EKF3: flagged its position invalid for (s of cruise)", rng(EK_INV, 0), "301–310", [("T3", "invalid (for 301–310 s of cruise)")], [(245, "blank from take-off (all 14), for 301–310 s")])
 rule(M_, 5551, "**Not accuracy comparisons** (ruling)", "blank floor: ruled not an accuracy comparison (no pass rule)")
 med_ = lambda s: s.split("median ")[1].rstrip(")")
@@ -406,33 +422,36 @@ finish(fig, meta)
 fig, meta = new_page("04", "1B_accuracy", "Experiment 1B: position error with and without the camera heading",
                      "Whether adding the forward camera's heading to the estimators reduces the position error, using the same "
                      "recorded flights with and without it.")
-def r2(vals):
-    return rng(vals, 2)
-nb = counted("recorded flights (bags) in the comparison", len(CAMB), 6, "phase4_{fwdc,fwdplainc}_evo.json, textured floor r1-r3 each; Table 7.1 '6 textured-floor bags'")
-counted("recorded flights per wall type", "/".join(str(sum(ds == w for ds, _ in CAMB)) for w in ("fwdc", "fwdplainc")), "3/3", "Table 4.1 columns 'flights 1 / 2 / 3' per camera dataset")
+FW = [b for b in CAMB if b[0] == "fwdc"]
+nb = counted("painted-line-wall recorded flights (bags), checkerboard floor", len(FW), 3, "phase4_fwdc_evo.json fwdc_tex_r1-r3; Table 4.1 'textured walls, flights 1 / 2 / 3'")
 V4 = {}
-for e, k, exp in (("EKF3", "EKF3", "3.60–4.09"), ("UKF", "UKF_baseline", "1.78–11.19"), ("FGO", "FGO_baseline", "2.26–4.74")):
-    vals = [P4[b][k] for b in CAMB]
-    V4[(e, "no")] = num(f"{e} without the heading, range over the 6 flights (m)", r2(vals), exp,
-                        [("T2", f"| {e} |")] + [("T2", rd(min(vals), 2)), ("T2", rd(max(vals), 2))])
-for e, k, exp in (("UKF", "UKF_heading", "0.13–0.25"), ("FGO", "FGO_heading", "0.06–0.22")):
-    vals = [P4[b][k] for b in CAMB]
-    V4[(e, "yes")] = num(f"{e} with the heading, range over the 6 flights (m)", r2(vals), exp, [("T1", f"{exp} m")],
-                         [(291 if e == "UKF" else 292, "0.13" if e == "UKF" else "0.06"), (294 if e == "UKF" else 295, rd(max(vals), 2))])
-num("1B: EKF3 has no offline heading input", "no offline heading arm", "no offline heading arm", [("T2", "no offline heading arm")])
+for e, k, exp, ln in (("EKF3", "EKF3", "3.60–4.09", 269), ("UKF", "UKF_baseline", "1.78–4.96", 271), ("FGO", "FGO_baseline", "2.26–4.54", 270),
+                      ("UKF", "UKF_heading", "0.13–0.14", 291), ("FGO", "FGO_heading", "0.06–0.06", 292)):
+    vals = [P4[b][k] for b in FW]
+    v = num(f"{k}, painted-line walls, range over flights 1–3 (m)", rng(vals, 2), exp,
+            [("T2", f"| {e} |"), ("T2", " / ".join(rd(x, 2) for x in vals))], [(ln, " / ".join(rd(x, 2) for x in vals))])
+    lo_, hi_ = v.split("–")
+    V4[(e, "yes" if "heading" in k else "no")] = lo_ if lo_ == hi_ else v
+disp("EKF3 has no offline heading input", "no offline heading arm", [("T2", "no offline heading arm")])
+disp("plain walls on the checkerboard floor: heading check result", "0/3", [("R1", "checkerboard floor (0/3")], [(301, "0/3")])
+disp("plain walls on the checkerboard floor: no heading benefit claimed", "NO heading benefit is claimed", [("T2", "no heading benefit is claimed")],
+     [(301, "NO heading benefit is claimed")])
 rule(M_, 7892, "REPORT, no decision rule", "FGO vs UKF with heading: registered to be reported, with no decision rule")
+NOBEN = "no benefit claimed (the heading failed its check here)"
 table(fig, meta,
-      ["estimator", f"without the camera heading ({nb} flights)", f"with the camera heading ({nb} flights)"],
-      [[NAME["EKF3"], f"{V4[('EKF3', 'no')]} m", "not tested this way (EKF3 has no input for it here)"],
-       [NAME["UKF"], f"{V4[('UKF', 'no')]} m", f"{V4[('UKF', 'yes')]} m"],
-       [NAME["FGO"], f"{V4[('FGO', 'no')]} m", f"{V4[('FGO', 'yes')]} m"]],
-      [36, 32, 32])
+      ["estimator", f"painted-line walls: without the heading ({nb} flights)", f"painted-line walls: with the heading ({nb} flights)",
+       "plain walls, with the heading"],
+      [[NAME["EKF3"], f"{V4[('EKF3', 'no')]} m", "not tested (no input for it)", "not tested"],
+       [NAME["UKF"], f"{V4[('UKF', 'no')]} m", f"{V4[('UKF', 'yes')]} m", NOBEN],
+       [NAME["FGO"], f"{V4[('FGO', 'no')]} m", f"{V4[('FGO', 'yes')]} m", NOBEN]],
+      [28, 24, 24, 24], fs=13)
 foot(fig, meta,
-     f"average position error over the straight cruise (after a best-fit alignment), lowest–highest over {nb} recorded flights on the "
-     "checkerboard floor (3 with painted-line walls, 3 with plain walls), metres.",
+     f"average position error over the straight cruise (after a best-fit alignment), lowest–highest over the {nb} recorded "
+     "flights with painted-line walls on the checkerboard floor, the same flights processed with and without the heading, metres.",
      "none registered: a descriptive comparison (the UKF-versus-FGO comparison was registered to be reported, with no decision rule).",
-     f"With the camera heading, the UKF and FGO errors fell from metres to at most {V4[('UKF', 'yes')].split('–')[1]} m on all "
-     f"{nb} flights; the two are not ranked.")
+     f"With painted-line walls the UKF and FGO errors were {V4[('UKF', 'yes')].split('–')[-1]} m or less with the camera heading, "
+     "against metres without it; the two are not ranked. With plain walls on this floor the heading failed its check (see the "
+     "previous page), so no benefit is claimed there.")
 finish(fig, meta)
 
 # =================================================================== 1C, closed loop without the heading
@@ -520,7 +539,7 @@ fig, meta = new_page("07", "2_known_tags", "Experiment 2: occasional position fi
                      "fixes, as the number of tags is reduced.")
 TL = {"A": "8 tags", "B": "4 tags", "C": "2 tags", "D": "1 tag"}
 for c in TCOND:
-    num(f"condition {c}: number of tags", TL[c], TL[c], [("T8", TL[c])])
+    disp(f"condition {c}: number of tags", TL[c], [("T8", TL[c])])
 VT = {}
 EXP_T = {"A": "0.039 0.037 0.020", "B": "0.055 0.061 0.026", "C": "0.074 0.076 0.054", "D": "0.096 0.131 0.083"}
 NMT = {"A": 526, "B": 527, "C": 528, "D": 529}
@@ -530,7 +549,7 @@ for c in TCOND:
             [("IDX", EXP_T[c])], [(NMT[c], f"{x} m") for x in EXP_T[c].split()])
     for e, x in zip(EST, s.split()):
         VT[(c, e)] = x
-num("flights per condition", " / ".join("3" for _ in TCOND), "3 / 3 / 3 / 3", [("IDX", "3 / 3 / 3 / 3")])
+disp("flights per condition", "3 / 3 / 3 / 3", [("IDX", "3 / 3 / 3 / 3")])
 num("primary hypothesis (FGO hindsight gain grows as tags get fewer): verdict", "PASS" if agg["H-T1 (FGO live -> whole-flight batch)"]["PASS"] else "FAIL", "PASS", [("R1", "PASS: median gain")])
 num("live errors similar: verdict", "PASS" if agg["P-T3 live ratio max/min"]["PASS"] else "FAIL", "FAIL", [("R1", "FAIL: live max/min 1.97 / 2.36")])
 inside = [c for c in TCOND if agg["P-T3 live ratio max/min"]["by_condition"][c] <= 1.5]
@@ -650,14 +669,23 @@ hU = [r["hold_mean_mm"] for r in _hc["UKF"]]; hF = [r["hold_mean_mm"] for r in _
 HV = {"EKF3": hE, "UKF": hU, "FGO": hF}
 VH = {e: num(f"{e}: mean hold error, range over 3 flights (mm)", rng(HV[e], 1), x, [("T1", f"hold {x} mm")], [(675, x)])
       for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6"))}
-num("hold accuracy verdict EKF3 / FGO (as recorded)", "PASS / PASS", "PASS / PASS", [("R1", "PASS: hold error mean 8 mm"), ("R1", "also PASS on the FGO-flying hold set")], [(606, "H-H1 PASS"), (646, "H-H1 PASS")])
-num("UKF mean hold error inside the 0.05 m limit (no verdict recorded)", str(max(hU) <= 50), "True", [("T1", "hold 6.4–7.1 mm")])
+HWIN = {"EKF3 (first hold flights, near spawn)": S1, "EKF3 (far spawn, plotted)": S1F, "UKF": S2V, "FGO": S3V}
+for nm_, trs in HWIN.items():
+    ws = [w for t in trs for w in HJ(t)["hold_windows_vehicle"]]
+    ok_ = all(w["mean_m"] <= 0.05 and w["max_m"] <= 0.15 for w in ws)
+    num(f"hold rule (every window mean ≤ 0.05 m and max ≤ 0.15 m), {nm_}", str(ok_), "True",
+        [("T1", "hold 7.8–7.9 mm" if "far" in nm_ else "hold 6.4–7.1 mm" if nm_ == "UKF" else "hold 8.3–8.6 mm" if nm_ == "FGO" else "hold 7.8–7.9 mm")])
+num("window max hold error range, EKF3 first hold flights / UKF (mm)",
+    f"{rng([w['max_m'] * 1e3 for t in S1 for w in HJ(t)['hold_windows_vehicle']], 0)} / {rng([w['max_m'] * 1e3 for t in S2V for w in HJ(t)['hold_windows_vehicle']], 0)}",
+    "16–25 / 17–21", [("R1", "max 16–25 mm (EKF3 flying)")], [(606, "16–25 mm"), (644, "6.1–7.4 / 17–21")])
+disp("hold accuracy verdict as recorded: EKF3 first hold flights / FGO", "PASS / PASS", [("R1", "PASS: hold error mean 8 mm"), ("R1", "also PASS on the FGO-flying hold set")],
+     [(606, "H-H1 PASS"), (646, "H-H1 PASS")])
 num("comparative predictions (FGO tightest and the other three): verdict", "; ".join(_hc["criteria"][k].split()[0] for k in ("H-H2", "P-H3", "H-H4 (15 s)", "H-H4 (5 s)")),
     "FAIL; FAIL; FAIL; FAIL", [("T1", "comparatives FAIL")], [(675, "**FAIL** (0/3)")])
 rule(M_, 10687, "mean hold error ≤ 0.05 m and max ≤ 0.15 m", "hold accuracy: mean ≤ 0.05 m and max ≤ 0.15 m")
 rule(M_, 10687, "every pre-loss hold window, 3/3", "hold accuracy: in 3 of 3 flights")
 counted("flights per estimator", "/".join(str(len(HV[e])) for e in EST), "3/3/3", "S1 far r1-r3b, S2v2 r1-r3, S3v2 r1-r3 (Table 7.1 [i] '3 flights per estimator')")
-num("0.05 m written in mm", rd(0.05 * 1000, 0), "50", [("T5", "≤ 50 / 100 / 200 / 150 mm")])
+disp("0.05 m written in mm", "50", [("T5", "≤ 50 / 100 / 200 / 150 mm")])
 ax = AX(0.11, 0.80, 0.135)
 for i, e in enumerate(EST):
     v = HV[e]
@@ -671,8 +699,9 @@ foot(fig, meta,
      "distance between where the drone was held and where it should be, mean per flight, lowest–highest over 3 flights per "
      "estimator (each estimator flew its own flights), millimetres; each bar shows the highest flight.",
      "mean hold error at most 0.05 m and largest at most 0.15 m in every hold, in 3 of 3 flights.",
-     "All three held far inside the limit (formally scored PASS for EKF3 and the FGO; the UKF is also inside). The four predicted "
-     "differences between the estimators, such as the FGO holding tightest: NOT MET.")
+     "All three held far inside both limits in every hold. The registered test passed on EKF3's first hold flights and on the "
+     "FGO's; the UKF's flights have no recorded verdict but are inside. The four predicted differences between the estimators, "
+     "such as the FGO holding tightest: NOT MET.")
 finish(fig, meta)
 
 # =================================================================== 5, drift while the tag is hidden
@@ -687,12 +716,19 @@ LK = {e: [bool(lo[FLY[e][1]]["lockout"]) for t in FLY[e][0] for lo in HJ(t)["los
 VN = {e: num(f"{e}: losses with a lockout / losses", f"{sum(LK[e])} / {len(LK[e])}", x, [("T5", x)]) for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12"))}
 inband = all(v <= BAND[e][li] for (e, li), d in DR.items() for v in d)
 num("every drift inside its limit", str(inband), "True", [("T5", "every loss inside its band")], [(629, "P-H5 PASS")])
-num("tightest and loosest limit for EKF3 and the FGO (mm)", f"{min(BAND['EKF3'])} / {max(BAND['EKF3'])}", "50 / 200", [("T5", "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm")])
-num("the UKF's limits are twice the others'", str(all(u == 2 * f for u, f in zip(BAND["UKF"], BAND["FGO"]))), "True", [("T5", "UKF ≤ 100 / 200 / 400 / 300 mm")])
+disp("tightest and loosest limit for EKF3 and the FGO (mm)", "50 / 200", [("T5", "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm")])
+disp("the UKF's limits are twice the others'", "UKF ≤ 100 / 200 / 400 / 300 mm", [("T5", "UKF ≤ 100 / 200 / 400 / 300 mm")])
 rule(M_, 10690, "≤ 0.05 / 0.10 / 0.20 m", "drift limits, EKF3 and FGO hover losses")
 rule(M_, 10691, "≤ 2× those", "UKF limits twice those")
 rule(M_, 10700, "no estimator locks out the returning tag in any loss", "no lockout")
-num("directional prediction (UKF and FGO drift more than flying EKF3): verdict", "NOT MET", "NOT MET", [("R1", "NOT borne out (the predicted o")])
+_e1 = [lo["EKF3"]["effective"]["drift_m"] for t in S1 for lo in HJ(t)["losses"]]
+_u2 = [lo["UKF_port"]["effective"]["drift_m"] for t in S2V for lo in HJ(t)["losses"]]
+_f3 = [lo["FGO_flying"]["effective"]["drift_m"] for t in S3V for lo in HJ(t)["losses"]]
+_nu = sum(u > e for u, e in zip(_u2, _e1)); _nf = sum(f > e for f, e in zip(_f3, _e1))
+num("directional prediction: matched losses with UKF / FGO drift strictly above flying EKF3 (effective, full precision); holds",
+    f"{_nu} of {len(_e1)} / {_nf} of {len(_e1)}; {_nu == len(_e1) and _nf == len(_e1)}", "4 of 12 / 9 of 12; False",
+    [("R1", "the final UKF port drifted more in 4 of 12 and the final FGO node in 9 of 12")])
+disp("directional prediction verdict", "NOT MET", [("R1", "NOT borne out (the predicted o")])
 ax = AX(0.11, 0.80, 0.135)
 for i, e in enumerate(EST):
     ax.bar(i, worst[e], width=0.55, color=C[e], zorder=3)
@@ -727,7 +763,7 @@ rule(M_, 11304, "≤ **1.5 m**", "safe landing: drift to touchdown at most 1.5 m
 DT = {}
 for k, exp, sh in (("ua", "0.00", ("IDX", "0.00 ≤ 0.1: True")), ("ub", "5.69", ("T7", "5.69 s, bound 5.50 s")), ("fa", "0.60", ("IDX", "0.60 s / 1.45 m")), ("fb", "0.62", ("IDX", "0.62 s / 0.21 m"))):
     DT[k] = num(f"{SF[k]}: time to declare 'position lost' (s)", rd(J[k]["S-A2"]["text_delay_s"], 2), exp, [sh], [(490, exp)] if k != "ua" else [(490, "trigger 0.00 s")])
-BT = {k: num(f"{SF[k]}: limit as displayed (s)", rd(BND[k], 2), x, [sh]) for k, x, sh in
+BT = {k: disp(f"{SF[k]}: limit as displayed (s)", x, [sh]) for k, x, sh in
       (("ua", "0.10", ("IDX", "0.00 ≤ 0.1")), ("ub", "5.50", ("T7", "bound 5.50 s")), ("fa", "0.75", ("IDX", "FGO: within **0.75 s**")), ("fb", "0.75", ("IDX", "FGO: within **0.75 s**")))}
 PF = lambda b: "PASS" if b else "FAIL"
 VS = {}
@@ -816,12 +852,16 @@ plt.close("all")
 
 ok = all(c["ok"] for c in CHK)
 nn = sum(c["kind"] == "number" for c in CHK); nr = sum(c["kind"] == "rule" for c in CHK); nc = sum(c["kind"] == "count" for c in CHK)
+nd = sum(c["kind"] == "display" for c in CHK)
 good = lambda k: sum(c["ok"] for c in CHK if c["kind"] == k)
 md = ["# Experiment summary pages: index and provenance", "",
       f"*Generated by `eval/figs_thesis_summary.py` at commit `{COMMIT}`. Stored results only: nothing re-run or recomputed from raw data. "
       "The detailed thesis tables and figures (`docs/thesis/tables/`, `docs/thesis/figures_thesis/`) are unchanged. This file holds ALL "
       "provenance; the pages carry none.*", "",
-      f"**Cross-checks: {good('number')}/{nn} numbers EXACT, {good('rule')}/{nr} rule lines found, {good('count')}/{nc} counts.** "
+      f"**Cross-checks: {good('number')}/{nn} data-derived numbers EXACT, {good('display')}/{nd} display-only strings found, "
+      f"{good('rule')}/{nr} rule lines found, {good('count')}/{nc} counts.** "
+      "A display-only check is a label, a fixed verdict word or a unit conversion of a bound that is not computed from a stored "
+      "value; it only has to occur in the thesis display file (and the cited numbers.md line). "
       "A number check is EXACT when (1) the stored full-precision value rounded once by `rd()` (parsed from `eval/figs_thesis.py`, "
       f"source SHA-256 `{RD_SHA}`, the same as in `index_results.md`) equals the expected string typed from the thesis display, character "
       "for character; (2) the expected string (or the cited fragment) occurs in that display file; and (3) where a numbers.md line is "
@@ -839,8 +879,10 @@ md = ["# Experiment summary pages: index and provenance", "",
 HYP = {"01": "H1.1 (confirmatory EKF3 − FGO test, flights 4–10; Table 7.1 [a]); UKF medians descriptive (Table 7.1 [b])",
        "02": "no hypothesis: blank floor ruled 'Not accuracy comparisons' (M:5551); Table 4.2, Table 7.1 [d]. Pools 1A and 1B blank flights as Table 4.2 does",
        "03": "H1.2 heading-measurement validation (3 parts in Table 7.3); yaw-rate validation not shown",
-       "04": "C1.a (registered comparison without a decision rule, Table 7.1 [c]); EKF3 has no offline heading arm (by ruling). The 3 plain-wall bags "
-             "are included as in Table 7.1 even though the heading failed validation on that checkerboard floor (Table 4.1 note)",
+       "04": "C1.a (registered comparison without a decision rule, Table 7.1 [c]); EKF3 has no offline heading arm (by ruling). Values are the 3 "
+             "textured-wall bags only (Table 4.1). The 3 plain-wall bags on the checkerboard floor are NOT given numbers: the heading failed "
+             "validation there (H1.2, 0/3) and no heading benefit is claimed (numbers.md:301, restatement ruling 4; the Table 7.5 note omits them "
+             "for the same reason). Table 7.1's 6-bag ranges (0.13–0.25 / 0.06–0.22 m) are therefore not used on this page",
        "05": "H1.8 contact prediction at half real-time (RTF 0.5): EKF3 NOT MET (D21), final UKF port PASS, final FGO node PASS (Table 4.3, Table 7.3). "
              "EKF3 at real time (+186.2 s, PASS) not shown",
        "06": "H1.9 the five closed-loop criteria B1–B5 + estimator validity S2 (Table 4.3, Table 7.1 [j]); builds: EKF3, final UKF port, final FGO node "
@@ -848,8 +890,9 @@ HYP = {"01": "H1.1 (confirmatory EKF3 − FGO test, flights 4–10; Table 7.1 [a
        "07": "H2.1 primary PASS, H2.3 FAIL as worded (Figure 5.1, Table 7.3); H2.2 and H2.4 (both FAIL) not shown",
        "08": "H3.1–H3.4 PASS 3/3 (Figure 5.2, Table 7.3); V3 (not re-scorable) not shown",
        "09": "H4.1 primary PASS 3/3, H4.2 FAIL as worded, H4.3 PASS (Table 5.1, Table 7.3); EKF3's 4.10 m return jump (Table 7.2) not shown",
-       "10": "H5.1 (recorded PASS for EKF3 flying, S1, mean 8 mm, numbers.md:606; and for the final FGO node, numbers.md:646; the UKF set has no "
-             "recorded verdict, its values are inside the bound). Values = Table 7.1: EKF3 = the EKF3-flying hold set at the FAR spawn (S1 far, the "
+       "10": "H5.1 (recorded PASS for EKF3 flying, S1 near spawn, mean 8 mm, max 16–25 mm, numbers.md:606; and for the final FGO node, "
+             "numbers.md:646; the UKF set has no recorded verdict, its windows are inside both bounds: max 17–21 mm, numbers.md:644; the rule "
+             "is re-checked here on every stored hold window of S1, S1 far, S2v2 and S3v2). Values = Table 7.1: EKF3 = the EKF3-flying hold set at the FAR spawn (S1 far, the "
              "comparatives' EKF3 side), UKF/FGO = run means of the comparative table (numbers.md:675); the per-window UKF range 6.1–7.4 mm "
              "(numbers.md:644) is not used. Comparatives H5.2, H5.3, H5.4a, H5.4b FAIL as worded",
        "11": "H5.5 drift bands PASS, H5.7 no lockout PASS, H5.5 S2/S3 directional prediction NOT MET (Table 6.1, Table 7.3). EKF3 = near + far spawn "
@@ -876,5 +919,5 @@ md += ["## Left out, and why", "",
        "- **Dataset-quality bands, the yaw-rate validation, the H5.6 re-lock time, V3, X1.b, compute cost and the build ablations:** "
        "not essential to the pass/fail story; in Tables 7.3, A.1–A.3.", ""]
 open(INDEX, "w").write("\n".join(md))
-print(f"checks: numbers {good('number')}/{nn}, rules {good('rule')}/{nr}, counts {good('count')}/{nc}; wrote {PDF}, {INDEX}")
+print(f"checks: data-derived numbers {good('number')}/{nn}, display-only {good('display')}/{nd}, rules {good('rule')}/{nr}, counts {good('count')}/{nc}; wrote {PDF}, {INDEX}")
 sys.exit(0 if ok else 1)
