@@ -1,0 +1,15 @@
+lc    live      RMSE 0.119 max 0.556 | per lap 0.224 0.091 0.066 0.069 0.060
+lc    hindsight RMSE 0.045 max 0.069 | per lap 0.047 0.043 0.044 0.045 0.044
+nolc  live      RMSE 0.874 max 2.113 | per lap 0.224 0.349 0.471 1.027 1.540
+nolc  hindsight RMSE 0.916 max 2.049 | per lap 0.136 0.350 0.666 1.084 1.561
+rc=0
+lc    live      RMSE 0.091 max 0.386 | per lap 0.156 0.073 0.062 0.060 0.065
+lc    hindsight RMSE 0.046 max 0.080 | per lap 0.048 0.048 0.043 0.046 0.044
+nolc  live      RMSE 1.411 max 3.038 | per lap 0.156 0.752 1.226 1.632 2.280
+nolc  hindsight RMSE 1.335 max 2.990 | per lap 0.225 0.585 1.048 1.594 2.209
+rc=0
+lc    live      RMSE 0.133 max 0.513 | per lap 0.257 0.087 0.072 0.069 0.076
+lc    hindsight RMSE 0.055 max 0.095 | per lap 0.056 0.054 0.055 0.054 0.056
+nolc  live      RMSE 0.926 max 2.263 | per lap 0.257 0.333 0.568 1.071 1.626
+nolc  hindsight RMSE 1.045 max 2.330 | per lap 0.163 0.424 0.782 1.225 1.771
+rc=0

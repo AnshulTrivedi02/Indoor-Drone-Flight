@@ -1,0 +1,43 @@
+{
+ "bytes": {
+  "custom": 89567
+ },
+ "counts": {
+  "custom": 4
+ },
+ "created_local": "2026-10-22T01:18:05+1100",
+ "groups": {
+  "custom": {
+   "/home/makerspace/thesis_ws/eval/e5_val_compare.py": {
+    "sha256": "622cdee03498f3e209978704e6c002f14b739018b95e8bda22cf8f3d4790ef27",
+    "size": 9576
+   },
+   "/home/makerspace/thesis_ws/src/estimators/lc_ukf_replay.py": {
+    "sha256": "84b2c8383e10c3b923be0985c7c7bec8052137ca2094b444f2d546636e3b08af",
+    "size": 33379
+   },
+   "/home/makerspace/thesis_ws/src/estimators/test_ukf_lm.py": {
+    "sha256": "bc965ae53f76b04d2f18f4f8fd2b873369d570444af784bc1ceaad929795186a",
+    "size": 32702
+   },
+   "/home/makerspace/thesis_ws/src/estimators/ukf_lm.py": {
+    "sha256": "46ba81209612ca8ae1b0e519ced92399a644f1d0642ea891a672e99330f3decb",
+    "size": 13910
+   }
+  }
+ },
+ "hash_seconds": 0.0,
+ "host": "makerspace",
+ "kind": "tier1 frozen-results manifest",
+ "repo": "/home/makerspace/thesis_ws",
+ "repo_commit": "e42b9ce09630439e9ced28b5c452c550493a31bd",
+ "specs": {
+  "custom": [
+   "/home/makerspace/thesis_ws/src/estimators/ukf_lm.py",
+   "/home/makerspace/thesis_ws/src/estimators/lc_ukf_replay.py",
+   "/home/makerspace/thesis_ws/src/estimators/test_ukf_lm.py",
+   "/home/makerspace/thesis_ws/eval/e5_val_compare.py"
+  ]
+ },
+ "unmatched_specs": []
+}

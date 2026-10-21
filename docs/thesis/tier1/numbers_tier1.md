@@ -1,6 +1,6 @@
 # numbers_tier1: extension experiments E2–E5 (pre-registered)
 
-**Template: no results yet.** Every result in this file is labelled **"extension experiment, pre-registered
+**Partly filled (Stage 2c, 2026-10-22): §Guard, §Gates and §E5.** E2, E3 and E4 have no results yet. Every result in this file is labelled **"extension experiment, pre-registered
 (2026-10-21; signed off with amendments 2026-10-22)"**. The pre-registration is `docs/thesis/tier1/preregistration.md` and the E5 design is
 `docs/thesis/tier1/e5_design.md`.
 
@@ -27,19 +27,24 @@
 
 | check | when | result | source |
 |---|---|---|---|
-| snapshot | before the first run | — | `frozen_manifest_<ts>.json` |
-| verify after E2 / E3 / E4 / E5 / final | after each experiment | — | `frozen_verify_<ts>.json` |
-| E5 code snapshot / verify | before V-E5a / after the last E5 run | — | `e5_code_manifest_<ts>.json` |
+| snapshot | before the first run | 13,253 files, 10,115.4 MB (2026-10-22T00:28:51) | `frozen_manifest_20261022T002851.json` |
+| verify after the Stage 2a gates | after G-E4 | IDENTICAL, exit 0 (changed 0, missing 0, added 0) | `frozen_manifest_20261022T002851_verify_stage2a.json` |
+| verify after E5 (Stage 2c) | after the last E5 result run | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2c_20261022T023631.json` |
+| verify after E2 / E3 / E4 / final | after each experiment | — | — |
+| E5 code snapshot | immediately before the first V-E5a run (2026-10-22T01:18:05) | 4 files: `ukf_lm.py`, `lc_ukf_replay.py`, `test_ukf_lm.py`, `e5_val_compare.py` (repo commit `e42b9ce`) | `e5_code_manifest_20261022T011805.json` |
+| E5 code verify | after the last E5 result run | IDENTICAL, exit 0 (4 files) | `e5_code_manifest_20261022T011805_verify_20261022T023631.json` |
 
 ## Gates
 
 | gate | result | source |
 |---|---|---|
-| G0-L (i) default redirected, (ii) neutral new flags: byte-identical to the frozen `T_A_r1/lc_fgo_lc_t245` | — | — |
-| G0-UKF: 12/12 byte-identical to the stored `room_ukf` | — | — |
-| G-E4: 0.25 s `fgo_live.tum` byte-identical to the stored `room_fgo`, 12/12 | — | — |
-| V-E5a / V-E5b / V-E5c against the stored `room_ukf/{ukf_live,ukf_rts}.tum`: rows 1:1, `t_anchor` and `n_tag_fused` equal, RMS ≤ 1.0 mm, max ≤ 2.0 mm, accept counts (`e5_design.md` §8.4); V-E5a byte identity reported | — | — |
-| E5 result-run invariants: `t_anchor` and landmark counts (8 / 41) equal the stored FGO (`e5_design.md` §5.3) | — | — |
+| G0-L (i) default redirected, (ii) neutral new flags: byte-identical to the frozen `T_A_r1/lc_fgo_lc_t245` | **PASS**: 4/4 files IDENTICAL (`live.tum`, `hindsight.tum` × runs (i), (ii)) | `tier1:stage2a/compare.json` key `G0-L[*].status` (evidence page `stage2_gates.md` §3) |
+| G0-UKF: 12/12 byte-identical to the stored `room_ukf` | **PASS**: 12/12 flights, 24/24 files IDENTICAL (also `ground_truth.tum`, `rts_cov.npz`, `stats.json`: 36/36, not gated) | `tier1:stage2a/compare.json` keys `G0-UKF[*].status`, `G0-UKF_extra[*].status` |
+| G-E4: 0.25 s `fgo_live.tum` byte-identical to the stored `room_fgo`, 12/12 | **PASS**: 12/12 IDENTICAL | `tier1:stage2a/compare.json` key `G-E4[*].status` |
+| V-E5a (world, `ukf_core`) against the stored `room_ukf/{ukf_live,ukf_rts}.tum` (`e5_design.md` §8.4) | **PASS 12/12**. Rows 1:1, `t_anchor` and `n_tag_fused` equal 12/12; byte-identical 12/12 live and 12/12 RTS (reported, not the gate); RMS and max difference 0.000 µm | `json:scores/ve5a_<trial>.json` keys `PASS`, `live/rts.{rows_match,byte_identical,rms_window_m,max_window_m}`, `anchor_tagcount.pass` |
+| V-E5b (known map, fixed landmarks) | **PASS 12/12**. Rows 1:1 and anchor/tag count 12/12; worst RMS in window 0.193 µm (≤ 1000 µm), worst max 1.414 µm (≤ 2000 µm); 0 gate-decision flips against V-E5a; byte-identical 0/12 | `json:scores/ve5b_<trial>.json`; worst values `ve5b_T_D_r2.json:live.rms_window_m`, `ve5b_T_D_r2.json:live.max_window_m`; flips `gates.n_flips` |
+| V-E5c (known map, landmarks augmented at variance 1e-10) | **PASS 12/12**. Rows 1:1 and anchor/tag count 12/12; worst RMS in window 1.993 µm, worst max 4.243 µm; 0 gate-decision flips; worst \|ΔRMSE\| vs GT 1.278 µm (reported) | `json:scores/ve5c_<trial>.json`; worst values `ve5c_T_B_r2.json:live.rms_window_m`, `ve5c_T_B_r3.json:live.max_window_m`, `ve5c_T_B_r3.json:live.rmse_vs_gt_m.abs_delta` |
+| E5 result-run invariants: `t_anchor` and landmark counts (8 / 41) equal the stored FGO (`e5_design.md` §5.3) | **MET 6/6**: `t_anchor` 28.546 / 28.975 / 28.744 s; landmarks 8 (LC) and 41 (no-LC) on each flight; tag measurements used = `landmark_factors` exactly (2145 / 2057 / 2038; reported) | `tier1:T_A_r<i>/lc_ukf_<mode>_t245/stats.json` key `invariants` |
 
 ## E2: loop closure with fewer tags (B, C, D)
 
@@ -77,9 +82,57 @@ f_i(W) and pooled F(W): DESCRIPTIVE. LM-cap convergence flags.
 
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
+| T_A_r1 LC live overall RMSE | 0.1193 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.lc live.rmse_m` |
+| T_A_r1 LC live lap 1 / lap 5 RMSE | 0.2240 / 0.0601 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r1 LC RTS hindsight overall RMSE | 0.0445 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.lc hindsight.rmse_m` |
+| T_A_r1 LC RTS hindsight lap 1 / lap 5 RMSE | 0.0466 / 0.0444 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r1 no-LC live overall RMSE | 0.8738 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.nolc live.rmse_m` |
+| T_A_r1 no-LC live lap 1 / lap 5 RMSE | 0.2240 / 1.5395 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r1 no-LC RTS hindsight overall RMSE | 0.9162 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.nolc hindsight.rmse_m` |
+| T_A_r1 no-LC RTS hindsight lap 1 / lap 5 RMSE | 0.1355 / 1.5608 | m | CURRENT | `json:scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r2 LC live overall RMSE | 0.0911 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.lc live.rmse_m` |
+| T_A_r2 LC live lap 1 / lap 5 RMSE | 0.1560 / 0.0652 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r2 LC RTS hindsight overall RMSE | 0.0461 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.lc hindsight.rmse_m` |
+| T_A_r2 LC RTS hindsight lap 1 / lap 5 RMSE | 0.0478 / 0.0445 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r2 no-LC live overall RMSE | 1.4112 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.nolc live.rmse_m` |
+| T_A_r2 no-LC live lap 1 / lap 5 RMSE | 0.1560 / 2.2801 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r2 no-LC RTS hindsight overall RMSE | 1.3349 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.nolc hindsight.rmse_m` |
+| T_A_r2 no-LC RTS hindsight lap 1 / lap 5 RMSE | 0.2253 / 2.2087 | m | CURRENT | `json:scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r3 LC live overall RMSE | 0.1335 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.lc live.rmse_m` |
+| T_A_r3 LC live lap 1 / lap 5 RMSE | 0.2565 / 0.0757 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r3 LC RTS hindsight overall RMSE | 0.0552 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.lc hindsight.rmse_m` |
+| T_A_r3 LC RTS hindsight lap 1 / lap 5 RMSE | 0.0563 / 0.0560 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r3 no-LC live overall RMSE | 0.9262 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.nolc live.rmse_m` |
+| T_A_r3 no-LC live lap 1 / lap 5 RMSE | 0.2565 / 1.6257 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r3 no-LC RTS hindsight overall RMSE | 1.0446 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.nolc hindsight.rmse_m` |
+| T_A_r3 no-LC RTS hindsight lap 1 / lap 5 RMSE | 0.1628 / 1.7709 | m | CURRENT | `json:scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_A_r1 UKF-LC live lap-5 / lap-1 | 0.27 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r1.ratio lc live lap5/lap1` |
+| T_A_r1 UKF-no-LC live lap-5 / lap-1 | 6.87 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r1.ratio nolc live lap5/lap1` |
+| T_A_r1 UKF ÷ stored FGO, LC live / LC hindsight | 2.08 / 2.25 | ratio | DESCRIPTIVE | `json:scores/e5_verdicts.json:flights.T_A_r1.descriptive ratios UKF/FGO` |
+| T_A_r2 UKF-LC live lap-5 / lap-1 | 0.42 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r2.ratio lc live lap5/lap1` |
+| T_A_r2 UKF-no-LC live lap-5 / lap-1 | 14.62 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r2.ratio nolc live lap5/lap1` |
+| T_A_r2 UKF ÷ stored FGO, LC live / LC hindsight | 1.84 / 1.71 | ratio | DESCRIPTIVE | `json:scores/e5_verdicts.json:flights.T_A_r2.descriptive ratios UKF/FGO` |
+| T_A_r3 UKF-LC live lap-5 / lap-1 | 0.30 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r3.ratio lc live lap5/lap1` |
+| T_A_r3 UKF-no-LC live lap-5 / lap-1 | 6.34 | ratio | CURRENT | `json:scores/e5_verdicts.json:flights.T_A_r3.ratio nolc live lap5/lap1` |
+| T_A_r3 UKF ÷ stored FGO, LC live / LC hindsight | 1.76 / 3.21 | ratio | DESCRIPTIVE | `json:scores/e5_verdicts.json:flights.T_A_r3.descriptive ratios UKF/FGO` |
 
 Verdicts: H-E5.1 (PRIMARY), H-E5.2, H-E5.3, P-E5.4. Secondary (landmark UKF vs FGO, registered direction plus
 descriptive ratios): S-E5.5 (live), S-E5.6 (hindsight: RTS vs the FGO's iSAM2 hindsight).
+
+**Extension experiment, pre-registered (2026-10-21; signed off with amendments 2026-10-22).** Verdicts were judged on
+the unrounded json values, 3/3 completed runs, all gates passed. Full page: `e5_results.md`.
+
+| criterion | verdict | count | source |
+|---|---|---|---|
+| **H-E5.1 (PRIMARY)**: UKF-LC live lap-5 ≤ 1.5 × lap-1 | **PASS** | 3/3 | `json:scores/e5_verdicts.json:criteria.H-E5.1` |
+| H-E5.2: UKF-LC live < UKF-no-LC live | **PASS** | 3/3 | `json:scores/e5_verdicts.json:criteria.H-E5.2` |
+| H-E5.3: UKF-LC RTS < UKF-no-LC RTS | **PASS** | 3/3 | `json:scores/e5_verdicts.json:criteria.H-E5.3` |
+| P-E5.4: UKF-no-LC live lap-5 > 1.5 × lap-1 | **PASS** | 3/3 | `json:scores/e5_verdicts.json:criteria.P-E5.4` |
+| S-E5.5 (secondary, direction): UKF-LC live > stored FGO-LC live | **PASS** (direction held) | 3/3 | `json:scores/e5_verdicts.json:criteria.S-E5.5`; FGO from `json:eval/results/expL/T_A_r<i>_t245.json:tracks.lc live.rmse_m` |
+| S-E5.6 (secondary, direction): UKF-LC RTS > stored FGO-LC hindsight. The FGO side is the iSAM2 full estimate after 5 extra updates (DEVIATION, M:10557), not an LM batch | **PASS** (direction held) | 3/3 | `json:scores/e5_verdicts.json:criteria.S-E5.6`; FGO from `json:eval/results/expL/T_A_r<i>_t245.json:tracks.lc hindsight.rmse_m` |
+
+The stored FGO values sit under `eval/results/expL/` (frozen, guard-covered). `e5_verdicts.json` records each one
+with that source key, so every comparison input is cited from `scores/`.
 
 ## NOT RUN at the lock (counted separately; future work)
 
@@ -90,3 +143,4 @@ descriptive ratios): S-E5.5 (live), S-E5.6 (hindsight: RTS vs the FGO's iSAM2 hi
 
 | date | deviation | affected | recorded before reading results? |
 |---|---|---|---|
+| 2026-10-22 | Jobs were not queued through `eval/run_jobs_resumable.sh <jobs> tier1_<exp> 1` (§8). That runner writes under `~/thesis_data/batches/`, which the guard's `batches` group covers, so `verify` would report ADDED (STOP). Instead a serial `heavy.py` driver ran one job at a time, with its state under `~/thesis_data/tier1/<stage>/` (`stage2a/`, `stage2c/`). The thread variables were at 1 (TBB included). `heavy.py` runs at nice 19, not the frozen jobs' nice 10; nice affects scheduling only, never the arithmetic. Mechanism only; the pre-registered intent (serial, single-threaded) is kept. | Stage 2a gates; Stage 2c (V-E5a/b/c and the E5 result runs) | yes: Stage 2a recorded it in `stage2_gates.md` §2 before its gates were read; this row was written on 2026-10-22 before the first V-E5 or E5 run was started |

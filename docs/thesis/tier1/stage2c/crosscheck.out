@@ -1,0 +1,35 @@
+## V-E5 gates (per gate: pass count, worst-case figures over 12 flights x {live, rts})
+| ve5a (world) | PASS 12/12; rows match 12/12; t_anchor and n_tag_fused equal 12/12; byte-identical live 12/12, rts 12/12; worst RMS (window) 0.000 um [ve5a_T_D_r3.json:rts.rms_window_m]; worst max (window) 0.000 um [ve5a_T_D_r3.json:rts.max_window_m]; worst RMS (all rows) 0.000 um [ve5a_T_D_r3.json:rts.rms_all_m]; worst |dRMSE| vs GT 0.000 um [ve5a_T_D_r3.json:rts.rmse_vs_gt_m.abs_delta]; gate decision flips 0 (gates.n_flips) |
+| ve5b (knownmap) | PASS 12/12; rows match 12/12; t_anchor and n_tag_fused equal 12/12; byte-identical live 0/12, rts 0/12; worst RMS (window) 0.193 um [ve5b_T_D_r2.json:live.rms_window_m]; worst max (window) 1.414 um [ve5b_T_D_r2.json:live.max_window_m]; worst RMS (all rows) 0.187 um [ve5b_T_D_r2.json:live.rms_all_m]; worst |dRMSE| vs GT 0.004 um [ve5b_T_C_r2.json:live.rmse_vs_gt_m.abs_delta]; gate decision flips 0 (gates.n_flips) |
+| ve5c (augmented) | PASS 12/12; rows match 12/12; t_anchor and n_tag_fused equal 12/12; byte-identical live 0/12, rts 0/12; worst RMS (window) 1.993 um [ve5c_T_B_r2.json:live.rms_window_m]; worst max (window) 4.243 um [ve5c_T_B_r3.json:live.max_window_m]; worst RMS (all rows) 2.170 um [ve5c_T_B_r1.json:live.rms_all_m]; worst |dRMSE| vs GT 1.278 um [ve5c_T_B_r3.json:live.rmse_vs_gt_m.abs_delta]; gate decision flips 0 (gates.n_flips) |
+
+## E5 per flight (json:scores/e5_<trial>.json, tracks.<track>)
+| T_A_r1 lc live | RMSE 0.1193 | max 0.5559 | laps 1-5 0.2240 / 0.0908 / 0.0657 / 0.0690 / 0.0601 | lap5/lap1 0.27 | json:e5_T_A_r1.json:tracks.lc live |
+| T_A_r1 lc hindsight | RMSE 0.0445 | max 0.0688 | laps 1-5 0.0466 / 0.0427 / 0.0439 / 0.0450 / 0.0444 | lap5/lap1 0.95 | json:e5_T_A_r1.json:tracks.lc hindsight |
+| T_A_r1 nolc live | RMSE 0.8738 | max 2.1130 | laps 1-5 0.2240 / 0.3488 / 0.4712 / 1.0266 / 1.5395 | lap5/lap1 6.87 | json:e5_T_A_r1.json:tracks.nolc live |
+| T_A_r1 nolc hindsight | RMSE 0.9162 | max 2.0494 | laps 1-5 0.1355 / 0.3504 / 0.6661 / 1.0844 / 1.5608 | lap5/lap1 11.51 | json:e5_T_A_r1.json:tracks.nolc hindsight |
+| T_A_r2 lc live | RMSE 0.0911 | max 0.3859 | laps 1-5 0.1560 / 0.0734 / 0.0624 / 0.0604 / 0.0652 | lap5/lap1 0.42 | json:e5_T_A_r2.json:tracks.lc live |
+| T_A_r2 lc hindsight | RMSE 0.0461 | max 0.0797 | laps 1-5 0.0478 / 0.0484 / 0.0434 / 0.0464 / 0.0445 | lap5/lap1 0.93 | json:e5_T_A_r2.json:tracks.lc hindsight |
+| T_A_r2 nolc live | RMSE 1.4112 | max 3.0375 | laps 1-5 0.1560 / 0.7522 / 1.2260 / 1.6324 / 2.2801 | lap5/lap1 14.62 | json:e5_T_A_r2.json:tracks.nolc live |
+| T_A_r2 nolc hindsight | RMSE 1.3349 | max 2.9905 | laps 1-5 0.2253 / 0.5849 / 1.0476 / 1.5941 / 2.2087 | lap5/lap1 9.80 | json:e5_T_A_r2.json:tracks.nolc hindsight |
+| T_A_r3 lc live | RMSE 0.1335 | max 0.5132 | laps 1-5 0.2565 / 0.0874 / 0.0715 / 0.0692 / 0.0757 | lap5/lap1 0.30 | json:e5_T_A_r3.json:tracks.lc live |
+| T_A_r3 lc hindsight | RMSE 0.0552 | max 0.0955 | laps 1-5 0.0563 / 0.0543 / 0.0553 / 0.0541 / 0.0560 | lap5/lap1 0.99 | json:e5_T_A_r3.json:tracks.lc hindsight |
+| T_A_r3 nolc live | RMSE 0.9262 | max 2.2633 | laps 1-5 0.2565 / 0.3332 / 0.5679 / 1.0709 / 1.6257 | lap5/lap1 6.34 | json:e5_T_A_r3.json:tracks.nolc live |
+| T_A_r3 nolc hindsight | RMSE 1.0446 | max 2.3304 | laps 1-5 0.1628 / 0.4242 / 0.7820 / 1.2255 / 1.7709 | lap5/lap1 10.88 | json:e5_T_A_r3.json:tracks.nolc hindsight |
+
+## Verdicts (json:scores/e5_verdicts.json)
+| H-E5.1 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.H-E5.1 |
+| H-E5.2 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.H-E5.2 |
+| H-E5.3 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.H-E5.3 |
+| P-E5.4 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.P-E5.4 |
+| S-E5.5 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.S-E5.5 |
+| S-E5.6 | 3/3 | PASS | per flight {'T_A_r1': True, 'T_A_r2': True, 'T_A_r3': True} | json:e5_verdicts.json:criteria.S-E5.6 |
+| T_A_r1 | lc live lap5/lap1 0.27 | nolc live lap5/lap1 6.87 | UKF/FGO lc live 2.08, lc hindsight 2.25, nolc live 2.50, nolc hindsight 4.15 | lc/nolc live 0.14, hindsight 0.05 | FGO lc live 0.0574, lc hindsight 0.0198 |
+|   T_A_r1 lc invariants | t_anchor e5 28.546 fgo 28.546 | landmarks e5 8 fgo 8 | tag meas used {'e5': 2145, 'fgo': 2145} | pass True |
+|   T_A_r1 nolc invariants | t_anchor e5 28.546 fgo 28.546 | landmarks e5 41 fgo 41 | tag meas used {'e5': 2145, 'fgo': 2145} | pass True |
+| T_A_r2 | lc live lap5/lap1 0.42 | nolc live lap5/lap1 14.62 | UKF/FGO lc live 1.84, lc hindsight 1.71, nolc live 5.38, nolc hindsight 5.45 | lc/nolc live 0.06, hindsight 0.03 | FGO lc live 0.0494, lc hindsight 0.0270 |
+|   T_A_r2 lc invariants | t_anchor e5 28.975 fgo 28.975 | landmarks e5 8 fgo 8 | tag meas used {'e5': 2057, 'fgo': 2057} | pass True |
+|   T_A_r2 nolc invariants | t_anchor e5 28.975 fgo 28.975 | landmarks e5 41 fgo 41 | tag meas used {'e5': 2057, 'fgo': 2057} | pass True |
+| T_A_r3 | lc live lap5/lap1 0.30 | nolc live lap5/lap1 6.34 | UKF/FGO lc live 1.76, lc hindsight 3.21, nolc live 2.57, nolc hindsight 3.93 | lc/nolc live 0.14, hindsight 0.05 | FGO lc live 0.0760, lc hindsight 0.0172 |
+|   T_A_r3 lc invariants | t_anchor e5 28.744 fgo 28.744 | landmarks e5 8 fgo 8 | tag meas used {'e5': 2038, 'fgo': 2038} | pass True |
+|   T_A_r3 nolc invariants | t_anchor e5 28.744 fgo 28.744 | landmarks e5 41 fgo 41 | tag meas used {'e5': 2038, 'fgo': 2038} | pass True |

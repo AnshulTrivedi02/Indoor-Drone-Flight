@@ -1,0 +1,67 @@
+{
+ "trial": "T_C_r1",
+ "task": "world",
+ "window_s": [
+  29.764554531764666,
+  269.81555657656617
+ ],
+ "tolerance": {
+  "rms_m": 0.001,
+  "max_m": 0.002,
+  "flip_band": 1e-09
+ },
+ "anchor_tagcount": {
+  "t_anchor": [
+   28.777,
+   28.777
+  ],
+  "n_tag_fused": [
+   811,
+   811
+  ],
+  "pass": true
+ },
+ "live": {
+  "ref": "/home/makerspace/thesis_data/trials/T_C_r1/room_ukf/ukf_live.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_C_r1/lc_ukf_val_world/ukf_live.tum",
+  "rows_ref": 17258,
+  "rows_new": 17258,
+  "byte_identical": true,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 0.0,
+  "max_window_m": 0.0,
+  "rms_all_m": 0.0,
+  "max_all_m": 0.0,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.07172291121529213,
+   "new": 0.07172291121529213,
+   "abs_delta": 0.0
+  }
+ },
+ "rts": {
+  "ref": "/home/makerspace/thesis_data/trials/T_C_r1/room_ukf/ukf_rts.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_C_r1/lc_ukf_val_world/ukf_rts.tum",
+  "rows_ref": 17258,
+  "rows_new": 17258,
+  "byte_identical": true,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 0.0,
+  "max_window_m": 0.0,
+  "rms_all_m": 0.0,
+  "max_all_m": 0.0,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.03742769827686373,
+   "new": 0.03742769827686373,
+   "abs_delta": 0.0
+  }
+ },
+ "gates": {
+  "pass": true,
+  "note": "V-E5a is the count reference (\u00a78.4 condition 5)"
+ },
+ "PASS": true
+}

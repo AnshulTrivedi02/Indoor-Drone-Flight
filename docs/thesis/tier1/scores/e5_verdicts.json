@@ -1,0 +1,860 @@
+{
+ "label": "extension experiment, pre-registered (2026-10-21; signed off with amendments 2026-10-22)",
+ "flights": {
+  "T_A_r1": {
+   "values": {
+    "ukf lc live rmse_m": {
+     "value": 0.11927641172683404,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc live max_m": {
+     "value": 0.5559054844564225,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.max_m"
+    },
+    "ukf lc live lap1_m": {
+     "value": 0.22404268648857578,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[0]"
+    },
+    "ukf lc live lap2_m": {
+     "value": 0.09084754961399559,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[1]"
+    },
+    "ukf lc live lap3_m": {
+     "value": 0.06567126067886103,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[2]"
+    },
+    "ukf lc live lap4_m": {
+     "value": 0.06896265893837822,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[3]"
+    },
+    "ukf lc live lap5_m": {
+     "value": 0.06014438066235718,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc live.per_lap_rmse_m[4]"
+    },
+    "fgo lc live rmse_m": {
+     "value": 0.05735490583823187,
+     "source": "json:eval/results/expL/T_A_r1_t245.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc hindsight rmse_m": {
+     "value": 0.04452750161159969,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf lc hindsight max_m": {
+     "value": 0.06879025204824361,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.max_m"
+    },
+    "ukf lc hindsight lap1_m": {
+     "value": 0.0465693442374673,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf lc hindsight lap2_m": {
+     "value": 0.04273938371112426,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf lc hindsight lap3_m": {
+     "value": 0.04387387732651411,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf lc hindsight lap4_m": {
+     "value": 0.04498656294009408,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf lc hindsight lap5_m": {
+     "value": 0.04437820748200143,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.lc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo lc hindsight rmse_m": {
+     "value": 0.019789300597427666,
+     "source": "json:eval/results/expL/T_A_r1_t245.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf nolc live rmse_m": {
+     "value": 0.8738404585580067,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc live max_m": {
+     "value": 2.1129658046635944,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.max_m"
+    },
+    "ukf nolc live lap1_m": {
+     "value": 0.2240428049437398,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[0]"
+    },
+    "ukf nolc live lap2_m": {
+     "value": 0.34882814252346855,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[1]"
+    },
+    "ukf nolc live lap3_m": {
+     "value": 0.47123126238611446,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[2]"
+    },
+    "ukf nolc live lap4_m": {
+     "value": 1.0265708337994734,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[3]"
+    },
+    "ukf nolc live lap5_m": {
+     "value": 1.5395463306257295,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc live.per_lap_rmse_m[4]"
+    },
+    "fgo nolc live rmse_m": {
+     "value": 0.34938916657969865,
+     "source": "json:eval/results/expL/T_A_r1_t245.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc hindsight rmse_m": {
+     "value": 0.9161768431194356,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.rmse_m"
+    },
+    "ukf nolc hindsight max_m": {
+     "value": 2.049432659640169,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.max_m"
+    },
+    "ukf nolc hindsight lap1_m": {
+     "value": 0.1355457991081192,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf nolc hindsight lap2_m": {
+     "value": 0.3504025760102931,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf nolc hindsight lap3_m": {
+     "value": 0.6660923920672173,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf nolc hindsight lap4_m": {
+     "value": 1.0844418231206083,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf nolc hindsight lap5_m": {
+     "value": 1.560785785400415,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r1.json:tracks.nolc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo nolc hindsight rmse_m": {
+     "value": 0.22098800163903767,
+     "source": "json:eval/results/expL/T_A_r1_t245.json:tracks.nolc hindsight.rmse_m"
+    }
+   },
+   "ratio lc live lap5/lap1": 0.26845054219354764,
+   "ratio nolc live lap5/lap1": 6.871661560443017,
+   "H-E5.1": true,
+   "H-E5.2": true,
+   "H-E5.3": true,
+   "P-E5.4": true,
+   "S-E5.5": true,
+   "S-E5.6": true,
+   "descriptive ratios UKF/FGO": {
+    "lc live": 2.079620042673425,
+    "lc hindsight": 2.250079601973788,
+    "nolc live": 2.501051956225083,
+    "nolc hindsight": 4.145821656941905
+   },
+   "lc live / nolc live": 0.136496783318618,
+   "lc hindsight / nolc hindsight": 0.04860142661976772,
+   "invariants": {
+    "lc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r1/lc_ukf_lc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r1/lc_fgo_lc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.546,
+       "fgo": 28.546,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 8,
+       "fgo": 8,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2145,
+       "fgo": 2145
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    },
+    "nolc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r1/lc_ukf_nolc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r1/lc_fgo_nolc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.546,
+       "fgo": 28.546,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 41,
+       "fgo": 41,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2145,
+       "fgo": 2145
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    }
+   }
+  },
+  "T_A_r2": {
+   "values": {
+    "ukf lc live rmse_m": {
+     "value": 0.09109089405234543,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc live max_m": {
+     "value": 0.38590135408389853,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.max_m"
+    },
+    "ukf lc live lap1_m": {
+     "value": 0.15596152260067003,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[0]"
+    },
+    "ukf lc live lap2_m": {
+     "value": 0.07335534248713482,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[1]"
+    },
+    "ukf lc live lap3_m": {
+     "value": 0.06240539693491176,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[2]"
+    },
+    "ukf lc live lap4_m": {
+     "value": 0.06035119714924897,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[3]"
+    },
+    "ukf lc live lap5_m": {
+     "value": 0.06516173362490085,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc live.per_lap_rmse_m[4]"
+    },
+    "fgo lc live rmse_m": {
+     "value": 0.04939853992068112,
+     "source": "json:eval/results/expL/T_A_r2_t245.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc hindsight rmse_m": {
+     "value": 0.04612799860150639,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf lc hindsight max_m": {
+     "value": 0.07971065173113197,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.max_m"
+    },
+    "ukf lc hindsight lap1_m": {
+     "value": 0.047828155405003944,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf lc hindsight lap2_m": {
+     "value": 0.048388047672094626,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf lc hindsight lap3_m": {
+     "value": 0.04339659661146584,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf lc hindsight lap4_m": {
+     "value": 0.04635853801012762,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf lc hindsight lap5_m": {
+     "value": 0.044470743461809056,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.lc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo lc hindsight rmse_m": {
+     "value": 0.02703920011976061,
+     "source": "json:eval/results/expL/T_A_r2_t245.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf nolc live rmse_m": {
+     "value": 1.4111562005825664,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc live max_m": {
+     "value": 3.0375047341144006,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.max_m"
+    },
+    "ukf nolc live lap1_m": {
+     "value": 0.15596136729619742,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[0]"
+    },
+    "ukf nolc live lap2_m": {
+     "value": 0.7521575009025877,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[1]"
+    },
+    "ukf nolc live lap3_m": {
+     "value": 1.2259838203328939,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[2]"
+    },
+    "ukf nolc live lap4_m": {
+     "value": 1.6324240272311696,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[3]"
+    },
+    "ukf nolc live lap5_m": {
+     "value": 2.280109586305125,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc live.per_lap_rmse_m[4]"
+    },
+    "fgo nolc live rmse_m": {
+     "value": 0.262532619256968,
+     "source": "json:eval/results/expL/T_A_r2_t245.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc hindsight rmse_m": {
+     "value": 1.3348750735401052,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.rmse_m"
+    },
+    "ukf nolc hindsight max_m": {
+     "value": 2.990492153084332,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.max_m"
+    },
+    "ukf nolc hindsight lap1_m": {
+     "value": 0.22526736378716616,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf nolc hindsight lap2_m": {
+     "value": 0.5848551501975424,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf nolc hindsight lap3_m": {
+     "value": 1.0475811673185254,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf nolc hindsight lap4_m": {
+     "value": 1.594075445026768,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf nolc hindsight lap5_m": {
+     "value": 2.2086542398790185,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r2.json:tracks.nolc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo nolc hindsight rmse_m": {
+     "value": 0.24510885078941408,
+     "source": "json:eval/results/expL/T_A_r2_t245.json:tracks.nolc hindsight.rmse_m"
+    }
+   },
+   "ratio lc live lap5/lap1": 0.4178064726371228,
+   "ratio nolc live lap5/lap1": 14.619707597041037,
+   "H-E5.1": true,
+   "H-E5.2": true,
+   "H-E5.3": true,
+   "P-E5.4": true,
+   "S-E5.5": true,
+   "S-E5.6": true,
+   "descriptive ratios UKF/FGO": {
+    "lc live": 1.8439997254698097,
+    "lc hindsight": 1.705967572901516,
+    "nolc live": 5.37516520642839,
+    "nolc hindsight": 5.446050068126534
+   },
+   "lc live / nolc live": 0.06455053949005819,
+   "lc hindsight / nolc hindsight": 0.034556041622063084,
+   "invariants": {
+    "lc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r2/lc_ukf_lc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r2/lc_fgo_lc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.975,
+       "fgo": 28.975,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 8,
+       "fgo": 8,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2057,
+       "fgo": 2057
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    },
+    "nolc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r2/lc_ukf_nolc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r2/lc_fgo_nolc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.975,
+       "fgo": 28.975,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 41,
+       "fgo": 41,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2057,
+       "fgo": 2057
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    }
+   }
+  },
+  "T_A_r3": {
+   "values": {
+    "ukf lc live rmse_m": {
+     "value": 0.13348130903694486,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc live max_m": {
+     "value": 0.5131552472849386,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.max_m"
+    },
+    "ukf lc live lap1_m": {
+     "value": 0.25652553781883836,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[0]"
+    },
+    "ukf lc live lap2_m": {
+     "value": 0.08740174310683976,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[1]"
+    },
+    "ukf lc live lap3_m": {
+     "value": 0.07152850758895772,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[2]"
+    },
+    "ukf lc live lap4_m": {
+     "value": 0.06923130372147124,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[3]"
+    },
+    "ukf lc live lap5_m": {
+     "value": 0.07571381807071569,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc live.per_lap_rmse_m[4]"
+    },
+    "fgo lc live rmse_m": {
+     "value": 0.07600284599407228,
+     "source": "json:eval/results/expL/T_A_r3_t245.json:tracks.lc live.rmse_m"
+    },
+    "ukf lc hindsight rmse_m": {
+     "value": 0.05520399280654202,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf lc hindsight max_m": {
+     "value": 0.09548830644437466,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.max_m"
+    },
+    "ukf lc hindsight lap1_m": {
+     "value": 0.0563215832405471,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf lc hindsight lap2_m": {
+     "value": 0.05431409196822351,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf lc hindsight lap3_m": {
+     "value": 0.05529578251098334,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf lc hindsight lap4_m": {
+     "value": 0.05410348518093654,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf lc hindsight lap5_m": {
+     "value": 0.05595044335519969,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.lc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo lc hindsight rmse_m": {
+     "value": 0.017190305616854848,
+     "source": "json:eval/results/expL/T_A_r3_t245.json:tracks.lc hindsight.rmse_m"
+    },
+    "ukf nolc live rmse_m": {
+     "value": 0.9261571774760408,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc live max_m": {
+     "value": 2.2633070872556016,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.max_m"
+    },
+    "ukf nolc live lap1_m": {
+     "value": 0.2565256059223291,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[0]"
+    },
+    "ukf nolc live lap2_m": {
+     "value": 0.333218059616975,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[1]"
+    },
+    "ukf nolc live lap3_m": {
+     "value": 0.5679079158107392,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[2]"
+    },
+    "ukf nolc live lap4_m": {
+     "value": 1.0708586065816257,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[3]"
+    },
+    "ukf nolc live lap5_m": {
+     "value": 1.6256501373520609,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc live.per_lap_rmse_m[4]"
+    },
+    "fgo nolc live rmse_m": {
+     "value": 0.3608157685411109,
+     "source": "json:eval/results/expL/T_A_r3_t245.json:tracks.nolc live.rmse_m"
+    },
+    "ukf nolc hindsight rmse_m": {
+     "value": 1.044592460299662,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.rmse_m"
+    },
+    "ukf nolc hindsight max_m": {
+     "value": 2.330376917543859,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.max_m"
+    },
+    "ukf nolc hindsight lap1_m": {
+     "value": 0.16276799540539413,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[0]"
+    },
+    "ukf nolc hindsight lap2_m": {
+     "value": 0.424217783021971,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[1]"
+    },
+    "ukf nolc hindsight lap3_m": {
+     "value": 0.7820188290375921,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[2]"
+    },
+    "ukf nolc hindsight lap4_m": {
+     "value": 1.225454176151609,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[3]"
+    },
+    "ukf nolc hindsight lap5_m": {
+     "value": 1.7709097961210194,
+     "source": "json:docs/thesis/tier1/scores/e5_T_A_r3.json:tracks.nolc hindsight.per_lap_rmse_m[4]"
+    },
+    "fgo nolc hindsight rmse_m": {
+     "value": 0.2657088895609904,
+     "source": "json:eval/results/expL/T_A_r3_t245.json:tracks.nolc hindsight.rmse_m"
+    }
+   },
+   "ratio lc live lap5/lap1": 0.2951511912400151,
+   "ratio nolc live lap5/lap1": 6.337184670150534,
+   "H-E5.1": true,
+   "H-E5.2": true,
+   "H-E5.3": true,
+   "P-E5.4": true,
+   "S-E5.5": true,
+   "S-E5.6": true,
+   "descriptive ratios UKF/FGO": {
+    "lc live": 1.7562672461943796,
+    "lc hindsight": 3.211344465709516,
+    "nolc live": 2.566842300769667,
+    "nolc hindsight": 3.9313417854613695
+   },
+   "lc live / nolc live": 0.1441238185949252,
+   "lc hindsight / nolc hindsight": 0.052847397338772355,
+   "invariants": {
+    "lc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r3/lc_ukf_lc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r3/lc_fgo_lc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.744,
+       "fgo": 28.744,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 8,
+       "fgo": 8,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2038,
+       "fgo": 2038
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    },
+    "nolc": {
+     "stats": "/home/makerspace/thesis_data/tier1/T_A_r3/lc_ukf_nolc_t245/stats.json",
+     "invariants": {
+      "ref": "/home/makerspace/thesis_data/trials/T_A_r3/lc_fgo_nolc_t245/stats.json",
+      "t_anchor": {
+       "e5": 28.744,
+       "fgo": 28.744,
+       "ok": true
+      },
+      "landmarks": {
+       "e5": 41,
+       "fgo": 41,
+       "ok": true
+      },
+      "tag_measurements_used_vs_landmark_factors (reported, not a stop)": {
+       "e5": 2038,
+       "fgo": 2038
+      },
+      "pass": true
+     },
+     "keys": [
+      "central",
+      "chol",
+      "dt_step_ms",
+      "excluded_pending_at_cut",
+      "gate_counts",
+      "gate_log",
+      "gauge_tag",
+      "ignored_before_anchor",
+      "imu_dejitter",
+      "invariants",
+      "landmarks",
+      "landmarks_dropped",
+      "landmarks_in_state_at_end",
+      "landmarks_in_state_final_filtered",
+      "max_state_dim",
+      "mode",
+      "n_landmarks_augmented",
+      "n_tag_fused",
+      "n_tag_updates",
+      "pseudo_yaw_fired_before_anchor",
+      "raw_detections",
+      "rts_nodes",
+      "rts_nodes_spilled_to_memmap",
+      "rts_store_bytes",
+      "rts_transition_nodes",
+      "t_anchor",
+      "t_max",
+      "tag_measurements_used",
+      "tag_sigma_pos",
+      "tag_sigma_yaw_deg",
+      "tag_update",
+      "task",
+      "tier1",
+      "trial",
+      "wall_s"
+     ]
+    }
+   }
+  }
+ },
+ "criteria": {
+  "H-E5.1": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  },
+  "H-E5.2": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  },
+  "H-E5.3": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  },
+  "P-E5.4": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  },
+  "S-E5.5": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  },
+  "S-E5.6": {
+   "per_flight": {
+    "T_A_r1": true,
+    "T_A_r2": true,
+    "T_A_r3": true
+   },
+   "count": "3/3",
+   "verdict": "PASS"
+  }
+ },
+ "note": "All 3 runs per criterion completed and passed their gates, so each verdict is PASS (3/3) or FAIL. S-E5.5/S-E5.6 are secondary (registered direction); S-E5.6 compares the UKF RTS with the FGO's Experiment 3 hindsight = iSAM2 full estimate after 5 extra updates (DEVIATION, M:10557), not an LM batch."
+}

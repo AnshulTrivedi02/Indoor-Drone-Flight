@@ -1,0 +1,83 @@
+{
+ "trial": "T_D_r3",
+ "task": "knownmap",
+ "window_s": [
+  30.12459629524367,
+  270.1758555684354
+ ],
+ "tolerance": {
+  "rms_m": 0.001,
+  "max_m": 0.002,
+  "flip_band": 1e-09
+ },
+ "anchor_tagcount": {
+  "t_anchor": [
+   29.14,
+   29.14
+  ],
+  "n_tag_fused": [
+   597,
+   597
+  ],
+  "pass": true
+ },
+ "live": {
+  "ref": "/home/makerspace/thesis_data/trials/T_D_r3/room_ukf/ukf_live.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_D_r3/lc_ukf_val_knownmap/ukf_live.tum",
+  "rows_ref": 17235,
+  "rows_new": 17235,
+  "byte_identical": false,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 1.4790199457744992e-07,
+  "max_window_m": 1.414213562178248e-06,
+  "rms_all_m": 1.425044342471052e-07,
+  "max_all_m": 1.414213562178248e-06,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.1310922039030529,
+   "new": 0.1310922002855337,
+   "abs_delta": 3.6175192008602863e-09
+  }
+ },
+ "rts": {
+  "ref": "/home/makerspace/thesis_data/trials/T_D_r3/room_ukf/ukf_rts.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_D_r3/lc_ukf_val_knownmap/ukf_rts.tum",
+  "rows_ref": 17235,
+  "rows_new": 17235,
+  "byte_identical": false,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 1.115235401147978e-07,
+  "max_window_m": 1.000000000139778e-06,
+  "rms_all_m": 1.093271347655872e-07,
+  "max_all_m": 1.000000000139778e-06,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.110503080781131,
+   "new": 0.1105030799598247,
+   "abs_delta": 8.213063007467269e-10
+  }
+ },
+ "gates": {
+  "ref": "/home/makerspace/thesis_data/tier1/T_D_r3/lc_ukf_val_world/gate_log.npz",
+  "new": "/home/makerspace/thesis_data/tier1/T_D_r3/lc_ukf_val_knownmap/gate_log.npz",
+  "counts_ref": {
+   "flow_x": 7961,
+   "flow_y": 7961,
+   "range": 8103
+  },
+  "counts_new": {
+   "flow_x": 7961,
+   "flow_y": 7961,
+   "range": 8103
+  },
+  "counts_equal": true,
+  "decisions_aligned": true,
+  "flips": [],
+  "n_flips": 0,
+  "n_roundoff_flips": 0,
+  "pass": true
+ },
+ "PASS": true
+}

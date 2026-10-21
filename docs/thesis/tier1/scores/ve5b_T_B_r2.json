@@ -1,0 +1,83 @@
+{
+ "trial": "T_B_r2",
+ "task": "knownmap",
+ "window_s": [
+  29.540693355013545,
+  269.59297726541246
+ ],
+ "tolerance": {
+  "rms_m": 0.001,
+  "max_m": 0.002,
+  "flip_band": 1e-09
+ },
+ "anchor_tagcount": {
+  "t_anchor": [
+   28.546,
+   28.546
+  ],
+  "n_tag_fused": [
+   1279,
+   1279
+  ],
+  "pass": true
+ },
+ "live": {
+  "ref": "/home/makerspace/thesis_data/trials/T_B_r2/room_ukf/ukf_live.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_B_r2/lc_ukf_val_knownmap/ukf_live.tum",
+  "rows_ref": 17273,
+  "rows_new": 17273,
+  "byte_identical": false,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 1.0307764064150387e-07,
+  "max_window_m": 1.000000000139778e-06,
+  "rms_all_m": 1.0179879306089243e-07,
+  "max_all_m": 1.000000000139778e-06,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.06032981924880723,
+   "new": 0.060329819918477516,
+   "abs_delta": 6.696702845032654e-10
+  }
+ },
+ "rts": {
+  "ref": "/home/makerspace/thesis_data/trials/T_B_r2/room_ukf/ukf_rts.tum",
+  "new": "/home/makerspace/thesis_data/tier1/T_B_r2/lc_ukf_val_knownmap/ukf_rts.tum",
+  "rows_ref": 17273,
+  "rows_new": 17273,
+  "byte_identical": false,
+  "rows_match": true,
+  "n_window": 16000,
+  "rms_window_m": 8.366600265148004e-08,
+  "max_window_m": 1.4142135624922663e-06,
+  "rms_all_m": 8.404193222796229e-08,
+  "max_all_m": 1.4142135624922663e-06,
+  "pass": true,
+  "rmse_vs_gt_m": {
+   "stored": 0.031703534849875634,
+   "new": 0.03170353528461223,
+   "abs_delta": 4.3473659394610564e-10
+  }
+ },
+ "gates": {
+  "ref": "/home/makerspace/thesis_data/tier1/T_B_r2/lc_ukf_val_world/gate_log.npz",
+  "new": "/home/makerspace/thesis_data/tier1/T_B_r2/lc_ukf_val_knownmap/gate_log.npz",
+  "counts_ref": {
+   "flow_x": 7950,
+   "flow_y": 7950,
+   "range": 8089
+  },
+  "counts_new": {
+   "flow_x": 7950,
+   "flow_y": 7950,
+   "range": 8089
+  },
+  "counts_equal": true,
+  "decisions_aligned": true,
+  "flips": [],
+  "n_flips": 0,
+  "n_roundoff_flips": 0,
+  "pass": true
+ },
+ "PASS": true
+}
