@@ -14408,3 +14408,18 @@ Found while answering the user's question "the EKF starts at the origin but the 
 - **Results** go in `numbers_tier1.md` and `docs/thesis/tier1/`, never in numbers.md or the frozen pack.
 - **Stage 1 only now:** the pre-registration (`docs/thesis/tier1/preregistration.md`), the output-path change and the checksum
   guard; then STOP for the user's sign-off.
+
+### SCOPE UPDATE (user, 2026-10-21; supersedes parts of the tier-1 rulings above)
+
+- **The simulation freeze and the 23 Oct cut-off no longer apply** (supervisor direction: focus on simulation, not real
+  flights). **New lock date for all new experiment results: 2026-11-04.** The "post-freeze extension" wording is dropped; results
+  are labelled **"extension experiments, pre-registered"**.
+- **E3 arm (b)** (robust weighting on tag factors) is now planned, not conditional on time.
+- **Added: E5, a UKF with tag landmark states** (design document `docs/thesis/tier1/e5_design.md` first: state augmentation on first
+  sighting, landmark initialisation, re-identification, RTS smoothing for hindsight, noise models matched to the FGO's tag factors,
+  and a validation gate: with a known map it must reproduce the existing Experiment 2 UKF result). Same recordings and arms as
+  Experiment 3. Highest priority to START.
+- **Added: E4, a live window sweep:** the FGO on the Experiment 2 recordings at windows 0.25, 0.5, 1, 2 and 5 s; live accuracy and
+  per-step time, compared against the batch (hindsight) result.
+- **Unchanged:** the output redirect and checksum guard; results only in `numbers_tier1.md` and `docs/thesis/tier1/`; STOP after the
+  pre-registration for sign-off. An effort and compute estimate per experiment against the 4 Nov lock is added.
