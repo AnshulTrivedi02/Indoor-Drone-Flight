@@ -23,7 +23,7 @@ world (~/thesis_data/trials/<t>/metadata.yaml or run_trial.log, read only).
 Outputs: docs/thesis/summary/results_walkthrough.pdf, docs/thesis/summary/walkthrough/wt_NN_<short>.png,
 docs/thesis/summary/index_walkthrough.md.
 Usage: python3 eval/figs_results_walkthrough.py   (numpy, matplotlib, Pillow)."""
-import hashlib, os, re, subprocess, sys, textwrap
+import hashlib, json, os, re, subprocess, sys, textwrap
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -211,10 +211,10 @@ def trial_world(t):
 
 rr = lambda pre, post="", reps=(1, 2, 3): [f"{pre}{i}{post}" for i in reps]
 CL = ["cl_a_tex_half", "cl_ukf_a_tex_half_v2", "cl_fgo_a_tex_half_v3"] + rr("cl_bcpp_tex_r", "_half") + rr("cl_ukf_b_tex_r", "_half_v2") + rr("cl_fgo_b_tex_r", "_half_v3")
-TRS = {"1A": ["dsn_tex_r3"], "1Ab": ["fwdc_tex_r3"],
+TRS = {"1A": [f"dsn_tex_r{i}" for i in range(1, 10)],
        "blank": rr("dsn_blank_r") + rr("ds_blank_r") + ["p1c_fwdc_blank", "p1c_fwdplainc_blank"] + rr("fwdc_blank_r") + rr("fwdplainc_blank_r"),
-       "1Bh": [f"{d}_{f}_r{i}" for d in ("fwdc", "fwdplainc") for f in ("tex", "blank", "trans") for i in (1, 2, 3)],
-       "1Ba": ["dsn_tex_r3"] + rr("fwdc_tex_r"), "1C": CL,
+       "1B": [f"{d}_{f}_r{i}" for d in ("fwdc", "fwdplainc") for f in ("tex", "blank", "trans") for i in (1, 2, 3)],
+       "1C": CL,
        "2": [f"T_{c}_r{i}" for c in "ABCD" for i in (1, 2, 3)], "3": rr("T_A_r"), "4": ["O_r1", "O_r2", "O_r3b"],
        "5h": ["H_s1_r1", "H_s1_r2", "H_s1_r3", "H_s1far_r1", "H_s1far_r2", "H_s1far_r3b"] + rr("H_s2v2_r") + rr("H_s3v2_r"),
        "5l": ["H_s1_r1", "H_s1_r2", "H_s1_r3", "H_s1far_r1", "H_s1far_r2", "H_s1far_r3b"] + rr("H_s2v2_r") + rr("H_s3v2_r"),
@@ -296,11 +296,11 @@ def world_page(pid, short, title, worlds, world_note, world_label, TXT):
     return fig
 
 
-def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=None, scope=None, world_label=None, imh=0.92):
+def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=None, scope=None, world_label=None, imh=0.92, world=True):
     """Title across the top; 'What this tests' (left) beside the world screenshots (right); the plot full width in the middle;
     About / Metric / Pass rule / Result at the bottom. Every text block is wrapped by measured width."""
     fig = plt.figure(figsize=(PAGE_W, PAGE_H), dpi=100)
-    base = re.sub(r" \(\d of \d\)$", "", title)
+    base = re.sub(r" \(\d+ of \d+\)$", "", title)
     tsrc = next((k for k, v in SUMP.items() if v["title"] == base), None)
     TXT = [("title", dict(text=title, src=f"summary page {tsrc}, title" + (" + page counter" if base != title else ""), kind="VERBATIM",
                           orig=base, equal=tsrc is not None))]
@@ -352,7 +352,7 @@ def page(pid, short, title, what, worlds, wkey, wnames, plot, lines, world_note=
         world_check(wkey, wnames)
     fn = f"wt_{pid}_{short}.png"
     fig.savefig(os.path.join(OUTD, fn), dpi=DPI)
-    wfig = world_page(pid, short, title, worlds, world_note, world_label, TXT)
+    wfig = world_page(pid, short, title, worlds, world_note, world_label, TXT) if world else None   # once per experiment (ruling 2026-10-21)
     PAGES.append(dict(id=pid, short=short, title=title, file=fn, fig=fig, wfig=wfig, txt=TXT, worlds=worlds, plot=plot, scale=scale,
                       plot_h=h_in, wkey=wkey))
     print(f"wrote {fn}  plot {w_in:.2f} x {h_in:.2f} in, scale {scale:.2f}")
@@ -369,127 +369,197 @@ W_FWDC = lambda: world(R + "corridor_textured_fwdc__interior.jpg", snew("Inside:
 CAP_BL = "Blank floor, "
 
 # =================================================================== pages
-# 1A: aligned paths (R3 a), then the same flight unaligned (R5 a, R5 b+c)
-S01 = [("Pass rule:", sline("01", "rule")), ("Result:", sline("01", "result"))]
-M01 = smod("01", "metric", " (the vertical lines show the range over the flights)", "")
-page("01", "1A_paths", SUMP["01"]["title"] + " (1 of 3)", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"], P("R3a", "R3"),
-     [("About this plot:", snew("one example flight (flight 3 of the 9), seen from above. Grey: the true path. Dashed: each "
-                                "estimate after the best-fit alignment used for scoring; the key gives that flight's score. "
-                                "The sideways axis is stretched 3.0× so the errors are visible.")), ("Metric:", M01)] + S01, scope=["01"])
-page("02", "1A_drift", SUMP["01"]["title"] + " (2 of 3)", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"], P("R5a", "R5"),
-     [("About this plot:", snew("the same flight 3 drawn WITHOUT the alignment, so the sideways drift caused by heading error is "
-                                "visible: it reaches tens of metres by the end of the corridor. The scored error (previous page) "
-                                "removes this constant turn first.")), ("Metric:", M01)] + S01, scope=["01"])
-page("03", "1A_error_vs_distance", SUMP["01"]["title"] + " (3 of 3)", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"],
-     P("R5bc", "R5"),
-     [("About this plot:", snew("the same flight 3, without the alignment: error along the corridor (top) and sideways (bottom) "
-                                "against the distance flown, metres. The sideways error grows fastest.")), ("Metric:", M01)] + S01,
-     scope=["01"])
+# Ruling 2026-10-21 (user): the world page ONCE per experiment, after its last plot page; every flight of an experiment shown
+# (new all-flights plots from eval/figs_walkthrough_flights.py, docs/thesis/summary/flights/); error against time instead of
+# against distance; a 'where the drone really flew' page per experiment; Experiment 1C heading-error graphs never overlaid.
+FLD = os.path.join(SUM, "flights"); FLIDX = open(os.path.join(FLD, "index_flights.md")).read()
+FLCHK = json.load(open(os.path.join(FLD, "checks.json")))
+for fid in FLCHK["figs"]:
+    p_ = os.path.join(FLD, f"fl_{fid}.png"); arr, b = load(p_, None, trim=True)
+    FIG["FL_" + fid] = dict(path=p_, arr=arr, box=b, sha=sha(p_))
 
-# blank floor: summary chart
-page("04", "blank_floor", SUMP["02"]["title"], sline("02", "what"),
+
+def PF(fid, extra=""):
+    """An all-flights figure; number-guard corpus = its own checked numbers + the flights index (every printed number is checked there)."""
+    d = dict(FIG["FL_" + fid]); d["key"] = "FL_" + fid
+    d["corpus"] = " ".join(FLCHK["figs"][fid]["numbers"]) + " " + FLIDX + " " + extra; return d
+
+
+W_TEX = lambda: world(R + "corridor_textured__interior.jpg", snew("Inside: checkerboard floor, plain walls, no roof"))
+W_TEXA = lambda: world(R + "corridor_textured__angled.jpg", snew("Outside view of the same corridor"))
+W_FWDC = lambda: world(R + "corridor_textured_fwdc__interior.jpg", snew("Inside: painted-line walls, roof, checkerboard floor"))
+CAP_BL = "Blank floor, "
+M01 = smod("01", "metric", " (the vertical lines show the range over the flights)", "")
+L01 = [("Metric:", M01), ("Pass rule:", sline("01", "rule")), ("Result:", sline("01", "result"))]
+T01 = SUMP["01"]["title"]; N1A = 5
+A = lambda t: ("About this plot:", snew(t))
+YAWS = "aligned by a rotation about the vertical and a shift, which gives the same average error (ATE) as the standard alignment"
+
+# ---- 1A
+page("01", "1A_truth", f"{T01} (1 of {N1A})", sline("01", "what"), [], None, [], PF("1A_truth"),
+     [A("where the drone really was in all 9 flights, from the simulator. It took off, climbed, flew straight up the corridor for "
+        "about five minutes (the cruise) and landed; the 9 flights are almost identical. The estimators never steered: they only "
+        "watched (offline).")] + L01, scope=["01"], world=False)
+page("02", "1A_aligned_paths", f"{T01} (2 of {N1A})", sline("01", "what"), [], None, [], PF("1A_aligned_paths"),
+     [A("every flight's estimated path, one panel per estimator, cruise only, each " + YAWS + ". Because of this best fit, and "
+        "because the cruise starts after take-off and climb, the lines do not start at the take-off point.")] + L01,
+     scope=["01"], world=False)
+page("03", "1A_aligned_err", f"{T01} (3 of {N1A})", sline("01", "what"), [], None, [], PF("1A_aligned_err"),
+     [A("the error against time, every flight, cruise only, " + YAWS + ". The shape (large at both ends, small where the fitted "
+        "path crosses the true one) comes from the alignment, which removes a constant turn.")] + L01, scope=["01"], world=False)
+page("04", "1A_unaligned_paths", f"{T01} (4 of {N1A})", sline("01", "what"), [], None, [], PF("1A_unaligned_paths"),
+     [A("the estimates as they really came out, WITHOUT the alignment, from take-off. With no heading sensor each estimate slowly "
+        "turns, so it drifts sideways by tens of metres; the alignment used for the score removes this constant turn.")] + L01,
+     scope=["01"], world=False)
+page("05", "1A_unaligned_err", f"{T01} (5 of {N1A})", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"],
+     PF("1A_unaligned_err"),
+     [A("the error WITHOUT the alignment against time, every flight: it grows steadily during the cruise, mostly sideways "
+        "(previous page). It replaces the earlier error-against-distance plot of one flight.")] + L01, scope=["01"])
+
+# ---- blank floor: summary chart (no per-flight plots made here)
+page("06", "blank_floor", SUMP["02"]["title"], sline("02", "what"),
      [world(R + "corridor_blank__interior.jpg", snew(CAP_BL + "plain walls, no roof (standard sensors)")),
       world(R + "corridor_blank_fwdc__interior.jpg", snew(CAP_BL + "painted-line walls and roof")),
       world(R + "corridor_blank_fwdplainc__interior.jpg", snew(CAP_BL + "plain walls and roof"))],
      "blank", ["corridor_blank", "corridor_blank_fwdc", "corridor_blank_fwdplainc"], P("S02"),
      [("Metric:", sline("02", "metric")), ("Pass rule:", sline("02", "rule")), ("Result:", sline("02", "result"))], scope=["02"])
 
-# 1B heading check: summary table, with what the forward camera sees
-page("05", "1B_heading_check", SUMP["03"]["title"], sline("03", "what"),
-     [world(OB + "fwdc_tex_r1__fwd_y040.png", snew("Painted-line walls, checkerboard floor"), OBX),
-      world(OB + "fwdplainc_tex_r1__fwd_y040.png", snew("Plain walls, checkerboard floor"), OBX),
-      world(OB + "fwdplainc_blank_r1__fwd_y040.png", snew("Plain walls, blank floor"), OBX)],
-     "1Bh", ["corridor_textured_fwdc", "corridor_blank_fwdc", "corridor_transition_fwdc", "corridor_textured_fwdplainc",
-             "corridor_blank_fwdplainc", "corridor_transition_fwdplainc"], P("S03"),
-     [("Metric:", sline("03", "metric")), ("Pass rule:", sline("03", "rule")), ("Result:", sline("03", "result"))],
-     world_note=snew("Orange cross: where the camera's heading measurement points. The flights also used the half-and-half floor "
-                     "(not pictured)."), scope=["03"],
-     world_label="What the forward camera saw in these worlds (frames from the recorded flights):", imh=1.3)
+# ---- 1B: heading check (summary table), then accuracy on all 3 flights; one world page for 1B
+T04 = SUMP["04"]["title"]; L04 = [("Metric:", sline("04", "metric")), ("Pass rule:", sline("04", "rule")), ("Result:", sline("04", "result"))]
+page("07", "1B_heading_check", SUMP["03"]["title"], sline("03", "what"), [], None, [], P("S03"),
+     [("Metric:", sline("03", "metric")), ("Pass rule:", sline("03", "rule")), ("Result:", sline("03", "result"))], scope=["03"], world=False)
+page("08", "1B_truth", f"{T04} (1 of 4)", sline("04", "what"), [], None, [], PF("1B_truth"),
+     [A("where the drone really was in the 3 camera-dataset flights (painted-line walls, checkerboard floor). The same recorded "
+        "flights are processed with and without the camera heading.")] + L04, scope=["04"], world=False)
+page("09", "1B_paths", f"{T04} (2 of 4)", sline("04", "what"), [], None, [], PF("1B_aligned_paths"),
+     [A("every flight's estimated path, cruise only, " + YAWS + ", in five separate panels: without the heading (left three) and "
+        "with it (right two; EKF3 has no camera-heading version). *Flight 3 of the UKF and FGO without heading is not drawn: this "
+        "re-fit differs from its score by less than 2 mm, enough to change the last digit of its rounded score (listed in the index).")]
+     + L04, scope=["04"], world=False)
+page("10", "1B_err_noheading", f"{T04} (3 of 4)", sline("04", "what"), [], None, [], PF("1B_err_noheading"),
+     [A("the error against time WITHOUT the camera heading, " + YAWS + ": several metres. *Flight 3 of the UKF and FGO is not "
+        "drawn (see the previous page).")] + L04, scope=["04"], world=False)
+page("11", "1B_err_heading", f"{T04} (4 of 4)", sline("04", "what"),
+     [W_FWDC(), world(R + "corridor_textured_fwdc__angled_cutaway.jpg", snew("Outside view, roof cut away")),
+      world(OB + "fwdc_tex_r1__fwd_y040.png", snew("Forward camera: painted-line walls, checkerboard floor"), OBX),
+      world(OB + "fwdplainc_tex_r1__fwd_y040.png", snew("Forward camera: plain walls, checkerboard floor"), OBX),
+      world(OB + "fwdplainc_blank_r1__fwd_y040.png", snew("Forward camera: plain walls, blank floor"), OBX)],
+     "1B", ["corridor_textured_fwdc", "corridor_blank_fwdc", "corridor_transition_fwdc", "corridor_textured_fwdplainc",
+            "corridor_blank_fwdplainc", "corridor_transition_fwdplainc"], PF("1B_err_heading"),
+     [A("the same error WITH the camera heading (UKF and FGO), every flight, " + YAWS + ": a few centimetres to about a "
+        "decimetre. Note the much finer y-scale than on the previous page.")] + L04, scope=["04"],
+     world_note=snew("Orange cross in the camera frames: where the camera's heading measurement points. The heading-check flights "
+                     "also used the half-and-half floor (not pictured)."),
+     world_label="The worlds of Experiment 1B (simulator views, and frames the forward camera recorded):")
 
-# 1B accuracy: R3 b
-page("06", "1B_accuracy", SUMP["04"]["title"], sline("04", "what"), [W_FWDC(), world(R + "corridor_textured_fwdc__angled_cutaway.jpg",
-     snew("Outside view, roof cut away"))], "1Ab", ["corridor_textured_fwdc"], P("R3b", "R3"),
-     [("About this plot:", snew("one example flight (flight 3), seen from above after the best-fit alignment. Grey: the true path. "
-                                "Dashed: without the camera heading. Solid: with it (UKF and FGO only); the solid lines lie on "
-                                "the true path. The key gives each line's score. Sideways axis stretched 3.0×.")),
-      ("Metric:", sline("04", "metric")), ("Pass rule:", sline("04", "rule")), ("Result:", sline("04", "result"))], scope=["04"])
-
-# 1C: F2 (without the heading: wall contact) and F9 (with the heading: five checks)
-W_HALF = lambda: [world(R + "corridor_textured_half_fwdc__interior.jpg", snew("Inside: painted-line walls, roof, checkerboard floor")),
-                  world(R + "corridor_textured_half_fwdc__angled_cutaway.jpg", snew("Outside view, roof cut away"))]
+# ---- 1C: closed loop; never overlaid
 CHECKS = ["finish the corridor without touching a wall", "stay within 6.0 m of the centre line",
           "heading error within 1.0° (95% of the time), 2.0° at most", "sideways speed at most 0.25 m/s", "no oscillation"]
 for c in CHECKS:
     assert f'T("• {c}")' in SUM_SRC or f'"• {c}"' in SUM_SRC, f"check text '{c}' not in figs_thesis_summary.py"
-page("07", "1C_no_heading", SUMP["05"]["title"], sline("05", "what"), W_HALF(), "1C", ["corridor_textured_half_fwdc"], P("F2"),
-     [("About this plot:", snew("the true path of every flight seen from above (sideways axis stretched 3.0×). Dashed: without "
-                                "the camera heading, 1 flight each, ending where the drone touched the wall (X). Solid: with the "
-                                "camera heading, 3 flights each (their result is on the next page).")),
-      ("Metric:", sline("05", "metric")),
-      ("Pass rule:", smod("05", "rule", " (grey)", " (written next to each wall contact on the plot)")),
-      ("Result:", sline("05", "result"))], scope=["05"])
-page("08", "1C_with_heading", SUMP["06"]["title"], sline("06", "what"), W_HALF(), "1C", ["corridor_textured_half_fwdc"], P("F9", extra=" ".join(CHECKS)),
-     [("About this plot:", snew("heading error (the estimated direction the drone faces minus the true one) against time. Dashed: "
-                                "without the camera heading, growing until the wall (X). Solid: with the camera heading, 3 flights "
-                                "each, staying near zero inside the grey band; the inset enlarges them.")),
-      ("Metric:", smod("06", "metric", "); the bars show the largest sideways distance from the centre line in any of them, metres (simulator at half real time, flight speed unchanged).",
-                       "; simulator at half real time, flight speed unchanged).")),
-      ("Pass rule:", smod("06", "rule", "all five checks listed on the right", "all five checks (" + "; ".join(CHECKS) + ")")),
-      ("Result:", sline("06", "result"))], scope=["06"])
+T05, T06 = SUMP["05"]["title"], SUMP["06"]["title"]
+L05 = [("Metric:", sline("05", "metric")), ("Pass rule:", smod("05", "rule", " (grey)", "")), ("Result:", sline("05", "result"))]
+L06 = [("Metric:", smod("06", "metric", "); the bars show the largest sideways distance from the centre line in any of them, metres (simulator at half real time, flight speed unchanged).",
+                        "; simulator at half real time, flight speed unchanged).")),
+       ("Pass rule:", smod("06", "rule", "all five checks listed on the right", "all five checks (" + "; ".join(CHECKS) + ")")),
+       ("Result:", sline("06", "result"))]
+page("12", "1C_paths", f"{T05} (1 of 3)", sline("05", "what"), [], None, [], PF("1C_paths"),
+     [A("where the drone really flew when each estimator was steering it: 12 flights in six separate panels. Left three: without "
+        "the camera heading, 1 flight each, ending at the wall (X). Right three: with it, 3 flights each, straight up the centre.")]
+     + L05, scope=["05"], world=False)
+page("13", "1C_side_off", f"{T05} (2 of 3)", sline("05", "what"), [], None, [], PF("1C_side_off"),
+     [A("the same three flights without the heading: how far the drone really was from the centre line, against time, until it "
+        "touched the west wall.")] + L05, scope=["05"], world=False)
+page("14", "1C_head_off", f"{T05} (3 of 3)", sline("05", "what"), [], None, [], PF("1C_head_off"),
+     [A("why it drifted: the estimator's heading error, against time, one panel per estimator. A heading error turns the drone's "
+        "forward flight sideways; the error grows until the wall.")] + L05, scope=["05"], world=False)
+page("15", "1C_head_on", f"{T06} (1 of 2)", sline("06", "what"), [], None, [], PF("1C_head_on", " ".join(CHECKS)),
+     [A("with the camera heading: the heading error of every flight against time, one panel per estimator (3 flights each), "
+        "inside the grey pass band.")] + L06, scope=["06"], world=False)
+page("16", "1C_side_on", f"{T06} (2 of 2)", sline("06", "what"),
+     [world(R + "corridor_textured_half_fwdc__interior.jpg", snew("Inside: painted-line walls, roof, checkerboard floor")),
+      world(R + "corridor_textured_half_fwdc__angled_cutaway.jpg", snew("Outside view, roof cut away"))],
+     "1C", ["corridor_textured_half_fwdc"], PF("1C_side_on", " ".join(CHECKS)),
+     [A("with the camera heading: how far the drone really was from the centre line against time, every flight, one panel per "
+        "estimator.")] + L06, scope=["06"])
 
-# 2, 3: the tag room
+# ---- 2, 3: the tag room
 W_ROOM = lambda: [world(R + "room_tags__angled.jpg", snew("The tag room from above, at an angle")),
                   world(R + "room_tags__top_room.jpg", snew("Floor tags, from above"))]
-page("09", "2_known_tags", SUMP["07"]["title"], sline("07", "what"), W_ROOM(), "2", ["room_tags"], P("F5"),
-     [("About this plot:", snew("error for each number of tags, in centimetres. Solid lines, filled marks: live estimates. Dashed "
-                                "lines, open marks: the flight re-solved afterwards (hindsight). Small marks: the single flights; "
-                                "large marks: their mean.")),
-      ("Metric:", sline("07", "metric")), ("Pass rule:", sline("07", "rule")), ("Result:", sline("07", "result"))], scope=["07"])
-page("10", "3_loop_closure", SUMP["08"]["title"], sline("08", "what"), W_ROOM(), "3", ["room_tags"], P("F7"),
-     [("About this plot:", snew("the FGO's error on each lap of the 6 m square, in centimetres, one line per flight. Left: with "
-                                "loop closure. Right: without it. Solid: live. Dashed: hindsight.")),
-      ("Metric:", sline("08", "metric")), ("Pass rule:", sline("08", "rule")), ("Result:", sline("08", "result"))], scope=["08"])
+L07 = [("Metric:", sline("07", "metric")), ("Pass rule:", sline("07", "rule")), ("Result:", sline("07", "result"))]
+page("17", "2_truth", f"{SUMP['07']['title']} (1 of 2)", sline("07", "what"), [], None, [], PF("2_truth"),
+     [A("where the drone really flew: the same route in all 12 flights, one panel per number of tags.")] + L07, scope=["07"], world=False)
+page("18", "2_known_tags", f"{SUMP['07']['title']} (2 of 2)", sline("07", "what"), W_ROOM(), "2", ["room_tags"], P("F5"),
+     [A("error for each number of tags, in centimetres. Solid lines, filled marks: live estimates. Dashed lines, open marks: the "
+        "flight re-solved afterwards (hindsight). Small marks: every single flight; large marks: their mean.")] + L07, scope=["07"])
+L08 = [("Metric:", sline("08", "metric")), ("Pass rule:", sline("08", "rule")), ("Result:", sline("08", "result"))]
+page("19", "3_truth", f"{SUMP['08']['title']} (1 of 2)", sline("08", "what"), [], None, [], PF("3_truth"),
+     [A("where the drone really flew in the 3 loop-closure flights (the 8-tag flights of Experiment 2).")] + L08, scope=["08"], world=False)
+page("20", "3_loop_closure", f"{SUMP['08']['title']} (2 of 2)", sline("08", "what"), W_ROOM(), "3", ["room_tags"], P("F7"),
+     [A("the FGO's error on each lap of the 6 m square, in centimetres, one line per flight (all 3). Left: with loop closure. "
+        "Right: without it. Solid: live. Dashed: hindsight.")] + L08, scope=["08"])
 
-# 4: outdoor-indoor
-page("11", "4_outdoor_indoor", SUMP["09"]["title"], sline("09", "what"),
+# ---- 4: outdoor-indoor, all 3 flights
+L09 = [("Metric:", sline("09", "metric")), ("Pass rule:", sline("09", "rule")), ("Result:", sline("09", "result"))]
+page("21", "4_truth", f"{SUMP['09']['title']} (1 of 3)", sline("09", "what"), [], None, [], PF("4_truth"),
+     [A("where the drone really flew: from outdoors along a straight line into the building and back, the same in all 3 flights.")]
+     + L09, scope=["09"], world=False)
+page("22", "4_err_live", f"{SUMP['09']['title']} (2 of 3)", sline("09", "what"), [], None, [], PF("4_err_live"),
+     [A("live error against time, every flight, one panel per estimator. Grey shading: indoors without GPS. The error grows "
+        "indoors and drops when GPS returns.")] + L09, scope=["09"], world=False)
+page("23", "4_err_hind", f"{SUMP['09']['title']} (3 of 3)", sline("09", "what"),
      [world(R + "outdoor_indoor__entrance.jpg", snew("Outdoors: the building entrance (GPS on)")),
-      world(R + "outdoor_indoor__indoor.jpg", snew("Inside the building (GPS off)"))], "4", ["outdoor_indoor"], P("F6"),
-     [("About this plot:", snew("error against time for flight 1 (of 3). Grey shading: indoors without GPS. Solid: live "
-                                "estimates. Dashed: hindsight. EKF3's sudden drop at the end is its reset to GPS outdoors.")),
-      ("Metric:", sline("09", "metric")), ("Pass rule:", sline("09", "rule")), ("Result:", sline("09", "result"))], scope=["09"])
+      world(R + "outdoor_indoor__indoor.jpg", snew("Inside the building (GPS off)"))], "4", ["outdoor_indoor"], PF("4_err_hind"),
+     [A("the same flights re-solved afterwards (hindsight), every flight; same y-scale as the previous page.")] + L09, scope=["09"])
 
-# 5, 5S: summary charts with the wall-tag room
+# ---- 5, 5S: where the drone flew, then the summary charts
 W_WALL = lambda note: [world(R + "room_wall_tag_far__angled.jpg", snew(note)),
                        world(R + "room_wall_tag_far__walltag.jpg", snew("The printed tag on the wall"))]
-for pid, sp, short, key, worlds_, note in (
-        ("12", "10", "5_hold", "5h", ["room_wall_tag", "room_wall_tag_far"], "The room with the wall tag (two start spots were used; the room is the same)"),
-        ("13", "11", "5_tag_loss", "5l", ["room_wall_tag", "room_wall_tag_far"], "The room with the wall tag (two start spots were used; the room is the same)"),
-        ("14", "12", "5S_safety", "5S", ["room_wall_tag_far"], "The room with the wall tag")):
-    page(pid, short, SUMP[sp]["title"], sline(sp, "what"), W_WALL(note), key, worlds_, P("S" + sp),
-         [("Metric:", sline(sp, "metric")), ("Pass rule:", sline(sp, "rule")), ("Result:", sline(sp, "result"))], scope=[sp])
+NOTE5 = "The room with the wall tag (two start spots were used; the room is the same)"
+L10 = [("Metric:", sline("10", "metric")), ("Pass rule:", sline("10", "rule")), ("Result:", sline("10", "result"))]
+page("24", "5_truth", f"{SUMP['10']['title']} (1 of 2)", sline("10", "what"), [], None, [], PF("5_truth"),
+     [A("where the drone really flew in the 12 hold flights: hovering, a short move, hovering again, one panel per flying "
+        "estimator. The same flights are used on the next two pages.")] + L10, scope=["10"], world=False)
+page("25", "5_hold", f"{SUMP['10']['title']} (2 of 2)", sline("10", "what"), [], None, [], P("S10"), L10, scope=["10"], world=False)
+page("26", "5_tag_loss", SUMP["11"]["title"], sline("11", "what"), W_WALL(NOTE5), "5l", ["room_wall_tag", "room_wall_tag_far"], P("S11"),
+     [("Metric:", sline("11", "metric")), ("Pass rule:", sline("11", "rule")), ("Result:", sline("11", "result"))], scope=["11"])
+L12 = [("Metric:", sline("12", "metric")), ("Pass rule:", sline("12", "rule")), ("Result:", sline("12", "result"))]
+page("27", "5S_truth", f"{SUMP['12']['title']} (1 of 2)", sline("12", "what"), [], None, [], PF("5S_truth"),
+     [A("where the drone really flew in the 4 final safety runs (one per test).")] + L12, scope=["12"], world=False)
+page("28", "5S_safety", f"{SUMP['12']['title']} (2 of 2)", sline("12", "what"), W_WALL("The room with the wall tag"), "5S",
+     ["room_wall_tag_far"], P("S12"), L12, scope=["12"])
 
 # =================================================================== contents + how-to, PDF
 figc = plt.figure(figsize=(PAGE_W, PAGE_H))
 figc.text(MX + 0.013, 0.945, "Results walkthrough: contents", fontsize=21, weight="bold", va="top")
-NOTE = snew("Each experiment has two pages: first what it tests and the "
-            "original detailed plot, with under it what the plot shows, the metric, the pass rule and the result; then a page with the simulated world it was flown in. In the corridor "
-            "plots, dashed lines mean without the camera heading and solid lines with it. Where an experiment has no detailed "
-            "plot, its summary chart is shown instead.")
+NOTE = snew("Each experiment starts with where the drone really flew, then its plots showing every flight (one panel per "
+            "estimator, never drawn on top of each other), each with what it shows, the metric, the pass rule and the result; the "
+            "simulated world it was flown in follows once, after the experiment's last plot. Where an experiment has no per-flight "
+            "plot, its summary chart is shown.")
 guard(NOTE["text"], "", "contents note")
 figc.text(MX + 0.013, 0.885, wrap(NOTE["text"], 118), fontsize=13, va="top", color=INK2, linespacing=1.3)
-rows_c = [("", "How to read these pages")] + [(str(i + 1), p["title"]) for i, p in enumerate(PAGES)]
-for i, (n, t) in enumerate(rows_c):
+ORDER = []; pn = 3                      # page 1 contents, page 2 how to read
+for p in PAGES:
+    p["pageno"] = pn; pn += 1 + (p["wfig"] is not None)
+    base = re.sub(r" \(\d+ of \d+\)$", "", p["title"])
+    if not ORDER or ORDER[-1][1] != base:
+        ORDER.append((p["pageno"], base, 1))
+    else:
+        ORDER[-1] = (ORDER[-1][0], base, ORDER[-1][2] + 1)
+NPAGES = pn - 1
+rows_c = [("", "How to read these pages", 2)] + [(str(i + 1), t, n0) for i, (n0, t, k) in enumerate(ORDER)]
+for i, (n, t, n0) in enumerate(rows_c):
     yy = 0.74 - i * 0.046
     figc.text(0.07, yy, n, fontsize=13, va="top", ha="right", color=INK2)
     figc.text(0.09, yy, t, fontsize=13, va="top")
-    figc.text(0.955, yy, f"page {2 if i == 0 else 2 * i + 1}", fontsize=12, va="top", ha="right", color=INK2)
+    figc.text(0.955, yy, f"page {n0}", fontsize=12, va="top", ha="right", color=INK2)
 assert 0.74 - (len(rows_c) - 1) * 0.046 > 0.03, "contents page overflows"
 figc.savefig(os.path.join(OUTD, "wt_00a_contents.png"), dpi=DPI)
 HOWTO = os.path.join(SUM, "summary_00_how_to_read.png")
 figh = plt.figure(figsize=(PAGE_W, PAGE_H)); axh = figh.add_axes([0, 0, 1, 1]); axh.imshow(np.asarray(Image.open(HOWTO).convert("RGB")), interpolation="none", aspect="auto"); axh.axis("off")
 figh.savefig(os.path.join(OUTD, "wt_00b_how_to_read.png"), dpi=DPI)
 with PdfPages(PDF) as pdf:
-    for f in [figc, figh] + [g for p in PAGES for g in (p["fig"], p["wfig"])]:
+    for f in [figc, figh] + [g for p in PAGES for g in (p["fig"], p["wfig"]) if g is not None]:
         pdf.savefig(f)
 plt.close("all")
 
@@ -497,8 +567,12 @@ plt.close("all")
 nverb = sum(d["kind"] == "VERBATIM" for p in PAGES for lab, d in p["txt"]); okverb = sum(d.get("equal", False) for p in PAGES for _, d in p["txt"])
 nmod = sum(d["kind"] == "MODIFIED" for p in PAGES for _, d in p["txt"]); nnew = sum(d["kind"] == "NEW" for p in PAGES for _, d in p["txt"]) + 1
 md = ["# Results walkthrough: index and provenance", "",
-      f"*Generated by `eval/figs_results_walkthrough.py` at commit `{COMMIT}`. COMPOSITION ONLY: existing, cross-checked images are "
-      "placed on pages; nothing is re-plotted, recomputed or re-run. All provenance is here; the pages carry none.*", "",
+      f"*Generated by `eval/figs_results_walkthrough.py` at commit `{COMMIT}`. This script only COMPOSES pages: it places existing, "
+      "cross-checked images (thesis figures, summary charts, and the all-flights plots of `eval/figs_walkthrough_flights.py`, whose own "
+      "checks are in `flights/index_flights.md`); nothing is re-plotted, recomputed or re-run here. All provenance is here; the pages carry none.*", "",
+      f"**All-flights plots (ruling 2026-10-21):** {sum(c['ok'] for c in FLCHK['checks'])}/{len(FLCHK['checks'])} printed-number checks and "
+      f"{sum(c['ok'] for c in FLCHK['dataid'])}/{len(FLCHK['dataid'])} data-identity checks pass (`docs/thesis/summary/flights/index_flights.md`, "
+      f"sha256 `{sha(os.path.join(FLD, 'index_flights.md'))}`). The world page appears once per experiment, after its last plot page.", "",
       f"**Checks:** {okverb}/{nverb} reused lines equal their source string exactly; {nmod} lines MODIFIED (each listed with its "
       f"original); {nnew} NEW lines (number guard: every number in a NEW or MODIFIED line occurs in the figure's own index entry or in "
       f"that page's summary strings: {'PASS' if not [f for f in FAIL if 'number' in f] else 'FAIL'}); world check "
@@ -508,15 +582,15 @@ md = ["# Results walkthrough: index and provenance", "",
       "`441e97c` with only its output folder redirected: the regenerated `index_summary.md` was identical apart from its commit line, "
       "and all 13 summary PNGs were byte-identical to the committed ones; the footer-rule rows used to crop the summary charts "
       "(`top` + 0.012 = 0.2945 / 0.266 / 0.323 / 0.2945 / 0.323 for summary pages 02 / 03 / 10 / 11 / 12) come from that run and are "
-      "asserted on the committed PNGs at build time. The five closed-loop check phrases inserted into page 08's pass rule are "
+      "asserted on the committed PNGs at build time. The five closed-loop check phrases inserted into the with-heading 1C pass rule are "
       "asserted to occur in `eval/figs_thesis_summary.py`.", "",
       "**Layout.** A4 landscape; PNGs at 200 dpi; images embedded unresampled (`interpolation='none'`). Text ≥ 11 pt (Metric, Pass "
       "rule, Result, About, world captions: 11 pt; What this tests: 12.5 pt; titles 16.5 pt). 'scale' below = displayed width ÷ the "
       "image's width at 200 dpi (the summary charts are 150 dpi images and are never enlarged beyond their own size).", "",
       f"**PDF:** `results_walkthrough.pdf` = contents (`walkthrough/wt_00a_contents.png`), 'How to read these pages' (the summary's "
-      f"`summary_00_how_to_read.png`, sha256 `{sha(HOWTO)}`, placed full page unchanged), then pages 01–14 below.", "",
+      f"`summary_00_how_to_read.png`, sha256 `{sha(HOWTO)}`, placed full page unchanged), then pages 01–{PAGES[-1]['id']} below ({NPAGES} PDF pages in all).", "",
       f"**Contents-page note (NEW):** {NOTE['text']}", ""]
-WTR = {"1A": "dsn_tex_r3 (R3 a, R5)", "1Ab": "fwdc_tex_r3 (R3 b)", "blank": "the 14 blank-floor flights of Table 4.2", "1Bh": "the 18 heading-check flights",
+WTR = {"1A": "dsn_tex_r1–r9 (all 9 plotted)", "blank": "the 14 blank-floor flights of Table 4.2", "1B": "the 18 heading-check flights (fwdc_tex_r1–r3 plotted)",
        "1C": "the 12 closed-loop flights of Figures 4.1 / 4.1b", "2": "T_A–D r1–3", "3": "T_A r1–3", "4": "O_r1, O_r2, O_r3b",
        "5h": "S1 near and far, S2v2, S3v2", "5l": "S1 near and far, S2v2, S3v2", "5S": "the four final safety runs"}
 for p in PAGES:
@@ -543,9 +617,15 @@ md += ["## Not included, and why", "",
        "- **Figure 3.1 (system architecture):** method, not a result.",
        "- **Tables A.1–A.3 and the other thesis tables:** tables, not time-series or path plots; their pass/fail content is in the "
        "summary lines already shown.",
-       "- **Experiments with no detailed time-series or path plot** use their summary chart (cropped to the chart): the blank floor "
-       "(page 04), the 1B heading check (05), Experiment 5 hold (12) and tag loss (13), and 5S (14).",
-       "- **No onboard frame of the half-and-half floor with plain walls** exists (`world_images/index.md` §4); page 05 notes that "
+       "- **Summary charts kept** (no per-flight time series made here): the blank floor (page 06), the 1B heading check (07), "
+       "Experiment 5 hold (25) and tag loss (26), 5S (28). Their per-flight error-against-time views were not built in this stage "
+       "(blank floor: the +10/+30 s values of blank_behaviour.json would be the identity check; Experiment 5: hold and loss windows "
+       "from expH json); the blank floor and the 1B heading check also have no 'where the drone flew' page (offline, truth-flying "
+       "corridor flights, the same straight line as page 01).",
+       "- **Replaced by all-flights plots:** Figure 4.2 (R3, one flight), Figure 4.1c (R5, one flight, error against distance), Figures "
+       "4.1 and 4.1b (F2, F9: estimators overlaid) and Figure 5.3 (F6, flight 1 of 3). Experiment 2's error against time per flight was "
+       "not built (Figure 5.1 already shows every flight as a small mark).",
+       "- **No onboard frame of the half-and-half floor with plain walls** exists (`world_images/index.md` §4); the 1B world page notes that "
        "the half-and-half floor is not pictured.", ""]
 open(INDEX, "w").write("\n".join(md))
 print(f"verbatim {okverb}/{nverb}, modified {nmod}, new {nnew}; world checks {sum(w['ok'] for w in WCHK.values())}/{len(WCHK)}; "
