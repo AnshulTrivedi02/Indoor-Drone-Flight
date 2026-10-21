@@ -433,12 +433,10 @@ page("08", "1B_truth", f"{T04} (1 of 4)", sline("04", "what"), [], None, [], PF(
         "flights are processed with and without the camera heading.")] + L04, scope=["04"], world=False)
 page("09", "1B_paths", f"{T04} (2 of 4)", sline("04", "what"), [], None, [], PF("1B_aligned_paths"),
      [A("every flight's estimated path, cruise only, " + YAWS + ", in five separate panels: without the heading (left three) and "
-        "with it (right two; EKF3 has no camera-heading version). *Flight 3 of the UKF and FGO without heading is not drawn: this "
-        "re-fit differs from its score by less than 2 mm, enough to change the last digit of its rounded score (listed in the index).")]
+        "with it (right two; EKF3 has no camera-heading version).")]
      + L04, scope=["04"], world=False)
 page("10", "1B_err_noheading", f"{T04} (3 of 4)", sline("04", "what"), [], None, [], PF("1B_err_noheading"),
-     [A("the error against time WITHOUT the camera heading, " + YAWS + ": several metres. *Flight 3 of the UKF and FGO is not "
-        "drawn (see the previous page).")] + L04, scope=["04"], world=False)
+     [A("the error against time WITHOUT the camera heading, " + YAWS + ": several metres.")] + L04, scope=["04"], world=False)
 page("11", "1B_err_heading", f"{T04} (4 of 4)", sline("04", "what"),
      [W_FWDC(), world(R + "corridor_textured_fwdc__angled_cutaway.jpg", snew("Outside view, roof cut away")),
       world(OB + "fwdc_tex_r1__fwd_y040.png", snew("Forward camera: painted-line walls, checkerboard floor"), OBX),

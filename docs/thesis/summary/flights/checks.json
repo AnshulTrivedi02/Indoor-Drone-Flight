@@ -1122,6 +1122,14 @@
   },
   {
    "fig": "1B",
+   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED yaw-only aligned error, RMS within 5 mm of the stored cruise ATE",
+   "computed": "True",
+   "expected": "True",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
    "label": "fwdc_tex_r1 FGO_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
    "computed": "4.467123",
    "expected": "4.467123",
@@ -1157,6 +1165,14 @@
    "label": "fwdc_tex_r3 FGO_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
    "computed": "4.544273",
    "expected": "4.544273",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED yaw-only aligned error, RMS within 5 mm of the stored cruise ATE",
+   "computed": "True",
+   "expected": "True",
    "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.ate_a_cruise",
    "ok": true
   },
