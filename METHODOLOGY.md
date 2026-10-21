@@ -14362,3 +14362,22 @@ From the read-only axis-swap trace ruled 2026-10-17 (full table and recomputatio
   runaway conclusion stands. The frozen final pack (F06) carries the stored values.
 - **Side flags:** UKF/FGO evo -u (unaligned) numbers compare across the 90° frame offset (no numbers.md row quotes one);
   `figs_thesis_results.py:622` docstring calls the UKF/FGO trajectories ENU (the figure aligns, so it is correct).
+
+### FINDING (2026-10-21): the SE(3) cruise-ATE alignment is degenerate about the corridor axis; Figure 4.2's top-down aligned paths are therefore misleading (the ATE values are NOT affected). AWAITING A RULING on the thesis figure
+
+Found while answering the user's question "the EKF starts at the origin but the other two estimators don't" (Figure 4.2a,
+`dsn_tex_r3`). Read-only recomputation from the stored `.tum` files over the pinned cruise window [30.302, 332.779] s
+(`eval/results/rerun_dsn_evo.json`):
+- Ground truth is a near-straight line, so the Umeyama alignment has a free rotation about the corridor axis (singular
+  values EKF3 ~[5.7e6, 2.0, 0.0]): any roll about that axis gives the same error, and the solver picks one arbitrarily.
+- **EKF3:** the SE(3) fit rotated its sideways error into the vertical axis. Residual RMS N / E / Down = 0.73 / 0.06 / 4.03 m
+  (SE(3)) against 0.73 / 4.03 / 0.03 m with a yaw-only alignment (rotation about the vertical + translation). Top-down, its
+  aligned path therefore lies on the truth line and starts near the origin.
+- **UKF / FGO:** partly rotated (SE(3) residual E / N / Up 4.31 / 1.74 / 2.26 and 3.94 / 0.77 / 1.99 m; yaw-only 4.87 / 1.74 /
+  0.02 and 4.42 / 0.77 / 0.02 m), so their arcs stay visible top-down and start ~7–8 m off.
+- **The ATE is unchanged:** SE(3) and yaw-only give identical RMS (EKF3 4.098, UKF 5.168, FGO 4.483 m, = the stored values).
+  No numbers.md value or verdict changes.
+- **Effect:** Figure 4.2 (`R3_trajectory_overlay`, generator `eval/figs_thesis_results.py`) compares SE(3)-aligned paths
+  top-down, so it makes EKF3 look on-track when its error is as sideways as the others'. The walkthrough rebuild now uses a
+  yaw-only alignment for aligned path plots (same ATE). **Ruling needed:** redraw Figure 4.2 with the yaw-only alignment (same
+  ATE, stated in the caption), or keep it with a caption note.
