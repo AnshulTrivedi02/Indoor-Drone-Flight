@@ -92,6 +92,33 @@
     "0.06 / 0.06 / 0.06"
    ]
   },
+  "1B_unaligned_paths": {
+   "file": "docs/thesis/summary/flights/fl_1B_unaligned_paths.png",
+   "title": "",
+   "inputs": "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py); windows phase4_fwdc_evo.json",
+   "numbers": [
+    "3",
+    "1.0"
+   ]
+  },
+  "1B_unaligned_err_noheading": {
+   "file": "docs/thesis/summary/flights/fl_1B_unaligned_err_noheading.png",
+   "title": "",
+   "inputs": "as 1B_unaligned_paths",
+   "numbers": [
+    "3",
+    "0"
+   ]
+  },
+  "1B_unaligned_err_heading": {
+   "file": "docs/thesis/summary/flights/fl_1B_unaligned_err_heading.png",
+   "title": "",
+   "inputs": "as 1B_unaligned_paths",
+   "numbers": [
+    "3",
+    "0"
+   ]
+  },
   "1C_paths": {
    "file": "docs/thesis/summary/flights/fl_1C_paths.png",
    "title": "",
@@ -364,6 +391,22 @@
    "computed": "30",
    "expected": "30",
    "src": "the plotted curves (this script)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "flights shown (textured-wall camera dataset, textured floor)",
+   "computed": "3",
+   "expected": "3",
+   "src": "docs/thesis/numbers.md:269",
    "ok": true
   },
   {
@@ -1270,6 +1313,374 @@
    "computed": "0.06",
    "expected": "0.06",
    "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 EKF3: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "147.219895",
+   "expected": "147.219895",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.EKF3.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 EKF3: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "151.004890",
+   "expected": "151.004890",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.EKF3.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 EKF3: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "37.301016",
+   "expected": "37.301016",
+   "src": "~/thesis_data/trials/fwdc_tex_r1/ekf3/ekf3_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 EKF3: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "147.746584",
+   "expected": "147.746584",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.EKF3.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 EKF3: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.860174",
+   "expected": "150.860174",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.EKF3.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 EKF3: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "29.978482",
+   "expected": "29.978482",
+   "src": "~/thesis_data/trials/fwdc_tex_r2/ekf3/ekf3_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 EKF3: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "147.091196",
+   "expected": "147.091196",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.EKF3.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 EKF3: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.949230",
+   "expected": "150.949230",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.EKF3.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 EKF3: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "37.087507",
+   "expected": "37.087507",
+   "src": "~/thesis_data/trials/fwdc_tex_r3/ekf3/ekf3_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "143.449845",
+   "expected": "143.449845",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "151.043139",
+   "expected": "151.043139",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "47.559139",
+   "expected": "47.559139",
+   "src": "~/thesis_data/trials/fwdc_tex_r1/ukf_baseline/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "147.267267",
+   "expected": "147.267267",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.893869",
+   "expected": "150.893869",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "4.969976",
+   "expected": "4.969976",
+   "src": "~/thesis_data/trials/fwdc_tex_r2/ukf_baseline/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "143.356105",
+   "expected": "143.356105",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.994841",
+   "expected": "150.994841",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "47.711481",
+   "expected": "47.711481",
+   "src": "~/thesis_data/trials/fwdc_tex_r3/ukf_baseline/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "146.872782",
+   "expected": "146.872782",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "151.038437",
+   "expected": "151.038437",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "42.193530",
+   "expected": "42.193530",
+   "src": "~/thesis_data/trials/fwdc_tex_r1/fgo_baseline/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "149.555479",
+   "expected": "149.555479",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.884487",
+   "expected": "150.884487",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "8.440110",
+   "expected": "8.440110",
+   "src": "~/thesis_data/trials/fwdc_tex_r2/fgo_baseline/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "146.651082",
+   "expected": "146.651082",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.986959",
+   "expected": "150.986959",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "43.389878",
+   "expected": "43.389878",
+   "src": "~/thesis_data/trials/fwdc_tex_r3/fgo_baseline/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.617686",
+   "expected": "150.617686",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "151.043139",
+   "expected": "151.043139",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 UKF_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.499473",
+   "expected": "0.499473",
+   "src": "~/thesis_data/trials/fwdc_tex_r1/ukf_heading/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.448239",
+   "expected": "150.448239",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.893869",
+   "expected": "150.893869",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 UKF_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.466849",
+   "expected": "0.466849",
+   "src": "~/thesis_data/trials/fwdc_tex_r2/ukf_heading/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.531153",
+   "expected": "150.531153",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.994841",
+   "expected": "150.994841",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 UKF_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.529546",
+   "expected": "0.529546",
+   "src": "~/thesis_data/trials/fwdc_tex_r3/ukf_heading/ukf_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.842826",
+   "expected": "150.842826",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "151.038437",
+   "expected": "151.038437",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r1 FGO_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.221340",
+   "expected": "0.221340",
+   "src": "~/thesis_data/trials/fwdc_tex_r1/fgo_heading/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.671339",
+   "expected": "150.671339",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.884487",
+   "expected": "150.884487",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r2 FGO_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.358834",
+   "expected": "0.358834",
+   "src": "~/thesis_data/trials/fwdc_tex_r2/fgo_heading/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_heading: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+   "computed": "150.763791",
+   "expected": "150.763791",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_heading.failure.final_disp",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_heading: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+   "computed": "150.986959",
+   "expected": "150.986959",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_heading.failure.true_travel",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "fwdc_tex_r3 FGO_heading: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.249406",
+   "expected": "0.249406",
+   "src": "~/thesis_data/trials/fwdc_tex_r3/fgo_heading/fgo_traj.tum + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 deg) on every flight and arm",
+   "computed": "15/15",
+   "expected": "15/15",
+   "src": "this script",
    "ok": true
   },
   {

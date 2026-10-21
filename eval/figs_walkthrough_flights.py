@@ -388,6 +388,17 @@ A_FL = [f"dsn_tex_r{i}" for i in range(1, 10)]
 SUB1 = {"EKF3": ("ekf3", "ekf3_traj.tum"), "UKF": ("ukf", "ukf_traj.tum"), "FGO": ("fgo", "fgo_traj.tum")}
 check("1A", "flights shown: the usable standard-sensor textured flights ('all 9 usable dsn_tex flights')", f"all {len(A_FL)} usable", "all 9 usable",
       "docs/thesis/numbers.md", 230)
+def unaligned(key, tr, sub, f, win):
+    """UNALIGNED (not fitted) path and horizontal error of one flight-arm, from take-off to the end of the cruise window; the
+    frame map of eval/figs_thesis_drift.py (to_NE) and its frame check. Shared by the 1A and 1B not-fitted pages."""
+    a = np.loadtxt(f"{TD}/{tr}/{sub}/{f}"); g = np.loadtxt(f"{TD}/{tr}/{sub}/ground_truth.tum")
+    est_, gt_ = to_NE(key, a, False), to_NE(key, g, True)
+    ok, diag = frame_ok(est_, gt_, win)
+    te, ne, ee = est_; tg, ng, eg = gt_
+    k = (te >= tg[0]) & (te <= win[1])
+    return (ok,) + diag, (te[k] - win[0], ne[k], ee[k], np.hypot(ne[k] - np.interp(te[k], tg, ng), ee[k] - np.interp(te[k], tg, eg)), gt_)
+
+
 med = {}; AL1 = {}; UN1 = {}; FR = []; YAWD = []
 for e in EST:
     for tr in A_FL:
@@ -398,12 +409,7 @@ for e in EST:
         YAWD.append((tr, e, rmse_y - rmse))
         if yaw_ok("1A", tr, e, rmse_y, st, f"eval/results/{EVSRC(tr)}:{tr}.est.{e}.ate_a_cruise"):
             AL1[(e, tr)] = (t - win[0], NE(e, xyz), NE(e, ref), np.linalg.norm(xyz - ref, axis=1))
-        a = np.loadtxt(f"{TD}/{tr}/{SUB1[e][0]}/{SUB1[e][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUB1[e][0]}/ground_truth.tum")
-        est_, gt_ = to_NE(e, a, False), to_NE(e, g, True)
-        ok, diag = frame_ok(est_, gt_, win); FR.append((tr, e, ok) + diag)
-        te, ne, ee = est_; tg, ng, eg = gt_
-        k = (te >= tg[0]) & (te <= win[1])
-        UN1[(e, tr)] = (te[k] - win[0], ne[k], ee[k], np.hypot(ne[k] - np.interp(te[k], tg, ng), ee[k] - np.interp(te[k], tg, eg)), gt_)
+        fr_, UN1[(e, tr)] = unaligned(e, tr, *SUB1[e], win); FR.append((tr, e) + fr_)
     med[e] = rd(float(np.median([ev[tr]["est"][e]["ate_a_cruise"]["+0.00"] for tr in A_FL])), 2)
 for e in EST:
     check("1A", f"{e} median cruise ATE over the 9 flights (m), printed in the panel title", med[e], {"EKF3": "4.10", "UKF": "5.13", "FGO": "4.46"}[e],
@@ -512,6 +518,70 @@ r30 = min(np.max(ALB[(k, tr)][3]) for k in ("EKF3", "UKF_baseline", "FGO_baselin
 check("1B_err_heading", "'about 30 times finer': y-range ratio between the two pages (largest no-heading error / largest with-heading error, rounded to 10)",
       str(int(round(max(np.max(ALB[(k, tr)][3]) for k in ("EKF3", "UKF_baseline", "FGO_baseline") for tr in B_FL if (k, tr) in ALB)
                     / max(np.max(ALB[(k, tr)][3]) for k in ("UKF_heading", "FGO_heading") for tr in B_FL), -1))), "30", "the plotted curves (this script)")
+
+# ---- 1B NOT FITTED (user request 2026-10-21: "add the unaligned 1B pages"): the estimates exactly as they came out, from take-off,
+# the same code path as the 1A not-fitted pages (unaligned(): frame map and frame check of eval/figs_thesis_drift.py)
+UNB = {}; FRB = []
+for key in SUBB:
+    for tr in B_FL:
+        win = P4E[tr]["window_s"]; fr_, UNB[(key, tr)] = unaligned(key, tr, *SUBB[key], win); FRB.append((tr, key) + fr_)
+        tt, ne, ee, er, (tg, ng, eg) = UNB[(key, tr)]; w = tt >= 0; fl = P4E[tr]["est"][key]["failure"]
+        src = f"eval/results/phase4_fwdc_evo.json:{tr}.est.{key}.failure"
+        # stored displacement over the cruise window (eval/three_way_eval.py failure_metrics, origin at the window start): the
+        # PLOTTED not-fitted path samples, restricted to the window, must give the same estimated and true travel (6 dp)
+        dataid("1B_unaligned", f"{tr} {key}: PLOTTED not-fitted path, estimated displacement over the cruise window vs stored final_disp (6 dp)",
+               rd(float(np.hypot(ne[w][-1] - ne[w][0], ee[w][-1] - ee[w][0])), 6), rd(fl["final_disp"], 6), src + ".final_disp")
+        gn, ge = np.interp(tt[w] + win[0], tg, ng), np.interp(tt[w] + win[0], tg, eg)
+        dataid("1B_unaligned", f"{tr} {key}: PLOTTED truth at the plotted samples, true travel over the cruise window vs stored true_travel (6 dp)",
+               rd(float(np.hypot(gn[-1] - gn[0], ge[-1] - ge[0])), 6), rd(fl["true_travel"], 6), src + ".true_travel")
+        # end-of-cruise not-fitted error: the plotted curve's last value vs a direct recomputation from the raw TUM rows
+        a = np.loadtxt(f"{TD}/{tr}/{SUBB[key][0]}/{SUBB[key][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUBB[key][0]}/ground_truth.tum")
+        r_ = a[a[:, 0] <= win[1]][-1]
+        if key.startswith("EKF3"):
+            e_end = math.hypot(r_[1] - np.interp(r_[0], g[:, 0], g[:, 1]), r_[2] - np.interp(r_[0], g[:, 0], g[:, 2]))
+        else:      # own frame (x, y) = (North, West); truth ENU (x, y) = (East, North)
+            e_end = math.hypot(r_[1] - np.interp(r_[0], g[:, 0], g[:, 2]), -r_[2] - np.interp(r_[0], g[:, 0], g[:, 1]))
+        dataid("1B_unaligned", f"{tr} {key}: PLOTTED not-fitted error at the end of the cruise vs direct recomputation from the raw TUM rows (6 dp)",
+               rd(float(er[-1]), 6), rd(e_end, 6), f"~/thesis_data/trials/{tr}/{SUBB[key][0]}/{SUBB[key][1]} + ground_truth.tum")
+if not all(f[2] for f in FRB):
+    sys.exit("1B FRAME CHECK FAILED on " + str([f for f in FRB if not f[2]]))
+dataid("1B_unaligned", f"frame check (rule of eval/figs_thesis_drift.py, heading tolerance {HEAD_TOL_DEG:g} deg) on every flight and arm",
+       f"{sum(f[2] for f in FRB)}/{len(FRB)}", "15/15", "this script")
+FRAME_NOTE_B = (f"at R5's 2.0 deg tolerance {sum(abs(f[5] - f[6]) < 2.0 for f in FRB)}/{len(FRB)} pass" +
+                ("; the others " + ", ".join(f"{f[0]} {f[1]} {f[5] - f[6]:+.2f} deg" for f in FRB if abs(f[5] - f[6]) >= 2.0)
+                 if any(abs(f[5] - f[6]) >= 2.0 for f in FRB) else ""))
+fig, axs = plt.subplots(1, len(SUBB), figsize=(FW, FH), sharex=True, sharey=True)
+for ax, key in zip(axs, SUBB):
+    walls(ax, horiz=False)
+    for tr in B_FL:
+        tg, ng, eg = UNB[(key, tr)][4]; w = tg <= P4E[tr]["window_s"][1]
+        ax.plot(eg[w], ng[w], color=TRUTH, lw=2.2, zorder=2)
+    for tr in B_FL:
+        ax.plot(UNB[(key, tr)][2], UNB[(key, tr)][1], color=COLB[key], lw=LW_FL, zorder=3)
+    ax.plot(0, 0, marker="o", ms=5, color=INK, zorder=5)
+    ax.set_title(f"{LBB[key]}\n{NTX(key)}", loc="left", fontsize=10)
+    ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("East (m)")
+axs[0].set_ylabel("North, along the corridor (m)")
+emin = min(v[2].min() for v in UNB.values()); emax = max(v[2].max() for v in UNB.values())
+axs[0].set_xlim(min(emin, -10) - 3, max(emax, 10) + 3); axs[0].set_ylim(-3, 163)
+fig.subplots_adjust(left=0.06, right=0.99, top=0.8, bottom=0.11, wspace=0.12)
+s = measured_stretch(fig, axs[0]); check("1B_unaligned_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
+head(fig, "Without any fitting, from take-off (black dot): all 3 flights, five separate panels with the same axes",
+     "Equal scale (1.0, no stretch). Grey: the true paths, straight up the corridor. Dark bands: the walls. "
+     "With the heading the lines lie on the grey.", left=0.06)
+save("1B_unaligned_paths", fig, "", "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, −y) "
+     "for the UKF/FGO (eval/figs_thesis_drift.py); windows phase4_fwdc_evo.json", ["3", "1.0"])
+check("1B_unaligned_paths", "flights shown (textured-wall camera dataset, textured floor)", len(B_FL), 3, "docs/thesis/numbers.md", 269, inline_str="r1 / r2 / r3")
+fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}, one line each", "-") for k in ("EKF3", "UKF_baseline", "FGO_baseline")],
+               {k: (v[0], v[3]) for k, v in UNB.items()}, "WITHOUT the camera heading, no fitting: error against time from take-off, all 3 flights",
+               "horizontal error (m)", "time since the start of the cruise (s; take-off is before 0)", ylim=(0, None), vline=0,
+               note="Same y-scale in all three panels (not the same as the next page). Distance between the estimated and the true position, seen from above.")
+save("1B_unaligned_err_noheading", fig, "", "as 1B_unaligned_paths", ["3", "0"])
+fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}, one line each", "-") for k in ("UKF_heading", "FGO_heading")],
+               {k: (v[0], v[3]) for k, v in UNB.items()}, "WITH the camera heading, no fitting: error against time from take-off, all 3 flights",
+               "horizontal error (m)", "time since the start of the cruise (s; take-off is before 0)", ylim=(0, None), vline=0,
+               note="Same y-scale in both panels. NOTE: this y-scale is much finer than on the previous page. EKF3 has no camera-heading version.")
+save("1B_unaligned_err_heading", fig, "", "as 1B_unaligned_paths", ["3", "0"])
 
 # =============================================================================================== EXPERIMENT 1C: closed loop, n = 12
 CL = {(e, k): (tr, ex_cl(e, tr)) for e, tr, k in CL_ALL}
@@ -782,6 +852,10 @@ W = ["# Results walkthrough, all flights: index and provenance", "",
      f"(data-identity rows); largest (yaw-only − SE(3)) RMS difference {max(abs(d[2]) for d in YAWD):.2e} m. The SE(3) value is still "
      "recomputed to 6 dp as the input-identity check.", "",
      f"**Frame check (1A, unaligned):** heading tolerance {HEAD_TOL_DEG:g}°; {FRAME_NOTE}. Any relabel error would give ≥ 90°.", "",
+     f"**Frame check (1B, unaligned; added 2026-10-21):** the same rule and code path (`unaligned()`), {sum(f[2] for f in FRB)}/{len(FRB)} "
+     f"flight-arms pass at {HEAD_TOL_DEG:g}°; {FRAME_NOTE_B}. Each plotted not-fitted 1B path also reproduces the stored cruise-window "
+     "displacement (`failure.final_disp`, `failure.true_travel` of `phase4_fwdc_evo.json`, eval/three_way_eval.py `failure_metrics`) to 6 dp, and "
+     "its end-of-cruise error equals a direct recomputation from the raw TUM rows to 6 dp (data-identity rows `1B_unaligned`).", "",
      "**Why some plots do not start at the origin:** the aligned plots (scoring) show the cruise only (it starts about 30 s after take-off) and "
      "each estimate is moved and turned by the best-fit alignment, so its first point is not the take-off point; the unaligned plots start at "
      "take-off (0, 0).", "", "## Figures", "", "| figure | file | sha256 | inputs | numbers printed |", "|---|---|---|---|---|"]
