@@ -567,9 +567,11 @@ in `e5_design.md` §8.
   - **Floor:** the stored TUM's 6-dp rounding gives 0.29 µm RMS per axis. The re-implemented variable-n sigma-point,
     mean and residual code changes the float64 operation order only at about 1e-16 relative per operation, which
     stays far below 1 µm in position in a stable filter with identical gate decisions.
-  - **Ceiling:** |ΔRMSE| ≤ RMS(Δ) over the same samples. The smallest stored gap involving the Experiment 2 UKF is
-    2.16 mm (RTS-UKF 0.01280 against FGO batch 0.01064 m on T_A_r1, `json:expT/T_A_r1.json`), and the smallest stored
-    Experiment 3 lap value is 0.026 m (§0.4).
+  - **Ceiling:** |ΔRMSE| ≤ RMS(Δ) over the same samples. The smallest stored per-flight gap between a UKF track and
+    another estimator's track (EKF3 live, FGO live, FGO batch; `json:expT`, 12 flights) is 2.16 mm: RTS-UKF 0.01280
+    against FGO batch 0.01064 m on T_A_r1, `json:expT/T_A_r1.json`. The next is 2.45 mm (UKF live against EKF3 live,
+    T_A_r2). The smallest stored Experiment 3 per-lap value is 0.0149 m (LC hindsight, lap 5, T_A_r3;
+    `json:expL`).
   - **Choice:** 1.0 mm is the reporting precision (N:526-529), less than half the 2.16 mm ceiling, and about 3,400×
     the floor. Picking 1.0 mm (and 2.0 mm for the max) within that range is **judgement, not derived from data**;
     1.0 mm is also the user's suggested figure.

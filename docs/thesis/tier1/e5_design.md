@@ -156,10 +156,11 @@
 | timing of the anchoring measurement | applied at the next keyframe, up to 33 ms after the detection | applied to the state of the last predict, up to 15 ms before it | **stated difference**, the same as between the Experiment 2 FGO and UKF; not new to E5 |
 | after the anchor | no yaw cap | pseudo-yaw stops (`room_ukf_replay.py:142`) | identical |
 
-**Why tag 0 is not put in the state with a 1e-4 prior.** Putting it in the state would add a 3 × 3 block with variance
-1e-8 against vehicle variances of order 1e-3 to 1. That makes the sigma-point Cholesky near-singular (the jitter ladder
-of §9 would start at 1e-12, which is 1e-4 of that block). The stored evidence (item 6) shows the FGO's L(0) did not
-move, so holding it exact is the matching treatment. It is not an approximation that changes the numbers measurably.
+**Why tag 0 is held exact rather than put in the state with a 1e-4 prior: equivalence.** The FGO's prior on L(0) is
+about 380× stronger than all its tag-0 factors together (item 6), and the stored final L(0) stayed within 4e-10 of the
+origin in all six runs. So the FGO's gauge tag behaved as exactly known. Holding it exact in the UKF is the matching
+treatment, and it is not an approximation that changes the numbers measurably. (Numerical conditioning is NOT the
+reason: P⁻ already carries bias variances of about 1e-14 (§7), and V-E5c augments landmarks at 1e-10.)
 
 ### 5.3 Invariants (a failure stops E5 before scoring) and checks on every E5 result run
 
@@ -349,18 +350,26 @@ within that range is labelled.
 - **Ceiling (what the reproduced track takes part in).**
   - **The formal link to the scored numbers:** over the same samples, |RMSE_E5 − RMSE_stored| ≤ RMS(Δ) (Minkowski).
     The max per-sample difference bounds the change in any per-lap or per-gap RMSE the same way.
-  - **The smallest stored between-track gap that involves the Experiment 2 UKF** is **2.16 mm**: RTS-UKF 0.01280 m
-    against FGO batch 0.01064 m on T_A_r1 (`json:expT/T_A_r1.json`). The next are 3.37 mm (T_A_r2) and 4.13 mm
-    (T_A_r3). Across the 12 flights, every other gap involving the UKF is ≥ 14.2 mm (UKF live against FGO live).
+  - **The smallest stored per-flight gap between a UKF track and another estimator's track** in `json:expT` (EKF3
+    live, FGO live, FGO batch; 12 flights) is **2.16 mm**: RTS-UKF 0.01280 m against FGO batch 0.01064 m on T_A_r1
+    (`json:expT/T_A_r1.json`).
+    - The next are 2.45 mm (UKF live 0.03623 against EKF3 live 0.03868 m, T_A_r2), 2.78 mm (UKF live against EKF3
+      live, T_A_r3), 3.17 mm (the same, T_A_r1) and 3.37 mm (RTS-UKF against FGO batch, T_A_r2).
+    - UKF live against FGO live is ≥ 14.2 mm on every flight.
+    - The comparisons E5 itself makes are UKF against FGO (S-E5.5, S-E5.6). Their stored Experiment 2 analogues are
+      ≥ 2.16 mm (hindsight) and ≥ 14.2 mm (live).
   - A tolerance at or above 2.16 mm could therefore let the validated code move a reproduced track across an
     Experiment 2 ordering.
-  - **The scale of the scored E5 quantities:** the smallest stored Experiment 3 per-lap value is 0.026 m (LC live,
-    lap 5, T_A_r3; §0.4 of the pre-registration). The overall LC live values are 0.049–0.076 m.
+  - **The scale of the scored E5 quantities:** the smallest stored Experiment 3 per-lap value, over every
+    `per_lap_rmse_m` entry of `json:expL/T_A_r*_t245.json` (LC and no-LC, live and hindsight), is **0.0149 m** (LC
+    hindsight, lap 5, T_A_r3). The smallest LC live lap value is 0.0258 m (lap 5, T_A_r3). The overall LC live values
+    are 0.049–0.076 m.
   - **The reporting precision** is 1 mm (3 dp, N:526-529).
 - **The chosen figures (judgement, not derived from data, within the derived range).**
   - **RMS ≤ 1.0 mm:** the user's suggested figure. It equals the reporting precision and is less than half the
-    smallest UKF gap (2.16 mm), so no Experiment 2 ordering involving the UKF can change through it. It is about
-    3,400× the quantisation floor, and 1/26 of the smallest scored E5-scale lap value.
+    smallest UKF gap (2.16 mm), so no stored Experiment 2 ordering between a UKF track and another estimator can
+    change through it. It is about 3,400× the quantisation floor, and 1/15 of the smallest stored Experiment 3 lap
+    value (0.0149 m).
   - **Max ≤ 2.0 mm:** just below the 2.16 mm ceiling, so that no per-lap or per-gap RMSE can move by the smallest gap
     either. It allows a short local excursion of up to twice the RMS bound.
   - **1e-9 round-off band** on the test ratio: far above float64 round-off (about 1e-15 relative) and far below any

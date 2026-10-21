@@ -6,7 +6,8 @@
   `~/thesis_data/trials/T_A_r*/lc_fgo_{lc,nolc}_t245/stats.json` (`t_anchor`, landmark counts and the final L(0)), and
   the row count and timestamps of `T_A_r1`/`T_D_r1` `room_ukf/{ukf_live,ukf_rts}.tum`.
 - The only execution was the checksum guard's temp-copy self-test (below).
-- **Branch:** `worktree-agent-adb3f27ee84b408d1` (on top of `9be1333`). Not merged.
+- **Branch:** `worktree-agent-a82413da50b039739` (reset to the Stage 1 branch `worktree-agent-adb3f27ee84b408d1` at
+  `9be1333`, then committed on top). Not merged.
 - **Sign-off source:** `METHODOLOGY.md` on `fwd-camera` (`dcc81f7`), heading "SIGN-OFF (user, 2026-10-22): extension
   experiments Stage 1 accepted with amendments; Stage 2 authorised". It was read, not edited.
 
@@ -34,9 +35,11 @@
   - **Reason:**
     - Floor: 6-dp storage gives 0.29 µm RMS, and float64 reordering in the re-implemented variable-n code adds far
       less than 1 µm.
-    - Ceiling: |ΔRMSE| ≤ RMS(Δ) (Minkowski). The smallest stored gap involving the Experiment 2 UKF is **2.16 mm**
-      (RTS-UKF 0.01280 against FGO batch 0.01064 m, T_A_r1). The next are 3.37 and 4.13 mm, and every other gap is
+    - Ceiling: |ΔRMSE| ≤ RMS(Δ) (Minkowski). The smallest stored per-flight gap between a UKF track and another
+      estimator's (EKF3 live, FGO live, FGO batch) is **2.16 mm** (RTS-UKF 0.01280 against FGO batch 0.01064 m,
+      T_A_r1). The next is 2.45 mm (UKF live against EKF3 live, T_A_r2), and UKF live against FGO live is
       ≥ 14.2 mm.
+    - The smallest stored Experiment 3 per-lap value is 0.0149 m (LC hindsight, lap 5, T_A_r3).
     - 1.0 mm is the reporting precision, less than half the ceiling, and about 3,400× the floor. The choice within
       that range is labelled judgement.
 - **E4 (amendment 3).**
@@ -95,6 +98,18 @@
    prove reproduction for the snapshotted code. Confirm or drop.
 3. **Former flags 7 and 8** (E4 against the stored batch; LM-10 on two flights only) were not ruled separately. They
    are recorded as "accepted as drafted under the general Stage 1 sign-off".
+4. **E5 further criteria.** H-E5.2, H-E5.3 and P-E5.4 (LC against no-LC within the UKF) were kept beside amendment 1's
+   primary (H-E5.1) and secondary (S-E5.5/6). The amendment names only those two roles, so the user should confirm
+   that the further criteria stay.
+
+## Corrections made after the first commit (`294eca6`), same day
+
+- The E5 tolerance ceiling now names every track compared: the EKF3 live gaps (2.45 mm and up) had been left out. The
+  2.16 mm minimum and the 1.0 mm / 2.0 mm figures are unchanged.
+- The smallest Experiment 3 lap value is 0.0149 m (LC hindsight), not 0.026 m (which is the smallest LC live lap-5
+  value).
+- `e5_design.md` §5.2: tag 0 is held exact on equivalence grounds. The draft's conditioning argument contradicted §7
+  (bias variances of about 1e-14) and V-E5c (1e-10).
 
 ## Next (Stage 2, per the sign-off)
 
