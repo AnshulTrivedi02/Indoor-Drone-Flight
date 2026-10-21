@@ -167,8 +167,9 @@ Every other key is equal, including `t_anchor`, the landmark counts and the keyf
 - Each wall time is measured by the driver around the `heavy.py` call, so it includes the lock check and the
   interpreter start.
 - Every measured figure is below its §8 planning upper bound.
-- On this evidence, serial LC replays take about 0.25–0.45× their stored 6-parallel wall times. That suggests the E2
-  and E3 budgets in §8 are conservative. This is an inference from one LC flight, not a measurement of the others.
+- Same flight, same configuration: the serial LC replay on T_A_r1 took 127.2 s and 129.7 s (`stats.json` `wall_s`)
+  against the stored 6-parallel 299.4 s, about 0.42–0.43×. That is one flight only; it suggests the E2 and E3 budgets
+  in §8 are conservative, but it is not a measurement of any other flight.
 
 ## 5. Guard verify (after the last gate)
 
