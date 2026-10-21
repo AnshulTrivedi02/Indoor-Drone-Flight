@@ -643,21 +643,17 @@ runs until the user rules.
 data (trial outputs, eval/results, all folders behind existing numbers); docs excluded". The tool's default coverage
 now matches it (`snapshot` without `--docs` covers no documents).
 
-**Default coverage**, listed exactly in the tool's docstring:
-- **`trials_T`:** every file of every `~/thesis_data/trials/T_*` directory. That includes:
-  - the bags, `imu_gaps.json`, `metadata.yaml` and `logs/`;
-  - every `lc_fgo_*`, `room_fgo*` and `room_ukf*` folder;
-  - the IMUGAP and ABORTED directories.
-  These are the inputs and every frozen Experiment 2 and 3 output that a mis-pathed run could touch.
-- **`trials_lc_other`:** `dsn_tex_r1/lc_fgo_notags` and `dsn_tex_r1/fgo_baseline`, the V-L pair.
-- **`batches`:** `final2_L`, `final_L`, `final_rerun2`, `final2_room_T` and `final_room_T`. These hold the job lists
-  and logs behind N:579-587 and the timing estimates in §8.
-- **`results`:** `eval/results/expL`, `eval/results/expT` (N:§16.1 and §16.3 sources, the E2–E5 references) and
-  `batches/final_rerun/room_T.jobs`.
-- **`run_code` (retained; code, not result data):** every file the replays, scorers and runners execute, so that the
-  code cannot change between the snapshot and the last run. Edits to a covered file during the experiments are
-  therefore a stop-and-report. It is kept because the gates (G0-L, G0-UKF, G-E4, V-E5) only prove reproduction for the
-  code that is snapshotted. It is not a document, so the documents exclusion does not remove it.
+**Default coverage** (widened 2026-10-22 to the ruling's wording, before the snapshot; `default_specs` in the tool):
+- **`trials_T`:** every file of every `~/thesis_data/trials/T_*` directory, including the recorded bags the tier-1 replays
+  read, and every frozen Experiment 2 and 3 output (`lc_fgo_*`, `room_fgo*`, `room_ukf*`).
+- **`trials_outputs`:** every other trial folder's outputs: every entry of every `~/thesis_data/trials/<trial>/` except
+  its recorded input `bag/` (inputs, about 102 GB, never written by these tools; excluded to keep the snapshot practical).
+  This covers the trial folders behind every other numbers.md row (`dsn_*`, forward-camera sets, closed-loop and H sets).
+- **`batches`:** all of `~/thesis_data/batches/` and the repository's `batches/` (job lists and logs behind numbers.md and
+  the timing estimates in §8).
+- **`results`:** all of `eval/results/`.
+- **Code is not in the default** (ruling: result data only). The reproduction gates (G0-L, G0-UKF, G-E4, V-E5) check the
+  code by reproducing stored outputs; `snapshot --code` remains available as an option and is not used.
 
 **Documents: excluded by default** (decision 2026-10-22; this replaces former flags 4 and 13).
 - Not covered: `docs/thesis/numbers.md`, the frozen pack (`final_results_pack.pdf`, `_index.md`, `_corrections.md`),
@@ -667,12 +663,7 @@ now matches it (`snapshot` without `--docs` covers no documents).
   roots, and the scorers refuse other `--json` targets.
 - `snapshot --docs pack` and `--docs all` remain as options, but are not used for the tier-1 snapshot.
 
-**Open item: coverage against the ruling's wording.** The ruling names "eval/results" and "all folders behind
-existing numbers". The default coverage holds the result data the tier-1 runs read or could touch: the T trials, the
-V-L pair, `eval/results/expL` and `expT`, and the batches behind §16. It does **not** hold the rest of `eval/results/`
-or the trial folders behind other `numbers.md` rows (for example the `dsn_*` and forward-camera sets). This stage was
-limited to excluding documents, so the coverage was not widened. Widening it is a one-line change per path in
-`default_specs`, at a hashing cost of seconds to minutes; it needs a ruling before the snapshot.
+**Coverage (DECIDED 2026-10-22):** widened to all result data as above, before the snapshot; code removed from the default.
 
 **NOT covered, and why (besides the documents):**
 - **`docs/thesis/tier1/` and `~/thesis_data/tier1/`:** the outputs themselves.
@@ -818,8 +809,7 @@ results go into `numbers_tier1.md` §Gates and are reported to the user before E
 | 10 | E4 hypotheses timing only | **SUPERSEDED by amendment 3:** H-E4.3 (directional accuracy) added; the gain fraction is reported (§3) |
 | 11 | E5 design choices | **DECIDED:** accepted subject to amendment 5, which `e5_design.md` §5 and §6.1 answer (`e5_design.md` §10) |
 | 12 | The lock clock time | **DECIDED:** 2026-11-04 23:59 AEDT (header, §8) |
-| 13 | Guard coverage of the actively edited thesis documents | **DECIDED:** documents excluded by default (§6). The coverage of other result folders is an open item (§6) |
+| 13 | Guard coverage of the actively edited thesis documents | **DECIDED:** documents excluded by default; coverage widened to all result data; code not in the default (§6) |
 | 14 | E5 validation runs: uncut, `/tags/sent` anchor and input; V-E5a on `ukf_core` only | **DECIDED** under amendment 2: the V-E5 gates use the numerical tolerance against the stored tracks (§4; `e5_design.md` §8) |
 
-**Still open (needs a ruling before the snapshot):** the guard's coverage of result folders beyond those the tier-1
-runs touch (§6, "Open item").
+**Nothing remains open.** Former flags 7 and 8 and the additional within-UKF criteria (H-E5.2, H-E5.3, P-E5.4: the Experiment 3 criteria applied to the landmark UKF, kept beside amendment 1's primary and secondary) are accepted as drafted under the 2026-10-22 sign-off.

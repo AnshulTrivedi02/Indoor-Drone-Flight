@@ -38,8 +38,8 @@ Documents (frozen_docs) are NOT covered by default (--docs none). Optional, not 
               plots/supervisor_2026-10-08/.
 NOT covered (stated): every document (numbers.md, the frozen pack, headline_claims, figures_thesis/, tables/, the
   plots above, METHODOLOGY.md) unless --docs says otherwise; docs/thesis/tier1/ and ~/thesis_data/tier1/ (the tier-1
-  outputs themselves). Result folders the tier-1 runs do not read or touch (the rest of eval/results/, other trial
-  sets) are not in the default either: an open item in the pre-registration §6."""
+  outputs themselves). Default (decided 2026-10-22): all result data: every T_* trial in full,
+  every other trial's outputs (not its input bag/), all batch folders and all of eval/results; code only with --code."""
 import argparse, glob, hashlib, json, os, socket, subprocess, sys, time
 
 HOME = os.path.expanduser("~")
@@ -48,10 +48,14 @@ HOME = os.path.expanduser("~")
 def default_specs(repo):
     T = f"{HOME}/thesis_data/trials"; B = f"{HOME}/thesis_data/batches"; r = lambda p: os.path.join(repo, p)
     return {
+        # Ruling 2026-10-22 ("result data (trial outputs, eval/results, all folders behind existing numbers)"): every trial's
+        # outputs (every entry of every trial folder except its recorded input bag; the T bags, which the tier-1 replays read,
+        # are covered in full), every batch folder, and all of eval/results.
         "trials_T": [f"{T}/T_*"],
-        "trials_lc_other": [f"{T}/[!T]*/lc_fgo_*", f"{T}/dsn_tex_r1/fgo_baseline"],
-        "batches": [f"{B}/final2_L", f"{B}/final_L", f"{B}/final_rerun2", f"{B}/final2_room_T", f"{B}/final_room_T"],
-        "results": [r("eval/results/expL"), r("eval/results/expT"), r("batches/final_rerun/room_T.jobs")],
+        "trials_outputs": sorted(p for p in glob.glob(f"{T}/*/*")
+                                 if os.path.basename(p) != "bag" and not os.path.basename(os.path.dirname(p)).startswith("T_")),
+        "batches": [f"{B}", r("batches")],
+        "results": [r("eval/results")],
         "frozen_docs": [r("docs/thesis/numbers.md"), r("docs/thesis/final_results_pack.pdf"),
                         r("docs/thesis/final_results_pack_index.md"), r("docs/thesis/final_results_pack_corrections.md"),
                         r("docs/thesis/headline_claims_before_after.md"), r("docs/thesis/figures_thesis"),
@@ -106,6 +110,8 @@ def snapshot(a):
     specs = {"custom": [os.path.abspath(p) for p in a.paths]} if a.paths else default_specs(repo)
     if not a.paths and a.docs == "none":   # default (sign-off 2026-10-22): result data only, documents excluded
         del specs["frozen_docs"]
+    if not a.paths and not a.code:         # result data only (ruling 2026-10-22); code is checked by the reproduction gates
+        del specs["run_code"]
     if not a.paths and a.docs == "pack":   # optional: only the frozen pack files and plots
         keep = ("final_results_pack.pdf", "final_results_pack_index.md", "final_results_pack_corrections.md",
                 "plots/final_results_pack", "plots/supervisor_2026-10-08")
@@ -168,6 +174,8 @@ def main():
     s.add_argument("--docs", choices=["none", "pack", "all"], default="none",
                    help="document coverage: none (default; sign-off 2026-10-22: result data only, documents excluded), "
                         "pack = only the frozen pack files and plots, all = every frozen document")
+    s.add_argument("--code", action="store_true", help="also cover the code the replays run (not in the default: the ruling "
+                   "limits the guard to result data; the reproduction gates check the code)")
     v = sp.add_parser("verify"); v.add_argument("manifest"); v.add_argument("--report")
     a = ap.parse_args()
     sys.exit(snapshot(a) if a.cmd == "snapshot" else verify(a))
