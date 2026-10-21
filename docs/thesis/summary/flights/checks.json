@@ -1,0 +1,1428 @@
+{
+ "figs": {
+  "1A_truth": {
+   "file": "docs/thesis/summary/flights/fl_1A_truth.png",
+   "title": "Where the drone really flew: all 9 flights (simulator truth)",
+   "inputs": "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)",
+   "numbers": [
+    "9",
+    "1.0",
+    "0"
+   ]
+  },
+  "1A_aligned_paths": {
+   "file": "docs/thesis/summary/flights/fl_1A_aligned_paths.png",
+   "title": "",
+   "inputs": "TUMs of dsn_tex_r1..r9 ({ekf3,ukf,fgo}/*.tum); windows and cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json",
+   "numbers": [
+    "9",
+    "3.0",
+    "4.10",
+    "5.13",
+    "4.46"
+   ]
+  },
+  "1A_aligned_err": {
+   "file": "docs/thesis/summary/flights/fl_1A_aligned_err.png",
+   "title": "",
+   "inputs": "as 1A_aligned_paths",
+   "numbers": [
+    "9",
+    "4.10",
+    "5.13",
+    "4.46"
+   ]
+  },
+  "1A_unaligned_paths": {
+   "file": "docs/thesis/summary/flights/fl_1A_unaligned_paths.png",
+   "title": "",
+   "inputs": "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py)",
+   "numbers": [
+    "9",
+    "1.0"
+   ]
+  },
+  "1A_unaligned_err": {
+   "file": "docs/thesis/summary/flights/fl_1A_unaligned_err.png",
+   "title": "",
+   "inputs": "as 1A_unaligned_paths",
+   "numbers": [
+    "9",
+    "0"
+   ]
+  },
+  "1B_truth": {
+   "file": "docs/thesis/summary/flights/fl_1B_truth.png",
+   "title": "Where the drone really flew: all 3 camera-dataset flights (simulator truth)",
+   "inputs": "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline/ground_truth.tum (ENU)",
+   "numbers": [
+    "3",
+    "1.0",
+    "0"
+   ]
+  },
+  "1B_aligned_paths": {
+   "file": "docs/thesis/summary/flights/fl_1B_aligned_paths.png",
+   "title": "",
+   "inputs": "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); phase4_fwdc_evo.json",
+   "numbers": [
+    "3",
+    "3.0"
+   ]
+  },
+  "1B_err_noheading": {
+   "file": "docs/thesis/summary/flights/fl_1B_err_noheading.png",
+   "title": "",
+   "inputs": "as 1B_aligned_paths",
+   "numbers": [
+    "3",
+    "4.09 / 3.60 / 4.08",
+    "4.96 / 1.78 / 4.96",
+    "4.47 / 2.26 / 4.54"
+   ]
+  },
+  "1B_err_heading": {
+   "file": "docs/thesis/summary/flights/fl_1B_err_heading.png",
+   "title": "",
+   "inputs": "as 1B_aligned_paths",
+   "numbers": [
+    "3",
+    "30",
+    "0.13 / 0.13 / 0.14",
+    "0.06 / 0.06 / 0.06"
+   ]
+  },
+  "1C_paths": {
+   "file": "docs/thesis/summary/flights/fl_1C_paths.png",
+   "title": "",
+   "inputs": "dataflash SIM of the 12 closed-loop flights; contact and B2 from eval/results/closed_loop_<trial>.json",
+   "numbers": [
+    "12",
+    "3.0",
+    "10",
+    "9.58",
+    "+242.1",
+    "+165.9",
+    "+169.9"
+   ]
+  },
+  "1C_head_off": {
+   "file": "docs/thesis/summary/flights/fl_1C_head_off.png",
+   "title": "",
+   "inputs": "dataflash XKF1 (core 0) / XUKO / XFGO and SIM, bag /imu/time_ref (clock map), of cl_a_tex_half, cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3; contact from closed_loop_<trial>.json",
+   "numbers": [
+    "1",
+    "+242.1",
+    "+165.9",
+    "+169.9"
+   ]
+  },
+  "1C_head_on": {
+   "file": "docs/thesis/summary/flights/fl_1C_head_on.png",
+   "title": "",
+   "inputs": "as 1C_head_off, for the 9 with-heading flights; B3 from closed_loop_<trial>.json",
+   "numbers": [
+    "3",
+    "2.0",
+    "1.0",
+    "95",
+    "9",
+    "0.38",
+    "0.68"
+   ]
+  },
+  "1C_side_off": {
+   "file": "docs/thesis/summary/flights/fl_1C_side_off.png",
+   "title": "",
+   "inputs": "dataflash SIM of cl_a_tex_half, cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3",
+   "numbers": [
+    "1",
+    "0",
+    "10",
+    "9.58",
+    "+242.1",
+    "+165.9",
+    "+169.9"
+   ]
+  },
+  "1C_side_on": {
+   "file": "docs/thesis/summary/flights/fl_1C_side_on.png",
+   "title": "",
+   "inputs": "dataflash SIM of the 9 with-heading flights; B2 from closed_loop_<trial>.json",
+   "numbers": [
+    "3",
+    "20",
+    "0.39",
+    "6.0"
+   ]
+  },
+  "2_truth": {
+   "file": "docs/thesis/summary/flights/fl_2_truth.png",
+   "title": "Where the drone really flew: 5 laps of the 6 m square, all 12 flights (simulator truth)",
+   "inputs": "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}",
+   "numbers": [
+    "5",
+    "6",
+    "12",
+    "8",
+    "4",
+    "2",
+    "1",
+    "3",
+    "1.0"
+   ]
+  },
+  "3_truth": {
+   "file": "docs/thesis/summary/flights/fl_3_truth.png",
+   "title": "Where the drone really flew: the 3 loop-closure flights (simulator truth)",
+   "inputs": "bag /ground_truth/pose of T_A_r{1,2,3} (Experiment 3 re-uses these flights: eval/results/expL/T_A_r*_t245.json)",
+   "numbers": [
+    "8",
+    "2",
+    "3",
+    "1.0",
+    "5",
+    "6"
+   ]
+  },
+  "5_truth": {
+   "file": "docs/thesis/summary/flights/fl_5_truth.png",
+   "title": "Where the drone really flew: the 12 hold flights of Experiment 5 (simulator truth)",
+   "inputs": "dataflash SIM of H_s1_r1..r3, H_s1far_r1, r2, r3b, H_s2v2_r1..r3, H_s3v2_r1..r3",
+   "numbers": [
+    "5",
+    "12",
+    "3",
+    "1.0"
+   ]
+  },
+  "5S_truth": {
+   "file": "docs/thesis/summary/flights/fl_5S_truth.png",
+   "title": "Where the drone really flew: the 4 final safety runs (simulator truth)",
+   "inputs": "dataflash SIM of H_safety_ukf_a_v3, H_safety_ukf_b_v3, H_safety_fgo_a_v4, H_safety_fgo_b_v4",
+   "numbers": [
+    "4",
+    "1.0"
+   ]
+  },
+  "4_err_live": {
+   "file": "docs/thesis/summary/flights/fl_4_err_live.png",
+   "title": "",
+   "inputs": "eval/results/expO/O_r1/O_r2/O_r3b.json; O_* room_ukf, room_fgo TUMs; dataflash XKF1 + gnss.npz; bag GT and /imu/time_ref",
+   "numbers": [
+    "3",
+    "123",
+    "1.42\u20131.43",
+    "0.77\u20130.84",
+    "0.83\u20130.89"
+   ]
+  },
+  "4_err_hind": {
+   "file": "docs/thesis/summary/flights/fl_4_err_hind.png",
+   "title": "",
+   "inputs": "as 4_err_live",
+   "numbers": [
+    "3",
+    "0.58\u20130.60",
+    "0.59\u20130.59"
+   ]
+  },
+  "4_truth": {
+   "file": "docs/thesis/summary/flights/fl_4_truth.png",
+   "title": "Where the drone really flew: the 3 outdoor\u2013indoor flights (simulator truth)",
+   "inputs": "bag /ground_truth/pose of O_r1, O_r2, O_r3b",
+   "numbers": [
+    "3",
+    "1.0"
+   ]
+  }
+ },
+ "checks": [
+  {
+   "fig": "1A",
+   "label": "flights shown: the usable standard-sensor textured flights ('all 9 usable dsn_tex flights')",
+   "computed": "all 9 usable",
+   "expected": "all 9 usable",
+   "src": "docs/thesis/numbers.md:230",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "EKF3 median cruise ATE over the 9 flights (m), printed in the panel title",
+   "computed": "4.10",
+   "expected": "4.10",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "UKF median cruise ATE over the 9 flights (m), printed in the panel title",
+   "computed": "5.13",
+   "expected": "5.13",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "FGO median cruise ATE over the 9 flights (m), printed in the panel title",
+   "computed": "4.46",
+   "expected": "4.46",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A_truth",
+   "label": "top-down panel drawn at equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0) of the top panel",
+   "ok": true
+  },
+  {
+   "fig": "1A_aligned_paths",
+   "label": "sideways (East) stretch printed on the figure vs drawn axes geometry",
+   "computed": "3.0",
+   "expected": "3.0",
+   "src": "set_aspect(1/3)",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "EKF3 cruise ATE flights 1 / 2 / 3 (m), printed in the panel title",
+   "computed": "4.09 / 3.60 / 4.08",
+   "expected": "4.09 / 3.60 / 4.08",
+   "src": "docs/thesis/numbers.md:269",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "UKF_baseline cruise ATE flights 1 / 2 / 3 (m), printed in the panel title",
+   "computed": "4.96 / 1.78 / 4.96",
+   "expected": "4.96 / 1.78 / 4.96",
+   "src": "docs/thesis/numbers.md:271",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "FGO_baseline cruise ATE flights 1 / 2 / 3 (m), printed in the panel title",
+   "computed": "4.47 / 2.26 / 4.54",
+   "expected": "4.47 / 2.26 / 4.54",
+   "src": "docs/thesis/numbers.md:270",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "UKF_heading cruise ATE flights 1 / 2 / 3 (m), printed in the panel title",
+   "computed": "0.13 / 0.13 / 0.14",
+   "expected": "0.13 / 0.13 / 0.14",
+   "src": "docs/thesis/numbers.md:291",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "FGO_heading cruise ATE flights 1 / 2 / 3 (m), printed in the panel title",
+   "computed": "0.06 / 0.06 / 0.06",
+   "expected": "0.06 / 0.06 / 0.06",
+   "src": "docs/thesis/numbers.md:292",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "flights shown (textured-wall camera dataset, textured floor)",
+   "computed": "3",
+   "expected": "3",
+   "src": "docs/thesis/numbers.md:269",
+   "ok": true
+  },
+  {
+   "fig": "1B_truth",
+   "label": "top-down panel drawn at equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0) of the top panel",
+   "ok": true
+  },
+  {
+   "fig": "1B_aligned_paths",
+   "label": "sideways (East) stretch printed on the figure vs drawn axes geometry",
+   "computed": "3.0",
+   "expected": "3.0",
+   "src": "set_aspect(1/3)",
+   "ok": true
+  },
+  {
+   "fig": "1B_err_heading",
+   "label": "'about 30 times finer': y-range ratio between the two pages (largest no-heading error / largest with-heading error, rounded to 10)",
+   "computed": "30",
+   "expected": "30",
+   "src": "the plotted curves (this script)",
+   "ok": true
+  },
+  {
+   "fig": "1C",
+   "label": "EKF3 no-heading wall contact (s after cruise start), printed on the figures",
+   "computed": "+242.1",
+   "expected": "+242.1",
+   "src": "docs/thesis/numbers.md:470",
+   "ok": true
+  },
+  {
+   "fig": "1C",
+   "label": "UKF no-heading wall contact (s after cruise start), printed on the figures",
+   "computed": "+165.9",
+   "expected": "+165.9",
+   "src": "docs/thesis/numbers.md:471",
+   "ok": true
+  },
+  {
+   "fig": "1C",
+   "label": "FGO no-heading wall contact (s after cruise start), printed on the figures",
+   "computed": "+169.9",
+   "expected": "+169.9",
+   "src": "docs/thesis/numbers.md:473",
+   "ok": true
+  },
+  {
+   "fig": "1C",
+   "label": "flights: 1 without heading and 3 with heading per estimator",
+   "computed": "EKF3 1/3 / UKF 1/3 / FGO 1/3",
+   "expected": "EKF3 1/3 / UKF 1/3 / FGO 1/3",
+   "src": "eval/figs_thesis.py HALF (Figure 4.1 / 4.1b caption: n = 1 flight per estimator without heading; 3 flights each with)",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "sideways (East) stretch printed vs drawn axes geometry",
+   "computed": "3.0",
+   "expected": "3.0",
+   "src": "set_aspect(1/3)",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "wall position and contact line (m)",
+   "computed": "10 / 9.58",
+   "expected": "10 / 9.58",
+   "src": "eval/figs_thesis.py F2 (walls \u00b110 m; 9.58 m contact threshold)",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "largest heading-error p95 / max over all 9 with-heading flights (deg), printed in the note",
+   "computed": "0.38 / 0.68",
+   "expected": "0.38 / 0.68",
+   "src": "eval/figs_thesis.py F9 check (numbers.md \u00a715 re-flown B3 rows; Table 4.3)",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "heading-error bound printed (p95 / max, deg)",
+   "computed": "1.0 / 2.0",
+   "expected": "1.0 / 2.0",
+   "src": "METHODOLOGY.md:4958 ('95th percentile \u2264 1.0\u00b0, maximum \u2264 2.0\u00b0')",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "'95% of the time' (the p95 statistic) and '9 flights'",
+   "computed": "95 / 9",
+   "expected": "95 / 9",
+   "src": "B3 definition (p95); 3 estimators x 3 flights",
+   "ok": true
+  },
+  {
+   "fig": "1C_side_on",
+   "label": "largest sideways distance over the 9 with-heading flights (m), printed in the note",
+   "computed": "0.39",
+   "expected": "0.39",
+   "src": "eval/figs_thesis.py F2 caption ('all 9 stay within 0.39 m of the centreline'); numbers.md \u00a715 B2 rows",
+   "ok": true
+  },
+  {
+   "fig": "1C_side_on",
+   "label": "pass-rule bound printed (m)",
+   "computed": "6.0",
+   "expected": "6.0",
+   "src": "summary page 06 pass rule ('stay within 6.0 m of the centre line')",
+   "ok": true
+  },
+  {
+   "fig": "1C_side_on",
+   "label": "'20 times finer': y half-range of the previous page / this page",
+   "computed": "20",
+   "expected": "20",
+   "src": "axis limits \u00b111 m and \u00b10.6 m (this script)",
+   "ok": true
+  },
+  {
+   "fig": "2_truth",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "2_truth",
+   "label": "flights: 4 conditions x 3",
+   "computed": "12",
+   "expected": "12",
+   "src": "eval/figs_thesis.py F5 (3 flights per condition A-D)",
+   "ok": true
+  },
+  {
+   "fig": "2_truth",
+   "label": "laps / square side (m) / tags per condition",
+   "computed": "5 / 6 / 8, 4, 2, 1",
+   "expected": "5 / 6 / 8, 4, 2, 1",
+   "src": "Figure 5.1 caption (eval/figs_thesis.py F5: '5 laps of a 6 m square'; A all 8, B the 4 corners, C 2, D 1 tag)",
+   "ok": true
+  },
+  {
+   "fig": "3_truth",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "3_truth",
+   "label": "flights",
+   "computed": "T_A_r1, T_A_r2, T_A_r3",
+   "expected": "T_A_r1, T_A_r2, T_A_r3",
+   "src": "eval/figs_thesis.py LL (expL/T_A_r{1,2,3}_t245.json)",
+   "ok": true
+  },
+  {
+   "fig": "5_truth",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "5_truth",
+   "label": "flights: 3 per set, 4 sets",
+   "computed": "12",
+   "expected": "12",
+   "src": "eval/figs_results_walkthrough.py TRS['5h'] (the flights of summary pages 10 and 11)",
+   "ok": true
+  },
+  {
+   "fig": "5S_truth",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "5S_truth",
+   "label": "flights",
+   "computed": "4",
+   "expected": "4",
+   "src": "eval/figs_results_walkthrough.py TRS['5S'] (summary page 12)",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "indoor time (s), GNSS off",
+   "computed": "123",
+   "expected": "123",
+   "src": "eval/figs_thesis.py F6 check ('numbers.md \u00a716.2 heading: 123 s, GNSS off')",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "EKF3 live indoor RMSE range over the 3 flights (m), printed in the panel title",
+   "computed": "1.42\u20131.43",
+   "expected": "1.42\u20131.43",
+   "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "UKF live indoor RMSE range over the 3 flights (m), printed in the panel title",
+   "computed": "0.77\u20130.84",
+   "expected": "0.77\u20130.84",
+   "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "FGO live indoor RMSE range over the 3 flights (m), printed in the panel title",
+   "computed": "0.83\u20130.89",
+   "expected": "0.83\u20130.89",
+   "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "RTS-UKF (hindsight) indoor RMSE range over the 3 flights (m), printed in the panel title",
+   "computed": "0.58\u20130.60",
+   "expected": "0.58\u20130.60",
+   "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "FGO hindsight (whole-flight batch) indoor RMSE range over the 3 flights (m), printed in the panel title",
+   "computed": "0.59\u20130.59",
+   "expected": "0.59\u20130.59",
+   "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4_truth",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  }
+ ],
+ "dataid": [
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.033521",
+   "expected": "4.033521",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.03",
+   "expected": "4.03",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "3.855266",
+   "expected": "3.855266",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "3.86",
+   "expected": "3.86",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.097549",
+   "expected": "4.097549",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.10",
+   "expected": "4.10",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.101854",
+   "expected": "4.101854",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.10",
+   "expected": "4.10",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.121337",
+   "expected": "4.121337",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.12",
+   "expected": "4.12",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "3.112159",
+   "expected": "3.112159",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "3.11",
+   "expected": "3.11",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.111037",
+   "expected": "4.111037",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.11",
+   "expected": "4.11",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.105042",
+   "expected": "4.105042",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.11",
+   "expected": "4.11",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.087794",
+   "expected": "4.087794",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.09",
+   "expected": "4.09",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "3.983563",
+   "expected": "3.983563",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "3.98",
+   "expected": "3.98",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "1.613988",
+   "expected": "1.613988",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "1.61",
+   "expected": "1.61",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.167777",
+   "expected": "5.167777",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.17",
+   "expected": "5.17",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.217349",
+   "expected": "5.217349",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.22",
+   "expected": "5.22",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.126069",
+   "expected": "5.126069",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.13",
+   "expected": "5.13",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "1.174081",
+   "expected": "1.174081",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "1.17",
+   "expected": "1.17",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.203367",
+   "expected": "5.203367",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.20",
+   "expected": "5.20",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.849683",
+   "expected": "5.849683",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.85",
+   "expected": "5.85",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 UKF: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "5.040424",
+   "expected": "5.040424",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 UKF: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "5.04",
+   "expected": "5.04",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.UKF.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.047330",
+   "expected": "4.047330",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r1 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.05",
+   "expected": "4.05",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r1.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "1.796584",
+   "expected": "1.796584",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r2 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "1.80",
+   "expected": "1.80",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r2.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.482524",
+   "expected": "4.482524",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r3 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.48",
+   "expected": "4.48",
+   "src": "eval/results/rerun_dsn_evo.json:dsn_tex_r3.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.461126",
+   "expected": "4.461126",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r4 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.46",
+   "expected": "4.46",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r4.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.609847",
+   "expected": "4.609847",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r5 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.61",
+   "expected": "4.61",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r5.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "1.267449",
+   "expected": "1.267449",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r6 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "1.27",
+   "expected": "1.27",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r6.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.608819",
+   "expected": "4.608819",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r7 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.61",
+   "expected": "4.61",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r7.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.564820",
+   "expected": "4.564820",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r8 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.56",
+   "expected": "4.56",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r8.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 FGO: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.251880",
+   "expected": "4.251880",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "dsn_tex_r9 FGO: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.25",
+   "expected": "4.25",
+   "src": "eval/results/dsn_extra_evo.json:dsn_tex_r9.est.FGO.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1A",
+   "label": "frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 deg) on every flight and estimator",
+   "computed": "27/27",
+   "expected": "27/27",
+   "src": "this script",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.092895",
+   "expected": "4.092895",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.09",
+   "expected": "4.09",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "3.603274",
+   "expected": "3.603274",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "3.60",
+   "expected": "3.60",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 EKF3: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.075574",
+   "expected": "4.075574",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 EKF3: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.08",
+   "expected": "4.08",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.EKF3.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 UKF_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.959532",
+   "expected": "4.959532",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 UKF_baseline: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.96",
+   "expected": "4.96",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 UKF_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "1.783411",
+   "expected": "1.783411",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 UKF_baseline: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "1.78",
+   "expected": "1.78",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 UKF_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.963794",
+   "expected": "4.963794",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 FGO_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.467123",
+   "expected": "4.467123",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 FGO_baseline: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "4.47",
+   "expected": "4.47",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 FGO_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "2.262089",
+   "expected": "2.262089",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 FGO_baseline: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "2.26",
+   "expected": "2.26",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 FGO_baseline: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "4.544273",
+   "expected": "4.544273",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 UKF_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.127393",
+   "expected": "0.127393",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 UKF_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.13",
+   "expected": "0.13",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 UKF_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.134225",
+   "expected": "0.134225",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 UKF_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.13",
+   "expected": "0.13",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 UKF_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.137458",
+   "expected": "0.137458",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 UKF_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.14",
+   "expected": "0.14",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 FGO_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.056585",
+   "expected": "0.056585",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r1 FGO_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.06",
+   "expected": "0.06",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r1.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 FGO_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.062506",
+   "expected": "0.062506",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r2 FGO_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.06",
+   "expected": "0.06",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r2.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 FGO_heading: same samples, standard SE(3) cruise ATE recomputed vs stored (6 dp)",
+   "computed": "0.063294",
+   "expected": "0.063294",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1B",
+   "label": "fwdc_tex_r3 FGO_heading: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)",
+   "computed": "0.06",
+   "expected": "0.06",
+   "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_heading.ate_a_cruise",
+   "ok": true
+  },
+  {
+   "fig": "1C",
+   "label": "clock map rebuilt from /imu/time_ref vs stored clock_map, all 12 flights, max |delta| <= 1e-6 (F9 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "closed_loop_*.json clock_map",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "plotted no-heading paths end at the scored contact point, all 3, |delta| <= 0.5 m (F2 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs closed_loop_*.json contact",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "plotted with-heading paths: max |East| in the cruise vs stored B2, all 9 flights, |delta| <= 0.05 m (F2 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs closed_loop_*.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_off",
+   "label": "plotted no-heading curves end within 0.1 s of the stored contact time, all 3 (F9 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "curve source vs closed_loop_*.json contact.t_rel_cruise_s",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "plotted with-heading curves: |error| p95 and max in the stored cruise window vs stored B3, all 9 flights, |delta| <= 0.001 deg (F9 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "curve source vs closed_loop_*.json B3",
+   "ok": true
+  },
+  {
+   "fig": "1C_side_on",
+   "label": "plotted curves (clock-mapped): max |East| in the cruise vs stored B2, all 9 flights, |delta| <= 0.05 m",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs closed_loop_*.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r1 EKF3 live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "1.422690",
+   "expected": "1.422690",
+   "src": "eval/results/expO/O_r1.json:tracks.EKF3 live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r1 UKF live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.838073",
+   "expected": "0.838073",
+   "src": "eval/results/expO/O_r1.json:tracks.UKF live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r1 RTS-UKF (hindsight): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.575014",
+   "expected": "0.575014",
+   "src": "eval/results/expO/O_r1.json:tracks.RTS-UKF (hindsight).indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r1 FGO live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.829068",
+   "expected": "0.829068",
+   "src": "eval/results/expO/O_r1.json:tracks.FGO live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r1 FGO hindsight (whole-flight batch): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.588734",
+   "expected": "0.588734",
+   "src": "eval/results/expO/O_r1.json:tracks.FGO hindsight (whole-flight batch).indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r2 EKF3 live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "1.422476",
+   "expected": "1.422476",
+   "src": "eval/results/expO/O_r2.json:tracks.EKF3 live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r2 UKF live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.829624",
+   "expected": "0.829624",
+   "src": "eval/results/expO/O_r2.json:tracks.UKF live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r2 RTS-UKF (hindsight): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.581976",
+   "expected": "0.581976",
+   "src": "eval/results/expO/O_r2.json:tracks.RTS-UKF (hindsight).indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r2 FGO live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.858779",
+   "expected": "0.858779",
+   "src": "eval/results/expO/O_r2.json:tracks.FGO live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r2 FGO hindsight (whole-flight batch): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.589704",
+   "expected": "0.589704",
+   "src": "eval/results/expO/O_r2.json:tracks.FGO hindsight (whole-flight batch).indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r3b EKF3 live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "1.426197",
+   "expected": "1.426197",
+   "src": "eval/results/expO/O_r3b.json:tracks.EKF3 live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r3b UKF live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.774056",
+   "expected": "0.774056",
+   "src": "eval/results/expO/O_r3b.json:tracks.UKF live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r3b RTS-UKF (hindsight): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.599028",
+   "expected": "0.599028",
+   "src": "eval/results/expO/O_r3b.json:tracks.RTS-UKF (hindsight).indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r3b FGO live: indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.894617",
+   "expected": "0.894617",
+   "src": "eval/results/expO/O_r3b.json:tracks.FGO live.indoor_rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "4",
+   "label": "O_r3b FGO hindsight (whole-flight batch): indoor RMSE of the plotted error (o_score method) vs stored indoor_rmse_m (6 dp)",
+   "computed": "0.588658",
+   "expected": "0.588658",
+   "src": "eval/results/expO/O_r3b.json:tracks.FGO hindsight (whole-flight batch).indoor_rmse_m",
+   "ok": true
+  }
+ ]
+}
