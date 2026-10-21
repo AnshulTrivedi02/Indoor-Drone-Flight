@@ -10,7 +10,10 @@ alignment. For one trial:
   * gaps: the intervals between consecutive /tags/sent fixes inside the window that are >= GAP_MIN_S long (the
     no-fix stretches); per gap and track: mean and max horizontal error over the gap interior. Gap length = the
     interval. The hindsight improvement of a gap = (live mean error - hindsight mean error), FGO and UKF.
-Usage (venv-evo with the pymavlink shim, or venv-tags): python3 eval/tag_score.py TRIAL [--json OUT]"""
+Usage (venv-evo with the pymavlink shim, or venv-tags): python3 eval/tag_score.py TRIAL [--json OUT]
+Tier-1 E4 (docs/thesis/tier1/preregistration.md): --in-root ~/thesis_data/tier1 --fgo-subdir room_fgo_w<W> reads the two FGO
+tracks (and their stats.json for G4) from <in-root>/<trial>/<subdir>/ instead of <trial>/room_fgo/; everything else is read
+as before. With --in-root, --json must be a NEW file under docs/thesis/tier1/ or ~/thesis_data/tier1/. Default unchanged."""
 import argparse, json, math, os, re
 import numpy as np
 from pymavlink import mavutil
@@ -18,8 +21,23 @@ from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
 
 GAP_MIN_S = 1.0
-ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--json"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--json")
+ap.add_argument("--in-root", default=None, help="tier-1 E4: FGO output root (under ~/thesis_data/tier1)")
+ap.add_argument("--fgo-subdir", default=None, help="tier-1 E4: e.g. room_fgo_w0.5 (with --in-root)")
+a = ap.parse_args()
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}")
+FGO_DIR = f"{D}/room_fgo"                                # default: unchanged
+if a.in_root is not None or a.fgo_subdir is not None:     # tier-1 guard
+    _real = lambda p: os.path.realpath(os.path.expanduser(p))
+    _under = lambda p, r: _real(p) == _real(r) or _real(p).startswith(_real(r) + os.sep)
+    T1_DATA = "~/thesis_data/tier1"; T1_DOCS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "thesis", "tier1")
+    if a.in_root is None or a.fgo_subdir is None or not _under(a.in_root, T1_DATA) or "/" in a.fgo_subdir:
+        raise SystemExit(f"[tier1] REFUSED: --in-root (under {T1_DATA}) and a plain --fgo-subdir name go together")
+    if a.json is None or not (_under(a.json, T1_DATA) or _under(a.json, T1_DOCS)) or os.path.exists(a.json):
+        raise SystemExit(f"[tier1] REFUSED: with --in-root, --json must be a NEW file under {T1_DATA} or docs/thesis/tier1/ (got {a.json!r})")
+    FGO_DIR = os.path.join(os.path.expanduser(a.in_root), a.trial, a.fgo_subdir)
+    if not os.path.exists(f"{FGO_DIR}/fgo_live.tum"):
+        raise SystemExit(f"[tier1] no {FGO_DIR}/fgo_live.tum")
 
 
 def wrap(x):
@@ -83,9 +101,9 @@ def tum(path):
     return np.c_[x[:, 0], x[:, 1], x[:, 2], np.arctan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy ** 2 + qz ** 2))]
 
 
-for name, p in (("UKF live", "room_ukf/ukf_live.tum"), ("RTS-UKF (hindsight)", "room_ukf/ukf_rts.tum"),
-                ("FGO live", "room_fgo/fgo_live.tum"), ("FGO hindsight (whole-flight batch)", "room_fgo/fgo_batch.tum")):
-    t_ = tum(f"{D}/{p}")
+for name, p in (("UKF live", f"{D}/room_ukf/ukf_live.tum"), ("RTS-UKF (hindsight)", f"{D}/room_ukf/ukf_rts.tum"),
+                ("FGO live", f"{FGO_DIR}/fgo_live.tum"), ("FGO hindsight (whole-flight batch)", f"{FGO_DIR}/fgo_batch.tum")):
+    t_ = tum(p)
     if t_ is not None: tracks[name] = t_
 
 
@@ -102,6 +120,8 @@ def st(x):
 
 
 out = {"trial": a.trial, "window_s": [W0, W1], "clock_map": {"rate_ppm": 1e6 * float(kk)}, "tracks": {}, "gaps": []}
+if a.in_root is not None:
+    out["tier1"] = {"fgo_dir": FGO_DIR}
 E = {}
 for n_, tr in tracks.items():
     t_, eh, ey = err(tr); E[n_] = (t_, eh)
@@ -135,8 +155,8 @@ gates = {"G1_laps": len(starts) == 20 and end is not None, "G1_params": par.get(
          "G2_every_tag_every_lap": all(need <= set(l) for l in laps_ids),
          "G3_fix_max_dxy_m": float(fix_dxy.max()), "G3_fix_max_dyaw_deg": float(fix_dyaw.max()),
          "G3": bool(fix_dxy.max() < 0.3 and fix_dyaw.max() < 3.0)}
-for nm in ("room_ukf", "room_fgo"):
-    sp = f"{D}/{nm}/stats.json"
+for nm, dd in (("room_ukf", f"{D}/room_ukf"), ("room_fgo", FGO_DIR)):
+    sp = f"{dd}/stats.json"
     if os.path.exists(sp): gates[f"G4_{nm}"] = json.load(open(sp))
 gates["n_visp"], gates["n_visp_ignored"], gates["n_sent"], gates["laps_ids"] = n_visp, n_visp_ign, len(SENTV), laps_ids
 out["gates"] = gates; print("gates:", {k: v for k, v in gates.items() if not k.startswith("G4")})

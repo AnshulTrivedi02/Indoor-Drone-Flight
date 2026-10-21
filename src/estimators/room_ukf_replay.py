@@ -37,7 +37,12 @@ APIN = apin.mode()
 # UKF_OUT_ROOT (as the FGO's FGO_OUT_ROOT; off by default): write to <root>/<trial>/room_ukf.../ instead of the trial
 # directory. Inputs are still read from the trial directory D.
 D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}")
-OUT = (os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else D) + "/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else "") + apin.outdir_suffix(APIN); os.makedirs(OUT, exist_ok=True)
+OUT = (os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else D) + "/room_ukf" + ("_rtsnocap" if "--rts-no-yawcap" in sys.argv else "") + apin.outdir_suffix(APIN)
+if os.environ.get("UKF_OUT_ROOT"):   # tier-1 guard (2026-10-21): a redirected run may never resolve into ~/thesis_data/trials
+    _tr = os.path.realpath(os.path.expanduser("~/thesis_data/trials"))
+    if os.path.realpath(OUT) == _tr or os.path.realpath(OUT).startswith(_tr + os.sep):
+        sys.exit(f"[tier1] REFUSED: UKF_OUT_ROOT resolves {OUT!r} under {_tr} (frozen trial outputs)")
+os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
 ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/OpticalFlow"))

@@ -19,7 +19,18 @@ Pipeline (METHODOLOGY "Experiment L: pre-registration"):
   * live = the newest keyframe after each iSAM2 update; hindsight = every keyframe from the final estimate, after an
     LM polish (<= 20 iterations) over the full graph.
 Ground truth is not read. Output: <trial>/lc_fgo_<mode>/{live.tum, hindsight.tum, stats.json} in the GAUGE-TAG frame.
-Usage (venv-fgo): lc_fgo_replay.py <trial> --mode lc|nolc [--t-max S] [--gauge-tag 0]"""
+Usage (venv-fgo): lc_fgo_replay.py <trial> --mode lc|nolc [--t-max S] [--gauge-tag 0]
+
+Tier-1 extension experiments, pre-registered (docs/thesis/tier1/preregistration.md; rulings 2026-10-21), all OFF
+by default:
+  --out-root DIR      write to DIR/<trial>/lc_fgo_<mode>[_tN]<suffix> instead of <trial>/lc_fgo_...; DIR must be under
+                      ~/thesis_data/tier1 (tier1_paths.py). REQUIRED with any flag below; an existing non-empty
+                      output directory is refused.
+  --tag-ids 0,1,2,3   E2: use only these tag ids from /tags/raw (must include the gauge tag)
+  --mislabel-rate P   E3: mislabel each central non-gauge detection with probability P (needs --mislabel-seed and
+  --mislabel-seed S       --tag-ids = the valid ids); replacement uniform over the other non-gauge ids
+  --tag-robust K:k    E3 arm (b), an estimator variant: robust kernel on the tag landmark factors (e.g. cauchy:2.385)
+With none of these flags the behaviour and outputs are unchanged."""
 import sys, os, glob, math, json, time, argparse
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -40,11 +51,39 @@ ap = argparse.ArgumentParser(); ap.add_argument("trial"); ap.add_argument("--mod
 ap.add_argument("--t-max", type=float, default=None); ap.add_argument("--gauge-tag", type=int, default=0)
 ap.add_argument("--no-tags", action="store_true", help="validation V-L: no tags; the retained-history graph starts at the "
                 "first keyframe from the thesis initial state, with the thesis factors INCLUDING the yaw cap")
+ap.add_argument("--out-root", default=None, help="tier-1 output root (must be under ~/thesis_data/tier1)")
+ap.add_argument("--tag-ids", default=None, help="E2: comma-separated tag ids to use (must include the gauge tag)")
+ap.add_argument("--mislabel-rate", type=float, default=None, help="E3: per central non-gauge detection")
+ap.add_argument("--mislabel-seed", type=int, default=None, help="E3: numpy default_rng seed")
+ap.add_argument("--tag-robust", default=None, help="E3 arm (b): 'cauchy:k' or 'huber:k' on the tag landmark factors")
 a = ap.parse_args()
 PASS_GAP_S = 1.0
+TIER1 = a.out_root is not None or a.tag_ids is not None or a.mislabel_rate is not None or a.mislabel_seed is not None \
+    or a.tag_robust is not None
+if TIER1:
+    import tier1_paths as T1
+    if a.out_root is None:
+        T1.refuse("--tag-ids / --mislabel-* / --tag-robust need --out-root under " + T1.TIER1_DATA_ROOT)
+    if a.no_tags and (a.tag_ids is not None or a.mislabel_rate is not None or a.tag_robust is not None):
+        T1.refuse("tag flags with --no-tags")
+    if (a.mislabel_rate is None) != (a.mislabel_seed is None):
+        T1.refuse("--mislabel-rate and --mislabel-seed go together")
+    if a.mislabel_rate is not None and a.tag_ids is None:
+        T1.refuse("--mislabel-rate needs --tag-ids (the condition's valid ids)")
+    if a.tag_robust is not None and (len(a.tag_robust.split(":")) != 2 or a.tag_robust.split(":")[0] not in ("cauchy", "huber")):
+        T1.refuse(f"--tag-robust {a.tag_robust!r}: expected cauchy:k or huber:k")
+    TAG_IDS = None if a.tag_ids is None else T1.parse_tag_ids(a.tag_ids, a.gauge_tag)
+    MIS = None if a.mislabel_rate is None else T1.Mislabeller(a.mislabel_rate, a.mislabel_seed, TAG_IDS, a.gauge_tag)
+else:
+    TAG_IDS = MIS = None
+n_tagfilt = 0; n_lm_first_mis = 0
 FX, CX, CY = 554.3827056884766, 320.0, 240.0; R_VALID = (1.0 / 3.0) * math.hypot(CX, CY)
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); OUT = f"{D}/lc_fgo_{'notags' if a.no_tags else a.mode}" + ("" if a.t_max is None else f"_t{int(a.t_max)}")
-os.makedirs(OUT, exist_ok=True)
+if TIER1:   # tier-1: same base name, under the tier-1 root, plus the configuration suffix (guarded, no overwrite)
+    OUT = T1.resolve_out(a.trial, os.path.basename(OUT) + T1.run_suffix(TAG_IDS, a.mislabel_rate, a.mislabel_seed,
+                                                                          a.tag_robust), a.out_root)
+else:
+    os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
 ts.register(get_types_from_msg(open(msgp).read(), "optical_flow_interfaces/msg/OpticalFlow"))
@@ -76,7 +115,13 @@ with Reader(f"{D}/bag") as r:
                 continue                                   # central-third validity rule (as T)
             n_central += 1
             p_tb, R_tb = TM.vehicle_pose(ORIGIN_TAG, R_ct, t_ct)
-            ev.append((tt, "tagrel", (int(m.header.frame_id.split("_")[1]), float(p_tb[0]), float(p_tb[1]), TM.yaw_of(R_tb))))
+            tid = int(m.header.frame_id.split("_")[1]); mis = False
+            if TAG_IDS is not None and tid not in TAG_IDS:
+                n_tagfilt += 1; continue                   # E2: only the condition's tags
+            if MIS is not None:
+                tid, mis = MIS(tt, tid)                    # E3: after the central filter (geometry-only, id-independent)
+            d_ = (tid, float(p_tb[0]), float(p_tb[1]), TM.yaw_of(R_tb))
+            ev.append((tt, "tagrel", T1.MisDet(d_) if mis else d_))
 ev = apply_gap_rule(ev, a.trial); ev, dj = dejitter_imu(ev); ev.sort(key=lambda e: e[0])
 
 
@@ -121,6 +166,10 @@ _gpj = f"{D}/imu_gaps.json"
 gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.exists(_gpj) else None)
 gyro_avg = FlowFrameGyroAverager(t_init)
 tag_noise = gtsam.noiseModel.Diagonal.Sigmas(np.array([TAG_SIGMA_POS, TAG_SIGMA_POS, TAG_SIGMA_YAW]))
+if a.tag_robust is not None:     # E3 arm (b), estimator variant: robust kernel on the landmark factors only (not the L(0) prior)
+    _kind, _k = a.tag_robust.split(":")
+    tag_noise = gtsam.noiseModel.Robust.Create(gtsam.noiseModel.mEstimator.Cauchy.Create(float(_k)) if _kind == "cauchy"
+                                               else gtsam.noiseModel.mEstimator.Huber.Create(float(_k)), tag_noise)
 
 isam = None; k = None; prev = None; pim = None
 lm_key = {}; last_seen = {}; n_lm = 0; n_lmf = 0; t_anchor = None
@@ -177,7 +226,7 @@ def landmark_key(tid, t_now):
 
 
 def isam_keyframe(t, flow, omega_f, rng, tags):
-    global k, prev, n_lmf
+    global k, prev, n_lmf, n_lm_first_mis
     if pim.deltaTij() <= 0:
         return
     km1, k = k, k + 1
@@ -193,8 +242,11 @@ def isam_keyframe(t, flow, omega_f, rng, tags):
         fxy, valid, inlier = flow
         if valid and inlier > 0.0 and abs(fxy[0]) < 4.2 and abs(fxy[1]) < 4.2:
             g.add(F.flow_factor(fgo.flow_noise, X(k), V(k), B(k), fxy, omega_f))
-    for tid, mx, my, myaw in tags:
+    for dd in tags:
+        tid, mx, my, myaw = dd
         j, new = landmark_key(tid, t)
+        if new and MIS is not None and isinstance(dd, T1.MisDet):
+            n_lm_first_mis += 1                             # E3 covariate: a landmark initialised from a wrong id
         if new:
             if j == 0:                                      # the gauge tag: tight prior at the origin
                 vals.insert(L(0), np.zeros(3))
@@ -288,5 +340,17 @@ st = {"mode": a.mode, "t_anchor": t_anchor, "keyframes": len(key_t), "landmarks"
       "raw_detections": n_raw, "central": n_central, "keyframe_failures": n_fail,
       "step_median_ms": float(np.median(step_ns) / 1e6), "step_p99_ms": float(np.percentile(step_ns, 99) / 1e6),
       "wall_s": time.perf_counter() - t_wall0, "hindsight_polish_s": time.perf_counter() - t_h0, "landmarks_final": lms}
+if TIER1:   # provenance; absent in the default configuration (stats.json keys unchanged there)
+    import subprocess
+    _here = os.path.dirname(os.path.abspath(__file__))
+    _git = lambda *c: subprocess.run(["git", "-C", _here, *c], capture_output=True, text=True).stdout.strip()
+    st["tier1"] = {"argv": sys.argv, "commit": _git("rev-parse", "HEAD"), "src_dirty": _git("status", "--porcelain", "--", ".."),
+                   "out": OUT, "tag_ids": None if TAG_IDS is None else list(TAG_IDS), "n_filtered_out_by_tag_ids": n_tagfilt,
+                   "tag_robust": a.tag_robust, "landmarks_first_sighting_mislabelled": n_lm_first_mis,
+                   "mislabel": None if MIS is None else {
+                       "rate": MIS.rate, "seed": MIS.seed, "rng": "numpy.random.default_rng (PCG64), 2 draws per call",
+                       "valid_ids": list(MIS.valid), "gauge": MIS.gauge, "n_calls": MIS.n_calls,
+                       "n_eligible_non_gauge": MIS.n_eligible, "n_mislabelled": MIS.n_mislabelled,
+                       "events_t_true_new": MIS.events}}
 json.dump(st, open(f"{OUT}/stats.json", "w"), indent=1)
 print(json.dumps({k_: v for k_, v in st.items() if k_ != "landmarks_final"}))

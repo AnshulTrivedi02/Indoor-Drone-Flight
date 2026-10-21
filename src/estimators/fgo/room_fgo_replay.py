@@ -14,7 +14,14 @@ Pre-registered handling (METHODOLOGY "Experiment T: pre-registration"):
   * hindsight: ONE batch LM (<= 50 iterations, rel tol 1e-6) over every factor the live smoother received from the
     re-anchor on, initialised from the live estimates.
 Output: ~/thesis_data/trials/<trial>/room_fgo/{fgo_live.tum, fgo_batch.tum, stats.json}
-Usage (venv-fgo): room_fgo_replay.py <trial> [--no-batch]"""
+Usage (venv-fgo): room_fgo_replay.py <trial> [--no-batch]
+
+Tier-1 E4 window sweep (docs/thesis/tier1/preregistration.md; all OFF by default, default behaviour unchanged):
+  --out-root DIR   write to DIR/<trial>/room_fgo_w<W>[_lm<k>]/ (DIR must be under ~/thesis_data/tier1; tier1_paths.py
+                   guard: no overwrite, never under ~/thesis_data/trials). REQUIRED with --window / --lm-iters.
+  --window W       fixed-lag window (s); default 0.25 (the thesis configuration)
+  --lm-iters k     LM iteration cap per step; default 2 (the thesis configuration; E4 convergence check only)
+  Refused together with --gnss or the FGO_OUT_ROOT / FGO_BAG_ROOT / FGO_DUMP_EVENTS environment options."""
 import sys, os, glob, math, json, time
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -35,6 +42,21 @@ TAG_SIGMA_POS = float(os.environ.get("ROOM_TAG_SIGMA_POS", TAG_SIGMA_POS))
 GNSS = "--gnss" in sys.argv      # experiment O (as room_ukf_replay.py --gnss); the yaw cap is kept throughout
 WINDOW, LM_ITERS = 0.25, 2
 D = os.path.expanduser(f"~/thesis_data/trials/{TRIAL}"); OUT = f"{D}/room_fgo"
+_argval = lambda f: (sys.argv[sys.argv.index(f) + 1] if f in sys.argv and sys.argv.index(f) + 1 < len(sys.argv) else
+                     (sys.exit(f"{f} needs a value") if f in sys.argv else None))
+_T1_WIN, _T1_LM, _T1_ROOT = _argval("--window"), _argval("--lm-iters"), _argval("--out-root")
+TIER1 = _T1_WIN is not None or _T1_LM is not None or _T1_ROOT is not None
+if TIER1:   # E4 (tier-1): guarded output, window / LM cap from the command line
+    import tier1_paths as T1
+    if _T1_ROOT is None:
+        T1.refuse("--window / --lm-iters need --out-root under " + T1.TIER1_DATA_ROOT)
+    if GNSS or any(os.environ.get(v) for v in ("FGO_OUT_ROOT", "FGO_BAG_ROOT", "FGO_DUMP_EVENTS")):
+        T1.refuse("tier-1 E4 runs are tag-only (no --gnss) and refuse FGO_OUT_ROOT / FGO_BAG_ROOT / FGO_DUMP_EVENTS")
+    WINDOW = float(_T1_WIN) if _T1_WIN is not None else WINDOW
+    LM_ITERS = int(_T1_LM) if _T1_LM is not None else LM_ITERS
+    if not (0.0 < WINDOW <= 30.0) or not (1 <= LM_ITERS <= 100):
+        T1.refuse(f"--window {WINDOW} / --lm-iters {LM_ITERS} out of range")
+    OUT = T1.resolve_out(TRIAL, f"room_fgo_w{WINDOW:g}" + ("" if LM_ITERS == 2 else f"_lm{LM_ITERS}"), _T1_ROOT)
 # C++-port equivalence export (docs/fgo_cpp_port.md), ALL OFF by default, as in fgo_replay.py: FGO_BAG_ROOT (read the bag from
 # <root>/<trial>/), FGO_OUT_ROOT (write to <root>/<trial>/room_fgo/), FGO_DUMP_EVENTS (prefix; fgo_export.py)
 BAGDIR = os.path.join(os.environ["FGO_BAG_ROOT"], TRIAL) if os.environ.get("FGO_BAG_ROOT") else f"{D}/bag"
@@ -85,7 +107,7 @@ gp = GroundProximityFlow(json.load(open(_gpj)).get("arm_header_s") if os.path.ex
 gyro_avg = FlowFrameGyroAverager(t_init)
 omega = np.zeros(3); flow_omega = np.zeros(3); t_prev_imu = None
 flow_pend = rng_pend = tag_pend = gnss_pend = None; anchored = False; t_anchor = None; n_fast = 0
-t_kf_next = t_init + fgo.kf_dt; traj = []; step_ns = []; n_fail = 0
+t_kf_next = t_init + fgo.kf_dt; traj = []; step_ns = []; n_fail = 0; step_anch = []
 _dump_flow_om = {}; _dump_kf = []        # equivalence export only (FGO_DUMP_EVENTS)
 for _ei, (tt, kind, d) in enumerate(ev):
     if tt < t_init:
@@ -132,7 +154,7 @@ for _ei, (tt, kind, d) in enumerate(ev):
                 fgo.keyframe(t_kf_next, flow=flow_pend, omega=flow_omega, rng=rng_pend, tag=tag_pend, gnss=gnss_pend)
             except Exception as e:
                 n_fail += 1; print(f"[warn] keyframe at {t_kf_next:.3f} failed: {type(e).__name__}: {e}")
-            step_ns.append(time.perf_counter_ns() - t0)
+            step_ns.append(time.perf_counter_ns() - t0); step_anch.append(anchored)
             t_lat, pose, vel = fgo.latest(); rpy = pose.rotation().rpy()
             if DUMP:   # layout: fgo_export.kf_row
                 _dump_kf.append(fgo_export.kf_row(t_kf_next, t_lat, _d[0], fgo.k, gp.n_replaced - _d[1], fgo.n_flow - _d[2],
@@ -161,6 +183,17 @@ write_rows(f"{OUT}/fgo_live.tum", traj)
 stats = {"t_anchor": t_anchor, "n_tag_factors": getattr(fgo, "n_tag", 0), "n_gnss_factors": getattr(fgo, "n_gnss", 0),
          "mode": "gnss" if GNSS else "tags", "keyframe_failures": n_fail,
          "step_median_ms": float(np.median(step_ns) / 1e6), "window_s": WINDOW, "lm_iters": LM_ITERS}
+if TIER1:   # E4 provenance and timing detail; absent in the default configuration (stats.json keys unchanged there)
+    import subprocess
+    _here = os.path.dirname(os.path.abspath(__file__))
+    _git = lambda *c: subprocess.run(["git", "-C", _here, *c], capture_output=True, text=True).stdout.strip()
+    _sa = np.array(step_ns, float)[np.array(step_anch, bool)] / 1e6
+    stats["tier1"] = {"argv": sys.argv, "commit": _git("rev-parse", "HEAD"), "src_dirty": _git("status", "--porcelain", "--", ".."),
+                      "out": OUT, "n_steps": len(step_ns), "step_p95_ms": float(np.percentile(step_ns, 95) / 1e6),
+                      "step_median_ms_after_anchor": float(np.median(_sa)) if len(_sa) else None,
+                      "step_p95_ms_after_anchor": float(np.percentile(_sa, 95)) if len(_sa) else None,
+                      "live_rows": len(traj)}
+    np.savez_compressed(f"{OUT}/step_times.npz", step_ms=np.array(step_ns, float) / 1e6, after_anchor=np.array(step_anch, bool))
 if DO_BATCH and anchored:
     t0b = time.perf_counter()
     prm = gtsam.LevenbergMarquardtParams(); prm.setMaxIterations(50); prm.setRelativeErrorTol(1e-6)
