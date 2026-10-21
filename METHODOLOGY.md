@@ -14390,3 +14390,21 @@ Found while answering the user's question "the EKF starts at the origin but the 
   the two largest gaps are `fwdc_tex_r3` UKF / FGO without heading, 4.965 vs 4.964 and 4.546 vs 4.544 m). The caption says why.
 - Effect: EKF3's sideways bow is now visible top-down, like the UKF's and FGO's; no number or verdict changes. Checks 70/70 numeric,
   185/185 source.
+
+### RULINGS (user, 2026-10-21): tier-1 post-freeze extension — E2 and (time permitting) E3 only
+
+- **Freeze carve-out:** ONLY E2 (Experiment 3's loop-closure FGO on fewer tags) and, if E2 completes in time, E3 (wrong
+  re-identification), as a "post-freeze extension, pre-registered", offline only. **Hard cut-off 2026-10-23 23:59**; anything
+  not run by then is future work. Map reuse, the live window sweep and the UKF with landmark states are NOT done (future work).
+- **Before any run:** the replays write to a new output root (under `docs/thesis/tier1/` or `~/thesis_data/tier1/`). sha256
+  checksums of every folder behind frozen results are recorded before the first run and re-checked after the last; any
+  difference is a stop-and-report.
+- **E2:** Experiment 3's FGO, identical configuration, on T_B, T_C, T_D r1–r3, with and without re-identification, using only
+  the condition's tags; metrics as Experiment 3; compared against the existing known-map results for the same conditions (citing
+  numbers.md rows).
+- **E3:** Experiment 3's configuration on T_A r1–r3 with re-identification. Arm (a), primary: FGO as-is (no robust weighting on
+  tag factors); wrong IDs injected per detection at 1% and 5%, replaced by another valid ID, the anchor tag never mislabelled,
+  3 seeds per rate. Arm (b), robust weighting on tag factors, only if time remains after (a), labelled an estimator variant.
+- **Results** go in `numbers_tier1.md` and `docs/thesis/tier1/`, never in numbers.md or the frozen pack.
+- **Stage 1 only now:** the pre-registration (`docs/thesis/tier1/preregistration.md`), the output-path change and the checksum
+  guard; then STOP for the user's sign-off.
