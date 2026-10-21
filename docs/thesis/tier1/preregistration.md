@@ -470,8 +470,12 @@ e5_design.md §8.
   reproduce the stored `room_ukf/{ukf_live,ukf_rts}.tum` byte-identically on 12/12 flights. The stored files are from
   commit `1b978de` (`~/thesis_data/batches/final_room_T/jobs.log`); the only UKF-path delta since then is the
   `geom=None` plumbing.
+- **All V-E5 runs are validation runs.** They are uncut, anchored on the first `/tags/sent` fix as
+  `room_ukf_replay.py:173-178` does, and fed `/tags/sent`, because the stored files cover the whole flight. The 245 s
+  cut and the `/tags/raw` tag-0 anchor apply to result runs only.
 - **V-E5a:** the E5 harness with the world-frame tag update (`ukf_core.update_tag` on `/tags/sent`) must reproduce the
-  stored `room_ukf` byte-identically on 12/12 flights.
+  stored `room_ukf` byte-identically on 12/12 flights. The filter calls are ONLY `ukf_core` functions. The variable-n
+  `ukf_lm.py` first enters at V-E5b.
 - **V-E5b (the ruling's "known map reproduces the Experiment 2 UKF"):** the E5 tag-relative update with each landmark
   FIXED at its true map pose, fed `/tags/sent`, compared with V-E5a on 12/12 flights. All of the following must hold:
   - identical flow and range accept counts;
@@ -550,6 +554,19 @@ runs until the user rules.
   - `plots/final_results_pack/` and `plots/supervisor_2026-10-08/`.
 - **`run_code`:** every file the replays, scorers and runners execute, so that the code cannot change between the
   snapshot and the last run. Edits to a covered file during the experiments are therefore a stop-and-report.
+
+**Flag 13: other workstreams are editing covered documents.** Since 2026-10-14 there have been 13 commits to
+`numbers.md`, 3 to `headline_claims_before_after.md`, and many to `docs/thesis/figures_thesis/` and
+`docs/thesis/tables/` (`b90c939` and `c1dd6ee` among them, today). A `verify` over a multi-day run could therefore stop
+for edits unrelated to the replays. Three options:
+- (a) Freeze those paths for the duration of the runs.
+- (b) `snapshot --docs pack`: cover only the frozen pack files (`final_results_pack.pdf`, `_index.md`,
+  `_corrections.md`) plus `plots/final_results_pack/` and `plots/supervisor_2026-10-08/`. None of these has changed
+  since 2026-10-14. The edited documents are then left to their repository history.
+- (c) Keep full coverage and accept stops that need a ruling.
+
+The tools write only under the tier-1 roots, and the scorers refuse other `--json` targets, so (b) loses little.
+**Recommendation: (b).**
 
 **NOT covered, and why:**
 - **`METHODOLOGY.md`:** the user will append the 2026-10-21 ruling. Covering it would make `verify` fail for a reason
@@ -678,3 +695,5 @@ in the handover.
 11. E5 design choices (e5_design.md §10): a joint augmented sigma set; dropping finished-pass landmarks in no-LC;
     landmark yaw as an angle state.
 12. The lock clock time (23:59 AEDT on 4 Nov).
+13. Guard coverage of the actively edited thesis documents (§6): (a) freeze them, (b) `--docs pack` (recommended), or
+    (c) full coverage.

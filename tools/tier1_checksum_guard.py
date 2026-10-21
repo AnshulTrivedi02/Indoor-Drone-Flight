@@ -31,6 +31,10 @@ Default coverage (--paths overrides it; used only for the tool's own test on a t
                   src/estimators/fgo/{room_fgo_replay,fgo_export}.py, src/estimators/{room_ukf_replay,ukf_core,apin}.py,
                   eval/tag_score.py; the runners eval/run_jobs_resumable.sh, src/estimators/fgo_cpp/tools/heavy.py.
                   NEW E5 modules are not covered (they do not exist yet); E5 must not edit any covered file.
+--docs pack (sign-off flag 13) narrows frozen_docs to final_results_pack.{pdf,_index.md,_corrections.md},
+  plots/final_results_pack/ and plots/supervisor_2026-10-08/. numbers.md, headline_claims_before_after.md,
+  figures_thesis/ and tables/ had 13 / 3 / many commits since 2026-10-14 from other workstreams, so a verify over a
+  multi-day run could stop for edits unrelated to the replays; their history stays in the repository.
 NOT covered (stated): METHODOLOGY.md (the user appends the 2026-10-21 ruling; see the pre-registration),
   docs/thesis/tier1/ and ~/thesis_data/tier1/ (the tier-1 outputs themselves)."""
 import argparse, glob, hashlib, json, os, socket, subprocess, sys, time
@@ -97,6 +101,10 @@ def git(repo, *c):
 def snapshot(a):
     repo = os.path.abspath(a.repo)
     specs = {"custom": [os.path.abspath(p) for p in a.paths]} if a.paths else default_specs(repo)
+    if not a.paths and a.docs == "pack":   # sign-off flag 13: leave the actively edited thesis docs to their history
+        keep = ("final_results_pack.pdf", "final_results_pack_index.md", "final_results_pack_corrections.md",
+                "plots/final_results_pack", "plots/supervisor_2026-10-08")
+        specs["frozen_docs"] = [x for x in specs["frozen_docs"] if x.endswith(keep)]
     t0 = time.time(); groups, unmatched = expand(specs)
     stamp = time.strftime("%Y%m%dT%H%M%S")
     out = a.out or os.path.join(repo, "docs", "thesis", "tier1", f"frozen_manifest_{stamp}.json")
@@ -152,6 +160,9 @@ def main():
     sp = ap.add_subparsers(dest="cmd", required=True)
     s = sp.add_parser("snapshot"); s.add_argument("--repo", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     s.add_argument("--out"); s.add_argument("--paths", nargs="+", help="TEST ONLY: cover these paths instead of the default")
+    s.add_argument("--docs", choices=["all", "pack"], default="all",
+                   help="frozen_docs coverage: all (default) or pack = only the frozen pack files and plots (flag 13: "
+                        "numbers.md, headline_claims, figures_thesis/ and tables/ are edited by other workstreams)")
     v = sp.add_parser("verify"); v.add_argument("manifest"); v.add_argument("--report")
     a = ap.parse_args()
     sys.exit(snapshot(a) if a.cmd == "snapshot" else verify(a))

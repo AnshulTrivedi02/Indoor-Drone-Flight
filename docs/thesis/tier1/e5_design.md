@@ -153,6 +153,22 @@ Experiment 2 UKF outputs are:
 - produced at commit `1b978de` (`~/thesis_data/batches/final_room_T/jobs.log`, line 1);
 - scored in `json:expT/T_*.json` and N:526-529.
 
+**Validation runs differ from result runs in three stated ways,** so that they can match the stored Experiment 2
+UKF files, which cover the whole flight:
+1. They run **uncut**: no anchor + 245 s cut.
+2. They **anchor on the first `/tags/sent` fix,** exactly as `room_ukf_replay.py:173-178` does.
+3. They take the tag input from `/tags/sent`.
+
+The 245 s cut, the anchor on the first central tag-0 detection in `/tags/raw`, and the `/tags/raw` input apply in
+result mode only.
+
+**Code path per gate.**
+- **V-E5a** uses ONLY `ukf_core` functions for the filter: `predict` / `predict_rts`, `update_flow`, `update_range`,
+  `update_yaw_pseudo`, `update_tag` and `rts_smooth`. It therefore tests the new harness (event reading, timing,
+  re-anchor, node book-keeping) without the variable-n re-implementation, whose floating-point operation order would
+  otherwise break byte identity for no real reason.
+- `ukf_lm.py`, the variable-n code, first enters at **V-E5b**, which has a numerical tolerance.
+
 | gate | what runs | reference | PASS iff |
 |---|---|---|---|
 | **G0-UKF** | the frozen `room_ukf_replay.py` at HEAD, `UKF_OUT_ROOT=~/thesis_data/tier1/g0_ukf` (it now refuses any root that resolves under `trials/`) | stored `room_ukf/` | `ukf_live.tum` and `ukf_rts.tum` byte-identical, 12/12. The only UKF-path delta since `1b978de` is the `geom=None` plumbing. |
@@ -163,7 +179,8 @@ Experiment 2 UKF outputs are:
 **Derivation of the tolerance.**
 - With a fixed landmark, the tag-frame measurement is a rotation of the world-frame one. Both h and the noise are
   isotropic in x and y, so the update differs only by floating-point round-off (about 1e-15 relative).
-- 1 mm is 1000× the storage precision, 1/50 of σ_pos, and 1/10 of the 3-dp reporting precision (N:526).
+- The 1 mm per-sample bound is 1000× the storage precision, 1/50 of σ_pos, and equal to the 3-dp (mm) reporting
+  precision (N:526). The 1e-4 m RMSE bound is 1/10 of that reporting precision.
 - The accept-count condition exists to catch a near-threshold flow-gate flip. Such a flip would otherwise hide inside
   an RMSE tolerance.
 - A V-E5c gap above tolerance would show that the augmented sigma set (n > 15) changes the vehicle estimate even with
