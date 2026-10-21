@@ -1,7 +1,7 @@
 # numbers_tier1: extension experiments E2–E5 (pre-registered)
 
 **Template: no results yet.** Every result in this file is labelled **"extension experiment, pre-registered
-(2026-10-21)"**. The pre-registration is `docs/thesis/tier1/preregistration.md` and the E5 design is
+(2026-10-21; signed off with amendments 2026-10-22)"**. The pre-registration is `docs/thesis/tier1/preregistration.md` and the E5 design is
 `docs/thesis/tier1/e5_design.md`.
 
 ## Provenance rules (the same convention as `docs/thesis/numbers.md`)
@@ -10,15 +10,16 @@
   into `numbers.md`, `METHODOLOGY.md`, the frozen pack or `eval/figs_thesis*.py`.
 - **Columns.** Every row has quantity | value | unit | status | source.
   - **Status** is one of CURRENT, DIAGNOSTIC (timing on the workstation), DESCRIPTIVE (no verdict) or NOT RUN
-    (missed the 2026-11-04 23:59 AEDT lock).
+    (not finished by the 2026-11-04 23:59 AEDT lock; counted separately, never NOT MET or FAIL). Scoring and
+    reporting of completed runs may continue to 2026-11-06 23:59 AEDT.
   - **Source** is a `json:` path *and key* under `docs/thesis/tier1/scores/`, or a `tier1:` run directory under
     `~/thesis_data/tier1/` plus a file and key.
 - **Exact cross-check.** Every value is re-computed from its cited source by a check script before it is typed here.
   The script and its output are recorded in the handover that adds the value. A value that does not match its source
   to the printed precision is not entered.
 - **Precision.** Positions are printed to 4 dp in m; ratios to 2 dp. Comparisons use the unrounded json values.
-- **Verdicts.** PASS, FAIL or NOT MET, exactly as `preregistration.md` §0.5 defines them, judged on the pre-registered
-  counts. No re-tuning.
+- **Verdicts.** PASS, FAIL, NOT MET or NOT RUN, exactly as `preregistration.md` §0.5 defines them, judged on the
+  pre-registered counts. No re-tuning and no early decisions.
 - **Deviations.** Any departure from the pre-registration is recorded in §Deviations *before* the affected result is
   read.
 
@@ -37,7 +38,8 @@
 | G0-L (i) default redirected, (ii) neutral new flags: byte-identical to the frozen `T_A_r1/lc_fgo_lc_t245` | — | — |
 | G0-UKF: 12/12 byte-identical to the stored `room_ukf` | — | — |
 | G-E4: 0.25 s `fgo_live.tum` byte-identical to the stored `room_fgo`, 12/12 | — | — |
-| V-E5a / V-E5b / V-E5c | — | — |
+| V-E5a / V-E5b / V-E5c against the stored `room_ukf/{ukf_live,ukf_rts}.tum`: rows 1:1, `t_anchor` and `n_tag_fused` equal, RMS ≤ 1.0 mm, max ≤ 2.0 mm, accept counts (`e5_design.md` §8.4); V-E5a byte identity reported | — | — |
+| E5 result-run invariants: `t_anchor` and landmark counts (8 / 41) equal the stored FGO (`e5_design.md` §5.3) | — | — |
 
 ## E2: loop closure with fewer tags (B, C, D)
 
@@ -60,23 +62,26 @@ Verdicts: H-E3.1 (PRIMARY), H-E3.2, H-E3.3, P-E3.4, P-E3.5, P-E3.6.
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
 
-Verdicts: P-E3b.1, P-E3b.2.
+Verdicts: P-E3b.1 ("no worse": ≤ 1.10 × arm (a), per run), P-E3b.2. Runtime ratio (b)/(a): DESCRIPTIVE.
+Effective overall mislabel rates (arm a): per run and pooled.
 
 ## E4: live window sweep (12 T bags; W = 0.25 / 0.5 / 1 / 2 / 5 s)
 
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
 
-Verdicts: P-E4.1, P-E4.2. Accuracy against W and the gap to the batch: DESCRIPTIVE. LM-cap convergence flags.
+Verdicts: P-E4.1, P-E4.2, H-E4.3 (live at 5 s < live at 0.25 s, ≥ 10/12). Fraction of the batch gain recovered
+f_i(W) and pooled F(W): DESCRIPTIVE. LM-cap convergence flags.
 
 ## E5: UKF with tag landmark states (T_A, LC / no-LC)
 
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
 
-Verdicts: H-E5.1 (PRIMARY), H-E5.2, H-E5.3, P-E5.4, P-E5.5, P-E5.6.
+Verdicts: H-E5.1 (PRIMARY), H-E5.2, H-E5.3, P-E5.4. Secondary (landmark UKF vs FGO, registered direction plus
+descriptive ratios): S-E5.5 (live), S-E5.6 (hindsight: RTS vs the FGO's iSAM2 hindsight).
 
-## Not run by the lock (future work)
+## NOT RUN at the lock (counted separately; future work)
 
 | run | experiment | reason |
 |---|---|---|

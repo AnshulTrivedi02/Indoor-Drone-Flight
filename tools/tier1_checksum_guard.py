@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tier-1 checksum guard (user ruling 2026-10-21; docs/thesis/tier1/preregistration.md "Checksum guard").
 
-  tier1_checksum_guard.py snapshot [--repo DIR] [--out FILE] [--paths P ...]
+  tier1_checksum_guard.py snapshot [--repo DIR] [--out FILE] [--docs none|pack|all] [--paths P ...]
   tier1_checksum_guard.py verify MANIFEST [--report FILE]
 
 snapshot: sha256 + size of every regular file (symlinks recorded by target, never followed) under every covered
@@ -11,7 +11,9 @@ verify:   re-expands the SAME path specs stored in the manifest, re-hashes, and 
           file (or an unreadable one) is a difference: the report is printed (and written to --report) and the exit
           status is 1 = STOP AND REPORT. Exit 0 only when every covered file is byte-identical.
 
-Default coverage (--paths overrides it; used only for the tool's own test on a temporary copy):
+Default coverage = RESULT DATA, documents EXCLUDED (user sign-off 2026-10-22: "checksum guard scope = result data
+(trial outputs, eval/results, all folders behind existing numbers); docs excluded"). --paths overrides it (used only
+for the tool's own test on a temporary copy):
   trials_T        ~/thesis_data/trials/T_*            every file of every T (Experiment 2/3) trial dir (bags, imu_gaps.json,
                                                       metadata.yaml, logs/, lc_fgo_*, room_fgo*, room_ukf*, the
                                                       *_IMUGAP / *_ABORTED dirs): the replay inputs and every
@@ -21,22 +23,23 @@ Default coverage (--paths overrides it; used only for the tool's own test on a t
                   logs cited at numbers.md §16.3 (cost) and the T replay timing; a batch-name collision would append
   results         <repo>/eval/results/expL, <repo>/eval/results/expT (numbers.md §16.1, §16.3 sources; Experiment 2
                   results E4/E5 compare against), <repo>/batches/final_rerun/room_T.jobs (the Experiment 2 job list)
-  frozen_docs     <repo>/docs/thesis/numbers.md, final_results_pack.pdf, final_results_pack_index.md,
-                  final_results_pack_corrections.md, headline_claims_before_after.md, docs/thesis/figures_thesis/,
-                  docs/thesis/tables/, plots/final_results_pack/, plots/supervisor_2026-10-08/ (numbers.md §16 figures)
-  run_code        the code the tier-1 replays and scorer execute (must not change between the snapshot and the last
+  run_code        (retained: code, not result data or documents) the code the tier-1 replays and scorer execute (must not change between the snapshot and the last
                   run): src/estimators/fgo/{lc_fgo_replay,tier1_paths,fgo_core,factors}.py,
                   src/estimators/{measurement_models,imu_timing}.py, src/tags/tag_measure.py, eval/l_score.py,
                   sim/worlds/room_tags_map.json, tools/tier1_checksum_guard.py, and for E4/E5:
                   src/estimators/fgo/{room_fgo_replay,fgo_export}.py, src/estimators/{room_ukf_replay,ukf_core,apin}.py,
                   eval/tag_score.py; the runners eval/run_jobs_resumable.sh, src/estimators/fgo_cpp/tools/heavy.py.
                   NEW E5 modules are not covered (they do not exist yet); E5 must not edit any covered file.
---docs pack (sign-off flag 13) narrows frozen_docs to final_results_pack.{pdf,_index.md,_corrections.md},
-  plots/final_results_pack/ and plots/supervisor_2026-10-08/. numbers.md, headline_claims_before_after.md,
-  figures_thesis/ and tables/ had 13 / 3 / many commits since 2026-10-14 from other workstreams, so a verify over a
-  multi-day run could stop for edits unrelated to the replays; their history stays in the repository.
-NOT covered (stated): METHODOLOGY.md (the user appends the 2026-10-21 ruling; see the pre-registration),
-  docs/thesis/tier1/ and ~/thesis_data/tier1/ (the tier-1 outputs themselves)."""
+Documents (frozen_docs) are NOT covered by default (--docs none). Optional, not used for the tier-1 snapshot:
+  --docs all  adds frozen_docs: <repo>/docs/thesis/numbers.md, final_results_pack.pdf, final_results_pack_index.md,
+              final_results_pack_corrections.md, headline_claims_before_after.md, docs/thesis/figures_thesis/,
+              docs/thesis/tables/, plots/final_results_pack/, plots/supervisor_2026-10-08/ (numbers.md §16 figures)
+  --docs pack adds only final_results_pack.{pdf,_index.md,_corrections.md}, plots/final_results_pack/ and
+              plots/supervisor_2026-10-08/.
+NOT covered (stated): every document (numbers.md, the frozen pack, headline_claims, figures_thesis/, tables/, the
+  plots above, METHODOLOGY.md) unless --docs says otherwise; docs/thesis/tier1/ and ~/thesis_data/tier1/ (the tier-1
+  outputs themselves). Result folders the tier-1 runs do not read or touch (the rest of eval/results/, other trial
+  sets) are not in the default either: an open item in the pre-registration §6."""
 import argparse, glob, hashlib, json, os, socket, subprocess, sys, time
 
 HOME = os.path.expanduser("~")
@@ -101,7 +104,9 @@ def git(repo, *c):
 def snapshot(a):
     repo = os.path.abspath(a.repo)
     specs = {"custom": [os.path.abspath(p) for p in a.paths]} if a.paths else default_specs(repo)
-    if not a.paths and a.docs == "pack":   # sign-off flag 13: leave the actively edited thesis docs to their history
+    if not a.paths and a.docs == "none":   # default (sign-off 2026-10-22): result data only, documents excluded
+        del specs["frozen_docs"]
+    if not a.paths and a.docs == "pack":   # optional: only the frozen pack files and plots
         keep = ("final_results_pack.pdf", "final_results_pack_index.md", "final_results_pack_corrections.md",
                 "plots/final_results_pack", "plots/supervisor_2026-10-08")
         specs["frozen_docs"] = [x for x in specs["frozen_docs"] if x.endswith(keep)]
@@ -160,9 +165,9 @@ def main():
     sp = ap.add_subparsers(dest="cmd", required=True)
     s = sp.add_parser("snapshot"); s.add_argument("--repo", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     s.add_argument("--out"); s.add_argument("--paths", nargs="+", help="TEST ONLY: cover these paths instead of the default")
-    s.add_argument("--docs", choices=["all", "pack"], default="all",
-                   help="frozen_docs coverage: all (default) or pack = only the frozen pack files and plots (flag 13: "
-                        "numbers.md, headline_claims, figures_thesis/ and tables/ are edited by other workstreams)")
+    s.add_argument("--docs", choices=["none", "pack", "all"], default="none",
+                   help="document coverage: none (default; sign-off 2026-10-22: result data only, documents excluded), "
+                        "pack = only the frozen pack files and plots, all = every frozen document")
     v = sp.add_parser("verify"); v.add_argument("manifest"); v.add_argument("--report")
     a = ap.parse_args()
     sys.exit(snapshot(a) if a.cmd == "snapshot" else verify(a))
