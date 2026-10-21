@@ -14423,3 +14423,22 @@ Found while answering the user's question "the EKF starts at the origin but the 
   per-step time, compared against the batch (hindsight) result.
 - **Unchanged:** the output redirect and checksum guard; results only in `numbers_tier1.md` and `docs/thesis/tier1/`; STOP after the
   pre-registration for sign-off. An effort and compute estimate per experiment against the 4 Nov lock is added.
+
+### SIGN-OFF (user, 2026-10-22): extension experiments Stage 1 accepted with amendments; Stage 2 authorised
+
+Amendments, written into `docs/thesis/tier1/preregistration.md` and `e5_design.md` and committed BEFORE any run:
+1. **E5 primary:** with re-identification, the landmark UKF's lap-5 / lap-1 live error ≤ 1.5 on 3/3 T_A flights (same band and
+   derivation as E2). Secondary: landmark UKF vs FGO, live and hindsight (RTS vs batch), descriptive plus the registered direction.
+2. **Reproduction gates:** byte-identical only for unchanged code paths (loop-closure replay, 0.25 s window, Experiment 2 UKF replay).
+   For the new landmark UKF with a known map, a pre-registered numerical tolerance against the stored Experiment 2 UKF (e.g.
+   trajectory difference ≤ 1 mm RMS) with the reason for the figure.
+3. **E4:** add a directional accuracy hypothesis: live error at 5 s lower than at 0.25 s on ≥ 10/12 flights; report the fraction of
+   the batch (hindsight) gain recovered at each window.
+4. **E3 (b):** "no worse" = error within +10% of arm (a) per run; the runtime ratio is descriptive, not a band.
+5. **E5 design:** state how the FGO anchors its frame and show tag 0's treatment matches it; justify that dropping finished-pass
+   landmarks in the no-re-identification arm is equivalent to the FGO's no-re-identification arm.
+Decisions: one job at a time; every judgement-based band labelled "judgement, not derived from data" with its reasoning; the E3
+error-model details accepted (effective overall rates reported); the E5 design choices accepted subject to amendment 5; checksum
+guard scope = result data (trial outputs, eval/results, all folders behind existing numbers), documents excluded; at the
+2026-11-04 23:59 lock unfinished runs are NOT RUN, counted separately; scoring and reporting may continue to 2026-11-06, no new
+runs after the lock. Report after the reproduction gates; stop before the main runs if any gate fails.
