@@ -151,8 +151,8 @@ def fig_src(key, fname, box=None, sep=()):
     FIG[key] = dict(path=p, arr=arr, box=b, sha=sha(p), squeezed=runs)
 
 
-fig_src("R3a", "R3_trajectory_overlay.png", (0, 100, 2060, 902), sep=[(889, 915)])
-fig_src("R3b", "R3_trajectory_overlay.png", (0, 902, 2060, 1706), sep=[(889, 915), (1688, 1706)])
+fig_src("R3a", "R3_trajectory_overlay.png", (0, 100, 2020, 902), sep=[(889, 915)])
+fig_src("R3b", "R3_trajectory_overlay.png", (0, 902, 2020, 1706), sep=[(889, 915)])
 fig_src("R5a", "R5_drift_unaligned.png", (0, 80, 2379, 817), sep=[(46, 94), (787, 847)])
 fig_src("R5bc", "R5_drift_unaligned.png", (0, 817, 2379, 1947), sep=[(787, 847)])
 for k, f in (("F2", "F2_heading_stops_sideways_drift.png"), ("F9", "F9_heading_error_closed_loop.png"), ("F5", "F5_T_tags_known_positions.png"),
@@ -261,10 +261,11 @@ def text_h(fig, t, fs, ls):
 
 
 def world_page(pid, short, title, worlds, world_note, world_label, TXT):
-    """The page after each plot page: the simulated world(s) that plot's flights were flown in, as large as the page allows
+    """The page that opens each experiment: the simulated world(s) that plot's flights were flown in, as large as the page allows
     (ruling 2026-10-19: 'one page for the plot/table, and then the next page with the actual world')."""
     fig = plt.figure(figsize=(PAGE_W, PAGE_H), dpi=100)
     UW = 1 - 2 * MX; ytop = 0.978
+    title = re.sub(r" \(\d+ of \d+\)$", "", title)      # the world page opens the experiment (ruling 2026-10-21): no page counter
     tt = fit(fig, title, UW * PAGE_W, 16.5, weight="bold")
     fig.text(MX, ytop, tt, fontsize=16.5, weight="bold", va="top", ha="left", linespacing=1.12)
     y = ytop - text_h(fig, tt, 16.5, 1.2) - 0.012
@@ -398,7 +399,7 @@ W_FWDC = lambda: world(R + "corridor_textured_fwdc__interior.jpg", snew("Inside:
 CAP_BL = "Blank floor, "
 M01 = smod("01", "metric", " (the vertical lines show the range over the flights)", "")
 L01 = [("Metric:", M01), ("Pass rule:", sline("01", "rule")), ("Result:", sline("01", "result"))]
-T01 = SUMP["01"]["title"]; N1A = 5
+T01 = SUMP["01"]["title"]; N1A = 6
 A = lambda t: ("About this plot:", snew(t))
 YAWS = "aligned by a rotation about the vertical and a shift, which gives the same average error (ATE) as the standard alignment"
 
@@ -445,14 +446,16 @@ page("02", "1A_aligned_paths", f"{T01} (2 of {N1A})", sline("01", "what"), [], N
      [AL(FIT_L, "every flight's estimated path, cruise only, one panel per estimator: " + FIT_X + " Because of the fit, and "
          "because the cruise starts after take-off and climb, the lines do not start at the take-off point."), SH_FPATH] + L01,
      scope=["01"], world=False)
-page("03", "1A_aligned_err", f"{T01} (3 of {N1A})", sline("01", "what"), [], None, [], PF("1A_aligned_err"),
+page("02f", "1A_fig42", f"{T01} (3 of {N1A})", sline("01", "what"), [], None, [], P("R3a", "R3"),
+     [AL(FIT_L, "Figure 4.2 (a) of the thesis: one example flight (flight 3, chosen beforehand as the median flight), all three estimators on one plot, cruise only. " + FIT_XC), SH_FPATH] + L01, scope=["01"], world=False)
+page("03", "1A_aligned_err", f"{T01} (4 of {N1A})", sline("01", "what"), [], None, [], PF("1A_aligned_err"),
      [AL(FIT_L, "the error against time, every flight, cruise only: " + FIT_X + " The shape (large at both ends, small where the "
          "fitted path crosses the true one) comes from the fit."), SH_FERR] + L01, scope=["01"], world=False)
-page("04", "1A_unaligned_paths", f"{T01} (4 of {N1A})", sline("01", "what"), [], None, [], PF("1A_unaligned_paths"),
+page("04", "1A_unaligned_paths", f"{T01} (5 of {N1A})", sline("01", "what"), [], None, [], PF("1A_unaligned_paths"),
      [AL(RAW_L, "the estimates exactly as they came out, from take-off. " + RAW_X + " With no heading sensor each estimate slowly "
          "turns, so it drifts sideways by tens of metres; the fit used for the score removes this turn. UKF and FGO positions are "
          "in their own take-off frame, relabelled (North, East) = (x, −y)."), SH_RPATH] + L01, scope=["01"], world=False)
-page("05", "1A_unaligned_err", f"{T01} (5 of {N1A})", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"],
+page("05", "1A_unaligned_err", f"{T01} (6 of {N1A})", sline("01", "what"), [W_TEX(), W_TEXA()], "1A", ["corridor_textured"],
      PF("1A_unaligned_err"),
      [AL(RAW_L, "the error against time, every flight, with nothing fitted. " + RAW_X + " It grows steadily during the cruise, "
          "mostly sideways (previous page)."), SH_RERR] + L01, scope=["01"])
@@ -470,7 +473,7 @@ page("06", "blank_floor", SUMP["02"]["title"], sline("02", "what"),
 
 # ---- 1B: heading check (summary table), then accuracy on all 3 flights (fitted, then not fitted); one world page for 1B
 T04 = SUMP["04"]["title"]; L04 = [("Metric:", sline("04", "metric")), ("Pass rule:", sline("04", "rule")), ("Result:", sline("04", "result"))]
-N1B = 7
+N1B = 8
 # the summary Result says "(see the previous page)", meaning the heading check; true only on the first 1B page (08)
 L04b = [L04[0], L04[1], ("Result:", smod("04", "result", "(see the previous page)", "(see the heading-check page just before this experiment)"))]
 page("07", "1B_heading_check", SUMP["03"]["title"], sline("03", "what"), [], None, [], P("S03"),
@@ -483,21 +486,23 @@ page("08", "1B_truth", f"{T04} (1 of {N1B})", sline("04", "what"), [], None, [],
 page("09", "1B_paths", f"{T04} (2 of {N1B})", sline("04", "what"), [], None, [], PF("1B_aligned_paths"),
      [AL(FIT_L, "every flight's estimated path, cruise only, in five separate panels: without the heading (left three) and with "
          "it (right two; EKF3 has no camera-heading version). " + FIT_XC), SH_FPATH] + L04b, scope=["04"], world=False)
-page("10", "1B_err_noheading", f"{T04} (3 of {N1B})", sline("04", "what"), [], None, [], PF("1B_err_noheading"),
+page("09f", "1B_fig42", f"{T04} (3 of {N1B})", sline("04", "what"), [], None, [], P("R3b", "R3"),
+     [AL(FIT_L, "Figure 4.2 (b) of the thesis: one example flight (flight 3), without the heading (dashed) and with it (solid, UKF and FGO), cruise only. " + FIT_XC), SH_FPATH] + L04b, scope=["04"], world=False)
+page("10", "1B_err_noheading", f"{T04} (4 of {N1B})", sline("04", "what"), [], None, [], PF("1B_err_noheading"),
      [AL(FIT_L, "the error against time WITHOUT the camera heading, every flight: several metres. " + FIT_XC), SH_FERR] + L04b,
      scope=["04"], world=False)
-page("11", "1B_err_heading", f"{T04} (4 of {N1B})", sline("04", "what"), [], None, [], PF("1B_err_heading"),
+page("11", "1B_err_heading", f"{T04} (5 of {N1B})", sline("04", "what"), [], None, [], PF("1B_err_heading"),
      [AL(FIT_L, "the same error WITH the camera heading (UKF and FGO), every flight: a few centimetres to about a decimetre; note "
          "the much finer y-scale than on the previous page. " + FIT_XC), SH_FERR] + L04b, scope=["04"], world=False)
-page("11a", "1B_unaligned_paths", f"{T04} (5 of {N1B})", sline("04", "what"), [], None, [], PF("1B_unaligned_paths"),
+page("11a", "1B_unaligned_paths", f"{T04} (6 of {N1B})", sline("04", "what"), [], None, [], PF("1B_unaligned_paths"),
      [AL(RAW_L, "the same 3 flights, the estimates exactly as they came out, from take-off, five separate panels with the same "
          "axes. " + RAW_X + " Without the heading each estimate slowly turns and drifts sideways by tens of metres; with it the "
          "lines lie on the true path at this shared scale (the next two pages show the size of the error). UKF and FGO positions "
          "are in their own take-off frame, relabelled (North, East) = (x, −y)."), SH_RPATH] + L04b, scope=["04"], world=False)
-page("11b", "1B_unaligned_err_noheading", f"{T04} (6 of {N1B})", sline("04", "what"), [], None, [], PF("1B_unaligned_err_noheading"),
+page("11b", "1B_unaligned_err_noheading", f"{T04} (7 of {N1B})", sline("04", "what"), [], None, [], PF("1B_unaligned_err_noheading"),
      [AL(RAW_L, "the error against time WITHOUT the camera heading, every flight, with nothing fitted. " + RAW_X + " It grows "
          "during the cruise to tens of metres, mostly sideways (previous page)."), SH_RERR] + L04b, scope=["04"], world=False)
-page("11c", "1B_unaligned_err_heading", f"{T04} (7 of {N1B})", sline("04", "what"),
+page("11c", "1B_unaligned_err_heading", f"{T04} (8 of {N1B})", sline("04", "what"),
      [W_FWDC(), world(R + "corridor_textured_fwdc__angled_cutaway.jpg", snew("Outside view, roof cut away")),
       world(OB + "fwdc_tex_r1__fwd_y040.png", snew("Forward camera: painted-line walls, checkerboard floor"), OBX),
       world(OB + "fwdplainc_tex_r1__fwd_y040.png", snew("Forward camera: plain walls, checkerboard floor"), OBX),
@@ -618,20 +623,28 @@ page("28", "5S_safety", f"{SUMP['12']['title']} (2 of 2)", sline("12", "what"), 
 # =================================================================== contents + how-to, PDF
 figc = plt.figure(figsize=(PAGE_W, PAGE_H))
 figc.text(MX + 0.013, 0.945, "Results walkthrough: contents", fontsize=21, weight="bold", va="top")
-NOTE = snew("Each experiment starts with where the drone really flew, then its plots showing every flight (one panel per "
-            "estimator, never drawn on top of each other), each with what it shows, the metric, the pass rule and the result; the "
-            "simulated world it was flown in follows once, after the experiment's last plot. Where an experiment has no per-flight "
-            "plot, its summary chart is shown.")
+NOTE = snew("Each experiment starts with the simulated world it was flown in (screenshots), then where the drone really flew, then "
+            "its plots showing every flight (one panel per estimator, never drawn on top of each other), each with what it shows, "
+            "the metric, the pass rule and the result. Where an experiment has no per-flight plot, its summary chart is shown.")
 guard(NOTE["text"], "", "contents note")
 figc.text(MX + 0.013, 0.885, wrap(NOTE["text"], 118), fontsize=13, va="top", color=INK2, linespacing=1.3)
-ORDER = []; pn = 3                      # page 1 contents, page 2 how to read
+# Each experiment's world page comes FIRST, then its plot pages (ruling 2026-10-21). A group ends at the page that carries the world.
+GROUPS, cur = [], []
 for p in PAGES:
-    p["pageno"] = pn; pn += 1 + (p["wfig"] is not None)
-    base = re.sub(r" \(\d+ of \d+\)$", "", p["title"])
-    if not ORDER or ORDER[-1][1] != base:
-        ORDER.append((p["pageno"], base, 1))
-    else:
-        ORDER[-1] = (ORDER[-1][0], base, ORDER[-1][2] + 1)
+    cur.append(p)
+    if p["wfig"] is not None:
+        GROUPS.append(cur); cur = []
+assert not cur, "pages after the last world page"
+SEQ = []; ORDER = []; pn = 3                      # page 1 contents, page 2 how to read
+for g in GROUPS:
+    wpage = pn; SEQ.append(g[-1]["wfig"]); pn += 1
+    for k, p in enumerate(g):
+        p["pageno"] = pn; SEQ.append(p["fig"]); pn += 1
+        base = re.sub(r" \(\d+ of \d+\)$", "", p["title"])
+        if not ORDER or ORDER[-1][1] != base:
+            ORDER.append((wpage if k == 0 else p["pageno"], base, 1))
+        else:
+            ORDER[-1] = (ORDER[-1][0], base, ORDER[-1][2] + 1)
 NPAGES = pn - 1
 rows_c = [("", "How to read these pages", 2)] + [(str(i + 1), t, n0) for i, (n0, t, k) in enumerate(ORDER)]
 for i, (n, t, n0) in enumerate(rows_c):
@@ -645,7 +658,7 @@ HOWTO = os.path.join(SUM, "summary_00_how_to_read.png")
 figh = plt.figure(figsize=(PAGE_W, PAGE_H)); axh = figh.add_axes([0, 0, 1, 1]); axh.imshow(np.asarray(Image.open(HOWTO).convert("RGB")), interpolation="none", aspect="auto"); axh.axis("off")
 figh.savefig(os.path.join(OUTD, "wt_00b_how_to_read.png"), dpi=DPI)
 with PdfPages(PDF) as pdf:
-    for f in [figc, figh] + [g for p in PAGES for g in (p["fig"], p["wfig"]) if g is not None]:
+    for f in [figc, figh] + SEQ:
         pdf.savefig(f)
 plt.close("all")
 
