@@ -14381,3 +14381,12 @@ Found while answering the user's question "the EKF starts at the origin but the 
   top-down, so it makes EKF3 look on-track when its error is as sideways as the others'. The walkthrough rebuild now uses a
   yaw-only alignment for aligned path plots (same ATE). **Ruling needed:** redraw Figure 4.2 with the yaw-only alignment (same
   ATE, stated in the caption), or keep it with a caption note.
+
+### RULING (user, 2026-10-21): redraw Figure 4.2 with the vertical-only (yaw-only) alignment — DONE
+
+- `eval/figs_thesis_results.py` now places each path for drawing with a best-fit rotation about the vertical plus a shift (no
+  scale), over the stored cruise window, instead of the SE(3) fit (see the FINDING of 2026-10-21 above). The legend still gives the
+  stored cruise ATE; the data-identity check is now "plotted yaw-only RMSE within 5 mm of the stored cruise ATE" (all 8 paths pass;
+  the two largest gaps are `fwdc_tex_r3` UKF / FGO without heading, 4.965 vs 4.964 and 4.546 vs 4.544 m). The caption says why.
+- Effect: EKF3's sideways bow is now visible top-down, like the UKF's and FGO's; no number or verdict changes. Checks 70/70 numeric,
+  185/185 source.

@@ -731,13 +731,19 @@ def tum_traj(a):
 
 def aligned(trial, sub, f, win):
     """The cruise-ATE computation of eval/three_way_eval.py reproduced only to place the path: crop both TUMs to the stored window,
-    associate (t_max_diff 0.05 s), Umeyama SE(3) alignment without scale (evo -a). Returns (aligned est xyz, ref xyz, rmse)."""
+    associate (t_max_diff 0.05 s), then a yaw-only placement for drawing (see below). Returns (aligned est xyz, ref xyz, rmse)."""
     ref = np.loadtxt(f"{TD}/{trial}/{sub}/ground_truth.tum"); est = np.loadtxt(f"{TD}/{trial}/{sub}/{f}")
     c = lambda a: a[(a[:, 0] >= win[0]) & (a[:, 0] <= win[1])]
     r, e = sync.associate_trajectories(tum_traj(c(ref)), tum_traj(c(est)), 0.05)
-    e.align(r, correct_scale=False)
-    m = metrics.APE(metrics.PoseRelation.translation_part); m.process_data((r, e))
-    return e.positions_xyz, r.positions_xyz, m.get_statistic(metrics.StatisticsType.rmse)
+    # Placement for DRAWING (ruling 2026-10-21): rotation about the vertical + shift only (yaw-only, no scale). The SE(3) fit of the
+    # cruise ATE is degenerate about the near-straight corridor axis and can roll sideways drift into the vertical (METHODOLOGY
+    # "FINDING (2026-10-21): the SE(3) cruise-ATE alignment is degenerate"); the yaw-only fit gives the same RMS to within millimetres.
+    P, G = e.positions_xyz, r.positions_xyz
+    mp, mg = P.mean(0), G.mean(0); a_, b_ = P - mp, G - mg
+    th = np.arctan2((a_[:, 0] * b_[:, 1] - a_[:, 1] * b_[:, 0]).sum(), (a_[:, 0] * b_[:, 0] + a_[:, 1] * b_[:, 1]).sum())
+    Rz = np.array([[np.cos(th), -np.sin(th), 0.0], [np.sin(th), np.cos(th), 0.0], [0.0, 0.0, 1.0]])
+    Pa = (Rz @ a_.T).T + mg
+    return Pa, G, float(np.sqrt((np.linalg.norm(Pa - G, axis=1) ** 2).mean()))
 
 
 ev = {**L("rerun_dsn_evo.json")["trials"], **L("dsn_extra_evo.json")["trials"]}
@@ -758,7 +764,7 @@ SUB = {"EKF3": ("ekf3", "ekf3_traj.tum"), "UKF": ("ukf", "ukf_traj.tum"), "FGO":
 
 
 def NE(key, xyz):
-    """(North, East) of a path: EKF3's TUMs are (N, E, D); the UKF/FGO TUMs are ENU (E, N, U)."""
+    """(North, East) of an aligned path: aligned paths are in their ground-truth file's frame (EKF3: N, E, D; UKF/FGO: ENU)."""
     return (xyz[:, 0], xyz[:, 1]) if key == "EKF3" else (xyz[:, 1], xyz[:, 0])
 
 
@@ -770,8 +776,9 @@ for pid, tr, win, arms, est in PANELS:
     for key, e, ls in arms:
         xyz, ref, rmse = aligned(tr, *SUB[key], win)
         st = est[key]["ate_a_cruise"]["+0.00"]
-        CHK.append(("R3", f"({pid}) {tr} {key}: plotted path's RMSE vs stored cruise ATE, 6 dp (stored file)", rd(rmse, 6), rd(st, 6),
-                    f"{'rerun_dsn_evo.json / dsn_extra_evo.json' if pid == 'a' else 'phase4_fwdc_evo.json'}:{tr}.est.{key}.ate_a_cruise", rd(rmse, 6) == rd(st, 6)))
+        CHK.append(("R3", f"({pid}) {tr} {key}: plotted path's yaw-only RMSE {rd(rmse, 6)} within 5 mm of the stored cruise ATE {rd(st, 6)} (data identity)",
+                    str(abs(rmse - st) < 0.005), "True",
+                    f"{'rerun_dsn_evo.json / dsn_extra_evo.json' if pid == 'a' else 'phase4_fwdc_evo.json'}:{tr}.est.{key}.ate_a_cruise", abs(rmse - st) < 0.005))
         PATHS[(pid, key)] = (NE(key, xyz), NE(key, ref), e, ls, st)
 # displayed cruise ATEs against numbers.md (2 dp; numbers.md prints flights 1-3 only)
 if ra <= 3:
@@ -813,9 +820,11 @@ for ext in ("png", "pdf"):
 plt.close(fig)
 CAP3 = (f"{RULE} Chosen: (a) flight {ra} (cross-estimator mean cruise ATEs, ascending, by flight: "
         + ", ".join(f"{i}: {rd(m, 2)}" for m, i in means) + f" m); (b) flight {rb} ({rb_why}). Top-down, cruise window only, truth grey. Each "
-        "estimated path is drawn after the same SE(3) alignment (no scale) that the cruise ATE applies, fitted over the stored cruise window "
-        "against its own ground-truth file, so the displayed offset is the error that the cruise ATE measures; the RMSE of every plotted path "
-        "equals its stored cruise ATE to 6 decimal places (cross-checks). The alignment removes a constant heading offset, so the "
+        "estimated path is drawn after a best-fit rotation about the vertical and a shift (no scale), fitted over the stored cruise window "
+        "against its own ground-truth file. This gives the same average error as the standard 3D alignment used for the cruise ATE (the RMSE "
+        "of every plotted path is within 5 mm of its stored cruise ATE; cross-checks), but cannot roll the path about the corridor axis: "
+        "the 3D fit is free to do so on a straight path and can turn sideways drift into up-and-down error that is invisible from above. "
+        "The legend gives the stored cruise ATE. The alignment removes a constant heading offset, so the "
         "metres-scale sideways drift of the unaligned estimates (Table 4.1, heading-error decomposition) is not shown; an error along "
         "the corridor (for example EKF3's distance-scale error) lies along the path and barely shows top-down. Dashed: no heading "
         "source; solid: with the camera heading (offline heading arms, UKF and FGO only; EKF3 has no offline heading arm and is shown as the "
@@ -1025,7 +1034,7 @@ for gtxt in [
     "**Experiment 5 information contrast.** Hold error (tag visible) and end-of-loss drift (tag hidden) are different statistics; no like-for-like "
     "'without the tag' hold error exists.",
     "**Blank floor.** Only the non-runaway +10 s and +30 s errors can carry a ratio; the +60 s and end-of-cruise values are † runaway magnitudes.",
-    "**Figure 4.2 unaligned drift.** The paths are drawn after the cruise-ATE alignment (the only stored, cross-checkable placement); the unaligned "
+    "**Figure 4.2 unaligned drift.** The paths are drawn after a yaw-only alignment that reproduces the stored cruise ATE to within 5 mm (ruling 2026-10-21); the unaligned "
     "metres-scale sideways drift is the heading-error decomposition of Table 4.1, not redrawn here.",
 ]:
     W.append(f"- {gtxt}")
