@@ -35,30 +35,30 @@ The harness does not import gtsam.
 |---|---|---|
 | §1 | variable-n sigma points, mean and residual. They mirror `ukf_core.py:61-106` operation by operation, which gives bit-identity at n = 15 (test 1). | `ukf_lm.py:37-86` |
 | §1 | vehicle block via `ukf_core._process` | `ukf_lm.py:89-112` (`_f`, `predict`) |
-| §2 | inputs: `/tags/raw` central third (lc_fgo_replay.py:80, :110-123) | `lc_ukf_replay.py:71-131` (`quat_to_R`, `central_tagrel`, `read_events`) |
-| §2 | gap rule, dejitter, DT_STEP, ground-proximity flow, bias-corrected derotation | `lc_ukf_replay.py:345-370`, `:405-412`, `:446-451` |
-| §2 | cut at anchor + 245 s (lc_fgo_replay.py:268) | `lc_ukf_replay.py:397-398` |
-| §2 | live = the state after each predict, from the anchor on | `lc_ukf_replay.py:433`, `:533-546` |
-| §3 | landmark block [x, y, ψ] and ψ as an angle state | `ukf_lm.py:31-34` (`ang_indices`); `lc_ukf_replay.py:206-216` (`LandmarkLayout`) |
+| §2 | inputs: `/tags/raw` central third (lc_fgo_replay.py:80, :110-123) | `lc_ukf_replay.py:71-136` (`quat_to_R`, `central_tagrel`, `read_events`) |
+| §2 | gap rule, dejitter, DT_STEP, ground-proximity flow, bias-corrected derotation | `lc_ukf_replay.py:350-375`, `:410-417`, `:451-456` |
+| §2 | cut at anchor + 245 s (lc_fgo_replay.py:268) | `lc_ukf_replay.py:402-403` |
+| §2 | live = the state after each predict, from the anchor on | `lc_ukf_replay.py:438`, `:538-551` |
+| §3 | landmark block [x, y, ψ] and ψ as an angle state | `ukf_lm.py:31-34` (`ang_indices`); `lc_ukf_replay.py:211-221` (`LandmarkLayout`) |
 | §3a | inverse model (= `lm_from`, lc_fgo_replay.py:153-155) | `ukf_lm.py:248-251` |
 | §3b | unscented augmentation over [x; w] with P_xL | `ukf_lm.py:254-274` |
-| §3c | first sighting not fused again | `lc_ukf_replay.py:517-521` |
+| §3c | first sighting not fused again | `lc_ukf_replay.py:522-526` |
 | §4 | h = vehicle (x, y, yaw) in the landmark frame (= the FGO factor, lc_fgo_replay.py:132-135) | `ukf_lm.py:180-193` |
 | §4, §10.4 | sequential-scalar update (x, y, then yaw in `update_heading`'s relative form), no gate; the joint 3-D alternative is behind `--tag-update joint` and is never used by a pre-registered run | `ukf_lm.py:196-245` |
-| §4 | several detections in one frame applied in bag order | the event loop, `lc_ukf_replay.py:490-526` |
-| §5.2 | anchor = the first central tag-0 detection in `/tags/raw` at or after t_init; re-anchor as `room_ukf_replay.py:181-182`; tag 0 held EXACT (never augmented) | `lc_ukf_replay.py:491-505`, `:312-316`, `:511-514` |
-| §5.2 | pseudo-yaw before the anchor only | `lc_ukf_replay.py:421-422`, `:431-432` |
-| §5.3 | keyframe clock t_init + k/30, the pass rule on keyframe labels, and exclusion of detections whose keyframe never runs before the cut | `lc_ukf_replay.py:134-175` (`KeyframeClock`, `keyframe_prepass`), `:178-203` (`PassBook`) |
-| §5.3 | invariants: `t_anchor` and the landmark (pass) count equal the stored FGO run's. Exit code 3 on a mismatch; `tag_measurements_used` against `landmark_factors` is reported | `lc_ukf_replay.py:575-587`, `:564`, `:569-572` |
-| §6 | lc: one key per id; nolc: one per pass; finished passes dropped (marginalised) | `PassBook`; `lc_ukf_replay.py:387-394` (`drop_finished`, called before each predict and before each detection); `ukf_lm.py:286-292` (`remove_block`) |
+| §4 | several detections in one frame applied in bag order | the event loop, `lc_ukf_replay.py:495-531` |
+| §5.2 | anchor = the first central tag-0 detection in `/tags/raw` at or after t_init; re-anchor as `room_ukf_replay.py:181-182`; tag 0 held EXACT (never augmented) | `lc_ukf_replay.py:496-510`, `:317-321`, `:516-519` |
+| §5.2 | pseudo-yaw before the anchor only | `lc_ukf_replay.py:426-427`, `:436-437` |
+| §5.3 | keyframe clock t_init + k/30, the pass rule on keyframe labels, and exclusion of detections whose keyframe never runs before the cut | `lc_ukf_replay.py:139-180` (`KeyframeClock`, `keyframe_prepass`), `:183-208` (`PassBook`) |
+| §5.3 | invariants: `t_anchor` and the landmark (pass) count equal the stored FGO run's. Exit code 3 on a mismatch; `tag_measurements_used` against `landmark_factors` is reported | `lc_ukf_replay.py:580-592`, `:569`, `:574-577` |
+| §6 | lc: one key per id; nolc: one per pass; finished passes dropped (marginalised) | `PassBook`; `lc_ukf_replay.py:392-399` (`drop_finished`, called before each predict and before each detection); `ukf_lm.py:286-292` (`remove_block`) |
 | §7 | RTS over a chain of predict, augmentation and removal nodes; the gain is solved on the diagonally scaled matrix as `ukf_core.rts_smooth` (`ukf_core.py:177-184`) | `ukf_lm.py:295-316` (`rts_backward`) |
-| §7 | output rows at predict nodes only: row i = the smoothed state just before predict i+1 (`room_ukf_replay.py:193-198`'s convention) | `lc_ukf_replay.py:552-555` |
-| §7 | memory: nodes in RAM, spilling to `np.memmap` (`rts_nodes.bin` in the run directory) above 4 GB; recorded in stats | `lc_ukf_replay.py:219-268` (`NodeStore`) |
-| §8.2, §8.3 | V-E5a: `ukf_core` calls only (`predict`/`predict_rts`, `update_flow`, `update_range`, `update_yaw_pseudo`, `update_tag`, `rts_smooth`), `/tags/sent`, uncut | `lc_ukf_replay.py:414-422`, `:437-441`, `:452-458`, `:474-475`, `:547-551` |
-| §8.3 | V-E5b: world fix → tag-relative with the TRUE map pose of the reported id (`frame_id` "tag_<id>"), `ukf_lm`'s tag-frame update against a FIXED landmark | `lc_ukf_replay.py:319-322`, `:476-488` |
-| §8.3 | V-E5c: each id augmented AT the map pose with variance 1e-10 at its first fix (the anchoring fix's id at the anchor), then fused | `lc_ukf_replay.py:469-472`, `:481-486` |
+| §7 | output rows at predict nodes only: row i = the smoothed state just before predict i+1 (`room_ukf_replay.py:193-198`'s convention) | `lc_ukf_replay.py:557-560` |
+| §7 | memory: nodes in RAM, spilling to `np.memmap` (`rts_nodes.bin` in the run directory) above 4 GB; recorded in stats | `lc_ukf_replay.py:224-273` (`NodeStore`) |
+| §8.2, §8.3 | V-E5a: `ukf_core` calls only (`predict`/`predict_rts`, `update_flow`, `update_range`, `update_yaw_pseudo`, `update_tag`, `rts_smooth`), `/tags/sent`, uncut | `lc_ukf_replay.py:419-427`, `:442-446`, `:457-463`, `:479-480`, `:552-556` |
+| §8.3 | V-E5b: world fix → tag-relative with the TRUE map pose of the reported id (`frame_id` "tag_<id>"), `ukf_lm`'s tag-frame update against a FIXED landmark | `lc_ukf_replay.py:324-327`, `:481-493` |
+| §8.3 | V-E5c: each id augmented AT the map pose with variance 1e-10 at its first fix (the anchoring fix's id at the anchor), then fused | `lc_ukf_replay.py:474-477`, `:486-491` |
 | §8.4 | the gate judge (conditions 1–5, the 1e-9 round-off band; byte identity reported; optional `--delta-rmse`) | `eval/e5_val_compare.py` |
-| §8.4 cond. 5 | accept/reject log of every gated flow-axis and range decision with its test ratio (`gate_log.npz`). In V-E5a it comes from a recording wrapper around `ukf_core._update_scalar`, installed for the run and restored after; the wrapper returns the original result unchanged. | `lc_ukf_replay.py:272-309` |
+| §8.4 cond. 5 | accept/reject log of every gated flow-axis and range decision with its test ratio (`gate_log.npz`). In V-E5a it comes from a recording wrapper around `ukf_core._update_scalar`, installed for the run and restored after; the wrapper returns the original result unchanged. | `lc_ukf_replay.py:277-314` |
 | §9 | α = 1e-3, β = 2, κ = 0; Q from `make_params(dt=DT_STEP)`, landmark Q = 0; the jitter ladder and eigen fallback (counted, in stats `chol`); symmetrisation; angles wrapped after every update | `ukf_lm.py` throughout |
 
 **Outputs:**
@@ -138,19 +138,26 @@ python3 tools/tier1_checksum_guard.py verify docs/thesis/tier1/e5_code_manifest_
     about 3–4 min.
   - LC result runs (n ≤ 36) take about 3 min; no-LC runs are less.
 - **Memory:** the RTS store peaks at about 0.6 GB (V-E5c on A).
-- These fit preregistration §8.
+- **Against preregistration §8:** V-E5c on condition A probably exceeds the per-run planning figure of 2 × 63 s. The
+  36-run total probably still fits the 1.3 h, because conditions B–D carry fewer tags (n ≤ 27, 21, 18).
+  - All of these are estimates from synthetic runs. They are to be measured on the first real run.
+- `read_events` asks rosbags for exactly the connection list and order of the source replays: `room_ukf_replay.py:56-57`
+  in validation mode (it reads the ground truth and discards it) and `lc_fgo_replay.py:96` in result mode. Tie order
+  between equal stamps therefore cannot differ from the stored runs.
 
-## Implementation choices within the design (none changes a signed-off rule; the first is flagged for a ruling)
+## Implementation notes (no deviation from the design)
 
-1. **V-E5c fuses the first fix of every landmark.**
-   - **Flagged for confirmation.**
-   - Design §8.3 says each landmark is "augmented into the state at its first fix, initialised AT the true map with
-     variance 1e-10". The augmentation is not computed from the measurement, so §3c's "not fused again" rule (which
-     avoids double counting) does not apply, and the fix is fused.
-   - Without this, `n_tag_fused` (§8.4 condition 2) and the track could not match the stored run, which fuses every
-     fix.
-   - The anchoring fix stays a world re-anchor, as in all three gates. Its id is augmented at the anchor and not
-     fused again.
+**Deviations: none.** The two items that go beyond the literal text of §1 are notes, not deviations: the V-E5c reading
+(item 1) and the gate judge `eval/e5_val_compare.py`, a fourth file beyond the three that §1 lists.
+
+1. **V-E5c fuses the first fix of every landmark.** This is a reading of §8.3, and the text requires it:
+   - V-E5c is "as V-E5b, but each landmark is augmented…", and V-E5b fuses every fix;
+   - §8.4 condition 2 requires `n_tag_fused` to equal the stored value;
+   - §3c's "not fused again" rule covers initialisation FROM the measurement, which V-E5c does not do (its landmarks
+     start at the true map).
+
+   The anchoring fix stays a world re-anchor, as in all three gates. Its id is augmented at the anchor and not fused
+   again.
 2. **The augmentation keeps the existing (x, P) block exactly.**
    - In exact arithmetic, the unscented mean and covariance of that block equal x and P, because g is the identity
      there. Only P_LL, P_xL and the landmark mean come from the sigma points.
@@ -183,4 +190,3 @@ python3 tools/tier1_checksum_guard.py verify docs/thesis/tier1/e5_code_manifest_
 
 - The supplementary code snapshot, the V-E5a/b/c gates (36 runs) and the 6 E5 result runs, with their scoring.
 - Rows in `numbers_tier1.md`.
-- Ruling on item 1 above. It should come before V-E5c is judged.

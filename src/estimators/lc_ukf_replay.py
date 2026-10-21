@@ -102,9 +102,14 @@ def read_events(bag, tag_topic):
     ev = []; n_raw = n_central = 0
     with Reader(bag) as r:
         conns = {c.topic: c for c in r.connections}
-        want = ["/imu/data_raw", "/optical_flow/measurement", "/downward_lidar/range", "/attitude/angular_rates", tag_topic]
+        # the connection lists (and order) of the two source replays exactly, so rosbags yields the same message order:
+        # room_ukf_replay.py:56-57 (it also reads the ground truth, discarded here) and lc_fgo_replay.py:96
+        want = ["/imu/data_raw", "/optical_flow/measurement", "/downward_lidar/range", "/attitude/angular_rates"] \
+            + (["/ground_truth/pose", "/tags/sent"] if tag_topic == "/tags/sent" else [tag_topic])
         for con, _, raw in r.messages(connections=[conns[w] for w in want if w in conns]):
             m = ts.deserialize_cdr(raw, con.msgtype); tt = stamp(m.header)
+            if con.topic == "/ground_truth/pose":
+                continue                                     # never used (the scorer reads it from the bag itself)
             if con.topic == "/imu/data_raw":
                 ev.append((tt, "imu", (np.array([m.linear_acceleration.x, m.linear_acceleration.y, m.linear_acceleration.z]),
                                        np.array([m.angular_velocity.x, m.angular_velocity.y, m.angular_velocity.z]))))
