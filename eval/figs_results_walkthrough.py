@@ -492,7 +492,7 @@ page("10", "1B_err_noheading", f"{T04} (4 of {N1B})", sline("04", "what"), [], N
      [AL(FIT_L, "the error against time WITHOUT the camera heading, every flight: several metres. " + FIT_XC), SH_FERR] + L04b,
      scope=["04"], world=False)
 page("11", "1B_err_heading", f"{T04} (5 of {N1B})", sline("04", "what"), [], None, [], PF("1B_err_heading"),
-     [AL(FIT_L, "the same error WITH the camera heading (UKF and FGO), every flight: a few centimetres to about a decimetre; note "
+     [AL(FIT_L, "the same error WITH the camera heading (UKF and FGO), every flight: a few hundredths of a metre to about a tenth of a metre; note "
          "the much finer y-scale than on the previous page. " + FIT_XC), SH_FERR] + L04b, scope=["04"], world=False)
 page("11a", "1B_unaligned_paths", f"{T04} (6 of {N1B})", sline("04", "what"), [], None, [], PF("1B_unaligned_paths"),
      [AL(RAW_L, "the same 3 flights, the estimates exactly as they came out, from take-off, five separate panels with the same "
@@ -568,14 +568,14 @@ L07 = [("Metric:", sline("07", "metric")), ("Pass rule:", sline("07", "rule")), 
 page("17", "2_truth", f"{SUMP['07']['title']} (1 of 2)", sline("07", "what"), [], None, [], PF("2_truth"),
      [AL(REAL_L, REAL_X + " The same route in all 12 flights, one panel per number of tags."), SH_RTRUTH] + L07, scope=["07"], world=False)
 page("18", "2_known_tags", f"{SUMP['07']['title']} (2 of 2)", sline("07", "what"), W_ROOM(), "2", ["room_tags"], P("F5"),
-     [AL(ROOM_L, ROOM_X + " Error for each number of tags, in centimetres. Solid lines, filled marks: live estimates. Dashed "
+     [AL(ROOM_L, ROOM_X + " Error for each number of tags, in metres. Solid lines, filled marks: live estimates. Dashed "
          "lines, open marks: the flight re-solved afterwards (hindsight). Small marks: every single flight; large marks: their mean.")]
      + L07, scope=["07"])
 L08 = [("Metric:", sline("08", "metric")), ("Pass rule:", sline("08", "rule")), ("Result:", sline("08", "result"))]
 page("19", "3_truth", f"{SUMP['08']['title']} (1 of 2)", sline("08", "what"), [], None, [], PF("3_truth"),
      [AL(REAL_L, REAL_X + " The 3 loop-closure flights (the 8-tag flights of Experiment 2)."), SH_RTRUTH] + L08, scope=["08"], world=False)
 page("20", "3_loop_closure", f"{SUMP['08']['title']} (2 of 2)", sline("08", "what"), W_ROOM(), "3", ["room_tags"], P("F7"),
-     [AL(ROOM_L, ROOM_X + " The FGO's error on each lap of the 6 m square, in centimetres, one line per flight (all 3). Left: "
+     [AL(ROOM_L, ROOM_X + " The FGO's error on each lap of the 6 m square, in metres, one line per flight (all 3). Left: "
          "with loop closure. Right: without it. Solid: live. Dashed: hindsight."),
       SH("the error on each lap; the score below is the average over all five laps.")] + L08, scope=["08"])
 

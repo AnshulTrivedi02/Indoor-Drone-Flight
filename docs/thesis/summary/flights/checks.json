@@ -1165,7 +1165,7 @@
   },
   {
    "fig": "1B",
-   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED yaw-only aligned error, RMS within 5 mm of the stored cruise ATE",
+   "label": "fwdc_tex_r3 UKF_baseline: PLOTTED yaw-only aligned error, RMS within 0.005 m of the stored cruise ATE",
    "computed": "True",
    "expected": "True",
    "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.UKF_baseline.ate_a_cruise",
@@ -1213,7 +1213,7 @@
   },
   {
    "fig": "1B",
-   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED yaw-only aligned error, RMS within 5 mm of the stored cruise ATE",
+   "label": "fwdc_tex_r3 FGO_baseline: PLOTTED yaw-only aligned error, RMS within 0.005 m of the stored cruise ATE",
    "computed": "True",
    "expected": "True",
    "src": "eval/results/phase4_fwdc_evo.json:fwdc_tex_r3.est.FGO_baseline.ate_a_cruise",
