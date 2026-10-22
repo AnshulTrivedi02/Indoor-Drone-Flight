@@ -1,0 +1,68 @@
+| P-E3.6 T_A_r1 | not satisfied: diverged ['E3a_T_A_r1_0.01_s1', 'E3a_T_A_r1_0.01_s2'] |
+| P-E3.6 T_A_r2 | not satisfied: diverged ['E3a_T_A_r2_0.01_s1', 'E3a_T_A_r2_0.01_s2'] |
+| P-E3.6 T_A_r3 | not satisfied: diverged ['E3a_T_A_r3_0.01_s1', 'E3a_T_A_r3_0.01_s2'] |
+| H-E3.1 | 0/9 | FAIL | verdicts.json: FAIL 0/9 |
+| H-E3.2 | 0/9 | FAIL | verdicts.json: FAIL 0/9 |
+| H-E3.3 | 3/9 | FAIL | verdicts.json: FAIL 3/9 |
+| P-E3.4 | 0/9 | FAIL | verdicts.json: FAIL 0/9 |
+| P-E3.5a | 0/9 | FAIL | verdicts.json: FAIL 0/9 |
+| P-E3.5b | 0/9 | FAIL | verdicts.json: FAIL 0/9 |
+| P-E3.5c | 9/9 | PASS | verdicts.json: PASS 9/9 |
+| P-E3.6 | 0/3 | FAIL | verdicts.json: FAIL 0/3 |
+| P-E3b.1 0.01 | 9/9 | PASS | verdicts.json: PASS 9/9 |
+| P-E3b.1 0.05 | 9/9 | PASS | verdicts.json: PASS 9/9 |
+| P-E3b.2 | 3/3 | PASS | verdicts.json: PASS 3/3 |
+| pooled 0.01 | eligible 0.97 % | overall 0.71 % | n 150 |
+| pooled 0.05 | eligible 4.91 % | overall 3.58 % | n 758 |
+| E3a_T_A_r1_0.01_s0 | live 3.7618 | hind 3.5648 | lap1 3.4551 lap5 3.7449 | 1.08 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 3088.4 |
+| E3a_T_A_r1_0.01_s1 | live inf | hind nan | lap1 inf lap5 nan | nan | t_anchor 28.546 | lm 8 | kf_fail 6634 | wall 78.0 |
+| E3a_T_A_r1_0.01_s2 | live nan | hind nan | lap1 nan lap5 nan | nan | t_anchor 28.546 | lm 8 | kf_fail 6292 | wall 109.6 |
+| E3a_T_A_r1_0.05_s0 | live 4.1295 | hind 3.9498 | lap1 4.4370 lap5 4.0068 | 0.90 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 6387.4 |
+| E3a_T_A_r1_0.05_s1 | live 4.0830 | hind 3.9531 | lap1 4.3625 lap5 4.0126 | 0.92 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 6205.0 |
+| E3a_T_A_r1_0.05_s2 | live 4.1469 | hind 3.9388 | lap1 4.6374 lap5 4.0035 | 0.86 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 6998.4 |
+| E3a_T_A_r2_0.01_s0 | live 3.7161 | hind 3.5968 | lap1 3.9786 lap5 3.5885 | 0.90 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 11245.4 |
+| E3a_T_A_r2_0.01_s1 | live 226513789169769610901421936000030374394935019825462714420894367744.0000 | hind 12436424226109168597912463547245687659459648232190048988153774077492925601285467778631547259122272643966337784032983515136.0000 | lap1 226513789169769610901421936000030374394935019825462714420894367744.0000 lap5 nan | nan | t_anchor 28.975 | lm 8 | kf_fail 6342 | wall 156.9 |
+| E3a_T_A_r2_0.01_s2 | live inf | hind nan | lap1 inf lap5 nan | nan | t_anchor 28.975 | lm 8 | kf_fail 6399 | wall 121.9 |
+| E3a_T_A_r2_0.05_s0 | live 4.1379 | hind 3.9387 | lap1 4.3695 lap5 3.9365 | 0.90 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 12521.6 |
+| E3a_T_A_r2_0.05_s1 | live 4.1610 | hind 3.9120 | lap1 4.4566 lap5 3.9583 | 0.89 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 12785.2 |
+| E3a_T_A_r2_0.05_s2 | live 4.2231 | hind 3.9123 | lap1 4.6830 lap5 3.9500 | 0.84 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 12919.2 |
+| E3a_T_A_r3_0.01_s0 | live 3.8960 | hind 3.7711 | lap1 3.4195 lap5 4.0654 | 1.19 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 4790.6 |
+| E3a_T_A_r3_0.01_s1 | live inf | hind nan | lap1 inf lap5 nan | nan | t_anchor 28.744 | lm 8 | kf_fail 6396 | wall 153.7 |
+| E3a_T_A_r3_0.01_s2 | live inf | hind nan | lap1 inf lap5 nan | nan | t_anchor 28.744 | lm 8 | kf_fail 6244 | wall 167.1 |
+| E3a_T_A_r3_0.05_s0 | live 4.0904 | hind 3.9350 | lap1 4.2765 lap5 4.0537 | 0.95 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 11109.9 |
+| E3a_T_A_r3_0.05_s1 | live 4.0395 | hind 3.9140 | lap1 4.1280 lap5 4.0386 | 0.98 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 11445.9 |
+| E3a_T_A_r3_0.05_s2 | live 4.0864 | hind 3.8532 | lap1 4.5171 lap5 3.9602 | 0.88 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 11341.2 |
+| E3b_T_A_r1_0 | live 0.0581 | hind 0.0201 | lap1 0.1080 lap5 0.0329 | 0.30 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 206.2 |
+| E3b_T_A_r1_0.01_s0 | live 0.8694 | hind 0.0139 | lap1 1.9222 lap5 0.0281 | 0.01 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 479.8 |
+| E3b_T_A_r1_0.01_s1 | live 0.1758 | hind 0.0154 | lap1 0.3645 lap5 0.0275 | 0.08 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 230.5 |
+| E3b_T_A_r1_0.01_s2 | live 0.3902 | hind 0.0149 | lap1 0.8693 lap5 0.0296 | 0.03 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 281.1 |
+| E3b_T_A_r1_0.05_s0 | live 1.0698 | hind 0.0914 | lap1 2.3285 lap5 0.0961 | 0.04 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 462.9 |
+| E3b_T_A_r1_0.05_s1 | live 1.7538 | hind 0.0826 | lap1 3.6419 lap5 0.0871 | 0.02 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 486.1 |
+| E3b_T_A_r1_0.05_s2 | live 1.0040 | hind 0.0870 | lap1 2.2157 lap5 0.0917 | 0.04 | t_anchor 28.546 | lm 8 | kf_fail 0 | wall 430.0 |
+| E3b_T_A_r2_0 | live 0.0484 | hind 0.0263 | lap1 0.0811 lap5 0.0341 | 0.42 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 121.2 |
+| E3b_T_A_r2_0.01_s0 | live 1.4769 | hind 0.0179 | lap1 3.0925 lap5 0.0285 | 0.01 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 486.3 |
+| E3b_T_A_r2_0.01_s1 | live 0.0496 | hind 0.0154 | lap1 0.0904 lap5 0.0271 | 0.30 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 193.0 |
+| E3b_T_A_r2_0.01_s2 | live 0.2287 | hind 0.0151 | lap1 0.4342 lap5 0.0256 | 0.06 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 306.1 |
+| E3b_T_A_r2_0.05_s0 | live 1.6147 | hind 0.0856 | lap1 3.4054 lap5 0.0877 | 0.03 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 438.0 |
+| E3b_T_A_r2_0.05_s1 | live 4.1849 | hind 4.2233 | lap1 3.7542 lap5 4.2488 | 1.13 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 676.3 |
+| E3b_T_A_r2_0.05_s2 | live 1.0706 | hind 0.0763 | lap1 2.3746 lap5 0.0790 | 0.03 | t_anchor 28.975 | lm 8 | kf_fail 0 | wall 471.7 |
+| E3b_T_A_r3_0 | live 0.0760 | hind 0.0175 | lap1 0.1614 lap5 0.0250 | 0.15 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 387.3 |
+| E3b_T_A_r3_0.01_s0 | live 0.8356 | hind 0.0145 | lap1 1.8504 lap5 0.0250 | 0.01 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 358.4 |
+| E3b_T_A_r3_0.01_s1 | live 0.1984 | hind 0.0120 | lap1 0.4147 lap5 0.0265 | 0.06 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 229.1 |
+| E3b_T_A_r3_0.01_s2 | live 0.1259 | hind 0.0114 | lap1 0.2767 lap5 0.0238 | 0.09 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 251.3 |
+| E3b_T_A_r3_0.05_s0 | live 1.0551 | hind 0.1072 | lap1 2.3084 lap5 0.1143 | 0.05 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 462.6 |
+| E3b_T_A_r3_0.05_s1 | live 1.6546 | hind 0.0872 | lap1 3.4348 lap5 0.0955 | 0.03 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 433.3 |
+| E3b_T_A_r3_0.05_s2 | live 0.9776 | hind 0.0824 | lap1 2.1636 lap5 0.0902 | 0.04 | t_anchor 28.744 | lm 8 | kf_fail 0 | wall 414.7 |
+| arm (a) T_A_r1 0.01 | 2 of 3 runs diverged |
+| arm (a) T_A_r1 0.05 | 0 of 3 runs diverged |
+| arm (a) T_A_r2 0.01 | 2 of 3 runs diverged |
+| arm (a) T_A_r2 0.05 | 0 of 3 runs diverged |
+| arm (a) T_A_r3 0.01 | 2 of 3 runs diverged |
+| arm (a) T_A_r3 0.05 | 0 of 3 runs diverged |
+| arm (b) T_A_r1 0.01 | 0 of 3 runs diverged |
+| arm (b) T_A_r1 0.05 | 0 of 3 runs diverged |
+| arm (b) T_A_r2 0.01 | 0 of 3 runs diverged |
+| arm (b) T_A_r2 0.05 | 0 of 3 runs diverged |
+| arm (b) T_A_r3 0.01 | 0 of 3 runs diverged |
+| arm (b) T_A_r3 0.05 | 0 of 3 runs diverged |
+MISMATCHES: none

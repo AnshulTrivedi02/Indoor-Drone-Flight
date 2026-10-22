@@ -1,0 +1,10 @@
+/home/makerspace/thesis_ws/eval/l_score.py:73: RuntimeWarning: overflow encountered in square
+  per = [float(np.sqrt(np.mean(e[(x[:, 0] >= b0) & (x[:, 0] < b1)] ** 2))) for b0, b1 in zip(bounds[:-1], bounds[1:])]
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/makerspace/thesis_ws/eval/l_score.py:74: RuntimeWarning: overflow encountered in square
+  out["tracks"][f"{mode} {kind}"] = {"rmse_m": float(np.sqrt(np.mean(e[w] ** 2))), "max_m": float(e[w].max()), "per_lap_rmse_m": per}
+lc    live      RMSE inf max 757112254446282768149336921541615396042341747183406002755359471426044313012384135043026629764578350303709494437598017034075190308686550080927826612870477790322873467928576.000 | per lap inf nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan

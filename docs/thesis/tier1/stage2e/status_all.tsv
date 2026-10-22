@@ -1,0 +1,39 @@
+e3a_T_A_r1_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r1_0.01_s1	FAILED-ESTIMATOR	6634	717	0.9025	52.432	49.698919	{'RuntimeError': 124, 'IndexError': 6510}	{'live.tum': 0, 'hindsight.tum': 1}
+e3a_T_A_r1_0.01_s2	FAILED-ESTIMATOR	6292	1059	0.8559	63.832	59.698919	{'RuntimeError': 58, 'IndexError': 6234}	{'live.tum': 1, 'hindsight.tum': 1058}
+e3a_T_A_r1_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r1_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r1_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r2_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r2_0.01_s1	FAILED-ESTIMATOR	6342	1009	0.8627	62.595	61.795114	{'RuntimeError': 105, 'IndexError': 6237}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r2_0.01_s2	FAILED-ESTIMATOR	6399	952	0.8705	60.695	59.928447	{'RuntimeError': 27, 'IndexError': 6372}	{'live.tum': 0, 'hindsight.tum': 1}
+e3a_T_A_r2_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r2_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r2_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r3_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r3_0.01_s1	FAILED-ESTIMATOR	6396	955	0.8701	60.548	56.247566	{'RuntimeError': 25, 'IndexError': 6371}	{'live.tum': 1, 'hindsight.tum': 955}
+e3a_T_A_r3_0.01_s2	FAILED-ESTIMATOR	6244	1107	0.8494	65.614	60.314233	{'RuntimeError': 39, 'IndexError': 6205}	{'live.tum': 0, 'hindsight.tum': 1106}
+e3a_T_A_r3_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r3_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3a_T_A_r3_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.01_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.01_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r1_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.01_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.01_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r2_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.01_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.01_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.01_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.05_s0	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.05_s1	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}
+e3b_T_A_r3_0.05_s2	OK	0	7351	0.0000	None	None	{}	{'live.tum': 0, 'hindsight.tum': 0}

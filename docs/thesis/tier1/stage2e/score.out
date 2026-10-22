@@ -1,0 +1,158 @@
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0
+lc    live      RMSE 3.762 max 8.285 | per lap 3.455 3.874 3.891 3.827 3.745
+lc    hindsight RMSE 3.565 max 6.396 | per lap 3.575 3.556 3.588 3.570 3.534
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1
+/home/makerspace/thesis_ws/eval/l_score.py:73: RuntimeWarning: overflow encountered in square
+  per = [float(np.sqrt(np.mean(e[(x[:, 0] >= b0) & (x[:, 0] < b1)] ** 2))) for b0, b1 in zip(bounds[:-1], bounds[1:])]
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/makerspace/thesis_ws/eval/l_score.py:74: RuntimeWarning: overflow encountered in square
+  out["tracks"][f"{mode} {kind}"] = {"rmse_m": float(np.sqrt(np.mean(e[w] ** 2))), "max_m": float(e[w].max()), "per_lap_rmse_m": per}
+lc    live      RMSE inf max 757112254446282768149336921541615396042341747183406002755359471426044313012384135043026629764578350303709494437598017034075190308686550080927826612870477790322873467928576.000 | per lap inf nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/makerspace/thesis_ws/eval/l_score.py:73: RuntimeWarning: overflow encountered in square
+  per = [float(np.sqrt(np.mean(e[(x[:, 0] >= b0) & (x[:, 0] < b1)] ** 2))) for b0, b1 in zip(bounds[:-1], bounds[1:])]
+/home/makerspace/thesis_ws/eval/l_score.py:74: RuntimeWarning: overflow encountered in square
+  out["tracks"][f"{mode} {kind}"] = {"rmse_m": float(np.sqrt(np.mean(e[w] ** 2))), "max_m": float(e[w].max()), "per_lap_rmse_m": per}
+lc    live      RMSE nan max nan | per lap nan nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0
+lc    live      RMSE 4.129 max 7.931 | per lap 4.437 4.073 4.082 4.033 4.007
+lc    hindsight RMSE 3.950 max 6.135 | per lap 3.928 3.963 3.978 3.940 3.941
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1
+lc    live      RMSE 4.083 max 7.632 | per lap 4.362 4.015 4.029 3.983 4.013
+lc    hindsight RMSE 3.953 max 6.146 | per lap 3.934 3.955 3.984 3.941 3.951
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2
+lc    live      RMSE 4.147 max 7.498 | per lap 4.637 4.048 4.045 3.963 4.004
+lc    hindsight RMSE 3.939 max 6.047 | per lap 3.920 3.940 3.971 3.928 3.935
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0
+lc    live      RMSE 3.716 max 8.256 | per lap 3.979 3.484 3.768 3.742 3.589
+lc    hindsight RMSE 3.597 max 5.582 | per lap 3.591 3.601 3.606 3.607 3.578
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+lc    live      RMSE 226513789169769610901421936000030374394935019825462714420894367744.000 max 7083763812903264432192549137542394851639875493025709027442431098880.000 | per lap 226513789169769610901421936000030374394935019825462714420894367744.000 nan nan nan nan
+lc    hindsight RMSE 12436424226109168597912463547245687659459648232190048988153774077492925601285467778631547259122272643966337784032983515136.000 max 388924189638618981869967801530888441389575271366073709539044255961883375364397882843369270486805769952142467290644806107136.000 | per lap 12436424226109168597912463547245687659459648232190048988153774077492925601285467778631547259122272643966337784032983515136.000 nan nan nan nan
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2
+/home/makerspace/thesis_ws/eval/l_score.py:73: RuntimeWarning: overflow encountered in square
+  per = [float(np.sqrt(np.mean(e[(x[:, 0] >= b0) & (x[:, 0] < b1)] ** 2))) for b0, b1 in zip(bounds[:-1], bounds[1:])]
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/makerspace/thesis_ws/eval/l_score.py:74: RuntimeWarning: overflow encountered in square
+  out["tracks"][f"{mode} {kind}"] = {"rmse_m": float(np.sqrt(np.mean(e[w] ** 2))), "max_m": float(e[w].max()), "per_lap_rmse_m": per}
+lc    live      RMSE inf max 55709897592425117974910745228340193069457333019902376033739914060608947326206399848527978277211590241401269412533276020745764391951329450998834909645356578897920.000 | per lap inf nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0
+lc    live      RMSE 4.138 max 8.402 | per lap 4.369 4.274 4.090 4.003 3.936
+lc    hindsight RMSE 3.939 max 6.128 | per lap 3.932 3.940 3.951 3.951 3.919
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1
+lc    live      RMSE 4.161 max 7.617 | per lap 4.457 4.305 4.072 3.991 3.958
+lc    hindsight RMSE 3.912 max 6.110 | per lap 3.906 3.917 3.922 3.926 3.889
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2
+lc    live      RMSE 4.223 max 7.810 | per lap 4.683 4.320 4.112 4.008 3.950
+lc    hindsight RMSE 3.912 max 6.090 | per lap 3.905 3.913 3.929 3.923 3.890
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0
+lc    live      RMSE 3.896 max 8.534 | per lap 3.419 3.872 3.937 4.145 4.065
+lc    hindsight RMSE 3.771 max 6.764 | per lap 3.758 3.761 3.783 3.802 3.751
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+lc    live      RMSE inf max inf | per lap inf nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2
+/home/makerspace/thesis_ws/eval/l_score.py:73: RuntimeWarning: overflow encountered in square
+  per = [float(np.sqrt(np.mean(e[(x[:, 0] >= b0) & (x[:, 0] < b1)] ** 2))) for b0, b1 in zip(bounds[:-1], bounds[1:])]
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/home/makerspace/venv-tags/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+/home/makerspace/thesis_ws/eval/l_score.py:74: RuntimeWarning: overflow encountered in square
+  out["tracks"][f"{mode} {kind}"] = {"rmse_m": float(np.sqrt(np.mean(e[w] ** 2))), "max_m": float(e[w].max()), "per_lap_rmse_m": per}
+lc    live      RMSE inf max 38628075159913492722459847638660162912908369691715825991525470993713799519409477961630996514846299588073629676334169314535851140452137045907768499170126291515211804590912207437037950808704590645374746624.000 | per lap inf nan nan nan nan
+lc    hindsight RMSE nan max nan | per lap nan nan nan nan nan
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0
+lc    live      RMSE 4.090 max 7.704 | per lap 4.276 4.069 4.087 3.959 4.054
+lc    hindsight RMSE 3.935 max 6.078 | per lap 3.921 3.947 3.977 3.904 3.926
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1
+lc    live      RMSE 4.040 max 7.620 | per lap 4.128 4.066 4.034 3.929 4.039
+lc    hindsight RMSE 3.914 max 6.062 | per lap 3.906 3.927 3.955 3.883 3.898
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2
+lc    live      RMSE 4.086 max 8.279 | per lap 4.517 4.046 3.994 3.884 3.960
+lc    hindsight RMSE 3.853 max 5.979 | per lap 3.850 3.861 3.888 3.829 3.838
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_robcauchy2.385
+lc    live      RMSE 0.058 max 0.323 | per lap 0.108 0.045 0.032 0.033 0.033
+lc    hindsight RMSE 0.020 max 0.047 | per lap 0.021 0.020 0.019 0.021 0.020
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_robcauchy2.385
+lc    live      RMSE 0.048 max 0.195 | per lap 0.081 0.043 0.036 0.028 0.034
+lc    hindsight RMSE 0.026 max 0.059 | per lap 0.026 0.026 0.026 0.026 0.027
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_robcauchy2.385
+lc    live      RMSE 0.076 max 0.285 | per lap 0.161 0.032 0.026 0.023 0.025
+lc    hindsight RMSE 0.018 max 0.041 | per lap 0.018 0.018 0.017 0.018 0.015
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0_robcauchy2.385
+lc    live      RMSE 0.869 max 6.495 | per lap 1.922 0.285 0.026 0.023 0.028
+lc    hindsight RMSE 0.014 max 0.032 | per lap 0.014 0.014 0.014 0.013 0.015
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1_robcauchy2.385
+lc    live      RMSE 0.176 max 1.374 | per lap 0.364 0.140 0.024 0.026 0.028
+lc    hindsight RMSE 0.015 max 0.032 | per lap 0.016 0.015 0.016 0.014 0.016
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2_robcauchy2.385
+lc    live      RMSE 0.390 max 7.477 | per lap 0.869 0.052 0.029 0.029 0.030
+lc    hindsight RMSE 0.015 max 0.034 | per lap 0.016 0.014 0.015 0.014 0.014
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0_robcauchy2.385
+lc    live      RMSE 1.070 max 6.550 | per lap 2.328 0.516 0.114 0.102 0.096
+lc    hindsight RMSE 0.091 max 0.140 | per lap 0.091 0.092 0.093 0.090 0.092
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385
+lc    live      RMSE 1.754 max 7.691 | per lap 3.642 1.445 0.081 0.089 0.087
+lc    hindsight RMSE 0.083 max 0.131 | per lap 0.082 0.083 0.084 0.081 0.083
+== T_A_r1 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2_robcauchy2.385
+lc    live      RMSE 1.004 max 7.953 | per lap 2.216 0.320 0.100 0.090 0.092
+lc    hindsight RMSE 0.087 max 0.127 | per lap 0.086 0.087 0.089 0.086 0.087
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0_robcauchy2.385
+lc    live      RMSE 1.477 max 7.898 | per lap 3.092 1.158 0.037 0.023 0.029
+lc    hindsight RMSE 0.018 max 0.047 | per lap 0.018 0.019 0.017 0.018 0.018
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1_robcauchy2.385
+lc    live      RMSE 0.050 max 0.239 | per lap 0.090 0.045 0.033 0.018 0.027
+lc    hindsight RMSE 0.015 max 0.043 | per lap 0.015 0.016 0.015 0.014 0.017
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2_robcauchy2.385
+lc    live      RMSE 0.229 max 1.888 | per lap 0.434 0.267 0.029 0.020 0.026
+lc    hindsight RMSE 0.015 max 0.041 | per lap 0.014 0.015 0.015 0.014 0.017
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0_robcauchy2.385
+lc    live      RMSE 1.615 max 7.901 | per lap 3.405 1.189 0.105 0.095 0.088
+lc    hindsight RMSE 0.086 max 0.133 | per lap 0.086 0.088 0.086 0.085 0.084
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385
+lc    live      RMSE 4.185 max 8.728 | per lap 3.754 4.389 4.250 4.254 4.249
+lc    hindsight RMSE 4.223 max 8.742 | per lap 4.214 4.203 4.256 4.246 4.197
+== T_A_r2 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2_robcauchy2.385
+lc    live      RMSE 1.071 max 7.791 | per lap 2.375 0.265 0.096 0.082 0.079
+lc    hindsight RMSE 0.076 max 0.118 | per lap 0.076 0.078 0.077 0.075 0.076
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s0_robcauchy2.385
+lc    live      RMSE 0.836 max 6.446 | per lap 1.850 0.256 0.027 0.027 0.025
+lc    hindsight RMSE 0.015 max 0.032 | per lap 0.015 0.014 0.014 0.014 0.015
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s1_robcauchy2.385
+lc    live      RMSE 0.198 max 1.535 | per lap 0.415 0.152 0.025 0.023 0.027
+lc    hindsight RMSE 0.012 max 0.029 | per lap 0.013 0.012 0.010 0.013 0.011
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.01_s2_robcauchy2.385
+lc    live      RMSE 0.126 max 1.486 | per lap 0.277 0.032 0.026 0.021 0.024
+lc    hindsight RMSE 0.011 max 0.029 | per lap 0.013 0.011 0.010 0.012 0.010
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s0_robcauchy2.385
+lc    live      RMSE 1.055 max 6.459 | per lap 2.308 0.446 0.118 0.114 0.114
+lc    hindsight RMSE 0.107 max 0.155 | per lap 0.107 0.106 0.107 0.106 0.109
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385
+lc    live      RMSE 1.655 max 7.686 | per lap 3.435 1.366 0.091 0.100 0.096
+lc    hindsight RMSE 0.087 max 0.139 | per lap 0.088 0.087 0.087 0.086 0.088
+== T_A_r3 _t245_tags0-1-2-3-4-5-6-7_mis0.05_s2_robcauchy2.385
+lc    live      RMSE 0.978 max 7.486 | per lap 2.164 0.266 0.102 0.091 0.090
+lc    hindsight RMSE 0.082 max 0.121 | per lap 0.083 0.082 0.082 0.082 0.084
+SCORED_ALL

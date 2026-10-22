@@ -1,0 +1,39 @@
+FAIL     0/9   H-E3.1 (PRIMARY) 1%: LC live < stored no-LC live
+FAIL     0/9   H-E3.2 1%: LC hindsight < stored no-LC hindsight
+FAIL     3/9   H-E3.3 1%: LC live lap5 <= 1.5 x lap1
+FAIL     0/9   P-E3.4 1%: LC live <= 2 x stored clean LC live (x2: judgement, not derived from data)
+FAIL     0/9   P-E3.5a 5%: H-E3.1 criterion
+FAIL     0/9   P-E3.5b 5%: H-E3.2 criterion
+PASS     9/9   P-E3.5c 5%: H-E3.3 criterion
+FAIL     0/3   P-E3.6 dose-response: seed-mean LC live clean <= 1% <= 5%, per flight
+PASS     9/9   P-E3b.1 0.01: robust LC live <= 1.10 x arm (a) LC live, per run (+10%: judgement, not derived from data)
+PASS     9/9   P-E3b.1 0.05: robust LC live <= 1.10 x arm (a) LC live, per run (+10%: judgement, not derived from data)
+PASS     3/3   P-E3b.2 rate 0: |robust LC live / stored clean LC live - 1| <= 0.10 (±10%: judgement, not derived from data)
+rates a 0.01 0.00971 0.00708 150
+rates a 0.05 0.04908 0.03576 758
+rates b 0.01 0.00971 0.00708 150
+rates b 0.05 0.04908 0.03576 758
+inv t_anchor == stored (all runs) ('39/39', [])
+inv landmarks == 8 (all runs) ('39/39', [])
+inv gauge never true id or replacement ('36/36', [])
+inv replacement != true and in 1..7 ('36/36', [])
+inv n_events == n_mislabelled ('36/36', [])
+inv controls have no mislabel True
+inv 1% events nested in 5% events (same t, true, new) ('18/18', None)
+inv arm (b) events == arm (a) events (same flight, rate, seed) ('18/18', None)
+inv robust flag: arm a None, arm b cauchy:2.385 True
+inv src_dirty empty (all runs) True
+inv commits ['5f485e6cd7d113c825fc8fb0f4ebbfa77950727e', 'cb713d34e04c0115f92f87eff95ec6687e8be2bb']
+inv tag_ids == 0..7 (all runs) True
+runtime {'0.01': (0.0748046521516653, 0.04324034485431435, 0.15536172957371128, 3), '0.05': (0.041636160646263305, 0.03497734423387642, 0.07833678978046867, 9)} {'T_A_r1': 1.621, 'T_A_r2': 0.79, 'T_A_r3': 0.747}
+diverged H-E3.1 (PRIM 6 of 9 runs diverged {'T_A_r1': '2 of 3 runs diverged', 'T_A_r2': '2 of 3 runs diverged', 'T_A_r3': '2 of 3 runs diverged'}
+diverged H-E3.2 1%: L 6 of 9 runs diverged {'T_A_r1': '2 of 3 runs diverged', 'T_A_r2': '2 of 3 runs diverged', 'T_A_r3': '2 of 3 runs diverged'}
+diverged H-E3.3 1%: L 6 of 9 runs diverged {'T_A_r1': '2 of 3 runs diverged', 'T_A_r2': '2 of 3 runs diverged', 'T_A_r3': '2 of 3 runs diverged'}
+diverged P-E3.4 1%: L 6 of 9 runs diverged {'T_A_r1': '2 of 3 runs diverged', 'T_A_r2': '2 of 3 runs diverged', 'T_A_r3': '2 of 3 runs diverged'}
+diverged P-E3.5a 5%:  0 of 9 runs diverged {'T_A_r1': '0 of 3 runs diverged', 'T_A_r2': '0 of 3 runs diverged', 'T_A_r3': '0 of 3 runs diverged'}
+diverged P-E3.5b 5%:  0 of 9 runs diverged {'T_A_r1': '0 of 3 runs diverged', 'T_A_r2': '0 of 3 runs diverged', 'T_A_r3': '0 of 3 runs diverged'}
+diverged P-E3.5c 5%:  0 of 9 runs diverged {'T_A_r1': '0 of 3 runs diverged', 'T_A_r2': '0 of 3 runs diverged', 'T_A_r3': '0 of 3 runs diverged'}
+diverged P-E3.6 dose- 6 of 18 runs diverged {'T_A_r1': '2 of 6 runs diverged', 'T_A_r2': '2 of 6 runs diverged', 'T_A_r3': '2 of 6 runs diverged'}
+diverged P-E3b.1 0.01 6 of 18 runs diverged {'T_A_r1': 'arm (a): 2 of 3 runs diverged; arm (b): 0 of 3 runs diverged', 'T_A_r2': 'arm (a): 2 of 3 runs diverged; arm (b): 0 of 3 runs diverged', 'T_A_r3': 'arm (a): 2 of 3 runs diverged; arm (b): 0 of 3 runs diverged'}
+diverged P-E3b.1 0.05 0 of 18 runs diverged {'T_A_r1': 'arm (a): 0 of 3 runs diverged; arm (b): 0 of 3 runs diverged', 'T_A_r2': 'arm (a): 0 of 3 runs diverged; arm (b): 0 of 3 runs diverged', 'T_A_r3': 'arm (a): 0 of 3 runs diverged; arm (b): 0 of 3 runs diverged'}
+diverged P-E3b.2 rate 0 of 3 runs diverged {'T_A_r1': '0 of 1 runs diverged', 'T_A_r2': '0 of 1 runs diverged', 'T_A_r3': '0 of 1 runs diverged'}

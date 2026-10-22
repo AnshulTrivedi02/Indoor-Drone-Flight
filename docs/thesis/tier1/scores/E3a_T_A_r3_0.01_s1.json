@@ -1,0 +1,40 @@
+{
+ "trial": "T_A_r3",
+ "lap_bounds_s": [
+  29.715559790220055,
+  77.72574597713884,
+  125.73593216405762,
+  173.74611835097636,
+  221.75630453789515,
+  269.76649072481393
+ ],
+ "tracks": {
+  "lc live": {
+   "rmse_m": Infinity,
+   "max_m": Infinity,
+   "per_lap_rmse_m": [
+    Infinity,
+    NaN,
+    NaN,
+    NaN,
+    NaN
+   ]
+  },
+  "lc hindsight": {
+   "rmse_m": NaN,
+   "max_m": NaN,
+   "per_lap_rmse_m": [
+    NaN,
+    NaN,
+    NaN,
+    NaN,
+    NaN
+   ]
+  }
+ },
+ "tier1": {
+  "in_dir": "/home/makerspace/thesis_data/tier1/T_A_r3",
+  "prefix": "lc_fgo",
+  "suffix": "_t245_tags0-1-2-3-4-5-6-7_mis0.01_s1"
+ }
+}
