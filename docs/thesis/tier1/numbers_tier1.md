@@ -1,6 +1,6 @@
 # numbers_tier1: extension experiments E2–E5 (pre-registered)
 
-**Partly filled (Stage 2c, 2026-10-22): §Guard, §Gates and §E5.** E2, E3 and E4 have no results yet. Every result in this file is labelled **"extension experiment, pre-registered
+**Partly filled (Stage 2c and 2d, 2026-10-22): §Guard, §Gates, §E5 and §E2.** E3 and E4 have no results yet. Every result in this file is labelled **"extension experiment, pre-registered
 (2026-10-21; signed off with amendments 2026-10-22)"**. The pre-registration is `docs/thesis/tier1/preregistration.md` and the E5 design is
 `docs/thesis/tier1/e5_design.md`.
 
@@ -30,7 +30,8 @@
 | snapshot | before the first run | 13,253 files, 10,115.4 MB (2026-10-22T00:28:51) | `frozen_manifest_20261022T002851.json` |
 | verify after the Stage 2a gates | after G-E4 | IDENTICAL, exit 0 (changed 0, missing 0, added 0) | `frozen_manifest_20261022T002851_verify_stage2a.json` |
 | verify after E5 (Stage 2c) | after the last E5 result run | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2c_20261022T023631.json` |
-| verify after E2 / E3 / E4 / final | after each experiment | — | — |
+| verify after E2 (Stage 2d) | after the last E2 run | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2d_20261022T133243.json` |
+| verify after E3 / E4 / final | after each experiment | — | — |
 | E5 code snapshot | immediately before the first V-E5a run (2026-10-22T01:18:05) | 4 files: `ukf_lm.py`, `lc_ukf_replay.py`, `test_ukf_lm.py`, `e5_val_compare.py` (repo commit `e42b9ce`) | `e5_code_manifest_20261022T011805.json` |
 | E5 code verify | after the last E5 result run | IDENTICAL, exit 0 (4 files) | `e5_code_manifest_20261022T011805_verify_20261022T023631.json` |
 
@@ -48,10 +49,124 @@
 
 ## E2: loop closure with fewer tags (B, C, D)
 
+**Extension experiment, pre-registered (2026-10-21; signed off with amendments 2026-10-22).** 18/18 runs completed (rc 0, 0 keyframe failures, Stage 2d). Each flight used only its condition's tags (`--tag-ids`). Verdicts were judged on the unrounded json values. Full page: `e2_results.md`. Condition D is degenerate (preregistration §1): its only tag is the gauge tag, so LC on D is the known-map one-tag case and carries no claim about unknown landmarks.
+
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
+| T_B_r1 LC live overall RMSE | 0.0409 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.lc live.rmse_m` |
+| T_B_r1 LC live lap 1 / lap 5 RMSE | 0.0645 / 0.0289 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r1 LC hindsight overall RMSE | 0.0267 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.lc hindsight.rmse_m` |
+| T_B_r1 LC hindsight lap 1 / lap 5 RMSE | 0.0271 / 0.0254 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r1 no-LC live overall RMSE | 0.1001 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.nolc live.rmse_m` |
+| T_B_r1 no-LC live lap 1 / lap 5 RMSE | 0.0645 / 0.1143 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r1 no-LC hindsight overall RMSE | 0.2573 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.nolc hindsight.rmse_m` |
+| T_B_r1 no-LC hindsight lap 1 / lap 5 RMSE | 0.1570 / 0.1273 | m | CURRENT | `json:scores/E2_T_B_r1.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r1 LC live lap-5 / lap-1 | 0.45 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r1.ratio lc live lap5/lap1` |
+| T_B_r1 no-LC live lap-5 / lap-1 | 1.77 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r1.ratio nolc live lap5/lap1` |
+| T_B_r1 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.75 / 1.86 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_B_r1` |
+| T_B_r2 LC live overall RMSE | 0.0709 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.lc live.rmse_m` |
+| T_B_r2 LC live lap 1 / lap 5 RMSE | 0.1389 / 0.0213 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r2 LC hindsight overall RMSE | 0.0156 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.lc hindsight.rmse_m` |
+| T_B_r2 LC hindsight lap 1 / lap 5 RMSE | 0.0185 / 0.0125 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r2 no-LC live overall RMSE | 0.4336 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.nolc live.rmse_m` |
+| T_B_r2 no-LC live lap 1 / lap 5 RMSE | 0.1389 / 0.5935 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r2 no-LC hindsight overall RMSE | 0.2760 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.nolc hindsight.rmse_m` |
+| T_B_r2 no-LC hindsight lap 1 / lap 5 RMSE | 0.1452 / 0.3279 | m | CURRENT | `json:scores/E2_T_B_r2.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r2 LC live lap-5 / lap-1 | 0.15 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r2.ratio lc live lap5/lap1` |
+| T_B_r2 no-LC live lap-5 / lap-1 | 4.27 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r2.ratio nolc live lap5/lap1` |
+| T_B_r2 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 2.43 / 1.10 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_B_r2` |
+| T_B_r3 LC live overall RMSE | 0.0476 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.lc live.rmse_m` |
+| T_B_r3 LC live lap 1 / lap 5 RMSE | 0.0932 / 0.0212 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r3 LC hindsight overall RMSE | 0.0185 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.lc hindsight.rmse_m` |
+| T_B_r3 LC hindsight lap 1 / lap 5 RMSE | 0.0197 / 0.0191 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r3 no-LC live overall RMSE | 0.3652 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.nolc live.rmse_m` |
+| T_B_r3 no-LC live lap 1 / lap 5 RMSE | 0.0932 / 0.5500 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r3 no-LC hindsight overall RMSE | 0.3146 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.nolc hindsight.rmse_m` |
+| T_B_r3 no-LC hindsight lap 1 / lap 5 RMSE | 0.1832 / 0.2882 | m | CURRENT | `json:scores/E2_T_B_r3.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_B_r3 LC live lap-5 / lap-1 | 0.23 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r3.ratio lc live lap5/lap1` |
+| T_B_r3 no-LC live lap-5 / lap-1 | 5.90 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_B_r3.ratio nolc live lap5/lap1` |
+| T_B_r3 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.89 / 1.21 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_B_r3` |
+| T_C_r1 LC live overall RMSE | 0.0673 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.lc live.rmse_m` |
+| T_C_r1 LC live lap 1 / lap 5 RMSE | 0.1249 / 0.0396 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r1 LC hindsight overall RMSE | 0.0272 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.lc hindsight.rmse_m` |
+| T_C_r1 LC hindsight lap 1 / lap 5 RMSE | 0.0270 / 0.0232 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r1 no-LC live overall RMSE | 0.2818 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.nolc live.rmse_m` |
+| T_C_r1 no-LC live lap 1 / lap 5 RMSE | 0.1249 / 0.4338 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r1 no-LC hindsight overall RMSE | 0.2881 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.nolc hindsight.rmse_m` |
+| T_C_r1 no-LC hindsight lap 1 / lap 5 RMSE | 0.1750 / 0.1857 | m | CURRENT | `json:scores/E2_T_C_r1.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r1 LC live lap-5 / lap-1 | 0.32 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r1.ratio lc live lap5/lap1` |
+| T_C_r1 no-LC live lap-5 / lap-1 | 3.47 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r1.ratio nolc live lap5/lap1` |
+| T_C_r1 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.25 / 1.40 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_C_r1` |
+| T_C_r2 LC live overall RMSE | 0.0637 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.lc live.rmse_m` |
+| T_C_r2 LC live lap 1 / lap 5 RMSE | 0.1158 / 0.0528 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r2 LC hindsight overall RMSE | 0.0231 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.lc hindsight.rmse_m` |
+| T_C_r2 LC hindsight lap 1 / lap 5 RMSE | 0.0222 / 0.0264 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r2 no-LC live overall RMSE | 0.2821 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.nolc live.rmse_m` |
+| T_C_r2 no-LC live lap 1 / lap 5 RMSE | 0.1158 / 0.4137 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r2 no-LC hindsight overall RMSE | 0.2221 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.nolc hindsight.rmse_m` |
+| T_C_r2 no-LC hindsight lap 1 / lap 5 RMSE | 0.1440 / 0.1415 | m | CURRENT | `json:scores/E2_T_C_r2.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r2 LC live lap-5 / lap-1 | 0.46 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r2.ratio lc live lap5/lap1` |
+| T_C_r2 no-LC live lap-5 / lap-1 | 3.57 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r2.ratio nolc live lap5/lap1` |
+| T_C_r2 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.27 / 1.21 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_C_r2` |
+| T_C_r3 LC live overall RMSE | 0.0872 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.lc live.rmse_m` |
+| T_C_r3 LC live lap 1 / lap 5 RMSE | 0.1698 / 0.0553 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r3 LC hindsight overall RMSE | 0.0237 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.lc hindsight.rmse_m` |
+| T_C_r3 LC hindsight lap 1 / lap 5 RMSE | 0.0196 / 0.0291 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r3 no-LC live overall RMSE | 0.3162 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.nolc live.rmse_m` |
+| T_C_r3 no-LC live lap 1 / lap 5 RMSE | 0.1698 / 0.3541 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r3 no-LC hindsight overall RMSE | 0.2627 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.nolc hindsight.rmse_m` |
+| T_C_r3 no-LC hindsight lap 1 / lap 5 RMSE | 0.1645 / 0.1353 | m | CURRENT | `json:scores/E2_T_C_r3.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_C_r3 LC live lap-5 / lap-1 | 0.33 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r3.ratio lc live lap5/lap1` |
+| T_C_r3 no-LC live lap-5 / lap-1 | 2.08 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_C_r3.ratio nolc live lap5/lap1` |
+| T_C_r3 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.54 / 1.26 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_C_r3` |
+| T_D_r1 LC live overall RMSE | 0.0964 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.lc live.rmse_m` |
+| T_D_r1 LC live lap 1 / lap 5 RMSE | 0.1529 / 0.0674 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r1 LC hindsight overall RMSE | 0.0282 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.lc hindsight.rmse_m` |
+| T_D_r1 LC hindsight lap 1 / lap 5 RMSE | 0.0258 / 0.0306 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r1 no-LC live overall RMSE | 0.4850 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.nolc live.rmse_m` |
+| T_D_r1 no-LC live lap 1 / lap 5 RMSE | 0.1529 / 0.7038 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r1 no-LC hindsight overall RMSE | 0.2462 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.nolc hindsight.rmse_m` |
+| T_D_r1 no-LC hindsight lap 1 / lap 5 RMSE | 0.1689 / 0.1704 | m | CURRENT | `json:scores/E2_T_D_r1.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r1 LC live lap-5 / lap-1 | 0.44 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r1.ratio lc live lap5/lap1` |
+| T_D_r1 no-LC live lap-5 / lap-1 | 4.60 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r1.ratio nolc live lap5/lap1` |
+| T_D_r1 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 1.04 / 1.03 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_D_r1` |
+| T_D_r2 LC live overall RMSE | 0.0795 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.lc live.rmse_m` |
+| T_D_r2 LC live lap 1 / lap 5 RMSE | 0.1030 / 0.0691 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r2 LC hindsight overall RMSE | 0.0271 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.lc hindsight.rmse_m` |
+| T_D_r2 LC hindsight lap 1 / lap 5 RMSE | 0.0350 / 0.0334 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r2 no-LC live overall RMSE | 0.3912 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.nolc live.rmse_m` |
+| T_D_r2 no-LC live lap 1 / lap 5 RMSE | 0.1030 / 0.5255 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r2 no-LC hindsight overall RMSE | 0.1980 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.nolc hindsight.rmse_m` |
+| T_D_r2 no-LC hindsight lap 1 / lap 5 RMSE | 0.1522 / 0.1468 | m | CURRENT | `json:scores/E2_T_D_r2.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r2 LC live lap-5 / lap-1 | 0.67 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r2.ratio lc live lap5/lap1` |
+| T_D_r2 no-LC live lap-5 / lap-1 | 5.10 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r2.ratio nolc live lap5/lap1` |
+| T_D_r2 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 0.98 / 1.04 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_D_r2` |
+| T_D_r3 LC live overall RMSE | 0.0739 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.lc live.rmse_m` |
+| T_D_r3 LC live lap 1 / lap 5 RMSE | 0.0513 / 0.0695 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.lc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r3 LC hindsight overall RMSE | 0.0293 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.lc hindsight.rmse_m` |
+| T_D_r3 LC hindsight lap 1 / lap 5 RMSE | 0.0172 / 0.0241 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.lc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r3 no-LC live overall RMSE | 0.2417 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.nolc live.rmse_m` |
+| T_D_r3 no-LC live lap 1 / lap 5 RMSE | 0.0513 / 0.3293 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.nolc live.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r3 no-LC hindsight overall RMSE | 0.4148 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.nolc hindsight.rmse_m` |
+| T_D_r3 no-LC hindsight lap 1 / lap 5 RMSE | 0.2125 / 0.3867 | m | CURRENT | `json:scores/E2_T_D_r3.json:tracks.nolc hindsight.per_lap_rmse_m[0]`, `[4]` |
+| T_D_r3 LC live lap-5 / lap-1 | 1.35 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r3.ratio lc live lap5/lap1` |
+| T_D_r3 no-LC live lap-5 / lap-1 | 6.42 | ratio | CURRENT | `json:scores/E2_verdicts.json:flights.T_D_r3.ratio nolc live lap5/lap1` |
+| T_D_r3 E2 LC ÷ Experiment 2 FGO, live / hindsight (inputs and solvers differ) | 0.99 / 0.95 | ratio | DESCRIPTIVE | `json:scores/E2_verdicts.json:known_map_descriptive.T_D_r3` |
+| P-E2.5 mean LC live lap-5 RMSE, A / B / C / D | 0.0317 / 0.0238 / 0.0492 / 0.0687 | m | CURRENT | `json:scores/E2_verdicts.json:P-E2.5.means.<c>.mean_m` (A from `eval/results/expL/T_A_r<i>_t245.json:tracks.lc live.per_lap_rmse_m[4]`) |
 
 Verdicts: H-E2.1 (PRIMARY) per condition, H-E2.2, H-E2.3, P-E2.4, P-E2.5. Known-map comparison (DESCRIPTIVE).
+
+| criterion | B | C | D | source |
+|---|---|---|---|---|
+| **H-E2.1 (PRIMARY)**: LC live lap-5 ≤ 1.5 × lap-1 | **PASS** 3/3 | **PASS** 3/3 | **PASS** 3/3 | `json:scores/E2_verdicts.json:criteria.H-E2.1` |
+| H-E2.2: LC live < no-LC live (overall) | **PASS** 3/3 | **PASS** 3/3 | **PASS** 3/3 | `json:scores/E2_verdicts.json:criteria.H-E2.2` |
+| H-E2.3: LC hindsight < no-LC hindsight (overall) | **PASS** 3/3 | **PASS** 3/3 | **PASS** 3/3 | `json:scores/E2_verdicts.json:criteria.H-E2.3` |
+| P-E2.4: no-LC live lap-5 > 1.5 × lap-1 | **PASS** 3/3 | **PASS** 3/3 | **PASS** 3/3 | `json:scores/E2_verdicts.json:criteria.P-E2.4` |
+| P-E2.5 (graded, one check): mean LC live lap-5 non-decreasing A → B → C → D | **FAIL** (A ≤ B False, B ≤ C True, C ≤ D True) | | | `json:scores/E2_verdicts.json:P-E2.5` |
+
+P-E2.5 FAILs at its first step: the B mean lap-5 (4 tags) is below the stored A mean (8 tags). The ordering B < C < D holds. This is a null result for the registered ordering and is reported with the same prominence as a PASS (preregistration §0.5).
+
+Invariants (reported; `json:scores/E2_verdicts.json:flights.<t>.invariants`): `t_anchor` equal between LC and no-LC on 9/9 flights; landmarks LC = 4 / 2 / 1 and no-LC = 21 / 11 / 6 (B / C / D) on every flight, as §8 expects; recorded `tag_ids` equal the condition's on 18/18; lap-1 LC live = lap-1 no-LC live exactly on 9/9; T_B_r1 central detections used = 2370 − 1057 = 1313, as §1 states.
 
 ## E3: wrong re-identification (T_A, 1% / 5%, seeds 0–2)
 
