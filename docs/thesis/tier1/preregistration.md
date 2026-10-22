@@ -424,8 +424,13 @@ The unit is a run: (flight, seed), 9 runs per rate. References are the SAME flig
       (per-run False, so the criterion is FAIL, never NOT MET). This applies to H-E3.1, H-E3.2, H-E3.3, P-E3.4,
       P-E3.5 and P-E3.6. For P-E3.6 (per flight), a flight with any diverged arm (a) run at 1% or 5% does not satisfy
       the criterion; its seed mean is not computed from a truncated or non-finite RMSE. For the arm (b) criteria, an
-      arm (b) run that diverged does not satisfy P-E3b.1 or P-E3b.2. Read literally, the rule also fails a P-E3b.1 run
-      whose matched arm (a) run diverged. That is how it is encoded; the per-run table shows which side diverged.
+      arm (b) run that diverged does not satisfy P-E3b.1 or P-E3b.2. *[SUPERSEDED 2026-10-23 by the P-E3b.1
+      clarification below:]* Read literally, the rule also fails a P-E3b.1 run whose matched arm (a) run diverged.
+      That is how it is encoded; the per-run table shows which side diverged.
+    - **P-E3b.1 clarification of R2 (user ruling 2026-10-23, before any E3 scoring; 24 of 39 E3 runs finished, none
+      scored).** If the matched arm (a) run diverged but the robust arm (b) run did not, that P-E3b.1 run counts as
+      **SATISFIED, flagged**. It is reported as "(a) diverged at t s, (b) OK", with no (b)/(a) ratio, because arm (a)'s
+      error is not finite. A diverged arm (b) run still fails, as R2 says.
     - **§0.5 is unchanged.** NOT MET (insufficient data) still covers only a crashed run (rc ≠ 0 twice) or a failed
       gate. NOT RUN is unchanged.
     - **Reported for each diverged run, as a headline:** the live divergence onset (the first live row with |x| or

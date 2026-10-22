@@ -13,7 +13,9 @@ USER RULING R2 (2026-10-22, terminology clarification, preregistration §2.3; ap
 run (status FAILED-ESTIMATOR in stage2e/status/<job>.json: keyframe_failures > 0 or a non-finite .tum value) counts as
 NOT SATISFYING every criterion that needs it (per-run False -> FAIL, never NOT MET). P-E3.6: a flight with any diverged
 arm (a) run fails and its seed means are not computed. P-E3b.1 (literal): the run fails if its arm (b) run OR its matched
-arm (a) run diverged. Each verdict carries "k of 3 runs diverged" per flight with divergence times (live excursion
+arm (a) run diverged [SUPERSEDED by the user ruling of 2026-10-23: if only the matched arm (a) run diverged, the
+P-E3b.1 run counts as SATISFIED, flagged "(a) diverged at t s, (b) OK", with no ratio; a diverged arm (b) run still
+fails]. Each verdict carries "k of 3 runs diverged" per flight with divergence times (live excursion
 onset = headline; first exception time; failure fraction, inflated because the harness does not recover after a throw).
 Also reads stage2e/status/<job>.json and, for the 0% serial runtime pair (ruling R3), the extra timing-only arm (a) run
 ~/thesis_data/tier1/T_A_r2/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7/stats.json."""
@@ -38,7 +40,8 @@ res = {"label": "extension experiment, pre-registered (2026-10-21; signed off wi
        "references": {}, "runs": {}, "criteria_a": {}, "criteria_b": {}, "effective_rates": {}, "invariants": {},
        "runtime_descriptive": {}, "divergence": {},
        "rule": "user ruling R2 2026-10-22: a diverged (FAILED-ESTIMATOR) run counts as not satisfying any criterion that "
-               "needs it (FAIL, never NOT MET); P-E3b.1 literal (fails if the arm (b) or the matched arm (a) run diverged)"}
+               "needs it (FAIL, never NOT MET); P-E3b.1 (user ruling 2026-10-23): a diverged arm (b) run fails; if only the "
+               "matched arm (a) run diverged, the run is SATISFIED, flagged, with no ratio"}
 
 # ---- stored references (same flight) ----
 ref = {}
@@ -151,14 +154,23 @@ def div_summary(names):
     return out
 
 
-def verdict(names, test, needs=lambda n: [n]):
+def verdict(names, test, needs=lambda n: [n], ref_div=None):
     """Per run: None if any needed run failed its gate (-> NOT MET, §0.5); False if any needed run diverged
-    (ruling R2: not satisfying, -> FAIL); else the criterion. The test is never evaluated on a diverged run."""
-    per, why = {}, {}
+    (ruling R2: not satisfying, -> FAIL); else the criterion. The test is never evaluated on a diverged run.
+    ref_div(n) (P-E3b.1 only, user ruling 2026-10-23): the matched arm (a) run; if IT diverged and the run itself did
+    not, the run counts as SATISFIED, flagged, with no ratio."""
+    per, why, flag = {}, {}, {}
     for n in names:
         nd = needs(n)
         if not all(runs[m]["gate t_anchor == stored"] for m in nd):
             per[n] = None; why[n] = "gate failed (t_anchor != stored)"
+        elif div(n):
+            per[n] = False; why[n] = "diverged: " + n
+        elif ref_div is not None and div(ref_div(n)):
+            m = ref_div(n)
+            per[n] = True
+            flag[n] = (f"(a) diverged at {runs[m]['run_status']['live divergence onset t_s (headline; |x| or |y| > 10 m or non-finite)']} s, "
+                       f"(b) OK; SATISFIED, flagged (user ruling 2026-10-23); no ratio: (a)'s error is not finite")
         elif any(div(m) for m in nd):
             per[n] = False; why[n] = "diverged: " + ", ".join(m for m in nd if div(m))
         else:
@@ -169,7 +181,7 @@ def verdict(names, test, needs=lambda n: [n]):
         vd = "PASS" if all(per.values()) else "FAIL"
     allneed = sorted({m for n in names for m in needs(n)})
     return {"per_run": per, "count": f"{sum(1 for v in per.values() if v)}/{len(per)}", "verdict": vd,
-            "not satisfied because": why, "divergence": div_summary(allneed)}
+            "not satisfied because": why, "satisfied, flagged": flag, "divergence": div_summary(allneed)}
 
 
 r1 = [ra(t, "0.01", s) for t in FL for s in SEEDS]
@@ -230,10 +242,11 @@ for n, d in runs.items():
 cb = res["criteria_b"]
 for p in RATES:
     names = [rb(t, p, s) for t in FL for s in SEEDS]
-    # an arm (b) criterion also needs its matched arm (a) run (gate; and, literally per ruling R2, not diverged)
+    # needs the matched arm (a) run's gate; if only arm (a) diverged: SATISFIED, flagged (user ruling 2026-10-23)
     v = verdict(names, lambda n: val(n, "lc live rmse_m") <= 1.10 * val(ra(fl(n), runs[n]["rate"], runs[n]["seed"]),
                                                                           "lc live rmse_m"),
-                needs=lambda n: [n, ra(fl(n), runs[n]["rate"], runs[n]["seed"])])
+                needs=lambda n: [n, ra(fl(n), runs[n]["rate"], runs[n]["seed"])],
+                ref_div=lambda n: ra(fl(n), runs[n]["rate"], runs[n]["seed"]))
     cb[f"P-E3b.1 {p}: robust LC live <= 1.10 x arm (a) LC live, per run (+10%: judgement, not derived from data)"] = v
 cb["P-E3b.2 rate 0: |robust LC live / stored clean LC live - 1| <= 0.10 (±10%: judgement, not derived from data)"] = verdict(
     [f"E3b_{t}_0" for t in FL], lambda n: abs(val(n, "lc live rmse_m") / rv(fl(n), "clean lc live rmse_m") - 1.0) <= 0.10)

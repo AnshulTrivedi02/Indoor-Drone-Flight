@@ -5,7 +5,8 @@ equals the value in scores/E3_verdicts.json, then prints each one rounded once w
 Positions 4 dp (m), ratios 2 dp, rates % 2 dp. Exit 1 on any mismatch.
 Ruling R2 (2026-10-22): the run status (diverged iff stats.json keyframe_failures > 0 or any non-finite value in
 live.tum / hindsight.tum) is re-derived HERE from the run outputs, independently of run_status.py, and a diverged run
-counts as not satisfying every criterion that needs it (P-E3b.1 literal: also when the matched arm (a) run diverged;
+counts as not satisfying every criterion that needs it (P-E3b.1, user ruling 2026-10-23: a diverged arm (b) run fails;
+if only the matched arm (a) run diverged, the run is SATISFIED, flagged;
 P-E3.6: a flight with any diverged arm (a) run fails). NaN compares equal to NaN in the value checks."""
 import json, math, sys
 R = "/home/makerspace/thesis_ws"; SC = f"{R}/docs/thesis/tier1/scores"; T1 = "/home/makerspace/thesis_data/tier1"
@@ -43,7 +44,7 @@ for arm in "ab":
             assert sc["tier1"]["suffix"] == suf, (n, sc["tier1"])
             rdir = f"{T1}/{t}/lc_fgo_lc{suf}"; st = J(f"{rdir}/stats.json")
             L, H = sc["tracks"]["lc live"], sc["tracks"]["lc hindsight"]
-            runs[n] = dict(t=t, p=p, s=s, arm=arm, live=L["rmse_m"], hind=H["rmse_m"], l1=L["per_lap_rmse_m"][0],
+            runs[n] = dict(n=n, t=t, p=p, s=s, arm=arm, live=L["rmse_m"], hind=H["rmse_m"], l1=L["per_lap_rmse_m"][0],
                            l5=L["per_lap_rmse_m"][4], mx=L["max_m"], st=st, div=diverged(rdir, st))
             eq(V["runs"][n]["run_status"]["diverged"], runs[n]["div"], n + " diverged")
             d = V["runs"][n]["values"]
@@ -78,8 +79,7 @@ for t in FL:
 my["P-E3.6"] = m6
 for p in RATES:
     my[f"P-E3b.1 {p}"] = cnt([f"E3b_{t}_{p}_s{s}" for t in FL for s in SEEDS],
-                             lambda r: r["live"] <= 1.10 * runs[f"E3a_{r['t']}_{r['p']}_s{r['s']}"]["live"],
-                             needs=lambda n: [n, "E3a" + n[3:]])
+                             lambda r: runs["E3a" + r["n"][3:]]["div"] or r["live"] <= 1.10 * runs["E3a" + r["n"][3:]]["live"])
 my["P-E3b.2"] = cnt([f"E3b_{t}_0" for t in FL], lambda r: abs(r["live"] / ref[r["t"]]["cl"] - 1) <= 0.10)
 vc = {**V["criteria_a"], **V["criteria_b"]}
 for k, c in my.items():

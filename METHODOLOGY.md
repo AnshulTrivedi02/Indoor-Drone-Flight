@@ -14538,3 +14538,18 @@ Made after 6 of 39 E3 runs had finished, before any E3 scoring. This entry follo
   - The other runtime ratios are not like for like and are labelled so.
 - **R4. Parallel batch.** The remaining runs run at width ≤ 4 inside one `heavy.py` call. A deviation row was added to
   `numbers_tier1.md` before launch. E4 stays strictly one job at a time.
+
+### RULING (user, 2026-10-23, relayed by the coordinator): E3 P-E3b.1 when only arm (a) diverged
+
+This clarifies R2 of the preceding entry. It was made while the E3 parallel batch was running and before any E3 scoring.
+- **Rule.** If the matched arm (a) run diverged and the robust arm (b) run did not, that P-E3b.1 run counts as
+  **SATISFIED, flagged**.
+  - It is reported as "(a) diverged at t s, (b) OK".
+  - It gets no (b)/(a) ratio, because arm (a)'s error is not finite.
+- **Unchanged.** A diverged arm (b) run still fails.
+- **Where it is applied.**
+  - `preregistration.md` §2.3 has a dated clarification. The literal reading is kept there, marked superseded.
+  - `stage2e/e3_verdicts.py`, `crosscheck.py` and `make_tables.py` were updated and re-tested on the mock tree, with
+    0 mismatches.
+- **Observation (no timing hypothesis).** At width 4, each non-diverged arm (a) job ran about 3.6× slower than serial,
+  so the batch gains only about 1.1× throughput. The E3 runtime ratio comes only from the serial 0% pair.

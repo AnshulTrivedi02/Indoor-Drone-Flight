@@ -27,7 +27,7 @@ def v(n, k, f=".4f"):
 
 
 def r2(n, k):
-    if NM(n):
+    if (NM(n) if k.startswith("b ") else DV(n)):   # (b)/(a) ratios need both runs finite; the others only this run
         return "—"
     return format(V["runs"][n][k], ".2f")
 
@@ -79,11 +79,15 @@ def crit_table(C, key):
     P("| criterion | verdict | count | divergence (k of 3 runs diverged, per flight) | source |\n|---|---|---|---|---|")
     for k, x in C.items():
         d = x["divergence"]
+        lab = k
+        if x.get("satisfied, flagged"):
+            lab = k + " [satisfied, flagged ((a) diverged, (b) OK; no ratio): " + ", ".join(x["satisfied, flagged"]) + "]"
         dt = "; ".join(f"{t}: {d[t]['text']}" for t in FL) + f" (total {d['total']})"
-        P(f"| {k} | **{x['verdict']}** | {x['count']} | {dt} | `{VS}:{key}.{k}` |")
+        P(f"| {lab} | **{x['verdict']}** | {x['count']} | {dt} | `{VS}:{key}.{k}` |")
 
 
 crit_table(V["criteria_a"], "criteria_a")
+K1 = {p: next(k for k in V["criteria_b"] if k.startswith(f"P-E3b.1 {p}:")) for p in RATES}
 P("\n### Arm (b): robust tag factors, Cauchy k = 2.385 (ESTIMATOR VARIANT)\n")
 P("| quantity | value | unit | status | source |\n|---|---|---|---|---|")
 for t in FL:
@@ -94,7 +98,10 @@ for t in FL:
         for sd in SEEDS:
             n = f"E3b_{t}_{p}_s{sd}"; lab = f"{t} robust {pct(p)} s{sd}"
             run_rows(n, lab)
-            if not DV(n):
+            a_ = f"E3a_{t}_{p}_s{sd}"
+            if not DV(n) and DV(a_):
+                P(f"| {lab} P-E3b.1 | (a) diverged at {tm(RS(a_)[ONS])} s, (b) OK: SATISFIED, flagged (user ruling 2026-10-23); no ratio, (a)'s error is not finite | — | CURRENT | `{VS}:criteria_b.{K1[p]}.satisfied, flagged.{n}` |")
+            elif not DV(n):
                 P(f"| {lab} LC live ÷ arm (a) LC live | {r2(n, 'b live / a live')} | ratio | CURRENT | `{VS}:runs.{n}.b live / a live` |")
 c2 = V["runtime_descriptive"]["0"]["T_A_r2"]
 P(f"| **runtime, serial 0% pair on T_A_r2 (headline): arm (b) ÷ arm (a) wall** | {c2['ratio']:.2f} ({c2['b wall_s']:.1f} / {c2['ref wall_s']:.1f} s) | ratio | DESCRIPTIVE (DIAGNOSTIC timing) | `{VS}:runtime_descriptive.0.T_A_r2` |")

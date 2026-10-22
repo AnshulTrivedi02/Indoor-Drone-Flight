@@ -1,0 +1,23 @@
+{
+ "job": "e3b_T_A_r2_0.05_s2",
+ "run_dir": "/home/makerspace/thesis_data/tier1/T_A_r2/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s2_robcauchy2.385",
+ "log": "/home/makerspace/thesis_data/tier1/stage2e/logs/e3b_T_A_r2_0.05_s2.log",
+ "keyframes_ok": 7351,
+ "keyframe_failures": 0,
+ "failure_fraction": 0.0,
+ "first_failure_t_s": null,
+ "live_excursion_onset_t_s (|x| or |y| > 10 m, or non-finite; DESCRIPTIVE)": null,
+ "exception_counts_in_log": {},
+ "log_warn_count == keyframe_failures": true,
+ "nonfinite": {
+  "live.tum": {
+   "rows": 7350,
+   "rows_nonfinite": 0
+  },
+  "hindsight.tum": {
+   "rows": 7351,
+   "rows_nonfinite": 0
+  }
+ },
+ "status": "OK"
+}
