@@ -48,6 +48,38 @@ def rng(vals, n=2):
     return f"{rd(min(vals), n)}–{rd(max(vals), n)}"
 
 
+# ------------------------------------------------------------------ SI display (2026-10-22, user request: "make sure all the plots
+# and the results walkthrough are all in si units, not cm, mm etc"). Lengths in metres, times in seconds (angles stay in degrees).
+# A value is converted by an EXACT decimal shift of its stored full-precision form and rounded ONCE at the printed precision (rd_si);
+# the expected thesis string is converted by the same exact decimal shift of the string (si_str), the factor stated in the check
+# label. The thesis tables keep their own units, so the "shown in" checks still look for the native string there.
+def rd_si(v, n, k=0):
+    """rd() of the stored value v shifted exactly by 10**k (k = -3: stored mm -> m; k = 0: stored in m). n may be negative (n = -3:
+    nearest 1000 m)."""
+    from decimal import Decimal, ROUND_HALF_UP
+    d = Decimal(str(float(v))).scaleb(k).quantize(Decimal(1).scaleb(-int(n)), rounding=ROUND_HALF_UP)
+    out = format(d, "f")
+    return out[1:] if out.startswith("-") and d == 0 else out
+
+
+def rng_si(vals, n, k=0):
+    return f"{rd_si(min(vals), n, k)}–{rd_si(max(vals), n, k)}"
+
+
+def si_str(s_, k):
+    """Every number in the thesis string s_ shifted exactly by 10**k as a decimal ('7.8–7.9' mm, k = -3 -> '0.0078–0.0079' m)."""
+    from decimal import Decimal
+    return re.sub(r"\d+(?:\.\d+)?", lambda m_: format(Decimal(m_.group(0)).scaleb(k), "f"), s_)
+
+
+NNBSP = "\u202f"     # narrow no-break space: the SI digit-group separator
+
+
+def grp(s_):
+    """SI digit grouping (narrow no-break space every three digits) of every whole number of five or more digits."""
+    return re.sub(r"(?<![\d.])\d{5,}(?![\d.])", lambda m_: f"{int(m_.group(0)):,}".replace(",", NNBSP), s_)
+
+
 # ------------------------------------------------------------------ style (Okabe-Ito, fixed per estimator; >= 11 pt everywhere)
 C = {"EKF3": "#0072B2", "UKF": "#009E73", "FGO": "#D55E00"}
 MK = {"EKF3": "o", "UKF": "^", "FGO": "s"}
@@ -374,7 +406,8 @@ for e, exp in (("UKF", ("0.7–1.8 (median 1.1)", "15.3–26.8 (median 19.4)", "
                       exp[0], [("T3", exp[0])], [(ln, exp[0].split(" ")[0])])
     VB[(e, 30)] = num(f"{e} error 30 s after flow loss: range (median), m", f"{rng(BLANK[e][:, 1], 1)} (median {rd(np.median(BLANK[e][:, 1]), 1)})",
                       exp[1], [("T3", exp[1])], [(ln, exp[1].split(" ")[0])])
-    VB[(e, "end")] = num(f"{e} error at the end of the cruise (km)", rng(BLANK[e][:, 3] / 1e3, 0), exp[2], [("T3", exp[2] + " km")], [(1462, "29–40 / 23–41")])
+    VB[(e, "end")] = num(f"{e} error at the end of the cruise (m, to the nearest 1000 m; Table 4.2 / numbers.md km × 10^3, digits grouped)",
+                         grp(rng_si(BLANK[e][:, 3], -3)), grp(si_str(exp[2], 3)), [("T3", exp[2] + " km")], [(1462, "29–40 / 23–41")])
 disp("time points after flow loss used on this page (s)", "10 / 30", [("T3", "+10 s (m)"), ("T3", "+30 s (m)")])
 vinv = num("EKF3: flagged its position invalid for (s of cruise)", rng(EK_INV, 0), "301–310", [("T3", "invalid (for 301–310 s of cruise)")], [(245, "blank from take-off (all 14), for 301–310 s")])
 rule(M_, 5551, "**Not accuracy comparisons** (ruling)", "blank floor: ruled not an accuracy comparison (no pass rule)")
@@ -382,15 +415,15 @@ med_ = lambda s: s.split("median ")[1].rstrip(")")
 table(fig, meta,
       ["estimator", "error 10 s after the camera lost the floor", "error 30 s after", "error at the end of the cruise"],
       [[NAME["EKF3"] + f", {nE} flights", "marks its own position as invalid from take-off for the whole cruise (no error to score)", "", ""],
-       [NAME["UKF"] + f", {nU.split('/')[0]} flights", f"{med_(VB[('UKF', 10)])} m (median)", f"{med_(VB[('UKF', 30)])} m (median)", f"{VB[('UKF', 'end')]} km (runaway)"],
-       [NAME["FGO"] + f", {nU.split('/')[1]} flights", f"{med_(VB[('FGO', 10)])} m (median)", f"{med_(VB[('FGO', 30)])} m (median)", f"{VB[('FGO', 'end')]} km (runaway)"]],
+       [NAME["UKF"] + f", {nU.split('/')[0]} flights", f"{med_(VB[('UKF', 10)])} m (median)", f"{med_(VB[('UKF', 30)])} m (median)", f"{VB[('UKF', 'end')]} m (runaway)"],
+       [NAME["FGO"] + f", {nU.split('/')[1]} flights", f"{med_(VB[('FGO', 10)])} m (median)", f"{med_(VB[('FGO', 30)])} m (median)", f"{VB[('FGO', 'end')]} m (runaway)"]],
       [30, 30, 18, 22])
 foot(fig, meta,
-     "distance between the estimated and the true position after the camera stops giving motion measurements, metres (kilometres at "
-     "the end); EKF3 instead reports whether it considers its own position valid.",
+     "distance between the estimated and the true position after the camera stops giving motion measurements, metres (rounded to "
+     "thousands of metres at the end); EKF3 instead reports whether it considers its own position valid.",
      "none registered: a descriptive comparison (this floor tests behaviour when the camera fails, not accuracy).",
      "None of the three kept a usable position: EKF3 declared its position invalid, and the UKF and FGO errors grew without limit "
-     "to tens of kilometres by the end of the flight.")
+     "to tens of thousands of metres by the end of the flight.")
 finish(fig, meta)
 
 # =================================================================== 1B, heading measurement check
@@ -664,10 +697,12 @@ fig, meta = new_page("10", "5_hold", "Experiment 5: holding the drone still next
                      "Whether each estimator, flying the drone, can hold it in place next to a printed tag on the wall that a "
                      "camera sees.")
 _hc = [v for k, v in L("expH/h_comparative_2026-10-11.json")["sets"].items() if k.startswith("re-flown")][0]
-hE = [np.mean([w["mean_m"] * 1e3 for w in HJ(t)["hold_windows_vehicle"]]) for t in S1F]
+hE = [np.mean([w["mean_m"] for w in HJ(t)["hold_windows_vehicle"]]) for t in S1F]          # m (stored in m)
 hU = [r["hold_mean_mm"] for r in _hc["UKF"]]; hF = [r["hold_mean_mm"] for r in _hc["FGO"]]
-HV = {"EKF3": hE, "UKF": hU, "FGO": hF}
-VH = {e: num(f"{e}: mean hold error, range over 3 flights (mm)", rng(HV[e], 1), x, [("T1", f"hold {x} mm")], [(675, x)])
+HV = {"EKF3": hE, "UKF": hU, "FGO": hF}; HK = {"EKF3": 0, "UKF": -3, "FGO": -3}      # HK: decimal shift to m (UKF/FGO stored in mm)
+HVM = {e: [float(rd_si(v, 12, HK[e])) for v in HV[e]] for e in EST}                  # metres, for drawing only
+VH = {e: num(f"{e}: mean hold error, range over 3 flights (m; Table 7.1 / numbers.md mm × 10^-3)", rng_si(HV[e], 4, HK[e]), si_str(x, -3),
+             [("T1", f"hold {x} mm")], [(675, x)])
       for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6"))}
 HWIN = {"EKF3 (first hold flights, near spawn)": S1, "EKF3 (far spawn, plotted)": S1F, "UKF": S2V, "FGO": S3V}
 for nm_, trs in HWIN.items():
@@ -675,9 +710,9 @@ for nm_, trs in HWIN.items():
     ok_ = all(w["mean_m"] <= 0.05 and w["max_m"] <= 0.15 for w in ws)
     num(f"hold rule (every window mean ≤ 0.05 m and max ≤ 0.15 m), {nm_}", str(ok_), "True",
         [("T1", "hold 7.8–7.9 mm" if "far" in nm_ else "hold 6.4–7.1 mm" if nm_ == "UKF" else "hold 8.3–8.6 mm" if nm_ == "FGO" else "hold 7.8–7.9 mm")])
-num("window max hold error range, EKF3 first hold flights / UKF (mm)",
-    f"{rng([w['max_m'] * 1e3 for t in S1 for w in HJ(t)['hold_windows_vehicle']], 0)} / {rng([w['max_m'] * 1e3 for t in S2V for w in HJ(t)['hold_windows_vehicle']], 0)}",
-    "16–25 / 17–21", [("R1", "max 16–25 mm (EKF3 flying)")], [(606, "16–25 mm"), (644, "6.1–7.4 / 17–21")])
+num("window max hold error range, EKF3 first hold flights / UKF (m; Table 7.3 / numbers.md mm × 10^-3)",
+    f"{rng_si([w['max_m'] for t in S1 for w in HJ(t)['hold_windows_vehicle']], 3)} / {rng_si([w['max_m'] for t in S2V for w in HJ(t)['hold_windows_vehicle']], 3)}",
+    si_str("16–25 / 17–21", -3), [("R1", "max 16–25 mm (EKF3 flying)")], [(606, "16–25 mm"), (644, "6.1–7.4 / 17–21")])
 disp("hold accuracy verdict as recorded: EKF3 first hold flights / FGO", "PASS / PASS", [("R1", "PASS: hold error mean 8 mm"), ("R1", "also PASS on the FGO-flying hold set")],
      [(606, "H-H1 PASS"), (646, "H-H1 PASS")])
 num("comparative predictions (FGO tightest and the other three): verdict", "; ".join(_hc["criteria"][k].split()[0] for k in ("H-H2", "P-H3", "H-H4 (15 s)", "H-H4 (5 s)")),
@@ -685,19 +720,18 @@ num("comparative predictions (FGO tightest and the other three): verdict", "; ".
 rule(M_, 10687, "mean hold error ≤ 0.05 m and max ≤ 0.15 m", "hold accuracy: mean ≤ 0.05 m and max ≤ 0.15 m")
 rule(M_, 10687, "every pre-loss hold window, 3/3", "hold accuracy: in 3 of 3 flights")
 counted("flights per estimator", "/".join(str(len(HV[e])) for e in EST), "3/3/3", "S1 far r1-r3b, S2v2 r1-r3, S3v2 r1-r3 (Table 7.1 [i] '3 flights per estimator')")
-disp("0.05 m written in mm", "50", [("T5", "≤ 50 / 100 / 200 / 150 mm")])
 ax = AX(0.11, 0.80, 0.135)
 for i, e in enumerate(EST):
-    v = HV[e]
+    v = HVM[e]
     ax.bar(i, max(v), width=0.55, color=C[e], zorder=3)
-    label_val(ax, i, max(v) + 1.0, f"{VH[e]} mm", ha="center", va="bottom", weight="bold")
-ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 58)
-bound(ax, 50, "limit for the mean: 50 mm (0.05 m)", x=2.45)
+    label_val(ax, i, max(v) + 0.001, f"{VH[e]} m", ha="center", va="bottom", weight="bold")
+ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 0.058)
+bound(ax, 0.05, "limit for the mean: 0.05 m", x=2.45)
 ax.set_xticks(range(3)); ax.set_xticklabels([TICK[e] for e in EST]); ax.grid(axis="x", visible=False)
-ax.set_ylabel("Mean hold error per flight (mm)")
+ax.set_ylabel("Mean hold error per flight (m)")
 foot(fig, meta,
      "distance between where the drone was held and where it should be, mean per flight, lowest–highest over 3 flights per "
-     "estimator (each estimator flew its own flights), millimetres; each bar shows the highest flight.",
+     "estimator (each estimator flew its own flights), metres; each bar shows the highest flight.",
      "mean hold error at most 0.05 m and largest at most 0.15 m in every hold, in 3 of 3 flights.",
      "All three held far inside both limits in every hold. The registered test passed on EKF3's first hold flights and on the "
      "FGO's; the UKF's flights have no recorded verdict but are inside. The four predicted differences between the estimators, "
@@ -711,12 +745,14 @@ fig, meta = new_page("11", "5_tag_loss", "Experiment 5: drift while the wall tag
 DR = {(e, li): drifts(FLY[e][0], FLY[e][1])[li] for e in EST for li in range(4)}
 worst = {e: max(max(DR[(e, li)]) for li in range(4)) for e in EST}
 wli = {e: max(range(4), key=lambda li: max(DR[(e, li)])) for e in EST}
-VW = {e: num(f"{e}: worst drift over all tag losses (mm)", rd(worst[e], 0), x, [("T5", f"{x} / {BAND[e][wli[e]]}")]) for e, x in zip(EST, ("31", "26", "27"))}
+worstm = {e: max(lo[FLY[e][1]]["effective"]["drift_m"] for t in FLY[e][0] for lo in HJ(t)["losses"]) for e in EST}   # m, as stored
+VW = {e: num(f"{e}: worst drift over all tag losses (m; Table 6.1 mm × 10^-3)", rd_si(worstm[e], 3), si_str(x, -3), [("T5", f"{x} / {BAND[e][wli[e]]}")])
+      for e, x in zip(EST, ("31", "26", "27"))}
 LK = {e: [bool(lo[FLY[e][1]]["lockout"]) for t in FLY[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: num(f"{e}: losses with a lockout / losses", f"{sum(LK[e])} / {len(LK[e])}", x, [("T5", x)]) for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12"))}
 inband = all(v <= BAND[e][li] for (e, li), d in DR.items() for v in d)
 num("every drift inside its limit", str(inband), "True", [("T5", "every loss inside its band")], [(629, "P-H5 PASS")])
-disp("tightest and loosest limit for EKF3 and the FGO (mm)", "50 / 200", [("T5", "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm")])
+disp("tightest and loosest limit for EKF3 and the FGO (m; Table 6.1 mm × 10^-3)", si_str("50 / 200", -3), [("T5", "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm")])
 disp("the UKF's limits are twice the others'", "UKF ≤ 100 / 200 / 400 / 300 mm", [("T5", "UKF ≤ 100 / 200 / 400 / 300 mm")])
 rule(M_, 10690, "≤ 0.05 / 0.10 / 0.20 m", "drift limits, EKF3 and FGO hover losses")
 rule(M_, 10691, "≤ 2× those", "UKF limits twice those")
@@ -731,18 +767,18 @@ num("directional prediction: matched losses with UKF / FGO drift strictly above 
 disp("directional prediction verdict", "NOT MET", [("R1", "NOT borne out (the predicted o")])
 ax = AX(0.11, 0.80, 0.135)
 for i, e in enumerate(EST):
-    ax.bar(i, worst[e], width=0.55, color=C[e], zorder=3)
-    label_val(ax, i, worst[e] + 1.0, f"{VW[e]} mm", ha="center", va="bottom", weight="bold")
+    ax.bar(i, worstm[e], width=0.55, color=C[e], zorder=3)
+    label_val(ax, i, worstm[e] + 0.001, f"{VW[e]} m", ha="center", va="bottom", weight="bold")
     nl = VN[e].split(" / ")[1]
-    label_val(ax, i, 3, f"{nl}\ntag losses", ha="center", va="bottom", fontsize=12, color="white", weight="bold")
-ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 60)
-bound(ax, 50, "tightest limit: 50 mm", x=2.45)
+    label_val(ax, i, 0.003, f"{nl}\ntag losses", ha="center", va="bottom", fontsize=12, color="white", weight="bold")
+ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 0.06)
+bound(ax, 0.05, "tightest limit: 0.05 m", x=2.45)
 ax.set_xticks(range(3)); ax.set_xticklabels([TICK[e] for e in EST]); ax.grid(axis="x", visible=False)
-ax.set_ylabel("Worst drift while the tag was hidden (mm)")
+ax.set_ylabel("Worst drift while the tag was hidden (m)")
 foot(fig, meta,
      "how far the drone moved between the last tag sighting before a loss and the first one after it, worst case over all tag losses (hidden for a few seconds "
-     "to half a minute, hovering or moving), millimetres.",
-     "every loss must stay inside its own limit (50 to 200 mm for EKF3 and the FGO, depending on the loss; twice that for the UKF), "
+     "to half a minute, hovering or moving), metres.",
+     "every loss must stay inside its own limit (0.05 to 0.20 m for EKF3 and the FGO, depending on the loss; twice that for the UKF), "
      "and no estimator may refuse the tag when it returns.",
      f"All three PASS: every tag loss stayed inside its limit and the tag was always picked up again ({VN['EKF3'].split(' / ')[0]} "
      "refusals). The predicted extra drift of the UKF and FGO over EKF3: NOT MET.")
@@ -890,10 +926,10 @@ HYP = {"01": "H1.1 (confirmatory EKF3 − FGO test, flights 4–10; Table 7.1 [a
        "07": "H2.1 primary PASS, H2.3 FAIL as worded (Figure 5.1, Table 7.3); H2.2 and H2.4 (both FAIL) not shown",
        "08": "H3.1–H3.4 PASS 3/3 (Figure 5.2, Table 7.3); V3 (not re-scorable) not shown",
        "09": "H4.1 primary PASS 3/3, H4.2 FAIL as worded, H4.3 PASS (Table 5.1, Table 7.3); EKF3's 4.10 m return jump (Table 7.2) not shown",
-       "10": "H5.1 (recorded PASS for EKF3 flying, S1 near spawn, mean 8 mm, max 16–25 mm, numbers.md:606; and for the final FGO node, "
-             "numbers.md:646; the UKF set has no recorded verdict, its windows are inside both bounds: max 17–21 mm, numbers.md:644; the rule "
+       "10": "H5.1 (recorded PASS for EKF3 flying, S1 near spawn, mean 0.008 m, max 0.016–0.025 m (numbers.md:606 gives mm); and for the final FGO node, "
+             "numbers.md:646; the UKF set has no recorded verdict, its windows are inside both bounds: max 0.017–0.021 m, numbers.md:644; the rule "
              "is re-checked here on every stored hold window of S1, S1 far, S2v2 and S3v2). Values = Table 7.1: EKF3 = the EKF3-flying hold set at the FAR spawn (S1 far, the "
-             "comparatives' EKF3 side), UKF/FGO = run means of the comparative table (numbers.md:675); the per-window UKF range 6.1–7.4 mm "
+             "comparatives' EKF3 side), UKF/FGO = run means of the comparative table (numbers.md:675); the per-window UKF range 0.0061–0.0074 m "
              "(numbers.md:644) is not used. Comparatives H5.2, H5.3, H5.4a, H5.4b FAIL as worded",
        "11": "H5.5 drift bands PASS, H5.7 no lockout PASS, H5.5 S2/S3 directional prediction NOT MET (Table 6.1, Table 7.3). EKF3 = near + far spawn "
              "(6 flights, 24 losses) as Table 6.1; drift = the EFFECTIVE metric (last fix → first returning fix). H5.6 (re-lock time) not shown",

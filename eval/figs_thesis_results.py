@@ -776,7 +776,7 @@ for pid, tr, win, arms, est in PANELS:
     for key, e, ls in arms:
         xyz, ref, rmse = aligned(tr, *SUB[key], win)
         st = est[key]["ate_a_cruise"]["+0.00"]
-        CHK.append(("R3", f"({pid}) {tr} {key}: plotted path's yaw-only RMSE {rd(rmse, 6)} within 5 mm of the stored cruise ATE {rd(st, 6)} (data identity)",
+        CHK.append(("R3", f"({pid}) {tr} {key}: plotted path's yaw-only RMSE {rd(rmse, 6)} within 0.005 m of the stored cruise ATE {rd(st, 6)} (data identity)",
                     str(abs(rmse - st) < 0.005), "True",
                     f"{'rerun_dsn_evo.json / dsn_extra_evo.json' if pid == 'a' else 'phase4_fwdc_evo.json'}:{tr}.est.{key}.ate_a_cruise", abs(rmse - st) < 0.005))
         PATHS[(pid, key)] = (NE(key, xyz), NE(key, ref), e, ls, st)
@@ -822,7 +822,7 @@ CAP3 = (f"{RULE} Chosen: (a) flight {ra} (cross-estimator mean cruise ATEs, asce
         + ", ".join(f"{i}: {rd(m, 2)}" for m, i in means) + f" m); (b) flight {rb} ({rb_why}). Top-down, cruise window only, truth grey. Each "
         "estimated path is drawn after a best-fit rotation about the vertical and a shift (no scale), fitted over the stored cruise window "
         "against its own ground-truth file. This gives the same average error as the standard 3D alignment used for the cruise ATE (the RMSE "
-        "of every plotted path is within 5 mm of its stored cruise ATE; cross-checks), but cannot roll the path about the corridor axis: "
+        "of every plotted path is within 0.005 m of its stored cruise ATE; cross-checks), but cannot roll the path about the corridor axis: "
         "the 3D fit is free to do so on a straight path and can turn sideways drift into up-and-down error that is invisible from above. "
         "The legend gives the stored cruise ATE. The alignment removes a constant heading offset, so the "
         "metres-scale sideways drift of the unaligned estimates (Table 4.1, heading-error decomposition) is not shown; an error along "
@@ -1034,7 +1034,7 @@ for gtxt in [
     "**Experiment 5 information contrast.** Hold error (tag visible) and end-of-loss drift (tag hidden) are different statistics; no like-for-like "
     "'without the tag' hold error exists.",
     "**Blank floor.** Only the non-runaway +10 s and +30 s errors can carry a ratio; the +60 s and end-of-cruise values are † runaway magnitudes.",
-    "**Figure 4.2 unaligned drift.** The paths are drawn after a yaw-only alignment that reproduces the stored cruise ATE to within 5 mm (ruling 2026-10-21); the unaligned "
+    "**Figure 4.2 unaligned drift.** The paths are drawn after a yaw-only alignment that reproduces the stored cruise ATE to within 0.005 m (ruling 2026-10-21); the unaligned "
     "metres-scale sideways drift is the heading-error decomposition of Table 4.1, not redrawn here.",
 ]:
     W.append(f"- {gtxt}")

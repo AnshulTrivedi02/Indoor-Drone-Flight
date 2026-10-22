@@ -191,10 +191,10 @@ def yaw_ok(fig, tr, key, rmse_y, st, src):
         dataid(fig, f"{tr} {key}: PLOTTED yaw-only aligned error, RMS vs stored cruise ATE (displayed precision, 2 dp)", rd(rmse_y, 2), rd(st, 2), src)
         return True
     # Drawn anyway (user ruling 2026-10-21): the yaw-only and SE(3) fits differ by millimetres when the true path is not exactly
-    # straight; a difference under 5 mm is a fit-precision effect, not a data mismatch. Reported in the index.
+    # straight; a difference under 0.005 m is a fit-precision effect, not a data mismatch. Reported in the index.
     ok = abs(rmse_y - st) < 0.005
     EXCL.append((fig, tr, key, rd(rmse_y, 2), rd(st, 2), rmse_y, st)); print(f"   DRAWN, last digit differs: {fig} {tr} {key} yaw-only {rmse_y:.6f} vs stored {st:.6f}")
-    dataid(fig, f"{tr} {key}: PLOTTED yaw-only aligned error, RMS within 5 mm of the stored cruise ATE", str(ok), "True", src)
+    dataid(fig, f"{tr} {key}: PLOTTED yaw-only aligned error, RMS within 0.005 m of the stored cruise ATE", str(ok), "True", src)
     return True
 
 
@@ -863,7 +863,7 @@ for k, f in FIGS.items():
     W.append(f"| {k} | `{f['file']}` | `{hashlib.sha256(open(os.path.join(ROOT, f['file']), 'rb').read()).hexdigest()}` | {f['inputs']} | {', '.join(f['numbers'])} |")
 W += ["", "## Printed-number checks", "", "| figure | check | computed | expected | source | result |", "|---|---|---|---|---|---|"]
 W += [f"| {c['fig']} | {c['label']} | {c['computed']} | {c['expected']} | {c['src']} | {'OK' if c['ok'] else 'FAIL'} |" for c in CHK]
-W += ["", "## Drawn; the yaw-only RMS differs from the stored score in the last displayed digit (under 5 mm)", "",
+W += ["", "## Drawn; the yaw-only RMS differs from the stored score in the last displayed digit (under 0.005 m)", "",
       "| figure | flight | arm | yaw-only RMS (2 dp) | stored cruise ATE (2 dp) | yaw-only (full) | stored (full) |", "|---|---|---|---|---|---|---|"]
 W += [f"| {a} | {b} | {c} | {d} | {e} | {f:.6f} | {g:.6f} |" for a, b, c, d, e, f, g in EXCL] or ["| none | | | | | | |"]
 W += ["", "## Data-identity checks", "", "| figure | check | computed | expected | source | result |", "|---|---|---|---|---|---|"]
