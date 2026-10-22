@@ -14449,3 +14449,50 @@ After E2–E4 are scored, write `docs/thesis/tier1/claims_update.md` listing eve
 results change (starting with "loop closure is an FGO capability; the filters have no loop-closure equivalent", which E5
 revises), each with the old wording, the new wording, the supporting tier-1 result and its verdict. Propose only: the existing
 claims table and the frozen documents are not edited.
+
+### RULING (user, 2026-10-22, relayed by the coordinator): E3 estimator failures; harness status; diagnosis; parallel remainder
+
+Added after 5 of 39 E3 runs (a sixth was running and finished without failure), before any E3 scoring.
+
+- **Trigger.** Two arm (a) runs exited rc 0, but the FGO had failed: T_A_r1 at 1%, seeds 1 and 2.
+  - Keyframe failures were 6634 and 6292 of 7351.
+  - The first exception (GTSAM IndeterminantLinearSystem) came at 52.432 and 63.832 s. The live state had already diverged
+    to beyond 10 m at 49.70 and 59.70 s.
+  - The .tum files contain non-finite rows.
+- **Audit (coordinator, read-only):** all 238 earlier tier-1 and Experiment 2/3 outputs had `keyframe_failures` = 0 and no
+  non-finite rows. These are the only failures.
+- **Harness.** Every E3 run now records:
+  - its keyframe failures and failure fraction;
+  - its first failure time;
+  - any non-finite .tum rows;
+  - a descriptive live excursion onset (the first live row with |x| or |y| > 10 m).
+
+  The script is `~/thesis_data/tier1/stage2e/run_status.py`, which writes `status/<job>.json`. A run with keyframe
+  failures or non-finite values is FAILED-ESTIMATOR, never a success; the excursion onset does not set the status. This
+  was back-filled for the 6 finished runs.
+- **Rule (`preregistration.md` §2.3, added the same day).**
+  - A genuine FGO failure counts as NOT MET for the H-E3 primary, with its failure fraction and first-failure time reported.
+  - Harness-bug runs are re-run, not scored.
+  - How a failed run enters the criterion verdicts is pending a ruling.
+- **Diagnosis.** A flag `--mislabel-keep T,...` was added to `lc_fgo_replay.py` (commit `3f613f4`). It does the following:
+  - It applies to diagnosis runs only and is inert when unset.
+  - The listed detections keep their true id.
+  - The random stream and all counters are unchanged.
+
+  G0-L was re-checked at `3f613f4`: (i) and (ii) are byte-identical to the frozen run (live and hindsight), 4/4.
+  - **Seed 1.** Keeping the 49.402 s detection (true 5 → 1, L(1) existing) moved the divergence to 60.36 s. That is the
+    next wrong-id event (true 6 → 2).
+  - **Seed 2.** Keeping the 54.253 s detection (true 2 → 6, the first sighting of id 6, so L(6) is created at the wrong place)
+    moved the divergence to 71.97 s. That is the true tag 7's first sighting, and L(7) had been created from the other
+    mislabel (true 2 → 7).
+  - **Both triggers kept** (`cf2`). Both seeds complete with 0 failures. Seed 1 shows a transient excursion of about 20 m at
+    the next wrong event (67.783 s, true 3 → 2) and recovers by 69.8 s.
+  - **Conclusion.** Both failures are a divergence of the non-robust FGO that a single wrong-id factor sets off. The offsets
+    are 3.0–6.7 m and 10–105°, nowhere near the ±180° yaw wrap.
+  - **The later `map::at` errors are downstream.** `isam_keyframe` advances `k` and the landmark map before
+    `isam.update`, so after a thrown update the run cannot recover. They are not the cause.
+- **Unseen ids (error model unchanged).** A mislabel to an id not yet seen creates a new landmark, exactly as the real
+  pipeline would treat that detection. No wrong id is skipped, filtered or dropped. No injection fix was needed.
+- **Remaining E3 runs.** These run in parallel, at most 4 at a time; there is no E3 timing hypothesis. The exception is one
+  matched (a)/(b) pair, run serially with nothing else running, for the descriptive runtime ratio. E4 stays strictly
+  one job at a time.

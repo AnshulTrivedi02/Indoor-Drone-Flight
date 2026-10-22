@@ -1,0 +1,26 @@
+{
+ "job": "cf_s1",
+ "run_dir": "/home/makerspace/thesis_data/tier1/diag_stage2e/T_A_r1/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_s1_cfkeep49.402",
+ "log": "/home/makerspace/thesis_data/tier1/stage2e/diag/logs/cf_s1.log",
+ "keyframes_ok": 1142,
+ "keyframe_failures": 6209,
+ "failure_fraction": 0.8446469868045164,
+ "first_failure_t_s": 66.599,
+ "live_excursion_onset_t_s (|x| or |y| > 10 m, or non-finite; DESCRIPTIVE)": 60.798919,
+ "exception_counts_in_log": {
+  "RuntimeError": 30,
+  "IndexError": 6179
+ },
+ "log_warn_count == keyframe_failures": true,
+ "nonfinite": {
+  "live.tum": {
+   "rows": 1141,
+   "rows_nonfinite": 0
+  },
+  "hindsight.tum": {
+   "rows": 1142,
+   "rows_nonfinite": 1
+  }
+ },
+ "status": "FAILED-ESTIMATOR"
+}

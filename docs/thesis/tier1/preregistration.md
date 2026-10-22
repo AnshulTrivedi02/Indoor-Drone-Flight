@@ -379,6 +379,36 @@ The unit is a run: (flight, seed), 9 runs per rate. References are the SAME flig
 - A run whose `t_anchor` differs from the stored value is a **gate failure** for that run. It means the injection
   touched the anchor, which the design forbids. The run is excluded and reported, and the criterion becomes NOT MET if
   it lacks runs.
+- **Estimator failure (added 2026-10-22 after 5 of 39 E3 runs, before any E3 scoring; user ruling relayed by the
+  coordinator).** The sixth run was in progress when the ruling was made and finished without failure.
+  - **Trigger.** Two arm (a) runs exited rc 0, but the FGO had failed: T_A_r1 1% seeds 1 and 2.
+    - Keyframe failures were 6634 and 6292 of 7351.
+    - The first exception (GTSAM IndeterminantLinearSystem) came at 52.432 and 63.832 s, after the live state had
+      already diverged at 49.70 and 59.70 s.
+    - The .tum files contain non-finite rows.
+    - §0.5 said only that keyframe failures "do not exclude a run". **For E3 this rule supersedes that clause.**
+  - **What is recorded for every E3 run** (`~/thesis_data/tier1/stage2e/run_status.py`):
+    - keyframe failures, and the failure fraction = failures / (successful + failed keyframes);
+    - the time of the first failure;
+    - whether any .tum file has non-finite values;
+    - DESCRIPTIVE only, not part of the status: the live excursion onset (the first live row with |x| or |y| > 10 m, or a
+      non-finite value).
+  - **Status.** A run with keyframe failures or non-finite values is **FAILED-ESTIMATOR**, never a success.
+  - **Genuine failure.** A run in which the FGO fails genuinely (diagnosed as caused by the injected wrong ids, not by
+    the harness) **counts as NOT MET for the H-E3 primary**. Its failure fraction and time of first failure are reported.
+    - How this per-run status enters the 9/9 criterion verdicts is pending a ruling, as is its effect on H-E3.2–P-E3.6
+      and the arm (b) criteria. The open question is whether the criterion is NOT MET as in §0.5, or the run counts as
+      not satisfying the criterion.
+  - **Harness-bug runs** are re-run, not scored.
+  - **Diagnosis of the two runs** (counterfactual flag `--mislabel-keep`, inert when unset; G0-L re-checked
+    byte-identical at commit `3f613f4`):
+    - In both runs, the divergence starts at a single wrong-id factor. In s1 it is a detection relabelled to an
+      existing landmark. In s2 it is a landmark created from a mislabelled first sighting, which the true tag's first
+      pass then contradicts.
+    - Keeping that one detection's true id moves the divergence to the next such wrong-id event.
+    - Keeping both triggering detections gives 0 failures on both seeds. Seed 1 still shows a transient live excursion,
+      peaking at about 20 m, at the next wrong event (67.783 s), and recovers by 69.8 s.
+    - Records: `~/thesis_data/tier1/stage2e/diag/`.
 
 **Null result.**
 - If H-E3.1 FAILs, 1% wrong ids are enough to destroy the loop-closure advantage of a non-robust FGO. That is a
