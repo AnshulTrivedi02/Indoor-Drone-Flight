@@ -30,6 +30,9 @@ by default:
   --mislabel-rate P   E3: mislabel each central non-gauge detection with probability P (needs --mislabel-seed and
   --mislabel-seed S       --tag-ids = the valid ids); replacement uniform over the other non-gauge ids
   --tag-robust K:k    E3 arm (b), an estimator variant: robust kernel on the tag landmark factors (e.g. cauchy:2.385)
+  --mislabel-keep T1,T2  E3 DIAGNOSIS ONLY (counterfactual, ruling 2026-10-22): the detections stamped T1, T2 (s, matched
+                      to 1e-6) keep their TRUE id even if the injector mislabels them. The random stream, every other
+                      injection and all counters are unchanged; the kept ones are logged in stats tier1.mislabel_keep.
 With none of these flags the behaviour and outputs are unchanged."""
 import sys, os, glob, math, json, time, argparse
 import numpy as np
@@ -56,10 +59,11 @@ ap.add_argument("--tag-ids", default=None, help="E2: comma-separated tag ids to 
 ap.add_argument("--mislabel-rate", type=float, default=None, help="E3: per central non-gauge detection")
 ap.add_argument("--mislabel-seed", type=int, default=None, help="E3: numpy default_rng seed")
 ap.add_argument("--tag-robust", default=None, help="E3 arm (b): 'cauchy:k' or 'huber:k' on the tag landmark factors")
+ap.add_argument("--mislabel-keep", default=None, help="E3 diagnosis only: comma-separated detection stamps (s) not altered")
 a = ap.parse_args()
 PASS_GAP_S = 1.0
 TIER1 = a.out_root is not None or a.tag_ids is not None or a.mislabel_rate is not None or a.mislabel_seed is not None \
-    or a.tag_robust is not None
+    or a.tag_robust is not None or a.mislabel_keep is not None
 if TIER1:
     import tier1_paths as T1
     if a.out_root is None:
@@ -72,16 +76,20 @@ if TIER1:
         T1.refuse("--mislabel-rate needs --tag-ids (the condition's valid ids)")
     if a.tag_robust is not None and (len(a.tag_robust.split(":")) != 2 or a.tag_robust.split(":")[0] not in ("cauchy", "huber")):
         T1.refuse(f"--tag-robust {a.tag_robust!r}: expected cauchy:k or huber:k")
+    if a.mislabel_keep is not None and a.mislabel_rate is None:
+        T1.refuse("--mislabel-keep needs --mislabel-rate/--mislabel-seed")
     TAG_IDS = None if a.tag_ids is None else T1.parse_tag_ids(a.tag_ids, a.gauge_tag)
     MIS = None if a.mislabel_rate is None else T1.Mislabeller(a.mislabel_rate, a.mislabel_seed, TAG_IDS, a.gauge_tag)
 else:
     TAG_IDS = MIS = None
 n_tagfilt = 0; n_lm_first_mis = 0
+KEEP = None if a.mislabel_keep is None else [float(x) for x in a.mislabel_keep.split(",")]; kept = []
 FX, CX, CY = 554.3827056884766, 320.0, 240.0; R_VALID = (1.0 / 3.0) * math.hypot(CX, CY)
 D = os.path.expanduser(f"~/thesis_data/trials/{a.trial}"); OUT = f"{D}/lc_fgo_{'notags' if a.no_tags else a.mode}" + ("" if a.t_max is None else f"_t{int(a.t_max)}")
 if TIER1:   # tier-1: same base name, under the tier-1 root, plus the configuration suffix (guarded, no overwrite)
     OUT = T1.resolve_out(a.trial, os.path.basename(OUT) + T1.run_suffix(TAG_IDS, a.mislabel_rate, a.mislabel_seed,
-                                                                          a.tag_robust), a.out_root)
+                                                                          a.tag_robust)
+                         + ("" if KEEP is None else "_cfkeep" + "-".join(f"{x:.3f}" for x in KEEP)), a.out_root)
 else:
     os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -119,7 +127,10 @@ with Reader(f"{D}/bag") as r:
             if TAG_IDS is not None and tid not in TAG_IDS:
                 n_tagfilt += 1; continue                   # E2: only the condition's tags
             if MIS is not None:
+                tid_true = tid
                 tid, mis = MIS(tt, tid)                    # E3: after the central filter (geometry-only, id-independent)
+                if mis and KEEP is not None and any(abs(tt - x) < 1e-6 for x in KEEP):
+                    kept.append((float(tt), int(tid_true), int(tid))); tid, mis = tid_true, False   # diagnosis only
             d_ = (tid, float(p_tb[0]), float(p_tb[1]), TM.yaw_of(R_tb))
             ev.append((tt, "tagrel", T1.MisDet(d_) if mis else d_))
 ev = apply_gap_rule(ev, a.trial); ev, dj = dejitter_imu(ev); ev.sort(key=lambda e: e[0])
@@ -347,6 +358,8 @@ if TIER1:   # provenance; absent in the default configuration (stats.json keys u
     st["tier1"] = {"argv": sys.argv, "commit": _git("rev-parse", "HEAD"), "src_dirty": _git("status", "--porcelain", "--", ".."),
                    "out": OUT, "tag_ids": None if TAG_IDS is None else list(TAG_IDS), "n_filtered_out_by_tag_ids": n_tagfilt,
                    "tag_robust": a.tag_robust, "landmarks_first_sighting_mislabelled": n_lm_first_mis,
+                   **({} if KEEP is None else {"mislabel_keep": {"requested_t": KEEP, "kept_t_true_new": kept,
+                       "note": "diagnosis counterfactual: these injections were drawn and counted but NOT applied"}}),
                    "mislabel": None if MIS is None else {
                        "rate": MIS.rate, "seed": MIS.seed, "rng": "numpy.random.default_rng (PCG64), 2 draws per call",
                        "valid_ids": list(MIS.valid), "gauge": MIS.gauge, "n_calls": MIS.n_calls,
