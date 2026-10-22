@@ -14442,3 +14442,10 @@ error-model details accepted (effective overall rates reported); the E5 design c
 guard scope = result data (trial outputs, eval/results, all folders behind existing numbers), documents excluded; at the
 2026-11-04 23:59 lock unfinished runs are NOT RUN, counted separately; scoring and reporting may continue to 2026-11-06, no new
 runs after the lock. Report after the reproduction gates; stop before the main runs if any gate fails.
+
+### INSTRUCTION (user, 2026-10-22): claims update after the extension experiments
+
+After E2–E4 are scored, write `docs/thesis/tier1/claims_update.md` listing every existing thesis-facing claim the extension
+results change (starting with "loop closure is an FGO capability; the filters have no loop-closure equivalent", which E5
+revises), each with the old wording, the new wording, the supporting tier-1 result and its verdict. Propose only: the existing
+claims table and the frozen documents are not edited.
