@@ -14496,3 +14496,45 @@ Added after 5 of 39 E3 runs (a sixth was running and finished without failure), 
 - **Remaining E3 runs.** These run in parallel, at most 4 at a time; there is no E3 timing hypothesis. The exception is one
   matched (a)/(b) pair, run serially with nothing else running, for the descriptive runtime ratio. E4 stays strictly
   one job at a time.
+
+### RULINGS (user, 2026-10-22, relayed by the coordinator): E3 classification, aggregation (terminology clarification), runtime pair, parallel batch
+
+Made after 6 of 39 E3 runs had finished, before any E3 scoring. This entry follows the preceding "RULING (user,
+2026-10-22) … E3 estimator failures" entry and does not change it; where the two differ, this one applies.
+
+- **R1. Classification: GENUINE.** T_A_r1 1% seeds 1 and 2 are genuine FGO failures. The user's test: "Genuine if the
+  second counterfactual (both triggers removed) either runs clean or diverges only at a later wrong-ID event." Both
+  second counterfactuals (`cf2_s1`, `cf2_s2`; `~/thesis_data/tier1/stage2e/diag/`) ran with 0 keyframe failures. No
+  harness fix is needed.
+- **R2. Aggregation: FAIL (terminology clarification).** The user's text, verbatim:
+
+  > "FAIL. My ruling's "NOT MET" meant "the predicted outcome did not occur" (counts against the hypothesis), not the
+  > pre-registration's "insufficient data". A genuinely diverged run counts against the criterion, so H-E3.1 is FAIL,
+  > which matches the pre-registered §2.3 null result written before any run. Record this in preregistration.md as a
+  > terminology clarification of the 2026-10-22 ruling (made after 5 of 39 runs, before any E3 scoring), with a
+  > matching METHODOLOGY entry. The verdict text states "k of 3 runs diverged" with each run's divergence time as a
+  > headline finding. Criteria that don't depend on diverged runs are scored normally. Classification of seeds 1 and 2
+  > as genuine still waits for the second counterfactual, as ruled."
+
+  - Recorded in `docs/thesis/tier1/preregistration.md` §2.3 as a dated clarification. The old wording is kept and
+    marked superseded.
+  - "Diverged" = status FAILED-ESTIMATOR (`keyframe_failures` > 0 or a non-finite .tum value). The > 10 m excursion
+    onset stays descriptive.
+  - In every criterion that needs it, a diverged run counts as not satisfying the criterion. This covers H-E3.1–H-E3.3,
+    P-E3.4–P-E3.6 and the arm (b) criteria. For P-E3.6, a flight with any diverged run fails. For P-E3b.1, the
+    literal reading is encoded: a run fails if either its arm (b) run or its matched arm (a) run diverged.
+  - §0.5's NOT MET (insufficient data) is unchanged: crash or gate failure only.
+  - `stage2e/e3_verdicts.py` was changed to this rule before any scoring.
+  - Reported per diverged run: the live divergence onset (the headline time), the first exception time and the failure
+    fraction. The fraction is inflated because the harness does not recover after a throw.
+- **R3. Runtime pair at 0%, serial.** The user's text, verbatim: "For the 0% runtime pair: run BOTH arms fresh and
+  serially on T_A_r2 at 0% (arm (a) as-is and arm (b) robust weighting), alone on the machine. Do not use the stored
+  Experiment 3 timings for arm (a); they were measured with six jobs in parallel."
+  - This replaces the proposed 1% s0 pair.
+  - Arm (a) at 0% is an extra, timing-only run, written under `~/thesis_data/tier1/` (never `~/thesis_data/trials/`).
+    Its .tum files are compared byte-for-byte with the stored Experiment 3 `T_A_r2/lc_fgo_lc_t245`.
+  - Arm (b) at 0% is the registered control `e3b_T_A_r2_0`.
+  - The pair runs (a) then (b), each alone on the machine, before the parallel batch.
+  - The other runtime ratios are not like for like and are labelled so.
+- **R4. Parallel batch.** The remaining runs run at width ≤ 4 inside one `heavy.py` call. A deviation row was added to
+  `numbers_tier1.md` before launch. E4 stays strictly one job at a time.

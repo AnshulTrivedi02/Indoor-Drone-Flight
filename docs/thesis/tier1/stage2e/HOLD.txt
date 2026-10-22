@@ -1,1 +1,2 @@
 HOLD: driver.sh (pid 3059782) stopped by SIGTERM 2026-10-22T19:20:25+11:00 on coordinator instruction; running job e3a_T_A_r1_0.05_s2 (heavy pid 3090899) left to finish; no further job will start
+RESUMED 2026-10-23 by the Stage 2e resume agent after user rulings R1–R4 (METHODOLOGY); driver.sh is not used again: serial_pair.sh then par_batch.sh

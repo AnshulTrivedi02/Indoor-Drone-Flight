@@ -394,12 +394,45 @@ The unit is a run: (flight, seed), 9 runs per rate. References are the SAME flig
     - DESCRIPTIVE only, not part of the status: the live excursion onset (the first live row with |x| or |y| > 10 m, or a
       non-finite value).
   - **Status.** A run with keyframe failures or non-finite values is **FAILED-ESTIMATOR**, never a success.
-  - **Genuine failure.** A run in which the FGO fails genuinely (diagnosed as caused by the injected wrong ids, not by
-    the harness) **counts as NOT MET for the H-E3 primary**. Its failure fraction and time of first failure are reported.
-    - How this per-run status enters the 9/9 criterion verdicts is pending a ruling, as is its effect on H-E3.2–P-E3.6
-      and the arm (b) criteria. The open question is whether the criterion is NOT MET as in §0.5, or the run counts as
-      not satisfying the criterion.
+  - **Genuine failure.** *[SUPERSEDED 2026-10-22 by the terminology clarification below: "NOT MET" here meant "the
+    predicted outcome did not occur", not §0.5's "insufficient data".]* A run in which the FGO fails genuinely (diagnosed
+    as caused by the injected wrong ids, not by the harness) **counts as NOT MET for the H-E3 primary**. Its failure
+    fraction and time of first failure are reported.
+    - *[SUPERSEDED 2026-10-22 by the terminology clarification below.]* How this per-run status enters the 9/9 criterion
+      verdicts is pending a ruling, as is its effect on H-E3.2–P-E3.6 and the arm (b) criteria. The open question is
+      whether the criterion is NOT MET as in §0.5, or the run counts as not satisfying the criterion.
   - **Harness-bug runs** are re-run, not scored.
+  - **Terminology clarification of the 2026-10-22 ruling (user ruling, 2026-10-22; made after 5 of 39 E3 runs, before
+    any E3 scoring).** The user's text, verbatim:
+
+    > "FAIL. My ruling's "NOT MET" meant "the predicted outcome did not occur" (counts against the hypothesis), not the
+    > pre-registration's "insufficient data". A genuinely diverged run counts against the criterion, so H-E3.1 is FAIL,
+    > which matches the pre-registered §2.3 null result written before any run. Record this in preregistration.md as a
+    > terminology clarification of the 2026-10-22 ruling (made after 5 of 39 runs, before any E3 scoring), with a
+    > matching METHODOLOGY entry. The verdict text states "k of 3 runs diverged" with each run's divergence time as a
+    > headline finding. Criteria that don't depend on diverged runs are scored normally. Classification of seeds 1 and 2
+    > as genuine still waits for the second counterfactual, as ruled."
+
+    How it is applied:
+    - **Classification.** T_A_r1 1% seeds 1 and 2 are GENUINE FGO failures (user ruling, same day). This matches the
+      user's test: "Genuine if the second counterfactual (both triggers removed) either runs clean or diverges only at a
+      later wrong-ID event." Both second counterfactuals (`cf2_s1`, `cf2_s2`) ran with 0 keyframe failures. No harness
+      fix is needed.
+    - **"Diverged"** means run status FAILED-ESTIMATOR (`keyframe_failures` > 0 or a non-finite .tum value). The live
+      excursion onset (|x| or |y| > 10 m) stays descriptive and never sets the status.
+    - **Aggregation.** In every criterion that needs a diverged run, that run counts as **not satisfying the criterion**
+      (per-run False, so the criterion is FAIL, never NOT MET). This applies to H-E3.1, H-E3.2, H-E3.3, P-E3.4,
+      P-E3.5 and P-E3.6. For P-E3.6 (per flight), a flight with any diverged arm (a) run at 1% or 5% does not satisfy
+      the criterion; its seed mean is not computed from a truncated or non-finite RMSE. For the arm (b) criteria, an
+      arm (b) run that diverged does not satisfy P-E3b.1 or P-E3b.2. Read literally, the rule also fails a P-E3b.1 run
+      whose matched arm (a) run diverged. That is how it is encoded; the per-run table shows which side diverged.
+    - **§0.5 is unchanged.** NOT MET (insufficient data) still covers only a crashed run (rc ≠ 0 twice) or a failed
+      gate. NOT RUN is unchanged.
+    - **Reported for each diverged run, as a headline:** the live divergence onset (the first live row with |x| or
+      |y| > 10 m, or a non-finite value; the headline time), the first exception time, and the failure fraction. The
+      fraction is inflated: after the first thrown iSAM2 update the harness does not recover (`isam_keyframe` advances
+      `k` and the landmark map before `isam.update`), so every later keyframe also fails.
+    - **Verdict text** states "k of 3 runs diverged", per flight and per criterion, with each run's divergence time.
   - **Diagnosis of the two runs** (counterfactual flag `--mislabel-keep`, inert when unset; G0-L re-checked
     byte-identical at commit `3f613f4`):
     - In both runs, the divergence starts at a single wrong-id factor. In s1 it is a detection relabelled to an
@@ -452,6 +485,14 @@ estimator and is not part of the primary hypotheses.
   reported, labelled "not like for like".
 - Reported as the per-run ratios, their median and range per rate. No verdict.
 - `hindsight_polish_s` is reported beside it.
+- **Clarification (user ruling 2026-10-22, before any E3 scoring; the "serial" wording above is superseded for the
+  runs it names).** The remaining E3 runs run in parallel, at most 4 at a time (ruling 2026-10-22; METHODOLOGY), so the
+  per-run ratios at 1% and 5% and the T_A_r1 / T_A_r3 control ratios are **not like for like** and are labelled so.
+  The headline runtime ratio is one serial 0% pair on T_A_r2, in the user's words: "For the 0% runtime pair: run BOTH
+  arms fresh and serially on T_A_r2 at 0% (arm (a) as-is and arm (b) robust weighting), alone on the machine. Do not
+  use the stored Experiment 3 timings for arm (a); they were measured with six jobs in parallel." Arm (b) is the
+  registered control `e3b_T_A_r2_0`; arm (a) is an extra, timing-only run (output under `~/thesis_data/tier1/`, never
+  `~/thesis_data/trials/`), which is also checked byte-for-byte against the stored Experiment 3 `T_A_r2/lc_fgo_lc_t245`.
 
 All other robust-arm numbers (hindsight, per lap, against no-LC) are **descriptive only**.
 
