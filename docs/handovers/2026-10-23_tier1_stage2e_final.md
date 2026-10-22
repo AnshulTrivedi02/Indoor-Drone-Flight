@@ -61,6 +61,11 @@ The sources are `scores/E3_verdicts.json` and `e3_results.md` §2.
 ## Checks
 
 - **Exact cross-check:** `stage2e/crosscheck.py` → `crosscheck.out`, rc 0, 0 mismatches.
+- **Prose cross-check:** every hand-written number in `e3_results.md` and in this handover (divergence times, ranges,
+  timing) is recomputed from its source and matched as an exact string by `stage2e/check_prose.py` → `check_prose.out`:
+  0 missing.
+- **METHODOLOGY:** a correction note was appended to the 2026-10-23 entry. Its "3.6× slower / 1.1× throughput"
+  figure holds only for the one 1% cross-flight comparison; at 5% the factor was 1.59–2.08.
 - **Guard verify:** IDENTICAL, exit 0, 13,253 files (`frozen_manifest_20261022T002851_verify_stage2e_20261023T065711.json`).
 - **Frozen numbers:** `check_numbers_frozen.py` passes.
 - **Scorer survival dry run** before scoring (`stage2e/dryrun_scorer_check/`): `l_score.py` handles the diverged runs
@@ -68,10 +73,10 @@ The sources are `scores/E3_verdicts.json` and `e3_results.md` §2.
 
 ## Open
 
-- **Map collapse.** The non-diverged arm (a) runs end at 3.7–4.2 m LC live, with a collapsed landmark map. That reading is
+- **Map collapse.** The non-diverged arm (a) runs end at 3.7161–4.2231 m LC live (51.26–85.49× clean), with a collapsed landmark map. That reading is
   descriptive, from `landmarks_final`, and was not diagnosed by counterfactual.
-- **The robust arm is not always protected.** Robust T_A_r2 5% s1 also ended at 4.18 m.
+- **The robust arm is not always protected.** Robust T_A_r2 5% s1 also collapsed: robust LC live 4.1849 m and hindsight 4.2233 m.
 - **Mechanism inferred.** The four new divergences were triaged against the T_A_r1 mechanism, not re-diagnosed by
   counterfactual.
-- **Parallel slowdown** (observation only). Each non-diverged arm (a) job ran about 3.6× slower at 1%, and about 1.6–2.1×
-  slower at 5%, than serial. These are cross-flight comparisons.
+- **Parallel slowdown** (observation only). Each non-diverged arm (a) job ran 3.64× slower at 1% (one pair), and by a factor of 1.59–2.08
+  at 5%, than serial. These are cross-flight comparisons.

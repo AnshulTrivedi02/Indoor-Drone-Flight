@@ -52,7 +52,7 @@ the path the solver takes, not only on the presence of a given wrong factor. **A
 | run | live divergence onset (s, headline) | first exception (s) | failure fraction (inflated) | triggering wrong-id event(s) (t s, true→new) |
 |---|---|---|---|---|
 | T_A_r1 1% s1 | 49.699 | 52.432 | 0.9025 | 49.402 (5→1, to an existing landmark) |
-| T_A_r1 1% s2 | 59.699 | 63.832 | 0.8559 | 54.253 (2→6, a mislabelled first sighting of id 6); the true tag 6 is first seen at 59.30 |
+| T_A_r1 1% s2 | 59.699 | 63.832 | 0.8559 | 54.253 (2→6, a mislabelled first sighting of id 6); the true tag 6 is first seen at 59.30; 55.870 (2→7) also created L(7) at a wrong place |
 | T_A_r2 1% s1 | 61.795 | 62.595 | 0.8627 | 55.342 (2→1) shifts the state by about 7.5 m without recovery; then 61.513 (6→2) |
 | T_A_r2 1% s2 | 59.928 | 60.695 | 0.8705 | 59.302 (6→5) |
 | T_A_r3 1% s1 | 56.248 | 60.548 | 0.8701 | 55.012 (2→1) |
@@ -132,14 +132,14 @@ Stored references (§0.4; `eval/results/expL/T_A_r<i>_t245.json`, `trials/T_A_r<
 | T_A_r3 | 0.0760 | 0.0172 | 0.3608 | 0.2657 | 0.1608 → 0.0258 | 28.744 |
 
 **What the non-diverged arm (a) runs show (descriptive; this is not a hypothesis).**
-- **Error size.** All 12 non-diverged runs finish with LC live 3.7–4.2 m and LC hindsight 3.6–4.0 m. That is 51–85× the
-  clean LC live and 11–16× the stored no-LC live.
+- **Error size.** All 12 non-diverged runs finish with LC live 3.7161–4.2231 m and LC hindsight 3.5648–3.9531 m. That is
+  51.26–85.49× the clean LC live and 10.77–16.09× the stored no-LC live.
 - **Prediction miss.** The §2.1 arithmetic predicted about +20%. That arithmetic assumed each wrong factor pulls one pass
   locally.
 - **Map collapse.** What happens instead is that the non-robust solution's landmark map collapses.
-  - In `stats.json:landmarks_final`, landmarks 1–7 of T_A_r1 1% s0 end inside about 1.7–2.9 m (x) by 1.4–3.1 m (y). The
-    true layout is a 6 m × 6 m square.
-  - In T_A_r3 5% s0 all seven end within 0.3 m of (1.6, 1.6) m.
+  - In `stats.json:landmarks_final`, landmarks 1–7 of T_A_r1 1% s0 end within x 1.7065–2.8611 m, y 1.3560–3.1445 m. The true
+    layout is a 6 m × 6 m square.
+  - In T_A_r3 5% s0 all seven end within x 1.4337–1.6854 m, y 1.5462–1.7748 m.
   - The trajectory follows the collapsed map.
   - The same runs with the robust kernel keep the 8 true positions (§4).
 - **Reading the map.** `landmarks_final` is keyed by landmark creation index, not tag id, so the order differs between
@@ -185,8 +185,8 @@ Sources: `scores/E3b_*.json` and `scores/E3_verdicts.json:runs`. "—" marks a r
 
 **Descriptive notes.**
 - **Hindsight recovers; the live track pays.** With the kernel, the hindsight track recovers on 17 of 18 mislabelled runs:
-  0.011–0.018 m at 1% and 0.076–0.107 m at 5%. The live track still pays for the wrong factors in the early laps
-  (lap 1 up to 3.6 m), then converges by lap 5 (0.024–0.114 m).
+  0.0114–0.0179 m at 1% and 0.0763–0.1072 m at 5%. The live track still pays for the wrong factors in the early laps
+  (lap 1 up to 3.6419 m), then converges by lap 5 (0.0238–0.1143 m).
 - **One robust run collapsed.** The exception is T_A_r2 5% s1, with robust LC live 4.1849 m and hindsight 4.2233 m. That
   is no better than arm (a). Its `landmarks_final` is distorted: several landmarks sit at wrong positions, and two pairs nearly coincide. So the kernel does not protect every run at 5%.
   It still satisfies P-E3b.1 (ratio 1.01 ≤ 1.10).
@@ -211,10 +211,10 @@ Sources: `scores/E3b_*.json` and `scores/E3_verdicts.json:runs`. "—" marks a r
 
 **Observation on the parallel batch (no timing hypothesis; nothing changed because of it).** At width 4, each non-diverged
 arm (a) job ran slower than a serial one:
-- **1%:** T_A_r2 1% s0 took 11,245 s, against 3,088 s for the serial T_A_r1 1% s0, about 3.6×. So for these jobs the
-  batch gained only about 1.1× throughput over running them serially.
-- **5%:** the 5% runs took 11,110–12,919 s in the batch, against 6,205–6,998 s serial on T_A_r1. That is about 1.6–2.1×
-  slower, and the step median rose from about 30 to 54–60 ms.
+- **1%:** T_A_r2 1% s0 took 11245.4 s, against 3088.4 s for the serial T_A_r1 1% s0, a factor of 3.64. So for this
+  job the batch gained only about 1.10× throughput over running it serially.
+- **5%:** the 5% runs took 11109.9–12919.2 s in the batch, against 6205.0–6998.4 s serial on T_A_r1, a factor of 1.59–2.08.
+  Over all non-diverged arm (a) runs, the step median rose from 29.8–31.7 ms (serial) to 48.3–60.3 ms in the batch.
 - **Caveat:** these compare different flights, so they are indicative only. The E3 runtime ratio comes only from the
   serial pair.
 

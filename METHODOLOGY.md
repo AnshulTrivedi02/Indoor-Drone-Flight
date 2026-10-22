@@ -14553,3 +14553,11 @@ This clarifies R2 of the preceding entry. It was made while the E3 parallel batc
     0 mismatches.
 - **Observation (no timing hypothesis).** At width 4, each non-diverged arm (a) job ran about 3.6× slower than serial,
   so the batch gains only about 1.1× throughput. The E3 runtime ratio comes only from the serial 0% pair.
+
+**Correction (2026-10-23, after E3 scoring) to the timing observation in the entry above.** The figure "each
+non-diverged arm (a) job ran about 3.6× slower, so the batch gains only about 1.1× throughput" came from one early
+comparison, which also compares different flights: T_A_r2 1% s0 in the batch (11245.4 s) against T_A_r1 1% s0 serial
+(3088.4 s), a factor of 3.64. For the 5% runs the factor was 1.59–2.08 (11109.9–12919.2 s in the batch against
+6205.0–6998.4 s serial on T_A_r1). Over all non-diverged arm (a) runs, the step median rose from 29.8–31.7 ms (serial)
+to 48.3–60.3 ms in the batch. It is still an observation only; the E3 runtime ratio comes only from the serial pair.
+Source: `docs/thesis/tier1/e3_results.md` §5, checked by `stage2e/check_prose.py`.

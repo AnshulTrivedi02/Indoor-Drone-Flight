@@ -1,0 +1,52 @@
+OK  | E3a_T_A_r1_0.01_s1 onset/exception | | 49.699 | 52.432 | | E3_verdicts.json:runs.E3a_T_A_r1_0.01_s1.run_status | doc,ho
+OK  | E3a_T_A_r1_0.01_s1 fraction | | 52.432 | 0.9025 | | same | doc
+OK  | E3a_T_A_r1_0.01_s1 event | 49.402 (5→1 | T_A_r1 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r1_0.01_s2 onset/exception | | 59.699 | 63.832 | | E3_verdicts.json:runs.E3a_T_A_r1_0.01_s2.run_status | doc,ho
+OK  | E3a_T_A_r1_0.01_s2 fraction | | 63.832 | 0.8559 | | same | doc
+OK  | E3a_T_A_r1_0.01_s2 event | 54.253 (2→6 | T_A_r1 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r1_0.01_s2 event | 55.870 (2→7 | T_A_r1 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r2_0.01_s1 onset/exception | | 61.795 | 62.595 | | E3_verdicts.json:runs.E3a_T_A_r2_0.01_s1.run_status | doc,ho
+OK  | E3a_T_A_r2_0.01_s1 fraction | | 62.595 | 0.8627 | | same | doc
+OK  | E3a_T_A_r2_0.01_s1 event | 55.342 (2→1 | T_A_r2 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r2_0.01_s1 event | 61.513 (6→2 | T_A_r2 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r2_0.01_s2 onset/exception | | 59.928 | 60.695 | | E3_verdicts.json:runs.E3a_T_A_r2_0.01_s2.run_status | doc,ho
+OK  | E3a_T_A_r2_0.01_s2 fraction | | 60.695 | 0.8705 | | same | doc
+OK  | E3a_T_A_r2_0.01_s2 event | 59.302 (6→5 | T_A_r2 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r3_0.01_s1 onset/exception | | 56.248 | 60.548 | | E3_verdicts.json:runs.E3a_T_A_r3_0.01_s1.run_status | doc,ho
+OK  | E3a_T_A_r3_0.01_s1 fraction | | 60.548 | 0.8701 | | same | doc
+OK  | E3a_T_A_r3_0.01_s1 event | 55.012 (2→1 | T_A_r3 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | E3a_T_A_r3_0.01_s2 onset/exception | | 60.314 | 65.614 | | E3_verdicts.json:runs.E3a_T_A_r3_0.01_s2.run_status | doc,ho
+OK  | E3a_T_A_r3_0.01_s2 fraction | | 65.614 | 0.8494 | | same | doc
+OK  | E3a_T_A_r3_0.01_s2 event | 56.101 (2→6 | T_A_r3 stats.json:tier1.mislabel.events_t_true_new | doc
+OK  | n non-diverged arm a | All 12 non-diverged runs | E3_verdicts.json:runs.*.run_status.diverged | doc
+OK  | arm a live range | 3.7161–4.2231 m | scores E3a lc live rmse_m | doc,ho
+OK  | arm a hind range | 3.5648–3.9531 m | scores E3a lc hindsight rmse_m | doc
+OK  | live/clean | 51.26–85.49× | E3_verdicts.json:runs.*.lc live / stored clean lc live | doc,ho
+OK  | live/nolc | 10.77–16.09× | E3_verdicts.json:runs.*.lc live / stored nolc live | doc
+OK  | r1 1% s0 map | x 1.7065–2.8611 m, y 1.3560–3.1445 m | T_A_r1 1% s0 stats.json:landmarks_final[1..7] | doc
+OK  | r3 5% s0 map | x 1.4337–1.6854 m, y 1.5462–1.7748 m | T_A_r3 5% s0 stats.json:landmarks_final[1..7] | doc
+OK  | b hind 1% | 0.0114–0.0179 m at 1% | scores E3b lc hindsight rmse_m | doc
+OK  | b hind 5% ex r2 s1 | 0.0763–0.1072 m at 5% | same | doc
+OK  | b lap1 max | lap 1 up to 3.6419 m | scores E3b per_lap_rmse_m[0] | doc
+OK  | b lap5 range | lap 5 (0.0238–0.1143 m) | scores E3b per_lap_rmse_m[4] | doc
+OK  | b r2 5% s1 | robust LC live 4.1849 m and hindsight 4.2233 m | scores/E3b_T_A_r2_0.05_s1.json | doc,ho
+OK  | b r2 5% s1 ratio | ratio 1.01 ≤ 1.10 | E3_verdicts.json:runs.E3b_T_A_r2_0.05_s1.b live / a live | doc
+OK  | P-E3b.2 range | 0.98–1.01 × the stored clean LC live | E3_verdicts.json:runs.E3b_*_0 | doc
+OK  | rates 0.01 | | 150 | 15,444 | 21,195 | 0.97 | 0.71 | | E3_verdicts.json:effective_rates.a 0.01 | doc
+OK  | rates 0.01 ho | 0.97% among eligible, 0.71% overall | same | ho
+OK  | rates 0.05 | | 758 | 15,444 | 21,195 | 4.91 | 3.58 | | E3_verdicts.json:effective_rates.a 0.05 | doc
+OK  | rates 0.05 ho | 4.91% among eligible, 3.58% overall | same | ho
+OK  | H-E3.1 effective 1% | effective overall rate 0.71% | same | doc
+OK  | pair | **0.79** (121.2 / 153.5 s) | E3_verdicts.json:runtime_descriptive.0.T_A_r2 | doc
+OK  | pair ho | `wall_s` 153.5 s | same | ho
+OK  | pair step | 15.6 / 13.6 ms | same | doc
+OK  | rt 0.01 | 0.07 (0.04–0.16) | E3_verdicts.json:runtime_descriptive.0.01 | doc
+OK  | rt 0.05 | 0.04 (0.03–0.08) | E3_verdicts.json:runtime_descriptive.0.05 | doc
+OK  | ctl T_A_r1 | 1.62 (206.2 / 127.2 s) | E3_verdicts.json:runtime_descriptive.0.T_A_r1 | doc
+OK  | ctl T_A_r3 | 0.75 (387.3 / 518.6 s) | E3_verdicts.json:runtime_descriptive.0.T_A_r3 | doc
+OK  | 1% slowdown | 11245.4 s, against 3088.4 s for the serial T_A_r1 1% s0, a factor of 3.64 | stats.json:wall_s | doc
+OK  | 1% throughput | about 1.10× throughput | 4 × serial / parallel wall | doc
+OK  | 5% walls | 11109.9–12919.2 s in the batch, against 6205.0–6998.4 s serial | stats.json:wall_s | doc
+OK  | 5% slowdown | a factor of 1.59–2.08 | min/max ratio of the above | doc,ho
+OK  | step medians | step median rose from 29.8–31.7 ms (serial) to 48.3–60.3 ms | stats.json:step_median_ms | doc
+MISSING: 0
