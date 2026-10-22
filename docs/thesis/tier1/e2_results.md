@@ -148,6 +148,7 @@ Source: `E2_verdicts.json:flights.<trial>.stats` and `.invariants`, from each ru
 - **Lap 1:** LC live = no-LC live exactly on 9/9 (bit-equal floats). This is the §0.4 property that lap 1 is dead reckoning in
   both modes.
 - **Keyframe failures:** 0 on 18/18.
+- **Gate coverage:** `git diff --stat a09230a c8c42ec -- src/ eval/l_score.py tools/` lists only the three new E5 files (`lc_ukf_replay.py`, `test_ukf_lm.py`, `ukf_lm.py`). The replay's import closure and the scorer are unchanged from the G0-L commit `a09230a` to the E2 commit `c8c42ec`, so G0-L applies to the code that produced E2.
 - **`src_dirty`:** empty on 18/18. The commit is `c8c42ec` on 18/18.
 
 ## 6. Wall time (DIAGNOSTIC; serial, single-threaded, nice 19, workstation)
