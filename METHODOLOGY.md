@@ -14601,3 +14601,17 @@ are not gauge freedoms, but they are only weakly observed, by flow dead reckonin
 the truth. On these terms it is a wrong basin, not a cheaper compromise.
 
 **Machine time.** About 1 h (two serial replays).
+
+### RULING (user, 2026-10-24): claims C1–C5 accepted; applied to thesis-facing outputs; see claims_applied.md
+
+- **Ruling (verbatim):** "C1-C5: accepted as proposed. Apply to the thesis files at the listed lines; the existing claims
+  table and frozen documents are not edited (apply to thesis-facing outputs only, with a mapping note)." Also answered: Q2
+  (the window claim scoped to the corridor; "on the tag-room flights 0.5 s also fitted (27-28 ms)"; no general claim), Q3
+  (limitation 3 added verbatim) and the D17 cell ("UKF with landmark states (extension E5): bounded; ~2x FGO error",
+  footnoted as an extension variant). No further experiment stages are planned.
+- **Forward pointers.** This entry is the forward pointer for the pre-registration wording it qualifies, which is not
+  edited (append-only): the Experiment 3 "FGO capability" and "Tag ids make re-identification trivial" text (C1, C2),
+  and the window and LM-cap text of the FGO configuration (C4, C5). The application, every location changed and every
+  location deliberately not edited are in `docs/thesis/tier1/claims_applied.md`; decisions D19–D27 are in
+  `docs/thesis/tier1/decisions_log.md`.
+- **Frozen material is unchanged:** numbers.md (freeze check PASS), the claims table, the final results pack.

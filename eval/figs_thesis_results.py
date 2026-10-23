@@ -215,6 +215,21 @@ def _h5d():
 H5D = _h5d()
 # Each row: label, name (vocabulary §5), part, prediction text, prediction source (doc, a, b), quote fragments,
 #           outcome text, outcome source(s) [(doc, a, b, [fragments])], verdict, change note.
+
+# CLAIMS UPDATE APPLIED (user ruling 2026-10-24, C2/C3/C1): extension-experiment verdicts quoted in the R1 and R4 notes, read from the
+# tier-1 verdict jsons and checked exactly (jcheck: new values with no numbers.md line; numbers.md is content-frozen).
+_T1S = os.path.join(ROOT, "docs", "thesis", "tier1", "scores")
+_E2 = json.load(open(os.path.join(_T1S, "E2_verdicts.json")))["criteria"]["H-E2.1"]
+_E3 = [v for k_, v in json.load(open(os.path.join(_T1S, "E3_verdicts.json")))["criteria_a"].items() if k_.startswith("H-E3.1")][0]
+_E5 = json.load(open(os.path.join(_T1S, "e5_verdicts.json")))["criteria"]["H-E5.1"]
+XE2 = "PASS 3/3 in each" if all(_E2[c]["verdict"] == "PASS" and _E2[c]["count"] == "3/3" for c in "BC") else "MISMATCH"
+XE3 = f"{_E3['verdict']} {_E3['count']}; {_E3['divergence']['total']}"
+XE5 = f"{_E5['verdict']} {_E5['count']}"
+jcheck("R1", "extension E2: H-E2.1 with 4 tags (B) and with 2 tags (C)", XE2, "PASS 3/3 in each", "docs/thesis/tier1/scores/E2_verdicts.json (e2_results.md §1)")
+jcheck("R1", "extension E3: H-E3.1 at 1% wrong ids; diverged runs", XE3, "FAIL 0/9; 6 of 9 runs diverged", "docs/thesis/tier1/scores/E3_verdicts.json (e3_results.md §1)")
+for _t in ("R1", "R4"):     # the R1 note and the R4 note both quote H-E5.1
+    jcheck(_t, "extension E5: H-E5.1 (UKF with tag landmark states, live drift bounded)", XE5, "PASS 3/3", "docs/thesis/tier1/scores/e5_verdicts.json (e5_results.md §1)")
+
 R1 = [
  ("H1.1", "standard-sensor ordering, EKF3 vs FGO (confirmatory)", "",
   'Claim "EKF3 lower than the FGO on the textured floor" only if both hold: (a) d_i < 0 on at least 6 of 7 … (b) the 95% '
@@ -623,7 +638,13 @@ _cnt_txt = ", ".join(f"{c} {CNT[c]}" for c in CATS)
                 "'Changed through the corrections?' names the claims-table row (headline_claims_before_after.md) and the correction number "
                 "(Table 7.4) where the sources link them. Corrections applied in one batch are applied jointly and not attributed individually "
                 "(corrections file, attribution rule); a correction number after a change means 'in the batch that contained it', except where "
-                "marked as a flight pair or a partial attribution."])
+                "marked as a flight pair or a partial attribution.",
+                "Experiment 3 scope (claims C2 and C3, user ruling 2026-10-24; the H3.1–H3.4 verdicts are unchanged): H3.1–H3.4 were scored "
+                "with all 8 tags and correct tag IDs. Extension experiments (pre-registered 2026-10-21, signed off with amendments 2026-10-22; "
+                "not thesis hypotheses, so not rows here): with 4 tags and with 2 tags, loop closure also bounded live drift (H-E2.1 "
+                f"{XE2}); with wrong IDs in 1% of the eligible detections, the FGO as built lost its loop-closure advantage (H-E3.1 {XE3}); "
+                f"a UKF with tag landmark states also bounded its live drift (H-E5.1 {XE5}). See limitations list item 3 and "
+                "docs/thesis/tier1/claims_applied.md."])
 
 # =============================================================================================== R2 CORRECTIONS BY DISCOVERY METHOD
 # (n, short name, scope, corrections-file line, discovery category, how found (quoted fragment, checked), claims rows, hypotheses)
@@ -992,7 +1013,9 @@ save_tab("Table 7.5", "R4_information_vs_estimator", "Spread between estimators 
                 "(restatement ruling 4).",
                 "Blank floor: the +60 s and end-of-cruise values are runaway magnitudes (†, not reproducible across builds), so no ratio is formed from "
                 "them; +30 s is used. Experiments 4 and 5 compare different statistics across the information contrast (stated in the row), so those "
-                "ratios are indicative only. Experiment 3 (loop closure) has one estimator and no spread; Experiment 1C (closed loop) passes 3/3 for "
+                "ratios are indicative only. Experiment 3 (loop closure) has one thesis estimator and no spread: the thesis EKF3 and UKF, as "
+                "configured, have no landmark states; a UKF with tag landmark states (extension experiment E5, not in this table) also bounded "
+                f"its live drift (H-E5.1 {XE5}). Experiment 1C (closed loop) passes 3/3 for "
                 "every estimator with the heading (Table 4.3), so it has no spread in its primary metric."])
 
 # =============================================================================================== index_results.md
