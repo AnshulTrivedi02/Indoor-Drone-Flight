@@ -648,14 +648,12 @@ lg.legend(handles=[Patch(facecolor=C["FGO"], edgecolor=C["FGO"], lw=2, label="FG
           frameon=False, loc="center left", labelspacing=1.4, title="box = lowest to highest\nof the 3 flights", title_fontsize=12)
 foot(fig, meta,
      "average horizontal position error over five laps (root-mean-square), lowest–highest over 3 flights, metres; the same flights "
-     "re-solved with and without loop closure. Only the FGO was run with loop closure in the thesis (the thesis EKF3 and UKF have no "
-     "landmark states), so there is no comparison between estimators; a UKF with the tags in its state, tested later as an extension, "
-     "also kept its error bounded.",
+     "re-solved with and without loop closure. Only the FGO has loop closure in the thesis (its EKF3 and UKF have no landmark states).",
      "in 3 of 3 flights: with loop closure the lap-5 error is at most 1.5 × the lap-1 error, and both the live and the hindsight "
      "errors are lower than without it; without it the lap-5 error exceeds 1.5 × lap 1.",
      f"All four PASS in 3 of 3 flights: with loop closure the error is lower and does not grow (lap 5 ÷ lap 1 = {v_lc}); without "
-     f"it, it grows {v_nolc} times over five laps. Extension tests: the error also stayed bounded {x_tags}; with wrong tag IDs in {x_ids} "
-     f"of the eligible detections, the FGO lost this advantage.")
+     f"it, it grows {v_nolc} times over five laps. Extension tests: also bounded {x_tags}, and for a UKF with the tags in its state; "
+     f"with wrong IDs in {x_ids} of eligible detections the FGO lost this advantage.")
 finish(fig, meta)
 
 # =================================================================== 4, outdoor-indoor
