@@ -225,3 +225,157 @@ arm (a) job ran slower than a serial one:
 - **Mechanism inferred, not re-diagnosed.** The four new divergences (T_A_r2 and T_A_r3, seeds 1 and 2) were triaged.
   Each fits the mechanism diagnosed for T_A_r1 (§1). They were not re-diagnosed by counterfactual. The T_A_r3 s2 trigger
   (the true tag 6 contradicting a misplaced L(6)) is inferred.
+
+## 7. Map-collapse diagnosis (descriptive, 2026-10-23, after scoring)
+
+**Status.** This section is DESCRIPTIVE. It changes no E3 verdict, score or pre-registered criterion. It explains the §3
+observation that the non-diverged arm (a) runs end with a collapsed landmark map. It uses read-only analysis of the
+stored outputs and two serial counterfactual replays on T_A_r1 1% s0 (`--mislabel-keep`, inert when unset; G0-L
+byte-identical at `3f613f4`). It was bounded at ≤ 5 h of machine time (decision D3).
+- **Scripts:** `stage2e/diag_collapse/` (`reconstruct.py`, `analyse.py`, `status_cf.py`, `figs.py`, `check_prose_collapse.py`).
+- **Data:** `~/thesis_data/tier1/stage2e/diag_collapse/`, with all numbers in `summary.json`.
+- **Predictions:** `predictions.md`, written and committed (`a237180`) before the runs.
+- **Figures:** `figs/e3_collapse_timecourse.png`, `figs/e3_collapse_maps.png` and `figs/e3_collapse_counterfactuals.png`.
+
+### 7.1 Answer
+
+**The collapse is the non-robust least-squares compromise. It is not a solver failure, and it is not a harness bug.**
+- **Tag factors are stiff and dead reckoning is soft.** A wrong tag factor at the true layout has a whitened residual of
+  about 124σ (median, T_A_r1 1% s0), which costs about 7,700 on its own. The only thing that holds the landmarks apart is
+  dead reckoning between sightings. The flow noise of 0.25 rad/s at h_cam ≈ 1.7505 m is about 0.4376 m/s per keyframe,
+  which is close to the cruise speed.
+- **Correct tag factors do not resist.** A correct tag factor ties the vehicle only to its own landmark. When the map
+  deforms, both ends move together and the factor stays satisfied, so it gives no restoring force.
+- **So each wrong id pulls two landmarks together.** The optimiser bends the trajectory and shrinks the map until the
+  wrong residuals are small. The map shrinks rather than shifting because a wrong residual scales with the separation of
+  the two landmarks involved.
+
+**The first-sighting mislabels set when the collapse starts on seed 0. They are not necessary for it.**
+
+### 7.2 Part 1a: the injection changes only the id (no harness bug)
+
+**Code.** In `lc_fgo_replay.py` the measured vehicle pose in the tag frame (`p_tb`, `R_tb`) is computed from the
+detection geometry *before* the injector is called, and independently of it. The injector (`Mislabeller.__call__`)
+returns only `(id, flag)`. `MisDet` is a plain `tuple` subclass and is used only to count first-sighting mislabels. Every
+landmark factor uses the same `tag_noise` object, and the flag never reaches the factor.
+
+**Reconstruction.** `reconstruct.py` rebuilds every tag factor of a run without solving: the same bag read, central-third
+rule, injector stream, gap rule, dejitter, keyframe clock and landmark-creation order. Checks:
+- the regenerated injection events equal `stats.json:tier1.mislabel.events_t_true_new` exactly: 19/19, 94/94 and 78/78
+  events (T_A_r1 1% s0, T_A_r3 5% s0, robust T_A_r2 5% s1);
+- the factor count equals `landmark_factors`;
+- the keyframe clock equals `hindsight.tum` row for row.
+
+**Fidelity.** At the robust T_A_r1 1% s0 final estimate, the reconstructed correct factors fit at a median of 0.16σ.
+At the truth they fit at 0.23σ on every run.
+
+### 7.3 Part 1b: time course (`figs/e3_collapse_timecourse.png`)
+
+**T_A_r1 1% s0.** Two first-sighting mislabels at 36.199 s (4→3) and 36.932 s (4→6) create L(3) and L(6) at tag 4's place.
+- **No step at the mislabels.** The live error stays at most 0.1166 m until 59.332 s. A landmark with one factor is
+  free, so the wrong factor costs nothing yet.
+- **Step 1, at 59.332 s.** This is the **first correct sighting of tag 6** (no wrong event at that moment). The live
+  error jumps to 6.6477 m: the estimate is pulled to the misplaced L(6).
+- **Step 2, at 65.999 s.** The first correct sighting of tag 3 (6.0417 m just after).
+- **Afterwards.** The error follows a per-lap sawtooth. It falls to about 0 at each pass over tag 0, the gauge, and
+  rises with distance from it, which is the signature of a shrunken map rather than of individual wrong events.
+
+**T_A_r3 5% s0 is different.** The first step (live error over 1 m) comes at 43.914 s, at a *non-first* wrong id (1→6)
+that points at the mislabel-created L(6). That is before the true tag 6 is ever seen. So the onset event is not always a
+first correct sighting.
+
+### 7.4 Part 1c: residuals at the final estimate
+
+Whitened residuals of all tag factors use the replay's own noise model (0.05 m, 0.05 m, 5°). Costs are 0.5·|w|². Sources:
+`summary.json` and `recon_*.json`.
+
+| run | wrong / all tag factors | tag cost at truth | tag cost at final estimate | wrong share of tag cost (estimate) | wrong \|w\| median, truth → estimate (σ) | correct \|w\| median, truth → estimate (σ) | approx. extra flow cost at estimate | landmark spread, estimate / truth (m) | hindsight path, estimate / truth (m) |
+|---|---|---|---|---|---|---|---|---|---|
+| T_A_r1 1% s0, arm (a) | 19 / 2145 | 144,218 | 8,622 | 76.9% | 124.1 → 26.6 | 0.23 → 1.00 | 6,266 | 1.224 / 3.674 | 79.2 / 125.7 |
+| T_A_r3 5% s0, arm (a) | 94 / 2038 | 594,146 | 15,877 | 83.1% | 119.5 → 13.9 | 0.23 → 1.26 | 4,703 | 0.760 / 3.674 | 73.6 / 125.3 |
+| cf (ii) T_A_r1 1% s0, 2 wrong only | 2 / 2145 | 16,842 | 1,810 | 65.6% | 128.9 → 33.7 | 0.23 → 0.47 | 1,241 | 2.685 / 3.674 | 102.8 / 125.7 |
+
+**What the table shows.**
+- **A compromise that shrinks the map.** At the final estimate, the tag cost plus the approximate flow cost is
+  about 10× lower than the tag cost alone at the true layout (T_A_r1 1% s0: 8,622 + 6,266 against 144,218).
+  - The wrong residuals fall from about 124σ to about 27σ.
+  - The correct residuals rise only to about 1σ.
+  - The hindsight path is 79.2 m against 125.7 m true, so the trajectory is shrunk with the map. Its velocity is off by
+    about 1σ of one flow factor on each keyframe.
+- **Not a small set of dominant factors.** In T_A_r1 1% s0, the three largest wrong factors carry 30.3% of the wrong
+  cost. The 19 wrong factors (0.9% of the factors) together carry 76.9% of the tag cost at the estimate.
+- **Caveats.**
+  - The flow term is an approximate proxy: the horizontal velocity difference over ±0.5 s, divided by 0.25 rad/s ×
+    h_cam, with no rotational term.
+  - IMU and range costs were not evaluated (V and B are not stored).
+  - So this shows a lower cost on these terms than the true configuration. It does not show the global optimum.
+
+**Robust arm, for contrast** (Cauchy cost ρ, k = 2.385):
+- **T_A_r1 1% s0** keeps the true layout (spread 3.671 m). Its wrong residuals stay at about 124σ, where the kernel
+  gives them almost no weight.
+- **The collapsed robust run T_A_r2 5% s1** behaves differently. Its Cauchy tag cost
+  at the estimate (2,341) is *higher* than at the truth (1,791), and it carries an approximate extra flow cost of 10,707. Its hindsight path length
+  is about right (124.6 m against 125.3 m), but the map is folded (`figs/e3_collapse_maps.png`, right panel). On these
+  terms it reads as a wrong basin (a local minimum), not as a cheaper compromise. Its four first-sighting mislabels are
+  not unique among the 5% runs, so they are not by themselves the explanation.
+
+### 7.5 Part 2: counterfactuals on T_A_r1 1% s0 (serial, each alone)
+
+| run | kept true (detection stamps) | wrong factors left | first-sighting tids | status | LC live (m) | LC hindsight (m) | landmark spread (m) | wall (s) |
+|---|---|---|---|---|---|---|---|---|
+| original (scored) | — | 19 | 3, 6 | OK | 3.7618 | 3.5648 | 1.224 | 3088.4 |
+| cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 91 |
+| cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3419 |
+| cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225 |
+| cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4714 |
+
+- **Harness check: prefix identity.** Each counterfactual's `live.tum` is identical, row for row, to the original up to
+  the keyframe of its first kept detection: 229 rows for cf (i), 943 rows for cf (ii). The keep flag changes nothing
+  before it acts.
+- **cf (ii): two wrong factors are enough for large damage.** With only the two first-sighting mislabels left (2 of 2145
+  factors), LC live is 2.7707 m (48× clean) and the map is distorted (spread 2.685 m against 3.674 m). It has the same step
+  at 59.332 s, which holds by construction because the prefix is identical.
+- **cf (i) failed my prediction.** I predicted a later collapse; instead the run diverged. With L(3) and L(6) correctly
+  placed, the next wrong pair (59.995 s 6→5, 60.127 s 6→2) sent it into the divergence already diagnosed for seeds 1 and 2.
+  - The pre-written "contradicts Part 1" test did not fire, because the run did not end near clean with a true-size map.
+  - Removing the first-sighting mislabels therefore does not restore clean behaviour. Whether a run collapses or
+    diverges depends on the solver's path, consistent with the 1%-in-5% nesting (§1).
+- **Collapse without any first-sighting mislabel.** The earlier counterfactuals cf2_s1 and cf2_s2 (scored here
+  read-only, not E3 scores) have no first-sighting mislabels and still end with collapsed maps (spread 1.063 and 1.103 m).
+  - cf2_s1's live max of 30.3122 m is the known transient excursion near 67.8 s, which recovers. It is not a divergence
+    (0 keyframe failures).
+
+**Reading.** First-sighting mislabels are neither necessary for the collapse (cf2) nor sufficient to explain the outcome
+of a run (cf (i)). Any wrong id, to an existing or a new landmark, costs more at the true layout than the soft dead
+reckoning can defend. One or two are enough to distort the map. Many of them, linking all seven non-gauge landmarks,
+shrink it toward one cluster.
+
+### 7.6 Part 1d: which pre-registered assumption failed
+
+The §2.1 arithmetic predicted about +20%. It had three steps:
+- a wrong factor "competes with the ~52 correct factors of the same pass" and displaces that pass by 3–8.5 m / 53;
+- the wrong landmark "shares the pull with about 270 factors" and moves by 1–3 cm;
+- so wrong factors are isolated, local and small.
+
+**The failed assumption is that correct tag factors act as an anchor.**
+- **Correct factors are relative.** They constrain the vehicle relative to its landmark, so a pass and its landmark can
+  move together at almost no tag cost.
+- **What holds the layout is dead reckoning, and it is soft.** At 0.4376 m/s of flow noise per keyframe (30 Hz),
+  shifting a trajectory segment by 6 m with a constant velocity offset over T seconds costs about 0.5 × 30 × 6² /
+  (T × 0.4376²). That is below the cost of one median wrong factor at the truth (7,700) for any T longer than 0.37 s.
+  (This is arithmetic from the noise models, without IMU or range terms.)
+- **So no wrong factor is isolated.** Each one deforms the whole map, and the residual does not stay at 60–170σ. It is
+  reduced by shrinking the map, because it scales with landmark separation.
+- **First-sighting landmark creation.** The arithmetic also left this out. It sets the onset on seed 0, but it is not
+  the cause (§7.5).
+- **The gauge is not the issue.** The L(0) prior fixes translation and rotation. Layout and scale are not gauge
+  freedoms. They are weakly observed by dead reckoning, which is the point above.
+
+### 7.7 Machine time
+
+| item | time |
+|---|---|
+| cf (i) | 91 s |
+| cf (ii) | 3419 s |
+| read-only reconstruction, analysis and figures | a few minutes, not timed |
+| **total** | **about 1 h** |

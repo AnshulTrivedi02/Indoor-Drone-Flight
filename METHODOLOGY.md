@@ -14561,3 +14561,42 @@ comparison, which also compares different flights: T_A_r2 1% s0 in the batch (11
 6205.0–6998.4 s serial on T_A_r1). Over all non-diverged arm (a) runs, the step median rose from 29.8–31.7 ms (serial)
 to 48.3–60.3 ms in the batch. It is still an observation only; the E3 runtime ratio comes only from the serial pair.
 Source: `docs/thesis/tier1/e3_results.md` §5, checked by `stage2e/check_prose.py`.
+
+### FINDING (descriptive, 2026-10-23, after E3 scoring): E3 map-collapse diagnosis (descriptive)
+
+This entry changes no E3 verdict, score or criterion. The full record is `docs/thesis/tier1/e3_results.md` §7, with
+scripts and records in `docs/thesis/tier1/stage2e/diag_collapse/` and `~/thesis_data/tier1/stage2e/diag_collapse/`.
+
+**Question.** Why does the non-robust (arm (a)) loop-closure FGO end with a collapsed landmark map in the E3 runs that
+did not diverge? Their LC live is 51–85× clean.
+
+**Answer: the collapse is the non-robust least-squares compromise. It is not a harness bug and not a solver failure.**
+- **One wrong factor is expensive.** At the true layout a wrong tag factor sits at a median of about 124σ, which costs
+  about 7,700.
+- **The layout is held only by dead reckoning, and it is soft.** The flow noise is 0.25 rad/s, which is about
+  0.4376 m/s per keyframe. Correct tag factors are relative, so they move with their landmark and give no restoring
+  force.
+- **Bending is cheaper than resisting.** Shifting a 6 m segment by a constant velocity offset is cheaper than one wrong
+  factor for any segment longer than 0.37 s. That is arithmetic from the noise models, without IMU or range terms.
+- **The map shrinks.** A wrong residual scales with landmark separation. On T_A_r1 1% s0, tag cost plus approximate
+  flow cost at the final estimate is 8,622 + 6,266 against 144,218 at the true layout.
+
+**Injection integrity.** The injection changes only the id. This rests on reading the code and on an exact regeneration
+of the logged events. Each counterfactual's live track is also identical to the original up to its first kept detection.
+
+**Role of first-sighting mislabels.** They set the onset on seed 0: the step comes at the true tag's *first correct
+sighting*, 22 s after the mislabel. But they are not necessary.
+- The earlier cf2 runs have no first-sighting mislabels and still collapse (spread 1.063 and 1.103 m, against 3.674 m
+  true).
+- With only the two first-sighting wrong factors left (cf (ii)), LC live is 2.7707 m, 48× clean.
+- Keeping them true (cf (i)) did not restore clean behaviour: the run diverged (onset 60.632 s). That was a failed
+  prediction, recorded against `predictions.md`. Whether a run collapses or diverges depends on the solver's path.
+
+**Which §2.1 assumption failed.** The pre-registered arithmetic (about +20%) assumed each wrong factor is opposed by the
+~52 correct factors of its pass and the ~270 of its landmark. That treats relative factors as an anchor. Layout and scale
+are not gauge freedoms, but they are only weakly observed, by flow dead reckoning.
+
+**Robust contrast.** The one collapsed robust run, T_A_r2 5% s1, has a *higher* Cauchy tag cost at its estimate than at
+the truth. On these terms it is a wrong basin, not a cheaper compromise.
+
+**Machine time.** About 1 h (two serial replays).

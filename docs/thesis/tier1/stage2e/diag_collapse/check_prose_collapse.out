@@ -1,0 +1,51 @@
+OK  | median wrong cost | about 7,700 | 0.5 * r1_1_s0 w_truth wrong_w_median^2 (to 100) | doc,meth,ho
+OK  | wrong |w| truth (7.1) | about 124σ | summary r1_1_s0 w_truth.wrong_w_median | doc,ho
+OK  | h_cam | h_cam ≈ 1.7505 m | summary r1_1_s0 h_cam_median_m | doc
+OK  | sigma_v | 0.4376 m/s | 0.25 * h_cam | doc,meth
+OK  | break-even T | longer than 0.37 s | 0.5*30*6^2/(sigma_v^2 * cost) | doc,meth
+OK  | cost 7.6 | (7,700) | same | doc
+OK  | events r1_1_s0 | 19/19 | recon r1_1_s0 n_events | doc
+OK  | events r3_5_s0 | 94/94 | recon r3_5_s0 n_events | doc
+OK  | events r2_5_s1_rob | 78/78 | recon r2_5_s1_rob n_events | doc
+OK  | rob correct est | median of 0.16σ | summary r1_1_s0_rob w_est.correct_w_median | doc
+OK  | truth correct all | at 0.23σ on every run | summary *.w_truth.correct_w_median | doc
+OK  | first-sighting events | 36.199 s (4→3) and 36.932 s (4→6) | recon r1 first-sighting factors (keyframe t) | doc
+OK  | max before | at most 0.1166 m until 59.332 s | summary r1_1_s0 | doc
+OK  | step6 | jumps to 6.6477 m | summary r1_1_s0 err_after_first_correct.6 | doc,ho
+OK  | step3 t | Step 2, at 65.999 s | summary r1_1_s0 first_correct_sighting_t.3 | doc
+OK  | step3 err | (6.0417 m just after) | summary r1_1_s0 err_after_first_correct.3 | doc
+OK  | t6 | Step 1, at 59.332 s | summary r1_1_s0 first_correct_sighting_t.6 | doc
+OK  | r3 onset | at 43.914 s, at a *non-first* wrong id (1→6) | summary r3_5_s0 first_live_err_over_1m_t / last_wrong_before_first_1m | doc
+OK  | row T_A_r1 1% s0, arm (a) | | T_A_r1 1% s0, arm (a) | 19 / 2145 | 144,218 | 8,622 | 76.9% | 124.1 → 26.6 | 0.23 → 1.00 | 6,266 | 1.224 / 3.674 | 79.2 / 125.7 | | summary T_A_r1 1% s0, arm (a) | doc
+OK  | row T_A_r3 5% s0, arm (a) | | T_A_r3 5% s0, arm (a) | 94 / 2038 | 594,146 | 15,877 | 83.1% | 119.5 → 13.9 | 0.23 → 1.26 | 4,703 | 0.760 / 3.674 | 73.6 / 125.3 | | summary T_A_r3 5% s0, arm (a) | doc
+OK  | row cf (ii) T_A_r1 1% s0, 2 wrong only | | cf (ii) T_A_r1 1% s0, 2 wrong only | 2 / 2145 | 16,842 | 1,810 | 65.6% | 128.9 → 33.7 | 0.23 → 0.47 | 1,241 | 2.685 / 3.674 | 102.8 / 125.7 | | summary cf (ii) T_A_r1 1% s0, 2 wrong only | doc
+OK  | about 10x | about 10× lower than the tag cost alone at the true layout (T_A_r1 1% s0: 8,622 + 6,266 against 144,218) | summary r1_1_s0 | doc
+OK  | residual fall | from about 124σ to about 27σ | summary r1_1_s0 | doc
+OK  | correct rise | rise only to about 1σ | summary r1_1_s0 | doc
+OK  | path | 79.2 m against 125.7 m true | summary r1_1_s0 | doc
+OK  | flow w | about 1σ of one flow factor | summary r1_1_s0 flow_proxy_w_median | doc
+OK  | top3 | carry 30.3% of the wrong | summary r1_1_s0 w_est.top3_wrong_share_of_wrong | doc
+OK  | 19 wrong share | The 19 wrong factors (0.9% of the factors) together carry 76.9% | summary r1_1_s0 | doc
+OK  | rob spread | (spread 3.671 m) | summary r1_1_s0_rob | doc
+OK  | rob wrong | stay at about 124σ | summary r1_1_s0_rob w_est.wrong_w_median | doc
+OK  | rob2 cauchy | at the estimate (2,341) is *higher* than at the truth (1,791) | summary r2_5_s1_rob cauchy | doc
+OK  | rob2 flow | extra flow cost of 10,707 | summary r2_5_s1_rob flow_proxy_cost | doc
+OK  | rob2 path | (124.6 m against 125.3 m) | summary r2_5_s1_rob | doc
+OK  | rob2 nfirst | Its four first-sighting mislabels | summary r2_5_s1_rob | doc
+OK  | orig row | | original (scored) | — | 19 | 3, 6 | OK | 3.7618 | 3.5648 | 1.224 | 3088.4 | | summary + scores E3a + stats.json | doc
+OK  | cf_i row | | cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 91 | | status/cf_i.json + timing.tsv | doc
+OK  | cf_i onset | onset 60.632 s | status/cf_i.json | doc,meth,ho
+OK  | cf_ii row | | cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3419 | | summary cf_ii + timing.tsv | doc
+OK  | cf2_s1 row | | cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225 | | summary cf2_s1 | doc
+OK  | cf2_s2 row | | cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4714 | | summary cf2_s2 | doc
+OK  | prefix rows | 229 rows for cf (i), 943 rows for cf (ii) | status/cf_*.json prefix_check | doc
+OK  | cf_ii x clean | LC live is 2.7707 m (48× clean) | summary cf_ii / stored clean LC live (E3_verdicts ratio-implied) | doc
+OK  | cf_ii spread | spread 2.685 m against 3.674 m | summary cf_ii | doc
+OK  | cf2 spreads | spread 1.063 and 1.103 m | summary cf2_* | doc,meth,ho
+OK  | cf2_s1 max | live max of 30.3122 m | summary cf2_s1 lc_live_max_m | doc
+OK  | time cf_i | | cf (i) | 91 s | | timing.tsv | doc
+OK  | time cf_ii | | cf (ii) | 3419 s | | timing.tsv | doc
+OK  | ho times | 91 s + 3419 s | timing.tsv | ho
+OK  | meth cf_ii live | 2.7707 m | summary cf_ii | meth,ho
+OK  | meth r1 costs | 8,622 + 6,266 against 144,218 | summary r1_1_s0 | meth,ho
+50 checks, 0 missing
