@@ -10,20 +10,34 @@ Three registries:
   + COMPLETENESS every numeric token left in claims_update.md after removing registered phrases and identifiers
                  (hypothesis ids, dates, section numbers, run names) must be zero.
 Exit 0 iff everything passes.
+
+PINNED to commit 181f156 (2026-10-24, the final claims_update.md proposal). The checker reads every file, including
+claims_update.md itself, the cited thesis files and the verdict jsons, from that commit via `git show 181f156:<path>`,
+never from the working tree. Reason: claims C1-C5 were accepted and applied to the thesis-facing outputs afterwards
+(merge of the claims-applied branch, 2026-10-24), so the "old wording" this file quotes is, correctly, no longer in the
+current tree. The applied wording is checked by check_claims_applied.py. Override with CLAIMS_UPDATE_PIN=<commit>.
 """
 import json
 import re
 import sys
+import os
+import subprocess
 from pathlib import Path
 
 WS = Path(__file__).resolve().parents[3]
 T1 = WS / "docs/thesis/tier1"
-DOC = T1 / "claims_update.md"
-doc = DOC.read_text(encoding="utf-8")
+PIN = os.environ.get("CLAIMS_UPDATE_PIN", "181f156")
 
 
 def rd(p):
-    return (WS / p).read_text(encoding="utf-8")
+    """File p (relative to the repository root, str or Path) as it was at commit PIN."""
+    rel = Path(p).resolve().relative_to(WS) if Path(p).is_absolute() else Path(p)
+    return subprocess.run(["git", "-C", str(WS), "show", f"{PIN}:{rel.as_posix()}"], check=True,
+                          capture_output=True).stdout.decode("utf-8")
+
+
+DOC = T1 / "claims_update.md"
+doc = rd(DOC)
 
 
 def norm(s):
@@ -55,10 +69,10 @@ for ln in doc.split("\n"):
 
 # ---------------------------------------------------------------- 2. verdicts
 S = T1 / "scores"
-e2 = json.loads((S / "E2_verdicts.json").read_text())
-e3 = json.loads((S / "E3_verdicts.json").read_text())
-e4 = json.loads((S / "E4_verdicts.json").read_text())
-e5 = json.loads((S / "e5_verdicts.json").read_text())
+e2 = json.loads(rd(S / "E2_verdicts.json"))
+e3 = json.loads(rd(S / "E3_verdicts.json"))
+e4 = json.loads(rd(S / "E4_verdicts.json"))
+e5 = json.loads(rd(S / "e5_verdicts.json"))
 
 
 def e3c(prefix, arm="criteria_a"):

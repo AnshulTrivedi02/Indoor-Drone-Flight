@@ -104,3 +104,21 @@ to 2 (checked). In TeX the tilde is emitted as `\textasciitilde{}`.
 - PDFs: `thesis_figures_combined.pdf`, `summary_plots.pdf`, `results_walkthrough.pdf`.
 - Summary/walkthrough pages: `summary_08_3_loop_closure.png`, `wt_19_3_truth.png`, `wt_20_3_loop_closure.png`.
 - Every other regenerated output differed only in its "built at commit" line (or PDF metadata) and was restored.
+
+## Q4 correction (user ruling, 2026-10-24, applied after the merge)
+
+| location | old → new | reason |
+|---|---|---|
+| `docs/thesis/limitations.md` item 3, claim text | "the remaining 3 ended 51-85x the clean error" → "the remaining 3 ended 51-75x the clean error" | the 3 non-diverged 1% plain runs are 51.26 / 65.59 / 75.23× clean; 51-85x was mis-scoped in the coordinator's 24 Oct digest |
+| `docs/thesis/limitations.md` item 3, provenance cell | "wording verbatim" → "wording verbatim except the range, corrected … by the user's Q4 ruling" | records the change; the D19 scope note (51.26–85.49× over all 12 non-diverged runs at 1% and 5%) is kept |
+
+**Search for "51-85" / "51–85" in all thesis-facing material.** Only the limitations.md instance above described the 1% runs
+alone. Not changed, because each describes all 12 non-diverged plain runs (1% and 5%) and is correct: METHODOLOGY.md:14571
+(append-only, "the E3 runs that did not diverge"), `tier1/e3_results.md:136`, `tier1/claims_update.md:143`,
+`decisions_log.md` D3, the 2026-10-23 stage 2e handover. Records that quote the original Q3 text (D19, D20, the
+claims-applied handover, the Q3 answer in open_questions.md, this file's Q3 row) are historical and kept as written.
+
+**Checkers.** `check_claims_applied.py`: the Q3 text check uses "51-75x"; the range check is now the 3 runs at 1%
+(integers 51-75); new checks that "51-85x" is absent from the item 3 claim cell and that the 12-run integer range is
+51-85. 58/58. `check_claims_update.py` is pinned to commit 181f156 (header documents it) and reads every file from
+that commit, so it passes 15 quotes / 40 verdicts / 141 numbers with 0 mismatches on the current tree.

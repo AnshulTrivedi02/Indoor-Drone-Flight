@@ -77,8 +77,8 @@ for p, s, lab in ((T1MD, "UKF with landmark states (extension E5): bounded; ~2x 
                   (F35, "The result assumes correct re-identification (claim C2)", "C2 fact sheet"),
                   (F35, "Tag count (claim C3)", "C3 fact sheet"),
                   (LIM, "| 3 | The FGO as configured (plain least squares, tag readings ungated) is not robust to wrong tag IDs: at 1% wrong IDs, 6 of 9 "
-                        "runs diverged and the remaining 3 ended 51-85x the clean error (H-E3.1 FAIL, 0/9). A robust-weighted variant avoided divergence "
-                        "in all 21 runs, though one collapsed. The landmark UKF (E5) was not tested with wrong IDs. |", "Q3 verbatim")):
+                        "runs diverged and the remaining 3 ended 51-75x the clean error (H-E3.1 FAIL, 0/9). A robust-weighted variant avoided divergence "
+                        "in all 21 runs, though one collapsed. The landmark UKF (E5) was not tested with wrong IDs. |", "Q3 verbatim, range per Q4")):
     has(p, s, lab)
 
 # ------------------------------------------------------------------------------------------------ 2. numbers (single rounding)
@@ -93,7 +93,9 @@ rat = {n: r["values"]["lc live rmse_m"]["value"] / E3["references"][r["flight"]]
        for n, r in E3["runs"].items() if r["arm"] == "a" and not st[n]["diverged"]}
 r1 = [v for n, v in rat.items() if E3["runs"][n]["rate"] == "0.01"]
 ok("number", "Q3 'the remaining 3' = 1% plain runs that did not diverge", len(r1) == 3 and len(rat) == 12, f"{len(r1)} at 1%, {len(rat)} at 1% and 5%")
-ok("number", "Q3 '51-85x' = all 12 non-diverged plain runs, integers (scope note D19)", f"{rd(min(rat.values()), 0)}-{rd(max(rat.values()), 0)}" == "51-85" and "51-85x" in R(LIM))
+ok("number", "Q3/Q4 '51-75x' = the 3 non-diverged 1% plain runs, integers", f"{rd(min(r1), 0)}-{rd(max(r1), 0)}" == "51-75" and "51-75x" in R(LIM))
+ok("number", "Q4: the mis-scoped '51-85x' no longer appears in the item 3 claim text", "51-85x" not in R(LIM).split("| 3 | ",1)[1].split(" | ",1)[0])   # the claim cell only; the provenance cell records the Q4 correction
+ok("number", "all 12 non-diverged plain runs, integers = 51-85 (the range the scope note keeps)", f"{rd(min(rat.values()), 0)}-{rd(max(rat.values()), 0)}" == "51-85")
 ok("number", "scope note 51.26–85.49× (12 runs, 2 dp)", f"{rd(min(rat.values()), 2)}–{rd(max(rat.values()), 2)}×" in R(LIM))
 ok("number", "scope note 51.26–75.23× (the 3 at 1%, 2 dp)", f"{rd(min(r1), 2)}–{rd(max(r1), 2)}×" in R(LIM))
 coll = E3["runs"]["E3b_T_A_r2_0.05_s1"]["values"]["lc live rmse_m"]["value"]

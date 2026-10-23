@@ -14615,3 +14615,11 @@ the truth. On these terms it is a wrong basin, not a cheaper compromise.
   location deliberately not edited are in `docs/thesis/tier1/claims_applied.md`; decisions D19–D27 are in
   `docs/thesis/tier1/decisions_log.md`.
 - **Frozen material is unchanged:** numbers.md (freeze check PASS), the claims table, the final results pack.
+
+### RULING (user, 2026-10-24): Q4, limitations item 3 range corrected; check_claims_update.py pinned
+
+limitations.md item 3 now reads "51-75x" (the 3 non-diverged 1% plain runs: 51.26 / 65.59 / 75.23× clean). The
+earlier "51-85x" came from the coordinator's 24 Oct digest, which gave the 12-run range (1% and 5%) as if it covered
+the 1% runs only. The scope note keeps the 12-run range. No other thesis-facing instance described the 1% runs alone
+(list in `docs/thesis/tier1/claims_applied.md` §Q4). `check_claims_update.py` is pinned to commit 181f156, so the
+current tree has no expected checker failures.

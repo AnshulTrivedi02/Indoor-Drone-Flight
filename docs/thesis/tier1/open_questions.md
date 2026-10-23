@@ -5,7 +5,6 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 
 | # | raised (AEDT) | question | default being followed meanwhile | blocks anything? |
 |---|---|---|---|---|
-| Q4 | 2026-10-24 | limitations.md item 3 (your Q3 text) says the 3 non-diverged 1% runs "ended 51-85x the clean error". They ended 51–75× (51.26 / 65.59 / 75.23). 51–85× is the range over all 12 non-diverged plain runs (1% and 5%). The error came from the coordinator's 24 Oct digest, which mis-scoped the range. Change "51-85x" to "51-75x"? | Kept verbatim with a scope note in the same row giving both ranges (decision D19). | no |
 
 **Answered:**
 - **Q1 (user, 2026-10-23):** yes. Thesis tables use SI units, converted at generation time only; numbers.md stays exactly as is. Use one unit per quantity, the same in a table as in its matching figure. SI prefixes are fine where they read better (e.g. drift in mm, position error in m): pick the readable unit and use it consistently. Keep the exact cross-check against the stored values. → done: units pass merged 2026-10-23 (2dcee76); decisions D7, D8.
@@ -15,3 +14,4 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **D17 / claims_update open point 4 (user, 2026-10-24):** the T1 Experiment 3 UKF cell names the variant: "UKF with landmark states (extension E5): bounded; ~2x FGO error", footnoted [k] as an extension variant, not the UKF used elsewhere (measured 1.76–2.08×, LC live, descriptive) → done.
 - **D16 (claims_update open point 1):** accepted with C2 as proposed (no claim that the robust arm keeps the loop-closure advantage).
 - No further experiment stages are planned (user, 2026-10-24).
+- **Q4 (user, 2026-10-24):** yes: limitations.md item 3 now reads "51-75x" (the 3 non-diverged 1% runs: 51.26, 65.59, 75.23); the scope note keeps 51.26–85.49× for all 12 non-diverged runs at 1% and 5%. Searched all thesis-facing material for "51-85"/"51–85": limitations.md item 3 was the only instance describing only the 1% runs (see claims_applied.md §Q4). check_claims_update.py pinned to 181f156.
