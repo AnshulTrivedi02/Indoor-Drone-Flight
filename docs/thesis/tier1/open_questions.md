@@ -5,6 +5,7 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 
 | # | raised (AEDT) | question | default being followed meanwhile | blocks anything? |
 |---|---|---|---|---|
+| Q4 | 2026-10-24 | limitations.md item 3 (your Q3 text) says the 3 non-diverged 1% runs "ended 51-85x the clean error". They ended 51–75× (51.26 / 65.59 / 75.23). 51–85× is the range over all 12 non-diverged plain runs (1% and 5%). The error came from the coordinator's 24 Oct digest, which mis-scoped the range. Change "51-85x" to "51-75x"? | Kept verbatim with a scope note in the same row giving both ranges (decision D19). | no |
 
 **Answered:**
 - **Q1 (user, 2026-10-23):** yes. Thesis tables use SI units, converted at generation time only; numbers.md stays exactly as is. Use one unit per quantity, the same in a table as in its matching figure. SI prefixes are fine where they read better (e.g. drift in mm, position error in m): pick the readable unit and use it consistently. Keep the exact cross-check against the stored values. → done: units pass merged 2026-10-23 (2dcee76); decisions D7, D8.
