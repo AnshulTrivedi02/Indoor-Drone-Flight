@@ -2,15 +2,15 @@
 
 With tags at known positions (Experiment 2) the FGO whole-flight batch is below the smoothed UKF in every condition, by 1.3–3.9× (largest with 1 tag; H2.4 FAIL as pre-registered) [a]; indoors without GNSS (Experiment 4) the two hindsight tracks are equal within 1–2% (H4.3 PASS) [b].
 
-| case | FGO whole-flight batch RMSE (cm) | smoothed UKF RMSE (cm) | lower [c] | max ÷ min | pre-registered test |
+| case | FGO whole-flight batch RMSE (m) | smoothed UKF RMSE (m) | lower [c] | max ÷ min | pre-registered test |
 |---|---|---|---|---|---|
-| Experiment 2, condition A: 8 tags (mean of 3) | 1.0 | 1.4 | FGO whole-flight batch | 1.31 | H2.4 FAIL |
-| Experiment 2, condition B: 4 tags (mean of 3) | 1.5 | 3.1 | FGO whole-flight batch | 2.14 | H2.4 FAIL |
-| Experiment 2, condition C: 2 tags (mean of 3) | 1.9 | 3.9 | FGO whole-flight batch | 2.06 | H2.4 FAIL |
-| Experiment 2, condition D: 1 tag (mean of 3) | 2.8 | 10.9 | FGO whole-flight batch | 3.89 | H2.4 FAIL |
-| Experiment 4: flight 1 (indoor) | 58.9 | 57.5 | smoothed UKF | 1.02 | H4.3 PASS |
-| Experiment 4: flight 2 (indoor) | 59.0 | 58.2 | smoothed UKF | 1.01 | H4.3 PASS |
-| Experiment 4: flight 3 (indoor) | 58.9 | 59.9 | FGO whole-flight batch | 1.02 | H4.3 PASS |
+| Experiment 2, condition A: 8 tags (mean of 3) | 0.010 | 0.014 | FGO whole-flight batch | 1.31 | H2.4 FAIL |
+| Experiment 2, condition B: 4 tags (mean of 3) | 0.015 | 0.031 | FGO whole-flight batch | 2.14 | H2.4 FAIL |
+| Experiment 2, condition C: 2 tags (mean of 3) | 0.019 | 0.039 | FGO whole-flight batch | 2.06 | H2.4 FAIL |
+| Experiment 2, condition D: 1 tag (mean of 3) | 0.028 | 0.109 | FGO whole-flight batch | 3.89 | H2.4 FAIL |
+| Experiment 4: flight 1 (indoor) | 0.589 | 0.575 | smoothed UKF | 1.02 | H4.3 PASS |
+| Experiment 4: flight 2 (indoor) | 0.590 | 0.582 | smoothed UKF | 1.01 | H4.3 PASS |
+| Experiment 4: flight 3 (indoor) | 0.589 | 0.599 | FGO whole-flight batch | 1.02 | H4.3 PASS |
 
 *Ratio = max ÷ min of the two hindsight RMSEs (the pre-registered definition in H2.4 and H4.3), so it is ≥ 1 and the 'lower' column gives the direction: in Experiment 4 the smoothed UKF is lower on flights 1 and 2 and the FGO whole-flight batch on flight 3. Aggregation differs: Experiment 2 is per condition from the means of 3 repeats (the RMSE over the 5 laps); Experiment 4 is per flight (indoor RMSE, 123 s). Experiment 2 is in the world frame with tag fixes at known positions; Experiment 4 in the world frame with GNSS outside only.*
 
@@ -18,10 +18,10 @@ With tags at known positions (Experiment 2) the FGO whole-flight batch is below 
 
 *Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).*
 
-*[a] Ordering basis, Experiment 2 hindsight, the FGO whole-flight batch against the smoothed UKF (H2.4). Metric: horizontal RMSE over the 5 laps in the world frame, mean of the flights in each condition, cm. n = 3 flights per condition, 4 conditions (both hindsight tracks from the same flights, paired). Rule: H2.4 'FGO hindsight ≈ RTS-UKF': in every condition the larger RMSE (mean over repeats) is ≤ 1.5 × the smaller (METHODOLOGY.md:10180, METHODOLOGY.md:10181); no ordering test was registered. Result: max ÷ min 1.31 / 2.14 / 2.06 / 3.89: H2.4 FAILS; the FGO whole-flight batch is the lower in every condition (descriptive). Verdict: case (ii), FAILED AS WORDED: the registered prediction is false as written; a failed criterion does not by itself establish an ordering, so any ordering shown is descriptive.*
+*[a] Ordering basis, Experiment 2 hindsight, the FGO whole-flight batch against the smoothed UKF (H2.4). Metric: horizontal RMSE over the 5 laps in the world frame, mean of the flights in each condition, m. n = 3 flights per condition, 4 conditions (both hindsight tracks from the same flights, paired). Rule: H2.4 'FGO hindsight ≈ RTS-UKF': in every condition the larger RMSE (mean over repeats) is ≤ 1.5 × the smaller (METHODOLOGY.md:10180, METHODOLOGY.md:10181); no ordering test was registered. Result: max ÷ min 1.31 / 2.14 / 2.06 / 3.89: H2.4 FAILS; the FGO whole-flight batch is the lower in every condition (descriptive). Verdict: case (ii), FAILED AS WORDED: the registered prediction is false as written; a failed criterion does not by itself establish an ordering, so any ordering shown is descriptive.*
 
 *[b] Ordering basis, Experiment 4, the FGO whole-flight batch against the smoothed UKF (H4.3). Metric: indoor horizontal RMSE in the world frame, no alignment, m. n = 3 flights (same flights, paired). Rule: H4.3: the two RMSEs within 1.5× of each other in every flight (METHODOLOGY.md:10362). Result: max ÷ min 1.01–1.02: H4.3 PASSES; which is lower changes between flights (descriptive). Verdict: RULE MET: the similarity is claimed (no ordering).*
 
-*[c] Ordering basis, the 'lower' column (which hindsight track has the smaller RMSE in each row). Metric: horizontal RMSE, cm (Experiment 2: mean of the flights in each condition; Experiment 4: per flight, indoor). n = 3 flights per condition in Experiment 2 (4 conditions) and 3 flights in Experiment 4; both hindsight tracks from the same flights. Rule: none: H2.4 and H4.3 test similarity (within 1.5×), not an ordering; no ordering test was pre-registered. Result: the direction per row, as tabulated. Verdict: case (iii), NO COMPARATIVE TEST REGISTERED: values are descriptive.*
+*[c] Ordering basis, the 'lower' column (which hindsight track has the smaller RMSE in each row). Metric: horizontal RMSE, m (Experiment 2: mean of the flights in each condition; Experiment 4: per flight, indoor). n = 3 flights per condition in Experiment 2 (4 conditions) and 3 flights in Experiment 4; both hindsight tracks from the same flights. Rule: none: H2.4 and H4.3 test similarity (within 1.5×), not an ordering; no ordering test was pre-registered. Result: the direction per row, as tabulated. Verdict: case (iii), NO COMPARATIVE TEST REGISTERED: values are descriptive.*
 
-<!-- generated by eval/figs_thesis.py (commit 82f3a95); frozen numbers only. Sources, numbers.md rows and the cross-checks: docs/thesis/figures_thesis/index.md, Table 5.2 (internal id T8). -->
+<!-- generated by eval/figs_thesis.py (commit a237180); frozen numbers only. Sources, numbers.md rows and the cross-checks: docs/thesis/figures_thesis/index.md, Table 5.2 (internal id T8). -->

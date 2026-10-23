@@ -106,6 +106,20 @@ def jcheck(tab, label, computed, expected, src):
     return ok
 
 
+def scheck(tab, label, computed, src_str, k, doc, ln):
+    """EXACT, unit-shifted (units pass 2026-10-23): the displayed string (the stored value rounded once, by an exact decimal shift)
+    must equal the source string shifted exactly by 10**k (si_str), AND the unshifted source string occurs in the cited line(s)."""
+    from decimal import Decimal
+    exp = re.sub(r"\d+(?:\.\d+)?", lambda m_: format(Decimal(m_.group(0)).scaleb(k), "f"), src_str)
+    a, b = (ln, None) if isinstance(ln, int) else ln
+    inline = norm(str(src_str)) in span(doc, a, b)
+    ok = (str(computed) == exp) and inline
+    CHK.append((tab, label + f" ({DOCNAME[doc]} '{src_str}' × 10^{k})", str(computed), exp, f"{DOCNAME[doc]}:{a}" + (f"-{b}" if b else ""), ok))
+    if not ok:
+        print("   CHECK FAIL:", tab, label, computed, exp, "in-line" if inline else "NOT IN LINE")
+    return ok
+
+
 def found(tab, label, frags, doc, a, b=None):
     """Each fragment occurs in the cited lines, in order."""
     s, pos, ok = span(doc, a, b), 0, True
@@ -340,7 +354,7 @@ R1 = [
   "yes: the earlier-build half real-time set was 2/3 (flight 3 lateral speed 0.296 m/s); the re-flown final port 3/3 (correction 17 flight pair, 0.019 m/s)"),
  ("H1.9", "closed loop with heading: criteria pass", "FGO (final FGO node, half real-time)",
   "(as above)", ("M", 7361, 7362), ["S2 is the estimator valid throughout"],
-  "3/3, all five criteria and estimator validity PASS (original priors); flight 3 lateral speed 0.246 m/s, 4 mm/s inside",
+  "3/3, all five criteria and estimator validity PASS (original priors); flight 3 lateral speed 0.246 m/s, 0.004 m/s inside",
   [("numbers.md", 480, None, ["3/3 / 3/3", "ALL B criteria and S2 PASS in both", "B4 0.246 m/s at cruise +0.5 s, inside the 0.25 m/s band by 4 mm/s"])],
   "PASS", "yes, before the final re-runs: the original FGO sets scored 2/3 until the oscillation-window scorer fix (correction 11, D28: 2/3 → 3/3)"),
  ("H2.1", "FGO hindsight gain grows with the gap (primary)", "",
@@ -531,6 +545,10 @@ CNT = {c: sum(1 for r in R1 if r[8] == c) for c in CATS}
 LABELS = sorted({r[0] for r in R1}, key=lambda s: (s[0] != "H", s))
 # numeric cross-checks behind R1 (stored values, rounded once)
 pt = L("dsn_paired_test.json")
+from decimal import Decimal as _D
+_b4 = L("closed_loop_cl_fgo_b_tex_r3_half_v3.json")["B"]["B4"]["max_abs_lat_speed_mps"]
+scheck("R1", "H1.9 FGO flight 3: lateral-speed margin inside the 0.25 m/s band (m/s; exact 0.25 − stored max, rounded once)",
+       rd(float(_D("0.25") - _D(str(_b4))), 3), "4", -3, "numbers.md", 480)
 check("R1", "H1.1 mean d (m)", U(rd(pt["mean_d_m"], 3)), "−0.021", "numbers.md", 227)
 check("R1", "H1.1 95% CI (m)", f"[{U(rd(pt['t95_ci_m'][0], 3))}, {rd(pt['t95_ci_m'][1], 3, sign=True)}]", "[−0.989, +0.947]", "numbers.md", 227)
 ta = L("expT/t_aggregate.json"); TC = ta["conditions"]
@@ -900,17 +918,17 @@ for k, ln in zip("ABCD", (526, 527, 528, 529)):
 liveA = [TC["A"]["mean_rmse_m"][e] for e in LIVE]; liveD = [TC["D"]["mean_rmse_m"][e] for e in LIVE]
 spT = [mm(TC[k]["mean_rmse_m"], LIVE) for k in "ABCD"]; spH = [mm(TC[k]["mean_rmse_m"], HIND) for k in "ABCD"]
 tagL = [TC["D"]["mean_rmse_m"][e] / TC["A"]["mean_rmse_m"][e] for e in LIVE]; tagH = [TC["D"]["mean_rmse_m"][e] / TC["A"]["mean_rmse_m"][e] for e in HIND]
-rowsR4.append(["Experiment 2: known tags, live", "horizontal RMSE (cm); n = 3 flights per condition (mean); 4 conditions",
-               "1 tag: EKF3 " + rd(TC['D']['mean_rmse_m']['EKF3 live'] * 100, 1) + ", UKF " + rd(TC['D']['mean_rmse_m']['UKF live'] * 100, 1)
-               + ", FGO " + rd(TC['D']['mean_rmse_m']['FGO live'] * 100, 1) + "; 8 tags: EKF3 " + rd(liveA[0] * 100, 1) + ", UKF " + rd(liveA[1] * 100, 1)
-               + ", FGO " + rd(liveA[2] * 100, 1),
+rowsR4.append(["Experiment 2: known tags, live", "horizontal RMSE (m); n = 3 flights per condition (mean); 4 conditions",      # m (units pass 2026-10-23; was cm)
+               "1 tag: EKF3 " + rd(TC['D']['mean_rmse_m']['EKF3 live'], 3) + ", UKF " + rd(TC['D']['mean_rmse_m']['UKF live'], 3)
+               + ", FGO " + rd(TC['D']['mean_rmse_m']['FGO live'], 3) + "; 8 tags: EKF3 " + rd(liveA[0], 3) + ", UKF " + rd(liveA[1], 3)
+               + ", FGO " + rd(liveA[2], 3),
                f"max ÷ min {rd(min(spT), 2)}–{rd(max(spT), 2)}× over A–D (H2.3)",
                "more tags: 8 tags (condition A) against 1 tag (D)",
                "1 tag ÷ 8 tags: " + ", ".join(f"{e.split()[0]} {rd(x, 2)}×" for e, x in zip(LIVE, tagL)),
                "expT/t_aggregate.json; numbers.md:526-529, 536"])
-rowsR4.append(["Experiment 2: known tags, hindsight", "horizontal RMSE (cm); n = 3 flights per condition (mean)",
-               "1 tag: FGO batch " + rd(TC['D']['mean_rmse_m'][HIND[0]] * 100, 1) + ", smoothed UKF " + rd(TC['D']['mean_rmse_m'][HIND[1]] * 100, 1)
-               + "; 8 tags: " + rd(TC['A']['mean_rmse_m'][HIND[0]] * 100, 1) + ", " + rd(TC['A']['mean_rmse_m'][HIND[1]] * 100, 1),
+rowsR4.append(["Experiment 2: known tags, hindsight", "horizontal RMSE (m); n = 3 flights per condition (mean)",
+               "1 tag: FGO batch " + rd(TC['D']['mean_rmse_m'][HIND[0]], 3) + ", smoothed UKF " + rd(TC['D']['mean_rmse_m'][HIND[1]], 3)
+               + "; 8 tags: " + rd(TC['A']['mean_rmse_m'][HIND[0]], 3) + ", " + rd(TC['A']['mean_rmse_m'][HIND[1]], 3),
                f"max ÷ min {rd(min(spH), 2)}–{rd(max(spH), 2)}× over A–D (H2.4)", "more tags: 8 tags (A) against 1 tag (D)",
                f"1 tag ÷ 8 tags: FGO batch {rd(tagH[0], 2)}×, smoothed UKF {rd(tagH[1], 2)}×", "expT/t_aggregate.json; numbers.md:526-529, 537"])
 # --- Experiment 4 outdoor-indoor
@@ -923,7 +941,7 @@ rowsR4.append(["Experiment 4: outdoor–indoor, live", "indoor horizontal RMSE (
                f"max ÷ min {rd(min(o_live), 2)}–{rd(max(o_live), 2)}× (H4.2)",
                "GNSS: indoor RMSE (GNSS off) against the error 10 s after GNSS returns (GNSS on); different statistics (an RMSE against a single "
                "time point), not like-for-like",
-               "error 10 s after return: " + ", ".join(f"{e.split()[0]} {rng([x * 100 for x in ret[e]], 1)} cm" for e in LIVE)
+               "error 10 s after return: " + ", ".join(f"{e.split()[0]} {rng(ret[e], 3)} m" for e in LIVE)
                + "; indoor ÷ that: " + ", ".join(f"{e.split()[0]} {rng(gi[e], 0)}×" for e in LIVE),
                "expO/O_r1, O_r2, O_r3b.json (indoor_rmse_m; err_10s_after_return_m has no numbers.md cell); numbers.md:552-554, 559"])
 rowsR4.append(["Experiment 4: outdoor–indoor, hindsight", "indoor horizontal RMSE (m); n = 3 flights",

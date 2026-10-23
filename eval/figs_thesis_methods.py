@@ -27,6 +27,7 @@ is copied.
 
 Usage: /home/makerspace/venv-evo/bin/python eval/figs_thesis_methods.py"""
 import ast, math, os, re, subprocess, sys, textwrap
+from decimal import Decimal
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -462,7 +463,8 @@ def fig_architecture():
 # ======================================================================== Table 3.1: estimator design
 def tab_design():
     # derived: EKF3 prediction period from 5 frames of the 400 Hz loop (CLAUDE "EKF3 Prediction dt")
-    dt = 5 * (1.0 / 400.0); dt_s, dt_ms = rd(dt, 4), rd(dt * 1000, 1)
+    from decimal import Decimal as _D
+    dt = 5 * (1.0 / 400.0); dt_s, dt_ms = rd(dt, 4), rd(float(_D(str(dt)).scaleb(3)), 1)     # s -> ms by an exact decimal shift (units pass)
     check("EKF3 prediction period = 5 frames × 1/400 s (s), printed in ms in Table 3.1", dt_s, grab("N", 183, r"\*\*([0-9.]+) s\*\*"), "N:183")
     check("UKF port predict period printed in Table 3.1 (ms) = EKF3's", dt_ms, grab("N", 186, r"port ([0-9.]+) ms"), "N:186")
     rows = [
@@ -589,7 +591,7 @@ def tab_fairness():
         ["IMU process noise (gyro / accel / gyro-bias / accel-bias)",
          "GYRO_P_NSE 0.015 rad/s, ACC_P_NSE 0.35 m/s², GBIAS_P_NSE 0.001 rad/s², ABIAS_P_NSE 0.02 m/s³ (defaults), at its 12.5 ms step",
          "the same NSE values; offline per-step terms scaled by DT_REF/dt to the same per-second densities (ruled)",
-         f"σ_c = NSE·√dt at dt {rd(dt * 1000, 1)} ms: covariances {', '.join(covs)} (same densities)",
+         f"σ_c = NSE·√dt at dt {rd(float(Decimal(str(dt)).scaleb(3)), 1)} ms: covariances {', '.join(covs)} (same densities)",
          "offline and in flight",
          f"{S('E3', 28, 'GYRO_P_NSE_DEFAULT')}-31; {S('UC', 21, 'DT_REF = 0.0125')}; {S('M', 9567, 'D27 RULED')}; {S('FC', 27, '1.53125e-3')}-30; "
          f"{S('N', 151, 'GTSAM conversion rule')}; {S('CC', 39, 'setAccelerometerCovariance')}"],

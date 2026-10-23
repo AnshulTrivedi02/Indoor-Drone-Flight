@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `a237180` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -28,9 +28,9 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | Table 5.2 | T8 | table | `T8_hindsight_ratio.md`, `T8_hindsight_ratio.tex`, `T8_hindsight_ratio.png` | Hindsight: the FGO whole-flight batch against the smoothed UKF | CURRENT | 9/9 | none needed (table) |
 | Table 6.1 | T5 | table | `T5_H_tag_loss_drift.md`, `T5_H_tag_loss_drift.tex`, `T5_H_tag_loss_drift.png` | Experiment 5 (tag hold): drift while the wall tag is hidden, flying estimators | CURRENT | 20/20 | none needed (table) |
 | Table 7.1 | T1 | table | `T1_scorecard.md`, `T1_scorecard.tex`, `T1_scorecard_p1.png`, `T1_scorecard_p2.png`, `T1_scorecard_p3.png` | Scorecard of the restated verdicts by experiment and estimator | CURRENT | 66/66 | none needed (table) |
-| Table 7.2 | T7 | table | `T7_failure_behaviour.md`, `T7_failure_behaviour.tex`, `T7_failure_behaviour_p1.png`, `T7_failure_behaviour_p2.png` | Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests | CURRENT | 21/21 | none needed (table) |
+| Table 7.2 | T7 | table | `T7_failure_behaviour.md`, `T7_failure_behaviour.tex`, `T7_failure_behaviour_p1.png`, `T7_failure_behaviour_p2.png` | Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests | CURRENT | 22/22 | none needed (table) |
 | Table A.1 | A1 | appendix | `A1_closed_loop_builds.png`, `A1_closed_loop_builds.pdf` | Closed loop: every flown build against the five closed-loop criteria and the contact window | CURRENT | 9/9 | none needed (table) |
-| Table A.2 | A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p1.pdf`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p2.pdf`, `A2_H_and_safety_p3.png`, `A2_H_and_safety_p3.pdf` | Experiment 5 hold sets and the 5S safety tests (all runs) | CURRENT | 52/52 | none needed (table) |
+| Table A.2 | A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p1.pdf`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p2.pdf`, `A2_H_and_safety_p3.png`, `A2_H_and_safety_p3.pdf` | Experiment 5 hold sets and the 5S safety tests (all runs) | CURRENT | 51/51 | none needed (table) |
 | Table A.3 | A3 | appendix | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p1.pdf`, `A3_F1_cost_ablations_p2.png`, `A3_F1_cost_ablations_p2.pdf` | The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations | CURRENT | 11/11 | none needed (table) |
 
 **Total: 336/336 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
@@ -98,7 +98,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 
 ### Table 4.1 (internal T2, table): Position error without and with the camera heading (textured floor)
 
-- **Caption:** Without a heading source all three drift by metres and no ordering is claimed [a, b, d]; with the camera heading the UKF and the FGO stay within 0.25 m, the FGO lower on all 6 bags (C1.a) [c]. The heading-error decomposition of sideways drift attributes metres of the cross-track to each estimator's own heading error without the heading, and centimetres with it.
+- **Caption:** Without a heading source all three drift by metres and no ordering is claimed [a, b, d]; with the camera heading the UKF and the FGO stay within 0.25 m, the FGO lower on all 6 bags (C1.a) [c]. The heading-error decomposition of sideways drift attributes metres of the cross-track to each estimator's own heading error without the heading, and hundredths of a metre with it.
 - **Inputs:** eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); dsn_paired_test.json; phase4_{fwdc,fwdplainc}_evo.json, cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m)
 - **numbers.md rows:** §6.1, §6.3 (Phase 5 decomposition), §6.4, §6.6; claims 1a, 1b, 2, 5, 7
 
@@ -133,7 +133,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 
 ### Table 4.2 (internal T3, table): Blank floor: position error after the loss of flow aiding
 
-- **Caption:** On a blank floor nothing bounds position [a]: the UKF and the FGO dead-reckon away to km-scale errors by the end of the cruise, and EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy. The blank-floor flights pool Experiment 1A (standard sensors) and 1B (forward camera).
+- **Caption:** On a blank floor nothing bounds position [a]: the UKF and the FGO dead-reckon away to errors of tens of thousands of metres by the end of the cruise, and EKF3 flags its own position invalid, so it has no scored error. Behaviour under total loss of flow aiding, not accuracy. The blank-floor flights pool Experiment 1A (standard sensors) and 1B (forward camera).
 - **Inputs:** eval/results/blank_behaviour.json (along_m, cross_m at +10/+30/+60 s and end; EKF3_invalid_period; valid_frames_in_cruise)
 - **numbers.md rows:** §6.2; claim 10
 
@@ -145,7 +145,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | UKF +10/+30/+60 s ranges (m) | `0.7–1.8 / 15.3–26.8 / 30–100` | `0.7–1.8 / 15.3–26.8 / 30–100` | numbers.md §6.2 erratum E4 | yes |
 | FGO +10/+30/+60 s ranges (m) | `0.7–1.8 / 16.6–27.7 / 145–201` | `0.7–1.8 / 16.6–27.7 / 145–201` | numbers.md §6.2 erratum E5 | yes |
 | n flights UKF / FGO | `11/11` | `11/11` | numbers.md §6.2 | yes |
-| end of cruise UKF / FGO (km) † | `29–40 / 23–41` | `29–40 / 23–41` | numbers.md §6.2 erratum E6 | yes |
+| end of cruise UKF / FGO (m, nearest 1000 m; numbers.md km × 10^3, digits grouped) † | `29 000–40 000 / 23 000–41 000` | `29 000–40 000 / 23 000–41 000` | numbers.md §6.2 erratum E6 ('29–40 / 23–41' km) | yes |
 | EKF3 invalid, s of cruise, all 14 blank | `301–310` | `301–310` | numbers.md §6.2 | yes |
 | valid airborne flow frames in cruise, all blank bags | `max 0 over 14` | `max 0 over 14` | numbers.md §6.2 ('0', all 14 blank bags) | yes |
 | EKF3 blank invalid for (s of cruise), all 14 | `301–310 (n 14)` | `301–310 (n 14)` | numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s') | yes |
@@ -301,7 +301,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 
 ### Table 6.1 (internal T5, table): Experiment 5 (tag hold): drift while the wall tag is hidden, flying estimators
 
-- **Caption:** Holding on a wall tag, every flying estimator drifts at most about 3 cm while the tag is hidden, inside every pre-registered band, and none locks out; each cell gives the maximum drift / its band in mm, with the range over the losses. The comparative hypotheses (H5.2, H5.3, H5.4a–b) FAIL on these final-build sets, identical to the original-build verdicts (superseded builds: Table A.2), so no ordering is claimed [a]. The FGO safety re-tests (corrected-priors node) used the corrected initial priors; the flown FGO hold and closed-loop corridor results (final FGO node) used the original priors.
+- **Caption:** Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cell gives the maximum drift / its band in mm, with the range over the losses. The comparative hypotheses (H5.2, H5.3, H5.4a–b) FAIL on these final-build sets, identical to the original-build verdicts (superseded builds: Table A.2), so no ordering is claimed [a]. The FGO safety re-tests (corrected-priors node) used the corrected initial priors; the flown FGO hold and closed-loop corridor results (final FGO node) used the original priors.
 - **Inputs:** eval/results/expH/s1_r{1,2,3}.json, s1far_r{1,2,3b}.json, s2v2_r*.json, s3v2_r*.json (losses[*].<est>.effective.drift_m, drift_end_m, lockout)
 - **numbers.md rows:** §17 (S1 table, S1 far row, P-H5, P-H7), §17.1 (S2v2, S3v2), §17.2; claims 25, 26
 
@@ -340,7 +340,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | H1.1 confirmatory EKF3 − FGO verdict | `no ordering claimed` | `no ordering claimed` | numbers.md §6.1 confirmatory row; claim 2 | yes |
 | C1.a with heading UKF / FGO range, 6 textured-floor bags (m) | `0.13–0.25 / 0.06–0.22` | `0.13–0.25 / 0.06–0.22` | numbers.md §6.6 heading-arm rows | yes |
 | C1.a FGO lower than UKF | `6/6` | `6/6` | numbers.md §6.6 C0 row; claim 7 | yes |
-| blank end-of-cruise UKF / FGO (km) † | `29–40 / 23–41` | `29–40 / 23–41` | numbers.md §6.2 erratum E6 | yes |
+| blank end-of-cruise UKF / FGO (m, nearest 1000 m; numbers.md km × 10^3, digits grouped) † | `29 000–40 000 / 23 000–41 000` | `29 000–40 000 / 23 000–41 000` | numbers.md §6.2 erratum E6 ('29–40 / 23–41' km) | yes |
 | EKF3 blank invalid for (s of cruise), all 14 | `301–310 (n 14)` | `301–310 (n 14)` | numbers.md §6.2 ('blank from take-off (all 14), for 301–310 s') | yes |
 | Experiment 2 condition D live EKF3 / UKF / FGO (m) | `0.096 / 0.131 / 0.083` | `0.096 / 0.131 / 0.083` | numbers.md §16.1 table | yes |
 | Experiment 2 FGO whole-flight batch A–D (m) | `0.010–0.028` | `0.010–0.028` | numbers.md §16.1 table | yes |
@@ -420,6 +420,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | final FGO node runs: forced-invalid position-lost delay / drift; node-kill | `0.54 s / 0.83 m; 0.25 s / 1.19 m` | `0.54 s / 0.83 m; 0.25 s / 1.19 m` | numbers.md §15 history row (v3, earlier final-build run) | yes |
 | FGO node-kill first run safe landing; UKF forced-invalid first run position lost / safe landing | `False; False / False` | `False; False / False` | numbers.md §15 history row (S-A3 FAIL; S-A2 FAIL as worded, S-A3 FAIL) | yes |
 | EKF3 reference drift (m) | `1.40` | `1.40` | numbers.md §15 history row | yes |
+| end of cruise UKF / FGO (m, nearest 1000 m; numbers.md km × 10^3, digits grouped) † | `29 000–40 000 / 23 000–41 000` | `29 000–40 000 / 23 000–41 000` | numbers.md §6.2 erratum E6 ('29–40 / 23–41' km) | yes |
 | rule text METHODOLOGY.md:11298 contains the quoted phrase | `FGO: within **0.75 s** of the kill` | `FGO: within **0.75 s** of the kill` | METHODOLOGY.md:11298 (read at build time) | yes |
 | rule text METHODOLOGY.md:11299 contains the quoted phrase | `UKF (a): within **0.1 s** of TFAIL` | `UKF (a): within **0.1 s** of TFAIL` | METHODOLOGY.md:11299 (read at build time) | yes |
 | rule text METHODOLOGY.md:11300 contains the quoted phrase | `UKF (b): within **5.5 s** of the kill` | `UKF (b): within **5.5 s** of the kill` | METHODOLOGY.md:11300 (read at build time) | yes |
@@ -459,7 +460,7 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
-| hold window means, UKF-flying earlier / final build; FGO-flying ablation / final build (m; numbers.md mm × 10^-3) | `0.0049–0.0063 ; 0.0061–0.0074 ; 0.0076–0.0082 ; 0.0081–0.0090` | `0.0049–0.0063 ; 0.0061–0.0074 ; 0.0076–0.0082 ; 0.0081–0.0090` | numbers.md §17.1 table ('4.9–6.3 ; 6.1–7.4 ; 7.6–8.2 ; 8.1–9.0' mm) | yes |
+| hold window means, UKF-flying earlier / final build; FGO-flying ablation / final build (mm) | `4.9–6.3 ; 6.1–7.4 ; 7.6–8.2 ; 8.1–9.0` | `4.9–6.3 ; 6.1–7.4 ; 7.6–8.2 ; 8.1–9.0` | numbers.md §17.1 table | yes |
 | lockouts, EKF3-flying near / far spawn; UKF-flying final; FGO-flying final | `0 / 0 / 0 / 0` | `0 / 0 / 0 / 0` | numbers.md §17, §17.1 | yes |
 | rule text METHODOLOGY.md:11298 contains the quoted phrase | `FGO: within **0.75 s** of the kill` | `FGO: within **0.75 s** of the kill` | METHODOLOGY.md:11298 (read at build time) | yes |
 | rule text METHODOLOGY.md:11299 contains the quoted phrase | `UKF (a): within **0.1 s** of TFAIL` | `UKF (a): within **0.1 s** of TFAIL` | METHODOLOGY.md:11299 (read at build time) | yes |
@@ -489,18 +490,17 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | rule text METHODOLOGY.md:10623 contains the quoted phrase | `Experiment H (marker-relative position holding): pre-registration of S0 and S1 (written before any H flight)` | `Experiment H (marker-relative position holding): pre-registration of S0 and S1 (written before any H flight)` | METHODOLOGY.md:10623 (read at build time) | yes |
 | verbatim quote tag_hold_design.md:176–177 | `H-H1 (primary): every estimator holds within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights per estimator.` | `H-H1 (primary): every estimator holds within tag-fix accuracy. Mean hold error ≤ 0.05 m and max ≤ 0.15 m in 3/3 flights per estimator.` | docs/tag_hold_design.md:176-177 (read at build time; emphasis and bullets removed) | yes |
 | verbatim quote tag_hold_design.md:188 | `P-H5 (drift during loss, prediction): GT drift during the 15 s occlusion ≤ 0.3 m for every estimator.` | `P-H5 (drift during loss, prediction): GT drift during the 15 s occlusion ≤ 0.3 m for every estimator.` | docs/tag_hold_design.md:188-188 (read at build time; emphasis and bullets removed) | yes |
-| every hold window of every flying hold set: mean ≤ 0.05 m and max ≤ 0.15 m (H5.1 under either wording) | `True` | `True` | numbers.md §17, §17.1 (H-H1 PASS) | yes |
-| 15 s loss drift of the flying final-build sets ≤ 0.3 m (H5.5, design-draft wording) | `True` | `True` | METHODOLOGY.md:12243 ('P-H5 PASSES: every estimator drifted ≤ 30 mm over the 15 s loss (≤ 0.3 m)') | yes |
+| every hold window of every flying hold set: mean ≤ 50 mm and max ≤ 150 mm (H5.1 under either wording) | `True` | `True` | numbers.md §17, §17.1 (H-H1 PASS) | yes |
+| 15 s loss drift of the flying final-build sets ≤ 300 mm (H5.5, design-draft wording '≤ 0.3 m') | `True` | `True` | METHODOLOGY.md:12243 ('P-H5 PASSES: every estimator drifted ≤ 30 mm over the 15 s loss (≤ 0.3 m)') | yes |
 | Experiment 5 comparative verdicts, final-build sets (primary) / superseded builds | `FAIL ; FAIL ; FAIL ; FAIL / FAIL ; FAIL ; FAIL ; FAIL` | `FAIL ; FAIL ; FAIL ; FAIL / FAIL ; FAIL ; FAIL ; FAIL` | numbers.md §17.2 criteria table (both sets) | yes |
-| Experiment 5 hold UKF / FGO / EKF3, final-build sets (m; numbers.md mm × 10^-3) | `0.0064–0.0071 / 0.0083–0.0086 / 0.0078–0.0079` | `0.0064–0.0071 / 0.0083–0.0086 / 0.0078–0.0079` | numbers.md §17.2 criteria table (re-flown; '6.4–7.1 / 8.3–8.6 / 7.8–7.9' mm) | yes |
-| Experiment 5 hold UKF, superseded builds (m; numbers.md mm × 10^-3) | `0.0055–0.0061` | `0.0055–0.0061` | numbers.md §17.2 criteria table (earlier sets; '5.5–6.1' mm) | yes |
-| Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (m; numbers.md mm × 10^-3) | `0.005 / 0.005 / 0.007 / 0.020–0.030 / 0.007–0.030` | `0.005 / 0.005 / 0.007 / 0.020–0.030 / 0.007–0.030` | numbers.md:677 ('5 / 5 / 7 against UKF 20–30, FGO 7–30 mm') | yes |
+| Experiment 5 hold UKF / FGO / EKF3, final-build sets (mm) | `6.4–7.1 / 8.3–8.6 / 7.8–7.9` | `6.4–7.1 / 8.3–8.6 / 7.8–7.9` | numbers.md §17.2 criteria table (re-flown) | yes |
+| Experiment 5 hold UKF, superseded builds (mm) | `5.5–6.1` | `5.5–6.1` | numbers.md §17.2 criteria table (earlier sets) | yes |
+| Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm) | `5 / 5 / 7 / 20–30 / 7–30` | `5 / 5 / 7 / 20–30 / 7–30` | numbers.md:677 ('5 / 5 / 7 against UKF 20–30, FGO 7–30 mm') | yes |
 | H5.3 max/min, final-build / superseded | `2.40–2.58 / 2.37–2.43` | `2.40–2.58 / 2.37–2.43` | numbers.md §17.2 criteria table | yes |
 | H5.4b max/min, final-build / superseded | `3.2–7.7 / 3.4–5.9` | `3.2–7.7 / 3.4–5.9` | numbers.md §17.2 criteria table | yes |
 | final safety runs: drift to touchdown, UKF forced-invalid / UKF node-kill / FGO forced-invalid / FGO node-kill (m) | `0.58 / 1.07 / 1.45 / 0.21` | `0.58 / 1.07 / 1.45 / 0.21` | numbers.md §15 safety row (final runs, restated 2026-10-16) | yes |
 | raw single-landing entries in the early score files (PASS, LAND entries, disarm recorded) | `safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None` | `safety_ukf_a: False, 1, None, safety_fgo_b: False, 1, None` | eval/results/expH/safety_ukf_a.json, safety_fgo_b.json (the score files) | yes |
 | Experiment 5 (final-build sets): flights with the FGO / the UKF lowest mean hold error | `0/3 / 3/3` | `0/3 / 3/3` | numbers.md §17.2 criteria table (H-H2: 'FAIL (0/3): UKF lowest 3/3') | yes |
-| Experiment 5 hold UKF / FGO / EKF3, final-build sets (mm) | `6.4–7.1 / 8.3–8.6 / 7.8–7.9` | `6.4–7.1 / 8.3–8.6 / 7.8–7.9` | numbers.md §17.2 criteria table (re-flown) | yes |
 | H5.3 / H5.4b max/min, final-build sets | `2.40–2.58 / 3.2–7.7` | `2.40–2.58 / 3.2–7.7` | numbers.md §17.2 criteria table | yes |
 | H5.4a EKF3 15 s re-lock jump per flight (mm) | `5 / 5 / 7` | `5 / 5 / 7` | numbers.md §17.2 criteria table (H-H4 (15 s)) | yes |
 | Experiment 5 comparative verdicts H5.2; H5.3; H5.4a; H5.4b (final builds) | `FAIL; FAIL; FAIL; FAIL` | `FAIL; FAIL; FAIL; FAIL` | numbers.md §17.2 (final-build sets primary, ruling 2026-10-16) | yes |
@@ -524,9 +524,9 @@ Built by `eval/figs_thesis.py` at commit `cb713d3` (run with `/home/makerspace/v
 | H1.4 lockouts robust FGO = hard-gated UKF | `{"FGO_robust": 3, "UKF_hard": 3}` | `{"FGO_robust": 3, "UKF_hard": 3}` | numbers.md §15.2 | yes |
 | H1.4 verdict (robust FGO better) | `False` | `False` | numbers.md §15.2 (NOT met, lockout tie) | yes |
 | hard-gated FGO plain-wall yaw max (deg) | `4.59–5.03` | `4.59–5.03` | numbers.md §15.2 F1 row | yes |
-| Experiment 3 with loop closure, median (s; numbers.md ms × 10^-3) | `0.035–0.041` | `0.035–0.041` | numbers.md §16.3 (restated 2026-10-11; '35–41' ms) | yes |
-| Experiment 3 without loop closure, median (s; numbers.md ms × 10^-3) | `0.050–0.061` | `0.050–0.061` | numbers.md §16.3 ('50–61' ms) | yes |
-| Experiment 3 with loop closure, p99 (s; numbers.md ms × 10^-3) | `0.080–0.094` | `0.080–0.094` | numbers.md §16.3 ('80–94' ms) | yes |
+| Experiment 3 with loop closure, median (ms) | `35–41` | `35–41` | numbers.md §16.3 (restated 2026-10-11) | yes |
+| Experiment 3 without loop closure, median (ms) | `50–61` | `50–61` | numbers.md §16.3 | yes |
+| Experiment 3 with loop closure, p99 (ms) | `80–94` | `80–94` | numbers.md §16.3 | yes |
 | Experiment 3 without loop closure, wall time (s) | `7276–9583` | `7276–9583` | numbers.md §16.3 | yes |
 | H1.4 bags in the test | `6` | `6` | numbers.md §15.2 F1 row (over the 6 bags) | yes |
 | rule text METHODOLOGY.md:7921 contains the quoted phrase | `robust FGO better than hard-gated UKF` | `robust FGO better than hard-gated UKF` | METHODOLOGY.md:7921 (read at build time) | yes |
