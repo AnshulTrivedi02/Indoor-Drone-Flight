@@ -628,6 +628,11 @@ rule(M_, 10501, "the lap-5 RMSE is ≤ 1.5 × the lap-1 RMSE in 3/3", "with loop
 rule(M_, 10503, "LC live overall RMSE < no-LC live overall RMSE in 3/3 flights", "live lower with loop closure, 3 of 3")
 rule(M_, 10504, "LC hindsight overall RMSE < no-LC hindsight overall RMSE in 3/3 flights", "hindsight lower with loop closure, 3 of 3")
 rule(M_, 10505, "lap 5 > 1.5 × lap 1 in 3/3 flights", "without loop closure: lap 5 > 1.5 × lap 1 in 3 of 3")
+# Claims C1-C3 applied (user ruling 2026-10-24): the extension results are quoted from Table 7.1's footnote [k] (checked there exactly).
+x_tags = disp("extension E2: loop closure also bounded with 4 and with 2 tags (H-E2.1 PASS 3/3 in each)", "with 4 tags and with 2 tags",
+              [("T1", "with 4 tags and with 2 tags (E2), loop closure also bounded live drift")])
+x_ids = disp("extension E3: wrong tag IDs in 1% of the eligible detections (H-E3.1 FAIL 0/9)", "1%",
+             [("T1", "wrong IDs in 1% of the eligible detections (E3), the FGO as built lost its loop-closure advantage")])
 ax = AX(0.09, 0.60, 0.06)
 ax.set_xlim(-0.6, 1.6); ax.set_ylim(0, 0.42)
 for j, m in enumerate(("nolc", "lc")):
@@ -643,11 +648,14 @@ lg.legend(handles=[Patch(facecolor=C["FGO"], edgecolor=C["FGO"], lw=2, label="FG
           frameon=False, loc="center left", labelspacing=1.4, title="box = lowest to highest\nof the 3 flights", title_fontsize=12)
 foot(fig, meta,
      "average horizontal position error over five laps (root-mean-square), lowest–highest over 3 flights, metres; the same flights "
-     "re-solved with and without loop closure. Only the FGO can do this, so there is no comparison between estimators.",
+     "re-solved with and without loop closure. Only the FGO was run with loop closure in the thesis (the thesis EKF3 and UKF have no "
+     "landmark states), so there is no comparison between estimators; a UKF with the tags in its state, tested later as an extension, "
+     "also kept its error bounded.",
      "in 3 of 3 flights: with loop closure the lap-5 error is at most 1.5 × the lap-1 error, and both the live and the hindsight "
      "errors are lower than without it; without it the lap-5 error exceeds 1.5 × lap 1.",
      f"All four PASS in 3 of 3 flights: with loop closure the error is lower and does not grow (lap 5 ÷ lap 1 = {v_lc}); without "
-     f"it, it grows {v_nolc} times over five laps.")
+     f"it, it grows {v_nolc} times over five laps. Extension tests: the error also stayed bounded {x_tags}; with wrong tag IDs in {x_ids} "
+     f"of the eligible detections, the FGO lost this advantage.")
 finish(fig, meta)
 
 # =================================================================== 4, outdoor-indoor

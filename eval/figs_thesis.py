@@ -613,7 +613,7 @@ def ob_ret(tag):
                   f"EKF3 {rng(st['EKF3'])}, UKF {rng(st['UKF'])}, FGO {rng(st['FGO'])} m", "iii")
 
 
-def ob_l(tag):
+def ob_l(tag, t1=False):
     lc = [t["rmse_m"] for t in LL[("lc", "live")]]; nl = [t["rmse_m"] for t in LL[("nolc", "live")]]
     lch = [t["rmse_m"] for t in LL[("lc", "hindsight")]]; nlh = [t["rmse_m"] for t in LL[("nolc", "hindsight")]]
     r5 = [t["per_lap_rmse_m"][4] / t["per_lap_rmse_m"][0] for t in LL[("lc", "live")]]
@@ -630,7 +630,8 @@ def ob_l(tag):
                   f"H3.1 with loop closure lap 5 ≤ 1.5 × lap 1 in 3/3 ({cite(M_, 10501, 'the lap-5 RMSE is ≤ 1.5 × the lap-1 RMSE in 3/3')}); "
                   f"H3.4 without, lap 5 > 1.5 × lap 1 in 3/3 ({cite(M_, 10505, 'lap 5 > 1.5 × lap 1 in 3/3 flights')})",
                   f"H3.1 / H3.2 / H3.3 / H3.4 pass on {' / '.join(str(c) for c in cnt)} of 3 flights (live {rng(lc, 3)} m with loop "
-                  f"closure, {rng(nl, 3)} m without)", "met")
+                  f"closure, {rng(nl, 3)} m without); scope: all 8 tags and correct tag IDs" + ("; extensions in footnote [k]" if t1 else
+                  " (extensions in the caption)"), "met")
 
 
 # Experiment 5 comparative hypotheses, VERBATIM (ruling 2026-10-17): their only pre-registration is the design draft §e
@@ -755,6 +756,49 @@ check("closed loop, half real-time, with heading: max cross-track range EKF3 / f
       "numbers.md §15 B2 row (EKF3 half) and re-flown rows (UKF v2 0.231/0.253/0.219; FGO v3 0.118/0.033/0.392)")
 check("closed loop, half real-time, with heading: flights passing all five criteria (+ estimator validity)", " / ".join(f"{passh[e]}/3" for e in EST), "3/3 / 3/3 / 3/3", "numbers.md §15")
 
+
+# CLAIMS UPDATE APPLIED (user ruling 2026-10-24: "C1-C5: accepted as proposed"; D17 follow-up: the Experiment 3 UKF cell names the
+# extension variant). Values from the tier-1 extension experiments (pre-registered 2026-10-21; signed off with amendments 2026-10-22),
+# read from their verdict jsons and checked EXACTLY against the strings typed from e2/e3/e5_results.md (single rounding, rd()).
+T1D = os.path.join(ROOT, "docs", "thesis", "tier1", "scores")
+E5V = json.load(open(os.path.join(T1D, "e5_verdicts.json"))); E3V = json.load(open(os.path.join(T1D, "E3_verdicts.json")))
+E2V = json.load(open(os.path.join(T1D, "E2_verdicts.json")))
+E5R = [E5V["flights"][f]["descriptive ratios UKF/FGO"]["lc live"] for f in ("T_A_r1", "T_A_r2", "T_A_r3")]
+_h31 = [v for k, v in E3V["criteria_a"].items() if k.startswith("H-E3.1")][0]
+_b1 = [v for k, v in E3V["criteria_b"].items() if k.startswith("P-E3b.1 0.01")][0]
+_b5 = [v for k, v in E3V["criteria_b"].items() if k.startswith("P-E3b.1 0.05")][0]
+
+
+def ext_checks():
+    check("E5 UKF with landmark states ÷ FGO, live overall RMSE with loop closure, range over 3 flights (DESCRIPTIVE)", rng(E5R, 2), "1.76–2.08",
+          "tier1/e5_results.md §2 (UKF ÷ FGO 2.08 / 1.84 / 1.76, LC live); tier1/scores/e5_verdicts.json")
+    check("E5 UKF ÷ FGO LC live per flight, each rounded once to an integer (the cell's '~2x')", " / ".join(rd(r, 0) for r in E5R), "2 / 2 / 2",
+          "tier1/e5_results.md §2 (2.08 / 1.84 / 1.76)")
+    check("E5 H-E5.1 (UKF-LC live lap 5 ≤ 1.5 × lap 1; the cell's 'bounded'); S-E5.5 (UKF-LC live > FGO-LC live)",
+          f"{E5V['criteria']['H-E5.1']['verdict']} {E5V['criteria']['H-E5.1']['count']}; {E5V['criteria']['S-E5.5']['verdict']} {E5V['criteria']['S-E5.5']['count']}",
+          "PASS 3/3; PASS 3/3", "tier1/e5_results.md §1 (H-E5.1 PASS 3/3; S-E5.5 PASS 3/3)")
+    check("E3 H-E3.1 at 1% wrong ids: verdict, count; diverged runs", f"{_h31['verdict']} {_h31['count']}; {_h31['divergence']['total']}",
+          "FAIL 0/9; 6 of 9 runs diverged", "tier1/e3_results.md §1 (H-E3.1 FAIL 0/9; 6 of 9 runs diverged)")
+    check("E3 robust arm (b): P-E3b.1 at 1% / 5%; diverged runs", f"{_b1['verdict']} {_b1['count']} / {_b5['verdict']} {_b5['count']}; {E3V['divergence']['arm b']['total']}",
+          "PASS 9/9 / PASS 9/9; 0 of 21 runs diverged", "tier1/e3_results.md §4 (P-E3b.1 PASS 9/9 at 1% and 9/9 at 5%; 0 of 21)")
+    check("E2 H-E2.1 with 4 tags (B) / 2 tags (C)", " / ".join(f"{E2V['criteria']['H-E2.1'][c]['verdict']} {E2V['criteria']['H-E2.1'][c]['count']}" for c in "BC"),
+          "PASS 3/3 / PASS 3/3", "tier1/e2_results.md §1 (H-E2.1 PASS 3/3 in each of B, C, D)")
+
+
+def ob_ext(tag):
+    ext_checks()
+    return (f"[{tag}] Extensions to Experiment 3 (extension experiments, pre-registered 2026-10-21, signed off with amendments 2026-10-22; "
+            f"condition A unless stated, n = 3 flights; claims C1–C3, ruling 2026-10-24). UKF cell: an extension variant, not the UKF used "
+            f"elsewhere in this table: a UKF with each tag in its state, re-identification and an RTS smoother (E5). 'bounded' = H-E5.1 "
+            f"{E5V['criteria']['H-E5.1']['verdict']} {E5V['criteria']['H-E5.1']['count']} (live lap 5 ≤ 1.5 × lap 1); '~2x FGO error' = UKF ÷ FGO "
+            f"live overall RMSE with loop closure {rng(E5R, 2)}× (LC live, descriptive). That the variant's error is higher than the FGO's was "
+            f"registered as a secondary direction (S-E5.5) and held {E5V['criteria']['S-E5.5']['count']}; no ordering label is printed, because "
+            f"the magnitude is descriptive and the variant is not the thesis UKF. The thesis EKF3 and UKF, as configured, have no landmark "
+            f"states; EKF3 with landmark states was not tested. FGO cell: with 4 tags and with 2 tags (E2), loop closure also bounded live drift "
+            f"(H-E2.1 PASS 3/3 in each). The FGO result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (E3), the FGO "
+            f"as built lost its loop-closure advantage (H-E3.1 {_h31['verdict']} {_h31['count']}; {_h31['divergence']['total']}); see the "
+            f"limitations list, item 3.")
+
 COLS = ["Experiment 1A: standard sensors (textured floor, no heading)", "Experiment 1B: with the camera heading (offline)",
         "Experiment 1: blank floor (no flow; 1A and 1B flights pooled)", "Experiment 2: known tags", "Experiment 4: outdoor–indoor (GNSS outside only)",
         "Experiment 3: loop closure (tags at unknown positions)", "Experiment 5: tag hold", "Experiment 1C: closed loop (the estimator flies)"]
@@ -764,7 +808,7 @@ CELLS = {
              (BLANK_ST, "position invalid from take-off", "origin output, unscored"),
              ("", f"1 tag: {rd_si(mrD['EKF3 live'], 3)} m live", "no live ordering claimed"),
              ("", f"indoor {rng(OI['EKF3 live'])} m", "no live ordering claimed; 4.10 m jump"),
-             ("N/A", "FGO capability only", "the filters have no loop closure"),
+             ("N/A", "no landmark states", "the thesis EKF3 as configured has no loop closure; EKF3 with landmark states not tested"),
              ("", f"hold {rng(hE, 1)} mm", "bands PASS; comparatives FAIL"),
              ("", f"{passh['EKF3']}/3 pass; max cross-track ≤ {rd(max(B2h['EKF3']), 2)} m", "no ordering claimed")],
     "UKF": [("", f"median {rd(med['UKF'], 2)} m", "descriptive, 9 flights"),
@@ -772,7 +816,7 @@ CELLS = {
             (BLANK_ST, f"{BLK['UKF']} m at end †", "no flow aiding"),
             ("", f"1 tag: {rd_si(mrD['UKF live'], 3)} m live", "no live ordering claimed"),
             ("", f"indoor {rng(OI['UKF live'])} m", "no live ordering claimed"),
-            ("N/A", "no loop-closure equivalent", "FGO capability only"),
+            ("", "UKF with landmark states (extension E5): bounded; ~2x FGO error [k]", ""),
             ("", f"hold {rng(hU, 1)} mm", "bands PASS; comparatives FAIL"),
             ("", f"{passh['UKF']}/3 pass; max cross-track ≤ {rd(max(B2h['UKF']), 2)} m", "final UKF port")],
     "FGO": [("", f"median {rd(med['FGO'], 2)} m", "confirmatory test: no ordering"),
@@ -780,17 +824,17 @@ CELLS = {
             (BLANK_ST, f"{BLK['FGO']} m at end †", "no flow aiding"),
             ("", f"1 tag: {rd_si(mrD['FGO live'], 3)} m live", f"batch {rng_si([agg['conditions'][c]['mean_rmse_m']['FGO hindsight (whole-flight batch)'] for c in TCOND], 3)} m, H2.1 PASS"),
             ("", f"indoor {rng(OI['FGO live'])} m", "batch 0.59, within 1.5× of the smoothed UKF: H4.3 PASS"),
-            ("PASSED", f"live {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m", "H3.1–H3.4 PASS 3/3"),
+            ("PASSED", f"live {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m", "H3.1–H3.4 PASS 3/3; 8 tags, correct tag IDs [k]"),
             ("", f"hold {rng(hF, 1)} mm", "bands PASS; comparatives FAIL"),
             ("", f"{passh['FGO']}/3 pass; max cross-track ≤ {rd(max(B2h['FGO']), 2)} m", "final FGO node, original priors")]}
 T1MK = ["[a, b]", "[c]", "[d]", "[e]", "[f, g]", "[h]", "[i]", "[j]"]      # ordering footnotes per row (2026-10-17)
-T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h"), ob_h5("i"), ob_cl("j")]
-rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + f"{CELLS[e][j][1]} ({CELLS[e][j][2]})" for e in EST]
+T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h", t1=True), ob_h5("i"), ob_cl("j")]
+rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + CELLS[e][j][1] + (f" ({CELLS[e][j][2]})" if CELLS[e][j][2] else "") for e in EST]
           for j, col in enumerate(COLS)]
 save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment and estimator",
          "Each cell gives the key number and the verdict it rests on, with a status (PASSED, N/A, or on the blank floor '" + BLANK_ST + "') where one applies. "
          "No ordering label is printed: an ordering (BEST / BEHIND / TIED) is shown only where a pre-registered decision rule was met, "
-         "and no comparison of the displayed key numbers met one (H4.1 and H4.3 are met, but concern the hindsight tracks, footnote [g]); any ordering visible in the numbers is descriptive (footnotes [a]–[j]). No estimator "
+         "and no comparison of the displayed key numbers met one (H4.1 and H4.3 are met, but concern the hindsight tracks, footnote [g]; S-E5.5, the extension UKF variant's error higher than the FGO's, is met, but concerns an extension variant, not the thesis UKF, footnote [k]); any ordering visible in the numbers is descriptive (footnotes [a]–[k]). No estimator "
          "bounds position on a blank floor. The blank-floor row pools the standard-sensor flights (1A) with the forward-camera "
          "flights (1B: the camera calibration flights and both camera datasets).",
          ["experiment", "EKF3", "UKF", "FGO"], rowsT1, [30, 40, 40, 40],
@@ -799,22 +843,22 @@ save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment
          "closed_loop_cl_*_half(_v2/_v3).json",
          "§6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25",
          notes=["Statuses (not orderings): '" + BLANK_ST + "' = the blank-floor status (ruling 2026-10-18; the blank floor is ruled 'not accuracy comparisons'); PASSED = met "
-                "its pre-registered criteria with no comparison (Experiment 3, FGO only: H3.1–H3.4); N/A = not run. Ordering labels (BEST / "
+                "its pre-registered criteria with no comparison (Experiment 3, the FGO: H3.1–H3.4); N/A = not run (Experiment 3: the thesis EKF3 has no landmark states). Ordering labels (BEST / "
                 "BEHIND / TIED) are printed only where a pre-registered decision rule was met (ruling 2026-10-17); none is printed here.",
                 "Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians "
                 "descriptive [b]; with the camera heading, C1.a registered with no decision rule [c]; blank floor, no comparative test [d]; "
                 "Experiment 2 live, H2.3 FAIL [e]; Experiment 4 live, H4.2 FAIL [f] (H4.3, the FGO whole-flight batch "
                 "within 1.5× of the smoothed UKF, PASSES [g], and H4.1, the batch below both filters' live tracks, PASSES (hindsight against "
-                "live, not like with like); neither concerns the live key numbers); Experiment 3, one estimator [h]; Experiment 5, H5.2 / H5.3 / "
+                "live, not like with like); neither concerns the live key numbers); Experiment 3, one thesis estimator [h], the UKF cell an extension variant [k]; Experiment 5, H5.2 / H5.3 / "
                 "H5.4a–b FAIL on the final-build hold sets, identical to the original-build verdicts, all drift bands PASS [i]; "
                 "closed loop, no comparative test registered, every set at half real-time (RTF 0.5) passes 3/3 [j].",
                 "Key numbers: 1A = cruise ATE, median of the 9 textured-floor flights of the standard-sensor dataset; 1B = the 6 textured-floor "
                 "bags of the two camera datasets; Experiment 2 = horizontal RMSE with 1 tag; Experiment 4 = indoor RMSE; Experiment 3 = with "
-                "loop closure; Experiment 5 = mean hold error; 1C = at half real-time "
+                "loop closure (the UKF cell: extension E5, footnote [k]); Experiment 5 = mean hold error; 1C = at half real-time "
                 "(RTF 0.5). " + RTFX + " "
                 "† runaway magnitude (order only). No cell restates a WITHDRAWN claim.",
                 "Ordering footnotes [a]–[j] (one per comparison; the letters in the experiment column): each footnote states the rule, "
-                "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN, order=10)
+                "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN + [ob_ext("k")], order=10)
 
 # =============================================================================================== FIG 2 heading stops drift (ONE panel)
 fig, ax = plt.subplots(figsize=(15.5, 6.4))
@@ -1368,14 +1412,20 @@ check("Experiment 3 with loop closure, hindsight overall (m)", rng([t["rmse_m"] 
 check("Experiment 3 without loop closure, live overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "live")]], 3), "0.263–0.361", "numbers.md §16.3")
 check("Experiment 3 without loop closure, hindsight overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "hindsight")]], 3), "0.221–0.266", "numbers.md §16.3")
 check("Experiment 3 lap5/lap1, live with loop closure; live without", rng(lc5) + "; " + rng(nl5, 1), "0.16–0.43; 2.9–4.5", "numbers.md §16.3")
+ext_checks()
 save(fig, "F7", "F7_L_loop_closure",
      "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps",
      "Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in "
      f"the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 {rng(lc5)}; "
      f"overall {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m live, {rng_si([t['rmse_m'] for t in LL[('lc', 'hindsight')]], 3)} m "
      f"hindsight). Right: without re-identification it grows {rng(nl5, 1)}× over five laps (overall "
-     f"{rng_si([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)} m live). H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]. This is an FGO capability, not an FGO-against-filter result (the filters have no "
-     "loop-closure equivalent); one estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
+     f"{rng_si([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)} m live). H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]. The thesis's EKF3 and UKF, as configured, have no landmark states, so they have "
+     "no loop closure; loop closure is not specific to the FGO: in an extension experiment (pre-registered), a UKF variant with each tag in "
+     f"its state bounded its live drift (H-E5.1 {E5V['criteria']['H-E5.1']['verdict']} {E5V['criteria']['H-E5.1']['count']}), with a higher "
+     f"error than the FGO's (S-E5.5 {E5V['criteria']['S-E5.5']['verdict']} {E5V['criteria']['S-E5.5']['count']}; UKF ÷ FGO live {rng(E5R, 2)}, "
+     "descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift (extension experiment, H-E2.1 PASS 3/3 in each). "
+     "The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its "
+     f"loop-closure advantage (H-E3.1 {_h31['verdict']} {_h31['count']}; {_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
      "check (V3) is not re-scorable on the "
      "corrected FGO (its labels were never recorded).",
      "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[ob_l("a"), OCASE_KEY])
