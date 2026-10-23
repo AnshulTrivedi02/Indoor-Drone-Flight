@@ -21,7 +21,7 @@ thesis document, claims table, figure generator, `numbers.md` or frozen pack fil
     room world, descriptively. "No accuracy gain" is restated as a null result: H-E4.3 FAIL 7/12, with P-E4.1 PASS 12/12
     and P-E4.2 PASS.
   - **C5 (E4).** The LM cap 2 convergence, widened to every window on two room flights (no flag, 10/10 cap-10 runs).
-- **`docs/thesis/tier1/check_claims_update.py`:** the read-only exact check. It covers the verbatim quotes, the verdicts
+- **`docs/thesis/tier1/check_claims_update.py`:** the read-only exact check (follow-up commit: the S-E5.6 iSAM2 mapping inline in C1, C3 scoped to B and C with D stated as known-map, the judgement-band labels in the C2 table, and the numbers.md Errata checked). It covers the verbatim quotes, the verdicts
   against `scores/*_verdicts.json`, and the numbers against their source files, plus a completeness scan for any
   unregistered number.
 - **`decisions_log.md`:** D16 (robust-arm wording per the verdicts), D17 (C1 names the UKF variant, not "the filters")
@@ -34,7 +34,7 @@ thesis document, claims table, figure generator, `numbers.md` or frozen pack fil
 |---|---|---|
 | verbatim old-wording quotes (file:line span) | 15 | 0 |
 | verdict checks against the verdict jsons (incl. per-condition E2, per-window P-E4.2, E4 convergence) | 40 | 0 |
-| numbers registered and checked (94 tokens + 45 context phrases) | 139 | 0 |
+| numbers registered and checked (94 tokens + 47 context phrases) | 141 | 0 |
 | unregistered numeric tokens (completeness scan) | 0 | — |
 
 **Mutation test (scratch copies only):** each of five deliberate edits made the checker fail. The edits were a changed

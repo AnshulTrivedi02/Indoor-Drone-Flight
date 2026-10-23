@@ -29,7 +29,7 @@ list below names the places that would need to change if the user accepts a prop
 
 | id | claim | old → new (in brief) | status of the old wording | supporting verdicts |
 |---|---|---|---|---|
-| C1 | Loop closure is an FGO capability | "the filters have no loop-closure equivalent" / "Only the FGO can do this" → the thesis's EKF3 and UKF as configured have none; a UKF with tag landmark states does bound drift | **too strong** in its short forms; the hedged METHODOLOGY form ("without a different design") holds, and E5 is that design | E5: H-E5.1 PASS 3/3; H-E5.2 PASS 3/3; H-E5.3 PASS 3/3; P-E5.4 PASS 3/3; S-E5.5 PASS 3/3 and S-E5.6 PASS 3/3 (registered direction: UKF higher than the FGO) |
+| C1 | Loop closure is an FGO capability | "the filters have no loop-closure equivalent" / "Only the FGO can do this" → the thesis's EKF3 and UKF as configured have none; a UKF with tag landmark states does bound drift | **too strong** in its short forms; the hedged METHODOLOGY form ("without a different design") holds, and E5 is that design | E5: H-E5.1 PASS 3/3; H-E5.2 PASS 3/3; H-E5.3 PASS 3/3; P-E5.4 PASS 3/3; S-E5.5 PASS 3/3 and S-E5.6 PASS 3/3 (registered direction: UKF higher than the FGO; S-E5.6 against the FGO's iSAM2 hindsight, not an LM batch) |
 | C2 | The loop-closure result rests on correct tag ids | "Tag ids make re-identification trivial" → the plain FGO's loop-closure advantage does not survive 1% wrong ids; a robust variant does not diverge and is no worse than the plain FGO | **incomplete**: the dependence on correct ids is not stated | E3 arm (a): H-E3.1 FAIL 0/9 (6 of 9 runs diverged); H-E3.2 FAIL 0/9; H-E3.3 FAIL 3/9; P-E3.4 FAIL 0/9; P-E3.5a FAIL 0/9; P-E3.5b FAIL 0/9; P-E3.5c PASS 9/9; P-E3.6 FAIL 0/3. Arm (b): P-E3b.1 PASS 9/9 at 1% and 9/9 at 5%; P-E3b.2 PASS 3/3 |
 | C3 | Loop closure bounds live drift (8 tags) | 8 tags only → also 4 and 2 tags; D (1 tag) is the known-map case | **too narrow** (holds as worded) | E2: H-E2.1 PASS 3/3 in each of B, C, D (9/9); H-E2.2, H-E2.3, P-E2.4 PASS 3/3 in each; P-E2.5 FAIL (A ≤ B false) |
 | C4 | The 0.25 s window choice | "largest window meeting" the 33 ms budget, "ONLY" at 0.25 s; "larger windows spend compute for no accuracy gain" → budget part scoped to the corridor; accuracy part restated as a pre-registered null result on the room world | budget part **too strong / not general**; accuracy part **without current support** until E4 | E4: P-E4.1 PASS 12/12; P-E4.2 PASS (12/12 at each window); H-E4.3 FAIL 7/12 (null result) |
@@ -59,7 +59,8 @@ closed loops.
 > each tag in its state, re-identification and an RTS smoother bounded its live drift on 3/3 flights (H-E5.1 PASS 3/3;
 > live lap 5 ÷ lap 1 0.27 / 0.42 / 0.30). Re-identification lowered its live and its smoothed error on 3/3 flights
 > (H-E5.2 PASS 3/3, H-E5.3 PASS 3/3). On the same flights its error was higher than the keyframe FGO's, in the
-> registered direction (S-E5.5 PASS 3/3 live, S-E5.6 PASS 3/3 hindsight; UKF ÷ FGO live 1.76–2.08, descriptive).
+> registered direction (S-E5.5 PASS 3/3 live; S-E5.6 PASS 3/3 hindsight, against the FGO's iSAM2 hindsight, not an
+> LM batch; UKF ÷ FGO live 1.76–2.08, descriptive).
 
 **Supporting results** (`e5_results.md` §1–§2; `scores/e5_verdicts.json:criteria`):
 
@@ -132,11 +133,11 @@ does for the FGO as built.
 | H-E3.1 (PRIMARY) | 1%: LC live < the same flight's stored no-LC live | FAIL | 0/9 | 6 of 9 |
 | H-E3.2 | 1%: LC hindsight < stored no-LC hindsight | FAIL | 0/9 | 6 of 9 |
 | H-E3.3 | 1%: LC live lap-5 ≤ 1.5 × lap-1 | FAIL | 3/9 | 6 of 9 (the 3 runs that did not diverge pass) |
-| P-E3.4 | 1%: LC live ≤ 2 × clean LC live | FAIL | 0/9 | 6 of 9 |
+| P-E3.4 | 1%: LC live ≤ 2 × clean LC live (×2: judgement, not derived from data) | FAIL | 0/9 | 6 of 9 |
 | P-E3.5a / b / c | 5%: the H-E3.1 / H-E3.2 / H-E3.3 criteria | FAIL / FAIL / PASS | 0/9 / 0/9 / 9/9 | 0 of 9 |
 | P-E3.6 | dose–response per flight | FAIL | 0/3 | — |
-| P-E3b.1 | robust LC live ≤ 1.10 × arm (a), per run | PASS | 9/9 (1%), 9/9 (5%) | 0 of 21 robust runs |
-| P-E3b.2 | rate 0: robust LC live within ±10% of clean LC live | PASS | 3/3 | — |
+| P-E3b.1 | robust LC live ≤ 1.10 × arm (a), per run (+10%: judgement, not derived from data) | PASS | 9/9 (1%), 9/9 (5%) | 0 of 21 robust runs |
+| P-E3b.2 | rate 0: robust LC live within ±10% of clean LC live (±10%: judgement, not derived from data) | PASS | 3/3 | — |
 
 - **Arm (a), runs that did not diverge.** LC live 3.7161–4.2231 m against the stored no-LC live 0.3494 / 0.2625 /
   0.3608 m and the clean LC live 0.0574 / 0.0494 / 0.0760 m. That is 51.26–85.49× clean and 10.77–16.09× no-LC.
@@ -185,10 +186,12 @@ landmarks (`preregistration.md` §1).
 
 **Proposed new wording.**
 > With tags at unknown positions, the keyframe FGO's loop closure bounded its live drift with all 8 tags (Experiment 3,
-> H3.1 PASS 3/3) and, in an extension experiment (pre-registered), also with 4 and with 2 tags (H-E2.1 PASS 3/3 in each
-> condition; live lap 5 ÷ lap 1 0.15–0.46). With re-identification, the live and the hindsight errors were lower than
-> without it on every flight (H-E2.2 and H-E2.3 PASS 3/3 in each condition). The predicted ordering of lap-5 error with
-> tag density did not hold at its first step (P-E2.5 FAIL), so no monotone tag-density claim is made.
+> H3.1 PASS 3/3) and, in an extension experiment (pre-registered), also with 4 tags (B) and with 2 tags (C) (H-E2.1
+> PASS 3/3 in each; live lap 5 ÷ lap 1 0.15–0.46). With 4 and with 2 tags, the live and the hindsight errors with
+> re-identification were lower than without it on every flight (H-E2.2 and H-E2.3 PASS 3/3 in each of B and C).
+> Condition D (tag 0 only) is the known-map one-tag case: its verdicts also PASS 3/3, but it makes no claim about
+> unknown landmarks. The predicted ordering of lap-5 error with tag density did not hold at its first step (P-E2.5
+> FAIL), so no monotone tag-density claim is made.
 
 **Supporting results** (`e2_results.md` §1–§2; `scores/E2_verdicts.json:criteria`, `P-E2.5`):
 - **H-E2.1 (PRIMARY):** PASS 3/3 in B, C and D (9/9). The LC live lap-5/lap-1 ratios run from 0.15 to 1.35. The
@@ -305,6 +308,9 @@ is inferred from wall time only.
   (`tables/realflight_compute.md:13`). Unchanged. E4 is offline and on another world.
 - **V3 / V-L withdrawn** (claims row 24). Unchanged. No extension experiment re-scores it.
 - **Experiments 4 and 5, the corridor and the closed loop.** No extension experiment touches these.
+- **`numbers.md` Errata** (below `## Errata`, read only). A search for loop closure, FGO capability, window, LM and
+  §16.3 found no erratum that concerns C1–C5. The single "window" hit (`numbers.md:1449`) is the blank-floor flow-loss
+  window. So no erratum changes any old wording quoted here.
 
 ## Open points
 
