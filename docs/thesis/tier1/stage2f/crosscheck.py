@@ -139,6 +139,8 @@ C("ho conv max", f"The largest RMS reading is {f4(mx)} m", ("ho",))
 _pj = [l for l in open(f"{S}/projection.log") if "done 4/58" in l][0]
 C("ho projection", "about " + _pj.split("projected end ")[1][:16].replace("T", " ") + " AEDT", ("ho",))
 C("ho fail count", f"| **FAIL** (null result) | {len(h3)}/12 |", ("ho",))
+_la = [float(x.split("/")[0]) for l in open(f"{S}/timing.tsv") for x in l.rstrip("\n").split("\t")[6:8] if len(l.split("\t")) >= 9]
+C("load max", f"The largest 1-minute load was {max(_la):.2f}", ("res",)); C("load max ho", f"was {max(_la):.2f}, around", ("ho",))
 print(f"{n} checks, {len(bad)} mismatches")
 for b in bad:
     print("MISMATCH", b)

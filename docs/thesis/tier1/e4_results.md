@@ -34,8 +34,14 @@
   - Start and end: 2026-10-23 11:28:45 AEDT to 2026-10-24 04:33:39 AEDT.
 - **Job command:** `room_fgo_replay.py <trial> --no-batch --window <W> [--lm-iters 10] --out-root ~/thesis_data/tier1`.
   Output: `~/thesis_data/tier1/<trial>/room_fgo_w<W>[_lm10]/`.
-- **Contamination check:** the 1-minute load average at each job's start and end is logged in `stage2f/timing.tsv`
-  (DESCRIPTIVE). No other `heavy.py` job ran, because BUILD_LOCK was held throughout.
+- **Contamination check (DESCRIPTIVE):** the 1-minute load average at each job's start and end is logged in
+  `stage2f/timing.tsv`.
+  - No job waited on another lock: no `[heavy] waiting` line appears in any job log.
+  - The largest 1-minute load was 4.27, on a 12-thread machine, from the end of `e4_T_A_r1_w5` to the start of
+    `e4_T_A_r2_w0.5`. The second-largest was 2.91 (`e4_T_A_r2_w0.5`/`e4_T_A_r2_w1`). Every other reading is ≤ 2.
+  - The source was not identified. It was not a `heavy.py` job, because none waited on BUILD_LOCK.
+  - The P-E4.1 and P-E4.2 margins are far larger than any such effect: the medians at 0.25, 0.5 and 1 s (§3 table)
+    sit well clear of one another and of the 33 ms line.
 - **Guard:** `verify` before the first job and after the last both returned **IDENTICAL**, exit 0, 13,253 files
   (`frozen_manifest_20261022T002851_verify_stage2f_pre_*.json`, `…_post_*.json`).
 - **Status:** `stage2f/run_status.py` (`stage2f/status.tsv`, and `status_w0.25.tsv` for the Stage 2a runs).

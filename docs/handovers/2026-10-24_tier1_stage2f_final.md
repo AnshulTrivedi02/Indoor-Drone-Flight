@@ -58,3 +58,9 @@ verifies are IDENTICAL. Nothing is running.
 - **Descriptive only, not diagnosed.** On T_D_r1 the cap-2 and cap-10 tracks differ by up to about 0.02 m in 3D outside the
   lap window, but by 0.0000 m RMS inside it. The FGO stats did not log LM iteration counts, so "LM converges within two
   iterations" is inferred from wall time only.
+- **`scores/E4_verdicts.json`, `P-E4.2.per_window."0.5"`.** Its `count` ("0/12") and per-flight `satisfied` apply the
+  > 33 ms test to W = 0.5 s, which is descriptive. So "0/12" means 0/12 flights are above 33 ms, that is 12/12 within the
+  budget, as `e4_results.md` and `numbers_tier1.md` state. The json was not regenerated, because `e4_verdicts.py` refuses
+  to overwrite.
+- **Load average.** The maximum 1-minute load during the sweep was 4.27, around the first 5 s run; the source was not
+  identified (`e4_results.md` §2). No job waited on a lock.
