@@ -50,6 +50,16 @@ T1 p1–p3, R1 p8, R4 p2, summary page 08 (before and after), walkthrough pages 
 The first page-08 wording pushed the y-axis label into the footer. The footer was shortened, and the label now ends
 above "Metric:", as it did before. No other overflow or collision was found.
 
+## Hash fix (after the first output commit)
+- **Cause.** Restoring the pixel-identical summary PNGs after the walkthrough had hashed the regenerated ones left 5
+  sha256 records in `index_walkthrough.md` stale: summary pages 02, 03, 10, 11 and 12.
+- **Fix.** `figs_results_walkthrough.py` was re-run against the restored PNGs, and its index was kept. All other outputs of
+  that re-run were pixel- or text-identical and were restored.
+- **Check.** All 55 recorded `path (sha256 …)` pairs under `docs/thesis/` now match their files. There were no mismatches at
+  6a45af2.
+- **Note for future passes.** The commit-line classifier masks hex strings, so a hash-only change looks like a commit-only
+  change. Check the recorded hashes after any restore.
+
 ## Open
 Nothing blocks. Reversible choices for the user:
 - D19: the 51-85x scope.
