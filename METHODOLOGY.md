@@ -14570,7 +14570,8 @@ scripts and records in `docs/thesis/tier1/stage2e/diag_collapse/` and `~/thesis_
 **Question.** Why does the non-robust (arm (a)) loop-closure FGO end with a collapsed landmark map in the E3 runs that
 did not diverge? Their LC live is 51–85× clean.
 
-**Answer: the collapse is the non-robust least-squares compromise. It is not a harness bug and not a solver failure.**
+**Answer: the collapse is consistent with a non-robust least-squares compromise, and it is not a harness bug.** IMU and
+range costs were not evaluated, so the global optimum is not shown.
 - **One wrong factor is expensive.** At the true layout a wrong tag factor sits at a median of about 124σ, which costs
   about 7,700.
 - **The layout is held only by dead reckoning, and it is soft.** The flow noise is 0.25 rad/s, which is about
@@ -14585,10 +14586,10 @@ did not diverge? Their LC live is 51–85× clean.
 of the logged events. Each counterfactual's live track is also identical to the original up to its first kept detection.
 
 **Role of first-sighting mislabels.** They set the onset on seed 0: the step comes at the true tag's *first correct
-sighting*, 22 s after the mislabel. But they are not necessary.
+sighting* (59.332 s), 22.4 s after the mislabel. But they are not necessary.
 - The earlier cf2 runs have no first-sighting mislabels and still collapse (spread 1.063 and 1.103 m, against 3.674 m
   true).
-- With only the two first-sighting wrong factors left (cf (ii)), LC live is 2.7707 m, 48× clean.
+- With only the two first-sighting wrong factors left (cf (ii)), LC live is 2.7707 m (48× clean).
 - Keeping them true (cf (i)) did not restore clean behaviour: the run diverged (onset 60.632 s). That was a failed
   prediction, recorded against `predictions.md`. Whether a run collapses or diverges depends on the solver's path.
 

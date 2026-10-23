@@ -6,8 +6,9 @@ write-up is `docs/thesis/tier1/e3_results.md` §7, and METHODOLOGY has a matchin
 
 ## Cause (plain terms)
 
-**The plain FGO trusts a tag factor (5 cm / 5°) far more than its own dead reckoning (flow noise of about 0.44 m/s per
-keyframe).**
+**The plain FGO trusts a tag factor (5 cm / 5°) far more than its own dead reckoning (flow noise of about 0.4376 m/s per
+keyframe).** The collapse is consistent with a least-squares compromise; IMU and range costs were not evaluated, so the
+global optimum is not shown.
 - **One wrong id is costly.** At the true layout it costs about 7,700 (a residual of about 124σ).
 - **Bending the map is cheaper.** The solver bends the trajectory and the map instead. Correct tag factors cannot stop
   this, because they are relative and move with their landmark.
@@ -17,14 +18,14 @@ keyframe).**
 
 ## Evidence
 
-- **Time course.** On T_A_r1 1% s0 the error does not move at the first-sighting mislabels (36.2 / 36.9 s).
+- **Time course.** On T_A_r1 1% s0 the error does not move at the first-sighting mislabels (36.199 / 36.932 s).
   It jumps to 6.6477 m at the true tag 6's first correct sighting (59.332 s).
   - After that it is a per-lap sawtooth, which is low at the gauge tag.
   - On T_A_r3 5% s0 the step comes at a non-first wrong id (43.914 s).
 - **Counterfactuals** (T_A_r1 1% s0, serial, each alone):
   - (i) First-sighting mislabels kept true: DIVERGED, onset 60.632 s. This was a failed prediction; I had predicted a
     later collapse.
-  - (ii) Only the two first-sighting wrong factors left: 2.7707 m LC live, 48× clean, with a distorted map.
+  - (ii) Only the two first-sighting wrong factors left: 2.7707 m LC live (48× clean), with a distorted map.
   - The earlier cf2 runs have no first-sighting mislabels and still collapse (spread 1.063 and 1.103 m, against 3.674 m).
 - **Which assumption failed.** The pre-registered "+20%" treated the correct factors of a pass or a landmark as an anchor.
   They are relative, so no wrong factor is isolated.
@@ -39,7 +40,9 @@ keyframe).**
 
 ## Machine time
 
-91 s + 3419 s for the two replays. The read-only analysis took minutes.
+91 s + 3419 s for the two replays (heavy.py wall-clock). Checksum guard verify after the runs: IDENTICAL, 13,253
+files (`frozen_manifest_20261022T002851_verify_e3collapse_*.json`). No verify was run immediately before the replays (the
+last was stage 2e's, 06:57); the replays wrote only under `~/thesis_data/tier1/stage2e/diag_collapse/` (decision D7). The read-only analysis took minutes.
 
 ## Open
 

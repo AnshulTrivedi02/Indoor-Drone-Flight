@@ -220,6 +220,9 @@ arm (a) job ran slower than a serial one:
 
 ## 6. What is open
 
+*(2026-10-23, after scoring: the map-collapse mechanism has since been diagnosed descriptively; see §7. The text
+below is kept as written.)*
+
 - **Unverified mechanism.** The "map collapse" reading in §3 comes from a read-only look at `landmarks_final`. It is not a
   pre-registered metric, and its mechanism was not diagnosed by counterfactual.
 - **Mechanism inferred, not re-diagnosed.** The four new divergences (T_A_r2 and T_A_r3, seeds 1 and 2) were triaged.
@@ -239,7 +242,9 @@ byte-identical at `3f613f4`). It was bounded at ≤ 5 h of machine time (decisio
 
 ### 7.1 Answer
 
-**The collapse is the non-robust least-squares compromise. It is not a solver failure, and it is not a harness bug.**
+**The collapse is consistent with a non-robust least-squares compromise, and it is not a harness bug.** On the evaluated
+terms (tag cost exact, flow cost approximate), the collapsed estimate costs about 10× less than the true layout. IMU and
+range costs were not evaluated, so this does not show that the collapse is the global optimum or rule out a solver effect.
 - **Tag factors are stiff and dead reckoning is soft.** A wrong tag factor at the true layout has a whitened residual of
   about 124σ (median, T_A_r1 1% s0), which costs about 7,700 on its own. The only thing that holds the landmarks apart is
   dead reckoning between sightings. The flow noise of 0.25 rad/s at h_cam ≈ 1.7505 m is about 0.4376 m/s per keyframe,
@@ -321,13 +326,13 @@ Whitened residuals of all tag factors use the replay's own noise model (0.05 m, 
 
 ### 7.5 Part 2: counterfactuals on T_A_r1 1% s0 (serial, each alone)
 
-| run | kept true (detection stamps) | wrong factors left | first-sighting tids | status | LC live (m) | LC hindsight (m) | landmark spread (m) | wall (s) |
+| run | kept true (detection stamps) | wrong factors left | first-sighting tids | status | LC live (m) | LC hindsight (m) | landmark spread (m) | `stats.json:wall_s` (s) |
 |---|---|---|---|---|---|---|---|---|
 | original (scored) | — | 19 | 3, 6 | OK | 3.7618 | 3.5648 | 1.224 | 3088.4 |
-| cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 91 |
-| cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3419 |
-| cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225 |
-| cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4714 |
+| cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 88.4 |
+| cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3417.1 |
+| cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225.1 |
+| cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4713.7 |
 
 - **Harness check: prefix identity.** Each counterfactual's `live.tum` is identical, row for row, to the original up to
   the keyframe of its first kept detection: 229 rows for cf (i), 943 rows for cf (ii). The keep flag changes nothing
@@ -372,6 +377,8 @@ The §2.1 arithmetic predicted about +20%. It had three steps:
   freedoms. They are weakly observed by dead reckoning, which is the point above.
 
 ### 7.7 Machine time
+
+Wall-clock per heavy.py call, from `timing.tsv` (including the wrapper):
 
 | item | time |
 |---|---|

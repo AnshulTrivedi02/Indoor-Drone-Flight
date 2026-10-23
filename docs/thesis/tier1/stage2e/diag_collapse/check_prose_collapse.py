@@ -22,9 +22,9 @@ a, r3, cf, rb, rb2 = S["r1_1_s0"], S["r3_5_s0"], S["cf_ii"], S["r1_1_s0_rob"], S
 # 7.1 / 7.6 arithmetic
 w1 = 0.5 * a["w_truth"]["wrong_w_median"] ** 2; sv = a["flow_sigma_v_m_s"]
 C("median wrong cost", f"about {rd(round(w1, -2), 0, True)}", "0.5 * r1_1_s0 w_truth wrong_w_median^2 (to 100)", ("doc", "meth", "ho"))
-C("wrong |w| truth (7.1)", f"about {rd(a['w_truth']['wrong_w_median'], 0)}σ", "summary r1_1_s0 w_truth.wrong_w_median", ("doc", "ho"))
+C("wrong |w| truth (7.1)", f"about {rd(a['w_truth']['wrong_w_median'], 0)}σ", "summary r1_1_s0 w_truth.wrong_w_median", ("doc", "meth", "ho"))
 C("h_cam", f"h_cam ≈ {rd(a['h_cam_median_m'], 4)} m", "summary r1_1_s0 h_cam_median_m")
-C("sigma_v", f"{rd(sv, 4)} m/s", "0.25 * h_cam", ("doc", "meth"))
+C("sigma_v", f"{rd(sv, 4)} m/s", "0.25 * h_cam", ("doc", "meth", "ho"))
 C("break-even T", f"longer than {rd(0.5 * 30 * 36 / (sv ** 2 * round(w1, -2)), 2)} s", "0.5*30*6^2/(sigma_v^2 * cost)", ("doc", "meth"))
 C("cost 7.6", f"({rd(round(w1, -2), 0, True)})", "same")
 # 7.2
@@ -76,14 +76,15 @@ C("orig row", f"| original (scored) | — | {a['n_wrong']} | 3, 6 | OK | {rd(a['
 tim = {l.split("\t")[0]: l.split("\t") for l in open(f"{O}/timing.tsv") if "\t" in l}
 si = S["cf_i"]["status"]; ONS = "live_excursion_onset_t_s (|x| or |y| > 10 m, or non-finite; DESCRIPTIVE)"
 assert si["status"] == "FAILED-ESTIMATOR" and si["prefix_check"]["prefix_identical"]
-C("cf_i row", f"| cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset {rd(si[ONS], 3)} s, first exception {rd(si['first_failure_t_s'], 3)} s, failure fraction {rd(si['failure_fraction'], 2)} | diverged | diverged | diverged | {tim['cf_i'][2]} |",
-  "status/cf_i.json + timing.tsv")
+wi = J(f"{si['run_dir']}/stats.json")["wall_s"]
+C("cf_i row", f"| cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset {rd(si[ONS], 3)} s, first exception {rd(si['first_failure_t_s'], 3)} s, failure fraction {rd(si['failure_fraction'], 2)} | diverged | diverged | diverged | {rd(wi, 1)} |",
+  "status/cf_i.json + stats.json:wall_s")
 C("cf_i onset", f"onset {rd(si[ONS], 3)} s", "status/cf_i.json", ("doc", "meth", "ho"))
 sii = S["cf_ii"]["status"]; assert sii["status"] == "OK" and sii["prefix_check"]["prefix_identical"]
-C("cf_ii row", f"| cf (ii) | the other 17 | {cf['n_wrong']} | 3, 6 | OK | {rd(cf['lc_live_rmse_m'], 4)} | {rd(cf['lc_hindsight_rmse_m'], 4)} | {rd(cf['spread_est_m'], 3)} | {tim['cf_ii'][2]} |", "summary cf_ii + timing.tsv")
+C("cf_ii row", f"| cf (ii) | the other 17 | {cf['n_wrong']} | 3, 6 | OK | {rd(cf['lc_live_rmse_m'], 4)} | {rd(cf['lc_hindsight_rmse_m'], 4)} | {rd(cf['spread_est_m'], 3)} | {rd(J(f"{sii['run_dir']}/stats.json")['wall_s'], 1)} |", "summary cf_ii + stats.json:wall_s")
 for s in (1, 2):
     x = S[f"cf2_s{s}"]; keep = {1: "49.402, 60.358", 2: "54.253, 55.870"}[s]; assert x["keyframe_failures"] == 0 and x["first_sighting_mislabelled"] == 0
-    C(f"cf2_s{s} row", f"| cf2_s{s} (earlier diagnosis, seed {s}) | {keep} | {x['n_wrong_remaining']} | none | OK | {rd(x['lc_live_rmse_m'], 4)} | {rd(x['lc_hindsight_rmse_m'], 4)} | {rd(x['spread_est_m'], 3)} | {rd(x['wall_s'], 0)} |", f"summary cf2_s{s}")
+    C(f"cf2_s{s} row", f"| cf2_s{s} (earlier diagnosis, seed {s}) | {keep} | {x['n_wrong_remaining']} | none | OK | {rd(x['lc_live_rmse_m'], 4)} | {rd(x['lc_hindsight_rmse_m'], 4)} | {rd(x['spread_est_m'], 3)} | {rd(x['wall_s'], 1)} |", f"summary cf2_s{s}")
 C("prefix rows", f"{si['prefix_check']['prefix_rows_before_first_kept_keyframe']} rows for cf (i), {sii['prefix_check']['prefix_rows_before_first_kept_keyframe']} rows for cf (ii)", "status/cf_*.json prefix_check")
 clean = V["runs"]["E3a_T_A_r1_0.01_s0"]["values"]["lc live rmse_m"]["value"] / V["runs"]["E3a_T_A_r1_0.01_s0"]["lc live / stored clean lc live"]
 C("cf_ii x clean", f"LC live is {rd(cf['lc_live_rmse_m'], 4)} m ({rd(cf['lc_live_rmse_m'] / clean, 0)}× clean)", "summary cf_ii / stored clean LC live (E3_verdicts ratio-implied)", ("doc",))
@@ -94,6 +95,19 @@ C("cf2_s1 max", f"live max of {rd(S['cf2_s1']['lc_live_max_m'], 4)} m", "summary
 C("time cf_i", f"| cf (i) | {tim['cf_i'][2]} s |", "timing.tsv"); C("time cf_ii", f"| cf (ii) | {tim['cf_ii'][2]} s |", "timing.tsv")
 C("ho times", f"{tim['cf_i'][2]} s + {tim['cf_ii'][2]} s", "timing.tsv", ("ho",))
 # METHODOLOGY / handover headline numbers
+nda = [V["runs"][f"E3a_{t}_{p}_s{q}"] for t in ("T_A_r1", "T_A_r2", "T_A_r3") for p in ("0.01", "0.05") for q in (0, 1, 2)]
+xs = [r["lc live / stored clean lc live"] for r in nda if not r["run_status"]["diverged"]]; assert len(xs) == 12
+C("meth 51-85", f"{rd(min(xs), 0)}–{rd(max(xs), 0)}× clean", "E3_verdicts.json:runs.E3a_*.lc live / stored clean lc live (non-diverged)", ("meth",))
+fs = [f for f in rc["factors"] if f["mis"] and f["first"]]
+C("meth 22.4", f"({rd(a['first_correct_sighting_t']['6'], 3)} s), {rd(a['first_correct_sighting_t']['6'] - fs[1]['t'], 1)} s after the mislabel", "summary - recon", ("meth",))
+C("cf_ii x clean meth/ho", f"({rd(cf['lc_live_rmse_m'] / clean, 0)}× clean)", "summary cf_ii / clean", ("doc", "meth", "ho"))
+C("truth spread meth/ho", f"against {rd(cf['spread_truth_m'], 3)} m", "summary spread_truth_m", ("doc", "meth", "ho"))
+C("ho first-sighting", f"({rd(fm[0]['t'], 3)} / {rd(fm[1]['t'], 3)} s)", "recon r1 first-sighting factors", ("ho",))
+C("ho 59.332", f"first correct sighting ({rd(a['first_correct_sighting_t']['6'], 3)} s)", "summary r1_1_s0", ("ho",))
+C("ho 43.914", f"non-first wrong id ({rd(r3['first_live_err_over_1m_t'], 3)} s)", "summary r3_5_s0", ("ho",))
+import glob
+gv = J(sorted(glob.glob(f"{R}/docs/thesis/tier1/frozen_manifest_20261022T002851_verify_e3collapse_*.json"))[-1]); assert gv["verdict"] == "IDENTICAL"
+C("guard files", f"IDENTICAL, {gv['n_files_checked']:,}", "guard verify report n_files_checked", ("ho",))
 C("meth cf_ii live", f"{rd(cf['lc_live_rmse_m'], 4)} m", "summary cf_ii", ("meth", "ho"))
 C("meth r1 costs", f"{rd(a['w_est']['tag_cost'], 0, True)} + {rd(a['flow_proxy_cost'], 0, True)} against {rd(a['w_truth']['tag_cost'], 0, True)}", "summary r1_1_s0", ("meth", "ho"))
 bad = 0

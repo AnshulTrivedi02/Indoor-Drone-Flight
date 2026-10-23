@@ -1,7 +1,7 @@
 OK  | median wrong cost | about 7,700 | 0.5 * r1_1_s0 w_truth wrong_w_median^2 (to 100) | doc,meth,ho
-OK  | wrong |w| truth (7.1) | about 124σ | summary r1_1_s0 w_truth.wrong_w_median | doc,ho
+OK  | wrong |w| truth (7.1) | about 124σ | summary r1_1_s0 w_truth.wrong_w_median | doc,meth,ho
 OK  | h_cam | h_cam ≈ 1.7505 m | summary r1_1_s0 h_cam_median_m | doc
-OK  | sigma_v | 0.4376 m/s | 0.25 * h_cam | doc,meth
+OK  | sigma_v | 0.4376 m/s | 0.25 * h_cam | doc,meth,ho
 OK  | break-even T | longer than 0.37 s | 0.5*30*6^2/(sigma_v^2 * cost) | doc,meth
 OK  | cost 7.6 | (7,700) | same | doc
 OK  | events r1_1_s0 | 19/19 | recon r1_1_s0 n_events | doc
@@ -33,11 +33,11 @@ OK  | rob2 flow | extra flow cost of 10,707 | summary r2_5_s1_rob flow_proxy_cos
 OK  | rob2 path | (124.6 m against 125.3 m) | summary r2_5_s1_rob | doc
 OK  | rob2 nfirst | Its four first-sighting mislabels | summary r2_5_s1_rob | doc
 OK  | orig row | | original (scored) | — | 19 | 3, 6 | OK | 3.7618 | 3.5648 | 1.224 | 3088.4 | | summary + scores E3a + stats.json | doc
-OK  | cf_i row | | cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 91 | | status/cf_i.json + timing.tsv | doc
+OK  | cf_i row | | cf (i) | 36.169, 36.928 | 17 | none | **FAILED-ESTIMATOR**: onset 60.632 s, first exception 63.166 s, failure fraction 0.86 | diverged | diverged | diverged | 88.4 | | status/cf_i.json + stats.json:wall_s | doc
 OK  | cf_i onset | onset 60.632 s | status/cf_i.json | doc,meth,ho
-OK  | cf_ii row | | cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3419 | | summary cf_ii + timing.tsv | doc
-OK  | cf2_s1 row | | cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225 | | summary cf2_s1 | doc
-OK  | cf2_s2 row | | cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4714 | | summary cf2_s2 | doc
+OK  | cf_ii row | | cf (ii) | the other 17 | 2 | 3, 6 | OK | 2.7707 | 1.8326 | 2.685 | 3417.1 | | summary cf_ii + stats.json:wall_s | doc
+OK  | cf2_s1 row | | cf2_s1 (earlier diagnosis, seed 1) | 49.402, 60.358 | 17 | none | OK | 3.7293 | 3.7300 | 1.063 | 3225.1 | | summary cf2_s1 | doc
+OK  | cf2_s2 row | | cf2_s2 (earlier diagnosis, seed 2) | 54.253, 55.870 | 12 | none | OK | 2.5710 | 3.3822 | 1.103 | 4713.7 | | summary cf2_s2 | doc
 OK  | prefix rows | 229 rows for cf (i), 943 rows for cf (ii) | status/cf_*.json prefix_check | doc
 OK  | cf_ii x clean | LC live is 2.7707 m (48× clean) | summary cf_ii / stored clean LC live (E3_verdicts ratio-implied) | doc
 OK  | cf_ii spread | spread 2.685 m against 3.674 m | summary cf_ii | doc
@@ -46,6 +46,14 @@ OK  | cf2_s1 max | live max of 30.3122 m | summary cf2_s1 lc_live_max_m | doc
 OK  | time cf_i | | cf (i) | 91 s | | timing.tsv | doc
 OK  | time cf_ii | | cf (ii) | 3419 s | | timing.tsv | doc
 OK  | ho times | 91 s + 3419 s | timing.tsv | ho
+OK  | meth 51-85 | 51–85× clean | E3_verdicts.json:runs.E3a_*.lc live / stored clean lc live (non-diverged) | meth
+OK  | meth 22.4 | (59.332 s), 22.4 s after the mislabel | summary - recon | meth
+OK  | cf_ii x clean meth/ho | (48× clean) | summary cf_ii / clean | doc,meth,ho
+OK  | truth spread meth/ho | against 3.674 m | summary spread_truth_m | doc,meth,ho
+OK  | ho first-sighting | (36.199 / 36.932 s) | recon r1 first-sighting factors | ho
+OK  | ho 59.332 | first correct sighting (59.332 s) | summary r1_1_s0 | ho
+OK  | ho 43.914 | non-first wrong id (43.914 s) | summary r3_5_s0 | ho
+OK  | guard files | IDENTICAL, 13,253 | guard verify report n_files_checked | ho
 OK  | meth cf_ii live | 2.7707 m | summary cf_ii | meth,ho
 OK  | meth r1 costs | 8,622 + 6,266 against 144,218 | summary r1_1_s0 | meth,ho
-50 checks, 0 missing
+58 checks, 0 missing
