@@ -42,7 +42,7 @@ global optimum is not shown.
 
 91 s + 3419 s for the two replays (heavy.py wall-clock). Checksum guard verify after the runs: IDENTICAL, 13,253
 files (`frozen_manifest_20261022T002851_verify_e3collapse_*.json`). No verify was run immediately before the replays (the
-last was stage 2e's, 06:57); the replays wrote only under `~/thesis_data/tier1/stage2e/diag_collapse/` (decision D7). The read-only analysis took minutes.
+last was stage 2e's, 06:57); the replays wrote only under `~/thesis_data/tier1/stage2e/diag_collapse/` (decision D9). The read-only analysis took minutes.
 
 ## Open
 
