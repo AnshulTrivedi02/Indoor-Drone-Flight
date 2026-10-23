@@ -34,7 +34,7 @@ The choices, their reasons and where each quantity appears are in `docs/thesis/u
   - T5: the caption says "about 30 mm" (was 3 cm).
   - T7: the end of cruise goes km → m, with a new check (T7 21 → 22).
   - T8: the RMSE columns go cm → m (3 dp), and footnote [c] says m.
-  - A2: the hold, drift and jump return from m to mm (`hsum`, `hcomp`/`hctxt`, the note, `ob_h5`). A2 50 → 51 checks, because the
+  - A2: the hold, drift and jump return from m to mm (`hsum`, `hcomp`/`hctxt`, the note, `ob_h5`). A2 52 → 51 checks, because the
     mm hold check is now identical to the one in `ob_h5` and is counted once.
   - A3: the Experiment 3 step times return from s to ms, and the ablation hold/drift goes from m to mm.
 - `eval/figs_thesis_results.py`
