@@ -1,6 +1,6 @@
 # numbers_tier1: extension experiments E2–E5 (pre-registered)
 
-**Partly filled (Stage 2c and 2d, 2026-10-22; Stage 2e, 2026-10-23): §Guard, §Gates, §E5, §E2 and §E3.** E4 has no results yet. Every result in this file is labelled **"extension experiment, pre-registered
+**Filled (Stage 2c and 2d, 2026-10-22; Stage 2e, 2026-10-23; Stage 2f, 2026-10-24): §Guard, §Gates, §E5, §E2, §E3 and §E4.** Every result in this file is labelled **"extension experiment, pre-registered
 (2026-10-21; signed off with amendments 2026-10-22)"**. The pre-registration is `docs/thesis/tier1/preregistration.md` and the E5 design is
 `docs/thesis/tier1/e5_design.md`.
 
@@ -32,7 +32,8 @@
 | verify after E5 (Stage 2c) | after the last E5 result run | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2c_20261022T023631.json` |
 | verify after E2 (Stage 2d) | after the last E2 run | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2d_20261022T133243.json` |
 | verify after E3 (Stage 2e) | after the last E3 run and its scoring | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2e_20261023T065711.json` |
-| verify after E4 / final | after each experiment | — | — |
+| verify before E4 (Stage 2f) | immediately before the first E4 job | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2f_pre_20261023T112801.json` |
+| verify after E4 (Stage 2f) | after the last E4 run, before scoring | IDENTICAL, exit 0 (13,253 files) | `frozen_manifest_20261022T002851_verify_stage2f_post_20261024T043415.json` |
 | E5 code snapshot | immediately before the first V-E5a run (2026-10-22T01:18:05) | 4 files: `ukf_lm.py`, `lc_ukf_replay.py`, `test_ukf_lm.py`, `e5_val_compare.py` (repo commit `e42b9ce`) | `e5_code_manifest_20261022T011805.json` |
 | E5 code verify | after the last E5 result run | IDENTICAL, exit 0 (4 files) | `e5_code_manifest_20261022T011805_verify_20261022T023631.json` |
 
@@ -374,11 +375,157 @@ Invariants (reported; `json:scores/E2_verdicts.json:flights.<t>.invariants`): `t
 
 ## E4: live window sweep (12 T bags; W = 0.25 / 0.5 / 1 / 2 / 5 s)
 
+**Extension experiment, pre-registered (2026-10-21; signed off with amendments 2026-10-22).**
+- Runs: 58/58 completed (48 main, 10 LM-cap-10), plus the 12 Stage 2a W = 0.25 s runs. All 70 are status OK.
+- Verdicts are judged on the unrounded json values. Full page: `e4_results.md`.
+- Step times are DIAGNOSTIC: workstation Python, 1 thread, nice 19, serial.
+
 | quantity | value | unit | status | source |
 |---|---|---|---|---|
+| T_A_r1 FGO live RMSE, W = 0.25 s | 0.0214 | m | CURRENT | `json:scores/E4_T_A_r1_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r1 FGO live RMSE, W = 0.5 s | 0.0214 | m | CURRENT | `json:scores/E4_T_A_r1_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r1 FGO live RMSE, W = 1 s | 0.0214 | m | CURRENT | `json:scores/E4_T_A_r1_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r1 FGO live RMSE, W = 2 s | 0.0214 | m | CURRENT | `json:scores/E4_T_A_r1_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r1 FGO live RMSE, W = 5 s | 0.0214 | m | CURRENT | `json:scores/E4_T_A_r1_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r2 FGO live RMSE, W = 0.25 s | 0.0196 | m | CURRENT | `json:scores/E4_T_A_r2_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r2 FGO live RMSE, W = 0.5 s | 0.0196 | m | CURRENT | `json:scores/E4_T_A_r2_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r2 FGO live RMSE, W = 1 s | 0.0196 | m | CURRENT | `json:scores/E4_T_A_r2_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r2 FGO live RMSE, W = 2 s | 0.0196 | m | CURRENT | `json:scores/E4_T_A_r2_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r2 FGO live RMSE, W = 5 s | 0.0196 | m | CURRENT | `json:scores/E4_T_A_r2_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r3 FGO live RMSE, W = 0.25 s | 0.0190 | m | CURRENT | `json:scores/E4_T_A_r3_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r3 FGO live RMSE, W = 0.5 s | 0.0190 | m | CURRENT | `json:scores/E4_T_A_r3_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r3 FGO live RMSE, W = 1 s | 0.0190 | m | CURRENT | `json:scores/E4_T_A_r3_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r3 FGO live RMSE, W = 2 s | 0.0190 | m | CURRENT | `json:scores/E4_T_A_r3_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r3 FGO live RMSE, W = 5 s | 0.0190 | m | CURRENT | `json:scores/E4_T_A_r3_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r1 FGO live RMSE, W = 0.25 s | 0.0233 | m | CURRENT | `json:scores/E4_T_B_r1_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r1 FGO live RMSE, W = 0.5 s | 0.0230 | m | CURRENT | `json:scores/E4_T_B_r1_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r1 FGO live RMSE, W = 1 s | 0.0233 | m | CURRENT | `json:scores/E4_T_B_r1_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r1 FGO live RMSE, W = 2 s | 0.0232 | m | CURRENT | `json:scores/E4_T_B_r1_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r1 FGO live RMSE, W = 5 s | 0.0231 | m | CURRENT | `json:scores/E4_T_B_r1_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r2 FGO live RMSE, W = 0.25 s | 0.0292 | m | CURRENT | `json:scores/E4_T_B_r2_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r2 FGO live RMSE, W = 0.5 s | 0.0292 | m | CURRENT | `json:scores/E4_T_B_r2_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r2 FGO live RMSE, W = 1 s | 0.0292 | m | CURRENT | `json:scores/E4_T_B_r2_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r2 FGO live RMSE, W = 2 s | 0.0292 | m | CURRENT | `json:scores/E4_T_B_r2_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r2 FGO live RMSE, W = 5 s | 0.0292 | m | CURRENT | `json:scores/E4_T_B_r2_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r3 FGO live RMSE, W = 0.25 s | 0.0252 | m | CURRENT | `json:scores/E4_T_B_r3_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r3 FGO live RMSE, W = 0.5 s | 0.0252 | m | CURRENT | `json:scores/E4_T_B_r3_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r3 FGO live RMSE, W = 1 s | 0.0252 | m | CURRENT | `json:scores/E4_T_B_r3_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r3 FGO live RMSE, W = 2 s | 0.0252 | m | CURRENT | `json:scores/E4_T_B_r3_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_B_r3 FGO live RMSE, W = 5 s | 0.0252 | m | CURRENT | `json:scores/E4_T_B_r3_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r1 FGO live RMSE, W = 0.25 s | 0.0538 | m | CURRENT | `json:scores/E4_T_C_r1_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r1 FGO live RMSE, W = 0.5 s | 0.0546 | m | CURRENT | `json:scores/E4_T_C_r1_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r1 FGO live RMSE, W = 1 s | 0.0542 | m | CURRENT | `json:scores/E4_T_C_r1_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r1 FGO live RMSE, W = 2 s | 0.0540 | m | CURRENT | `json:scores/E4_T_C_r1_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r1 FGO live RMSE, W = 5 s | 0.0542 | m | CURRENT | `json:scores/E4_T_C_r1_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r2 FGO live RMSE, W = 0.25 s | 0.0502 | m | CURRENT | `json:scores/E4_T_C_r2_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r2 FGO live RMSE, W = 0.5 s | 0.0501 | m | CURRENT | `json:scores/E4_T_C_r2_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r2 FGO live RMSE, W = 1 s | 0.0495 | m | CURRENT | `json:scores/E4_T_C_r2_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r2 FGO live RMSE, W = 2 s | 0.0497 | m | CURRENT | `json:scores/E4_T_C_r2_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r2 FGO live RMSE, W = 5 s | 0.0497 | m | CURRENT | `json:scores/E4_T_C_r2_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r3 FGO live RMSE, W = 0.25 s | 0.0565 | m | CURRENT | `json:scores/E4_T_C_r3_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r3 FGO live RMSE, W = 0.5 s | 0.0564 | m | CURRENT | `json:scores/E4_T_C_r3_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r3 FGO live RMSE, W = 1 s | 0.0559 | m | CURRENT | `json:scores/E4_T_C_r3_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r3 FGO live RMSE, W = 2 s | 0.0561 | m | CURRENT | `json:scores/E4_T_C_r3_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_C_r3 FGO live RMSE, W = 5 s | 0.0562 | m | CURRENT | `json:scores/E4_T_C_r3_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r1 FGO live RMSE, W = 0.25 s | 0.0931 | m | CURRENT | `json:scores/E4_T_D_r1_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r1 FGO live RMSE, W = 0.5 s | 0.0901 | m | CURRENT | `json:scores/E4_T_D_r1_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r1 FGO live RMSE, W = 1 s | 0.0863 | m | CURRENT | `json:scores/E4_T_D_r1_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r1 FGO live RMSE, W = 2 s | 0.0890 | m | CURRENT | `json:scores/E4_T_D_r1_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r1 FGO live RMSE, W = 5 s | 0.0887 | m | CURRENT | `json:scores/E4_T_D_r1_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r2 FGO live RMSE, W = 0.25 s | 0.0813 | m | CURRENT | `json:scores/E4_T_D_r2_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r2 FGO live RMSE, W = 0.5 s | 0.0814 | m | CURRENT | `json:scores/E4_T_D_r2_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r2 FGO live RMSE, W = 1 s | 0.0906 | m | CURRENT | `json:scores/E4_T_D_r2_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r2 FGO live RMSE, W = 2 s | 0.0803 | m | CURRENT | `json:scores/E4_T_D_r2_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r2 FGO live RMSE, W = 5 s | 0.0798 | m | CURRENT | `json:scores/E4_T_D_r2_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r3 FGO live RMSE, W = 0.25 s | 0.0745 | m | CURRENT | `json:scores/E4_T_D_r3_w0.25.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r3 FGO live RMSE, W = 0.5 s | 0.0743 | m | CURRENT | `json:scores/E4_T_D_r3_w0.5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r3 FGO live RMSE, W = 1 s | 0.0739 | m | CURRENT | `json:scores/E4_T_D_r3_w1.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r3 FGO live RMSE, W = 2 s | 0.0738 | m | CURRENT | `json:scores/E4_T_D_r3_w2.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_D_r3 FGO live RMSE, W = 5 s | 0.0738 | m | CURRENT | `json:scores/E4_T_D_r3_w5.json:tracks.FGO live.horiz_err_m.rmse` |
+| T_A_r1 step median after anchor / all keyframes, W = 0.25 s | 15.04 / 15.08 | ms | DIAGNOSTIC | `tier1:T_A_r1/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r1 step median after anchor / all keyframes, W = 0.5 s | 26.86 / 26.86 | ms | DIAGNOSTIC | `tier1:T_A_r1/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r1 step median after anchor / all keyframes, W = 1 s | 50.66 / 50.58 | ms | DIAGNOSTIC | `tier1:T_A_r1/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r1 step median after anchor / all keyframes, W = 2 s | 103.31 / 103.11 | ms | DIAGNOSTIC | `tier1:T_A_r1/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r1 step median after anchor / all keyframes, W = 5 s | 289.85 / 288.82 | ms | DIAGNOSTIC | `tier1:T_A_r1/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r2 step median after anchor / all keyframes, W = 0.25 s | 14.96 / 15.01 | ms | DIAGNOSTIC | `tier1:T_A_r2/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r2 step median after anchor / all keyframes, W = 0.5 s | 27.97 / 28.00 | ms | DIAGNOSTIC | `tier1:T_A_r2/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r2 step median after anchor / all keyframes, W = 1 s | 52.74 / 52.68 | ms | DIAGNOSTIC | `tier1:T_A_r2/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r2 step median after anchor / all keyframes, W = 2 s | 107.12 / 106.88 | ms | DIAGNOSTIC | `tier1:T_A_r2/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r2 step median after anchor / all keyframes, W = 5 s | 303.36 / 302.97 | ms | DIAGNOSTIC | `tier1:T_A_r2/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r3 step median after anchor / all keyframes, W = 0.25 s | 14.96 / 15.01 | ms | DIAGNOSTIC | `tier1:T_A_r3/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r3 step median after anchor / all keyframes, W = 0.5 s | 27.89 / 27.92 | ms | DIAGNOSTIC | `tier1:T_A_r3/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r3 step median after anchor / all keyframes, W = 1 s | 52.31 / 52.19 | ms | DIAGNOSTIC | `tier1:T_A_r3/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r3 step median after anchor / all keyframes, W = 2 s | 105.04 / 104.86 | ms | DIAGNOSTIC | `tier1:T_A_r3/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_A_r3 step median after anchor / all keyframes, W = 5 s | 296.82 / 296.31 | ms | DIAGNOSTIC | `tier1:T_A_r3/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r1 step median after anchor / all keyframes, W = 0.25 s | 14.81 / 14.83 | ms | DIAGNOSTIC | `tier1:T_B_r1/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r1 step median after anchor / all keyframes, W = 0.5 s | 27.47 / 27.49 | ms | DIAGNOSTIC | `tier1:T_B_r1/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r1 step median after anchor / all keyframes, W = 1 s | 50.47 / 50.51 | ms | DIAGNOSTIC | `tier1:T_B_r1/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r1 step median after anchor / all keyframes, W = 2 s | 102.29 / 102.28 | ms | DIAGNOSTIC | `tier1:T_B_r1/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r1 step median after anchor / all keyframes, W = 5 s | 288.78 / 288.44 | ms | DIAGNOSTIC | `tier1:T_B_r1/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r2 step median after anchor / all keyframes, W = 0.25 s | 14.51 / 14.52 | ms | DIAGNOSTIC | `tier1:T_B_r2/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r2 step median after anchor / all keyframes, W = 0.5 s | 27.55 / 27.57 | ms | DIAGNOSTIC | `tier1:T_B_r2/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r2 step median after anchor / all keyframes, W = 1 s | 50.94 / 50.97 | ms | DIAGNOSTIC | `tier1:T_B_r2/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r2 step median after anchor / all keyframes, W = 2 s | 103.15 / 103.16 | ms | DIAGNOSTIC | `tier1:T_B_r2/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r2 step median after anchor / all keyframes, W = 5 s | 290.75 / 290.46 | ms | DIAGNOSTIC | `tier1:T_B_r2/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r3 step median after anchor / all keyframes, W = 0.25 s | 14.76 / 14.79 | ms | DIAGNOSTIC | `tier1:T_B_r3/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r3 step median after anchor / all keyframes, W = 0.5 s | 28.07 / 28.08 | ms | DIAGNOSTIC | `tier1:T_B_r3/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r3 step median after anchor / all keyframes, W = 1 s | 51.10 / 51.08 | ms | DIAGNOSTIC | `tier1:T_B_r3/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r3 step median after anchor / all keyframes, W = 2 s | 102.29 / 102.38 | ms | DIAGNOSTIC | `tier1:T_B_r3/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_B_r3 step median after anchor / all keyframes, W = 5 s | 289.89 / 289.12 | ms | DIAGNOSTIC | `tier1:T_B_r3/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r1 step median after anchor / all keyframes, W = 0.25 s | 14.65 / 14.67 | ms | DIAGNOSTIC | `tier1:T_C_r1/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r1 step median after anchor / all keyframes, W = 0.5 s | 27.96 / 27.98 | ms | DIAGNOSTIC | `tier1:T_C_r1/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r1 step median after anchor / all keyframes, W = 1 s | 52.40 / 52.44 | ms | DIAGNOSTIC | `tier1:T_C_r1/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r1 step median after anchor / all keyframes, W = 2 s | 102.26 / 102.28 | ms | DIAGNOSTIC | `tier1:T_C_r1/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r1 step median after anchor / all keyframes, W = 5 s | 280.95 / 280.94 | ms | DIAGNOSTIC | `tier1:T_C_r1/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r2 step median after anchor / all keyframes, W = 0.25 s | 14.64 / 14.66 | ms | DIAGNOSTIC | `tier1:T_C_r2/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r2 step median after anchor / all keyframes, W = 0.5 s | 27.48 / 27.51 | ms | DIAGNOSTIC | `tier1:T_C_r2/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r2 step median after anchor / all keyframes, W = 1 s | 51.56 / 51.63 | ms | DIAGNOSTIC | `tier1:T_C_r2/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r2 step median after anchor / all keyframes, W = 2 s | 101.14 / 101.19 | ms | DIAGNOSTIC | `tier1:T_C_r2/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r2 step median after anchor / all keyframes, W = 5 s | 281.04 / 281.05 | ms | DIAGNOSTIC | `tier1:T_C_r2/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r3 step median after anchor / all keyframes, W = 0.25 s | 14.61 / 14.63 | ms | DIAGNOSTIC | `tier1:T_C_r3/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r3 step median after anchor / all keyframes, W = 0.5 s | 28.22 / 28.24 | ms | DIAGNOSTIC | `tier1:T_C_r3/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r3 step median after anchor / all keyframes, W = 1 s | 51.38 / 51.39 | ms | DIAGNOSTIC | `tier1:T_C_r3/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r3 step median after anchor / all keyframes, W = 2 s | 104.34 / 104.38 | ms | DIAGNOSTIC | `tier1:T_C_r3/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_C_r3 step median after anchor / all keyframes, W = 5 s | 279.53 / 279.39 | ms | DIAGNOSTIC | `tier1:T_C_r3/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r1 step median after anchor / all keyframes, W = 0.25 s | 14.35 / 14.36 | ms | DIAGNOSTIC | `tier1:T_D_r1/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r1 step median after anchor / all keyframes, W = 0.5 s | 26.95 / 26.97 | ms | DIAGNOSTIC | `tier1:T_D_r1/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r1 step median after anchor / all keyframes, W = 1 s | 50.58 / 50.61 | ms | DIAGNOSTIC | `tier1:T_D_r1/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r1 step median after anchor / all keyframes, W = 2 s | 100.05 / 100.09 | ms | DIAGNOSTIC | `tier1:T_D_r1/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r1 step median after anchor / all keyframes, W = 5 s | 278.25 / 278.21 | ms | DIAGNOSTIC | `tier1:T_D_r1/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r2 step median after anchor / all keyframes, W = 0.25 s | 14.41 / 14.43 | ms | DIAGNOSTIC | `tier1:T_D_r2/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r2 step median after anchor / all keyframes, W = 0.5 s | 28.18 / 28.18 | ms | DIAGNOSTIC | `tier1:T_D_r2/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r2 step median after anchor / all keyframes, W = 1 s | 50.71 / 50.74 | ms | DIAGNOSTIC | `tier1:T_D_r2/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r2 step median after anchor / all keyframes, W = 2 s | 100.51 / 100.54 | ms | DIAGNOSTIC | `tier1:T_D_r2/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r2 step median after anchor / all keyframes, W = 5 s | 280.32 / 280.24 | ms | DIAGNOSTIC | `tier1:T_D_r2/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r3 step median after anchor / all keyframes, W = 0.25 s | 15.13 / 15.14 | ms | DIAGNOSTIC | `tier1:T_D_r3/room_fgo_w0.25/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r3 step median after anchor / all keyframes, W = 0.5 s | 27.38 / 27.40 | ms | DIAGNOSTIC | `tier1:T_D_r3/room_fgo_w0.5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r3 step median after anchor / all keyframes, W = 1 s | 51.36 / 51.40 | ms | DIAGNOSTIC | `tier1:T_D_r3/room_fgo_w1/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r3 step median after anchor / all keyframes, W = 2 s | 101.23 / 101.27 | ms | DIAGNOSTIC | `tier1:T_D_r3/room_fgo_w2/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| T_D_r3 step median after anchor / all keyframes, W = 5 s | 282.74 / 282.72 | ms | DIAGNOSTIC | `tier1:T_D_r3/room_fgo_w5/stats.json` keys `tier1.step_median_ms_after_anchor`, `step_median_ms` |
+| F(0.5 s) pooled / median f_i | 0.01 / 0.00 | fraction | DESCRIPTIVE | `json:scores/E4_verdicts.json:gain_fraction.cap2.0.5.F_pooled`, `.median_f_i` |
+| F(1 s) pooled / median f_i | -0.00 / 0.00 | fraction | DESCRIPTIVE | `json:scores/E4_verdicts.json:gain_fraction.cap2.1.F_pooled`, `.median_f_i` |
+| F(2 s) pooled / median f_i | 0.02 / 0.01 | fraction | DESCRIPTIVE | `json:scores/E4_verdicts.json:gain_fraction.cap2.2.F_pooled`, `.median_f_i` |
+| F(5 s) pooled / median f_i | 0.02 / 0.00 | fraction | DESCRIPTIVE | `json:scores/E4_verdicts.json:gain_fraction.cap2.5.F_pooled`, `.median_f_i` |
+| T_A_r1 cap 2 vs cap 10, W = 0.25 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_A_r1 w0.25.max_rms_reading_m` |
+| T_A_r1 cap 2 vs cap 10, W = 0.5 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_A_r1 w0.5.max_rms_reading_m` |
+| T_A_r1 cap 2 vs cap 10, W = 1 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_A_r1 w1.max_rms_reading_m` |
+| T_A_r1 cap 2 vs cap 10, W = 2 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_A_r1 w2.max_rms_reading_m` |
+| T_A_r1 cap 2 vs cap 10, W = 5 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_A_r1 w5.max_rms_reading_m` |
+| T_D_r1 cap 2 vs cap 10, W = 0.25 s: max RMS reading / flag | 0.0000 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_D_r1 w0.25.max_rms_reading_m` |
+| T_D_r1 cap 2 vs cap 10, W = 0.5 s: max RMS reading / flag | 0.0009 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_D_r1 w0.5.max_rms_reading_m` |
+| T_D_r1 cap 2 vs cap 10, W = 1 s: max RMS reading / flag | 0.0002 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_D_r1 w1.max_rms_reading_m` |
+| T_D_r1 cap 2 vs cap 10, W = 2 s: max RMS reading / flag | 0.0002 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_D_r1 w2.max_rms_reading_m` |
+| T_D_r1 cap 2 vs cap 10, W = 5 s: max RMS reading / flag | 0.0002 / converged | m | DESCRIPTIVE | `json:scores/E4_verdicts.json:convergence.per_run.T_D_r1 w5.max_rms_reading_m` |
+| P-E4.1 | PASS (12/12) | — | CURRENT | `json:scores/E4_verdicts.json:P-E4.1.verdict` |
+| P-E4.2 | PASS (0.25 s 12/12, 1 s 12/12, 2 s 12/12, 5 s 12/12) | — | CURRENT | `json:scores/E4_verdicts.json:P-E4.2.verdict` |
+| H-E4.3 | FAIL (7/12) | — | CURRENT | `json:scores/E4_verdicts.json:H-E4.3.verdict` |
 
-Verdicts: P-E4.1, P-E4.2, H-E4.3 (live at 5 s < live at 0.25 s, ≥ 10/12). Fraction of the batch gain recovered
-f_i(W) and pooled F(W): DESCRIPTIVE. LM-cap convergence flags.
+| criterion | verdict | count | source |
+|---|---|---|---|
+| P-E4.1: median step (after the anchor) strictly increasing with W, 12/12 | **PASS** | 12/12 | `json:scores/E4_verdicts.json:P-E4.1` |
+| P-E4.2: median ≤ 33 ms at 0.25 s, > 33 ms at W ≥ 1 s, 12/12 at each (both median readings, D13) | **PASS** | 12/12 at 0.25, 1, 2 and 5 s | `json:scores/E4_verdicts.json:P-E4.2` |
+| **H-E4.3**: live RMSE at 5 s < at 0.25 s (≥ 10/12: judgement, not derived from data) | **FAIL** (null result) | 7/12 | `json:scores/E4_verdicts.json:H-E4.3` |
+| LM cap 2 convergence (T_A_r1, T_D_r1, every W; flag iff any RMS reading > 0.029 m) | no flag | 0/10 flagged | `json:scores/E4_verdicts.json:convergence` |
 
 ## E5: UKF with tag landmark states (T_A, LC / no-LC)
 

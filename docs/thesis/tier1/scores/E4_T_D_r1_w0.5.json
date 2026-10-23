@@ -1,0 +1,228 @@
+{
+ "trial": "T_D_r1",
+ "window_s": [
+  30.17856544762804,
+  270.2294740014682
+ ],
+ "clock_map": {
+  "rate_ppm": 212.11897433401646
+ },
+ "tracks": {
+  "EKF3 live": {
+   "horiz_err_m": {
+    "rmse": 0.09259654660160425,
+    "median": 0.08119882385194763,
+    "p95": 0.1689318259638141,
+    "max": 0.21367151028795173,
+    "n": 2400
+   },
+   "yaw_err_deg": {
+    "median": 0.9990009032490867,
+    "p95": 2.239672440349873
+   }
+  },
+  "UKF live": {
+   "horiz_err_m": {
+    "rmse": 0.13323297758724598,
+    "median": 0.08010742145870337,
+    "p95": 0.33165519337193344,
+    "max": 0.5699530619871142,
+    "n": 16000
+   },
+   "yaw_err_deg": {
+    "median": 1.2277070162897492,
+    "p95": 2.8352817203865297
+   }
+  },
+  "RTS-UKF (hindsight)": {
+   "horiz_err_m": {
+    "rmse": 0.10587056619357145,
+    "median": 0.03876294972202876,
+    "p95": 0.31919895121363945,
+    "max": 0.3772636158080234,
+    "n": 16000
+   },
+   "yaw_err_deg": {
+    "median": 0.07873343398593352,
+    "p95": 0.1757619298716085
+   }
+  },
+  "FGO live": {
+   "horiz_err_m": {
+    "rmse": 0.09008018947612348,
+    "median": 0.06507029627901229,
+    "p95": 0.16552295011476081,
+    "max": 0.252147567501917,
+    "n": 7202
+   },
+   "yaw_err_deg": {
+    "median": 1.2053482954167412,
+    "p95": 2.8324078703851483
+   }
+  }
+ },
+ "gaps": [
+  {
+   "t0": 31.417,
+   "t1": 78.739,
+   "length_s": 47.322,
+   "EKF3 live": {
+    "mean": 0.07863701497996745,
+    "max": 0.1791137017634148
+   },
+   "UKF live": {
+    "mean": 0.21331286022270157,
+    "max": 0.5699530619871142
+   },
+   "RTS-UKF (hindsight)": {
+    "mean": 0.1865522463266522,
+    "max": 0.3772636158080234
+   },
+   "FGO live": {
+    "mean": 0.12186861408539397,
+    "max": 0.252147567501917
+   },
+   "ekf3_horiz_pos_abs_frac": 0.21141649048625794
+  },
+  {
+   "t0": 80.653,
+   "t1": 126.688,
+   "length_s": 46.035,
+   "EKF3 live": {
+    "mean": 0.06490371340495343,
+    "max": 0.12603979580298913
+   },
+   "UKF live": {
+    "mean": 0.05864978385238867,
+    "max": 0.13317312433654793
+   },
+   "RTS-UKF (hindsight)": {
+    "mean": 0.037171351334541775,
+    "max": 0.06312844633812155
+   },
+   "FGO live": {
+    "mean": 0.04897875635663267,
+    "max": 0.10055740673047292
+   },
+   "ekf3_horiz_pos_abs_frac": 0.0
+  },
+  {
+   "t0": 128.668,
+   "t1": 174.934,
+   "length_s": 46.26599999999999,
+   "EKF3 live": {
+    "mean": 0.0730212363920051,
+    "max": 0.1332660259744627
+   },
+   "UKF live": {
+    "mean": 0.06779381328939152,
+    "max": 0.13760009502814247
+   },
+   "RTS-UKF (hindsight)": {
+    "mean": 0.0357550152322718,
+    "max": 0.05443557807914382
+   },
+   "FGO live": {
+    "mean": 0.05531376313221287,
+    "max": 0.14760513655744545
+   },
+   "ekf3_horiz_pos_abs_frac": 0.0
+  },
+  {
+   "t0": 175.363,
+   "t1": 222.685,
+   "length_s": 47.322,
+   "EKF3 live": {
+    "mean": 0.11820968242201098,
+    "max": 0.21367151028795173
+   },
+   "UKF live": {
+    "mean": 0.0971231030991182,
+    "max": 0.17933323004511656
+   },
+   "RTS-UKF (hindsight)": {
+    "mean": 0.020740617053961602,
+    "max": 0.038801740279676575
+   },
+   "FGO live": {
+    "mean": 0.09807327089141069,
+    "max": 0.18683200759784052
+   },
+   "ekf3_horiz_pos_abs_frac": 0.0
+  }
+ ],
+ "tier1": {
+  "fgo_dir": "/home/makerspace/thesis_data/tier1/T_D_r1/room_fgo_w0.5"
+ },
+ "n_sent_in_window": 189,
+ "gates": {
+  "G1_laps": true,
+  "G1_params": true,
+  "G2_visp_eq_sent": true,
+  "G2_ids_in_subset": true,
+  "G2_every_tag_every_lap": true,
+  "G3_fix_max_dxy_m": 0.06423321188164977,
+  "G3_fix_max_dyaw_deg": 0.1805700192653102,
+  "G3": true,
+  "G4_room_ukf": {
+   "t_anchor": 29.206,
+   "n_tag_fused": 577,
+   "n_gnss_fused": 0,
+   "mode": "tags",
+   "pseudo_yaw_fired_before_anchor": 9,
+   "dt_step_ms": 15.003200211708526,
+   "tag_sigma_pos": 0.05,
+   "tag_sigma_yaw_deg": 5.0,
+   "rts_nodes": 17230
+  },
+  "G4_room_fgo": {
+   "t_anchor": 29.206,
+   "n_tag_factors": 570,
+   "n_gnss_factors": 0,
+   "mode": "tags",
+   "keyframe_failures": 0,
+   "step_median_ms": 26.969649,
+   "window_s": 0.5,
+   "lm_iters": 2,
+   "tier1": {
+    "argv": [
+     "src/estimators/fgo/room_fgo_replay.py",
+     "T_D_r1",
+     "--no-batch",
+     "--window",
+     "0.5",
+     "--out-root",
+     "/home/makerspace/thesis_data/tier1"
+    ],
+    "commit": "2eb6852a789668e1d320ea5f270e1e503da187e6",
+    "src_dirty": "",
+    "out": "/home/makerspace/thesis_data/tier1/T_D_r1/room_fgo_w0.5",
+    "n_steps": 8017,
+    "step_p95_ms": 52.82027699999999,
+    "step_median_ms_after_anchor": 26.948363,
+    "step_p95_ms_after_anchor": 52.917452899999994,
+    "live_rows": 7755
+   }
+  },
+  "n_visp": 577,
+  "n_visp_ignored": 0,
+  "n_sent": 577,
+  "laps_ids": [
+   [
+    0
+   ],
+   [
+    0
+   ],
+   [
+    0
+   ],
+   [
+    0
+   ],
+   [
+    0
+   ]
+  ]
+ }
+}

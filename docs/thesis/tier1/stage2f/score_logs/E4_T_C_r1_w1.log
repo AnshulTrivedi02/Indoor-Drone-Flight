@@ -1,0 +1,6 @@
+gates: {'G1_laps': True, 'G1_params': True, 'G2_visp_eq_sent': True, 'G2_ids_in_subset': True, 'G2_every_tag_every_lap': True, 'G3_fix_max_dxy_m': 0.0694871290998986, 'G3_fix_max_dyaw_deg': 0.17555821486497405, 'G3': True, 'n_visp': 811, 'n_visp_ignored': 0, 'n_sent': 811, 'laps_ids': [[0, 2], [0, 2], [0, 2], [0, 2], [0, 2]]}
+EKF3 live                            horiz RMSE 0.075 median 0.069 p95 0.120 max 0.159 m | yaw median 0.52 p95 1.03 deg
+UKF live                             horiz RMSE 0.072 median 0.069 p95 0.105 max 0.159 m | yaw median 0.59 p95 1.49 deg
+RTS-UKF (hindsight)                  horiz RMSE 0.037 median 0.036 p95 0.058 max 0.068 m | yaw median 0.03 p95 0.07 deg
+FGO live                             horiz RMSE 0.054 median 0.031 p95 0.106 max 0.228 m | yaw median 0.55 p95 1.59 deg
+gaps >= 1.0 s: 9; lengths [23.3, 22.1, 21.5, 22.2, 22.0, 22.0, 23.6, 22.1, 21.9]

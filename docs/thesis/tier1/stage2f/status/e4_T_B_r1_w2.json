@@ -1,0 +1,15 @@
+{
+ "job": "e4_T_B_r1_w2",
+ "run_dir": "/home/makerspace/thesis_data/tier1/T_B_r1/room_fgo_w2",
+ "log": "/home/makerspace/thesis_data/tier1/stage2f/logs/e4_T_B_r1_w2.log",
+ "keyframe_attempts": 7993,
+ "keyframe_failures": 0,
+ "failure_fraction": 0.0,
+ "first_failure_t_s": null,
+ "live_excursion_onset_t_s (|x| or |y| > 10 m, or non-finite; DESCRIPTIVE)": null,
+ "exception_counts_in_log": {},
+ "log_warn_count == keyframe_failures": true,
+ "fgo_live_rows": 7774,
+ "fgo_live_rows_nonfinite": 0,
+ "status": "OK"
+}
