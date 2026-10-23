@@ -225,9 +225,9 @@ _E5 = json.load(open(os.path.join(_T1S, "e5_verdicts.json")))["criteria"]["H-E5.
 XE2 = "PASS 3/3 in each" if all(_E2[c]["verdict"] == "PASS" and _E2[c]["count"] == "3/3" for c in "BC") else "MISMATCH"
 XE3 = f"{_E3['verdict']} {_E3['count']}; {_E3['divergence']['total']}"
 XE5 = f"{_E5['verdict']} {_E5['count']}"
-for _t in ("R1", "R4"):
-    jcheck(_t, "extension E2: H-E2.1 with 4 tags (B) and with 2 tags (C)", XE2, "PASS 3/3 in each", "docs/thesis/tier1/scores/E2_verdicts.json (e2_results.md §1)")
-    jcheck(_t, "extension E3: H-E3.1 at 1% wrong ids; diverged runs", XE3, "FAIL 0/9; 6 of 9 runs diverged", "docs/thesis/tier1/scores/E3_verdicts.json (e3_results.md §1)")
+jcheck("R1", "extension E2: H-E2.1 with 4 tags (B) and with 2 tags (C)", XE2, "PASS 3/3 in each", "docs/thesis/tier1/scores/E2_verdicts.json (e2_results.md §1)")
+jcheck("R1", "extension E3: H-E3.1 at 1% wrong ids; diverged runs", XE3, "FAIL 0/9; 6 of 9 runs diverged", "docs/thesis/tier1/scores/E3_verdicts.json (e3_results.md §1)")
+for _t in ("R1", "R4"):     # the R1 note and the R4 note both quote H-E5.1
     jcheck(_t, "extension E5: H-E5.1 (UKF with tag landmark states, live drift bounded)", XE5, "PASS 3/3", "docs/thesis/tier1/scores/e5_verdicts.json (e5_results.md §1)")
 
 R1 = [
