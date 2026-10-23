@@ -1795,9 +1795,9 @@ rowsF = [("H1.4 robust-weighting test (k = 2.385)", "robust FGO better than the 
           f"median with loop closure {rng(ST[('lc', 'step_median_ms')], 1)} ms, without {rng(ST[('nolc', 'step_median_ms')], 1)} ms; p99 with {rng(ST[('lc', 'step_p99_ms')], 0)} ms, "
           f"without {rng(ST[('nolc', 'step_p99_ms')], 0)} ms; wall time without loop closure {rng(ST[('nolc', 'wall_s')], 0)} s. Says nothing about onboard feasibility")]
 figs = table_page("Table A.3. The robust-weighting test (H1.4), the Experiment 3 compute cost, and the build ablations",
-                  ["item", "what is tested", "verdict", "key numbers"], rowsF, [24, 46, 24, 96], notes=A3FN[:2])
+                  ["item", "what is tested", "verdict", "key numbers"], rowsF, [24, 42, 30, 94], notes=A3FN[:2])
 figs2 = table_page("Table A.3 (cont.). Build ablations: earlier build against the final build, same experiment",
-                   ["ablation", "measure", "earlier build", "final build", "note"], ABL, [36, 34, 38, 42, 40],
+                   ["ablation", "measure", "earlier build", "final build", "note"], ABL, [36, 42, 36, 38, 38],
                    notes=["Earlier builds are kept as recorded and labelled; the thesis cites the final builds. Attribution: the corrections were applied "
                           "jointly and are not attributed individually, apart from the traced plain-wall case and the Experiment 4 partial attribution.", OCASE_KEY, A3FN[2]])
 save_table(figs + figs2, "A3", "A3_F1_cost_ablations", "The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations",
