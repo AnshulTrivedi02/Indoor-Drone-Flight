@@ -3,8 +3,8 @@
 **EXPLORATORY: every value in this file is exploratory, not a thesis result.** No thesis claim changes on these values
 without a separate ruling. `docs/thesis/numbers.md` is not touched.
 
-**Status: STRUCTURE ONLY. No results yet.** The pre-registration (`preregistration_draft.md`) is a DRAFT and not signed
-off. Nothing has been run.
+**Status: STRUCTURE ONLY. No results yet.** The pre-registration is SIGNED OFF by the user 2026-10-24 with edits
+(`preregistration.md`; committed before any run). The runs have not started at this commit.
 
 **Rules for this file:**
 - Every value traces to a json key, under `~/thesis_data/ablation/scores/<rung>_<arm>.json` or

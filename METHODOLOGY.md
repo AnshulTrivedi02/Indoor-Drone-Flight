@@ -14623,3 +14623,17 @@ earlier "51-85x" came from the coordinator's 24 Oct digest, which gave the 12-ru
 the 1% runs only. The scope note keeps the 12-run range. No other thesis-facing instance described the 1% runs alone
 (list in `docs/thesis/tier1/claims_applied.md` §Q4). `check_claims_update.py` is pinned to commit 181f156, so the
 current tree has no expected checker failures.
+
+### RULING (user, 2026-10-24): attribution ablation pre-registration SIGNED OFF with edits (EXPLORATORY)
+
+- **Ruling (summary; verbatim text in `docs/thesis/ablation/preregistration.md`):** Q1–Q7 accepted as recommended (P2
+  scored on line-textured walls only, plain walls descriptive; the one-keyframe cap-2 rung kept; the full batch dropped,
+  NOT RUN; Huber accepted as "robust weighting replacing the heading gate", citing the F1 robust arm; the no-heading
+  control rungs kept; Huber only, the stored Cauchy shown alongside; the R ≈ 0.91 "gap persists" threshold accepted).
+  P1 carries the weak-test sentence; the converged rung is labelled "cap 100; convergence not confirmed (iteration
+  counts not logged)"; the interpretation table carries the user's "gap persists" row verbatim; the 0.25 s rung must
+  reproduce the stored trajectories byte-for-byte on 12/12 bags before any other rung counts (else STOP).
+- **Committed before any run.** The signed file is `docs/thesis/ablation/preregistration.md`; the draft is kept
+  unchanged. Harness decisions D37–D42 are in `docs/thesis/tier1/decisions_log.md`. The driver and all outputs live
+  under `~/thesis_data/ablation/`. Results will go only into `docs/thesis/ablation/ablation_numbers.md`, all
+  EXPLORATORY; numbers.md and the frozen material are not touched.
