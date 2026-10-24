@@ -1,0 +1,81 @@
+{
+ "gate": "r0 byte identity of fgo_traj.tum vs stored",
+ "checked_local": "2026-10-24T12:20:05+1100",
+ "n_identical": 12,
+ "n": 12,
+ "verdict": "PASS",
+ "files": {
+  "fwdc_tex_r1.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdc_tex_r2.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdc_tex_r3.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r1.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r2.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r3.heading": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdc_tex_r1.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdc_tex_r2.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdc_tex_r3.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r1.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r2.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  },
+  "fwdplainc_tex_r3.baseline": {
+   "fgo_traj.tum": true,
+   "ground_truth.tum": true,
+   "bgz_series.txt": true,
+   "fwd_stats.json": true
+  }
+ }
+}

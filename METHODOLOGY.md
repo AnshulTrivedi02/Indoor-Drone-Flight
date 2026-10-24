@@ -14637,3 +14637,18 @@ current tree has no expected checker failures.
   unchanged. Harness decisions D37–D42 are in `docs/thesis/tier1/decisions_log.md`. The driver and all outputs live
   under `~/thesis_data/ablation/`. Results will go only into `docs/thesis/ablation/ablation_numbers.md`, all
   EXPLORATORY; numbers.md and the frozen material are not touched.
+
+### RESULT (EXPLORATORY, 2026-10-24): attribution ablation run and scored
+
+- **Run:** as pre-registered (`docs/thesis/ablation/preregistration.md`, signed off, commit `41941cf`); 84 serial FGO
+  replays 11:38–19:56 AEDT (8.3 h), all completed and OK. The first launch failed at bag open because the inputs are
+  stored packed; fixed as a harness bug by verified scratch copies read through `FGO_BAG_ROOT` (D43). **Identity gate
+  PASS:** the 0.25 s rung reproduced the stored trajectories byte-for-byte on 12/12 bags, and its scores equal the
+  stored values 12/12. Guard verify IDENTICAL before and after; numbers.md freeze PASS; run code unchanged.
+- **Verdicts (exploratory):** P1 FAIL (r1–r3 5/6 through `fwdplainc_tex_r3`; r4, r5 6/6 on a weak band), P2 PASS
+  (3/3; R(r3) on `fwdc` 1.01 / 0.97 / 0.98), P3 FAIL (robust weighting replacing the heading gate: r6 4/6, r7 2/6).
+- **Reading:** on the three line-textured-wall flights the with-heading FGO–UKF gap persists at one keyframe and at
+  1 s / 2 s windows; the LM cap does not matter there. It is not explained by window length, retained history or
+  iterations; the residual is attributable to the remaining differences, which this ablation cannot separate. The
+  reading is qualified by P1's plain-wall failure. No thesis claim changes. Numbers only in
+  `docs/thesis/ablation/ablation_numbers.md` (checked by `check_ablation.py`); decisions D37–D46.

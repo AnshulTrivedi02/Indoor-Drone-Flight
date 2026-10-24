@@ -25,8 +25,8 @@ TO=$(( REM < 172800 ? REM : 172800 ))
 D={d}
 if [ -d "$D" ] && [ -n "$(ls -A "$D")" ]; then echo "[job] REFUSE: $D non-empty"; exit 98; fi
 cd /home/makerspace/thesis_ws || exit 97
-export MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 FGO_OUT_ROOT={root} {envs}
-echo "[job] {j} start $(date -Iseconds) timeout ${{TO}}s OMP=$OMP_NUM_THREADS OPENBLAS=$OPENBLAS_NUM_THREADS nice=$(nice) FGO_OUT_ROOT=$FGO_OUT_ROOT F_TAG=${{F_TAG:-}} F_ROBUST=${{F_ROBUST:-}}"
+export MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 FGO_BAG_ROOT={A}/bags FGO_OUT_ROOT={root} {envs}
+echo "[job] {j} start $(date -Iseconds) timeout ${{TO}}s OMP=$OMP_NUM_THREADS OPENBLAS=$OPENBLAS_NUM_THREADS nice=$(nice) FGO_BAG_ROOT=$FGO_BAG_ROOT FGO_OUT_ROOT=$FGO_OUT_ROOT F_TAG=${{F_TAG:-}} F_ROBUST=${{F_ROBUST:-}}"
 exec timeout $TO /home/makerspace/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py {t} {W} {cap} {arm}
 """)
     os.chmod(p, 0o755)
