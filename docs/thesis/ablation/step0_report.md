@@ -360,7 +360,7 @@ change.
 
 The rungs that remain runnable without code are r0–r7, plus the optional `F_BATCH` (with the caveats in §3.3).
 
-## 7. Decisions taken (logged in `docs/thesis/tier1/decisions_log.md` as "decisions_log D28"–"D35")
+## 7. Decisions taken (logged in `docs/thesis/tier1/decisions_log.md` as "decisions_log D28"–"D36")
 
 These numbers are the decisions_log series. They are distinct from the earlier METHODOLOGY ruling also called "D28"
 (closed loop, `numbers.md:479,501`).
@@ -372,6 +372,7 @@ These numbers are the decisions_log series. They are distinct from the earlier M
 - D33: r0 identity gate.
 - D34: full batch not by default.
 - D35: noise band = per-wall-type range of the three thesis FGO values, descriptive.
+- D36: in the interpretation table, "the gap persists" needs R(r3) within the band of 1, not just P2's R ≥ 0.5.
 
 ## 8. Open questions (for the user; no interactive questions were asked)
 
@@ -389,3 +390,4 @@ These numbers are the decisions_log series. They are distinct from the earlier M
   Keep it as the P1 control (default), or drop it?
 - **Q6. Huber k.** The draft uses 1.345 (FGO_DESIGN's stated constant). F1/F4 used Cauchy 2.385. Use one Huber value
   only (default), or also Cauchy 2.385 to match F1?
+- **Q7. P2 pass vs "the gap persists".** The user's P2 passes at R ≥ 0.5. The draft's interpretation table reads "not explained by the window" only when R(r3) is within the band of 1 (R ≥ 1 − band/gap, about 0.91 on `fwdc`). A pass between 0.5 and that reads "most of the gap remains; the window accounts for (1 − R)" (D36). Accept?

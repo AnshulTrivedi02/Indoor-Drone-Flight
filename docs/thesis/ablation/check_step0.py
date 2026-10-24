@@ -68,6 +68,11 @@ for ds in ("fwdc", "fwdplainc"):
         in_doc(f"| {ds} | {arm} | {b} (", PRE, "prereg")
 in_doc("0.127 m, larger than every gap (0.028–0.057 m)", PRE, "prereg")
 in_doc("0.007 m, about a tenth of the 0.071–0.074 m gap", PRE, "prereg")
+bg = [(max(v(f"fwdc_tex_r{j}", "FGO_heading") for j in (1, 2, 3)) - min(v(f"fwdc_tex_r{j}", "FGO_heading") for j in (1, 2, 3)))
+      / gaps[f"fwdc_tex_r{i}"] for i in (1, 2, 3)]
+ok(all(r(x, 2) == "0.09" for x in bg), "band/gap fwdc not ≈ 0.09"); in_doc("band/gap ≈ 0.09", PRE, "prereg")
+ok(r(min(1 - x for x in bg), 2) == "0.91" or r(min(1 - x for x in bg), 2) == "0.90", "1 - band/gap")
+in_doc("about 0.91 on `fwdc`")
 # scorer gate
 sg = json.load(open(os.path.join(HERE, "scorer_gate.json")))
 ok(sg["n"] == 24 and sg["n_equal"] == 24, "scorer gate not 24/24"); in_doc("**Gate result: 24/24 EQUAL.**")

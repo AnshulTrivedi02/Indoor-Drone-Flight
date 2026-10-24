@@ -12,7 +12,7 @@ here, so no verdict is chosen after the data are seen.
 - Results go only into `ablation_numbers.md`; `numbers.md` is untouched.
 - Every number is traced to a json key, and rounded once.
 - Step 0 evidence (file:line for every code claim): `step0_report.md`.
-- Decisions: decisions_log D28–D35.
+- Decisions: decisions_log D28–D36.
 
 ## 1. Question and scope
 
@@ -189,9 +189,12 @@ Notation:
 
 ## 8. Interpretation table (written before running)
 
+P2's pass rule (R ≥ 0.5) and the reading "the gap persists" are different thresholds: a pass with R < 1 − band/gap still leaves part of the gap to the window (rule 8; decisions_log D36).
+
 | observation | reading | what it cannot say |
 |---|---|---|
-| R_i(r3) ≥ 0.5 on `fwdc` (P2 pass), and R_i(r4), R_i(r5) close to R_i(r0) = 1 (within the band) | **The gap persists at one keyframe.** It is not explained by window length or retained history. The residual is attributable to the remaining differences, and this ablation cannot separate them: attitude representation (Euler 15-state vs Pose3 manifold); IMU handling (UKF predict steps of `DT_STEP` vs preintegration of every sample with 30 Hz keyframes); numerical Jacobians vs sigma points; heading-factor handling (FGO gate-only recursion vs the UKF update); the FGO's missing flow/range innovation gates and its 4.2 vs 2.5 rad/s flow limit (METHODOLOGY:14276-14304); measurement-to-keyframe holding (FGO applies the latest flow/range/heading at the next keyframe, `fgo_replay.py:192-196,215`); the UKF's residual take-off kick (`numbers.md:230`) | which of those differences matters |
+| R_i(r3) ≥ 1 − band/gap_i on `fwdc` (R within the band of 1: about R ≥ 0.9 there, since band/gap ≈ 0.09; computed per bag from unrounded values), and R_i(r4), R_i(r5) also within the band of 1 | **The gap persists at one keyframe.** It is not explained by window length or retained history. The residual is attributable to the remaining differences, and this ablation cannot separate them: attitude representation (Euler 15-state vs Pose3 manifold); IMU handling (UKF predict steps of `DT_STEP` vs preintegration of every sample with 30 Hz keyframes); numerical Jacobians vs sigma points; heading-factor handling (FGO gate-only recursion vs the UKF update); the FGO's missing flow/range innovation gates and its 4.2 vs 2.5 rad/s flow limit (METHODOLOGY:14276-14304); measurement-to-keyframe holding (FGO applies the latest flow/range/heading at the next keyframe, `fgo_replay.py:192-196,215`); the UKF's residual take-off kick (`numbers.md:230`) | which of those differences matters |
+| 0.5 ≤ R_i(r3) < 1 − band/gap_i on `fwdc` | **P2 passes as worded, but the gap does not fully persist.** Most of the gap remains at one keyframe; window length / retained history account for the fraction (1 − R_i(r3)), descriptively. No reading of "not explained by the window" is made | how the remaining share splits among the other differences |
 | R_i(r3) < 0.5 on `fwdc` and R rises with W (r3 < r0 ≤ r4 ≤ r5) | **Retained history contributes.** The share is the change in R, descriptive | whether the window or the marginal-prior linearisation carries it |
 | R_i(r3) ≤ 0 (the gap vanishes or reverses at one keyframe) | **Check before concluding:** the marginal prior (frozen `LinearContainerFactor` linearisation, inert FEJ, `step0_report.md` §2.1); the gate-only recursion; headings fused vs r0 (`fwd_stats.json`); keyframe failures. Only then read it as "the gap needs the window" | an implementation artefact cannot be excluded without code |
 | r1, r2 and r3 differ by more than the band on `fwdc` | **Iteration count matters at one keyframe.** If r2 ≈ r3, cap 2 suffices there (extending E4's cap-2 result to one keyframe with heading). If r1 differs from r2 and r3, a single LM step is not enough | the iteration counts themselves (not logged) |

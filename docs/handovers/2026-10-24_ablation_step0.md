@@ -7,7 +7,7 @@ EXPLORATORY. The pre-registration is a **DRAFT awaiting the user's sign-off. Do 
 
 - `step0_report.md`: answers to Step 0 items 1–4, with file:line for every code claim (code pinned at `2683ab4`; GTSAM
   from the 4.2.1 source tarball), the verified gap values, the cost table, the locked constants, "Needs code: stopped",
-  and open questions Q1–Q6.
+  and open questions Q1–Q7.
 - `preregistration_draft.md`: rungs r0–r7 with exact commands, output roots, metric, noise band, P1–P3 with pass rules,
   the interpretation table, scheduling, checks, and the limitations. Marked DRAFT — NOT SIGNED OFF — DO NOT RUN.
 - `ablation_numbers.md`: structure only, every section labelled EXPLORATORY, no values.
@@ -15,10 +15,10 @@ EXPLORATORY. The pre-registration is a **DRAFT awaiting the user's sign-off. Do 
   `evo_ape -a`, for any output root. Its gate `--gate` gave **24/24 EQUAL** against the stored phase4 values
   (`scorer_gate.json`).
 - `check_step0.py`: verifies every quoted number, json key, file:line quote (repo at the pinned commit, GTSAM tarball,
-  logs) and the cost arithmetic, then runs the numbers.md freeze check. **238 passed, 0 failed.** One deliberate
+  logs) and the cost arithmetic, then runs the numbers.md freeze check. **242 passed, 0 failed.** One deliberate
   mutation of the report made it fail, as it should.
 - `machine_step0.txt`: `free -g` / `nproc` at Step 0.
-- Decisions D28–D35 appended to `docs/thesis/tier1/decisions_log.md`. They are the "decisions_log D28" series, distinct
+- Decisions D28–D36 appended to `docs/thesis/tier1/decisions_log.md`. They are the "decisions_log D28" series, distinct
   from the earlier METHODOLOGY "D28".
 
 ## Key findings
@@ -44,7 +44,7 @@ EXPLORATORY. The pre-registration is a **DRAFT awaiting the user's sign-off. Do 
 
 ## Next stage (only after the user signs off)
 
-1. Apply the user's answers to Q1–Q6 to the draft. Copy it to `preregistration.md` (signed, dated) and commit it before
+1. Apply the user's answers to Q1–Q7 to the draft. Copy it to `preregistration.md` (signed, dated) and commit it before
    any run.
 2. Write the serial driver under `~/thesis_data/ablation/`, in the stage2f style, NOT `eval/run_jobs_resumable.sh`
    (its state dir is guard-covered).
