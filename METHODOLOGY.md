@@ -14652,3 +14652,12 @@ current tree has no expected checker failures.
   iterations; the residual is attributable to the remaining differences, which this ablation cannot separate. The
   reading is qualified by P1's plain-wall failure. No thesis claim changes. Numbers only in
   `docs/thesis/ablation/ablation_numbers.md` (checked by `check_ablation.py`); decisions D37–D46.
+
+### RULING (user, 2026-10-25): answers to the 25 Oct digest; ablation discussion paragraph
+
+- D43, the ablation gate override, is accepted.
+- A-Q8: P1's qualification is accepted as pre-registered, with no investigation.
+- A-Q9: stop here. Separating the remaining FGO–UKF differences is future work.
+- A-Q10: one exploratory paragraph is added to the new `docs/thesis/discussion_material.md` §1, verbatim, with every number traced to `ablation/ablation_numbers.md` (`ablation/check_discussion.py`, 13/13). The coordinator added a scope note: the "one flight" is the one beyond its noise band, and on `fwdc_tex_r2` the window also moved the no-heading control by up to 1.283 m within that bag's 2.282 m band. The wording question is raised as A-Q12.
+- A-Q11: the scratch-bag deletion was approved, conditional on re-verifying the originals against the guard manifest. The manifest excludes `bag/` folders by design, so the originals were verified against their packing-time `PACKED.txt` instead (sha256 of the decompressed bag and the .zst size, 6/6 match). The deletion is held and re-asked as A-Q11b.
+- The morning digest job is stopped.

@@ -5,10 +5,8 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 
 | # | raised (AEDT) | question | default being followed meanwhile | blocks anything? |
 |---|---|---|---|---|
-| A-Q8 | 2026-10-24 | Ablation P1 FAIL (plain walls r3: the one-keyframe rungs lower the no-heading control by about 0.4 m, band 0.223 m): accept the pre-registered qualification as it stands, or investigate? | Accepted as a qualification; not diagnosed (D45, rule 5). Coordinator recommends accepting. | no |
-| A-Q9 | 2026-10-24 | Separating the remaining FGO–UKF differences (attitude representation, preintegration, Jacobians vs sigma points, heading-factor handling) needs estimator code changes: stop here, or scope a follow-up? | Stopped. Coordinator recommends stopping. | no |
-| A-Q10 | 2026-10-24 | Put any ablation result into thesis text? | Nothing applied. If yes, coordinator suggests one short paragraph labelled exploratory, carrying the P1 qualifier. | no |
-| A-Q11 | 2026-10-24 | Delete about 19 GB of verified scratch bag copies in `~/thesis_data/ablation/bags/`? The originals in `~/thesis_data/trials/` are untouched. | Kept: deleting data needs the user's OK. | no |
+| A-Q11b | 2026-10-25 | Deleting `~/thesis_data/ablation/bags/` (19 GB of scratch copies): your condition was to re-verify the originals against the guard manifest, but the manifest excludes `bag/` folders by design (0 entries for these 6 bags). The originals were instead verified against their packing-time records (`trials/<t>/bag/PACKED.txt`, 2026-10-08): the decompressed sha256 and the .zst size match on 6/6 (2026-10-25). Delete on that basis? | Not deleted. | no |
+| A-Q12 | 2026-10-25 | discussion_material.md §1: the last sentence says the window "did affect results on one flight (by about 0.4 m)". That is the one flight beyond its noise band (P1). On `fwdc_tex_r2` the window also moved the no-heading control by 0.30 m (one keyframe), 0.76 m (1 s) and 1.28 m (2 s), and at 1 s and 2 s the FGO moved from behind the UKF to ahead of it, all within that bag's 2.28 m weak-test band. Suggested wording: "…the window did affect results: beyond the noise band on one flight (by about 0.4 m), and by up to 1.3 m within the wide band of another." | Paragraph applied verbatim, with a scope note giving both (same handling as D19). | no |
 
 **Answered:**
 - **Q1 (user, 2026-10-23):** yes. Thesis tables use SI units, converted at generation time only; numbers.md stays exactly as is. Use one unit per quantity, the same in a table as in its matching figure. SI prefixes are fine where they read better (e.g. drift in mm, position error in m): pick the readable unit and use it consistently. Keep the exact cross-check against the stored values. → done: units pass merged 2026-10-23 (2dcee76); decisions D7, D8.
@@ -19,3 +17,9 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **D16 (claims_update open point 1):** accepted with C2 as proposed (no claim that the robust arm keeps the loop-closure advantage).
 - No further experiment stages are planned (user, 2026-10-24).
 - **Q4 (user, 2026-10-24):** yes: limitations.md item 3 now reads "51-75x" (the 3 non-diverged 1% runs: 51.26, 65.59, 75.23); the scope note keeps 51.26–85.49× for all 12 non-diverged runs at 1% and 5%. Searched all thesis-facing material for "51-85"/"51–85": limitations.md item 3 was the only instance describing only the 1% runs (see claims_applied.md §Q4). check_claims_update.py pinned to 181f156.
+- **D43 (user, 2026-10-25):** the ablation gate override is accepted.
+- **A-Q8 (user, 2026-10-25):** accept P1's qualification as pre-registered; no investigation.
+- **A-Q9 (user, 2026-10-25):** stop. Separating the remaining FGO–UKF differences is future work.
+- **A-Q10 (user, 2026-10-25):** yes. One exploratory paragraph added to `docs/thesis/discussion_material.md` §1 (new file), verbatim, with every number traced to ablation_numbers.md (`ablation/check_discussion.py` 13/13). See A-Q12 for a wording point.
+- **A-Q11 (user, 2026-10-25):** yes, delete after re-verifying the originals against the guard manifest. The manifest does not cover the bags, so this is re-asked as A-Q11b.
+- **Morning digest job (user, 2026-10-25):** stopped; no further stages planned.
