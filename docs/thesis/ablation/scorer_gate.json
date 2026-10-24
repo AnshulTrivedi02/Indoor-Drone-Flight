@@ -1,0 +1,127 @@
+{
+ "gate": "score_ablation identity on stored outputs",
+ "n": 24,
+ "n_equal": 24,
+ "cases": {
+  "fwdc_tex_r1.FGO_heading": {
+   "scored": 0.056585,
+   "stored": 0.056585,
+   "equal": true
+  },
+  "fwdc_tex_r1.FGO_baseline": {
+   "scored": 4.467123,
+   "stored": 4.467123,
+   "equal": true
+  },
+  "fwdc_tex_r1.UKF_heading": {
+   "scored": 0.127393,
+   "stored": 0.127393,
+   "equal": true
+  },
+  "fwdc_tex_r1.UKF_baseline": {
+   "scored": 4.959532,
+   "stored": 4.959532,
+   "equal": true
+  },
+  "fwdc_tex_r2.FGO_heading": {
+   "scored": 0.062506,
+   "stored": 0.062506,
+   "equal": true
+  },
+  "fwdc_tex_r2.FGO_baseline": {
+   "scored": 2.262089,
+   "stored": 2.262089,
+   "equal": true
+  },
+  "fwdc_tex_r2.UKF_heading": {
+   "scored": 0.134225,
+   "stored": 0.134225,
+   "equal": true
+  },
+  "fwdc_tex_r2.UKF_baseline": {
+   "scored": 1.783411,
+   "stored": 1.783411,
+   "equal": true
+  },
+  "fwdc_tex_r3.FGO_heading": {
+   "scored": 0.063294,
+   "stored": 0.063294,
+   "equal": true
+  },
+  "fwdc_tex_r3.FGO_baseline": {
+   "scored": 4.544273,
+   "stored": 4.544273,
+   "equal": true
+  },
+  "fwdc_tex_r3.UKF_heading": {
+   "scored": 0.137458,
+   "stored": 0.137458,
+   "equal": true
+  },
+  "fwdc_tex_r3.UKF_baseline": {
+   "scored": 4.963794,
+   "stored": 4.963794,
+   "equal": true
+  },
+  "fwdplainc_tex_r1.FGO_heading": {
+   "scored": 0.149586,
+   "stored": 0.149586,
+   "equal": true
+  },
+  "fwdplainc_tex_r1.FGO_baseline": {
+   "scored": 4.536324,
+   "stored": 4.536324,
+   "equal": true
+  },
+  "fwdplainc_tex_r1.UKF_heading": {
+   "scored": 0.187642,
+   "stored": 0.187642,
+   "equal": true
+  },
+  "fwdplainc_tex_r1.UKF_baseline": {
+   "scored": 5.023202,
+   "stored": 5.023202,
+   "equal": true
+  },
+  "fwdplainc_tex_r2.FGO_heading": {
+   "scored": 0.094237,
+   "stored": 0.094237,
+   "equal": true
+  },
+  "fwdplainc_tex_r2.FGO_baseline": {
+   "scored": 4.51762,
+   "stored": 4.51762,
+   "equal": true
+  },
+  "fwdplainc_tex_r2.UKF_heading": {
+   "scored": 0.151479,
+   "stored": 0.151479,
+   "equal": true
+  },
+  "fwdplainc_tex_r2.UKF_baseline": {
+   "scored": 11.194393,
+   "stored": 11.194393,
+   "equal": true
+  },
+  "fwdplainc_tex_r3.FGO_heading": {
+   "scored": 0.221451,
+   "stored": 0.221451,
+   "equal": true
+  },
+  "fwdplainc_tex_r3.FGO_baseline": {
+   "scored": 4.740214,
+   "stored": 4.740214,
+   "equal": true
+  },
+  "fwdplainc_tex_r3.UKF_heading": {
+   "scored": 0.249505,
+   "stored": 0.249505,
+   "equal": true
+  },
+  "fwdplainc_tex_r3.UKF_baseline": {
+   "scored": 10.818971,
+   "stored": 10.818971,
+   "equal": true
+  }
+ }
+}
