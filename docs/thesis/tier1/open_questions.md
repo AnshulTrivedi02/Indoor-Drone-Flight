@@ -5,6 +5,10 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 
 | # | raised (AEDT) | question | default being followed meanwhile | blocks anything? |
 |---|---|---|---|---|
+| A-Q8 | 2026-10-24 | Ablation P1 FAIL (plain walls r3: the one-keyframe rungs lower the no-heading control by about 0.4 m, band 0.223 m): accept the pre-registered qualification as it stands, or investigate? | Accepted as a qualification; not diagnosed (D45, rule 5). Coordinator recommends accepting. | no |
+| A-Q9 | 2026-10-24 | Separating the remaining FGO–UKF differences (attitude representation, preintegration, Jacobians vs sigma points, heading-factor handling) needs estimator code changes: stop here, or scope a follow-up? | Stopped. Coordinator recommends stopping. | no |
+| A-Q10 | 2026-10-24 | Put any ablation result into thesis text? | Nothing applied. If yes, coordinator suggests one short paragraph labelled exploratory, carrying the P1 qualifier. | no |
+| A-Q11 | 2026-10-24 | Delete about 19 GB of verified scratch bag copies in `~/thesis_data/ablation/bags/`? The originals in `~/thesis_data/trials/` are untouched. | Kept: deleting data needs the user's OK. | no |
 
 **Answered:**
 - **Q1 (user, 2026-10-23):** yes. Thesis tables use SI units, converted at generation time only; numbers.md stays exactly as is. Use one unit per quantity, the same in a table as in its matching figure. SI prefixes are fine where they read better (e.g. drift in mm, position error in m): pick the readable unit and use it consistently. Keep the exact cross-check against the stored values. → done: units pass merged 2026-10-23 (2dcee76); decisions D7, D8.
