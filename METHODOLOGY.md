@@ -14661,3 +14661,14 @@ current tree has no expected checker failures.
 - A-Q10: one exploratory paragraph is added to the new `docs/thesis/discussion_material.md` §1, verbatim, with every number traced to `ablation/ablation_numbers.md` (`ablation/check_discussion.py`, 13/13). The coordinator added a scope note: the "one flight" is the one beyond its noise band, and on `fwdc_tex_r2` the window also moved the no-heading control by up to 1.283 m within that bag's 2.282 m band. The wording question is raised as A-Q12.
 - A-Q11: the scratch-bag deletion was approved, conditional on re-verifying the originals against the guard manifest. The manifest excludes `bag/` folders by design, so the originals were verified against their packing-time `PACKED.txt` instead (sha256 of the decompressed bag and the .zst size, 6/6 match). The deletion is held and re-asked as A-Q11b.
 - The morning digest job is stopped.
+
+### RULING (user, 2026-10-25): A-Q11b scratch bags deleted; A-Q12 discussion sentence corrected
+
+- **A-Q11b.** `~/thesis_data/ablation/bags/` (19 GB of verified, plain, decompressed scratch copies) was deleted.
+  - Verification basis: the original bags `~/thesis_data/trials/<t>/bag/bag_0.db3.zst` were checked on 2026-10-25 against their packing-time `PACKED.txt` (written 2026-10-08): the sha256 of the decompressed bag and the .zst size match on 6/6.
+  - The checksum guard manifest excludes `bag/` folders, so it was not the basis.
+  - The record is `~/thesis_data/ablation/bags_DELETED.txt`. The originals are untouched.
+- **A-Q12.** The last sentence of `docs/thesis/discussion_material.md` §1 now reads, as the user corrected their own wording: "Without a heading source, however, the window did affect results: beyond the noise band on one flight (by about 0.4 m), and by up to 1.3 m on another, within that flight's wide noise band."
+  - 0.4 m: `fwdplainc_tex_r3`, Δ −0.399 / −0.365 / −0.403 m against a 0.223 m band.
+  - 1.3 m: `fwdc_tex_r2`, largest Δ −1.283 m at 2 s, within its 2.282 m band.
+  - The coordinator's scope note is removed. `ablation/check_discussion.py` passes 18/18.

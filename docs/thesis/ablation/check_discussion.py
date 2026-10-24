@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exact check of docs/thesis/discussion_material.md §1 against docs/thesis/ablation/ablation_numbers.md (read-only).
 
-Every number in the ruled paragraph and its scope note is re-read from the T2 (retention), T3 (no-heading control) and
+Every number in the ruled paragraph and its provenance table is re-read from the T2 (retention), T3 (no-heading control) and
 P1/P2 rows of ablation_numbers.md, then compared as strings with a single rounding. Exit 0 iff everything passes.
 """
 import re
@@ -39,8 +39,9 @@ def delta(cell):
 PARA = ("An exploratory ablation reduced the FGO to a one-keyframe window and varied its iteration count. On line-textured "
         "walls it retained essentially all of its advantage over the UKF (retention 0.97-1.01), so the advantage is not "
         "explained by window length, retained history or iteration count; it lies in the remaining structural differences "
-        "between the estimators, which were not separated. Without a heading source, however, the window did affect results "
-        "on one flight (by about 0.4 m).")
+        "between the estimators, which were not separated. Without a heading source, however, the window did affect results: "
+        "beyond the noise band on one flight (by about 0.4 m), and by up to 1.3 m on another, within that flight's wide noise "
+        "band.")
 flat = re.sub(r"\s+", " ", " ".join(l[2:] if l.startswith("> ") else l for l in DM.splitlines() if l.startswith(">")))
 ok("ruled paragraph present verbatim", PARA in flat)
 
@@ -63,15 +64,22 @@ beyond = [b for b in ("fwdc_tex_r1", "fwdc_tex_r2", "fwdc_tex_r3", "fwdplainc_te
           if any(abs(delta(c)) > num(row(T3, b)[7]) for c in row(T3, b)[2:7])]
 ok(f"exactly one flight beyond its band at any window rung (r1-r5): {beyond}", beyond == ["fwdplainc_tex_r3"])
 
-# scope note: fwdc_tex_r2 control moves within its wide band; FGO overtakes the stored UKF at 1 s and 2 s
+# provenance row: fwdc_tex_r2 control moves within its wide band; FGO overtakes the stored UKF at 1 s and 2 s
 c2 = row(T3, "fwdc_tex_r2")
 d2 = [delta(c) for c in c2[2:7]]
 ok(f"fwdc_tex_r2 deltas r1-r5 = {d2}", [f"{x:.3f}" for x in d2] == ["0.304", "0.300", "0.300", "-0.758", "-1.283"])
-ok("scope note quotes them", "+0.304 / +0.300 / +0.300 m" in DM and "−0.758 / −1.283 m" in DM)
+ok("provenance row quotes them", "+0.304 / +0.300 / +0.300 / −0.758 / −1.283 m" in DM)
+big = max(d2, key=abs)
+ok(f"'up to 1.3 m' = largest |delta| on fwdc_tex_r2 ({big}) rounded once to 1 dp", f"{abs(big):.1f}" == "1.3" and "1.283 m" in DM)
+ok("every fwdc_tex_r2 delta within its band ('within that flight's wide noise band')", all(abs(x) <= num(c2[7]) for x in d2))
+ok("fwdc_tex_r2 is the flight with the largest within-band change among the 5 other bags",
+   max(((b, max(abs(delta(x)) for x in row(T3, b)[2:7])) for b in ("fwdc_tex_r1", "fwdc_tex_r2", "fwdc_tex_r3", "fwdplainc_tex_r1", "fwdplainc_tex_r2")), key=lambda t: t[1])[0] == "fwdc_tex_r2")
+ok("old last sentence no longer in the ruled paragraph", "results on one flight (by about 0.4 m)." not in flat)
+ok("scope note removed", "Scope note (coordinator" not in DM)
 ok("fwdc_tex_r2 band 2.282 m quoted", num(c2[7]) == 2.282 and "2.282 m" in DM)
 f0, f4, f5, u = num(c2[1]), num(c2[5].split(" ")[0]), num(c2[6].split(" ")[0]), num(c2[8])
 ok("FGO behind UKF at r0, ahead at r4 and r5", f0 > u and f4 < u and f5 < u)
-ok("scope note values 2.262 → 1.504 / 0.979 against 1.783", "2.262 → 1.504 / 0.979 m" in DM and "1.783 m" in DM
+ok("provenance values 2.262 → 1.504 / 0.979 against 1.783", "2.262 → 1.504 / 0.979 m" in DM and "1.783 m" in DM
    and (f"{f0:.3f}", f"{f4:.3f}", f"{f5:.3f}", f"{u:.3f}") == ("2.262", "1.504", "0.979", "1.783"))
 
 print(f"TOTAL {n - len(fails)}/{n}")
