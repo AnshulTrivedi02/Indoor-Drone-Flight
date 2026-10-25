@@ -64,10 +64,13 @@ for m in re.finditer(r"^## Page (\d\d): (.+)$", IDX_SUM, re.M):
         mm = re.search(r"^- \*\*" + re.escape(lab) + r":\*\* (.+)$", blk, re.M)
         d[k] = mm.group(1).strip("`")
     SUMP[pid] = d
-assert len(SUMP) == 12, "expected 12 summary pages"
+assert len(SUMP) == 19, "expected 19 summary pages (12 + the 7 extension pages of 2026-10-25)"
 SUM_SRC = open(os.path.join(HERE, "figs_thesis_summary.py")).read()
 # footer-rule rows of the summary PNGs (top + 0.012 of each page, from a scratch run of figs_thesis_summary.py at 441e97c)
-SUM_TOP = {"02": 0.2825, "03": 0.254, "10": 0.311, "11": 0.2825, "12": 0.311}
+SUM_TOP = {"02": 0.2825, "03": 0.254, "10": 0.311, "11": 0.2825, "12": 0.311,
+           # extension pages (2026-10-25): the footer tops printed by figs_thesis_summary.py ("extension page NN: footer top");
+           # 15 is 0.2255 + 0.0003 because its rule row falls on a half pixel (945.5) and round() would pick row 946, not the drawn 945
+           "13": 0.3395, "14": 0.3395, "15": 0.2258, "16": 0.2540, "17": 0.2540, "18": 0.3395, "19": 0.3965}
 
 
 def sline(pid, field):
@@ -160,7 +163,7 @@ for k, f in (("F2", "F2_heading_stops_sideways_drift.png"), ("F9", "F9_heading_e
     fig_src(k, f)
 
 
-def sum_src(pid):
+def sum_src(pid, gap=8):
     """Summary page chart band: from just below the 'What this tests' line to just above the footer rule (asserted)."""
     p = os.path.join(SUM, SUMP[pid]["file"]); a = np.asarray(Image.open(p).convert("RGB")).astype(int); H = a.shape[0]
     row = round((1 - (SUM_TOP[pid] + 0.012)) * H)
@@ -169,7 +172,8 @@ def sum_src(pid):
     r = round((1 - 0.885) * H)                         # top of the 'What this tests' line
     while blank[r]:
         r += 1
-    while not blank[r:r + 8].all():                    # end of that text block: first run of 8 blank rows
+    while not blank[r:r + gap].all():                  # end of that text block: first run of `gap` blank rows (8; 10 for the
+                                                       # extension pages, whose italic lines can lack descenders, 2026-10-25)
         r += 1
     y0 = r + 4
     assert y0 < round((1 - 0.755) * H), f"summary {pid}: 'What this tests' text runs into the chart area"
@@ -178,7 +182,7 @@ def sum_src(pid):
 
 
 for pid in SUM_TOP:
-    sum_src(pid)
+    sum_src(pid, gap=10 if int(pid) >= 13 else 8)
 
 
 def world(path, cap, box=None):
@@ -218,7 +222,10 @@ TRS = {"1A": [f"dsn_tex_r{i}" for i in range(1, 10)],
        "2": [f"T_{c}_r{i}" for c in "ABCD" for i in (1, 2, 3)], "3": rr("T_A_r"), "4": ["O_r1", "O_r2", "O_r3b"],
        "5h": ["H_s1_r1", "H_s1_r2", "H_s1_r3", "H_s1far_r1", "H_s1far_r2", "H_s1far_r3b"] + rr("H_s2v2_r") + rr("H_s3v2_r"),
        "5l": ["H_s1_r1", "H_s1_r2", "H_s1_r3", "H_s1far_r1", "H_s1far_r2", "H_s1far_r3b"] + rr("H_s2v2_r") + rr("H_s3v2_r"),
-       "5S": ["H_safety_ukf_a_v3", "H_safety_ukf_b_v3", "H_safety_fgo_a_v4", "H_safety_fgo_b_v4"]}
+       "5S": ["H_safety_ukf_a_v3", "H_safety_ukf_b_v3", "H_safety_fgo_a_v4", "H_safety_fgo_b_v4"],
+       # extension experiments (2026-10-25): offline replays of these recorded flights
+       "E2": [f"T_{c}_r{i}" for c in "BCD" for i in (1, 2, 3)], "E3": rr("T_A_r"), "E4": [f"T_{c}_r{i}" for c in "ABCD" for i in (1, 2, 3)],
+       "E5": rr("T_A_r"), "ABL": rr("fwdc_tex_r") + rr("fwdplainc_tex_r")}
 WCHK = {}
 
 
@@ -620,12 +627,67 @@ page("28", "5S_safety", f"{SUMP['12']['title']} (2 of 2)", sline("12", "what"), 
      [AL("NOT FITTED (pass or fail checks):", "Nothing is fitted: each safety check is measured directly on the flight.")] + L12,
      scope=["12"])
 
+
+# =================================================================== EXTENSION EXPERIMENTS (pre-registered) + the exploratory ablation
+# Added 2026-10-25 (user: "yes add the extension section, include the ablation page"). Each page places the summary chart of
+# figs_thesis_summary.py pages 13-19 (cropped as for pages 02/03/10/11/12) with its verbatim Metric / Pass rule / Result lines; E3 also
+# places the stored descriptive map-collapse figure (docs/thesis/tier1/figs/e3_collapse_maps.png: three panels with the same axes).
+# World pages reuse the existing screenshots: the tag room for E2-E5, the forward-camera corridors for the ablation.
+# (the summary charts of pages 13-19 are cropped by the SUM_TOP loop above)
+T1FIG = os.path.join(ROOT, "docs", "thesis", "tier1", "figs", "e3_collapse_maps.png")
+_a, _b = load(T1FIG, None, trim=True)
+FIG["E3MAP"] = dict(path=T1FIG, arr=_a, box=_b, sha=sha(T1FIG))
+_e3r = open(os.path.join(ROOT, "docs", "thesis", "tier1", "e3_results.md")).read()
+CORP["E3MAP"] = _e3r[_e3r.index("## 7. Map-collapse diagnosis"):]
+TAG0_L = "NOT FITTED (raw, start-tag frame):"
+TAG0_X = "Nothing is fitted: the error is measured in the frame of the start tag, with no alignment."
+EXT_FIRST_ID = "29"
+LS = lambda pid: [("Metric:", sline(pid, "metric")), ("Pass rule:", sline(pid, "rule")), ("Result:", sline(pid, "result"))]
+page("29", "E2_fewer_tags", SUMP["13"]["title"], sline("13", "what"), W_ROOM(), "E2", ["room_tags"], P("S13"),
+     [AL(TAG0_L, TAG0_X + " Error on the fifth lap for each number of tags; filled boxes live, open boxes hindsight.")] + LS("13"), scope=["13"])
+T14 = SUMP["14"]["title"]
+page("30", "E3_wrong_ids", f"{T14} (1 of 2)", sline("14", "what"), [], None, [], P("S14"),
+     [AL(TAG0_L, TAG0_X + " One mark per run; diverged runs have no finite error and are drawn in the band at the top.")] + LS("14"),
+     scope=["14"], world=False)
+page("31", "E3_collapse_maps", f"{T14} (2 of 2)", sline("14", "what"), [], None, [], P("E3MAP"),
+     [AL(TAG0_L, "DESCRIPTIVE, after scoring, not a registered measure. Nothing is fitted: the FGO's re-solved path (orange) and its final "
+         "tag positions (dots) against the true path and tags (grey), in the frame of the start tag, for three runs: two plain runs that "
+         "finished (T_A_r1 at 1%, T_A_r3 at 5%) and the one robust run that collapsed (T_A_r2 at 5%). The two plain maps are shrunk, "
+         "consistent with a least-squares compromise between the wrong and the correct tag measurements; the robust map is folded, "
+         "which the E3 diagnosis reads as a wrong basin, not a cheaper compromise."),
+      SH("the tag map each run ended with; the score below is the live error of every run (previous page)."),
+      ("Result:", sline("14", "result"))], scope=["14"], world=False)
+page("32", "E3_verdicts", SUMP["15"]["title"], sline("15", "what"), W_ROOM(), "E3", ["room_tags"], P("S15"),
+     [AL("NOT FITTED (pass or fail counts):", "Nothing is fitted: each registered test is a pass or fail count over the runs.")] + LS("15"),
+     scope=["15"])
+page("33", "E4_step_time", SUMP["16"]["title"], sline("16", "what"), [], None, [], P("S16"),
+     [AL("NOT FITTED (compute time):", "Nothing is fitted: this is the measured compute time per estimator step.")] + LS("16"),
+     scope=["16"], world=False)
+page("34", "E4_accuracy", SUMP["17"]["title"], sline("17", "what"), W_ROOM(), "E4", ["room_tags"], P("S17"),
+     [AL("NOT FITTED (raw, room frame):", "Nothing is fitted: the error is measured in the room's frame with no alignment, as registered.")]
+     + LS("17"), scope=["17"])
+page("35", "E5_ukf_landmarks", SUMP["18"]["title"], sline("18", "what"), W_ROOM(), "E5", ["room_tags"], P("S18"),
+     [AL(TAG0_L, TAG0_X + " The UKF here is the UKF with landmark states (extension E5), not the UKF used elsewhere.")] + LS("18"),
+     scope=["18"])
+page("36", "ablation", SUMP["19"]["title"], sline("19", "what"),
+     [world(R + "corridor_textured_fwdc__interior.jpg", snew("Inside: painted-line walls, roof, checkerboard floor")),
+      world(R + "corridor_textured_fwdplainc__interior.jpg", snew("Inside: plain walls, roof, checkerboard floor")),
+      world(OB + "fwdc_tex_r1__fwd_y040.png", snew("Forward camera: painted-line walls"), OBX),
+      world(OB + "fwdplainc_tex_r1__fwd_y040.png", snew("Forward camera: plain walls"), OBX)],
+     "ABL", ["corridor_textured_fwdc", "corridor_textured_fwdplainc"], P("S19"),
+     [AL("FITTED (aligned):", "each value is the standard fitted cruise error: the whole estimated cruise path is slid and turned as "
+         "one rigid piece to lie as close as possible to the true path before the error is measured, the score used for every cruise "
+         "error in Experiments 1A and 1B. The ablation is EXPLORATORY.")] + LS("19"), scope=["19"],
+     world_note=snew("The plotted flights are the painted-line-wall flights; the plain-wall flights enter the P1 and P3 verdicts."),
+     world_label="The worlds of the ablation (simulator views, and frames the forward camera recorded):")
+
 # =================================================================== contents + how-to, PDF
 figc = plt.figure(figsize=(PAGE_W, PAGE_H))
 figc.text(MX + 0.013, 0.945, "Results walkthrough: contents", fontsize=21, weight="bold", va="top")
 NOTE = snew("Each experiment starts with the simulated world it was flown in (screenshots), then where the drone really flew, then "
             "its plots showing every flight (one panel per estimator, never drawn on top of each other), each with what it shows, "
-            "the metric, the pass rule and the result. Where an experiment has no per-flight plot, its summary chart is shown.")
+            "the metric, the pass rule and the result. Where an experiment has no per-flight plot, its summary chart is shown. A "
+            "section page then opens the extension experiments (pre-registered) and the exploratory ablation.")
 guard(NOTE["text"], "", "contents note")
 figc.text(MX + 0.013, 0.885, wrap(NOTE["text"], 118), fontsize=13, va="top", color=INK2, linespacing=1.3)
 # Each experiment's world page comes FIRST, then its plot pages (ruling 2026-10-21). A group ends at the page that carries the world.
@@ -635,8 +697,15 @@ for p in PAGES:
     if p["wfig"] is not None:
         GROUPS.append(cur); cur = []
 assert not cur, "pages after the last world page"
+SECPNG = os.path.join(SUM, "summary_ext_section.png")      # the summary's section page, placed full page unchanged (2026-10-25)
+figs_ = plt.figure(figsize=(PAGE_W, PAGE_H)); axs_ = figs_.add_axes([0, 0, 1, 1])
+axs_.imshow(np.asarray(Image.open(SECPNG).convert("RGB")), interpolation="none", aspect="auto"); axs_.axis("off")
+figs_.savefig(os.path.join(OUTD, "wt_ext_section.png"), dpi=DPI)
 SEQ = []; ORDER = []; pn = 3                      # page 1 contents, page 2 how to read
+SECROW = None
 for g in GROUPS:
+    if g[0]["id"] == EXT_FIRST_ID:
+        SEQ.append(figs_); SECROW = (len(ORDER), pn); pn += 1
     wpage = pn; SEQ.append(g[-1]["wfig"]); pn += 1
     for k, p in enumerate(g):
         p["pageno"] = pn; SEQ.append(p["fig"]); pn += 1
@@ -646,13 +715,17 @@ for g in GROUPS:
         else:
             ORDER[-1] = (ORDER[-1][0], base, ORDER[-1][2] + 1)
 NPAGES = pn - 1
-rows_c = [("", "How to read these pages", 2)] + [(str(i + 1), t, n0) for i, (n0, t, k) in enumerate(ORDER)]
-for i, (n, t, n0) in enumerate(rows_c):
-    yy = 0.74 - i * 0.046
-    figc.text(0.07, yy, n, fontsize=13, va="top", ha="right", color=INK2)
-    figc.text(0.09, yy, t, fontsize=13, va="top")
-    figc.text(0.955, yy, f"page {n0}", fontsize=12, va="top", ha="right", color=INK2)
-assert 0.74 - (len(rows_c) - 1) * 0.046 > 0.03, "contents page overflows"
+SEC_T = "Extension experiments (pre-registered)"
+assert SECROW is not None, "extension section not placed"
+rows_c = [("", "How to read these pages", 2, False)] + [(str(i + 1), t, n0, False) for i, (n0, t, k) in enumerate(ORDER)]
+rows_c.insert(1 + SECROW[0], ("", SEC_T, SECROW[1], True))     # the section heading row (2026-10-25), before the first extension row
+CSTEP = 0.0315                                                 # re-laid out 2026-10-25 to fit the extension rows (was 0.046, 13 pt)
+for i, (n, t, n0, hd) in enumerate(rows_c):
+    yy = 0.74 - i * CSTEP - (0.008 if i > SECROW[0] + 1 else 0)
+    figc.text(0.07, yy, n, fontsize=12, va="top", ha="right", color=INK2)
+    figc.text(0.09 if not hd else MX + 0.013, yy, t, fontsize=12 if not hd else 13, va="top", weight="bold" if hd else "normal")
+    figc.text(0.955, yy, f"page {n0}", fontsize=11.5, va="top", ha="right", color=INK2)
+assert 0.74 - (len(rows_c) - 1) * CSTEP - 0.008 > 0.03, "contents page overflows"
 figc.savefig(os.path.join(OUTD, "wt_00a_contents.png"), dpi=DPI)
 HOWTO = os.path.join(SUM, "summary_00_how_to_read.png")
 figh = plt.figure(figsize=(PAGE_W, PAGE_H)); axh = figh.add_axes([0, 0, 1, 1]); axh.imshow(np.asarray(Image.open(HOWTO).convert("RGB")), interpolation="none", aspect="auto"); axh.axis("off")
@@ -693,11 +766,17 @@ md = ["# Results walkthrough: index and provenance", "",
       "rule, Result, About, world captions: 11 pt; What this tests: 12.5 pt; titles 16.5 pt). 'scale' below = displayed width ÷ the "
       "image's width at 200 dpi (the summary charts are 150 dpi images and are never enlarged beyond their own size).", "",
       f"**PDF:** `results_walkthrough.pdf` = contents (`walkthrough/wt_00a_contents.png`), 'How to read these pages' (the summary's "
-      f"`summary_00_how_to_read.png`, sha256 `{sha(HOWTO)}`, placed full page unchanged), then pages 01–{PAGES[-1]['id']} below ({NPAGES} PDF pages in all).", "",
+      f"`summary_00_how_to_read.png`, sha256 `{sha(HOWTO)}`, placed full page unchanged), then pages 01–{PAGES[-1]['id']} below ({NPAGES} PDF pages in all). "
+      f"Before page {EXT_FIRST_ID}'s world page sits the section page 'Extension experiments (pre-registered)' (the summary's "
+      f"`summary_ext_section.png`, sha256 `{sha(SECPNG)}`, placed full page unchanged; `walkthrough/wt_ext_section.png`). Pages {EXT_FIRST_ID}–36 "
+      "(added 2026-10-25) are the extension experiments E2–E5 and the EXPLORATORY ablation; page 31 places "
+      "`docs/thesis/tier1/figs/e3_collapse_maps.png` (DESCRIPTIVE).", "",
       f"**Contents-page note (NEW):** {NOTE['text']}", ""]
 WTR = {"1A": "dsn_tex_r1–r9 (all 9 plotted)", "blank": "the 14 blank-floor flights of Table 4.2", "1B": "the 18 heading-check flights (fwdc_tex_r1–r3 plotted, fitted and not fitted)",
        "1C": "the 12 closed-loop flights of Figures 4.1 / 4.1b", "2": "T_A–D r1–3", "3": "T_A r1–3", "4": "O_r1, O_r2, O_r3b",
-       "5h": "S1 near and far, S2v2, S3v2", "5l": "S1 near and far, S2v2, S3v2", "5S": "the four final safety runs"}
+       "5h": "S1 near and far, S2v2, S3v2", "5l": "S1 near and far, S2v2, S3v2", "5S": "the four final safety runs",
+       "E2": "T_B-D r1-3 (E2 replays; the 8-tag values are the stored Experiment 3 T_A flights)", "E3": "T_A r1-3 (E3 replays)",
+       "E4": "T_A-D r1-3 (E4 replays)", "E5": "T_A r1-3 (E5 replays)", "ABL": "fwdc_tex_r1-r3 and fwdplainc_tex_r1-r3 (ablation replays)"}
 for p in PAGES:
     pl = p["plot"]
     md += [f"## Page {p['id']}: {p['title']}", "", f"- **File:** `walkthrough/{p['file']}`",
