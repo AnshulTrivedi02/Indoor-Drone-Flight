@@ -1137,57 +1137,121 @@ for w in WS:
     T(f"{w:g}")
 finish(fig, meta)
 
-# ------------------------------------------------------------------- E4, live error at 5 s against 0.25 s
+# ------------------------------------------------------------------- E4, live error against the window (2026-10-27)
+# User request (verbatim): "can you reproduce the plot in the summary pdf with the fgo window vs error, it is hard to tell how
+# increasing the window affects error increase/decrease". Replaces the L(5) - L(0.25) per-flight plot (D51) by the change from the
+# 0.25 s value at every window, one panel per tag count on one shared y-scale (decisions D57-D60). Source: the stored cap-2 score
+# files scores/E4_<trial>_w<W>.json, track "FGO live", horiz_err_m.rmse (the _lm10 files are not read).
 fig, meta = new_page("17", "E4_accuracy", "Extension E4: a longer FGO window, live error",
-                     "Whether the FGO's live position error is lower with a 5\u00a0s window than with the 0.25\u00a0s window used in the thesis, "
-                     "on the same flights.")
+                     "How the FGO's live position error changes when its window of recent measurements is made longer (0.25 s up "
+                     "to 5 s), on the same flights, for each number of tags in the room.")
 H43 = E4V["H-E4.3"]
 D43 = [H43["per_flight"][t]["L5_m"] - H43["per_flight"][t]["L0.25_m"] for t in FLT]
 LOW = [H43["per_flight"][t]["lower_at_5"] for t in FLT]
+WK = ["0.25", "0.5", "1", "2", "5"]
+
+
+def e4live(t, w):
+    tr = LT(f"E4_{t}_w{w}.json")["tracks"]; ks = [k for k in tr if k.startswith("FGO live")]
+    assert len(ks) == 1, f"E4_{t}_w{w}.json: FGO live tracks {ks}"
+    return tr[ks[0]]["horiz_err_m"]["rmse"]
+
+
+LW = {t: {w: e4live(t, w) for w in WK} for t in FLT}
+DW = {t: {w: LW[t][w] - LW[t]["0.25"] for w in WK} for t in FLT}
 tagdisp()
+disp("windows swept (s)", "0.25 / 0.5 / 1 / 2 / 5", [("PR", "0.25 < 0.5 < 1 < 2 < 5 s")])
+num("score files (cap 2) equal E4_verdicts.json L0.25_m and L5_m on every flight",
+    str(all(LW[t]["0.25"] == H43["per_flight"][t]["L0.25_m"] and LW[t]["5"] == H43["per_flight"][t]["L5_m"] for t in FLT)), "True",
+    [("E4", "All values come from `scores/E4_verdicts.json`")])
+_E4ROW = {"T_A_r1": "0.0214 | 0.0214 | 0.0214 | 0.0214 | 0.0214", "T_A_r2": "0.0196 | 0.0196 | 0.0196 | 0.0196 | 0.0196",
+          "T_A_r3": "0.0190 | 0.0190 | 0.0190 | 0.0190 | 0.0190", "T_B_r1": "0.0233 | 0.0230 | 0.0233 | 0.0232 | 0.0231",
+          "T_B_r2": "0.0292 | 0.0292 | 0.0292 | 0.0292 | 0.0292", "T_B_r3": "0.0252 | 0.0252 | 0.0252 | 0.0252 | 0.0252",
+          "T_C_r1": "0.0538 | 0.0546 | 0.0542 | 0.0540 | 0.0542", "T_C_r2": "0.0502 | 0.0501 | 0.0495 | 0.0497 | 0.0497",
+          "T_C_r3": "0.0565 | 0.0564 | 0.0559 | 0.0561 | 0.0562", "T_D_r1": "0.0931 | 0.0901 | 0.0863 | 0.0890 | 0.0887",
+          "T_D_r2": "0.0813 | 0.0814 | 0.0906 | 0.0803 | 0.0798", "T_D_r3": "0.0745 | 0.0743 | 0.0739 | 0.0738 | 0.0738"}
+for t in FLT:
+    num(f"{fl(t)}: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp; the plot shows each minus the 0.25 s value)",
+        " | ".join(rd(LW[t][w], 4) for w in WK), _E4ROW[t], [("E4", f"| {t} | {_E4ROW[t]} |")])
+_E4R25 = {"A": "0.0190–0.0214", "B": "0.0233–0.0292", "C": "0.0502–0.0565", "D": "0.0745–0.0931"}
+V25 = {c: num(f"{TAGS[c]}: live RMSE at W = 0.25 s, lowest–highest of 3 flights (m)",
+              rng([LW[t]["0.25"] for t in FLT if t[2] == c], 4), _E4R25[c], [("E4", f" {x} |") for x in _E4R25[c].split("–")])
+       for c in TCOND}
 VH43 = num("H-E4.3 verdict and count", f"{H43['verdict']} {H43['count']}", "FAIL 7/12", [("E4", "**H-E4.3 FAIL 7/12** (band ≥ 10/12)")])
 num("H-E4.3 flights lower at 5 s (recounted from the stored per-flight flags)", f"{sum(LOW)}/12", "7/12", [("E4", "| **FAIL** | 7/12 |")])
 num("difference sign agrees with the stored flag on every flight", str(all((d < 0) == l for d, l in zip(D43, LOW))), "True", [("E4", "L(5) − L(0.25), unrounded")])
-hi_ = [d for d in D43 if d > 0]
-VHI = num("flights higher at 5 s: smallest–largest difference (m)", f"{rd(min(hi_), 7, sign=True)} to {rd(max(hi_), 7, sign=True)}", "+0.0000020 to +0.0003395",
-          [("E4", "+0.0000020 to +0.0003395 m")])
-VD = {t: num(f"{fl(t)}: L(5) − L(0.25) (m)", rd(d, 7, sign=True), x, [("E4", f"({x} m)")])
-      for t, d, x in zip(FLT, D43, ["+0.0000035", "-0.0000010", "+0.0000020", "-0.0001880", "+0.0000108", "+0.0000082", "+0.0003395",
-                                    "-0.0004784", "-0.0003000", "-0.0043321", "-0.0015134", "-0.0006587"]) if t.startswith("T_D")}
 conv = E4V["convergence"]
 nflag = sum(bool(v.get("NOT_CONVERGED")) for v in conv["per_run"].values())
 VCV = num("LM cap 2 vs cap 10: runs flagged not converged", f"{nflag} of {len(conv['per_run'])}", "0 of 10", [("E4", "so no flag is raised")])
 ids((PRT, "| **H-E4.3** (directional accuracy, amendment 3) |"))
 rulef(PRT, "| **≥ 10/12 flights** |", "H-E4.3 rule: lower at 5 s on at least 10 of 12 flights")
 disp("windows compared (s)", "5 s / 0.25 s", [("E4", "live RMSE at 5 s < at 0.25 s")])
-ax = AX(0.10, 0.60, 0.135)
-ax.set_xlim(-0.6, 11.6); ax.set_ylim(-0.0050, 0.0012)
-ax.axhline(0, color=INK2, lw=1.2, zorder=2)
-for i, (t, d) in enumerate(zip(FLT, D43)):
-    ax.plot(i, d, marker="s", color=C["FGO"], ms=10, ls="none", zorder=4)
-    if t in VD:
-        label_val(ax, i - 0.25, d, VD[t].replace("-", "−") + " m", ha="right", va="center", fontsize=11)
-label_val(ax, -0.5, 0.00098, "above the line: higher at 5 s", fontsize=11.5, color="#555555", va="top")
-label_val(ax, -0.5, -0.0042, "below the line: lower at 5 s", fontsize=11.5, color="#555555", va="center")
-ax.set_xticks(range(12)); ax.set_xticklabels([T(TAGS[t[2]]) + f"\n{t[-1]}" for t in FLT], fontsize=10.5)
-for t in FLT:
-    T(t[-1])
-ax.set_yticks([-0.004, -0.003, -0.002, -0.001, 0, 0.001]); ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:+.3f}".replace("-", "−") if v else "0"))
-ax.grid(axis="x", visible=False); ax.set_xlabel("Flight (tags in the room, flight number)")
-ax.set_ylabel("Live error at 5 s minus at 0.25 s (m)")
-lg = AX(0.73, 0.25, 0.135); lg.axis("off")
-lg.legend(handles=[Line2D([], [], ls="none", marker="s", color=C["FGO"], ms=10, label="FGO live estimate,\none mark per flight")],
-          frameon=False, loc="upper left")
-lg.text(0, 0.62, wrap(f"The 5 flights above the line are higher by {VHI} m (most too small to see at this scale).", 27),
-        fontsize=11.5, va="top", color=INK2, linespacing=1.25, transform=lg.transAxes)
-T(f"The 5 flights above the line are higher by {VHI} m (most too small to see at this scale).")
-num("flights higher at 5 s", len(hi_), 5, [("E4", "On the other five it was higher")])
+
+
+# Result sentence (descriptive, D59): bounds on |change from the 0.25 s value| over every longer window and every flight of a panel
+# group, from the stored jsons (no result file prints them). "under X" = the largest value rounded ONCE upwards (ROUND_CEILING) at
+# the printed precision, with largest < X asserted; "up to about X" = the largest rounded once by rd(); directions = both signs present.
+def ceil_s(v, n):
+    from decimal import Decimal, ROUND_CEILING
+    return format(Decimal(str(float(v))).quantize(Decimal(1).scaleb(-n), rounding=ROUND_CEILING), "f")
+
+
+def chg(cs):
+    return [DW[t][w] for t in FLT if t[2] in cs for w in WK[1:]]
+
+
+MAB, MC, MD = (max(abs(v) for v in chg(cs)) for cs in ("AB", "C", "D"))
+VBAB = num("8 or 4 tags: largest |change from 0.25 s| over every window and flight, rounded up once (m)", ceil_s(MAB, 4), "0.0003", [])
+num("8 or 4 tags: largest |change| is strictly under the printed bound ('under')", str(MAB < float(VBAB)), "True", [])
+VBC = num("2 tags: largest |change from 0.25 s| over every window and flight, rounded up once (m)", ceil_s(MC, 3), "0.001", [])
+num("2 tags: largest |change| is strictly under the printed bound ('under')", str(MC < float(VBC)), "True", [])
+num("2 tags: changes of both signs ('either way')", str(min(chg("C")) < 0 < max(chg("C"))), "True", [])
+VBD = num("1 tag: largest |change from 0.25 s| over every window and flight, rounded once (m; 'up to about')", rd(MD, 3), "0.009", [])
+num("1 tag: changes of both signs ('not in one direction')", str(min(chg("D")) < 0 < max(chg("D"))), "True", [])
+num("1 tag: the largest |change| exceeds the 2-tag bound ('larger')", str(MD > float(VBC)), "True", [])
+num("1 tag, flight 2, W = 1 s: change from 0.25 s (m, the largest; rounded once, 7 dp; not printed)", rd(DW["T_D_r2"]["1"], 7, sign=True),
+    "+0.0093144", [])
+num("1 tag, flight 1, W = 1 s: change from 0.25 s (m; rounded once, 7 dp; not printed)", rd(DW["T_D_r1"]["1"], 7, sign=True),
+    "-0.0067342", [])
+
+# four panels, one per tag count, on ONE shared y-scale (sharey); the windows at evenly spaced positions, not to scale (D57); one line
+# per flight, filled markers (live), flights told apart by marker and nudged sideways so equal values stay visible (D58)
+YLIM = (-0.0080, 0.0110)
+assert YLIM[0] < min(min(DW[t].values()) for t in FLT) and max(max(DW[t].values()) for t in FLT) < YLIM[1]
+FMK = {"1": "s", "2": "o", "3": "^"}; DODGE = {"1": -0.12, "2": 0.0, "3": 0.12}
+PX = [0.115 + i * 0.215 for i in range(4)]; PW = 0.19
+axs = [AX(PX[i], PW, 0.135) for i in range(4)]
+for i, (ax, c) in enumerate(zip(axs, TCOND)):
+    if i:
+        ax.sharey(axs[0])
+    ax.set_ylim(*YLIM); ax.set_xlim(-0.45, 4.45)
+    ax.axhline(0, color=INK2, lw=1.2, zorder=2)
+    for t in FLT:
+        if t[2] == c:
+            r = t[-1]
+            ax.plot([k + DODGE[r] for k in range(5)], [DW[t][w] for w in WK], color=C["FGO"], lw=1.5, marker=FMK[r], ms=7.5,
+                    mfc=C["FGO"], mec=C["FGO"], zorder=4)
+    ax.set_xticks(range(5)); ax.set_xticklabels([T(w) for w in WK], fontsize=11.5)
+    ax.grid(axis="x", visible=False)
+    ax.set_title(T(TAGS[c]) + "\n" + T(f"at 0.25 s: {V25[c]} m"), fontsize=12, pad=6)
+    if i:
+        ax.tick_params(labelleft=False)
+axs[0].set_yticks([-0.006, -0.003, 0, 0.003, 0.006, 0.009])
+axs[0].yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:+.3f}".replace("-", "−") if abs(v) > 1e-12 else "0"))
+axs[0].set_ylabel("Change in live error from\nits 0.25 s value (m)")
+label_val(axs[0], -0.35, -0.0075, "below 0 = more accurate", fontsize=11, color="#555555", va="bottom")
+axs[0].legend(handles=[Line2D([], [], color=C["FGO"], lw=1.5, marker=FMK[r], ms=7.5, label=T(f"flight {r}")) for r in "123"],
+              frameon=False, loc="upper left", fontsize=11, title="FGO live", title_fontsize=11, borderaxespad=0.3)
 foot(fig, meta,
-     "live horizontal position error over the laps (root-mean-square, room frame, nothing fitted) with a 5 s window minus the same "
-     "with the 0.25 s window, per flight, metres.",
+     "change in the live horizontal position error over the laps (root-mean-square, room frame, nothing fitted) from its value with "
+     "the 0.25 s window, per flight and window, metres. The windows are evenly spaced, not to scale.",
      "H-E4.3: the error is lower with the 5 s window on at least 10 of 12 flights (a count fixed in advance).",
      f"H-E4.3 {VH43.split()[0]}: lower at 5 s on {VH43.split()[1].replace('/', ' of ')} flights. The check that two solver iterations are "
-     f"enough raised no flag ({VCV} runs). A longer window did not buy live accuracy on these flights.")
+     f"enough raised no flag ({VCV} runs). With 8 or 4 tags the window changes the live error by under {VBAB} m; with 2 tags by under "
+     f"{VBC} m either way; with 1 tag the changes are larger (up to about {VBD} m) and not in one direction.")
+_b = axs[0].get_position().y0
+fig.text(PX[0] + (PX[3] + PW - PX[0]) / 2, _b - 0.045, T("FGO window of recent measurements (s), evenly spaced, not to scale"),
+         ha="center", va="top", fontsize=13)
 finish(fig, meta)
 
 # ------------------------------------------------------------------- E5, UKF with landmark states
@@ -1478,9 +1542,7 @@ HYP.update({
     "16": "EXTENSION EXPERIMENT, PRE-REGISTERED (§3). P-E4.1 PASS 12/12, P-E4.2 PASS (12/12 at 0.25, 1, 2, 5 s; 0.5 s descriptive, 12/12 ≤ 33 ms). "
           "Values: E4_verdicts.json:P-E4.1.per_flight.<t>.medians_after_anchor_ms (DIAGNOSTIC workstation timing). Linear axes; the x axis is "
           "the window in s to scale. All-keyframe medians and p95 not shown",
-    "17": "EXTENSION EXPERIMENT, PRE-REGISTERED (§3). H-E4.3 FAIL 7/12 (band ≥ 10/12). Difference = E4_verdicts.json:H-E4.3.per_flight.<t>.L5_m − "
-          "L0.25_m (unrounded; sign checked against lower_at_5 on 12/12). LM cap check (D12): 0 of 10 runs flagged; the RMS readings are not "
-          "printed. Gain fractions (DESCRIPTIVE) not shown",
+    "17": "EXTENSION EXPERIMENT, PRE-REGISTERED (§3). H-E4.3 FAIL 7/12 (band ≥ 10/12). Plotted: the change from the 0.25 s value, scores/E4_<trial>_w<W>.json tracks 'FGO live' horiz_err_m.rmse minus the same at W = 0.25 s, cap-2 runs only (the _lm10 files are not read); the w0.25 and w5 values asserted equal to E4_verdicts.json:H-E4.3.per_flight.<t>.L0.25_m / L5_m on 12/12, and every plotted value at 4 dp equal to its e4_results.md table cell. One panel per tag count on one shared y-scale; windows evenly spaced, not to scale (D57); flights nudged sideways by ±0.12 of a window step (D58). panel-title ranges at 4 dp as e4_results.md prints them (D59); the Result's three bounds are from the stored jsons only (D60). LM cap check (D12): 0 of 10 runs flagged; the RMS readings are not printed. Gain fractions (DESCRIPTIVE) not shown. Replaces the L(5) − L(0.25) plot of D51 (2026-10-27)",
     "18": "EXTENSION EXPERIMENT, PRE-REGISTERED (§4). The UKF here is the UKF WITH LANDMARK STATES (E5), not the UKF used in the other "
           "experiments. H-E5.1 (primary), H-E5.2, H-E5.3, P-E5.4 PASS 3/3; S-E5.5, S-E5.6 (secondary, registered direction) PASS 3/3. S-E5.6's FGO "
           "side is the Experiment 3 iSAM2 hindsight (whole graph after 5 extra updates), not an LM batch, as e5_results.md states. Values: "
