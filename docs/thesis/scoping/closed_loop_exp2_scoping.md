@@ -2,7 +2,9 @@
 
 **READ-ONLY SCOPING, 2026-10-27. Nothing was run:** no flights, SITL, Gazebo, replays, estimator runs or timing
 benchmarks. No frozen result was changed and no pre-registration was written. Three read-only search agents collected
-sources. Every number below was either traced by this session or spot-checked against its source.
+sources. Numbers were traced by this session or taken from those agents' read-only sweeps with their citations. A sample
+of each sweep was re-checked by this session: the batch `wall=` lines, three mtime walls, all six `lc_fgo_*_t245`
+`stats.json` values, `ukf_lm` stats, and three corrections rows.
 
 **Labels.**
 - **[M]** = measured and stored (the source is given).
@@ -29,9 +31,9 @@ is not the tier-1 extension "E2" (`docs/thesis/tier1/e2_results.md:1`, loop clos
   conditional 5S safety flights and about 5–6 contingency re-flies.
   - Per result flight, about 7–8 min wall [E], built from measured parts (§3).
   - **Total about 7–9.5 machine hours**, serial, one simulation at a time [E].
-- **Effort: about 6–9 working days** [E], split as machine about 1–1.5 days, agent 4–6 days and user review
-  1.5–2.5 days, partly overlapping.
-  - Started today (Tue 27 Oct), it would finish Tue 3 Nov at best, Fri 6 Nov more likely. The lock is Wed 4 Nov 23:59
+- **Effort: about 6–9 working days elapsed** [E], split as machine ≈ 7–9.5 h, agent 4.5–6.75 days and user review
+  2–2.75 days, partly overlapping.
+  - Started today (Tue 27 Oct), it would finish Tue 3 Nov at best, Fri 6 Nov at the upper end. The lock is Wed 4 Nov 23:59
     AEDT.
   - It fits only in the best case, with no margin. The user's earlier decision was "no further stages planned"
     (`docs/thesis/tier1/open_questions.md:23`).
@@ -78,7 +80,7 @@ is not the tier-1 extension "E2" (`docs/thesis/tier1/e2_results.md:1`, loop clos
 | # | item | why | size [E] |
 |---|---|---|---|
 | N1 | **Pre-arm anchor design** (the gating decision, §8 Q1). Recommended option: reuse `room_wall_tag_far`'s geometry. The wall tag is used **only while disarmed** (anchor), the floor tags in flight. All fixes are expressed in T's world map frame. W and T's map NED differ only by a 5 m N offset (the wall tag at world y = 5; `docs/tag_hold_design.md:69-76`) [E, from the frame definitions] | rule M:11994-11997. Without an anchor, arming is refused (`closed_loop_run.sh:84-94`) | world variant (copy + ids + spawn): ~20 lines |
-| N2 | `tag_bridge_fwd.py`: an anchor-only mode (send only while disarmed) and output in the map frame | in T's lap the north leg passes about 2 m from the wall tag (inside the 0.9–2.8 m D18 band), so it would add in-flight fixes that open-loop T never had [E] | ~30–50 lines |
+| N2 | `tag_bridge_fwd.py`: an anchor-only mode (send only while disarmed) and output in the map frame | in T's lap the east-bound leg along y = 3 m passes about 2.06 m from the wall tag (closest at (0, 3, 2)) (inside the 0.9–2.8 m D18 band), so it would add in-flight fixes that open-loop T never had [E] | ~30–50 lines |
 | N3 | `tag_bridge.py`: the "no first fix after arming" rule, the drain and the status file, ported from `tag_bridge_fwd.py:67-160` | the downward bridge has no armed-state logic (grep: no `armed` in `tag_bridge.py`) | ~50–80 lines |
 | N4 | Two tag senders: a second SITL serial port for one bridge (`SERIALn_PROTOCOL 2`, a run_trial branch), or a merged bridge. `/tags/sent` from both, one topic or a remap for the FGO node | `run_trial.sh:142,150` | ~30–60 lines + 1 parm file |
 | N5 | `closed_loop_run.sh`: a T branch with `TAG_BRIDGE=1`, `TAG_IDS`, `tags_extnav.parm` (enforced), `LAPS`, `ALT=2.0`, `TAG_SIGMA_POS=0.05` passed to the node (the node default is 0.02: `run_trial.sh:423,449`), the room-box watcher, `H_PREARM` for the new world, and the UKF `EXTPOS` file | the H branch is H-specific | ~40–60 lines |
@@ -129,7 +131,7 @@ is not the tier-1 extension "E2" (`docs/thesis/tier1/e2_results.md:1`, loop clos
 | **Exp. 5 S1far (EKF3 flying), r1–r3b** | 502–546 s | `closed_loop/<name>/result.txt` mtime − `launch.txt` mtime (`closed_loop_run.sh:105`, :122) | [D, mtime] |
 | **Exp. 5 S2v2 (UKF flying)** | 518 / 532 / 550 s | same (verified for `H_s2v2_r1`: 518 s) | [D, mtime] |
 | **Exp. 5 S3v2 (FGO flying)** | 580 / 564 / 534 s | same (verified for `H_s3v2_r1`: 580 s) | [D, mtime] |
-| Exp. 5 closed-loop RTF (S1far, S2v2, S3v2) | 0.711–0.803 | bag sim / recording wall | [D] |
+| Exp. 5 closed-loop RTF (S1far, S2v2, S3v2) | 0.721–0.803 | bag sim / recording wall | [D] |
 | Exp. 5 overhead outside recording (S2v2) | 38–40 s | mtime wall − recording wall span (518 − 478.5, 532 − 493.7, 550 − 511.1) | [D] |
 | Exp. 5 far ground tests `H_gt_ukf_far` / `H_gt_fgo_far` | 170 / 179 s | mtime | [D] |
 | 5S safety, final builds (UKF v3, FGO v4) | 124–178 s (UKF), 103–156 s (FGO) | mtime (verified `H_safety_fgo_a_v4`: 156 s) | [D] |
@@ -142,7 +144,7 @@ and the ROS log-epoch spans agree within about 10–30 s (agent cross-check). Th
 ### 3.2 Per-flight estimate for closed-loop Experiment 2 [E]
 
 - Sim ≈ 270 s (T's laps and landing, measured) + ≈ 30 s (anchor wait and the 5.1 m transit) ≈ **300 s** [E].
-- At the measured closed-loop room RTF of 0.711–0.803, plus about 39 s of overhead: **≈ 415–460 s ≈ 7–8 min per flight** [E].
+- At the measured closed-loop room RTF of 0.721–0.803, plus about 39 s of overhead: **≈ 413–455 s ≈ 7–8 min per flight** [E].
 - The lower bound, if RTF stayed at T's 0.95, would be about 355 s [E].
 
 ### 3.3 Flight count and machine hours
@@ -155,7 +157,7 @@ and the ROS log-epoch spans agree within about 10–30 s (agent cross-check). Th
 | 5S S-A1–S-A4 (conditional) | 0 or 4 | 103–178 s [D] | 0–0.2 |
 | **Result flights: 3 estimators × 4 conditions × 3 repeats** | **36** | 7–8 min [E] | **4.2–4.8** |
 | Contingency re-flies (~15%; Exp. 2 history: 6 IMU-gap re-flies + 2 aborted starts, M:10212-10224; Exp. 5: 5 aborted or failed attempts, `closed_loop/*abort*`) | 5–6 | 7.5 min [E] | 0.6–0.75 |
-| **Flights subtotal** | **44–50** | | **≈ 5.0–6.0** |
+| **Flights subtotal** | **45–50** | | **≈ 5.0–6.0** |
 | Offline hindsight and shadow replays, after the flights (UKF + RTS: ~53–55 s per flight, by the E5 `val_world` / no-LC `wall_s` proxies 52.9–54.4 s [M]; FGO live + batch: ~3–5 min [E] from `room_fgo/stats.json` `step_median_ms` 18.3 [M] × ~7,350 keyframes) | 36 × 2 | | ≈ 2–3.5 [E] |
 | **Total machine time** | | | **≈ 7–9.5 h** [E] |
 
@@ -258,11 +260,11 @@ this scoping's inference.
 | Anchor-design ruling (Q1), replace/beside, gate re-wording | 0.25 | 0.5 | — |
 | Pre-registration (not written here) and sign-off | 0.5 | 0.5 | — |
 | N1–N9 code and offline checks (bridge regression, fail-closed) | 2–3 | 0.25 | — |
-| Verification flights (check, ground tests, reset check) + equivalence + PARM audit | 0.5–1 | 0.25 | ~0.5 h |
+| Verification flights (check, ground tests, reset check) + equivalence + PARM audit | 0.5–1 | 0.25 | ~0.2 h |
 | 5S (if triggered) | 0–0.25 | 0–0.25 | 0–0.2 h |
 | 36 result flights + re-flies + IMU-gap checks | 0.25 (monitoring) | — | 4.8–5.6 h |
 | Offline hindsight replays, scoring, aggregation, results page, figures | 1–1.5 | 0.5–1 | 2–3.5 h |
-| **Total** | **4.5–6.25 d** | **2–2.75 d** | **≈ 7–9.5 h (~1–1.5 d)** |
+| **Total** | **4.5–6.75 d** | **2–2.75 d** | **≈ 7–9.5 h (~1–1.5 d)** |
 
 **Elapsed: about 6–9 working days**, because flights wait on each gate and the user reviews overlap with agent work.
 
@@ -364,7 +366,9 @@ initialisation.
      tags match T's.
    - (b) a synthetic "surveyed launch pose" fix while disarmed. This is a new measurement type.
    - (c) a ruling to allow a first anchor after arming when no position target is stored. This reverses an ENFORCED
-     ruling (M:11989-12003).
+     ruling (M:11989-12003). It also needs backend code: the port's `fuse_tag` and the C++ node's `LiveAdapter::tag`
+     refuse a first anchor while armed (M:11996-12000). That brings back the port and node regressions and makes the
+     5S re-runs required, not conditional.
 
    Each changes the experiment against open-loop Experiment 2.
 2. **Q2:** all three estimators flying (36 flights, 6–9 days), the reduced EKF3-only option (12 flights, 3.5–5 days),
