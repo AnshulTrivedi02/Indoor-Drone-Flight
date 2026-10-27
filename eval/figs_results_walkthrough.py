@@ -70,7 +70,7 @@ SUM_SRC = open(os.path.join(HERE, "figs_thesis_summary.py")).read()
 SUM_TOP = {"02": 0.2825, "03": 0.254, "10": 0.311, "11": 0.2825, "12": 0.311,
            # extension pages (2026-10-25): the footer tops printed by figs_thesis_summary.py ("extension page NN: footer top");
            # 15 is 0.2255 + 0.0003 because its rule row falls on a half pixel (945.5) and round() would pick row 946, not the drawn 945
-           "13": 0.3395, "14": 0.3395, "15": 0.2258, "16": 0.2540, "17": 0.2540, "18": 0.3395, "19": 0.3965}
+           "13": 0.3395, "14": 0.3395, "15": 0.2258, "16": 0.2540, "17": 0.3395, "18": 0.3395, "19": 0.3965}
 
 
 def sline(pid, field):
