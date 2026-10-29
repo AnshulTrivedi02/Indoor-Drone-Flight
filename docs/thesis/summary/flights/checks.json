@@ -254,6 +254,20 @@
     "0.59\u20130.59"
    ]
   },
+  "4_err": {
+   "file": "docs/thesis/summary/flights/fl_4_err.png",
+   "title": "",
+   "inputs": "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure)",
+   "numbers": [
+    "3",
+    "123",
+    "1.42\u20131.43",
+    "0.77\u20130.84",
+    "0.83\u20130.89",
+    "0.58\u20130.60",
+    "0.59\u20130.59"
+   ]
+  },
   "4_truth": {
    "file": "docs/thesis/summary/flights/fl_4_truth.png",
    "title": "Where the drone really flew: the 3 outdoor\u2013indoor flights (simulator truth)",
@@ -407,6 +421,22 @@
    "computed": "3",
    "expected": "3",
    "src": "docs/thesis/numbers.md:269",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_err_heading",
+   "label": "largest with-heading not-fitted error over the 3 flights and both arms (m, 2 dp), printed in the walkthrough text",
+   "computed": "0.54",
+   "expected": "0.54",
+   "src": "the plotted curves (this script; data-identity row 1B_unaligned)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_err_heading",
+   "label": "the largest with-heading not-fitted error rounded once to 1 dp ('about 0.5 m at most', walkthrough text; the user's 'below about 0.5 m' is not met: the largest is 0.54 m, UKF fwdc_tex_r3)",
+   "computed": "0.5",
+   "expected": "0.5",
+   "src": "the plotted curves (this script)",
    "ok": true
   },
   {
@@ -623,6 +653,22 @@
    "computed": "0.59\u20130.59",
    "expected": "0.59\u20130.59",
    "src": "eval/figs_thesis.py T6 check (numbers.md \u00a716.2 table)",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "all six panels share one y-scale (sharey)",
+   "computed": "True",
+   "expected": "True",
+   "src": "this script (axis limits)",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "y-axis upper limit equals that of the two separate pages (m, 2 dp)",
+   "computed": "4.31",
+   "expected": "4.31",
+   "src": "this script (ymax of 4_err_live / 4_err_hind)",
    "ok": true
   },
   {
@@ -1681,6 +1727,14 @@
    "computed": "15/15",
    "expected": "15/15",
    "src": "this script",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "WITH heading (UKF, FGO), all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.539828",
+   "expected": "0.539828",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/{ukf,fgo}_heading TUMs + ground_truth.tum",
    "ok": true
   },
   {
