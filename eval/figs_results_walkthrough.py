@@ -411,7 +411,8 @@ def intro_page(pid, title, parts, scope):
     fig.text(MX, y, sub, fontsize=13, style="italic", color=INK2, va="top", ha="left"); y -= text_h(fig, sub, 13, 1.25) + 0.02
     for hd, what, blk in parts:
         d = snew(hd); TXT.append(("panel heading", d))
-        fig.text(MX, y, hd, fontsize=14, weight="bold", va="top", ha="left"); y -= text_h(fig, hd, 14, 1.25) + 0.008
+        hdw = fit(fig, hd, UW * PAGE_W, 14, weight="bold")
+        fig.text(MX, y, hdw, fontsize=14, weight="bold", va="top", ha="left", linespacing=1.15); y -= text_h(fig, hdw, 14, 1.25) + 0.008
         for lab, dd in [("What this tests:", what)] + blk:
             w = fit(fig, dd["text"], (UW - LABW) * PAGE_W, FS, **({"style": "italic"} if lab.startswith("What") else {}))
             fig.text(MX, y, lab, fontsize=FS, weight="bold", va="top", ha="left")
@@ -587,7 +588,7 @@ page("05", "1B_fig42", f"{T04} (1 of 2)", P("R3b", "R3"),
          "and FGO), cruise only. " + FIT_XC), SH_FPATH] + L04b, what=[sline("04", "what")], scope=["04"])
 UBH = next(c["computed"] for c in FLCHK["checks"] if c["fig"] == "1B_unaligned_err_heading" and c["label"].startswith("largest with-heading"))
 page("06", "1B_unaligned_paths", f"{T04} (2 of 2)", PF("1B_unaligned_paths"),
-     [AL(RAW_L, "the 3 flights of the previous page, the estimates exactly as they came out, from take-off, five separate panels with "
+     [AL(RAW_L, "the 3 camera-dataset flights on the checkerboard floor (the previous page shows flight 3 of them), the estimates exactly as they came out, from take-off, five separate panels with "
          "the same axes. " + RAW_X + " Without the heading each estimate slowly turns and drifts sideways by tens of metres. With the "
          f"heading the lines lie on the true path at this scale: the raw error is about 0.5 m at most (largest {UBH} m, UKF and FGO, "
          "every flight, from take-off to the end of the cruise). " + FRAME_X),
@@ -684,7 +685,7 @@ page("16", "E3_wrong_ids", T14, P("S14"),
 T4M = "Extension E4: a longer FGO window, compute time and live error"
 begin(T4M)
 intro_page("17i", T4M, [("Left panel: compute time", sline("16", "what"), BLK("16")),
-                        ("Right panel: live error", sline("17", "what"), BLK("17"))], scope=["16", "17"])
+                        ("Right panel: live error (the panel shows the error itself; this Metric is its change from the 0.25 s value)", sline("17", "what"), BLK("17"))], scope=["16", "17"])
 page("17", "E4_tradeoff", T4M, PX("E4_tradeoff"),
      [AL("NOT FITTED (compute time; live error in the room frame):", "Nothing is fitted: the left panel is the measured compute "
          "time per step; the right panel is the live error in the room's frame with no alignment, as registered. The change "
@@ -760,10 +761,11 @@ for p in PAGES:                                 # no em-dash anywhere in the wal
 figc = plt.figure(figsize=(PAGE_W, PAGE_H))
 figc.text(MX + 0.013, 0.955, "Results walkthrough: contents", fontsize=21, weight="bold", va="top")
 NOTE = snew("A setup section first shows the corridor and the tag room, and where the drone flew in each. Each experiment then shows "
-            "its plots, with the metric, the pass rule and the result printed once, on its first page; a world page opens an "
+            "its plots, with the metric, the pass rule and the result printed once, on its first page (not under every chart, as the "
+            "next page describes for the summary pages); a world page opens an "
             "experiment flown in a world not shown before. Section pages open the extension experiments (pre-registered) and the appendix.")
 guard(NOTE["text"], "", "contents note")
-figc.text(MX + 0.013, 0.895, wrap(NOTE["text"], 122), fontsize=12.5, va="top", color=INK2, linespacing=1.28)
+figc.text(MX + 0.013, 0.895, fit(figc, NOTE["text"], (1 - 2 * MX - 0.03) * PAGE_W, 12.5), fontsize=12.5, va="top", color=INK2, linespacing=1.28)
 SEQ = []; pn = 3                                   # page 1 contents, page 2 how to read
 rows_c = [("", "How to read these pages", 2, False)]; k = 0
 for g in BOOK:

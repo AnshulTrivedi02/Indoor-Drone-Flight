@@ -309,15 +309,15 @@ for i, w in enumerate(WS):
     lo, hi = min(MED4[w]), max(MED4[w]); hgt = max(hi - lo, 0.012 * 340)
     axl.add_patch(Rectangle((i - 0.2, lo - (hgt - (hi - lo)) / 2), 0.4, hgt, facecolor=C["FGO"], edgecolor=C["FGO"], lw=2.0, zorder=3))
 axl.set_ylim(0, 350)
-LBL = {0: (0, 44, "center", "bottom"), 1: (1, 84, "center", "bottom"), 2: (2, 64, "center", "bottom"), 3: (3, 116, "center", "bottom"),
+LBL = {0: (0, 44, "center", "bottom"), 1: (0.9, 84, "center", "bottom"), 2: (2.1, 64, "center", "bottom"), 3: (3, 116, "center", "bottom"),
        4: (3.62, 290.8, "right", "center")}
 for i, w in enumerate(WS):
     tx, ty, ha, va = LBL[i]; lo, hi = min(MED4[w]), max(MED4[w])
     axl.text(tx, ty, T(V4S[w].replace("–", "–\n") + " ms"), ha=ha, va=va, fontsize=11.5, weight="bold", linespacing=1.05)
     if i < 2:
         axl.plot([i, i], [hi + 2, ty - 1], color="#777777", lw=1.0, zorder=2)
-axl.axhline(33, color="#CC0000", lw=2.2, ls="--", zorder=2)
-axl.text(4.95, 37, T(f"budget {BUD} ms\n(one camera frame)"), ha="right", va="bottom", fontsize=12, color="#CC0000", weight="bold")
+axl.axhline(33, color="#333333", lw=3.0, ls=(0, (6, 3)), zorder=2)
+axl.text(4.95, 37, T(f"budget {BUD} ms\n(one camera frame)"), ha="right", va="bottom", fontsize=12, color="#333333", weight="bold")
 axl.set_xticks(list(X)); axl.set_xticklabels([T(w) for w in WK]); axl.grid(axis="x", visible=False)
 axl.set_ylabel("median compute time per step (ms)")
 axl.set_title(T("Compute time: box = lowest to highest of 12 flights"), loc="left", fontsize=13)
