@@ -1,0 +1,575 @@
+{
+ "figs": {
+  "5_hold_drift": {
+   "file": "docs/thesis/summary/extra/ex_5_hold_drift.png",
+   "inputs": "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s1_r1..r3,s2v2_r1..r3,s3v2_r1..r3}.json, eval/results/expH/h_comparative_2026-10-11.json",
+   "numbers": [
+    "12",
+    "24",
+    "26",
+    "27",
+    "3",
+    "31",
+    "5",
+    "50",
+    "6.4",
+    "7.1",
+    "7.8",
+    "7.9",
+    "8.3",
+    "8.6"
+   ],
+   "text": [
+    "7.8\u20137.9 mm",
+    "31 mm",
+    "24\ntag losses",
+    "6.4\u20137.1 mm",
+    "26 mm",
+    "12\ntag losses",
+    "8.3\u20138.6 mm",
+    "27 mm",
+    "12\ntag losses",
+    "limit for the mean: 50 mm",
+    "tightest limit: 50 mm",
+    "Holding still: mean hold error per flight\n(bar = highest of 3 flights; label = lowest\u2013highest)",
+    "Tag hidden: worst drift over all tag losses\n(bar = the worst loss)",
+    "Experiment 5: holding next to a wall tag (left), drift while the tag is hidden (right)"
+   ]
+  },
+  "E4_tradeoff": {
+   "file": "docs/thesis/summary/extra/ex_E4_tradeoff.png",
+   "inputs": "docs/thesis/tier1/scores/E4_verdicts.json (P-E4.1 medians after the anchor, P-E4.2, H-E4.3); docs/thesis/tier1/scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse",
+   "numbers": [
+    "0",
+    "0.0003",
+    "0.0043",
+    "0.25",
+    "0.5",
+    "1",
+    "100.05",
+    "107.12",
+    "12",
+    "14.35",
+    "15.13",
+    "19",
+    "2",
+    "20",
+    "26.86",
+    "278.25",
+    "28.22",
+    "303.36",
+    "33",
+    "4",
+    "4.3",
+    "5",
+    "50.47",
+    "52.74",
+    "7",
+    "8"
+   ],
+   "text": [
+    "14.35\u2013\n15.13 ms",
+    "26.86\u2013\n28.22 ms",
+    "50.47\u2013\n52.74 ms",
+    "100.05\u2013\n107.12 ms",
+    "278.25\u2013\n303.36 ms",
+    "budget 33 ms\n(one camera frame)",
+    "0.25",
+    "0.5",
+    "1",
+    "2",
+    "5",
+    "Compute time: box = lowest to highest of 12 flights",
+    "8 tags",
+    "4 tags",
+    "2 tags",
+    "1 tag",
+    "0.25",
+    "0.5",
+    "1",
+    "2",
+    "5",
+    "Live error: one line per flight (12 lines)",
+    "FGO window (s), windows not to scale",
+    "FGO window (s), windows not to scale",
+    "Extension E4: a longer FGO window costs far more compute and does not improve live accuracy",
+    "Filled squares: live (fixed-lag) estimates. NOT FITTED: room frame, no alignment. Both y-axes linear, from 0.",
+    "A 5 s window costs 19 to 20 times the compute of the 0.25 s window (median step per flight) and does not improve live\naccuracy: lower at 5 s on 7 of 12 flights (by at most 0.0043 m), higher on the other 5 (by at most 0.0003 m); H-E4.3\nFAIL (not met). From the 1 s window on, every flight is over the 33 ms budget."
+   ]
+  }
+ },
+ "checks": [
+  {
+   "fig": "5_hold_drift",
+   "label": "EKF3: mean hold error, range over 3 flights (mm)",
+   "computed": "7.8\u20137.9",
+   "expected": "7.8\u20137.9",
+   "where": "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json); docs/thesis/tables/T1_scorecard.md shows 'hold 7.8\u20137.9 mm'; index_summary.md page 10 row 'EKF3: mean hold error, range over 3 flights (mm)' = '7.8\u20137.9'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "UKF: mean hold error, range over 3 flights (mm)",
+   "computed": "6.4\u20137.1",
+   "expected": "6.4\u20137.1",
+   "where": "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json); docs/thesis/tables/T1_scorecard.md shows 'hold 6.4\u20137.1 mm'; index_summary.md page 10 row 'UKF: mean hold error, range over 3 flights (mm)' = '6.4\u20137.1'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "FGO: mean hold error, range over 3 flights (mm)",
+   "computed": "8.3\u20138.6",
+   "expected": "8.3\u20138.6",
+   "where": "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json); docs/thesis/tables/T1_scorecard.md shows 'hold 8.3\u20138.6 mm'; index_summary.md page 10 row 'FGO: mean hold error, range over 3 flights (mm)' = '8.3\u20138.6'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "flights per estimator",
+   "computed": "3/3/3",
+   "expected": "3/3/3",
+   "where": "S1 far r1-r3b, S2v2 r1-r3, S3v2 r1-r3; index_summary.md page 10 row 'flights per estimator' = '3/3/3'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "hold limit for the mean (mm) = the registered '\u2264 0.05 m' (METHODOLOGY.md:10687) \u00d7 10^3, exact",
+   "computed": "50",
+   "expected": "50",
+   "where": "METHODOLOGY.md:10687; METHODOLOGY.md shows 'mean hold error \u2264 0.05 m and max \u2264 0.15 m'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "EKF3: worst drift over all tag losses (mm)",
+   "computed": "31",
+   "expected": "31",
+   "where": "eval/results/expH losses[].effective.drift_m; docs/thesis/tables/T5_H_tag_loss_drift.md shows '31 / 150'; index_summary.md page 11 row 'EKF3: worst drift over all tag losses (mm)' = '31'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "UKF: worst drift over all tag losses (mm)",
+   "computed": "26",
+   "expected": "26",
+   "where": "eval/results/expH losses[].effective.drift_m; docs/thesis/tables/T5_H_tag_loss_drift.md shows '26 / 200'; index_summary.md page 11 row 'UKF: worst drift over all tag losses (mm)' = '26'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "FGO: worst drift over all tag losses (mm)",
+   "computed": "27",
+   "expected": "27",
+   "where": "eval/results/expH losses[].effective.drift_m; docs/thesis/tables/T5_H_tag_loss_drift.md shows '27 / 100'; index_summary.md page 11 row 'FGO: worst drift over all tag losses (mm)' = '27'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "EKF3: losses with a lockout / losses",
+   "computed": "0 / 24",
+   "expected": "0 / 24",
+   "where": "eval/results/expH losses[].lockout; docs/thesis/tables/T5_H_tag_loss_drift.md shows '0 / 24'; index_summary.md page 11 row 'EKF3: losses with a lockout / losses' = '0 / 24'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "UKF: losses with a lockout / losses",
+   "computed": "0 / 12",
+   "expected": "0 / 12",
+   "where": "eval/results/expH losses[].lockout; docs/thesis/tables/T5_H_tag_loss_drift.md shows '0 / 12'; index_summary.md page 11 row 'UKF: losses with a lockout / losses' = '0 / 12'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "FGO: losses with a lockout / losses",
+   "computed": "0 / 12",
+   "expected": "0 / 12",
+   "where": "eval/results/expH losses[].lockout; docs/thesis/tables/T5_H_tag_loss_drift.md shows '0 / 12'; index_summary.md page 11 row 'FGO: losses with a lockout / losses' = '0 / 12'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "tightest drift limit for EKF3 and the FGO (mm)",
+   "computed": "50",
+   "expected": "50",
+   "where": "Table 6.1; docs/thesis/tables/T5_H_tag_loss_drift.md shows 'EKF3 and FGO \u2264 50 / 100 / 200 / 150 mm'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "experiment number in the title",
+   "computed": "5",
+   "expected": "5",
+   "where": "summary page 10 title; docs/thesis/summary/index_summary.md shows '## Page 10: Experiment 5:'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "y-axis: both panels, linear, mm, upper limit",
+   "computed": "0 to 60",
+   "expected": "0 to 60",
+   "where": "this script (sharey, asserted)",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "tag losses printed on the bars",
+   "computed": "24 / 12 / 12",
+   "expected": "24 / 12 / 12",
+   "where": "Table 6.1 (lockout column)",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "W = 0.25 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "14.35\u201315.13",
+   "expected": "14.35\u201315.13",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '14.35'; docs/thesis/tier1/e4_results.md shows '15.13'; index_summary.md page 16 row 'W = 0.25 s: median step time after the anchor, lowest\u2013highes' = '14.35\u201315.13'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "W = 0.5 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "26.86\u201328.22",
+   "expected": "26.86\u201328.22",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '26.86'; docs/thesis/tier1/e4_results.md shows '28.22'; index_summary.md page 16 row 'W = 0.5 s: median step time after the anchor, lowest\u2013highest' = '26.86\u201328.22'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "W = 1 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "50.47\u201352.74",
+   "expected": "50.47\u201352.74",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '50.47'; docs/thesis/tier1/e4_results.md shows '52.74'; index_summary.md page 16 row 'W = 1 s: median step time after the anchor, lowest\u2013highest o' = '50.47\u201352.74'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "W = 2 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "100.05\u2013107.12",
+   "expected": "100.05\u2013107.12",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '100.05'; docs/thesis/tier1/e4_results.md shows '107.12'; index_summary.md page 16 row 'W = 2 s: median step time after the anchor, lowest\u2013highest o' = '100.05\u2013107.12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "W = 5 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "278.25\u2013303.36",
+   "expected": "278.25\u2013303.36",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '278.25'; docs/thesis/tier1/e4_results.md shows '303.36'; index_summary.md page 16 row 'W = 5 s: median step time after the anchor, lowest\u2013highest o' = '278.25\u2013303.36'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "windows (s)",
+   "computed": "0.25 / 0.5 / 1 / 2 / 5",
+   "expected": "0.25 / 0.5 / 1 / 2 / 5",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '0.25 < 0.5 < 1 < 2 < 5 s'; index_summary.md page 16 row 'windows swept (s)' = '0.25 / 0.5 / 1 / 2 / 5'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "deployability budget (ms)",
+   "computed": "33",
+   "expected": "33",
+   "where": "pre-registration P-E4.2; docs/thesis/tier1/preregistration.md shows 'the 33 ms deployability budget (M:707-721)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "flights per window",
+   "computed": "12/12/12/12/12",
+   "expected": "12/12/12/12/12",
+   "where": "E4_verdicts.json P-E4.1 per_flight; index_summary.md page 16 row 'flights per window' = '12/12/12/12/12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "P-E4.1 verdict and count",
+   "computed": "PASS 12/12",
+   "expected": "PASS 12/12",
+   "where": "E4_verdicts.json; docs/thesis/tier1/e4_results.md shows '**P-E4.1 PASS 12/12.**'; index_summary.md page 16 row 'P-E4.1 verdict and count' = 'PASS 12/12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "P-E4.2 verdict and counts at 0.25 / 1 / 2 / 5 s",
+   "computed": "PASS 12/12 12/12 12/12 12/12",
+   "expected": "PASS 12/12 12/12 12/12 12/12",
+   "where": "E4_verdicts.json; docs/thesis/tier1/e4_results.md shows '0.25 s: 12/12, 1 s: 12/12, 2 s: 12/12, 5 s: 12/12'; index_summary.md page 16 row 'P-E4.2 verdict and counts at 0.25 / 1 / 2 / 5 s' = 'PASS 12/12 12/12 12/12 12/12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "5 s / 0.25 s median step time per flight, lowest\u2013highest of 12 (\u00d7, whole numbers; json full precision)",
+   "computed": "19\u201320",
+   "expected": "19\u201320",
+   "where": "E4_verdicts.json vs the same ratio from e4_results.md's 2 dp table cells",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "score files (cap 2) equal E4_verdicts.json L0.25_m and L5_m on every flight",
+   "computed": "True",
+   "expected": "True",
+   "where": "scores/E4_<trial>_w<W>.json vs E4_verdicts.json; docs/thesis/tier1/e4_results.md shows 'All values come from `scores/E4_verdicts.json`'; index_summary.md page 17 row 'score files (cap 2) equal E4_verdicts.json L0.25_m and L5_m ' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_A_r1: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0214 | 0.0214 | 0.0214 | 0.0214 | 0.0214",
+   "expected": "0.0214 | 0.0214 | 0.0214 | 0.0214 | 0.0214",
+   "where": "scores/E4_T_A_r1_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_A_r1 | 0.0214 | 0.0214 | 0.0214 | 0.0214 | 0.0214 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_A_r2: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0196 | 0.0196 | 0.0196 | 0.0196 | 0.0196",
+   "expected": "0.0196 | 0.0196 | 0.0196 | 0.0196 | 0.0196",
+   "where": "scores/E4_T_A_r2_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_A_r2 | 0.0196 | 0.0196 | 0.0196 | 0.0196 | 0.0196 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_A_r3: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0190 | 0.0190 | 0.0190 | 0.0190 | 0.0190",
+   "expected": "0.0190 | 0.0190 | 0.0190 | 0.0190 | 0.0190",
+   "where": "scores/E4_T_A_r3_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_A_r3 | 0.0190 | 0.0190 | 0.0190 | 0.0190 | 0.0190 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_B_r1: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0233 | 0.0230 | 0.0233 | 0.0232 | 0.0231",
+   "expected": "0.0233 | 0.0230 | 0.0233 | 0.0232 | 0.0231",
+   "where": "scores/E4_T_B_r1_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_B_r1 | 0.0233 | 0.0230 | 0.0233 | 0.0232 | 0.0231 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_B_r2: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0292 | 0.0292 | 0.0292 | 0.0292 | 0.0292",
+   "expected": "0.0292 | 0.0292 | 0.0292 | 0.0292 | 0.0292",
+   "where": "scores/E4_T_B_r2_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_B_r2 | 0.0292 | 0.0292 | 0.0292 | 0.0292 | 0.0292 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_B_r3: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0252 | 0.0252 | 0.0252 | 0.0252 | 0.0252",
+   "expected": "0.0252 | 0.0252 | 0.0252 | 0.0252 | 0.0252",
+   "where": "scores/E4_T_B_r3_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_B_r3 | 0.0252 | 0.0252 | 0.0252 | 0.0252 | 0.0252 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_C_r1: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0538 | 0.0546 | 0.0542 | 0.0540 | 0.0542",
+   "expected": "0.0538 | 0.0546 | 0.0542 | 0.0540 | 0.0542",
+   "where": "scores/E4_T_C_r1_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_C_r1 | 0.0538 | 0.0546 | 0.0542 | 0.0540 | 0.0542 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_C_r2: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0502 | 0.0501 | 0.0495 | 0.0497 | 0.0497",
+   "expected": "0.0502 | 0.0501 | 0.0495 | 0.0497 | 0.0497",
+   "where": "scores/E4_T_C_r2_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_C_r2 | 0.0502 | 0.0501 | 0.0495 | 0.0497 | 0.0497 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_C_r3: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0565 | 0.0564 | 0.0559 | 0.0561 | 0.0562",
+   "expected": "0.0565 | 0.0564 | 0.0559 | 0.0561 | 0.0562",
+   "where": "scores/E4_T_C_r3_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_C_r3 | 0.0565 | 0.0564 | 0.0559 | 0.0561 | 0.0562 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_D_r1: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0931 | 0.0901 | 0.0863 | 0.0890 | 0.0887",
+   "expected": "0.0931 | 0.0901 | 0.0863 | 0.0890 | 0.0887",
+   "where": "scores/E4_T_D_r1_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_D_r1 | 0.0931 | 0.0901 | 0.0863 | 0.0890 | 0.0887 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_D_r2: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0813 | 0.0814 | 0.0906 | 0.0803 | 0.0798",
+   "expected": "0.0813 | 0.0814 | 0.0906 | 0.0803 | 0.0798",
+   "where": "scores/E4_T_D_r2_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_D_r2 | 0.0813 | 0.0814 | 0.0906 | 0.0803 | 0.0798 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "T_D_r3: plotted live RMSE at W = 0.25 / 0.5 / 1 / 2 / 5 s (m, 4 dp)",
+   "computed": "0.0745 | 0.0743 | 0.0739 | 0.0738 | 0.0738",
+   "expected": "0.0745 | 0.0743 | 0.0739 | 0.0738 | 0.0738",
+   "where": "scores/E4_T_D_r3_w<W>.json tracks 'FGO live' horiz_err_m.rmse; docs/thesis/tier1/e4_results.md shows '| T_D_r3 | 0.0745 | 0.0743 | 0.0739 | 0.0738 | 0.0738 |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "8 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights (m)",
+   "computed": "0.0190\u20130.0214",
+   "expected": "0.0190\u20130.0214",
+   "where": "score files; docs/thesis/tier1/e4_results.md shows ' 0.0190 |'; docs/thesis/tier1/e4_results.md shows ' 0.0214 |'; index_summary.md page 17 row '8 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights' = '0.0190\u20130.0214'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "condition A: number of tags",
+   "computed": "8 tags",
+   "expected": "8 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '8 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "4 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights (m)",
+   "computed": "0.0233\u20130.0292",
+   "expected": "0.0233\u20130.0292",
+   "where": "score files; docs/thesis/tier1/e4_results.md shows ' 0.0233 |'; docs/thesis/tier1/e4_results.md shows ' 0.0292 |'; index_summary.md page 17 row '4 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights' = '0.0233\u20130.0292'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "condition B: number of tags",
+   "computed": "4 tags",
+   "expected": "4 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '4 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "2 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights (m)",
+   "computed": "0.0502\u20130.0565",
+   "expected": "0.0502\u20130.0565",
+   "where": "score files; docs/thesis/tier1/e4_results.md shows ' 0.0502 |'; docs/thesis/tier1/e4_results.md shows ' 0.0565 |'; index_summary.md page 17 row '2 tags: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights' = '0.0502\u20130.0565'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "condition C: number of tags",
+   "computed": "2 tags",
+   "expected": "2 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '2 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "1 tag: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights (m)",
+   "computed": "0.0745\u20130.0931",
+   "expected": "0.0745\u20130.0931",
+   "where": "score files; docs/thesis/tier1/e4_results.md shows ' 0.0745 |'; docs/thesis/tier1/e4_results.md shows ' 0.0931 |'; index_summary.md page 17 row '1 tag: live RMSE at W = 0.25 s, lowest\u2013highest of 3 flights ' = '0.0745\u20130.0931'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "condition D: number of tags",
+   "computed": "1 tag",
+   "expected": "1 tag",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '1 tag'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "H-E4.3 verdict and count",
+   "computed": "FAIL 7/12",
+   "expected": "FAIL 7/12",
+   "where": "E4_verdicts.json; docs/thesis/tier1/e4_results.md shows '**H-E4.3 FAIL 7/12** (band \u2265 10/12)'; index_summary.md page 17 row 'H-E4.3 verdict and count' = 'FAIL 7/12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "H-E4.3 flights lower at 5 s (recounted from the stored flags) / higher",
+   "computed": "7 / 5",
+   "expected": "7 / 5",
+   "where": "E4_verdicts.json H-E4.3.per_flight.<t>.lower_at_5; docs/thesis/tier1/e4_results.md shows '| **FAIL** | 7/12 |'; docs/thesis/tier1/e4_results.md shows 'On the other five it was higher'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "difference sign agrees with the stored flag on every flight",
+   "computed": "True",
+   "expected": "True",
+   "where": "E4_verdicts.json",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "largest decrease at 5 s (5 s minus 0.25 s, m, 7 dp, unrounded in e4_results.md)",
+   "computed": "-0.0043321",
+   "expected": "-0.0043321",
+   "where": "E4_verdicts.json (T_D_r1); docs/thesis/tier1/e4_results.md shows '| yes (-0.0043321 m) |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "largest increase at 5 s (5 s minus 0.25 s, m, 7 dp)",
+   "computed": "+0.0003395",
+   "expected": "+0.0003395",
+   "where": "E4_verdicts.json (T_C_r1); docs/thesis/tier1/e4_results.md shows '| no (+0.0003395 m) |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "largest decrease at 5 s, printed (m, 4 dp, rounded once)",
+   "computed": "0.0043",
+   "expected": "0.0043",
+   "where": "E4_verdicts.json",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "largest increase at 5 s, printed (m, 4 dp, rounded once)",
+   "computed": "0.0003",
+   "expected": "0.0003",
+   "where": "E4_verdicts.json",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "right panel y-axis: linear, from 0, upper limit (m)",
+   "computed": "0 to 0.10",
+   "expected": "0 to 0.10",
+   "where": "this script (asserted above every value)",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "left panel y-axis: linear, from 0, upper limit (ms)",
+   "computed": "0 to 350",
+   "expected": "0 to 350",
+   "where": "this script",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "figure counts printed: flights, lines",
+   "computed": "12, 12",
+   "expected": "12, 12",
+   "where": "E4 runs T_A-D r1-3",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "every flight over the budget at 1 s and above (after-anchor medians > 33 ms)",
+   "computed": "True",
+   "expected": "True",
+   "where": "E4_verdicts.json; docs/thesis/tier1/e4_results.md shows 'and 12/12 at each of 1, 2 and 5 s (> 33 ms)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "registered id printed: H-E4.3",
+   "computed": "H-E4.3",
+   "expected": "H-E4.3",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '| **H-E4.3** (directional accuracy, amendment 3) |'",
+   "ok": true
+  }
+ ]
+}

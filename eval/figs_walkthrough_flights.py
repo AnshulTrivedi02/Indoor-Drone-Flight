@@ -582,6 +582,32 @@ fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}, one li
                "horizontal error (m)", "time since the start of the cruise (s; take-off is before 0)", ylim=(0, None), vline=0,
                note="Same y-scale in both panels. NOTE: this y-scale is much finer than on the previous page. EKF3 has no camera-heading version.")
 save("1B_unaligned_err_heading", fig, "", "as 1B_unaligned_paths", ["3", "0"])
+# 2026-10-29 (walkthrough restructure, D63): the with-heading not-fitted error pages were dropped from the walkthrough; their size is
+# stated in text instead ("below about 0.5 m", user's wording). The printed value = the largest PLOTTED with-heading not-fitted error
+# over every flight and both arms (take-off to the end of the cruise), rounded once to 2 dp, cross-checked against a direct
+# recomputation from the raw TUM rows over the same span (data identity, 6 dp). It is 0.54 m, so the walkthrough says "about 0.5 m at
+# most", not "below 0.5 m" (flagged to the user, D63).
+UBH = max(float(np.max(UNB[(k, tr)][3])) for k in ("UKF_heading", "FGO_heading") for tr in B_FL)
+
+
+def _raw_max_heading():
+    mx = 0.0
+    for k in ("UKF_heading", "FGO_heading"):
+        for tr in B_FL:
+            win = P4E[tr]["window_s"]; a = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/{SUBB[k][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/ground_truth.tum")
+            a = a[(a[:, 0] >= g[0, 0]) & (a[:, 0] <= win[1])]      # own frame (x, y) = (North, West); truth ENU (x, y) = (East, North)
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 2]), -a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 1]))
+            mx = max(mx, float(e_.max()))
+    return mx
+
+
+dataid("1B_unaligned", "WITH heading (UKF, FGO), all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct "
+       "recomputation from the raw TUM rows (6 dp)", rd(UBH, 6), rd(_raw_max_heading(), 6), "~/thesis_data/trials/fwdc_tex_r1..r3/{ukf,fgo}_heading TUMs + ground_truth.tum")
+check("1B_unaligned_err_heading", "largest with-heading not-fitted error over the 3 flights and both arms (m, 2 dp), printed in the walkthrough text",
+      rd(UBH, 2), rd(UBH, 2), "the plotted curves (this script; data-identity row 1B_unaligned)")
+check("1B_unaligned_err_heading", "the largest with-heading not-fitted error rounded once to 1 dp ('about 0.5 m at most', walkthrough text; the "
+      "user's 'below about 0.5 m' is not met: the largest is 0.54 m, UKF fwdc_tex_r3)", rd(UBH, 1), "0.5", "the plotted curves (this script)")
+UBH_S = rd(UBH, 2)
 
 # =============================================================================================== EXPERIMENT 1C: closed loop, n = 12
 CL = {(e, k): (tr, ex_cl(e, tr)) for e, tr, k in CL_ALL}
@@ -830,6 +856,37 @@ fig = o_page(["RTS-UKF (hindsight)", "FGO hindsight (whole-flight batch)"],
              "Hindsight (after the flight): error against time, all 3 flights (shaded: indoors, GNSS off)",
              "Same y-scale in both panels and as the previous page. Horizontal error, world frame, no alignment.")
 save("4_err_hind", fig, "", "as 4_err_live", ["3"] + [rng([OM[tr]["tracks"][n]["indoor_rmse_m"] for tr in O_FL]) for n in TRK[3:]])
+
+# 2026-10-29 (walkthrough restructure, user: "Exp 4: merge the live and hindsight error plots into one figure with a shared y-axis"):
+# the same curves (OE), one figure, three rows (EKF3 / UKF / FGO) by two columns (live, solid / hindsight, dashed), ONE y-scale for
+# all six panels (sharey, asserted). EKF3 has no hindsight version: that panel carries a note and no curve.
+HIND = {"EKF3 live": None, "UKF live": "RTS-UKF (hindsight)", "FGO live": "FGO hindsight (whole-flight batch)"}
+fig, axs = plt.subplots(3, 2, figsize=(FW, 5.6), sharex=True, sharey=True)
+for r, n in enumerate(("EKF3 live", "UKF live", "FGO live")):
+    for c, nn in enumerate((n, HIND[n])):
+        ax = axs[r, c]
+        for k in range(len(O_FL)):
+            ax.axvspan(0, TON[k], color="#ececec", zorder=0, lw=0)
+        if nn is None:
+            ax.text(0.5, 0.5, "EKF3 has no hindsight version", transform=ax.transAxes, ha="center", va="center", fontsize=10.5, color=INK2)
+            ax.set_title("EKF3, hindsight: none", loc="left", pad=3)
+        else:
+            for tr in O_FL:
+                x, y = OE[(nn, tr)]; ax.plot(x, y, color=TCOL[nn], lw=1.1, ls=TLS[nn], zorder=3)
+            ax.set_title(f"{TSH[nn]}: indoor RMSE {rng([OM[tr]['tracks'][nn]['indoor_rmse_m'] for tr in O_FL])} m", loc="left", pad=3)
+        if c == 0:
+            ax.set_ylabel("error (m)")
+axs[0, 0].set_ylim(0, ymax); axs[0, 0].set_xlim(-40, max(TON) + 30)
+for c in range(2):
+    axs[-1, c].set_xlabel("time from GNSS OFF at the entrance (s)")
+fig.subplots_adjust(left=0.07, right=0.99, top=0.86, bottom=0.1, hspace=0.45, wspace=0.08)
+head(fig, "Live (left, solid) and hindsight (right, dashed): error against time, all 3 flights; NOT FITTED",
+     f"ONE y-scale in all six panels (linear). Shaded: indoors, GNSS off ({rd(max(TON), 0)} s). EKF3's drop just after the shading: its reset to GNSS.")
+_yl = {ax.get_ylim() for ax in axs.flat}
+check("4_err", "all six panels share one y-scale (sharey)", str(len(_yl) == 1), "True", "this script (axis limits)")
+check("4_err", "y-axis upper limit equals that of the two separate pages (m, 2 dp)", rd(axs[0, 0].get_ylim()[1], 2), rd(ymax, 2), "this script (ymax of 4_err_live / 4_err_hind)")
+save("4_err", fig, "", "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure)",
+     ["3", "123"] + [rng([OM[tr]["tracks"][n]["indoor_rmse_m"] for tr in O_FL]) for n in TRK])
 room_paths("4_truth", [("n = 3 flights (out and back along the same line, so the lines lie on top of each other)", O_FL)], gt_room,
            "Where the drone really flew: the 3 outdoor–indoor flights (simulator truth)",
            "Seen from above, equal scale (1.0). Black dot: start. Out along North into the building, back the same way at the same heading.",
