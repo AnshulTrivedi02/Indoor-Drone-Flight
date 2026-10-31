@@ -1,0 +1,93 @@
+{
+ "tags": [
+  {
+   "id": 0,
+   "x": -3,
+   "y": -3,
+   "z": 0.001,
+   "yaw_deg": 0.0,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": 0.0
+  },
+  {
+   "id": 1,
+   "x": -3.0047891552729737,
+   "y": 3.047765699622687,
+   "z": 0.001,
+   "yaw_deg": 30.201715095223918,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": 0.5271193681609301
+  },
+  {
+   "id": 2,
+   "x": 3.0011602966405917,
+   "y": 3.0439952320448356,
+   "z": 0.001,
+   "yaw_deg": -44.73679133905504,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": -0.7808043056441933
+  },
+  {
+   "id": 3,
+   "x": 3.027160551515408,
+   "y": -2.9576897864914145,
+   "z": 0.001,
+   "yaw_deg": 90.11192808046731,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": 1.5727498403244882
+  },
+  {
+   "id": 4,
+   "x": -3.0398434296978394,
+   "y": 0.029755261122772936,
+   "z": 0.001,
+   "yaw_deg": 15.169715439767831,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": 0.2647614810145682
+  },
+  {
+   "id": 5,
+   "x": 0.011486964904179331,
+   "y": 3.0348601834848523,
+   "z": 0.001,
+   "yaw_deg": -19.785557663096725,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": -0.34532312556423284
+  },
+  {
+   "id": 6,
+   "x": 2.9846857523371,
+   "y": 0.04235639136459213,
+   "z": 0.001,
+   "yaw_deg": 60.182098151818735,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": 1.0503757635076312
+  },
+  {
+   "id": 7,
+   "x": 0.049332092283293605,
+   "y": -2.9717499316898284,
+   "z": 0.001,
+   "yaw_deg": -74.90379195186493,
+   "side_m": 0.5,
+   "tag_size_m": 0.4,
+   "yaw_rad": -1.307317791788873
+  }
+ ],
+ "frame": "room/world ENU (Gazebo world frame); tag yaw = rotation of the tag image about +z",
+ "source": {
+  "e6_map": "ukf",
+  "mapping_trial": "E6M_fig8_r3",
+  "replay_dir": "/home/makerspace/thesis_data/tier1/E6M_fig8_r3/lc_ukf_lc_t245",
+  "key": "landmarks_in_state_final_filtered (= RTS at the final node)",
+  "gauge": "tag 0 = surveyed pose (frame definition)",
+  "z_roll_pitch": "surveyed (flat floor)"
+ }
+}
