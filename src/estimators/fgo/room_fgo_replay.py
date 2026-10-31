@@ -21,7 +21,12 @@ Tier-1 E4 window sweep (docs/thesis/tier1/preregistration.md; all OFF by default
                    guard: no overwrite, never under ~/thesis_data/trials). REQUIRED with --window / --lm-iters.
   --window W       fixed-lag window (s); default 0.25 (the thesis configuration)
   --lm-iters k     LM iteration cap per step; default 2 (the thesis configuration; E4 convergence check only)
-  Refused together with --gnss or the FGO_OUT_ROOT / FGO_BAG_ROOT / FGO_DUMP_EVENTS environment options."""
+  Refused together with --gnss or the FGO_OUT_ROOT / FGO_BAG_ROOT / FGO_DUMP_EVENTS environment options.
+
+Tier-1 E6 map reuse (docs/thesis/tier1/e6_preregistration.md; OFF by default, default behaviour unchanged):
+  --tag-map FILE --tag-map-name NAME   re-express every /tags/sent fix with the supplied map (e6_map.py; fixed known
+                   landmarks, tag noise unchanged); needs --out-root, writes DIR/<trial>/room_fgo_e6_<NAME>/ (live +
+                   whole-flight batch unless --no-batch); refuses --window, --lm-iters, --gnss, ROOM_TAG_SIGMA_POS."""
 import sys, os, glob, math, json, time
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -46,6 +51,12 @@ _argval = lambda f: (sys.argv[sys.argv.index(f) + 1] if f in sys.argv and sys.ar
                      (sys.exit(f"{f} needs a value") if f in sys.argv else None))
 _T1_WIN, _T1_LM, _T1_ROOT = _argval("--window"), _argval("--lm-iters"), _argval("--out-root")
 TIER1 = _T1_WIN is not None or _T1_LM is not None or _T1_ROOT is not None
+import e6_map        # E6 (tier-1, docs/thesis/tier1/e6_preregistration.md): --tag-map FILE --tag-map-name NAME; unset = unchanged
+E6_MAP, E6_NAME = e6_map.parse_args(sys.argv)
+if E6_MAP and (_T1_ROOT is None or _T1_WIN is not None or _T1_LM is not None or GNSS
+               or any(os.environ.get(v) for v in ("ROOM_TAG_SIGMA_POS", "FGO_OUT_ROOT", "FGO_BAG_ROOT", "FGO_DUMP_EVENTS"))):
+    e6_map.refuse("--tag-map needs --out-root under ~/thesis_data/tier1 and refuses --window, --lm-iters, --gnss, "
+                  "ROOM_TAG_SIGMA_POS, FGO_OUT_ROOT, FGO_BAG_ROOT, FGO_DUMP_EVENTS (the thesis configuration, tag noise unchanged)")
 if TIER1:   # E4 (tier-1): guarded output, window / LM cap from the command line
     import tier1_paths as T1
     if _T1_ROOT is None:
@@ -56,7 +67,8 @@ if TIER1:   # E4 (tier-1): guarded output, window / LM cap from the command line
     LM_ITERS = int(_T1_LM) if _T1_LM is not None else LM_ITERS
     if not (0.0 < WINDOW <= 30.0) or not (1 <= LM_ITERS <= 100):
         T1.refuse(f"--window {WINDOW} / --lm-iters {LM_ITERS} out of range")
-    OUT = T1.resolve_out(TRIAL, f"room_fgo_w{WINDOW:g}" + ("" if LM_ITERS == 2 else f"_lm{LM_ITERS}"), _T1_ROOT)
+    OUT = T1.resolve_out(TRIAL, f"room_fgo_e6_{E6_NAME}" if E6_MAP else
+                         f"room_fgo_w{WINDOW:g}" + ("" if LM_ITERS == 2 else f"_lm{LM_ITERS}"), _T1_ROOT)
 # C++-port equivalence export (docs/fgo_cpp_port.md), ALL OFF by default, as in fgo_replay.py: FGO_BAG_ROOT (read the bag from
 # <root>/<trial>/), FGO_OUT_ROOT (write to <root>/<trial>/room_fgo/), FGO_DUMP_EVENTS (prefix; fgo_export.py)
 BAGDIR = os.path.join(os.environ["FGO_BAG_ROOT"], TRIAL) if os.environ.get("FGO_BAG_ROOT") else f"{D}/bag"
@@ -90,6 +102,8 @@ with Reader(BAGDIR) as r:
 if GNSS:
     _g = np.load(f"{D}/gnss.npz")
     ev += [(float(t), "gnss", (e, n, ve, vn)) for t, e, n, ve, vn in zip(_g["t"], _g["E"], _g["N"], _g["vE"], _g["vN"])]
+if E6_MAP:
+    ev, E6_PROV = e6_map.apply(ev, BAGDIR, E6_MAP)
 _raw_ev = list(ev) if DUMP else None   # equivalence export: raw stream before gap rule / dejitter / sort
 ev = apply_gap_rule(ev, TRIAL); ev, dj = dejitter_imu(ev); ev.sort(key=lambda e: e[0])
 
@@ -193,6 +207,8 @@ if TIER1:   # E4 provenance and timing detail; absent in the default configurati
                       "step_median_ms_after_anchor": float(np.median(_sa)) if len(_sa) else None,
                       "step_p95_ms_after_anchor": float(np.percentile(_sa, 95)) if len(_sa) else None,
                       "live_rows": len(traj)}
+    if E6_MAP:       # E6 provenance; absent without --tag-map
+        stats["e6"] = dict(E6_PROV, name=E6_NAME)
     np.savez_compressed(f"{OUT}/step_times.npz", step_ms=np.array(step_ns, float) / 1e6, after_anchor=np.array(step_anch, bool))
 if DO_BATCH and anchored:
     t0b = time.perf_counter()
