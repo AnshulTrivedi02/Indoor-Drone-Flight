@@ -1,0 +1,61 @@
+{
+ "trial": "T_A_r3",
+ "name": "truemap",
+ "window_s": [
+  29.715559790220055,
+  269.76649072481393
+ ],
+ "tol_rms_m": 0.001,
+ "tol_max_m": 0.002,
+ "tracks": {
+  "UKF live": {
+   "new": "/home/makerspace/thesis_data/tier1/e6_val/T_A_r3/room_ukf_e6_truemap/ukf_live.tum",
+   "stored": "/home/makerspace/thesis_data/trials/T_A_r3/room_ukf/ukf_live.tum",
+   "rows_new": 17256,
+   "rows_stored": 17256,
+   "rows_1to1": true,
+   "byte_identical": false,
+   "rms_window_m": 7.24568837306366e-08,
+   "max_window_m": 1.000000000139778e-06,
+   "rms_all_m": 7.30169768329343e-08,
+   "max_all_m": 1.000000000139778e-06,
+   "t_anchor_equal": true,
+   "tag_count_equal": true,
+   "n_fixes_remapped": 2314,
+   "pass": true
+  },
+  "UKF RTS": {
+   "new": "/home/makerspace/thesis_data/tier1/e6_val/T_A_r3/room_ukf_e6_truemap/ukf_rts.tum",
+   "stored": "/home/makerspace/thesis_data/trials/T_A_r3/room_ukf/ukf_rts.tum",
+   "rows_new": 17256,
+   "rows_stored": 17256,
+   "rows_1to1": true,
+   "byte_identical": false,
+   "rms_window_m": 6.174544517842359e-08,
+   "max_window_m": 1.000000000139778e-06,
+   "rms_all_m": 6.414445334618975e-08,
+   "max_all_m": 1.000000000139778e-06,
+   "t_anchor_equal": true,
+   "tag_count_equal": true,
+   "n_fixes_remapped": 2314,
+   "pass": true
+  },
+  "FGO live": {
+   "new": "/home/makerspace/thesis_data/tier1/e6_val/T_A_r3/room_fgo_e6_truemap/fgo_live.tum",
+   "stored": "/home/makerspace/thesis_data/trials/T_A_r3/room_fgo/fgo_live.tum",
+   "rows_new": 7767,
+   "rows_stored": 7767,
+   "rows_1to1": true,
+   "byte_identical": true,
+   "rms_window_m": 0.0,
+   "max_window_m": 0.0,
+   "rms_all_m": 0.0,
+   "max_all_m": 0.0,
+   "t_anchor_equal": true,
+   "tag_count_equal": true,
+   "n_fixes_remapped": 2314,
+   "pass": true
+  }
+ },
+ "pass": true
+}

@@ -1,0 +1,202 @@
+{
+ "trial": "T_A_r2",
+ "frame": "world (Gazebo ENU); tag-0-frame tracks + tag 0's surveyed position (-3, -3), yaw 0",
+ "lap_bounds_s": [
+  29.96185934292483,
+  77.97200947413934,
+  125.98215960535386,
+  173.99230973656836,
+  222.00245986778287,
+  270.0126099989974
+ ],
+ "fgo_map_name": null,
+ "ukf_map_name": null,
+ "tracks": {
+  "(i) surveyed | FGO live": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/room_fgo/fgo_live.tum",
+   "frame_in": "world",
+   "rmse_m": 0.019636383277940234,
+   "max_m": 0.057885606454570616,
+   "n": 7201,
+   "per_lap_rmse_m": [
+    0.01699867899614616,
+    0.021369521434779434,
+    0.021295239194580224,
+    0.014253506038691676,
+    0.022930400009218452
+   ],
+   "lap5_over_lap1": 1.3489518811677719
+  },
+  "(i) surveyed | FGO hindsight": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/room_fgo/fgo_batch.tum",
+   "frame_in": "world",
+   "rmse_m": 0.010702601066656183,
+   "max_m": 0.031578787102299416,
+   "n": 7201,
+   "per_lap_rmse_m": [
+    0.009003398777618514,
+    0.010621161832082414,
+    0.010999390368867046,
+    0.010292485657380961,
+    0.012326484077145908
+   ],
+   "lap5_over_lap1": 1.3690923152030352
+  },
+  "(i) surveyed | UKF live": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/room_ukf/ukf_live.tum",
+   "frame_in": "world",
+   "rmse_m": 0.03623310988687988,
+   "max_m": 0.09131930053391467,
+   "n": 16000,
+   "per_lap_rmse_m": [
+    0.03586973401117119,
+    0.03721362614478407,
+    0.03253926231803828,
+    0.03596579151000613,
+    0.039247391255398105
+   ],
+   "lap5_over_lap1": 1.0941645467227326
+  },
+  "(i) surveyed | UKF hindsight": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/room_ukf/ukf_rts.tum",
+   "frame_in": "world",
+   "rmse_m": 0.014076182057755937,
+   "max_m": 0.04019640375367541,
+   "n": 16000,
+   "per_lap_rmse_m": [
+    0.01625706679105491,
+    0.015202954514824523,
+    0.01117745987825012,
+    0.014650045096438632,
+    0.012478502687791925
+   ],
+   "lap5_over_lap1": 0.7675740555275288
+  },
+  "(iv) no map, LC online | FGO live": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/lc_fgo_lc_t245/live.tum",
+   "frame_in": "tag0",
+   "rmse_m": 0.04939853992068113,
+   "max_m": 0.19606538558922132,
+   "n": 7201,
+   "per_lap_rmse_m": [
+    0.08177846773504593,
+    0.04526246512313831,
+    0.03732588719972764,
+    0.02858973731719284,
+    0.03542883340333692
+   ],
+   "lap5_over_lap1": 0.4332293620140059
+  },
+  "(iv) no map, LC online | FGO hindsight": {
+   "path": "/home/makerspace/thesis_data/trials/T_A_r2/lc_fgo_lc_t245/hindsight.tum",
+   "frame_in": "tag0",
+   "rmse_m": 0.02703920011976061,
+   "max_m": 0.058025417376546706,
+   "n": 7201,
+   "per_lap_rmse_m": [
+    0.026861107172152926,
+    0.026626326411175603,
+    0.026231534078594177,
+    0.02727248944988833,
+    0.028164170840939567
+   ],
+   "lap5_over_lap1": 1.0485111674822374
+  },
+  "(iv) no map, LC online | UKF live": {
+   "path": "/home/makerspace/thesis_data/tier1/T_A_r2/lc_ukf_lc_t245/live.tum",
+   "frame_in": "tag0",
+   "rmse_m": 0.09109089405234543,
+   "max_m": 0.3859013540838986,
+   "n": 16000,
+   "per_lap_rmse_m": [
+    0.15596152260067,
+    0.07335534248713482,
+    0.06240539693491176,
+    0.06035119714924897,
+    0.06516173362490085
+   ],
+   "lap5_over_lap1": 0.4178064726371229
+  },
+  "(iv) no map, LC online | UKF hindsight": {
+   "path": "/home/makerspace/thesis_data/tier1/T_A_r2/lc_ukf_lc_t245/hindsight.tum",
+   "frame_in": "tag0",
+   "rmse_m": 0.04612799860150639,
+   "max_m": 0.0797106517311321,
+   "n": 16000,
+   "per_lap_rmse_m": [
+    0.04782815540500395,
+    0.04838804767209462,
+    0.04339659661146583,
+    0.04635853801012762,
+    0.04447074346180906
+   ],
+   "lap5_over_lap1": 0.9298026044541199
+  }
+ },
+ "scorer_gate_S_E6": {
+  "tolerance_m": 1e-09,
+  "checks": [
+   {
+    "track": "(i) surveyed | FGO live",
+    "stored": 0.019636383277940234,
+    "source": "eval/results/expT/T_A_r2.json expT FGO live rmse",
+    "e6": 0.019636383277940234,
+    "abs_diff": 0.0
+   },
+   {
+    "track": "(i) surveyed | FGO hindsight",
+    "stored": 0.010702601066656183,
+    "source": "eval/results/expT/T_A_r2.json expT FGO batch rmse",
+    "e6": 0.010702601066656183,
+    "abs_diff": 0.0
+   },
+   {
+    "track": "(i) surveyed | UKF live",
+    "stored": 0.03623310988687988,
+    "source": "eval/results/expT/T_A_r2.json expT UKF live rmse",
+    "e6": 0.03623310988687988,
+    "abs_diff": 0.0
+   },
+   {
+    "track": "(i) surveyed | UKF hindsight",
+    "stored": 0.014076182057755937,
+    "source": "eval/results/expT/T_A_r2.json expT RTS-UKF rmse",
+    "e6": 0.014076182057755937,
+    "abs_diff": 0.0
+   },
+   {
+    "track": "(iv) no map, LC online | FGO live",
+    "stored": 0.04939853992068112,
+    "source": "eval/results/expL/T_A_r2_t245.json lc live (rmse, max, per-lap)",
+    "e6": 0.04939853992068113,
+    "abs_diff": 5.551115123125783e-17
+   },
+   {
+    "track": "(iv) no map, LC online | FGO hindsight",
+    "stored": 0.02703920011976061,
+    "source": "eval/results/expL/T_A_r2_t245.json lc hindsight (rmse, max, per-lap)",
+    "e6": 0.02703920011976061,
+    "abs_diff": 1.249000902703301e-16
+   },
+   {
+    "track": "(iv) no map, LC online | UKF live",
+    "stored": 0.09109089405234543,
+    "source": "docs/thesis/tier1/scores/e5_T_A_r2.json lc live (rmse, max, per-lap)",
+    "e6": 0.09109089405234543,
+    "abs_diff": 5.551115123125783e-17
+   },
+   {
+    "track": "(iv) no map, LC online | UKF hindsight",
+    "stored": 0.04612799860150639,
+    "source": "docs/thesis/tier1/scores/e5_T_A_r2.json lc hindsight (rmse, max, per-lap)",
+    "e6": 0.04612799860150639,
+    "abs_diff": 1.3877787807814457e-16
+   },
+   {
+    "track": "window vs expT window_s",
+    "abs_diff": 0.0
+   }
+  ],
+  "pass": true
+ }
+}
