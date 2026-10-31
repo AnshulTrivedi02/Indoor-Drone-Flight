@@ -114,8 +114,12 @@ scored unrounded.
   P1, P3 (FGO) and P3 (UKF) are identical (no, yes, yes).
   Where the FGO map was the better map (r2, r3), both estimators flew better on it. On r1b the two maps were within
   0.0007 m of each other and the FGO map was slightly worse, and so were the live errors (P3 FAIL for both).
-- **In short:** "map once, fly again" works as a replacement for surveying in the sense of beating no map (P4), but not
-  as a like-for-like replacement for a surveyed map (P2). The pre-registered expectation that the FGO's map is
+- **Hindsight is different (descriptive, no verdict).** The FGO that estimates its own map online (arm (iv), iSAM2
+  hindsight, 0.0172–0.0270 m) beat the FGO whole-flight batch on either fixed estimated map (0.0287–0.0453 m) on
+  3/3 flights. The UKF did not show this: arm (iv) RTS gives 0.0445–0.0552 m, against 0.0262–0.0424 m on the FGO
+  map. The P4 confound (different estimators in arm (iv)) applies here too.
+- **In short, for the live tracks:** "map once, fly again" works as a replacement for surveying in the sense of
+  beating no map (P4), but not as a like-for-like replacement for a surveyed map (P2). The pre-registered expectation that the FGO's map is
   consistently the better one (P1, P3) did not hold on all three flights.
 
 ## 5. Limitations
@@ -165,3 +169,4 @@ scored unrounded.
 | after 2b (FGO replays) (2026-11-01 01:08 AEDT) | **IDENTICAL**, 13,253 files | `frozen_manifest_20261022T002851_verify_e6_stage2b_post_20261101T010819.json` |
 | after scoring and verdicts (2026-11-01 01:10 AEDT) | **IDENTICAL**, 13,253 files | `frozen_manifest_20261022T002851_verify_e6_stage2c_scoring_post_20261101T010959.json` |
 | after the results write-up (2026-11-01 01:13 AEDT) | **IDENTICAL**, 13,253 files | `frozen_manifest_20261022T002851_verify_e6_stage2d_docs_post_20261101T011235.json` |
+| after the final cross-check revision (2026-11-01 01:15 AEDT) | **IDENTICAL**, 13,253 files | `frozen_manifest_20261022T002851_verify_e6_stage2e_final_post_20261101T011531.json` |

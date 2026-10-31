@@ -83,8 +83,12 @@ scored unrounded.
   P1, P3 (FGO) and P3 (UKF) are identical (no, yes, yes).
   Where the FGO map was the better map (r2, r3), both estimators flew better on it. On r1b the two maps were within
   {r1b_diff} of each other and the FGO map was slightly worse, and so were the live errors (P3 FAIL for both).
-- **In short:** "map once, fly again" works as a replacement for surveying in the sense of beating no map (P4), but not
-  as a like-for-like replacement for a surveyed map (P2). The pre-registered expectation that the FGO's map is
+- **Hindsight is different (descriptive, no verdict).** The FGO that estimates its own map online (arm (iv), iSAM2
+  hindsight, {hs_fgo_iv}) beat the FGO whole-flight batch on either fixed estimated map ({hs_fgo_maps}) on
+  {n_hs_fgo}/3 flights. The UKF did not show this: arm (iv) RTS gives {hs_ukf_iv}, against {hs_ukf_fmap} on the FGO
+  map. The P4 confound (different estimators in arm (iv)) applies here too.
+- **In short, for the live tracks:** "map once, fly again" works as a replacement for surveying in the sense of
+  beating no map (P4), but not as a like-for-like replacement for a surveyed map (P2). The pre-registered expectation that the FGO's map is
   consistently the better one (P1, P3) did not hold on all three flights.
 
 ## 5. Limitations

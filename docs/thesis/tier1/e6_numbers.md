@@ -13,11 +13,12 @@ m at 4 dp, angles in °, times in s (wall times DIAGNOSTIC).
 | verify, after Stage 1b (gates) | 2026-10-31 22:31 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1b_post_20261031T223114.json` |
 | verify, after Stage 1c (verification flight) | 2026-10-31 22:38 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1c_post_20261031T2238.json` |
 | verify, after Stage 1d/1e (mapping flights, map replays) | 2026-10-31 23:10 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1e_post_20261031T2310.json` |
-| verify, before Stage 2 | 2026-10-31 23:14 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2_pre_20261031T231449.json` |
+| verify, before Stage 2 | 2026-10-31 23:15 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2_pre_20261031T231449.json` |
 | verify, after Stage 2a (UKF replays) | 2026-10-31 23:25 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2a_post_20261031T232514.json` |
 | verify, after Stage 2b (FGO replays) | 2026-11-01 01:08 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2b_post_20261101T010819.json` |
-| verify, after scoring and verdicts | 2026-11-01 01:09 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2c_scoring_post_20261101T010959.json` |
-| verify, after the Stage 2 write-up | 2026-11-01 01:12 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2d_docs_post_20261101T011235.json` |
+| verify, after scoring and verdicts | 2026-11-01 01:10 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2c_scoring_post_20261101T010959.json` |
+| verify, after the Stage 2 write-up | 2026-11-01 01:13 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2d_docs_post_20261101T011235.json` |
+| verify, after the final cross-check revision | 2026-11-01 01:15 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2e_final_post_20261101T011531.json` |
 
 ## §Gates
 

@@ -1,0 +1,11 @@
+{
+ "manifest": "/home/makerspace/thesis_ws/.claude/worktrees/agent-afa2971452f4e8507/docs/thesis/tier1/frozen_manifest_20261022T002851.json",
+ "verified_local": "2026-11-01T01:15:58+1100",
+ "changed": [],
+ "missing": [],
+ "added": [],
+ "errors": [],
+ "unmatched_specs_now": [],
+ "n_files_checked": 13253,
+ "verdict": "IDENTICAL"
+}

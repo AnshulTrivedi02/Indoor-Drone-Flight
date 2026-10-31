@@ -33,7 +33,10 @@ def values():
         "r_fgo": rng(ratio("FGO", A[1], A[0]), 2, ""), "r_ukf": rng(ratio("UKF", A[1], A[0]), 2, ""),
         "hs_fgo_map": rng(F(A[1], "FGO", "hindsight")), "hs_fgo_i": rng(F(A[0], "FGO", "hindsight")),
         "r1b_diff": f"{rd(abs(m[0]['fgo_map_pos_rms_m'] - m[0]['ukf_map_pos_rms_m']))} m",
-        "batch": rng(bs, 1, " s"), "ukf_i": rng(F(A[0], "UKF", "live")),
+        "batch": rng(bs, 1, " s"),
+        "hs_fgo_iv": rng(F(A[3], "FGO", "hindsight")), "hs_fgo_maps": rng(F(A[1], "FGO", "hindsight") + F(A[2], "FGO", "hindsight")),
+        "n_hs_fgo": sum(T.tr(k, A[3], "FGO", "hindsight")["rmse_m"] < min(T.tr(k, A[1], "FGO", "hindsight")["rmse_m"], T.tr(k, A[2], "FGO", "hindsight")["rmse_m"]) for k in (1, 2, 3)),
+        "hs_ukf_iv": rng(F(A[3], "UKF", "hindsight")), "hs_ukf_fmap": rng(F(A[1], "UKF", "hindsight")), "ukf_i": rng(F(A[0], "UKF", "live")),
     }
     return v
 
@@ -42,7 +45,8 @@ def guard_rows():
     rows = []
     for lab, pat in (("before Stage 2", "stage2_pre"), ("after 2a (UKF replays)", "stage2a_post"),
                      ("after 2b (FGO replays)", "stage2b_post"), ("after scoring and verdicts", "stage2c_scoring_post"),
-                     ("after the results write-up", "stage2d_docs_post")):
+                     ("after the results write-up", "stage2d_docs_post"),
+                     ("after the final cross-check revision", "stage2e_final_post")):
         p = sorted(glob.glob(os.path.join(T1D, f"frozen_manifest_20261022T002851_verify_e6_{pat}_*.json")))
         if not p:
             continue
