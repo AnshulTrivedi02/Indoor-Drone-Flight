@@ -2,45 +2,29 @@
  "figs": {
   "1A_truth": {
    "file": "docs/thesis/summary/flights/fl_1A_truth.png",
-   "title": "Where the drone really flew: all 9 flights (simulator truth)",
+   "title": "All 9 flights flew the same straight line up the corridor (simulator truth)",
    "inputs": "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)",
    "numbers": [
     "9",
     "1.0",
     "0"
-   ]
-  },
-  "1A_aligned_paths": {
-   "file": "docs/thesis/summary/flights/fl_1A_aligned_paths.png",
-   "title": "",
-   "inputs": "TUMs of dsn_tex_r1..r9 ({ekf3,ukf,fgo}/*.tum); windows and cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json",
-   "numbers": [
-    "9",
-    "3.0",
-    "4.10",
-    "5.13",
-    "4.46"
-   ]
-  },
-  "1A_aligned_err": {
-   "file": "docs/thesis/summary/flights/fl_1A_aligned_err.png",
-   "title": "",
-   "inputs": "as 1A_aligned_paths",
-   "numbers": [
-    "9",
-    "4.10",
-    "5.13",
-    "4.46"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "1A_unaligned_paths": {
    "file": "docs/thesis/summary/flights/fl_1A_unaligned_paths.png",
    "title": "",
-   "inputs": "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py)",
+   "inputs": "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py); cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json",
    "numbers": [
     "9",
-    "1.0"
-   ]
+    "1.0",
+    "4.10",
+    "5.13",
+    "4.46"
+   ],
+   "tag": "raw, nothing fitted (paths)",
+   "key": false
   },
   "1A_unaligned_err": {
    "file": "docs/thesis/summary/flights/fl_1A_unaligned_err.png",
@@ -49,7 +33,9 @@
    "numbers": [
     "9",
     "0"
-   ]
+   ],
+   "tag": "raw, nothing fitted",
+   "key": false
   },
   "1B_truth": {
    "file": "docs/thesis/summary/flights/fl_1B_truth.png",
@@ -59,47 +45,9 @@
     "3",
     "1.0",
     "0"
-   ]
-  },
-  "1B_aligned_paths": {
-   "file": "docs/thesis/summary/flights/fl_1B_aligned_paths.png",
-   "title": "",
-   "inputs": "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); phase4_fwdc_evo.json",
-   "numbers": [
-    "3",
-    "3.0"
-   ]
-  },
-  "1B_err_noheading": {
-   "file": "docs/thesis/summary/flights/fl_1B_err_noheading.png",
-   "title": "",
-   "inputs": "as 1B_aligned_paths",
-   "numbers": [
-    "3",
-    "4.09 / 3.60 / 4.08",
-    "4.96 / 1.78 / 4.96",
-    "4.47 / 2.26 / 4.54"
-   ]
-  },
-  "1B_err_heading": {
-   "file": "docs/thesis/summary/flights/fl_1B_err_heading.png",
-   "title": "",
-   "inputs": "as 1B_aligned_paths",
-   "numbers": [
-    "3",
-    "30",
-    "0.13 / 0.13 / 0.14",
-    "0.06 / 0.06 / 0.06"
-   ]
-  },
-  "1B_unaligned_paths": {
-   "file": "docs/thesis/summary/flights/fl_1B_unaligned_paths.png",
-   "title": "",
-   "inputs": "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py); windows phase4_fwdc_evo.json",
-   "numbers": [
-    "3",
-    "1.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "1B_unaligned_err_noheading": {
    "file": "docs/thesis/summary/flights/fl_1B_unaligned_err_noheading.png",
@@ -108,7 +56,9 @@
    "numbers": [
     "3",
     "0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "1B_unaligned_err_heading": {
    "file": "docs/thesis/summary/flights/fl_1B_unaligned_err_heading.png",
@@ -117,21 +67,57 @@
    "numbers": [
     "3",
     "0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "1C_paths": {
    "file": "docs/thesis/summary/flights/fl_1C_paths.png",
    "title": "",
-   "inputs": "dataflash SIM of the 12 closed-loop flights; contact and B2 from eval/results/closed_loop_<trial>.json",
+   "inputs": "dataflash SIM of the 12 closed-loop flights; contact and B2 from eval/results/closed_loop_<trial>.json; verdicts: index_summary.md pages 05, 06",
    "numbers": [
-    "12",
-    "3.0",
-    "10",
+    "1",
+    "3",
     "9.58",
+    "10",
     "+242.1",
     "+165.9",
-    "+169.9"
-   ]
+    "+169.9",
+    "155",
+    "215",
+    "146",
+    "218",
+    "145",
+    "196"
+   ],
+   "tag": "raw: the drone's true path, nothing fitted",
+   "key": false
+  },
+  "1B_unaligned_paths": {
+   "file": "docs/thesis/summary/flights/fl_1B_unaligned_paths.png",
+   "title": "",
+   "inputs": "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, \u2212y) for the UKF/FGO (eval/figs_thesis_drift.py); windows and cruise ATEs phase4_fwdc_evo.json; closed-loop panel: dataflash XKF1 (core 0) and SIM of cl_bcpp_tex_r1..r3_half, cruise window closed_loop_<trial>.json mapped to SITL time by the rebuilt clock map",
+   "numbers": [
+    "3",
+    "1.0",
+    "3.60",
+    "4.09",
+    "1.78",
+    "4.96",
+    "2.26",
+    "4.54",
+    "0.13",
+    "0.14",
+    "0.06",
+    "0.06",
+    "37.30",
+    "47.71",
+    "43.39",
+    "0.54",
+    "0.38"
+   ],
+   "tag": "raw, nothing fitted (paths)",
+   "key": false
   },
   "1C_head_off": {
    "file": "docs/thesis/summary/flights/fl_1C_head_off.png",
@@ -142,7 +128,9 @@
     "+242.1",
     "+165.9",
     "+169.9"
-   ]
+   ],
+   "tag": "raw heading error, nothing fitted",
+   "key": false
   },
   "1C_head_on": {
    "file": "docs/thesis/summary/flights/fl_1C_head_on.png",
@@ -154,9 +142,11 @@
     "1.0",
     "95",
     "9",
-    "0.38",
-    "0.68"
-   ]
+    "0.68",
+    "0.38"
+   ],
+   "tag": "raw heading error, nothing fitted",
+   "key": false
   },
   "1C_side_off": {
    "file": "docs/thesis/summary/flights/fl_1C_side_off.png",
@@ -170,7 +160,9 @@
     "+242.1",
     "+165.9",
     "+169.9"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "1C_side_on": {
    "file": "docs/thesis/summary/flights/fl_1C_side_on.png",
@@ -181,11 +173,13 @@
     "20",
     "0.39",
     "6.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "2_truth": {
    "file": "docs/thesis/summary/flights/fl_2_truth.png",
-   "title": "Where the drone really flew: 5 laps of the 6 m square, all 12 flights (simulator truth)",
+   "title": "All 12 flights flew the same 5 laps of the 6 m square (simulator truth)",
    "inputs": "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}",
    "numbers": [
     "5",
@@ -197,7 +191,9 @@
     "1",
     "3",
     "1.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "3_truth": {
    "file": "docs/thesis/summary/flights/fl_3_truth.png",
@@ -210,7 +206,24 @@
     "1.0",
     "5",
     "6"
-   ]
+   ],
+   "tag": null,
+   "key": false
+  },
+  "E3_maps": {
+   "file": "docs/thesis/summary/flights/fl_E3_maps.png",
+   "title": "",
+   "inputs": "bag /ground_truth/pose of T_A_r1..r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the four runs, sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json, E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json",
+   "numbers": [
+    "1",
+    "2",
+    "3",
+    "5",
+    "8",
+    "0"
+   ],
+   "tag": "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)",
+   "key": false
   },
   "5_truth": {
    "file": "docs/thesis/summary/flights/fl_5_truth.png",
@@ -221,7 +234,9 @@
     "12",
     "3",
     "1.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "5S_truth": {
    "file": "docs/thesis/summary/flights/fl_5S_truth.png",
@@ -230,7 +245,9 @@
    "numbers": [
     "4",
     "1.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "4_err_live": {
    "file": "docs/thesis/summary/flights/fl_4_err_live.png",
@@ -242,7 +259,9 @@
     "1.42\u20131.43",
     "0.77\u20130.84",
     "0.83\u20130.89"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "4_err_hind": {
    "file": "docs/thesis/summary/flights/fl_4_err_hind.png",
@@ -252,21 +271,32 @@
     "3",
     "0.58\u20130.60",
     "0.59\u20130.59"
-   ]
+   ],
+   "tag": null,
+   "key": false
   },
   "4_err": {
    "file": "docs/thesis/summary/flights/fl_4_err.png",
    "title": "",
-   "inputs": "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure)",
+   "inputs": "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure); verdicts index_summary.md page 09",
    "numbers": [
     "3",
+    "1.5",
     "123",
-    "1.42\u20131.43",
-    "0.77\u20130.84",
-    "0.83\u20130.89",
-    "0.58\u20130.60",
-    "0.59\u20130.59"
-   ]
+    "4.10",
+    "1.42",
+    "1.43",
+    "0.77",
+    "0.84",
+    "0.58",
+    "0.60",
+    "0.83",
+    "0.89",
+    "0.59",
+    "0.59"
+   ],
+   "tag": "raw, nothing fitted",
+   "key": false
   },
   "4_truth": {
    "file": "docs/thesis/summary/flights/fl_4_truth.png",
@@ -275,7 +305,9 @@
    "numbers": [
     "3",
     "1.0"
-   ]
+   ],
+   "tag": null,
+   "key": false
   }
  },
  "checks": [
@@ -320,19 +352,51 @@
    "ok": true
   },
   {
-   "fig": "1A_aligned_paths",
-   "label": "sideways (East) stretch printed on the figure vs drawn axes geometry",
-   "computed": "3.0",
-   "expected": "3.0",
-   "src": "set_aspect(1/3)",
-   "ok": true
-  },
-  {
    "fig": "1A_unaligned_paths",
    "label": "equal scale (measured stretch)",
    "computed": "1.0",
    "expected": "1.0",
    "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "x-axis symmetric about 0 (left and right limits, m)",
+   "computed": "60.486513",
+   "expected": "60.486513",
+   "src": "set_xlim(-LIM1, LIM1)",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "EKF3 registered cruise ATE, median of 9 flights (m), printed in the table",
+   "computed": "4.10",
+   "expected": "4.10",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "UKF registered cruise ATE, median of 9 flights (m), printed in the table",
+   "computed": "5.13",
+   "expected": "5.13",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "FGO registered cruise ATE, median of 9 flights (m), printed in the table",
+   "computed": "4.46",
+   "expected": "4.46",
+   "src": "docs/thesis/numbers.md:236",
+   "ok": true
+  },
+  {
+   "fig": "1A_unaligned_paths",
+   "label": "ranking verdict printed: NOT MET (summary page 01 Result)",
+   "computed": "NOT MET",
+   "expected": "NOT MET",
+   "src": "docs/thesis/summary/index_summary.md page 01 Result ('NOT MET: on the further flights ...')",
    "ok": true
   },
   {
@@ -392,38 +456,6 @@
    "ok": true
   },
   {
-   "fig": "1B_aligned_paths",
-   "label": "sideways (East) stretch printed on the figure vs drawn axes geometry",
-   "computed": "3.0",
-   "expected": "3.0",
-   "src": "set_aspect(1/3)",
-   "ok": true
-  },
-  {
-   "fig": "1B_err_heading",
-   "label": "'about 30 times finer': y-range ratio between the two pages (largest no-heading error / largest with-heading error, rounded to 10)",
-   "computed": "30",
-   "expected": "30",
-   "src": "the plotted curves (this script)",
-   "ok": true
-  },
-  {
-   "fig": "1B_unaligned_paths",
-   "label": "equal scale (measured stretch)",
-   "computed": "1.0",
-   "expected": "1.0",
-   "src": "set_aspect(1.0)",
-   "ok": true
-  },
-  {
-   "fig": "1B_unaligned_paths",
-   "label": "flights shown (textured-wall camera dataset, textured floor)",
-   "computed": "3",
-   "expected": "3",
-   "src": "docs/thesis/numbers.md:269",
-   "ok": true
-  },
-  {
    "fig": "1B_unaligned_err_heading",
    "label": "largest with-heading not-fitted error over the 3 flights and both arms (m, 2 dp), printed in the walkthrough text",
    "computed": "0.54",
@@ -473,10 +505,82 @@
   },
   {
    "fig": "1C_paths",
-   "label": "sideways (East) stretch printed vs drawn axes geometry",
-   "computed": "3.0",
-   "expected": "3.0",
-   "src": "set_aspect(1/3)",
+   "label": "EKF3: wall contact (s after cruise start) and verdict against its window, printed at the X",
+   "computed": "+242.1 MISS",
+   "expected": "+242.1 MISS",
+   "src": "docs/thesis/summary/index_summary.md page 05 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "EKF3: registered contact window printed (s)",
+   "computed": "155 to 215",
+   "expected": "155 to 215",
+   "src": "docs/thesis/numbers.md:470",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "EKF3: with-heading flights passing all five checks (recounted from the stored B.pass flags), printed",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "eval/results/closed_loop_<trial>.json B.pass; index_summary.md page 06 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "UKF: wall contact (s after cruise start) and verdict against its window, printed at the X",
+   "computed": "+165.9 PASS",
+   "expected": "+165.9 PASS",
+   "src": "docs/thesis/summary/index_summary.md page 05 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "UKF: registered contact window printed (s)",
+   "computed": "146 to 218",
+   "expected": "146 to 218",
+   "src": "docs/thesis/numbers.md:471",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "UKF: with-heading flights passing all five checks (recounted from the stored B.pass flags), printed",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "eval/results/closed_loop_<trial>.json B.pass; index_summary.md page 06 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "FGO: wall contact (s after cruise start) and verdict against its window, printed at the X",
+   "computed": "+169.9 PASS",
+   "expected": "+169.9 PASS",
+   "src": "docs/thesis/summary/index_summary.md page 05 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "FGO: registered contact window printed (s)",
+   "computed": "145 to 196",
+   "expected": "145 to 196",
+   "src": "docs/thesis/numbers.md:472",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "FGO: with-heading flights passing all five checks (recounted from the stored B.pass flags), printed",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "eval/results/closed_loop_<trial>.json B.pass; index_summary.md page 06 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_paths",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
    "ok": true
   },
   {
@@ -485,6 +589,158 @@
    "computed": "10 / 9.58",
    "expected": "10 / 9.58",
    "src": "eval/figs_thesis.py F2 (walls \u00b110 m; 9.58 m contact threshold)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "x-axis symmetric about 0 (left and right limits, m)",
+   "computed": "49.279976",
+   "expected": "49.279976",
+   "src": "set_xlim(-LIMB, LIMB)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "flights shown (textured-wall camera dataset, textured floor)",
+   "computed": "3",
+   "expected": "3",
+   "src": "docs/thesis/numbers.md:269",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "closed-loop EKF3 with-heading flights shown",
+   "computed": "3",
+   "expected": "3",
+   "src": "eval/figs_thesis.py HALF (cl_bcpp_tex_r1..r3_half)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "EKF3: registered cruise ATE, lowest\u2013highest over the 3 flights (m), printed in the table",
+   "computed": "3.60\u20134.09",
+   "expected": "3.60\u20134.09",
+   "src": "docs/thesis/summary/index_summary.md page 04 check row",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "EKF3: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+   "computed": "37.30",
+   "expected": "37.30",
+   "src": "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "UKF_baseline: registered cruise ATE, lowest\u2013highest over the 3 flights (m), printed in the table",
+   "computed": "1.78\u20134.96",
+   "expected": "1.78\u20134.96",
+   "src": "docs/thesis/summary/index_summary.md page 04 check row",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "UKF_baseline: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+   "computed": "47.71",
+   "expected": "47.71",
+   "src": "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "FGO_baseline: registered cruise ATE, lowest\u2013highest over the 3 flights (m), printed in the table",
+   "computed": "2.26\u20134.54",
+   "expected": "2.26\u20134.54",
+   "src": "docs/thesis/summary/index_summary.md page 04 check row",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "FGO_baseline: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+   "computed": "43.39",
+   "expected": "43.39",
+   "src": "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "UKF_heading: registered cruise ATE, lowest\u2013highest over the 3 flights (m), printed in the table",
+   "computed": "0.13\u20130.14",
+   "expected": "0.13\u20130.14",
+   "src": "docs/thesis/summary/index_summary.md page 04 check row",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "UKF_heading: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+   "computed": "0.54",
+   "expected": "0.54",
+   "src": "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "FGO_heading: registered cruise ATE, lowest\u2013highest over the 3 flights (m), printed in the table",
+   "computed": "0.06\u20130.06",
+   "expected": "0.06\u20130.06",
+   "src": "docs/thesis/summary/index_summary.md page 04 check row",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "FGO_heading: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+   "computed": "0.38",
+   "expected": "0.38",
+   "src": "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "largest with-heading raw error over UKF and FGO equals the 0.54 m of the 2026-10-29 walkthrough (D63)",
+   "computed": "0.54",
+   "expected": "0.54",
+   "src": "this script, UBH (data-identity row 1B_unaligned)",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "EKF3 has no offline heading arm (table text)",
+   "computed": "no offline heading arm",
+   "expected": "no offline heading arm",
+   "src": "docs/thesis/summary/index_summary.md page 04",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned_paths",
+   "label": "equal scale (measured stretch)",
+   "computed": "1.0",
+   "expected": "1.0",
+   "src": "set_aspect(1.0)",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_off",
+   "label": "EKF3: wall contact and verdict printed at the X (same string as 1C_paths)",
+   "computed": "+242.1 MISS",
+   "expected": "+242.1 MISS",
+   "src": "index_summary.md page 05 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_off",
+   "label": "UKF: wall contact and verdict printed at the X (same string as 1C_paths)",
+   "computed": "+165.9 PASS",
+   "expected": "+165.9 PASS",
+   "src": "index_summary.md page 05 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_off",
+   "label": "FGO: wall contact and verdict printed at the X (same string as 1C_paths)",
+   "computed": "+169.9 PASS",
+   "expected": "+169.9 PASS",
+   "src": "index_summary.md page 05 check row",
    "ok": true
   },
   {
@@ -509,6 +765,30 @@
    "computed": "95 / 9",
    "expected": "95 / 9",
    "src": "B3 definition (p95); 3 estimators x 3 flights",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "EKF3: flights passing all five checks, printed per panel",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "index_summary.md page 06 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "UKF: flights passing all five checks, printed per panel",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "index_summary.md page 06 check row",
+   "ok": true
+  },
+  {
+   "fig": "1C_head_on",
+   "label": "FGO: flights passing all five checks, printed per panel",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "index_summary.md page 06 check row",
    "ok": true
   },
   {
@@ -573,6 +853,46 @@
    "computed": "T_A_r1, T_A_r2, T_A_r3",
    "expected": "T_A_r1, T_A_r2, T_A_r3",
    "src": "eval/figs_thesis.py LL (expL/T_A_r{1,2,3}_t245.json)",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245: final landmarks drawn = true tags",
+   "computed": "8 / 8",
+   "expected": "8 / 8",
+   "src": "stats.json landmarks_final; room_tags_map.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_s0: final landmarks drawn = true tags",
+   "computed": "8 / 8",
+   "expected": "8 / 8",
+   "src": "stats.json landmarks_final; room_tags_map.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s0: final landmarks drawn = true tags",
+   "computed": "8 / 8",
+   "expected": "8 / 8",
+   "src": "stats.json landmarks_final; room_tags_map.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385: final landmarks drawn = true tags",
+   "computed": "8 / 8",
+   "expected": "8 / 8",
+   "src": "stats.json landmarks_final; room_tags_map.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "runs shown: one clean reference + the three of the 2026-10-29 appendix",
+   "computed": "4",
+   "expected": "4",
+   "src": "user TASK 4; docs/thesis/tier1/stage2e/diag_collapse/figs.py maps",
    "ok": true
   },
   {
@@ -657,6 +977,38 @@
   },
   {
    "fig": "4_err",
+   "label": "EKF3 reset jump on return (m), every flight, printed",
+   "computed": "4.10\u20134.10",
+   "expected": "4.10\u20134.10",
+   "src": "eval/figs_thesis.py F6 check ('numbers.md \u00a716.2: 4.10 m, every flight')",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "primary: FGO hindsight below EKF3 and UKF live, flights of 3 (printed on the FGO hindsight panel)",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "index_summary.md page 09 check row",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "live errors similar: verdict (FAIL in the check row, printed as the Result's 'NOT MET')",
+   "computed": "FAIL",
+   "expected": "FAIL",
+   "src": "index_summary.md page 09",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "hindsight errors similar: verdict",
+   "computed": "PASS",
+   "expected": "PASS",
+   "src": "index_summary.md page 09",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
    "label": "all six panels share one y-scale (sharey)",
    "computed": "True",
    "expected": "True",
@@ -669,6 +1021,46 @@
    "computed": "4.31",
    "expected": "4.31",
    "src": "this script (ymax of 4_err_live / 4_err_hind)",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "EKF3 live: indoor RMSE range printed on its panel (m)",
+   "computed": "1.42\u20131.43",
+   "expected": "1.42\u20131.43",
+   "src": "index_summary.md page 09 check row",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "UKF live: indoor RMSE range printed on its panel (m)",
+   "computed": "0.77\u20130.84",
+   "expected": "0.77\u20130.84",
+   "src": "index_summary.md page 09 check row",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "RTS-UKF (hindsight): indoor RMSE range printed on its panel (m)",
+   "computed": "0.58\u20130.60",
+   "expected": "0.58\u20130.60",
+   "src": "index_summary.md page 09 check row",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "FGO live: indoor RMSE range printed on its panel (m)",
+   "computed": "0.83\u20130.89",
+   "expected": "0.83\u20130.89",
+   "src": "index_summary.md page 09 check row",
+   "ok": true
+  },
+  {
+   "fig": "4_err",
+   "label": "FGO hindsight (whole-flight batch): indoor RMSE range printed on its panel (m)",
+   "computed": "0.59\u20130.59",
+   "expected": "0.59\u20130.59",
+   "src": "index_summary.md page 09 check row",
    "ok": true
   },
   {
@@ -1731,6 +2123,46 @@
   },
   {
    "fig": "1B_unaligned",
+   "label": "EKF3, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "37.301016",
+   "expected": "37.301016",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/ekf3 TUM + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "UKF_baseline, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "47.711481",
+   "expected": "47.711481",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline TUM + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "FGO_baseline, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "43.389878",
+   "expected": "43.389878",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/fgo_baseline TUM + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "UKF_heading, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.539828",
+   "expected": "0.539828",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_heading TUM + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
+   "label": "FGO_heading, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
+   "computed": "0.380252",
+   "expected": "0.380252",
+   "src": "~/thesis_data/trials/fwdc_tex_r1..r3/fgo_heading TUM + ground_truth.tum",
+   "ok": true
+  },
+  {
+   "fig": "1B_unaligned",
    "label": "WITH heading (UKF, FGO), all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation from the raw TUM rows (6 dp)",
    "computed": "0.539828",
    "expected": "0.539828",
@@ -1762,6 +2194,38 @@
    "ok": true
   },
   {
+   "fig": "1B_paths_cl",
+   "label": "cl_bcpp_tex_r1_half: PLOTTED truth, max |East| in the cruise vs stored B2 (|delta| <= 0.05 m, F2 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs eval/results/closed_loop_cl_bcpp_tex_r1_half.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "1B_paths_cl",
+   "label": "cl_bcpp_tex_r2_half: PLOTTED truth, max |East| in the cruise vs stored B2 (|delta| <= 0.05 m, F2 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs eval/results/closed_loop_cl_bcpp_tex_r2_half.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "1B_paths_cl",
+   "label": "cl_bcpp_tex_r3_half: PLOTTED truth, max |East| in the cruise vs stored B2 (|delta| <= 0.05 m, F2 rule)",
+   "computed": "ok",
+   "expected": "ok",
+   "src": "dataflash SIM vs eval/results/closed_loop_cl_bcpp_tex_r3_half.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "1B_paths_cl",
+   "label": "frame check of the closed-loop EKF3 panel (XKF1 core 0 vs SIM, take-off < 0.05 m, heading tolerance 10 deg)",
+   "computed": "3/3",
+   "expected": "3/3",
+   "src": "this script",
+   "ok": true
+  },
+  {
    "fig": "1C_head_off",
    "label": "plotted no-heading curves end within 0.1 s of the stored contact time, all 3 (F9 rule)",
    "computed": "ok",
@@ -1783,6 +2247,46 @@
    "computed": "ok",
    "expected": "ok",
    "src": "dataflash SIM vs closed_loop_*.json B.B2",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "true tag map in tag 0's frame (room_tags_map.json shifted) equals the E3 diagnosis's true_map_tag0_frame (6 dp)",
+   "computed": "True",
+   "expected": "True",
+   "src": "sim/worlds/room_tags_map.json vs ~/thesis_data/tier1/stage2e/diag_collapse/recon_T_A_r1_0.01_s0.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245 (T_A_r1): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+   "computed": "0.019789",
+   "expected": "0.019789",
+   "src": "eval/results/expL/T_A_r1_t245.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_s0 (T_A_r1): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+   "computed": "3.564831",
+   "expected": "3.564831",
+   "src": "docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s0 (T_A_r3): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+   "computed": "3.935001",
+   "expected": "3.935001",
+   "src": "docs/thesis/tier1/scores/E3a_T_A_r3_0.05_s0.json",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps",
+   "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385 (T_A_r2): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+   "computed": "4.223298",
+   "expected": "4.223298",
+   "src": "docs/thesis/tier1/scores/E3b_T_A_r2_0.05_s1.json",
    "ok": true
   },
   {
