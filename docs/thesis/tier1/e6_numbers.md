@@ -69,7 +69,7 @@ errors.{fgo,ukf}`):
   **FAIL**; the formal verdict is written by `eval/e6_verdicts.py` in Stage 2 (pre-registered there, D82).
 - **Descriptive, not diagnosed:** the yaw error has the same sign on every tag of a flight (+0.10…+0.30°) and the
   out-of-sample maps are worse than the in-sample T_A maps (FGO 0.0275–0.0455 m against 0.0152–0.0269 m; yaw RMS 0.16–0.27° against ≤ 0.08°; §1.4 of the
-  pre-registration). A common rotation of the map about tag 0 would show this signature. No verdict depends on the
+  pre-registration). No verdict depends on the
   cause and none is claimed (rule 4).
 
 ## §Results
@@ -78,4 +78,8 @@ errors.{fgo,ukf}`):
 
 ## §Deviations
 
-(none yet)
+| date | deviation | effect |
+|---|---|---|
+| 2026-10-31 22:50 | `eval/imu_gap_check.py E6M_fig8_r3 --write` was started while `E6M_fig8_r3` was still flying (a scripting slip). It is read-only on the bag and failed on the missing bag before writing anything; it was a light job run during a flight | none found: r3's own check after landing is "ok" (no gaps, no bunches); recorded in D83 |
+| 2026-10-31 22:51 | `E6M_fig8_r1` "unusable" by the pre-registered IMU gap rule; re-flown as `E6M_fig8_r1b` BEFORE any replay or map existed (no replay was ever run on `E6M_fig8_r1`) | pairing r1b → T_A_r1 (D83); the rule is §3.1, so this is the rule firing, not a choice |
+| 2026-10-31 | Flights under `tools/flight_lock.sh`, not inside `heavy.py` (D70); batch state under `~/thesis_data/tier1/e6/batches` (D79); these are pre-registered in §8 and differ only from the coordinator brief's literal wording | none |
