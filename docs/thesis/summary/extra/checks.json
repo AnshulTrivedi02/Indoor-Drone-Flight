@@ -2,7 +2,7 @@
  "figs": {
   "5_hold_drift": {
    "file": "docs/thesis/summary/extra/ex_5_hold_drift.png",
-   "inputs": "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s1_r1..r3,s2v2_r1..r3,s3v2_r1..r3}.json, eval/results/expH/h_comparative_2026-10-11.json",
+   "inputs": "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s1_r1..r3,s2v2_r1..r3,s3v2_r1..r3}.json, eval/results/expH/h_comparative_2026-10-11.json; verdicts index_summary.md pages 10 and 11",
    "numbers": [
     "12",
     "24",
@@ -10,7 +10,6 @@
     "27",
     "3",
     "31",
-    "5",
     "50",
     "6.4",
     "7.1",
@@ -33,19 +32,28 @@
     "tightest limit: 50 mm",
     "Holding still: mean hold error per flight\n(bar = highest of 3 flights; label = lowest\u2013highest)",
     "Tag hidden: worst drift over all tag losses\n(bar = the worst loss)",
-    "Experiment 5: holding next to a wall tag (left), drift while the tag is hidden (right)"
-   ]
+    "PASS*",
+    "PASS",
+    "inside,\nno recorded\nverdict",
+    "PASS",
+    "PASS",
+    "PASS",
+    "* registered on EKF3's first hold flights",
+    "All three estimators held the drone well inside the 50 mm limits, at rest and with the tag hidden",
+    "raw: the drone's real position, nothing fitted"
+   ],
+   "tag": "raw: the drone's real position, nothing fitted",
+   "key": false
   },
   "E4_tradeoff": {
    "file": "docs/thesis/summary/extra/ex_E4_tradeoff.png",
    "inputs": "docs/thesis/tier1/scores/E4_verdicts.json (P-E4.1 medians after the anchor, P-E4.2, H-E4.3); docs/thesis/tier1/scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse",
    "numbers": [
-    "0",
-    "0.0003",
     "0.0043",
     "0.25",
     "0.5",
     "1",
+    "10",
     "100.05",
     "107.12",
     "12",
@@ -60,6 +68,8 @@
     "303.36",
     "33",
     "4",
+    "4.1",
+    "4.2",
     "4.3",
     "5",
     "50.47",
@@ -92,10 +102,267 @@
     "Live error: one line per flight (12 lines)",
     "FGO window (s), windows not to scale",
     "FGO window (s), windows not to scale",
-    "Extension E4: a longer FGO window costs far more compute and does not improve live accuracy",
-    "Filled squares: live (fixed-lag) estimates. NOT FITTED: room frame, no alignment. Both y-axes linear, from 0.",
-    "A 5 s window costs 19 to 20 times the compute of the 0.25 s window (median step per flight) and does not improve live\naccuracy: lower at 5 s on 7 of 12 flights (by at most 0.0043 m), higher on the other 5 (by at most 0.0003 m); H-E4.3\nFAIL (not met). From the 1 s window on, every flight is over the 33 ms budget."
-   ]
+    "P-E4.1 PASS (12 of 12):\nslower at every longer window",
+    "P-E4.2 PASS: within 33 ms\nat 0.25 s, over it from 1 s on",
+    "H-E4.3 FAIL: lower at 5 s on 7 of 12 flights",
+    "(10 of 12 needed; largest change 0.0043 m)",
+    "A 5 s FGO window took 19 to 20 times the compute of 0.25 s and did not improve live accuracy (H-E4.3 FAIL)",
+    "compute time measured; live error raw, nothing fitted",
+    "filled = live (during flight)"
+   ],
+   "tag": "compute time measured; live error raw, nothing fitted",
+   "key": false
+  },
+  "2_known_tags": {
+   "file": "docs/thesis/summary/extra/ex_2_known_tags.png",
+   "inputs": "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
+   "numbers": [
+    "0.01",
+    "0.010",
+    "0.011",
+    "0.023",
+    "0.03",
+    "0.052",
+    "1",
+    "1.5",
+    "10.1",
+    "2",
+    "22.0",
+    "3",
+    "4",
+    "4.3",
+    "46.3",
+    "8"
+   ],
+   "text": [
+    "EKF3, live",
+    "UKF, live",
+    "FGO, live",
+    "UKF, re-solved after landing",
+    "FGO, whole flight re-solved",
+    "8 tags\n(fix every 4.3 s)",
+    "4 tags\n(fix every 10.1 s)",
+    "2 tags\n(fix every 22.0 s)",
+    "1 tag\n(fix every 46.3 s)",
+    "Primary: the FGO's gain from re-solving (0.010, 0.011, 0.023, 0.052 m) grows as tags get fewer: PASS",
+    "Predicted: live errors within 1.5\u00d7 of each other: NOT MET (only with 2 tags)",
+    "small marks: each of the 3 flights; large marks joined by lines: their mean",
+    "With fewer tags every live error grows; the FGO re-solved after landing stays at 0.01 to 0.03 m",
+    "raw, against the room's known tag map, nothing fitted",
+    "filled = live (during flight), open = hindsight (after landing)"
+   ],
+   "tag": "raw, against the room's known tag map, nothing fitted",
+   "key": true
+  },
+  "3_loop_closure": {
+   "file": "docs/thesis/summary/extra/ex_3_loop_closure.png",
+   "inputs": "eval/results/expL/T_A_r{1,2,3}_t245.json (tracks.*.per_lap_rmse_m)",
+   "numbers": [
+    "0.16",
+    "0.43",
+    "1",
+    "1.5",
+    "2.9",
+    "3",
+    "4.5",
+    "5"
+   ],
+   "text": [
+    "FGO, with loop closure (tags recognised again): 3 flights",
+    "FGO, without loop closure: 3 flights",
+    "FGO, live",
+    "FGO, whole flight re-solved",
+    "FGO, live",
+    "FGO, whole flight re-solved",
+    "PASS on 3 of 3 flights:\nlap 5 \u00f7 lap 1 = 0.16 to 0.43\n(limit 1.5), and below the\nright panel, live and re-solved",
+    "PASS on 3 of 3 flights: grows 2.9 to 4.5 times\nover five laps (predicted: more than 1.5)",
+    "Recognising tags seen before keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps",
+    "raw, measured from the start tag, nothing fitted",
+    "filled = live (during flight), open = hindsight (after landing)"
+   ],
+   "tag": "raw, measured from the start tag, nothing fitted",
+   "key": true
+  },
+  "E2_fewer_tags": {
+   "file": "docs/thesis/summary/extra/ex_E2_fewer_tags.png",
+   "inputs": "docs/thesis/tier1/scores/E2_verdicts.json, E2_T_{B,C,D}_r{1,2,3}.json; eval/results/expL/T_A_r{1,2,3}_t245.json",
+   "numbers": [
+    "0.0190",
+    "0.0210",
+    "0.0238",
+    "0.0262",
+    "0.0294",
+    "0.0317",
+    "0.0492",
+    "0.0687",
+    "1",
+    "2",
+    "2.1",
+    "2.5",
+    "3",
+    "4",
+    "8"
+   ],
+   "text": [
+    "mean\n0.0317",
+    "live",
+    "mean\n0.0210",
+    "hindsight",
+    "mean\n0.0238",
+    "live",
+    "mean\n0.0190",
+    "hindsight",
+    "H-E2.1 PASS\n3 of 3 flights",
+    "mean\n0.0492",
+    "live",
+    "mean\n0.0262",
+    "hindsight",
+    "H-E2.1 PASS\n3 of 3 flights",
+    "mean\n0.0687",
+    "live",
+    "mean\n0.0294",
+    "hindsight",
+    "H-E2.1 PASS\n3 of 3 flights",
+    "Experiment 3\nflights (8 tags)",
+    "8 tags",
+    "4 tags",
+    "2 tags",
+    "1 tag",
+    "P-E2.5 (live mean does not fall as tags get fewer): FAIL, it fell from 8 to 4 tags",
+    "box: lowest to highest of 3 flights; black line: mean (no mean test registered for hindsight)",
+    "With 4, 2 and 1 tags the FGO's loop closure still bounded its error (H-E2.1 PASS); P-E2.5 FAIL",
+    "raw, measured from the start tag, nothing fitted",
+    "filled = live (during flight), open = hindsight (after landing)"
+   ],
+   "tag": "raw, measured from the start tag, nothing fitted",
+   "key": true
+  },
+  "E3_table": {
+   "file": "docs/thesis/summary/extra/ex_E3_table.png",
+   "inputs": "docs/thesis/tier1/scores/E3_verdicts.json (runs, references, criteria)",
+   "numbers": [
+    "0",
+    "0.0484",
+    "0.0496",
+    "0.0760",
+    "0.2625",
+    "0.3608",
+    "0.9776",
+    "1",
+    "1.10",
+    "1.4769",
+    "2",
+    "3",
+    "3.1",
+    "3.7161",
+    "3.8960",
+    "4.0395",
+    "4.1849",
+    "4.2231",
+    "5",
+    "6",
+    "9"
+   ],
+   "text": [
+    "condition",
+    "runs diverged",
+    "error of the finished runs,\nlowest to highest (m)",
+    "collapsed\n(descriptive)",
+    "without loop\nclosure (m),\nfor reference",
+    "1% wrong IDs, FGO as built (plain)",
+    "6 of 9",
+    "3.7161 to 3.8960",
+    "3 of 9",
+    "0.2625 to 0.3608",
+    "1% wrong IDs, robust FGO",
+    "0 of 9",
+    "0.0496 to 1.4769",
+    "0 of 9",
+    "0.2625 to 0.3608",
+    "5% wrong IDs, FGO as built (plain)",
+    "0 of 9",
+    "4.0395 to 4.2231",
+    "9 of 9",
+    "0.2625 to 0.3608",
+    "5% wrong IDs, robust FGO",
+    "0 of 9",
+    "0.9776 to 4.1849",
+    "1 of 9",
+    "0.2625 to 0.3608",
+    "no wrong IDs, robust FGO",
+    "0 of 3",
+    "0.0484 to 0.0760",
+    "0 of 3",
+    "0.2625 to 0.3608",
+    "H-E3.1 (primary): at 1% wrong IDs, the FGO as built below its error without loop closure in 9 of 9 runs: FAIL, 0 of 9",
+    "P-E3b.1: the robust FGO at most 1.10 \u00d7 the plain FGO in the same run: PASS, 9 of 9 at 1% and 9 of 9 at 5%",
+    "P-E3b.2: the robust FGO with no wrong IDs: PASS, 3 of 3",
+    "collapsed: the run finished with a wrong tag map (DESCRIPTIVE, not a registered measure; maps on the next page)",
+    "With 1% wrong tag IDs the FGO as built lost its loop-closure advantage (H-E3.1 FAIL); the robust FGO never diverged",
+    "raw, measured from the start tag, nothing fitted"
+   ],
+   "tag": "raw, measured from the start tag, nothing fitted",
+   "key": false
+  },
+  "E5_ukf_landmarks": {
+   "file": "docs/thesis/summary/extra/ex_E5_ukf_landmarks.png",
+   "inputs": "docs/thesis/tier1/scores/e5_verdicts.json, e5_T_A_r{1,2,3}.json",
+   "numbers": [
+    "0.0172",
+    "0.0270",
+    "0.0445",
+    "0.0494",
+    "0.0552",
+    "0.0760",
+    "0.0911",
+    "0.1335",
+    "0.2210",
+    "0.2625",
+    "0.2657",
+    "0.27",
+    "0.3608",
+    "0.42",
+    "0.8738",
+    "0.9162",
+    "1",
+    "1.3349",
+    "1.4112",
+    "1.5",
+    "3",
+    "5",
+    "5.1",
+    "5.5",
+    "5.6",
+    "8"
+   ],
+   "text": [
+    "0.8738 to\n1.4112 m",
+    "UKF\nlive",
+    "0.9162 to\n1.3349 m",
+    "UKF\nhindsight",
+    "0.2625 to\n0.3608 m",
+    "FGO\nlive",
+    "0.2210 to\n0.2657 m",
+    "FGO\nre-solved",
+    "0.0911 to\n0.1335 m",
+    "UKF\nlive",
+    "0.0445 to\n0.0552 m",
+    "UKF\nhindsight",
+    "0.0494 to\n0.0760 m",
+    "FGO\nlive",
+    "0.0172 to\n0.0270 m",
+    "FGO\nre-solved",
+    "without loop closure",
+    "with loop closure",
+    "With loop closure the UKF's error did not grow:\nH-E5.1 PASS (3 of 3; lap 5 \u00f7 lap 1 = 0.27 to 0.42, limit 1.5)",
+    "The UKF stayed above the FGO, live and hindsight:\nS-E5.5 PASS, S-E5.6 PASS (3 of 3)",
+    "box: lowest to highest of 3 flights (8-tag room);\nthe FGO values are the stored Experiment 3 results",
+    "A UKF with landmark states also stopped its error growing with loop closure, but stayed above the FGO",
+    "raw, measured from the start tag, nothing fitted",
+    "filled = live (during flight), open = hindsight (after landing)"
+   ],
+   "tag": "raw, measured from the start tag, nothing fitted",
+   "key": true
   }
  },
  "checks": [
@@ -217,6 +484,22 @@
    "computed": "24 / 12 / 12",
    "expected": "24 / 12 / 12",
    "where": "Table 6.1 (lockout column)",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "hold accuracy verdict as recorded: EKF3 first hold flights / FGO",
+   "computed": "PASS / PASS",
+   "expected": "PASS / PASS",
+   "where": "summary page 10; index_summary.md page 10 row 'hold accuracy verdict as recorded: EKF3 first hold flights /' = 'PASS / PASS'",
+   "ok": true
+  },
+  {
+   "fig": "5_hold_drift",
+   "label": "every drift inside its limit (and 0 refusals: the lockout counts above)",
+   "computed": "True",
+   "expected": "True",
+   "where": "summary page 11; index_summary.md page 11 row 'every drift inside its limit' = 'True'",
    "ok": true
   },
   {
@@ -557,6 +840,22 @@
   },
   {
    "fig": "E4_tradeoff",
+   "label": "registered ids printed: P-E4.1, P-E4.2",
+   "computed": "P-E4.1 P-E4.2",
+   "expected": "P-E4.1 P-E4.2",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows 'P-E4.1'; docs/thesis/tier1/preregistration.md shows 'P-E4.2'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
+   "label": "H-E4.3 band printed: at least 10 of 12 flights",
+   "computed": "10 of 12",
+   "expected": "10 of 12",
+   "where": "e4_results.md; docs/thesis/tier1/e4_results.md shows '**H-E4.3 FAIL 7/12** (band \u2265 10/12)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_tradeoff",
    "label": "every flight over the budget at 1 s and above (after-anchor medians > 33 ms)",
    "computed": "True",
    "expected": "True",
@@ -569,6 +868,542 @@
    "computed": "H-E4.3",
    "expected": "H-E4.3",
    "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '| **H-E4.3** (directional accuracy, amendment 3) |'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "8 tags: live error EKF3 UKF FGO, mean of 3 flights (m)",
+   "computed": "0.039 0.037 0.020",
+   "expected": "0.039 0.037 0.020",
+   "where": "expT/t_aggregate.json; index_summary.md page 07 row '8 tags: live error EKF3 UKF FGO, mean of 3 flights (m)' = '0.039 0.037 0.020'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "8 tags: the plotted mean equals the mean of the three plotted flights (6 dp, every track)",
+   "computed": "True",
+   "expected": "True",
+   "where": "expT/T_<c>_r<r>.json vs t_aggregate.json",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "4 tags: live error EKF3 UKF FGO, mean of 3 flights (m)",
+   "computed": "0.055 0.061 0.026",
+   "expected": "0.055 0.061 0.026",
+   "where": "expT/t_aggregate.json; index_summary.md page 07 row '4 tags: live error EKF3 UKF FGO, mean of 3 flights (m)' = '0.055 0.061 0.026'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "4 tags: the plotted mean equals the mean of the three plotted flights (6 dp, every track)",
+   "computed": "True",
+   "expected": "True",
+   "where": "expT/T_<c>_r<r>.json vs t_aggregate.json",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "2 tags: live error EKF3 UKF FGO, mean of 3 flights (m)",
+   "computed": "0.074 0.076 0.054",
+   "expected": "0.074 0.076 0.054",
+   "where": "expT/t_aggregate.json; index_summary.md page 07 row '2 tags: live error EKF3 UKF FGO, mean of 3 flights (m)' = '0.074 0.076 0.054'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "2 tags: the plotted mean equals the mean of the three plotted flights (6 dp, every track)",
+   "computed": "True",
+   "expected": "True",
+   "where": "expT/T_<c>_r<r>.json vs t_aggregate.json",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "1 tag: live error EKF3 UKF FGO, mean of 3 flights (m)",
+   "computed": "0.096 0.131 0.083",
+   "expected": "0.096 0.131 0.083",
+   "where": "expT/t_aggregate.json; index_summary.md page 07 row '1 tag: live error EKF3 UKF FGO, mean of 3 flights (m)' = '0.096 0.131 0.083'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "1 tag: the plotted mean equals the mean of the three plotted flights (6 dp, every track)",
+   "computed": "True",
+   "expected": "True",
+   "where": "expT/T_<c>_r<r>.json vs t_aggregate.json",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "median gap between fixes A\u2013D (s), printed under the tag counts",
+   "computed": "4.3 / 10.1 / 22.0 / 46.3",
+   "expected": "4.3 / 10.1 / 22.0 / 46.3",
+   "where": "expT/t_aggregate.json; docs/thesis/figures_thesis/index.md shows 'median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "FGO whole-flight re-solve, mean over the 4 tag counts, lowest\u2013highest (m, 2 dp), printed in the title",
+   "computed": "0.01\u20130.03",
+   "expected": "0.01\u20130.03",
+   "where": "expT/t_aggregate.json; docs/thesis/figures_thesis/index.md shows 'the FGO's hindsight batch stays at 0.01\u20130.03 m'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "primary (FGO hindsight gain grows as tags get fewer): verdict",
+   "computed": "PASS",
+   "expected": "PASS",
+   "where": "expT/t_aggregate.json H-T1; index_summary.md page 07 row 'primary hypothesis (FGO hindsight gain grows as tags get few' = 'PASS'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "live errors similar: verdict",
+   "computed": "FAIL",
+   "expected": "FAIL",
+   "where": "expT/t_aggregate.json P-T3; index_summary.md page 07 row 'live errors similar: verdict' = 'FAIL'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "conditions inside 1.5\u00d7",
+   "computed": "2 tags",
+   "expected": "2 tags",
+   "where": "expT/t_aggregate.json P-T3 by_condition; index_summary.md page 07 row 'conditions inside 1.5\u00d7' = '2 tags'",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "the 1.5\u00d7 limit and the counts printed",
+   "computed": "1.5 / 8, 4, 2, 1 / 3",
+   "expected": "1.5 / 8, 4, 2, 1 / 3",
+   "where": "summary page 07 pass rule; conditions A\u2013D; 3 flights",
+   "ok": true
+  },
+  {
+   "fig": "2_known_tags",
+   "label": "H-T1: FGO hindsight gain per gap (median), A\u2013D (m, 3 dp)",
+   "computed": "0.010, 0.011, 0.023, 0.052",
+   "expected": "0.010, 0.011, 0.023, 0.052",
+   "where": "expT/t_aggregate.json H-T1 median_gain_m; docs/thesis/numbers.md shows '0.010 / 0.011 / 0.023 / 0.052 m for A\u2013D'",
+   "ok": true
+  },
+  {
+   "fig": "3_loop_closure",
+   "label": "live, with loop closure: lap 5 \u00f7 lap 1 range",
+   "computed": "0.16\u20130.43",
+   "expected": "0.16\u20130.43",
+   "where": "expL; index_summary.md page 08 row 'live, with loop closure: lap 5 \u00f7 lap 1 range' = '0.16\u20130.43'",
+   "ok": true
+  },
+  {
+   "fig": "3_loop_closure",
+   "label": "live, without loop closure: lap 5 \u00f7 lap 1 range",
+   "computed": "2.9\u20134.5",
+   "expected": "2.9\u20134.5",
+   "where": "expL; index_summary.md page 08 row 'live, without loop closure: lap 5 \u00f7 lap 1 range' = '2.9\u20134.5'",
+   "ok": true
+  },
+  {
+   "fig": "3_loop_closure",
+   "label": "the four rules: flights passing, of 3",
+   "computed": "3/3 3/3 3/3 3/3",
+   "expected": "3/3 3/3 3/3 3/3",
+   "where": "index_summary.md page 08",
+   "ok": true
+  },
+  {
+   "fig": "3_loop_closure",
+   "label": "limit 1.5 (\u00d7 lap 1), laps 1\u20135, flights 3, lap 1",
+   "computed": "1.5 / 5 / 3 / 1",
+   "expected": "1.5 / 5 / 3 / 1",
+   "where": "summary page 08 pass rule",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "8 tags: the mean's inputs are the plotted lap-5 live values (stored)",
+   "computed": "True",
+   "expected": "True",
+   "where": "E2_verdicts.json P-E2.5.means; index_summary.md page 13 row '8 tags: the mean's inputs are the plotted lap-5 live values ' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "8 tags: mean over 3 flights of the live lap-5 error, with loop closure (m)",
+   "computed": "0.0317",
+   "expected": "0.0317",
+   "where": "E2_verdicts.json P-E2.5.means.<c>.mean_m; index_summary.md page 13 row '8 tags: mean over 3 flights of the live lap-5 error, with lo' = '0.0317'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "8 tags: mean over 3 flights of the HINDSIGHT lap-5 error (m, 4 dp; computed here from the stored per-flight values, no mean test registered)",
+   "computed": "0.0210",
+   "expected": "0.0210",
+   "where": "expL/T_A_r<r>_t245.json tracks 'lc hindsight' per_lap_rmse_m[4]",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "4 tags: the mean's inputs are the plotted lap-5 live values (stored)",
+   "computed": "True",
+   "expected": "True",
+   "where": "E2_verdicts.json P-E2.5.means; index_summary.md page 13 row '4 tags: the mean's inputs are the plotted lap-5 live values ' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "4 tags: mean over 3 flights of the live lap-5 error, with loop closure (m)",
+   "computed": "0.0238",
+   "expected": "0.0238",
+   "where": "E2_verdicts.json P-E2.5.means.<c>.mean_m; index_summary.md page 13 row '4 tags: mean over 3 flights of the live lap-5 error, with lo' = '0.0238'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "4 tags: mean over 3 flights of the HINDSIGHT lap-5 error (m, 4 dp; computed here from the stored per-flight values, no mean test registered)",
+   "computed": "0.0190",
+   "expected": "0.0190",
+   "where": "scores/E2_T_B_r<r>.json tracks 'lc hindsight' per_lap_rmse_m[4]",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "2 tags: the mean's inputs are the plotted lap-5 live values (stored)",
+   "computed": "True",
+   "expected": "True",
+   "where": "E2_verdicts.json P-E2.5.means; index_summary.md page 13 row '2 tags: the mean's inputs are the plotted lap-5 live values ' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "2 tags: mean over 3 flights of the live lap-5 error, with loop closure (m)",
+   "computed": "0.0492",
+   "expected": "0.0492",
+   "where": "E2_verdicts.json P-E2.5.means.<c>.mean_m; index_summary.md page 13 row '2 tags: mean over 3 flights of the live lap-5 error, with lo' = '0.0492'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "2 tags: mean over 3 flights of the HINDSIGHT lap-5 error (m, 4 dp; computed here from the stored per-flight values, no mean test registered)",
+   "computed": "0.0262",
+   "expected": "0.0262",
+   "where": "scores/E2_T_C_r<r>.json tracks 'lc hindsight' per_lap_rmse_m[4]",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "1 tag: the mean's inputs are the plotted lap-5 live values (stored)",
+   "computed": "True",
+   "expected": "True",
+   "where": "E2_verdicts.json P-E2.5.means; index_summary.md page 13 row '1 tag: the mean's inputs are the plotted lap-5 live values (' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "1 tag: mean over 3 flights of the live lap-5 error, with loop closure (m)",
+   "computed": "0.0687",
+   "expected": "0.0687",
+   "where": "E2_verdicts.json P-E2.5.means.<c>.mean_m; index_summary.md page 13 row '1 tag: mean over 3 flights of the live lap-5 error, with loo' = '0.0687'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "1 tag: mean over 3 flights of the HINDSIGHT lap-5 error (m, 4 dp; computed here from the stored per-flight values, no mean test registered)",
+   "computed": "0.0294",
+   "expected": "0.0294",
+   "where": "scores/E2_T_D_r<r>.json tracks 'lc hindsight' per_lap_rmse_m[4]",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "H-E2.1 per condition (B, C, D)",
+   "computed": "3/3 3/3 3/3",
+   "expected": "3/3 3/3 3/3",
+   "where": "E2_verdicts.json; index_summary.md page 13 row 'H-E2.1 per condition (B, C, D)' = '3/3 3/3 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "P-E2.5 verdict and its three ordering steps",
+   "computed": "FAIL False True True",
+   "expected": "FAIL False True True",
+   "where": "E2_verdicts.json; index_summary.md page 13 row 'P-E2.5 verdict and its three ordering steps' = 'FAIL False True True'",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "counts printed (tags, flights, lap)",
+   "computed": "8, 4, 2, 1 / 3 / 5",
+   "expected": "8, 4, 2, 1 / 3 / 5",
+   "where": "summary page 13 metric",
+   "ok": true
+  },
+  {
+   "fig": "E2_fewer_tags",
+   "label": "registered ids printed: H-E2.1, P-E2.5",
+   "computed": "H-E2.1 P-E2.5",
+   "expected": "H-E2.1 P-E2.5",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows 'H-E2.1'; docs/thesis/tier1/preregistration.md shows 'P-E2.5'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (a) rate 0.01: final live error of the finite runs, lowest\u2013highest (m)",
+   "computed": "3.7161\u20133.8960",
+   "expected": "3.7161\u20133.8960",
+   "where": "E3_verdicts.json runs; index_summary.md page 14 row 'arm (a) rate 0.01: final live error of the finite runs, lowe' = '3.7161\u20133.8960'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (b) rate 0.01: final live error of the finite runs, lowest\u2013highest (m)",
+   "computed": "0.0496\u20131.4769",
+   "expected": "0.0496\u20131.4769",
+   "where": "E3_verdicts.json runs; index_summary.md page 14 row 'arm (b) rate 0.01: final live error of the finite runs, lowe' = '0.0496\u20131.4769'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (a) rate 0.05: final live error of the finite runs, lowest\u2013highest (m)",
+   "computed": "4.0395\u20134.2231",
+   "expected": "4.0395\u20134.2231",
+   "where": "E3_verdicts.json runs; index_summary.md page 14 row 'arm (a) rate 0.05: final live error of the finite runs, lowe' = '4.0395\u20134.2231'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (b) rate 0.05: final live error of the finite runs, lowest\u2013highest (m)",
+   "computed": "0.9776\u20134.1849",
+   "expected": "0.9776\u20134.1849",
+   "where": "E3_verdicts.json runs; index_summary.md page 14 row 'arm (b) rate 0.05: final live error of the finite runs, lowe' = '0.9776\u20134.1849'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (b) rate 0: final live error of the finite runs, lowest\u2013highest (m)",
+   "computed": "0.0484\u20130.0760",
+   "expected": "0.0484\u20130.0760",
+   "where": "E3_verdicts.json runs; index_summary.md page 14 row 'arm (b) rate 0: final live error of the finite runs, lowest\u2013' = '0.0484\u20130.0760'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (a) 1%: runs diverged",
+   "computed": "6 of 9",
+   "expected": "6 of 9",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'arm (a) 1%: runs diverged (status FAILED-ESTIMATOR)' = '6 of 9'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (a) 5%: runs diverged",
+   "computed": "0 of 9",
+   "expected": "0 of 9",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'arm (a) 5%: runs diverged' = '0 of 9'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (b), every rate: runs diverged",
+   "computed": "0 of 21",
+   "expected": "0 of 21",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'arm (b), every rate: runs diverged' = '0 of 21'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (a) runs counted as collapsed (non-diverged)",
+   "computed": "12",
+   "expected": "12",
+   "where": "E3 results \u00a73; index_summary.md page 14 row 'arm (a) runs counted as collapsed (non-diverged)' = '12'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "arm (b) collapsed (DESCRIPTIVE): the one robust run E3 results \u00a74 names",
+   "computed": "1",
+   "expected": "1",
+   "where": "E3 results \u00a74; docs/thesis/tier1/e3_results.md shows '**One robust run collapsed.** The exception is T_A_r2 5% s1'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "runs per rate and arm",
+   "computed": "9/9/9/9/3",
+   "expected": "9/9/9/9/3",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'runs per rate and arm (3 flights \u00d7 3 seeds); robust controls' = '9/9/9/9/3'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "stored error without loop closure, the 3 flights, lowest\u2013highest (m)",
+   "computed": "0.2625\u20130.3608",
+   "expected": "0.2625\u20130.3608",
+   "where": "E3_verdicts.json references; index_summary.md page 14 row 'stored error without loop closure, the 3 flights, lowest\u2013hig' = '0.2625\u20130.3608'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "H-E3.1 verdict and count",
+   "computed": "FAIL 0/9",
+   "expected": "FAIL 0/9",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'H-E3.1 verdict and count' = 'FAIL 0/9'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "P-E3b.1 at 1% and 5%: verdicts and counts",
+   "computed": "PASS 9/9 PASS 9/9",
+   "expected": "PASS 9/9 PASS 9/9",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'P-E3b.1 at 1% and 5%: verdicts and counts' = 'PASS 9/9 PASS 9/9'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "P-E3b.2 verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'P-E3b.2 verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "1.10 (P-E3b.1 band) and the room's 8 tags",
+   "computed": "1.10 / 8",
+   "expected": "1.10 / 8",
+   "where": "summary page 14 pass rule",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "wrong-ID rates (per cent of the eligible detections)",
+   "computed": "1% / 5%",
+   "expected": "1% / 5%",
+   "where": "E3_verdicts.json; index_summary.md page 14 row 'wrong-ID rates (per cent of the eligible detections)' = '1% / 5%'",
+   "ok": true
+  },
+  {
+   "fig": "E3_table",
+   "label": "registered ids printed: H-E3.1, P-E3b.1, P-E3b.2",
+   "computed": "H-E3.1 P-E3b.1 P-E3b.2",
+   "expected": "H-E3.1 P-E3b.1 P-E3b.2",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows 'H-E3.1'; docs/thesis/tier1/preregistration.md shows 'P-E3b.1'; docs/thesis/tier1/preregistration.md shows 'P-E3b.2'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "UKF with loop closure, live: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.0911\u20130.1335",
+   "expected": "0.0911\u20130.1335",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'UKF with loop closure, live: lowest\u2013highest over 3 flights (' = '0.0911\u20130.1335'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "FGO with loop closure, live: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.0494\u20130.0760",
+   "expected": "0.0494\u20130.0760",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'FGO with loop closure, live: lowest\u2013highest over 3 flights (' = '0.0494\u20130.0760'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "UKF with loop closure, hindsight: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.0445\u20130.0552",
+   "expected": "0.0445\u20130.0552",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'UKF with loop closure, hindsight: lowest\u2013highest over 3 flig' = '0.0445\u20130.0552'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "FGO with loop closure, hindsight: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.0172\u20130.0270",
+   "expected": "0.0172\u20130.0270",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'FGO with loop closure, hindsight: lowest\u2013highest over 3 flig' = '0.0172\u20130.0270'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "UKF without loop closure, live: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.8738\u20131.4112",
+   "expected": "0.8738\u20131.4112",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'UKF without loop closure, live: lowest\u2013highest over 3 flight' = '0.8738\u20131.4112'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "FGO without loop closure, live: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.2625\u20130.3608",
+   "expected": "0.2625\u20130.3608",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'FGO without loop closure, live: lowest\u2013highest over 3 flight' = '0.2625\u20130.3608'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "UKF without loop closure, hindsight: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.9162\u20131.3349",
+   "expected": "0.9162\u20131.3349",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'UKF without loop closure, hindsight: lowest\u2013highest over 3 f' = '0.9162\u20131.3349'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "FGO without loop closure, hindsight: lowest\u2013highest over 3 flights (m)",
+   "computed": "0.2210\u20130.2657",
+   "expected": "0.2210\u20130.2657",
+   "where": "e5_verdicts.json / e5_T_A_r<r>.json; index_summary.md page 18 row 'FGO without loop closure, hindsight: lowest\u2013highest over 3 f' = '0.2210\u20130.2657'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "H-E5.1: lap 5 \u00f7 lap 1, live with loop closure, lowest\u2013highest",
+   "computed": "0.27\u20130.42",
+   "expected": "0.27\u20130.42",
+   "where": "e5_verdicts.json; index_summary.md page 18 row 'H-E5.1: lap 5 \u00f7 lap 1, live with loop closure, lowest\u2013highes' = '0.27\u20130.42'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "H-E5.1: verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "e5_verdicts.json; index_summary.md page 18 row 'H-E5.1: verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "S-E5.5: verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "e5_verdicts.json; index_summary.md page 18 row 'S-E5.5: verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "S-E5.6: verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "e5_verdicts.json; index_summary.md page 18 row 'S-E5.6: verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "limit 1.5 and 3 flights",
+   "computed": "1.5 / 3",
+   "expected": "1.5 / 3",
+   "where": "summary page 18 pass rule",
+   "ok": true
+  },
+  {
+   "fig": "E5_ukf_landmarks",
+   "label": "registered ids printed: H-E5.1, S-E5.5, S-E5.6; lap 5 / lap 1; 8 tags",
+   "computed": "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8",
+   "expected": "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows 'H-E5.1'; docs/thesis/tier1/preregistration.md shows 'S-E5.5'; docs/thesis/tier1/preregistration.md shows 'S-E5.6'",
    "ok": true
   }
  ]

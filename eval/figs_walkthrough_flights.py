@@ -143,6 +143,21 @@ def ex_sim(tr):
     return cached(f"sim_{tr}", lambda: dict(sim=_ns["sim_path"](tr)))
 
 
+def ex_xkf1(tr):
+    """v3 (2026-10-31): EKF3's own logged position, dataflash XKF1 core 0 (TimeUS s, PN, PE), for the closed-loop EKF3 panel of the
+    1B raw paths figure (the drone flew on this estimate)."""
+    def f():
+        mv = mavutil.mavlink_connection(f"{TD}/{tr}/ardupilot.bin"); k1 = []
+        while True:
+            r = mv.recv_match(type=["XKF1"])
+            if r is None:
+                break
+            if r.C == 0:
+                k1.append((r.TimeUS / 1e6, r.PN, r.PE))
+        return dict(K1=np.array(k1))
+    return cached(f"xkf1_{tr}", f)
+
+
 T_FL = [f"T_{c}_r{i}" for c in "ABCD" for i in (1, 2, 3)]
 O_FL = ["O_r1", "O_r2", "O_r3b"]
 H_FL = ["H_s1_r1", "H_s1_r2", "H_s1_r3", "H_s1far_r1", "H_s1far_r2", "H_s1far_r3b"] + [f"H_s2v2_r{i}" for i in (1, 2, 3)] + \
@@ -151,11 +166,12 @@ S_FL = ["H_safety_ukf_a_v3", "H_safety_ukf_b_v3", "H_safety_fgo_a_v4", "H_safety
 
 if "--extract-only" in args:
     import concurrent.futures as cf
-    jobs = [("cl", e, tr) for e, tr, _ in CL_ALL] + [("room", None, t) for t in T_FL + O_FL] + [("sim", None, t) for t in H_FL + S_FL]
+    jobs = [("cl", e, tr) for e, tr, _ in CL_ALL] + [("room", None, t) for t in T_FL + O_FL] + [("sim", None, t) for t in H_FL + S_FL] + \
+           [("xkf1", None, t) for t in _ns["HALF"]["EKF3"][1]]
     def run(j):
         kind, e, tr = j
         try:
-            (ex_cl(e, tr) if kind == "cl" else ex_room(tr) if kind == "room" else ex_sim(tr)); return f"ok {tr}"
+            (ex_cl(e, tr) if kind == "cl" else ex_room(tr) if kind == "room" else ex_xkf1(tr) if kind == "xkf1" else ex_sim(tr)); return f"ok {tr}"
         except Exception as x:          # reported, not hidden
             return f"FAILED {tr}: {x!r}"
     with cf.ProcessPoolExecutor(max_workers=6) as pool:
@@ -215,11 +231,67 @@ FW, FH = 10.9, 5.0          # figure size (in) = the walkthrough's plot box; dra
 LW_FL = 0.9                 # one thin line per flight
 
 
-def save(fid, fig, title, inputs, numbers):
-    """numbers: every number printed on the figure (strings); each is the subject of a check() row of this figure."""
+def save(fid, fig, title, inputs, numbers, tag=None, key=False):
+    """numbers: every number printed on the figure (strings); each is the subject of a check() row of this figure.
+    tag: the raw / fitted tag drawn ON the figure (v3, 2026-10-31), or None if the composer draws it; key: the figure carries the
+    'filled = live, open = hindsight' corner key. Global checks on every figure (v3): no em-dash in any text artist, every axis
+    linear, every text inside the figure."""
+    fig.set_dpi(200); fig.canvas.draw(); r_ = fig.canvas.get_renderer(); W_, H_ = fig.bbox.width, fig.bbox.height   # measured at the saved dpi
+    ticks_ = {id(t) for a_ in fig.axes for t in a_.get_xticklabels() + a_.get_yticklabels()}     # off-range ticks are never drawn
+    for t_ in fig.findobj(matplotlib.text.Text):
+        s_ = t_.get_text()
+        if s_ and t_.get_visible():
+            assert "—" not in s_, f"{fid}: em-dash in figure text {s_[:60]!r}"
+            if id(t_) in ticks_:
+                continue
+            b_ = t_.get_window_extent(renderer=r_)
+            assert b_.x0 >= -1 and b_.x1 <= W_ + 1 and b_.y0 >= -1 and b_.y1 <= H_ + 1, f"{fid}: text runs off the figure: {s_[:50]!r}"
+    for a_ in fig.axes:
+        assert a_.get_xscale() == "linear" and a_.get_yscale() == "linear", f"{fid}: a non-linear axis"
     p = os.path.join(OUTD, f"fl_{fid}.png"); fig.savefig(p, dpi=200); plt.close(fig)
-    FIGS[fid] = dict(file=os.path.relpath(p, ROOT), title=title, inputs=inputs, numbers=[str(n) for n in numbers])
+    FIGS[fid] = dict(file=os.path.relpath(p, ROOT), title=title, inputs=inputs, numbers=[str(n) for n in numbers], tag=tag, key=key)
     print(f"wrote fl_{fid}.png")
+
+
+# ---- v3 visual language (user request 2026-10-31, "SELF-EXPLANATORY PLOTS"): one-line finding title, the raw / fitted tag and the
+# live / hindsight key on the figure itself, walls as a labelled medium-grey band beyond +-10 m, limits grey and labelled.
+WALLC = "#bdbdbd"          # medium grey wall band
+KEY_LH = "filled = live (during flight), open = hindsight (after landing)"
+
+
+def title1(fig, text, x=0.01, y=0.985, fs=12.5):
+    """The figure's one-line finding title; asserted to fit on one line inside the figure."""
+    assert "\n" not in text
+    while True:                         # shrink the font (not below 11 pt) until the one line fits
+        t_ = fig.text(x, y, text, fontsize=fs, weight="bold", ha="left", va="top")
+        fig.canvas.draw(); bb = t_.get_window_extent(renderer=fig.canvas.get_renderer())
+        if bb.x1 <= fig.bbox.x1 * 0.97:          # 3% margin: text measured at 100 dpi runs slightly wider at the saved 200 dpi
+            return t_
+        t_.remove(); fs -= 0.5
+        assert fs >= 11, f"title does not fit on one line: {text}"
+
+
+def corner(fig, tag, key=None, y=0.925):
+    """Raw / fitted tag (right) and, where used, the filled / open key (left of it), in small grey boxes below the title."""
+    fig.text(0.99, y, tag, fontsize=9.5, ha="right", va="top", color=INK, bbox=dict(boxstyle="round,pad=0.3", fc="#f2f2f2", ec="#bbbbbb", lw=0.6))
+    if key:
+        fig.text(0.01, y, key, fontsize=9.5, ha="left", va="top", color=INK, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#bbbbbb", lw=0.6))
+
+
+def wallband(ax, lim, vertical=True, label=True, fs=9):
+    """Shade everything beyond +-10 m East as the wall (medium grey), labelled 'wall'."""
+    for s in (1, -1):
+        if vertical:
+            ax.axvspan(10 * s, lim * s, color=WALLC, lw=0, zorder=0.5)
+        else:
+            ax.axhspan(10 * s, lim * s, color=WALLC, lw=0, zorder=0.5)
+    if label:
+        for s in (1, -1):
+            c_ = (10 + lim) / 2 * s
+            if vertical:
+                ax.text(c_, 0.5, "wall", transform=ax.get_xaxis_transform(), rotation=90, ha="center", va="center", fontsize=fs, color=INK2)
+            else:
+                ax.text(0.5, c_, "wall", transform=ax.get_yaxis_transform(), ha="center", va="center", fontsize=fs, color=INK2)
 
 
 def measured_stretch(fig, ax):
@@ -428,46 +500,76 @@ def gt_enu(sub):
     return f
 
 
-truth_page("1A_truth", A_FL, gt_enu("ukf"), "Where the drone really flew: all 9 flights (simulator truth)", lambda tr: ev[tr]["window_s"],
+truth_page("1A_truth", A_FL, gt_enu("ukf"), "All 9 flights flew the same straight line up the corridor (simulator truth)", lambda tr: ev[tr]["window_s"],
            "n = 9 flights, one grey line each (they lie on top of each other)", "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)",
            ["9", "1.0", "0"])
-lat = max(2.0, max(np.abs(v[1][1]).max() for v in AL1.values()) * 1.08)
-P1 = [(e, C[e], f"{e}: n = 9 flights\nmedian score {med[e]} m", "-") for e in EST]
-fig = stacked_paths("1A_aligned_paths", P1, AL1, lat, "Estimated paths after a best-fit turn about the vertical and a shift: all 9 flights, cruise only",
-                    "One coloured line per flight; grey: the true paths. Sideways (East) axis stretched {s}× relative to North, the same in all three panels.")
-save("1A_aligned_paths", fig, "", "TUMs of dsn_tex_r1..r9 ({ekf3,ukf,fgo}/*.tum); windows and cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json",
-     ["9", "3.0"] + [med[e] for e in EST])
-fig = err_rows([(e, C[e], f"{e}: n = 9 flights, one line each; median score {med[e]} m", "-") for e in EST], {k: (v[0], v[3]) for k, v in AL1.items()},
-               "Error against time after a best-fit turn about the vertical and a shift: all 9 flights, cruise only",
-               "position error (m)", "time since the start of the cruise (s)", ylim=(0, None),
-               note="Same y-scale in all three panels. The root mean square of each line equals that flight's score (cruise ATE).")
-save("1A_aligned_err", fig, "", "as 1A_aligned_paths", ["9"] + [med[e] for e in EST])
+# v3 (2026-10-31, user: "The fitted (ATE) path and error-against-time plots are removed, but the fitted ATE numbers must still appear
+# as text or in a table"): the 1A fitted paths and fitted error figures are no longer drawn. The SE(3) cruise-ATE recomputation and the
+# yaw-only rows above stay: they back the registered-score table printed on the raw paths figure.
+TABN = {e: (len(A_FL), med[e]) for e in EST}
 
-fig, axs = plt.subplots(1, 3, figsize=(FW, FH), sharex=True, sharey=True)
-for ax, e in zip(axs, EST):
-    walls(ax, horiz=False)
-    for tr in A_FL:
-        tg, ng, eg = UN1[(e, tr)][4]; w = tg <= ev[tr]["window_s"][1]
+
+def paths_raw(ax, UN, key, trs, win_of, col, lim, ls="-"):
+    """Raw (not fitted) estimated paths from take-off to the end of the cruise, truth grey, take-off black dot, walls as bands."""
+    wallband(ax, lim)
+    for tr in trs:
+        tg, ng, eg = UN[(key, tr)][4]; w = tg <= win_of(tr)[1]
         ax.plot(eg[w], ng[w], color=TRUTH, lw=2.2, zorder=2)
-    for tr in A_FL:
-        ax.plot(UN1[(e, tr)][2], UN1[(e, tr)][1], color=C[e], lw=LW_FL, zorder=3)
+    for tr in trs:
+        ax.plot(UN[(key, tr)][2], UN[(key, tr)][1], color=col, lw=LW_FL, ls=ls, zorder=3)
     ax.plot(0, 0, marker="o", ms=5, color=INK, zorder=5)
-    ax.set_title(f"{e}: n = 9 flights", loc="left")
-    ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("East (m)")
-axs[0].set_ylabel("North, along the corridor (m)")
-emin = min(v[2].min() for v in UN1.values()); emax = max(v[2].max() for v in UN1.values())
-axs[0].set_xlim(min(emin, -10) - 3, emax + 3); axs[0].set_ylim(-3, 163)
-fig.subplots_adjust(left=0.06, right=0.99, top=0.86, bottom=0.11, wspace=0.12)
+    ax.set_aspect(1.0, adjustable="box")
+
+
+LIM1 = max(abs(min(v[2].min() for v in UN1.values())), abs(max(v[2].max() for v in UN1.values())), 10.0) + 4.0
+fig = plt.figure(figsize=(FW, FH))
+gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 1.3], wspace=0.12)
+axs = [fig.add_subplot(gs[0, i]) for i in range(3)]
+for ax in axs[1:]:
+    ax.sharex(axs[0]); ax.sharey(axs[0])
+for ax, e in zip(axs, EST):
+    paths_raw(ax, UN1, e, A_FL, lambda tr: ev[tr]["window_s"], C[e], LIM1)
+    ax.set_title(f"{e}, 9 flights", loc="left", color=C[e], weight="bold")
+    ax.set_xlabel("sideways, East (m)")
+for ax in axs[1:]:
+    plt.setp(ax.get_yticklabels(), visible=False)
+axs[0].set_ylabel("along the corridor, North (m)")
+axs[0].set_xlim(-LIM1, LIM1); axs[0].set_ylim(-3, 163)
+at = fig.add_subplot(gs[0, 3]); at.axis("off")
+at.text(0.0, 0.99, "grey line: true path\nblack dot: take-off", fontsize=9, color=INK2, va="top", transform=at.transAxes)
+at.text(0.0, 0.85, "Registered score (fitted):\ncruise ATE, median\nof 9 flights", fontsize=10.5, weight="bold", va="top", transform=at.transAxes)
+for i, e in enumerate(EST):
+    at.text(0.04, 0.62 - 0.09 * i, e, fontsize=11, color=C[e], weight="bold", va="center", transform=at.transAxes)
+    at.text(0.55, 0.62 - 0.09 * i, f"{TABN[e][1]} m", fontsize=11, va="center", ha="left", transform=at.transAxes)
+at.text(0.0, 0.31, "Ranking rule\n(EKF3 against FGO):\nNOT MET, no\nestimator ranked", fontsize=10.5, va="top", transform=at.transAxes,
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#888888", lw=0.8))
+at.text(0.0, 0.09, "Paths: raw. Score: after a\nbest-fit turn and shift\nof each cruise.", fontsize=9, color=INK2, va="top",
+        transform=at.transAxes)
+fig.subplots_adjust(left=0.06, right=0.99, top=0.83, bottom=0.11)
 s = measured_stretch(fig, axs[0]); check("1A_unaligned_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
-head(fig, "Without the alignment, from take-off (black dot): every estimate drifts sideways; all 9 flights",
-     "Equal scale (1.0, no stretch). Grey: the true paths, straight up the corridor. Dark bands: the walls.", left=0.06)
-save("1A_unaligned_paths", fig, "", "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, −y) for the UKF/FGO (eval/figs_thesis_drift.py)",
-     ["9", "1.0"])
-P1u = [(e, C[e], f"{e}: n = 9 flights, one line each", "-") for e in EST]
-fig = err_rows(P1u, {k: (v[0], v[3]) for k, v in UN1.items()}, "Error against time WITHOUT the alignment, from take-off: all 9 flights",
-               "horizontal error (m)", "time since the start of the cruise (s; take-off is before 0)", ylim=(0, None), vline=0,
-               note="Same y-scale in all three panels. Distance between the estimated and the true position, seen from above.")
-save("1A_unaligned_err", fig, "", "as 1A_unaligned_paths", ["9", "0"])
+check("1A_unaligned_paths", "x-axis symmetric about 0 (left and right limits, m)", f"{-axs[0].get_xlim()[0]:.6f}", f"{axs[0].get_xlim()[1]:.6f}", "set_xlim(-LIM1, LIM1)")
+for e in EST:
+    check("1A_unaligned_paths", f"{e} registered cruise ATE, median of 9 flights (m), printed in the table", TABN[e][1],
+          {"EKF3": "4.10", "UKF": "5.13", "FGO": "4.46"}[e], "docs/thesis/numbers.md", 236, inline_str=f"{e} {TABN[e][1]}")
+check("1A_unaligned_paths", "ranking verdict printed: NOT MET (summary page 01 Result)", "NOT MET", "NOT MET",
+      "docs/thesis/summary/index_summary.md page 01 Result ('NOT MET: on the further flights ...')")
+title1(fig, "Without a heading source every estimate drifts sideways off the true path, on all 9 flights")
+corner(fig, "raw, nothing fitted (paths)")
+save("1A_unaligned_paths", fig, "", "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, −y) for the UKF/FGO (eval/figs_thesis_drift.py); "
+     "cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json", ["9", "1.0"] + [med[e] for e in EST], tag="raw, nothing fitted (paths)")
+fig, axs = plt.subplots(3, 1, figsize=(FW, FH), sharex=True, sharey=True)
+for ax, e in zip(axs, EST):
+    ax.axhline(0, color=INK2, lw=0.6, zorder=1); ax.axvline(0, color=INK2, lw=0.8, ls=":", zorder=1)
+    for tr in A_FL:
+        v = UN1[(e, tr)]; ax.plot(v[0], v[3], color=C[e], lw=LW_FL, zorder=3)
+    ax.text(0.005, 0.93, f"{e}, 9 flights", transform=ax.transAxes, color=C[e], weight="bold", fontsize=10.5, va="top")
+axs[0].set_ylim(0, None); axs[-1].set_xlabel("time since the start of the cruise (s); take-off is before the dotted line at 0")
+fig.supylabel("horizontal error (m)", x=0.012, fontsize=10.5)
+fig.subplots_adjust(left=0.075, right=0.985, top=0.86, bottom=0.11, hspace=0.25)
+assert len({ax.get_ylim() for ax in axs}) == 1
+title1(fig, "Without a heading source the raw error reaches metres to tens of metres in the cruise, for all three estimators")
+corner(fig, "raw, nothing fitted")
+save("1A_unaligned_err", fig, "", "as 1A_unaligned_paths", ["9", "0"], tag="raw, nothing fitted")
 
 # =============================================================================================== EXPERIMENT 1B: camera heading, n = 3
 P4E = L("phase4_fwdc_evo.json")["trials"]
@@ -495,29 +597,10 @@ truth_page("1B_truth", B_FL, gt_enu("ukf_baseline"), "Where the drone really fle
 LBB = {"EKF3": "EKF3\nno heading", "UKF_baseline": "UKF\nno heading", "FGO_baseline": "FGO\nno heading",
        "UKF_heading": "UKF\nwith heading", "FGO_heading": "FGO\nwith heading"}
 COLB = {k: C[k.split("_")[0]] for k in SUBB}
-latb = max(2.0, max(np.abs(v[1][1]).max() for v in ALB.values()) * 1.08)
-NDR = {k: sum((k, tr) in ALB for tr in B_FL) for k in SUBB}
 NTX = lambda k: "n = 3 flights"
-PB = [(k, COLB[k], f"{LBB[k]}\n{NTX(k)}", "-") for k in SUBB]
-fig = stacked_paths("1B_aligned_paths", PB, ALB, latb, "Estimated paths after a best-fit turn about the vertical and a shift: all 3 flights, cruise only",
-                    "Five separate panels, the same axes. Grey: the true paths. Sideways (East) axis stretched {s}× relative to North."
-                    + "")
-save("1B_aligned_paths", fig, "", "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); phase4_fwdc_evo.json",
-     ["3", "3.0"])
-fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}; scores {SCB[k]} m", "-") for k in ("EKF3", "UKF_baseline", "FGO_baseline")],
-               {k: (v[0], v[3]) for k, v in ALB.items()}, "WITHOUT the camera heading: error against time (aligned by a turn and a shift), all 3 flights",
-               "position error (m)", "time since the start of the cruise (s)", ylim=(0, None),
-               note="Same y-scale in all three panels (not the same as the next page)." + "")
-save("1B_err_noheading", fig, "", "as 1B_aligned_paths", ["3"] + [SCB[k] for k in ("EKF3", "UKF_baseline", "FGO_baseline")])
-fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}; scores {SCB[k]} m", "-") for k in ("UKF_heading", "FGO_heading")],
-               {k: (v[0], v[3]) for k, v in ALB.items()}, "WITH the camera heading: error against time (aligned by a turn and a shift), all 3 flights",
-               "position error (m)", "time since the start of the cruise (s)", ylim=(0, None),
-               note="Same y-scale in both panels. NOTE: this y-scale is about 30 times finer than on the previous page. EKF3 has no camera-heading version.")
-save("1B_err_heading", fig, "", "as 1B_aligned_paths", ["3", "30"] + [SCB[k] for k in ("UKF_heading", "FGO_heading")])
-r30 = min(np.max(ALB[(k, tr)][3]) for k in ("EKF3", "UKF_baseline", "FGO_baseline") for tr in B_FL if (k, tr) in ALB) / max(np.max(ALB[(k, tr)][3]) for k in ("UKF_heading", "FGO_heading") for tr in B_FL)
-check("1B_err_heading", "'about 30 times finer': y-range ratio between the two pages (largest no-heading error / largest with-heading error, rounded to 10)",
-      str(int(round(max(np.max(ALB[(k, tr)][3]) for k in ("EKF3", "UKF_baseline", "FGO_baseline") for tr in B_FL if (k, tr) in ALB)
-                    / max(np.max(ALB[(k, tr)][3]) for k in ("UKF_heading", "FGO_heading") for tr in B_FL), -1))), "30", "the plotted curves (this script)")
+# v3 (2026-10-31): the 1B fitted paths and fitted error figures (1B_aligned_paths, 1B_err_noheading, 1B_err_heading) are no longer
+# drawn; their SE(3) recompute rows above stay and back the registered cruise-ATE ranges in the table of 1B_unaligned_paths. The
+# '30 times finer' check belonged to the removed 1B_err_heading and is dropped with it.
 
 # ---- 1B NOT FITTED (user request 2026-10-21: "add the unaligned 1B pages"): the estimates exactly as they came out, from take-off,
 # the same code path as the 1A not-fitted pages (unaligned(): frame map and frame check of eval/figs_thesis_drift.py)
@@ -550,28 +633,30 @@ dataid("1B_unaligned", f"frame check (rule of eval/figs_thesis_drift.py, heading
 FRAME_NOTE_B = (f"at R5's 2.0 deg tolerance {sum(abs(f[5] - f[6]) < 2.0 for f in FRB)}/{len(FRB)} pass" +
                 ("; the others " + ", ".join(f"{f[0]} {f[1]} {f[5] - f[6]:+.2f} deg" for f in FRB if abs(f[5] - f[6]) >= 2.0)
                  if any(abs(f[5] - f[6]) >= 2.0 for f in FRB) else ""))
-fig, axs = plt.subplots(1, len(SUBB), figsize=(FW, FH), sharex=True, sharey=True)
-for ax, key in zip(axs, SUBB):
-    walls(ax, horiz=False)
+# v3 (2026-10-31): the 1B raw paths figure is drawn after the 1C flights are loaded (its optional sixth panel is the closed-loop
+# EKF3 with heading); here the raw maximum error per arm for its table. Span: take-off to the end of the cruise window, exactly the
+# plotted not-fitted error (the same span as the 0.54 m with-heading value, D63); each is cross-checked against a direct
+# recomputation from the raw TUM rows (6 dp).
+
+
+def _raw_max(k):
+    mx = 0.0
     for tr in B_FL:
-        tg, ng, eg = UNB[(key, tr)][4]; w = tg <= P4E[tr]["window_s"][1]
-        ax.plot(eg[w], ng[w], color=TRUTH, lw=2.2, zorder=2)
-    for tr in B_FL:
-        ax.plot(UNB[(key, tr)][2], UNB[(key, tr)][1], color=COLB[key], lw=LW_FL, zorder=3)
-    ax.plot(0, 0, marker="o", ms=5, color=INK, zorder=5)
-    ax.set_title(f"{LBB[key]}\n{NTX(key)}", loc="left", fontsize=10)
-    ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("East (m)")
-axs[0].set_ylabel("North, along the corridor (m)")
-emin = min(v[2].min() for v in UNB.values()); emax = max(v[2].max() for v in UNB.values())
-axs[0].set_xlim(min(emin, -10) - 3, max(emax, 10) + 3); axs[0].set_ylim(-3, 163)
-fig.subplots_adjust(left=0.06, right=0.99, top=0.8, bottom=0.11, wspace=0.12)
-s = measured_stretch(fig, axs[0]); check("1B_unaligned_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
-head(fig, "Without any fitting, from take-off (black dot): all 3 flights, five separate panels with the same axes",
-     "Equal scale (1.0, no stretch). Grey: the true paths, straight up the corridor. Dark bands: the walls. "
-     "With the heading the lines lie on the grey.", left=0.06)
-save("1B_unaligned_paths", fig, "", "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, −y) "
-     "for the UKF/FGO (eval/figs_thesis_drift.py); windows phase4_fwdc_evo.json", ["3", "1.0"])
-check("1B_unaligned_paths", "flights shown (textured-wall camera dataset, textured floor)", len(B_FL), 3, "docs/thesis/numbers.md", 269, inline_str="r1 / r2 / r3")
+        win = P4E[tr]["window_s"]; a = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/{SUBB[k][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/ground_truth.tum")
+        a = a[(a[:, 0] >= g[0, 0]) & (a[:, 0] <= win[1])]
+        if k.startswith("EKF3"):           # EKF3 and its truth: (N, E, D)
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 1]), a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 2]))
+        else:                               # own frame (x, y) = (North, West); truth ENU (x, y) = (East, North)
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 2]), -a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 1]))
+        mx = max(mx, float(e_.max()))
+    return mx
+
+
+RAWMX = {}
+for k in SUBB:
+    RAWMX[k] = max(float(np.max(UNB[(k, tr)][3])) for tr in B_FL)
+    dataid("1B_unaligned", f"{k}, all 3 flights: largest PLOTTED not-fitted error, take-off to the end of the cruise, vs direct recomputation "
+           "from the raw TUM rows (6 dp)", rd(RAWMX[k], 6), rd(_raw_max(k), 6), f"~/thesis_data/trials/fwdc_tex_r1..r3/{SUBB[k][0]} TUM + ground_truth.tum")
 fig = err_rows([(k, COLB[k], f"{LBB[k].replace(chr(10), ', ')}: {NTX(k)}, one line each", "-") for k in ("EKF3", "UKF_baseline", "FGO_baseline")],
                {k: (v[0], v[3]) for k, v in UNB.items()}, "WITHOUT the camera heading, no fitting: error against time from take-off, all 3 flights",
                "horizontal error (m)", "time since the start of the cruise (s; take-off is before 0)", ylim=(0, None), vline=0,
@@ -628,58 +713,197 @@ def sim_t(d):
     kk, cc, _ = d["clk"]; t = d["sim"][:, 0]; return t + kk * t + cc
 
 
-# (a) true paths: 6 separate panels, North up, shared axes
-fig, axs = plt.subplots(1, 6, figsize=(FW, FH), sharex=True, sharey=True)
-PATHD = {}; DB2 = []
-for j, (k_on, e) in enumerate([(0, e) for e in EST] + [(1, e) for e in EST]):
-    ax = axs[j]; walls(ax, horiz=False)
-    for xw in (9.58, -9.58):
-        ax.axvline(xw, color=WALL, lw=0.6, ls=":")
-    if k_on == 0:
-        tr, d = CL[(e, 0)]; g = d["sim"]; c0, ct = _ns["cl_meta"](tr); tc = ct["t_rel_cruise_s"]
-        w = (g[:, 0] >= 20) & (g[:, 0] <= c0 + tc)
-        ax.plot(g[w, 1], g[w, 2], color=C[e], lw=1.3, ls=(0, (5, 3)))
-        ax.plot(ct["x"], ct["y"], marker="X", ms=9, color=C[e], mec=INK, mew=0.9, zorder=6)
-        ax.annotate(f"wall at\n+{rd(tc, 1)} s", (ct["x"], ct["y"]), xytext=(12, 0), textcoords="offset points", ha="left", va="center", fontsize=9.5)
-        PATHD[e] = math.hypot(g[w, 2][-1] - ct["y"], g[w, 1][-1] - ct["x"])
-        ax.set_title(f"{e}\nno heading\n1 flight", loc="left", fontsize=10)
-    else:
-        for k in (1, 2, 3):
-            tr, d = CL[(e, k)]; g = d["sim"]; c0b, c1b = CLJ[tr]["cruise_s"]; w = g[:, 0] >= 20
-            ax.plot(g[w, 1], g[w, 2], color=C[e], lw=LW_FL)
-            wc = (g[:, 0] >= c0b) & (g[:, 0] <= c1b); DB2.append(abs(float(np.abs(g[wc, 1]).max()) - CLJ[tr]["B"]["B2"]["max_abs_x_cruise_m"]))
-        ax.set_title(f"{e}\nwith heading\n3 flights", loc="left", fontsize=10)
-    ax.set_aspect(1 / 3.0, adjustable="box"); ax.set_xticks([-10, 0, 10]); ax.set_xlabel("East (m)")
-axs[0].set_xlim(-10.8, 10.8); axs[0].set_ylim(-3, 165); axs[0].set_ylabel("North, along the corridor (m)")
-fig.subplots_adjust(left=0.07, right=0.99, top=0.8, bottom=0.11, wspace=0.25)
-s = 1.0 / measured_stretch(fig, axs[0])
-check("1C_paths", "sideways (East) stretch printed vs drawn axes geometry", rd(s, 1), "3.0", "set_aspect(1/3)")
-head(fig, "Where the drone really flew (each estimator flying it): 12 flights in six separate panels",
-     f"Same axes in all six panels; sideways (East) axis stretched {rd(s, 1)}×. Dark bands: walls at East ±10 m; dotted: the 9.58 m contact line. "
-     "X: wall contact.")
+# (a) v3 (2026-10-31, user TASK 3): ONE panel per estimator, the same axes, overlaying all of its flights: the single no-heading
+# flight (dashed) and the three with-heading flights (solid). North along x, equal scale (no stretch); walls as labelled grey bands
+# beyond +-10 m; the 9.58 m contact line; each wall contact an X with its time, its registered window and its verdict.
+IDXS = open(os.path.join(ROOT, "docs", "thesis", "summary", "index_summary.md")).read()
+
+
+def sumrow(page, label):
+    """COPIED from eval/figs_walkthrough_extra.py: the computed string of summary page `page`'s check row `label` (index_summary.md)."""
+    sec = IDXS[IDXS.index(f"## Page {page}:"):]; sec = sec[:sec.find("\n## Page ", 5)]
+    rows = [r for r in sec.split("\n") if r.startswith(f"| number | {label} |") or r.startswith(f"| display | {label} |")
+            or r.startswith(f"| count | {label} |")]
+    assert len(rows) == 1, f"summary page {page}: check row '{label}' found {len(rows)} times"
+    assert rows[0].rstrip().endswith("| yes |"), f"summary page {page}: check row '{label}' did not pass"
+    return re.findall(r"`([^`]*)`", rows[0])[0]
+
+
+VERD = {"PASS": "PASS", "MISS": "NOT MET"}       # summary page 05 check-row token -> the registered Result wording (page 05 Result)
+LIMC = 12.5
+fig, axs = plt.subplots(3, 1, figsize=(FW, 5.7), sharex=True, sharey=True)
+PATHD = {}; DB2 = []; CTV = {}; VP3 = {}
+for ax, e in zip(axs, EST):
+    wallband(ax, LIMC, vertical=False, label=False)
+    for yw in (9.58, -9.58):
+        ax.axhline(yw, color=INK2, lw=0.7, ls=":", zorder=1)
+    for k in (1, 2, 3):
+        tr, d = CL[(e, k)]; g = d["sim"]; c0b, c1b = CLJ[tr]["cruise_s"]; w = g[:, 0] >= 20
+        ax.plot(g[w, 2], g[w, 1], color=C[e], lw=1.1, zorder=3)
+        wc = (g[:, 0] >= c0b) & (g[:, 0] <= c1b); DB2.append(abs(float(np.abs(g[wc, 1]).max()) - CLJ[tr]["B"]["B2"]["max_abs_x_cruise_m"]))
+    tr, d = CL[(e, 0)]; g = d["sim"]; c0, ct = _ns["cl_meta"](tr); tc = ct["t_rel_cruise_s"]
+    w = (g[:, 0] >= 20) & (g[:, 0] <= c0 + tc)
+    ax.plot(g[w, 2], g[w, 1], color=C[e], lw=1.5, ls=(0, (5, 3)), zorder=4)
+    ax.plot(ct["y"], ct["x"], marker="X", ms=10, color=C[e], mec=INK, mew=0.9, zorder=6)
+    PATHD[e] = math.hypot(g[w, 2][-1] - ct["y"], g[w, 1][-1] - ct["x"])
+    lo, hi = CLWIN[e]; inwin = lo <= tc <= hi and tc >= 100
+    CTV[e] = f"+{rd(tc, 1)} {'PASS' if inwin else 'MISS'}"
+    check("1C_paths", f"{e}: wall contact (s after cruise start) and verdict against its window, printed at the X", CTV[e],
+          sumrow("05", f"{e}: wall contact after cruise start (s) and verdict against its window"), "docs/thesis/summary/index_summary.md page 05 check row")
+    check("1C_paths", f"{e}: registered contact window printed (s)", f"{lo} to {hi}", {"EKF3": "155 to 215", "UKF": "146 to 218", "FGO": "145 to 196"}[e],
+          "docs/thesis/numbers.md", {"EKF3": 470, "UKF": 471, "FGO": 472}[e], inline_str=f"[+{lo}, +{hi}]")
+    vt = VERD[CTV[e].split()[1]]
+    ax.text(2, 7.4, f"dashed, no heading (1 flight): wall contact at the X, {CTV[e].split()[0]} s; window {lo} to {hi} s: {vt}", fontsize=9.5,
+            ha="left", va="center", color=INK, weight="bold")
+    ax.text(ct["y"] + 2.5, -7.0, f"X: {CTV[e].split()[0]} s", fontsize=9, ha="left", va="center", color=INK, weight="bold")
+    npass = sum(1 for t in HALF[e][1] if CLJ[t]["B"]["pass"] and CLJ[t].get("S2", {}).get("pass", True))   # as figs_thesis_summary.py passh
+    VP3[e] = f"{npass}/{len(HALF[e][1])}"
+    check("1C_paths", f"{e}: with-heading flights passing all five checks (recounted from the stored B.pass flags), printed", VP3[e],
+          sumrow("06", f"{e}: flights passing all five checks"), "eval/results/closed_loop_<trial>.json B.pass; index_summary.md page 06 check row")
+    ax.text(163, 3.6, f"solid, with heading (3 flights): all five checks PASS on {VP3[e].replace('/', ' of ')}", fontsize=9.5, ha="right",
+            va="center", color=INK, weight="bold")
+    ax.text(-3.0, 0.0, e, fontsize=12, color=C[e], weight="bold", ha="right", va="center")
+    ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
+    for s_ in (1, -1):
+        ax.text(1.0, 11.25 * s_, "wall", fontsize=8.5, color=INK2, ha="left", va="center")
+axs[0].set_xlim(-16, 166); axs[0].set_ylim(-LIMC, LIMC)
+axs[-1].text(165, -8.6, "dotted: wall-contact line, 9.58 m", fontsize=8.5, color=INK2, ha="right", va="bottom")
+axs[-1].set_xlabel("along the corridor, North (m)")
+fig.supylabel("sideways, East (m)", x=0.012, fontsize=10.5)
+fig.subplots_adjust(left=0.07, right=0.99, top=0.86, bottom=0.1, hspace=0.12)
+s = measured_stretch(fig, axs[0])
+check("1C_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
+title1(fig, "Without a heading each estimator flew the drone into the wall; with the camera heading all 9 flights stayed straight")
+corner(fig, "raw: the drone's true path, nothing fitted")
 dataid("1C_paths", "plotted no-heading paths end at the scored contact point, all 3, |delta| <= 0.5 m (F2 rule)",
        "ok" if max(PATHD.values()) <= 0.5 else rd(max(PATHD.values()), 2), "ok", "dataflash SIM vs closed_loop_*.json contact")
 dataid("1C_paths", "plotted with-heading paths: max |East| in the cruise vs stored B2, all 9 flights, |delta| <= 0.05 m (F2 rule)",
        "ok" if max(DB2) <= 0.05 else rd(max(DB2), 3), "ok", "dataflash SIM vs closed_loop_*.json B.B2")
 check("1C_paths", "wall position and contact line (m)", "10 / 9.58", "10 / 9.58", "eval/figs_thesis.py F2 (walls ±10 m; 9.58 m contact threshold)")
-save("1C_paths", fig, "", "dataflash SIM of the 12 closed-loop flights; contact and B2 from eval/results/closed_loop_<trial>.json",
-     ["12", "3.0", "10", "9.58"] + [f"+{rd(CLJ[HALF[e][0]]['contact']['t_rel_cruise_s'], 1)}" for e in EST])
+save("1C_paths", fig, "", "dataflash SIM of the 12 closed-loop flights; contact and B2 from eval/results/closed_loop_<trial>.json; verdicts: "
+     "index_summary.md pages 05, 06", ["1", "3", "9.58", "10"] + [CTV[e].split()[0] for e in EST] + [str(v) for e in EST for v in CLWIN[e]],
+     tag="raw: the drone's true path, nothing fitted")
 
-# (b) heading error WITHOUT heading: 3 rows, shared axes, to the wall contact
-D = {}; MK_ = []; ENDD = []
+# ---- 1B raw paths (v3, user TASK 2): five offline panels + the closed-loop EKF3 with heading (Experiment 1C flights, comparable as a
+# picture only; decision D70), walls as labelled bands, the x axis symmetric about 0, and the table of registered scores and raw maxima.
+FRC = []; CLE = {}
+for i_, tr in enumerate(HALF["EKF3"][1]):
+    d = CL[("EKF3", i_ + 1)][1]; kk, cc, _ = d["clk"]; g = d["sim"]; K = ex_xkf1(tr)["K1"]
+    c0b, c1b = CLJ[tr]["cruise_s"]; s0, s1 = (c0b - cc) / (1 + kk), (c1b - cc) / (1 + kk)     # bag (sim) time -> SITL TimeUS (inverse map)
+    est_ = (K[:, 0], K[:, 1], K[:, 2]); gt_ = (g[:, 0], g[:, 2], g[:, 1])                    # (t, North, East): XKF1 (PN, PE); SIM (N, E)
+    ok, diag = frame_ok(est_, gt_, (s0, s1)); FRC.append((tr, ok) + diag)
+    wk = K[:, 0] <= s1; wg = g[:, 0] <= s1
+    CLE[tr] = (K[wk, 1], K[wk, 2], g[wg, 2], g[wg, 1])        # est N, est E, true N, true E
+    wcr = (g[:, 0] >= s0) & (g[:, 0] <= s1)
+    dataid("1B_paths_cl", f"{tr}: PLOTTED truth, max |East| in the cruise vs stored B2 (|delta| <= 0.05 m, F2 rule)",
+           "ok" if abs(float(np.abs(g[wcr, 1]).max()) - CLJ[tr]["B"]["B2"]["max_abs_x_cruise_m"]) <= 0.05 else "differs", "ok",
+           f"dataflash SIM vs eval/results/closed_loop_{tr}.json B.B2")
+if not all(f[1] for f in FRC):
+    sys.exit("1B closed-loop EKF3 FRAME CHECK FAILED on " + str([f for f in FRC if not f[1]]))
+dataid("1B_paths_cl", f"frame check of the closed-loop EKF3 panel (XKF1 core 0 vs SIM, take-off < 0.05 m, heading tolerance {HEAD_TOL_DEG:g} deg)",
+       f"{sum(f[1] for f in FRC)}/{len(FRC)}", "3/3", "this script")
+PAN = [("EKF3", "EKF3, no heading"), ("UKF_baseline", "UKF, no heading"), ("FGO_baseline", "FGO, no heading"),
+       ("EKF3_cl", "EKF3 with heading, flown\nclosed-loop (Experiment 1C),\nnot a replay of the same\nrecorded flights"),
+       ("UKF_heading", "UKF, with heading"), ("FGO_heading", "FGO, with heading")]
+LIMB = max([float(np.abs(v[2]).max()) for v in UNB.values()] + [float(np.abs(v[1]).max()) for v in CLE.values()] + [10.0]) + 4.0
+fig = plt.figure(figsize=(FW, 6.6))
+gs = fig.add_gridspec(2, 6, height_ratios=[3.3, 1.0], hspace=0.24, wspace=0.1)
+axs = [fig.add_subplot(gs[0, i]) for i in range(6)]
+for ax in axs[1:]:
+    ax.sharex(axs[0]); ax.sharey(axs[0])
+for ax, (key, lab) in zip(axs, PAN):
+    if key == "EKF3_cl":
+        wallband(ax, LIMB, fs=8)
+        ax.set_facecolor("#f4f4f4")
+        for tr in HALF["EKF3"][1]:
+            en, ee, gn, ge = CLE[tr]; ax.plot(ge, gn, color=TRUTH, lw=2.2, zorder=2)
+        for tr in HALF["EKF3"][1]:
+            en, ee, gn, ge = CLE[tr]; ax.plot(ee, en, color=C["EKF3"], lw=LW_FL, zorder=3)
+        ax.plot(0, 0, marker="o", ms=5, color=INK, zorder=5)
+        ax.set_aspect(1.0, adjustable="box")
+        ax.set_title(lab, loc="left", fontsize=8.8, color=C["EKF3"], weight="bold")
+    else:
+        paths_raw(ax, UNB, key, B_FL, lambda tr: P4E[tr]["window_s"], COLB[key], LIMB)
+        ax.set_title(lab, loc="left", fontsize=9.5, color=COLB[key], weight="bold")
+    ax.set_xlabel("East (m)", fontsize=9.5)
+for ax in axs[1:]:
+    plt.setp(ax.get_yticklabels(), visible=False)
+axs[0].set_ylabel("along the corridor, North (m)")
+axs[0].set_xlim(-LIMB, LIMB); axs[0].set_ylim(-3, 163)
+check("1B_unaligned_paths", "x-axis symmetric about 0 (left and right limits, m)", f"{-axs[0].get_xlim()[0]:.6f}", f"{axs[0].get_xlim()[1]:.6f}", "set_xlim(-LIMB, LIMB)")
+check("1B_unaligned_paths", "flights shown (textured-wall camera dataset, textured floor)", len(B_FL), 3, "docs/thesis/numbers.md", 269, inline_str="r1 / r2 / r3")
+check("1B_unaligned_paths", "closed-loop EKF3 with-heading flights shown", len(HALF["EKF3"][1]), 3, "eval/figs_thesis.py HALF (cl_bcpp_tex_r1..r3_half)")
+RNGB = {}; RAWS = {}
+for k in SUBB:
+    RNGB[k] = rng([P4E[tr]["est"][k]["ate_a_cruise"]["+0.00"] for tr in B_FL])
+    check("1B_unaligned_paths", f"{k}: registered cruise ATE, lowest–highest over the 3 flights (m), printed in the table", RNGB[k],
+          sumrow("04", f"{k}, painted-line walls, range over flights 1–3 (m)"), "docs/thesis/summary/index_summary.md page 04 check row")
+    RAWS[k] = rd(RAWMX[k], 2)
+    check("1B_unaligned_paths", f"{k}: raw maximum error over the 3 flights, take-off to the end of the cruise (m, 2 dp), printed in the table",
+          RAWS[k], rd(RAWMX[k], 2), "the plotted curves (data-identity row 1B_unaligned: direct TUM recomputation)")
+check("1B_unaligned_paths", "largest with-heading raw error over UKF and FGO equals the 0.54 m of the 2026-10-29 walkthrough (D63)",
+      max(RAWS["UKF_heading"], RAWS["FGO_heading"], key=float), UBH_S, "this script, UBH (data-identity row 1B_unaligned)")
+check("1B_unaligned_paths", "EKF3 has no offline heading arm (table text)", "no offline heading arm", sumrow("04", "EKF3 has no offline heading input"),
+      "docs/thesis/summary/index_summary.md page 04")
+at = fig.add_subplot(gs[1, :]); at.axis("off"); at.set_xlim(0, 1); at.set_ylim(0, 1)
+GX = (0.0, 0.5)                 # two groups side by side: without heading | with heading
+CX = (0.0, 0.165, 0.335)
+HDR = ["estimator", "registered score:\ncruise ATE (fitted),\nlowest to highest", "raw maximum\nerror, take-off\nto end of cruise"]
+for gx in GX:
+    for cx, h_ in zip(CX, HDR):
+        at.text(gx + cx, 1.04, h_, fontsize=9.5, weight="bold", va="top", linespacing=1.05)
+GRP = [[("EKF3", "EKF3, no heading"), ("UKF_baseline", "UKF, no heading"), ("FGO_baseline", "FGO, no heading")],
+       [(None, "EKF3, with heading"), ("UKF_heading", "UKF, with heading"), ("FGO_heading", "FGO, with heading")]]
+for gx, grp in zip(GX, GRP):
+    for i, (k, lab) in enumerate(grp):
+        y_ = 0.47 - 0.19 * i; col = C[lab.split(",")[0]]
+        at.text(gx + CX[0], y_, lab, fontsize=9.5, color=col, weight="bold", va="center")
+        if k is None:
+            at.text(gx + CX[1], y_, "no offline heading arm (the closed-loop\npanel is a picture, not scored)", fontsize=8.5, va="center", color=INK2,
+                    linespacing=1.05)
+        else:
+            r_ = RNGB[k]; lo_, hi_ = r_.split("–")
+            at.text(gx + CX[1], y_, (f"{lo_} m (all 3 flights)" if lo_ == hi_ else f"{lo_} to {hi_} m"), fontsize=9.5, va="center")
+            at.text(gx + CX[2], y_, f"{RAWS[k]} m", fontsize=9.5, va="center")
+at.text(1.0, -0.2, "no pass rule (descriptive comparison)", fontsize=9, ha="right", va="bottom", color=INK2, style="italic")
+fig.subplots_adjust(left=0.065, right=0.99, top=0.85, bottom=0.04)
+s = measured_stretch(fig, axs[0]); check("1B_unaligned_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
+title1(fig, "With the camera heading the UKF and FGO stay on the true path; without it every estimate drifts sideways")
+corner(fig, "raw, nothing fitted (paths)")
+save("1B_unaligned_paths", fig, "", "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, −y) "
+     "for the UKF/FGO (eval/figs_thesis_drift.py); windows and cruise ATEs phase4_fwdc_evo.json; closed-loop panel: dataflash XKF1 (core 0) and SIM "
+     "of cl_bcpp_tex_r1..r3_half, cruise window closed_loop_<trial>.json mapped to SITL time by the rebuilt clock map",
+     ["3", "1.0"] + [x for k in SUBB for x in RNGB[k].split("–")] + [RAWS[k] for k in SUBB], tag="raw, nothing fitted (paths)")
+
+# (b) heading error WITHOUT heading (v3 style): 3 rows, shared axes, to the wall contact; the y label once; direct labels
+D = {}; ENDD = []
+fig, axs = plt.subplots(3, 1, figsize=(FW, FH), sharex=True, sharey=True)
 for e in EST:
     tr, d = CL[(e, 0)]; tc = CLJ[tr]["contact"]["t_rel_cruise_s"]; x, y = d["yx"], d["ye"]; w = (x >= 0) & (x <= tc)
-    D[(e, tr)] = (x[w], y[w]); MK_.append((e, x[w][-1], y[w][-1], f"wall contact at +{rd(tc, 1)} s")); ENDD.append(tc - x[w][-1])
-fig = err_rows([(e, C[e], f"{e}, no heading: 1 flight", (0, (5, 3))) for e in EST], D,
-               "Heading error WITHOUT a heading source: it grows until the drone touches the wall (X)", "heading error (°)",
-               "time since the start of the cruise (s)", xlim=(0, 310), marks=MK_,
-               note="Three separate panels with the same axes. Heading error = estimated direction the drone faces minus the true one.")
+    D[(e, tr)] = (x[w], y[w]); ENDD.append(tc - x[w][-1])
+for ax, e in zip(axs, EST):
+    tr = HALF[e][0]; x, y = D[(e, tr)]
+    ax.axhline(0, color=INK2, lw=0.6, zorder=1)
+    ax.plot(x, y, color=C[e], lw=1.3, ls=(0, (5, 3)), zorder=3)
+    ax.plot(x[-1], y[-1], marker="X", ms=10, color=C[e], mec=INK, mew=0.9, zorder=6, ls="")
+    ax.annotate(f"wall at {CTV[e].split()[0]} s ({VERD[CTV[e].split()[1]]})", (x[-1], y[-1]), xytext=(12, 0), textcoords="offset points",
+                ha="left", va="center", fontsize=9.5, weight="bold")
+    ax.text(0.005, 0.93, f"{e}, no heading, 1 flight", transform=ax.transAxes, color=C[e], weight="bold", fontsize=10.5, va="top")
+axs[0].set_xlim(0, 310); axs[-1].set_xlabel("time since the start of the cruise (s)")
+fig.supylabel("heading error, estimate minus truth (°)", x=0.012, fontsize=10.5)
+fig.subplots_adjust(left=0.075, right=0.985, top=0.86, bottom=0.11, hspace=0.25)
+assert len({ax.get_ylim() for ax in axs}) == 1
+title1(fig, "Without a heading source each estimator's heading error grew until the drone touched the wall (X)")
+corner(fig, "raw heading error, nothing fitted")
 dataid("1C_head_off", "plotted no-heading curves end within 0.1 s of the stored contact time, all 3 (F9 rule)", "ok" if max(ENDD) <= 0.1 else rd(max(ENDD), 3),
        "ok", "curve source vs closed_loop_*.json contact.t_rel_cruise_s")
+for e in EST:
+    check("1C_head_off", f"{e}: wall contact and verdict printed at the X (same string as 1C_paths)", CTV[e],
+          sumrow("05", f"{e}: wall contact after cruise start (s) and verdict against its window"), "index_summary.md page 05 check row")
 save("1C_head_off", fig, "", "dataflash XKF1 (core 0) / XUKO / XFGO and SIM, bag /imu/time_ref (clock map), of cl_a_tex_half, cl_ukf_a_tex_half_v2, "
-     "cl_fgo_a_tex_half_v3; contact from closed_loop_<trial>.json", ["1"] + [f"+{rd(CLJ[HALF[e][0]]['contact']['t_rel_cruise_s'], 1)}" for e in EST])
+     "cl_fgo_a_tex_half_v3; contact from closed_loop_<trial>.json", ["1"] + [CTV[e].split()[0] for e in EST], tag="raw heading error, nothing fitted")
 
-# (c) heading error WITH heading: 3 rows, shared axes, +-2 deg bound
+# (c) heading error WITH heading (v3 style): 3 rows, shared axes, the grey +-2.0 deg band labelled as the limit, PASS per panel
 D = {}; DB3 = []; P95 = {}; MX = {}
 for e in EST:
     for k in (1, 2, 3):
@@ -692,14 +916,28 @@ check("1C_head_on", "largest heading-error p95 / max over all 9 with-heading fli
 check("1C_head_on", "heading-error bound printed (p95 / max, deg)", "1.0 / 2.0", "1.0 / 2.0", "METHODOLOGY.md:4958 ('95th percentile ≤ 1.0°, maximum ≤ 2.0°')")
 dataid("1C_head_on", "plotted with-heading curves: |error| p95 and max in the stored cruise window vs stored B3, all 9 flights, |delta| <= 0.001 deg (F9 rule)",
        "ok" if max(DB3) <= 0.001 else rd(max(DB3), 4), "ok", "curve source vs closed_loop_*.json B3")
-fig = err_rows([(e, C[e], f"{e}, with the camera heading: 3 flights, one line each", "-") for e in EST], D,
-               "Heading error WITH the camera heading: it stays near zero, inside the grey ±2.0° band", "heading error (°)",
-               "time since the start of the cruise (s)", xlim=(0, 310), ylim=(-2.5, 2.5), band=2.0,
-               note=f"Three separate panels with the same axes. Pass rule: within 1.0° 95% of the time and 2.0° at most; largest over the "
-                    f"9 flights {rd(max(P95.values()), 2)}° and {rd(max(MX.values()), 2)}°.")
+fig, axs = plt.subplots(3, 1, figsize=(FW, FH), sharex=True, sharey=True)
+for ax, e in zip(axs, EST):
+    ax.axhspan(-2.0, 2.0, color=TRUTH, alpha=0.2, lw=0, zorder=1); ax.axhline(0, color=INK2, lw=0.6, zorder=1)
+    for tr in HALF[e][1]:
+        x, y = D[(e, tr)]; ax.plot(x, y, color=C[e], lw=LW_FL, zorder=3)
+    ax.text(0.005, 0.95, f"{e}, with heading, 3 flights", transform=ax.transAxes, color=C[e], weight="bold", fontsize=10.5, va="top")
+    ax.text(0.995, 0.95, f"PASS on {VP3[e].replace('/', ' of ')} flights (all five checks)", transform=ax.transAxes, fontsize=9.5, weight="bold",
+            ha="right", va="top")
+    ax.text(305, -1.85, f"grey band: limit ±2.0° (and within 1.0° 95% of the time; largest 95th percentile {rd(max(P95.values()), 2)}°)",
+            fontsize=8.5, color=INK2, ha="right", va="bottom")
+axs[0].set_xlim(0, 310); axs[0].set_ylim(-2.6, 2.9); axs[-1].set_xlabel("time since the start of the cruise (s)")
+fig.supylabel("heading error, estimate minus truth (°)", x=0.012, fontsize=10.5)
+fig.subplots_adjust(left=0.075, right=0.985, top=0.86, bottom=0.11, hspace=0.25)
+assert len({ax.get_ylim() for ax in axs}) == 1
+title1(fig, f"With the camera heading the heading error stayed inside the ±2.0° limit on all 9 flights (largest {rd(max(MX.values()), 2)}°)")
+corner(fig, "raw heading error, nothing fitted")
 save("1C_head_on", fig, "", "as 1C_head_off, for the 9 with-heading flights; B3 from closed_loop_<trial>.json",
-     ["3", "2.0", "1.0", "95", "9", rd(max(P95.values()), 2), rd(max(MX.values()), 2)])
+     ["3", "2.0", "1.0", "95", "9", rd(max(MX.values()), 2), rd(max(P95.values()), 2)], tag="raw heading error, nothing fitted")
 check("1C_head_on", "'95% of the time' (the p95 statistic) and '9 flights'", "95 / 9", "95 / 9", "B3 definition (p95); 3 estimators x 3 flights")
+for e in EST:
+    check("1C_head_on", f"{e}: flights passing all five checks, printed per panel", VP3[e], sumrow("06", f"{e}: flights passing all five checks"),
+          "index_summary.md page 06 check row")
 
 # (d) sideways distance from the centre line against time
 D = {}; MK_ = []
@@ -765,7 +1003,7 @@ def gt_room(tr):
 
 TL = {"A": "8 tags", "B": "4 tags", "C": "2 tags", "D": "1 tag"}
 room_paths("2_truth", [(f"{TL[c]}\nn = 3 flights", [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
-           "Where the drone really flew: 5 laps of the 6 m square, all 12 flights (simulator truth)",
+           "All 12 flights flew the same 5 laps of the 6 m square (simulator truth)",
            "Four separate panels (tags available), the same axes, equal scale (1.0). Black dot: start. The lines lie on top of each other.",
            ["5", "6", "12", "8", "4", "2", "1", "3", "1.0"], "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}")
 check("2_truth", "flights: 4 conditions x 3", len(T_FL), 12, "eval/figs_thesis.py F5 (3 flights per condition A-D)")
@@ -776,6 +1014,61 @@ room_paths("3_truth", [("8 tags (the same flights as\nExperiment 2, 8 tags)\nn =
            "Equal scale (1.0). Black dot: start. 5 laps of the 6 m square; the lines lie on top of each other.",
            ["8", "2", "3", "1.0", "5", "6"], "bag /ground_truth/pose of T_A_r{1,2,3} (Experiment 3 re-uses these flights: eval/results/expL/T_A_r*_t245.json)")
 check("3_truth", "flights", "T_A_r1, T_A_r2, T_A_r3", "T_A_r1, T_A_r2, T_A_r3", "eval/figs_thesis.py LL (expL/T_A_r{1,2,3}_t245.json)")
+
+# =============================================================================================== EXTENSION E3: tag maps (v3, user TASK 4)
+# DESCRIPTIVE, not a registered measure: the FGO's hindsight track and final landmarks (stats.json landmarks_final, keyed by creation
+# order, so drawn unlabelled) against the true track and the true tags, in tag 0's frame (bag ground truth minus tag 0's position, as
+# eval/l_score.py; true tags from sim/worlds/room_tags_map.json, the same shift). Runs: one clean reference (Experiment 3, flight 1, no
+# wrong IDs) and the three already shown in the 2026-10-29 walkthrough (docs/thesis/tier1/stage2e/diag_collapse/figs.py). Each plotted
+# hindsight track is checked: its RMSE over the stored lap window, recomputed from exactly the plotted samples, equals the stored score.
+T1D = os.path.expanduser("~/thesis_data/tier1"); T1S = os.path.join(ROOT, "docs", "thesis", "tier1", "scores")
+TMAP = json.load(open(os.path.join(ROOT, "sim", "worlds", "room_tags_map.json")))["tags"]
+_t0 = next(t for t in TMAP if t["id"] == 0)
+TRUEMAP = {t["id"]: (t["x"] - _t0["x"], t["y"] - _t0["y"]) for t in TMAP}
+_rc = json.load(open(os.path.join(T1D, "stage2e", "diag_collapse", "recon_T_A_r1_0.01_s0.json")))["true_map_tag0_frame"]
+dataid("E3_maps", "true tag map in tag 0's frame (room_tags_map.json shifted) equals the E3 diagnosis's true_map_tag0_frame (6 dp)",
+       str(all(rd(TRUEMAP[int(k)][0], 6) == rd(v[0], 6) and rd(TRUEMAP[int(k)][1], 6) == rd(v[1], 6) for k, v in _rc.items()) and len(_rc) == len(TRUEMAP)),
+       "True", "sim/worlds/room_tags_map.json vs ~/thesis_data/tier1/stage2e/diag_collapse/recon_T_A_r1_0.01_s0.json")
+B3_ = "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7"
+E3M = [("T_A_r1", os.path.join(TD, "T_A_r1", "lc_fgo_lc_t245"), os.path.join(RES, "expL", "T_A_r1_t245.json"),
+        "No wrong IDs, FGO as built\n(Experiment 3, flight 1):\nreference, map matches the room"),
+       ("T_A_r1", os.path.join(T1D, "T_A_r1", f"{B3_}_mis0.01_s0"), os.path.join(T1S, "E3a_T_A_r1_0.01_s0.json"),
+        "1% wrong IDs, FGO as built\n(flight 1, seed 0):\nfinished, map shrunk"),
+       ("T_A_r3", os.path.join(T1D, "T_A_r3", f"{B3_}_mis0.05_s0"), os.path.join(T1S, "E3a_T_A_r3_0.05_s0.json"),
+        "5% wrong IDs, FGO as built\n(flight 3, seed 0):\nfinished, map shrunk"),
+       ("T_A_r2", os.path.join(T1D, "T_A_r2", f"{B3_}_mis0.05_s1_robcauchy2.385"), os.path.join(T1S, "E3b_T_A_r2_0.05_s1.json"),
+        "5% wrong IDs, robust FGO\n(flight 2, seed 1):\nthe one robust run that collapsed")]
+fig, axs = plt.subplots(1, 4, figsize=(FW, 4.9), sharex=True, sharey=True)
+for ax, (tr, rd_, sc, lab) in zip(axs, E3M):
+    G = ex_room(tr)["G"]; Gx, Gy = G[:, 1] - _t0["x"], G[:, 2] - _t0["y"]
+    H = np.loadtxt(f"{rd_}/hindsight.tum", ndmin=2); S = json.load(open(sc)); lb = S["lap_bounds_s"]
+    e_ = np.hypot(H[:, 1] - np.interp(H[:, 0], G[:, 0], Gx), H[:, 2] - np.interp(H[:, 0], G[:, 0], Gy)); wl = (H[:, 0] >= lb[0]) & (H[:, 0] <= lb[-1])
+    dataid("E3_maps", f"{os.path.basename(rd_)} ({tr}): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+           rd(float(np.sqrt(np.mean(e_[wl] ** 2))), 6), rd(S["tracks"]["lc hindsight"]["rmse_m"], 6), f"{os.path.relpath(sc, ROOT) if sc.startswith(ROOT) else sc}")
+    wg = (G[:, 0] >= H[0, 0]) & (G[:, 0] <= H[-1, 0])
+    ax.plot(Gx[wg], Gy[wg], color=TRUTH, lw=1.6, zorder=2)
+    ax.plot(H[:, 1], H[:, 2], color=C["FGO"], lw=0.8, alpha=0.85, zorder=3)
+    for tid, (x_, y_) in TRUEMAP.items():
+        ax.plot(x_, y_, marker="s", ms=8, color=TRUTH, zorder=4)
+    lm = json.load(open(f"{rd_}/stats.json"))["landmarks_final"]
+    for v in lm.values():
+        ax.plot(v[0], v[1], marker="o", ms=7, mfc="white", mec=C["FGO"], mew=1.6, ls="", zorder=5)
+    check("E3_maps", f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8", "stats.json landmarks_final; room_tags_map.json")
+    ax.set_title(lab, loc="left", fontsize=9.3)
+    ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("from the start tag, x (m)")
+axs[0].set_ylabel("from the start tag, y (m)")
+axs[0].set_xlim(-1.5, 7.5); axs[0].set_ylim(-1.5, 7.5)
+fig.text(0.01, 0.035, "grey line and grey squares: the true track and the 8 true tags.   Orange line and open circles: the FGO's "
+         "whole-flight re-solve (hindsight) and its final tag map.", fontsize=9.5, color=INK2, ha="left", va="bottom")
+fig.subplots_adjust(left=0.06, right=0.99, top=0.74, bottom=0.17, wspace=0.12)
+title1(fig, "With wrong tag IDs the FGO's final tag map shrank or folded; with correct IDs it matched the room")
+corner(fig, "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)")
+check("E3_maps", "runs shown: one clean reference + the three of the 2026-10-29 appendix", "4", "4", "user TASK 4; docs/thesis/tier1/stage2e/diag_collapse/figs.py maps")
+save("E3_maps", fig, "", "bag /ground_truth/pose of T_A_r1..r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the four runs, "
+     "sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json, "
+     "E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json", ["1", "2", "3", "5", "8", "0"],
+     tag="DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)")
+
 
 
 def sim_xy(tr):
@@ -861,32 +1154,66 @@ save("4_err_hind", fig, "", "as 4_err_live", ["3"] + [rng([OM[tr]["tracks"][n]["
 # the same curves (OE), one figure, three rows (EKF3 / UKF / FGO) by two columns (live, solid / hindsight, dashed), ONE y-scale for
 # all six panels (sharey, asserted). EKF3 has no hindsight version: that panel carries a note and no curve.
 HIND = {"EKF3 live": None, "UKF live": "RTS-UKF (hindsight)", "FGO live": "FGO hindsight (whole-flight batch)"}
-fig, axs = plt.subplots(3, 2, figsize=(FW, 5.6), sharex=True, sharey=True)
+# v3 (2026-10-31): the same curves (OE), 3 rows (EKF3 / UKF / FGO) by 2 columns (live, solid / hindsight, dashed), ONE y-scale for all six
+# panels (sharey, asserted); the indoor shading labelled on the plot, direct labels with the indoor RMSE range, the verdicts on the panels
+# they concern (index_summary.md page 09 check rows), the y label once.
+JMP4 = rng([OM[tr]["tracks"]["EKF3 live"]["max_step_after_return_m"] for tr in O_FL]).split("–")[0]
+check("4_err", "EKF3 reset jump on return (m), every flight, printed", rng([OM[tr]["tracks"]["EKF3 live"]["max_step_after_return_m"] for tr in O_FL]),
+      "4.10–4.10", "eval/figs_thesis.py F6 check ('numbers.md §16.2: 4.10 m, every flight')")
+_p4 = f"{sum(OM[tr]['tracks']['FGO hindsight (whole-flight batch)']['indoor_rmse_m'] < min(OM[tr]['tracks']['EKF3 live']['indoor_rmse_m'], OM[tr]['tracks']['UKF live']['indoor_rmse_m']) for tr in O_FL)}/3"
+check("4_err", "primary: FGO hindsight below EKF3 and UKF live, flights of 3 (printed on the FGO hindsight panel)", _p4,
+      sumrow("09", "primary: FGO hindsight below EKF3 and UKF live, flights of 3"), "index_summary.md page 09 check row")
+V4 = {"prim": _p4, "live": sumrow("09", "live errors similar (≤ 1.5× every flight): verdict"),
+      "hind": sumrow("09", "two hindsight errors within 1.5× (every flight): verdict")}
+check("4_err", "live errors similar: verdict (FAIL in the check row, printed as the Result's 'NOT MET')", V4["live"], "FAIL", "index_summary.md page 09")
+check("4_err", "hindsight errors similar: verdict", V4["hind"], "PASS", "index_summary.md page 09")
+_prim_ok = V4["prim"] == "3/3"
+fig, axs = plt.subplots(3, 2, figsize=(FW, 5.9), sharex=True, sharey=True)
+RN4 = {}
 for r, n in enumerate(("EKF3 live", "UKF live", "FGO live")):
     for c, nn in enumerate((n, HIND[n])):
         ax = axs[r, c]
-        for k in range(len(O_FL)):
-            ax.axvspan(0, TON[k], color="#ececec", zorder=0, lw=0)
+        for k_ in range(len(O_FL)):
+            ax.axvspan(0, TON[k_], color="#ececec", zorder=0, lw=0)
+        if r == 0:
+            ax.text(2, 0.97 * ymax, f"indoors, GPS off ({rd(max(TON), 0)} s)", ha="left", va="top", fontsize=9, color=INK2)
+        e_ = n.split()[0]
         if nn is None:
-            ax.text(0.5, 0.5, "EKF3 has no hindsight version", transform=ax.transAxes, ha="center", va="center", fontsize=10.5, color=INK2)
-            ax.set_title("EKF3, hindsight: none", loc="left", pad=3)
+            ax.text(0.5, 0.5, "EKF3: no hindsight version", transform=ax.transAxes, ha="center", va="center", fontsize=10.5, color=C["EKF3"], weight="bold")
+            pass                          # the centred note names the panel; no corner label (it would collide with the indoor label)
         else:
             for tr in O_FL:
                 x, y = OE[(nn, tr)]; ax.plot(x, y, color=TCOL[nn], lw=1.1, ls=TLS[nn], zorder=3)
-            ax.set_title(f"{TSH[nn]}: indoor RMSE {rng([OM[tr]['tracks'][nn]['indoor_rmse_m'] for tr in O_FL])} m", loc="left", pad=3)
-        if c == 0:
-            ax.set_ylabel("error (m)")
+            RN4[nn] = rng([OM[tr]['tracks'][nn]['indoor_rmse_m'] for tr in O_FL])
+            lab_ = {"EKF3 live": "EKF3, live", "UKF live": "UKF, live", "FGO live": "FGO, live", "RTS-UKF (hindsight)": "UKF, re-solved after landing",
+                    "FGO hindsight (whole-flight batch)": "FGO, whole flight re-solved"}[nn]
+            ax.text(0.01, 0.97, lab_, transform=ax.transAxes, fontsize=10, color=TCOL[nn], weight="bold", va="top")
+            ax.text(0.27, 0.80, f"indoor RMSE {RN4[nn].replace('–', ' to ')} m", transform=ax.transAxes, fontsize=9.5, ha="left", va="top")
+        if nn == "EKF3 live":
+            ax.annotate(f"EKF3 resets to GPS\non return: {JMP4} m jump", (TON[0] + 1, 2.0), xytext=(0.01, 0.52), textcoords="axes fraction",
+                        fontsize=9, ha="left", va="center", color=INK, arrowprops=dict(arrowstyle="-", color=INK2, lw=0.7))
+        if nn == "FGO hindsight (whole-flight batch)":
+            ax.text(0.99, 0.40, f"PASS (primary): below EKF3 and UKF live\nin {V4['prim'].replace('/', ' of ')} flights", transform=ax.transAxes,
+                    fontsize=9.5, weight="bold", ha="right", va="top")
 axs[0, 0].set_ylim(0, ymax); axs[0, 0].set_xlim(-40, max(TON) + 30)
+axs[0, 0].set_title("live (during flight), solid", loc="left", fontsize=10.5)
+axs[0, 1].set_title("hindsight (after landing), dashed", loc="left", fontsize=10.5)
 for c in range(2):
-    axs[-1, c].set_xlabel("time from GNSS OFF at the entrance (s)")
-fig.subplots_adjust(left=0.07, right=0.99, top=0.86, bottom=0.1, hspace=0.45, wspace=0.08)
-head(fig, "Live (left, solid) and hindsight (right, dashed): error against time, all 3 flights; NOT FITTED",
-     f"ONE y-scale in all six panels (linear). Shaded: indoors, GNSS off ({rd(max(TON), 0)} s). EKF3's drop just after the shading: its reset to GNSS.")
+    axs[-1, c].set_xlabel("time from GPS OFF at the entrance (s)")
+fig.text(0.075, 0.035, f"Live errors within 1.5× of each other: NOT MET (live errors not ranked).    Hindsight errors within 1.5×: {V4['hind']}.",
+         fontsize=9.5, weight="bold", ha="left", va="bottom")
+fig.supylabel("horizontal error (m)", x=0.012, fontsize=10.5)
+fig.subplots_adjust(left=0.075, right=0.99, top=0.85, bottom=0.15, hspace=0.3, wspace=0.08)
+title1(fig, "Indoors without GPS every live error grows; the FGO re-solved after landing stays below both filters' live errors")
+corner(fig, "raw, nothing fitted")
 _yl = {ax.get_ylim() for ax in axs.flat}
 check("4_err", "all six panels share one y-scale (sharey)", str(len(_yl) == 1), "True", "this script (axis limits)")
 check("4_err", "y-axis upper limit equals that of the two separate pages (m, 2 dp)", rd(axs[0, 0].get_ylim()[1], 2), rd(ymax, 2), "this script (ymax of 4_err_live / 4_err_hind)")
-save("4_err", fig, "", "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure)",
-     ["3", "123"] + [rng([OM[tr]["tracks"][n]["indoor_rmse_m"] for tr in O_FL]) for n in TRK])
+for nn in RN4:
+    check("4_err", f"{nn}: indoor RMSE range printed on its panel (m)", RN4[nn], sumrow("09", f"{nn}: indoor error range over 3 flights (m)"),
+          "index_summary.md page 09 check row")
+save("4_err", fig, "", "as 4_err_live (the curves of 4_err_live and 4_err_hind, one figure); verdicts index_summary.md page 09",
+     ["3", "1.5", "123", JMP4] + [x for v in RN4.values() for x in v.split("–")], tag="raw, nothing fitted")
 room_paths("4_truth", [("n = 3 flights (out and back along the same line, so the lines lie on top of each other)", O_FL)], gt_room,
            "Where the drone really flew: the 3 outdoor–indoor flights (simulator truth)",
            "Seen from above, equal scale (1.0). Black dot: start. Out along North into the building, back the same way at the same heading.",
@@ -903,9 +1230,10 @@ W = ["# Results walkthrough, all flights: index and provenance", "",
      "**Shared code (copied, not imported):** from `eval/figs_thesis.py` by ast, sha256 of each function's source: " +
      "; ".join(f"`{k}` `{v}`" for k, v in sorted(SRC_SHA.items())) + ". `aligned()` copied from `eval/figs_thesis_results.py`; `to_NE()` and the "
      "frame check from `eval/figs_thesis_drift.py`; the Experiment 4 clock map and error from `eval/o_score.py`.", "",
-     "**Aligned plots (coordinator finding 2026-10-21):** the SE(3) fit of the cruise ATE is degenerate about the corridor axis, so "
-     "the aligned paths and errors are drawn with a YAW-ONLY alignment (rotation about the vertical + 3-D shift, least squares on the "
-     "same associated samples in the pinned window); its RMS equals the stored cruise ATE at the displayed 2 dp on every flight "
+     "**Aligned (fitted) recomputation:** since v3 (2026-10-31, D79) no fitted path or error figure is drawn; the registered fitted "
+     "cruise ATEs are printed in the tables of `fl_1A_unaligned_paths` and `fl_1B_unaligned_paths`. The SE(3) cruise ATE is still "
+     "recomputed from the same samples, and a YAW-ONLY alignment (rotation about the vertical + 3-D shift, least squares on the same "
+     "associated samples in the pinned window; the SE(3) fit is degenerate about the corridor axis) still reproduces it at 2 dp on every flight "
      f"(data-identity rows); largest (yaw-only − SE(3)) RMS difference {max(abs(d[2]) for d in YAWD):.2e} m. The SE(3) value is still "
      "recomputed to 6 dp as the input-identity check.", "",
      f"**Frame check (1A, unaligned):** heading tolerance {HEAD_TOL_DEG:g}°; {FRAME_NOTE}. Any relabel error would give ≥ 90°.", "",
@@ -913,9 +1241,10 @@ W = ["# Results walkthrough, all flights: index and provenance", "",
      f"flight-arms pass at {HEAD_TOL_DEG:g}°; {FRAME_NOTE_B}. Each plotted not-fitted 1B path also reproduces the stored cruise-window "
      "displacement (`failure.final_disp`, `failure.true_travel` of `phase4_fwdc_evo.json`, eval/three_way_eval.py `failure_metrics`) to 6 dp, and "
      "its end-of-cruise error equals a direct recomputation from the raw TUM rows to 6 dp (data-identity rows `1B_unaligned`).", "",
-     "**Why some plots do not start at the origin:** the aligned plots (scoring) show the cruise only (it starts about 30 s after take-off) and "
-     "each estimate is moved and turned by the best-fit alignment, so its first point is not the take-off point; the unaligned plots start at "
-     "take-off (0, 0).", "", "## Figures", "", "| figure | file | sha256 | inputs | numbers printed |", "|---|---|---|---|---|"]
+     "**Origin:** every path figure (raw, not fitted) starts at take-off (0, 0); the fitted scores are computed on the cruise only.", "",
+     "**v3 (2026-10-31):** finding titles, raw / fitted tags and verdict marks are drawn on the figures; `save()` asserts no em-dash, linear "
+     "axes and every text inside the figure (measured at 200 dpi). Verdict marks equal the summary check rows (`sumrow`, index_summary.md).",
+     "", "## Figures", "", "| figure | file | sha256 | inputs | numbers printed |", "|---|---|---|---|---|"]
 for k, f in FIGS.items():
     W.append(f"| {k} | `{f['file']}` | `{hashlib.sha256(open(os.path.join(ROOT, f['file']), 'rb').read()).hexdigest()}` | {f['inputs']} | {', '.join(f['numbers'])} |")
 W += ["", "## Printed-number checks", "", "| figure | check | computed | expected | source | result |", "|---|---|---|---|---|---|"]

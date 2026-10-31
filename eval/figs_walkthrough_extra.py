@@ -134,8 +134,10 @@ def T(s):
 NUMTOK = re.compile(r"\d+(?:\.\d+)?")
 
 
-def save(fid, fig, inputs):
-    """Number guard: every number drawn on the figure (TXT) must occur in a passing check of this figure."""
+def save(fid, fig, inputs, tag=None, key=False):
+    """Number guard: every number drawn on the figure (TXT) must occur in a passing check of this figure. v3 (2026-10-31): tag = the
+    raw / fitted tag drawn on the figure (None: the composer draws it), key = the figure carries the filled / open key; every axis
+    linear (asserted); text measured at the saved dpi."""
     allowed = set()
     for c in CHK:
         if c["fig"] == fid and c["ok"]:
@@ -144,15 +146,66 @@ def save(fid, fig, inputs):
     assert not stray, f"{fid}: number(s) {stray} drawn without a check"
     for s in TXT:
         assert "—" not in s, f"{fid}: em-dash in '{s}'"
-    fig.canvas.draw(); r_ = fig.canvas.get_renderer(); W_, H_ = fig.bbox.width, fig.bbox.height
+    for a_ in fig.axes:
+        assert a_.get_xscale() == "linear" and a_.get_yscale() == "linear", f"{fid}: a non-linear axis"
+    fig.set_dpi(DPI); fig.canvas.draw(); r_ = fig.canvas.get_renderer(); W_, H_ = fig.bbox.width, fig.bbox.height
+    ticks_ = {id(t) for a_ in fig.axes for t in a_.get_xticklabels() + a_.get_yticklabels()}
     for t_ in fig.findobj(matplotlib.text.Text):
-        if t_.get_text() and t_.get_visible():
+        assert "—" not in t_.get_text(), f"{fid}: em-dash in figure text"
+        if t_.get_text() and t_.get_visible() and id(t_) not in ticks_:
             b_ = t_.get_window_extent(renderer=r_)
             assert b_.x0 >= -1 and b_.x1 <= W_ + 1 and b_.y0 >= -1 and b_.y1 <= H_ + 1, f"{fid}: text runs off the figure: {t_.get_text()[:50]!r}"
     p = os.path.join(OUTD, f"ex_{fid}.png"); fig.savefig(p, dpi=DPI); plt.close(fig)
     FIGS[fid] = dict(file=os.path.relpath(p, ROOT), inputs=inputs, numbers=sorted(allowed & {t for s in TXT for t in NUMTOK.findall(s)}),
-                     text=list(TXT))
+                     text=list(TXT), tag=tag, key=key)
     print(f"wrote ex_{fid}.png")
+
+
+# =================================================================== v3 (2026-10-31): redrawn summary charts, self-explanatory
+# User request 2026-10-31 ("SELF-EXPLANATORY PLOTS"; TASK 4, 5, 6): one-line finding title, direct labels instead of legends, the
+# registered verdict printed on the data (each equal to the summary page's check row), the raw / fitted tag and, where filled and open
+# marks are both used, the key "filled = live (during flight), open = hindsight (after landing)". Loaders and expected strings COPIED
+# from eval/figs_thesis.py (F5, F7) and eval/figs_thesis_summary.py (pages 13, 14, 18); those scripts and their outputs are untouched.
+DISPF.update({"FI": "docs/thesis/figures_thesis/index.md", "N": "docs/thesis/numbers.md", "E2": "docs/thesis/tier1/e2_results.md",
+              "E3": "docs/thesis/tier1/e3_results.md", "E5": "docs/thesis/tier1/e5_results.md"})
+KEY_LH = "filled = live (during flight), open = hindsight (after landing)"
+SURF = "white"
+MK = {"EKF3": "o", "UKF": "^", "FGO": "s"}
+
+
+def title1(fig, text, x=0.01, y=0.985, fs=13.5):
+    """One-line finding title, asserted to fit inside the figure on one line."""
+    assert "\n" not in text
+    T(text)
+    while True:                         # shrink the font (not below 11 pt) until the one line fits, with a 3% margin
+        t_ = fig.text(x, y, text, fontsize=fs, weight="bold", ha="left", va="top")
+        fig.canvas.draw(); bb = t_.get_window_extent(renderer=fig.canvas.get_renderer())
+        if bb.x1 <= fig.bbox.x1 * 0.97:
+            return t_
+        t_.remove(); fs -= 0.5
+        assert fs >= 11, f"title does not fit on one line: {text}"
+
+
+def corner(fig, tag, key=None, y=0.925):
+    fig.text(0.99, y, T(tag), fontsize=11, ha="right", va="top", color=INK, bbox=dict(boxstyle="round,pad=0.3", fc="#f2f2f2", ec="#bbbbbb", lw=0.6))
+    if key:
+        fig.text(0.01, y, T(key), fontsize=11, ha="left", va="top", color=INK, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#bbbbbb", lw=0.6))
+
+
+def rbox(ax, x, vals, col, filled, w=0.3):
+    """Box = lowest to highest of the flights (filled = live, open = hindsight); a minimum visible height."""
+    lo, hi = min(vals), max(vals); yl = ax.get_ylim(); h = max(hi - lo, 0.012 * (yl[1] - yl[0]))
+    ax.add_patch(Rectangle((x - w / 2, lo - (h - (hi - lo)) / 2), w, h, facecolor=col if filled else "white", edgecolor=col, lw=2.0, zorder=3))
+    return lo - (h - (hi - lo)) / 2 + h
+
+
+def mark(ax, x, y, text, **kw):
+    """A verdict mark drawn next to the data (bold)."""
+    kw.setdefault("fontsize", 11.5); kw.setdefault("weight", "bold"); kw.setdefault("ha", "left"); kw.setdefault("va", "center")
+    return ax.text(x, y, T(text), **kw)
+
+
+VERD = {"PASS": "PASS", "FAIL": "NOT MET"}     # check-row token -> the registered Result wording where the Result says NOT MET
 
 
 # =================================================================== Experiment 5: hold error and drift while the tag is hidden
@@ -211,11 +264,22 @@ axr.text(2.45, 50.6, T(f"tightest limit: {DLIM} mm"), ha="right", va="bottom", f
 axl.set_ylabel("millimetres (mm), linear, the same\nscale in both panels")
 axl.set_title(T("Holding still: mean hold error per flight\n(bar = highest of 3 flights; label = lowest–highest)"), loc="left", fontsize=13)
 axr.set_title(T("Tag hidden: worst drift over all tag losses\n(bar = the worst loss)"), loc="left", fontsize=13)
-fig.subplots_adjust(left=0.1, right=0.99, top=0.84, bottom=0.2, wspace=0.12)
-fig.suptitle(T("Experiment 5: holding next to a wall tag (left), drift while the tag is hidden (right)"), x=0.1, ha="left",
-             fontsize=13.5, weight="bold", y=0.985)
+# v3 (2026-10-31): the registered verdict on each bar (summary pages 10 and 11 check rows), one-line finding title, raw tag on the figure
+VHV = check("5_hold_drift", "hold accuracy verdict as recorded: EKF3 first hold flights / FGO", "PASS / PASS", "PASS / PASS", "summary page 10",
+            summ=("10", "hold accuracy verdict as recorded: EKF3 first hold flights / FGO"))
+VDI = check("5_hold_drift", "every drift inside its limit (and 0 refusals: the lockout counts above)", "True", "True", "summary page 11",
+            summ=("11", "every drift inside its limit"))
+HMK = {"EKF3": f"{VHV.split(' / ')[0]}*", "UKF": "inside,\nno recorded\nverdict", "FGO": VHV.split(" / ")[1]}
+for i, e in enumerate(EST):
+    axl.text(i, 22, T(HMK[e]), ha="center", va="bottom", fontsize=11.5, weight="bold", linespacing=1.05)
+    axr.text(i, max(float(rd_si(worstm[e], 12, 3)), 0) + 7.5, T("PASS" if VDI == "True" and VN[e].startswith("0 /") else "NOT MET"), ha="center",
+             va="bottom", fontsize=11.5, weight="bold")
+axl.text(-0.45, 57.5, T("* registered on EKF3's first hold flights"), fontsize=10.5, color=INK2, va="center")
+fig.subplots_adjust(left=0.1, right=0.99, top=0.76, bottom=0.2, wspace=0.12)
+title1(fig, f"All three estimators held the drone well inside the {HLIM} mm limits, at rest and with the tag hidden")
+corner(fig, "raw: the drone's real position, nothing fitted")
 save("5_hold_drift", fig, "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s1_r1..r3,s2v2_r1..r3,s3v2_r1..r3}.json, "
-     "eval/results/expH/h_comparative_2026-10-11.json")
+     "eval/results/expH/h_comparative_2026-10-11.json; verdicts index_summary.md pages 10 and 11", tag="raw: the drone's real position, nothing fitted")
 
 # =================================================================== E4: the compute / accuracy trade-off of a longer FGO window
 TXT = []
@@ -335,22 +399,278 @@ axr.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:
 axr.set_title(T("Live error: one line per flight (12 lines)"), loc="left", fontsize=13)
 for ax in (axl, axr):
     ax.set_xlabel(T("FGO window (s), windows not to scale"))
-fig.subplots_adjust(left=0.08, right=0.985, top=0.80, bottom=0.25, wspace=0.28)
-fig.suptitle(T("Extension E4: a longer FGO window costs far more compute and does not improve live accuracy"), x=0.08, ha="left",
-             fontsize=13, weight="bold", y=0.975)
-fig.text(0.08, 0.895, T("Filled squares: live (fixed-lag) estimates. NOT FITTED: room frame, no alignment. Both y-axes linear, from 0."),
-         fontsize=11.5, color=INK2, va="top")
-CAP = (f"A 5 s window costs {VRAT.replace('–', ' to ')} times the compute of the 0.25 s window (median step per flight) and does not "
-       f"improve live accuracy: lower at 5 s on {sum(LOW.values())} of 12 flights (by at most {VDLO} m), higher on the other "
-       f"{12 - sum(LOW.values())} (by at most {VDHI} m); H-E4.3 {VH43.split()[0]} (not met). From the 1 s window on, every flight is over "
-       f"the {BUD} ms budget.")
-import textwrap
-fig.text(0.08, 0.035, T("\n".join(textwrap.wrap(CAP, 118))), fontsize=11.5, va="bottom", ha="left", color=INK, linespacing=1.25)
+check("E4_tradeoff", "registered ids printed: P-E4.1, P-E4.2", "P-E4.1 P-E4.2", "P-E4.1 P-E4.2", "pre-registration",
+      [("PR", "P-E4.1"), ("PR", "P-E4.2")])
+check("E4_tradeoff", "H-E4.3 band printed: at least 10 of 12 flights", "10 of 12", "10 of 12", "e4_results.md", [("E4", "**H-E4.3 FAIL 7/12** (band ≥ 10/12)")])
+axl.text(-0.5, 250, T(f"P-E4.1 {VP41.split()[0]} ({VP41.split()[1].replace('/', ' of ')}):\nslower at every longer window"), fontsize=11.5, weight="bold", va="center")
+axl.text(-0.5, 190, T(f"P-E4.2 {VP42.split()[0]}: within {BUD} ms\nat 0.25 s, over it from 1 s on"), fontsize=11.5, weight="bold", va="center")
+axr.text(-0.5, 0.0445, T(f"H-E4.3 {VH43.split()[0]}: lower at 5 s on {sum(LOW.values())} of 12 flights"), fontsize=11, weight="bold", va="center")
+axr.text(-0.5, 0.0375, T(f"(10 of 12 needed; largest change {VDLO} m)"), fontsize=10.5, va="center", color=INK2)
+fig.subplots_adjust(left=0.08, right=0.985, top=0.80, bottom=0.14, wspace=0.28)
+title1(fig, f"A 5 s FGO window took {VRAT.replace('–', ' to ')} times the compute of 0.25 s and did not improve live accuracy (H-E4.3 FAIL)")
+corner(fig, "compute time measured; live error raw, nothing fitted", "filled = live (during flight)")
 check("E4_tradeoff", "every flight over the budget at 1 s and above (after-anchor medians > 33 ms)", str(all(min(MED4[w]) > 33 for w in (1, 2, 5))),
       "True", "E4_verdicts.json", [("E4", "and 12/12 at each of 1, 2 and 5 s (> 33 ms)")])
 check("E4_tradeoff", "registered id printed: H-E4.3", "H-E4.3", "H-E4.3", "pre-registration", [("PR", "| **H-E4.3** (directional accuracy, amendment 3) |")])
 save("E4_tradeoff", fig, "docs/thesis/tier1/scores/E4_verdicts.json (P-E4.1 medians after the anchor, P-E4.2, H-E4.3); "
-     "docs/thesis/tier1/scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse")
+     "docs/thesis/tier1/scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse", tag="compute time measured; live error raw, nothing fitted")
+
+# ------------------------------------------------------------------- Experiment 2 (summary page 07; thesis F5 data)
+TXT = []
+TRK2 = ("EKF3 live", "UKF live", "FGO live", "RTS-UKF (hindsight)", "FGO hindsight (whole-flight batch)")
+TSTY2 = {"EKF3 live": ("EKF3", "live"), "UKF live": ("UKF", "live"), "FGO live": ("FGO", "live"), "RTS-UKF (hindsight)": ("UKF", "hind"),
+         "FGO hindsight (whole-flight batch)": ("FGO", "hind")}
+LAB2 = {"EKF3 live": "EKF3, live", "UKF live": "UKF, live", "FGO live": "FGO, live", "RTS-UKF (hindsight)": "UKF, re-solved after landing",
+        "FGO hindsight (whole-flight batch)": "FGO, whole flight re-solved"}
+agg = L("expT/t_aggregate.json")
+MN2 = {n: [agg["conditions"][c]["mean_rmse_m"][n] for c in TCOND] for n in TRK2}
+PER2 = {n: [[L(f"expT/T_{c}_r{r}.json")["tracks"][n]["horiz_err_m"]["rmse"] for r in (1, 2, 3)] for c in TCOND] for n in TRK2}
+for c in TCOND:
+    check("2_known_tags", f"{TAGS[c]}: live error EKF3 UKF FGO, mean of 3 flights (m)", " ".join(rd(agg["conditions"][c]["mean_rmse_m"][f"{e} live"], 3) for e in EST),
+          {"A": "0.039 0.037 0.020", "B": "0.055 0.061 0.026", "C": "0.074 0.076 0.054", "D": "0.096 0.131 0.083"}[c], "expT/t_aggregate.json",
+          summ=("07", f"{TAGS[c]}: live error EKF3 UKF FGO, mean of 3 flights (m)"))
+    check("2_known_tags", f"{TAGS[c]}: the plotted mean equals the mean of the three plotted flights (6 dp, every track)",
+          str(all(rd(float(np.mean(PER2[n][TCOND.index(c)])), 6) == rd(MN2[n][TCOND.index(c)], 6) for n in TRK2)), "True", "expT/T_<c>_r<r>.json vs t_aggregate.json")
+GAP2 = " / ".join(rd(agg["conditions"][c]["gap_length_median_s"], 1) for c in TCOND)
+check("2_known_tags", "median gap between fixes A–D (s), printed under the tag counts", GAP2, "4.3 / 10.1 / 22.0 / 46.3", "expT/t_aggregate.json",
+      [("FI", "median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s")])
+FB2 = rng_si([MN2["FGO hindsight (whole-flight batch)"][i] for i in range(4)], 2)
+check("2_known_tags", "FGO whole-flight re-solve, mean over the 4 tag counts, lowest–highest (m, 2 dp), printed in the title", FB2, "0.01–0.03",
+      "expT/t_aggregate.json", [("FI", "the FGO's hindsight batch stays at 0.01–0.03 m")])
+V2P = check("2_known_tags", "primary (FGO hindsight gain grows as tags get fewer): verdict", "PASS" if agg["H-T1 (FGO live -> whole-flight batch)"]["PASS"] else "FAIL",
+            "PASS", "expT/t_aggregate.json H-T1", summ=("07", "primary hypothesis (FGO hindsight gain grows as tags get fewer): verdict"))
+V2L = check("2_known_tags", "live errors similar: verdict", "PASS" if agg["P-T3 live ratio max/min"]["PASS"] else "FAIL", "FAIL", "expT/t_aggregate.json P-T3",
+            summ=("07", "live errors similar: verdict"))
+C15 = [TAGS[c] for c in TCOND if agg["P-T3 live ratio max/min"]["by_condition"][c] <= 1.5]
+V2C = check("2_known_tags", "conditions inside 1.5×", ", ".join(C15), "2 tags", "expT/t_aggregate.json P-T3 by_condition", summ=("07", "conditions inside 1.5×"))
+check("2_known_tags", "the 1.5× limit and the counts printed", "1.5 / 8, 4, 2, 1 / 3", "1.5 / 8, 4, 2, 1 / 3", "summary page 07 pass rule; conditions A–D; 3 flights")
+fig, ax = plt.subplots(figsize=(FW, 5.6))
+xc = np.arange(4); offs = dict(zip(TRK2, np.linspace(-0.16, 0.16, 5)))
+for n in TRK2:
+    e_, kind = TSTY2[n]; x = xc + offs[n]
+    ax.plot(x, MN2[n], color=C[e_], ls="-" if kind == "live" else "--", lw=1.6, marker=MK[e_], ms=7, mfc=C[e_] if kind == "live" else SURF,
+            mec=C[e_], mew=1.4, zorder=3)
+    for j in range(4):
+        ax.scatter([x[j]] * 3, PER2[n][j], s=12, marker=MK[e_], color=C[e_] if kind == "live" else SURF, edgecolor=C[e_], lw=0.7, zorder=2, alpha=0.8)
+YL2 = {"UKF live": 0.131, "RTS-UKF (hindsight)": 0.112, "EKF3 live": 0.096, "FGO live": 0.081, "FGO hindsight (whole-flight batch)": 0.028}
+for n in TRK2:
+    e_ = TSTY2[n][0]
+    ax.text(3.27, MN2[n][3] if abs(MN2[n][3] - YL2[n]) < 0.006 else YL2[n], T(LAB2[n]), color=C[e_], fontsize=11.5, weight="bold", va="center", ha="left")
+ax.set_xticks(xc); ax.set_xticklabels([T(f"{TAGS[c]}\n(fix every {g} s)") for c, g in zip(TCOND, GAP2.split(" / "))])
+ax.set_xlabel("tags at known places in the room (median time between position fixes)")
+ax.set_ylabel("average position error over 5 laps (m)")
+ax.set_xlim(-0.4, 4.95); ax.set_ylim(0, 0.16); ax.grid(axis="x", visible=False)
+G2 = check("2_known_tags", "H-T1: FGO hindsight gain per gap (median), A–D (m, 3 dp)", ", ".join(rd(agg["H-T1 (FGO live -> whole-flight batch)"]["median_gain_m"][c], 3) for c in TCOND),
+           "0.010, 0.011, 0.023, 0.052", "expT/t_aggregate.json H-T1 median_gain_m", [("N", "0.010 / 0.011 / 0.023 / 0.052 m for A–D")])
+mark(ax, -0.32, 0.152, f"Primary: the FGO's gain from re-solving ({G2} m) grows as tags get fewer: {V2P}", fontsize=11.5)
+mark(ax, -0.32, 0.141, f"Predicted: live errors within 1.5× of each other: {VERD[V2L]} (only with {V2C})", fontsize=11.5)
+ax.text(-0.32, 0.130, T("small marks: each of the 3 flights; large marks joined by lines: their mean"), fontsize=11, color=INK2, va="center")
+fig.subplots_adjust(left=0.08, right=0.99, top=0.84, bottom=0.17)
+title1(fig, f"With fewer tags every live error grows; the FGO re-solved after landing stays at {FB2.replace('–', ' to ')} m")
+corner(fig, "raw, against the room's known tag map, nothing fitted", KEY_LH)
+save("2_known_tags", fig, "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json", tag="raw, against the room's known tag map, nothing fitted",
+     key=True)
+
+# ------------------------------------------------------------------- Experiment 3 (summary page 08; thesis F7 data)
+TXT = []
+LL3 = {(m, k): [L(f"expL/T_A_r{r}_t245.json")["tracks"][f"{m} {k}"] for r in (1, 2, 3)] for m in ("lc", "nolc") for k in ("live", "hindsight")}
+lc5 = [t["per_lap_rmse_m"][4] / t["per_lap_rmse_m"][0] for t in LL3[("lc", "live")]]
+nl5 = [t["per_lap_rmse_m"][4] / t["per_lap_rmse_m"][0] for t in LL3[("nolc", "live")]]
+V3a = check("3_loop_closure", "live, with loop closure: lap 5 ÷ lap 1 range", rng(lc5), "0.16–0.43", "expL", summ=("08", "live, with loop closure: lap 5 ÷ lap 1 range"))
+V3b = check("3_loop_closure", "live, without loop closure: lap 5 ÷ lap 1 range", rng(nl5, 1), "2.9–4.5", "expL", summ=("08", "live, without loop closure: lap 5 ÷ lap 1 range"))
+V3r = check("3_loop_closure", "the four rules: flights passing, of 3", "3/3 3/3 3/3 3/3", sumrow("08", "the four rules: flights passing, of 3"), "index_summary.md page 08")
+check("3_loop_closure", "limit 1.5 (× lap 1), laps 1–5, flights 3, lap 1", "1.5 / 5 / 3 / 1", "1.5 / 5 / 3 / 1", "summary page 08 pass rule")
+fig, axs = plt.subplots(1, 2, figsize=(FW, 5.4), sharey=True)
+for ax, m, lab in ((axs[0], "lc", "with loop closure (tags recognised again)"), (axs[1], "nolc", "without loop closure")):
+    for kind in ("live", "hindsight"):
+        for tk in LL3[(m, kind)]:
+            ax.plot(range(1, 6), tk["per_lap_rmse_m"], color=C["FGO"], ls="-" if kind == "live" else "--", marker="s", ms=6,
+                    mfc=C["FGO"] if kind == "live" else SURF, mec=C["FGO"], lw=1.3, zorder=3)
+    ax.set_title(T(f"FGO, {lab}: 3 flights"), loc="left", fontsize=12.5)
+    ax.set_xticks(range(1, 6)); ax.set_xlabel("lap of the 6 m square"); ax.set_xlim(0.7, 5.3); ax.grid(axis="x", visible=False)
+axs[0].set_ylabel("average position error per lap (m)"); axs[0].set_ylim(0, 0.6)
+lv = [t["per_lap_rmse_m"][4] for t in LL3[("lc", "live")]]; hv = [t["per_lap_rmse_m"][4] for t in LL3[("lc", "hindsight")]]
+axs[0].text(1.1, 0.168, T("FGO, live"), color=C["FGO"], fontsize=11.5, weight="bold", ha="left", va="center")
+axs[0].annotate(T("FGO, whole flight re-solved"), (3.0, 0.02), xytext=(3.4, 0.11), color=C["FGO"], fontsize=11.5, weight="bold", ha="center",
+                arrowprops=dict(arrowstyle="-", color=C["FGO"], lw=1.0))
+nv = [t["per_lap_rmse_m"][4] for t in LL3[("nolc", "live")]]; nh = [t["per_lap_rmse_m"][4] for t in LL3[("nolc", "hindsight")]]
+axs[1].text(5.2, max(nv) + 0.025, T("FGO, live"), color=C["FGO"], fontsize=11.5, weight="bold", ha="right")
+axs[1].text(5.2, min(nh) - 0.04, T("FGO, whole flight re-solved"), color=C["FGO"], fontsize=11.5, weight="bold", ha="right")
+mark(axs[0], 1.6, 0.42, f"PASS on 3 of 3 flights:\nlap 5 ÷ lap 1 = {V3a.replace('–', ' to ')}\n(limit 1.5), and below the\nright panel, live and re-solved")
+mark(axs[1], 0.85, 0.56, f"PASS on 3 of 3 flights: grows {V3b.replace('–', ' to ')} times\nover five laps (predicted: more than 1.5)", fontsize=11)
+fig.subplots_adjust(left=0.08, right=0.99, top=0.80, bottom=0.12, wspace=0.06)
+title1(fig, f"Recognising tags seen before keeps the FGO's error flat; without it the error grows {V3b.replace('–', ' to ')} times over five laps")
+corner(fig, "raw, measured from the start tag, nothing fitted", KEY_LH)
+save("3_loop_closure", fig, "eval/results/expL/T_A_r{1,2,3}_t245.json (tracks.*.per_lap_rmse_m)", tag="raw, measured from the start tag, nothing fitted", key=True)
+
+# ------------------------------------------------------------------- E2 (summary page 13): mean labels on the live AND hindsight boxes
+TXT = []
+E2V = LT("E2_verdicts.json")
+LAP5 = {("A", k): [L(f"expL/T_A_r{r}_t245.json")["tracks"][f"lc {k}"]["per_lap_rmse_m"][4] for r in (1, 2, 3)] for k in ("live", "hindsight")}
+for c in "BCD":
+    for k in ("live", "hindsight"):
+        LAP5[(c, k)] = [LT(f"E2_T_{c}_r{r}.json")["tracks"][f"lc {k}"]["per_lap_rmse_m"][4] for r in (1, 2, 3)]
+VM2 = {}
+for c in TCOND:
+    st = E2V["P-E2.5"]["means"][c]
+    check("E2_fewer_tags", f"{TAGS[c]}: the mean's inputs are the plotted lap-5 live values (stored)", str([v["value"] for v in st["values"]] == LAP5[(c, "live")]),
+          "True", "E2_verdicts.json P-E2.5.means", summ=("13", f"{TAGS[c]}: the mean's inputs are the plotted lap-5 live values (stored)"))
+    VM2[(c, "live")] = check("E2_fewer_tags", f"{TAGS[c]}: mean over 3 flights of the live lap-5 error, with loop closure (m)", rd(float(np.mean(LAP5[(c, 'live')])), 4),
+                             rd(st["mean_m"], 4), "E2_verdicts.json P-E2.5.means.<c>.mean_m",
+                             summ=("13", f"{TAGS[c]}: mean over 3 flights of the live lap-5 error, with loop closure (m)"))
+    # hindsight: no mean is stored or registered (user TASK 5: computed from the stored per-flight values, rounded once)
+    VM2[(c, "hindsight")] = check("E2_fewer_tags", f"{TAGS[c]}: mean over 3 flights of the HINDSIGHT lap-5 error (m, 4 dp; computed here from the stored "
+                                  "per-flight values, no mean test registered)", rd(float(np.mean(LAP5[(c, 'hindsight')])), 4),
+                                  rd(sum(LAP5[(c, 'hindsight')]) / 3, 4), ("expL/T_A_r<r>_t245.json" if c == "A" else f"scores/E2_T_{c}_r<r>.json") +
+                                  " tracks 'lc hindsight' per_lap_rmse_m[4]")
+CR2 = E2V["criteria"]
+V21 = check("E2_fewer_tags", "H-E2.1 per condition (B, C, D)", " ".join(CR2["H-E2.1"][c]["count"] for c in "BCD"), "3/3 3/3 3/3", "E2_verdicts.json",
+            summ=("13", "H-E2.1 per condition (B, C, D)"))
+V25 = check("E2_fewer_tags", "P-E2.5 verdict and its three ordering steps", f"{E2V['P-E2.5']['verdict']} {E2V['P-E2.5']['steps']['A<=B']} "
+            f"{E2V['P-E2.5']['steps']['B<=C']} {E2V['P-E2.5']['steps']['C<=D']}", "FAIL False True True", "E2_verdicts.json",
+            summ=("13", "P-E2.5 verdict and its three ordering steps"))
+fig, ax = plt.subplots(figsize=(FW, 5.6))
+ax.set_xlim(-0.6, 3.6); ax.set_ylim(0, 0.092)
+for j, c in enumerate(TCOND):
+    for k, kind in enumerate(("live", "hindsight")):
+        x = j + (k - 0.5) * 0.4
+        top_ = rbox(ax, x, LAP5[(c, kind)], C["FGO"], kind == "live", w=0.3)
+        m_ = float(np.mean(LAP5[(c, kind)]))
+        ax.plot([x - 0.19, x + 0.19], [m_, m_], color=INK, lw=2.0, zorder=5)
+        ax.text(x, top_ + 0.0018, T(f"mean\n{VM2[(c, kind)]}"), ha="center", va="bottom", fontsize=10.5, linespacing=1.05)
+        ax.text(x, -0.0035, T(kind), ha="center", va="top", fontsize=10.5, color=INK2)
+    if c != "A":
+        mark(ax, j, 0.0855, f"H-E2.1 PASS\n{CR2['H-E2.1'][c]['count'].replace('/', ' of ')} flights", ha="center", fontsize=10.5)
+mark(ax, 0, 0.0855, "Experiment 3\nflights (8 tags)", ha="center", fontsize=10.5, weight="normal", color=INK2)
+ax.set_xticks(range(4)); ax.set_xticklabels([T(TAGS[c]) for c in TCOND]); ax.tick_params(axis="x", pad=22)
+ax.grid(axis="x", visible=False); ax.set_xlabel("tags in the room, each at an unknown place"); ax.set_ylabel("FGO error on the fifth lap (m)")
+ax.text(3.55, 0.002, T(f"P-E2.5 (live mean does not fall as tags get fewer): {V25.split()[0]}, it fell from 8 to 4 tags"), fontsize=11,
+        weight="bold", ha="right", va="bottom")
+ax.text(3.55, 0.0075, T("box: lowest to highest of 3 flights; black line: mean (no mean test registered for hindsight)"), fontsize=10.5,
+        color=INK2, ha="right", va="bottom")
+fig.subplots_adjust(left=0.08, right=0.99, top=0.84, bottom=0.16)
+title1(fig, "With 4, 2 and 1 tags the FGO's loop closure still bounded its error (H-E2.1 PASS); P-E2.5 FAIL")
+corner(fig, "raw, measured from the start tag, nothing fitted", KEY_LH)
+check("E2_fewer_tags", "counts printed (tags, flights, lap)", "8, 4, 2, 1 / 3 / 5", "8, 4, 2, 1 / 3 / 5", "summary page 13 metric")
+check("E2_fewer_tags", "registered ids printed: H-E2.1, P-E2.5", "H-E2.1 P-E2.5", "H-E2.1 P-E2.5", "pre-registration", [("PR", "H-E2.1"), ("PR", "P-E2.5")])
+save("E2_fewer_tags", fig, "docs/thesis/tier1/scores/E2_verdicts.json, E2_T_{B,C,D}_r{1,2,3}.json; eval/results/expL/T_A_r{1,2,3}_t245.json",
+     tag="raw, measured from the start tag, nothing fitted", key=True)
+
+# ------------------------------------------------------------------- E3 (summary page 14): the outcome table
+TXT = []
+E3V = LT("E3_verdicts.json"); RUNS3 = E3V["runs"]
+GR3 = [("a", "0.01"), ("b", "0.01"), ("a", "0.05"), ("b", "0.05"), ("b", "0")]
+LAB3 = {("a", "0.01"): "1% wrong IDs, FGO as built (plain)", ("b", "0.01"): "1% wrong IDs, robust FGO", ("a", "0.05"): "5% wrong IDs, FGO as built (plain)",
+        ("b", "0.05"): "5% wrong IDs, robust FGO", ("b", "0"): "no wrong IDs, robust FGO"}
+runs3 = lambda arm, rate: sorted(n for n, r in RUNS3.items() if r["arm"] == arm and r["rate"] == rate)
+DIV3 = {n: bool(RUNS3[n]["run_status"]["diverged"]) for n in RUNS3}
+LIVE3 = {n: RUNS3[n]["values"]["lc live rmse_m"]["value"] for n in RUNS3}
+COLL3 = {n for n in RUNS3 if RUNS3[n]["arm"] == "a" and not DIV3[n]} | {"E3b_T_A_r2_0.05_s1"}      # as figs_thesis_summary.py (decision D49)
+EXP3 = {("a", "0.01"): "3.7161–3.8960", ("a", "0.05"): "4.0395–4.2231", ("b", "0.01"): "0.0496–1.4769", ("b", "0.05"): "0.9776–4.1849", ("b", "0"): "0.0484–0.0760"}
+ROW3 = {}
+for a, r in GR3:
+    ns = runs3(a, r); fin = [LIVE3[n] for n in ns if not DIV3[n]]
+    ROW3[(a, r)] = dict(n=len(ns), div=sum(DIV3[n] for n in ns), coll=sum(n in COLL3 for n in ns),
+                        rng=check("E3_table", f"arm ({a}) rate {r}: final live error of the finite runs, lowest–highest (m)", rng(fin, 4), EXP3[(a, r)],
+                                  "E3_verdicts.json runs", summ=("14", f"arm ({a}) rate {r}: final live error of the finite runs, lowest–highest (m)")))
+check("E3_table", "arm (a) 1%: runs diverged", f"{ROW3[('a', '0.01')]['div']} of {ROW3[('a', '0.01')]['n']}", "6 of 9", "E3_verdicts.json",
+      summ=("14", "arm (a) 1%: runs diverged (status FAILED-ESTIMATOR)"))
+check("E3_table", "arm (a) 5%: runs diverged", f"{ROW3[('a', '0.05')]['div']} of {ROW3[('a', '0.05')]['n']}", "0 of 9", "E3_verdicts.json",
+      summ=("14", "arm (a) 5%: runs diverged"))
+check("E3_table", "arm (b), every rate: runs diverged", f"{sum(ROW3[g]['div'] for g in GR3 if g[0] == 'b')} of {sum(ROW3[g]['n'] for g in GR3 if g[0] == 'b')}",
+      "0 of 21", "E3_verdicts.json", summ=("14", "arm (b), every rate: runs diverged"))
+check("E3_table", "arm (a) runs counted as collapsed (non-diverged)", sum(ROW3[g]["coll"] for g in GR3 if g[0] == "a"), "12", "E3 results §3",
+      summ=("14", "arm (a) runs counted as collapsed (non-diverged)"))
+check("E3_table", "arm (b) collapsed (DESCRIPTIVE): the one robust run E3 results §4 names", sum(ROW3[g]["coll"] for g in GR3 if g[0] == "b"), "1",
+      "E3 results §4", [("E3", "**One robust run collapsed.** The exception is T_A_r2 5% s1")])
+check("E3_table", "runs per rate and arm", "/".join(str(ROW3[g]["n"]) for g in GR3), "9/9/9/9/3", "E3_verdicts.json",
+      summ=("14", "runs per rate and arm (3 flights × 3 seeds); robust controls at rate 0"))
+REF3 = [E3V["references"][f"T_A_r{i}"]["nolc live rmse_m"]["value"] for i in (1, 2, 3)]
+VREF = check("E3_table", "stored error without loop closure, the 3 flights, lowest–highest (m)", rng(REF3, 4), "0.2625–0.3608", "E3_verdicts.json references",
+             summ=("14", "stored error without loop closure, the 3 flights, lowest–highest (m)"))
+CA, CB = E3V["criteria_a"], E3V["criteria_b"]
+kk_ = lambda d, p: next(k for k in d if k.startswith(p))
+VH31 = check("E3_table", "H-E3.1 verdict and count", f"{CA[kk_(CA, 'H-E3.1')]['verdict']} {CA[kk_(CA, 'H-E3.1')]['count']}", "FAIL 0/9", "E3_verdicts.json",
+             summ=("14", "H-E3.1 verdict and count"))
+VB31 = check("E3_table", "P-E3b.1 at 1% and 5%: verdicts and counts", f"{CB[kk_(CB, 'P-E3b.1 0.01')]['verdict']} {CB[kk_(CB, 'P-E3b.1 0.01')]['count']} "
+             f"{CB[kk_(CB, 'P-E3b.1 0.05')]['verdict']} {CB[kk_(CB, 'P-E3b.1 0.05')]['count']}", "PASS 9/9 PASS 9/9", "E3_verdicts.json",
+             summ=("14", "P-E3b.1 at 1% and 5%: verdicts and counts"))
+VB32 = check("E3_table", "P-E3b.2 verdict and count", f"{CB[kk_(CB, 'P-E3b.2')]['verdict']} {CB[kk_(CB, 'P-E3b.2')]['count']}", "PASS 3/3", "E3_verdicts.json",
+             summ=("14", "P-E3b.2 verdict and count"))
+check("E3_table", "1.10 (P-E3b.1 band) and the room's 8 tags", "1.10 / 8", "1.10 / 8", "summary page 14 pass rule")
+check("E3_table", "wrong-ID rates (per cent of the eligible detections)", "1% / 5%", "1% / 5%", "E3_verdicts.json", summ=("14", "wrong-ID rates (per cent of the eligible detections)"))
+check("E3_table", "registered ids printed: H-E3.1, P-E3b.1, P-E3b.2", "H-E3.1 P-E3b.1 P-E3b.2", "H-E3.1 P-E3b.1 P-E3b.2", "pre-registration",
+      [("PR", "H-E3.1"), ("PR", "P-E3b.1"), ("PR", "P-E3b.2")])
+fig = plt.figure(figsize=(FW, 5.2)); ax = fig.add_axes([0.01, 0.04, 0.98, 0.80]); ax.axis("off"); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+CX3 = [0.0, 0.33, 0.47, 0.71, 0.86]
+HD3 = ["condition", "runs diverged", "error of the finished runs,\nlowest to highest (m)", "collapsed\n(descriptive)",
+       "without loop\nclosure (m),\nfor reference"]
+for x_, h_ in zip(CX3, HD3):
+    ax.text(x_, 0.98, T(h_), fontsize=11.5, weight="bold", va="top", linespacing=1.1)
+ax.add_patch(Rectangle((0, 0.785), 1, 0.006, color="#888888", lw=0))
+for i, g in enumerate(GR3):
+    y_ = 0.72 - 0.1 * i; R_ = ROW3[g]
+    if i % 2 == 0:
+        ax.add_patch(Rectangle((0, y_ - 0.05), 1, 0.1, color="#f4f4f4", lw=0, zorder=0))
+    ax.text(CX3[0], y_, T(LAB3[g]), fontsize=12, va="center")
+    ax.text(CX3[1], y_, T(f"{R_['div']} of {R_['n']}"), fontsize=12, va="center", weight="bold" if R_["div"] else "normal")
+    ax.text(CX3[2], y_, T(R_["rng"].replace("–", " to ")), fontsize=12, va="center")
+    ax.text(CX3[3], y_, T(f"{R_['coll']} of {R_['n']}"), fontsize=12, va="center")
+    ax.text(CX3[4], y_, T(VREF.replace("–", " to ")), fontsize=11, va="center", color=INK2)
+ax.text(0.0, 0.19, T(f"H-E3.1 (primary): at 1% wrong IDs, the FGO as built below its error without loop closure in 9 of 9 runs: "
+                     f"{VH31.split()[0]}, {VH31.split()[1].replace('/', ' of ')}"), fontsize=11.5, weight="bold", va="center")
+ax.text(0.0, 0.125, T(f"P-E3b.1: the robust FGO at most 1.10 × the plain FGO in the same run: {VB31.split()[0]}, "
+                      f"{VB31.split()[1].replace('/', ' of ')} at 1% and {VB31.split()[3].replace('/', ' of ')} at 5%"), fontsize=11.5, weight="bold", va="center")
+ax.text(0.0, 0.06, T(f"P-E3b.2: the robust FGO with no wrong IDs: {VB32.split()[0]}, {VB32.split()[1].replace('/', ' of ')}"), fontsize=11.5,
+        weight="bold", va="center")
+ax.text(0.0, 0.0, T("collapsed: the run finished with a wrong tag map (DESCRIPTIVE, not a registered measure; maps on the next page)"),
+        fontsize=10.5, color=INK2, va="center")
+title1(fig, "With 1% wrong tag IDs the FGO as built lost its loop-closure advantage (H-E3.1 FAIL); the robust FGO never diverged")
+corner(fig, "raw, measured from the start tag, nothing fitted")
+save("E3_table", fig, "docs/thesis/tier1/scores/E3_verdicts.json (runs, references, criteria)", tag="raw, measured from the start tag, nothing fitted")
+
+# ------------------------------------------------------------------- E5 (summary page 18): direct box labels
+TXT = []
+E5V = LT("e5_verdicts.json")["flights"]; E5C = LT("e5_verdicts.json")["criteria"]
+E5S = {r: LT(f"e5_T_A_r{r}.json")["tracks"] for r in (1, 2, 3)}
+VAL5 = {}
+for m in ("lc", "nolc"):
+    for k in ("live", "hindsight"):
+        VAL5[("UKF", m, k)] = [E5S[r][f"{m} {k}"]["rmse_m"] for r in (1, 2, 3)]
+        VAL5[("FGO", m, k)] = [E5V[f"T_A_r{r}"]["values"][f"fgo {m} {k} rmse_m"]["value"] for r in (1, 2, 3)]
+V5 = {}
+for g in VAL5:
+    lab_ = f"{g[0]} {'with' if g[1] == 'lc' else 'without'} loop closure, {g[2]}: lowest–highest over 3 flights (m)"
+    V5[g] = check("E5_ukf_landmarks", lab_, rng(VAL5[g], 4), sumrow("18", lab_), "e5_verdicts.json / e5_T_A_r<r>.json", summ=("18", lab_))
+VR5 = check("E5_ukf_landmarks", "H-E5.1: lap 5 ÷ lap 1, live with loop closure, lowest–highest", rng([E5V[f"T_A_r{r}"]["ratio lc live lap5/lap1"] for r in (1, 2, 3)], 2),
+            "0.27–0.42", "e5_verdicts.json", summ=("18", "H-E5.1: lap 5 ÷ lap 1, live with loop closure, lowest–highest"))
+VC5 = {h: check("E5_ukf_landmarks", f"{h}: verdict and count", f"{E5C[h]['verdict']} {E5C[h]['count']}", "PASS 3/3", "e5_verdicts.json", summ=("18", f"{h}: verdict and count"))
+       for h in ("H-E5.1", "S-E5.5", "S-E5.6")}
+check("E5_ukf_landmarks", "limit 1.5 and 3 flights", "1.5 / 3", "1.5 / 3", "summary page 18 pass rule")
+check("E5_ukf_landmarks", "registered ids printed: H-E5.1, S-E5.5, S-E5.6; lap 5 / lap 1; 8 tags", "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8",
+      "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8", "pre-registration", [("PR", "H-E5.1"), ("PR", "S-E5.5"), ("PR", "S-E5.6")])
+fig, ax = plt.subplots(figsize=(FW, 5.6))
+ax.set_xlim(-0.62, 1.92); ax.set_ylim(0, 1.82)
+BL5 = {("UKF", "live"): "UKF\nlive", ("UKF", "hindsight"): "UKF\nhindsight", ("FGO", "live"): "FGO\nlive", ("FGO", "hindsight"): "FGO\nre-solved"}
+for j, m in enumerate(("nolc", "lc")):
+    for k, (e, kind) in enumerate((("UKF", "live"), ("UKF", "hindsight"), ("FGO", "live"), ("FGO", "hindsight"))):
+        x = j * 1.3 + (k - 1.5) * 0.265
+        top_ = rbox(ax, x, VAL5[(e, m, kind)], C[e], kind == "live", w=0.2)
+        ax.text(x, top_ + 0.03, T(V5[(e, m, kind)].replace("–", " to\n") + " m"), ha="center", va="bottom", fontsize=10.5, linespacing=1.05)
+        ax.text(x, -0.035, T(BL5[(e, kind)]), ha="center", va="top", fontsize=10.5, color=C[e], weight="bold", linespacing=1.0)
+ax.set_xticks([0, 1.3]); ax.set_xticklabels([T("without loop closure"), T("with loop closure")]); ax.tick_params(axis="x", pad=38)
+ax.grid(axis="x", visible=False); ax.set_ylabel("average position error over 5 laps (m)")
+mark(ax, 0.62, 1.66, f"With loop closure the UKF's error did not grow:\nH-E5.1 {VC5['H-E5.1'].split()[0]} ({VC5['H-E5.1'].split()[1].replace('/', ' of ')}; "
+     f"lap 5 ÷ lap 1 = {VR5.replace('–', ' to ')}, limit 1.5)", fontsize=11, va="top")
+mark(ax, 0.62, 1.34, f"The UKF stayed above the FGO, live and hindsight:\nS-E5.5 {VC5['S-E5.5'].split()[0]}, S-E5.6 {VC5['S-E5.6'].split()[0]} "
+     f"({VC5['S-E5.5'].split()[1].replace('/', ' of ')})", fontsize=11, va="top")
+ax.text(0.62, 1.02, T("box: lowest to highest of 3 flights (8-tag room);\nthe FGO values are the stored Experiment 3 results"),
+        fontsize=10.5, color=INK2, va="top")
+fig.subplots_adjust(left=0.08, right=0.99, top=0.84, bottom=0.2)
+title1(fig, "A UKF with landmark states also stopped its error growing with loop closure, but stayed above the FGO")
+corner(fig, "raw, measured from the start tag, nothing fitted", KEY_LH)
+save("E5_ukf_landmarks", fig, "docs/thesis/tier1/scores/e5_verdicts.json, e5_T_A_r{1,2,3}.json", tag="raw, measured from the start tag, nothing fitted", key=True)
+
 
 # =================================================================== index
 n_ok = sum(c["ok"] for c in CHK)
