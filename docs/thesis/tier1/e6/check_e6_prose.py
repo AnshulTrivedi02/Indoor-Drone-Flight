@@ -115,11 +115,11 @@ nf = nf.pop(); C("guard files", f"**IDENTICAL**, {nf:,} files"); C("guard headin
 for g in G:
     C(f"guard time {g['verified_local']}", f"{g['verified_local'][:10]} {g['verified_local'][11:16]} AEDT", ("res", "numg"))
 C("S-E6 tol", f"tolerance {S[1]['scorer_gate_S_E6']['tolerance_m']:.0e} m".replace("e-09", "e-9"))
-# D85 row in the decisions log
-DL = open(os.path.join(T, "decisions_log.md")).read(); d85 = [l for l in DL.split("\n") if l.startswith("| D85 |")][0]
+# D96 row in the decisions log
+DL = open(os.path.join(T, "decisions_log.md")).read(); d85 = [l for l in DL.split("\n") if l.startswith("| D96 |")][0]
 for e, lab in (("FGO", "the FGO"), ("UKF", "the UKF")):
     if f"{rng(ratio(e, ARMS[1], ARMS[0]), 2, '')} for {lab}" not in d85:
-        checks.append((f"D85 {e}", "MISSING-IN-D85", ("res",)))
+        checks.append((f"D96 {e}", "MISSING-IN-D96", ("res",)))
 
 bad = 0
 for label, s, docs in checks:

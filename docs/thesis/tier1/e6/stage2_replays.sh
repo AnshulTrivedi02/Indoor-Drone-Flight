@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E6 Stage 2a/2b: test replays on T_A_r1..r3 with the supplied maps (pairing D74/D83: r1b->r1, r2->r2, r3->r3).
+# E6 Stage 2a/2b: test replays on T_A_r1..r3 with the supplied maps (pairing D85/D94: r1b->r1, r2->r2, r3->r3).
 # 2a: UKF (live + RTS), 6 runs; 2b: FGO live + whole-flight batch, 6 runs (order r1 fgomap, r1 ukfmap, r2 ..., §8).
 # Serial under heavy.py, threads 1, from the worktree. Idle check (plot jobs) before each run, liveness-timed.
 set -u

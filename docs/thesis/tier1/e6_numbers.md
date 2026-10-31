@@ -42,7 +42,7 @@ Flown 2026-10-31 22:32–22:56 AEDT through `e6_flight.sh` / `fly_queue.sh` (FLI
 | trial | role | route | wall | IMU gap check | route / coverage (V-F rule) | used |
 |---|---|---|---|---|---|---|
 | `E6V_fig8_check` | verification (NOT result data) | 1 circuit, 72 s | 139 s | ok | PASS: cross-track at mid-leg ≤ 0.022 m; central detections per tag 15–93 | gate V-F only |
-| `E6M_fig8_r1` | mapping | 3 circuits, 216 s | 4 min 58 s | **unusable** (receipt bunch at stream start, 8.5 s stationary before arming < 10 s) | not checked | **no** (D83; kept) |
+| `E6M_fig8_r1` | mapping | 3 circuits, 216 s | 4 min 58 s | **unusable** (receipt bunch at stream start, 8.5 s stationary before arming < 10 s) | not checked | **no** (D94; kept) |
 | `E6M_fig8_r1b` | mapping (re-fly of r1) | 3 circuits | 5 min 24 s incl. queue | ok | PASS, every tag ≥ 31 central detections in every circuit | → T_A_r1 |
 | `E6M_fig8_r2` | mapping | 3 circuits | 4 min 57 s | ok | PASS (tag 5: 14–39 per circuit, the fewest) | → T_A_r2 |
 | `E6M_fig8_r3` | mapping | 3 circuits | 4 min 57 s | ok | PASS (tag 5: 16–39 per circuit) | → T_A_r3 |
@@ -53,7 +53,7 @@ Sources: `json:scores/e6_gate_V-F_E6V_fig8_check.json`, `json:scores/e6_route_E6
 ## §Maps (Stage 1e: map replays and map error against truth)
 
 Map replays serial under `heavy.py`, 2026-10-31 22:57–23:09 AEDT (`docs/thesis/tier1/e6/stage1e_timing.tsv`): LC FGO
-114.5–116.4 s per run, exit 0, 0 keyframe failures; landmark UKF 110.1–111.8 s, exit 3 by design (D75, reason "no
+114.5–116.4 s per run, exit 0, 0 keyframe failures; landmark UKF 110.1–111.8 s, exit 3 by design (D86, reason "no
 stored FGO stats"; Cholesky retries 0). **MAP-INV PASS 3/3:** `t_anchor` 28.744 s in both replays and from `/tags/raw`;
 8 landmarks in both; FGO index → tag mapping equal to the UKF's; tag measurements used FGO = UKF (1819 / 1701 / 1795).
 Map files (world frame): `~/thesis_data/tier1/e6/maps/<m>/`, copies in `docs/thesis/tier1/e6/maps/<m>/`.
@@ -72,7 +72,7 @@ errors.{fgo,ukf}`):
 
 - **P1 inputs are complete** (all three mapping flights). Mechanical reading on the unrounded values: FGO < UKF on
   r2 (0.03421 < 0.04005) and r3 (0.02746 < 0.04758), NOT on r1b (0.04553 > 0.04480). As worded (3/3) that reads
-  **FAIL**; the formal verdict is written by `eval/e6_verdicts.py` in Stage 2 (pre-registered there, D82).
+  **FAIL**; the formal verdict is written by `eval/e6_verdicts.py` in Stage 2 (pre-registered there, D93).
 - **Descriptive, not diagnosed:** the yaw error has the same sign on every tag of a flight (+0.10…+0.30°) and the
   out-of-sample maps are worse than the in-sample T_A maps (FGO 0.0275–0.0455 m against 0.0152–0.0269 m; yaw RMS 0.16–0.27° against ≤ 0.08°; §1.4 of the
   pre-registration). No verdict depends on the
@@ -120,7 +120,7 @@ once, and checked by string equality by `docs/thesis/tier1/e6/check_e6_prose.py`
 | P3 (UKF) | UKF live RMSE, FGO map < UKF map, 3/3 | no, yes, yes | 2/3 | **FAIL** |
 | P4 (UKF) | UKF lap-1 live RMSE, FGO map < no map (iv), 3/3 | yes, yes, yes | 3/3 | **PASS** |
 
-**P2 detail** (band [min − R, max + R], D76; unrounded values to 6 dp):
+**P2 detail** (band [min − R, max + R], D87; unrounded values to 6 dp):
 
 | estimator | surveyed band (m) | FGO-map live T_A_r1 / r2 / r3 (m) | inside |
 |---|---|---|---|
@@ -142,6 +142,6 @@ once, and checked by string equality by `docs/thesis/tier1/e6/check_e6_prose.py`
 
 | date | deviation | effect |
 |---|---|---|
-| 2026-10-31 22:50 | `eval/imu_gap_check.py E6M_fig8_r3 --write` was started while `E6M_fig8_r3` was still flying (a scripting slip). It is read-only on the bag and failed on the missing bag before writing anything; it was a light job run during a flight | none found: r3's own check after landing is "ok" (no gaps, no bunches); recorded in D83 |
-| 2026-10-31 22:51 | `E6M_fig8_r1` "unusable" by the pre-registered IMU gap rule; re-flown as `E6M_fig8_r1b` BEFORE any replay or map existed (no replay was ever run on `E6M_fig8_r1`) | pairing r1b → T_A_r1 (D83); the rule is §3.1, so this is the rule firing, not a choice |
-| 2026-10-31 | Flights under `tools/flight_lock.sh`, not inside `heavy.py` (D70); batch state under `~/thesis_data/tier1/e6/batches` (D79); these are pre-registered in §8 and differ only from the coordinator brief's literal wording | none |
+| 2026-10-31 22:50 | `eval/imu_gap_check.py E6M_fig8_r3 --write` was started while `E6M_fig8_r3` was still flying (a scripting slip). It is read-only on the bag and failed on the missing bag before writing anything; it was a light job run during a flight | none found: r3's own check after landing is "ok" (no gaps, no bunches); recorded in D94 |
+| 2026-10-31 22:51 | `E6M_fig8_r1` "unusable" by the pre-registered IMU gap rule; re-flown as `E6M_fig8_r1b` BEFORE any replay or map existed (no replay was ever run on `E6M_fig8_r1`) | pairing r1b → T_A_r1 (D94); the rule is §3.1, so this is the rule firing, not a choice |
+| 2026-10-31 | Flights under `tools/flight_lock.sh`, not inside `heavy.py` (D81); batch state under `~/thesis_data/tier1/e6/batches` (D90); these are pre-registered in §8 and differ only from the coordinator brief's literal wording | none |

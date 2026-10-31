@@ -4,21 +4,21 @@
 run).
 - This page records the numbers and the mechanical verdict that each pre-registered rule gives. The reading in §4 is
   plain language. No claim in it is stronger than its verdict.
-- **Code:** branch `e6-map-reuse`, run from the worktree. 2a ran at `18da989` and 2b at `aabac1e`, which adds only the Stage 2 driver, its timing file, D84 and
+- **Code:** branch `e6-map-reuse`, run from the worktree. 2a ran at `18da989` and 2b at `aabac1e`, which adds only the Stage 2 driver, its timing file, D95 and
   guard reports to `18da989` (no estimator or scorer code; `src_dirty` is empty in every `stats.json`).
 - **Run:** 2026-10-31 23:16 to 2026-11-01 01:07 AEDT, serial, one `heavy.py` job at a time, thread variables at 1.
 - **Every number below** was built by `e6/e6_tables.py` from the score jsons, rounded once. Positions are in m at 4 dp;
   ratios are at 2 dp. `e6/check_e6_prose.py` re-builds every table row and every hand-typed number and requires string
   equality in this file, in `e6_numbers.md` §Results and in the Stage 2 handover (0 mismatches).
-- **Verdicts** are computed on the unrounded json values by `eval/e6_verdicts.py` (written in Stage 1, D82), which writes
+- **Verdicts** are computed on the unrounded json values by `eval/e6_verdicts.py` (written in Stage 1, D93), which writes
   `scores/e6_verdicts.json`.
-- **Pairing (D74, D83):** map from `E6M_fig8_r1b` → test flight `T_A_r1`, `E6M_fig8_r2` → `T_A_r2`, `E6M_fig8_r3` →
+- **Pairing (D85, D94):** map from `E6M_fig8_r1b` → test flight `T_A_r1`, `E6M_fig8_r2` → `T_A_r2`, `E6M_fig8_r3` →
   `T_A_r3`.
 
 ## 1. Runs and gates
 
 - **Runs:** 2a UKF (live + RTS) and 2b FGO (live + whole-flight batch), 6 runs each. All 12 exited 0. 2b had 0 keyframe
-  failures, and every FGO whole-flight batch converged in 4 iterations. No replay was re-run (D84).
+  failures, and every FGO whole-flight batch converged in 4 iterations. No replay was re-run (D95).
 - **Map provenance:** in every new run, `stats.json:e6.tag_map_sha256` equals the sha256 of the map file used, and
   every non-gauge tag has a nonzero shift. For each flight, the FGO-map and UKF-map tracks differ.
 - **Scorer gate S-E6:** re-run inside every scoring call, PASS 3/3 (max |diff| ≤ 4.09e-16 m, tolerance 1e-9 m).
@@ -65,7 +65,7 @@ Max, every per-lap value and lap-5 ÷ lap-1 are in the same jsons.
 | P3 (UKF) | UKF live RMSE, FGO map < UKF map, 3/3 | no, yes, yes | 2/3 | **FAIL** |
 | P4 (UKF) | UKF lap-1 live RMSE, FGO map < no map (iv), 3/3 | yes, yes, yes | 3/3 | **PASS** |
 
-**P2 detail.** The band is [min − R, max + R] of the stored arm (i) live repeats (D76), shown to 6 dp because it is
+**P2 detail.** The band is [min − R, max + R] of the stored arm (i) live repeats (D87), shown to 6 dp because it is
 scored unrounded.
 
 | estimator | surveyed band (m) | FGO-map live T_A_r1 / r2 / r3 (m) | inside |

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""E6 verdicts (docs/thesis/tier1/e6_preregistration.md §5, as worded; written in Stage 1 before any test run, D82).
+"""E6 verdicts (docs/thesis/tier1/e6_preregistration.md §5, as worded; written in Stage 1 before any test run, D93).
 
 Inputs (read only): docs/thesis/tier1/scores/e6_T_A_r{1,2,3}.json (eval/e6_score.py), the map errors
 ~/thesis_data/tier1/e6/maps/<mapping trial>/map_errors.json (eval/e6_maps.py), and the stored Experiment 2 scores
-eval/results/expT/T_A_r{1,2,3}.json (the P2 band). Pairing (D74): mapping flight E6M_fig8_rk -> test flight T_A_rk
+eval/results/expT/T_A_r{1,2,3}.json (the P2 band). Pairing (D85): mapping flight E6M_fig8_rk -> test flight T_A_rk
 (override with --pair, e.g. after a re-flight: --pair 1=E6M_fig8_r1b).
 Rules (§5): every criterion on 3/3; strict comparisons on unrounded values; PASS iff all three hold, FAIL iff all three
 are present and any fails; NOT RUN if an input is missing (a crash or a gate failure is recorded by hand as NOT MET,

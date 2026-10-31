@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # E6 Stage 1e: map replays on the mapping flights (LC FGO, landmark UKF), serial under heavy.py, from the worktree, then
-# eval/e6_maps.py (MAP-INV, map files, map errors). lc_ukf_replay exits 3 by design on a new flight (D75).
+# eval/e6_maps.py (MAP-INV, map files, map errors). lc_ukf_replay exits 3 by design on a new flight (D86).
 set -u
 W=/home/makerspace/thesis_ws/.claude/worktrees/agent-afa2971452f4e8507
 E=/home/makerspace/thesis_data/tier1/e6; T1=/home/makerspace/thesis_data/tier1

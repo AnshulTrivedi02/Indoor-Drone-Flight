@@ -9,7 +9,7 @@ predictions with their bands and pass rules, the gates and the run list BEFORE a
   committed. (Read-only work done before the commit, all on stored data: the `e6_map.py --selftest` round-off check,
   the stored-map errors of §1.4, and the baseline guard verify. None of these is a result run.)
 - **Rulings this implements:** the user's E6 instruction of 2026-10-31 (quoted in the handover), under the standing
-  decision rules of 2026-10-23 (`decisions_log.md`). Decisions taken while writing this are D69–D82 in
+  decision rules of 2026-10-23 (`decisions_log.md`). Decisions taken while writing this are D80–D93 in
   `decisions_log.md` on this branch.
 - **Lock:** results lock **2026-11-04 23:59 AEDT**. If the runs cannot finish by **2026-11-04 12:00 AEDT**, E6 stops at
   the last complete stage and reports (user ruling). A run not finished at a stop or at the lock is **NOT RUN**
@@ -67,17 +67,17 @@ All figures are wall times from stored logs; DIAGNOSTIC, workstation Python, one
 
 ### 1.3 Step 0 item 3: a new mapping flight on a different route, within half a day? YES
 
-**Decision (D71): new mapping flights, out of sample.**
+**Decision (D82): new mapping flights, out of sample.**
 - **Route:** a figure of eight through the tag room (two half-squares flown in opposite senses, sharing the mid-line,
   §3.1). It is flown with the existing `HPROFILE` "move" segments of `fly_trial.py` (moving position setpoint with
-  velocity feed-forward, yaw held, on simulator truth as every T flight). **No harness code changes** (D72).
+  velocity feed-forward, yaw held, on simulator truth as every T flight). **No harness code changes** (D83).
 - **Time, from stored per-flight wall times:** a T flight took 314–315 s wall for a 240 s route; a 216 s figure-of-eight
   flight is therefore about 5.5 min. One verification flight (one circuit, about 3 min wall) + three mapping flights
   (about 17 min) + the IMU gap check + six map replays (3 × ~130 s LC FGO + 3 × ~117 s landmark UKF, about 13 min)
   ≈ **1 h including checks**, well inside the 4–5 h half-day budget.
 - So the map source is a NEW flight on a DIFFERENT route, and every test flight (T_A_r1–r3) is out of sample. The
   same-route caveat does not apply; the rotation fallback (a T_A recording as the source) is not used.
-- **Fallback, decided now (D73):** if the verification flight shows any tag with no central detection in the circuit
+- **Fallback, decided now (D84):** if the verification flight shows any tag with no central detection in the circuit
   (§7, V-F), the route falls back to **reversed laps** (5 laps E→N→W→S of the same 6 m square, `HPROFILE`, same
   speed and height), still a new flight and out of sample, and the reason is logged.
 
@@ -141,7 +141,7 @@ All figures are wall times from stored logs; DIAGNOSTIC, workstation Python, one
   `fig8_check_profile.json`; NOT result data), `E6M_fig8_r1`, `E6M_fig8_r2`, `E6M_fig8_r3` (mapping).
 - **IMU gap rule:** `eval/imu_gap_check.py <trial> --write` on every new trial before any replay. An "unusable" verdict
   means the flight is re-flown under a new name (`…_r<k>b`), as in Experiment 2; the old directory is kept.
-- **Pairing, fixed now (D74):** the map from `E6M_fig8_rk` is used on test flight `T_A_rk` (k = 1, 2, 3). Every test
+- **Pairing, fixed now (D85):** the map from `E6M_fig8_rk` is used on test flight `T_A_rk` (k = 1, 2, 3). Every test
   flight gets an independent map; n = 3 for every prediction.
 
 ### 3.2 Map sources (both from the same mapping flight)
@@ -151,7 +151,7 @@ All figures are wall times from stored logs; DIAGNOSTIC, workstation Python, one
 | **(a) FGO map** | Experiment 3 keyframe FGO, hindsight landmark estimate `stats.json:landmarks_final` (iSAM2's full-graph estimate after 5 extra updates: the Experiment 3 hindsight, DEVIATION M:10557, not an LM batch; the same mapping as S-E5.6) | `lc_fgo_replay.py <m> --mode lc --t-max 245 --out-root ~/thesis_data/tier1` (frozen Experiment 3 configuration, `preregistration.md` §0.2; venv-fgo) |
 | **(b) UKF map** | E5 landmark UKF, LC, landmarks `stats.json:landmarks_in_state_final_filtered`. A static landmark (identity transition, zero process noise, never removed in LC) has its RTS-smoothed estimate equal to its filtered estimate at the final node, so this is the RTS-smoothed map | `lc_ukf_replay.py <m> --mode lc` (default out-root `~/thesis_data/tier1`, t-max 245; venv-evo) |
 
-- **Expected exit 3 from `lc_ukf_replay.py` (D75):** its §5.3 invariant reads the stored FGO run at
+- **Expected exit 3 from `lc_ukf_replay.py` (D86):** its §5.3 invariant reads the stored FGO run at
   `~/thesis_data/trials/<m>/lc_fgo_lc_t245/`, which does not exist for a new flight; it writes every output and then
   exits 3 with reason "no stored FGO stats". The same invariant is checked by `eval/e6_maps.py` against the tier-1 FGO
   map run instead: `t_anchor` equal in both replays and equal to the first central tag-0 detection, landmark count 8 in
@@ -183,7 +183,7 @@ docs/thesis/tier1/scores/e6_T_A_rk.json` (venv-evo). One scorer, one frame (worl
   clock by the `/imu/time_ref` lower envelope), the same window as `eval/tag_score.py` (29.52–269.57 s on T_A_r1);
 - per track: horizontal RMSE over the window, max, per-lap RMSE laps 1–5, lap-5 / lap-1;
 - verdicts on the unrounded json values; values quoted to 4 dp in m (`preregistration.md` §0.3);
-- verdict script: `eval/e6_verdicts.py` (written in Stage 1 from §5 as worded and committed with this document, D82; it writes `docs/thesis/tier1/scores/e6_verdicts.json`).
+- verdict script: `eval/e6_verdicts.py` (written in Stage 1 from §5 as worded and committed with this document, D93; it writes `docs/thesis/tier1/scores/e6_verdicts.json`).
 
 **Stated differences between arms (not removed):**
 - Arms (i)–(iii) use the thesis estimators on `/tags/sent` (one fix per frame). Arm (iv) uses the separate
@@ -240,7 +240,7 @@ same prominence as a PASS.
 | **G-E4′** (flag unset) | `room_fgo_replay.py <trial> --no-batch --window 0.25 --out-root ~/thesis_data/tier1/e6_g0_fgo`, 12 flights | `fgo_live.tum` byte-identical to the stored `room_fgo/fgo_live.tum` 12/12 (as `stage2_gates.md` G-E4); `t_anchor`, `n_tag_factors` equal | ≈ 28 min |
 | **V-E6** (flag set to the TRUE map) | T_A_r1–r3: UKF (`--tag-map sim/worlds/room_tags_map.json --tag-map-name truemap`, `UKF_OUT_ROOT=~/thesis_data/tier1/e6_val`) and FGO live (`--no-batch`, same root) | `eval/e6_val_compare.py`: rows 1:1, `t_anchor` and tag count equal, RMS ≤ 1.0 mm and max ≤ 2.0 mm in the window against the stored tracks, every track (V-E5b's tolerance and reason, `e5_design.md` §8.4); byte identity reported | ≈ 10 min |
 | **S-E6** (scorer) | `eval/e6_score.py T_A_rk --stored-only` | the re-scored arms (i) and (iv) reproduce every stored value (expT RMSE; expL / E5 RMSE, max, per-lap) and the stored windows to ≤ 1e-9 m | seconds |
-| **V-F** (verification flight `E6V_fig8_check`, one circuit; NOT result data) | flight completes; `/tags/raw`, `/tags/sent`, `/imu/time_ref`, `/ground_truth/pose` recorded; imu_gap_check not "unusable"; every one of the 8 tags has ≥ 1 central detection; route followed (GT within 0.5 m of each leg line at mid-leg) | all hold; otherwise D73 fallback (reversed laps) and a new verification flight | ≈ 10 min |
+| **V-F** (verification flight `E6V_fig8_check`, one circuit; NOT result data) | flight completes; `/tags/raw`, `/tags/sent`, `/imu/time_ref`, `/ground_truth/pose` recorded; imu_gap_check not "unusable"; every one of the 8 tags has ≥ 1 central detection; route followed (GT within 0.5 m of each leg line at mid-leg) | all hold; otherwise D84 fallback (reversed laps) and a new verification flight | ≈ 10 min |
 | **IMU** | `imu_gap_check --write` on every mapping flight | "ok" or "trim"; "unusable" → re-fly (§3.1) | seconds |
 | **MAP-INV** | `eval/e6_maps.py` invariants per mapping flight (§3.2) | all hold; otherwise no map from that flight, the flight's pair is NOT MET unless a re-flight (new name) passes before the lock | seconds |
 | **Guard (after each stage)** | as before | IDENTICAL | 30 s |
@@ -258,7 +258,7 @@ trial folder is not in the manifest's explicit `trials_outputs` list.
 **Mechanics.** One job at a time. Replays and gates through `src/estimators/fgo_cpp/tools/heavy.py` with the thread
 variables at 1, from this branch's worktree (byte-identical code to `fwd-camera` except the E6 files). Flights through
 `run_resumable_batch.sh` (state under `~/thesis_data/tier1/e6/batches/`) holding `~/thesis_data/FLIGHT_LOCK` via
-`tools/flight_lock.sh` (D70: `heavy.py` holds `BUILD_LOCK` and `flight_lock_acquire` waits for `BUILD_LOCK`, so a
+`tools/flight_lock.sh` (D81: `heavy.py` holds `BUILD_LOCK` and `flight_lock_acquire` waits for `BUILD_LOCK`, so a
 flight is never wrapped in `heavy.py`; the two locks exclude each other as designed). Wait loops check liveness
 (`pgrep` with a bracketed pattern) and have timeouts. No command line contains the simulator or autopilot process
 names.

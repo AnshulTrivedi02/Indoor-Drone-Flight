@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # E6 flight: e6_flight.sh <trial name> <HPROFILE json>. The T_A configuration (tools/run_expT_refly.sh) minus LAPS, plus
-# HPROFILE; batch state under ~/thesis_data/tier1/e6/batches (guard-safe, D79); FLIGHT_LOCK via tools/flight_lock.sh,
-# never inside heavy.py (D70). docs/thesis/tier1/e6_preregistration.md §3.1, §8.
+# HPROFILE; batch state under ~/thesis_data/tier1/e6/batches (guard-safe, D90); FLIGHT_LOCK via tools/flight_lock.sh,
+# never inside heavy.py (D81). docs/thesis/tier1/e6_preregistration.md §3.1, §8.
 set -u
 NAME="$1"; PROF="$2"
 E=/home/makerspace/thesis_data/tier1/e6; mkdir -p $E/flights $E/batches
