@@ -1,0 +1,337 @@
+{
+ "rows": [
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r1",
+   "file": "ukf_live.tum",
+   "sha256_new": "4ee02af0abda974c3a751f7dbca069ad4297c5b4d944722500eb54b123e54022",
+   "sha256_stored": "4ee02af0abda974c3a751f7dbca069ad4297c5b4d944722500eb54b123e54022",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r1",
+   "file": "ukf_rts.tum",
+   "sha256_new": "62ee1665306508746a5f2b0803beac05db21e198343f14b610fe9d4764f1b7a9",
+   "sha256_stored": "62ee1665306508746a5f2b0803beac05db21e198343f14b610fe9d4764f1b7a9",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_A_r1",
+   "file": "fgo_live.tum",
+   "sha256_new": "df6a11a8880c3a7d8878cac1748cb7368efbb08f5c0cda0c361677068bb24b16",
+   "sha256_stored": "df6a11a8880c3a7d8878cac1748cb7368efbb08f5c0cda0c361677068bb24b16",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r2",
+   "file": "ukf_live.tum",
+   "sha256_new": "67044802c5677b43afdd1bfff495fb467d71b37aab54cf87765f1a954408d143",
+   "sha256_stored": "67044802c5677b43afdd1bfff495fb467d71b37aab54cf87765f1a954408d143",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r2",
+   "file": "ukf_rts.tum",
+   "sha256_new": "c5b2bf6d870ea97a2f3a97f1b8a589a03bff7379495a347992707940972f16e5",
+   "sha256_stored": "c5b2bf6d870ea97a2f3a97f1b8a589a03bff7379495a347992707940972f16e5",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_A_r2",
+   "file": "fgo_live.tum",
+   "sha256_new": "794c53e3a92f09a54568237b9479768b7210416f7d251b3dc3971c479eb02e1b",
+   "sha256_stored": "794c53e3a92f09a54568237b9479768b7210416f7d251b3dc3971c479eb02e1b",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r3",
+   "file": "ukf_live.tum",
+   "sha256_new": "03966c17f6c7e9a012fe18d438a82a87200b535ff83209f7ee921b6a91b807dd",
+   "sha256_stored": "03966c17f6c7e9a012fe18d438a82a87200b535ff83209f7ee921b6a91b807dd",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_A_r3",
+   "file": "ukf_rts.tum",
+   "sha256_new": "394788fdad2040cf9bf64e4ee4279170aa2cd1f4636a8a3cb2ede58f767b228e",
+   "sha256_stored": "394788fdad2040cf9bf64e4ee4279170aa2cd1f4636a8a3cb2ede58f767b228e",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_A_r3",
+   "file": "fgo_live.tum",
+   "sha256_new": "942a0528bdf5548b125560803868054b75bb482feed63d8e5febfc5f744fa20c",
+   "sha256_stored": "942a0528bdf5548b125560803868054b75bb482feed63d8e5febfc5f744fa20c",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r1",
+   "file": "ukf_live.tum",
+   "sha256_new": "101d7c1b764f2050aacff79055fdef5d516f7fabb80cc6f8a44afccddd2830d3",
+   "sha256_stored": "101d7c1b764f2050aacff79055fdef5d516f7fabb80cc6f8a44afccddd2830d3",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r1",
+   "file": "ukf_rts.tum",
+   "sha256_new": "5a3cf9aef15c21a2b01aa2444ee2d3abd520c44a32dccd99c891f93b9386c87e",
+   "sha256_stored": "5a3cf9aef15c21a2b01aa2444ee2d3abd520c44a32dccd99c891f93b9386c87e",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_B_r1",
+   "file": "fgo_live.tum",
+   "sha256_new": "3e6f9cd856b92fecd72c5631ae030ffb331a9b9eafc1618d549b6dfb5a2ff123",
+   "sha256_stored": "3e6f9cd856b92fecd72c5631ae030ffb331a9b9eafc1618d549b6dfb5a2ff123",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r2",
+   "file": "ukf_live.tum",
+   "sha256_new": "56891027cb486b1f70a478e325cd0dc383ebcc628a450c8d69be3a09d37f4412",
+   "sha256_stored": "56891027cb486b1f70a478e325cd0dc383ebcc628a450c8d69be3a09d37f4412",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r2",
+   "file": "ukf_rts.tum",
+   "sha256_new": "3a15d50431ca2cab236f9b267b9e0420faf0c91e3819387d839b78c27af278dc",
+   "sha256_stored": "3a15d50431ca2cab236f9b267b9e0420faf0c91e3819387d839b78c27af278dc",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_B_r2",
+   "file": "fgo_live.tum",
+   "sha256_new": "b0f4babec37bb72b654bcbbb2cd7a9c4cef32e97a923273740169811fafc70c7",
+   "sha256_stored": "b0f4babec37bb72b654bcbbb2cd7a9c4cef32e97a923273740169811fafc70c7",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r3",
+   "file": "ukf_live.tum",
+   "sha256_new": "309903320d2d77d2aa67d6edab6cbcf25b74cd4d7482fdac38c44cd6de7cac06",
+   "sha256_stored": "309903320d2d77d2aa67d6edab6cbcf25b74cd4d7482fdac38c44cd6de7cac06",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_B_r3",
+   "file": "ukf_rts.tum",
+   "sha256_new": "b0fd0e4b5eb96caf711424f27bbeee6dc064aa51e85e213444ed3ef599e2e93a",
+   "sha256_stored": "b0fd0e4b5eb96caf711424f27bbeee6dc064aa51e85e213444ed3ef599e2e93a",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_B_r3",
+   "file": "fgo_live.tum",
+   "sha256_new": "247c2eb2d4ac24abc2b9a2429638e22ee4b673e5ed71719e54a5cecfbd62b17c",
+   "sha256_stored": "247c2eb2d4ac24abc2b9a2429638e22ee4b673e5ed71719e54a5cecfbd62b17c",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r1",
+   "file": "ukf_live.tum",
+   "sha256_new": "7dd42bd2cccbc9d9fb8babbcb4165794268ca4ad8ae5dd80cd95b2bbfe5b82f1",
+   "sha256_stored": "7dd42bd2cccbc9d9fb8babbcb4165794268ca4ad8ae5dd80cd95b2bbfe5b82f1",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r1",
+   "file": "ukf_rts.tum",
+   "sha256_new": "2e234aa3520a55fe55983532a2daa2007fa3801466f788cc5e5bc38e3fbffcf9",
+   "sha256_stored": "2e234aa3520a55fe55983532a2daa2007fa3801466f788cc5e5bc38e3fbffcf9",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_C_r1",
+   "file": "fgo_live.tum",
+   "sha256_new": "57417851446124dd61d71ad910884dbb3d19e823fddb7be1f026d709759f3f29",
+   "sha256_stored": "57417851446124dd61d71ad910884dbb3d19e823fddb7be1f026d709759f3f29",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r2",
+   "file": "ukf_live.tum",
+   "sha256_new": "ae173a3341c75a8f88f77a129471e804d8cb3f25798f654412558c78529885ac",
+   "sha256_stored": "ae173a3341c75a8f88f77a129471e804d8cb3f25798f654412558c78529885ac",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r2",
+   "file": "ukf_rts.tum",
+   "sha256_new": "4a8fbb0c17a6b6a05b58a3f45fb7ba00124e6ab0558dfca2bd78aae7fb1a2914",
+   "sha256_stored": "4a8fbb0c17a6b6a05b58a3f45fb7ba00124e6ab0558dfca2bd78aae7fb1a2914",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_C_r2",
+   "file": "fgo_live.tum",
+   "sha256_new": "ab8d29a672444df57f69e8dcc57f0033e0ddeb5c6394b27c566bfff488cfb983",
+   "sha256_stored": "ab8d29a672444df57f69e8dcc57f0033e0ddeb5c6394b27c566bfff488cfb983",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r3",
+   "file": "ukf_live.tum",
+   "sha256_new": "9b7663ba689d17796f4497a95ccfa3380f142452fdf62565b8f128e394997b5e",
+   "sha256_stored": "9b7663ba689d17796f4497a95ccfa3380f142452fdf62565b8f128e394997b5e",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_C_r3",
+   "file": "ukf_rts.tum",
+   "sha256_new": "9f2f38803fcc6c3216040a0f8324a230dd34909c5322217d580d358ad875a745",
+   "sha256_stored": "9f2f38803fcc6c3216040a0f8324a230dd34909c5322217d580d358ad875a745",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_C_r3",
+   "file": "fgo_live.tum",
+   "sha256_new": "f6d70c5161760f68017cab59df9d22bff25fdc76b8ca54fa50e244bcc824c399",
+   "sha256_stored": "f6d70c5161760f68017cab59df9d22bff25fdc76b8ca54fa50e244bcc824c399",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r1",
+   "file": "ukf_live.tum",
+   "sha256_new": "abd1c0e662810971cf3d7d26f0d4b6993a7635a56fed8fa703f3cf118fc5d97a",
+   "sha256_stored": "abd1c0e662810971cf3d7d26f0d4b6993a7635a56fed8fa703f3cf118fc5d97a",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r1",
+   "file": "ukf_rts.tum",
+   "sha256_new": "308cb93464338ffde33a07604fb9f261f61544e8b2ff99467769d73bad2d9cb8",
+   "sha256_stored": "308cb93464338ffde33a07604fb9f261f61544e8b2ff99467769d73bad2d9cb8",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_D_r1",
+   "file": "fgo_live.tum",
+   "sha256_new": "186fe3094f0cd3622ce498339ee5ef3ae556e18e326bde344eaf4b0e2d161c08",
+   "sha256_stored": "186fe3094f0cd3622ce498339ee5ef3ae556e18e326bde344eaf4b0e2d161c08",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r2",
+   "file": "ukf_live.tum",
+   "sha256_new": "d50ff8cf86b93fc32eaa646d594f535ae113b027deceb6d860b9e6a7f9747af4",
+   "sha256_stored": "d50ff8cf86b93fc32eaa646d594f535ae113b027deceb6d860b9e6a7f9747af4",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r2",
+   "file": "ukf_rts.tum",
+   "sha256_new": "03525c9a237c5ca851957ca6310b8059d3bc57fcdc72dccb367e6e41d0ccf774",
+   "sha256_stored": "03525c9a237c5ca851957ca6310b8059d3bc57fcdc72dccb367e6e41d0ccf774",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_D_r2",
+   "file": "fgo_live.tum",
+   "sha256_new": "028f7a36069761c7f29b288e9a675a7e9be557750fe5400312693b129b326df1",
+   "sha256_stored": "028f7a36069761c7f29b288e9a675a7e9be557750fe5400312693b129b326df1",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r3",
+   "file": "ukf_live.tum",
+   "sha256_new": "17c48292a2cd13c396549f54a538aa69ae44fb05c95a9ab1cca13eb2e461e8a2",
+   "sha256_stored": "17c48292a2cd13c396549f54a538aa69ae44fb05c95a9ab1cca13eb2e461e8a2",
+   "identical": true
+  },
+  {
+   "gate": "G0-UKF",
+   "trial": "T_D_r3",
+   "file": "ukf_rts.tum",
+   "sha256_new": "73498c2a35d8f7982a79c580e7d283c6ac147c9d6c41a49fb597ecbe6eed9c59",
+   "sha256_stored": "73498c2a35d8f7982a79c580e7d283c6ac147c9d6c41a49fb597ecbe6eed9c59",
+   "identical": true
+  },
+  {
+   "gate": "G-E4'",
+   "trial": "T_D_r3",
+   "file": "fgo_live.tum",
+   "sha256_new": "6e92ca21e243d118f8bb5cb1fa5ddb1aae78ae6ed25575cdb5037d447c2656e1",
+   "sha256_stored": "6e92ca21e243d118f8bb5cb1fa5ddb1aae78ae6ed25575cdb5037d447c2656e1",
+   "t_anchor_equal": true,
+   "n_tag_factors_equal": true,
+   "keyframe_failures": 0,
+   "identical": true
+  }
+ ],
+ "G0-UKF": {
+  "identical": 24,
+  "of": 24
+ },
+ "G-E4'": {
+  "identical": 12,
+  "of": 12
+ },
+ "pass": true
+}

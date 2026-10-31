@@ -14,7 +14,11 @@ Pre-registered handling (METHODOLOGY "Experiment T: pre-registration"):
     yaw only before yaw alignment: AP_NavEKF3_MagFusion.cpp:368-385);
   * RTS: nodes from the re-anchor on; smoothed = ukf_core.rts_smooth.
 Output: ~/thesis_data/trials/<trial>/room_ukf/{ukf_live.tum, ukf_rts.tum, ground_truth.tum, stats.json}
-Usage: room_ukf_replay.py <trial> [--no-rts]"""
+Usage: room_ukf_replay.py <trial> [--no-rts]
+Tier-1 E6 map reuse (docs/thesis/tier1/e6_preregistration.md; OFF by default, default behaviour unchanged):
+  UKF_OUT_ROOT=<under ~/thesis_data/tier1> room_ukf_replay.py <trial> --tag-map FILE --tag-map-name NAME
+  re-expresses every /tags/sent fix with the supplied map (e6_map.py; fixed known landmarks, tag noise unchanged) and
+  writes <root>/<trial>/room_ukf_e6_<NAME>/ (live + RTS)."""
 import sys, os, glob, math, json
 import numpy as np
 from rosbags.rosbag2 import Reader
@@ -42,6 +46,14 @@ if os.environ.get("UKF_OUT_ROOT"):   # tier-1 guard (2026-10-21): a redirected r
     _tr = os.path.realpath(os.path.expanduser("~/thesis_data/trials"))
     if os.path.realpath(OUT) == _tr or os.path.realpath(OUT).startswith(_tr + os.sep):
         sys.exit(f"[tier1] REFUSED: UKF_OUT_ROOT resolves {OUT!r} under {_tr} (frozen trial outputs)")
+import e6_map        # E6 (tier-1, docs/thesis/tier1/e6_preregistration.md): --tag-map FILE --tag-map-name NAME; unset = unchanged
+E6_MAP, E6_NAME = e6_map.parse_args(sys.argv)
+if E6_MAP:           # a supplied tag map: the thesis UKF, tags-only, tier-1 output room_ukf_e6_<NAME>/, tag noise unchanged
+    if (not os.environ.get("UKF_OUT_ROOT") or GNSS or RTS_NOCAP or APIN or "--no-rts" in sys.argv
+            or any(os.environ.get(v) for v in ("ROOM_TAG_SIGMA_POS", "ROOM_TAG_MAX", "ROOM_TAG_SKIP"))):
+        e6_map.refuse("--tag-map needs UKF_OUT_ROOT under ~/thesis_data/tier1 and refuses --gnss, --rts-no-yawcap, --no-rts, "
+                      "UKF_APIN, ROOM_TAG_SIGMA_POS, ROOM_TAG_MAX, ROOM_TAG_SKIP")
+    OUT = os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL, f"room_ukf_e6_{E6_NAME}"); e6_map.check_out(OUT)
 os.makedirs(OUT, exist_ok=True)
 ts = get_typestore(Stores.ROS2_JAZZY)
 msgp = glob.glob(os.path.expanduser("~/thesis_ws/**/OpticalFlow.msg"), recursive=True)[0]
@@ -88,6 +100,8 @@ def write_tum(path, T, X):
 
 
 ev, gt = read_events(f"{D}/bag")
+if E6_MAP:
+    ev, E6_PROV = e6_map.apply(ev, f"{D}/bag", E6_MAP)
 if APIN:
     ev = apin.substitute(ev, D, APIN)
 if GNSS:
@@ -201,5 +215,10 @@ if DO_RTS and len(node_t) > 2:
 with open(f"{OUT}/ground_truth.tum", "w") as f:
     for g in gt:
         f.write(f"{g[0]:.6f} {g[1]:.6f} {g[2]:.6f} {g[3]:.6f} {g[4]:.6f} {g[5]:.6f} {g[6]:.6f} {g[7]:.6f}\n")
+if E6_MAP:           # provenance; absent without --tag-map (stats.json keys unchanged there)
+    import subprocess
+    _git = lambda *c: subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)), *c], capture_output=True, text=True).stdout.strip()
+    stats["e6"] = dict(E6_PROV, name=E6_NAME, argv=sys.argv, out=OUT, commit=_git("rev-parse", "HEAD"),
+                       src_dirty=_git("status", "--porcelain", "--", "."))
 json.dump(stats, open(f"{OUT}/stats.json", "w"), indent=1)
 print(json.dumps(stats))

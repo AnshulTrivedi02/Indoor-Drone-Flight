@@ -1,0 +1,10 @@
+[
+ {"type": "move", "to": [-3, 3], "speed": 0.5},
+ {"type": "move", "to": [0, 3], "speed": 0.5},
+ {"type": "move", "to": [0, -3], "speed": 0.5},
+ {"type": "move", "to": [3, -3], "speed": 0.5},
+ {"type": "move", "to": [3, 3], "speed": 0.5},
+ {"type": "move", "to": [0, 3], "speed": 0.5},
+ {"type": "move", "to": [0, -3], "speed": 0.5},
+ {"type": "move", "to": [-3, -3], "speed": 0.5}
+]

@@ -1,0 +1,504 @@
+{
+ "pairs": {
+  "T_A_r1": "E6M_fig8_r1b",
+  "T_A_r2": "E6M_fig8_r2",
+  "T_A_r3": "E6M_fig8_r3"
+ },
+ "criteria": {
+  "P1": {
+   "criterion": "FGO-map position RMS < UKF-map position RMS, 3/3 mapping flights",
+   "per_flight": [
+    false,
+    true,
+    true
+   ],
+   "verdict": "FAIL"
+  },
+  "P2 (FGO)": {
+   "criterion": "FGO live RMSE on the FGO map within the surveyed band [0.016691, 0.023695] m, 3/3",
+   "per_flight": [
+    false,
+    false,
+    false
+   ],
+   "verdict": "FAIL"
+  },
+  "P3 (FGO)": {
+   "criterion": "FGO live RMSE, FGO map < UKF map, 3/3",
+   "per_flight": [
+    false,
+    true,
+    true
+   ],
+   "verdict": "FAIL"
+  },
+  "P4 (FGO)": {
+   "criterion": "FGO lap-1 live RMSE, FGO map < no map (iv), 3/3",
+   "per_flight": [
+    true,
+    true,
+    true
+   ],
+   "verdict": "PASS"
+  },
+  "P2 (UKF)": {
+   "criterion": "UKF live RMSE on the FGO map within the surveyed band [0.033011, 0.040785] m, 3/3",
+   "per_flight": [
+    false,
+    true,
+    true
+   ],
+   "verdict": "FAIL"
+  },
+  "P3 (UKF)": {
+   "criterion": "UKF live RMSE, FGO map < UKF map, 3/3",
+   "per_flight": [
+    false,
+    true,
+    true
+   ],
+   "verdict": "FAIL"
+  },
+  "P4 (UKF)": {
+   "criterion": "UKF lap-1 live RMSE, FGO map < no map (iv), 3/3",
+   "per_flight": [
+    true,
+    true,
+    true
+   ],
+   "verdict": "PASS"
+  }
+ },
+ "flights": {
+  "T_A_r1": {
+   "map": {
+    "mapping_trial": "E6M_fig8_r1b",
+    "fgo_map_pos_rms_m": 0.0455288231174294,
+    "ukf_map_pos_rms_m": 0.04479678539800429,
+    "ukf_over_fgo": 0.9839214442785613
+   },
+   "FGO": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.021360455054718484,
+     "max_m": 0.08317467473547956,
+     "lap1_m": 0.020748874912814897,
+     "lap5_m": 0.025468885346086698,
+     "lap5_over_lap1": 1.2274827166824662
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.010640375003939991,
+     "max_m": 0.026041312301815132,
+     "lap1_m": 0.011665340540778063,
+     "lap5_m": 0.010507839774821844,
+     "lap5_over_lap1": 0.9007743698600148
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.04571237069791952,
+     "max_m": 0.12357296006847363,
+     "lap1_m": 0.05098826841996526,
+     "lap5_m": 0.04612694893835754,
+     "lap5_over_lap1": 0.9046580785688303
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.04407368601803371,
+     "max_m": 0.08636397135598428,
+     "lap1_m": 0.04391666616960391,
+     "lap5_m": 0.04388426240239137,
+     "lap5_over_lap1": 0.9992621532999022
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.044633535042567084,
+     "max_m": 0.11848369880768682,
+     "lap1_m": 0.049700915188120184,
+     "lap5_m": 0.04487258891653349,
+     "lap5_over_lap1": 0.9028523669370824
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.04282005363760738,
+     "max_m": 0.07566128374121248,
+     "lap1_m": 0.0436654926292862,
+     "lap5_m": 0.042755652843533325,
+     "lap5_over_lap1": 0.9791634141522854
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.05735490583823187,
+     "max_m": 0.3115526820667317,
+     "lap1_m": 0.1063152812011623,
+     "lap5_m": 0.033788696433861974,
+     "lap5_over_lap1": 0.3178159908163096
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.01978930059742767,
+     "max_m": 0.04547144245194878,
+     "lap1_m": 0.020905784689517683,
+     "lap5_m": 0.01982333652673581,
+     "lap5_over_lap1": 0.9482225528073759
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 2.140046669456218,
+     "FGO map / UKF map, live": 1.0241709659412717,
+     "P4-overall: FGO map live / no map live (overall window)": 0.7970089049897521,
+     "P4-overall direction (FGO map lower)": true
+    }
+   },
+   "UKF": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.03560230532072026,
+     "max_m": 0.11198247535905377,
+     "lap1_m": 0.03511166810512755,
+     "lap5_m": 0.034031536327225165,
+     "lap5_over_lap1": 0.969237241173835
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.012804645561056371,
+     "max_m": 0.03812817767638409,
+     "lap1_m": 0.014672661360719371,
+     "lap5_m": 0.012106161424340569,
+     "lap5_over_lap1": 0.8250828617056714
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.04482170076445027,
+     "max_m": 0.11156363328881291,
+     "lap1_m": 0.04709015072885628,
+     "lap5_m": 0.044965327123152266,
+     "lap5_over_lap1": 0.9548775365375515
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.042362230283129555,
+     "max_m": 0.08019962057431594,
+     "lap1_m": 0.0417186600023763,
+     "lap5_m": 0.04333214023985014,
+     "lap5_over_lap1": 1.0386752651542963
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.044544749014229036,
+     "max_m": 0.11256369165502939,
+     "lap1_m": 0.047590897200477135,
+     "lap5_m": 0.04385272015454023,
+     "lap5_over_lap1": 0.9214518476045999
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.0402788133305933,
+     "max_m": 0.07087576106882712,
+     "lap1_m": 0.04106873004677559,
+     "lap5_m": 0.040977107099311606,
+     "lap5_over_lap1": 0.997769033827936
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.11927641172683404,
+     "max_m": 0.5559054844564227,
+     "lap1_m": 0.22404268648857575,
+     "lap5_m": 0.06014438066235718,
+     "lap5_over_lap1": 0.2684505421935477
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.04452750161159969,
+     "max_m": 0.06879025204824374,
+     "lap1_m": 0.0465693442374673,
+     "lap5_m": 0.04437820748200143,
+     "lap5_over_lap1": 0.9529489454630757
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 1.258955013184621,
+     "FGO map / UKF map, live": 1.0062173826623824,
+     "P4-overall: FGO map live / no map live (overall window)": 0.3757800902587563,
+     "P4-overall direction (FGO map lower)": true
+    }
+   }
+  },
+  "T_A_r2": {
+   "map": {
+    "mapping_trial": "E6M_fig8_r2",
+    "fgo_map_pos_rms_m": 0.03420919061281486,
+    "ukf_map_pos_rms_m": 0.04005246889669205,
+    "ukf_over_fgo": 1.1708101881161805
+   },
+   "FGO": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.019636383277940234,
+     "max_m": 0.057885606454570616,
+     "lap1_m": 0.01699867899614616,
+     "lap5_m": 0.022930400009218452,
+     "lap5_over_lap1": 1.3489518811677719
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.010702601066656183,
+     "max_m": 0.031578787102299416,
+     "lap1_m": 0.009003398777618514,
+     "lap5_m": 0.012326484077145908,
+     "lap5_over_lap1": 1.3690923152030352
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.038952773707388574,
+     "max_m": 0.10456236771621277,
+     "lap1_m": 0.03556571647160764,
+     "lap5_m": 0.04330826672565392,
+     "lap5_over_lap1": 1.2176970133647445
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.03452807627556345,
+     "max_m": 0.07600595817707137,
+     "lap1_m": 0.03393726348332019,
+     "lap5_m": 0.036135942848638886,
+     "lap5_over_lap1": 1.0647865838210355
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.0408340533417869,
+     "max_m": 0.08426129076436051,
+     "lap1_m": 0.04058095892500284,
+     "lap5_m": 0.0447978191433602,
+     "lap5_over_lap1": 1.1039122862067032
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.038115349782537715,
+     "max_m": 0.07261076196875493,
+     "lap1_m": 0.03693251519712572,
+     "lap5_m": 0.039474409523437774,
+     "lap5_over_lap1": 1.0688253781998005
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.04939853992068113,
+     "max_m": 0.19606538558922132,
+     "lap1_m": 0.08177846773504593,
+     "lap5_m": 0.03542883340333692,
+     "lap5_over_lap1": 0.4332293620140059
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.02703920011976061,
+     "max_m": 0.058025417376546706,
+     "lap1_m": 0.026861107172152926,
+     "lap5_m": 0.028164170840939567,
+     "lap5_over_lap1": 1.0485111674822374
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 1.9837040842011178,
+     "FGO map / UKF map, live": 0.9539286580577307,
+     "P4-overall: FGO map live / no map live (overall window)": 0.7885409927081803,
+     "P4-overall direction (FGO map lower)": true
+    }
+   },
+   "UKF": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.03623310988687988,
+     "max_m": 0.09131930053391467,
+     "lap1_m": 0.03586973401117119,
+     "lap5_m": 0.039247391255398105,
+     "lap5_over_lap1": 1.0941645467227326
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.014076182057755937,
+     "max_m": 0.04019640375367541,
+     "lap1_m": 0.01625706679105491,
+     "lap5_m": 0.012478502687791925,
+     "lap5_over_lap1": 0.7675740555275288
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.04067924803278617,
+     "max_m": 0.08865129943253026,
+     "lap1_m": 0.039238616347827236,
+     "lap5_m": 0.04179929906118077,
+     "lap5_over_lap1": 1.065259251005555
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.030958051937854305,
+     "max_m": 0.07785838929627888,
+     "lap1_m": 0.03095606326526928,
+     "lap5_m": 0.03079230113273217,
+     "lap5_over_lap1": 0.9947098527634539
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.0470875401658751,
+     "max_m": 0.09079756331831762,
+     "lap1_m": 0.04867232012931683,
+     "lap5_m": 0.048630518601158516,
+     "lap5_over_lap1": 0.9991411642583042
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.03666994349856501,
+     "max_m": 0.05619975571904444,
+     "lap1_m": 0.03750427829546578,
+     "lap5_m": 0.03685370454186542,
+     "lap5_over_lap1": 0.9826533456136654
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.09109089405234543,
+     "max_m": 0.3859013540838986,
+     "lap1_m": 0.15596152260067,
+     "lap5_m": 0.06516173362490085,
+     "lap5_over_lap1": 0.4178064726371229
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.04612799860150639,
+     "max_m": 0.0797106517311321,
+     "lap1_m": 0.04782815540500395,
+     "lap5_m": 0.04447074346180906,
+     "lap5_over_lap1": 0.9298026044541199
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 1.1227092612195635,
+     "FGO map / UKF map, live": 0.8639068401000676,
+     "P4-overall: FGO map live / no map live (overall window)": 0.44657864494567173,
+     "P4-overall direction (FGO map lower)": true
+    }
+   }
+  },
+  "T_A_r3": {
+   "map": {
+    "mapping_trial": "E6M_fig8_r3",
+    "fgo_map_pos_rms_m": 0.027464037131735,
+    "ukf_map_pos_rms_m": 0.047583976136594715,
+    "ukf_over_fgo": 1.7325921862234486
+   },
+   "FGO": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.01902565394402442,
+     "max_m": 0.053412264404738806,
+     "lap1_m": 0.02009361294527401,
+     "lap5_m": 0.01989922475653303,
+     "lap5_over_lap1": 0.9903258717448971
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.010095893452293609,
+     "max_m": 0.028953170526999437,
+     "lap1_m": 0.010325546503967335,
+     "lap5_m": 0.00862737800081252,
+     "lap5_over_lap1": 0.8355371793151737
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.02887587752131967,
+     "max_m": 0.08329406781935612,
+     "lap1_m": 0.030339207857860585,
+     "lap5_m": 0.02587892267550208,
+     "lap5_over_lap1": 0.852986102891843
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.028682562055099222,
+     "max_m": 0.06079072031696729,
+     "lap1_m": 0.027517977712892938,
+     "lap5_m": 0.028421345898178896,
+     "lap5_over_lap1": 1.0328282911888074
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.04638406689269427,
+     "max_m": 0.07918045451127623,
+     "lap1_m": 0.045982384136515154,
+     "lap5_m": 0.043837874152722285,
+     "lap5_over_lap1": 0.9533623576927607
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.0453136942514974,
+     "max_m": 0.06936037454773848,
+     "lap1_m": 0.043840440811110395,
+     "lap5_m": 0.04530157706707227,
+     "lap5_over_lap1": 1.0333285028373067
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.07600284599407228,
+     "max_m": 0.27522802304375393,
+     "lap1_m": 0.16083564382099752,
+     "lap5_m": 0.025828393007454743,
+     "lap5_over_lap1": 0.16058873763206696
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.01719030561685485,
+     "max_m": 0.04002851714577313,
+     "lap1_m": 0.017566221487129084,
+     "lap5_m": 0.014910807030679972,
+     "lap5_over_lap1": 0.8488340558386586
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 1.5177337717944253,
+     "FGO map / UKF map, live": 0.6225387176187384,
+     "P4-overall: FGO map live / no map live (overall window)": 0.3799315294531444,
+     "P4-overall direction (FGO map lower)": true
+    }
+   },
+   "UKF": {
+    "(i) surveyed | live": {
+     "rmse_m": 0.03819349819919054,
+     "max_m": 0.11726960536046774,
+     "lap1_m": 0.039953186658298785,
+     "lap5_m": 0.03918744612493571,
+     "lap5_over_lap1": 0.9808340561189248
+    },
+    "(i) surveyed | hindsight": {
+     "rmse_m": 0.014226404962273183,
+     "max_m": 0.0382116974898957,
+     "lap1_m": 0.01515161505805357,
+     "lap5_m": 0.014136147664274413,
+     "lap5_over_lap1": 0.9329795939318427
+    },
+    "(ii) FGO map | live": {
+     "rmse_m": 0.0375717939186025,
+     "max_m": 0.09665407834259807,
+     "lap1_m": 0.038854688173003554,
+     "lap5_m": 0.03685052266550887,
+     "lap5_over_lap1": 0.948418952725319
+    },
+    "(ii) FGO map | hindsight": {
+     "rmse_m": 0.026241708169602935,
+     "max_m": 0.0517708188643239,
+     "lap1_m": 0.02539058533804555,
+     "lap5_m": 0.025814842242401298,
+     "lap5_over_lap1": 1.0167092211033055
+    },
+    "(iii) UKF map | live": {
+     "rmse_m": 0.04910241405057883,
+     "max_m": 0.10030174381202618,
+     "lap1_m": 0.04969835510851035,
+     "lap5_m": 0.0489501784343047,
+     "lap5_over_lap1": 0.9849456451310692
+    },
+    "(iii) UKF map | hindsight": {
+     "rmse_m": 0.04317867323317083,
+     "max_m": 0.0618731541894064,
+     "lap1_m": 0.042857862633362574,
+     "lap5_m": 0.04264476030619911,
+     "lap5_over_lap1": 0.9950276958749321
+    },
+    "(iv) no map, LC online | live": {
+     "rmse_m": 0.13348130903694486,
+     "max_m": 0.5131552472849384,
+     "lap1_m": 0.2565255378188384,
+     "lap5_m": 0.07571381807071569,
+     "lap5_over_lap1": 0.29515119124001504
+    },
+    "(iv) no map, LC online | hindsight": {
+     "rmse_m": 0.05520399280654203,
+     "max_m": 0.09548830644437425,
+     "lap1_m": 0.0563215832405471,
+     "lap5_m": 0.05595044335519969,
+     "lap5_over_lap1": 0.9934103435309642
+    },
+    "descriptive": {
+     "FGO map / surveyed, live": 0.9837222482909089,
+     "FGO map / UKF map, live": 0.7651720316622518,
+     "P4-overall: FGO map live / no map live (overall window)": 0.28147606724626445,
+     "P4-overall direction (FGO map lower)": true
+    }
+   }
+  }
+ },
+ "p2_bands_m": {
+  "FGO": {
+   "stored": [
+    0.021360455054718484,
+    0.019636383277940234,
+    0.01902565394402442
+   ],
+   "R": 0.0023348011106940625,
+   "lo": 0.01669085283333036,
+   "hi": 0.023695256165412546
+  },
+  "UKF": {
+   "stored": [
+    0.03560230532072026,
+    0.03623310988687988,
+    0.03819349819919054
+   ],
+   "R": 0.0025911928784702817,
+   "lo": 0.033011112442249975,
+   "hi": 0.04078469107766082
+  }
+ }
+}
