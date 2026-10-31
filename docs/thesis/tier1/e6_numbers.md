@@ -13,6 +13,11 @@ m at 4 dp, angles in °, times in s (wall times DIAGNOSTIC).
 | verify, after Stage 1b (gates) | 2026-10-31 22:31 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1b_post_20261031T223114.json` |
 | verify, after Stage 1c (verification flight) | 2026-10-31 22:38 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1c_post_20261031T2238.json` |
 | verify, after Stage 1d/1e (mapping flights, map replays) | 2026-10-31 23:10 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage1e_post_20261031T2310.json` |
+| verify, before Stage 2 | 2026-10-31 23:14 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2_pre_20261031T231449.json` |
+| verify, after Stage 2a (UKF replays) | 2026-10-31 23:25 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2a_post_20261031T232514.json` |
+| verify, after Stage 2b (FGO replays) | 2026-11-01 01:08 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2b_post_20261101T010819.json` |
+| verify, after scoring and verdicts | 2026-11-01 01:09 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2c_scoring_post_20261101T010959.json` |
+| verify, after the Stage 2 write-up | 2026-11-01 01:12 AEDT | **IDENTICAL**, exit 0 | `frozen_manifest_20261022T002851_verify_e6_stage2d_docs_post_20261101T011235.json` |
 
 ## §Gates
 
@@ -74,7 +79,63 @@ errors.{fgo,ukf}`):
 
 ## §Results
 
-(Stage 2)
+Status CURRENT, extension experiment E6, pre-registered (2026-10-31). Runs 2026-10-31 23:16 to 2026-11-01 01:07 AEDT,
+serial under `heavy.py`, all 12 exit 0 (`docs/thesis/tier1/e6/stage2_timing.tsv`). Scored by `eval/e6_score.py` (S-E6
+PASS 3/3 inside every call); verdicts by `eval/e6_verdicts.py --pair 1=E6M_fig8_r1b`. The full write-up (reading,
+limitations, timings) is `e6_results.md`. Every row below is printed by `docs/thesis/tier1/e6/e6_tables.py`, rounded
+once, and checked by string equality by `docs/thesis/tier1/e6/check_e6_prose.py`.
+
+**Results (horizontal RMSE over the lap window, m; world frame, no alignment).** Source:
+`json:scores/e6_T_A_rk.json:tracks."<arm> | <estimator> <live|hindsight>".{rmse_m, per_lap_rmse_m[0]}`.
+
+| estimator | arm | T_A_r1 live | T_A_r2 live | T_A_r3 live | T_A_r1 lap-1 live | T_A_r2 lap-1 live | T_A_r3 lap-1 live | T_A_r1 hindsight | T_A_r2 hindsight | T_A_r3 hindsight |
+|---|---|---|---|---|---|---|---|---|---|---|
+| FGO | (i) surveyed | 0.0214 | 0.0196 | 0.0190 | 0.0207 | 0.0170 | 0.0201 | 0.0106 | 0.0107 | 0.0101 |
+| FGO | (ii) FGO map | 0.0457 | 0.0390 | 0.0289 | 0.0510 | 0.0356 | 0.0303 | 0.0441 | 0.0345 | 0.0287 |
+| FGO | (iii) UKF map | 0.0446 | 0.0408 | 0.0464 | 0.0497 | 0.0406 | 0.0460 | 0.0428 | 0.0381 | 0.0453 |
+| FGO | (iv) no map, LC online | 0.0574 | 0.0494 | 0.0760 | 0.1063 | 0.0818 | 0.1608 | 0.0198 | 0.0270 | 0.0172 |
+| UKF | (i) surveyed | 0.0356 | 0.0362 | 0.0382 | 0.0351 | 0.0359 | 0.0400 | 0.0128 | 0.0141 | 0.0142 |
+| UKF | (ii) FGO map | 0.0448 | 0.0407 | 0.0376 | 0.0471 | 0.0392 | 0.0389 | 0.0424 | 0.0310 | 0.0262 |
+| UKF | (iii) UKF map | 0.0445 | 0.0471 | 0.0491 | 0.0476 | 0.0487 | 0.0497 | 0.0403 | 0.0367 | 0.0432 |
+| UKF | (iv) no map, LC online | 0.1193 | 0.0911 | 0.1335 | 0.2240 | 0.1560 | 0.2565 | 0.0445 | 0.0461 | 0.0552 |
+
+**Map error per pair** (`json:scores/e6_verdicts.json:flights.<t>.map`):
+
+| test flight | mapping flight | FGO-map position RMS (m) | UKF-map position RMS (m) | UKF ÷ FGO |
+|---|---|---|---|---|
+| T_A_r1 | E6M_fig8_r1b | 0.0455 | 0.0448 | 0.98 |
+| T_A_r2 | E6M_fig8_r2 | 0.0342 | 0.0401 | 1.17 |
+| T_A_r3 | E6M_fig8_r3 | 0.0275 | 0.0476 | 1.73 |
+
+**Verdicts** (`json:scores/e6_verdicts.json:criteria`; as worded, per estimator for P2–P4; hindsight has no verdict):
+
+| prediction | criterion (as pre-registered) | per flight (r1, r2, r3) | count | verdict |
+|---|---|---|---|---|
+| P1 | FGO-map position RMS < UKF-map position RMS, 3/3 mapping flights | no, yes, yes | 2/3 | **FAIL** |
+| P2 (FGO) | FGO live RMSE on the FGO map within the surveyed band [0.016691, 0.023695] m, 3/3 | no, no, no | 0/3 | **FAIL** |
+| P3 (FGO) | FGO live RMSE, FGO map < UKF map, 3/3 | no, yes, yes | 2/3 | **FAIL** |
+| P4 (FGO) | FGO lap-1 live RMSE, FGO map < no map (iv), 3/3 | yes, yes, yes | 3/3 | **PASS** |
+| P2 (UKF) | UKF live RMSE on the FGO map within the surveyed band [0.033011, 0.040785] m, 3/3 | no, yes, yes | 2/3 | **FAIL** |
+| P3 (UKF) | UKF live RMSE, FGO map < UKF map, 3/3 | no, yes, yes | 2/3 | **FAIL** |
+| P4 (UKF) | UKF lap-1 live RMSE, FGO map < no map (iv), 3/3 | yes, yes, yes | 3/3 | **PASS** |
+
+**P2 detail** (band [min − R, max + R], D76; unrounded values to 6 dp):
+
+| estimator | surveyed band (m) | FGO-map live T_A_r1 / r2 / r3 (m) | inside |
+|---|---|---|---|
+| FGO | [0.016691, 0.023695] | 0.045712 / 0.038953 / 0.028876 | above, above, above |
+| UKF | [0.033011, 0.040785] | 0.044822 / 0.040679 / 0.037572 | above, yes, yes |
+
+**Descriptive ratios** (no verdict):
+
+| estimator | flight | FGO map ÷ surveyed (live) | UKF map ÷ surveyed (live) | FGO map ÷ UKF map (live) | FGO map ÷ no map (live, overall; P4-overall) | FGO map ÷ surveyed (hindsight) | UKF map ÷ surveyed (hindsight) |
+|---|---|---|---|---|---|---|---|
+| FGO | T_A_r1 | 2.14 | 2.09 | 1.02 | 0.80 | 4.14 | 4.02 |
+| FGO | T_A_r2 | 1.98 | 2.08 | 0.95 | 0.79 | 3.23 | 3.56 |
+| FGO | T_A_r3 | 1.52 | 2.44 | 0.62 | 0.38 | 2.84 | 4.49 |
+| UKF | T_A_r1 | 1.26 | 1.25 | 1.01 | 0.38 | 3.31 | 3.15 |
+| UKF | T_A_r2 | 1.12 | 1.30 | 0.86 | 0.45 | 2.20 | 2.61 |
+| UKF | T_A_r3 | 0.98 | 1.29 | 0.77 | 0.28 | 1.84 | 3.04 |
 
 ## §Deviations
 
