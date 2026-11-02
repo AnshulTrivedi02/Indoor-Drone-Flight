@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""RAW CORRIDOR ERRORS (Stage 1, raw-corridor branch; D106/D107). DESCRIPTIVE ONLY — nothing in this file
-changes, supersedes or re-derives any registered (evo -a, aligned) verdict.
+"""RAW CORRIDOR ERRORS (Stage 1b, raw-corridor-1b branch; D106/D107/D111). DESCRIPTIVE ONLY — nothing in
+this file changes, supersedes or re-derives any registered (evo -a, aligned) verdict.
 
 User ruling 2026-11-02 (verbatim intent, raw-corridor brief): for every offline Experiment 1 flight (D106
 scope), compute the raw (world-frame, NOTHING fitted — no rotation, translation or scale alignment) 3D
@@ -8,6 +8,24 @@ position error over the registered cruise window, alongside the already-register
 labelled DESCRIPTIVE. Read-only on every input: no estimator run, no replay, no simulation. Writes
 eval/results/raw_corridor_errors.json (full precision + provenance) and
 docs/thesis/raw_corridor/raw_corridor_numbers.md (rounded tables); numbers.md is untouched.
+
+STAGE 1b (D111, binding): Stage 1 gated raw values per CELL on a 2 deg heading-of-first-5m check; 69/154
+cells were withheld. D111 rules that per-cell gate was a harness design error (it was rejecting the
+estimator's OWN early yaw error, which is the quantity raw error exists to show) and replaces it with
+PER-ESTIMATOR frame validation, run once per estimator (EKF3/UKF/FGO) over all of that estimator's cells
+in scope:
+  (i)  take-off origin |NE| (own first sample, both estimate and truth) < ORIG_TOL_M on EVERY cell of that
+       estimator;
+  (ii) the original strict check (origin < ORIG_TOL_M AND heading of the first 5 m of true cruise travel
+       within HEAD_TOL_DEG) passes on AT LEAST ONE cell of that estimator.
+If either fails for an estimator, raw values are withheld for every cell of that estimator (a STOP "for
+that estimator", reported) — but if both pass, raw values are published for ALL of that estimator's
+cells, 154/154 in total if all three estimators validate. The per-cell strict result is retained in the
+json as `strict_frame_check_info` — informational only, NEVER a gate at the per-cell level — and each
+cell's early heading offset (heading_est - heading_truth over the first 5 m of true cruise travel, deg) is
+published as an extra DESCRIPTIVE column, never used to withhold anything. Nothing else about the error
+model changes: same association, window, frame relabel and rounding as Stage 1. The evo -a reproduction
+GATE (154/154 to 6 dp) is unchanged and stays a per-CELL stop condition, exactly as it was.
 
 FRAME (identical convention to eval/figs_thesis_drift.py / Figure 4.1c, R5 — re-derived here, not imported,
 because that script is scoped to one flight):
@@ -17,7 +35,7 @@ because that script is scoped to one flight):
                          construction: ukf_core.py init_state() x[6:9] roll0,pitch0,0.0; fgo_core.py
                          init(yaw0=0.0) default) -> (N, E, U) = (col1, -col2, col3)
 No other rotation, offset or scale. Verified numerically against a known mid-cruise ground-truth row
-(dsn_tex_r1, both families) before being used for the whole scope — see the handover.
+(dsn_tex_r1, both families) before being used for the whole scope — see the Stage 1 handover.
 
 GATE (stop condition, run before any value is reported for a cell): recompute evo -a (cruise) on the SAME
 association (sync.associate_trajectories, t_max_diff 0.05, as eval/three_way_eval.py/evo_ape -a) in the
@@ -28,14 +46,18 @@ run in the cell's OWN frame for the gate, never in the relabelled frame — mixi
 the stored number. The raw (unaligned) error below, by contrast, is a plain subtraction (no rotation
 search at all), so the relabelled frame is exactly right there and chirality does not matter.
 
-FRAME CHECK (stop condition per flight-cell): take-off |NE| (own first sample) < ORIG_TOL_M for both
-estimate and truth, and the heading of the first 5 m of TRUE cruise travel (from the window start) agrees
-with the estimate's own heading over the same truth-defined interval to within HEAD_TOL_DEG. Computed from
-each cell's own FULL (uncropped) files, exactly as eval/figs_thesis_drift.py.
+STRICT FRAME CHECK (informational per cell, Stage 1b; was a per-cell stop condition in Stage 1 — see
+D111): take-off |NE| (own first sample) < ORIG_TOL_M for both estimate and truth, and the heading of the
+first 5 m of TRUE cruise travel (from the window start) agrees with the estimate's own heading over the
+same truth-defined interval to within HEAD_TOL_DEG. Computed from each cell's own FULL (uncropped) files,
+exactly as eval/figs_thesis_drift.py. `heading_diff_deg = heading_est_deg - heading_truth_deg`, unwrapped,
+not folded to any range, and not abs()'d — published as-is.
 
 Usage: /home/makerspace/venv-evo/bin/python eval/raw_corridor_errors.py
 """
 import ast, hashlib, json, math, os, sys
+from collections import defaultdict
+
 import numpy as np
 from evo.core import sync, metrics
 from evo.core.trajectory import PoseTrajectory3D
@@ -118,8 +140,10 @@ def raw_errors(family, ref_raw, est_raw, t0, t1):
             "window_s": [t0, t1], "t_last_matched_s": float(r.timestamps[-1])}
 
 
-def frame_check(family, ref_full, est_full, t0):
-    """Exactly eval/figs_thesis_drift.py's per-estimator frame check, on the cell's own FULL files."""
+def strict_frame_check_info(family, ref_full, est_full, t0):
+    """D111: Stage 1's per-cell frame check, computed identically (exactly eval/figs_thesis_drift.py's
+    convention) but now INFORMATIONAL ONLY — it no longer gates whether a cell's raw value is published.
+    See the per-estimator validate_estimator() below for what D111 actually gates on."""
     tg, ng, eg, _ = to_NEU(family, ref_full, True)
     te, ne, ee, _ = to_NEU(family, est_full, False)
     o_est = math.hypot(ne[0], ee[0])
@@ -140,6 +164,23 @@ def frame_check(family, ref_full, est_full, t0):
     ok = o_est < ORIG_TOL_M and o_gt < ORIG_TOL_M and abs(h_e - h_g) < HEAD_TOL_DEG
     return {"ok": bool(ok), "o_est": o_est, "o_gt": o_gt, "t_a": ta, "t_b": tb, "heading_est_deg": h_e,
             "heading_truth_deg": h_g, "heading_diff_deg": h_e - h_g}
+
+
+def validate_estimator(infos):
+    """D111 per-estimator frame validation, over the list of strict_frame_check_info dicts belonging to
+    one estimator's cells (all of them, not just gate-passing ones, matching D111's "every cell of that
+    estimator" wording). Returns the gate used to decide whether raw values are published for ANY cell of
+    this estimator."""
+    origin_total = len(infos)
+    origin_ok = sum(1 for fc in infos if fc.get("o_est", float("inf")) < ORIG_TOL_M and
+                     fc.get("o_gt", float("inf")) < ORIG_TOL_M)
+    origin_all_ok = origin_total > 0 and origin_ok == origin_total
+    strict_ok = sum(1 for fc in infos if fc.get("ok"))
+    strict_any_ok = strict_ok > 0
+    validated = bool(origin_all_ok and strict_any_ok)
+    return {"origin_ok": origin_ok, "origin_total": origin_total, "origin_all_ok": origin_all_ok,
+            "strict_ok": strict_ok, "strict_total": origin_total, "strict_any_ok": strict_any_ok,
+            "validated": validated}
 
 
 # ----------------------------------------------------------------------------------------------- scope (from stored JSONs, not directory listings)
@@ -206,7 +247,8 @@ def check_source_consistency():
     """Advisor-flagged cross-check: numbers.md:269-274 cites rerun_fwdc_evo.json/rerun_fwdplainc_evo.json for
     the fwdc/fwdplainc baseline+EKF3 rows, while this script's scope is built from phase4_*_arms.json. Confirm
     all three files (arms, rerun_*_evo, phase4_*_evo) agree on window_s and ate_a_cruise for every baseline/EKF3
-    cell, independently of the identical-TUM-file md5 check already done by hand (recorded in the handover)."""
+    cell of both datasets, independently of the identical-TUM-file md5 check already done by hand (recorded in
+    the Stage 1 handover)."""
     out = {}
     for dataset in ("fwdc", "fwdplainc"):
         rerun = load(f"rerun_{dataset}_evo.json")["trials"]
@@ -237,8 +279,10 @@ def check_source_consistency():
 
 def check_index_drift_reproduction(cells_by_key):
     """Reproduce docs/thesis/figures_thesis/index_drift.md's own frame-check table (dsn_tex_r3, baseline arms)
-    to 3 dp, as an external check that this script's frame_check() matches the one that figure already
-    published and cross-checked (9/9 EXACT, frame 3/3 PASS there)."""
+    to 3 dp, as an external check that this script's strict_frame_check_info() matches the one that figure
+    already published and cross-checked (9/9 EXACT, frame 3/3 PASS there). D111 does not change this check —
+    it is a reproduction of a published table, not a gate — only the field name it reads from moved from
+    "frame_check" to "strict_frame_check_info"."""
     REF = {
         "EKF3": {"o_est": 0.0000, "o_gt": 0.0000, "t_a": 30.36, "t_b": 40.46, "h_e": 0.233, "h_g": 0.000},
         "UKF": {"o_est": 0.0000, "o_gt": 0.0000, "t_a": 30.30, "t_b": 40.38, "h_e": 0.765, "h_g": -0.050},
@@ -246,9 +290,9 @@ def check_index_drift_reproduction(cells_by_key):
     }
     out = {}
     for est, ref in REF.items():
-        fc = cells_by_key.get(("dsn_tex_r3", est, "baseline"), {}).get("frame_check")
+        fc = cells_by_key.get(("dsn_tex_r3", est, "baseline"), {}).get("strict_frame_check_info")
         if fc is None:
-            out[est] = {"ok": False, "reason": "cell not found or no frame_check recorded"}
+            out[est] = {"ok": False, "reason": "cell not found or no strict_frame_check_info recorded"}
             continue
         ok = (round(fc["o_est"], 4) == ref["o_est"] and round(fc["o_gt"], 4) == ref["o_gt"] and
               round(fc["t_a"], 2) == ref["t_a"] and round(fc["t_b"], 2) == ref["t_b"] and
@@ -272,7 +316,7 @@ def main():
     cells = build_scope()
     print(f"scope: {len(cells)} cells")
     results = []
-    n_gate_ok = n_frame_ok = 0
+    n_gate_ok = 0
     for c in cells:
         tdir = os.path.join(TD, c["trial"], c["sub"])
         traj_path = os.path.join(tdir, c["traj_file"])
@@ -289,7 +333,10 @@ def main():
         ref_full = np.loadtxt(truth_path)
         t0, t1 = c["window_s"]
 
-        # --- GATE
+        # --- STRICT FRAME CHECK INFO (D111: informational only, computed unconditionally, never a per-cell gate)
+        rec["strict_frame_check_info"] = strict_frame_check_info(c["family"], ref_full, est_full, t0)
+
+        # --- GATE (unchanged from Stage 1 — still a per-cell stop condition)
         try:
             recomputed, n_gate = cruise_ate(ref_full, est_full, t0, t1)
         except Exception as ex:
@@ -309,26 +356,32 @@ def main():
             print(f"STOP {c['trial']}/{c['sub']}: GATE FAIL recomputed={recomputed} stored={stored}")
             continue
 
-        # --- FRAME CHECK
-        fc = frame_check(c["family"], ref_full, est_full, t0)
-        rec["frame_check"] = fc
-        if fc["ok"]:
-            n_frame_ok += 1
-        else:
-            rec["stop"] = "frame check failed (see frame_check for the measured heading/origin)"
-            results.append(rec)
-            print(f"STOP {c['trial']}/{c['sub']}: FRAME CHECK FAIL {fc}")
-            continue
-
-        # --- RAW (descriptive) errors
+        # --- RAW (descriptive) errors — computed for every gate-passing cell; withheld below only if the
+        # cell's whole estimator fails D111 per-estimator validation.
         rec["raw"] = raw_errors(c["family"], ref_full, est_full, t0, t1)
         results.append(rec)
 
+    # --- D111: per-estimator frame validation, replacing Stage 1's per-cell frame-check gate
+    by_family = defaultdict(list)
+    for r in results:
+        by_family[r["family"]].append(r)
+    estimator_validation = {}
+    for family in ("EKF3", "UKF", "FGO"):
+        infos = [r["strict_frame_check_info"] for r in by_family.get(family, []) if "strict_frame_check_info" in r]
+        estimator_validation[family] = validate_estimator(infos)
+
+    n_withheld_by_estimator_validation = 0
+    for r in results:
+        ev = estimator_validation.get(r["family"])
+        if ev is not None and not ev["validated"] and "raw" in r:
+            del r["raw"]
+            r["stop"] = (f"estimator {r['family']} failed D111 per-estimator frame validation "
+                         f"(origin_all_ok={ev['origin_all_ok']}, strict_any_ok={ev['strict_any_ok']})")
+            n_withheld_by_estimator_validation += 1
+
     n_ok = sum(1 for r in results if "stop" not in r)
     n_stop = sum(1 for r in results if "stop" in r)
-    # per-flight STOP count: a trial counts as STOP-affected if ANY of its cells STOPped (the literal
-    # "that flight" reading in the brief; this script's own per-cell withholding is the chosen RC decision —
-    # see the handover). Reported for transparency, does not change what is withheld.
+    n_raw_published = sum(1 for r in results if "raw" in r)
     trials_with_stop = sorted({r["trial"] for r in results if "stop" in r})
     n_flights_total = len({r["trial"] for r in results})
     stop_by_floor = {"blank": 0, "tex": 0, "trans": 0}
@@ -336,7 +389,13 @@ def main():
         if "stop" in r:
             floor = "blank" if "blank" in r["trial"] else ("trans" if "trans" in r["trial"] else "tex")
             stop_by_floor[floor] += 1
-    print(f"done: {len(results)} cells, {n_ok} OK, {n_stop} STOP, gate OK {n_gate_ok}, frame OK {n_frame_ok}")
+    print(f"done: {len(results)} cells, {n_ok} OK, {n_stop} STOP, gate OK {n_gate_ok}, "
+          f"raw published {n_raw_published}, withheld by estimator validation {n_withheld_by_estimator_validation}")
+    print("per-estimator D111 validation:")
+    for family, ev in estimator_validation.items():
+        print(f"  {family}: origin {ev['origin_ok']}/{ev['origin_total']} "
+              f"(all_ok={ev['origin_all_ok']}), strict {ev['strict_ok']}/{ev['strict_total']} "
+              f"(any_ok={ev['strict_any_ok']}) -> validated={ev['validated']}")
     print(f"STOP by floor: {stop_by_floor}; {len(trials_with_stop)}/{n_flights_total} flights have >=1 STOP cell")
 
     cells_by_key = {(r["trial"], r["estimator"], r["arm"]): r for r in results}
@@ -350,11 +409,15 @@ def main():
 
     out = {
         "generated_by": "eval/raw_corridor_errors.py",
+        "stage": "1b",
+        "d111_note": "per-cell frame gate replaced by per-estimator frame validation; see module docstring",
         "frame_note": "see module docstring FRAME section",
         "t_max_diff_s": T_MAX_DIFF, "orig_tol_m": ORIG_TOL_M, "head_tol_deg": HEAD_TOL_DEG,
         "rd_sha256": RD_SHA,
         "n_cells": len(results), "n_ok": n_ok, "n_stop": n_stop,
-        "n_gate_ok": n_gate_ok, "n_frame_ok": n_frame_ok,
+        "n_gate_ok": n_gate_ok, "n_raw_published": n_raw_published,
+        "n_withheld_by_estimator_validation": n_withheld_by_estimator_validation,
+        "estimator_validation": estimator_validation,
         "stop_by_floor": stop_by_floor,
         "trials_with_stop": trials_with_stop, "n_flights_total": n_flights_total,
         "source_consistency": source_consistency,

@@ -4,14 +4,26 @@ eval/results/raw_corridor_errors.json and the original registered-result JSONs (
 dsn_extra_evo.json, phase4_fwdc_arms.json, phase4_fwdplainc_arms.json). stdlib + json only (ast, hashlib,
 json, os, re, sys, decimal — no third-party imports), per the brief.
 
+Stage 1b (D111): Stage 1's per-cell frame-check gate is replaced by per-estimator frame validation. This
+checker independently RECOMPUTES that per-estimator validation from each cell's own
+`strict_frame_check_info` in the json (never trusting the json's own `estimator_validation` block without
+reproducing it), and checks the md's header states it correctly.
+
 Checks, per data row of raw_corridor_numbers.md:
   1. the printed aligned value (evo -a cruise) equals rd(cell.stored_ate_a_cruise, 2) from the json;
   2. cell.stored_ate_a_cruise itself equals the value at the ORIGINAL source file + key path (re-derived
      independently from the cell's dataset/trial/estimator/arm, not from the free-text "source" string);
   3. where a numbers.md line number is cited, that numbers.md line contains the printed aligned value
      string;
-  4. if the row is a STOP, the json has no "raw" entry for that cell and its frame_check failed (or the
-     gate failed); if the row is not a STOP, the four printed raw values equal rd(json value, 2) exactly.
+  4. the printed early-heading-offset column equals rd(cell.strict_frame_check_info.heading_diff_deg, 1);
+  5. if the row is a STOP, the json has no "raw" entry for that cell and either its gate failed or its
+     estimator failed D111 validation; if the row is not a STOP, the four printed raw values equal
+     rd(json value, 2) exactly, and the cell's estimator is independently recomputed as VALIDATED.
+
+Independent per-estimator validation check: for each of EKF3/UKF/FGO, recompute from every one of that
+estimator's cells' `strict_frame_check_info` (i) origin_ok count (o_est < orig_tol_m and o_gt < orig_tol_m)
+and (ii) strict ok count (fc["ok"]), and require both the json's own `estimator_validation` block AND the
+md's printed header line to match the independent recomputation exactly.
 
 Exit 0 iff every check across every row passes.
 """
@@ -36,6 +48,8 @@ rd = _ns["rd"]
 RD_SHA = hashlib.sha256(_rd_src.encode()).hexdigest()
 
 DP = 2
+HDP = 1
+ORIG_TOL_M = 0.05
 
 n_ok = n_fail = 0
 
@@ -145,6 +159,28 @@ def recompute_source_consistency():
     return out
 
 
+# ------------------------------------------------------------------------------------- independent per-estimator D111 validation recompute
+def recompute_estimator_validation(cells):
+    """Reproduce eval/raw_corridor_errors.py's validate_estimator(), independently, straight from each
+    cell's strict_frame_check_info — never from the json's own precomputed estimator_validation block."""
+    by_family = {}
+    for c in cells:
+        by_family.setdefault(c["estimator"], []).append(c)
+    out = {}
+    for family in ("EKF3", "UKF", "FGO"):
+        infos = [c["strict_frame_check_info"] for c in by_family.get(family, [])
+                 if "strict_frame_check_info" in c]
+        origin_total = len(infos)
+        origin_ok = sum(1 for fc in infos
+                         if fc.get("o_est", float("inf")) < ORIG_TOL_M and fc.get("o_gt", float("inf")) < ORIG_TOL_M)
+        strict_ok = sum(1 for fc in infos if fc.get("ok"))
+        validated = origin_total > 0 and origin_ok == origin_total and strict_ok > 0
+        out[family] = {"origin_ok": origin_ok, "origin_total": origin_total, "origin_all_ok": origin_ok == origin_total,
+                        "strict_ok": strict_ok, "strict_total": origin_total, "strict_any_ok": strict_ok > 0,
+                        "validated": bool(validated)}
+    return out
+
+
 # ------------------------------------------------------------------------------------- load json + markdown
 J = json.load(open(JSON_PATH))
 CELLS = {(c["trial"], c["estimator"], c["arm"]): c for c in J["cells"]}
@@ -158,31 +194,57 @@ for dataset, v in sc_recomputed.items():
 check("index_drift_reproduction: 3/3 OK in json",
       sum(1 for v in J["index_drift_reproduction"].values() if v.get("ok")) == 3)
 
+# D111: independently recompute the per-estimator validation and require it to match the json's own block
+ev_recomputed = recompute_estimator_validation(J["cells"])
+for family, rv in ev_recomputed.items():
+    jv = J["estimator_validation"][family]
+    check(f"estimator_validation[{family}] independently recomputed matches json", rv == jv, f"{rv} vs {jv}")
+n_raw_json = sum(1 for c in J["cells"] if "raw" in c)
+check("json n_raw_published matches actual count of cells with a raw entry",
+      n_raw_json == J["n_raw_published"], f"{n_raw_json} vs {J['n_raw_published']}")
+# cross-check: a cell has raw iff its gate passed AND its estimator validated (D111's exact rule)
+for c in J["cells"]:
+    gate_ok = c.get("gate", {}).get("ok", False)
+    est_validated = ev_recomputed[c["estimator"]]["validated"]
+    should_have_raw = gate_ok and est_validated
+    check(f"{c['trial']}/{c['estimator']}/{c['arm']} has raw iff (gate_ok and estimator validated)",
+          ("raw" in c) == should_have_raw,
+          f"gate_ok={gate_ok} validated={est_validated} has_raw={'raw' in c}")
+
 md_text = open(MD_PATH).read()
 md_lines = md_text.split("\n")
 check("header states n_cells", str(J["n_cells"]) in md_text)
 check("header states n_gate_ok/n_cells", f"{J['n_gate_ok']}/{J['n_cells']}" in md_text)
-check("header states n_frame_ok/n_cells", f"{J['n_frame_ok']}/{J['n_cells']}" in md_text)
-check("header states n STOP", str(J["n_cells"] - J["n_frame_ok"]) in md_text)
-check("header states orig_tol_m", str(J["orig_tol_m"]) in md_text)
-check("header states head_tol_deg", str(J["head_tol_deg"]) in md_text)
-check("header states stop_by_floor blank count", str(J["stop_by_floor"]["blank"]) in md_text)
-check("header states stop_by_floor tex count", str(J["stop_by_floor"]["tex"]) in md_text)
-check("header states stop_by_floor trans count", str(J["stop_by_floor"]["trans"]) in md_text)
-check("header states n_flights_total / flights-with-stop",
-      f"{len(J['trials_with_stop'])}/{J['n_flights_total']}" in md_text)
+check("header states n_raw_published/n_cells", f"{J['n_raw_published']}/{J['n_cells']}" in md_text)
+check("header states n_withheld_by_estimator_validation",
+      f"({J['n_withheld_by_estimator_validation']} withheld by estimator-level validation failure)" in md_text)
+check("header states orig_tol_m as a strict-check tolerance phrase",
+      f"< {J['orig_tol_m']} m (both estimate and truth) AND" in md_text)
+check("header states head_tol_deg as a strict-check tolerance phrase",
+      f"within {J['head_tol_deg']}° of truth" in md_text)
+# D111 per-estimator lines are rebuilt EXACTLY (not substring-matched) and required to be a full line of the
+# md, so a swapped/garbled count for one family cannot pass just because its numbers appear somewhere else.
+for family in ("EKF3", "UKF", "FGO"):
+    ev = J["estimator_validation"][family]
+    expected_line = (f"**{family}**: origin OK {ev['origin_ok']}/{ev['origin_total']} "
+                      f"({'all cells' if ev['origin_all_ok'] else 'NOT all cells'} < {J['orig_tol_m']} m); "
+                      f"strict (origin + heading) OK {ev['strict_ok']}/{ev['strict_total']} "
+                      f"({'>=1 cell' if ev['strict_any_ok'] else 'no cell'} passed) -> "
+                      f"**{'VALIDATED' if ev['validated'] else 'NOT VALIDATED'}**")
+    check(f"header has the exact {family} per-estimator validation line", expected_line in md_lines,
+          expected_line)
 
 ARM_LABEL_REV = {"": "baseline", "+heading": "heading", "+heading+yaw rate": "heading_yawrate"}
 
-row_re = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|$")
+row_re = re.compile(
+    r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|$")
 n_rows = 0
 seen_keys = set()
 for line in md_lines:
     m = row_re.match(line)
     if not m or m.group(1) == "flight":
         continue
-    trial, est_arm, aligned_cell, c_rms, c_end, c_rmsh, c_endh = m.groups()
-    dataset = None
+    trial, est_arm, aligned_cell, c_head, c_rms, c_end, c_rmsh, c_endh = m.groups()
     est_arm_clean = re.sub(r"\s*\[\w+\]\s*$", "", est_arm)   # strip footnote markers like " [a]"
     toks = est_arm_clean.split(" ", 1)
     est = toks[0]
@@ -228,19 +290,25 @@ for line in md_lines:
         check(f"{trial}/{est}/{arm} no numbers.md citation expected and none printed", mline is None,
               f"unexpected citation {mline}")
 
-    # 4: raw values vs STOP
+    # 4: early heading offset column — DESCRIPTIVE, always printed, never a gate
+    fc = cell.get("strict_frame_check_info")
+    if fc is not None and "heading_diff_deg" in fc:
+        check(f"{trial}/{est}/{arm} heading offset == rd(strict_frame_check_info.heading_diff_deg, {HDP})",
+              c_head == rd(fc["heading_diff_deg"], HDP), f"printed={c_head} rd={rd(fc['heading_diff_deg'], HDP)}")
+    else:
+        check(f"{trial}/{est}/{arm} heading offset column is '—' (no heading_diff_deg available)",
+              c_head == "—", c_head)
+
+    # 5: raw values vs STOP
     is_stop = c_rms.startswith("STOP")
     has_raw = "raw" in cell
     check(f"{trial}/{est}/{arm} STOP-in-md matches no-raw-in-json", is_stop != has_raw,
           f"is_stop={is_stop} has_raw={has_raw}")
     if is_stop:
-        fc = cell.get("frame_check")
         gate_ok = cell.get("gate", {}).get("ok", False)
-        check(f"{trial}/{est}/{arm} STOP row has a failing gate or frame_check",
-              (fc is not None and not fc.get("ok", True)) or not gate_ok)
-        if fc is not None and "heading_diff_deg" in fc:
-            check(f"{trial}/{est}/{arm} STOP reason prints rd(heading_diff_deg, {DP})",
-                  rd(fc["heading_diff_deg"], DP) in c_rms, c_rms)
+        est_validated = ev_recomputed[est]["validated"]
+        check(f"{trial}/{est}/{arm} STOP row has a failing gate or a failed-validation estimator",
+              (not gate_ok) or (not est_validated), f"gate_ok={gate_ok} est_validated={est_validated}")
     else:
         r = cell["raw"]
         pairs = [("rms", c_rms, r["rms_3d_m"]), ("end", c_end, r["end_3d_m"]),

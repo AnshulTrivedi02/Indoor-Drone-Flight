@@ -183,3 +183,91 @@ exists for it; its aligned values are all still reported in the md and json.)
 
 No other STOPs, mismatches or open questions. Every gate passed; every cross-check passed;
 nothing fitted, interpreted, compared or ordered anywhere in the new files.
+
+## Stage 1b (D111) — 2026-11-02
+
+**Branch:** `raw-corridor-1b`, created from `raw-corridor` at `66bd2f1`, then merged `fwd-camera`
+(`21e1208`, D111/D112) with `git merge --no-edit`.
+
+**What changed.** D111 ruled Stage 1's per-cell frame-check gate (take-off origin + heading of the first
+5 m of travel, 2°) a harness design error: per cell it was rejecting the estimator's OWN early yaw error,
+which is exactly the quantity raw error exists to show. It is replaced by frame validation run once PER
+ESTIMATOR (EKF3, UKF, FGO), never per cell:
+- (i) take-off origin `|NE|` < 0.05 m on EVERY cell of that estimator;
+- (ii) the original strict check (origin + heading) passes on AT LEAST ONE cell of that estimator.
+
+If both hold, raw values are published for ALL of that estimator's cells. Nothing else about the error
+model changed: same association (`t_max_diff = 0.05 s`), same window, same frame relabel, same rounding.
+The evo -a reproduction GATE (154/154 to 6 dp) is unchanged and remains a per-CELL stop condition.
+
+**Files changed** (five, plus this handover; nothing else touched — confirmed via `git status`):
+`eval/raw_corridor_errors.py`, `eval/gen_raw_corridor_numbers.py`,
+`docs/thesis/raw_corridor/raw_corridor_numbers.md`, `docs/thesis/raw_corridor/check_raw_corridor.py`,
+`eval/results/raw_corridor_errors.json`.
+
+**Implementation.** The per-cell frame check is computed exactly as Stage 1 did (unchanged function body,
+renamed `frame_check` -> `strict_frame_check_info`) but is no longer read as a gate anywhere in the
+per-cell loop; it is retained in the json as information only. A new `validate_estimator()` aggregates it
+per estimator (origin-all-ok AND strict-any-ok) and the per-cell loop's `raw` entry is withheld
+afterwards only if the cell's whole estimator fails that aggregate check — never for an individual cell's
+own heading. Each cell's early heading offset (`heading_est_deg - heading_truth_deg` over the first 5 m
+of true cruise travel, unwrapped, not `abs()`'d) is published as its own DESCRIPTIVE column in the
+numbers file, rounded once to 1 dp via the same parsed `rd()`, and is never used to withhold anything.
+
+**Verification that the error model itself is untouched.** Before re-running, the Stage 1
+`raw_corridor_errors.json` was snapshotted. After the Stage 1b run, every one of the 154 cells' `gate`
+`recomputed_ate_a_cruise`, every `strict_frame_check_info` field (`o_est`, `o_gt`, `heading_diff_deg`,
+`heading_est_deg`, `heading_truth_deg`, `ok`), and the four raw values for all 85 cells that already had
+`raw` in Stage 1, compare bit-identical to Stage 1's own output. Only the 69 previously-withheld cells
+gained new `raw` entries — exactly the newly-published set, nothing recomputed differently.
+
+**Per-estimator validation results** (all three validate; no estimator is STOPped):
+
+| estimator | origin OK | strict (origin+heading) OK, >=1 required | verdict |
+|---|---|---|---|
+| EKF3 | 34/34 | 25/34 | VALIDATED |
+| UKF | 60/60 | 28/60 | VALIDATED |
+| FGO | 60/60 | 32/60 | VALIDATED |
+
+**Cell counts:** 154/154 cells pass the GATE (unchanged); 154/154 now have raw values published
+(0 withheld by estimator-level validation failure, since all three estimators validated); 0 STOP rows.
+This replaces Stage 1's 85/154 raw-published, 69/154 STOP.
+
+**Check totals:**
+- `docs/thesis/raw_corridor/check_raw_corridor.py`: **154/154 rows, 1860/1860 checks OK.** Rewritten for
+  Stage 1b: independently recomputes the per-estimator validation straight from each cell's
+  `strict_frame_check_info` (never trusting the json's own `estimator_validation` block without
+  reproducing it), and requires the numbers.md header to contain the EXACT per-estimator line it
+  reconstructs from that recomputation (`**{family}**: origin OK n/n (...); strict (origin + heading) OK
+  n/n (...) -> **VERDICT**`, checked as a full line of the file, not a substring — a swapped UKF/FGO count
+  was tried as a negative control and the checker caught it) plus exact tolerance phrases ("< 0.05 m
+  (both estimate and truth) AND", "within 2.0° of truth") and the exact withheld-count phrase; checks that
+  a cell has `raw` iff `(gate_ok and estimator validated)`; checks the new early-heading-offset column
+  against `rd(strict_frame_check_info.heading_diff_deg, 1)` for every row; keeps all of Stage 1's other
+  checks (aligned value, original-source re-derivation, positional numbers.md citation, `rd()` SHA,
+  completeness both directions).
+- `tools/check_numbers_frozen.py`: **PASS** (`numbers.md` untouched).
+
+**Per-dataset ranges (Stage 1b; aligned = registered `ate_a_cruise`, all 154 cells; raw = this script's
+raw 3D RMS / end-of-cruise and the early heading offset, now all 154 cells since every estimator
+validated):**
+
+| dataset | n (aligned) | aligned range (m) | n (raw) | raw RMS range (m) | raw end-of-cruise range (m) | early heading offset range (deg) |
+|---|---|---|---|---|---|---|
+| `dsn_tex` | 28 | 1.17 – 5.85 | 28 | 3.79 – 25.16 | 1.49 – 60.26 | −3.5 – 1.4 |
+| `dsn_blank` | 9 | 43.37 – 11332.74 | 9 | 86.79 – 14259.45 | 150.27 – 36552.62 | −169.7 – 19.7 |
+| `dsn_trans` | 9 | 41.48 – 595.48 | 9 | 79.60 – 730.67 | 150.92 – 2871.32 | 0.2 – 1.9 |
+| `fwdc` | 63 | 0.06 – 12135.15 | 63 | 0.16 – 16279.69 | 0.22 – 40851.21 | −170.4 – 19.4 |
+| `fwdplainc` | 45 | 0.09 – 11694.64 | 45 | 4.77 – 15456.56 | 7.40 – 40641.40 | −171.8 – 15.4 |
+
+`dsn_blank` previously had zero raw-published cells (Stage 1's frame check failed on all 9); it now has
+9/9. `dsn_blank`-only `heading_diff_deg` values: EKF3 {−169.7, −129.6, −169.7}°; UKF {13.9, 19.7, 17.0}°;
+FGO {13.5, 19.4, 16.7}°. D111 quotes "~150–172° EKF3 on the blank floor" and "8-20° UKF/FGO"; the computed
+EKF3 values include −129.6° (`dsn_blank_r2`), outside that quoted range in magnitude.
+
+**RC-7 footnote (Stage 1 handover) still applies, unchanged**: the 9 EKF3-on-transition-floor rows
+(`{dsn,fwdc,fwdplainc}_trans_r{1,2,3}`) include the ~140 s window where EKF3's output is pinned near the
+origin after losing flow aiding at the textured/blank boundary, per numbers.md §6.2's "not scored" rule;
+footnoted `[a]` in the table exactly as before.
+
+**No other STOPs, mismatches or open questions.** Table integration remains out of scope for this stage.

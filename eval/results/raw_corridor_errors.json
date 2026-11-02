@@ -1,42 +1,53 @@
 {
  "generated_by": "eval/raw_corridor_errors.py",
+ "stage": "1b",
+ "d111_note": "per-cell frame gate replaced by per-estimator frame validation; see module docstring",
  "frame_note": "see module docstring FRAME section",
  "t_max_diff_s": 0.05,
  "orig_tol_m": 0.05,
  "head_tol_deg": 2.0,
  "rd_sha256": "e7320d3b8f377157c0c6512b2c0b77c978ac309a7130d2729480b786e02589b3",
  "n_cells": 154,
- "n_ok": 85,
- "n_stop": 69,
+ "n_ok": 154,
+ "n_stop": 0,
  "n_gate_ok": 154,
- "n_frame_ok": 85,
- "stop_by_floor": {
-  "blank": 45,
-  "tex": 14,
-  "trans": 10
+ "n_raw_published": 154,
+ "n_withheld_by_estimator_validation": 0,
+ "estimator_validation": {
+  "EKF3": {
+   "origin_ok": 34,
+   "origin_total": 34,
+   "origin_all_ok": true,
+   "strict_ok": 25,
+   "strict_total": 34,
+   "strict_any_ok": true,
+   "validated": true
+  },
+  "UKF": {
+   "origin_ok": 60,
+   "origin_total": 60,
+   "origin_all_ok": true,
+   "strict_ok": 28,
+   "strict_total": 60,
+   "strict_any_ok": true,
+   "validated": true
+  },
+  "FGO": {
+   "origin_ok": 60,
+   "origin_total": 60,
+   "origin_all_ok": true,
+   "strict_ok": 32,
+   "strict_total": 60,
+   "strict_any_ok": true,
+   "validated": true
+  }
  },
- "trials_with_stop": [
-  "dsn_blank_r1",
-  "dsn_blank_r2",
-  "dsn_blank_r3",
-  "dsn_tex_r2",
-  "dsn_tex_r6",
-  "fwdc_blank_r1",
-  "fwdc_blank_r2",
-  "fwdc_blank_r3",
-  "fwdc_tex_r2",
-  "fwdc_trans_r1",
-  "fwdc_trans_r2",
-  "fwdplainc_blank_r1",
-  "fwdplainc_blank_r2",
-  "fwdplainc_blank_r3",
-  "fwdplainc_tex_r1",
-  "fwdplainc_tex_r2",
-  "fwdplainc_tex_r3",
-  "fwdplainc_trans_r1",
-  "fwdplainc_trans_r2",
-  "fwdplainc_trans_r3"
- ],
+ "stop_by_floor": {
+  "blank": 0,
+  "tex": 0,
+  "trans": 0
+ },
+ "trials_with_stop": [],
  "n_flights_total": 34,
  "source_consistency": {
   "fwdc": {
@@ -126,13 +137,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r1.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.03352128077359,
-    "stored_ate_a_cruise": 4.033521,
-    "n_matched": 3027,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -141,6 +146,12 @@
     "heading_est_deg": 0.058213952060621965,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.058213952060621965
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.03352128077359,
+    "stored_ate_a_cruise": 4.033521,
+    "n_matched": 3027,
+    "ok": true
    },
    "raw": {
     "n_matched": 3027,
@@ -171,13 +182,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r1.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3.9835634727510927,
-    "stored_ate_a_cruise": 3.983563,
-    "n_matched": 18068,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -186,6 +191,12 @@
     "heading_est_deg": -0.34763831063529976,
     "heading_truth_deg": -0.04034921441888113,
     "heading_diff_deg": -0.30728909621641864
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 3.9835634727510927,
+    "stored_ate_a_cruise": 3.983563,
+    "n_matched": 18068,
+    "ok": true
    },
    "raw": {
     "n_matched": 18068,
@@ -216,13 +227,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r1.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r1/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.047330044006191,
-    "stored_ate_a_cruise": 4.04733,
-    "n_matched": 9081,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -231,6 +236,12 @@
     "heading_est_deg": -0.19993064712769762,
     "heading_truth_deg": -0.04034921441888113,
     "heading_diff_deg": -0.15958143270881647
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.047330044006191,
+    "stored_ate_a_cruise": 4.04733,
+    "n_matched": 9081,
+    "ok": true
    },
    "raw": {
     "n_matched": 9081,
@@ -261,13 +272,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r1.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.48705564341711,
-    "stored_ate_a_cruise": 41.487056,
-    "n_matched": 3024,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -276,6 +281,12 @@
     "heading_est_deg": 0.24893290511363678,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.24893290511363678
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.48705564341711,
+    "stored_ate_a_cruise": 41.487056,
+    "n_matched": 3024,
+    "ok": true
    },
    "raw": {
     "n_matched": 3024,
@@ -306,13 +317,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r1.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 147.1899424796587,
-    "stored_ate_a_cruise": 147.189942,
-    "n_matched": 18255,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -321,6 +326,12 @@
     "heading_est_deg": 0.8245013660151211,
     "heading_truth_deg": -0.04204458126957521,
     "heading_diff_deg": 0.8665459472846964
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 147.1899424796587,
+    "stored_ate_a_cruise": 147.189942,
+    "n_matched": 18255,
+    "ok": true
    },
    "raw": {
     "n_matched": 18255,
@@ -351,13 +362,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r1.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r1/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 585.2583513323098,
-    "stored_ate_a_cruise": 585.258351,
-    "n_matched": 9074,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -366,6 +371,12 @@
     "heading_est_deg": 0.28880255800514976,
     "heading_truth_deg": -0.04204458126957521,
     "heading_diff_deg": 0.330847139274725
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 585.2583513323098,
+    "stored_ate_a_cruise": 585.258351,
+    "n_matched": 9074,
+    "ok": true
    },
    "raw": {
     "n_matched": 9074,
@@ -396,13 +407,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r1.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.3675792823341,
-    "stored_ate_a_cruise": 43.367579,
-    "n_matched": 3006,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -412,7 +417,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -169.716060014279
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.3675792823341,
+    "stored_ate_a_cruise": 43.367579,
+    "n_matched": 3006,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3006,
+    "rms_3d_m": 86.79237613465772,
+    "end_3d_m": 150.27020550210122,
+    "rms_h_m": 86.79232852011584,
+    "end_h_m": 150.270181,
+    "window_s": [
+     30.409,
+     331.031
+    ],
+    "t_last_matched_s": 330.93837
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -430,13 +452,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r1.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11332.7406955286,
-    "stored_ate_a_cruise": 11332.740696,
-    "n_matched": 18107,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -446,7 +462,24 @@
     "heading_truth_deg": -0.04576101309586415,
     "heading_diff_deg": 13.870939153339059
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11332.7406955286,
+    "stored_ate_a_cruise": 11332.740696,
+    "n_matched": 18107,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18107,
+    "rms_3d_m": 14259.448505486245,
+    "end_3d_m": 36552.61567117346,
+    "rms_h_m": 14259.44850542188,
+    "end_h_m": 36552.615671159285,
+    "window_s": [
+     30.409,
+     331.031
+    ],
+    "t_last_matched_s": 331.031
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -464,13 +497,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r1.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r1/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6442.717510115743,
-    "stored_ate_a_cruise": 6442.71751,
-    "n_matched": 9019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -480,7 +507,24 @@
     "heading_truth_deg": -0.04576101309586415,
     "heading_diff_deg": 13.454871217181113
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6442.717510115743,
+    "stored_ate_a_cruise": 6442.71751,
+    "n_matched": 9019,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9019,
+    "rms_3d_m": 8736.07717455592,
+    "end_3d_m": 22544.39759907114,
+    "rms_h_m": 8736.077174506707,
+    "end_h_m": 22544.39759907113,
+    "window_s": [
+     30.409,
+     331.031
+    ],
+    "t_last_matched_s": 331.015
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -498,13 +542,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r2.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3.855265744034377,
-    "stored_ate_a_cruise": 3.855266,
-    "n_matched": 3025,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -513,6 +551,12 @@
     "heading_est_deg": -0.28937133653944686,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -0.28937133653944686
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 3.855265744034377,
+    "stored_ate_a_cruise": 3.855266,
+    "n_matched": 3025,
+    "ok": true
    },
    "raw": {
     "n_matched": 3025,
@@ -543,13 +587,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r2.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 1.6139884389287622,
-    "stored_ate_a_cruise": 1.613988,
-    "n_matched": 18252,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -559,7 +597,24 @@
     "heading_truth_deg": -0.04952790917519799,
     "heading_diff_deg": -3.0024112250420285
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 1.6139884389287622,
+    "stored_ate_a_cruise": 1.613988,
+    "n_matched": 18252,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18252,
+    "rms_3d_m": 6.828981831409654,
+    "end_3d_m": 7.327080591866992,
+    "rms_h_m": 6.828949530010446,
+    "end_h_m": 7.327080437507012,
+    "window_s": [
+     30.556,
+     333.044
+    ],
+    "t_last_matched_s": 333.044
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -577,13 +632,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r2.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r2/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 1.7965836108147624,
-    "stored_ate_a_cruise": 1.796584,
-    "n_matched": 9075,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -593,7 +642,24 @@
     "heading_truth_deg": -0.04952790917519799,
     "heading_diff_deg": -2.6863816399412785
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 1.7965836108147624,
+    "stored_ate_a_cruise": 1.796584,
+    "n_matched": 9075,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9075,
+    "rms_3d_m": 3.7907993962063813,
+    "end_3d_m": 1.4932007965082854,
+    "rms_h_m": 3.7907409746912726,
+    "end_h_m": 1.4931996355641728,
+    "window_s": [
+     30.556,
+     333.044
+    ],
+    "t_last_matched_s": 333.044
+   }
   },
   {
    "dataset": "dsn_trans",
@@ -611,13 +677,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r2.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.4921110062181,
-    "stored_ate_a_cruise": 41.492111,
-    "n_matched": 3019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -626,6 +686,12 @@
     "heading_est_deg": 0.2032589251254093,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.2032589251254093
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.4921110062181,
+    "stored_ate_a_cruise": 41.492111,
+    "n_matched": 3019,
+    "ok": true
    },
    "raw": {
     "n_matched": 3019,
@@ -656,13 +722,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r2.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 142.60504722147215,
-    "stored_ate_a_cruise": 142.605047,
-    "n_matched": 18717,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -671,6 +731,12 @@
     "heading_est_deg": 1.8432773380202048,
     "heading_truth_deg": -0.024405706459954674,
     "heading_diff_deg": 1.8676830444801595
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 142.60504722147215,
+    "stored_ate_a_cruise": 142.605047,
+    "n_matched": 18717,
+    "ok": true
    },
    "raw": {
     "n_matched": 18717,
@@ -701,13 +767,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r2.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r2/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 595.4830811216003,
-    "stored_ate_a_cruise": 595.483081,
-    "n_matched": 9057,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -716,6 +776,12 @@
     "heading_est_deg": 0.4408276229120562,
     "heading_truth_deg": -0.024405706459954674,
     "heading_diff_deg": 0.46523332937201084
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 595.4830811216003,
+    "stored_ate_a_cruise": 595.483081,
+    "n_matched": 9057,
+    "ok": true
    },
    "raw": {
     "n_matched": 9057,
@@ -746,13 +812,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r2.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.69975472646165,
-    "stored_ate_a_cruise": 43.699755,
-    "n_matched": 3029,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -762,7 +822,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -129.64836617894304
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.69975472646165,
+    "stored_ate_a_cruise": 43.699755,
+    "n_matched": 3029,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3029,
+    "rms_3d_m": 87.44373743538118,
+    "end_3d_m": 151.39453698155984,
+    "rms_h_m": 87.44368382934621,
+    "end_h_m": 151.394507,
+    "window_s": [
+     30.245,
+     333.058
+    ],
+    "t_last_matched_s": 333.04537
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -780,13 +857,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r2.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 10378.896439438096,
-    "stored_ate_a_cruise": 10378.896439,
-    "n_matched": 17856,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -796,7 +867,24 @@
     "heading_truth_deg": -0.030522906443630975,
     "heading_diff_deg": 19.683514411886076
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 10378.896439438096,
+    "stored_ate_a_cruise": 10378.896439,
+    "n_matched": 17856,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 17856,
+    "rms_3d_m": 12916.145643081241,
+    "end_3d_m": 33304.01263402196,
+    "rms_h_m": 12916.145643013604,
+    "end_h_m": 33304.01263400892,
+    "window_s": [
+     30.245,
+     333.058
+    ],
+    "t_last_matched_s": 333.058
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -814,13 +902,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r2.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r2/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 10162.656254815824,
-    "stored_ate_a_cruise": 10162.656255,
-    "n_matched": 9084,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.82842712474619e-06,
     "o_gt": 0.0,
@@ -830,7 +912,24 @@
     "heading_truth_deg": -0.030522906443630975,
     "heading_diff_deg": 19.437208279949385
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 10162.656254815824,
+    "stored_ate_a_cruise": 10162.656255,
+    "n_matched": 9084,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9084,
+    "rms_3d_m": 13717.811472170244,
+    "end_3d_m": 35951.95818562638,
+    "rms_h_m": 13717.81147176279,
+    "end_h_m": 35951.95818561869,
+    "window_s": [
+     30.245,
+     333.058
+    ],
+    "t_last_matched_s": 333.041
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -848,13 +947,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r3.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.097549330722264,
-    "stored_ate_a_cruise": 4.097549,
-    "n_matched": 3025,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -863,6 +956,12 @@
     "heading_est_deg": 0.23305191005137646,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.23305191005137646
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.097549330722264,
+    "stored_ate_a_cruise": 4.097549,
+    "n_matched": 3025,
+    "ok": true
    },
    "raw": {
     "n_matched": 3025,
@@ -893,13 +992,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r3.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.16777654781507,
-    "stored_ate_a_cruise": 5.167777,
-    "n_matched": 17823,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -908,6 +1001,12 @@
     "heading_est_deg": 0.7646273089606076,
     "heading_truth_deg": -0.04965610224570943,
     "heading_diff_deg": 0.8142834112063171
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.16777654781507,
+    "stored_ate_a_cruise": 5.167777,
+    "n_matched": 17823,
+    "ok": true
    },
    "raw": {
     "n_matched": 17823,
@@ -938,13 +1037,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_tex_r3.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r3/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.482524172887994,
-    "stored_ate_a_cruise": 4.482524,
-    "n_matched": 9074,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -953,6 +1046,12 @@
     "heading_est_deg": 0.3176740380975403,
     "heading_truth_deg": -0.04965610224570943,
     "heading_diff_deg": 0.36733014034324973
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.482524172887994,
+    "stored_ate_a_cruise": 4.482524,
+    "n_matched": 9074,
+    "ok": true
    },
    "raw": {
     "n_matched": 9074,
@@ -983,13 +1082,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r3.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.47936305008532,
-    "stored_ate_a_cruise": 41.479363,
-    "n_matched": 3019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -998,6 +1091,12 @@
     "heading_est_deg": 0.21361502227601772,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.21361502227601772
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.47936305008532,
+    "stored_ate_a_cruise": 41.479363,
+    "n_matched": 3019,
+    "ok": true
    },
    "raw": {
     "n_matched": 3019,
@@ -1028,13 +1127,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r3.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 141.25603412285437,
-    "stored_ate_a_cruise": 141.256034,
-    "n_matched": 17786,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1043,6 +1136,12 @@
     "heading_est_deg": 0.8643752145793461,
     "heading_truth_deg": -0.03430875000249177,
     "heading_diff_deg": 0.8986839645818379
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 141.25603412285437,
+    "stored_ate_a_cruise": 141.256034,
+    "n_matched": 17786,
+    "ok": true
    },
    "raw": {
     "n_matched": 17786,
@@ -1073,13 +1172,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_trans_r3.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_trans_r3/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 564.7834115313556,
-    "stored_ate_a_cruise": 564.783412,
-    "n_matched": 9054,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -1088,6 +1181,12 @@
     "heading_est_deg": 0.42521850273284945,
     "heading_truth_deg": -0.03430875000249177,
     "heading_diff_deg": 0.45952725273534123
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 564.7834115313556,
+    "stored_ate_a_cruise": 564.783412,
+    "n_matched": 9054,
+    "ok": true
    },
    "raw": {
     "n_matched": 9054,
@@ -1118,13 +1217,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r3.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.65884268916748,
-    "stored_ate_a_cruise": 43.658843,
-    "n_matched": 3026,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1134,7 +1227,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -169.6876971077799
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.65884268916748,
+    "stored_ate_a_cruise": 43.658843,
+    "n_matched": 3026,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3026,
+    "rms_3d_m": 87.39268450385694,
+    "end_3d_m": 151.28320358115195,
+    "rms_h_m": 87.39265403156632,
+    "end_h_m": 151.283188,
+    "window_s": [
+     30.672,
+     333.265
+    ],
+    "t_last_matched_s": 333.25637
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -1152,13 +1262,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r3.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8452.59706102977,
-    "stored_ate_a_cruise": 8452.597061,
-    "n_matched": 17834,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -1168,7 +1272,24 @@
     "heading_truth_deg": -0.03744798453794594,
     "heading_diff_deg": 16.973159974914303
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8452.59706102977,
+    "stored_ate_a_cruise": 8452.597061,
+    "n_matched": 17834,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 17834,
+    "rms_3d_m": 9856.187248573733,
+    "end_3d_m": 29158.62098696932,
+    "rms_h_m": 9856.187248478807,
+    "end_h_m": 29158.620986964343,
+    "window_s": [
+     30.672,
+     333.265
+    ],
+    "t_last_matched_s": 333.265
+   }
   },
   {
    "dataset": "dsn_blank",
@@ -1186,13 +1307,7 @@
    "source": "rerun_dsn_evo.json:trials.dsn_blank_r3.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_blank_r3/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 9534.91133804547,
-    "stored_ate_a_cruise": 9534.911338,
-    "n_matched": 9078,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.82842712474619e-06,
     "o_gt": 0.0,
@@ -1202,7 +1317,24 @@
     "heading_truth_deg": -0.03744798453794594,
     "heading_diff_deg": 16.65394869708376
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 9534.91133804547,
+    "stored_ate_a_cruise": 9534.911338,
+    "n_matched": 9078,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9078,
+    "rms_3d_m": 12919.258340452288,
+    "end_3d_m": 32573.262872912575,
+    "rms_h_m": 12919.258340251974,
+    "end_h_m": 32573.262872911822,
+    "window_s": [
+     30.672,
+     333.265
+    ],
+    "t_last_matched_s": 333.265
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -1220,13 +1352,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r4.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.1018536110439605,
-    "stored_ate_a_cruise": 4.101854,
-    "n_matched": 3024,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1235,6 +1361,12 @@
     "heading_est_deg": 0.27050864276686065,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.27050864276686065
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.1018536110439605,
+    "stored_ate_a_cruise": 4.101854,
+    "n_matched": 3024,
+    "ok": true
    },
    "raw": {
     "n_matched": 3024,
@@ -1265,13 +1397,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r4.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.2173494469406805,
-    "stored_ate_a_cruise": 5.217349,
-    "n_matched": 18041,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1280,6 +1406,12 @@
     "heading_est_deg": 0.7836085323600861,
     "heading_truth_deg": -0.04086911319173973,
     "heading_diff_deg": 0.8244776455518258
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.2173494469406805,
+    "stored_ate_a_cruise": 5.217349,
+    "n_matched": 18041,
+    "ok": true
    },
    "raw": {
     "n_matched": 18041,
@@ -1310,13 +1442,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r4.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r4/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.4611263944364925,
-    "stored_ate_a_cruise": 4.461126,
-    "n_matched": 9072,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.82842712474619e-06,
     "o_gt": 0.0,
@@ -1325,6 +1451,12 @@
     "heading_est_deg": 0.3242009071884328,
     "heading_truth_deg": -0.04086911319173973,
     "heading_diff_deg": 0.36507002038017256
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.4611263944364925,
+    "stored_ate_a_cruise": 4.461126,
+    "n_matched": 9072,
+    "ok": true
    },
    "raw": {
     "n_matched": 9072,
@@ -1355,13 +1487,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r5.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.121337188549444,
-    "stored_ate_a_cruise": 4.121337,
-    "n_matched": 3029,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1370,6 +1496,12 @@
     "heading_est_deg": 0.24985954996496562,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.24985954996496562
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.121337188549444,
+    "stored_ate_a_cruise": 4.121337,
+    "n_matched": 3029,
+    "ok": true
    },
    "raw": {
     "n_matched": 3029,
@@ -1400,13 +1532,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r5.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.126069444189322,
-    "stored_ate_a_cruise": 5.126069,
-    "n_matched": 18363,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1415,6 +1541,12 @@
     "heading_est_deg": 0.8163944302989932,
     "heading_truth_deg": -0.056875489203643055,
     "heading_diff_deg": 0.8732699195026362
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.126069444189322,
+    "stored_ate_a_cruise": 5.126069,
+    "n_matched": 18363,
+    "ok": true
    },
    "raw": {
     "n_matched": 18363,
@@ -1445,13 +1577,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r5.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r5/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.60984683372567,
-    "stored_ate_a_cruise": 4.609847,
-    "n_matched": 9086,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -1460,6 +1586,12 @@
     "heading_est_deg": 0.44272418105277517,
     "heading_truth_deg": -0.056875489203643055,
     "heading_diff_deg": 0.4995996702564182
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.60984683372567,
+    "stored_ate_a_cruise": 4.609847,
+    "n_matched": 9086,
+    "ok": true
    },
    "raw": {
     "n_matched": 9086,
@@ -1490,13 +1622,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r6.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3.1121592856878997,
-    "stored_ate_a_cruise": 3.112159,
-    "n_matched": 3028,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1505,6 +1631,12 @@
     "heading_est_deg": -0.8974086299822679,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -0.8974086299822679
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 3.1121592856878997,
+    "stored_ate_a_cruise": 3.112159,
+    "n_matched": 3028,
+    "ok": true
    },
    "raw": {
     "n_matched": 3028,
@@ -1535,13 +1667,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r6.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 1.1740813437795699,
-    "stored_ate_a_cruise": 1.174081,
-    "n_matched": 17979,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1551,7 +1677,24 @@
     "heading_truth_deg": -0.029068399841717902,
     "heading_diff_deg": -3.470065679901952
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 1.1740813437795699,
+    "stored_ate_a_cruise": 1.174081,
+    "n_matched": 17979,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 17979,
+    "rms_3d_m": 11.56120541123619,
+    "end_3d_m": 17.82660860585802,
+    "rms_h_m": 11.561193003138506,
+    "end_h_m": 17.826608530512196,
+    "window_s": [
+     29.938,
+     332.751
+    ],
+    "t_last_matched_s": 332.751
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -1569,13 +1712,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r6.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r6/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 1.2674493900557544,
-    "stored_ate_a_cruise": 1.267449,
-    "n_matched": 9084,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -1585,7 +1722,24 @@
     "heading_truth_deg": -0.029068399841717902,
     "heading_diff_deg": -3.0350045141795916
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 1.2674493900557544,
+    "stored_ate_a_cruise": 1.267449,
+    "n_matched": 9084,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9084,
+    "rms_3d_m": 6.96535925025076,
+    "end_3d_m": 7.235375405830509,
+    "rms_h_m": 6.965332949643195,
+    "end_h_m": 7.235375324027981,
+    "window_s": [
+     29.938,
+     332.751
+    ],
+    "t_last_matched_s": 332.717
+   }
   },
   {
    "dataset": "dsn_tex",
@@ -1603,13 +1757,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r7.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.111037338814759,
-    "stored_ate_a_cruise": 4.111037,
-    "n_matched": 3029,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1618,6 +1766,12 @@
     "heading_est_deg": 0.24368655414051024,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.24368655414051024
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.111037338814759,
+    "stored_ate_a_cruise": 4.111037,
+    "n_matched": 3029,
+    "ok": true
    },
    "raw": {
     "n_matched": 3029,
@@ -1648,13 +1802,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r7.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.2033673193981365,
-    "stored_ate_a_cruise": 5.203367,
-    "n_matched": 18340,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1663,6 +1811,12 @@
     "heading_est_deg": 0.8838699332369602,
     "heading_truth_deg": -0.03516004215109293,
     "heading_diff_deg": 0.9190299753880531
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.2033673193981365,
+    "stored_ate_a_cruise": 5.203367,
+    "n_matched": 18340,
+    "ok": true
    },
    "raw": {
     "n_matched": 18340,
@@ -1693,13 +1847,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r7.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r7/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.608818913744126,
-    "stored_ate_a_cruise": 4.608819,
-    "n_matched": 9088,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -1708,6 +1856,12 @@
     "heading_est_deg": 0.46303707615986095,
     "heading_truth_deg": -0.03516004215109293,
     "heading_diff_deg": 0.49819711831095387
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.608818913744126,
+    "stored_ate_a_cruise": 4.608819,
+    "n_matched": 9088,
+    "ok": true
    },
    "raw": {
     "n_matched": 9088,
@@ -1738,13 +1892,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r8.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.105041723311773,
-    "stored_ate_a_cruise": 4.105042,
-    "n_matched": 3025,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1753,6 +1901,12 @@
     "heading_est_deg": 0.23710316531394993,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.23710316531394993
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.105041723311773,
+    "stored_ate_a_cruise": 4.105042,
+    "n_matched": 3025,
+    "ok": true
    },
    "raw": {
     "n_matched": 3025,
@@ -1783,13 +1937,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r8.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.849682894032222,
-    "stored_ate_a_cruise": 5.849683,
-    "n_matched": 17884,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1798,6 +1946,12 @@
     "heading_est_deg": 1.3202220368677897,
     "heading_truth_deg": -0.045619654906907184,
     "heading_diff_deg": 1.365841691774697
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.849682894032222,
+    "stored_ate_a_cruise": 5.849683,
+    "n_matched": 17884,
+    "ok": true
    },
    "raw": {
     "n_matched": 17884,
@@ -1828,13 +1982,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r8.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r8/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.564819618215941,
-    "stored_ate_a_cruise": 4.56482,
-    "n_matched": 9074,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1843,6 +1991,12 @@
     "heading_est_deg": 0.384978581173914,
     "heading_truth_deg": -0.045619654906907184,
     "heading_diff_deg": 0.43059823608082115
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.564819618215941,
+    "stored_ate_a_cruise": 4.56482,
+    "n_matched": 9074,
+    "ok": true
    },
    "raw": {
     "n_matched": 9074,
@@ -1873,13 +2027,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r9.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.08779394479978,
-    "stored_ate_a_cruise": 4.087794,
-    "n_matched": 3024,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -1888,6 +2036,12 @@
     "heading_est_deg": 0.21304187734779437,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.21304187734779437
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.08779394479978,
+    "stored_ate_a_cruise": 4.087794,
+    "n_matched": 3024,
+    "ok": true
    },
    "raw": {
     "n_matched": 3024,
@@ -1918,13 +2072,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r9.est.UKF.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/ukf/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/ukf/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.040423541079431,
-    "stored_ate_a_cruise": 5.040424,
-    "n_matched": 17821,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -1933,6 +2081,12 @@
     "heading_est_deg": 0.6286584903260357,
     "heading_truth_deg": -0.034777403627729096,
     "heading_diff_deg": 0.6634358939537648
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.040423541079431,
+    "stored_ate_a_cruise": 5.040424,
+    "n_matched": 17821,
+    "ok": true
    },
    "raw": {
     "n_matched": 17821,
@@ -1963,13 +2117,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r9.est.FGO.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/fgo/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r9/fgo/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.2518802914633165,
-    "stored_ate_a_cruise": 4.25188,
-    "n_matched": 9073,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 3.162277660168379e-06,
     "o_gt": 0.0,
@@ -1978,6 +2126,12 @@
     "heading_est_deg": 0.20090958613716225,
     "heading_truth_deg": -0.034777403627729096,
     "heading_diff_deg": 0.23568698976489136
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.2518802914633165,
+    "stored_ate_a_cruise": 4.25188,
+    "n_matched": 9073,
+    "ok": true
    },
    "raw": {
     "n_matched": 9073,
@@ -2008,13 +2162,7 @@
    "source": "dsn_extra_evo.json:trials.dsn_tex_r10.est.EKF3.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/dsn_tex_r10/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/dsn_tex_r10/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.108855497476481,
-    "stored_ate_a_cruise": 4.108855,
-    "n_matched": 3029,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2023,6 +2171,12 @@
     "heading_est_deg": 0.25451676000339557,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.25451676000339557
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.108855497476481,
+    "stored_ate_a_cruise": 4.108855,
+    "n_matched": 3029,
+    "ok": true
    },
    "raw": {
     "n_matched": 3029,
@@ -2057,13 +2211,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.092895132665332,
-    "stored_ate_a_cruise": 4.092895,
-    "n_matched": 3022,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2072,6 +2220,12 @@
     "heading_est_deg": 0.27896467589951107,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.27896467589951107
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.092895132665332,
+    "stored_ate_a_cruise": 4.092895,
+    "n_matched": 3022,
+    "ok": true
    },
    "raw": {
     "n_matched": 3022,
@@ -2106,13 +2260,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.959532435247173,
-    "stored_ate_a_cruise": 4.959532,
-    "n_matched": 18542,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2121,6 +2269,12 @@
     "heading_est_deg": 0.6653384913794678,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": 0.7012398713379658
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.959532435247173,
+    "stored_ate_a_cruise": 4.959532,
+    "n_matched": 18542,
+    "ok": true
    },
    "raw": {
     "n_matched": 18542,
@@ -2155,13 +2309,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.467123315374504,
-    "stored_ate_a_cruise": 4.467123,
-    "n_matched": 9068,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2170,6 +2318,12 @@
     "heading_est_deg": 0.33625595620205584,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": 0.37215733616055385
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.467123315374504,
+    "stored_ate_a_cruise": 4.467123,
+    "n_matched": 9068,
+    "ok": true
    },
    "raw": {
     "n_matched": 9068,
@@ -2200,13 +2354,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.1273931154357178,
-    "stored_ate_a_cruise": 0.127393,
-    "n_matched": 18542,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2215,6 +2363,12 @@
     "heading_est_deg": -0.13123172793426505,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": -0.095330347975767
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.1273931154357178,
+    "stored_ate_a_cruise": 0.127393,
+    "n_matched": 18542,
+    "ok": true
    },
    "raw": {
     "n_matched": 18542,
@@ -2245,13 +2399,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.056584619220909585,
-    "stored_ate_a_cruise": 0.056585,
-    "n_matched": 9068,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2260,6 +2408,12 @@
     "heading_est_deg": -0.2811724737740567,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": -0.24527109381555864
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.056584619220909585,
+    "stored_ate_a_cruise": 0.056585,
+    "n_matched": 9068,
+    "ok": true
    },
    "raw": {
     "n_matched": 9068,
@@ -2290,13 +2444,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.12763084989358064,
-    "stored_ate_a_cruise": 0.127631,
-    "n_matched": 18542,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2305,6 +2453,12 @@
     "heading_est_deg": -0.13229106543292804,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": -0.09638968547443
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.12763084989358064,
+    "stored_ate_a_cruise": 0.127631,
+    "n_matched": 18542,
+    "ok": true
    },
    "raw": {
     "n_matched": 18542,
@@ -2335,13 +2489,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.05693230556635015,
-    "stored_ate_a_cruise": 0.056932,
-    "n_matched": 9068,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2350,6 +2498,12 @@
     "heading_est_deg": -0.2855466000704235,
     "heading_truth_deg": -0.035901379958498035,
     "heading_diff_deg": -0.24964522011192544
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.05693230556635015,
+    "stored_ate_a_cruise": 0.056932,
+    "n_matched": 9068,
+    "ok": true
    },
    "raw": {
     "n_matched": 9068,
@@ -2384,13 +2538,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.48151472237409,
-    "stored_ate_a_cruise": 41.481515,
-    "n_matched": 3019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2399,6 +2547,12 @@
     "heading_est_deg": 0.0626095193716394,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.0626095193716394
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.48151472237409,
+    "stored_ate_a_cruise": 41.481515,
+    "n_matched": 3019,
+    "ok": true
    },
    "raw": {
     "n_matched": 3019,
@@ -2433,13 +2587,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 136.66631908351079,
-    "stored_ate_a_cruise": 136.666319,
-    "n_matched": 18533,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2449,7 +2597,24 @@
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -2.028577986265328
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 136.66631908351079,
+    "stored_ate_a_cruise": 136.666319,
+    "n_matched": 18533,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18533,
+    "rms_3d_m": 187.37655357114846,
+    "end_3d_m": 1103.590495364055,
+    "rms_h_m": 187.37655079998484,
+    "end_h_m": 1103.5904928965886,
+    "window_s": [
+     30.379,
+     332.297
+    ],
+    "t_last_matched_s": 332.297
+   }
   },
   {
    "dataset": "fwdc",
@@ -2471,13 +2636,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 568.1447576343438,
-    "stored_ate_a_cruise": 568.144758,
-    "n_matched": 9058,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2486,6 +2645,12 @@
     "heading_est_deg": -1.5546262675006803,
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -1.5306717189878354
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 568.1447576343438,
+    "stored_ate_a_cruise": 568.144758,
+    "n_matched": 9058,
+    "ok": true
    },
    "raw": {
     "n_matched": 9058,
@@ -2516,13 +2681,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 105.3430801354357,
-    "stored_ate_a_cruise": 105.34308,
-    "n_matched": 18533,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2531,6 +2690,12 @@
     "heading_est_deg": -0.7431022723436901,
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -0.719147723830845
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 105.3430801354357,
+    "stored_ate_a_cruise": 105.34308,
+    "n_matched": 18533,
+    "ok": true
    },
    "raw": {
     "n_matched": 18533,
@@ -2561,13 +2726,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 640.7631625107502,
-    "stored_ate_a_cruise": 640.763163,
-    "n_matched": 9058,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2576,6 +2735,12 @@
     "heading_est_deg": -0.9247871558019256,
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -0.9008326072890805
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 640.7631625107502,
+    "stored_ate_a_cruise": 640.763163,
+    "n_matched": 9058,
+    "ok": true
    },
    "raw": {
     "n_matched": 9058,
@@ -2606,13 +2771,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 114.40097140806832,
-    "stored_ate_a_cruise": 114.400971,
-    "n_matched": 18533,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2621,6 +2780,12 @@
     "heading_est_deg": -0.7960581621773999,
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -0.7721036136645548
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 114.40097140806832,
+    "stored_ate_a_cruise": 114.400971,
+    "n_matched": 18533,
+    "ok": true
    },
    "raw": {
     "n_matched": 18533,
@@ -2651,13 +2816,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 623.8664615372306,
-    "stored_ate_a_cruise": 623.866462,
-    "n_matched": 9058,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2666,6 +2825,12 @@
     "heading_est_deg": -0.9145498775042833,
     "heading_truth_deg": -0.023954548512845012,
     "heading_diff_deg": -0.8905953289914382
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 623.8664615372306,
+    "stored_ate_a_cruise": 623.866462,
+    "n_matched": 9058,
+    "ok": true
    },
    "raw": {
     "n_matched": 9058,
@@ -2700,13 +2865,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.573453273805804,
-    "stored_ate_a_cruise": 43.573453,
-    "n_matched": 3021,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2716,7 +2875,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -170.39025207776643
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.573453273805804,
+    "stored_ate_a_cruise": 43.573453,
+    "n_matched": 3021,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3021,
+    "rms_3d_m": 87.21912991185833,
+    "end_3d_m": 150.99378158457367,
+    "rms_h_m": 87.21908268775796,
+    "end_h_m": 150.993757,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.74837
+   }
   },
   {
    "dataset": "fwdc",
@@ -2738,13 +2914,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11726.247459813922,
-    "stored_ate_a_cruise": 11726.24746,
-    "n_matched": 18537,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2754,7 +2924,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 11.289688833936284
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11726.247459813922,
+    "stored_ate_a_cruise": 11726.24746,
+    "n_matched": 18537,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18537,
+    "rms_3d_m": 14411.29544343613,
+    "end_3d_m": 40031.714997395175,
+    "rms_h_m": 14411.295443373536,
+    "end_h_m": 40031.71499739428,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.751
+   }
   },
   {
    "dataset": "fwdc",
@@ -2776,13 +2963,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6648.403890072939,
-    "stored_ate_a_cruise": 6648.40389,
-    "n_matched": 9060,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2792,7 +2973,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 11.218092145284595
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6648.403890072939,
+    "stored_ate_a_cruise": 6648.40389,
+    "n_matched": 9060,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9060,
+    "rms_3d_m": 8973.76689700592,
+    "end_3d_m": 24077.648136026535,
+    "rms_h_m": 8973.766896760502,
+    "end_h_m": 24077.648135986597,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.735
+   }
   },
   {
    "dataset": "fwdc",
@@ -2810,13 +3008,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 7238.634558551371,
-    "stored_ate_a_cruise": 7238.634559,
-    "n_matched": 18537,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2826,7 +3018,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 8.438309140877063
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 7238.634558551371,
+    "stored_ate_a_cruise": 7238.634559,
+    "n_matched": 18537,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18537,
+    "rms_3d_m": 8113.821519801301,
+    "end_3d_m": 26184.464540312147,
+    "rms_h_m": 8113.821519708971,
+    "end_h_m": 26184.464540308658,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.751
+   }
   },
   {
    "dataset": "fwdc",
@@ -2844,13 +3053,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 7089.612795651779,
-    "stored_ate_a_cruise": 7089.612796,
-    "n_matched": 9060,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2860,7 +3063,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 8.489001921414564
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 7089.612795651779,
+    "stored_ate_a_cruise": 7089.612796,
+    "n_matched": 9060,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9060,
+    "rms_3d_m": 9651.36395377558,
+    "end_3d_m": 24570.41488285695,
+    "rms_h_m": 9651.363953731843,
+    "end_h_m": 24570.414882856945,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.735
+   }
   },
   {
    "dataset": "fwdc",
@@ -2878,13 +3098,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4505.448280535361,
-    "stored_ate_a_cruise": 4505.448281,
-    "n_matched": 18537,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2894,7 +3108,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 8.555235570652037
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 4505.448280535361,
+    "stored_ate_a_cruise": 4505.448281,
+    "n_matched": 18537,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18537,
+    "rms_3d_m": 4897.109698156965,
+    "end_3d_m": 18060.83108884414,
+    "rms_h_m": 4897.109698022811,
+    "end_h_m": 18060.831088829844,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.751
+   }
   },
   {
    "dataset": "fwdc",
@@ -2912,13 +3143,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6521.941593980346,
-    "stored_ate_a_cruise": 6521.941594,
-    "n_matched": 9060,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -2928,7 +3153,24 @@
     "heading_truth_deg": -0.042312614609395865,
     "heading_diff_deg": 8.459031595382713
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6521.941593980346,
+    "stored_ate_a_cruise": 6521.941594,
+    "n_matched": 9060,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9060,
+    "rms_3d_m": 8882.370529483842,
+    "end_3d_m": 22595.37305001729,
+    "rms_h_m": 8882.370529446245,
+    "end_h_m": 22595.37305001714,
+    "window_s": [
+     29.735,
+     331.751
+    ],
+    "t_last_matched_s": 331.735
+   }
   },
   {
    "dataset": "fwdc",
@@ -2950,13 +3192,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3.603274219824072,
-    "stored_ate_a_cruise": 3.603274,
-    "n_matched": 3019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -2965,6 +3201,12 @@
     "heading_est_deg": -0.37213763647229064,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -0.37213763647229064
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 3.603274219824072,
+    "stored_ate_a_cruise": 3.603274,
+    "n_matched": 3019,
+    "ok": true
    },
    "raw": {
     "n_matched": 3019,
@@ -2999,13 +3241,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 1.7834106618855505,
-    "stored_ate_a_cruise": 1.783411,
-    "n_matched": 18465,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3015,7 +3251,24 @@
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -2.9961277951892935
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 1.7834106618855505,
+    "stored_ate_a_cruise": 1.783411,
+    "n_matched": 18465,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18465,
+    "rms_3d_m": 5.749921392244257,
+    "end_3d_m": 4.970549429239675,
+    "rms_h_m": 5.749888823978381,
+    "end_h_m": 4.970549162303282,
+    "window_s": [
+     30.197,
+     332.165
+    ],
+    "t_last_matched_s": 332.165
+   }
   },
   {
    "dataset": "fwdc",
@@ -3037,13 +3290,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 2.262088852300645,
-    "stored_ate_a_cruise": 2.262089,
-    "n_matched": 9059,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3053,7 +3300,24 @@
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -2.447927093090543
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 2.262088852300645,
+    "stored_ate_a_cruise": 2.262089,
+    "n_matched": 9059,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9059,
+    "rms_3d_m": 2.88376336928636,
+    "end_3d_m": 8.439672595193075,
+    "rms_h_m": 2.883682967842319,
+    "end_h_m": 8.43967247973741,
+    "window_s": [
+     30.197,
+     332.165
+    ],
+    "t_last_matched_s": 332.147
+   }
   },
   {
    "dataset": "fwdc",
@@ -3071,13 +3335,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.13422525619402276,
-    "stored_ate_a_cruise": 0.134225,
-    "n_matched": 18465,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3086,6 +3344,12 @@
     "heading_est_deg": -1.0714558955371347,
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -1.0143905256682422
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.13422525619402276,
+    "stored_ate_a_cruise": 0.134225,
+    "n_matched": 18465,
+    "ok": true
    },
    "raw": {
     "n_matched": 18465,
@@ -3116,13 +3380,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.06250582295831482,
-    "stored_ate_a_cruise": 0.062506,
-    "n_matched": 9059,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3131,6 +3389,12 @@
     "heading_est_deg": -1.2123885711572544,
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -1.1553232012883619
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.06250582295831482,
+    "stored_ate_a_cruise": 0.062506,
+    "n_matched": 9059,
+    "ok": true
    },
    "raw": {
     "n_matched": 9059,
@@ -3161,13 +3425,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.1344432070311413,
-    "stored_ate_a_cruise": 0.134443,
-    "n_matched": 18465,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3176,6 +3434,12 @@
     "heading_est_deg": -1.0753044913719543,
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -1.0182391215030617
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.1344432070311413,
+    "stored_ate_a_cruise": 0.134443,
+    "n_matched": 18465,
+    "ok": true
    },
    "raw": {
     "n_matched": 18465,
@@ -3206,13 +3470,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.06287944302632344,
-    "stored_ate_a_cruise": 0.062879,
-    "n_matched": 9059,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3221,6 +3479,12 @@
     "heading_est_deg": -1.2164380665887746,
     "heading_truth_deg": -0.05706536986889253,
     "heading_diff_deg": -1.159372696719882
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.06287944302632344,
+    "stored_ate_a_cruise": 0.062879,
+    "n_matched": 9059,
+    "ok": true
    },
    "raw": {
     "n_matched": 9059,
@@ -3255,13 +3519,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.48945726163234,
-    "stored_ate_a_cruise": 41.489457,
-    "n_matched": 3021,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3270,6 +3528,12 @@
     "heading_est_deg": 0.21440560182659915,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.21440560182659915
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.48945726163234,
+    "stored_ate_a_cruise": 41.489457,
+    "n_matched": 3021,
+    "ok": true
    },
    "raw": {
     "n_matched": 3021,
@@ -3304,13 +3568,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 148.36755546108174,
-    "stored_ate_a_cruise": 148.367555,
-    "n_matched": 18578,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3320,7 +3578,24 @@
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": 2.340262617933068
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 148.36755546108174,
+    "stored_ate_a_cruise": 148.367555,
+    "n_matched": 18578,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18578,
+    "rms_3d_m": 215.80688890825715,
+    "end_3d_m": 1102.1349945590614,
+    "rms_h_m": 215.8068866109536,
+    "end_h_m": 1102.1349922868005,
+    "window_s": [
+     30.082,
+     332.164
+    ],
+    "t_last_matched_s": 332.164
+   }
   },
   {
    "dataset": "fwdc",
@@ -3342,13 +3617,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 559.5252090862358,
-    "stored_ate_a_cruise": 559.525209,
-    "n_matched": 9063,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3357,6 +3626,12 @@
     "heading_est_deg": 0.40450528297785565,
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": 0.45794042551386654
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 559.5252090862358,
+    "stored_ate_a_cruise": 559.525209,
+    "n_matched": 9063,
+    "ok": true
    },
    "raw": {
     "n_matched": 9063,
@@ -3387,13 +3662,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 115.51192566641446,
-    "stored_ate_a_cruise": 115.511926,
-    "n_matched": 18578,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3402,6 +3671,12 @@
     "heading_est_deg": -0.15460508281629154,
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": -0.10116994028028063
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 115.51192566641446,
+    "stored_ate_a_cruise": 115.511926,
+    "n_matched": 18578,
+    "ok": true
    },
    "raw": {
     "n_matched": 18578,
@@ -3432,13 +3707,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 576.1107918709591,
-    "stored_ate_a_cruise": 576.110792,
-    "n_matched": 9063,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3447,6 +3716,12 @@
     "heading_est_deg": -0.19970906352700377,
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": -0.14627392099099285
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 576.1107918709591,
+    "stored_ate_a_cruise": 576.110792,
+    "n_matched": 9063,
+    "ok": true
    },
    "raw": {
     "n_matched": 9063,
@@ -3477,13 +3752,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 114.52952956373672,
-    "stored_ate_a_cruise": 114.52953,
-    "n_matched": 18578,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3492,6 +3761,12 @@
     "heading_est_deg": -0.1550568090133298,
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": -0.10162166647731889
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 114.52952956373672,
+    "stored_ate_a_cruise": 114.52953,
+    "n_matched": 18578,
+    "ok": true
    },
    "raw": {
     "n_matched": 18578,
@@ -3522,13 +3797,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 631.8087935891884,
-    "stored_ate_a_cruise": 631.808794,
-    "n_matched": 9063,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3537,6 +3806,12 @@
     "heading_est_deg": -0.20118049950705802,
     "heading_truth_deg": -0.05343514253601091,
     "heading_diff_deg": -0.14774535697104713
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 631.8087935891884,
+    "stored_ate_a_cruise": 631.808794,
+    "n_matched": 9063,
+    "ok": true
    },
    "raw": {
     "n_matched": 9063,
@@ -3571,13 +3846,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.542969558093326,
-    "stored_ate_a_cruise": 43.54297,
-    "n_matched": 3019,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3587,7 +3856,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -159.59313112400883
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.542969558093326,
+    "stored_ate_a_cruise": 43.54297,
+    "n_matched": 3019,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3019,
+    "rms_3d_m": 87.16355667835627,
+    "end_3d_m": 150.91585841661228,
+    "rms_h_m": 87.16350206113368,
+    "end_h_m": 150.915834,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.11437
+   }
   },
   {
    "dataset": "fwdc",
@@ -3609,13 +3895,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11333.46504822849,
-    "stored_ate_a_cruise": 11333.465048,
-    "n_matched": 18512,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3625,7 +3905,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 16.970224386466327
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11333.46504822849,
+    "stored_ate_a_cruise": 11333.465048,
+    "n_matched": 18512,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18512,
+    "rms_3d_m": 14041.919002601708,
+    "end_3d_m": 39170.26529819053,
+    "rms_h_m": 14041.919002536677,
+    "end_h_m": 39170.265298190505,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.165
+   }
   },
   {
    "dataset": "fwdc",
@@ -3647,13 +3944,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 12135.14682332037,
-    "stored_ate_a_cruise": 12135.146823,
-    "n_matched": 9056,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3663,7 +3954,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 16.58815433101536
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 12135.14682332037,
+    "stored_ate_a_cruise": 12135.146823,
+    "n_matched": 9056,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9056,
+    "rms_3d_m": 16279.69135764459,
+    "end_3d_m": 40851.205286942306,
+    "rms_h_m": 16279.691357474494,
+    "end_h_m": 40851.20528694222,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.147
+   }
   },
   {
    "dataset": "fwdc",
@@ -3681,13 +3989,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3150.31295659012,
-    "stored_ate_a_cruise": 3150.312957,
-    "n_matched": 18512,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3697,7 +3999,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 16.494869824867926
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 3150.31295659012,
+    "stored_ate_a_cruise": 3150.312957,
+    "n_matched": 18512,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18512,
+    "rms_3d_m": 3927.02987452067,
+    "end_3d_m": 9484.600402497099,
+    "rms_h_m": 3927.0298743323838,
+    "end_h_m": 9484.600402452275,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.165
+   }
   },
   {
    "dataset": "fwdc",
@@ -3715,13 +4034,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6681.940490926523,
-    "stored_ate_a_cruise": 6681.940491,
-    "n_matched": 9056,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3731,7 +4044,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 19.35578872617746
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6681.940490926523,
+    "stored_ate_a_cruise": 6681.940491,
+    "n_matched": 9056,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9056,
+    "rms_3d_m": 9044.692045769223,
+    "end_3d_m": 23270.74413835759,
+    "rms_h_m": 9044.692045718739,
+    "end_h_m": 23270.744138357477,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.147
+   }
   },
   {
    "dataset": "fwdc",
@@ -3749,13 +4079,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 3919.280697585428,
-    "stored_ate_a_cruise": 3919.280698,
-    "n_matched": 18512,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3765,7 +4089,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 16.538771929374796
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 3919.280697585428,
+    "stored_ate_a_cruise": 3919.280698,
+    "n_matched": 18512,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18512,
+    "rms_3d_m": 4323.009801403041,
+    "end_3d_m": 15984.121945072766,
+    "rms_h_m": 4323.009801230328,
+    "end_h_m": 15984.121945055738,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.165
+   }
   },
   {
    "dataset": "fwdc",
@@ -3783,13 +4124,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6403.373988561514,
-    "stored_ate_a_cruise": 6403.373989,
-    "n_matched": 9056,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3799,7 +4134,24 @@
     "heading_truth_deg": -0.016145268153380715,
     "heading_diff_deg": 19.326898023571047
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6403.373988561514,
+    "stored_ate_a_cruise": 6403.373989,
+    "n_matched": 9056,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9056,
+    "rms_3d_m": 8699.341089655847,
+    "end_3d_m": 22238.79863448856,
+    "rms_h_m": 8699.34108961106,
+    "end_h_m": 22238.79863448856,
+    "window_s": [
+     30.296,
+     332.165
+    ],
+    "t_last_matched_s": 332.147
+   }
   },
   {
    "dataset": "fwdc",
@@ -3821,13 +4173,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.075574428866761,
-    "stored_ate_a_cruise": 4.075574,
-    "n_matched": 3021,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -3836,6 +4182,12 @@
     "heading_est_deg": 0.2237421290160218,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.2237421290160218
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.075574428866761,
+    "stored_ate_a_cruise": 4.075574,
+    "n_matched": 3021,
+    "ok": true
    },
    "raw": {
     "n_matched": 3021,
@@ -3870,13 +4222,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.963793859466668,
-    "stored_ate_a_cruise": 4.963794,
-    "n_matched": 18501,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -3885,6 +4231,12 @@
     "heading_est_deg": 0.6743932108502773,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.7162310202454072
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.963793859466668,
+    "stored_ate_a_cruise": 4.963794,
+    "n_matched": 18501,
+    "ok": true
    },
    "raw": {
     "n_matched": 18501,
@@ -3919,13 +4271,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.544272848346065,
-    "stored_ate_a_cruise": 4.544273,
-    "n_matched": 9065,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -3934,6 +4280,12 @@
     "heading_est_deg": 0.42431336035517087,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.46615116975030085
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.544272848346065,
+    "stored_ate_a_cruise": 4.544273,
+    "n_matched": 9065,
+    "ok": true
    },
    "raw": {
     "n_matched": 9065,
@@ -3964,13 +4316,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.13745830538038334,
-    "stored_ate_a_cruise": 0.137458,
-    "n_matched": 18501,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -3979,6 +4325,12 @@
     "heading_est_deg": 0.1686046388336944,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.21044244822882435
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.13745830538038334,
+    "stored_ate_a_cruise": 0.137458,
+    "n_matched": 18501,
+    "ok": true
    },
    "raw": {
     "n_matched": 18501,
@@ -4009,13 +4361,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.0632937818457457,
-    "stored_ate_a_cruise": 0.063294,
-    "n_matched": 9065,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4024,6 +4370,12 @@
     "heading_est_deg": 0.10377737969508462,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.1456151890902146
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.0632937818457457,
+    "stored_ate_a_cruise": 0.063294,
+    "n_matched": 9065,
+    "ok": true
    },
    "raw": {
     "n_matched": 9065,
@@ -4054,13 +4406,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.13760087084718048,
-    "stored_ate_a_cruise": 0.137601,
-    "n_matched": 18501,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -4069,6 +4415,12 @@
     "heading_est_deg": 0.17682369022897054,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.2186614996241005
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.13760087084718048,
+    "stored_ate_a_cruise": 0.137601,
+    "n_matched": 18501,
+    "ok": true
    },
    "raw": {
     "n_matched": 18501,
@@ -4099,13 +4451,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.0637526337440363,
-    "stored_ate_a_cruise": 0.063753,
-    "n_matched": 9065,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4114,6 +4460,12 @@
     "heading_est_deg": 0.1111974380267116,
     "heading_truth_deg": -0.04183780939512997,
     "heading_diff_deg": 0.15303524742184157
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 0.0637526337440363,
+    "stored_ate_a_cruise": 0.063753,
+    "n_matched": 9065,
+    "ok": true
    },
    "raw": {
     "n_matched": 9065,
@@ -4148,13 +4500,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.465825445462166,
-    "stored_ate_a_cruise": 41.465825,
-    "n_matched": 3022,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4163,6 +4509,12 @@
     "heading_est_deg": 0.0008973338626738975,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.0008973338626738975
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.465825445462166,
+    "stored_ate_a_cruise": 41.465825,
+    "n_matched": 3022,
+    "ok": true
    },
    "raw": {
     "n_matched": 3022,
@@ -4197,13 +4549,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 141.08416205268637,
-    "stored_ate_a_cruise": 141.084162,
-    "n_matched": 18650,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4212,6 +4558,12 @@
     "heading_est_deg": -0.9405345766481874,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.9254925619174824
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 141.08416205268637,
+    "stored_ate_a_cruise": 141.084162,
+    "n_matched": 18650,
+    "ok": true
    },
    "raw": {
     "n_matched": 18650,
@@ -4246,13 +4598,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 633.1609766543907,
-    "stored_ate_a_cruise": 633.160977,
-    "n_matched": 9066,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4261,6 +4607,12 @@
     "heading_est_deg": -0.698363920417356,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.683321905686651
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 633.1609766543907,
+    "stored_ate_a_cruise": 633.160977,
+    "n_matched": 9066,
+    "ok": true
    },
    "raw": {
     "n_matched": 9066,
@@ -4291,13 +4643,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 128.24049691230718,
-    "stored_ate_a_cruise": 128.240497,
-    "n_matched": 18650,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4306,6 +4652,12 @@
     "heading_est_deg": -0.14264192909469803,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.12759991436399298
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 128.24049691230718,
+    "stored_ate_a_cruise": 128.240497,
+    "n_matched": 18650,
+    "ok": true
    },
    "raw": {
     "n_matched": 18650,
@@ -4336,13 +4688,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 602.1545547660204,
-    "stored_ate_a_cruise": 602.154555,
-    "n_matched": 9066,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4351,6 +4697,12 @@
     "heading_est_deg": -0.14081131793182008,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.12576930320111504
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 602.1545547660204,
+    "stored_ate_a_cruise": 602.154555,
+    "n_matched": 9066,
+    "ok": true
    },
    "raw": {
     "n_matched": 9066,
@@ -4381,13 +4733,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 129.15552486297327,
-    "stored_ate_a_cruise": 129.155525,
-    "n_matched": 18650,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4396,6 +4742,12 @@
     "heading_est_deg": -0.14943266533097127,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.13439065060026623
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 129.15552486297327,
+    "stored_ate_a_cruise": 129.155525,
+    "n_matched": 18650,
+    "ok": true
    },
    "raw": {
     "n_matched": 18650,
@@ -4426,13 +4778,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 628.2518148700166,
-    "stored_ate_a_cruise": 628.251815,
-    "n_matched": 9066,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4441,6 +4787,12 @@
     "heading_est_deg": -0.14716788980622994,
     "heading_truth_deg": -0.015042014730705038,
     "heading_diff_deg": -0.1321258750755249
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 628.2518148700166,
+    "stored_ate_a_cruise": 628.251815,
+    "n_matched": 9066,
+    "ok": true
    },
    "raw": {
     "n_matched": 9066,
@@ -4475,13 +4827,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.61236013968698,
-    "stored_ate_a_cruise": 43.61236,
-    "n_matched": 3023,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4491,7 +4837,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -169.4904713513796
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.61236013968698,
+    "stored_ate_a_cruise": 43.61236,
+    "n_matched": 3023,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3023,
+    "rms_3d_m": 87.26695549663162,
+    "end_3d_m": 151.09397494794484,
+    "rms_h_m": 87.26690379464102,
+    "end_h_m": 151.093945,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.04537
+   }
   },
   {
    "dataset": "fwdc",
@@ -4513,13 +4876,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8506.10399145308,
-    "stored_ate_a_cruise": 8506.103991,
-    "n_matched": 19297,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4529,7 +4886,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 10.490796696679853
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8506.10399145308,
+    "stored_ate_a_cruise": 8506.103991,
+    "n_matched": 19297,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 19297,
+    "rms_3d_m": 9844.18866229177,
+    "end_3d_m": 31808.968296963023,
+    "rms_h_m": 9844.18866219085,
+    "end_h_m": 31808.968296944928,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.063
+   }
   },
   {
    "dataset": "fwdc",
@@ -4551,13 +4925,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 9311.514020666746,
-    "stored_ate_a_cruise": 9311.514021,
-    "n_matched": 9067,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -4567,7 +4935,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 10.385710882695427
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 9311.514020666746,
+    "stored_ate_a_cruise": 9311.514021,
+    "n_matched": 9067,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9067,
+    "rms_3d_m": 12357.023140661522,
+    "end_3d_m": 30939.30874265573,
+    "rms_h_m": 12357.023140294355,
+    "end_h_m": 30939.308742650886,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.032
+   }
   },
   {
    "dataset": "fwdc",
@@ -4585,13 +4970,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8573.7282635111,
-    "stored_ate_a_cruise": 8573.728264,
-    "n_matched": 19297,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4601,7 +4980,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 7.461567600279406
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8573.7282635111,
+    "stored_ate_a_cruise": 8573.728264,
+    "n_matched": 19297,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 19297,
+    "rms_3d_m": 10908.417184433087,
+    "end_3d_m": 28231.243450416703,
+    "rms_h_m": 10908.417184368582,
+    "end_h_m": 28231.24345040853,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.063
+   }
   },
   {
    "dataset": "fwdc",
@@ -4619,13 +5015,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6346.31868216411,
-    "stored_ate_a_cruise": 6346.318682,
-    "n_matched": 9067,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -4635,7 +5025,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 7.64733647240745
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6346.31868216411,
+    "stored_ate_a_cruise": 6346.318682,
+    "n_matched": 9067,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9067,
+    "rms_3d_m": 8611.974382414191,
+    "end_3d_m": 22147.398447399726,
+    "rms_h_m": 8611.974382363242,
+    "end_h_m": 22147.398447399668,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.032
+   }
   },
   {
    "dataset": "fwdc",
@@ -4653,13 +5060,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.UKF_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_heading_yawrate/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 9613.868556625077,
-    "stored_ate_a_cruise": 9613.868557,
-    "n_matched": 19297,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4669,7 +5070,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 7.5017112349261295
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 9613.868556625077,
+    "stored_ate_a_cruise": 9613.868557,
+    "n_matched": 19297,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 19297,
+    "rms_3d_m": 12022.156874228263,
+    "end_3d_m": 31336.045975201174,
+    "rms_h_m": 12022.1568741635,
+    "end_h_m": 31336.04597519809,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.063
+   }
   },
   {
    "dataset": "fwdc",
@@ -4687,13 +5105,7 @@
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.FGO_heading_yawrate.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading_yawrate/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading_yawrate/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6284.985148068561,
-    "stored_ate_a_cruise": 6284.985148,
-    "n_matched": 9067,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -4703,7 +5115,24 @@
     "heading_truth_deg": -0.05259045134336765,
     "heading_diff_deg": 7.592980192401957
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6284.985148068561,
+    "stored_ate_a_cruise": 6284.985148,
+    "n_matched": 9067,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9067,
+    "rms_3d_m": 8536.973264820519,
+    "end_3d_m": 21905.418269723614,
+    "rms_h_m": 8536.973264772672,
+    "end_h_m": 21905.418269723596,
+    "window_s": [
+     29.834,
+     332.063
+    ],
+    "t_last_matched_s": 332.032
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -4725,13 +5154,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.075240506757458,
-    "stored_ate_a_cruise": 4.075241,
-    "n_matched": 3022,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4740,6 +5163,12 @@
     "heading_est_deg": 0.22630713255791088,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.22630713255791088
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.075240506757458,
+    "stored_ate_a_cruise": 4.075241,
+    "n_matched": 3022,
+    "ok": true
    },
    "raw": {
     "n_matched": 3022,
@@ -4774,13 +5203,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 5.0232022753431655,
-    "stored_ate_a_cruise": 5.023202,
-    "n_matched": 20143,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4789,6 +5212,12 @@
     "heading_est_deg": 0.7241457546135838,
     "heading_truth_deg": -0.05280683851938845,
     "heading_diff_deg": 0.7769525931329723
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 5.0232022753431655,
+    "stored_ate_a_cruise": 5.023202,
+    "n_matched": 20143,
+    "ok": true
    },
    "raw": {
     "n_matched": 20143,
@@ -4823,13 +5252,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.5363235758304965,
-    "stored_ate_a_cruise": 4.536324,
-    "n_matched": 9066,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4838,6 +5261,12 @@
     "heading_est_deg": 0.391640043600987,
     "heading_truth_deg": -0.05280683851938845,
     "heading_diff_deg": 0.4444468821203754
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.5363235758304965,
+    "stored_ate_a_cruise": 4.536324,
+    "n_matched": 9066,
+    "ok": true
    },
    "raw": {
     "n_matched": 9066,
@@ -4868,13 +5297,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.18764184675538942,
-    "stored_ate_a_cruise": 0.187642,
-    "n_matched": 20143,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4884,7 +5307,24 @@
     "heading_truth_deg": -0.05280683851938845,
     "heading_diff_deg": -2.660277472888203
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.18764184675538942,
+    "stored_ate_a_cruise": 0.187642,
+    "n_matched": 20143,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 20143,
+    "rms_3d_m": 5.10161080936486,
+    "end_3d_m": 8.158802094890461,
+    "rms_h_m": 5.101575386520655,
+    "end_h_m": 8.15880196210234,
+    "window_s": [
+     29.93,
+     332.138
+    ],
+    "t_last_matched_s": 332.122
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -4902,13 +5342,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.14958617985336478,
-    "stored_ate_a_cruise": 0.149586,
-    "n_matched": 9066,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -4918,7 +5352,24 @@
     "heading_truth_deg": -0.05280683851938845,
     "heading_diff_deg": -2.7062203130383087
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.14958617985336478,
+    "stored_ate_a_cruise": 0.149586,
+    "n_matched": 9066,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9066,
+    "rms_3d_m": 5.249262445675703,
+    "end_3d_m": 8.381202579663256,
+    "rms_h_m": 5.249222932704995,
+    "end_h_m": 8.381202476972502,
+    "window_s": [
+     29.93,
+     332.138
+    ],
+    "t_last_matched_s": 332.113
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -4940,13 +5391,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.47876509121374,
-    "stored_ate_a_cruise": 41.478765,
-    "n_matched": 3018,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -4955,6 +5400,12 @@
     "heading_est_deg": 0.25304623898815204,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.25304623898815204
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.47876509121374,
+    "stored_ate_a_cruise": 41.478765,
+    "n_matched": 3018,
+    "ok": true
    },
    "raw": {
     "n_matched": 3018,
@@ -4989,13 +5440,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 138.24322386249457,
-    "stored_ate_a_cruise": 138.243224,
-    "n_matched": 20117,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5004,6 +5449,12 @@
     "heading_est_deg": 0.753824561521546,
     "heading_truth_deg": -0.0461809335954737,
     "heading_diff_deg": 0.8000054951170197
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 138.24322386249457,
+    "stored_ate_a_cruise": 138.243224,
+    "n_matched": 20117,
+    "ok": true
    },
    "raw": {
     "n_matched": 20117,
@@ -5038,13 +5489,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 547.3858819589952,
-    "stored_ate_a_cruise": 547.385882,
-    "n_matched": 9054,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5053,6 +5498,12 @@
     "heading_est_deg": 0.39768556423683377,
     "heading_truth_deg": -0.0461809335954737,
     "heading_diff_deg": 0.44386649783230747
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 547.3858819589952,
+    "stored_ate_a_cruise": 547.385882,
+    "n_matched": 9054,
+    "ok": true
    },
    "raw": {
     "n_matched": 9054,
@@ -5083,13 +5534,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 119.2180509396937,
-    "stored_ate_a_cruise": 119.218051,
-    "n_matched": 20117,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5099,7 +5544,24 @@
     "heading_truth_deg": -0.0461809335954737,
     "heading_diff_deg": -2.763429917916984
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 119.2180509396937,
+    "stored_ate_a_cruise": 119.218051,
+    "n_matched": 20117,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 20117,
+    "rms_3d_m": 165.26331638530561,
+    "end_3d_m": 978.380498365736,
+    "rms_h_m": 165.2633137251792,
+    "end_h_m": 978.3804977452696,
+    "window_s": [
+     29.881,
+     331.685
+    ],
+    "t_last_matched_s": 331.685
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5117,13 +5579,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 639.824824199379,
-    "stored_ate_a_cruise": 639.824824,
-    "n_matched": 9054,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5133,7 +5589,24 @@
     "heading_truth_deg": -0.0461809335954737,
     "heading_diff_deg": -3.011154362463515
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 639.824824199379,
+    "stored_ate_a_cruise": 639.824824,
+    "n_matched": 9054,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9054,
+    "rms_3d_m": 767.3952066474345,
+    "end_3d_m": 3054.296412476891,
+    "rms_h_m": 767.3952061862403,
+    "end_h_m": 3054.2964124762216,
+    "window_s": [
+     29.881,
+     331.685
+    ],
+    "t_last_matched_s": 331.668
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5155,13 +5628,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.45278056323039,
-    "stored_ate_a_cruise": 43.452781,
-    "n_matched": 3012,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5171,7 +5638,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -171.7912532708248
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.45278056323039,
+    "stored_ate_a_cruise": 43.452781,
+    "n_matched": 3012,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3012,
+    "rms_3d_m": 86.97954799142747,
+    "end_3d_m": 150.58189036596784,
+    "rms_h_m": 86.97951556085106,
+    "end_h_m": 150.581875,
+    "window_s": [
+     29.789,
+     330.977
+    ],
+    "t_last_matched_s": 330.95437
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5193,13 +5677,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8782.611808517366,
-    "stored_ate_a_cruise": 8782.611809,
-    "n_matched": 20075,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -5209,7 +5687,24 @@
     "heading_truth_deg": -0.04510475794634016,
     "heading_diff_deg": 10.08259771726444
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8782.611808517366,
+    "stored_ate_a_cruise": 8782.611809,
+    "n_matched": 20075,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 20075,
+    "rms_3d_m": 10136.292453679434,
+    "end_3d_m": 30403.568822624362,
+    "rms_h_m": 10136.292453591255,
+    "end_h_m": 30403.56882262164,
+    "window_s": [
+     29.789,
+     330.977
+    ],
+    "t_last_matched_s": 330.959
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5231,13 +5726,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 6523.827737648136,
-    "stored_ate_a_cruise": 6523.827738,
-    "n_matched": 9035,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5247,7 +5736,24 @@
     "heading_truth_deg": -0.04510475794634016,
     "heading_diff_deg": 10.001381338855051
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 6523.827737648136,
+    "stored_ate_a_cruise": 6523.827738,
+    "n_matched": 9035,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9035,
+    "rms_3d_m": 8823.112462507901,
+    "end_3d_m": 22731.811443248025,
+    "rms_h_m": 8823.112462463074,
+    "end_h_m": 22731.811443248014,
+    "window_s": [
+     29.789,
+     330.977
+    ],
+    "t_last_matched_s": 330.946
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5265,13 +5771,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r1.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 10560.750343525939,
-    "stored_ate_a_cruise": 10560.750344,
-    "n_matched": 20075,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -5281,7 +5781,24 @@
     "heading_truth_deg": -0.04510475794634016,
     "heading_diff_deg": 11.188440234657206
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 10560.750343525939,
+    "stored_ate_a_cruise": 10560.750344,
+    "n_matched": 20075,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 20075,
+    "rms_3d_m": 13127.282404323167,
+    "end_3d_m": 34295.338613779626,
+    "rms_h_m": 13127.28240425949,
+    "end_h_m": 34295.3386137796,
+    "window_s": [
+     29.789,
+     330.977
+    ],
+    "t_last_matched_s": 330.959
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5299,13 +5816,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r1.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 7611.489715772617,
-    "stored_ate_a_cruise": 7611.489716,
-    "n_matched": 9035,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5315,7 +5826,24 @@
     "heading_truth_deg": -0.04510475794634016,
     "heading_diff_deg": 11.48386519719358
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 7611.489715772617,
+    "stored_ate_a_cruise": 7611.489716,
+    "n_matched": 9035,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9035,
+    "rms_3d_m": 10177.809566068969,
+    "end_3d_m": 26648.84638248396,
+    "rms_h_m": 10177.809565963598,
+    "end_h_m": 26648.846382483876,
+    "window_s": [
+     29.789,
+     330.977
+    ],
+    "t_last_matched_s": 330.946
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5337,13 +5865,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.056744305682429,
-    "stored_ate_a_cruise": 4.056744,
-    "n_matched": 3013,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5352,6 +5874,12 @@
     "heading_est_deg": 0.2885650758509453,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.2885650758509453
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.056744305682429,
+    "stored_ate_a_cruise": 4.056744,
+    "n_matched": 3013,
+    "ok": true
    },
    "raw": {
     "n_matched": 3013,
@@ -5386,13 +5914,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11.194393253270462,
-    "stored_ate_a_cruise": 11.194393,
-    "n_matched": 19453,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5402,7 +5924,24 @@
     "heading_truth_deg": -0.03762033570535826,
     "heading_diff_deg": 5.4373426288128295
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11.194393253270462,
+    "stored_ate_a_cruise": 11.194393,
+    "n_matched": 19453,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 19453,
+    "rms_3d_m": 55.93653943766949,
+    "end_3d_m": 124.99627380348147,
+    "rms_h_m": 55.93653583879808,
+    "end_h_m": 124.99627380182763,
+    "window_s": [
+     30.049,
+     331.306
+    ],
+    "t_last_matched_s": 331.306
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5424,13 +5963,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.51762014957043,
-    "stored_ate_a_cruise": 4.51762,
-    "n_matched": 9038,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -5439,6 +5972,12 @@
     "heading_est_deg": 0.5202414161206924,
     "heading_truth_deg": -0.03762033570535826,
     "heading_diff_deg": 0.5578617518260507
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.51762014957043,
+    "stored_ate_a_cruise": 4.51762,
+    "n_matched": 9038,
+    "ok": true
    },
    "raw": {
     "n_matched": 9038,
@@ -5469,13 +6008,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.15147932363800315,
-    "stored_ate_a_cruise": 0.151479,
-    "n_matched": 19453,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5485,7 +6018,24 @@
     "heading_truth_deg": -0.03762033570535826,
     "heading_diff_deg": -2.4374739983374174
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.15147932363800315,
+    "stored_ate_a_cruise": 0.151479,
+    "n_matched": 19453,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 19453,
+    "rms_3d_m": 4.765323903832549,
+    "end_3d_m": 8.73206039045276,
+    "rms_h_m": 4.765281624382818,
+    "end_h_m": 8.732060360105741,
+    "window_s": [
+     30.049,
+     331.306
+    ],
+    "t_last_matched_s": 331.306
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5503,13 +6053,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.0942371825067968,
-    "stored_ate_a_cruise": 0.094237,
-    "n_matched": 9038,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1e-06,
     "o_gt": 0.0,
@@ -5519,7 +6063,24 @@
     "heading_truth_deg": -0.03762033570535826,
     "heading_diff_deg": -2.4977172408974972
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.0942371825067968,
+    "stored_ate_a_cruise": 0.094237,
+    "n_matched": 9038,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9038,
+    "rms_3d_m": 4.940814617049641,
+    "end_3d_m": 8.909982980500523,
+    "rms_h_m": 4.940777055901852,
+    "end_h_m": 8.909982962268165,
+    "window_s": [
+     30.049,
+     331.306
+    ],
+    "t_last_matched_s": 331.289
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5541,13 +6102,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.440277852868576,
-    "stored_ate_a_cruise": 41.440278,
-    "n_matched": 3016,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5556,6 +6111,12 @@
     "heading_est_deg": -0.20603161421089813,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -0.20603161421089813
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.440277852868576,
+    "stored_ate_a_cruise": 41.440278,
+    "n_matched": 3016,
+    "ok": true
    },
    "raw": {
     "n_matched": 3016,
@@ -5590,13 +6151,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 129.5042364269349,
-    "stored_ate_a_cruise": 129.504236,
-    "n_matched": 18657,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5606,7 +6161,24 @@
     "heading_truth_deg": -0.034735760633793744,
     "heading_diff_deg": -2.8198023194852904
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 129.5042364269349,
+    "stored_ate_a_cruise": 129.504236,
+    "n_matched": 18657,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18657,
+    "rms_3d_m": 174.35336649079878,
+    "end_3d_m": 1061.6595340503854,
+    "rms_h_m": 174.35336319568515,
+    "end_h_m": 1061.6595314529002,
+    "window_s": [
+     29.951,
+     331.586
+    ],
+    "t_last_matched_s": 331.586
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5628,13 +6200,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 650.6204551079986,
-    "stored_ate_a_cruise": 650.620455,
-    "n_matched": 9049,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5644,7 +6210,24 @@
     "heading_truth_deg": -0.034735760633793744,
     "heading_diff_deg": -2.36226218383097
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 650.6204551079986,
+    "stored_ate_a_cruise": 650.620455,
+    "n_matched": 9049,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9049,
+    "rms_3d_m": 775.7885809302219,
+    "end_3d_m": 3249.09800382738,
+    "rms_h_m": 775.7885801670124,
+    "end_h_m": 3249.098003824694,
+    "window_s": [
+     29.951,
+     331.586
+    ],
+    "t_last_matched_s": 331.559
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5662,13 +6245,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 122.72520271377488,
-    "stored_ate_a_cruise": 122.725203,
-    "n_matched": 18657,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5678,7 +6255,24 @@
     "heading_truth_deg": -0.034735760633793744,
     "heading_diff_deg": 2.3074235840654596
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 122.72520271377488,
+    "stored_ate_a_cruise": 122.725203,
+    "n_matched": 18657,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18657,
+    "rms_3d_m": 173.9314886021202,
+    "end_3d_m": 995.6529676761505,
+    "rms_h_m": 173.93148567082514,
+    "end_h_m": 995.6529665881559,
+    "window_s": [
+     29.951,
+     331.586
+    ],
+    "t_last_matched_s": 331.586
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5696,13 +6290,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 716.9760670847255,
-    "stored_ate_a_cruise": 716.976067,
-    "n_matched": 9049,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5712,7 +6300,24 @@
     "heading_truth_deg": -0.034735760633793744,
     "heading_diff_deg": 2.2270608767269264
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 716.9760670847255,
+    "stored_ate_a_cruise": 716.976067,
+    "n_matched": 9049,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9049,
+    "rms_3d_m": 853.3236430382967,
+    "end_3d_m": 3325.7870519990124,
+    "rms_h_m": 853.3236425564014,
+    "end_h_m": 3325.787051996217,
+    "window_s": [
+     29.951,
+     331.586
+    ],
+    "t_last_matched_s": 331.559
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5734,13 +6339,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.510756687256894,
-    "stored_ate_a_cruise": 43.510757,
-    "n_matched": 3016,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5750,7 +6349,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -170.62011142411185
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.510756687256894,
+    "stored_ate_a_cruise": 43.510757,
+    "n_matched": 3016,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3016,
+    "rms_3d_m": 87.0909172419148,
+    "end_3d_m": 150.78227431825997,
+    "rms_h_m": 87.09087252074362,
+    "end_h_m": 150.78225,
+    "window_s": [
+     30.098,
+     331.669
+    ],
+    "t_last_matched_s": 331.64237
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5772,13 +6388,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 9294.26282420345,
-    "stored_ate_a_cruise": 9294.262824,
-    "n_matched": 18530,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5788,7 +6398,24 @@
     "heading_truth_deg": -0.010602032931107758,
     "heading_diff_deg": 10.926497582691697
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 9294.26282420345,
+    "stored_ate_a_cruise": 9294.262824,
+    "n_matched": 18530,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18530,
+    "rms_3d_m": 11253.967167643254,
+    "end_3d_m": 30272.094549255922,
+    "rms_h_m": 11253.967167572826,
+    "end_h_m": 30272.094549252284,
+    "window_s": [
+     30.098,
+     331.669
+    ],
+    "t_last_matched_s": 331.669
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5810,13 +6437,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 10682.913525499729,
-    "stored_ate_a_cruise": 10682.913525,
-    "n_matched": 9047,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -5826,7 +6447,24 @@
     "heading_truth_deg": -0.010602032931107758,
     "heading_diff_deg": 10.806750479887087
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 10682.913525499729,
+    "stored_ate_a_cruise": 10682.913525,
+    "n_matched": 9047,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9047,
+    "rms_3d_m": 14064.567806126493,
+    "end_3d_m": 37974.01596373361,
+    "rms_h_m": 14064.567805905897,
+    "end_h_m": 37974.01596373328,
+    "window_s": [
+     30.098,
+     331.669
+    ],
+    "t_last_matched_s": 331.636
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5844,13 +6482,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r2.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 9390.255178862913,
-    "stored_ate_a_cruise": 9390.255179,
-    "n_matched": 18530,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5860,7 +6492,24 @@
     "heading_truth_deg": -0.010602032931107758,
     "heading_diff_deg": 8.263147422204609
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 9390.255178862913,
+    "stored_ate_a_cruise": 9390.255179,
+    "n_matched": 18530,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18530,
+    "rms_3d_m": 11789.073255246964,
+    "end_3d_m": 30065.854091512203,
+    "rms_h_m": 11789.073255182097,
+    "end_h_m": 30065.854091509664,
+    "window_s": [
+     30.098,
+     331.669
+    ],
+    "t_last_matched_s": 331.669
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5878,13 +6527,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r2.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 7495.171503599475,
-    "stored_ate_a_cruise": 7495.171504,
-    "n_matched": 9047,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -5894,7 +6537,24 @@
     "heading_truth_deg": -0.010602032931107758,
     "heading_diff_deg": 8.014033427314192
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 7495.171503599475,
+    "stored_ate_a_cruise": 7495.171504,
+    "n_matched": 9047,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9047,
+    "rms_3d_m": 10139.785777240111,
+    "end_3d_m": 25647.14785345644,
+    "rms_h_m": 10139.785777190149,
+    "end_h_m": 25647.14785345641,
+    "window_s": [
+     30.098,
+     331.669
+    ],
+    "t_last_matched_s": 331.636
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -5916,13 +6576,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.082145523092985,
-    "stored_ate_a_cruise": 4.082146,
-    "n_matched": 3017,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -5931,6 +6585,12 @@
     "heading_est_deg": 0.2936627128042923,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.2936627128042923
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.082145523092985,
+    "stored_ate_a_cruise": 4.082146,
+    "n_matched": 3017,
+    "ok": true
    },
    "raw": {
     "n_matched": 3017,
@@ -5965,13 +6625,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 10.818970708293707,
-    "stored_ate_a_cruise": 10.818971,
-    "n_matched": 18462,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -5981,7 +6635,24 @@
     "heading_truth_deg": -0.02329459087334262,
     "heading_diff_deg": 5.385882100143756
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 10.818970708293707,
+    "stored_ate_a_cruise": 10.818971,
+    "n_matched": 18462,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18462,
+    "rms_3d_m": 55.061899873697676,
+    "end_3d_m": 121.61238644723163,
+    "rms_h_m": 55.06189740728833,
+    "end_h_m": 121.61238644159387,
+    "window_s": [
+     29.999,
+     331.784
+    ],
+    "t_last_matched_s": 331.784
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6003,13 +6674,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 4.740214197553268,
-    "stored_ate_a_cruise": 4.740214,
-    "n_matched": 9054,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6018,6 +6683,12 @@
     "heading_est_deg": 0.741300374745277,
     "heading_truth_deg": -0.02329459087334262,
     "heading_diff_deg": 0.7645949656186196
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 4.740214197553268,
+    "stored_ate_a_cruise": 4.740214,
+    "n_matched": 9054,
+    "ok": true
    },
    "raw": {
     "n_matched": 9054,
@@ -6048,13 +6719,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.24950524088855106,
-    "stored_ate_a_cruise": 0.249505,
-    "n_matched": 18462,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6064,7 +6729,24 @@
     "heading_truth_deg": -0.02329459087334262,
     "heading_diff_deg": -3.5594585071895812
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.24950524088855106,
+    "stored_ate_a_cruise": 0.249505,
+    "n_matched": 18462,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18462,
+    "rms_3d_m": 4.8319161435669296,
+    "end_3d_m": 7.3969247962142335,
+    "rms_h_m": 4.831887806169199,
+    "end_h_m": 7.396924685638484,
+    "window_s": [
+     29.999,
+     331.784
+    ],
+    "t_last_matched_s": 331.784
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6082,13 +6764,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 0.22145108853631837,
-    "stored_ate_a_cruise": 0.221451,
-    "n_matched": 9054,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6098,7 +6774,24 @@
     "heading_truth_deg": -0.02329459087334262,
     "heading_diff_deg": -3.559894054437458
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 0.22145108853631837,
+    "stored_ate_a_cruise": 0.221451,
+    "n_matched": 9054,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9054,
+    "rms_3d_m": 4.928514669205237,
+    "end_3d_m": 7.552204163883415,
+    "rms_h_m": 4.928482166208716,
+    "end_h_m": 7.552204137187567,
+    "window_s": [
+     29.999,
+     331.784
+    ],
+    "t_last_matched_s": 331.776
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6120,13 +6813,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 41.44070825932865,
-    "stored_ate_a_cruise": 41.440708,
-    "n_matched": 3014,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -6135,6 +6822,12 @@
     "heading_est_deg": 0.2758798879655076,
     "heading_truth_deg": 0.0,
     "heading_diff_deg": 0.2758798879655076
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 41.44070825932865,
+    "stored_ate_a_cruise": 41.440708,
+    "n_matched": 3014,
+    "ok": true
    },
    "raw": {
     "n_matched": 3014,
@@ -6169,13 +6862,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 134.86336297240203,
-    "stored_ate_a_cruise": 134.863363,
-    "n_matched": 18498,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6184,6 +6871,12 @@
     "heading_est_deg": 0.6937619301205968,
     "heading_truth_deg": -0.045608814903043714,
     "heading_diff_deg": 0.7393707450236405
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 134.86336297240203,
+    "stored_ate_a_cruise": 134.863363,
+    "n_matched": 18498,
+    "ok": true
    },
    "raw": {
     "n_matched": 18498,
@@ -6218,13 +6911,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 682.1791886465339,
-    "stored_ate_a_cruise": 682.179189,
-    "n_matched": 9045,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": true,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -6233,6 +6920,12 @@
     "heading_est_deg": 0.290266537465839,
     "heading_truth_deg": -0.045608814903043714,
     "heading_diff_deg": 0.3358753523688827
+   },
+   "gate": {
+    "recomputed_ate_a_cruise": 682.1791886465339,
+    "stored_ate_a_cruise": 682.179189,
+    "n_matched": 9045,
+    "ok": true
    },
    "raw": {
     "n_matched": 9045,
@@ -6263,13 +6956,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 119.47158296599908,
-    "stored_ate_a_cruise": 119.471583,
-    "n_matched": 18498,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6279,7 +6966,24 @@
     "heading_truth_deg": -0.045608814903043714,
     "heading_diff_deg": -2.5829117338148775
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 119.47158296599908,
+    "stored_ate_a_cruise": 119.471583,
+    "n_matched": 18498,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18498,
+    "rms_3d_m": 162.67189994472835,
+    "end_3d_m": 749.4358718868264,
+    "rms_h_m": 162.67189711899425,
+    "end_h_m": 749.4358708554472,
+    "window_s": [
+     29.768,
+     331.256
+    ],
+    "t_last_matched_s": 331.256
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6297,13 +7001,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 556.610788399274,
-    "stored_ate_a_cruise": 556.610788,
-    "n_matched": 9045,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -6313,7 +7011,24 @@
     "heading_truth_deg": -0.045608814903043714,
     "heading_diff_deg": -2.6519767071775275
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 556.610788399274,
+    "stored_ate_a_cruise": 556.610788,
+    "n_matched": 9045,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9045,
+    "rms_3d_m": 681.5855057564119,
+    "end_3d_m": 2616.526824848339,
+    "rms_h_m": 681.5855053529311,
+    "end_h_m": 2616.5268248348075,
+    "window_s": [
+     29.768,
+     331.256
+    ],
+    "t_last_matched_s": 331.239
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6335,13 +7050,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ekf3/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 43.540102731648155,
-    "stored_ate_a_cruise": 43.540103,
-    "n_matched": 3018,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 0.0,
     "o_gt": 0.0,
@@ -6351,7 +7060,24 @@
     "heading_truth_deg": 0.0,
     "heading_diff_deg": -151.22988588925676
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 43.540102731648155,
+    "stored_ate_a_cruise": 43.540103,
+    "n_matched": 3018,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 3018,
+    "rms_3d_m": 87.1681826651652,
+    "end_3d_m": 150.89359993981827,
+    "rms_h_m": 87.16813649974243,
+    "end_h_m": 150.89357,
+    "window_s": [
+     30.247,
+     332.081
+    ],
+    "t_last_matched_s": 332.04137
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6373,13 +7099,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11422.73714503735,
-    "stored_ate_a_cruise": 11422.737145,
-    "n_matched": 18570,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6389,7 +7109,24 @@
     "heading_truth_deg": -0.02820400924115623,
     "heading_diff_deg": 14.187845170885723
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11422.73714503735,
+    "stored_ate_a_cruise": 11422.737145,
+    "n_matched": 18570,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18570,
+    "rms_3d_m": 14207.602096616965,
+    "end_3d_m": 39361.993707915615,
+    "rms_h_m": 14207.602096552188,
+    "end_h_m": 39361.99370791545,
+    "window_s": [
+     30.247,
+     332.081
+    ],
+    "t_last_matched_s": 332.081
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6411,13 +7148,7 @@
    ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_baseline/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 11694.639016972018,
-    "stored_ate_a_cruise": 11694.639017,
-    "n_matched": 9055,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -6427,7 +7158,24 @@
     "heading_truth_deg": -0.02820400924115623,
     "heading_diff_deg": 14.039028690246635
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 11694.639016972018,
+    "stored_ate_a_cruise": 11694.639017,
+    "n_matched": 9055,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9055,
+    "rms_3d_m": 15456.559605664972,
+    "end_3d_m": 40641.398414007235,
+    "rms_h_m": 15456.559605504519,
+    "end_h_m": 40641.39841400551,
+    "window_s": [
+     30.247,
+     332.081
+    ],
+    "t_last_matched_s": 332.081
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6445,13 +7193,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r3.UKF_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_heading/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8502.84526020667,
-    "stored_ate_a_cruise": 8502.84526,
-    "n_matched": 18570,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 1.414213562373095e-06,
     "o_gt": 0.0,
@@ -6461,7 +7203,24 @@
     "heading_truth_deg": -0.02820400924115623,
     "heading_diff_deg": 15.351852554741608
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8502.84526020667,
+    "stored_ate_a_cruise": 8502.84526,
+    "n_matched": 18570,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 18570,
+    "rms_3d_m": 10363.991485743201,
+    "end_3d_m": 27829.363038024658,
+    "rms_h_m": 10363.991485671277,
+    "end_h_m": 27829.36303801538,
+    "window_s": [
+     30.247,
+     332.081
+    ],
+    "t_last_matched_s": 332.081
+   }
   },
   {
    "dataset": "fwdplainc",
@@ -6479,13 +7238,7 @@
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r3.FGO_heading.ate_a_cruise",
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_heading/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_heading/ground_truth.tum",
-   "gate": {
-    "recomputed_ate_a_cruise": 8328.734168370738,
-    "stored_ate_a_cruise": 8328.734168,
-    "n_matched": 9055,
-    "ok": true
-   },
-   "frame_check": {
+   "strict_frame_check_info": {
     "ok": false,
     "o_est": 2.2360679774997895e-06,
     "o_gt": 0.0,
@@ -6495,7 +7248,24 @@
     "heading_truth_deg": -0.02820400924115623,
     "heading_diff_deg": 15.375560185148851
    },
-   "stop": "frame check failed (see frame_check for the measured heading/origin)"
+   "gate": {
+    "recomputed_ate_a_cruise": 8328.734168370738,
+    "stored_ate_a_cruise": 8328.734168,
+    "n_matched": 9055,
+    "ok": true
+   },
+   "raw": {
+    "n_matched": 9055,
+    "rms_3d_m": 11292.547819526057,
+    "end_3d_m": 28399.394639762457,
+    "rms_h_m": 11292.547819456064,
+    "end_h_m": 28399.394639762457,
+    "window_s": [
+     30.247,
+     332.081
+    ],
+    "t_last_matched_s": 332.081
+   }
   }
  ]
 }
