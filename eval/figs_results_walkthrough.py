@@ -64,7 +64,7 @@ for m in re.finditer(r"^## Page (\d\d): (.+)$", IDX_SUM, re.M):
         mm = re.search(r"^- \*\*" + re.escape(lab) + r":\*\* (.+)$", blk, re.M)
         d[k] = mm.group(1).strip("`")
     SUMP[pid] = d
-assert len(SUMP) == 20, "expected 20 summary pages (12 + the 7 extension pages of 2026-10-25 + E6, page 20, 2026-11-02)"
+assert len(SUMP) == 21, "expected 21 summary pages (12 + the 7 extension pages of 2026-10-25 + E6, page 20, 2026-11-02 + E4 error vs compute, page 21, DESCRIPTIVE, D110)"
 SUM_SRC = open(os.path.join(HERE, "figs_thesis_summary.py")).read()
 # footer-rule rows of the summary PNGs (top + 0.012 of each page, from a scratch run of figs_thesis_summary.py at 441e97c)
 SUM_TOP = {"02": 0.2825, "03": 0.254, "10": 0.311, "11": 0.2825, "12": 0.311,
@@ -766,6 +766,11 @@ fpage("17", "E4_tradeoff", T4M, PX("E4_tradeoff"),
       "the window grows from 0.25 s to 5 s on the same 12 flights, windows not to scale. P-E4.1 and P-E4.2 PASS; H-E4.3 FAIL: the longer "
       "window lowered the live error on too few flights.",
       scope=["16", "17"], new_header=True)
+# 2026-11-02 (user: "a live error vs compute time plot", added after the fact-sheet merge; D110): the same stored values on one axis
+fpage("17e", "E4_err_compute", T4M, PX("E4_err_compute"),
+      "DESCRIPTIVE, not a registered measure: each flight's live error against its compute time per step, one point per window "
+      "(0.25 s to 5 s), joined in window order. Workstation timing in Python; no other estimator is drawn.",
+      scope=["16", "17"], new_header=True)
 begin(SUMP["18"]["title"])
 fpage("18", "E5_ukf_landmarks", SUMP["18"]["title"], PX("E5_ukf_landmarks"),
       "A UKF with landmark states (extension E5, not the UKF used elsewhere) on the 3 eight-tag flights, against the stored FGO results. "
@@ -799,7 +804,7 @@ REG_NOTE = snew("The wording of every experiment as registered, printed once, wo
                 "is in the reader summary, not in this walkthrough. Experiment 5S keeps its own page.")
 REG_NOTE["guard"] = guard(REG_NOTE["text"], ALLTITLES, "registered section note")
 figr = divider(REG_T, REG_NOTE); figr.savefig(os.path.join(OUTD, "wt_reg_section.png"), dpi=DPI)
-REG_ORDER = [p for p in sorted(SUMP) if p != "12"]
+REG_ORDER = [p for p in sorted(SUMP) if p not in ("12", "21")]   # 21: DESCRIPTIVE E4 page (D110), no registered wording to reprint
 A1_TAB = {e: next(c["computed"] for c in FLCHK["checks"] if c["fig"] == "1A_unaligned_paths" and c["label"].startswith(f"{e} registered cruise ATE"))
           for e in ("EKF3", "UKF", "FGO")}
 
@@ -884,6 +889,8 @@ for p in PAGES:
         if m_:
             ONCE[m_.groups()] = ONCE.get(m_.groups(), 0) + 1
 for pid in SUMP:
+    if pid == "21":                             # DESCRIPTIVE E4 page (D110): no registered wording; its walkthrough page 17e has its own caption
+        continue
     for f in ("metric", "rule", "result"):
         if ONCE.get((pid, f), 0) != 1:
             FAIL.append(f"summary page {pid} {f}: printed {ONCE.get((pid, f), 0)} times (exactly once required)")

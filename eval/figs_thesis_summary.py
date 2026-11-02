@@ -1254,6 +1254,60 @@ fig.text(PX[0] + (PX[3] + PW - PX[0]) / 2, _b - 0.045, T("FGO window of recent m
          ha="center", va="top", fontsize=13)
 finish(fig, meta)
 
+# ------------------------------------------------------------------- E4, live error against compute time (2026-11-02, D110)
+# User request 2026-11-02 ("a live error vs compute time plot"), scoped to E4 only and DESCRIPTIVE (no new verdict): the same stored
+# values as pages 16 and 17 on one axis, x = each flight's median step time after the anchor at each window (E4_verdicts.json
+# P-E4.1), y = the same flight's live RMSE at that window (the cap-2 score files read for page 17). Page id 21, printed after 17.
+fig, meta = new_page("21", "E4_error_vs_compute", "Extension E4: live error against compute time",
+                     "Whether paying for a longer FGO window in compute time buys a lower live position error, on the same 12 "
+                     "flights (DESCRIPTIVE, not a registered measure).")
+tagdisp()
+disp("windows swept (s)", "0.25 / 0.5 / 1 / 2 / 5", [("PR", "0.25 < 0.5 < 1 < 2 < 5 s")])
+for w in WS:
+    num(f"W = {w} s: median step time after the anchor, lowest–highest over 12 flights (ms)", rng(MED4[w], 2), EXP4[w],
+        [("E4", x) for x in EXP4[w].split("–")])
+num("points pair one flight's step time with the same flight's live error at the same window",
+    str(all(MED4[w][j] == E4V["P-E4.1"]["per_flight"][t]["medians_after_anchor_ms"][i] for i, w in enumerate(WS) for j, t in enumerate(FLT))),
+    "True", [])
+_r21 = [E4V["P-E4.1"]["per_flight"][t]["medians_after_anchor_ms"][4] / E4V["P-E4.1"]["per_flight"][t]["medians_after_anchor_ms"][0] for t in FLT]
+VR21 = num("5 s / 0.25 s median step time per flight, lowest–highest of 12 (×, whole numbers)", f"{rd(min(_r21), 0)}–{rd(max(_r21), 0)}",
+           "19–20", [])
+_mx21 = max(abs(v) for t in FLT for w, v in DW[t].items() if w != "0.25")
+num("largest |change in live RMSE from the 0.25 s value| over every longer window and flight is under 0.01 m", str(_mx21 < 0.01), "True", [])
+disp("bound printed (m)", "0.01", [])
+num("H-E4.3 verdict and count", f"{H43['verdict']} {H43['count']}", "FAIL 7/12", [("E4", "**H-E4.3 FAIL 7/12** (band ≥ 10/12)")])
+disp("H-E4.3 band: at least 10 of 12 flights", "10 of 12", [("E4", "(band ≥ 10/12)")])
+disp("deployability budget (ms)", "33", [("PR", "the 33 ms deployability budget (M:707-721)")])
+ids((PRT, "| **H-E4.3** (directional accuracy, amendment 3) |"))
+counted("flights, points per flight", f"{len(FLT)}, {len(WK)}", "12, 5", "E4 runs T_A-D r1-3 × 5 windows")
+ax = AX(0.10, 0.70, 0.10)
+ax.set_xlim(0, 370); ax.set_ylim(0, 0.10)
+assert max(max(MED4[w]) for w in WS) < 320 and max(max(v.values()) for v in LW.values()) < 0.10
+for j, t in enumerate(FLT):
+    ax.plot([MED4[w][j] for w in WS], [LW[t][w] for w in WK], color=C["FGO"], lw=1.4, marker="s", ms=6, mfc=C["FGO"], mec=C["FGO"], zorder=3)
+ax.axvline(33, color=GREY, ls=(0, (6, 4)), lw=1.6, zorder=1)
+label_val(ax, 37, 0.043, "budget 33 ms (one camera frame)", ha="left", va="center", fontsize=12, color="#555555")
+for w, ha in zip(WS, ("right", "left", "center", "center", "center")):
+    ax.text(float(np.mean(MED4[w])) + {"right": 3, "left": -3}.get(ha, 0), 0.003, T(f"{w:g} s"), ha=ha, va="bottom", fontsize=11.5,
+            color=INK2, zorder=5, bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none") if w == 0.5 else None)
+for c in TCOND:
+    ys = [LW[t]["5"] for t in FLT if t[2] == c]
+    yl = {"A": min(ys) - 0.0045, "B": max(ys) + 0.0045}.get(c, float(np.mean(ys)))
+    ax.text(max(MED4[5]) + 10, yl, T(TAGS[c]), ha="left", va="center", fontsize=12.5, color=INK2, weight="bold")
+ax.set_xlabel("FGO median compute time per step (ms); labels at the bottom = the window")
+ax.set_ylabel("FGO live horizontal error, RMSE (m)")
+ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.2f}"))
+lg = AX(0.83, 0.15, 0.10); lg.axis("off")
+lg.text(0, 0.98, wrap("One line per flight (12), one point per window, joined in window order. Compute measured on a workstation in "
+                      "Python; no other estimator is drawn.", 20), fontsize=11, va="top", color=INK2, linespacing=1.25, transform=lg.transAxes)
+foot(fig, meta,
+     "each flight's live horizontal position error over the laps (root-mean-square, room frame, nothing fitted, metres) against its "
+     "median compute time per FGO step after the first tag fix (milliseconds, a diagnostic workstation measurement), at each window.",
+     "none: DESCRIPTIVE, not a registered measure. The registered E4 tests are on the two previous pages.",
+     f"From 0.25 s to 5 s the compute per step rose {VR21.replace('–', ' to ')} times on every flight, while no longer window changed "
+     f"a flight's live error by 0.01 m or more (H-E4.3 FAIL: lower at 5 s on 7 of 12 flights, 10 of 12 needed).")
+finish(fig, meta)
+
 # ------------------------------------------------------------------- E5, UKF with landmark states
 fig, meta = new_page("18", "E5_ukf_landmarks", "Extension E5: a UKF with landmark states",
                      "Whether a UKF with landmark states (extension E5), not the UKF used elsewhere, keeps its error small by "
@@ -1565,7 +1619,7 @@ figc.text(0.045, 0.88, "One page per experiment, in experiment order. The detail
 # rows: how-to, the main pages, the section page, the extension pages (re-laid out 2026-10-25 to fit them: step 0.0355, 12.5 pt)
 rows_c = [("", "How to read these pages", False)] + [(str(i + 1), p["title"], False) for i, p in enumerate(PAGES[:EXT_FIRST])] + \
          [("", SEC_TITLE, True)] + [(str(i + 1), p["title"], False) for i, p in enumerate(PAGES) if i >= EXT_FIRST]
-CSTEP = 0.0355
+CSTEP = 0.034   # 0.0355 until 2026-11-02; one more row (page 21, D110)
 for i, (n, t, hd) in enumerate(rows_c):
     yc = 0.80 - i * CSTEP - (0.008 if i > EXT_FIRST else 0)
     figc.text(0.07, yc, n, fontsize=12.5, va="top", ha="right", color=INK2)
@@ -1648,6 +1702,7 @@ HYP.update({
           "Values: E4_verdicts.json:P-E4.1.per_flight.<t>.medians_after_anchor_ms (DIAGNOSTIC workstation timing). Linear axes; the x axis is "
           "the window in s to scale. All-keyframe medians and p95 not shown",
     "17": "EXTENSION EXPERIMENT, PRE-REGISTERED (§3). H-E4.3 FAIL 7/12 (band ≥ 10/12). Plotted: the change from the 0.25 s value, scores/E4_<trial>_w<W>.json tracks 'FGO live' horiz_err_m.rmse minus the same at W = 0.25 s, cap-2 runs only (the _lm10 files are not read); the w0.25 and w5 values asserted equal to E4_verdicts.json:H-E4.3.per_flight.<t>.L0.25_m / L5_m on 12/12, and every plotted value at 4 dp equal to its e4_results.md table cell. One panel per tag count on one shared y-scale; windows evenly spaced, not to scale (D57); flights nudged sideways by ±0.12 of a window step (D58). panel-title ranges at 4 dp as e4_results.md prints them (D59); the Result's three bounds are from the stored jsons only (D60). LM cap check (D12): 0 of 10 runs flagged; the RMS readings are not printed. Gain fractions (DESCRIPTIVE) not shown. Replaces the L(5) − L(0.25) plot of D51 (2026-10-27)",
+    "21": "EXTENSION EXPERIMENT E4, DESCRIPTIVE page added 2026-11-02 (user request; D110): no registered measure and no new verdict. Plotted: x = E4_verdicts.json:P-E4.1.per_flight.<t>.medians_after_anchor_ms (DIAGNOSTIC workstation timing), y = the cap-2 score files read for page 17 (tracks 'FGO live' horiz_err_m.rmse), each point one flight at one window, joined in window order; linear axes from 0. H-E4.3 is quoted as on page 17. Printed after page 17.",
     "18": "EXTENSION EXPERIMENT, PRE-REGISTERED (§4). The UKF here is the UKF WITH LANDMARK STATES (E5), not the UKF used in the other "
           "experiments. H-E5.1 (primary), H-E5.2, H-E5.3, P-E5.4 PASS 3/3; S-E5.5, S-E5.6 (secondary, registered direction) PASS 3/3. S-E5.6's FGO "
           "side is the Experiment 3 iSAM2 hindsight (whole graph after 5 extra updates), not an LM batch, as e5_results.md states. Values: "

@@ -415,6 +415,66 @@ check("E4_tradeoff", "registered id printed: H-E4.3", "H-E4.3", "H-E4.3", "pre-r
 save("E4_tradeoff", fig, "docs/thesis/tier1/scores/E4_verdicts.json (P-E4.1 medians after the anchor, P-E4.2, H-E4.3); "
      "docs/thesis/tier1/scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse", tag="compute time measured; live error raw, nothing fitted")
 
+# ------------------------------------------------------------------- E4: live error against compute time, one axis (2026-11-02)
+# User request 2026-11-02 ("a live error vs compute time plot"; scoped by the coordinator to E4 only, DESCRIPTIVE, no new verdict,
+# decision D110). Same stored values as E4_tradeoff above: x = each flight's median step time after the anchor at each window
+# (E4_verdicts.json P-E4.1), y = the same flight's live RMSE at that window (cap-2 score files). One line per flight, joined in window
+# order; one axis, both linear. No estimator other than the FGO is drawn: the compute times are workstation diagnostics of one build.
+TXT = []
+_DWALL = [LW[t][w] - LW[t]["0.25"] for t in FLT for w in WK[1:]]
+VMAXD = check("E4_err_compute", "largest |change in live RMSE from the 0.25 s value| over every longer window and flight, strictly under (m)",
+              str(max(abs(v) for v in _DWALL) < 0.01), "True", "score files (cap 2), as E4_tradeoff")
+check("E4_err_compute", "bound printed in the title (m)", "0.01", "0.01", "this script (asserted above)")
+for w in WS:
+    check("E4_err_compute", f"W = {w} s: median step time after the anchor, lowest–highest over 12 flights (ms)", rng(MED4[w], 2), EXP4[w],
+          "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms", [("E4", x) for x in EXP4[w].split("–")])
+check("E4_err_compute", "windows (s)", " / ".join(WK), "0.25 / 0.5 / 1 / 2 / 5", "pre-registration", [("PR", "0.25 < 0.5 < 1 < 2 < 5 s")])
+check("E4_err_compute", "deployability budget (ms)", BUD, "33", "pre-registration P-E4.2", [("PR", "the 33 ms deployability budget (M:707-721)")])
+check("E4_err_compute", "5 s / 0.25 s median step time per flight, lowest–highest of 12 (×, whole numbers)", VRAT, "19–20",
+      "as E4_tradeoff (json vs e4_results.md table)")
+check("E4_err_compute", "H-E4.3 verdict and count", VH43, "FAIL 7/12", "E4_verdicts.json", [("E4", "**H-E4.3 FAIL 7/12** (band ≥ 10/12)")])
+check("E4_err_compute", "H-E4.3 band printed: at least 10 of 12 flights", "10 of 12", "10 of 12", "e4_results.md",
+      [("E4", "**H-E4.3 FAIL 7/12** (band ≥ 10/12)")])
+check("E4_err_compute", "registered id printed: H-E4.3", "H-E4.3", "H-E4.3", "pre-registration", [("PR", "| **H-E4.3** (directional accuracy, amendment 3) |")])
+check("E4_err_compute", "flights drawn, points per flight", f"{len(FLT)}, {len(WK)}", "12, 5", "E4 runs T_A-D r1-3 × 5 windows")
+for c in TCOND:
+    check("E4_err_compute", f"condition {c}: number of tags", TAGS[c], TAGS[c], "Table 5.2", [("T8", TAGS[c])])
+# every plotted point pairs the SAME flight's step time and live error at the same window (index of FLT in the P-E4.1 per_flight order)
+check("E4_err_compute", "points pair one flight's step time with the same flight's live error at the same window",
+      str(all(MED4[w][j] == E4V["P-E4.1"]["per_flight"][t]["medians_after_anchor_ms"][i] for i, w in enumerate(WS) for j, t in enumerate(FLT))),
+      "True", "E4_verdicts.json")
+XL, YL = (0, 370), (0, 0.10)
+assert max(max(MED4[w]) for w in WS) < XL[1] - 50 and max(max(v.values()) for v in LW.values()) < YL[1]
+check("E4_err_compute", "axes: linear, from 0, upper limits (ms; m)", "0 to 370; 0 to 0.10", "0 to 370; 0 to 0.10", "this script (asserted)")
+
+fig, ax = plt.subplots(figsize=(FW, 5.7))
+ax.set_xlim(*XL); ax.set_ylim(*YL)
+for j, t in enumerate(FLT):
+    ax.plot([MED4[w][j] for w in WS], [LW[t][w] for w in WK], color=C["FGO"], lw=1.4, marker="s", ms=6, mfc=C["FGO"], mec=C["FGO"],
+            zorder=3, alpha=0.9)
+ax.axvline(33, color="#333333", lw=2.4, ls=(0, (6, 3)), zorder=2)
+ax.text(37, 0.043, T(f"budget {BUD} ms\n(one camera frame)"), ha="left", va="center", fontsize=11.5, color="#333333", weight="bold")
+for w, ha in zip(WS, ("right", "left", "center", "center", "center")):
+    x_ = float(np.mean(MED4[w])) + {"right": 3, "left": -3}.get(ha, 0)
+    ax.text(x_, 0.003, T(f"{w:g} s"), ha=ha, va="bottom", fontsize=11, color=INK2, zorder=5,
+            bbox=dict(boxstyle="square,pad=0.15", fc="white", ec="none") if w == 0.5 else None)  # only 0.5 s crosses the budget line
+ax.text(XL[1] - 2, 0.0005, T("window"), ha="right", va="bottom", fontsize=10.5, color=INK2, style="italic")
+for c in TCOND:
+    ys = [LW[t]["5"] for t in FLT if t[2] == c]
+    yl = {"A": min(ys) - 0.0045, "B": max(ys) + 0.0045}.get(c, float(np.mean(ys)))
+    ax.text(max(MED4[5]) + 10, yl, T(TAGS[c]), ha="left", va="center", fontsize=12, color=INK2, weight="bold")
+ax.text(60, 0.067, T(f"H-E4.3 {VH43.split()[0]}: lower at 5 s on {VH43.split()[1].replace('/', ' of ')} flights (10 of 12 needed)"),
+        fontsize=11, weight="bold", va="center")
+ax.set_xlabel("FGO median compute time per step (ms)")
+ax.set_ylabel("FGO live horizontal error, RMSE (m)")
+ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.2f}"))
+fig.subplots_adjust(left=0.08, right=0.985, top=0.80, bottom=0.13)
+title1(fig, f"Compute per step rose {VRAT.replace('–', ' to ')} times from 0.25 s to 5 s; no window moved a flight's live error by 0.01 m")
+corner(fig, "DESCRIPTIVE; compute time measured; live error raw, nothing fitted", "filled = live (during flight)")
+save("E4_err_compute", fig, "same inputs as E4_tradeoff: E4_verdicts.json (P-E4.1 medians after the anchor, H-E4.3); "
+     "scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse",
+     tag="DESCRIPTIVE; compute time measured; live error raw, nothing fitted")
+
 # ------------------------------------------------------------------- Experiment 2 (summary page 07; thesis F5 data)
 TXT = []
 TRK2 = ("EKF3 live", "UKF live", "FGO live", "RTS-UKF (hindsight)", "FGO hindsight (whole-flight batch)")

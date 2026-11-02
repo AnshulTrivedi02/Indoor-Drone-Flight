@@ -113,6 +113,46 @@
    "tag": "compute time measured; live error raw, nothing fitted",
    "key": false
   },
+  "E4_err_compute": {
+   "file": "docs/thesis/summary/extra/ex_E4_err_compute.png",
+   "inputs": "same inputs as E4_tradeoff: E4_verdicts.json (P-E4.1 medians after the anchor, H-E4.3); scores/E4_<trial>_w<W>.json (cap 2) tracks 'FGO live' horiz_err_m.rmse",
+   "numbers": [
+    "0.01",
+    "0.25",
+    "0.5",
+    "1",
+    "10",
+    "12",
+    "19",
+    "2",
+    "20",
+    "33",
+    "4",
+    "4.3",
+    "5",
+    "7",
+    "8"
+   ],
+   "text": [
+    "budget 33 ms\n(one camera frame)",
+    "0.25 s",
+    "0.5 s",
+    "1 s",
+    "2 s",
+    "5 s",
+    "window",
+    "8 tags",
+    "4 tags",
+    "2 tags",
+    "1 tag",
+    "H-E4.3 FAIL: lower at 5 s on 7 of 12 flights (10 of 12 needed)",
+    "Compute per step rose 19 to 20 times from 0.25 s to 5 s; no window moved a flight's live error by 0.01 m",
+    "DESCRIPTIVE; compute time measured; live error raw, nothing fitted",
+    "filled = live (during flight)"
+   ],
+   "tag": "DESCRIPTIVE; compute time measured; live error raw, nothing fitted",
+   "key": false
+  },
   "2_known_tags": {
    "file": "docs/thesis/summary/extra/ex_2_known_tags.png",
    "inputs": "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
@@ -953,6 +993,166 @@
    "computed": "H-E4.3",
    "expected": "H-E4.3",
    "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '| **H-E4.3** (directional accuracy, amendment 3) |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "largest |change in live RMSE from the 0.25 s value| over every longer window and flight, strictly under (m)",
+   "computed": "True",
+   "expected": "True",
+   "where": "score files (cap 2), as E4_tradeoff",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "bound printed in the title (m)",
+   "computed": "0.01",
+   "expected": "0.01",
+   "where": "this script (asserted above)",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "W = 0.25 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "14.35\u201315.13",
+   "expected": "14.35\u201315.13",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '14.35'; docs/thesis/tier1/e4_results.md shows '15.13'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "W = 0.5 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "26.86\u201328.22",
+   "expected": "26.86\u201328.22",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '26.86'; docs/thesis/tier1/e4_results.md shows '28.22'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "W = 1 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "50.47\u201352.74",
+   "expected": "50.47\u201352.74",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '50.47'; docs/thesis/tier1/e4_results.md shows '52.74'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "W = 2 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "100.05\u2013107.12",
+   "expected": "100.05\u2013107.12",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '100.05'; docs/thesis/tier1/e4_results.md shows '107.12'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "W = 5 s: median step time after the anchor, lowest\u2013highest over 12 flights (ms)",
+   "computed": "278.25\u2013303.36",
+   "expected": "278.25\u2013303.36",
+   "where": "E4_verdicts.json P-E4.1.per_flight.<t>.medians_after_anchor_ms; docs/thesis/tier1/e4_results.md shows '278.25'; docs/thesis/tier1/e4_results.md shows '303.36'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "windows (s)",
+   "computed": "0.25 / 0.5 / 1 / 2 / 5",
+   "expected": "0.25 / 0.5 / 1 / 2 / 5",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '0.25 < 0.5 < 1 < 2 < 5 s'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "deployability budget (ms)",
+   "computed": "33",
+   "expected": "33",
+   "where": "pre-registration P-E4.2; docs/thesis/tier1/preregistration.md shows 'the 33 ms deployability budget (M:707-721)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "5 s / 0.25 s median step time per flight, lowest\u2013highest of 12 (\u00d7, whole numbers)",
+   "computed": "19\u201320",
+   "expected": "19\u201320",
+   "where": "as E4_tradeoff (json vs e4_results.md table)",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "H-E4.3 verdict and count",
+   "computed": "FAIL 7/12",
+   "expected": "FAIL 7/12",
+   "where": "E4_verdicts.json; docs/thesis/tier1/e4_results.md shows '**H-E4.3 FAIL 7/12** (band \u2265 10/12)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "H-E4.3 band printed: at least 10 of 12 flights",
+   "computed": "10 of 12",
+   "expected": "10 of 12",
+   "where": "e4_results.md; docs/thesis/tier1/e4_results.md shows '**H-E4.3 FAIL 7/12** (band \u2265 10/12)'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "registered id printed: H-E4.3",
+   "computed": "H-E4.3",
+   "expected": "H-E4.3",
+   "where": "pre-registration; docs/thesis/tier1/preregistration.md shows '| **H-E4.3** (directional accuracy, amendment 3) |'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "flights drawn, points per flight",
+   "computed": "12, 5",
+   "expected": "12, 5",
+   "where": "E4 runs T_A-D r1-3 \u00d7 5 windows",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "condition A: number of tags",
+   "computed": "8 tags",
+   "expected": "8 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '8 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "condition B: number of tags",
+   "computed": "4 tags",
+   "expected": "4 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '4 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "condition C: number of tags",
+   "computed": "2 tags",
+   "expected": "2 tags",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '2 tags'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "condition D: number of tags",
+   "computed": "1 tag",
+   "expected": "1 tag",
+   "where": "Table 5.2; docs/thesis/tables/T8_hindsight_ratio.md shows '1 tag'",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "points pair one flight's step time with the same flight's live error at the same window",
+   "computed": "True",
+   "expected": "True",
+   "where": "E4_verdicts.json",
+   "ok": true
+  },
+  {
+   "fig": "E4_err_compute",
+   "label": "axes: linear, from 0, upper limits (ms; m)",
+   "computed": "0 to 370; 0 to 0.10",
+   "expected": "0 to 370; 0 to 0.10",
+   "where": "this script (asserted)",
    "ok": true
   },
   {
