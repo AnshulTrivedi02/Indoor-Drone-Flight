@@ -87,7 +87,7 @@ def touched_lines(relpath: str):
 # ---------------------------------------------------------------------------
 # File index (for resolving citations), built once by walking the repo tree.
 # ---------------------------------------------------------------------------
-SKIP_DIRS = {".git"}
+SKIP_DIRS = {".git", ".claude"}  # .claude holds agent worktrees: full repo copies that make every citation ambiguous
 
 
 def build_file_index(root: str) -> dict:
