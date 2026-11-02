@@ -1038,36 +1038,51 @@ E3M = [("T_A_r1", os.path.join(TD, "T_A_r1", "lc_fgo_lc_t245"), os.path.join(RES
         "5% wrong IDs, FGO as built\n(flight 3, seed 0):\nfinished, map shrunk"),
        ("T_A_r2", os.path.join(T1D, "T_A_r2", f"{B3_}_mis0.05_s1_robcauchy2.385"), os.path.join(T1S, "E3b_T_A_r2_0.05_s1.json"),
         "5% wrong IDs, robust FGO\n(flight 2, seed 1):\nthe one robust run that collapsed")]
-fig, axs = plt.subplots(1, 4, figsize=(FW, 4.9), sharex=True, sharey=True)
-for ax, (tr, rd_, sc, lab) in zip(axs, E3M):
-    G = ex_room(tr)["G"]; Gx, Gy = G[:, 1] - _t0["x"], G[:, 2] - _t0["y"]
-    H = np.loadtxt(f"{rd_}/hindsight.tum", ndmin=2); S = json.load(open(sc)); lb = S["lap_bounds_s"]
-    e_ = np.hypot(H[:, 1] - np.interp(H[:, 0], G[:, 0], Gx), H[:, 2] - np.interp(H[:, 0], G[:, 0], Gy)); wl = (H[:, 0] >= lb[0]) & (H[:, 0] <= lb[-1])
-    dataid("E3_maps", f"{os.path.basename(rd_)} ({tr}): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
-           rd(float(np.sqrt(np.mean(e_[wl] ** 2))), 6), rd(S["tracks"]["lc hindsight"]["rmse_m"], 6), f"{os.path.relpath(sc, ROOT) if sc.startswith(ROOT) else sc}")
-    wg = (G[:, 0] >= H[0, 0]) & (G[:, 0] <= H[-1, 0])
-    ax.plot(Gx[wg], Gy[wg], color=TRUTH, lw=1.6, zorder=2)
-    ax.plot(H[:, 1], H[:, 2], color=C["FGO"], lw=0.8, alpha=0.85, zorder=3)
-    for tid, (x_, y_) in TRUEMAP.items():
-        ax.plot(x_, y_, marker="s", ms=8, color=TRUTH, zorder=4)
-    lm = json.load(open(f"{rd_}/stats.json"))["landmarks_final"]
-    for v in lm.values():
-        ax.plot(v[0], v[1], marker="o", ms=7, mfc="white", mec=C["FGO"], mew=1.6, ls="", zorder=5)
-    check("E3_maps", f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8", "stats.json landmarks_final; room_tags_map.json")
-    ax.set_title(lab, loc="left", fontsize=9.3)
-    ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("from the start tag, x (m)")
-axs[0].set_ylabel("from the start tag, y (m)")
-axs[0].set_xlim(-1.5, 7.5); axs[0].set_ylim(-1.5, 7.5)
-fig.text(0.01, 0.035, "grey line and grey squares: the true track and the 8 true tags.   Orange line and open circles: the FGO's "
-         "whole-flight re-solve (hindsight) and its final tag map.", fontsize=9.5, color=INK2, ha="left", va="bottom")
-fig.subplots_adjust(left=0.06, right=0.99, top=0.74, bottom=0.17, wspace=0.12)
-title1(fig, "With wrong tag IDs the FGO's final tag map shrank or folded; with correct IDs it matched the room")
-corner(fig, "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)")
-check("E3_maps", "runs shown: one clean reference + the three of the 2026-10-29 appendix", "4", "4", "user TASK 4; docs/thesis/tier1/stage2e/diag_collapse/figs.py maps")
-save("E3_maps", fig, "", "bag /ground_truth/pose of T_A_r1..r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the four runs, "
-     "sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json, "
-     "E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json", ["1", "2", "3", "5", "8", "0"],
-     tag="DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)")
+# 2026-11-02 (user answer 4; decision D100): the main material shows ONE collapse example (T_A_r1 1% s0, FGO as built: the H-E3.1
+# primary condition and the run the E3 diagnosis studied, e3_results.md §7) beside the clean reference (kept: the user asked earlier
+# for a clean reference "so success is visible"); the other two maps move to the appendix figure E3_maps_app. Same drawing, same checks.
+E3TAG = "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)"
+
+
+def e3_maps(fid, runs, title, width):
+    fig, axs = plt.subplots(1, len(runs), figsize=(width, 4.9), sharex=True, sharey=True)
+    for ax, (tr, rd_, sc, lab) in zip(axs, runs):
+        G = ex_room(tr)["G"]; Gx, Gy = G[:, 1] - _t0["x"], G[:, 2] - _t0["y"]
+        H = np.loadtxt(f"{rd_}/hindsight.tum", ndmin=2); S = json.load(open(sc)); lb = S["lap_bounds_s"]
+        e_ = np.hypot(H[:, 1] - np.interp(H[:, 0], G[:, 0], Gx), H[:, 2] - np.interp(H[:, 0], G[:, 0], Gy)); wl = (H[:, 0] >= lb[0]) & (H[:, 0] <= lb[-1])
+        dataid(fid, f"{os.path.basename(rd_)} ({tr}): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
+               rd(float(np.sqrt(np.mean(e_[wl] ** 2))), 6), rd(S["tracks"]["lc hindsight"]["rmse_m"], 6), f"{os.path.relpath(sc, ROOT) if sc.startswith(ROOT) else sc}")
+        wg = (G[:, 0] >= H[0, 0]) & (G[:, 0] <= H[-1, 0])
+        ax.plot(Gx[wg], Gy[wg], color=TRUTH, lw=1.6, zorder=2)
+        ax.plot(H[:, 1], H[:, 2], color=C["FGO"], lw=0.8, alpha=0.85, zorder=3)
+        for tid, (x_, y_) in TRUEMAP.items():
+            ax.plot(x_, y_, marker="s", ms=8, color=TRUTH, zorder=4)
+        lm = json.load(open(f"{rd_}/stats.json"))["landmarks_final"]
+        for v in lm.values():
+            ax.plot(v[0], v[1], marker="o", ms=7, mfc="white", mec=C["FGO"], mew=1.6, ls="", zorder=5)
+        check(fid, f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8", "stats.json landmarks_final; room_tags_map.json")
+        ax.set_title(lab, loc="left", fontsize=9.3)
+        ax.set_aspect(1.0, adjustable="box"); ax.set_xlabel("from the start tag, x (m)")
+    axs[0].set_ylabel("from the start tag, y (m)")
+    axs[0].set_xlim(-1.5, 7.5); axs[0].set_ylim(-1.5, 7.5)
+    fig.text(0.01, 0.035, "grey line and grey squares: the true track and the 8 true tags.\nOrange line and open circles: the FGO's "
+             "whole-flight re-solve (hindsight) and its final tag map.", fontsize=9.5, color=INK2, ha="left", va="bottom")
+    fig.subplots_adjust(left=0.10, right=0.99, top=0.74, bottom=0.2, wspace=0.12)
+    title1(fig, title)
+    corner(fig, E3TAG)
+    return fig
+
+
+fig = e3_maps("E3_maps", E3M[:2], "With 1% wrong tag IDs the FGO's final tag map shrank; with correct IDs it matched the room", FW)
+check("E3_maps", "runs shown: the clean reference + one collapse example (T_A_r1 1% s0, FGO as built)", "2", "2", "user answer 4 (2026-11-02), D100")
+save("E3_maps", fig, "", "bag /ground_truth/pose of T_A_r1 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the two runs, "
+     "sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json", ["1", "3", "8", "0"],
+     tag=E3TAG)
+fig = e3_maps("E3_maps_app", E3M[2:], "Two more wrong-ID runs: the plain FGO's map shrank, the one collapsed robust run's map folded", FW)
+check("E3_maps_app", "runs shown: the other two maps of the 2026-10-31 walkthrough (moved to the appendix)", "2", "2", "user answer 4 (2026-11-02), D100")
+save("E3_maps_app", fig, "", "bag /ground_truth/pose of T_A_r2, T_A_r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the two runs, "
+     "sim/worlds/room_tags_map.json; scores: docs/thesis/tier1/scores/E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json", ["2", "3", "5", "8", "1", "0"],
+     tag=E3TAG)
 
 
 

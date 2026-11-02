@@ -1413,8 +1413,12 @@ check("Experiment 3 without loop closure, live overall (m)", rng([t["rmse_m"] fo
 check("Experiment 3 without loop closure, hindsight overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "hindsight")]], 3), "0.221–0.266", "numbers.md §16.3")
 check("Experiment 3 lap5/lap1, live with loop closure; live without", rng(lc5) + "; " + rng(nl5, 1), "0.16–0.43; 2.9–4.5", "numbers.md §16.3")
 ext_checks()
+# Title (user answer 3, 2026-11-02; decision D99): the no-loop-closure growth range is printed from the stored values (live lap 5 ÷ lap 1,
+# rng(nl5, 1), the same string as the check row above and numbers.md:574 "2.9–4.5"), worded "2.9 to 4.5 times" as the user asked.
+F7_GROW = rng(nl5, 1).replace("–", " to ")
+assert F7_GROW == "2.9 to 4.5", f"F7 title range changed: {F7_GROW}"
 save(fig, "F7", "F7_L_loop_closure",
-     "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps",
+     f"Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows {F7_GROW} times over five laps",
      "Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in "
      f"the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 {rng(lc5)}; "
      f"overall {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m live, {rng_si([t['rmse_m'] for t in LL[('lc', 'hindsight')]], 3)} m "

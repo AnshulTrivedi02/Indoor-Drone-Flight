@@ -14672,3 +14672,12 @@ current tree has no expected checker failures.
   - 0.4 m: `fwdplainc_tex_r3`, Δ −0.399 / −0.365 / −0.403 m against a 0.223 m band.
   - 1.3 m: `fwdc_tex_r2`, largest Δ −1.283 m at 2 s, within its 2.282 m band.
   - The coordinator's scope note is removed. `ablation/check_discussion.py` passes 18/18.
+
+### RULING (user, 2026-11-02): answers 1–5 applied to the walkthrough, the summary and Figure 5.2
+
+- **1.** The walkthrough is standalone (for the supervisor); the divider pages are kept.
+- **2.** The five additional no-heading 1C flights are shown in the walkthrough appendix only, labelled "additional flights, not part of the pre-registered set", as contact times (DESCRIPTIVE). No verdict changes: every registered 1C verdict uses only `HALF` (D97, D98).
+- **3. Figure 5.2 (F7) title changed** from "… grows 3–4× over five laps" to "… grows 2.9 to 4.5 times over five laps". Source: the live lap 5 ÷ lap 1 range without loop closure, `rng(nl5, 1)` over `eval/results/expL/T_A_r{1,2,3}_t245.json` (3.855 / 4.498 / 2.945, rounded once to 1 dp), equal to F7's check row and `numbers.md:574` ("2.9–4.5"). numbers.md is not edited (D99).
+- **4.** E3 tag maps: one collapse example (T_A_r1 1% s0) plus the clean reference in the main material; the other two maps in the appendix (D100).
+- **5.** E6 page added to `summary_plots.pdf` (page id 20) and `results_walkthrough.pdf`, with its Metric / Pass rule / Result in the registered section; limitations item 4 added verbatim (D101–D104). Handover: `docs/handovers/2026-11-02_answers_applied.md`.
+

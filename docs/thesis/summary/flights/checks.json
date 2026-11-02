@@ -213,13 +213,26 @@
   "E3_maps": {
    "file": "docs/thesis/summary/flights/fl_E3_maps.png",
    "title": "",
-   "inputs": "bag /ground_truth/pose of T_A_r1..r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the four runs, sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json, E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json",
+   "inputs": "bag /ground_truth/pose of T_A_r1 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the two runs, sim/worlds/room_tags_map.json; scores: eval/results/expL/T_A_r1_t245.json, docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json",
    "numbers": [
     "1",
+    "3",
+    "8",
+    "0"
+   ],
+   "tag": "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)",
+   "key": false
+  },
+  "E3_maps_app": {
+   "file": "docs/thesis/summary/flights/fl_E3_maps_app.png",
+   "title": "",
+   "inputs": "bag /ground_truth/pose of T_A_r2, T_A_r3 (tag 0 frame), hindsight.tum and stats.json landmarks_final of the two runs, sim/worlds/room_tags_map.json; scores: docs/thesis/tier1/scores/E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json",
+   "numbers": [
     "2",
     "3",
     "5",
     "8",
+    "1",
     "0"
    ],
    "tag": "DESCRIPTIVE, not a registered measure: hindsight track and final map (raw, from the start tag)",
@@ -873,6 +886,14 @@
   },
   {
    "fig": "E3_maps",
+   "label": "runs shown: the clean reference + one collapse example (T_A_r1 1% s0, FGO as built)",
+   "computed": "2",
+   "expected": "2",
+   "src": "user answer 4 (2026-11-02), D100",
+   "ok": true
+  },
+  {
+   "fig": "E3_maps_app",
    "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s0: final landmarks drawn = true tags",
    "computed": "8 / 8",
    "expected": "8 / 8",
@@ -880,7 +901,7 @@
    "ok": true
   },
   {
-   "fig": "E3_maps",
+   "fig": "E3_maps_app",
    "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385: final landmarks drawn = true tags",
    "computed": "8 / 8",
    "expected": "8 / 8",
@@ -888,11 +909,11 @@
    "ok": true
   },
   {
-   "fig": "E3_maps",
-   "label": "runs shown: one clean reference + the three of the 2026-10-29 appendix",
-   "computed": "4",
-   "expected": "4",
-   "src": "user TASK 4; docs/thesis/tier1/stage2e/diag_collapse/figs.py maps",
+   "fig": "E3_maps_app",
+   "label": "runs shown: the other two maps of the 2026-10-31 walkthrough (moved to the appendix)",
+   "computed": "2",
+   "expected": "2",
+   "src": "user answer 4 (2026-11-02), D100",
    "ok": true
   },
   {
@@ -2274,7 +2295,7 @@
    "ok": true
   },
   {
-   "fig": "E3_maps",
+   "fig": "E3_maps_app",
    "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s0 (T_A_r3): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
    "computed": "3.935001",
    "expected": "3.935001",
@@ -2282,7 +2303,7 @@
    "ok": true
   },
   {
-   "fig": "E3_maps",
+   "fig": "E3_maps_app",
    "label": "lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.05_s1_robcauchy2.385 (T_A_r2): PLOTTED hindsight track, RMSE over the stored lap window vs the stored 'lc hindsight' rmse_m (6 dp)",
    "computed": "4.223298",
    "expected": "4.223298",

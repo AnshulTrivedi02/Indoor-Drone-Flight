@@ -672,6 +672,151 @@ corner(fig, "raw, measured from the start tag, nothing fitted", KEY_LH)
 save("E5_ukf_landmarks", fig, "docs/thesis/tier1/scores/e5_verdicts.json, e5_T_A_r{1,2,3}.json", tag="raw, measured from the start tag, nothing fitted", key=True)
 
 
+# ------------------------------------------------------------------- E6 (summary page 20): map reuse (added 2026-11-02, user answer 5; D101-D104)
+TXT = []
+DISPF.update({"E6": "docs/thesis/tier1/e6_results.md", "E6PR": "docs/thesis/tier1/e6_preregistration.md"})
+E6V = LT("e6_verdicts.json"); E6F = E6V["flights"]; E6T = ["T_A_r1", "T_A_r2", "T_A_r3"]; E6M = [E6V["pairs"][t] for t in E6T]
+ARM6 = {"sv": "(i) surveyed", "fm": "(ii) FGO map", "um": "(iii) UKF map", "nm": "(iv) no map, LC online"}
+EOR6 = ("FGO", "UKF")
+LAP1_6 = {(e, a): [E6F[t][e][f"{ARM6[a]} | live"]["lap1_m"] for t in E6T] for e in EOR6 for a in ARM6}
+ALL6 = {(e, a): [E6F[t][e][f"{ARM6[a]} | live"]["rmse_m"] for t in E6T] for e in EOR6 for a in ARM6}
+check("E6_map_reuse", "verdict-file values equal the score files (lap 1 and overall, live, every arm, both estimators)",
+      str(all(LAP1_6[(e, a)][i] == LT(f"e6_{t}.json")["tracks"][f"{ARM6[a]} | {e} live"]["per_lap_rmse_m"][0]
+              and ALL6[(e, a)][i] == LT(f"e6_{t}.json")["tracks"][f"{ARM6[a]} | {e} live"]["rmse_m"] for e in EOR6 for a in ARM6 for i, t in enumerate(E6T))),
+      "True", "scores/e6_verdicts.json vs scores/e6_T_A_r{1,2,3}.json",
+      summ=("20", "verdict file values equal the score files (lap 1 and overall, live, every arm, both estimators)"))
+V6L1 = {}
+for e in EOR6:
+    for a in ("fm", "nm"):
+        lab_ = f"{e} estimator, {ARM6[a]}: lap-1 live RMSE, lowest–highest over 3 test flights (m)"
+        V6L1[(e, a)] = check("E6_map_reuse", lab_, rng(LAP1_6[(e, a)], 4), sumrow("20", lab_), "e6_verdicts.json flights.<t>.<est>.'<arm> | live'.lap1_m",
+                             [("E6", sumrow("20", lab_))], summ=("20", lab_))
+RAT6 = {e: [ALL6[(e, "fm")][i] / ALL6[(e, "sv")][i] for i in range(3)] for e in EOR6}
+V6R = {}
+for e in EOR6:
+    lab_ = f"{e} estimator: FGO map ÷ surveyed map, overall live RMSE, lowest–highest (×)"
+    V6R[e] = check("E6_map_reuse", lab_, rng(RAT6[e], 2), sumrow("20", lab_), "e6_verdicts.json (rmse_m, arms ii / i)", [("E6", sumrow("20", lab_) + " times")],
+                   summ=("20", lab_))
+BND6 = {e: (E6V["p2_bands_m"][e]["lo"], E6V["p2_bands_m"][e]["hi"]) for e in EOR6}
+for e in EOR6:
+    lab_ = f"{e} estimator: surveyed-map band for P2 [min − R, max + R], 4 dp (m)"
+    check("E6_map_reuse", lab_, f"{rd(BND6[e][0], 4)}–{rd(BND6[e][1], 4)}", sumrow("20", lab_), "e6_verdicts.json p2_bands_m", summ=("20", lab_))
+CR6 = E6V["criteria"]
+V6 = {k: check("E6_map_reuse", f"{k}: verdict and count", f"{CR6[k]['verdict']} {sum(CR6[k]['per_flight'])}/3", sumrow("20", f"{k}: verdict and count"),
+               "e6_verdicts.json criteria", summ=("20", f"{k}: verdict and count"))
+      for k in ("P1", "P2 (FGO)", "P2 (UKF)", "P3 (FGO)", "P3 (UKF)", "P4 (FGO)", "P4 (UKF)")}
+SAME6 = check("E6_map_reuse", "DESCRIPTIVE: per-flight outcomes of P1, P3 (FGO) and P3 (UKF) identical on the 3 flights",
+              str(CR6["P1"]["per_flight"] == CR6["P3 (FGO)"]["per_flight"] == CR6["P3 (UKF)"]["per_flight"]), "True", "e6_verdicts.json criteria.*.per_flight",
+              summ=("20", "DESCRIPTIVE: per-flight outcomes of P1, P3 (FGO) and P3 (UKF) identical on the 3 flights"))
+MAPD = [E6F[t]["map"]["ukf_map_pos_rms_m"] - E6F[t]["map"]["fgo_map_pos_rms_m"] for t in E6T]           # > 0: the FGO map is the better map
+LIVD = {e: [ALL6[(e, "um")][i] - ALL6[(e, "fm")][i] for i in range(3)] for e in EOR6}               # > 0: lower live error on the FGO map
+SGN6 = check("E6_map_reuse", "DESCRIPTIVE: sign of (live UKF map − live FGO map) equals the sign of (UKF-map RMS − FGO-map RMS), flights, per estimator",
+             " ".join(f"{e} {sum((LIVD[e][i] > 0) == (MAPD[i] > 0) for i in range(3))}/3" for e in EOR6), "FGO 3/3 UKF 3/3", "e6_verdicts.json flights.<t>.map and rmse_m")
+GAP1 = check("E6_map_reuse", "r1b: the two maps' position RMS differ by (m, 4 dp)", rd(abs(MAPD[0]), 4), "0.0007", "e6_verdicts.json flights.T_A_r1.map",
+             [("E6", "0.0007 m of each other")])
+check("E6_map_reuse", "counts printed: 3 flights, tag 0, lap 1, P1 to P4, 7 tags", "3 / 0 / 1 / 1 2 3 4 / 7", "3 / 0 / 1 / 1 2 3 4 / 7", "e6_preregistration.md",
+      [("E6PR", "position RMS over the 7 tags (the P1 metric)"), ("E6PR", "(tag 0, §1.2)")])
+check("E6_map_reuse", "mapping flights paired with the test flights", ", ".join(E6M), "E6M_fig8_r1b, E6M_fig8_r2, E6M_fig8_r3", "e6_verdicts.json pairs")
+fig, axs = plt.subplots(1, 3, figsize=(FW, 6.0), gridspec_kw=dict(width_ratios=[1.15, 1.0, 1.15]))
+ax1, ax2, ax3 = axs
+SH6 = {"FGO": -0.17, "UKF": 0.17}
+for j, e in enumerate(EOR6):
+    xc_ = j * 1.3
+    for i in range(3):
+        xs = [xc_ - 0.22, xc_ + 0.22]; ys = [LAP1_6[(e, "fm")][i], LAP1_6[(e, "nm")][i]]
+        ax1.plot(xs, ys, color=C[e], lw=0.9, alpha=0.7, zorder=2)
+        ax1.plot(xs, ys, ls="", marker=MK[e], ms=8, color=C[e], zorder=3)
+    ax1.text(xc_ - 0.32, max(LAP1_6[(e, "fm")]) + 0.004, T(V6L1[(e, "fm")].replace("–", " to\n")), ha="right", va="bottom", fontsize=10, linespacing=1.0)
+    ax1.text(xc_ + 0.22, max(LAP1_6[(e, "nm")]) + 0.012, T(V6L1[(e, "nm")].replace("–", " to\n")), ha="center", va="bottom", fontsize=10, linespacing=1.0)
+    ax1.text(xc_ - 0.22, -0.012, T("map"), ha="center", va="top", fontsize=10, color=INK2)
+    ax1.text(xc_ + 0.22, -0.012, T("no map"), ha="center", va="top", fontsize=10, color=INK2)
+    mark(ax1, xc_, 0.335, f"P4 {V6[f'P4 ({e})'].split()[0]}\n{V6[f'P4 ({e})'].split()[1].replace('/', ' of ')}", ha="center", fontsize=10.5, color=C[e])
+ax1.set_xlim(-0.95, 1.75); ax1.set_ylim(0, 0.37); ax1.set_xticks([0, 1.3]); ax1.set_xticklabels([T(f"{e}\nestimator") for e in EOR6])
+ax1.tick_params(axis="x", pad=18); ax1.grid(axis="x", visible=False); ax1.set_ylabel("live error, first lap (m)")
+ax1.set_title(T("First lap: FGO map vs no map"), loc="left", fontsize=12)
+for j, e in enumerate(EOR6):
+    lo_, hi_ = BND6[e]
+    ax2.add_patch(Rectangle((j - 0.32, lo_), 0.64, hi_ - lo_, facecolor=GREY, alpha=0.35, lw=0, zorder=1))
+    ax2.plot([j] * 3, ALL6[(e, "fm")], ls="", marker=MK[e], ms=8, color=C[e], zorder=3)
+    ax2.text(j, max(ALL6[(e, "fm")]) + 0.0012, T(f"{V6R[e].replace('–', ' to ')} ×\nsurveyed"), ha="center", va="bottom", fontsize=10, linespacing=1.0)
+    mark(ax2, j, 0.0575, f"P2 {V6[f'P2 ({e})'].split()[0]}\n{V6[f'P2 ({e})'].split()[1].replace('/', ' of ')}\nin band", ha="center", fontsize=10.5, color=C[e], linespacing=1.0)
+ax2.text(1.5, 0.0012, T("grey: surveyed-map band"), ha="right", va="bottom", fontsize=10, color=INK2)
+ax2.set_xlim(-0.55, 1.55); ax2.set_ylim(0, 0.064); ax2.set_xticks([0, 1]); ax2.set_xticklabels([T(f"{e}\nestimator") for e in EOR6])
+ax2.tick_params(axis="x", pad=18); ax2.grid(axis="x", visible=False); ax2.set_ylabel("live error, whole flight (m)")
+ax2.set_title(T("Whole flight on the FGO map"), loc="left", fontsize=12)
+ax3.axhline(0, color=GREY, lw=1.0, zorder=1); ax3.axvline(0, color=GREY, lw=1.0, zorder=1)
+for e in EOR6:
+    ax3.plot(MAPD, LIVD[e], ls="", marker=MK[e], ms=8, color=C[e], zorder=3)
+ax3.set_xlim(-0.006, 0.024); ax3.set_ylim(-0.014, 0.03)
+ax3.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.01)); ax3.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.01))
+ax3.set_xlabel("map error difference (m)"); ax3.set_ylabel("live error difference (m)")
+ax3.text(-0.0055, 0.0285, T(f"P1 {V6['P1'].split()[0]} {V6['P1'].split()[1].replace('/', ' of ')}\nP3 {V6['P3 (FGO)'].split()[0]} "
+                            f"{V6['P3 (FGO)'].split()[1].replace('/', ' of ')} each"), fontsize=10.5, weight="bold", va="top")
+ax3.text(0.0235, -0.0135, T(f"DESCRIPTIVE, 3 flights: same sign\non {SGN6.split()[1].replace('/', ' of ')} for both\nestimators; on r1b the maps\n"
+                           f"differ by {GAP1} m"), fontsize=9.5, color=INK2, ha="right", va="bottom", linespacing=1.05)
+ax3.set_title(T("UKF map minus FGO map"), loc="left", fontsize=12)
+ax3.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.2f}"))
+ax3.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.2f}"))
+fig.text(0.01, 0.015, T("Limitations: simulation only; n = 3 flights; perfect tag IDs; tag 0 anchors the frame; maps used as exact (no map "
+                        "uncertainty carried); same world and day;\nP4 compares with other loop-closure estimators. The mapping flights flew a "
+                        "different route (out of sample), so the same-route caveat does not apply."), fontsize=9.5, color=INK2, va="bottom",
+         linespacing=1.15)
+fig.subplots_adjust(left=0.07, right=0.985, top=0.80, bottom=0.25, wspace=0.42)
+title1(fig, "A map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)")
+corner(fig, "raw, world frame, nothing fitted; live tracks", "filled = live (during flight)")
+save("E6_map_reuse", fig, "docs/thesis/tier1/scores/e6_verdicts.json (flights, criteria, p2_bands_m, pairs), e6_T_A_r{1,2,3}.json",
+     tag="raw, world frame, nothing fitted; live tracks", key=True)
+
+# ------------------------------------------------------------------- 1C additional no-heading flights (appendix; user answer 2; D97, D98)
+# DESCRIPTIVE, no verdict. The registered 1C verdicts are computed from HALF (figs_thesis.py, figs_thesis_summary.py; the flights script
+# parses figs_thesis.py's HALF): these five flights are not in it, which is asserted here, so they cannot change a registered number.
+TXT = []
+XTR = [("cl_a_tex", "EKF3", "EKF3, full speed (real time)"),
+       ("cl_ukf_a_tex", "UKF", "UKF, old build (before the jitter\ncorrection), full speed"),
+       ("cl_ukf_a_tex_half", "UKF", "UKF, old build (before the jitter\ncorrection), half real time"),
+       ("cl_fgo_a_tex_half", "FGO", "FGO, original build (before the noise\ncorrection), half real time"),
+       ("cl_fgo_a_tex_half_v2", "FGO", "FGO, noise fix only, yaw cap ungated\n(ABLATION), half real time")]
+REGH = {}
+for src_ in ("figs_thesis.py", "figs_thesis_summary.py"):
+    s_ = open(os.path.join(HERE, src_)).read()
+    nd_ = next(n for n in ast.parse(s_).body if isinstance(n, ast.Assign) and any(isinstance(t_, ast.Name) and t_.id == "HALF" for t_ in n.targets))
+    REGH[src_] = eval(compile(ast.Expression(nd_.value), src_, "eval"))
+check("1C_extra", "registered 1C set (HALF) identical in figs_thesis.py and figs_thesis_summary.py", str(REGH["figs_thesis.py"] == REGH["figs_thesis_summary.py"]),
+      "True", "ast of HALF in both scripts")
+REGT = {t for v in REGH["figs_thesis.py"].values() for t in [v[0]] + list(v[1])}
+check("1C_extra", "none of the five additional flights is in the registered set (HALF)", str(not ({t for t, _, _ in XTR} & REGT)), "True", "HALF")
+ALLA = sorted(f[len("closed_loop_"):-5] for f in os.listdir(RES) if f.startswith("closed_loop_") and "_a_tex" in f and f.endswith(".json"))
+check("1C_extra", "every stored no-heading flight is either registered or one of the five", str(sorted(ALLA) == sorted([t for t, _, _ in XTR] + [v[0] for v in REGH["figs_thesis.py"].values()])),
+      "True", "eval/results/closed_loop_*_a_tex*.json")
+CT_EXP = {"cl_a_tex": "186.2", "cl_ukf_a_tex": "163.0", "cl_ukf_a_tex_half": "198.0", "cl_fgo_a_tex_half": "165.8", "cl_fgo_a_tex_half_v2": "169.6"}
+CTX = {}
+for t, e, _ in XTR:
+    j_ = L(f"closed_loop_{t}.json")["contact"]
+    v_ = j_["t_rel_cruise_s"] if "t_rel_cruise_s" in j_ else j_["cruise_plus_s"]
+    CTX[t] = (v_, check("1C_extra", f"{t}: wall contact, s after cruise start (DESCRIPTIVE)", rd(v_, 1), CT_EXP[t], f"eval/results/closed_loop_{t}.json contact",
+                         [("N", f"+{CT_EXP[t]}")]))
+    check("1C_extra", f"{t}: west wall", L(f"closed_loop_{t}.json")["contact"]["wall"], "west", f"closed_loop_{t}.json contact.wall")
+check("1C_extra", "additional flights counted", str(len(XTR)), "5", "this list")
+fig, ax = plt.subplots(figsize=(FW, 5.0))
+for i, (t, e, lab) in enumerate(XTR):
+    y_ = len(XTR) - 1 - i
+    ax.plot(CTX[t][0], y_, ls="", marker=MK[e], ms=11, color=C[e], zorder=3)
+    ax.text(CTX[t][0] + 2.5, y_, T(f"+{CTX[t][1]} s"), va="center", fontsize=11.5, weight="bold")
+    ax.text(102, y_, T(lab), va="center", ha="left", fontsize=10.5, color=C[e], linespacing=1.05)
+ax.set_xlim(100, 215); ax.set_ylim(-0.6, len(XTR) - 0.4); ax.set_yticks([]); ax.grid(axis="y", visible=False)
+ax.spines["left"].set_visible(False)
+ax.set_xlabel("wall contact, time after the start of the cruise (s)")
+fig.text(0.01, 0.02, T("Each flight was flown once (n = 1), on the textured corridor with no camera heading. No pass window and no verdict are "
+                       "drawn: the registered\nExperiment 1C verdicts use only the pre-registered flights, and the full-speed and half-real-time "
+                       "flights are not compared."), fontsize=10, color=INK2, va="bottom", linespacing=1.15)
+fig.subplots_adjust(left=0.02, right=0.98, top=0.80, bottom=0.25)
+title1(fig, "Five more no-heading flights: each also reached the west wall (descriptive, no verdict)")
+corner(fig, "additional flights, not part of the pre-registered set")
+check("1C_extra", "n = 1", "1", "1", "numbers.md §15 ('n = 1 per no-heading cell')", [("N", "n = 1 per no-heading cell")])
+save("1C_extra", fig, "eval/results/closed_loop_{cl_a_tex, cl_ukf_a_tex, cl_ukf_a_tex_half, cl_fgo_a_tex_half, cl_fgo_a_tex_half_v2}.json (contact); "
+     "HALF from eval/figs_thesis.py and eval/figs_thesis_summary.py (ast)", tag="additional flights, not part of the pre-registered set")
+
+
 # =================================================================== index
 n_ok = sum(c["ok"] for c in CHK)
 W = ["# Results walkthrough, composite figures: index and provenance", "",
