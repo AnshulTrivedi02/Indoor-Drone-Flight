@@ -955,8 +955,7 @@ save(fig, "F2", "F2_heading_stops_sideways_drift",
      f"'wall'); the dotted line is the 9.58 m contact threshold ({F2_WSRC}). Colour = the "
      "flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s, "
      "UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within "
-     "0.39 m of the centreline, inside all five closed-loop criteria (mission completion and the cross-track, heading-error, "
-     "lateral-speed and oscillation bounds), so they overlap on the centreline at this scale. Heading-error statistics are in "
+     "0.39 m of the centreline, so they overlap on the centreline at this scale. Heading-error statistics are in "
      f"{TNUM['T4']}; the heading error over time, the cause of this drift, is in {TNUM['F9']}. Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds "
      "are in Table A.1. n = 1 "
      "flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.",
@@ -1332,7 +1331,7 @@ save(fig, "F5", "F5_T_tags_known_positions",
      "no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, "
      "filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = "
      f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out; no live ordering is claimed (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
-     f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights); live max/min across conditions is " + P3S + ". The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
+     f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights); the live max/min ratio, condition A to D: " + P3S + ". The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
      f"its hindsight gain over FGO live, median per gap, condition A to D: {', '.join(rd_si(h1['median_gain_m'][c], 3) for c in TCOND)} m; "
      "the smoothed UKF's gain over UKF live, same conditions: "
      f"{', '.join(rd_si(p2['median_gain_m'][c], 3, sign=True) for c in TCOND)} m, and the ratio of the batch to the smoothed "
@@ -1483,7 +1482,8 @@ save(fig, "F7", "F7_L_loop_closure",
      f"error than the FGO's in {E5V['criteria']['S-E5.5']['count']} flights (UKF ÷ FGO live {rng(E5R, 2)}, "
      "descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each (extension experiment). "
      "The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its "
-     f"loop-closure advantage in {_h31['count']} runs ({_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
+     f"loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in {_h31['count']} runs "
+     f"({_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
      "check (V3) is not re-scorable on the "
      "corrected FGO (its labels were never recorded).",
      "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[],

@@ -69,7 +69,10 @@ for p, s, lab in ((T1MD, "UKF with landmark states (extension E5): bounded; ~2x 
                   # more (Table A.4 is the one place verdicts live now); the two rows below were reworded to "change it
                   # to assert the pointer line instead" where that applies, and otherwise to assert the SAME numbers
                   # (0/9, 6 of 9 diverged; 3/3) without the verdict label - same claim, same figures, no verdict word.
-                  (F7CAP, "loop-closure advantage in 0/9 runs (6 of 9 runs diverged)", "C2 F7 caption (reworded, D113: was 'H-E3.1 FAIL 0/9; 6 of 9 runs diverged')"),
+                  (F7CAP, "its live error with loop closure was below the no-loop-closure error on the same flight in 0/9 runs (6 of 9 runs diverged)",
+                   "C2 F7 caption (reworded, D113: was 'H-E3.1 FAIL 0/9; 6 of 9 runs diverged' - advisor review 2026-11-02 flagged the first "
+                   "reword as backwards: '0/9' counts runs where loop closure WAS better, so 'lost its advantage in 0/9 runs' read as "
+                   "'almost never lost it', the opposite of FAIL; this form attaches the count to the criterion it actually measures)"),
                   (F7CAP, "loop closure also bounded live drift in 3/3 flights in each", "C3 F7 caption (reworded, D113: was 'H-E2.1 PASS 3/3 in each')"),
                   (F7CAP, "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps", "F7 title (user answer 3, 2026-11-02, D99; was '3–4×')"),
                   (SUM, "Only the FGO has loop closure in the thesis (its EKF3 and UKF have no landmark states).", "C1 summary page 08"),

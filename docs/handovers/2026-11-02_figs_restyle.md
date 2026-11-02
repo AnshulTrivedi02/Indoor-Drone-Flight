@@ -405,7 +405,53 @@ not a caption) was NOT touched - T1 is a body table, out of this ruling's scope,
 `pdftotext thesis_figures_combined.pdf -` that all 8 pointer lines appear verbatim on their caption pages (one
 `grep -n "Verdicts: Table A.4"` per figure, all 8 found, none truncated or duplicated).
 
-### Final totals (this session, after both the layout fixes and D113)
+### Correction, same session, found by `advisor()` review of the committed D113 work (commit `1c6f46c`)
+
+Three wording problems found after the D113 commit above, fixed in a NEW commit (not an amend) immediately after:
+
+1. **F7's H-E3.1 reword was backwards - a real correctness bug, not just a style issue.** The first D113 pass wrote
+   "the FGO as built lost its loop-closure advantage in 0/9 runs (6 of 9 runs diverged)". `count` ("0/9") is the
+   number of runs where the criterion "LC live overall < no-LC live overall" was TRUE (confirmed from
+   `tier1/scores/E3_verdicts.json`'s `per_run` dict: all 9 entries `False`) - i.e. loop closure was better in 0 of 9
+   runs, so the advantage was lost in effectively all of them. "Lost its advantage in 0/9 runs" reads as "almost
+   never lost it" - the opposite meaning. Reworded to attach the count to the criterion it actually measures: "...
+   its live error with loop closure was below the no-loop-closure error on the same flight in 0/9 runs (6 of 9 runs
+   diverged)." `check_claims_applied.py`'s C2 row (which asserts this exact substring) was updated to the corrected
+   string and now documents the original bug in its own `detail` field, so it can't silently regress. The other
+   three reworded fragments (H-E5.1 "bounded ... in 3/3 flights", S-E5.5 "higher error ... in 3/3 flights", H-E2.1
+   "bounded live drift in 3/3 flights in each") were checked against the same direction logic and are correct as
+   written - `count` there is the count of flights where the stated (non-inverted) description holds.
+2. **F2's "inside all five closed-loop criteria (mission completion and the cross-track, heading-error, lateral-speed
+   and oscillation bounds)" restated the H1.9 verdict in different words**, which the word-list checker can't catch
+   (D113 bans verdict sentences, not just the literal words). Dropped the clause; H1.9 is already in F2's pointer
+   line, and the sentence still carries its real content ("all 9 stay within 0.39 m of the centreline, so they
+   overlap on the centreline at this scale").
+3. **F5's "live max/min across conditions is 1.97 / 2.36 / 1.42 / 1.57" left four per-condition values unlabelled**,
+   reading as one aggregate number. Relabelled "the live max/min ratio, condition A to D: ..." to match how the
+   adjacent gains sentence already labels the same four-condition structure.
+
+Re-ran `eval/figs_thesis.py` (352/352), `eval/caption_verdict_check.py` (21/21), `docs/thesis/tier1/
+check_claims_applied.py` (58/58), `tools/check_numbers_frozen.py` (PASS); confirmed via `pdftotext` that all three
+corrected sentences appear in the rebuilt combined PDF; `docs/thesis/tables/**` regenerated again (16 files,
+provenance-line-only diffs) and reverted to HEAD again.
+
+**Open items raised, not resolved, for the coordinator to decide** (flagging per the advisor's recommendation, not
+fixed unilaterally):
+- `eval/caption_verdict_check.py` enforces the banned-word list only; it cannot detect a verdict restated in other
+  words (item 2 above is exactly that failure mode, caught by eye/advisor, not by the automated checker). Treat the
+  21/21 result as "no banned word found", not "no verdict stated".
+- F7 still carries the C2/C3 extension-experiment outcomes (user ruling 2026-10-24, claims C1-C5) in verdict-free
+  prose in its own caption body, which is in tension with D113's "describe what is shown, verdicts go in Table A.4"
+  - those sentences exist in F7's caption specifically BECAUSE claims C1-C5 require that content to appear there.
+  Whether C2/C3's content should move out of F7's caption entirely (into the pointer line only, like every other
+  figure) is a decision for the coordinator/user, not made here.
+- F9 keeps "inside the heading-error bound (p95 <= 1.0 deg, max <= 2.0 deg; grey band ±2.0 deg)" - this describes the
+  drawn grey band (a plotted threshold), not a verdict outcome, so it was kept; flagged in case that line is judged
+  differently.
+- F7 keeps "(pre-registered)" on the extension-experiment mentions - states that a rule was fixed in advance, not an
+  outcome; kept for the same reason.
+
+### Final totals (this session, after the layout fixes, D113 and the correction above)
 
 | check | result |
 |---|---|
