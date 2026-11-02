@@ -78,24 +78,113 @@ def original_stored_value(cell):
     return arms_file, v
 
 
+# ------------------------------------------------------------------------------------- numbers.md citation lookup
+# (duplicated, independently, from eval/gen_raw_corridor_numbers.py — positional rank comparison, not substring,
+# so that e.g. a line with repeated values like "0.06 / 0.06 / 0.06" cannot pass a weak substring check)
+NUM_LINES = open(NUMBERS_MD).read().split("\n")
+_sec6_start = next(i for i, l in enumerate(NUM_LINES) if l.startswith("## 6. Baseline results — RESTATED"))
+_sec7_start = next(i for i in range(_sec6_start + 1, len(NUM_LINES)) if NUM_LINES[i].startswith("## 7."))
+CURRENT = NUM_LINES[_sec6_start:_sec7_start]
+LABEL_MAP = {
+    "EKF3": ("dsn_tex", "EKF3", "baseline"), "FGO (0.25 s)": ("dsn_tex", "FGO", "baseline"),
+    "UKF": ("dsn_tex", "UKF", "baseline"),
+    "`fwdc` textured EKF3": ("fwdc", "EKF3", "baseline"), "`fwdc` textured FGO": ("fwdc", "FGO", "baseline"),
+    "`fwdc` textured UKF": ("fwdc", "UKF", "baseline"),
+    "`fwdplainc` textured EKF3": ("fwdplainc", "EKF3", "baseline"),
+    "`fwdplainc` textured FGO": ("fwdplainc", "FGO", "baseline"),
+    "`fwdplainc` textured UKF": ("fwdplainc", "UKF", "baseline"),
+    "`fwdc` UKF +heading": ("fwdc", "UKF", "heading"), "`fwdc` FGO +heading": ("fwdc", "FGO", "heading"),
+    "`fwdplainc` UKF +heading": ("fwdplainc", "UKF", "heading"),
+    "`fwdplainc` FGO +heading": ("fwdplainc", "FGO", "heading"),
+}
+CITE = {}
+PAT = re.compile(r"^\|\s*(.*?)\s*r1\s*/\s*r2\s*/\s*r3\s*\|\s*([\d.]+)\s*/\s*([\d.]+)\s*/\s*([\d.]+)")
+for i, raw_line in enumerate(CURRENT):
+    m = PAT.match(raw_line.replace("**", ""))
+    if not m or m.group(1) not in LABEL_MAP:
+        continue
+    dataset, est, arm = LABEL_MAP[m.group(1)]
+    abs_line = _sec6_start + i + 1
+    for rank in range(3):
+        CITE[(dataset, est, arm, rank)] = (abs_line, m.group(2 + rank))
+
+
+def numbers_citation(dataset, est, arm, trial):
+    m = re.search(r"_r(\d+)$", trial)
+    if not m:
+        return None
+    rank = int(m.group(1)) - 1
+    if rank not in (0, 1, 2) or (dataset in ("fwdc", "fwdplainc") and "_tex_" not in trial):
+        return None
+    return CITE.get((dataset, est, arm, rank))
+
+
+# ------------------------------------------------------------------------------------- independent source_consistency recompute
+def recompute_source_consistency():
+    out = {}
+    for dataset in ("fwdc", "fwdplainc"):
+        rerun = _load(f"rerun_{dataset}_evo.json")["trials"]
+        arms = _load(f"phase4_{dataset}_arms.json")
+        evo2 = _load(f"phase4_{dataset}_evo.json")["trials"]
+        n_checked = n_mismatch = 0
+        for trial, t in arms.items():
+            if not (t["window_s"] == rerun[trial]["window_s"] == evo2[trial]["window_s"]):
+                n_mismatch += 1
+            for key, kd in t.items():
+                if key == "window_s" or (key != "EKF3" and not key.endswith("_baseline")):
+                    continue
+                est = "EKF3" if key == "EKF3" else key.split("_", 1)[0]
+                va = kd["ate_a_cruise"]["+0.00"] if "ate_a_cruise" in kd else kd["evo"]["ate_a_cruise"]["+0.00"]
+                vr = rerun[trial]["est"][est]["ate_a_cruise"]["+0.00"]
+                ve2 = evo2[trial]["est"][key]
+                ve = ve2["ate_a_cruise"]["+0.00"] if "ate_a_cruise" in ve2 else ve2["evo"]["ate_a_cruise"]["+0.00"]
+                n_checked += 1
+                if not (va == vr == ve):
+                    n_mismatch += 1
+        out[dataset] = {"n_checked": n_checked, "n_mismatch": n_mismatch}
+    return out
+
+
 # ------------------------------------------------------------------------------------- load json + markdown
 J = json.load(open(JSON_PATH))
 CELLS = {(c["trial"], c["estimator"], c["arm"]): c for c in J["cells"]}
 check("rd() SHA matches the json's recorded rd_sha256", RD_SHA == J["rd_sha256"], f"{RD_SHA} vs {J['rd_sha256']}")
 
-NUM_LINES = open(NUMBERS_MD).read().split("\n")
+sc_recomputed = recompute_source_consistency()
+for dataset, v in sc_recomputed.items():
+    jv = J["source_consistency"][dataset]
+    check(f"source_consistency[{dataset}] independently recomputed matches json",
+          v["n_checked"] == jv["n_checked"] and v["n_mismatch"] == jv["n_mismatch"], f"{v} vs {jv}")
+check("index_drift_reproduction: 3/3 OK in json",
+      sum(1 for v in J["index_drift_reproduction"].values() if v.get("ok")) == 3)
+
+md_text = open(MD_PATH).read()
+md_lines = md_text.split("\n")
+check("header states n_cells", str(J["n_cells"]) in md_text)
+check("header states n_gate_ok/n_cells", f"{J['n_gate_ok']}/{J['n_cells']}" in md_text)
+check("header states n_frame_ok/n_cells", f"{J['n_frame_ok']}/{J['n_cells']}" in md_text)
+check("header states n STOP", str(J["n_cells"] - J["n_frame_ok"]) in md_text)
+check("header states orig_tol_m", str(J["orig_tol_m"]) in md_text)
+check("header states head_tol_deg", str(J["head_tol_deg"]) in md_text)
+check("header states stop_by_floor blank count", str(J["stop_by_floor"]["blank"]) in md_text)
+check("header states stop_by_floor tex count", str(J["stop_by_floor"]["tex"]) in md_text)
+check("header states stop_by_floor trans count", str(J["stop_by_floor"]["trans"]) in md_text)
+check("header states n_flights_total / flights-with-stop",
+      f"{len(J['trials_with_stop'])}/{J['n_flights_total']}" in md_text)
 
 ARM_LABEL_REV = {"": "baseline", "+heading": "heading", "+heading+yaw rate": "heading_yawrate"}
 
-md_lines = open(MD_PATH).read().split("\n")
 row_re = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|$")
 n_rows = 0
+seen_keys = set()
 for line in md_lines:
     m = row_re.match(line)
     if not m or m.group(1) == "flight":
         continue
     trial, est_arm, aligned_cell, c_rms, c_end, c_rmsh, c_endh = m.groups()
-    toks = est_arm.split(" ", 1)
+    dataset = None
+    est_arm_clean = re.sub(r"\s*\[\w+\]\s*$", "", est_arm)   # strip footnote markers like " [a]"
+    toks = est_arm_clean.split(" ", 1)
     est = toks[0]
     arm_label = toks[1] if len(toks) > 1 else ""
     arm = ARM_LABEL_REV.get(arm_label)
@@ -107,7 +196,9 @@ for line in md_lines:
     if key not in CELLS:
         check(f"row has a matching json cell {trial}/{est}/{arm}", False)
         continue
+    seen_keys.add(key)
     cell = CELLS[key]
+    dataset = cell["dataset"]
 
     # 1 + 2: aligned value
     am = re.match(r"^([-\d.]+)\s*\(", aligned_cell)
@@ -121,14 +212,21 @@ for line in md_lines:
         check(f"{trial}/{est}/{arm} json stored_ate_a_cruise == original source ({src_file})",
               src_val is not None and cell["stored_ate_a_cruise"] == src_val,
               f"json={cell['stored_ate_a_cruise']} source={src_val}")
+        if "extra_sources" in cell:
+            for extra in cell["extra_sources"]:
+                check(f"{trial}/{est}/{arm} extra source cited: {extra}", f"json:{extra}" in aligned_cell)
 
-    # 3: numbers.md citation, if present
+    # 3: numbers.md citation — POSITIONAL (rank-exact), not substring
+    cite = numbers_citation(dataset, est, arm, trial)
     mline = re.search(r"numbers\.md:(\d+)", aligned_cell)
-    if mline:
-        lineno = int(mline.group(1))
-        text = NUM_LINES[lineno - 1] if 0 < lineno <= len(NUM_LINES) else ""
-        check(f"{trial}/{est}/{arm} numbers.md:{lineno} contains the printed aligned value",
-              am is not None and am.group(1) in text.replace("**", ""), text)
+    if cite:
+        check(f"{trial}/{est}/{arm} numbers.md citation present and line matches", mline is not None and
+              int(mline.group(1)) == cite[0], f"mline={mline} expected_line={cite[0]}")
+        check(f"{trial}/{est}/{arm} printed aligned value == numbers.md's own (positional) value",
+              am is not None and am.group(1) == cite[1], f"printed={am.group(1) if am else None} md={cite[1]}")
+    else:
+        check(f"{trial}/{est}/{arm} no numbers.md citation expected and none printed", mline is None,
+              f"unexpected citation {mline}")
 
     # 4: raw values vs STOP
     is_stop = c_rms.startswith("STOP")
@@ -140,6 +238,9 @@ for line in md_lines:
         gate_ok = cell.get("gate", {}).get("ok", False)
         check(f"{trial}/{est}/{arm} STOP row has a failing gate or frame_check",
               (fc is not None and not fc.get("ok", True)) or not gate_ok)
+        if fc is not None and "heading_diff_deg" in fc:
+            check(f"{trial}/{est}/{arm} STOP reason prints rd(heading_diff_deg, {DP})",
+                  rd(fc["heading_diff_deg"], DP) in c_rms, c_rms)
     else:
         r = cell["raw"]
         pairs = [("rms", c_rms, r["rms_3d_m"]), ("end", c_end, r["end_3d_m"]),
@@ -147,6 +248,12 @@ for line in md_lines:
         for name, printed, val in pairs:
             check(f"{trial}/{est}/{arm} {name} == rd(json, {DP})", printed == rd(val, DP),
                   f"printed={printed} rd={rd(val, DP)}")
+
+# completeness: every json cell appears exactly once in the md, and vice versa (already enforced by seen_keys)
+json_keys = set(CELLS.keys())
+check("every json cell appears exactly once in the md", json_keys == seen_keys,
+      f"missing from md: {json_keys - seen_keys}; extra in md: {seen_keys - json_keys}")
+check("row count == json cell count", n_rows == len(J["cells"]), f"{n_rows} vs {len(J['cells'])}")
 
 print(f"\nrows checked: {n_rows}; checks {n_ok} OK, {n_fail} FAIL")
 sys.exit(0 if n_fail == 0 else 1)

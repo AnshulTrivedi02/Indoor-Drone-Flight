@@ -139,7 +139,7 @@ def frame_check(family, ref_full, est_full, t0):
     h_e = math.degrees(math.atan2(dE_e, dN_e))
     ok = o_est < ORIG_TOL_M and o_gt < ORIG_TOL_M and abs(h_e - h_g) < HEAD_TOL_DEG
     return {"ok": bool(ok), "o_est": o_est, "o_gt": o_gt, "t_a": ta, "t_b": tb, "heading_est_deg": h_e,
-            "heading_truth_deg": h_g}
+            "heading_truth_deg": h_g, "heading_diff_deg": h_e - h_g}
 
 
 # ----------------------------------------------------------------------------------------------- scope (from stored JSONs, not directory listings)
@@ -188,11 +188,75 @@ def phase4_cells(dataset, arms_file):
             sub = "ekf3" if key == "EKF3" else key.lower()
             traj_f = {"EKF3": "ekf3_traj.tum", "UKF": "ukf_traj.tum", "FGO": "fgo_traj.tum"}[est]
             ate = kd["ate_a_cruise"]["+0.00"] if "ate_a_cruise" in kd else kd["evo"]["ate_a_cruise"]["+0.00"]
-            out.append({
+            cell = {
                 "dataset": dataset, "trial": trial, "estimator": est, "arm": arm, "family": est,
                 "sub": sub, "traj_file": traj_f, "window_s": win, "stored_ate_a_cruise": ate,
                 "source": f"{arms_file}:{trial}.{key}.ate_a_cruise",
-            })
+            }
+            if arm == "baseline":
+                # also stored (verified below) in rerun_<dataset>_evo.json and phase4_<dataset>_evo.json,
+                # numbers.md's own citations for these rows (§6.1/§6.4) — see source_consistency
+                cell["extra_sources"] = [f"rerun_{dataset}_evo.json:trials.{trial}.est.{est}.ate_a_cruise",
+                                         f"phase4_{dataset}_evo.json:trials.{trial}.est.{key}.ate_a_cruise"]
+            out.append(cell)
+    return out
+
+
+def check_source_consistency():
+    """Advisor-flagged cross-check: numbers.md:269-274 cites rerun_fwdc_evo.json/rerun_fwdplainc_evo.json for
+    the fwdc/fwdplainc baseline+EKF3 rows, while this script's scope is built from phase4_*_arms.json. Confirm
+    all three files (arms, rerun_*_evo, phase4_*_evo) agree on window_s and ate_a_cruise for every baseline/EKF3
+    cell, independently of the identical-TUM-file md5 check already done by hand (recorded in the handover)."""
+    out = {}
+    for dataset in ("fwdc", "fwdplainc"):
+        rerun = load(f"rerun_{dataset}_evo.json")["trials"]
+        arms = load(f"phase4_{dataset}_arms.json")
+        evo2 = load(f"phase4_{dataset}_evo.json")["trials"]
+        mismatches = []
+        n_checked = 0
+        for trial, t in arms.items():
+            wa = t["window_s"]
+            wr = rerun[trial]["window_s"]
+            we = evo2[trial]["window_s"]
+            if not (wa == wr == we):
+                mismatches.append({"trial": trial, "field": "window_s", "arms": wa, "rerun": wr, "evo2": we})
+            for key, kd in t.items():
+                if key == "window_s" or (key != "EKF3" and not key.endswith("_baseline")):
+                    continue
+                est = "EKF3" if key == "EKF3" else key.split("_", 1)[0]
+                va = kd["ate_a_cruise"]["+0.00"] if "ate_a_cruise" in kd else kd["evo"]["ate_a_cruise"]["+0.00"]
+                vr = rerun[trial]["est"][est]["ate_a_cruise"]["+0.00"]
+                ve2 = evo2[trial]["est"][key]
+                ve = ve2["ate_a_cruise"]["+0.00"] if "ate_a_cruise" in ve2 else ve2["evo"]["ate_a_cruise"]["+0.00"]
+                n_checked += 1
+                if not (va == vr == ve):
+                    mismatches.append({"trial": trial, "key": key, "arms": va, "rerun": vr, "evo2": ve})
+        out[dataset] = {"n_checked": n_checked, "n_mismatch": len(mismatches), "mismatches": mismatches}
+    return out
+
+
+def check_index_drift_reproduction(cells_by_key):
+    """Reproduce docs/thesis/figures_thesis/index_drift.md's own frame-check table (dsn_tex_r3, baseline arms)
+    to 3 dp, as an external check that this script's frame_check() matches the one that figure already
+    published and cross-checked (9/9 EXACT, frame 3/3 PASS there)."""
+    REF = {
+        "EKF3": {"o_est": 0.0000, "o_gt": 0.0000, "t_a": 30.36, "t_b": 40.46, "h_e": 0.233, "h_g": 0.000},
+        "UKF": {"o_est": 0.0000, "o_gt": 0.0000, "t_a": 30.30, "t_b": 40.38, "h_e": 0.765, "h_g": -0.050},
+        "FGO": {"o_est": 0.0000, "o_gt": 0.0000, "t_a": 30.30, "t_b": 40.38, "h_e": 0.318, "h_g": -0.050},
+    }
+    out = {}
+    for est, ref in REF.items():
+        fc = cells_by_key.get(("dsn_tex_r3", est, "baseline"), {}).get("frame_check")
+        if fc is None:
+            out[est] = {"ok": False, "reason": "cell not found or no frame_check recorded"}
+            continue
+        ok = (round(fc["o_est"], 4) == ref["o_est"] and round(fc["o_gt"], 4) == ref["o_gt"] and
+              round(fc["t_a"], 2) == ref["t_a"] and round(fc["t_b"], 2) == ref["t_b"] and
+              round(fc["heading_est_deg"], 3) == ref["h_e"] and round(fc["heading_truth_deg"], 3) == ref["h_g"])
+        out[est] = {"ok": bool(ok), "computed": {"o_est": round(fc["o_est"], 4), "o_gt": round(fc["o_gt"], 4),
+                    "t_a": round(fc["t_a"], 2), "t_b": round(fc["t_b"], 2),
+                    "heading_est_deg": round(fc["heading_est_deg"], 3),
+                    "heading_truth_deg": round(fc["heading_truth_deg"], 3)}, "expected": ref}
     return out
 
 
@@ -262,7 +326,27 @@ def main():
 
     n_ok = sum(1 for r in results if "stop" not in r)
     n_stop = sum(1 for r in results if "stop" in r)
+    # per-flight STOP count: a trial counts as STOP-affected if ANY of its cells STOPped (the literal
+    # "that flight" reading in the brief; this script's own per-cell withholding is the chosen RC decision —
+    # see the handover). Reported for transparency, does not change what is withheld.
+    trials_with_stop = sorted({r["trial"] for r in results if "stop" in r})
+    n_flights_total = len({r["trial"] for r in results})
+    stop_by_floor = {"blank": 0, "tex": 0, "trans": 0}
+    for r in results:
+        if "stop" in r:
+            floor = "blank" if "blank" in r["trial"] else ("trans" if "trans" in r["trial"] else "tex")
+            stop_by_floor[floor] += 1
     print(f"done: {len(results)} cells, {n_ok} OK, {n_stop} STOP, gate OK {n_gate_ok}, frame OK {n_frame_ok}")
+    print(f"STOP by floor: {stop_by_floor}; {len(trials_with_stop)}/{n_flights_total} flights have >=1 STOP cell")
+
+    cells_by_key = {(r["trial"], r["estimator"], r["arm"]): r for r in results}
+    source_consistency = check_source_consistency()
+    index_drift_check = check_index_drift_reproduction(cells_by_key)
+    n_sc_mismatch = sum(v["n_mismatch"] for v in source_consistency.values())
+    n_idc_ok = sum(1 for v in index_drift_check.values() if v.get("ok"))
+    print(f"source consistency: {n_sc_mismatch} mismatches across "
+          f"{sum(v['n_checked'] for v in source_consistency.values())} checked")
+    print(f"index_drift.md reproduction (dsn_tex_r3, baseline): {n_idc_ok}/3 OK")
 
     out = {
         "generated_by": "eval/raw_corridor_errors.py",
@@ -271,6 +355,10 @@ def main():
         "rd_sha256": RD_SHA,
         "n_cells": len(results), "n_ok": n_ok, "n_stop": n_stop,
         "n_gate_ok": n_gate_ok, "n_frame_ok": n_frame_ok,
+        "stop_by_floor": stop_by_floor,
+        "trials_with_stop": trials_with_stop, "n_flights_total": n_flights_total,
+        "source_consistency": source_consistency,
+        "index_drift_reproduction": index_drift_check,
         "cells": results,
     }
     os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)

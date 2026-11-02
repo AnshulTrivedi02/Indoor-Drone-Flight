@@ -10,6 +10,105 @@
  "n_stop": 69,
  "n_gate_ok": 154,
  "n_frame_ok": 85,
+ "stop_by_floor": {
+  "blank": 45,
+  "tex": 14,
+  "trans": 10
+ },
+ "trials_with_stop": [
+  "dsn_blank_r1",
+  "dsn_blank_r2",
+  "dsn_blank_r3",
+  "dsn_tex_r2",
+  "dsn_tex_r6",
+  "fwdc_blank_r1",
+  "fwdc_blank_r2",
+  "fwdc_blank_r3",
+  "fwdc_tex_r2",
+  "fwdc_trans_r1",
+  "fwdc_trans_r2",
+  "fwdplainc_blank_r1",
+  "fwdplainc_blank_r2",
+  "fwdplainc_blank_r3",
+  "fwdplainc_tex_r1",
+  "fwdplainc_tex_r2",
+  "fwdplainc_tex_r3",
+  "fwdplainc_trans_r1",
+  "fwdplainc_trans_r2",
+  "fwdplainc_trans_r3"
+ ],
+ "n_flights_total": 34,
+ "source_consistency": {
+  "fwdc": {
+   "n_checked": 27,
+   "n_mismatch": 0,
+   "mismatches": []
+  },
+  "fwdplainc": {
+   "n_checked": 27,
+   "n_mismatch": 0,
+   "mismatches": []
+  }
+ },
+ "index_drift_reproduction": {
+  "EKF3": {
+   "ok": true,
+   "computed": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.36,
+    "t_b": 40.46,
+    "heading_est_deg": 0.233,
+    "heading_truth_deg": 0.0
+   },
+   "expected": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.36,
+    "t_b": 40.46,
+    "h_e": 0.233,
+    "h_g": 0.0
+   }
+  },
+  "UKF": {
+   "ok": true,
+   "computed": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.3,
+    "t_b": 40.38,
+    "heading_est_deg": 0.765,
+    "heading_truth_deg": -0.05
+   },
+   "expected": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.3,
+    "t_b": 40.38,
+    "h_e": 0.765,
+    "h_g": -0.05
+   }
+  },
+  "FGO": {
+   "ok": true,
+   "computed": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.3,
+    "t_b": 40.38,
+    "heading_est_deg": 0.318,
+    "heading_truth_deg": -0.05
+   },
+   "expected": {
+    "o_est": 0.0,
+    "o_gt": 0.0,
+    "t_a": 30.3,
+    "t_b": 40.38,
+    "h_e": 0.318,
+    "h_g": -0.05
+   }
+  }
+ },
  "cells": [
   {
    "dataset": "dsn_tex",
@@ -40,7 +139,8 @@
     "t_a": 30.385277,
     "t_b": 40.485674,
     "heading_est_deg": 0.058213952060621965,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.058213952060621965
    },
    "raw": {
     "n_matched": 3027,
@@ -84,7 +184,8 @@
     "t_a": 30.348,
     "t_b": 40.434,
     "heading_est_deg": -0.34763831063529976,
-    "heading_truth_deg": -0.04034921441888113
+    "heading_truth_deg": -0.04034921441888113,
+    "heading_diff_deg": -0.30728909621641864
    },
    "raw": {
     "n_matched": 18068,
@@ -128,7 +229,8 @@
     "t_a": 30.348,
     "t_b": 40.434,
     "heading_est_deg": -0.19993064712769762,
-    "heading_truth_deg": -0.04034921441888113
+    "heading_truth_deg": -0.04034921441888113,
+    "heading_diff_deg": -0.15958143270881647
    },
    "raw": {
     "n_matched": 9081,
@@ -172,7 +274,8 @@
     "t_a": 30.099376,
     "t_b": 40.199674,
     "heading_est_deg": 0.24893290511363678,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.24893290511363678
    },
    "raw": {
     "n_matched": 3024,
@@ -216,7 +319,8 @@
     "t_a": 30.002,
     "t_b": 40.084,
     "heading_est_deg": 0.8245013660151211,
-    "heading_truth_deg": -0.04204458126957521
+    "heading_truth_deg": -0.04204458126957521,
+    "heading_diff_deg": 0.8665459472846964
    },
    "raw": {
     "n_matched": 18255,
@@ -260,7 +364,8 @@
     "t_a": 30.002,
     "t_b": 40.084,
     "heading_est_deg": 0.28880255800514976,
-    "heading_truth_deg": -0.04204458126957521
+    "heading_truth_deg": -0.04204458126957521,
+    "heading_diff_deg": 0.330847139274725
    },
    "raw": {
     "n_matched": 9074,
@@ -304,7 +409,8 @@
     "t_a": 30.438259,
     "t_b": 40.538674,
     "heading_est_deg": -169.716060014279,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -169.716060014279
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -337,7 +443,8 @@
     "t_a": 30.409,
     "t_b": 40.486,
     "heading_est_deg": 13.825178140243194,
-    "heading_truth_deg": -0.04576101309586415
+    "heading_truth_deg": -0.04576101309586415,
+    "heading_diff_deg": 13.870939153339059
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -370,7 +477,8 @@
     "t_a": 30.409,
     "t_b": 40.486,
     "heading_est_deg": 13.409110204085248,
-    "heading_truth_deg": -0.04576101309586415
+    "heading_truth_deg": -0.04576101309586415,
+    "heading_diff_deg": 13.454871217181113
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -403,7 +511,8 @@
     "t_a": 30.557218,
     "t_b": 40.657674,
     "heading_est_deg": -0.28937133653944686,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -0.28937133653944686
    },
    "raw": {
     "n_matched": 3025,
@@ -447,7 +556,8 @@
     "t_a": 30.556,
     "t_b": 40.642,
     "heading_est_deg": -3.0519391342172266,
-    "heading_truth_deg": -0.04952790917519799
+    "heading_truth_deg": -0.04952790917519799,
+    "heading_diff_deg": -3.0024112250420285
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -480,7 +590,8 @@
     "t_a": 30.556,
     "t_b": 40.642,
     "heading_est_deg": -2.7359095491164767,
-    "heading_truth_deg": -0.04952790917519799
+    "heading_truth_deg": -0.04952790917519799,
+    "heading_diff_deg": -2.6863816399412785
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -513,7 +624,8 @@
     "t_a": 30.472247,
     "t_b": 40.572674,
     "heading_est_deg": 0.2032589251254093,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.2032589251254093
    },
    "raw": {
     "n_matched": 3019,
@@ -557,7 +669,8 @@
     "t_a": 30.455,
     "t_b": 40.531,
     "heading_est_deg": 1.8432773380202048,
-    "heading_truth_deg": -0.024405706459954674
+    "heading_truth_deg": -0.024405706459954674,
+    "heading_diff_deg": 1.8676830444801595
    },
    "raw": {
     "n_matched": 18717,
@@ -601,7 +714,8 @@
     "t_a": 30.455,
     "t_b": 40.531,
     "heading_est_deg": 0.4408276229120562,
-    "heading_truth_deg": -0.024405706459954674
+    "heading_truth_deg": -0.024405706459954674,
+    "heading_diff_deg": 0.46523332937201084
    },
    "raw": {
     "n_matched": 9057,
@@ -645,7 +759,8 @@
     "t_a": 30.245325,
     "t_b": 40.345674,
     "heading_est_deg": -129.64836617894304,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -129.64836617894304
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -678,7 +793,8 @@
     "t_a": 30.245,
     "t_b": 40.337,
     "heading_est_deg": 19.652991505442444,
-    "heading_truth_deg": -0.030522906443630975
+    "heading_truth_deg": -0.030522906443630975,
+    "heading_diff_deg": 19.683514411886076
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -711,7 +827,8 @@
     "t_a": 30.245,
     "t_b": 40.337,
     "heading_est_deg": 19.406685373505752,
-    "heading_truth_deg": -0.030522906443630975
+    "heading_truth_deg": -0.030522906443630975,
+    "heading_diff_deg": 19.437208279949385
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -744,7 +861,8 @@
     "t_a": 30.356287,
     "t_b": 40.456674,
     "heading_est_deg": 0.23305191005137646,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.23305191005137646
    },
    "raw": {
     "n_matched": 3025,
@@ -788,7 +906,8 @@
     "t_a": 30.302,
     "t_b": 40.377,
     "heading_est_deg": 0.7646273089606076,
-    "heading_truth_deg": -0.04965610224570943
+    "heading_truth_deg": -0.04965610224570943,
+    "heading_diff_deg": 0.8142834112063171
    },
    "raw": {
     "n_matched": 17823,
@@ -832,7 +951,8 @@
     "t_a": 30.302,
     "t_b": 40.377,
     "heading_est_deg": 0.3176740380975403,
-    "heading_truth_deg": -0.04965610224570943
+    "heading_truth_deg": -0.04965610224570943,
+    "heading_diff_deg": 0.36733014034324973
    },
    "raw": {
     "n_matched": 9074,
@@ -876,7 +996,8 @@
     "t_a": 30.011406,
     "t_b": 40.111674,
     "heading_est_deg": 0.21361502227601772,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.21361502227601772
    },
    "raw": {
     "n_matched": 3019,
@@ -920,7 +1041,8 @@
     "t_a": 30.009,
     "t_b": 40.096,
     "heading_est_deg": 0.8643752145793461,
-    "heading_truth_deg": -0.03430875000249177
+    "heading_truth_deg": -0.03430875000249177,
+    "heading_diff_deg": 0.8986839645818379
    },
    "raw": {
     "n_matched": 17786,
@@ -964,7 +1086,8 @@
     "t_a": 30.009,
     "t_b": 40.096,
     "heading_est_deg": 0.42521850273284945,
-    "heading_truth_deg": -0.03430875000249177
+    "heading_truth_deg": -0.03430875000249177,
+    "heading_diff_deg": 0.45952725273534123
    },
    "raw": {
     "n_matched": 9054,
@@ -1008,7 +1131,8 @@
     "t_a": 30.75615,
     "t_b": 40.856674,
     "heading_est_deg": -169.6876971077799,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -169.6876971077799
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -1041,7 +1165,8 @@
     "t_a": 30.672,
     "t_b": 40.756,
     "heading_est_deg": 16.935711990376358,
-    "heading_truth_deg": -0.03744798453794594
+    "heading_truth_deg": -0.03744798453794594,
+    "heading_diff_deg": 16.973159974914303
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -1074,7 +1199,8 @@
     "t_a": 30.672,
     "t_b": 40.756,
     "heading_est_deg": 16.616500712545815,
-    "heading_truth_deg": -0.03744798453794594
+    "heading_truth_deg": -0.03744798453794594,
+    "heading_diff_deg": 16.65394869708376
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -1107,7 +1233,8 @@
     "t_a": 30.652185,
     "t_b": 40.752674,
     "heading_est_deg": 0.27050864276686065,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.27050864276686065
    },
    "raw": {
     "n_matched": 3024,
@@ -1151,7 +1278,8 @@
     "t_a": 30.589,
     "t_b": 40.663,
     "heading_est_deg": 0.7836085323600861,
-    "heading_truth_deg": -0.04086911319173973
+    "heading_truth_deg": -0.04086911319173973,
+    "heading_diff_deg": 0.8244776455518258
    },
    "raw": {
     "n_matched": 18041,
@@ -1195,7 +1323,8 @@
     "t_a": 30.589,
     "t_b": 40.663,
     "heading_est_deg": 0.3242009071884328,
-    "heading_truth_deg": -0.04086911319173973
+    "heading_truth_deg": -0.04086911319173973,
+    "heading_diff_deg": 0.36507002038017256
    },
    "raw": {
     "n_matched": 9072,
@@ -1239,7 +1368,8 @@
     "t_a": 30.390275,
     "t_b": 40.490674,
     "heading_est_deg": 0.24985954996496562,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.24985954996496562
    },
    "raw": {
     "n_matched": 3029,
@@ -1283,7 +1413,8 @@
     "t_a": 30.384,
     "t_b": 40.459,
     "heading_est_deg": 0.8163944302989932,
-    "heading_truth_deg": -0.056875489203643055
+    "heading_truth_deg": -0.056875489203643055,
+    "heading_diff_deg": 0.8732699195026362
    },
    "raw": {
     "n_matched": 18363,
@@ -1327,7 +1458,8 @@
     "t_a": 30.384,
     "t_b": 40.459,
     "heading_est_deg": 0.44272418105277517,
-    "heading_truth_deg": -0.056875489203643055
+    "heading_truth_deg": -0.056875489203643055,
+    "heading_diff_deg": 0.4995996702564182
    },
    "raw": {
     "n_matched": 9086,
@@ -1371,7 +1503,8 @@
     "t_a": 30.020403,
     "t_b": 40.120674,
     "heading_est_deg": -0.8974086299822679,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -0.8974086299822679
    },
    "raw": {
     "n_matched": 3028,
@@ -1415,7 +1548,8 @@
     "t_a": 29.938,
     "t_b": 40.015,
     "heading_est_deg": -3.49913407974367,
-    "heading_truth_deg": -0.029068399841717902
+    "heading_truth_deg": -0.029068399841717902,
+    "heading_diff_deg": -3.470065679901952
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -1448,7 +1582,8 @@
     "t_a": 29.938,
     "t_b": 40.015,
     "heading_est_deg": -3.0640729140213097,
-    "heading_truth_deg": -0.029068399841717902
+    "heading_truth_deg": -0.029068399841717902,
+    "heading_diff_deg": -3.0350045141795916
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -1481,7 +1616,8 @@
     "t_a": 30.335294,
     "t_b": 40.435674,
     "heading_est_deg": 0.24368655414051024,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.24368655414051024
    },
    "raw": {
     "n_matched": 3029,
@@ -1525,7 +1661,8 @@
     "t_a": 30.247,
     "t_b": 40.335,
     "heading_est_deg": 0.8838699332369602,
-    "heading_truth_deg": -0.03516004215109293
+    "heading_truth_deg": -0.03516004215109293,
+    "heading_diff_deg": 0.9190299753880531
    },
    "raw": {
     "n_matched": 18340,
@@ -1569,7 +1706,8 @@
     "t_a": 30.247,
     "t_b": 40.335,
     "heading_est_deg": 0.46303707615986095,
-    "heading_truth_deg": -0.03516004215109293
+    "heading_truth_deg": -0.03516004215109293,
+    "heading_diff_deg": 0.49819711831095387
    },
    "raw": {
     "n_matched": 9088,
@@ -1613,7 +1751,8 @@
     "t_a": 30.332295,
     "t_b": 40.432674,
     "heading_est_deg": 0.23710316531394993,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.23710316531394993
    },
    "raw": {
     "n_matched": 3025,
@@ -1657,7 +1796,8 @@
     "t_a": 30.288,
     "t_b": 40.367,
     "heading_est_deg": 1.3202220368677897,
-    "heading_truth_deg": -0.045619654906907184
+    "heading_truth_deg": -0.045619654906907184,
+    "heading_diff_deg": 1.365841691774697
    },
    "raw": {
     "n_matched": 17884,
@@ -1701,7 +1841,8 @@
     "t_a": 30.288,
     "t_b": 40.367,
     "heading_est_deg": 0.384978581173914,
-    "heading_truth_deg": -0.045619654906907184
+    "heading_truth_deg": -0.045619654906907184,
+    "heading_diff_deg": 0.43059823608082115
    },
    "raw": {
     "n_matched": 9074,
@@ -1745,7 +1886,8 @@
     "t_a": 30.121368,
     "t_b": 40.221674,
     "heading_est_deg": 0.21304187734779437,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.21304187734779437
    },
    "raw": {
     "n_matched": 3024,
@@ -1789,7 +1931,8 @@
     "t_a": 30.059,
     "t_b": 40.144,
     "heading_est_deg": 0.6286584903260357,
-    "heading_truth_deg": -0.034777403627729096
+    "heading_truth_deg": -0.034777403627729096,
+    "heading_diff_deg": 0.6634358939537648
    },
    "raw": {
     "n_matched": 17821,
@@ -1833,7 +1976,8 @@
     "t_a": 30.059,
     "t_b": 40.144,
     "heading_est_deg": 0.20090958613716225,
-    "heading_truth_deg": -0.034777403627729096
+    "heading_truth_deg": -0.034777403627729096,
+    "heading_diff_deg": 0.23568698976489136
    },
    "raw": {
     "n_matched": 9073,
@@ -1877,7 +2021,8 @@
     "t_a": 30.081382,
     "t_b": 40.181674,
     "heading_est_deg": 0.25451676000339557,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.25451676000339557
    },
    "raw": {
     "n_matched": 3029,
@@ -1906,6 +2051,10 @@
    ],
    "stored_ate_a_cruise": 4.092895,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -1921,7 +2070,8 @@
     "t_a": 30.14436,
     "t_b": 40.244674,
     "heading_est_deg": 0.27896467589951107,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.27896467589951107
    },
    "raw": {
     "n_matched": 3022,
@@ -1950,6 +2100,10 @@
    ],
    "stored_ate_a_cruise": 4.959532,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -1965,7 +2119,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": 0.6653384913794678,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": 0.7012398713379658
    },
    "raw": {
     "n_matched": 18542,
@@ -1994,6 +2149,10 @@
    ],
    "stored_ate_a_cruise": 4.467123,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -2009,7 +2168,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": 0.33625595620205584,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": 0.37215733616055385
    },
    "raw": {
     "n_matched": 9068,
@@ -2053,7 +2213,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": -0.13123172793426505,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": -0.095330347975767
    },
    "raw": {
     "n_matched": 18542,
@@ -2097,7 +2258,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": -0.2811724737740567,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": -0.24527109381555864
    },
    "raw": {
     "n_matched": 9068,
@@ -2141,7 +2303,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": -0.13229106543292804,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": -0.09638968547443
    },
    "raw": {
     "n_matched": 18542,
@@ -2185,7 +2348,8 @@
     "t_a": 30.059,
     "t_b": 40.13,
     "heading_est_deg": -0.2855466000704235,
-    "heading_truth_deg": -0.035901379958498035
+    "heading_truth_deg": -0.035901379958498035,
+    "heading_diff_deg": -0.24964522011192544
    },
    "raw": {
     "n_matched": 9068,
@@ -2214,6 +2378,10 @@
    ],
    "stored_ate_a_cruise": 41.481515,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -2229,7 +2397,8 @@
     "t_a": 30.421265,
     "t_b": 40.521674,
     "heading_est_deg": 0.0626095193716394,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.0626095193716394
    },
    "raw": {
     "n_matched": 3019,
@@ -2258,6 +2427,10 @@
    ],
    "stored_ate_a_cruise": 136.666319,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -2273,7 +2446,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -2.052532534778173,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -2.028577986265328
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2291,6 +2465,10 @@
    ],
    "stored_ate_a_cruise": 568.144758,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -2306,7 +2484,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -1.5546262675006803,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -1.5306717189878354
    },
    "raw": {
     "n_matched": 9058,
@@ -2350,7 +2529,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -0.7431022723436901,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -0.719147723830845
    },
    "raw": {
     "n_matched": 18533,
@@ -2394,7 +2574,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -0.9247871558019256,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -0.9008326072890805
    },
    "raw": {
     "n_matched": 9058,
@@ -2438,7 +2619,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -0.7960581621773999,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -0.7721036136645548
    },
    "raw": {
     "n_matched": 18533,
@@ -2482,7 +2664,8 @@
     "t_a": 30.379,
     "t_b": 40.46,
     "heading_est_deg": -0.9145498775042833,
-    "heading_truth_deg": -0.023954548512845012
+    "heading_truth_deg": -0.023954548512845012,
+    "heading_diff_deg": -0.8905953289914382
    },
    "raw": {
     "n_matched": 9058,
@@ -2511,6 +2694,10 @@
    ],
    "stored_ate_a_cruise": 43.573453,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -2526,7 +2713,8 @@
     "t_a": 29.748496,
     "t_b": 39.848674,
     "heading_est_deg": -170.39025207776643,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -170.39025207776643
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2544,6 +2732,10 @@
    ],
    "stored_ate_a_cruise": 11726.24746,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -2559,7 +2751,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 11.247376219326888,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 11.289688833936284
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2577,6 +2770,10 @@
    ],
    "stored_ate_a_cruise": 6648.40389,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -2592,7 +2789,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 11.1757795306752,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 11.218092145284595
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2625,7 +2823,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 8.395996526267668,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 8.438309140877063
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2658,7 +2857,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 8.446689306805169,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 8.489001921414564
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2691,7 +2891,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 8.512922956042642,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 8.555235570652037
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2724,7 +2925,8 @@
     "t_a": 29.735,
     "t_b": 39.817,
     "heading_est_deg": 8.416718980773318,
-    "heading_truth_deg": -0.042312614609395865
+    "heading_truth_deg": -0.042312614609395865,
+    "heading_diff_deg": 8.459031595382713
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2742,6 +2944,10 @@
    ],
    "stored_ate_a_cruise": 3.603274,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -2757,7 +2963,8 @@
     "t_a": 30.271316,
     "t_b": 40.371674,
     "heading_est_deg": -0.37213763647229064,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -0.37213763647229064
    },
    "raw": {
     "n_matched": 3019,
@@ -2786,6 +2993,10 @@
    ],
    "stored_ate_a_cruise": 1.783411,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -2801,7 +3012,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -3.053193165058186,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -2.9961277951892935
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2819,6 +3031,10 @@
    ],
    "stored_ate_a_cruise": 2.262089,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -2834,7 +3050,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -2.5049924629594353,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -2.447927093090543
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -2867,7 +3084,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -1.0714558955371347,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -1.0143905256682422
    },
    "raw": {
     "n_matched": 18465,
@@ -2911,7 +3129,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -1.2123885711572544,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -1.1553232012883619
    },
    "raw": {
     "n_matched": 9059,
@@ -2955,7 +3174,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -1.0753044913719543,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -1.0182391215030617
    },
    "raw": {
     "n_matched": 18465,
@@ -2999,7 +3219,8 @@
     "t_a": 30.197,
     "t_b": 40.279,
     "heading_est_deg": -1.2164380665887746,
-    "heading_truth_deg": -0.05706536986889253
+    "heading_truth_deg": -0.05706536986889253,
+    "heading_diff_deg": -1.159372696719882
    },
    "raw": {
     "n_matched": 9059,
@@ -3028,6 +3249,10 @@
    ],
    "stored_ate_a_cruise": 41.489457,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -3043,7 +3268,8 @@
     "t_a": 30.101375,
     "t_b": 40.201674,
     "heading_est_deg": 0.21440560182659915,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.21440560182659915
    },
    "raw": {
     "n_matched": 3021,
@@ -3072,6 +3298,10 @@
    ],
    "stored_ate_a_cruise": 148.367555,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -3087,7 +3317,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": 2.286827475397057,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": 2.340262617933068
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3105,6 +3336,10 @@
    ],
    "stored_ate_a_cruise": 559.525209,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -3120,7 +3355,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": 0.40450528297785565,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": 0.45794042551386654
    },
    "raw": {
     "n_matched": 9063,
@@ -3164,7 +3400,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": -0.15460508281629154,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": -0.10116994028028063
    },
    "raw": {
     "n_matched": 18578,
@@ -3208,7 +3445,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": -0.19970906352700377,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": -0.14627392099099285
    },
    "raw": {
     "n_matched": 9063,
@@ -3252,7 +3490,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": -0.1550568090133298,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": -0.10162166647731889
    },
    "raw": {
     "n_matched": 18578,
@@ -3296,7 +3535,8 @@
     "t_a": 30.082,
     "t_b": 40.163,
     "heading_est_deg": -0.20118049950705802,
-    "heading_truth_deg": -0.05343514253601091
+    "heading_truth_deg": -0.05343514253601091,
+    "heading_diff_deg": -0.14774535697104713
    },
    "raw": {
     "n_matched": 9063,
@@ -3325,6 +3565,10 @@
    ],
    "stored_ate_a_cruise": 43.54297,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -3340,7 +3584,8 @@
     "t_a": 30.314302,
     "t_b": 40.414674,
     "heading_est_deg": -159.59313112400883,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -159.59313112400883
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3358,6 +3603,10 @@
    ],
    "stored_ate_a_cruise": 11333.465048,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -3373,7 +3622,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 16.954079118312947,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 16.970224386466327
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3391,6 +3641,10 @@
    ],
    "stored_ate_a_cruise": 12135.146823,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -3406,7 +3660,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 16.57200906286198,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 16.58815433101536
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3439,7 +3694,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 16.478724556714546,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 16.494869824867926
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3472,7 +3728,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 19.33964345802408,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 19.35578872617746
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3505,7 +3762,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 16.522626661221416,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 16.538771929374796
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3538,7 +3796,8 @@
     "t_a": 30.296,
     "t_b": 40.378,
     "heading_est_deg": 19.310752755417667,
-    "heading_truth_deg": -0.016145268153380715
+    "heading_truth_deg": -0.016145268153380715,
+    "heading_diff_deg": 19.326898023571047
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -3556,6 +3815,10 @@
    ],
    "stored_ate_a_cruise": 4.075574,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -3571,7 +3834,8 @@
     "t_a": 30.106373,
     "t_b": 40.206674,
     "heading_est_deg": 0.2237421290160218,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.2237421290160218
    },
    "raw": {
     "n_matched": 3021,
@@ -3600,6 +3864,10 @@
    ],
    "stored_ate_a_cruise": 4.963794,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -3615,7 +3883,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.6743932108502773,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.7162310202454072
    },
    "raw": {
     "n_matched": 18501,
@@ -3644,6 +3913,10 @@
    ],
    "stored_ate_a_cruise": 4.544273,
    "source": "phase4_fwdc_arms.json:fwdc_tex_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_tex_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_tex_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -3659,7 +3932,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.42431336035517087,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.46615116975030085
    },
    "raw": {
     "n_matched": 9065,
@@ -3703,7 +3977,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.1686046388336944,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.21044244822882435
    },
    "raw": {
     "n_matched": 18501,
@@ -3747,7 +4022,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.10377737969508462,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.1456151890902146
    },
    "raw": {
     "n_matched": 9065,
@@ -3791,7 +4067,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.17682369022897054,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.2186614996241005
    },
    "raw": {
     "n_matched": 18501,
@@ -3835,7 +4112,8 @@
     "t_a": 30.016,
     "t_b": 40.097,
     "heading_est_deg": 0.1111974380267116,
-    "heading_truth_deg": -0.04183780939512997
+    "heading_truth_deg": -0.04183780939512997,
+    "heading_diff_deg": 0.15303524742184157
    },
    "raw": {
     "n_matched": 9065,
@@ -3864,6 +4142,10 @@
    ],
    "stored_ate_a_cruise": 41.465825,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -3879,7 +4161,8 @@
     "t_a": 30.287311,
     "t_b": 40.387674,
     "heading_est_deg": 0.0008973338626738975,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.0008973338626738975
    },
    "raw": {
     "n_matched": 3022,
@@ -3908,6 +4191,10 @@
    ],
    "stored_ate_a_cruise": 141.084162,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -3923,7 +4210,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.9405345766481874,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.9254925619174824
    },
    "raw": {
     "n_matched": 18650,
@@ -3952,6 +4240,10 @@
    ],
    "stored_ate_a_cruise": 633.160977,
    "source": "phase4_fwdc_arms.json:fwdc_trans_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_trans_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_trans_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -3967,7 +4259,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.698363920417356,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.683321905686651
    },
    "raw": {
     "n_matched": 9066,
@@ -4011,7 +4304,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.14264192909469803,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.12759991436399298
    },
    "raw": {
     "n_matched": 18650,
@@ -4055,7 +4349,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.14081131793182008,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.12576930320111504
    },
    "raw": {
     "n_matched": 9066,
@@ -4099,7 +4394,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.14943266533097127,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.13439065060026623
    },
    "raw": {
     "n_matched": 18650,
@@ -4143,7 +4439,8 @@
     "t_a": 30.23,
     "t_b": 40.313,
     "heading_est_deg": -0.14716788980622994,
-    "heading_truth_deg": -0.015042014730705038
+    "heading_truth_deg": -0.015042014730705038,
+    "heading_diff_deg": -0.1321258750755249
    },
    "raw": {
     "n_matched": 9066,
@@ -4172,6 +4469,10 @@
    ],
    "stored_ate_a_cruise": 43.61236,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -4187,7 +4488,8 @@
     "t_a": 29.845463,
     "t_b": 39.945674,
     "heading_est_deg": -169.4904713513796,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -169.4904713513796
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4205,6 +4507,10 @@
    ],
    "stored_ate_a_cruise": 8506.103991,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -4220,7 +4526,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 10.438206245336485,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 10.490796696679853
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4238,6 +4545,10 @@
    ],
    "stored_ate_a_cruise": 9311.514021,
    "source": "phase4_fwdc_arms.json:fwdc_blank_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdc_evo.json:trials.fwdc_blank_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdc_evo.json:trials.fwdc_blank_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -4253,7 +4564,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 10.333120431352059,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 10.385710882695427
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4286,7 +4598,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 7.408977148936039,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 7.461567600279406
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4319,7 +4632,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 7.594746021064083,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 7.64733647240745
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4352,7 +4666,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 7.449120783582762,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 7.5017112349261295
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4385,7 +4700,8 @@
     "t_a": 29.834,
     "t_b": 39.932,
     "heading_est_deg": 7.54038974105859,
-    "heading_truth_deg": -0.05259045134336765
+    "heading_truth_deg": -0.05259045134336765,
+    "heading_diff_deg": 7.592980192401957
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4403,6 +4719,10 @@
    ],
    "stored_ate_a_cruise": 4.075241,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -4418,7 +4738,8 @@
     "t_a": 29.954425,
     "t_b": 40.054674,
     "heading_est_deg": 0.22630713255791088,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.22630713255791088
    },
    "raw": {
     "n_matched": 3022,
@@ -4447,6 +4768,10 @@
    ],
    "stored_ate_a_cruise": 5.023202,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -4462,7 +4787,8 @@
     "t_a": 29.93,
     "t_b": 40.012,
     "heading_est_deg": 0.7241457546135838,
-    "heading_truth_deg": -0.05280683851938845
+    "heading_truth_deg": -0.05280683851938845,
+    "heading_diff_deg": 0.7769525931329723
    },
    "raw": {
     "n_matched": 20143,
@@ -4491,6 +4817,10 @@
    ],
    "stored_ate_a_cruise": 4.536324,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -4506,7 +4836,8 @@
     "t_a": 29.93,
     "t_b": 40.012,
     "heading_est_deg": 0.391640043600987,
-    "heading_truth_deg": -0.05280683851938845
+    "heading_truth_deg": -0.05280683851938845,
+    "heading_diff_deg": 0.4444468821203754
    },
    "raw": {
     "n_matched": 9066,
@@ -4550,7 +4881,8 @@
     "t_a": 29.93,
     "t_b": 40.012,
     "heading_est_deg": -2.7130843114075915,
-    "heading_truth_deg": -0.05280683851938845
+    "heading_truth_deg": -0.05280683851938845,
+    "heading_diff_deg": -2.660277472888203
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4583,7 +4915,8 @@
     "t_a": 29.93,
     "t_b": 40.012,
     "heading_est_deg": -2.759027151557697,
-    "heading_truth_deg": -0.05280683851938845
+    "heading_truth_deg": -0.05280683851938845,
+    "heading_diff_deg": -2.7062203130383087
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4601,6 +4934,10 @@
    ],
    "stored_ate_a_cruise": 41.478765,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -4616,7 +4953,8 @@
     "t_a": 29.922436,
     "t_b": 40.022674,
     "heading_est_deg": 0.25304623898815204,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.25304623898815204
    },
    "raw": {
     "n_matched": 3018,
@@ -4645,6 +4983,10 @@
    ],
    "stored_ate_a_cruise": 138.243224,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -4660,7 +5002,8 @@
     "t_a": 29.881,
     "t_b": 39.96,
     "heading_est_deg": 0.753824561521546,
-    "heading_truth_deg": -0.0461809335954737
+    "heading_truth_deg": -0.0461809335954737,
+    "heading_diff_deg": 0.8000054951170197
    },
    "raw": {
     "n_matched": 20117,
@@ -4689,6 +5032,10 @@
    ],
    "stored_ate_a_cruise": 547.385882,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -4704,7 +5051,8 @@
     "t_a": 29.881,
     "t_b": 39.96,
     "heading_est_deg": 0.39768556423683377,
-    "heading_truth_deg": -0.0461809335954737
+    "heading_truth_deg": -0.0461809335954737,
+    "heading_diff_deg": 0.44386649783230747
    },
    "raw": {
     "n_matched": 9054,
@@ -4748,7 +5096,8 @@
     "t_a": 29.881,
     "t_b": 39.96,
     "heading_est_deg": -2.8096108515124576,
-    "heading_truth_deg": -0.0461809335954737
+    "heading_truth_deg": -0.0461809335954737,
+    "heading_diff_deg": -2.763429917916984
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4781,7 +5130,8 @@
     "t_a": 29.881,
     "t_b": 39.96,
     "heading_est_deg": -3.0573352960589886,
-    "heading_truth_deg": -0.0461809335954737
+    "heading_truth_deg": -0.0461809335954737,
+    "heading_diff_deg": -3.011154362463515
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4799,6 +5149,10 @@
    ],
    "stored_ate_a_cruise": 43.452781,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r1.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ekf3/ground_truth.tum",
    "gate": {
@@ -4814,7 +5168,8 @@
     "t_a": 29.85446,
     "t_b": 39.954674,
     "heading_est_deg": -171.7912532708248,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -171.7912532708248
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4832,6 +5187,10 @@
    ],
    "stored_ate_a_cruise": 8782.611809,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r1.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -4847,7 +5206,8 @@
     "t_a": 29.789,
     "t_b": 39.871,
     "heading_est_deg": 10.037492959318099,
-    "heading_truth_deg": -0.04510475794634016
+    "heading_truth_deg": -0.04510475794634016,
+    "heading_diff_deg": 10.08259771726444
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4865,6 +5225,10 @@
    ],
    "stored_ate_a_cruise": 6523.827738,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r1.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r1.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -4880,7 +5244,8 @@
     "t_a": 29.789,
     "t_b": 39.871,
     "heading_est_deg": 9.95627658090871,
-    "heading_truth_deg": -0.04510475794634016
+    "heading_truth_deg": -0.04510475794634016,
+    "heading_diff_deg": 10.001381338855051
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4913,7 +5278,8 @@
     "t_a": 29.789,
     "t_b": 39.871,
     "heading_est_deg": 11.143335476710865,
-    "heading_truth_deg": -0.04510475794634016
+    "heading_truth_deg": -0.04510475794634016,
+    "heading_diff_deg": 11.188440234657206
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4946,7 +5312,8 @@
     "t_a": 29.789,
     "t_b": 39.871,
     "heading_est_deg": 11.43876043924724,
-    "heading_truth_deg": -0.04510475794634016
+    "heading_truth_deg": -0.04510475794634016,
+    "heading_diff_deg": 11.48386519719358
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -4964,6 +5331,10 @@
    ],
    "stored_ate_a_cruise": 4.056744,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -4979,7 +5350,8 @@
     "t_a": 30.073384,
     "t_b": 40.173674,
     "heading_est_deg": 0.2885650758509453,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.2885650758509453
    },
    "raw": {
     "n_matched": 3013,
@@ -5008,6 +5380,10 @@
    ],
    "stored_ate_a_cruise": 11.194393,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5023,7 +5399,8 @@
     "t_a": 30.049,
     "t_b": 40.134,
     "heading_est_deg": 5.399722293107471,
-    "heading_truth_deg": -0.03762033570535826
+    "heading_truth_deg": -0.03762033570535826,
+    "heading_diff_deg": 5.4373426288128295
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5041,6 +5418,10 @@
    ],
    "stored_ate_a_cruise": 4.51762,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5056,7 +5437,8 @@
     "t_a": 30.049,
     "t_b": 40.134,
     "heading_est_deg": 0.5202414161206924,
-    "heading_truth_deg": -0.03762033570535826
+    "heading_truth_deg": -0.03762033570535826,
+    "heading_diff_deg": 0.5578617518260507
    },
    "raw": {
     "n_matched": 9038,
@@ -5100,7 +5482,8 @@
     "t_a": 30.049,
     "t_b": 40.134,
     "heading_est_deg": -2.4750943340427756,
-    "heading_truth_deg": -0.03762033570535826
+    "heading_truth_deg": -0.03762033570535826,
+    "heading_diff_deg": -2.4374739983374174
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5133,7 +5516,8 @@
     "t_a": 30.049,
     "t_b": 40.134,
     "heading_est_deg": -2.5353375766028554,
-    "heading_truth_deg": -0.03762033570535826
+    "heading_truth_deg": -0.03762033570535826,
+    "heading_diff_deg": -2.4977172408974972
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5151,6 +5535,10 @@
    ],
    "stored_ate_a_cruise": 41.440278,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -5166,7 +5554,8 @@
     "t_a": 30.044394,
     "t_b": 40.144674,
     "heading_est_deg": -0.20603161421089813,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -0.20603161421089813
    },
    "raw": {
     "n_matched": 3016,
@@ -5195,6 +5584,10 @@
    ],
    "stored_ate_a_cruise": 129.504236,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5210,7 +5603,8 @@
     "t_a": 29.951,
     "t_b": 40.031,
     "heading_est_deg": -2.854538080119084,
-    "heading_truth_deg": -0.034735760633793744
+    "heading_truth_deg": -0.034735760633793744,
+    "heading_diff_deg": -2.8198023194852904
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5228,6 +5622,10 @@
    ],
    "stored_ate_a_cruise": 650.620455,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5243,7 +5641,8 @@
     "t_a": 29.951,
     "t_b": 40.031,
     "heading_est_deg": -2.3969979444647636,
-    "heading_truth_deg": -0.034735760633793744
+    "heading_truth_deg": -0.034735760633793744,
+    "heading_diff_deg": -2.36226218383097
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5276,7 +5675,8 @@
     "t_a": 29.951,
     "t_b": 40.031,
     "heading_est_deg": 2.272687823431666,
-    "heading_truth_deg": -0.034735760633793744
+    "heading_truth_deg": -0.034735760633793744,
+    "heading_diff_deg": 2.3074235840654596
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5309,7 +5709,8 @@
     "t_a": 29.951,
     "t_b": 40.031,
     "heading_est_deg": 2.1923251160931327,
-    "heading_truth_deg": -0.034735760633793744
+    "heading_truth_deg": -0.034735760633793744,
+    "heading_diff_deg": 2.2270608767269264
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5327,6 +5728,10 @@
    ],
    "stored_ate_a_cruise": 43.510757,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r2.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ekf3/ground_truth.tum",
    "gate": {
@@ -5342,7 +5747,8 @@
     "t_a": 30.142361,
     "t_b": 40.242674,
     "heading_est_deg": -170.62011142411185,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -170.62011142411185
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5360,6 +5766,10 @@
    ],
    "stored_ate_a_cruise": 9294.262824,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r2.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5375,7 +5785,8 @@
     "t_a": 30.098,
     "t_b": 40.18,
     "heading_est_deg": 10.91589554976059,
-    "heading_truth_deg": -0.010602032931107758
+    "heading_truth_deg": -0.010602032931107758,
+    "heading_diff_deg": 10.926497582691697
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5393,6 +5804,10 @@
    ],
    "stored_ate_a_cruise": 10682.913525,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r2.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r2.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5408,7 +5823,8 @@
     "t_a": 30.098,
     "t_b": 40.18,
     "heading_est_deg": 10.79614844695598,
-    "heading_truth_deg": -0.010602032931107758
+    "heading_truth_deg": -0.010602032931107758,
+    "heading_diff_deg": 10.806750479887087
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5441,7 +5857,8 @@
     "t_a": 30.098,
     "t_b": 40.18,
     "heading_est_deg": 8.252545389273502,
-    "heading_truth_deg": -0.010602032931107758
+    "heading_truth_deg": -0.010602032931107758,
+    "heading_diff_deg": 8.263147422204609
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5474,7 +5891,8 @@
     "t_a": 30.098,
     "t_b": 40.18,
     "heading_est_deg": 8.003431394383085,
-    "heading_truth_deg": -0.010602032931107758
+    "heading_truth_deg": -0.010602032931107758,
+    "heading_diff_deg": 8.014033427314192
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5492,6 +5910,10 @@
    ],
    "stored_ate_a_cruise": 4.082146,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -5507,7 +5929,8 @@
     "t_a": 30.08638,
     "t_b": 40.186674,
     "heading_est_deg": 0.2936627128042923,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.2936627128042923
    },
    "raw": {
     "n_matched": 3017,
@@ -5536,6 +5959,10 @@
    ],
    "stored_ate_a_cruise": 10.818971,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5551,7 +5978,8 @@
     "t_a": 29.999,
     "t_b": 40.081,
     "heading_est_deg": 5.362587509270414,
-    "heading_truth_deg": -0.02329459087334262
+    "heading_truth_deg": -0.02329459087334262,
+    "heading_diff_deg": 5.385882100143756
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5569,6 +5997,10 @@
    ],
    "stored_ate_a_cruise": 4.740214,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_tex_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_tex_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5584,7 +6016,8 @@
     "t_a": 29.999,
     "t_b": 40.081,
     "heading_est_deg": 0.741300374745277,
-    "heading_truth_deg": -0.02329459087334262
+    "heading_truth_deg": -0.02329459087334262,
+    "heading_diff_deg": 0.7645949656186196
    },
    "raw": {
     "n_matched": 9054,
@@ -5628,7 +6061,8 @@
     "t_a": 29.999,
     "t_b": 40.081,
     "heading_est_deg": -3.582753098062924,
-    "heading_truth_deg": -0.02329459087334262
+    "heading_truth_deg": -0.02329459087334262,
+    "heading_diff_deg": -3.5594585071895812
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5661,7 +6095,8 @@
     "t_a": 29.999,
     "t_b": 40.081,
     "heading_est_deg": -3.5831886453108006,
-    "heading_truth_deg": -0.02329459087334262
+    "heading_truth_deg": -0.02329459087334262,
+    "heading_diff_deg": -3.559894054437458
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5679,6 +6114,10 @@
    ],
    "stored_ate_a_cruise": 41.440708,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -5694,7 +6133,8 @@
     "t_a": 29.857459,
     "t_b": 39.957674,
     "heading_est_deg": 0.2758798879655076,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": 0.2758798879655076
    },
    "raw": {
     "n_matched": 3014,
@@ -5723,6 +6163,10 @@
    ],
    "stored_ate_a_cruise": 134.863363,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5738,7 +6182,8 @@
     "t_a": 29.768,
     "t_b": 39.85,
     "heading_est_deg": 0.6937619301205968,
-    "heading_truth_deg": -0.045608814903043714
+    "heading_truth_deg": -0.045608814903043714,
+    "heading_diff_deg": 0.7393707450236405
    },
    "raw": {
     "n_matched": 18498,
@@ -5767,6 +6212,10 @@
    ],
    "stored_ate_a_cruise": 682.179189,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_trans_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_trans_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5782,7 +6231,8 @@
     "t_a": 29.768,
     "t_b": 39.85,
     "heading_est_deg": 0.290266537465839,
-    "heading_truth_deg": -0.045608814903043714
+    "heading_truth_deg": -0.045608814903043714,
+    "heading_diff_deg": 0.3358753523688827
    },
    "raw": {
     "n_matched": 9045,
@@ -5826,7 +6276,8 @@
     "t_a": 29.768,
     "t_b": 39.85,
     "heading_est_deg": -2.6285205487179213,
-    "heading_truth_deg": -0.045608814903043714
+    "heading_truth_deg": -0.045608814903043714,
+    "heading_diff_deg": -2.5829117338148775
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5859,7 +6310,8 @@
     "t_a": 29.768,
     "t_b": 39.85,
     "heading_est_deg": -2.6975855220805713,
-    "heading_truth_deg": -0.045608814903043714
+    "heading_truth_deg": -0.045608814903043714,
+    "heading_diff_deg": -2.6519767071775275
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5877,6 +6329,10 @@
    ],
    "stored_ate_a_cruise": 43.540103,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r3.EKF3.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.EKF3.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.EKF3.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ekf3/ekf3_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ekf3/ground_truth.tum",
    "gate": {
@@ -5892,7 +6348,8 @@
     "t_a": 30.341292,
     "t_b": 40.441674,
     "heading_est_deg": -151.22988588925676,
-    "heading_truth_deg": 0.0
+    "heading_truth_deg": 0.0,
+    "heading_diff_deg": -151.22988588925676
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5910,6 +6367,10 @@
    ],
    "stored_ate_a_cruise": 11422.737145,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r3.UKF_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.UKF.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.UKF_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_baseline/ukf_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/ukf_baseline/ground_truth.tum",
    "gate": {
@@ -5925,7 +6386,8 @@
     "t_a": 30.247,
     "t_b": 40.328,
     "heading_est_deg": 14.159641161644567,
-    "heading_truth_deg": -0.02820400924115623
+    "heading_truth_deg": -0.02820400924115623,
+    "heading_diff_deg": 14.187845170885723
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5943,6 +6405,10 @@
    ],
    "stored_ate_a_cruise": 11694.639017,
    "source": "phase4_fwdplainc_arms.json:fwdplainc_blank_r3.FGO_baseline.ate_a_cruise",
+   "extra_sources": [
+    "rerun_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.FGO.ate_a_cruise",
+    "phase4_fwdplainc_evo.json:trials.fwdplainc_blank_r3.est.FGO_baseline.ate_a_cruise"
+   ],
    "traj_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_baseline/fgo_traj.tum",
    "truth_path": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_baseline/ground_truth.tum",
    "gate": {
@@ -5958,7 +6424,8 @@
     "t_a": 30.247,
     "t_b": 40.328,
     "heading_est_deg": 14.010824681005479,
-    "heading_truth_deg": -0.02820400924115623
+    "heading_truth_deg": -0.02820400924115623,
+    "heading_diff_deg": 14.039028690246635
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -5991,7 +6458,8 @@
     "t_a": 30.247,
     "t_b": 40.328,
     "heading_est_deg": 15.323648545500452,
-    "heading_truth_deg": -0.02820400924115623
+    "heading_truth_deg": -0.02820400924115623,
+    "heading_diff_deg": 15.351852554741608
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   },
@@ -6024,7 +6492,8 @@
     "t_a": 30.247,
     "t_b": 40.328,
     "heading_est_deg": 15.347356175907695,
-    "heading_truth_deg": -0.02820400924115623
+    "heading_truth_deg": -0.02820400924115623,
+    "heading_diff_deg": 15.375560185148851
    },
    "stop": "frame check failed (see frame_check for the measured heading/origin)"
   }
