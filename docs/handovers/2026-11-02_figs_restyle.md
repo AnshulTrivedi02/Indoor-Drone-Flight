@@ -446,11 +446,16 @@ fixed unilaterally):
   - those sentences exist in F7's caption specifically BECAUSE claims C1-C5 require that content to appear there.
   Whether C2/C3's content should move out of F7's caption entirely (into the pointer line only, like every other
   figure) is a decision for the coordinator/user, not made here.
-- F9 keeps "inside the heading-error bound (p95 <= 1.0 deg, max <= 2.0 deg; grey band ±2.0 deg)" - this describes the
-  drawn grey band (a plotted threshold), not a verdict outcome, so it was kept; flagged in case that line is judged
-  differently.
 - F7 keeps "(pre-registered)" on the extension-experiment mentions - states that a rule was fixed in advance, not an
   outcome; kept for the same reason.
+- F5's title and body still read "no live ordering claimed"/"no live ordering is claimed" - F2 and F9 had the
+  equivalent "no ordering between the estimators is claimed [a]" sentence DROPPED entirely (its footnote marker made
+  it unambiguously part of the removed verdict apparatus), but F5's phrasing was left as plain prose describing what
+  is NOT claimed (arguably the opposite of a verdict, not a verdict), and its title in particular may be separately
+  user-approved wording from an earlier session. Flagged rather than changed either way - the coordinator should say
+  whether this is consistent with F2/F9's treatment or needs the same clause dropped.
+(F9's own former open item - "inside the heading-error bound" restating H1.9 - was found and fixed in the third
+correction below; no longer open.)
 
 ### Second correction, same session: the combined PDF's caption pages didn't end at the pointer either
 
@@ -475,11 +480,53 @@ else": `kind == "figure"` applies to exactly F2/F9/F5/F6/F7 (via `save()`) and M
 now end exactly at their `Verdicts: Table A.4, ...` line, with the next line starting the following item
 ("Figure 4.1b (provisional). Heading error ..." etc., or a table's own unchanged "Cross-check against the results
 record: ..." line) - checked by eye against the full extracted text, not just a presence grep this time.
-`docs/thesis/tables/**` regenerated again (16 files, provenance-line-only) and reverted to HEAD again; the 5 figure
-PDFs (F2/F5/F6/F7/F9) changed again (one less text block on their combined-PDF caption page - more blank space
-below, same chart image), their standalone `.png`/`.pdf` chart files did not.
+`docs/thesis/tables/**` regenerated again (16 files, provenance-line-only) and reverted to HEAD again. Correction to
+the wording two paragraphs up: the 5 figures' standalone chart `.pdf` files (F2/F5/F6/F7/F9, and A1-A3's) ARE
+re-saved by every `eval/figs_thesis.py` run regardless of any caption change (matplotlib re-embeds a fresh
+`CreationDate`/`ModDate` each time, exactly as A1-A3's already did before this session), so `git status` correctly
+shows them modified after every regeneration in this handover - this is expected churn for the actual deliverable
+figure files, not something to revert. Only the standalone chart `.png` files were confirmed pixel-identical (and
+thus didn't show as modified) across all three of this session's `eval/figs_thesis.py` runs, since no plotted pixel
+changed, only caption text and the combined-PDF caption-page layout.
 
-### Final totals (this session, after the layout fixes, D113 and both corrections above)
+### Third correction, same session: the cover page's own description was now inaccurate, and F9 had the same
+### restated-verdict problem as F2
+
+A third `advisor()` pass, after the check-count fix above, found two more items:
+
+1. **The combined PDF's cover page** (the intro paragraph on page 1 of `thesis_figures_combined.pdf`) said "Each
+   caption gives its cross-check count; the sources are in the figure index" and "Lettered footnotes [a], [b], …
+   under each table AND CAPTION give the metric, n, the pre-registered rule and the result..." - both no longer true
+   for the 8 D113 figures (no check count, no lettered footnotes, on any figure caption any more). Reworded to "Each
+   table caption gives its cross-check count; a figure's cross-checks, and every item's sources, are in the figure
+   index. Figure captions end with a pointer to their scored hypothesis/check row(s) in Table A.4
+   (docs/thesis/tables/TA_verdicts.md)." and restricted the footnote sentence to "under each table".
+2. **F9 still had F2's exact problem**: "...a maximum of 0.68° (Table 4.3), inside the heading-error bound (p95 ≤
+   1.0°, max ≤ 2.0°; grey band ±2.0°)..." restates H1.9's B3 criterion as met, in different words than the banned
+   word list (checked first: no `check()` anywhere asserts this literal phrase, confirmed by grep, so safe to
+   reword). Changed to describe the drawn grey band without stating the threshold is satisfied: "...a maximum of
+   0.68° (Table 4.3), so on the main axis their lines lie on zero (grey band: the ±2.0° heading-error bound); ...".
+   F9 is removed from the open-items list below as a result.
+
+Re-ran `eval/figs_thesis.py` (352/352, unchanged); `pdftotext` confirmed both new sentences; re-ran
+`eval/caption_verdict_check.py` (21/21) and `docs/thesis/tier1/check_claims_applied.py` (58/58); also ran the three
+other read-only checks the original handover's own table names, none of which touch generator logic this session
+changed but whose inputs (captions, `index.md`) did: `docs/thesis/ablation/check_discussion.py` **18/18** (unchanged
+from baseline), `docs/thesis/tier1/e6/check_e6_prose.py` **68 checks, 100 pairs, 0 mismatches** (unchanged),
+`docs/thesis/methodology_factsheets/check_factsheets.py` **584 bullets, 1614 citations, 0 failed, PASS** (unchanged
+- run from this worktree, which D109 already fixed to resolve citations correctly from inside `.claude/`
+worktrees). `docs/thesis/tables/**` regenerated again and reverted to HEAD.
+
+### Judgement calls made this session, for the coordinator to assign D-numbers to (not self-numbered here)
+
+- The `;` (not `,`) separator between multiple ids in a `Verdicts: Table A.4, rows ...` pointer line, because some
+  TA_verdicts.md ids contain their own comma (e.g. "H1.8 EKF3, half real-time (RTF 0.5)").
+- The "Verdicts: Table A.4, none (descriptive)." wording for R3/R5/methods_architecture (no row of their own).
+- Skipping the check-count line in the combined PDF for `kind == "figure"` only (not a new global rule - tables and
+  appendix pages keep it).
+- The two `check_claims_applied.py` C2/C3 reword strings (asserting the same claim/numbers without the verdict word).
+
+### Final totals (this session, after the layout fixes, D113 and all three corrections above)
 
 | check | result |
 |---|---|
@@ -490,9 +537,12 @@ below, same chart image), their standalone `.png`/`.pdf` chart files did not.
 | `docs/thesis/tier1/check_claims_applied.py` | 58/58 (2 rows reworded, total unchanged) |
 | `tools/check_numbers_frozen.py` | PASS (unchanged) |
 | `eval/caption_verdict_check.py` (new) | 21/21 |
+| `docs/thesis/ablation/check_discussion.py` | 18/18 (unchanged) |
+| `docs/thesis/tier1/e6/check_e6_prose.py` | 68 checks, 100 pairs, 0 mismatches (unchanged) |
+| `docs/thesis/methodology_factsheets/check_factsheets.py` | 584 bullets, 1614 citations, 0 failed, PASS (unchanged) |
 
 No existing total changed at any point in this session - every number above was already at this value before the
-layout fixes, D113, or either correction began.
+layout fixes, D113, or any of the three corrections began.
 
 `docs/thesis/tables/**` regenerated as the usual unavoidable side effect of `eval/figs_thesis.py`, three separate
 times (34, then 16, then 16 files - fewer each time as fewer scripts needed re-running), each time a 2-line diff per

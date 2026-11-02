@@ -1103,8 +1103,8 @@ save(fig, "F9", "F9_heading_error_closed_loop",
      f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
      f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
      f"{TNUM['F2']}. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
-     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), inside the heading-error bound (p95 ≤ 1.0°, max ≤ 2.0°; grey band ±2.0°), so on the main axis "
-     "their lines lie on zero; the inset (linear, y-axis ±1°, the same time axis) shows them alone. Builds: the final UKF port and the final FGO node "
+     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), so on the main axis their lines lie on zero (grey band: the ±2.0° heading-error bound); "
+     "the inset (linear, y-axis ±1°, the same time axis) shows them alone. Builds: the final UKF port and the final FGO node "
      "(original FGO priors), as in " + TNUM["F2"] + ". n = 1 flight per estimator without heading; closed-loop run-to-run variability is "
      "unmeasured; no comparison across real-time factors.",
      "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
@@ -2262,11 +2262,13 @@ with PdfPages(PDF) as P:
     intro = ("Reader-facing set (revision 2026-10-16; thesis numbering and names 2026-10-17), plotted and tabulated from the frozen "
              f"result files (no number recomputed): Figures {NFIG}; Tables {NTAB} (also as LaTeX and markdown in docs/thesis/tables/); "
              f"appendix Tables {NAPP}. Numbered by chapter: 3 method; 4 Experiment 1 (corridor comparison); 5 Experiments 2–4 (known tags, loop "
-             "closure, outdoor–indoor); 6 Experiment 5 (tag hold); 7 synthesis; A appendix. Each caption gives its cross-check count; "
-             "the sources are in the figure index. Conventions: one fixed colour and marker per estimator; solid lines and filled marks = "
-             "live, dashed lines and open marks = hindsight; linear axes only; cruise ATE = the aligned ATE over the pinned cruise window. "
+             "closure, outdoor–indoor); 6 Experiment 5 (tag hold); 7 synthesis; A appendix. Each table caption gives its cross-check "
+             "count; a figure's cross-checks, and every item's sources, are in the figure index. Figure captions end with a pointer to "
+             "their scored hypothesis/check row(s) in Table A.4 (docs/thesis/tables/TA_verdicts.md). Conventions: one fixed colour and "
+             "marker per estimator; solid lines and filled marks = live, dashed lines and open marks = hindsight; linear axes only; "
+             "cruise ATE = the aligned ATE over the pinned cruise window. "
              "† = a runaway magnitude from a diverging estimate (order of magnitude only). Lettered footnotes [a], [b], … under each "
-             "table and caption give the metric, n (with its unit), the pre-registered rule and the result for every ordering "
+             "table give the metric, n (with its unit), the pre-registered rule and the result for every ordering "
              "claimed or not claimed. " + PRIORS + " Half real-time (RTF 0.5): " + RTFX)
     _intro_lines = textwrap.wrap(intro, 140)
     fig.text(0.06, 0.79, "\n".join(_intro_lines), fontsize=9.6, va="top")
