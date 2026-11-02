@@ -34,7 +34,12 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 SUM = os.path.join(ROOT, "docs", "thesis", "summary"); OUTD = os.path.join(SUM, "walkthrough"); os.makedirs(OUTD, exist_ok=True)
-FIGD = os.path.join(ROOT, "docs", "thesis", "figures_thesis"); WI = os.path.join(ROOT, "docs", "thesis", "world_images")
+# RESTYLE (2026-11-02): repointed to the byte-identical pre-restyle copy (figures_thesis/working/) - this script crops
+# fixed pixel boxes out of F2/F9/F5/F6/F7/R3/R5 and asserts specific rows are blank at those exact pixel offsets, tuned
+# to the ORIGINAL (pre-restyle) image layout and resolution. The restyled figures_thesis/ outputs are a different size
+# (text-width, RS-1) and would break every box/assert here; this walkthrough is a separate reader document and must not
+# change, so it keeps reading the original images and index text, not the restyled ones.
+FIGD = os.path.join(ROOT, "docs", "thesis", "figures_thesis", "working"); WI = os.path.join(ROOT, "docs", "thesis", "world_images")
 PDF = os.path.join(SUM, "results_walkthrough.pdf"); INDEX = os.path.join(SUM, "index_walkthrough.md")
 TRIALS = os.path.expanduser("~/thesis_data/trials")
 COMMIT = subprocess.run(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()

@@ -1,0 +1,5 @@
+Figure 3.1. System architecture: sensors, bridges, the three estimators and where each one runs.
+
+Sensors (left) reach ArduPilot's flight controller through MAVLink bridges (flow, range, and the external-navigation (ExtNav) path for the camera heading or a tag) and reach the UKF and FGO through recorded ROS 2 topics. Which estimator flies is set by AHRS_EKF_TYPE: simulator truth in Experiments 1A, 1B, 2, 3 and 4 (open loop; EKF3 runs live but passively, the UKF and FGO are replayed offline), and EKF3, the UKF port or the FGO in Experiments 1C, 5 and 5S (closed loop; the others run in shadow). The FGO runs outside ArduPilot as a node whose state an in-firmware output predictor (AP_NavFGO) propagates. In simulation every process ran on one desktop; the companion computer (Pi) is planned and its timing is estimated. Two safety watchers: the simulation watcher used in Experiments 1C, 5 and 5S, and the real-hardware watcher, tested only on the SITL bench.
+
+Verdicts: Table A.4, none (descriptive).

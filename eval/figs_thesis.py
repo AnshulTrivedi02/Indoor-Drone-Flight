@@ -29,6 +29,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, Patch
+import matplotlib.patheffects as patheffects
 from matplotlib.backends.backend_pdf import PdfPages
 from pymavlink import mavutil
 from rosbags.rosbag2 import Reader
@@ -66,7 +67,11 @@ ITEMS = []; CHK = []; TP_BUF = []
 # the printed captions take the new numbers."); index.md carries the mapping thesis number -> internal id -> file.
 TNUM = {"F2": "Figure 4.1", "F9": "Figure 4.1b (provisional)", "T2": "Table 4.1", "T3": "Table 4.2", "T4": "Table 4.3", "F5": "Figure 5.1", "F7": "Figure 5.2",
         "F6": "Figure 5.3", "T6": "Table 5.1", "T8": "Table 5.2", "T5": "Table 6.1", "T1": "Table 7.1", "T7": "Table 7.2",
-        "A1": "Table A.1", "A2": "Table A.2", "A3": "Table A.3"}
+        "A1": "Table A.1", "A2": "Table A.2", "A3": "Table A.3",
+        # RESTYLE (2026-11-02): ids for the combined-PDF assembly of items built by SEPARATE generators (not recomputed
+        # here - see combine_extra_items() near the end), so the thesis_figures_combined.pdf rebuild includes every
+        # restyled reader-facing item, not just this script's own.
+        "METHODS_ARCH": "Figure 3.1", "R5": "Figure 4.1c (provisional)", "R3": "Figure 4.2", "TA": "Table A.4"}
 
 
 def tkey(fid):
@@ -157,13 +162,33 @@ def check(label, computed, expected, src):
     CHK.append((label, c, e, src, c == e))
 
 
-def save(fig, fid, name, title, caption, inputs, rows, logscale="none needed", uncheck="", foot=()):
-    """Writes <name>.pdf and <name>.png; records caption, sources and checks for the combined PDF and the index."""
+def save(fig, fid, name, title, caption, inputs, rows, logscale="none needed", uncheck="", foot=(), verdict=None):
+    """Writes <name>.pdf and <name>.png; records caption, sources and checks for the combined PDF and the index.
+    RESTYLE (2026-11-02): no in-figure title is drawn on the reader-facing image any more (house rule: no in-figure titles or
+    synopsis headlines). `title` is kept as metadata only - it is still the index/contents-page/combined-PDF heading. The
+    `verdict` pointer (RS-2: "each caption points to its TA_verdicts.md row(s) by id") is folded INTO `caption` before it
+    is stored in ITEMS, so it appears both in captions/<fid>.md (write_caption) and on the combined PDF's own caption page
+    (caption_page() prints ITEMS[...]["caption"], not a separately-read file) - one source of truth, not two."""
     global CHK
-    fig.suptitle(title, x=0.01, ha="left", fontsize=12.5, weight="bold")
     base = os.path.join(OUT, name)
+    if verdict is None:
+        # D113 (2026-11-02): exact pointer form; no PASS/FAIL/NOT MET/MET/MISS/"verdict" wording is allowed anywhere
+        # else in a reader-facing caption (eval/caption_verdict_check.py enforces this). This line must stay LAST -
+        # `foot` is empty for every current save() call, so nothing is appended after it.
+        verdict = "Verdicts: Table A.4, none (descriptive)."
+    caption = caption + "\n\n" + verdict
+    from thesis_style import write_caption
+    write_caption(fid, f"{TNUM[fid]}. {title}.\n\n{caption}" + ("".join(f"\n\n{t}" for t in foot)))
     txt = " ".join([title, caption] + list(foot) + [t.get_text() for t in fig.findobj(matplotlib.text.Text)])   # for the mapping's "used in"
-    fig.savefig(base + ".png", dpi=170, bbox_inches="tight"); fig.savefig(base + ".pdf", bbox_inches="tight"); plt.close(fig)
+    # RESTYLE (2026-11-02): bbox_inches="tight" crops to content and silently defeats the RS-1 text-width figsize (it
+    # shrank some figures below 6.30 in and grew others past it, e.g. a wide legend). tight_layout() instead adjusts
+    # the internal margins to fit the DECLARED figsize, which savefig(bbox_inches=None, the default) then preserves
+    # exactly, so every reader-facing figure is genuinely 6.30 in wide.
+    try:
+        fig.tight_layout()
+    except Exception:
+        pass
+    fig.savefig(base + ".png", dpi=170); fig.savefig(base + ".pdf"); plt.close(fig)
     ok = all(c[4] for c in CHK)
     ITEMS.append(dict(id=fid, num=TNUM[fid], kind="figure", png=base + ".png", pdf=base + ".pdf", title=title, caption=caption, inputs=inputs,
                       rows=rows, checks=CHK, status="CURRENT" if ok else "FLAGGED (check mismatch)", logscale=logscale, uncheck=uncheck,
@@ -861,10 +886,19 @@ save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment
                 "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN + [ob_ext("k")], order=10)
 
 # =============================================================================================== FIG 2 heading stops drift (ONE panel)
-fig, ax = plt.subplots(figsize=(15.5, 6.4))
+from thesis_style import TEXT_WIDTH_IN
+fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.0))
 for yw in (10, -10):
     ax.axhspan(yw - 0.1, yw + 0.1, color=WALL, lw=0)
 ax.axhline(9.58, color=WALL, lw=0.6, ls=":"); ax.axhline(-9.58, color=WALL, lw=0.6, ls=":")
+# LAYOUT FIX (2026-11-02): both "wall" labels get a white stroke halo so the glyphs stay legible where the dotted
+# contact line or the grey wall band (WALL, similar value to INK2) runs behind/through them.
+_WALL_HALO = [patheffects.withStroke(linewidth=2.5, foreground=SURF)]
+ax.text(163, 10.05, "wall", ha="right", va="bottom", fontsize=8, color=INK2, path_effects=_WALL_HALO)
+# va="top" at y=-10.05 let the glyphs (no descenders, so most of their height sits BELOW the anchor) run down past
+# the bottom spine (ylim -10.6) and sit on top of it. Centred inside the wall band itself (-10.1..-9.9) instead,
+# well clear of the spine.
+ax.text(163, -10.0, "wall", ha="right", va="center", fontsize=8, color=INK2, path_effects=_WALL_HALO)
 CT2 = {}; PATHD = {}; XB2 = {}
 for est in EST:                                   # with heading first (solid, thin), so the dashed no-heading paths sit on top
     off, ons = HALF[est]
@@ -880,29 +914,28 @@ for est in EST:
     ax.plot(g[ww, 2], g[ww, 1], color=C[est], lw=1.6, ls=(0, (5, 3)), zorder=4)
     PATHD[est] = float(math.hypot(g[ww, 2][-1] - ct["y"], g[ww, 1][-1] - ct["x"]))
     ax.plot(ct["y"], ct["x"], marker="X", ms=10, color=C[est], mec=INK, mew=1.0, zorder=6)
-ax.set_xlim(-2, 162); ax.set_ylim(-10.6, 10.6); ax.set_yticks([-10, -5, 0, 5, 10])
-ax.set_xlabel("distance along the corridor, true North y (m)"); ax.set_ylabel("true East x (m)  [lateral axis stretched]")
+ax.set_xlim(-2, 165); ax.set_ylim(-10.6, 10.6); ax.set_yticks([-10, -5, 0, 5, 10])
+ax.set_xlabel("distance along the corridor, true North y (m)"); ax.set_ylabel("true East x (m)")
 ax.set_aspect(3.0, adjustable="box")
 fig.canvas.draw()
 axbb = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
 x0_, x1_ = ax.get_xlim(); y0_, y1_ = ax.get_ylim()
 STRETCH = (axbb.height / (y1_ - y0_)) / (axbb.width / (x1_ - x0_))
-# contact labels: placed in the free middle of the corridor, linked to their X
+# RESTYLE (2026-11-02): per-estimator annotate() boxes and the two explanatory ax.text() notes (stretch factor, "9 flights
+# overlap") removed - that content is in the caption (house rule: no explanatory notes/badges inside axes). Estimator names
+# are kept as minimal direct labels at each wall-contact X (house rule: "minimal direct labels" are allowed).
 LABXY = {"UKF": (4, -8.9, "left"), "FGO": (4, -6.6, "left"), "EKF3": (160, -3.2, "right")}
 for est in EST:
-    c0, ct = cl_meta(HALF[est][0]); a, b = WIN[est]; t = CT2[est]; lx, ly, ha_ = LABXY[est]
-    ax.annotate(f"{est}, no heading: wall contact at cruise +{rd(t, 1)} s\n(registered window +{a}…+{b} s: {'inside' if a <= t <= b else 'after it'})",
-                (ct["y"], ct["x"]), xytext=(lx, ly), fontsize=8.6, color=INK, ha=ha_, va="center",
+    c0, ct = cl_meta(HALF[est][0]); lx, ly, ha_ = LABXY[est]
+    ax.annotate(est, (ct["y"], ct["x"]), xytext=(lx, ly), fontsize=8.6, color=INK, ha=ha_, va="center",
                 arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
-ax.text(161, 0.9, f"with the camera heading: 9 flights (3 per estimator) overlap on the centreline, max |cross-track| "
-        f"{rd(max(max(B2h[e]) for e in EST), 2)} m", ha="right", va="bottom", fontsize=8.6, color=INK)
-ax.text(0.0, 1.02, f"Lateral (East) axis stretched {rd(STRETCH, 1)}× relative to the along-corridor axis. Walls at x = ±10 m; dotted = the "
-        "9.58 m contact threshold.", transform=ax.transAxes, fontsize=8.6, color=INK2)
 h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
-    [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading (1 flight each), to wall contact"),
-     Line2D([], [], color=INK2, lw=1.0, ls="-", label="with the camera heading (3 flights each)"),
+    [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading"),
+     Line2D([], [], color=INK2, lw=1.0, ls="-", label="with heading"),
      Line2D([], [], color=INK2, ls="", marker="X", ms=8, mec=INK, label="wall contact")]
-ax.legend(handles=h, loc="upper left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=2, fontsize=8.5)
+ax.legend(handles=h, loc="upper left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=2, fontsize=9.0)
+F2_WSRC = cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m")
+F2_GSRC = cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m")
 check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(CT2[e], 1)}" for e in EST), "+242.1 / +165.9 / +169.9", "numbers.md §15 contact rows")
 check("with heading, max cross-track per estimator EKF3 / final UKF port / final FGO node (m)", " / ".join(rng(B2h[e]) for e in EST),
       "0.24–0.33 / 0.22–0.25 / 0.03–0.39", "numbers.md §15 B2 row (EKF3 half) and re-flown rows")
@@ -912,20 +945,24 @@ check("plotted with-heading paths: max |x| in cruise vs scored max cross-track, 
 check("plotted no-heading paths end at the scored contact point, all 3, |Δ| <= 0.5 m", "ok" if max(PATHD.values()) <= 0.5 else
       f"{rd(max(PATHD.values()), 2)}", "ok", "curve source (dataflash SIM, cut at cruise start + contact time) vs closed_loop_*.json contact")
 print(f"F2 stretch {rd(STRETCH, 3)}; path-B2 max |Δ| {rd(dPB, 4)} m; path end vs contact {PATHD}")
+ob_cl("a")   # D113 (2026-11-02): runs the underlying numeric cross-checks only; the obasis() text it returns is no
+             # longer placed in this figure's caption (verdict wording and the pre-registered window now live only in
+             # Table A.4, docs/thesis/tables/TA_verdicts.md).
 save(fig, "F2", "F2_heading_stops_sideways_drift",
      "The camera heading stops the sideways drift: without it every estimator flies into the west wall",
      f"Textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}), each estimator flying the vehicle (closed loop); "
-     f"true paths from the simulator, top-down, with the lateral (East) axis stretched {rd(STRETCH, 1)}× (stated on the figure). Colour = the "
-     "flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s (after its "
-     "pre-registered window), UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within "
-     "0.39 m of the centreline and pass all five closed-loop criteria (mission completion and the cross-track, heading-error, "
-     "lateral-speed and oscillation bounds), so they overlap on the centreline at this scale; no ordering between the estimators is claimed [a]. Heading-error statistics are in "
+     f"true paths from the simulator, top-down, with the lateral (East) axis stretched {rd(STRETCH, 1)}×. Walls at x = ±10 m ({F2_GSRC}, labelled "
+     f"'wall'); the dotted line is the 9.58 m contact threshold ({F2_WSRC}). Colour = the "
+     "flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s, "
+     "UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within "
+     "0.39 m of the centreline, so they overlap on the centreline at this scale. Heading-error statistics are in "
      f"{TNUM['T4']}; the heading error over time, the cause of this drift, is in {TNUM['F9']}. Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds "
      "are in Table A.1. n = 1 "
      "flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.",
      "paths: dataflash SIM of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_half_v3, "
      "cl_fgo_b_tex_r1–r3_half_v3; contact and B2: eval/results/closed_loop_<trial>.json",
-     "§15 (contact rows, B2 row, re-flown B1/B2/B4 rows); claim 14", foot=[ob_cl("a"), OCASE_KEY])
+     "§15 (contact rows, B2 row, re-flown B1/B2/B4 rows); claim 14", foot=[],
+     verdict="Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO; H1.9 EKF3; H1.9 UKF; H1.9 FGO.")
 
 # =============================================================================================== FIG F9 heading error, same flights as F2
 # (2026-10-17) Figure 4.2. The curves are READ from the stored flight records (dataflash and bag of each trial); no estimator output
@@ -983,7 +1020,7 @@ def cl_yaw_err(tr, est):
     return te - js["cruise_s"][0], err, dclk
 
 
-fig, ax = plt.subplots(figsize=(13.5, 6.4))
+fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 4.3))
 ax.axhspan(-2.0, 2.0, color=TRUTH, alpha=0.16, lw=0, zorder=1)
 ax.axhline(0, color=INK2, lw=0.6, zorder=2)
 DB3 = []; DCLK = []; INSF9 = []; ENDF9 = {}; WALLF9 = {}; B3F9 = {e: [] for e in EST}
@@ -1000,33 +1037,33 @@ for est in EST:
     ax.plot(x[w], e[w], color=C[est], lw=1.6, ls=(0, (5, 3)), zorder=4)
     ax.plot(x[w][-1], e[w][-1], marker="X", ms=10, color=C[est], mec=INK, mew=1.0, zorder=6)
     ENDF9[est] = (float(x[w][-1]), float(e[w][-1]), t); WALLF9[est] = L(f"closed_loop_{off}.json")["contact"]["wall"]
+# RESTYLE (2026-11-02): per-estimator annotate() boxes and the grey-band explanatory note removed (house rule: no
+# explanatory notes inside axes); wall-contact times are in the caption. Estimator names kept as minimal direct labels.
 LABF9 = {"UKF": (8, 21.6, "left"), "FGO": (8, 19.4, "left"), "EKF3": (308, 10.0, "right")}
 for est in EST:
     xe, ye, t = ENDF9[est]; lx, ly, ha_ = LABF9[est]
-    ax.annotate(f"{est}, no heading: wall contact at cruise +{rd(t, 1)} s", (xe, ye), xytext=(lx, ly), fontsize=8.8, color=INK, ha=ha_,
+    ax.annotate(est, (xe, ye), xytext=(lx, ly), fontsize=8.8, color=INK, ha=ha_,
                 va="center", arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
 P95F9 = max(b["p95_deg"] for e in EST for b in B3F9[e]); MAXF9 = max(b["max_deg"] for e in EST for b in B3F9[e])
-ax.text(305, -1.85, "grey band: heading-error bound, max ≤ 2.0° (p95 ≤ 1.0°); the 9 with-heading lines lie on zero at this scale (inset)",
-        ha="right", va="bottom", fontsize=8.4, color=INK2)
 ax.set_xlim(0, 310); ax.set_ylim(-17, 23)
 # LINEAR INSET (user ruling 2026-10-17): the 9 with-heading flights only, same units and time axis, y ±1°; below zero, where no line runs
-axi = ax.inset_axes([0.43, 0.07, 0.555, 0.24])
+axi = ax.inset_axes([0.52, 0.06, 0.46, 0.30])
 for est, xx, ee in INSF9:
     axi.plot(xx, ee, color=C[est], lw=0.8, ls="-", alpha=0.9)
 axi.axhline(0, color=INK2, lw=0.5)
-axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1]); axi.tick_params(labelsize=8)
-axi.set_ylabel("heading error (°)", fontsize=8)
-axi.set_title(f"inset (linear, y-axis ±1°, same time axis): with the camera heading,\n9 flights (3 per estimator); p95 ≤ {rd(P95F9, 2)}°, max ≤ {rd(MAXF9, 2)}° "
-              f"({TNUM['T4']})", fontsize=8.6, loc="left", pad=3)
+axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1]); axi.tick_params(labelsize=9)
+axi.set_ylabel("heading error (°)", fontsize=9)
+axi.set_title("with heading", fontsize=9, loc="left", pad=2)
 for s_ in ("top", "right"):
     axi.spines[s_].set_visible(True)
 ax.set_xlabel("time since cruise start (s)"); ax.set_ylabel("heading error, estimate − truth (°)")
 h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
-    [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading (1 flight each; dashed = without heading)"),
-     Line2D([], [], color=INK2, lw=1.0, ls="-", label="with the camera heading (3 flights each)"),
+    [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading"),
+     Line2D([], [], color=INK2, lw=1.0, ls="-", label="with heading"),
      Line2D([], [], color=INK2, ls="", marker="X", ms=8, mec=INK, label="wall contact"),
-     Patch(color=TRUTH, alpha=0.3, label="heading-error bound (max ≤ 2.0°)")]
-ax.legend(handles=h, loc="lower left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=1, fontsize=8.2)
+     Patch(color=TRUTH, alpha=0.3, label="heading-error bound (±2.0°)")]
+ax.legend(handles=h, loc="lower left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=1, fontsize=9.0,
+          handlelength=1.4, labelspacing=0.3, borderpad=0.35)
 check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(ENDF9[e][2], 1)}" for e in EST), "+242.1 / +165.9 / +169.9", "numbers.md §15 contact rows")
 # ruling 2026-10-17 (F9 caption): EKF3's no-heading contact fell AFTER its pre-registered window; the window and the outcome are
 # checked by string equality against numbers.md:470, read at build time
@@ -1053,20 +1090,21 @@ check("no-heading: drift side implied by the heading-error sign at contact (posi
       "vs the stored contact wall", " / ".join("west" if ENDF9[e][1] > 0 else "east" for e in EST), " / ".join(WALLF9[e] for e in EST),
       "closed_loop_*.json contact.wall")
 print(f"F9 curve vs B3 max |Δ| {max(DB3):.2e} deg; clock max |Δ| {max(DCLK):.2e}; ends {ENDF9}")
+ob_cl("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F9", "F9_heading_error_closed_loop",
      "Without a heading source the heading error grows until the wall; with the camera heading it stays near zero",
      f"Heading error of the flying estimator (its own current yaw minus the simulator's true yaw; EKF3 from its logged state, the UKF and "
      f"the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop "
      f"flights as {TNUM['F2']}: textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}). Colour = the flying "
      f"estimator. Dashed (here: without heading, not hindsight): without a heading source (1 flight each), drawn to the wall contact (X): "
-     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s (after its pre-registered window {F9W} s; {F9SRC}), UKF +{rd(ENDF9['UKF'][2], 1)} s, "
+     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s, UKF +{rd(ENDF9['UKF'][2], 1)} s, "
      f"FGO +{rd(ENDF9['FGO'][2], 1)} s. Solid: with the camera heading "
      f"(3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the "
      f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
      f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
      f"{TNUM['F2']}. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
-     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), inside the heading-error bound (p95 ≤ 1.0°, max ≤ 2.0°; grey band ±2.0°), so on the main axis "
-     "their lines lie on zero; the inset (linear, y-axis ±1°, the same time axis) shows them alone. No ordering between the estimators is claimed [a]. Builds: the final UKF port and the final FGO node "
+     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), so on the main axis their lines lie on zero (grey band: the ±2.0° heading-error bound); "
+     "the inset (linear, y-axis ±1°, the same time axis) shows them alone. Builds: the final UKF port and the final FGO node "
      "(original FGO priors), as in " + TNUM["F2"] + ". n = 1 flight per estimator without heading; closed-loop run-to-run variability is "
      "unmeasured; no comparison across real-time factors.",
      "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
@@ -1074,7 +1112,8 @@ save(fig, "F9", "F9_heading_error_closed_loop",
      f"clock_map: eval/results/closed_loop_<trial>.json; heading-error bound: {B3SRC}",
      "§15 (contact rows, B3 row, re-flown B3 row); claim 14",
      uncheck="the curves themselves are read from the flight records, not numbers.md rows; they are checked against the stored B3 "
-             "p95/max, clock map and contact times (the 'ok' checks)", foot=[ob_cl("a"), OCASE_KEY])
+             "p95/max, clock map and contact times (the 'ok' checks)", foot=[],
+     verdict="Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO; H1.9 EKF3; H1.9 UKF; H1.9 FGO.")
 
 # =============================================================================================== TABLE T4 closed loop per estimator
 B3h = {e: [L(f"closed_loop_{t}.json")["B"]["B3"] for t in HALF[e][1]] for e in EST}
@@ -1241,7 +1280,7 @@ save_tab("T3", "T3_blank_floor", "Blank floor: position error after the loss of 
                 "floor, where the heading PASSED the heading-measurement validation (3/3, numbers.md §6.6); position is not bounded on any.", OCASE_KEY, ob_blank("a")], order=30)
 
 # =============================================================================================== FIG 5 T
-fig, ax = plt.subplots(figsize=(12.5, 6.0)); xc = np.arange(4); offs = dict(zip(TRK, np.linspace(-0.16, 0.16, 5)))
+fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4)); xc = np.arange(4); offs = dict(zip(TRK, np.linspace(-0.16, 0.16, 5)))
 TT = {}
 for n in TRK:
     est, kind = TSTY[n]
@@ -1253,14 +1292,13 @@ for n in TRK:
     for j in range(4):
         ax.scatter([x[j]] * 3, per[j], s=10, marker=MK[est], color=C[est] if kind == "live" else SURF, edgecolor=C[est], lw=0.6, zorder=2, alpha=0.8)
 gm = [agg["conditions"][c]["gap_length_median_s"] for c in TCOND]
-ax.set_xticks(xc); ax.set_xticklabels([f"{TLAB[c]}\n(median gap {rd(g, 1)} s)" for c, g in zip(TCOND, gm)])
+ax.set_xticks(xc); ax.set_xticklabels([TLAB[c] for c in TCOND])  # median gaps are in the caption, not repeated on the ticks
 ax.set_xlabel("tags available (condition A → D)"); ax.set_ylabel("horizontal RMSE over the 5 laps (m)")
 ax.set_ylim(0, 0.155); ax.set_xlim(-0.45, 3.45)
-ax.legend(loc="upper left", frameon=False, ncol=2)
+ax.legend(loc="upper left", frameon=False, ncol=2, fontsize=9.0)
+# RESTYLE (2026-11-02): the on-canvas hindsight-gain/PASS-FAIL fig.text() block is removed (house rule: no verdict text on
+# any plot); the gain numbers are in the caption, the H2.1/H2.2 verdicts are in docs/thesis/tables/TA_verdicts.md.
 h1 = agg["H-T1 (FGO live -> whole-flight batch)"]; p2 = agg["P-T2 (UKF live -> RTS)"]
-fig.text(0.98, -0.03, f"hindsight gain (median per gap): FGO whole-flight batch vs FGO live {', '.join(f'{rd_si(h1['median_gain_m'][c], 3)}' for c in TCOND)} m "
-        f"(H2.1 {'PASS' if h1['PASS'] else 'FAIL'}, grows with the gap)\nsmoothed UKF vs UKF live {', '.join(f'{rd_si(p2['median_gain_m'][c], 3, sign=True)}' for c in TCOND)} m "
-        f"(H2.2 {'PASS' if p2['PASS'] else 'FAIL'}, not increasing)", ha="right", va="top", fontsize=9, color=INK2)
 exp10 = {"A": "0.039 0.037 0.020 0.014 0.010", "B": "0.055 0.061 0.026 0.031 0.015", "C": "0.074 0.076 0.054 0.039 0.019", "D": "0.096 0.131 0.083 0.109 0.028"}
 for c in TCOND:
     mr = agg["conditions"][c]["mean_rmse_m"]
@@ -1270,6 +1308,12 @@ check("tags per lap in condition B", str(L("expT/T_B_r1.json")["gates"]["laps_id
 check("H2.1 median gain A–D (m), rho, PASS", " / ".join(f"{rd(h1['median_gain_m'][c], 3)}" for c in TCOND) + f" {rd(h1['spearman_rho'], 2, sign=True)} {h1['PASS']}",
       "0.010 / 0.011 / 0.023 / 0.052 +0.30 True", "numbers.md §16.1")
 check("H2.2 gain A–D (m), PASS", " / ".join(f"{rd(p2['median_gain_m'][c], 3, sign=True)}" for c in TCOND) + f" {p2['PASS']}", "+0.020 / +0.032 / +0.037 / +0.029 False", "numbers.md §16.1")
+# RESTYLE (2026-11-02): the caption prints these same gains via rd_si() (SI-prefixed rounding), not the rd() the checks
+# above use - assert the two formatters agree character-for-character at these values before the caption trusts rd_si().
+check("H2.1 gain A–D: rd_si() caption string == rd() check string", ", ".join(rd_si(h1["median_gain_m"][c], 3) for c in TCOND),
+      " / ".join(f"{rd(h1['median_gain_m'][c], 3)}" for c in TCOND).replace(" / ", ", "), "this file: rd_si() vs rd() on the same values")
+check("H2.2 gain A–D: rd_si() caption string == rd() check string", ", ".join(rd_si(p2["median_gain_m"][c], 3, sign=True) for c in TCOND),
+      " / ".join(f"{rd(p2['median_gain_m'][c], 3, sign=True)}" for c in TCOND).replace(" / ", ", "), "this file: rd_si() vs rd() on the same values")
 P3S = " / ".join(rd(agg["P-T3 live ratio max/min"]["by_condition"][c], 2) for c in TCOND)   # was a hard-coded caption literal (D 1.58, double rounding)
 check("H2.3 live max/min ratio A / B / C / D", P3S, "1.97 / 2.36 / 1.42 / 1.57", "numbers.md §16.1 P-T3")
 # SI (2026-10-22): the former cm caption literals '1–3', '2–4', '8–13' are now computed from the stored means (2 dp in m) and checked
@@ -1280,17 +1324,21 @@ F5D = rng_si([agg["conditions"]["D"]["mean_rmse_m"][f"{e} live"] for e in EST], 
 check("F5 title: FGO whole-flight batch over A–D, 2 dp (m) = former caption literal '1–3' cm × 10^-2", F5B, si_str("1–3", -2), "eval/results/expT/t_aggregate.json; former F5 title")
 check("F5 caption: live errors, condition A / condition D, 2 dp (m) = former literals '2–4' / '8–13' cm × 10^-2", f"{F5A} / {F5D}",
       f"{si_str('2–4', -2)} / {si_str('8–13', -2)}", "eval/results/expT/t_aggregate.json; former F5 caption")
+ob_h23("a"); ob_h24("b")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F5", "F5_T_tags_known_positions",
      f"Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at {F5B} m",
      "Experiment 2 (known tags; the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, "
      "no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, "
      "filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = "
-     f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out; no live ordering is claimed [a] (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
-     f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights). H2.3 (live errors similar) FAILS (live max/min " + P3S + "). The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
-     "its hindsight gain grows with the gap (H2.1 PASS), the smoothed UKF's does not (H2.2 FAIL), and the ratio of the batch to the smoothed "
-     "UKF is 1.31–3.89 (H2.4 FAIL) [b]. Same tag fixes for every estimator.",
+     f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out; no live ordering is claimed (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
+     f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights); the live max/min ratio, condition A to D: " + P3S + ". The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
+     f"its hindsight gain over FGO live, median per gap, condition A to D: {', '.join(rd_si(h1['median_gain_m'][c], 3) for c in TCOND)} m; "
+     "the smoothed UKF's gain over UKF live, same conditions: "
+     f"{', '.join(rd_si(p2['median_gain_m'][c], 3, sign=True) for c in TCOND)} m, and the ratio of the batch to the smoothed "
+     "UKF is 1.31–3.89. Same tag fixes for every estimator.",
      "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
-     "§16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18", foot=[ob_h23("a"), ob_h24("b"), OCASE_KEY])
+     "§16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18", foot=[],
+     verdict="Verdicts: Table A.4, rows H2.1; H2.2; H2.3; H2.4.")
 
 # =============================================================================================== FIG 6 O
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -1321,19 +1369,19 @@ tracks = {"EKF3 live": np.array(k1)}
 for n, p in (("UKF live", "room_ukf/ukf_live.tum"), ("RTS-UKF (hindsight)", "room_ukf/ukf_rts.tum"), ("FGO live", "room_fgo/fgo_live.tum"),
              ("FGO hindsight (whole-flight batch)", "room_fgo/fgo_batch.tum")):
     tracks[n] = np.loadtxt(f"{D}/{p}")[:, :3]
-fig, ax = plt.subplots(figsize=(15.5, 6.4))
+fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.axvspan(0, ton - toff, color="#f2f2f2", zorder=0)
 t_far = mk["OUTBACK BACK START"] - 3.0 - toff; t_back = mk["OUTBACK BACK START"] - toff; t_on = ton - toff
 for tv in (0.0, t_far, t_back, t_on):
     ax.axvline(tv, color=TRUTH, lw=0.9, ls=":", zorder=1)
-EV = [(0.0, "GNSS OFF\n(entrance, y = 20 m)", "center"), (t_far, f"far end reached,\n~{rd(t_far, 0)} s (y = 50 m,\n30 m inside); 3 s hold", "right"),
-      (t_back, f"return starts, {rd(t_back, 0)} s:\nreverse at the same\nheading (no yaw turn)", "left"), (t_on, f"GNSS ON at {rd(t_on, 0)} s\n(re-crossing the entrance)", "center")]
+# RESTYLE (2026-11-02): route-event labels shortened to minimal direct labels (no multi-line descriptive clauses, no badge
+# backgrounds); the full description of each event is in the caption.
+EV = [(0.0, "GNSS OFF", "center"), (t_far, "far end", "right"), (t_back, "return", "left"), (t_on, "GNSS ON", "center")]
 for tv, txt, al in EV:
-    ax.text(tv + (-1.0 if al == "right" else 1.0 if al == "left" else 0.0), 4.62, txt, ha=al, va="top", fontsize=8.4, color=INK2,
-            bbox=dict(boxstyle="round,pad=0.25", fc="#f2f2f2" if 0 < tv < t_on else SURF, ec="none"))
-ax.text(-38, 4.62, "outdoors,\nGNSS on", ha="left", va="top", fontsize=8.4, color=INK2)
-ax.text(t_on + 29, 4.62, "outdoors,\nGNSS on", ha="right", va="top", fontsize=8.4, color=INK2)
-ax.text(30, 2.9, f"indoors, GNSS off ({rd(t_on, 0)} s):\nIMU + downward flow + downward LiDAR only", ha="center", va="bottom", fontsize=8.6, color=INK2)
+    ax.text(tv + (-1.0 if al == "right" else 1.0 if al == "left" else 0.0), 4.62, txt, ha=al, va="top", fontsize=9.0, color=INK2)
+ax.text(-38, 4.62, "outdoors", ha="left", va="top", fontsize=9.0, color=INK2)
+ax.text(t_on + 38, 4.62, "outdoors", ha="right", va="top", fontsize=9.0, color=INK2)
+ax.text(78, 2.9, "indoors", ha="center", va="bottom", fontsize=9.0, color=INK2)
 rm_ind = {}
 for n, Tk in tracks.items():
     est, kind = TSTY[n]; w = (Tk[:, 0] > toff - 40) & (Tk[:, 0] < ton + 30)
@@ -1342,13 +1390,13 @@ for n, Tk in tracks.items():
     wi = (Tk[:, 0] >= toff) & (Tk[:, 0] <= ton)
     ei = np.hypot(Tk[wi, 1] - np.interp(Tk[wi, 0], G[:, 0], G[:, 1]), Tk[wi, 2] - np.interp(Tk[wi, 0], G[:, 0], G[:, 2]))
     rm_ind[n] = float(np.sqrt(np.mean(ei ** 2)))
-ax.set_xlabel("time from GNSS OFF at the entrance (s)"); ax.set_ylabel("horizontal error, world frame, no alignment (m)")
-ax.set_xlim(-40, t_on + 30); ax.set_ylim(0, 4.7)
+ax.set_xlabel("time from GNSS OFF at the entrance (s)"); ax.set_ylabel("horizontal error (m)")
+ax.set_xlim(-40, t_on + 40); ax.set_ylim(0, 4.7)
 ax.legend(loc="upper left", bbox_to_anchor=(0.0, 0.80), fontsize=8.6, frameon=True, framealpha=0.95, edgecolor=GRID)
 jump = o["tracks"]["EKF3 live"]["max_step_after_return_m"]
 _k = tracks["EKF3 live"]; _w = (_k[:, 0] > ton) & (_k[:, 0] < ton + 30)
 _ek = np.hypot(_k[_w, 1] - np.interp(_k[_w, 0], G[:, 0], G[:, 1]), _k[_w, 2] - np.interp(_k[_w, 0], G[:, 0], G[:, 2])); _i = int(np.argmax(_ek))
-ax.annotate(f"EKF3 resets to GNSS on return:\n{rd(jump, 2)} m jump (every flight)", (_k[_w, 0][_i] - toff + 0.5, _ek[_i] - 0.6), xytext=(t_on + 8, 2.4), fontsize=8.5,
+ax.annotate("EKF3 reset", (_k[_w, 0][_i] - toff + 0.5, _ek[_i] - 0.6), xytext=(t_on + 8, 2.4), fontsize=9.0,
             arrowprops=dict(arrowstyle="-", color=INK2, lw=0.7))
 jumps = [L(f"expO/{t}.json")["tracks"]["EKF3 live"]["max_step_after_return_m"] for t in OFL]
 check("Experiment 4 EKF3 reset jump (m)", rng(jumps), "4.10–4.10", "numbers.md §16.2 ('4.10 m, every flight')")
@@ -1356,6 +1404,7 @@ check("Experiment 4 indoor duration (s)", f"{rd(t_on, 0)}", "123", "numbers.md �
 dO = max(abs(rm_ind[n] - o["tracks"][n]["indoor_rmse_m"]) for n in TRK)
 check("flight 1 curve indoor RMSE recomputed vs json, max |Δ| <= 0.05 m", "ok" if dO <= 0.05 else f"{rd(dO, 3)}", "ok", "curve source vs scorer")
 check("flight 1 bag has no tag topics", len(tag_topics), 0, "O design: no tags in outdoor_indoor.sdf")
+ob_h41("a"); ob_h42("b"); ob_h43("c"); ob_ret("d")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F6", "F6_O_outdoor_indoor",
      "Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m",
      "Experiment 4 (outdoor–indoor: outdoor → indoor → outdoor, open loop on simulator truth), flight 1: horizontal error against time in the world "
@@ -1363,12 +1412,13 @@ save(fig, "F6", "F6_O_outdoor_indoor",
      "the downward LiDAR rangefinder only; no GNSS (switched off at the entrance), no compass, no forward-camera heading (descoped) and no "
      f"tags (none in the world). Route events (dotted): GNSS OFF at the entrance (0 s); the far end, 30 m inside, reached at ~{rd(t_far, 0)} s "
      f"and held 3 s; the return in reverse at the same heading (no yaw turn) from {rd(t_back, 0)} s; GNSS ON on re-crossing the entrance at "
-     f"{rd(t_on, 0)} s. EKF3 resets to GNSS on return with a 4.10 m jump (every flight) [d]. Solid = live, dashed = hindsight. The per-flight "
-     "indoor RMSE of all three flights is in Table 5.1 (H4.1 PASS 3/3 [a]; H4.2 FAIL [b]; H4.3 PASS [c]).",
+     f"{rd(t_on, 0)} s. EKF3 resets to GNSS on return with a 4.10 m jump (every flight). Solid = live, dashed = hindsight. The per-flight "
+     "indoor RMSE of all three flights is in Table 5.1.",
      "eval/results/expO/O_r1.json (markers_bag_s, max_step_after_return_m), O_r2.json, O_r3b.json; curves: O_r1 room_ukf/, room_fgo/ TUMs, "
      "dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map); design: METHODOLOGY 'Experiment O: pre-registration', "
      "sim/worlds/outdoor_indoor.sdf, fly_trial.py outback(), o_gnss.parm", "§16.2 table and bullets; claims 19–22",
-     foot=[ob_h41("a"), ob_h42("b"), ob_h43("c"), ob_ret("d"), OCASE_KEY])
+     foot=[],
+     verdict="Verdicts: Table A.4, rows H4.1; H4.2; H4.3.")
 
 # =============================================================================================== TABLE T6 O indoor RMSE per flight
 exO = {"EKF3 live": "1.42–1.43", "UKF live": "0.77–0.84", "FGO live": "0.83–0.89", "RTS-UKF (hindsight)": "0.58–0.60", "FGO hindsight (whole-flight batch)": "0.59–0.59"}
@@ -1391,22 +1441,24 @@ save_tab("T6", "T6_O_indoor_rmse", "Experiment 4 (outdoor–indoor): indoor hori
                 "WITHDRAWN (a noise-model artefact).", OCASE_KEY, ob_h42("a"), ob_h43("b"), ob_h41("c")], order=60)
 
 # =============================================================================================== FIG 7 L
-fig, axs = plt.subplots(1, 2, figsize=(14.5, 5.6), sharey=True)
-for ax, mode, lab in ((axs[0], "lc", "with loop closure (tags re-identified)"), (axs[1], "nolc", "without loop closure")):
+fig, axs = plt.subplots(1, 2, figsize=(TEXT_WIDTH_IN, 2.9), sharey=True)
+# RESTYLE (2026-11-02): per-panel titles shortened to panel labels (a)/(b) only; "flights 1-3" and the lap5/lap1 ratios
+# already in the caption, so the on-canvas text notes are removed rather than relocated.
+for ax, mode, lab in ((axs[0], "lc", "(a) with loop closure"), (axs[1], "nolc", "(b) without loop closure")):
     for kind in ("live", "hindsight"):
         for r, tk in enumerate(LL[(mode, kind)]):
             v = np.array(tk["per_lap_rmse_m"])          # m (SI, 2026-10-22)
             ax.plot(range(1, 6), v, color=C["FGO"], ls="-" if kind == "live" else "--", marker=MK["FGO"], ms=5,
                     mfc=C["FGO"] if kind == "live" else SURF, mec=C["FGO"], lw=1.1,
                     label=f"{'live (fixed-lag)' if kind == 'live' else 'hindsight (full iSAM2 estimate)'}" if r == 0 else None)
-    ax.set_title(f"keyframe FGO, {lab}: flights 1–3", loc="left", fontsize=10)
+    ax.set_title(lab, loc="left", fontsize=9.5)
     ax.set_xticks(range(1, 6)); ax.set_xlabel("lap of the 6 m square")
-    ax.legend(loc="upper left", frameon=False)
+# RESTYLE (2026-11-02): one shared legend for the figure (house rule: anything repeated across panels appears once),
+# not duplicated on both panels - both panels use the same one estimator/colour and the same live/hindsight styles.
+axs[0].legend(loc="upper left", frameon=False, fontsize=9.0)
 axs[0].set_ylabel("horizontal RMSE per lap (m)"); axs[0].set_ylim(0, None)
 lc5 = [t["per_lap_rmse_m"][4] / t["per_lap_rmse_m"][0] for t in LL[("lc", "live")]]
 nl5 = [t["per_lap_rmse_m"][4] / t["per_lap_rmse_m"][0] for t in LL[("nolc", "live")]]
-axs[0].text(5, axs[0].get_ylim()[1] * 0.55, f"live lap 5 ÷ lap 1: {rng(lc5)}\n(error falls after lap 1)", ha="right", fontsize=9)
-axs[1].text(5, axs[0].get_ylim()[1] * 0.08, f"live lap 5 ÷ lap 1: {rng(nl5, 1)}\n(error grows over the laps)", ha="right", fontsize=9)
 check("Experiment 3 with loop closure, live overall (m)", rng([t["rmse_m"] for t in LL[("lc", "live")]], 3), "0.049–0.076", "numbers.md §16.3")
 check("Experiment 3 with loop closure, hindsight overall (m)", rng([t["rmse_m"] for t in LL[("lc", "hindsight")]], 3), "0.017–0.027", "numbers.md §16.3")
 check("Experiment 3 without loop closure, live overall (m)", rng([t["rmse_m"] for t in LL[("nolc", "live")]], 3), "0.263–0.361", "numbers.md §16.3")
@@ -1417,22 +1469,25 @@ ext_checks()
 # rng(nl5, 1), the same string as the check row above and numbers.md:574 "2.9–4.5"), worded "2.9 to 4.5 times" as the user asked.
 F7_GROW = rng(nl5, 1).replace("–", " to ")
 assert F7_GROW == "2.9 to 4.5", f"F7 title range changed: {F7_GROW}"
+ob_l("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F7", "F7_L_loop_closure",
      f"Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows {F7_GROW} times over five laps",
      "Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in "
      f"the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 {rng(lc5)}; "
      f"overall {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m live, {rng_si([t['rmse_m'] for t in LL[('lc', 'hindsight')]], 3)} m "
      f"hindsight). Right: without re-identification it grows {rng(nl5, 1)}× over five laps (overall "
-     f"{rng_si([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)} m live). H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]. The thesis's EKF3 and UKF, as configured, have no landmark states, so they have "
+     f"{rng_si([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)} m live). The thesis's EKF3 and UKF, as configured, have no landmark states, so they have "
      "no loop closure; loop closure is not specific to the FGO: in an extension experiment (pre-registered), a UKF variant with each tag in "
-     f"its state bounded its live drift (H-E5.1 {E5V['criteria']['H-E5.1']['verdict']} {E5V['criteria']['H-E5.1']['count']}), with a higher "
-     f"error than the FGO's (S-E5.5 {E5V['criteria']['S-E5.5']['verdict']} {E5V['criteria']['S-E5.5']['count']}; UKF ÷ FGO live {rng(E5R, 2)}, "
-     "descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift (extension experiment, H-E2.1 PASS 3/3 in each). "
+     f"its state bounded its live drift in {E5V['criteria']['H-E5.1']['count']} flights, with a higher "
+     f"error than the FGO's in {E5V['criteria']['S-E5.5']['count']} flights (UKF ÷ FGO live {rng(E5R, 2)}, "
+     "descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each (extension experiment). "
      "The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its "
-     f"loop-closure advantage (H-E3.1 {_h31['verdict']} {_h31['count']}; {_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
+     f"loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in {_h31['count']} runs "
+     f"({_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
      "check (V3) is not re-scorable on the "
      "corrected FGO (its labels were never recorded).",
-     "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[ob_l("a"), OCASE_KEY])
+     "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[],
+     verdict="Verdicts: Table A.4, rows V3; H3.1; H3.2; H3.3; H3.4; Extension E2 H-E2.1; Extension E3 H-E3.1; Extension E5 H-E5.1; Extension E5 S-E5.5.")
 
 # =============================================================================================== TABLE T5 H tag-loss drift (was F8)
 LOSS = ["5 s hover", "15 s hover", "30 s hover", "~7 s during a move"]
@@ -1776,8 +1831,18 @@ ABL = [  # build ablations: (ablation, measure, earlier build, final build, verd
 ]
 
 
-def save_table(figs, fid, name, title, caption, inputs, rows_, checks):
+def save_table(figs, fid, name, title, caption, inputs, rows_, checks, verdict=None):
+    """RESTYLE (2026-11-02): A1-A3 are already rendered as appendix data tables (per-build/per-run criteria, not a
+    narrative chart) - kept as the existing multi-page A4 text-table layout rather than resized to text width, since
+    collapsing a dense multi-column table to 160 mm would make it unreadable; documented as RS-3 in the handover. A
+    caption file is still written (RS-2) for consistency with every other item in the set; `verdict` (RS-2 pointer) is
+    folded into `caption` before ITEMS stores it, so it shows on the combined PDF's own caption page too."""
     global CHK
+    if verdict is None:
+        verdict = "Verdict rows: see docs/thesis/tables/TA_verdicts.md."
+    caption = caption + "\n\n" + verdict
+    from thesis_style import write_caption
+    write_caption(fid, f"{TNUM[fid]}. {title}.\n\n{caption}")
     pngs = []
     for k, f in enumerate(figs):
         base = os.path.join(OUT, name + (f"_p{k + 1}" if len(figs) > 1 else ""))
@@ -1793,7 +1858,7 @@ def save_table(figs, fid, name, title, caption, inputs, rows_, checks):
             print("   CHECK FAIL:", c)
 
 
-figs = table_page("Table A.1. Closed loop in the textured corridor (Experiment 1C): every flown build, pass/fail against the pre-registered criteria",
+figs = table_page("Table A.1. Closed loop (Experiment 1C): every flown build, pass/fail against the pre-registered criteria",
                   ["flying estimator", "build", "without heading: wall contact (contact window)", "with heading: all five criteria (+ estimator validity)",
                    "max cross-track", "yaw error p95 / max", "max lateral speed"], rowsA, [16, 30, 30, 22, 13, 22, 14],
                   notes=["Contact windows are pre-registered per estimator (EKF3 [+155, +215] s, UKF [+146, +218] s, FGO [+145, +196] s). n = 1 "
@@ -1804,15 +1869,16 @@ figs = table_page("Table A.1. Closed loop in the textured corridor (Experiment 1
                          "lateral-speed failure (0.296 m/s) and the final FGO node's flight 3 near-miss (0.246 m/s against 0.25) are a shared "
                          "flow-validity limitation of the sensor pipeline. The five criteria: mission completion and the cross-track, heading-error, "
                          "lateral-speed and oscillation bounds. Robust heading weighting (FGO): the robust-weighting test (H1.4) 'NOT met (lockout "
-                         "tie)', see Table A.3."] + A1FN)
+                         "tie)', see Table A.3."] + A1FN, bold=False)
 save_table(figs, "A1", "A1_closed_loop_builds", "Closed loop: every flown build against the five closed-loop criteria and the contact window",
            "Pass/fail of every closed-loop corridor set, computed from the closed-loop score files, with the build ablations "
            "labelled: the UKF earlier build (pre-jitter fix) against the final UKF port; the FGO earlier build (original, hard-gated and robust), "
            "the ablation build (noise fix only) and the final FGO node (original priors); no ordering between builds or estimators is claimed [a].",
-           "eval/results/closed_loop_<trial>.json", "§15 (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14", CHK_A)
+           "eval/results/closed_loop_<trial>.json", "§15 (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14", CHK_A,
+           verdict="Verdict rows: as Figure 4.1/4.1b (H1.8, H1.9, per build; docs/thesis/tables/TA_verdicts.md).")
 figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safety tests (all runs, as-worded verdicts)",
                   ["hold set", "build", "hold error (window means)", "tag-loss drift (effective, all losses)", "lockouts", "drift band (H5.5)"],
-                  rowsH, [26, 34, 20, 26, 10, 18], fs=8.0, notes=[H5A2NOTE]) + \
+                  rowsH, [26, 34, 20, 26, 10, 18], fs=8.0, notes=[H5A2NOTE], bold=False) + \
        table_page("Table A.2 (cont.). Experiment 5S safety tests: failure injected in the hold; the FC must declare position lost",
                   ["test", "trial", "build", "as worded: attitude / position lost / safe landing / single landing", "'position lost' delay", "drift to touchdown", "verdict", "note"],
                   rowsS, [19, 19, 35, 27, 22, 12, 14, 26], fs=6.8,
@@ -1827,21 +1893,22 @@ figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safe
                          "(a forced-invalid run) and not scored (no touchdown); Table 7.2 shows them so. "
                          "For the FGO the forced-invalid test is also a node kill (without the "
                          "safety watcher watching the node). The EKF3 reference has no thesis-nav text (not applicable). Ordering footnote [b] "
-                         "(the safety tests are per-run criteria, not comparisons): on the next page."]) + \
+                         "(the safety tests are per-run criteria, not comparisons): on the next page."], bold=False) + \
        table_page("Table A.2 (cont.). Experiment 5 comparative hypotheses: the final-build sets (primary) and the superseded builds",
                   ["hypothesis", "pre-registered wording (verbatim; design draft §e)", "final-build sets: final UKF port, final FGO node (PRIMARY)",
                    "superseded builds: UKF earlier build, FGO ablation build", "verdict differs?"], rowsHC, [14, 34, 50, 50, 12], fs=8.0,
                   notes=["The final-build verdicts are reported as primary; they are identical to the original-build verdicts (all three comparative "
                          "criteria FAIL on both). EKF3 is the EKF3-flying far-spawn hold set in both columns (3 flights); each estimator flew its "
                          "own flights, paired by run index, not trajectory. Two wordings change with the final builds: the FGO hold is now the "
-                         "highest, not tied with EKF3, and EKF3's 15 s jump is strictly the smallest. " + PRIORS, OCASE_KEY, A2FN[1], A2FN[2]])
+                         "highest, not tied with EKF3, and EKF3's 15 s jump is strictly the smallest. " + PRIORS, OCASE_KEY, A2FN[1], A2FN[2]], bold=False)
 save_table(figs, "A2", "A2_H_and_safety", "Experiment 5 hold sets and the 5S safety tests (all runs)",
            "Experiment 5 hold sets (EKF3-flying, near and far spawn; UKF-flying, earlier and final builds; FGO-flying, ablation and final "
            "builds) with hold error, drift, lockouts and the drift bands (H5.5), and every 5S safety-test run with its as-worded verdict; "
            "the final runs are the re-tests of the final UKF port and of the FGO corrected-priors node (corrected priors). " + PRIORS + " The comparative criteria page "
            "gives the final-build sets (primary) beside the superseded builds; the final-build verdicts are identical to the "
            "original-build verdicts (all FAIL) [a]; the safety verdicts are per run [b].",
-           "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json, safety_*.json", "§15 safety rows, §17, §17.1; METHODOLOGY 2d and 'Band C … FGO safety re-tests'", CHK_HS)
+           "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json, safety_*.json", "§15 safety rows, §17, §17.1; METHODOLOGY 2d and 'Band C … FGO safety re-tests'", CHK_HS,
+           verdict="Verdict rows (docs/thesis/tables/TA_verdicts.md, Experiment 5 and 5S): H5.1-H5.7 and the five 5S safety rows.")
 rowsF = [("H1.4 robust-weighting test (k = 2.385)", "robust FGO better than the hard-gated UKF on the heading", "NOT met (lockout tie)",
           f"robust FGO lower worst-case yaw on {dec1['robust_lower_yaw_max_on']}/6 bags, but lockouts robust FGO {dec1['lockout_total']['FGO_robust']} = hard-gated UKF "
           f"{dec1['lockout_total']['UKF_hard']}; hard-gated FGO plain-wall yaw max {rng([f1[b]['FGO_hard']['yaw_max_deg'] for b in bagsF])}° (= hard-gated UKF to 0.01°)"),
@@ -1849,17 +1916,21 @@ rowsF = [("H1.4 robust-weighting test (k = 2.385)", "robust FGO better than the 
           f"median with loop closure {rng(ST[('lc', 'step_median_ms')], 1)} ms, without {rng(ST[('nolc', 'step_median_ms')], 1)} ms; p99 with {rng(ST[('lc', 'step_p99_ms')], 0)} ms, "
           f"without {rng(ST[('nolc', 'step_p99_ms')], 0)} ms; wall time without loop closure {rng(ST[('nolc', 'wall_s')], 0)} s. Says nothing about onboard feasibility")]
 figs = table_page("Table A.3. The robust-weighting test (H1.4), the Experiment 3 compute cost, and the build ablations",
-                  ["item", "what is tested", "verdict", "key numbers"], rowsF, [24, 42, 30, 94], notes=A3FN[:2])
+                  ["item", "what is tested", "verdict", "key numbers"], rowsF, [24, 42, 30, 94], notes=A3FN[:2], bold=False)
 figs2 = table_page("Table A.3 (cont.). Build ablations: earlier build against the final build, same experiment",
                    ["ablation", "measure", "earlier build", "final build", "note"], ABL, [36, 42, 36, 38, 38],
                    notes=["Earlier builds are kept as recorded and labelled; the thesis cites the final builds. Attribution: the corrections were applied "
-                          "jointly and are not attributed individually, apart from the traced plain-wall case and the Experiment 4 partial attribution.", OCASE_KEY, A3FN[2]])
+                          "jointly and are not attributed individually, apart from the traced plain-wall case and the Experiment 4 partial attribution.", OCASE_KEY, A3FN[2]], bold=False)
 save_table(figs + figs2, "A3", "A3_F1_cost_ablations", "The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations",
            "Pass/fail table for the robust-weighting test (H1.4), the Experiment 3 compute cost (diagnostic; linear values, no plot) and the "
            "build ablations: the UKF earlier build against the final UKF port; the FGO ablation build (noise fix only) against the final FGO "
            "node and the corrected-priors node; the note on the original priors flown by the FGO. H1.4 NOT met [a]; ablations descriptive [b]. " + PRIORS,
            "eval/results/f1_test.json; ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json; closed_loop_*, expH/*",
-           "§15.2 F1 row; §16.3 cost bullets; §15, §17.1", CHK_F)
+           "§15.2 F1 row; §16.3 cost bullets; §15, §17.1", CHK_F,
+           verdict="Verdict rows (docs/thesis/tables/TA_verdicts.md): H1.4 (robust-weighting test). The Experiment 3 compute cost and the "
+                   "build ablations on this page (earlier build vs final build) have no pre-registered hypothesis id and so no row of their "
+                   "own - do not confuse with the separate EXPLORATORY attribution-ablation rows in TA_verdicts.md, which score a different "
+                   "study (which correction caused which change).")
 
 # =============================================================================================== TABLE T7 failure behaviour (new)
 # Ruling 2026-10-16 (open items, 10): the early S-A4 flags are shown as the results record has them, quoted with file:line;
@@ -2000,6 +2071,64 @@ save_tab("T8", "T8_hindsight_ratio", "Hindsight: the FGO whole-flight batch agai
 
 # =============================================================================================== combined PDF + index
 PAL = "EKF3 #0072B2 (blue, circle) · UKF #009E73 (bluish green, triangle) · FGO #D55E00 (vermilion, square) · truth / references #999999 (grey)"
+
+
+def combine_extra_items():
+    """RESTYLE (2026-11-02): pull in the items built by the three OTHER figures_thesis generators (figs_thesis_methods.py,
+    figs_thesis_drift.py, figs_thesis_results.py) plus the new TA_verdicts appendix table, so the rebuilt
+    thesis_figures_combined.pdf carries every restyled reader-facing item, not just this script's own. Nothing is
+    recomputed: each item's PNG and caption text are read back from what its own generator already wrote and checked
+    (that generator's own index_*.md / eval/ta_verdicts_check.py has the cross-check detail for it)."""
+    CAPD = os.path.join(OUT, "captions")
+
+    def cap_of(fid, drop_prefix):
+        """Read captions/<fid>.md and strip the leading '{num}. {title}.' line write_caption() prefixed, since the
+        combined PDF's caption_page() prints '{num}. {caption}' itself and would otherwise double it."""
+        txt = open(os.path.join(CAPD, f"{fid}.md")).read().strip()
+        if drop_prefix and txt.startswith(drop_prefix):
+            txt = txt[len(drop_prefix):].lstrip()
+        return txt
+
+    extra = []
+    ma_cap = cap_of("methods_architecture", None)
+    ma_title = "System architecture: sensors, bridges, the three estimators and where each one runs"
+    ma_prefix = f"{TNUM['METHODS_ARCH']}. {ma_title}.\n\n"
+    extra.append(dict(id="METHODS_ARCH", num=TNUM["METHODS_ARCH"], kind="figure",
+                      png=os.path.join(OUT, "methods_architecture.png"), pdf=os.path.join(OUT, "methods_architecture.pdf"),
+                      title=ma_title, caption=cap_of("methods_architecture", ma_prefix), inputs="see docs/thesis/figures_thesis/index_methods.md",
+                      rows="checks: see index_methods.md (built by eval/figs_thesis_methods.py)", checks=[],
+                      status="CURRENT", logscale="none needed", uncheck="", foot=[],
+                      files=["methods_architecture.png", "methods_architecture.pdf"]))
+    r5_title = "Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor"
+    r5_prefix = f"{r5_title}.\n\n"
+    extra.append(dict(id="R5", num=TNUM["R5"], kind="figure",
+                      png=os.path.join(OUT, "R5_drift_unaligned.png"), pdf=os.path.join(OUT, "R5_drift_unaligned.pdf"),
+                      title=r5_title, caption=cap_of("R5", r5_prefix), inputs="see docs/thesis/figures_thesis/index_drift.md",
+                      rows="checks: see index_drift.md (built by eval/figs_thesis_drift.py)", checks=[],
+                      status="CURRENT", logscale="none needed", uncheck="", foot=[],
+                      files=["R5_drift_unaligned.png", "R5_drift_unaligned.pdf"]))
+    r3_title = "True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path"
+    r3_prefix = f"{TNUM['R3']}. {r3_title}.\n\n"
+    extra.append(dict(id="R3", num=TNUM["R3"], kind="figure",
+                      png=os.path.join(OUT, "R3_trajectory_overlay.png"), pdf=os.path.join(OUT, "R3_trajectory_overlay.pdf"),
+                      title=r3_title, caption=cap_of("R3", r3_prefix), inputs="see docs/thesis/figures_thesis/index_results.md",
+                      rows="checks: see index_results.md (built by eval/figs_thesis_results.py)", checks=[],
+                      status="CURRENT", logscale="none needed", uncheck="", foot=[],
+                      files=["R3_trajectory_overlay.png", "R3_trajectory_overlay.pdf"]))
+    ta_title = "Verdict register: every registered hypothesis/check across Experiments 1-5/5S, the tier-1 extension experiments E2-E6 and the exploratory attribution ablation"
+    ta_png = os.path.join(ROOT, "docs", "thesis", "figures_thesis", "tables_extra", "TA_verdicts.png")
+    ta_pdf = os.path.join(ROOT, "docs", "thesis", "figures_thesis", "tables_extra", "TA_verdicts.pdf")
+    ta_cap = open(os.path.join(ROOT, "docs", "thesis", "tables", "TA_verdicts.md")).read().split("\n\n")[1].strip()
+    extra.append(dict(id="TA", num=TNUM["TA"], kind="appendix", png=ta_png, pdf=ta_pdf, title=ta_title, caption=ta_cap,
+                      inputs="docs/thesis/tables/R1_hypothesis_scorecard.md, tier1/scores/*.json, ablation/ablation_results.json",
+                      rows="checks: eval/ta_verdicts_check.py (146/146 EXACT)", checks=[], status="CURRENT", logscale="none needed (table)",
+                      uncheck="", foot=[], files=["tables_extra/TA_verdicts.png", "tables_extra/TA_verdicts.pdf"]))
+    for it in extra:
+        it["text"] = " ".join([it["title"], it["caption"]])
+        ITEMS.append(it)
+
+
+combine_extra_items()
 # order: the thesis order (thesis_vocabulary.md §6): chapter, figures before tables, then number; the appendix last
 ITEMS.sort(key=lambda it: tkey(it["id"]))
 REMOVED = [("F1", "F1_scorecard", "T1"), ("F3", "F3_accuracy_without_and_with_heading", "T2"), ("F4", "F4_blank_floor_flow_loss", "T3"),
@@ -2102,10 +2231,24 @@ def caption_page(P, it):
             fig.text(0.03, y, cap, fontsize=8.6, va="top"); y -= 0.0185 * (cap.count("\n") + 1) + 0.01
             if fn:
                 fig.text(0.03, y, fn, fontsize=7.0, va="top", color=INK); y -= 0.0142 * (fn.count("\n") + 1) + 0.008
-            okc = sum(c[4] for c in it["checks"])
-            src = "\n".join(textwrap.wrap(f"Cross-check against the results record: {okc}/{len(it['checks'])} values match. The sources, "
-                                          "the rows they are checked against and the build are listed in the figure index.", 200))
-            fig.text(0.03, max(y, 0.02 + 0.0165 * (src.count("\n") + 1)), src, fontsize=7.2, va="top", color=INK2)
+            # D113 (2026-11-02, coordinator ruling, advisor-review fix): a reader-facing figure's caption text in the
+            # combined PDF must END with its "Verdicts: Table A.4, ..." pointer - nothing after it. The cross-check
+            # line below is a check COUNT ("N/M values match"), one of the categories D113 names explicitly, and
+            # previously printed on every page regardless of kind, including the 8 figures this ruling covers
+            # (F2/F9/F5/F6/F7/METHODS_ARCH/R5/R3 - every `kind == "figure"` item in this PDF, confirmed: tables and
+            # the TA appendix page are `kind == "table"`/`"appendix"` and keep it). Tables/appendix pages are not in
+            # scope for D113 (same exemption as A1-A3's cells) and keep this line unchanged.
+            if it["kind"] != "figure":
+                if it["checks"]:
+                    okc = sum(c[4] for c in it["checks"])
+                    src = "\n".join(textwrap.wrap(f"Cross-check against the results record: {okc}/{len(it['checks'])} values match. The sources, "
+                                                  "the rows they are checked against and the build are listed in the figure index.", 200))
+                else:
+                    # RESTYLE (2026-11-02): items from another generator (figs_thesis_drift.py / figs_thesis_results.py /
+                    # figs_thesis_methods.py / eval/ta_verdicts_check.py) - their own cross-checks are reported there, not
+                    # duplicated here; "rows" names where to look.
+                    src = "\n".join(textwrap.wrap(f"Cross-checked by its own generator, not duplicated here: {it['rows']}.", 200))
+                fig.text(0.03, max(y, 0.02 + 0.0165 * (src.count("\n") + 1)), src, fontsize=7.2, va="top", color=INK2)
         P.savefig(fig); plt.close(fig)
 
 
@@ -2118,23 +2261,30 @@ with PdfPages(PDF) as P:
     fig.text(0.06, 0.835, "EKF3, UKF and FGO for indoor UAV state estimation under degraded sensing (simulation; results FROZEN 2026-10-11)", fontsize=12)
     intro = ("Reader-facing set (revision 2026-10-16; thesis numbering and names 2026-10-17), plotted and tabulated from the frozen "
              f"result files (no number recomputed): Figures {NFIG}; Tables {NTAB} (also as LaTeX and markdown in docs/thesis/tables/); "
-             f"appendix Tables {NAPP}. Numbered by chapter: 4 Experiment 1 (corridor comparison); 5 Experiments 2–4 (known tags, loop "
-             "closure, outdoor–indoor); 6 Experiment 5 (tag hold); 7 synthesis; A appendix. Each caption gives its cross-check count; "
-             "the sources are in the figure index. Conventions: one fixed colour and marker per estimator; solid lines and filled marks = "
-             "live, dashed lines and open marks = hindsight; linear axes only; cruise ATE = the aligned ATE over the pinned cruise window. "
+             f"appendix Tables {NAPP}. Numbered by chapter: 3 method; 4 Experiment 1 (corridor comparison); 5 Experiments 2–4 (known tags, loop "
+             "closure, outdoor–indoor); 6 Experiment 5 (tag hold); 7 synthesis; A appendix. Each table caption gives its cross-check "
+             "count; a figure's cross-checks, and every item's sources, are in the figure index. Figure captions end with a pointer to "
+             "their scored hypothesis/check row(s) in Table A.4 (docs/thesis/tables/TA_verdicts.md). Conventions: one fixed colour and "
+             "marker per estimator; solid lines and filled marks = live, dashed lines and open marks = hindsight; linear axes only; "
+             "cruise ATE = the aligned ATE over the pinned cruise window. "
              "† = a runaway magnitude from a diverging estimate (order of magnitude only). Lettered footnotes [a], [b], … under each "
-             "table and caption give the metric, n (with its unit), the pre-registered rule and the result for every ordering "
+             "table give the metric, n (with its unit), the pre-registered rule and the result for every ordering "
              "claimed or not claimed. " + PRIORS + " Half real-time (RTF 0.5): " + RTFX)
-    fig.text(0.06, 0.79, "\n".join(textwrap.wrap(intro, 140)), fontsize=9.6, va="top")
-    fig.text(0.06, 0.595, "Colours", fontsize=12, weight="bold")
+    _intro_lines = textwrap.wrap(intro, 140)
+    fig.text(0.06, 0.79, "\n".join(_intro_lines), fontsize=9.6, va="top")
+    # RESTYLE (2026-11-02): "Colours" (and everything below) used a fixed y that assumed a fixed intro line count;
+    # combine_extra_items() adds Figures 3.1/4.1c/4.2 to NFIG, which wraps the intro one line longer and collided with
+    # "Colours" at the old fixed position. Position it below the intro's ACTUAL wrapped height instead.
+    y0 = 0.79 - 0.0205 * len(_intro_lines) - 0.012
+    fig.text(0.06, y0, "Colours", fontsize=12, weight="bold")
     for k, e in enumerate(EST):
-        fig.add_artist(Line2D([0.07, 0.10], [0.565 - 0.026 * k] * 2, color=C[e], lw=2, marker=MK[e], ms=7, transform=fig.transFigure))
-        fig.text(0.11, 0.565 - 0.026 * k, f"{e}  {C[e]}", fontsize=10, va="center")
-    fig.add_artist(Line2D([0.07, 0.10], [0.487] * 2, color=TRUTH, lw=2, transform=fig.transFigure)); fig.text(0.11, 0.487, f"truth / reference  {TRUTH}", fontsize=10, va="center")
-    y = 0.445; fig.text(0.06, y, "Contents", fontsize=12, weight="bold"); y -= 0.024
+        fig.add_artist(Line2D([0.07, 0.10], [y0 - 0.030 - 0.026 * k] * 2, color=C[e], lw=2, marker=MK[e], ms=7, transform=fig.transFigure))
+        fig.text(0.11, y0 - 0.030 - 0.026 * k, f"{e}  {C[e]}", fontsize=10, va="center")
+    fig.add_artist(Line2D([0.07, 0.10], [y0 - 0.108] * 2, color=TRUTH, lw=2, transform=fig.transFigure)); fig.text(0.11, y0 - 0.108, f"truth / reference  {TRUTH}", fontsize=10, va="center")
+    y = y0 - 0.150; fig.text(0.06, y, "Contents", fontsize=12, weight="bold"); y -= 0.024
     for it in ITEMS:
-        okc = sum(c[4] for c in it["checks"])
-        fig.text(0.07, y, f"{it['num']}  {it['title']}   [checks {okc}/{len(it['checks'])}]", fontsize=8.6); y -= 0.0215
+        clabel = f"checks {sum(c[4] for c in it['checks'])}/{len(it['checks'])}" if it["checks"] else "checks: own generator, see index"
+        fig.text(0.07, y, f"{it['num']}  {it['title']}   [{clabel}]", fontsize=8.6); y -= 0.0215
     P.savefig(fig); plt.close(fig)
     for it in ITEMS:
         caption_page(P, it)
@@ -2182,9 +2332,9 @@ with open(INDEX, "w") as f:
             "`docs/thesis/methodology_definitions_draft.md` ('n' and 'Ordering verdicts').\n\n")
     f.write("| thesis no. | internal id | kind | files | title | status | checks | log-scale handling |\n|---|---|---|---|---|---|---|---|\n")
     for it in ITEMS:
-        okc = sum(c[4] for c in it["checks"])
+        clabel = f"{sum(c[4] for c in it['checks'])}/{len(it['checks'])}" if it["checks"] else "own generator"
         files = ", ".join(f"`{x}`" for x in it["files"])
-        f.write(f"| {it['num']} | {it['id']} | {it['kind']} | {files} | {it['title']} | {it['status']} | {okc}/{len(it['checks'])} | {it['logscale']} |\n")
+        f.write(f"| {it['num']} | {it['id']} | {it['kind']} | {files} | {it['title']} | {it['status']} | {clabel} | {it['logscale']} |\n")
     tot = sum(len(it["checks"]) for it in ITEMS); okt = sum(sum(c[4] for c in it["checks"]) for it in ITEMS)
     f.write(f"\n**Total: {okt}/{tot} checks match** (a check repeated in two items is counted in each). **EXACT comparison** "
             "(ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from "

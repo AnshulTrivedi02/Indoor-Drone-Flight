@@ -42,6 +42,8 @@ def lacks(path, s, label):
 
 # ------------------------------------------------------------------------------------------------ 1. wording
 T1MD = "docs/thesis/tables/T1_scorecard.md"; IDX = "docs/thesis/figures_thesis/index.md"; SUM = "docs/thesis/summary/index_summary.md"
+F7CAP = "docs/thesis/figures_thesis/captions/F7.md"   # restyle (2026-11-02): F7's title is no longer drawn on the image; the
+# same string is now checked against its draft caption file (RS-2) instead of index.md, per the restyle brief.
 F33 = "docs/thesis/methodology_factsheets/3.3_estimators.md"; F35 = "docs/thesis/methodology_factsheets/3.5_experiments.md"
 LIM = "docs/thesis/limitations.md"; R4 = "docs/thesis/tables/R4_information_vs_estimator.md"; R1 = "docs/thesis/tables/R1_hypothesis_scorecard.md"
 WALK = "docs/thesis/summary/index_walkthrough.md"
@@ -62,10 +64,17 @@ for p, s, lab in ((T1MD, "UKF with landmark states (extension E5): bounded; ~2x 
                   (T1MD, "an extension variant, not the UKF used elsewhere in this table", "D17 footnote"),
                   (T1MD, "H3.1–H3.4 PASS 3/3; 8 tags, correct tag IDs [k]", "C2/C3 FGO cell"),
                   ("docs/thesis/tables/T1_scorecard.tex", r"\textasciitilde{}2x FGO error", "D17 cell in TeX"),
-                  (IDX, "The thesis's EKF3 and UKF, as configured, have no landmark states", "C1 F7 caption"),
-                  (IDX, "H-E3.1 FAIL 0/9; 6 of 9 runs diverged", "C2 F7 caption"),
-                  (IDX, "H-E2.1 PASS 3/3 in each", "C3 F7 caption"),
-                  (IDX, "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps", "F7 title (user answer 3, 2026-11-02, D99; was '3–4×')"),
+                  (F7CAP, "The thesis's EKF3 and UKF, as configured, have no landmark states", "C1 F7 caption"),
+                  # D113 (2026-11-02, coordinator ruling): reader-facing captions carry no PASS/FAIL/verdict wording any
+                  # more (Table A.4 is the one place verdicts live now); the two rows below were reworded to "change it
+                  # to assert the pointer line instead" where that applies, and otherwise to assert the SAME numbers
+                  # (0/9, 6 of 9 diverged; 3/3) without the verdict label - same claim, same figures, no verdict word.
+                  (F7CAP, "its live error with loop closure was below the no-loop-closure error on the same flight in 0/9 runs (6 of 9 runs diverged)",
+                   "C2 F7 caption (reworded, D113: was 'H-E3.1 FAIL 0/9; 6 of 9 runs diverged' - advisor review 2026-11-02 flagged the first "
+                   "reword as backwards: '0/9' counts runs where loop closure WAS better, so 'lost its advantage in 0/9 runs' read as "
+                   "'almost never lost it', the opposite of FAIL; this form attaches the count to the criterion it actually measures)"),
+                  (F7CAP, "loop closure also bounded live drift in 3/3 flights in each", "C3 F7 caption (reworded, D113: was 'H-E2.1 PASS 3/3 in each')"),
+                  (F7CAP, "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps", "F7 title (user answer 3, 2026-11-02, D99; was '3–4×')"),
                   (SUM, "Only the FGO has loop closure in the thesis (its EKF3 and UKF have no landmark states).", "C1 summary page 08"),
                   (SUM, "with 4 tags and with 2 tags", "C3 summary page 08"),
                   (R4, "has one thesis estimator and no spread", "C1 R4 note"),

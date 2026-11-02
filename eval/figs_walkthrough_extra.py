@@ -166,7 +166,8 @@ def save(fid, fig, inputs, tag=None, key=False):
 # registered verdict printed on the data (each equal to the summary page's check row), the raw / fitted tag and, where filled and open
 # marks are both used, the key "filled = live (during flight), open = hindsight (after landing)". Loaders and expected strings COPIED
 # from eval/figs_thesis.py (F5, F7) and eval/figs_thesis_summary.py (pages 13, 14, 18); those scripts and their outputs are untouched.
-DISPF.update({"FI": "docs/thesis/figures_thesis/index.md", "N": "docs/thesis/numbers.md", "E2": "docs/thesis/tier1/e2_results.md",
+DISPF.update({"FI": "docs/thesis/figures_thesis/working/index.md",  # RESTYLE (2026-11-02): repointed to the pre-restyle copy
+              "N": "docs/thesis/numbers.md", "E2": "docs/thesis/tier1/e2_results.md",
               "E3": "docs/thesis/tier1/e3_results.md", "E5": "docs/thesis/tier1/e5_results.md"})
 KEY_LH = "filled = live (during flight), open = hindsight (after landing)"
 SURF = "white"

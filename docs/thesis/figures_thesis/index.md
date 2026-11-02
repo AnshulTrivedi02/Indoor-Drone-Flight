@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `975e153` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -16,12 +16,15 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 
 | thesis no. | internal id | kind | files | title | status | checks | log-scale handling |
 |---|---|---|---|---|---|---|---|
-| Figure 4.1 | F2 | figure | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall | CURRENT | 13/13 | none needed |
+| Figure 3.1 | METHODS_ARCH | figure | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | CURRENT | own generator | none needed |
+| Figure 4.1 | F2 | figure | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall | CURRENT | 15/15 | none needed |
 | Figure 4.1b (provisional) | F9 | figure | `F9_heading_error_closed_loop.png`, `F9_heading_error_closed_loop.pdf` | Without a heading source the heading error grows until the wall; with the camera heading it stays near zero | CURRENT | 23/23 | none needed |
+| Figure 4.1c (provisional) | R5 | figure | `R5_drift_unaligned.png`, `R5_drift_unaligned.pdf` | Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor | CURRENT | own generator | none needed |
+| Figure 4.2 | R3 | figure | `R3_trajectory_overlay.png`, `R3_trajectory_overlay.pdf` | True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path | CURRENT | own generator | none needed |
 | Table 4.1 | T2 | table | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex`, `T2_accuracy_heading.png` | Position error without and with the camera heading (textured floor) | CURRENT | 26/26 | none needed (table) |
 | Table 4.2 | T3 | table | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding | CURRENT | 11/11 | none needed (table) |
 | Table 4.3 | T4 | table | `T4_closed_loop.md`, `T4_closed_loop.tex`, `T4_closed_loop.png` | Closed loop at half real-time (RTF 0.5): the final build of each estimator flying the vehicle | CURRENT | 17/17 | none needed (table) |
-| Figure 5.1 | F5 | figure | `F5_T_tags_known_positions.png`, `F5_T_tags_known_positions.pdf` | Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 0.01–0.03 m | CURRENT | 19/19 | none needed |
+| Figure 5.1 | F5 | figure | `F5_T_tags_known_positions.png`, `F5_T_tags_known_positions.pdf` | Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 0.01–0.03 m | CURRENT | 21/21 | none needed |
 | Figure 5.2 | F7 | figure | `F7_L_loop_closure.png`, `F7_L_loop_closure.pdf` | Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps | CURRENT | 16/16 | none needed |
 | Figure 5.3 | F6 | figure | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m | CURRENT | 15/15 | none needed |
 | Table 5.1 | T6 | table | `T6_O_indoor_rmse.md`, `T6_O_indoor_rmse.tex`, `T6_O_indoor_rmse.png` | Experiment 4 (outdoor–indoor): indoor horizontal RMSE per flight (123 s, GNSS off) | CURRENT | 14/14 | none needed (table) |
@@ -32,21 +35,35 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 | Table A.1 | A1 | appendix | `A1_closed_loop_builds.png`, `A1_closed_loop_builds.pdf` | Closed loop: every flown build against the five closed-loop criteria and the contact window | CURRENT | 9/9 | none needed (table) |
 | Table A.2 | A2 | appendix | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p1.pdf`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p2.pdf`, `A2_H_and_safety_p3.png`, `A2_H_and_safety_p3.pdf` | Experiment 5 hold sets and the 5S safety tests (all runs) | CURRENT | 51/51 | none needed (table) |
 | Table A.3 | A3 | appendix | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p1.pdf`, `A3_F1_cost_ablations_p2.png`, `A3_F1_cost_ablations_p2.pdf` | The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations | CURRENT | 11/11 | none needed (table) |
+| Table A.4 | TA | appendix | `tables_extra/TA_verdicts.png`, `tables_extra/TA_verdicts.pdf` | Verdict register: every registered hypothesis/check across Experiments 1-5/5S, the tier-1 extension experiments E2-E6 and the exploratory attribution ablation | CURRENT | own generator | none needed (table) |
 
-**Total: 348/348 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
+**Total: 352/352 checks match** (a check repeated in two items is counted in each). **EXACT comparison** (ruling 2026-10-16): the computed string is the stored full-precision value rounded once by `rd()` (half away from zero) at the printed precision, and it must equal the expected string character for character; no tolerance, no last-digit acceptance.
 
 ## Captions, sources and checks
 
+### Figure 3.1 (internal METHODS_ARCH, figure): System architecture: sensors, bridges, the three estimators and where each one runs
+
+- **Caption:** Sensors (left) reach ArduPilot's flight controller through MAVLink bridges (flow, range, and the external-navigation (ExtNav) path for the camera heading or a tag) and reach the UKF and FGO through recorded ROS 2 topics. Which estimator flies is set by AHRS_EKF_TYPE: simulator truth in Experiments 1A, 1B, 2, 3 and 4 (open loop; EKF3 runs live but passively, the UKF and FGO are replayed offline), and EKF3, the UKF port or the FGO in Experiments 1C, 5 and 5S (closed loop; the others run in shadow). The FGO runs outside ArduPilot as a node whose state an in-firmware output predictor (AP_NavFGO) propagates. In simulation every process ran on one desktop; the companion computer (Pi) is planned and its timing is estimated. Two safety watchers: the simulation watcher used in Experiments 1C, 5 and 5S, and the real-hardware watcher, tested only on the SITL bench.
+
+Verdicts: Table A.4, none (descriptive).
+- **Inputs:** see docs/thesis/figures_thesis/index_methods.md
+- **numbers.md rows:** checks: see index_methods.md (built by eval/figs_thesis_methods.py)
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
+
 ### Figure 4.1 (internal F2, figure): The camera heading stops the sideways drift: without it every estimator flies into the west wall
 
-- **Caption:** Textured corridor at half real-time (RTF 0.5; the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s), each estimator flying the vehicle (closed loop); true paths from the simulator, top-down, with the lateral (East) axis stretched 3.0× (stated on the figure). Colour = the flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s (after its pre-registered window), UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within 0.39 m of the centreline and pass all five closed-loop criteria (mission completion and the cross-track, heading-error, lateral-speed and oscillation bounds), so they overlap on the centreline at this scale; no ordering between the estimators is claimed [a]. Heading-error statistics are in Table 4.3; the heading error over time, the cause of this drift, is in Figure 4.1b (provisional). Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds are in Table A.1. n = 1 flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.
-  - *Footnote:* [a] Ordering basis, Experiment 1C closed loop, EKF3, final UKF port and final FGO node. Metric: without heading: wall-contact time after cruise start against each estimator's own contact window, s; with heading: pass/fail of the five closed-loop criteria and the estimator-validity criterion, with max |cross-track| in cruise (m), heading error p95 and max (°) and max lateral speed (m/s). n = 1 flight per estimator without heading and 3 flights per estimator with heading (each estimator flew its own flights: separate, unpaired flights). Rule: per-estimator criteria only (H1.8 contact window and H1.9 the five criteria; METHODOLOGY.md:4948, METHODOLOGY.md:7513, METHODOLOGY.md:8995, METHODOLOGY.md:4951, METHODOLOGY.md:4966, METHODOLOGY.md:7362); no comparative test between the estimators was pre-registered, and the comparison across the with-heading sets is 'DESCRIPTIVE; separate flights, n = 3 each, no ordering claim' (METHODOLOGY.md:9355). Result: with heading 3/3 / 3/3 / 3/3 flights pass (EKF3 / UKF / FGO); max cross-track 0.24–0.33 / 0.22–0.25 / 0.03–0.39 m. Verdict: case (iii), NO COMPARATIVE TEST REGISTERED: values are descriptive.
-  - *Footnote:* Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).
+- **Caption:** Textured corridor at half real-time (RTF 0.5; the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s), each estimator flying the vehicle (closed loop); true paths from the simulator, top-down, with the lateral (East) axis stretched 3.0×. Walls at x = ±10 m (CLAUDE.md:101, labelled 'wall'); the dotted line is the 9.58 m contact threshold (numbers.md:428). Colour = the flying estimator. Dashed: without a heading source (1 flight each), drawn up to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each); all 9 stay within 0.39 m of the centreline, so they overlap on the centreline at this scale. Heading-error statistics are in Table 4.3; the heading error over time, the cause of this drift, is in Figure 4.1b (provisional). Builds: the final UKF port (jitter-corrected) and the final FGO node (flown with the original FGO priors); earlier builds are in Table A.1. n = 1 flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.
+
+Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO; H1.9 EKF3; H1.9 UKF; H1.9 FGO.
 - **Inputs:** paths: dataflash SIM of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_half_v3, cl_fgo_b_tex_r1–r3_half_v3; contact and B2: eval/results/closed_loop_<trial>.json
 - **numbers.md rows:** §15 (contact rows, B2 row, re-flown B1/B2/B4 rows); claim 14
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
+| rule text numbers.md:428 contains the quoted phrase | `\|x\| ≥ 9.58 m` | `\|x\| ≥ 9.58 m` | docs/thesis/numbers.md:428 (read at build time) | yes |
+| rule text CLAUDE.md:101 contains the quoted phrase | `5 m tall and 0.2 m thick at x = ±10 m` | `5 m tall and 0.2 m thick at x = ±10 m` | CLAUDE.md:101 (read at build time) | yes |
 | no-heading wall contact EKF3 / final UKF port / final FGO node (s) | `+242.1 / +165.9 / +169.9` | `+242.1 / +165.9 / +169.9` | numbers.md §15 contact rows | yes |
 | with heading, max cross-track per estimator EKF3 / final UKF port / final FGO node (m) | `0.24–0.33 / 0.22–0.25 / 0.03–0.39` | `0.24–0.33 / 0.22–0.25 / 0.03–0.39` | numbers.md §15 B2 row (EKF3 half) and re-flown rows | yes |
 | plotted with-heading paths: max |x| in cruise vs scored max cross-track, all 9 flights, |Δ| <= 0.05 m | `ok` | `ok` | curve source (dataflash SIM) vs closed_loop_*.json B2 | yes |
@@ -63,9 +80,9 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 
 ### Figure 4.1b (provisional) (internal F9, figure): Without a heading source the heading error grows until the wall; with the camera heading it stays near zero
 
-- **Caption:** Heading error of the flying estimator (its own current yaw minus the simulator's true yaw; EKF3 from its logged state, the UKF and the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop flights as Figure 4.1: textured corridor at half real-time (RTF 0.5; the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s). Colour = the flying estimator. Dashed (here: without heading, not hindsight): without a heading source (1 flight each), drawn to the wall contact (X): EKF3 +242.1 s (after its pre-registered window [+155, +215] s; numbers.md:470), UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in Figure 4.1. With the camera heading all 9 flights stay within a heading error p95 of 0.38° and a maximum of 0.68° (Table 4.3), inside the heading-error bound (p95 ≤ 1.0°, max ≤ 2.0°; grey band ±2.0°), so on the main axis their lines lie on zero; the inset (linear, y-axis ±1°, the same time axis) shows them alone. No ordering between the estimators is claimed [a]. Builds: the final UKF port and the final FGO node (original FGO priors), as in Figure 4.1. n = 1 flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.
-  - *Footnote:* [a] Ordering basis, Experiment 1C closed loop, EKF3, final UKF port and final FGO node. Metric: without heading: wall-contact time after cruise start against each estimator's own contact window, s; with heading: pass/fail of the five closed-loop criteria and the estimator-validity criterion, with max |cross-track| in cruise (m), heading error p95 and max (°) and max lateral speed (m/s). n = 1 flight per estimator without heading and 3 flights per estimator with heading (each estimator flew its own flights: separate, unpaired flights). Rule: per-estimator criteria only (H1.8 contact window and H1.9 the five criteria; METHODOLOGY.md:4948, METHODOLOGY.md:7513, METHODOLOGY.md:8995, METHODOLOGY.md:4951, METHODOLOGY.md:4966, METHODOLOGY.md:7362); no comparative test between the estimators was pre-registered, and the comparison across the with-heading sets is 'DESCRIPTIVE; separate flights, n = 3 each, no ordering claim' (METHODOLOGY.md:9355). Result: with heading 3/3 / 3/3 / 3/3 flights pass (EKF3 / UKF / FGO); max cross-track 0.24–0.33 / 0.22–0.25 / 0.03–0.39 m. Verdict: case (iii), NO COMPARATIVE TEST REGISTERED: values are descriptive.
-  - *Footnote:* Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).
+- **Caption:** Heading error of the flying estimator (its own current yaw minus the simulator's true yaw; EKF3 from its logged state, the UKF and the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop flights as Figure 4.1: textured corridor at half real-time (RTF 0.5; the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s). Colour = the flying estimator. Dashed (here: without heading, not hindsight): without a heading source (1 flight each), drawn to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s. Solid: with the camera heading (3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in Figure 4.1. With the camera heading all 9 flights stay within a heading error p95 of 0.38° and a maximum of 0.68° (Table 4.3), so on the main axis their lines lie on zero (grey band: the ±2.0° heading-error bound); the inset (linear, y-axis ±1°, the same time axis) shows them alone. Builds: the final UKF port and the final FGO node (original FGO priors), as in Figure 4.1. n = 1 flight per estimator without heading; closed-loop run-to-run variability is unmeasured; no comparison across real-time factors.
+
+Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO; H1.9 EKF3; H1.9 UKF; H1.9 FGO.
 - **Inputs:** curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_half_v3, cl_fgo_b_tex_r1–r3_half_v3; cruise window, contact, B3 and clock_map: eval/results/closed_loop_<trial>.json; heading-error bound: METHODOLOGY.md:4958
 - **numbers.md rows:** §15 (contact rows, B3 row, re-flown B3 row); claim 14
 - **Not cross-checkable:** the curves themselves are read from the flight records, not numbers.md rows; they are checked against the stored B3 p95/max, clock map and contact times (the 'ok' checks)
@@ -95,6 +112,30 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 | rule text METHODOLOGY.md:4966 contains the quoted phrase | `B5.` | `B5.` | METHODOLOGY.md:4966 (read at build time) | yes |
 | rule text METHODOLOGY.md:7362 contains the quoted phrase | `S2 is the estimator valid throughout` | `S2 is the estimator valid throughout` | METHODOLOGY.md:7362 (read at build time) | yes |
 | rule text METHODOLOGY.md:9355 contains the quoted phrase | `DESCRIPTIVE; separate flights, n = 3 each, no ordering claim` | `DESCRIPTIVE; separate flights, n = 3 each, no ordering claim` | METHODOLOGY.md:9355 (read at build time) | yes |
+
+### Figure 4.1c (provisional) (internal R5, figure): Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor
+
+- **Caption:** Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, flight 3, chosen by the same rule as Figure 4.2(a), fixed before plotting: of the 9 textured-floor flights that all three estimators complete, the flight whose mean cruise ATE over EKF3, UKF and FGO is the median (5th of 9). n = 1 flight shown (of 9). Passive estimators, truth flying. (a) Top-down paths from take-off to the end of the cruise window, truth grey. Unlike Figure 4.2, the paths are NOT aligned: each estimate is drawn as estimated, in its own navigation frame with its origin at take-off, so the sideways drift caused by heading error, which the SE(3) alignment of the cruise ATE (and of Figure 4.2) removes, is shown; it reaches tens of metres by the end of the cruise. No fitted alignment is applied to any estimate. EKF3 reports North/East directly. The UKF and FGO trajectories are expressed in the world frame by a fixed axis relabel from the known take-off heading (the vehicle spawns facing North, and both start with yaw 0 along it, so their x is North and their y is West: (North, East) = (x, −y)), the same convention as eval/phase5_analysis.py. The East axis is stretched 1.0× relative to North (equal scale: the drift is large enough not to need stretching). For reference, each estimator's stored cruise ATE after alignment (Figure 4.2): EKF3 4.10 m, UKF 5.17 m, FGO 4.48 m. (b) Along-track error (estimated North − true North) and (c) sideways error (estimated East − true East) against the true distance travelled along the corridor, from take-off to the end of the cruise window (the stop and landing are not drawn). Truth is interpolated to each estimator's own timestamps. (b) and (c) share one y-scale. The along-track error is not a pure scale error: a heading error also shortens the North component of the estimated travel. Dashed: no heading source (all three). No log axes.
+
+Companion table: Table X (fitted and raw errors), to follow.
+
+Verdicts: Table A.4, none (descriptive).
+- **Inputs:** see docs/thesis/figures_thesis/index_drift.md
+- **numbers.md rows:** checks: see index_drift.md (built by eval/figs_thesis_drift.py)
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
+
+### Figure 4.2 (internal R3, figure): True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path
+
+- **Caption:** Flights chosen by a rule fixed before plotting: (a) of the 9 textured-floor flights of the standard-sensor dataset that all three estimators complete (flights 1–9; flight 10 is unusable for the UKF and FGO), the flight whose mean cruise ATE over EKF3, UKF and FGO is the median (5th of 9); (b) the flight of the textured-wall camera dataset (textured floor) with the same repeat index as (a) if it exists among its flights 1–3, otherwise the median of those three by the mean cruise ATE of the arms drawn solid. Chosen: (a) standard sensors, no heading, standard-sensor dataset, textured floor, flight 3 (cross-estimator mean cruise ATEs, ascending, by flight: 6: 1.85, 2: 2.42, 1: 4.02, 9: 4.46, 3: 4.58, 4: 4.59, 5: 4.62, 7: 4.64, 8: 4.84 m); (b) with the camera heading (offline heading arms), textured-wall camera dataset, textured floor, flight 3 (same repeat index as (a), flight 3). Top-down, cruise window only, truth grey. Each estimated path is drawn after a best-fit rotation about the vertical and a shift (no scale), fitted over the stored cruise window against its own ground-truth file. This gives the same average error as the standard 3D alignment used for the cruise ATE (the RMSE of every plotted path is within 0.005 m of its stored cruise ATE; cross-checks), but cannot roll the path about the corridor axis: the 3D fit is free to do so on a straight path and can turn sideways drift into up-and-down error that is invisible from above. The alignment removes a constant heading offset, so the metres-scale sideways drift of the unaligned estimates (Table 4.1, heading-error decomposition) is not shown; an error along the corridor (for example EKF3's distance-scale error) lies along the path and barely shows top-down. Dashed: no heading source; solid: with the camera heading (offline heading arms, UKF and FGO only; EKF3 has no offline heading arm and is shown as the no-heading baseline). The lateral (East) axis is stretched 3.0× relative to the along-corridor axis, the same in both panels; no log axes. Passive estimators, truth flying (Experiment 1A/1B offline). Cruise ATE (m): (a) EKF3 4.10, UKF 5.17, FGO 4.48 (all no heading); (b) EKF3 4.08 (no heading), UKF 4.96 (no heading) / 0.14 (with heading), FGO 4.54 (no heading) / 0.06 (with heading).
+
+Verdicts: Table A.4, none (descriptive).
+- **Inputs:** see docs/thesis/figures_thesis/index_results.md
+- **numbers.md rows:** checks: see index_results.md (built by eval/figs_thesis_results.py)
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
 
 ### Table 4.1 (internal T2, table): Position error without and with the camera heading (textured floor)
 
@@ -179,10 +220,9 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 
 ### Figure 5.1 (internal F5, figure): Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at 0.01–0.03 m
 
-- **Caption:** Experiment 2 (known tags; the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = their mean. Live errors grow from 0.02–0.04 m to 0.08–0.13 m as tags thin out; no live ordering is claimed [a] (in condition D the FGO live 0.083 m against EKF3 0.096 m is descriptive, 3 flights). H2.3 (live errors similar) FAILS (live max/min 1.97 / 2.36 / 1.42 / 1.57). The FGO whole-flight batch stays at 0.010–0.028 m; its hindsight gain grows with the gap (H2.1 PASS), the smoothed UKF's does not (H2.2 FAIL), and the ratio of the batch to the smoothed UKF is 1.31–3.89 (H2.4 FAIL) [b]. Same tag fixes for every estimator.
-  - *Footnote:* [a] Ordering basis, Experiment 2 live tracks, EKF3, UKF and FGO (H2.3). Metric: horizontal RMSE over the 5 laps in the world frame, no alignment, mean of the flights in each condition, m. n = 3 flights per condition, 4 conditions (12 flights; every estimator on the same flights, open loop on simulator truth, paired). Rule: H2.3 'live errors are similar': in every condition the largest live RMSE (mean over repeats) is ≤ 1.5 × the smallest (METHODOLOGY.md:10178, METHODOLOGY.md:10179); no ordering test was registered, and the condition-D ordering is 'descriptive only (n = 3)' (METHODOLOGY.md:12803). Result: max ÷ min 1.97 / 2.36 / 1.42 / 1.57 (conditions A / B / C / D): H2.3 FAILS (C inside the band); condition D: FGO 0.083, EKF3 0.096, UKF 0.131 m, descriptive. Verdict: case (ii), FAILED AS WORDED: the registered prediction is false as written; a failed criterion does not by itself establish an ordering, so any ordering shown is descriptive.
-  - *Footnote:* [b] Ordering basis, Experiment 2 hindsight, the FGO whole-flight batch against the smoothed UKF (H2.4). Metric: horizontal RMSE over the 5 laps in the world frame, mean of the flights in each condition, m. n = 3 flights per condition, 4 conditions (both hindsight tracks from the same flights, paired). Rule: H2.4 'FGO hindsight ≈ RTS-UKF': in every condition the larger RMSE (mean over repeats) is ≤ 1.5 × the smaller (METHODOLOGY.md:10180, METHODOLOGY.md:10181); no ordering test was registered. Result: max ÷ min 1.31 / 2.14 / 2.06 / 3.89: H2.4 FAILS; the FGO whole-flight batch is the lower in every condition (descriptive). Verdict: case (ii), FAILED AS WORDED: the registered prediction is false as written; a failed criterion does not by itself establish an ordering, so any ordering shown is descriptive.
-  - *Footnote:* Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).
+- **Caption:** Experiment 2 (known tags; the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = their mean. Live errors grow from 0.02–0.04 m to 0.08–0.13 m as tags thin out; no live ordering is claimed (in condition D the FGO live 0.083 m against EKF3 0.096 m is descriptive, 3 flights); the live max/min ratio, condition A to D: 1.97 / 2.36 / 1.42 / 1.57. The FGO whole-flight batch stays at 0.010–0.028 m; its hindsight gain over FGO live, median per gap, condition A to D: 0.010, 0.011, 0.023, 0.052 m; the smoothed UKF's gain over UKF live, same conditions: +0.020, +0.032, +0.037, +0.029 m, and the ratio of the batch to the smoothed UKF is 1.31–3.89. Same tag fixes for every estimator.
+
+Verdicts: Table A.4, rows H2.1; H2.2; H2.3; H2.4.
 - **Inputs:** eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json
 - **numbers.md rows:** §16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18
 
@@ -196,6 +236,8 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 | tags per lap in condition B | `[0, 1, 2, 3]` | `[0, 1, 2, 3]` | T_B_r1.json gates (4 corner tags) | yes |
 | H2.1 median gain A–D (m), rho, PASS | `0.010 / 0.011 / 0.023 / 0.052 +0.30 True` | `0.010 / 0.011 / 0.023 / 0.052 +0.30 True` | numbers.md §16.1 | yes |
 | H2.2 gain A–D (m), PASS | `+0.020 / +0.032 / +0.037 / +0.029 False` | `+0.020 / +0.032 / +0.037 / +0.029 False` | numbers.md §16.1 | yes |
+| H2.1 gain A–D: rd_si() caption string == rd() check string | `0.010, 0.011, 0.023, 0.052` | `0.010, 0.011, 0.023, 0.052` | this file: rd_si() vs rd() on the same values | yes |
+| H2.2 gain A–D: rd_si() caption string == rd() check string | `+0.020, +0.032, +0.037, +0.029` | `+0.020, +0.032, +0.037, +0.029` | this file: rd_si() vs rd() on the same values | yes |
 | H2.3 live max/min ratio A / B / C / D | `1.97 / 2.36 / 1.42 / 1.57` | `1.97 / 2.36 / 1.42 / 1.57` | numbers.md §16.1 P-T3 | yes |
 | F5 title: FGO whole-flight batch over A–D, 2 dp (m) = former caption literal '1–3' cm × 10^-2 | `0.01–0.03` | `0.01–0.03` | eval/results/expT/t_aggregate.json; former F5 title | yes |
 | F5 caption: live errors, condition A / condition D, 2 dp (m) = former literals '2–4' / '8–13' cm × 10^-2 | `0.02–0.04 / 0.08–0.13` | `0.02–0.04 / 0.08–0.13` | eval/results/expT/t_aggregate.json; former F5 caption | yes |
@@ -210,9 +252,9 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 
 ### Figure 5.2 (internal F7, figure): Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps
 
-- **Caption:** Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 0.16–0.43; overall 0.049–0.076 m live, 0.017–0.027 m hindsight). Right: without re-identification it grows 2.9–4.5× over five laps (overall 0.263–0.361 m live). H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]. The thesis's EKF3 and UKF, as configured, have no landmark states, so they have no loop closure; loop closure is not specific to the FGO: in an extension experiment (pre-registered), a UKF variant with each tag in its state bounded its live drift (H-E5.1 PASS 3/3), with a higher error than the FGO's (S-E5.5 PASS 3/3; UKF ÷ FGO live 1.76–2.08, descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift (extension experiment, H-E2.1 PASS 3/3 in each). The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its loop-closure advantage (H-E3.1 FAIL 0/9; 6 of 9 runs diverged). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation check (V3) is not re-scorable on the corrected FGO (its labels were never recorded).
-  - *Footnote:* [a] Ordering basis, Experiment 3, the keyframe FGO with against without loop closure (H3.1–H3.4; one estimator, not a comparison of estimators). Metric: horizontal RMSE in the first tag's frame, overall and per 6 m lap, m. n = 3 flights (each flight replayed with and without loop closure, paired). Rule: H3.2 'LC live overall RMSE < no-LC live overall RMSE in 3/3 flights' (METHODOLOGY.md:10503); H3.3 the same for hindsight (METHODOLOGY.md:10504); H3.1 with loop closure lap 5 ≤ 1.5 × lap 1 in 3/3 (METHODOLOGY.md:10501); H3.4 without, lap 5 > 1.5 × lap 1 in 3/3 (METHODOLOGY.md:10505). Result: H3.1 / H3.2 / H3.3 / H3.4 pass on 3 / 3 / 3 / 3 of 3 flights (live 0.049–0.076 m with loop closure, 0.263–0.361 m without); scope: all 8 tags and correct tag IDs (extensions in the caption). Verdict: RULE MET: the ordering is claimed.
-  - *Footnote:* Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).
+- **Caption:** Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 0.16–0.43; overall 0.049–0.076 m live, 0.017–0.027 m hindsight). Right: without re-identification it grows 2.9–4.5× over five laps (overall 0.263–0.361 m live). The thesis's EKF3 and UKF, as configured, have no landmark states, so they have no loop closure; loop closure is not specific to the FGO: in an extension experiment (pre-registered), a UKF variant with each tag in its state bounded its live drift in 3/3 flights, with a higher error than the FGO's in 3/3 flights (UKF ÷ FGO live 1.76–2.08, descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each (extension experiment). The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in 0/9 runs (6 of 9 runs diverged). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation check (V3) is not re-scorable on the corrected FGO (its labels were never recorded).
+
+Verdicts: Table A.4, rows V3; H3.1; H3.2; H3.3; H3.4; Extension E2 H-E2.1; Extension E3 H-E3.1; Extension E5 H-E5.1; Extension E5 S-E5.5.
 - **Inputs:** eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)
 - **numbers.md rows:** §16.3 table and bullets; claims 23, 24
 
@@ -237,12 +279,9 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 
 ### Figure 5.3 (internal F6, figure): Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m
 
-- **Caption:** Experiment 4 (outdoor–indoor: outdoor → indoor → outdoor, open loop on simulator truth), flight 1: horizontal error against time in the world frame, no alignment. Indoor sensor set, the same for all three estimators: IMU (accelerometer and gyro), downward optical flow and the downward LiDAR rangefinder only; no GNSS (switched off at the entrance), no compass, no forward-camera heading (descoped) and no tags (none in the world). Route events (dotted): GNSS OFF at the entrance (0 s); the far end, 30 m inside, reached at ~60 s and held 3 s; the return in reverse at the same heading (no yaw turn) from 63 s; GNSS ON on re-crossing the entrance at 123 s. EKF3 resets to GNSS on return with a 4.10 m jump (every flight) [d]. Solid = live, dashed = hindsight. The per-flight indoor RMSE of all three flights is in Table 5.1 (H4.1 PASS 3/3 [a]; H4.2 FAIL [b]; H4.3 PASS [c]).
-  - *Footnote:* [a] Ordering basis, Experiment 4, the FGO whole-flight batch (hindsight) against the EKF3 and UKF live tracks (H4.1). Metric: indoor horizontal RMSE in the world frame, no alignment, m. n = 3 flights (same flights, paired). Rule: H4.1: PASS iff in 3/3 flights the FGO-batch indoor RMSE is < both EKF3's and the UKF's live indoor RMSE (METHODOLOGY.md:10358, METHODOLOGY.md:10359). Result: lower than both in 3 of 3 flights: H4.1 PASSES (a hindsight track against live tracks, not like with like). Verdict: RULE MET: the ordering is claimed.
-  - *Footnote:* [b] Ordering basis, Experiment 4 live tracks indoors, EKF3, UKF and FGO (H4.2). Metric: indoor horizontal RMSE in the world frame, no alignment, over the 123 s without GNSS, m. n = 3 flights (every estimator on the same flights, open loop on simulator truth, paired). Rule: H4.2 'live indoor errors are similar': in every flight the largest live indoor RMSE is ≤ 1.5 × the smallest (METHODOLOGY.md:10360, METHODOLOGY.md:10361); no ordering test was registered. Result: max ÷ min 1.71–1.84: H4.2 FAILS; EKF3 largest in 3 of 3 flights; UKF 0.77–0.84 m and FGO 0.83–0.89 m (both descriptive). Verdict: case (ii), FAILED AS WORDED: the registered prediction is false as written; a failed criterion does not by itself establish an ordering, so any ordering shown is descriptive.
-  - *Footnote:* [c] Ordering basis, Experiment 4, the FGO whole-flight batch against the smoothed UKF (H4.3). Metric: indoor horizontal RMSE in the world frame, no alignment, m. n = 3 flights (same flights, paired). Rule: H4.3: the two RMSEs within 1.5× of each other in every flight (METHODOLOGY.md:10362). Result: max ÷ min 1.01–1.02: H4.3 PASSES; which is lower changes between flights (descriptive). Verdict: RULE MET: the similarity is claimed (no ordering).
-  - *Footnote:* [d] Ordering basis, Experiment 4, the jump on the return to GNSS. Metric: largest position step in the 10 s after GNSS returns, m. n = 3 flights (same flights for every estimator). Rule: none: EKF3's jump is 'Reported regardless' (METHODOLOGY.md:10365); no comparative test was pre-registered. Result: EKF3 4.10–4.10, UKF 2.30–2.44, FGO 2.14–2.28 m. Verdict: case (iii), NO COMPARATIVE TEST REGISTERED: values are descriptive.
-  - *Footnote:* Ordering verdicts used in the footnotes: RULE MET = a pre-registered rule was applied and met, so its ordering (or similarity) is claimed; case (i) TEST RUN, RULE NOT MET = a pre-registered decision rule with a 'no ordering' outcome was applied and gave that outcome; case (ii) FAILED AS WORDED = a pre-registered prediction of an ordering or a similarity was scored literally and is false, which does not by itself establish the opposite ordering; case (iii) NO COMPARATIVE TEST REGISTERED = values are descriptive. n always names its unit (flights, bags, losses).
+- **Caption:** Experiment 4 (outdoor–indoor: outdoor → indoor → outdoor, open loop on simulator truth), flight 1: horizontal error against time in the world frame, no alignment. Indoor sensor set, the same for all three estimators: IMU (accelerometer and gyro), downward optical flow and the downward LiDAR rangefinder only; no GNSS (switched off at the entrance), no compass, no forward-camera heading (descoped) and no tags (none in the world). Route events (dotted): GNSS OFF at the entrance (0 s); the far end, 30 m inside, reached at ~60 s and held 3 s; the return in reverse at the same heading (no yaw turn) from 63 s; GNSS ON on re-crossing the entrance at 123 s. EKF3 resets to GNSS on return with a 4.10 m jump (every flight). Solid = live, dashed = hindsight. The per-flight indoor RMSE of all three flights is in Table 5.1.
+
+Verdicts: Table A.4, rows H4.1; H4.2; H4.3.
 - **Inputs:** eval/results/expO/O_r1.json (markers_bag_s, max_step_after_return_m), O_r2.json, O_r3b.json; curves: O_r1 room_ukf/, room_fgo/ TUMs, dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map); design: METHODOLOGY 'Experiment O: pre-registration', sim/worlds/outdoor_indoor.sdf, fly_trial.py outback(), o_gnss.parm
 - **numbers.md rows:** §16.2 table and bullets; claims 19–22
 
@@ -449,6 +488,8 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 ### Table A.1 (internal A1, appendix): Closed loop: every flown build against the five closed-loop criteria and the contact window
 
 - **Caption:** Pass/fail of every closed-loop corridor set, computed from the closed-loop score files, with the build ablations labelled: the UKF earlier build (pre-jitter fix) against the final UKF port; the FGO earlier build (original, hard-gated and robust), the ablation build (noise fix only) and the final FGO node (original priors); no ordering between builds or estimators is claimed [a].
+
+Verdict rows: as Figure 4.1/4.1b (H1.8, H1.9, per build; docs/thesis/tables/TA_verdicts.md).
 - **Inputs:** eval/results/closed_loop_<trial>.json
 - **numbers.md rows:** §15 (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14
 
@@ -467,6 +508,8 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 ### Table A.2 (internal A2, appendix): Experiment 5 hold sets and the 5S safety tests (all runs)
 
 - **Caption:** Experiment 5 hold sets (EKF3-flying, near and far spawn; UKF-flying, earlier and final builds; FGO-flying, ablation and final builds) with hold error, drift, lockouts and the drift bands (H5.5), and every 5S safety-test run with its as-worded verdict; the final runs are the re-tests of the final UKF port and of the FGO corrected-priors node (corrected priors). The FGO safety re-tests (corrected-priors node) used the corrected initial priors; the flown FGO hold and closed-loop corridor results (final FGO node) used the original priors. The comparative criteria page gives the final-build sets (primary) beside the superseded builds; the final-build verdicts are identical to the original-build verdicts (all FAIL) [a]; the safety verdicts are per run [b].
+
+Verdict rows (docs/thesis/tables/TA_verdicts.md, Experiment 5 and 5S): H5.1-H5.7 and the five 5S safety rows.
 - **Inputs:** eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json, safety_*.json
 - **numbers.md rows:** §15 safety rows, §17, §17.1; METHODOLOGY 2d and 'Band C … FGO safety re-tests'
 
@@ -527,6 +570,8 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 ### Table A.3 (internal A3, appendix): The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations
 
 - **Caption:** Pass/fail table for the robust-weighting test (H1.4), the Experiment 3 compute cost (diagnostic; linear values, no plot) and the build ablations: the UKF earlier build against the final UKF port; the FGO ablation build (noise fix only) against the final FGO node and the corrected-priors node; the note on the original priors flown by the FGO. H1.4 NOT met [a]; ablations descriptive [b]. The FGO safety re-tests (corrected-priors node) used the corrected initial priors; the flown FGO hold and closed-loop corridor results (final FGO node) used the original priors.
+
+Verdict rows (docs/thesis/tables/TA_verdicts.md): H1.4 (robust-weighting test). The Experiment 3 compute cost and the build ablations on this page (earlier build vs final build) have no pre-registered hypothesis id and so no row of their own - do not confuse with the separate EXPLORATORY attribution-ablation rows in TA_verdicts.md, which score a different study (which correction caused which change).
 - **Inputs:** eval/results/f1_test.json; ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json; closed_loop_*, expH/*
 - **numbers.md rows:** §15.2 F1 row; §16.3 cost bullets; §15, §17.1
 
@@ -544,6 +589,15 @@ Built by `eval/figs_thesis.py` at commit `4861f3d` (run with `/home/makerspace/v
 | rule text METHODOLOGY.md:7921 contains the quoted phrase | `robust FGO better than hard-gated UKF` | `robust FGO better than hard-gated UKF` | METHODOLOGY.md:7921 (read at build time) | yes |
 | rule text METHODOLOGY.md:7922 contains the quoted phrase | `episodes in total AND a lower yaw-error max on ≥ 4 of 6` | `episodes in total AND a lower yaw-error max on ≥ 4 of 6` | METHODOLOGY.md:7922 (read at build time) | yes |
 
+### Table A.4 (internal TA, appendix): Verdict register: every registered hypothesis/check across Experiments 1-5/5S, the tier-1 extension experiments E2-E6 and the exploratory attribution ablation
+
+- **Caption:** ONE row per pre-registered hypothesis, check or prediction, gathered from the tables and verdict files that already scored it, so that no PASS/FAIL/verdict text needs to live on or near a figure. Experiments 1–5 (H1.x–H5.x, C1.a, X1.b, V3) are TRANSCRIBED from docs/thesis/tables/R1_hypothesis_scorecard.md's own 48-part table (parsed programmatically, not retyped); Experiment 5S (the hold safety tests, which carry no hypothesis label in R1) is transcribed from the final-build score files eval/results/expH/safety_*.json, the same ones docs/thesis/tables/T7_failure_behaviour.md and eval/figs_thesis.py's own checks use. The tier-1 extension experiments (labelled 'Extension E2'-'Extension E6' to avoid confusion with the thesis's own Experiment 2/Experiment 3) are transcribed from docs/thesis/tier1/scores/{E2,E3,E4,e5,e6}_verdicts.json. The attribution ablation (labelled EXPLORATORY, per its own pre-registration) is transcribed from docs/thesis/ablation/ablation_results.json. No number, pass rule, verdict or data selection is changed from its source; every number and verdict word is cross-checked character-for-character against that source by eval/ta_verdicts_check.py.
+- **Inputs:** docs/thesis/tables/R1_hypothesis_scorecard.md, tier1/scores/*.json, ablation/ablation_results.json
+- **numbers.md rows:** checks: eval/ta_verdicts_check.py (146/146 EXACT)
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
+
 ## Appendix mapping: thesis label → internal code → output file
 
 Generated from the item list and the printed text of each item (no hand-typed "used in" cell). Source of every thesis name: `docs/thesis/thesis_vocabulary.md` (row cited). The internal codes in this section are the point of the section: they are the trace back to the repository, the results record (`docs/thesis/numbers.md`) and METHODOLOGY.
@@ -552,8 +606,11 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 
 | thesis label | internal id | output files | title |
 |---|---|---|---|
+| Figure 3.1 | METHODS_ARCH | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs |
 | Figure 4.1 | F2 | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall |
 | Figure 4.1b (provisional) | F9 | `F9_heading_error_closed_loop.png`, `F9_heading_error_closed_loop.pdf` | Without a heading source the heading error grows until the wall; with the camera heading it stays near zero |
+| Figure 4.1c (provisional) | R5 | `R5_drift_unaligned.png`, `R5_drift_unaligned.pdf` | Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor |
+| Figure 4.2 | R3 | `R3_trajectory_overlay.png`, `R3_trajectory_overlay.pdf` | True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path |
 | Table 4.1 | T2 | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex`, `T2_accuracy_heading.png` | Position error without and with the camera heading (textured floor) |
 | Table 4.2 | T3 | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding |
 | Table 4.3 | T4 | `T4_closed_loop.md`, `T4_closed_loop.tex`, `T4_closed_loop.png` | Closed loop at half real-time (RTF 0.5): the final build of each estimator flying the vehicle |
@@ -568,35 +625,36 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | Table A.1 | A1 | `A1_closed_loop_builds.png`, `A1_closed_loop_builds.pdf` | Closed loop: every flown build against the five closed-loop criteria and the contact window |
 | Table A.2 | A2 | `A2_H_and_safety_p1.png`, `A2_H_and_safety_p1.pdf`, `A2_H_and_safety_p2.png`, `A2_H_and_safety_p2.pdf`, `A2_H_and_safety_p3.png`, `A2_H_and_safety_p3.pdf` | Experiment 5 hold sets and the 5S safety tests (all runs) |
 | Table A.3 | A3 | `A3_F1_cost_ablations_p1.png`, `A3_F1_cost_ablations_p1.pdf`, `A3_F1_cost_ablations_p2.png`, `A3_F1_cost_ablations_p2.pdf` | The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations |
+| Table A.4 | TA | `tables_extra/TA_verdicts.png`, `tables_extra/TA_verdicts.pdf` | Verdict register: every registered hypothesis/check across Experiments 1-5/5S, the tier-1 extension experiments E2-E6 and the exploratory attribution ablation |
 
 ### 2. Experiments, datasets, criteria, labels and builds
 
 | thesis label | internal code(s) | used in | vocabulary row |
 |---|---|---|---|
 | Experiment 1, corridor comparison | (no single code: the `dsn` / `fwdc` / `fwdplainc` datasets, Phases 3–5, the F tests, the closed-loop "Part 2") | Table 7.1 | §1; §2 row 1 |
-| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Table 4.2, Table 7.1, Table 7.2 | §2 row 6 |
-| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Table 4.2, Table 7.1, Table 7.2 | §2 row 7 |
-| Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1 | §2 row 8 |
-| Experiment 2, known tags | Experiment T | Figure 5.1, Table 5.2, Table 7.1 | §2 row 2 |
-| Experiment 3, loop closure | Experiment L | Figure 5.2, Table 5.2, Table 7.1, Table A.3 | §2 row 3 |
+| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Figure 3.1, Figure 4.2, Table 4.2, Table 7.1, Table 7.2 | §2 row 6 |
+| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Figure 3.1, Figure 4.2, Table 4.2, Table 7.1, Table 7.2 | §2 row 7 |
+| Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Figure 3.1, Table 4.3, Table 7.1, Table A.1 | §2 row 8 |
+| Experiment 2, known tags | Experiment T | Figure 5.1, Table 5.2, Table 7.1, Table A.4 | §2 row 2 |
+| Experiment 3, loop closure | Experiment L | Figure 5.2, Table 5.2, Table 7.1, Table A.3, Table A.4 | §2 row 3 |
 | Experiment 4, outdoor–indoor | Experiment O | Figure 5.3, Table 5.1, Table 5.2, Table 7.1, Table 7.2, Table A.3 | §2 row 4 |
 | Experiment 5, tag hold | Experiment H | Table 6.1, Table 7.1, Table A.2, Table A.3 | §2 row 5 |
-| 5S safety tests | `H_safety_*`; safety (a) / (b) | Table 7.2, Table A.2 | §2 row 9 |
+| 5S safety tests | `H_safety_*`; safety (a) / (b) | Figure 3.1, Table 7.2, Table A.2, Table A.4 | §2 row 9 |
 | condition A–D (8 / 4 / 2 / 1 tags; kept as letters) | Experiment T conditions A–D; `T_A` … `T_D` | Figure 5.1, Table 5.2, Table 7.1 | §8.1 row 29; §10 row 21 |
-| standard-sensor dataset | `dsn` | Table 4.1, Table 4.2, Table 7.1 | §2 row 11 |
-| heading-error decomposition of sideways drift | Phase 5 decomposition (`plots/lateral_checks.py` method) | Table 4.1 | §5 (under H1.3) |
+| standard-sensor dataset | `dsn` | Figure 4.1c (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 7.1 | §2 row 11 |
+| heading-error decomposition of sideways drift | Phase 5 decomposition (`plots/lateral_checks.py` method) | Figure 4.2, Table 4.1 | §5 (under H1.3) |
 | thesis-nav position-lost path (the Copter landing trigger) | `thesis_nav_check` | Table 7.2, Table A.2 | §8.3 |
-| textured-wall camera dataset (upper bound) | `fwdc` | Table 4.1, Table 4.2, Table 7.1, Table A.3 | §2 row 13 |
+| textured-wall camera dataset (upper bound) | `fwdc` | Figure 4.2, Table 4.1, Table 4.2, Table 7.1, Table A.3 | §2 row 13 |
 | plain-wall camera dataset (featureless case) | `fwdplainc` | Table 4.1, Table 4.2, Table 7.1, Table A.3 | §2 row 14 |
 | camera calibration flights | `p1c_*` | Table 4.2, Table 7.1 | §2 row 15 |
-| cruise ATE | `evo -a (cruise)` | Table 4.1, Table 7.1 | §3 row 17 |
-| contact window | closed-loop set (a) PRIMARY window; U3 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1 | §3 row 20 |
-| mission completion | B1 | Figure 4.1, Table 4.3, Table A.1, Table A.3 | §3 row 23 |
-| cross-track bound | B2 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 24 |
-| heading-error bound | B3 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 25 |
-| lateral-speed bound | B4 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 26 |
-| oscillation bound | B5 | Figure 4.1, Table 4.3, Table A.1, Table A.3 | §3 row 27 |
-| estimator-validity criterion | closed-loop S2 ("+S2") | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1 | §3 row 28 |
+| cruise ATE | `evo -a (cruise)` | Figure 4.1c (provisional), Figure 4.2, Table 4.1, Table 7.1 | §3 row 17 |
+| contact window | closed-loop set (a) PRIMARY window; U3 | Table 4.3, Table 7.1, Table A.1 | §3 row 20 |
+| mission completion | B1 | Table 4.3, Table A.1, Table A.3 | §3 row 23 |
+| cross-track bound | B2 | Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 24 |
+| heading-error bound | B3 | Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 25 |
+| lateral-speed bound | B4 | Table 4.3, Table 7.1, Table A.1, Table A.3 | §3 row 26 |
+| oscillation bound | B5 | Table 4.3, Table A.1, Table A.3 | §3 row 27 |
+| estimator-validity criterion | closed-loop S2 ("+S2") | Table 4.3, Table 7.1, Table A.1 | §3 row 28 |
 | drift band | P-H5 | Table 6.1, Table 7.1, Table A.2 | §3 row 30 |
 | lockout criterion (no lockout) | P-H7 | Table 6.1 | §3 row 32 |
 | attitude criterion | S-A1 | Table 7.2, Table A.2 | §3 row 33 |
@@ -605,12 +663,12 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | single landing | S-A4 | Table 7.2, Table A.2 | §3 row 35 |
 | forced-invalid test | safety (a) PARAM (the FGO's (a) is a node kill) | Table 7.2, Table A.2, Table A.3 | §4 row 46 |
 | node-kill test | safety (b) KILL | Table 7.2, Table A.2, Table A.3 | §4 row 46 |
-| with / without heading | closed-loop set (b) / set (a) | Figure 4.1, Figure 4.1b (provisional), Table 4.1, Table 4.2, Table 4.3, Table 7.1, Table A.1, Table A.3 | §4 set letters |
+| with / without heading | closed-loop set (b) / set (a) | Figure 4.1, Figure 4.1b (provisional), Figure 4.1c (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.3, Table 7.1, Table A.1, Table A.3 | §4 set letters |
 | with / without loop closure | LC / no-LC / `nolc` | Figure 5.2, Table 7.1, Table A.3 | §8.1 row 31 |
 | smoothed UKF | RTS-UKF | Figure 5.1, Figure 5.3, Table 5.1, Table 5.2, Table 7.1 | §4 row 38 |
 | FGO whole-flight batch (hindsight) | FGO batch | Figure 5.1, Figure 5.3, Table 5.1, Table 5.2, Table 7.1 | §4 row 37; §8.1 row 33 |
 | hard-gated FGO / hard-gated UKF / robust FGO | `FGO_hard` / `UKF_hard` / `FGO_robust` | Table A.1, Table A.3 | §8.1 row 34 |
-| final build (final UKF port / final FGO node) | UKF v2 (`_v2`); FGO v3 (`_v3`); hold sets S2v2 / S3v2 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 6.1, Table 7.1, Table 7.2, Table A.1, Table A.2, Table A.3 | §4 row 40 |
+| final build (final UKF port / final FGO node) | UKF v2 (`_v2`); FGO v3 (`_v3`); hold sets S2v2 / S3v2 | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 6.1, Table 7.1, Table 7.2, Table A.1, Table A.2, Table A.3, Table A.4 | §4 row 40 |
 | ablation build | FGO v2 (`_v2`); hold set S3; ABLATION | Table 7.2, Table A.1, Table A.2, Table A.3 | §4 row 41 |
 | earlier build | UKF v1 ("old UKF"); original FGO; hold set S2 | Figure 4.1, Table 7.2, Table A.1, Table A.2, Table A.3 | §4 row 42 |
 | corrected-priors node | FGO v4 (`4c07374b`) | Table 6.1, Table 7.2, Table A.2, Table A.3 | §4 row 43 |
@@ -621,7 +679,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | half real-time (RTF 0.5) | `_half`; "half speed" (banned) | Figure 4.1, Figure 4.1b (provisional), Table 4.3, Table 7.1, Table A.1 | §4 row 45 |
 | runaway magnitude (†) | † | Table 4.2, Table 7.1, Table 7.2 | §4 row 47 |
 | EKF3 with the Python / C++ heading node | Python / C++ bridge; `bcpp` | Table A.1 | §8.1 row 40 |
-| safety watcher | watcher | Table 7.2, Table A.2 | §8.1 row 41 |
+| safety watcher | watcher | Figure 3.1, Table 7.2, Table A.2 | §8.1 row 41 |
 
 ### 3. Hypotheses and comparisons (thesis_vocabulary.md §5)
 
@@ -630,20 +688,20 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | H1.1 | standard-sensor ordering, EKF3 vs FGO (confirmatory) | the r4–r10 paired test | Table 4.1, Table 7.1 |
 | H1.2 | heading-measurement validation | Phase 3 validation | Table 4.1, Table 7.1 |
 | H1.3 | heading-fusion prediction (judged on the heading-error decomposition of sideways drift) | Phase 5 prediction; Phase 5 decomposition | Table 4.1 |
-| C1.a | FGO vs UKF with heading (comparison, no decision rule) | C0 | Table 4.1, Table 7.1 |
+| C1.a | FGO vs UKF with heading (comparison, no decision rule) | C0 | Table 4.1, Table 7.1, Table A.4 |
 | H1.4 | robust-weighting test | F1 (pre-registered) | Table A.1, Table A.3 |
 | H2.1 | FGO hindsight gain grows with the gap | H-T1 | Figure 5.1, Table 7.1 |
 | H2.2 | the same for the smoothed UKF | P-T2 | Figure 5.1 |
 | H2.3 | live errors similar | P-T3 | Figure 5.1, Table 7.1 |
-| H2.4 | FGO hindsight ≈ smoothed UKF | P-T4 | Figure 5.1, Table 5.2 |
-| V3 | estimator validation check | V-L | Figure 5.2 |
+| H2.4 | FGO hindsight ≈ smoothed UKF | P-T4 | Table 5.2 |
+| V3 | estimator validation check | V-L | Figure 5.2, Table A.4 |
 | H3.1 | loop closure bounds live drift | H-L1 | Figure 5.2, Table 7.1 |
 | H3.2 | live error lower with loop closure | H-L2 | Figure 5.2, Table 7.1 |
 | H3.3 | hindsight error lower with loop closure | H-L3 | Figure 5.2, Table 7.1 |
 | H3.4 | without loop closure, drift grows lap on lap | P-L4 | Figure 5.2, Table 7.1 |
 | H4.1 | FGO hindsight beats the filters' live tracks indoors | H-O1 | Figure 5.3, Table 5.1, Table 7.1 |
 | H4.2 | live indoor errors similar | H-O2 | Figure 5.3, Table 5.1, Table 7.1 |
-| H4.3 | FGO batch ≈ smoothed UKF | P-O3 | Figure 5.3, Table 5.1, Table 5.2, Table 7.1 |
+| H4.3 | FGO batch ≈ smoothed UKF | P-O3 | Table 5.1, Table 5.2, Table 7.1 |
 | H5.2 | FGO holds tightest | H-H2 | Table 6.1, Table 7.1, Table A.2 |
 | H5.3 | smoothness similar | P-H3 | Table 6.1, Table 7.1, Table A.2 |
 | H5.4a | after a 15 s loss, EKF3 jumps most | H-H4 (15 s) | Table 6.1, Table 7.1, Table A.2 |

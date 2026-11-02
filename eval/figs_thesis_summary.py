@@ -102,7 +102,9 @@ DISP = {k: os.path.join(ROOT, "docs", "thesis", p) for k, p in {
     "T1": "tables/T1_scorecard.md", "T2": "tables/T2_accuracy_heading.md", "T3": "tables/T3_blank_floor.md",
     "T4": "tables/T4_closed_loop.md", "T5": "tables/T5_H_tag_loss_drift.md", "T6": "tables/T6_O_indoor_rmse.md",
     "T7": "tables/T7_failure_behaviour.md", "T8": "tables/T8_hindsight_ratio.md", "R1": "tables/R1_hypothesis_scorecard.md",
-    "IDX": "figures_thesis/index.md"}.items()}
+    # RESTYLE (2026-11-02): repointed to the byte-identical pre-restyle copy - this is a separate reader document and
+    # must not change; DNAME (below) is left as "figures_thesis/index.md" so the printed source name is unchanged.
+    "IDX": "figures_thesis/working/index.md"}.items()}
 DNAME = {"T1": "Table 7.1 (T1_scorecard.md)", "T2": "Table 4.1 (T2_accuracy_heading.md)", "T3": "Table 4.2 (T3_blank_floor.md)",
          "T4": "Table 4.3 (T4_closed_loop.md)", "T5": "Table 6.1 (T5_H_tag_loss_drift.md)", "T6": "Table 5.1 (T6_O_indoor_rmse.md)",
          "T7": "Table 7.2 (T7_failure_behaviour.md)", "T8": "Table 5.2 (T8_hindsight_ratio.md)", "R1": "Table 7.3 (R1_hypothesis_scorecard.md)",

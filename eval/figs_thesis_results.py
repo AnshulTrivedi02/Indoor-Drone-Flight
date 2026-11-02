@@ -828,52 +828,81 @@ for key, ln, vals in (("EKF3", 269, ["4.09", "3.60", "4.08"]), ("FGO_baseline", 
                       ("UKF_heading", 291, ["0.13", "0.13", "0.14"]), ("FGO_heading", 292, ["0.06", "0.06", "0.06"])):
     check("R3", f"(b) flight {rb} {key} cruise ATE (m)", rd(P4E[TRB]["est"][key]["ate_a_cruise"]["+0.00"], 2), vals[rb - 1], "numbers.md", ln)
 
-fig, axs = plt.subplots(2, 1, figsize=(15.5, 10.2))
+from thesis_style import TEXT_WIDTH_IN, write_caption
+fig, axs = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 8.0))
 lat = max(np.abs(PATHS[k][0][1]).max() for k in PATHS) * 1.08; lat = max(lat, 2.0)
-TT = {"a": f"(a) standard sensors, no heading: standard-sensor dataset, textured floor, flight {ra}",
-      "b": f"(b) with the camera heading (offline heading arms): textured-wall camera dataset, textured floor, flight {rb}"}
+TT = {"a": "(a)", "b": "(b)"}   # RESTYLE (2026-11-02): dataset/condition detail moved wholly to the caption
 LBL = {"EKF3": "EKF3 (no heading)", "UKF": "UKF (no heading)", "FGO": "FGO (no heading)", "UKF_baseline": "UKF, no heading",
        "FGO_baseline": "FGO, no heading", "UKF_heading": "UKF, with heading", "FGO_heading": "FGO, with heading"}
+ATE3 = {}   # RESTYLE (2026-11-02): cruise-ATE values moved off the "score box" legend into the caption (see below)
 for ax, (pid, tr, win, arms, est) in zip(axs, PANELS):
     (gN, gE) = PATHS[(pid, arms[0][0])][1]
     ax.plot(gN, gE, color=TRUTH, lw=3.2, solid_capstyle="round", zorder=2, label="truth (simulator)")
     for key, e, ls in arms:
         (n_, e_), _, col, ls_, st = PATHS[(pid, key)]
-        lab = LBL[key] if not (pid == "b" and key == "EKF3") else "EKF3, no heading (no offline heading arm)"
-        ax.plot(n_, e_, color=C[e], lw=1.5 if ls == "-" else 1.2, ls=ls if ls == "-" else (0, (5, 3)), zorder=4 if ls == "-" else 3,
-                label=f"{lab}: cruise ATE {rd(st, 2)} m")
-    ax.set_xlim(-2, 162); ax.set_ylim(-lat, lat); ax.set_aspect(3.0, adjustable="box")
-    ax.set_xlabel("along the corridor, North (m)"); ax.set_ylabel("East (m)  [lateral axis stretched]")
-    ax.set_title(TT[pid], loc="left", fontsize=10.5)
-    ax.legend(loc="upper left", fontsize=8.2, frameon=True, framealpha=0.95, edgecolor=GRID, ncol=2)
+        ax.plot(n_, e_, color=C[e], lw=1.5 if ls == "-" else 1.2, ls=ls if ls == "-" else (0, (5, 3)), zorder=4 if ls == "-" else 3)
+        ATE3[(pid, key)] = st
+    ax.set_xlim(-2, 162); ax.set_ylim(-lat, lat)
+    ax.set_xlabel("along the corridor, North (m)"); ax.set_ylabel("East (m)")
+    ax.set_title(TT[pid], loc="left", fontsize=9.5)
+# RESTYLE (2026-11-02): ONE shared legend for the whole figure (house rule: anything repeated across panels appears
+# once), not a per-panel legend carrying per-arm cruise-ATE values (the "score box" the brief asks removed from R5,
+# applied here too); the ATE values are in the caption instead, sourced from the same already-checked PATHS/ATE3 data.
+# The per-panel "lateral axis stretched" note (identical on both panels) and the bold figure-level synopsis headline
+# are likewise removed - stated once, in the caption.
+LEGH = [Line2D([], [], color=TRUTH, lw=3.2, label="truth (simulator)")] + \
+       [Line2D([], [], color=C[e], lw=1.5, label=e) for e in EST] + \
+       [Line2D([], [], color=INK2, lw=1.4, ls=(0, (5, 3)), label="no heading"), Line2D([], [], color=INK2, lw=1.4, ls="-", label="with heading")]
+fig.legend(handles=LEGH, loc="upper center", bbox_to_anchor=(0.5, 0.995), ncol=3, fontsize=9.0, frameon=True, framealpha=0.95, edgecolor=GRID)
+# RESTYLE: bbox_inches="tight" defeats the RS-1 text-width figsize (it let panel (b)'s now-removed wide legend push the
+# saved page past 6.30 in); tight_layout() fits the declared canvas instead, and the shared legend sits above it via
+# bbox_to_anchor, included by rect.
+fig.tight_layout(rect=(0, 0, 1, 0.86))
+# LAYOUT FIX (2026-11-02): set_aspect(3.0, adjustable="box") used to shrink each axes' box to a third of the text
+# width, leaving wide empty margins either side (both panels are identical in x/y range, so both panels shrank
+# identically). Removed; instead, once the column layout is final, give both panels the y-range that makes their
+# now FULL-width box show the same 3x lateral stretch the original design intended, without shrinking the box.
+fig.canvas.draw()
+bb0 = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+bb1 = axs[1].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+assert abs(bb0.width - bb1.width) < 0.01 and abs(bb0.x0 - bb1.x0) < 0.01, "panels (a)/(b) no longer share the same width/left edge"
+x0, x1 = axs[0].get_xlim()
+TARGET_STRETCH = 3.0
+needed_yr = bb0.height * (x1 - x0) / (TARGET_STRETCH * bb0.width)
+new_lat = max(lat, needed_yr / 2)
+for ax in axs:
+    ax.set_ylim(-new_lat, new_lat)
 fig.canvas.draw()
 bb = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted()); x0, x1 = axs[0].get_xlim(); y0, y1 = axs[0].get_ylim()
 STRETCH = (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
-for ax in axs:
-    ax.text(161, -lat * 0.93, f"lateral axis stretched {rd(STRETCH, 1)}×; same axes in both panels", ha="right", va="bottom", fontsize=8.4, color=INK2)
-fig.suptitle("True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path",
-             x=0.01, ha="left", fontsize=12.5, weight="bold")
-fig.tight_layout(rect=(0, 0, 1, 0.97))
+# LAYOUT FIX (2026-11-02): STRETCH is no longer forced by set_aspect() - it depends on the figure height chosen above
+# (TEXT_WIDTH_IN, 8.0) and on `lat`. Pin it, so a future height edit can't silently change the "3.0x" the caption
+# states without this assert catching it (rather than just printing a different number).
+assert rd(STRETCH, 1) == "3.0", f"R3 lateral stretch is no longer 3.0x (got {rd(STRETCH, 1)}x) - the caption text says 3.0x"
 for ext in ("png", "pdf"):
-    fig.savefig(os.path.join(OUTF, f"R3_trajectory_overlay.{ext}"), dpi=170 if ext == "png" else None, bbox_inches="tight")
+    fig.savefig(os.path.join(OUTF, f"R3_trajectory_overlay.{ext}"), dpi=170 if ext == "png" else None)
 plt.close(fig)
-CAP3 = (f"{RULE} Chosen: (a) flight {ra} (cross-estimator mean cruise ATEs, ascending, by flight: "
-        + ", ".join(f"{i}: {rd(m, 2)}" for m, i in means) + f" m); (b) flight {rb} ({rb_why}). Top-down, cruise window only, truth grey. Each "
+CAP3 = (f"{RULE} Chosen: (a) standard sensors, no heading, standard-sensor dataset, textured floor, flight {ra} (cross-estimator mean cruise ATEs, ascending, by flight: "
+        + ", ".join(f"{i}: {rd(m, 2)}" for m, i in means) + f" m); (b) with the camera heading (offline heading arms), textured-wall camera dataset, textured floor, flight {rb} ({rb_why}). Top-down, cruise window only, truth grey. Each "
         "estimated path is drawn after a best-fit rotation about the vertical and a shift (no scale), fitted over the stored cruise window "
         "against its own ground-truth file. This gives the same average error as the standard 3D alignment used for the cruise ATE (the RMSE "
         "of every plotted path is within 0.005 m of its stored cruise ATE; cross-checks), but cannot roll the path about the corridor axis: "
         "the 3D fit is free to do so on a straight path and can turn sideways drift into up-and-down error that is invisible from above. "
-        "The legend gives the stored cruise ATE. The alignment removes a constant heading offset, so the "
+        "The alignment removes a constant heading offset, so the "
         "metres-scale sideways drift of the unaligned estimates (Table 4.1, heading-error decomposition) is not shown; an error along "
         "the corridor (for example EKF3's distance-scale error) lies along the path and barely shows top-down. Dashed: no heading "
         "source; solid: with the camera heading (offline heading arms, UKF and FGO only; EKF3 has no offline heading arm and is shown as the "
         f"no-heading baseline). The lateral (East) axis is stretched {rd(STRETCH, 1)}× relative to the along-corridor axis, the same in both "
-        "panels; no log axes. Passive estimators, truth flying (Experiment 1A/1B offline).")
+        "panels; no log axes. Passive estimators, truth flying (Experiment 1A/1B offline). "
+        f"Cruise ATE (m): (a) EKF3 {rd(ATE3[('a', 'EKF3')], 2)}, UKF {rd(ATE3[('a', 'UKF')], 2)}, FGO {rd(ATE3[('a', 'FGO')], 2)} (all no heading); "
+        f"(b) EKF3 {rd(ATE3[('b', 'EKF3')], 2)} (no heading), UKF {rd(ATE3[('b', 'UKF_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'UKF_heading')], 2)} "
+        f"(with heading), FGO {rd(ATE3[('b', 'FGO_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'FGO_heading')], 2)} (with heading).")
 ITEMS.append(dict(num="Figure 4.2", name="R3_trajectory_overlay", kind="figure",
                   title="True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path", caption=CAP3,
                   inputs=f"~/thesis_data/trials/{TRA}/{{ekf3,ukf,fgo}}/*.tum; ~/thesis_data/trials/{TRB}/{{ekf3,ukf_baseline,fgo_baseline,ukf_heading,"
                          "fgo_heading}/*.tum; windows and cruise ATEs: eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, phase4_fwdc_evo.json",
                   notes=(), files=["R3_trajectory_overlay.png", "R3_trajectory_overlay.pdf"]))
+write_caption("R3", f"Figure 4.2. True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path.\n\n{CAP3}")
 print(f"wrote R3_trajectory_overlay (stretch {rd(STRETCH, 2)})")
 
 # =============================================================================================== R4 INFORMATION vs ESTIMATOR
