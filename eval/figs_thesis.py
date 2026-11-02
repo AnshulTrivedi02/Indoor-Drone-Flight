@@ -2231,16 +2231,24 @@ def caption_page(P, it):
             fig.text(0.03, y, cap, fontsize=8.6, va="top"); y -= 0.0185 * (cap.count("\n") + 1) + 0.01
             if fn:
                 fig.text(0.03, y, fn, fontsize=7.0, va="top", color=INK); y -= 0.0142 * (fn.count("\n") + 1) + 0.008
-            if it["checks"]:
-                okc = sum(c[4] for c in it["checks"])
-                src = "\n".join(textwrap.wrap(f"Cross-check against the results record: {okc}/{len(it['checks'])} values match. The sources, "
-                                              "the rows they are checked against and the build are listed in the figure index.", 200))
-            else:
-                # RESTYLE (2026-11-02): items from another generator (figs_thesis_drift.py / figs_thesis_results.py /
-                # figs_thesis_methods.py / eval/ta_verdicts_check.py) - their own cross-checks are reported there, not
-                # duplicated here; "rows" names where to look.
-                src = "\n".join(textwrap.wrap(f"Cross-checked by its own generator, not duplicated here: {it['rows']}.", 200))
-            fig.text(0.03, max(y, 0.02 + 0.0165 * (src.count("\n") + 1)), src, fontsize=7.2, va="top", color=INK2)
+            # D113 (2026-11-02, coordinator ruling, advisor-review fix): a reader-facing figure's caption text in the
+            # combined PDF must END with its "Verdicts: Table A.4, ..." pointer - nothing after it. The cross-check
+            # line below is a check COUNT ("N/M values match"), one of the categories D113 names explicitly, and
+            # previously printed on every page regardless of kind, including the 8 figures this ruling covers
+            # (F2/F9/F5/F6/F7/METHODS_ARCH/R5/R3 - every `kind == "figure"` item in this PDF, confirmed: tables and
+            # the TA appendix page are `kind == "table"`/`"appendix"` and keep it). Tables/appendix pages are not in
+            # scope for D113 (same exemption as A1-A3's cells) and keep this line unchanged.
+            if it["kind"] != "figure":
+                if it["checks"]:
+                    okc = sum(c[4] for c in it["checks"])
+                    src = "\n".join(textwrap.wrap(f"Cross-check against the results record: {okc}/{len(it['checks'])} values match. The sources, "
+                                                  "the rows they are checked against and the build are listed in the figure index.", 200))
+                else:
+                    # RESTYLE (2026-11-02): items from another generator (figs_thesis_drift.py / figs_thesis_results.py /
+                    # figs_thesis_methods.py / eval/ta_verdicts_check.py) - their own cross-checks are reported there, not
+                    # duplicated here; "rows" names where to look.
+                    src = "\n".join(textwrap.wrap(f"Cross-checked by its own generator, not duplicated here: {it['rows']}.", 200))
+                fig.text(0.03, max(y, 0.02 + 0.0165 * (src.count("\n") + 1)), src, fontsize=7.2, va="top", color=INK2)
         P.savefig(fig); plt.close(fig)
 
 

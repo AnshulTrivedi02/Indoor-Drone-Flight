@@ -356,11 +356,12 @@ plotted figure). Only the 5 call sites inside `save()` (F2/F9/F5/F6/F7) and the 
 - **F7**: the most text - dropped the "H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]" sentence entirely (its content, the
   per-lap ratios, is already stated two sentences earlier); for H-E5.1/S-E5.5/H-E3.1, replaced
   `f"{verdict} {count}"` interpolation with `{count}` alone (e.g. "bounded its live drift in 3/3 flights" instead of
-  "(H-E5.1 PASS 3/3)"; "lost its loop-closure advantage in 0/9 runs (6 of 9 runs diverged)" instead of "(H-E3.1 FAIL
-  0/9; ...)"); also reworded "pass all five closed-loop criteria" (F2) to "inside all five closed-loop criteria" -
-  "pass" as a bare word is banned the same as "PASS" by the checker below (word-boundary, case-insensitive), even
-  used as an ordinary verb. `ext_checks()` was already being called unconditionally for its own `check()` side
-  effects (unchanged); `ob_l("a")` added as a bare call for the same reason.
+  "(H-E5.1 PASS 3/3)"). **The first H-E3.1 reword here was wrong and is superseded - see "Correction, same session"
+  below for the corrected wording and why.** Also reworded "pass all five closed-loop criteria" (F2) - "pass" as a
+  bare word is banned the same as "PASS" by the checker below (word-boundary, case-insensitive), even used as an
+  ordinary verb; **this clause was later dropped entirely, not reworded - see "Correction, same session" below.**
+  `ext_checks()` was already being called unconditionally for its own `check()` side effects (unchanged); `ob_l("a")`
+  added as a bare call for the same reason.
 - **R3**: dropped the trailing "No verdict row attaches to this figure (descriptive; ...)" sentence from the caption
   body (`figs_thesis_results.py`'s `CAP3`); the equivalent pointer is now appended by
   `add_caption_verdict_pointers.py` in the new form.
@@ -451,11 +452,38 @@ fixed unilaterally):
 - F7 keeps "(pre-registered)" on the extension-experiment mentions - states that a rule was fixed in advance, not an
   outcome; kept for the same reason.
 
-### Final totals (this session, after the layout fixes, D113 and the correction above)
+### Second correction, same session: the combined PDF's caption pages didn't end at the pointer either
+
+A second `advisor()` review (after the fixes above were committed as `a3f155b`) found that D113's "ends with the
+pointer" requirement was still violated on every one of the 8 figure pages in `thesis_figures_combined.pdf` - just
+not inside `captions/*.md` (which `eval/caption_verdict_check.py` scans and which were correct), but in a SEPARATE
+line `caption_page()` draws below every item's caption text: `"Cross-check against the results record: N/M values
+match. The sources, the rows they are checked against and the build are listed in the figure index."` - a check
+COUNT, one of D113's own named banned categories, printed unconditionally regardless of `kind`. `eval/
+caption_verdict_check.py` only reads the standalone `captions/*.md` files, which don't include this line (it's
+drawn directly onto the combined-PDF page from `it["checks"]`, not stored in `it["caption"]`), and the earlier
+`pdftotext | grep "Verdicts: Table A.4"` only confirmed the pointer was PRESENT, not that nothing followed it - so
+neither check this session had already run would have caught it.
+
+**Fixed** in `caption_page()` (`eval/figs_thesis.py`): the check-count line (and its `else` sibling, "Cross-checked
+by its own generator, not duplicated here: ...", used for the 3 items that come from another script) is now only
+drawn `if it["kind"] != "figure"`. Confirmed this is exactly equivalent to "skip for the 8 D113 figures and nothing
+else": `kind == "figure"` applies to exactly F2/F9/F5/F6/F7 (via `save()`) and METHODS_ARCH/R5/R3 (via
+`combine_extra_items()`) across the whole script - every other item in the combined PDF is `kind == "table"` or
+`"appendix"` (T1-T8, R1/R2/R4, A1-A3, TA), which are out of D113's scope and keep the line unchanged. Re-ran
+`eval/figs_thesis.py` (352/352, unchanged); `pdftotext thesis_figures_combined.pdf -` confirmed all 8 figure blocks
+now end exactly at their `Verdicts: Table A.4, ...` line, with the next line starting the following item
+("Figure 4.1b (provisional). Heading error ..." etc., or a table's own unchanged "Cross-check against the results
+record: ..." line) - checked by eye against the full extracted text, not just a presence grep this time.
+`docs/thesis/tables/**` regenerated again (16 files, provenance-line-only) and reverted to HEAD again; the 5 figure
+PDFs (F2/F5/F6/F7/F9) changed again (one less text block on their combined-PDF caption page - more blank space
+below, same chart image), their standalone `.png`/`.pdf` chart files did not.
+
+### Final totals (this session, after the layout fixes, D113 and both corrections above)
 
 | check | result |
 |---|---|
-| `eval/figs_thesis.py` | 352/352 (unchanged) |
+| `eval/figs_thesis.py` | 352/352 (unchanged throughout) |
 | `eval/figs_thesis_drift.py` (R5) | 9/9 cross-checks, 3/3 frame check (unchanged) |
 | `eval/figs_thesis_results.py` (R3) | 75/75 numeric, 185/185 source (unchanged) |
 | `eval/ta_verdicts_check.py` | 146/146 EXACT (unchanged) |
@@ -463,10 +491,14 @@ fixed unilaterally):
 | `tools/check_numbers_frozen.py` | PASS (unchanged) |
 | `eval/caption_verdict_check.py` (new) | 21/21 |
 
-`docs/thesis/tables/**` regenerated as the usual unavoidable side effect of `eval/figs_thesis.py` (34 files, each a
-2-line diff: only the embedded commit-hash provenance line changed) and the 9 PNGs under it confirmed pixel-identical
-(decoded-pixel comparison) before `git checkout HEAD -- docs/thesis/tables/`. `docs/thesis/summary/**` was not
-touched this session (its three consumer scripts were not re-run - nothing to restore).
+No existing total changed at any point in this session - every number above was already at this value before the
+layout fixes, D113, or either correction began.
 
-Confirmed `pgrep -fa '[h]eavy.py|[f]go_replay|[a]rducopter'` empty and `~/thesis_data/FLIGHT_LOCK` absent before
-committing.
+`docs/thesis/tables/**` regenerated as the usual unavoidable side effect of `eval/figs_thesis.py`, three separate
+times (34, then 16, then 16 files - fewer each time as fewer scripts needed re-running), each time a 2-line diff per
+file (only the embedded commit-hash provenance line changed) and the PNGs under it confirmed pixel-identical
+(decoded-pixel comparison) before `git checkout HEAD -- docs/thesis/tables/`, every time. `docs/thesis/summary/**`
+was not touched this session (its three consumer scripts were not re-run - nothing to restore).
+
+Confirmed `pgrep -fa '[h]eavy.py|[f]go_replay|[a]rducopter'` empty and `~/thesis_data/FLIGHT_LOCK` absent before each
+of the three commits.
