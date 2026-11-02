@@ -1017,14 +1017,14 @@ fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.0))
 for yw in (10, -10):
     ax.axhspan(yw - 0.1, yw + 0.1, color=WALL, lw=0)
 ax.axhline(9.58, color=WALL, lw=0.6, ls=":"); ax.axhline(-9.58, color=WALL, lw=0.6, ls=":")
-# LAYOUT FIX (2026-11-02): both "wall" labels get a white stroke halo so the glyphs stay legible where the dotted
+# D118 (2026-11-03): wall and direct labels raised to the 9 pt floor (RS-1). LAYOUT FIX (2026-11-02): both "wall" labels get a white stroke halo so the glyphs stay legible where the dotted
 # contact line or the grey wall band (WALL, similar value to INK2) runs behind/through them.
 _WALL_HALO = [patheffects.withStroke(linewidth=2.5, foreground=SURF)]
-ax.text(163, 10.05, "wall", ha="right", va="bottom", fontsize=8, color=INK2, path_effects=_WALL_HALO)
+ax.text(163, 10.05, "wall", ha="right", va="bottom", fontsize=9, color=INK2, path_effects=_WALL_HALO)
 # va="top" at y=-10.05 let the glyphs (no descenders, so most of their height sits BELOW the anchor) run down past
 # the bottom spine (ylim -10.6) and sit on top of it. Centred inside the wall band itself (-10.1..-9.9) instead,
 # well clear of the spine.
-ax.text(163, -10.0, "wall", ha="right", va="center", fontsize=8, color=INK2, path_effects=_WALL_HALO)
+ax.text(163, -10.0, "wall", ha="right", va="center", fontsize=9, color=INK2, path_effects=_WALL_HALO)
 CT2 = {}; PATHD = {}; XB2 = {}
 for est in EST:                                   # with heading first (solid, thin), so the dashed no-heading paths sit on top
     off, ons = HALF[est]
@@ -1053,7 +1053,7 @@ STRETCH = (axbb.height / (y1_ - y0_)) / (axbb.width / (x1_ - x0_))
 LABXY = {"UKF": (4, -8.9, "left"), "FGO": (4, -6.6, "left"), "EKF3": (160, -3.2, "right")}
 for est in EST:
     c0, ct = cl_meta(HALF[est][0]); lx, ly, ha_ = LABXY[est]
-    ax.annotate(est, (ct["y"], ct["x"]), xytext=(lx, ly), fontsize=8.6, color=INK, ha=ha_, va="center",
+    ax.annotate(est, (ct["y"], ct["x"]), xytext=(lx, ly), fontsize=9, color=INK, ha=ha_, va="center",
                 arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
 h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
     [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading"),
@@ -1168,7 +1168,7 @@ for est in EST:
 LABF9 = {"UKF": (8, 21.6, "left"), "FGO": (8, 19.4, "left"), "EKF3": (308, 10.0, "right")}
 for est in EST:
     xe, ye, t = ENDF9[est]; lx, ly, ha_ = LABF9[est]
-    ax.annotate(est, (xe, ye), xytext=(lx, ly), fontsize=8.8, color=INK, ha=ha_,
+    ax.annotate(est, (xe, ye), xytext=(lx, ly), fontsize=9, color=INK, ha=ha_,
                 va="center", arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
 P95F9 = max(b["p95_deg"] for e in EST for b in B3F9[e]); MAXF9 = max(b["max_deg"] for e in EST for b in B3F9[e])
 ax.set_xlim(0, 310); ax.set_ylim(-17, 23)
@@ -1471,11 +1471,11 @@ check("F5 caption: live errors, condition A / condition D, 2 dp (m) = former lit
       f"{si_str('2–4', -2)} / {si_str('8–13', -2)}", "eval/results/expT/t_aggregate.json; former F5 caption")
 ob_h23("a"); ob_h24("b")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F5", "F5_T_tags_known_positions",
-     f"Fewer tags, larger live errors (no live ordering claimed); the FGO's hindsight batch stays at {F5B} m",
+     f"Fewer tags, larger live errors; the FGO's hindsight batch stays at {F5B} m",
      "Experiment 2 (known tags; the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, "
      "no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, "
      "filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = "
-     f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out; no live ordering is claimed (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
+     f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
      f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights); the live max/min ratio, condition A to D: " + P3S + ". The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
      f"its hindsight gain over FGO live, median per gap, condition A to D: {', '.join(rd_si(h1['median_gain_m'][c], 3) for c in TCOND)} m; "
      "the smoothed UKF's gain over UKF live, same conditions: "

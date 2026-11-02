@@ -256,7 +256,7 @@ CAP = (f"Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no
        "(estimated East − true East) against the true distance travelled along the corridor, from take-off to the end of the cruise "
        "window (the stop and landing are not drawn). Truth is interpolated to each estimator's own timestamps. (b) and (c) share one "
        "y-scale. The along-track error is not a pure scale error: a heading error also shortens the North component of the "
-       "estimated travel. Dashed: no heading source (all three). No log axes.\n\nCompanion table: Table X (fitted and raw errors), to follow.")
+       "estimated travel. Dashed: no heading source (all three). No log axes.\n\nCompanion table: Table 4.4 (provisional), fitted cruise ATE (registered) and raw world-frame error (descriptive), the same 9 flights.")
 TITLE = "Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor"
 n_ok = sum(1 for c in CHK if c[-1])
 W = [f"# Figure 4.1c (provisional): offline standard-sensor drift, unaligned (internal id R5)\n",
