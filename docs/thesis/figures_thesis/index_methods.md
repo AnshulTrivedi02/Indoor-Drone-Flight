@@ -1,6 +1,6 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `cf5be5b` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `a6f6fd2` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
 **Source checks: 320/320 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 31/31 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 

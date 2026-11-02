@@ -829,7 +829,7 @@ for key, ln, vals in (("EKF3", 269, ["4.09", "3.60", "4.08"]), ("FGO_baseline", 
     check("R3", f"(b) flight {rb} {key} cruise ATE (m)", rd(P4E[TRB]["est"][key]["ate_a_cruise"]["+0.00"], 2), vals[rb - 1], "numbers.md", ln)
 
 from thesis_style import TEXT_WIDTH_IN, write_caption
-fig, axs = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 5.6))
+fig, axs = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 8.0))
 lat = max(np.abs(PATHS[k][0][1]).max() for k in PATHS) * 1.08; lat = max(lat, 2.0)
 TT = {"a": "(a)", "b": "(b)"}   # RESTYLE (2026-11-02): dataset/condition detail moved wholly to the caption
 LBL = {"EKF3": "EKF3 (no heading)", "UKF": "UKF (no heading)", "FGO": "FGO (no heading)", "UKF_baseline": "UKF, no heading",
@@ -842,12 +842,9 @@ for ax, (pid, tr, win, arms, est) in zip(axs, PANELS):
         (n_, e_), _, col, ls_, st = PATHS[(pid, key)]
         ax.plot(n_, e_, color=C[e], lw=1.5 if ls == "-" else 1.2, ls=ls if ls == "-" else (0, (5, 3)), zorder=4 if ls == "-" else 3)
         ATE3[(pid, key)] = st
-    ax.set_xlim(-2, 162); ax.set_ylim(-lat, lat); ax.set_aspect(3.0, adjustable="box")
+    ax.set_xlim(-2, 162); ax.set_ylim(-lat, lat)
     ax.set_xlabel("along the corridor, North (m)"); ax.set_ylabel("East (m)")
     ax.set_title(TT[pid], loc="left", fontsize=9.5)
-fig.canvas.draw()
-bb = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted()); x0, x1 = axs[0].get_xlim(); y0, y1 = axs[0].get_ylim()
-STRETCH = (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
 # RESTYLE (2026-11-02): ONE shared legend for the whole figure (house rule: anything repeated across panels appears
 # once), not a per-panel legend carrying per-arm cruise-ATE values (the "score box" the brief asks removed from R5,
 # applied here too); the ATE values are in the caption instead, sourced from the same already-checked PATHS/ATE3 data.
@@ -861,6 +858,27 @@ fig.legend(handles=LEGH, loc="upper center", bbox_to_anchor=(0.5, 0.995), ncol=3
 # saved page past 6.30 in); tight_layout() fits the declared canvas instead, and the shared legend sits above it via
 # bbox_to_anchor, included by rect.
 fig.tight_layout(rect=(0, 0, 1, 0.86))
+# LAYOUT FIX (2026-11-02): set_aspect(3.0, adjustable="box") used to shrink each axes' box to a third of the text
+# width, leaving wide empty margins either side (both panels are identical in x/y range, so both panels shrank
+# identically). Removed; instead, once the column layout is final, give both panels the y-range that makes their
+# now FULL-width box show the same 3x lateral stretch the original design intended, without shrinking the box.
+fig.canvas.draw()
+bb0 = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+bb1 = axs[1].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+assert abs(bb0.width - bb1.width) < 0.01 and abs(bb0.x0 - bb1.x0) < 0.01, "panels (a)/(b) no longer share the same width/left edge"
+x0, x1 = axs[0].get_xlim()
+TARGET_STRETCH = 3.0
+needed_yr = bb0.height * (x1 - x0) / (TARGET_STRETCH * bb0.width)
+new_lat = max(lat, needed_yr / 2)
+for ax in axs:
+    ax.set_ylim(-new_lat, new_lat)
+fig.canvas.draw()
+bb = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted()); x0, x1 = axs[0].get_xlim(); y0, y1 = axs[0].get_ylim()
+STRETCH = (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
+# LAYOUT FIX (2026-11-02): STRETCH is no longer forced by set_aspect() - it depends on the figure height chosen above
+# (TEXT_WIDTH_IN, 8.0) and on `lat`. Pin it, so a future height edit can't silently change the "3.0x" the caption
+# states without this assert catching it (rather than just printing a different number).
+assert rd(STRETCH, 1) == "3.0", f"R3 lateral stretch is no longer 3.0x (got {rd(STRETCH, 1)}x) - the caption text says 3.0x"
 for ext in ("png", "pdf"):
     fig.savefig(os.path.join(OUTF, f"R3_trajectory_overlay.{ext}"), dpi=170 if ext == "png" else None)
 plt.close(fig)
@@ -878,8 +896,7 @@ CAP3 = (f"{RULE} Chosen: (a) standard sensors, no heading, standard-sensor datas
         "panels; no log axes. Passive estimators, truth flying (Experiment 1A/1B offline). "
         f"Cruise ATE (m): (a) EKF3 {rd(ATE3[('a', 'EKF3')], 2)}, UKF {rd(ATE3[('a', 'UKF')], 2)}, FGO {rd(ATE3[('a', 'FGO')], 2)} (all no heading); "
         f"(b) EKF3 {rd(ATE3[('b', 'EKF3')], 2)} (no heading), UKF {rd(ATE3[('b', 'UKF_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'UKF_heading')], 2)} "
-        f"(with heading), FGO {rd(ATE3[('b', 'FGO_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'FGO_heading')], 2)} (with heading). "
-        "No verdict row attaches to this figure (descriptive; see docs/thesis/tables/TA_verdicts.md for the scored Experiment 1 hypotheses).")
+        f"(with heading), FGO {rd(ATE3[('b', 'FGO_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'FGO_heading')], 2)} (with heading).")
 ITEMS.append(dict(num="Figure 4.2", name="R3_trajectory_overlay", kind="figure",
                   title="True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path", caption=CAP3,
                   inputs=f"~/thesis_data/trials/{TRA}/{{ekf3,ukf,fgo}}/*.tum; ~/thesis_data/trials/{TRB}/{{ekf3,ukf_baseline,fgo_baseline,ukf_heading,"

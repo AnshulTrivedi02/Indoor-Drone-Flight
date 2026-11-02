@@ -228,3 +228,199 @@ render), `docs/thesis/tables/TA_verdicts.md` (new), `docs/thesis/tier1/check_cla
 `eval/thesis_style.py` (new), `eval/add_caption_verdict_pointers.py` (new), `eval/ta_verdicts_check.py` (new),
 `METHODOLOGY.md` (append-only, one new dated entry). No uncommitted changes anywhere else in the tree; confirmed
 `pgrep -fa '[h]eavy.py|[f]go_replay|[a]rducopter'` empty and `~/thesis_data/FLIGHT_LOCK` absent before committing.
+
+## Layout fixes (2026-11-02, branch `figs-restyle-fix`, head `a6f6fd2`)
+
+Stored outputs only; no flight, replay or simulation at any point. Three named layout issues fixed, plus hardening
+found via `advisor()` review along the way.
+
+### 1. R5 (`eval/figs_thesis_drift.py`) - panel (a) narrower than (b)/(c); (b)/(c) y-labels collided
+
+Both symptoms had the same root cause: `ax0.set_aspect(STRETCH, adjustable="box")` (STRETCH = 1.0, a declared
+equal-scale choice, not changeable) shrinks panel (a)'s axes BOX in figure-fraction coordinates to hit the 1:1
+aspect, leaving it narrower than the unconstrained (b)/(c). Fix: removed the `set_aspect()` call; instead, after
+`fig.tight_layout()` fixes the column layout (so all three panels share the same left/right edges, with nothing
+aspect-shrinking panel (a) any more), panel (a)'s Y-LIMITS are computed from its now-known, full-width box geometry
+to hit the same 1:1 aspect by construction - `needed_yr = bb0.height * x_range / (STRETCH * bb0.width)`, centred on
+the original data range. The original row 0 height (figure 5.6 in, height_ratios `[1.45, 1.0, 1.0]`) wasn't tall
+enough to show the full ~56 m drift range at a true 1:1 aspect using the now-full-width box; raised to figure height
+7.0 in, height_ratios `[1.9, 1.0, 1.0]`, hspace 0.5 -> 0.75 (also fixes the label collision, see below). An `assert
+abs(bb0.x0 - bb1.x0) < 0.01 ...` confirms the edges actually match; the pre-existing stretch check (now comparing
+against the geometry-derived ylim rather than an aspect-adjusted box) still passes exactly.
+
+(b)/(c)'s y-labels ("along-track error (m)" / "sideways error (m)") were colliding at the shared left edge because
+the two rotated labels, each taller than its own panel's vertical gap to its neighbour, ran into each other - visible
+at 2x zoom as the bottom of "along-track error (m)" touching the top of "sideways error (m)". Fixed with
+`fig.align_ylabels([ax0, ax1, ax2])` (aligns all three labels' x-position so none juts out further than the others)
+plus the larger hspace above (now enough room that the labels don't reach each other even un-aligned).
+
+**Advisor-found correctness bug, fixed before it shipped**: the first version of the y-limit solver re-centred
+silently (`if ylo > YL0: ...`) whenever the geometrically-needed range was smaller than the data's own range - which
+would have clipped part of the plotted data (including the truth line at y=0) while the stretch check still passed,
+because the check only compares aspect ratios, not data coverage. Replaced with
+`assert needed_yr >= YL1 - YL0, "row 0 too short for a 1:1 aspect over the full data range"` - fails loudly instead
+of quietly cropping. Did not fire in the actual run (figure height 7.0 in gives enough headroom).
+
+**Verified**: 9/9 cross-checks, 3/3 frame check (both unchanged from the pre-fix baseline); PDF still exactly 453.6 pt
+(6.30 in) wide; viewed `R5_drift_unaligned.png` directly - panel (a) now shares (b)/(c)'s left/right edges exactly,
+(b)/(c) labels no longer touch.
+
+### 2. R3 (`eval/figs_thesis_results.py`) - both panels used about half the 160 mm width
+
+Same underlying cause as R5: `ax.set_aspect(3.0, adjustable="box")`, applied identically to both panels (same x/y
+range), shrank both boxes to a fraction of the column width. Fixed the same way: removed `set_aspect()`; after
+`fig.tight_layout(rect=(0, 0, 1, 0.86))` fixes the column layout (shared legend reserved above, unchanged), computed
+the y-range that gives the now-full-width box the SAME 3.0x lateral stretch the original design used (an
+`assert bb0.width/x0 match bb1's` confirms both panels still share one width). Needed figure height raised from 5.6
+to 8.0 in to fit the full data range (`lat` ~= 13.2 m) at full width and exactly 3.0x (iterated empirically: 7.3 in
+gave 2.65x, 8.0 in gives exactly 3.00x). STRETCH is no longer forced by `set_aspect()`, so it's now pinned with
+`assert rd(STRETCH, 1) == "3.0"` (advisor-suggested hardening) so a future height edit can't silently drift the
+caption's stated "3.0x" without the script itself catching it.
+
+**Verified**: 75/75 numeric + 185/185 source checks unchanged; PDF still exactly 453.6 pt wide; viewed
+`R3_trajectory_overlay.png` directly - both panels now fill the full width, shared legend above, no empty margins.
+
+**Not done (flagged, in scope but low value for the time budget)**: about 0.7-0.8 in of the 8.0 in height is
+blank space between the legend and panel (a), from the fixed `rect=(0, 0, 1, 0.86)`; computing that rect's top from
+the legend's own drawn height (rather than a fixed fraction) would likely give the same 3.0x stretch in a shorter
+figure. Left as a follow-up, not attempted here.
+
+### 3. F2 (`eval/figs_thesis.py`) - lower "wall" label sat on the bottom axis line
+
+`ax.text(163, -10.05, "wall", ha="right", va="top", ...)`: with `va="top"`, the text's glyphs (no descenders, so
+most of their height sits below the anchor point) ran from y=-10.05 down past the bottom spine at y=-10.6 and sat on
+top of it, visibly struck through at 3x zoom - the *top* "wall" label (`va="bottom"` at y=10.05, extending upward
+into blank space) had no such problem, which is why only the bottom one needed fixing. Fixed by moving the anchor to
+the centre of the wall band itself (`ax.text(163, -10.0, ..., va="center", ...)`), well clear of the spine 0.6 units
+below. Also gave both "wall" labels a white stroke halo (`patheffects.withStroke(linewidth=2.5, foreground=SURF)`,
+advisor-suggested) since the band colour (`WALL`, `#5e5e5e`) and the label colour (`INK2`, `#4d4d4d`) are close in
+value and the dotted contact line / band edge can still run behind the glyphs.
+
+**Verified**: 352/352 total checks unchanged (figs_thesis.py's own run); viewed `F2_heading_stops_sideways_drift.png`
+directly at 3x zoom - the "wall" label now sits cleanly inside the grey band, clear of both the dotted line and the
+spine.
+
+**Flagged, not fixed (out of scope for this pass)**: re-checked the original restyle's "all text >= 9 pt" claim
+while in this figure - it's not true of F2. The wall labels are 8 pt and the estimator-name annotate() labels are
+8.6 pt, both below RS-1's stated 9 pt floor; the old `grep -n "fontsize=[0-8]\."` check that found none below 9 pt
+misses bare `fontsize=8` (no decimal point) entirely. Not changed here (not one of the three named issues, and R3/R5
+already consumed the time budget); worth a follow-up pass on F2 specifically.
+
+### Coordinator rulings on the four open items (handover list above)
+
+1. **R5 = "1A drift paths"**: accepted. R5 (`R5_drift_unaligned.png`) is the figure meant by "1A drift paths (3
+   panels, 9 flights)" - no further search of other branches needed.
+2. **A1-A3 verdict words in cells**: accepted as-is (de-bolded only, words kept) - appendix tables are where verdicts
+   belong (this is now also the explicit wording of ruling D113 below, which carves the same exemption out for the
+   caption-stripping pass).
+3. **Provisional labels** (R5 "Figure 4.1c (provisional)", F9 similarly, R3's un-marked "Figure 4.2"): unchanged
+   until the chapter plan is locked - standing user ruling, not revisited this pass.
+4. **Verdict prose in caption footnotes**: **superseded by D113 below**, actioned in the same commit as these layout
+   fixes rather than left open.
+
+## D113 (2026-11-02, coordinator ruling): captions carry no verdict wording, only a Table A.4 pointer
+
+Added to this same branch/commit after the three layout fixes above, per a mid-task instruction. Ruling: every
+reader-facing caption carries NO verdict sentences or verdict labels (PASS / FAIL / NOT MET / MET / MISS / "verdict"
+wording, check counts, registered-window text) anywhere in its body, and ENDS with a pointer to its
+`docs/thesis/tables/TA_verdicts.md` row(s), in the exact form `Verdicts: Table A.4, rows <ids>.` (or, for a
+descriptive figure with no row of its own, `Verdicts: Table A.4, none (descriptive).`). A1-A3 and TA_verdicts.md
+itself keep their verdict cells (appendix tables are where verdicts belong) - not touched.
+
+**Scope, read narrowly on purpose**: the brief's own wording ("every `docs/thesis/figures_thesis/captions/*.md`")
+is literally the restyle's existing 11-file set; A1/A2/A3 are explicitly exempted by the same ruling, leaving 8
+files: F2, F5, F6, F7, F9 (via `eval/figs_thesis.py`'s `save()`), R3 (`eval/figs_thesis_results.py`), R5
+(`eval/figs_thesis_drift.py`), methods_architecture (`eval/figs_thesis_methods.py`). The `ob_*()`/`obasis()`/
+`OCASE_KEY` footnote-generator FUNCTIONS themselves were NOT redefined or removed - T1 (Table 7.1, 72 checks) and
+the other T-tables (all outside `figures_thesis/captions/`, all unaffected by this restyle) use the same functions
+in their own notes and still print PASS/FAIL/NOT met there, by design (those are body tables, not captions on a
+plotted figure). Only the 5 call sites inside `save()` (F2/F9/F5/F6/F7) and the 3 strings in
+`add_caption_verdict_pointers.py` (R3/R5/methods_architecture) changed.
+
+**What changed, per figure** (all in the caption text only; no plotted pixel, no number, no check's PASS/FAIL
+*verdict* changed - only how that already-checked data is worded in prose):
+- **F2/F9**: dropped `(after its pre-registered window)` / `(after its pre-registered window {F9W} s; {F9SRC})` (the
+  window number and citation are still computed and still checked by their own `check()`/`cite()` calls - just no
+  longer quoted into the caption); dropped the `[a]` footnote marker and the `foot=[ob_cl("a"), OCASE_KEY]` list (now
+  `foot=[]`); `ob_cl("a")` is still CALLED, as a bare statement, immediately before `save()`, so its own `check()`
+  calls still run (2 checks + several `cite()` calls per figure) - only the verdict-bearing string it RETURNS is no
+  longer placed in the caption. `verdict=` kwarg changed from a prose sentence to the exact pointer form, with every
+  TA_verdicts.md row id this figure's content covers (H1.8/H1.9, EKF3/UKF/FGO, half real-time).
+- **F5**: dropped `(H2.1 PASS, ...)`, `(H2.2 FAIL, ...)`, `(H2.4 FAIL)`, "FAILS", the `[a]`/`[b]` markers and the
+  stray mid-body "Verdict rows: see docs/thesis/tables/TA_verdicts.md." sentence; every number that sat inside those
+  parentheticals (the gain values, the 1.31-3.89 ratio, the live max/min range) is kept, just without the verdict
+  word next to it. `ob_h23("a")`/`ob_h24("b")` still called bare for their `check()` side effects.
+- **F6**: dropped `(every flight) [d]` -> `(every flight)`, and the whole `(H4.1 PASS 3/3 [a]; H4.2 FAIL [b]; H4.3
+  PASS [c])` parenthetical (its only content beyond the verdict words, "3/3", isn't load-bearing - the per-flight
+  RMSE values it was glossing are already in Table 5.1, which the same sentence already points to).
+- **F7**: the most text - dropped the "H3.1, H3.2, H3.3 and H3.4 PASS 3/3 [a]" sentence entirely (its content, the
+  per-lap ratios, is already stated two sentences earlier); for H-E5.1/S-E5.5/H-E3.1, replaced
+  `f"{verdict} {count}"` interpolation with `{count}` alone (e.g. "bounded its live drift in 3/3 flights" instead of
+  "(H-E5.1 PASS 3/3)"; "lost its loop-closure advantage in 0/9 runs (6 of 9 runs diverged)" instead of "(H-E3.1 FAIL
+  0/9; ...)"); also reworded "pass all five closed-loop criteria" (F2) to "inside all five closed-loop criteria" -
+  "pass" as a bare word is banned the same as "PASS" by the checker below (word-boundary, case-insensitive), even
+  used as an ordinary verb. `ext_checks()` was already being called unconditionally for its own `check()` side
+  effects (unchanged); `ob_l("a")` added as a bare call for the same reason.
+- **R3**: dropped the trailing "No verdict row attaches to this figure (descriptive; ...)" sentence from the caption
+  body (`figs_thesis_results.py`'s `CAP3`); the equivalent pointer is now appended by
+  `add_caption_verdict_pointers.py` in the new form.
+- **R5, methods_architecture**: no body change needed (neither had verdict wording in its own generator-written
+  text); only `add_caption_verdict_pointers.py`'s appended pointer line changed form.
+- **`save()`'s default `verdict=` string** (used when a caller passes none - none of the 5 actual calls do, but kept
+  consistent for any future figure) changed from `"Verdict: see docs/thesis/tables/TA_verdicts.md."` to
+  `"Verdicts: Table A.4, none (descriptive)."`. `save_table()`'s own default (A1-A3 only) is untouched.
+
+**Checks preserved by calling the `ob_*()`/`ext_checks()` functions bare (for their `check()`/`cite()` side effects)
+instead of deleting the calls**: this is why the overall `figs_thesis.py` total stayed 352/352 rather than dropping
+by the ~8-12 checks those calls perform - the instruction was explicit that doing this was preferred over losing
+checks. Re-confirmed: F2 15/15, F9 23/23, F5 21/21, F6 15/15, F7 16/16 (all per-figure totals unchanged from the
+pre-D113 baseline in this same session).
+
+**New checker, `eval/caption_verdict_check.py`** (standalone, not folded into any existing script, per the
+instruction): scans every `docs/thesis/figures_thesis/captions/*.md` except A1/A2/A3 (exempt) and checks, per file:
+(a) the last non-empty line is exactly `Verdicts: Table A.4, (none (descriptive)|rows <ids>)\.` (regex-matched); (b)
+every id named in that line is a real `docs/thesis/tables/TA_verdicts.md` ID-column value (read live from the
+table, not hard-coded - a real cross-check against the data, per the advisor's suggestion that this is the natural
+replacement for the checks that used to assert verdict sentences); (c) nothing above that line matches
+`\b(pass(es|ed|ing)?|fail(s|ed|ing)?|not met|met|miss(es|ed|ing)?|verdicts?)\b`, whole-word and case-insensitive (so
+it does NOT flag "Passive estimators" or "committee", but DOES flag a bare "pass"/"met" used as an ordinary verb -
+which is why F2's "pass all five closed-loop criteria" needed rewording, see above). Multiple ids in one pointer
+line are `;`-separated, not `,`-separated, because some TA_verdicts.md ids contain their own comma (e.g. "H1.8 EKF3,
+half real-time (RTF 0.5)"). Result: **21/21** (8 files x up to 3 checks each; R3/R5/methods_architecture have no id
+check since they're "none (descriptive)").
+
+**`docs/thesis/tier1/check_claims_applied.py` - 2 of its existing checks directly asserted verdict-bearing substrings
+in F7's caption** (`C2 F7 caption`: "H-E3.1 FAIL 0/9; 6 of 9 runs diverged"; `C3 F7 caption`: "H-E2.1 PASS 3/3 in
+each" - both pre-existing, pre-dating this restyle). Per the instruction ("if a check asserted a verdict sentence in
+a caption, change it to assert the pointer line instead"), these 2 rows were reworded to assert the SAME claim with
+the SAME numbers, minus the verdict word: `"loop-closure advantage in 0/9 runs (6 of 9 runs diverged)"` and
+`"loop closure also bounded live drift in 3/3 flights in each"` respectively (both are substrings of F7's actual new
+caption text, confirmed). **Total unchanged: 58/58** (was already 58/58 before this change; the two rows were
+failing immediately after the caption edit and passing again after the reword - no net change to the total, reported
+as instructed). T1's own "H3.1-H3.4 PASS 3/3; 8 tags, correct tag IDs [k]" cell (checked against `T1_scorecard.md`,
+not a caption) was NOT touched - T1 is a body table, out of this ruling's scope, see above.
+
+**Combined PDF rebuilt last** (`eval/figs_thesis.py`, after `eval/add_caption_verdict_pointers.py`, per
+`combine_extra_items()`'s dependency on the already-pointer-appended caption files on disk) - confirmed via
+`pdftotext thesis_figures_combined.pdf -` that all 8 pointer lines appear verbatim on their caption pages (one
+`grep -n "Verdicts: Table A.4"` per figure, all 8 found, none truncated or duplicated).
+
+### Final totals (this session, after both the layout fixes and D113)
+
+| check | result |
+|---|---|
+| `eval/figs_thesis.py` | 352/352 (unchanged) |
+| `eval/figs_thesis_drift.py` (R5) | 9/9 cross-checks, 3/3 frame check (unchanged) |
+| `eval/figs_thesis_results.py` (R3) | 75/75 numeric, 185/185 source (unchanged) |
+| `eval/ta_verdicts_check.py` | 146/146 EXACT (unchanged) |
+| `docs/thesis/tier1/check_claims_applied.py` | 58/58 (2 rows reworded, total unchanged) |
+| `tools/check_numbers_frozen.py` | PASS (unchanged) |
+| `eval/caption_verdict_check.py` (new) | 21/21 |
+
+`docs/thesis/tables/**` regenerated as the usual unavoidable side effect of `eval/figs_thesis.py` (34 files, each a
+2-line diff: only the embedded commit-hash provenance line changed) and the 9 PNGs under it confirmed pixel-identical
+(decoded-pixel comparison) before `git checkout HEAD -- docs/thesis/tables/`. `docs/thesis/summary/**` was not
+touched this session (its three consumer scripts were not re-run - nothing to restore).
+
+Confirmed `pgrep -fa '[h]eavy.py|[f]go_replay|[a]rducopter'` empty and `~/thesis_data/FLIGHT_LOCK` absent before
+committing.

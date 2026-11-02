@@ -174,8 +174,14 @@ TP = DATA["UKF"][1]; kt = TP[0] <= WIN[1]
 # alignment relationship instead of repeating per-flight numbers already given in Figure 4.2's legend.
 STRETCH = 1.0
 from thesis_style import TEXT_WIDTH_IN, write_caption
-fig = plt.figure(figsize=(TEXT_WIDTH_IN, 5.6))
-gs = fig.add_gridspec(3, 1, height_ratios=[1.45, 1.0, 1.0], hspace=0.5)
+# LAYOUT FIX (2026-11-02): panel (a) previously used set_aspect(..., adjustable="box"), which shrinks the axes BOX
+# (in figure fraction coords) to hit the 1:1 data aspect, leaving it narrower than (b)/(c) and misaligning the left/
+# right edges across all three panels. Fixed by: (1) giving row 0 enough figure height that a FULL-width, 1:1-aspect
+# box for panel (a) naturally fits the data range (no shrink needed; left/right edges then match (b)/(c) because none
+# of the three panels' boxes are aspect-adjusted any more); (2) fig.align_ylabels() plus larger hspace so (b)'s and
+# (c)'s rotated y-labels ("along-track error (m)" / "sideways error (m)") no longer collide at the shared left edge.
+fig = plt.figure(figsize=(TEXT_WIDTH_IN, 7.0))
+gs = fig.add_gridspec(3, 1, height_ratios=[1.9, 1.0, 1.0], hspace=0.75)
 ax0 = fig.add_subplot(gs[0]); ax1 = fig.add_subplot(gs[1]); ax2 = fig.add_subplot(gs[2], sharex=ax1, sharey=ax1)
 # --- top: paths
 ax0.plot(TP[1][kt], TP[2][kt], color=TRUTH, lw=3.2, solid_capstyle="round", zorder=2, label="truth (simulator)")
@@ -184,14 +190,10 @@ for key in EST:
     ax0.plot(nE, eE, color=C[key], lw=1.3, ls=(0, (5, 3)), zorder=3, label=LBL[key])
 emax = max(ERR[k][4].max() for k in EST); emin = min(ERR[k][4].min() for k in EST)
 YL0, YL1 = min(emin, 0) - 4.0, emax + 4.0
-ax0.set_xlim(-2, 162); ax0.set_ylim(YL0, YL1); ax0.set_aspect(STRETCH, adjustable="box"); ax0.grid(True, color=GRID, lw=0.6)
+ax0.set_xlim(-2, 162); ax0.set_ylim(YL0, YL1); ax0.grid(True, color=GRID, lw=0.6)
 ax0.set_xlabel("North, along the corridor (m)"); ax0.set_ylabel("East (m)")
 ax0.set_title("(a)", loc="left", fontsize=9.5)
 ax0.legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), fontsize=9.0, frameon=True, framealpha=0.95, edgecolor=GRID)
-fig.canvas.draw()
-bb = ax0.get_window_extent().transformed(fig.dpi_scale_trans.inverted()); x0, x1 = ax0.get_xlim(); y0, y1 = ax0.get_ylim()
-st_meas = (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
-check("lateral stretch printed on panel (a) vs drawn axes geometry", rd(st_meas, 1), rd(STRETCH, 1), "set_aspect() of panel (a)")
 # --- bottom: errors, same y-limits (shared y)
 for ax, idx, ttl, yl in ((ax1, 1, "(b)", "along-track error (m)"), (ax2, 2, "(c)", "sideways error (m)")):
     ax.axhline(0, color=TRUTH, lw=1.6, zorder=1)
@@ -203,12 +205,35 @@ pad = 0.06 * (hi - lo); ax1.set_ylim(lo - pad, hi + pad); ax1.set_xlim(-2, 162)
 assert ax1.get_ylim() == ax2.get_ylim()
 ax2.set_xlabel("true distance travelled along the corridor, North (m)")
 # RESTYLE (2026-11-02): one shared legend for the figure (panel (a)'s, which also names the truth line) - not repeated
-# on (b)/(c), which use the same three estimator colours.
+# on (b)/(c), which use the same three estimator colours. fig.align_ylabels() puts all three y-labels at the same
+# x-position so (b)'s and (c)'s no longer encroach on each other at the shared left edge.
+fig.align_ylabels([ax0, ax1, ax2])
 # RESTYLE: bbox_inches="tight" defeats the RS-1 text-width figsize; tight_layout() fits the declared canvas instead.
 try:
     fig.tight_layout()
 except Exception:
     pass
+# Now that the column layout (left/right margins, shared by all three single-column panels) is final, give panel (a)
+# the exact y-range that makes its FULL-width box (same width as (b)/(c), confirmed below) show a true 1:1 aspect,
+# instead of shrinking the box as set_aspect(adjustable="box") would. The data (YL0..YL1) stays fully inside; any
+# extra range is symmetric padding, not a change to what's plotted.
+fig.canvas.draw()
+bb0 = ax0.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+bb1 = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+assert abs(bb0.x0 - bb1.x0) < 0.01 and abs(bb0.x1 - bb1.x1) < 0.01, \
+    f"panel (a) left/right edges {bb0.x0:.4f},{bb0.x1:.4f} don't match (b)'s {bb1.x0:.4f},{bb1.x1:.4f}"
+x0, x1 = ax0.get_xlim()
+needed_yr = bb0.height * (x1 - x0) / (STRETCH * bb0.width)
+# LAYOUT FIX (2026-11-02, advisor review): needed_yr < (YL1 - YL0) would mean the row isn't tall enough to show the
+# full data range at a true 1:1 aspect - assert rather than silently re-centring on a smaller window (which would
+# have clipped data, including the truth line at 0, while the stretch check below still passed).
+assert needed_yr >= YL1 - YL0, f"row 0 too short for a 1:1 aspect over the full data range: needed {needed_yr:.2f}, have {YL1 - YL0:.2f}"
+cy = 0.5 * (YL0 + YL1)
+ax0.set_ylim(cy - needed_yr / 2, cy + needed_yr / 2)
+fig.canvas.draw()
+bb = ax0.get_window_extent().transformed(fig.dpi_scale_trans.inverted()); x0, x1 = ax0.get_xlim(); y0, y1 = ax0.get_ylim()
+st_meas = (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
+check("lateral stretch printed on panel (a) vs drawn axes geometry", rd(st_meas, 1), rd(STRETCH, 1), "set_aspect-equivalent geometry of panel (a)")
 for ext in ("png", "pdf"):
     fig.savefig(os.path.join(OUTF, f"R5_drift_unaligned.{ext}"), dpi=170 if ext == "png" else None)
 plt.close(fig)
