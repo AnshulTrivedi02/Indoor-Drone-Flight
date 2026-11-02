@@ -2,13 +2,23 @@
 """Checker for docs/thesis/methodology_factsheets/*.md (sheets 3.1-3.9).
 
 Read-only. Exit 0 iff all checks pass. For every sheet it checks:
-  (a) every `file:line` or `file:a-b` citation resolves to an existing file and existing line(s);
-  (b) for every `numbers.md:<L>` or `numbers_tier1.md:<L>` citation attached to a bullet (and for every
-      citation named inside a `[NOT IN numbers ...: <file:line>]` tag in the same bullet), every
-      "claimed" numeric token in that bullet (decimals, percentages, degree values, k/n counts and
-      thousands-grouped integers -- the pragmatic set the brief calls out) appears as an exact
-      substring on one of the cited lines, unless the token matches the identifier allowlist below;
-  (c) prints per-sheet totals and a TOTAL line.
+  (a) every `file:line` or `file:a-b` citation resolves to an existing file and existing line(s) --
+      checked everywhere, touched or not;
+  (b) numeric-token matching, in two modes:
+      - STRICT (Facts/Appendix candidates bullets this pass's `git diff` against BASE_COMMIT touched):
+        every "claimed" numeric token in the bullet (decimals, percentages, degree values, k/n counts
+        and thousands-grouped integers -- the pragmatic set the brief calls out) must appear as an
+        exact substring on a line cited DIRECTLY as numbers.md/numbers_tier1.md, or cited inside a
+        `[NOT IN numbers ...: <file:line>]` tag (any file). A direct citation to any other file (M:,
+        code, a results/pre-registration file) does not count in strict mode -- wrap it in a NOT-IN
+        tag if the value is not really in a numbers file. A touched bullet with a claimed number and
+        neither kind of source is itself a failure.
+      - LENIENT (Flags (a)/(b) bullets, and any bullet this pass did not touch): every resolved
+        citation in the bullet counts (a token already sourced to a direct M:/code citation elsewhere
+        in the same bullet is not re-demanded of a numbers file). An untouched bullet with a claimed
+        number and no numbers-file/NOT-IN source is reported (counted per sheet), never failed -- it
+        predates this pass and was checked, if at all, by an earlier pass's own method.
+  (c) prints per-sheet totals and a TOTAL line, including the untouched-untagged report count.
 
 Convention used by the sheets (as written 2026-10-17, extended 2026-10-24/2026-11-02):
   - `numbers.md:123`, `numbers_tier1.md:123-129` : direct file:line citations, any file ending in one of
@@ -16,9 +26,14 @@ Convention used by the sheets (as written 2026-10-17, extended 2026-10-24/2026-1
   - `M:1234` (and `M:1234-1240`, `M:1234, 1240-1245`) : shorthand for the root `METHODOLOGY.md`.
   - `[NOT IN numbers.md: <file:line...>]` / `[NOT IN numbers files: <file:line...>]` : a value not
     present verbatim in a numbers file; the bracket names where it can be found instead. A citation
-    inside the bracket is resolved like any other (check a), and if it points at a numbers-like file
-    (numbers.md, numbers_tier1.md, or an extension's own numbers file such as ablation_numbers.md,
-    e4_results.md, e6_numbers.md, ...) its line's text is added to that bullet's allowed content for (b).
+    inside the bracket is resolved like any other (check a), and its line's text is admitted to the
+    bullet's allowed content for (b) in BOTH modes, whatever file it points at (numbers.md,
+    numbers_tier1.md, or an extension's own numbers file such as ablation_numbers.md, e4_results.md,
+    e6_numbers.md, a pre-registration file, ...).
+
+"Touched" is determined by `git diff -U0 BASE_COMMIT -- <sheet>` against the working tree (which is the
+committed HEAD when this is run after committing): a brand-new file comes back fully touched. If git
+cannot be run at all, every bullet is treated as touched (falls back to strict everywhere).
 
 This script does not import or execute anything from the sheets; it only reads text.
 """
@@ -26,6 +41,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +50,39 @@ SHEETS_DIR = HERE
 
 SHEET_GLOB_PREFIX = "3."
 EXTS = r"(?:md|py|parm|sdf|sh|json|yaml|tsv)"
+
+# The commit this pass (2026-11-02) started from. Used only to scope the strict Facts/Appendix
+# check (below) to bullets this pass actually added or edited, so a sheet nobody has re-verified
+# since 2026-10-17 does not silently fail a rule it was never written against.
+BASE_COMMIT = "4861f3d"
+
+
+def touched_lines(relpath: str):
+    """Line numbers (in the CURRENT file) added or changed since BASE_COMMIT, via `git diff -U0
+    BASE_COMMIT -- relpath` (working tree vs BASE_COMMIT; the working tree is the committed HEAD
+    here). A brand-new file shows as one hunk `@@ -0,0 +1,N @@` and so comes back fully touched.
+    Returns None only if git could not be run at all (caller then treats everything as touched,
+    i.e. falls back to the strict rule everywhere -- safe, if more demanding)."""
+    try:
+        proc = subprocess.run(
+            ["git", "diff", "-U0", BASE_COMMIT, "--", relpath],
+            cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+        )
+    except OSError:
+        return None
+    if proc.returncode not in (0, 1):
+        return None
+    touched = set()
+    hunk_re = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+    for line in proc.stdout.split("\n"):
+        m = hunk_re.match(line)
+        if not m:
+            continue
+        start = int(m.group(1))
+        count = int(m.group(2)) if m.group(2) is not None else 1
+        for n in range(start, start + max(count, 1)):
+            touched.add(n)
+    return touched
 
 # ---------------------------------------------------------------------------
 # File index (for resolving citations), built once by walking the repo tree.
@@ -257,32 +306,46 @@ def extract_numeric_tokens(text: str):
 # Bullet-unit segmentation
 # ---------------------------------------------------------------------------
 BULLET_START = re.compile(r"^(-\s|·\s)")
+SECTION_HEADING_RE = re.compile(r"^##\s+(.*)$")
+
+
+def _section_of(title: str):
+    if title.startswith("Facts"):
+        return "Facts"
+    if title.startswith("Appendix"):
+        return "Appendix candidates"
+    if "Flags (a)" in title or title.startswith("Flags (a"):
+        return "Flags (a)"
+    if "Flags (b)" in title or title.startswith("Flags (b"):
+        return "Flags (b)"
+    return None
 
 
 def iter_units(lines):
-    """Yield (start_line_1based, text, is_bullet) for each bullet/sub-item/preamble block."""
+    """Yield (start_line_1based, text, is_bullet, section) for each bullet/sub-item/preamble
+    block. `section` is one of Facts/Appendix candidates/Flags (a)/Flags (b)/None, from the
+    nearest preceding top-level `## ` heading (a `### ` subheading, as in sheet 3.9, does not
+    change it)."""
     cur_text = []
     cur_start = None
     cur_is_bullet = False
-
-    def flush():
-        if cur_text:
-            yield_unit = ("\n".join(cur_text), cur_start, cur_is_bullet)
-            return yield_unit
-        return None
-
+    cur_section = None
     units = []
     for i, raw in enumerate(lines, 1):
         stripped = raw.strip()
         lstripped = raw.lstrip()
         if stripped == "" or stripped.startswith("#"):
             if cur_text:
-                units.append(("\n".join(cur_text), cur_start, cur_is_bullet))
+                units.append(("\n".join(cur_text), cur_start, cur_is_bullet, cur_section))
                 cur_text, cur_start = [], None
+            if stripped.startswith("## "):
+                m = SECTION_HEADING_RE.match(stripped)
+                if m:
+                    cur_section = _section_of(m.group(1).strip())
             continue
         if BULLET_START.match(lstripped):
             if cur_text:
-                units.append(("\n".join(cur_text), cur_start, cur_is_bullet))
+                units.append(("\n".join(cur_text), cur_start, cur_is_bullet, cur_section))
             cur_text = [raw]
             cur_start = i
             cur_is_bullet = True
@@ -294,7 +357,7 @@ def iter_units(lines):
                 cur_start = i
                 cur_is_bullet = False
     if cur_text:
-        units.append(("\n".join(cur_text), cur_start, cur_is_bullet))
+        units.append(("\n".join(cur_text), cur_start, cur_is_bullet, cur_section))
     return units
 
 
@@ -334,20 +397,23 @@ def count_sections(lines):
 # Main check
 # ---------------------------------------------------------------------------
 
-def check_sheet(path: str):
+def check_sheet(path: str, relpath: str):
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
     lines = text.split("\n")
     name = os.path.basename(path)
+
+    touched = touched_lines(relpath)  # None => git unavailable; treat every bullet as touched
 
     failures = []
     citation_checks = 0
     citation_failures = 0
     token_checks = 0
     token_failures = 0
+    untouched_untagged = 0  # reported only, never fails: pre-existing bullets outside this pass
 
     units = iter_units(lines)
-    for unit_text, start_line, is_bullet in units:
+    for unit_text, start_line, is_bullet, section in units:
         citations = find_citations(unit_text)
         for c in citations:
             citation_checks += 1
@@ -365,27 +431,53 @@ def check_sheet(path: str):
         if not is_bullet:
             continue
 
-        # Gate: this bullet's numeric tokens are only checked at all if it carries a direct
-        # numbers.md / numbers_tier1.md citation, or a [NOT IN ...] tag (brief's scope for check b).
-        has_numbers_source = any(
+        n_unit_lines = unit_text.count("\n") + 1
+        is_touched = touched is None or any(
+            (start_line + k) in touched for k in range(n_unit_lines)
+        )
+        strict = is_touched and section in ("Facts", "Appendix candidates")
+
+        not_in_matches = list(NOT_IN_RE.finditer(unit_text))
+        has_numbers_cite = any(
             c["resolved"] and c["line_ok"] and is_numbers_file(c["resolved"]) for c in citations
         )
-        not_in_matches = list(NOT_IN_RE.finditer(unit_text))
-        if not_in_matches:
-            has_numbers_source = True
+        has_numbers_source = has_numbers_cite or bool(not_in_matches)
+
+        masked = mask_citation_spans(unit_text, citations)
+        tokens = extract_numeric_tokens(masked)
+
         if not has_numbers_source:
+            # No numbers.md/numbers_tier1.md citation and no [NOT IN ...] tag anywhere in this
+            # bullet. Facts/Appendix in a touched bullet with a claimed number is a hard failure
+            # (brief's rule); everywhere else (Flags, by design cite two non-numbers sources; or
+            # an untouched bullet from before this pass) it is reported only, never a failure.
+            if tokens:
+                if strict:
+                    token_checks += len(tokens)
+                    token_failures += len(tokens)
+                    failures.append(
+                        f"{name}:{start_line}: touched Facts/Appendix bullet has claimed number(s) "
+                        f"{tokens} but no numbers.md/numbers_tier1.md citation and no [NOT IN ...] tag"
+                    )
+                else:
+                    untouched_untagged += 1
             continue
 
-        # Allowed content: every resolved citation's line text in this unit counts (a token
-        # claimed from a direct M: or code citation is not a numbers-file claim at all, so it is
-        # not re-demanded of the numbers-file lines); plus every citation named inside a
-        # [NOT IN ...] bracket, of any file (this is how the ablation's own numbers file and the
-        # extension result files are admitted, per the brief).
+        # Allowed content for the token match:
+        #   - strict (touched Facts/Appendix): only numbers.md/numbers_tier1.md citations, plus
+        #     citations named inside a [NOT IN ...] bracket (of any file -- that is what the
+        #     bracket is for).
+        #   - lenient (Flags, or an untouched bullet): every resolved citation's line text in the
+        #     unit counts, so a token already sourced to a direct M:/code citation elsewhere in
+        #     the same bullet is not re-demanded of the numbers file.
         allowed_lines_text = []
         for c in citations:
-            if c["resolved"] and c["line_ok"]:
-                for n in c["lines"]:
-                    allowed_lines_text.append(line_text(c["resolved"], n))
+            if not (c["resolved"] and c["line_ok"]):
+                continue
+            if strict and not is_numbers_file(c["resolved"]):
+                continue
+            for n in c["lines"]:
+                allowed_lines_text.append(line_text(c["resolved"], n))
         for nm in not_in_matches:
             for c in find_citations(nm.group(0)):
                 if c["resolved"] and c["line_ok"]:
@@ -393,8 +485,6 @@ def check_sheet(path: str):
                         allowed_lines_text.append(line_text(c["resolved"], n))
 
         allowed_blob = "\n".join(allowed_lines_text)
-        masked = mask_citation_spans(unit_text, citations)
-        tokens = extract_numeric_tokens(masked)
         for tok in tokens:
             token_checks += 1
             candidates = [tok]
@@ -404,7 +494,9 @@ def check_sheet(path: str):
             if not any(cand in allowed_blob for cand in candidates):
                 token_failures += 1
                 failures.append(
-                    f"{name}:{start_line}: numeric token '{tok}' not found on any cited numbers-file line"
+                    f"{name}:{start_line}: numeric token '{tok}' not found on any cited "
+                    f"{'numbers-file/NOT-IN' if strict else 'numbers-file'} line"
+                    f"{' (strict: touched Facts/Appendix bullet)' if strict else ''}"
                 )
 
     counts = count_sections(lines)
@@ -415,6 +507,7 @@ def check_sheet(path: str):
         "citation_failures": citation_failures,
         "token_checks": token_checks,
         "token_failures": token_failures,
+        "untouched_untagged": untouched_untagged,
         "counts": counts,
     }
 
@@ -434,21 +527,27 @@ def main():
     total_token_checks = 0
     total_token_failures = 0
     total_bullets = 0
+    total_untouched_untagged = 0
     any_failures = False
 
     for path in sheet_paths:
-        result = check_sheet(path)
+        relpath = os.path.relpath(path, REPO_ROOT).replace(os.sep, "/")
+        result = check_sheet(path, relpath)
         n_bullets = sum(result["counts"].values())
         total_bullets += n_bullets
         total_citation_checks += result["citation_checks"]
         total_citation_failures += result["citation_failures"]
         total_token_checks += result["token_checks"]
         total_token_failures += result["token_failures"]
+        total_untouched_untagged += result["untouched_untagged"]
 
         print(f"== {result['name']} ==")
         print(f"  bullets (Facts/Appendix/Flags a/Flags b): {result['counts']}")
         print(f"  citations checked: {result['citation_checks']}, failed: {result['citation_failures']}")
         print(f"  numeric tokens checked: {result['token_checks']}, failed: {result['token_failures']}")
+        if result["untouched_untagged"]:
+            print(f"  untouched bullets with a claimed number but no numbers-file/NOT-IN source "
+                  f"(pre-existing, not checked, reported only): {result['untouched_untagged']}")
         if result["failures"]:
             any_failures = True
             for f in result["failures"]:
@@ -458,7 +557,8 @@ def main():
     print("TOTAL "
           f"bullets={total_bullets} "
           f"citations={total_citation_checks} citation_failures={total_citation_failures} "
-          f"tokens={total_token_checks} token_failures={total_token_failures}")
+          f"tokens={total_token_checks} token_failures={total_token_failures} "
+          f"untouched_untagged_reported_only={total_untouched_untagged}")
 
     if any_failures or total_citation_failures or total_token_failures:
         print("TOTAL RESULT: FAIL")
