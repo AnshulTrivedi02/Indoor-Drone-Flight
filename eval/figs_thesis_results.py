@@ -888,6 +888,36 @@ ITEMS.append(dict(num="Figure 4.2", name="R3_trajectory_overlay", kind="figure",
 write_caption("R3", f"Figure 4.2. True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path.\n\n{CAP3}")
 print(f"wrote R3_trajectory_overlay (stretch {rd(STRETCH, 2)})")
 
+# ---------------------------------------------------------------------- RAW (DESCRIPTIVE) lookup (raw-tables stage 2, 2026-11-02;
+# D106/D107/D111, user ruling "option 1 on fitted results"). Same (trial, estimator, arm) lookup as figs_thesis.py's own, kept
+# duplicated (not imported) since the two generators are independent scripts; both read the SAME json, never recompute a
+# trajectory. Metric: 3D (evo -a's own pose_relation, the translation part - see eval/three_way_eval.py's own comment "Reference
+# TUMs carry identity quaternions, so APE is the translation part"), matching the brief's "use 3D if the aligned metric is 3D" rule.
+RAWJ = L("raw_corridor_errors.json")
+RAWIDX = {}
+for _rc in RAWJ["cells"]:
+    _rk = (_rc["trial"], _rc["estimator"], _rc["arm"])
+    assert _rk not in RAWIDX, f"duplicate raw_corridor_errors.json cell {_rk}"
+    RAWIDX[_rk] = _rc
+
+
+def raw_cell(trial, estimator, arm="baseline"):
+    c = RAWIDX[(trial, estimator, arm)]
+    assert "raw" in c, f"no raw value published for {trial}/{estimator}/{arm}"
+    return c["raw"]
+
+
+def stored_ate(trial, estimator, arm="baseline"):
+    return RAWIDX[(trial, estimator, arm)]["stored_ate_a_cruise"]
+
+
+RAW_NOTE_R4 = ("Raw (DESCRIPTIVE) column: world-frame position error, nothing fitted (no rotation, translation or scale "
+               "alignment), RMS and end-of-cruise, 3D (matching evo -a (cruise)'s own pose_relation, the translation part), "
+               "for the two rows this table shares with Tables 4.1 and 7.1 (Experiment 1A, 1B) - limitations.md item 5; "
+               "decisions D106, D111; eval/results/raw_corridor_errors.json via docs/thesis/raw_corridor/raw_corridor_numbers.md. "
+               "'-' marks a row outside the raw-corridor scope (Experiments 2, 4, 5 and the blank floor); it is not a "
+               "withheld value.")
+
 # =============================================================================================== R4 INFORMATION vs ESTIMATOR
 sp = lambda vals: (max(vals) - min(vals), max(vals) / min(vals))
 rowsR4 = []
@@ -901,12 +931,20 @@ dsc = L("rerun_ds_evo.json")["trials"]; DSV = [dsc[f"ds_tex_r{i}"]["est"]["EKF3"
 check("R4", "compass reference EKF3 flights 1–3 (m)", " / ".join(rd(v, 2) for v in DSV), "0.66 / 0.69 / 0.07", "numbers.md", 237)
 check("R4", "standard-sensor EKF3 flights 1–3 (m)", " / ".join(rd(DSNA[i]["EKF3"], 2) for i in (1, 2, 3)), "4.03 / 3.86 / 4.10", "numbers.md", 221)
 ek3 = [DSNA[i]["EKF3"] for i in (1, 2, 3)]
+_1A_TR = [f"dsn_tex_r{i}" for i in range(1, 10)]
+jcheck("R4", "1A raw-row selection matches the aligned 1A medians' own 9 flights (stored_ate_a_cruise == DSNA input)",
+       str(all(abs(stored_ate(t, e, "baseline") - DSNA[i][e]) < 1e-6 for e in EST for i, t in enumerate(_1A_TR, start=1))),
+       "True", "eval/results/raw_corridor_errors.json cells vs this file's own DSNA (rerun_dsn_evo.json, dsn_extra_evo.json)")
+raw1A = {e: ([raw_cell(t, e, "baseline")["rms_3d_m"] for t in _1A_TR], [raw_cell(t, e, "baseline")["end_3d_m"] for t in _1A_TR]) for e in EST}
 rowsR4.append(["Experiment 1A: standard sensors, textured floor", "cruise ATE (m); n = 9 flights (median per estimator)",
                f"EKF3 {rd(med['EKF3'], 2)}, UKF {rd(med['UKF'], 2)}, FGO {rd(med['FGO'], 2)} (medians)",
+               # median only, mirroring the aligned cell directly to its left (which prints medians, not ranges)
+               "RAW (DESCRIPTIVE), medians: " + "; ".join(f"{e} RMS {rd(float(np.median(raw1A[e][0])), 2)}, end "
+               f"{rd(float(np.median(raw1A[e][1])), 2)}" for e in EST),
                f"{rd(d1, 2)} m; {rd(r1, 2)}× (medians); per flight {rd(min(pf), 2)}–{rd(max(pf), 2)}×",
                "a compass heading, EKF3 only (compass reference dataset, flights 1–3; different flights, same world)",
                f"EKF3 mean {rd(np.mean(ek3), 2)} → {rd(np.mean(DSV), 2)} m; {rd(np.mean(ek3) / np.mean(DSV), 1)}× (means of 3; descriptive)",
-               "rerun_dsn_evo.json, dsn_extra_evo.json, rerun_ds_evo.json; numbers.md:221, 232, 236, 237"])
+               "rerun_dsn_evo.json, dsn_extra_evo.json, rerun_ds_evo.json; numbers.md:221, 232, 236, 237; raw_corridor_errors.json (raw column)"])
 # --- 1B: textured-wall camera dataset, textured floor, flights 1-3 (same bags)
 F = {r: P4E[f"fwdc_tex_r{r}"]["est"] for r in (1, 2, 3)}; g = lambda r, k: F[r][k]["ate_a_cruise"]["+0.00"]
 for key, ln, vals in (("EKF3", 269, "4.09 / 3.60 / 4.08"), ("FGO_baseline", 270, "4.47 / 2.26 / 4.54"), ("UKF_baseline", 271, "4.96 / 1.78 / 4.96"),
@@ -916,13 +954,26 @@ spw = [sp([g(r, "UKF_heading"), g(r, "FGO_heading")]) for r in (1, 2, 3)]
 spn = [sp([g(r, "EKF3"), g(r, "UKF_baseline"), g(r, "FGO_baseline")]) for r in (1, 2, 3)]
 eu = [g(r, "UKF_baseline") / g(r, "UKF_heading") for r in (1, 2, 3)]; ef = [g(r, "FGO_baseline") / g(r, "FGO_heading") for r in (1, 2, 3)]
 du = [g(r, "UKF_baseline") - g(r, "UKF_heading") for r in (1, 2, 3)]; df = [g(r, "FGO_baseline") - g(r, "FGO_heading") for r in (1, 2, 3)]
+_1B_TR = [f"fwdc_tex_r{r}" for r in (1, 2, 3)]
+jcheck("R4", "1B raw-row selection matches the aligned 1B cells (stored_ate_a_cruise == g(r, key) input, baseline+heading arms)",
+       str(all(abs(stored_ate(f"fwdc_tex_r{r}", key.split("_")[0] if key != "EKF3" else "EKF3",
+                              "heading" if key.endswith("_heading") else "baseline") - g(r, key)) < 1e-6
+               for r in (1, 2, 3) for key in ("EKF3", "FGO_baseline", "UKF_baseline", "UKF_heading", "FGO_heading"))),
+       "True", "eval/results/raw_corridor_errors.json cells vs this file's own P4E (phase4_fwdc_evo.json)")
+rawR = lambda key, arm: {r: raw_cell(f"fwdc_tex_r{r}", key, arm) for r in (1, 2, 3)}
+rawUH, rawFH = rawR("UKF", "heading"), rawR("FGO", "heading")
+rawE, rawUB, rawFB = rawR("EKF3", "baseline"), rawR("UKF", "baseline"), rawR("FGO", "baseline")
+_rl = lambda d, k: " / ".join(rd(d[r][k], 2) for r in (1, 2, 3))
 rowsR4.append(["Experiment 1B: with the camera heading, textured walls, textured floor", "cruise ATE (m); n = 3 flights (the same bags with and without the heading)",
                "with heading: UKF 0.13 / 0.13 / 0.14, FGO 0.06 / 0.06 / 0.06; without: EKF3 4.09 / 3.60 / 4.08, UKF 4.96 / 1.78 / 4.96, FGO 4.47 / 2.26 / 4.54",
+               "RAW (DESCRIPTIVE), RMS; end:\nwith heading: UKF " + _rl(rawUH, "rms_3d_m") + "; " + _rl(rawUH, "end_3d_m") + ", FGO "
+               + _rl(rawFH, "rms_3d_m") + "; " + _rl(rawFH, "end_3d_m") + "\nwithout: EKF3 " + _rl(rawE, "rms_3d_m") + "; " + _rl(rawE, "end_3d_m")
+               + ", UKF " + _rl(rawUB, "rms_3d_m") + "; " + _rl(rawUB, "end_3d_m") + ", FGO " + _rl(rawFB, "rms_3d_m") + "; " + _rl(rawFB, "end_3d_m"),
                f"with heading (UKF, FGO; 2 estimators): {rng([s[0] for s in spw], 2)} m; {rng([s[1] for s in spw], 2)}×. Without (3 estimators): "
                f"{rng([s[0] for s in spn], 2)} m; {rng([s[1] for s in spn], 2)}×",
                "the camera heading (offline heading arm; UKF and FGO only)",
                f"UKF {rng(du, 2)} m lower, {rng(eu, 0)}×; FGO {rng(df, 2)} m lower, {rng(ef, 0)}× (per flight, without ÷ with)",
-               "phase4_fwdc_evo.json; numbers.md:269-271, 291-292"])
+               "phase4_fwdc_evo.json; numbers.md:269-271, 291-292; raw_corridor_errors.json (raw column)"])
 # --- blank floor (non-† times only)
 bb = L("blank_behaviour.json")
 BL = [k for k in bb if "blank" in k and not k.startswith("ds_")]
@@ -1007,15 +1058,23 @@ rowsR4.append(["Experiment 5: tag hold (each estimator flying)", "mean hold erro
                "30 s loss drift: " + ", ".join(f"{e} {rng(d30[e], 0)} mm" for e in EST) + "; ÷ the same run's hold error: "
                + ", ".join(f"{e} {rng([d30[e][i] / hold[e][i] for i in range(3)], 1)}×" for e in EST),
                "expH/h_comparative_2026-10-11.json; expH/s1far_r*.json, s2v2_r*.json, s3v2_r*.json; numbers.md:621-623, 644, 646, 667-669"])
+# RAW (DESCRIPTIVE) column (raw-tables stage 2): only the 1A and 1B rows (above) are in D106's raw-corridor scope; every other
+# row gets "-" (out of scope, not a withheld value - Experiment 2/4/5 and the blank floor are not evo -a (cruise) rows at all,
+# see docs/handovers/2026-11-02_raw_tables_stage2.md, RT-2).
+for _row in rowsR4:
+    if len(_row) == 7:
+        _row.insert(3, "-")
+assert all(len(_row) == 8 for _row in rowsR4), "rowsR4: every row must have the new raw column inserted exactly once"
 save_tab("Table 7.5", "R4_information_vs_estimator", "Spread between estimators against the effect of adding information, per condition",
          "For each condition: the primary metric of each estimator, the best–worst spread across the estimators (max − min and max ÷ min), and "
          "the change when information is added (a heading, more tags, GNSS, or the tag itself). Spreads and ratios are computed here from the "
          "stored full-precision values and rounded once; their inputs are cross-checked against numbers.md. The numbers are reported without "
          "a conclusion beyond them.",
-         ["condition", "metric; n", "estimator values", "spread across estimators", "information added (contrast)", "effect of the information", "source"],
-         rowsR4, [22, 26, 40, 30, 32, 40, 30],
+         ["condition", "metric; n", "estimator values", "raw world-frame error, nothing fitted, DESCRIPTIVE (1A/1B rows only)", "spread across estimators",
+          "information added (contrast)", "effect of the information", "source"],
+         rowsR4, [22, 26, 40, 30, 30, 32, 40, 30],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, rerun_ds_evo.json, phase4_fwdc_evo.json, blank_behaviour.json, expT/t_aggregate.json, "
-         "expO/O_*.json, expH/h_comparative_2026-10-11.json, expH/s1far_r*.json, s2v2_r*.json, s3v2_r*.json",
+         "expO/O_*.json, expH/h_comparative_2026-10-11.json, expH/s1far_r*.json, s2v2_r*.json, s3v2_r*.json, raw_corridor_errors.json (raw column)",
          notes=["Spread = max − min and max ÷ min of the stated metric over the estimators that have a value in that condition (2 in Experiment 1B "
                 "with heading and on the blank floor; 3 elsewhere). 'Per flight' ranges are the range over flights of the per-flight spread or ratio. "
                 "Ratios use the stored full-precision values, not the displayed ones.",
@@ -1028,7 +1087,8 @@ save_tab("Table 7.5", "R4_information_vs_estimator", "Spread between estimators 
                 "ratios are indicative only. Experiment 3 (loop closure) has one thesis estimator and no spread: the thesis EKF3 and UKF, as "
                 "configured, have no landmark states; a UKF with tag landmark states (extension experiment E5, not in this table) also bounded "
                 f"its live drift (H-E5.1 {XE5}). Experiment 1C (closed loop) passes 3/3 for "
-                "every estimator with the heading (Table 4.3), so it has no spread in its primary metric."])
+                "every estimator with the heading (Table 4.3), so it has no spread in its primary metric.",
+                RAW_NOTE_R4])
 
 # =============================================================================================== index_results.md
 nC = len(CHK); nCok = sum(c[5] for c in CHK); nQ = len(QCHK); nQok = sum(q[3] for q in QCHK)

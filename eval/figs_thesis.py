@@ -400,6 +400,73 @@ P4 = {}
 for ds, r in CAMB:
     e = L(f"phase4_{ds}_evo.json")["trials"][f"{ds}_tex_r{r}"]["est"]
     P4[(ds, r)] = {k: e[k]["ate_a_cruise"]["+0.00"] for k in ("EKF3", "UKF_baseline", "FGO_baseline", "UKF_heading", "FGO_heading")}
+
+# ---------------------------------------------------------------------------- RAW (DESCRIPTIVE) corridor error columns
+# (raw-tables stage 2, 2026-11-02; D106/D107/D111, user ruling "option 1 on fitted results"). Every raw number used by
+# any table below is looked up from eval/results/raw_corridor_errors.json by (trial, estimator, arm) ONLY - never
+# recomputed here - so it is identical to the value `docs/thesis/raw_corridor/raw_corridor_numbers.md` already prints and
+# already cross-checks (docs/thesis/raw_corridor/check_raw_corridor.py, 154/154 rows, 1860/1860 checks). This script adds
+# no new trajectory computation; it only re-displays a subset of that json's already-checked values next to the
+# existing registered (evo -a cruise) ones. Metric: evo -a's own pose_relation is the translation part in 3D (confirmed
+# from eval/three_way_eval.py: no --pose_relation flag is passed to evo_ape, and "Reference TUMs carry identity
+# quaternions, so APE is the translation part" is stated there directly) - so the raw companion columns below use the
+# json's rms_3d_m/end_3d_m fields, NOT the horizontal (rms_h_m/end_h_m) ones, per the brief's own rule ("use the
+# HORIZONTAL raw values ... unless the table's aligned metric is 3D, in which case use 3D").
+RAWJ = L("raw_corridor_errors.json")
+RAWIDX = {}
+for _rc in RAWJ["cells"]:
+    _rk = (_rc["trial"], _rc["estimator"], _rc["arm"])
+    assert _rk not in RAWIDX, f"duplicate raw_corridor_errors.json cell {_rk}"
+    RAWIDX[_rk] = _rc
+
+
+def raw_cell(trial, estimator, arm="baseline"):
+    """Exactly-one lookup into raw_corridor_errors.json; raises KeyError if the (trial, estimator, arm) triple is not in
+    scope and AssertionError if that cell's raw value was withheld (not possible for this scope: D111 validated all
+    three estimators, 154/154 cells have a published raw value - asserted anyway, not assumed)."""
+    c = RAWIDX[(trial, estimator, arm)]
+    assert "raw" in c, f"no raw value published for {trial}/{estimator}/{arm}"
+    return c["raw"]
+
+
+def stored_ate(trial, estimator, arm="baseline"):
+    """The json cell's own `stored_ate_a_cruise` (the registered evo -a (cruise) value this cell's raw numbers companion),
+    for verifying a raw-row/raw-column's (trial, estimator, arm) selection against the aligned value already displayed."""
+    return RAWIDX[(trial, estimator, arm)]["stored_ate_a_cruise"]
+
+
+def raw_med(trials, estimator, arm="baseline", n=2):
+    """'RMS <median>; end <median>' over `trials` (median-only, to mirror a cell that prints a median with no range)."""
+    rms = [raw_cell(t, estimator, arm)["rms_3d_m"] for t in trials]
+    end = [raw_cell(t, estimator, arm)["end_3d_m"] for t in trials]
+    return f"RMS {rd(float(np.median(rms)), n)}; end {rd(float(np.median(end)), n)}"
+
+
+def raw_rng(trials, estimator, arm="baseline", n=2):
+    """'RMS <lo>-<hi>; end <lo>-<hi>' over `trials` (range-only, to mirror a cell that prints a range with no median)."""
+    rms = [raw_cell(t, estimator, arm)["rms_3d_m"] for t in trials]
+    end = [raw_cell(t, estimator, arm)["end_3d_m"] for t in trials]
+    return f"RMS {rng(rms, n)}; end {rng(end, n)}"
+
+
+def raw_med_rng(trials, estimator, arm="baseline", n=2):
+    """'RMS <median> (<lo>-<hi>); end <median> (<lo>-<hi>)' over `trials` (to mirror a cell that prints median (range))."""
+    rms = [raw_cell(t, estimator, arm)["rms_3d_m"] for t in trials]
+    end = [raw_cell(t, estimator, arm)["end_3d_m"] for t in trials]
+    return f"RMS {rd(float(np.median(rms)), n)} ({rng(rms, n)}); end {rd(float(np.median(end)), n)} ({rng(end, n)})"
+
+
+def raw_list(trials, estimator, arm="baseline", n=2):
+    """'RMS a / b / c; end d / e / f' over `trials`, in order (to mirror a cell that lists one value per flight)."""
+    rms = [raw_cell(t, estimator, arm)["rms_3d_m"] for t in trials]
+    end = [raw_cell(t, estimator, arm)["end_3d_m"] for t in trials]
+    return "RMS " + " / ".join(rd(x, n) for x in rms) + "; end " + " / ".join(rd(x, n) for x in end)
+
+
+RAW_NOTE = ("Raw (DESCRIPTIVE) columns/rows: world-frame position error with NOTHING FITTED (no rotation, translation or "
+            "scale alignment), RMS and end-of-cruise, 3D (matching evo -a (cruise)'s own pose_relation, the translation "
+            "part) - limitations.md item 5; decisions D106, D111; eval/results/raw_corridor_errors.json via "
+            "docs/thesis/raw_corridor/raw_corridor_numbers.md.")
 bb = L("blank_behaviour.json")
 BLANK = {}
 for est, keys in (("UKF", ("ukf", "ukf_baseline")), ("FGO", ("fgo", "fgo_baseline"))):
@@ -852,6 +919,22 @@ T1MK = ["[a, b]", "[c]", "[d]", "[e]", "[f, g]", "[h]", "[i]", "[j]"]      # ord
 T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h", t1=True), ob_h5("i"), ob_cl("j")]
 rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + CELLS[e][j][1] + (f" ({CELLS[e][j][2]})" if CELLS[e][j][2] else "") for e in EST]
           for j, col in enumerate(COLS)]
+# RAW (DESCRIPTIVE) companion rows for 1A and 1B (raw-tables stage 2; RAW_NOTE above). T1 is a matrix (experiment x
+# estimator), so there is no per-estimator "column" to put a raw value beside; the structural equivalent is a row,
+# directly under the aligned row it companions, over the SAME flights/bags that row's own aligned cell uses.
+_T1A_TR = [f"dsn_tex_r{i}" for i in range(1, 10)]           # same 9 flights as med[e]/CELLS[e][0] (1A median)
+_T1B_TR = [f"{ds}_tex_r{r}" for ds, r in CAMB]               # same 6 bags as u6/g6/CELLS[e][1] (1B with-heading range)
+check("T1/T9 1A raw-row selection matches the aligned 1A median's own 9 flights (EKF3/UKF/FGO stored_ate_a_cruise == med input)",
+      str(all(abs(stored_ate(f"dsn_tex_r{i}", e, "baseline") - v) < 1e-6 for e in EST for i, v in DSN[e])),
+      "True", "eval/results/raw_corridor_errors.json cells vs this file's own DSN (rerun_dsn_evo.json, dsn_extra_evo.json)")
+check("T1 1B raw-row selection matches the aligned 1B with-heading cells' own 6 bags (UKF/FGO stored_ate_a_cruise == u6/g6 input)",
+      str(all(abs(stored_ate(f"{ds}_tex_r{r}", e, "heading") - P4[(ds, r)][f"{e}_heading"]) < 1e-6
+              for e in ("UKF", "FGO") for ds, r in CAMB)),
+      "True", "eval/results/raw_corridor_errors.json cells vs this file's own P4 (phase4_{fwdc,fwdplainc}_evo.json)")
+rowsT1.insert(1, ["Experiment 1A: raw world-frame error, nothing fitted, DESCRIPTIVE [l]"] +
+              [raw_med(_T1A_TR, e, "baseline") for e in EST])
+rowsT1.insert(3, ["Experiment 1B: raw world-frame error, nothing fitted, DESCRIPTIVE [l]",
+                  "no offline heading arm", raw_rng(_T1B_TR, "UKF", "heading"), raw_rng(_T1B_TR, "FGO", "heading")])
 save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment and estimator",
          "Each cell gives the key number and the verdict it rests on, with a status (PASSED, N/A, or on the blank floor '" + BLANK_ST + "') where one applies. "
          "No ordering label is printed: an ordering (BEST / BEHIND / TIED) is shown only where a pre-registered decision rule was met, "
@@ -861,7 +944,7 @@ save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment
          ["experiment", "EKF3", "UKF", "FGO"], rowsT1, [30, 40, 40, 40],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, dsn_paired_test.json, phase4_{fwdc,fwdplainc}_evo.json, blank_behaviour.json, "
          "expT/t_aggregate.json, expO/O_*.json, expL/T_A_r*_t245.json, expH/s1far_r*.json, expH/h_comparative_2026-10-11.json, "
-         "closed_loop_cl_*_half(_v2/_v3).json",
+         "closed_loop_cl_*_half(_v2/_v3).json, raw_corridor_errors.json (the two raw rows only)",
          "§6.1, §6.2, §6.6, §15, §16.1–§16.3, §17.2; claims 1a, 1b, 2, 7, 10, 14, 17–19, 23, 25",
          notes=["Statuses (not orderings): '" + BLANK_ST + "' = the blank-floor status (ruling 2026-10-18; the blank floor is ruled 'not accuracy comparisons'); PASSED = met "
                 "its pre-registered criteria with no comparison (Experiment 3, the FGO: H3.1–H3.4); N/A = not run (Experiment 3: the thesis EKF3 has no landmark states). Ordering labels (BEST / "
@@ -879,7 +962,50 @@ save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment
                 "(RTF 0.5). " + RTFX + " "
                 "† runaway magnitude (order only). No cell restates a WITHDRAWN claim.",
                 "Ordering footnotes [a]–[j] (one per comparison; the letters in the experiment column): each footnote states the rule, "
-                "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN + [ob_ext("k")], order=10)
+                "the result and why no ordering label is printed. " + OCASE_KEY] + T1FN + [ob_ext("k"),
+               "[l] " + RAW_NOTE + " 1A raw row: median only, over the same 9 flights (flights 1-9 of the standard-sensor dataset) as "
+               "the aligned 1A median directly above; flight 10 (EKF3 only, IMU-gap rule) is excluded, matching the aligned cell. 1B "
+               "raw row: range only, over the same 6 bags (the 6 textured-floor bags of the two camera datasets) as the aligned 1B "
+               "with-heading cells directly above; EKF3 has no offline heading arm, same as the aligned row. See Table 4.4 "
+               "(provisional) for the fitted-vs-raw companion table, median and range together."], order=10)
+
+# =============================================================================================== TABLE T9 (new, raw-tables stage 2):
+# Figure 4.1c (1A drift paths) companion table: fitted cruise ATE next to the raw world-frame error, from the user's raw
+# re-scoring ruling (2026-11-02, task 3). "Table 4.4 (provisional)", same provisional status as the figure it companions
+# (that figure's own caption says a companion table follows - that caption string belongs to the parallel figure-restyle/
+# caption work and is not edited here; this is the table it refers to).
+TNUM["T9"] = "Table 4.4 (provisional)"
+check("T9 fitted medians EKF3/UKF/FGO, flights 1-9 (m) (same quantity as T1/T2's 1A median)", " / ".join(f2(med[e]) for e in EST),
+      "4.10 / 5.13 / 4.46", "numbers.md §6.1 standing row (same check as T2's own)")
+check("T9 fitted UKF range, flights 1-9 (m) (numbers.md D15 wording row)", rng([v for _, v in DSN["UKF"]]), "1.17–5.85", "numbers.md:232")
+rowsT9 = []
+for e in EST:
+    v = [x for _, x in DSN[e]]
+    rms = [raw_cell(t, e, "baseline")["rms_3d_m"] for t in _T1A_TR]
+    end = [raw_cell(t, e, "baseline")["end_3d_m"] for t in _T1A_TR]
+    rowsT9.append([e, "9", rd(med[e], 2), rng(v), rd(float(np.median(rms)), 2), rng(rms, 2), rd(float(np.median(end)), 2), rng(end, 2)])
+save_tab("T9", "T9_1A_fitted_vs_raw", "Experiment 1A (textured floor): fitted cruise ATE and raw world-frame error, per estimator",
+         "Companion table to Figure 4.1c (1A drift paths): the registered fitted cruise ATE (evo -a, SE(3)-aligned) next to the raw "
+         "world-frame error, nothing fitted (no rotation, translation or scale alignment), median and range over the same 9 flights, "
+         "from the user's raw re-scoring ruling (2026-11-02). The raw columns are DESCRIPTIVE and change no registered value or verdict.",
+         ["estimator", "n (flights)", "fitted cruise ATE median, registered (m)", "fitted cruise ATE range, registered (m)",
+          "raw world-frame error, nothing fitted, DESCRIPTIVE: RMS median (m)", "raw RMS range, nothing fitted, DESCRIPTIVE (m)",
+          "raw end-of-cruise median, nothing fitted, DESCRIPTIVE (m)", "raw end-of-cruise range, nothing fitted, DESCRIPTIVE (m)"],
+         rowsT9, [12, 14, 26, 24, 24, 24, 26, 26],
+         "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); eval/results/raw_corridor_errors.json (raw columns)",
+         "numbers.md:230 (fitted medians, D15 claim-wording row, CURRENT); numbers.md:232 (UKF fitted range, D15 wording row); EKF3 and FGO fitted "
+         "ranges have no numbers.md line (confirmed by grep at generation time: numbers.md never prints them individually, only the "
+         "three medians and the UKF range - RC-6 in raw_corridor_numbers.md's own coverage note states the same for the raw values), "
+         "so they are cited to the json only",
+         notes=["n = 9 flights (flights 1-9 of the standard-sensor dataset), the same population as the registered 1A median in "
+                "Table 4.1, Table 7.1 and Table 7.5. Flight 10 (EKF3 only, under the IMU-gap rule) enters the confirmatory H1.1 test "
+                "(flights 4-10, a different, paired population), not this table's 9-flight median.",
+                "The fitted medians (EKF3 4.10, UKF 5.13, FGO 4.46 m) are printed, as separate tokens, at numbers.md:230 (the D15 "
+                "claim-wording row, CURRENT); the UKF fitted range (1.17–5.85 m) at numbers.md:232 (D15 wording row). EKF3's "
+                "(3.11–4.12 m) and FGO's (1.27–4.61 m) fitted ranges are not printed anywhere in numbers.md as an individual range; "
+                "they are the same ranges Table 4.1 already prints in its 9-flight column, cross-checked there against the json "
+                "(rerun_dsn_evo.json, dsn_extra_evo.json), reused here unchanged.",
+                RAW_NOTE], order=15)
 
 # =============================================================================================== FIG 2 heading stops drift (ONE panel)
 from thesis_style import TEXT_WIDTH_IN
@@ -1176,25 +1302,40 @@ for ds, r in CAMB:
 check("1B offline fusion: evo vs arms result files agreement (mismatches)", mism, 0, "phase4_*_evo.json vs phase4_*_arms.json")
 BK = {"EKF3": "EKF3", "UKF": "UKF_baseline", "FGO": "FGO_baseline"}
 cam = lambda e, ds, key: " / ".join(f2(P4[(ds, r)][key]) for r in (1, 2, 3))
+_T2_FWDC_TR = [f"fwdc_tex_r{r}" for r in (1, 2, 3)]; _T2_FWDPC_TR = [f"fwdplainc_tex_r{r}" for r in (1, 2, 3)]
+check("T2 raw-companion selection matches the aligned no-heading camera cells (fwdc/fwdplainc, baseline arm)",
+      str(all(abs(stored_ate(f"{ds}_tex_r{r}", e, "baseline") - P4[(ds, r)][BK[e]]) < 1e-6
+              for e in EST for ds, r in CAMB)),
+      "True", "eval/results/raw_corridor_errors.json cells vs this file's own P4 (phase4_{fwdc,fwdplainc}_evo.json), baseline arm")
+check("T2 raw-companion selection matches the aligned with-heading camera cells (fwdc/fwdplainc, UKF/FGO, heading arm)",
+      str(all(abs(stored_ate(f"{ds}_tex_r{r}", e, "heading") - P4[(ds, r)][f"{e}_heading"]) < 1e-6
+              for e in ("UKF", "FGO") for ds, r in CAMB)),
+      "True", "eval/results/raw_corridor_errors.json cells vs this file's own P4 (phase4_{fwdc,fwdplainc}_evo.json), heading arm")
 rowsT2 = []
 for e in EST:
     v = [x for _, x in DSN[e]]
-    rowsT2.append([e, f"{rd(med[e], 2)} ({rng(v)})", cam(e, "fwdc", BK[e]), cam(e, "fwdplainc", BK[e]),
+    rowsT2.append([e, f"{rd(med[e], 2)} ({rng(v)})", raw_med_rng(_T1A_TR, e, "baseline"),
+                   cam(e, "fwdc", BK[e]), raw_list(_T2_FWDC_TR, e, "baseline"),
+                   cam(e, "fwdplainc", BK[e]), raw_list(_T2_FWDPC_TR, e, "baseline"),
                    "no offline heading arm" if e == "EKF3" else cam(e, "fwdc", f"{e}_heading"),
+                   "n/a" if e == "EKF3" else raw_list(_T2_FWDC_TR, e, "heading"),
                    "no offline heading arm" if e == "EKF3" else cam(e, "fwdplainc", f"{e}_heading") + " *",
+                   "n/a" if e == "EKF3" else raw_list(_T2_FWDPC_TR, e, "heading"),
                    " / ".join(f"{rd(x, 1)}" for x in hd[BK[e]]) + "; " +
                    ("—" if e == "EKF3" else " / ".join(f"{rd_si(x, 3)}" for x in hd[f"{e}_heading"]))])      # m, 3 dp (units pass; was cm)
 save_tab("T2", "T2_accuracy_heading", "Position error without and with the camera heading (textured floor)",
          "Without a heading source all three drift by metres and no ordering is claimed [a, b, d]; with the camera heading the UKF and the FGO "
          "stay within 0.25 m, the FGO lower on all 6 bags (C1.a) [c]. The heading-error decomposition of sideways drift attributes metres "
          "of the cross-track to each estimator's own heading error without the heading, and hundredths of a metre with it.",
-         ["estimator", "no heading: standard-sensor dataset, 9 flights, median (range) (m)", "no heading: textured walls, flights 1 / 2 / 3 (m)",
-          "no heading: plain walls, flights 1 / 2 / 3 (m)", "with heading: textured walls, flights 1 / 2 / 3 (m)",
-          "with heading: plain walls, flights 1 / 2 / 3 (m)",
+         ["estimator", "no heading: standard-sensor dataset, 9 flights, median (range) (m)", "9 flights, raw, nothing fitted, DESCRIPTIVE (m) [e]",
+          "no heading: textured walls, flights 1 / 2 / 3 (m)", "textured walls, raw, nothing fitted, DESCRIPTIVE (m)",
+          "no heading: plain walls, flights 1 / 2 / 3 (m)", "plain walls, raw, nothing fitted, DESCRIPTIVE (m)",
+          "with heading: textured walls, flights 1 / 2 / 3 (m)", "with heading, textured walls, raw, nothing fitted, DESCRIPTIVE (m)",
+          "with heading: plain walls, flights 1 / 2 / 3 (m)", "with heading, plain walls, raw, nothing fitted, DESCRIPTIVE (m)",
           "textured walls, flights 1 / 2 / 3: heading-driven end-of-cruise cross-track, without; with heading (m)"],
-         rowsT2, [12, 24, 20, 22, 20, 22, 34],
+         rowsT2, [10, 12, 16, 10, 16, 10, 16, 10, 14, 10, 14, 16],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json (ate_a_cruise '+0.00'); dsn_paired_test.json; phase4_{fwdc,fwdplainc}_evo.json, "
-         "cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m)",
+         "cross-checked against phase4_*_arms.json; phase5_analysis.json (decomposition, xtrack_head_m); raw_corridor_errors.json (raw columns)",
          "§6.1, §6.3 (Phase 5 decomposition), §6.4, §6.6; claims 1a, 1b, 2, 5, 7",
          notes=["Metric: cruise ATE, which aligns away a constant yaw offset (so metres, not tens of metres). No ordering is claimed "
                 f"without the heading: the pre-registered EKF3 − FGO test (H1.1) on flights 4–10 gives '{pt['verdict']}' (mean d {rd(pt['mean_d_m'], 3, sign=True)} m, "
@@ -1211,7 +1352,11 @@ save_tab("T2", "T2_accuracy_heading", "Position error without and with the camer
                        f"{len(CAMB)} bags (textured floor, flights 1–3 of the textured-wall and of the plain-wall camera dataset; every "
                        "estimator on the same bags)", "none: no comparative test was pre-registered on these bags without heading "
                        "(the registered no-heading test is H1.1, on the standard-sensor dataset)",
-                       "the per-bag values in the two no-heading camera columns", "iii")],
+                       "the per-bag values in the two no-heading camera columns", "iii"),
+                "[e] " + RAW_NOTE + " Each raw column companions the aligned column directly to its left, over the exact same "
+                "flights/bags/arm: the 9-flight column is median (range), matching its aligned column's own format; the per-flight columns "
+                "list one raw value per flight, in the same 1/2/3 order. 'n/a' in a with-heading raw cell matches EKF3's 'no offline heading "
+                "arm' (no estimator, not a withheld value)."],
          fs=7.6, order=20)
 
 # Heading arm vs its own baseline at +60 s, 6 blank camera flights (ruling 2026-10-18, item 5): DESCRIPTIVE, no registered rule

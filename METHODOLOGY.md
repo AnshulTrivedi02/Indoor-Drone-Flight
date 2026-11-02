@@ -14728,3 +14728,80 @@ reproduces the same totals (223/62/101/16; 186/186; verbatim 118/118, new 88, wo
 failures: none) with every output PNG pixel-identical to HEAD (decoded-pixel diff, not byte diff).
 `eval/figs_walkthrough_flights.py` needs bags (`mavutil`/`rosbags`) and references no `figures_thesis/` path, so it
 was not run. Handover: `docs/handovers/2026-11-02_figs_restyle.md`.
+
+## RULING APPLIED (user, 2026-11-02): raw-tables stage 2 - raw columns/rows added to the reader-facing tables
+
+Per the user's option-1 raw re-scoring ruling (`tier1/decisions_log.md` D106/D107/D111) and `limitations.md` item 5:
+three reader-facing tables that print an Experiment 1 (1A/1B offline) evo -a (cruise) value per estimator or per
+flight now carry a DESCRIPTIVE raw (nothing fitted) companion beside each such aligned value, sourced only from
+`eval/results/raw_corridor_errors.json` via `docs/thesis/raw_corridor/raw_corridor_numbers.md` - no value is
+recomputed. A new companion table, `T9_1A_fitted_vs_raw` ("Table 4.4 (provisional)"), pairs the registered 1A
+fitted cruise ATE (median and range, per estimator, flights 1-9) with the same raw RMS and raw end-of-cruise,
+for Figure 4.1c (1A drift paths). No registered value, pass rule, verdict or data selection changed.
+
+**Scope (identified by reading every table under `docs/thesis/tables/` and its generator)**: `T1_scorecard`,
+`T2_accuracy_heading` and `R4_information_vs_estimator` qualify. `T3_blank_floor`/`T7_failure_behaviour` do not -
+their metric is `hypot(along, cross)` from the flow-loss point (`blank_behaviour.json`), a different quantity by
+construction (Stage-1 raw-corridor handover's own RC-1 ruled this out), and EKF3's row there is "invalid, not
+scored" by the evaluation rule, so a raw EKF3-blank number beside "invalid" would contradict that rule.
+`T4_closed_loop` scores Experiment 1C (closed loop, the estimator flies), not offline 1A/1B. `R1_hypothesis_scorecard`
+and `TA_verdicts` are verdict-evidence tables (TA is pinned 146/146 EXACT) that report test statistics on
+differences (e.g. H1.1's paired-difference CI), not per-estimator/per-flight aligned values, so neither gets a raw
+companion. `methods_experiment_matrix` names the metric but prints no values.
+
+**Metric**: 3D, not horizontal - evo -a (cruise)'s own `pose_relation` defaults to `trans_part` (confirmed from
+primary source, not just `eval/three_way_eval.py`'s own comment: `evo/cli/ape_parser.py:19`,
+`default="trans_part"`, and `evo/core/metrics.py`'s `APE.__init__` carries the same default), i.e. 3D Euclidean
+distance of the translation vector - so the raw companions use `raw_corridor_errors.json`'s `rms_3d_m`/`end_3d_m`
+fields, per the brief's own rule ("use 3D if the aligned metric is 3D").
+
+**Where the raw values go, per table** (T1 is a matrix with no per-estimator column slot for a second value, so its
+raw companions are two extra ROWS, not columns):
+- `T1_scorecard`: a row directly under the 1A row ("raw world-frame error, nothing fitted, DESCRIPTIVE [l]",
+  median only, matching the aligned row's own median-only format) and one under the 1B row (range only, matching
+  that row's own range-only format); footnote `[l]` added after the existing `[a]`-`[k]` ordering footnotes.
+- `T2_accuracy_heading`: one new raw column directly beside each of the five existing aligned columns that print a
+  cruise-ATE value (9-flight median(range); textured/plain walls without heading, per flight; textured/plain walls
+  with heading, per flight) - 12 columns total. Column widths were retuned (not simply scaled up with the column
+  count): `table_page()`'s header-wrap heuristic assumes `sum(widths) ~ 150` regardless of column count (reverse-
+  engineered from T1's own calibrated `[30,40,40,40]`, sum 150); an initial attempt that scaled widths up roughly in
+  proportion to the new column count (sum 256-262) broke this and produced overlapping, illegible header text at
+  12 columns - fixed by keeping `sum(widths) ~ 150-154` (`[10,12,16,10,16,10,16,10,14,10,14,16]`), confirmed
+  legible by viewing the rendered PNG.
+- `R4_information_vs_estimator`: one new column ("raw world-frame error, nothing fitted, DESCRIPTIVE (1A/1B rows
+  only)") inserted after "estimator values"; every row outside the 1A/1B scope (Experiments 2/4/5, the blank floor)
+  gets `-` (out of scope, not a withheld value).
+- `T9_1A_fitted_vs_raw` (new table): the full fitted-vs-raw pairing with both median and range together, per
+  estimator, n = 9 (flights 1-9 of the standard-sensor dataset; flight 10, EKF3 only under the IMU-gap rule, enters
+  the confirmatory H1.1 test on flights 4-10, a different population, not this table's median).
+
+**Checks**: both generators' own totals rose with no drop elsewhere - `eval/figs_thesis.py` 358/358 (was 352);
+`eval/figs_thesis_results.py` 77/77 numeric (was 75), 185/185 source (unchanged). A new independent checker,
+`eval/check_raw_tables.py` (stdlib + json only), parses the four tables' own `.md` output (markdown rows split on
+unescaped `|`, matched by row label/estimator - never substring search) and recomputes every raw value, median and
+range straight from `raw_corridor_errors.json` with its own `rd()` (ast-parsed from `eval/figs_thesis.py`, SHA
+checked against the json's own recorded SHA) - never importing the generators' own strings. It also independently
+recomputes the aligned (registered) cell beside each raw one, catching an aligned/raw column swap, not just a wrong
+raw number, and verifies T9's two numbers.md citations against the actual file content at those line numbers. A
+negative control corrupts EKF3's T9 raw RMS median in a scratch copy and confirms the targeted check fails before
+any full run is trusted: **79/79 checks OK**, negative control fails as required.
+`docs/thesis/raw_corridor/check_raw_corridor.py` 154/154 rows, 1860/1860 OK (unchanged); `eval/ta_verdicts_check.py`
+146/146 (unchanged; it rewrites `TA_verdicts.md`/`.tex`/`.png`/`.pdf` every run, but only the `.pdf`'s embedded
+metadata byte differed from HEAD, so only that one file was restored); `docs/thesis/tier1/check_claims_applied.py`
+58/58; `check_factsheets.py` PASS;
+`tools/check_numbers_frozen.py` PASS.
+
+**Side effects**: the two generators also rewrite every other table/figure as an unavoidable pass (unchanged
+tables/figures only gained a refreshed `generated by ... commit <hash>` footer line, confirmed by diff - every PNG
+for the untouched tables/figures was byte-identical to HEAD, a stronger guarantee than a decoded-pixel compare);
+`figures_thesis/index.md`, `index_results.md`, `captions/R3.md` and `thesis_figures_combined.pdf` were restored to
+HEAD (owned by the parallel figure-restyle/caption work; T9's entry and the two generators' new check rows are
+therefore not yet in the combined PDF or either index - flagged for the coordinator's next full regeneration).
+`T2_accuracy_heading` moved from one page to two (12 columns; row count unchanged) - the old single
+`T2_accuracy_heading.png` was `git rm`'d; `T1_scorecard` (3 pages) and `R4_information_vs_estimator` (2 pages) were
+already multi-page at HEAD, unaffected. Both text-based consumers of `T1_scorecard.md`/`T2_accuracy_heading.md`
+(`eval/figs_thesis_summary.py`, `eval/figs_walkthrough_extra.py`) were re-run to confirm the additive table changes
+don't break their string-search checks: both reproduce their figs-restyle baselines exactly (223/62/101/16;
+186/186), with every regenerated `docs/thesis/summary/**` PNG decode-pixel-identical to HEAD, then restored.
+
+Handover: `docs/handovers/2026-11-02_raw_tables_stage2.md`.
