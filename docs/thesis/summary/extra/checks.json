@@ -363,6 +363,91 @@
    ],
    "tag": "raw, measured from the start tag, nothing fitted",
    "key": true
+  },
+  "E6_map_reuse": {
+   "file": "docs/thesis/summary/extra/ex_E6_map_reuse.png",
+   "inputs": "docs/thesis/tier1/scores/e6_verdicts.json (flights, criteria, p2_bands_m, pairs), e6_T_A_r{1,2,3}.json",
+   "numbers": [
+    "0",
+    "0.0007",
+    "0.0303",
+    "0.0389",
+    "0.0471",
+    "0.0510",
+    "0.0818",
+    "0.1560",
+    "0.1608",
+    "0.2565",
+    "0.98",
+    "1",
+    "1.26",
+    "1.52",
+    "2",
+    "2.14",
+    "3",
+    "4"
+   ],
+   "text": [
+    "0.0303 to\n0.0510",
+    "0.0818 to\n0.1608",
+    "map",
+    "no map",
+    "P4 PASS\n3 of 3",
+    "0.0389 to\n0.0471",
+    "0.1560 to\n0.2565",
+    "map",
+    "no map",
+    "P4 PASS\n3 of 3",
+    "FGO\nestimator",
+    "UKF\nestimator",
+    "First lap: FGO map vs no map",
+    "1.52 to 2.14 \u00d7\nsurveyed",
+    "P2 FAIL\n0 of 3\nin band",
+    "0.98 to 1.26 \u00d7\nsurveyed",
+    "P2 FAIL\n2 of 3\nin band",
+    "grey: surveyed-map band",
+    "FGO\nestimator",
+    "UKF\nestimator",
+    "Whole flight on the FGO map",
+    "P1 FAIL 2 of 3\nP3 FAIL 2 of 3 each",
+    "DESCRIPTIVE, 3 flights: same sign\non 3 of 3 for both\nestimators; on r1b the maps\ndiffer by 0.0007 m",
+    "UKF map minus FGO map",
+    "Limitations: simulation only; n = 3 flights; perfect tag IDs; tag 0 anchors the frame; maps used as exact (no map uncertainty carried); same world and day;\nP4 compares with other loop-closure estimators. The mapping flights flew a different route (out of sample), so the same-route caveat does not apply.",
+    "Flying live, a map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)",
+    "raw, world frame, nothing fitted; live tracks",
+    "filled = live (during flight)"
+   ],
+   "tag": "raw, world frame, nothing fitted; live tracks",
+   "key": true
+  },
+  "1C_extra": {
+   "file": "docs/thesis/summary/extra/ex_1C_extra.png",
+   "inputs": "eval/results/closed_loop_{cl_a_tex, cl_ukf_a_tex, cl_ukf_a_tex_half, cl_fgo_a_tex_half, cl_fgo_a_tex_half_v2}.json (contact); HALF from eval/figs_thesis.py and eval/figs_thesis_summary.py (ast)",
+   "numbers": [
+    "1",
+    "163.0",
+    "165.8",
+    "169.6",
+    "186.2",
+    "198.0"
+   ],
+   "text": [
+    "+186.2 s",
+    "EKF3, full speed (real time)",
+    "+163.0 s",
+    "UKF, old build (before the jitter\ncorrection), full speed",
+    "+198.0 s",
+    "UKF, old build (before the jitter\ncorrection), half real time",
+    "+165.8 s",
+    "FGO, original build (before the noise\ncorrection), half real time",
+    "+169.6 s",
+    "FGO, noise fix only, yaw cap ungated\n(ABLATION), half real time",
+    "Each flight was flown once (n = 1), on the textured corridor with no camera heading. No pass window and no verdict are drawn: the registered\nExperiment 1C verdicts use only the pre-registered flights, and the full-speed and half-real-time flights are not compared.",
+    "Five more no-heading flights: each also reached the west wall (descriptive; not scored here)",
+    "additional flights, not part of the pre-registered set"
+   ],
+   "tag": "additional flights, not part of the pre-registered set",
+   "key": false
   }
  },
  "checks": [
@@ -1404,6 +1489,294 @@
    "computed": "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8",
    "expected": "H-E5.1 S-E5.5 S-E5.6 / 5 / 1 / 8",
    "where": "pre-registration; docs/thesis/tier1/preregistration.md shows 'H-E5.1'; docs/thesis/tier1/preregistration.md shows 'S-E5.5'; docs/thesis/tier1/preregistration.md shows 'S-E5.6'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "verdict-file values equal the score files (lap 1 and overall, live, every arm, both estimators)",
+   "computed": "True",
+   "expected": "True",
+   "where": "scores/e6_verdicts.json vs scores/e6_T_A_r{1,2,3}.json; index_summary.md page 20 row 'verdict file values equal the score files (lap 1 and overall' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "FGO estimator, (ii) FGO map: lap-1 live RMSE, lowest\u2013highest over 3 test flights (m)",
+   "computed": "0.0303\u20130.0510",
+   "expected": "0.0303\u20130.0510",
+   "where": "e6_verdicts.json flights.<t>.<est>.'<arm> | live'.lap1_m; docs/thesis/tier1/e6_results.md shows '0.0303\u20130.0510'; index_summary.md page 20 row 'FGO estimator, (ii) FGO map: lap-1 live RMSE, lowest\u2013highest' = '0.0303\u20130.0510'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "FGO estimator, (iv) no map, LC online: lap-1 live RMSE, lowest\u2013highest over 3 test flights (m)",
+   "computed": "0.0818\u20130.1608",
+   "expected": "0.0818\u20130.1608",
+   "where": "e6_verdicts.json flights.<t>.<est>.'<arm> | live'.lap1_m; docs/thesis/tier1/e6_results.md shows '0.0818\u20130.1608'; index_summary.md page 20 row 'FGO estimator, (iv) no map, LC online: lap-1 live RMSE, lowe' = '0.0818\u20130.1608'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "UKF estimator, (ii) FGO map: lap-1 live RMSE, lowest\u2013highest over 3 test flights (m)",
+   "computed": "0.0389\u20130.0471",
+   "expected": "0.0389\u20130.0471",
+   "where": "e6_verdicts.json flights.<t>.<est>.'<arm> | live'.lap1_m; docs/thesis/tier1/e6_results.md shows '0.0389\u20130.0471'; index_summary.md page 20 row 'UKF estimator, (ii) FGO map: lap-1 live RMSE, lowest\u2013highest' = '0.0389\u20130.0471'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "UKF estimator, (iv) no map, LC online: lap-1 live RMSE, lowest\u2013highest over 3 test flights (m)",
+   "computed": "0.1560\u20130.2565",
+   "expected": "0.1560\u20130.2565",
+   "where": "e6_verdicts.json flights.<t>.<est>.'<arm> | live'.lap1_m; docs/thesis/tier1/e6_results.md shows '0.1560\u20130.2565'; index_summary.md page 20 row 'UKF estimator, (iv) no map, LC online: lap-1 live RMSE, lowe' = '0.1560\u20130.2565'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "FGO estimator: FGO map \u00f7 surveyed map, overall live RMSE, lowest\u2013highest (\u00d7)",
+   "computed": "1.52\u20132.14",
+   "expected": "1.52\u20132.14",
+   "where": "e6_verdicts.json (rmse_m, arms ii / i); docs/thesis/tier1/e6_results.md shows '1.52\u20132.14 times'; index_summary.md page 20 row 'FGO estimator: FGO map \u00f7 surveyed map, overall live RMSE, lo' = '1.52\u20132.14'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "UKF estimator: FGO map \u00f7 surveyed map, overall live RMSE, lowest\u2013highest (\u00d7)",
+   "computed": "0.98\u20131.26",
+   "expected": "0.98\u20131.26",
+   "where": "e6_verdicts.json (rmse_m, arms ii / i); docs/thesis/tier1/e6_results.md shows '0.98\u20131.26 times'; index_summary.md page 20 row 'UKF estimator: FGO map \u00f7 surveyed map, overall live RMSE, lo' = '0.98\u20131.26'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "FGO estimator: surveyed-map band for P2 [min \u2212 R, max + R], 4 dp (m)",
+   "computed": "0.0167\u20130.0237",
+   "expected": "0.0167\u20130.0237",
+   "where": "e6_verdicts.json p2_bands_m; index_summary.md page 20 row 'FGO estimator: surveyed-map band for P2 [min \u2212 R, max + R], ' = '0.0167\u20130.0237'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "UKF estimator: surveyed-map band for P2 [min \u2212 R, max + R], 4 dp (m)",
+   "computed": "0.0330\u20130.0408",
+   "expected": "0.0330\u20130.0408",
+   "where": "e6_verdicts.json p2_bands_m; index_summary.md page 20 row 'UKF estimator: surveyed-map band for P2 [min \u2212 R, max + R], ' = '0.0330\u20130.0408'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P1: verdict and count",
+   "computed": "FAIL 2/3",
+   "expected": "FAIL 2/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P1: verdict and count' = 'FAIL 2/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P2 (FGO): verdict and count",
+   "computed": "FAIL 0/3",
+   "expected": "FAIL 0/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P2 (FGO): verdict and count' = 'FAIL 0/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P2 (UKF): verdict and count",
+   "computed": "FAIL 2/3",
+   "expected": "FAIL 2/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P2 (UKF): verdict and count' = 'FAIL 2/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P3 (FGO): verdict and count",
+   "computed": "FAIL 2/3",
+   "expected": "FAIL 2/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P3 (FGO): verdict and count' = 'FAIL 2/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P3 (UKF): verdict and count",
+   "computed": "FAIL 2/3",
+   "expected": "FAIL 2/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P3 (UKF): verdict and count' = 'FAIL 2/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P4 (FGO): verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P4 (FGO): verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "P4 (UKF): verdict and count",
+   "computed": "PASS 3/3",
+   "expected": "PASS 3/3",
+   "where": "e6_verdicts.json criteria; index_summary.md page 20 row 'P4 (UKF): verdict and count' = 'PASS 3/3'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "DESCRIPTIVE: per-flight outcomes of P1, P3 (FGO) and P3 (UKF) identical on the 3 flights",
+   "computed": "True",
+   "expected": "True",
+   "where": "e6_verdicts.json criteria.*.per_flight; index_summary.md page 20 row 'DESCRIPTIVE: per-flight outcomes of P1, P3 (FGO) and P3 (UKF' = 'True'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "DESCRIPTIVE: sign of (live UKF map \u2212 live FGO map) equals the sign of (UKF-map RMS \u2212 FGO-map RMS), flights, per estimator",
+   "computed": "FGO 3/3 UKF 3/3",
+   "expected": "FGO 3/3 UKF 3/3",
+   "where": "e6_verdicts.json flights.<t>.map and rmse_m",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "r1b: the two maps' position RMS differ by (m, 4 dp)",
+   "computed": "0.0007",
+   "expected": "0.0007",
+   "where": "e6_verdicts.json flights.T_A_r1.map; docs/thesis/tier1/e6_results.md shows '0.0007 m of each other'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "counts printed: 3 flights, tag 0, lap 1, P1 to P4, 7 tags",
+   "computed": "3 / 0 / 1 / 1 2 3 4 / 7",
+   "expected": "3 / 0 / 1 / 1 2 3 4 / 7",
+   "where": "e6_preregistration.md; docs/thesis/tier1/e6_preregistration.md shows 'position RMS over the 7 tags (the P1 metric)'; docs/thesis/tier1/e6_preregistration.md shows '(tag 0, \u00a71.2)'",
+   "ok": true
+  },
+  {
+   "fig": "E6_map_reuse",
+   "label": "mapping flights paired with the test flights",
+   "computed": "E6M_fig8_r1b, E6M_fig8_r2, E6M_fig8_r3",
+   "expected": "E6M_fig8_r1b, E6M_fig8_r2, E6M_fig8_r3",
+   "where": "e6_verdicts.json pairs",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "registered 1C set (HALF) identical in figs_thesis.py and figs_thesis_summary.py",
+   "computed": "True",
+   "expected": "True",
+   "where": "ast of HALF in both scripts",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "none of the five additional flights is in the registered set (HALF)",
+   "computed": "True",
+   "expected": "True",
+   "where": "HALF",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "every stored no-heading flight is either registered or one of the five",
+   "computed": "True",
+   "expected": "True",
+   "where": "eval/results/closed_loop_*_a_tex*.json",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_a_tex: wall contact, s after cruise start (DESCRIPTIVE)",
+   "computed": "186.2",
+   "expected": "186.2",
+   "where": "eval/results/closed_loop_cl_a_tex.json contact; docs/thesis/numbers.md shows '+186.2'",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_a_tex: west wall",
+   "computed": "west",
+   "expected": "west",
+   "where": "closed_loop_cl_a_tex.json contact.wall",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_ukf_a_tex: wall contact, s after cruise start (DESCRIPTIVE)",
+   "computed": "163.0",
+   "expected": "163.0",
+   "where": "eval/results/closed_loop_cl_ukf_a_tex.json contact; docs/thesis/numbers.md shows '+163.0'",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_ukf_a_tex: west wall",
+   "computed": "west",
+   "expected": "west",
+   "where": "closed_loop_cl_ukf_a_tex.json contact.wall",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_ukf_a_tex_half: wall contact, s after cruise start (DESCRIPTIVE)",
+   "computed": "198.0",
+   "expected": "198.0",
+   "where": "eval/results/closed_loop_cl_ukf_a_tex_half.json contact; docs/thesis/numbers.md shows '+198.0'",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_ukf_a_tex_half: west wall",
+   "computed": "west",
+   "expected": "west",
+   "where": "closed_loop_cl_ukf_a_tex_half.json contact.wall",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_fgo_a_tex_half: wall contact, s after cruise start (DESCRIPTIVE)",
+   "computed": "165.8",
+   "expected": "165.8",
+   "where": "eval/results/closed_loop_cl_fgo_a_tex_half.json contact; docs/thesis/numbers.md shows '+165.8'",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_fgo_a_tex_half: west wall",
+   "computed": "west",
+   "expected": "west",
+   "where": "closed_loop_cl_fgo_a_tex_half.json contact.wall",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_fgo_a_tex_half_v2: wall contact, s after cruise start (DESCRIPTIVE)",
+   "computed": "169.6",
+   "expected": "169.6",
+   "where": "eval/results/closed_loop_cl_fgo_a_tex_half_v2.json contact; docs/thesis/numbers.md shows '+169.6'",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "cl_fgo_a_tex_half_v2: west wall",
+   "computed": "west",
+   "expected": "west",
+   "where": "closed_loop_cl_fgo_a_tex_half_v2.json contact.wall",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "additional flights counted",
+   "computed": "5",
+   "expected": "5",
+   "where": "this list",
+   "ok": true
+  },
+  {
+   "fig": "1C_extra",
+   "label": "n = 1",
+   "computed": "1",
+   "expected": "1",
+   "where": "numbers.md \u00a715 ('n = 1 per no-heading cell'); docs/thesis/numbers.md shows 'n = 1 per no-heading cell'",
    "ok": true
   }
  ]

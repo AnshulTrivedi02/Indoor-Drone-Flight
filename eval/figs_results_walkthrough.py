@@ -64,7 +64,7 @@ for m in re.finditer(r"^## Page (\d\d): (.+)$", IDX_SUM, re.M):
         mm = re.search(r"^- \*\*" + re.escape(lab) + r":\*\* (.+)$", blk, re.M)
         d[k] = mm.group(1).strip("`")
     SUMP[pid] = d
-assert len(SUMP) == 19, "expected 19 summary pages (12 + the 7 extension pages of 2026-10-25)"
+assert len(SUMP) == 20, "expected 20 summary pages (12 + the 7 extension pages of 2026-10-25 + E6, page 20, 2026-11-02)"
 SUM_SRC = open(os.path.join(HERE, "figs_thesis_summary.py")).read()
 # footer-rule rows of the summary PNGs (top + 0.012 of each page, from a scratch run of figs_thesis_summary.py at 441e97c)
 SUM_TOP = {"02": 0.2825, "03": 0.254, "10": 0.311, "11": 0.2825, "12": 0.311,
@@ -226,7 +226,9 @@ TRS = {"1A": [f"dsn_tex_r{i}" for i in range(1, 10)],
        # extension experiments (2026-10-25): offline replays of these recorded flights
        "E2": [f"T_{c}_r{i}" for c in "BCD" for i in (1, 2, 3)], "E3": rr("T_A_r"), "E4": [f"T_{c}_r{i}" for c in "ABCD" for i in (1, 2, 3)],
        "E5": rr("T_A_r"), "ABL": rr("fwdc_tex_r") + rr("fwdplainc_tex_r"),
-       "1Bcl": [f"cl_bcpp_tex_r{i}_half" for i in (1, 2, 3)]}          # v3: the closed-loop EKF3 panel of the 1B raw paths
+       "1Bcl": [f"cl_bcpp_tex_r{i}_half" for i in (1, 2, 3)],
+       # E6 (2026-11-02): the three mapping flights (figures of eight) and the three test flights
+       "E6": ["E6M_fig8_r1b", "E6M_fig8_r2", "E6M_fig8_r3"] + rr("T_A_r")}          # v3: the closed-loop EKF3 panel of the 1B raw paths
 WCHK = {}
 
 
@@ -626,8 +628,8 @@ fpage("S1", "setup_corridor_path", "Setup: the corridor and where the drone flew
 begin("Setup: the tag room and the 6 m square")
 world_page("S2", "Setup: the tag room and the 6 m square", [world(R + "room_tags__angled.jpg", snew("The tag room from above, at an angle")),
            world(R + "room_tags__top_room.jpg", snew("Floor tags, from above"))],
-           [(k, ["room_tags"]) for k in ("2", "3", "E2", "E3", "E4", "E5")],
-           world_label="The tag room of Experiments 2 and 3 and of the extensions E2 to E5 (simulator screenshots):", corpus=FLIDX)
+           [(k, ["room_tags"]) for k in ("2", "3", "E2", "E3", "E4", "E5", "E6")],
+           world_label="The tag room of Experiments 2 and 3 and of the extensions E2 to E6 (simulator screenshots):", corpus=FLIDX)
 fpage("S2", "setup_square_path", "Setup: the tag room and the 6 m square", PF("2_truth"),
       "The 12 flights of Experiment 2 flew 5 laps of the 6 m square with 8, 4, 2 or 1 tags in the room. Experiment 3 and the extensions "
       "E2 to E5 replay these same recorded flights.", tag="the drone's true path, nothing fitted", new_header=True, scope=["07"])
@@ -753,8 +755,9 @@ fpage("16", "E3_table", T14, PX("E3_table"),
       "Outcome of every run of the FGO with loop closure when 1% or 5% of tag sightings carry a wrong ID, as built and with robust "
       "weighting. Every registered E3 verdict is in the appendix.", scope=["14", "15"], verdict_scope=["14", "15"])
 fpage("16m", "E3_maps", "Extension E3: wrong tag IDs, the tag maps (DESCRIPTIVE)", PF("E3_maps", CORP["E3MAP"]),
-      "DESCRIPTIVE, not a registered measure: the FGO's whole-flight re-solve and its final tag map for a clean reference run and three "
-      "runs with wrong IDs. These show the hindsight track and final landmarks, not the live error used by the registered tests.",
+      "DESCRIPTIVE, not a registered measure: the FGO's whole-flight re-solve and its final tag map for a clean reference run and one "
+      "run with 1% wrong IDs (FGO as built); two more runs are in the appendix. These show the hindsight track and final landmarks, not "
+      "the live error used by the registered tests.",
       scope=["14"], new_header=True)
 T4M = "Extension E4: a longer FGO window, compute time and live error"
 begin(T4M)
@@ -767,6 +770,11 @@ begin(SUMP["18"]["title"])
 fpage("18", "E5_ukf_landmarks", SUMP["18"]["title"], PX("E5_ukf_landmarks"),
       "A UKF with landmark states (extension E5, not the UKF used elsewhere) on the 3 eight-tag flights, against the stored FGO results. "
       "Its error did not grow with loop closure (H-E5.1 PASS) and stayed above the FGO's (S-E5.5 and S-E5.6 PASS).", scope=["18"])
+begin(SUMP["20"]["title"])
+fpage("20", "E6_map_reuse", SUMP["20"]["title"], PX("E6_map_reuse"),
+      "Live error of each estimator flying on a tag map estimated from an earlier flight (the FGO map), against no map on the first lap "
+      "and against the surveyed map over the whole flight, 3 test flights. Map quality, not estimator, decided P3: on all 3 flights the "
+      "map with the lower map error gave the lower live error (DESCRIPTIVE, an observation over 3 flights).", scope=["20"])
 _p1, _p2, _p3 = (sumrow19(l) for l in ("P1 verdict (needs every rung 6/6) and the r1-r5 counts", "P2 verdict and count", "P3 verdict"))
 assert _p1.split()[0] == _p3 == "FAIL" and _p2.split()[0] == "PASS", "ablation verdicts changed in index_summary.md page 19"
 ABLV = f"P2 {_p2.split()[0]}; P1 and P3 {_p3}"
@@ -839,7 +847,7 @@ def reg_page(pid, pids, first=False):
     print(f"wrote {fn} (free {y:.3f})")
 
 
-REG_GROUPS = [["01", "02", "03"], ["04", "05", "06"], ["07", "08", "09"], ["10", "11", "13"], ["14", "15", "16"], ["17", "18", "19"]]
+REG_GROUPS = [["01", "02", "03"], ["04", "05", "06"], ["07", "08", "09"], ["10", "11", "13"], ["14", "15", "16"], ["17", "18", "19"], ["20"]]
 assert sorted(p for g in REG_GROUPS for p in g) == REG_ORDER, "registered groups must hold every summary page except 12 (5S) once"
 begin(REG_T, heading=REG_T, section=figr)
 for i, g in enumerate(REG_GROUPS):
@@ -847,7 +855,9 @@ for i, g in enumerate(REG_GROUPS):
 
 # =================================================================== APPENDIX: the E3 verdict table (the E4 change plot is dropped, user TASK 6)
 APP_T = "Appendix: further plots"
-APP_NOTE = snew("Kept for reference, outside the main walkthrough: every registered verdict of extension E3, as a table.")
+APP_NOTE = snew("Kept for reference, outside the main walkthrough: every registered verdict of extension E3, as a table; two more "
+                "E3 tag maps; and five additional Experiment 1C flights without the camera heading (additional flights, not part of the "
+                "pre-registered set).")
 APP_NOTE["guard"] = guard(APP_NOTE["text"], ALLTITLES, "appendix note")
 figa = divider(APP_T, APP_NOTE); figa.savefig(os.path.join(OUTD, "wt_app_section.png"), dpi=DPI)
 begin(SUMP["15"]["title"], heading=APP_T, section=figa)
@@ -856,6 +866,15 @@ fpage("A1", "E3_verdicts", SUMP["15"]["title"], P("S15"),
       "Each registered E3 test with its count over the runs; a diverged run counts as not met. The primary H-E3.1 FAIL; the robust "
       "FGO's tests passed.", title="Every registered E3 verdict: the primary test failed, the robust FGO's tests passed",
       tag="pass or fail counts, nothing fitted", scope=["15"])
+fpage("A2", "E3_maps_app", "Extension E3: wrong tag IDs, two more tag maps (DESCRIPTIVE)", PF("E3_maps_app", CORP["E3MAP"]),
+      "DESCRIPTIVE, not a registered measure: two more runs with wrong IDs, moved here from the main E3 pages. The FGO as built at 5% "
+      "ended with a shrunk map; the one robust run that collapsed ended with a folded map.", scope=["14"], new_header=True)
+T1CX = "Experiment 1C: additional flights, not part of the pre-registered set"
+begin(T1CX)
+fpage("A3", "1C_extra", T1CX, PX("1C_extra"),
+      "Wall-contact times of five further no-heading flights (one each; full speed or half real time; older or ablation builds), shown "
+      "as recorded; no verdict is drawn. They are not part of the pre-registered set, so their recorded outcomes enter no registered 1C "
+      "verdict: every registered 1C verdict uses only the pre-registered flights.", scope=["05"], new_header=True)
 
 # =================================================================== exactly-once rule: every summary page's Metric / Pass rule / Result printed once
 ONCE = {}
@@ -903,7 +922,7 @@ for g in BOOK:
     for f in g["items"]:
         SEQ.append(f); pn += 1
 NPAGES = pn - 1
-CSTEP = 0.0262; Y0 = 0.80
+CSTEP = 0.0255; Y0 = 0.765                       # 2026-11-02: lowered so the four-line note clears the first row
 y = Y0
 for i, (n, t, n0, hd) in enumerate(rows_c):
     if hd:
@@ -1015,7 +1034,8 @@ WTR = {"1A": "dsn_tex_r1–r9", "blank": "the 14 blank-floor flights of Table 4.
        "2": "T_A–D r1–3", "3": "T_A r1–3", "4": "O_r1, O_r2, O_r3b",
        "5h": "S1 near and far, S2v2, S3v2", "5l": "S1 near and far, S2v2, S3v2", "5S": "the four final safety runs",
        "E2": "T_B-D r1-3 (E2 replays; the 8-tag values are the stored Experiment 3 T_A flights)", "E3": "T_A r1-3 (E3 replays)",
-       "E4": "T_A-D r1-3 (E4 replays)", "E5": "T_A r1-3 (E5 replays)", "ABL": "fwdc_tex_r1-r3 and fwdplainc_tex_r1-r3 (ablation replays)"}
+       "E4": "T_A-D r1-3 (E4 replays)", "E5": "T_A r1-3 (E5 replays)", "ABL": "fwdc_tex_r1-r3 and fwdplainc_tex_r1-r3 (ablation replays)",
+       "E6": "E6M_fig8_r1b, r2, r3 (E6 mapping flights) and T_A r1-3 (E6 test replays)"}
 for p in PAGES:
     md += [f"## Page {p['id']} ({p['kind']}, PDF page {p['pageno']}): {p['title']}", "", f"- **File:** `walkthrough/{p['file']}`"]
     if p["kind"] == "plot":

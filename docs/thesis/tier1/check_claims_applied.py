@@ -65,7 +65,7 @@ for p, s, lab in ((T1MD, "UKF with landmark states (extension E5): bounded; ~2x 
                   (IDX, "The thesis's EKF3 and UKF, as configured, have no landmark states", "C1 F7 caption"),
                   (IDX, "H-E3.1 FAIL 0/9; 6 of 9 runs diverged", "C2 F7 caption"),
                   (IDX, "H-E2.1 PASS 3/3 in each", "C3 F7 caption"),
-                  (IDX, "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 3–4× over five laps", "F7 title kept"),
+                  (IDX, "Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows 2.9 to 4.5 times over five laps", "F7 title (user answer 3, 2026-11-02, D99; was '3–4×')"),
                   (SUM, "Only the FGO has loop closure in the thesis (its EKF3 and UKF have no landmark states).", "C1 summary page 08"),
                   (SUM, "with 4 tags and with 2 tags", "C3 summary page 08"),
                   (R4, "has one thesis estimator and no spread", "C1 R4 note"),

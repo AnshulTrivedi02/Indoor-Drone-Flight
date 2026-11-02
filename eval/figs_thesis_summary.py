@@ -1310,6 +1310,106 @@ foot(fig, meta,
      "LM batch.")
 finish(fig, meta)
 
+# ------------------------------------------------------------------- E6, map reuse (added 2026-11-02, user answer 5; decisions D101-D104)
+# Stored E6 score and verdict files only (docs/thesis/tier1/scores/e6_T_A_r{1,2,3}.json, e6_verdicts.json). Placed after E5 and before
+# the exploratory ablation (page id 20; the ablation keeps id 19 so no existing page, file or check row is renumbered). The Metric and
+# Pass rule lines are fragments of the E6 pre-registration, word for word (markdown bold removed), each checked against its line; the
+# Result line is the verdicts as worded, computed from e6_verdicts.json and checked against e6_results.md §3.
+for k_, p_, n_ in (("E6", "tier1/e6_results.md", "E6 results (tier1/e6_results.md)"),
+                   ("E6PR", "tier1/e6_preregistration.md", "E6 pre-registration (tier1/e6_preregistration.md)")):
+    DISP[k_] = os.path.join(ROOT, "docs", "thesis", p_); DNAME[k_] = n_
+E6PRP = "docs/thesis/tier1/e6_preregistration.md"
+
+
+def rule_plain(path, phrase, label):
+    """rule() on the one line of `path` that contains `phrase` once markdown bold (**) is removed (asserted unique)."""
+    ls = [i + 1 for i, ln in enumerate(open(os.path.join(ROOT, path)).read().split("\n")) if phrase in ln.replace("**", "")]
+    assert len(ls) == 1, f"{path}: '{phrase}' found on lines {ls}, expected exactly one"
+    ok = True
+    CHK.append(dict(page=PAGE, kind="rule", label=label, computed=phrase, expected=phrase, where=f"{os.path.basename(path)}:{ls[0]} (bold removed)", ok=ok))
+    return phrase
+
+
+fig, meta = new_page("20", "E6_map_reuse", "Extension E6: reusing a tag map from an earlier flight",
+                     "Whether a tag map estimated in hindsight from one earlier flight, then used as if exact, can replace surveying the "
+                     "tags: the live error on that map against the surveyed map and against no map.")
+E6V = LT("e6_verdicts.json"); E6F = E6V["flights"]; E6T = ["T_A_r1", "T_A_r2", "T_A_r3"]
+E6S = {t: LT(f"e6_{t}.json")["tracks"] for t in E6T}
+ARM6 = {"sv": "(i) surveyed", "fm": "(ii) FGO map", "um": "(iii) UKF map", "nm": "(iv) no map, LC online"}
+LAP1_6 = {(e, a): [E6F[t][e][f"{ARM6[a]} | live"]["lap1_m"] for t in E6T] for e in ("FGO", "UKF") for a in ARM6}
+ALL6 = {(e, a): [E6F[t][e][f"{ARM6[a]} | live"]["rmse_m"] for t in E6T] for e in ("FGO", "UKF") for a in ARM6}
+num("verdict file values equal the score files (lap 1 and overall, live, every arm, both estimators)",
+    str(all(LAP1_6[(e, a)][i] == E6S[t][f"{ARM6[a]} | {e} live"]["per_lap_rmse_m"][0] and ALL6[(e, a)][i] == E6S[t][f"{ARM6[a]} | {e} live"]["rmse_m"]
+            for e in ("FGO", "UKF") for a in ARM6 for i, t in enumerate(E6T))), "True", [("E6", "json:scores/e6_T_A_r{1,2,3}.json")])
+EXP6 = {("FGO", "fm"): "0.0303–0.0510", ("FGO", "nm"): "0.0818–0.1608", ("UKF", "fm"): "0.0389–0.0471", ("UKF", "nm"): "0.1560–0.2565"}
+V6L1 = {g: num(f"{g[0]} estimator, {ARM6[g[1]]}: lap-1 live RMSE, lowest–highest over 3 test flights (m)", rng(LAP1_6[g], 4), x, [("E6", x)])
+        for g, x in EXP6.items()}
+RAT6 = {e: [ALL6[(e, "fm")][i] / ALL6[(e, "sv")][i] for i in range(3)] for e in ("FGO", "UKF")}
+num("FGO map ÷ surveyed (live) recomputed equals the stored descriptive ratio, both estimators (12 dp)",
+    str(all(rd(RAT6[e][i], 12) == rd(E6F[t][e]["descriptive"]["FGO map / surveyed, live"], 12) for e in ("FGO", "UKF") for i, t in enumerate(E6T))), "True",
+    [("E6", "FGO map ÷ surveyed (live)")])
+V6R = {e: num(f"{e} estimator: FGO map ÷ surveyed map, overall live RMSE, lowest–highest (×)", rng(RAT6[e], 2), x, [("E6", f"{x} times")])
+       for e, x in (("FGO", "1.52–2.14"), ("UKF", "0.98–1.26"))}
+BND6 = {e: (E6V["p2_bands_m"][e]["lo"], E6V["p2_bands_m"][e]["hi"]) for e in ("FGO", "UKF")}
+V6B = {e: num(f"{e} estimator: surveyed-map band for P2 [min − R, max + R], 4 dp (m)", f"{rd(BND6[e][0], 4)}–{rd(BND6[e][1], 4)}", x, [("E6PR", f"({x})")])
+       for e, x in (("FGO", "0.0167–0.0237"), ("UKF", "0.0330–0.0408"))}
+CR6 = E6V["criteria"]
+V6 = {k: num(f"{k}: verdict and count", f"{CR6[k]['verdict']} {sum(CR6[k]['per_flight'])}/3", x, [("E6", y)])
+      for k, x, y in (("P1", "FAIL 2/3", "| P1 |"), ("P2 (FGO)", "FAIL 0/3", "| P2 (FGO) |"), ("P2 (UKF)", "FAIL 2/3", "| P2 (UKF) |"),
+                      ("P3 (FGO)", "FAIL 2/3", "| P3 (FGO) |"), ("P3 (UKF)", "FAIL 2/3", "| P3 (UKF) |"), ("P4 (FGO)", "PASS 3/3", "| P4 (FGO) |"),
+                      ("P4 (UKF)", "PASS 3/3", "| P4 (UKF) |"))}
+SAME6 = num("DESCRIPTIVE: per-flight outcomes of P1, P3 (FGO) and P3 (UKF) identical on the 3 flights", str(CR6["P1"]["per_flight"] == CR6["P3 (FGO)"]["per_flight"] == CR6["P3 (UKF)"]["per_flight"]),
+            "True", [("E6", "P1, P3 (FGO) and P3 (UKF) are identical (no, yes, yes)")])
+RES6 = (f"P1 {V6['P1'].split()[0]} {V6['P1'].split()[1]}; P2 {V6['P2 (FGO)'].split()[0]} (FGO {V6['P2 (FGO)'].split()[1]}, UKF {V6['P2 (UKF)'].split()[1]}); "
+        f"P3 {V6['P3 (FGO)'].split()[0]} {V6['P3 (FGO)'].split()[1]} each; P4 {V6['P4 (FGO)'].split()[0]} {V6['P4 (FGO)'].split()[1]} each "
+        "(live tracks; hindsight carries no verdict).")
+assert V6["P3 (FGO)"] == V6["P3 (UKF)"] and V6["P4 (FGO)"] == V6["P4 (UKF)"] and V6["P2 (FGO)"].split()[0] == V6["P2 (UKF)"].split()[0]
+rule_plain(E6PRP, "Hindsight tracks carry no verdict (descriptive, §6).", "hindsight carries no verdict")
+MET6 = "; ".join(rule_plain(E6PRP, f_, f"metric fragment {i + 1}") for i, f_ in enumerate((
+    "per track: horizontal RMSE over the window, max, per-lap RMSE laps 1–5, lap-5 / lap-1",
+    "One scorer, one frame (world), no alignment",
+    "position RMS over the 7 tags (the P1 metric)")))
+RFR6 = [("P1", "PASS iff FGO-map position RMS < UKF-map position RMS on 3/3 mapping flights (strict, unrounded)"),
+        ("P2", "PASS iff, on 3/3 test flights, the live RMSE on the FGO map lies inside the surveyed-map band [min − R, max + R] of the same estimator"),
+        ("P3", "PASS iff live RMSE (FGO map) < live RMSE (UKF map) on 3/3 test flights (paired: same flight, same estimator; strict, unrounded)"),
+        ("P4", "PASS iff lap-1 live RMSE (FGO map) < lap-1 live RMSE (arm (iv)) on 3/3 test flights")]
+RULE6 = " ".join(f"{k}: {rule_plain(E6PRP, f_, f'{k} pass rule (fragment)')}." for k, f_ in RFR6) + " " + \
+        rule_plain(E6PRP, "P2–P4 are judged separately for each test estimator (UKF and FGO), 3/3 each.", "P2-P4 per estimator")
+ids((E6PRP, "| **P1** |"), (E6PRP, "| **P2** |"), (E6PRP, "| **P3** |"), (E6PRP, "| **P4** |"))
+disp("tag 0 registers the frame", "tag 0", [("E6", "(tag 0, pre-registration §1.2)")])
+disp("mapping flights: a different route, out of sample", "out-of-sample figures of eight on a different route", [("E6", "out-of-sample figures of eight on a different route")])
+counted("test flights / mapping flights / non-gauge tags", "3 / 3 / 7", "3 / 3 / 7", "e6_verdicts.json pairs; 7 non-gauge tags (e6_results.md §2)")
+rule_plain(E6PRP, "the FGO estimator is compared with the stored Experiment 3 FGO, the UKF with the stored E5 landmark UKF", "P4 confound: arm (iv) uses other estimators")
+# chart: left = lap 1 (P4), right = whole flight (P2); one box per arm per estimator, filled = live
+EOR = ("FGO", "UKF")
+axa = AX(0.075, 0.30, 0.10); axb = AX(0.435, 0.22, 0.10)
+axa.set_xlim(-0.6, 1.6); axa.set_ylim(0, 0.30); axb.set_xlim(-0.6, 1.6); axb.set_ylim(0, 0.06)
+for j, e in enumerate(EOR):
+    for k, (a, lab) in enumerate((("fm", "FGO map"), ("nm", "no map"))):
+        x = j + (k - 0.5) * 0.46
+        top_ = rbox(axa, x, LAP1_6[(e, a)], C[e], True, w=0.36)
+        label_val(axa, x, top_ + 0.006, V6L1[(e, a)].replace("–", "–\n") + " m", ha="center", va="bottom", fontsize=10.5, linespacing=1.05)
+        label_val(axa, x, -0.012, lab, ha="center", va="top", fontsize=10.5, color=INK2)
+    lo_, hi_ = BND6[e]
+    axb.add_patch(Rectangle((j - 0.3, lo_), 0.6, hi_ - lo_, facecolor=GREY, alpha=0.35, lw=0, zorder=1))
+    top_ = rbox(axb, j, ALL6[(e, "fm")], C[e], True, w=0.3)
+    _rl = V6R[e].replace("–", "–\n")
+    label_val(axb, j, top_ + 0.0015, f"{_rl} ×\nsurveyed", ha="center", va="bottom", fontsize=10.5, linespacing=1.05)
+    label_val(axb, j, -0.0024, "FGO map", ha="center", va="top", fontsize=10.5, color=INK2)
+for ax_, t_ in ((axa, "First lap (P4)"), (axb, "Whole flight (P2)")):
+    ax_.set_xticks([0, 1]); ax_.set_xticklabels([T(f"{e}\nestimator") for e in EOR]); ax_.tick_params(axis="x", pad=20)
+    ax_.grid(axis="x", visible=False); ax_.set_title(T(t_), loc="left", fontsize=13)
+axa.set_ylabel("live error (m)"); axb.set_ylabel("live error (m)")
+label_val(axb, 1.55, 0.0035, "grey: surveyed-map band", ha="right", va="bottom", fontsize=10.5, color="#555555")
+tx = AX(0.69, 0.30, 0.07); tx.axis("off")
+NOTE6 = ("Box: lowest to highest of the 3 test flights, live. Descriptive (3 flights): P1, P3 (FGO) and P3 (UKF) gave the same per-flight outcome (no, yes, yes): the map with the lower "
+         "map error gave the lower live error, so map quality, not estimator, decided P3. Limitations: simulation; n = 3; perfect tag "
+         "IDs; tag 0 anchors the frame; maps used as exact; same world and day; P4 compares with other loop-closure estimators. The "
+         "mapping flights flew a different route (out of sample).")
+tx.text(0, 1, wrap(T(NOTE6), 37), fontsize=10.5, va="top", ha="left", linespacing=1.18, transform=tx.transAxes)
+foot(fig, meta, MET6 + ".", RULE6, RES6)
+finish(fig, meta)
+
 # ------------------------------------------------------------------- Ablation (EXPLORATORY)
 fig, meta = new_page("19", "ablation", "Ablation (EXPLORATORY): the FGO's window and iterations",
                      "Whether the FGO's lower error than the UKF with the camera heading comes from its window, retained history or "
@@ -1434,8 +1534,13 @@ figx.text(0.045, 0.62, SEC_TITLE, fontsize=26, weight="bold", va="bottom")
 x_e = disp("the four extension experiments", "E2–E5", [("PR", "# Extension experiments E2–E5: pre-registration")])
 disp("offline replays only, no new flights", "replays of recordings that already exist", [("PR", "Offline only: replays of recordings that already exist")])
 disp("the ablation is exploratory, not a thesis hypothesis test", "This is not a thesis hypothesis test", [("APR", "**EXPLORATORY.** This is not a thesis hypothesis test.")])
+x_e6 = disp("E6, pre-registered separately", "E6", [("E6PR", "# E6: map reuse")])
+disp("E6 flew new mapping flights (figures of eight) and replays the recorded tag-room flights", "out-of-sample figures of eight",
+     [("E6", "out-of-sample figures of eight on a different route")])
 SEC_PARAS = [f"These four experiments ({x_e}) were added after the main experiments. Each one, with its pass rules, was written down "
              "and signed off before it was run. They replay flights already recorded in the room with tags: nothing was flown again.",
+             f"{x_e6} (map reuse) was pre-registered later, on its own, before any of its runs. It flew three new mapping flights "
+             "(figures of eight, a different route) and then replays the recorded tag-room flights on the maps they produced.",
              "The last page is an ablation, and it is EXPLORATORY: it is not a thesis hypothesis. It has its own pre-registration, signed "
              "off before it was run, and it replays the corridor flights recorded with the forward camera.",
              "Verdicts are printed with the words recorded for them: PASS = the registered rule was met; FAIL = the registered rule was "
@@ -1491,9 +1596,9 @@ md = ["# Experiment summary pages: index and provenance", "",
       "cited, the fragment occurs in that line (the blank-floor rows cite the Errata lines E4–E6, 1448/1455/1462, which override the "
       "frozen rows). A rule check reads the cited METHODOLOGY (or table) line at build time and requires the quoted phrase. A number "
       "guard then scans every page's text and stops the build if any number on a page is not covered by one of that page's checks.", "",
-      "**Combined PDF:** `summary_plots.pdf` = contents page, 'How to read these pages', then the pages below in experiment order; pages 13–19 "
+      "**Combined PDF:** `summary_plots.pdf` = contents page, 'How to read these pages', then the pages below in experiment order; pages 13–20 "
       "follow a section page `summary_ext_section.png` headed 'Extension experiments (pre-registered)' (added 2026-10-25; page 19 is the "
-      "EXPLORATORY ablation, under the same heading but labelled as exploratory). The contents page is also saved as `summary_00_contents.png`. "
+      "EXPLORATORY ablation, under the same heading but labelled as exploratory, and is printed last; page 20, E6, added 2026-11-02, is printed between 18 and 19). The contents page is also saved as `summary_00_contents.png`. "
       "Palette fixed per estimator (Okabe–Ito): EKF3 #0072B2, UKF #009E73, FGO #D55E00, references/limits grey #999999; filled = live, "
       "open = hindsight; no log axes; one chart or one table per page; fonts ≥ 11 pt.", "",
       "**Terms on the pages, mapped to the thesis vocabulary:** standard sensors = the standard-sensor dataset (`dsn`); painted-line walls = "
@@ -1547,6 +1652,14 @@ HYP.update({
           "experiments. H-E5.1 (primary), H-E5.2, H-E5.3, P-E5.4 PASS 3/3; S-E5.5, S-E5.6 (secondary, registered direction) PASS 3/3. S-E5.6's FGO "
           "side is the Experiment 3 iSAM2 hindsight (whole graph after 5 extra updates), not an LM batch, as e5_results.md states. Values: "
           "scores/e5_T_A_r<i>.json and e5_verdicts.json (FGO values asserted equal to eval/results/expL). Validation gates V-E5a/b/c not shown",
+    "20": "EXTENSION EXPERIMENT E6, PRE-REGISTERED (2026-10-31; tier1/e6_preregistration.md), added to the summary 2026-11-02 (user answer 5). "
+          "Placed after E5 and before the ablation; id 20 so no existing page is renumbered. Values: scores/e6_T_A_r{1,2,3}.json and "
+          "e6_verdicts.json (lap-1 and overall live RMSE, world frame, no alignment; the P2 bands p2_bands_m). Metric and Pass rule are "
+          "pre-registration fragments, word for word with markdown bold removed (each a rule row); the Result is the verdicts as worded "
+          "(P2-P4 per estimator, no pooling). Live tracks only: the hindsight tracks carry no verdict, and in hindsight the FGO's own "
+          "online map (arm iv) beat both fixed-map batches on 3/3 flights (e6_results.md §4, not shown). The 'map quality, not estimator, "
+          "decided P3' note is DESCRIPTIVE over 3 flights (per-flight P1 = P3 (FGO) = P3 (UKF) = no, yes, yes; on r1b the two maps differ by "
+          "0.0007 m). 'FGO map' names the map's source, 'FGO estimator' the estimator that flies on it",
     "19": "EXPLORATORY ABLATION: not a thesis hypothesis; its own pre-registration (ablation/preregistration.md, signed off 2026-10-24). Values: "
           "docs/thesis/ablation/ablation_results.json runs.<rung>.fwdc_tex_r1-r3.heading.ate_a_cruise_m (evo -a (cruise)) and stored.<bag>.U_heading. "
           "Verdicts P1 FAIL, P2 PASS 3/3, P3 FAIL (confounded with gate removal). The Result line is the ruled discussion paragraph "
