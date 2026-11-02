@@ -37,6 +37,7 @@ METHODOLOGY has the entry "RULING (user, 2026-11-02): answers 1–5 applied".
    - `limitations.md` item 4 added verbatim (D104).
 
 ## Also fixed
+- After review: the E6 walkthrough title now says "Flying live, ..." (in hindsight the no-map arm beat the map on lap 1: FGO 0.0209 against 0.0439 m), and the 1C extras page says "not scored here" / "no verdict is drawn" rather than "no verdict", because numbers.md §15 records PASS outcomes for these flights (they enter no registered verdict).
 - The walkthrough contents note overlapped the first row (present at HEAD): rows lowered (D105).
 
 ## Pages

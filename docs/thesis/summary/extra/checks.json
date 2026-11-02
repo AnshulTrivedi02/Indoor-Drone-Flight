@@ -413,7 +413,7 @@
     "DESCRIPTIVE, 3 flights: same sign\non 3 of 3 for both\nestimators; on r1b the maps\ndiffer by 0.0007 m",
     "UKF map minus FGO map",
     "Limitations: simulation only; n = 3 flights; perfect tag IDs; tag 0 anchors the frame; maps used as exact (no map uncertainty carried); same world and day;\nP4 compares with other loop-closure estimators. The mapping flights flew a different route (out of sample), so the same-route caveat does not apply.",
-    "A map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)",
+    "Flying live, a map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)",
     "raw, world frame, nothing fitted; live tracks",
     "filled = live (during flight)"
    ],
@@ -443,7 +443,7 @@
     "+169.6 s",
     "FGO, noise fix only, yaw cap ungated\n(ABLATION), half real time",
     "Each flight was flown once (n = 1), on the textured corridor with no camera heading. No pass window and no verdict are drawn: the registered\nExperiment 1C verdicts use only the pre-registered flights, and the full-speed and half-real-time flights are not compared.",
-    "Five more no-heading flights: each also reached the west wall (descriptive, no verdict)",
+    "Five more no-heading flights: each also reached the west wall (descriptive; not scored here)",
     "additional flights, not part of the pre-registered set"
    ],
    "tag": "additional flights, not part of the pre-registered set",

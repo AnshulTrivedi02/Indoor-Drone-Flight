@@ -762,7 +762,7 @@ fig.text(0.01, 0.015, T("Limitations: simulation only; n = 3 flights; perfect ta
                         "different route (out of sample), so the same-route caveat does not apply."), fontsize=9.5, color=INK2, va="bottom",
          linespacing=1.15)
 fig.subplots_adjust(left=0.07, right=0.985, top=0.80, bottom=0.25, wspace=0.42)
-title1(fig, "A map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)")
+title1(fig, "Flying live, a map from an earlier flight beat no map on the first lap (P4 PASS) but did not match the survey (P2 FAIL)")
 corner(fig, "raw, world frame, nothing fitted; live tracks", "filled = live (during flight)")
 save("E6_map_reuse", fig, "docs/thesis/tier1/scores/e6_verdicts.json (flights, criteria, p2_bands_m, pairs), e6_T_A_r{1,2,3}.json",
      tag="raw, world frame, nothing fitted; live tracks", key=True)
@@ -810,7 +810,7 @@ fig.text(0.01, 0.02, T("Each flight was flown once (n = 1), on the textured corr
                        "drawn: the registered\nExperiment 1C verdicts use only the pre-registered flights, and the full-speed and half-real-time "
                        "flights are not compared."), fontsize=10, color=INK2, va="bottom", linespacing=1.15)
 fig.subplots_adjust(left=0.02, right=0.98, top=0.80, bottom=0.25)
-title1(fig, "Five more no-heading flights: each also reached the west wall (descriptive, no verdict)")
+title1(fig, "Five more no-heading flights: each also reached the west wall (descriptive; not scored here)")
 corner(fig, "additional flights, not part of the pre-registered set")
 check("1C_extra", "n = 1", "1", "1", "numbers.md §15 ('n = 1 per no-heading cell')", [("N", "n = 1 per no-heading cell")])
 save("1C_extra", fig, "eval/results/closed_loop_{cl_a_tex, cl_ukf_a_tex, cl_ukf_a_tex_half, cl_fgo_a_tex_half, cl_fgo_a_tex_half_v2}.json (contact); "

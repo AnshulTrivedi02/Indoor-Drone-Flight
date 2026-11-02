@@ -873,8 +873,8 @@ T1CX = "Experiment 1C: additional flights, not part of the pre-registered set"
 begin(T1CX)
 fpage("A3", "1C_extra", T1CX, PX("1C_extra"),
       "Wall-contact times of five further no-heading flights (one each; full speed or half real time; older or ablation builds), shown "
-      "as recorded. They are not part of the pre-registered set, so they carry no verdict and change none: every registered 1C verdict "
-      "uses only the pre-registered flights.", scope=["05"], new_header=True)
+      "as recorded; no verdict is drawn. They are not part of the pre-registered set, so their recorded outcomes enter no registered 1C "
+      "verdict: every registered 1C verdict uses only the pre-registered flights.", scope=["05"], new_header=True)
 
 # =================================================================== exactly-once rule: every summary page's Metric / Pass rule / Result printed once
 ONCE = {}
