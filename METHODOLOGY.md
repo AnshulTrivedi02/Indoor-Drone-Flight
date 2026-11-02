@@ -14681,3 +14681,50 @@ current tree has no expected checker failures.
 - **4.** E3 tag maps: one collapse example (T_A_r1 1% s0) plus the clean reference in the main material; the other two maps in the appendix (D100).
 - **5.** E6 page added to `summary_plots.pdf` (page id 20) and `results_walkthrough.pdf`, with its Metric / Pass rule / Result in the registered section; limitations item 4 added verbatim (D101–D104). Handover: `docs/handovers/2026-11-02_answers_applied.md`.
 
+
+### FIGS RESTYLE (2026-11-02): reader-facing figure set (figures_thesis/) restyled to thesis standard
+
+Branch `figs-restyle` from `cf5be5b`. Scope: `docs/thesis/figures_thesis/` only (data, scoring and verdicts
+unchanged). Removed from every chart image: in-figure titles/synopsis headlines (the bold `fig.suptitle()` that
+`eval/figs_thesis.py`'s `save()` used to draw), explanatory notes/badges inside axes, duplicated per-panel legends,
+on-canvas PASS/FAIL/verdict text (F5's hindsight-gain fig.text() block), and per-panel bold text. Kept: data, axis
+labels with units, one shared legend per figure, panel labels (a)/(b)/(c), minimal direct labels (estimator names,
+"wall"). Current working copies (byte-identical to this commit's parent) kept at `figures_thesis/working/` for the
+separate reader documents (`eval/figs_results_walkthrough.py`, which crops fixed pixel boxes out of
+F2/F9/F5/F7/F6/R3/R5 at the pre-restyle resolution) and for provenance.
+
+**RS decisions** (the coordinator can change each in one place):
+- RS-1: text width 160 mm / 6.30 in (`eval/thesis_style.py:TEXT_WIDTH_IN`); fonts 9-10 pt tick/annotation, 10-11 pt
+  axis label (already the house rcParams, unchanged).
+- RS-2: draft captions at `docs/thesis/figures_thesis/captions/<fid>.md`, written by `thesis_style.write_caption()`;
+  each points to its `docs/thesis/tables/TA_verdicts.md` row(s) by id (folded into the `verdict=` kwarg of
+  `save()`/`save_table()` for F2/F9/F5/F6/F7/A1/A2/A3, so it shows on the combined PDF's own caption page too, not
+  only the standalone file; R3/R5/methods_architecture are patched by `eval/add_caption_verdict_pointers.py` since
+  they don't go through `save()`/`save_table()`).
+- RS-3: A1/A2/A3 (`table_page()`/`save_table()`) and `methods_architecture` are kept at their existing A4-landscape
+  page-table/diagram layout rather than resized to 160 mm - collapsing a dense multi-column table or a ~7 pt-label
+  block diagram to text width would make them illegible. `table_page()` is now called with `bold=False` for A1-A3
+  (removes the bold title and the bold FAIL/MISS/NOT-met cell highlighting; the verdict WORDS themselves are kept,
+  as data in an appendix table, not a plot). Open question for the coordinator: whether this is enough, or A1-A3
+  should lose verdict words from the image entirely (see the handover).
+- RS-4: `methods_architecture`'s box titles stay bold as a diagramming convention (node headers), not narrative
+  emphasis; not changed.
+
+**New appendix table**: `docs/thesis/tables/TA_verdicts.md` (Table A.4, 88 rows, 1 per pre-registered hypothesis/
+check/part across Experiments 1-5/5S, the tier-1 extension experiments E2-E6 (labelled "Extension E2" etc. to avoid
+confusion with the thesis's own Experiment 2/3) and the exploratory attribution ablation (labelled EXPLORATORY);
+built and cross-checked by `eval/ta_verdicts_check.py`, 146/146 EXACT; rendered to
+`docs/thesis/figures_thesis/tables_extra/TA_verdicts.{png,pdf}` and included as the last combined-PDF page.
+
+**Checks**: every figure generator's own cross-check total is unchanged in substance (348 -> 352, the +4 are new
+checks added BY the restyle itself: two `cite()`s for F2's "9.58 m"/"x = ±10 m" literals that were previously
+on-figure text with no check, and two self-consistency assertions that F5's caption `rd_si()` values equal the
+`rd()` values the existing check rows compare - all four pass). `check_claims_applied.py`'s F7-title check is
+repointed from `index.md` to `captions/F7.md` (same quoted string, same total 58/58) per the brief; `check_discussion.py`
+18/18; `check_e6_prose.py` 0 mismatches; `check_factsheets.py` PASS; `tools/check_numbers_frozen.py` PASS.
+Consumers `eval/figs_thesis_summary.py` and `eval/figs_walkthrough_extra.py` (`DISP["IDX"]` / `DISPF["FI"]`) and
+`eval/figs_results_walkthrough.py` (`FIGD`) are repointed to `figures_thesis/working/`; re-running all three
+reproduces the same totals (223/62/101/16; 186/186; verbatim 118/118, new 88, world checks 17/17, pages 45,
+failures: none) with every output PNG pixel-identical to HEAD (decoded-pixel diff, not byte diff).
+`eval/figs_walkthrough_flights.py` needs bags (`mavutil`/`rosbags`) and references no `figures_thesis/` path, so it
+was not run. Handover: `docs/handovers/2026-11-02_figs_restyle.md`.

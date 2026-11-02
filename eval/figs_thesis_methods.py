@@ -345,8 +345,8 @@ def fig_architecture():
             tx = p[0] + (q[0] - p[0]) * tpos + toff[0]; ty = p[1] + (q[1] - p[1]) * tpos + toff[1]
             ax.text(tx, ty, text, fontsize=tfs, ha=tha, va="bottom", color=tc or color, linespacing=1.1)
 
-    ax.text(1.4, H - 1.2, "System architecture: sensors, bridges, the three estimators and where each one runs (simulation; real hardware where marked)",
-            fontsize=11, weight="bold", va="top")
+    # RESTYLE (2026-11-02): no in-figure title (house rule); the title is metadata only (index/caption page), as for
+    # every other figure in the set.
 
     # regions
     region(1.2, 17.6, 15.6, 45.0, "Sensors (Gazebo + SITL)", "#f7f7f7")
@@ -457,6 +457,11 @@ def fig_architecture():
                                "and 5S, and the real-hardware watcher, tested only on the SITL bench."),
                       files=["methods_architecture.png", "methods_architecture.pdf"], checks=[], sources=srcs,
                       chapter="Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to"))
+    # RESTYLE (2026-11-02): the RS-3 sizing rationale is process text for the coordinator, not for a reader - it lives
+    # in the handover (docs/handovers/2026-11-02_figs_restyle.md), not in this reader-facing caption.
+    from thesis_style import write_caption
+    write_caption("methods_architecture", "Figure 3.1. System architecture: sensors, bridges, the three estimators and where each "
+                  "one runs.\n\n" + ITEMS[-1]["caption"])
     print("wrote methods_architecture.png/.pdf")
 
 
