@@ -642,7 +642,8 @@ fpage("S2", "setup_square_path", "Setup: the tag room and the 6 m square", PF("2
 # ------------------------------------------------------------------ 1A: all 9 flights, raw first (Figure 4.2 (a) page removed, user TASK 1)
 begin(T01)
 fpage("01", "1A_paths", T01, PF("1A_unaligned_paths"),
-      "Each estimator's raw position estimate from take-off on all 9 standard-sensor flights, against the true path. The registered "
+      "Each estimator's raw position estimate from take-off on Experiment 1A flights 1-9 (standard sensors, textured floor), against "
+      "the true path. The registered "
       "score is the fitted cruise ATE in the table; the ranking rule between EKF3 and the FGO was NOT MET, so no estimator is ranked.",
       scope=["01"])
 fpage("02", "1A_raw_err", T01, PF("1A_unaligned_err"),
@@ -685,7 +686,7 @@ fpage("04", "1B_heading_check", SUMP["03"]["title"], P("S03"),
       tag="raw camera heading, nothing fitted", scope=["03"])
 begin(T04)
 fpage("05", "1B_paths", T04, PF("1B_unaligned_paths"),
-      "The same 3 recorded flights replayed without and with the camera heading, raw from take-off; EKF3 has no offline heading arm, so "
+      "Experiment 1B flights 1-3 (textured walls over the textured floor), the same 3 recordings replayed without and with the camera heading, raw from take-off; EKF3 has no offline heading arm, so "
       "its with-heading panel is a closed-loop Experiment 1C flight and is not scored. No pass rule was registered: the table gives the "
       "registered fitted scores and the raw maximum errors.", scope=["04"])
 

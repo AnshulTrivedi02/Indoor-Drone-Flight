@@ -537,7 +537,7 @@ axs[0].set_ylabel("along the corridor, North (m)")
 axs[0].set_xlim(-LIM1, LIM1); axs[0].set_ylim(-3, 163)
 at = fig.add_subplot(gs[0, 3]); at.axis("off")
 at.text(0.0, 0.99, "grey line: true path\nblack dot: take-off", fontsize=9, color=INK2, va="top", transform=at.transAxes)
-at.text(0.0, 0.85, "Registered score (fitted):\ncruise ATE, median\nof 9 flights", fontsize=10.5, weight="bold", va="top", transform=at.transAxes)
+at.text(0.0, 0.85, "Registered score (fitted):\ncruise ATE, median of\nExperiment 1A flights 1-9\n(textured floor)", fontsize=10.5, weight="bold", va="top", transform=at.transAxes)
 for i, e in enumerate(EST):
     at.text(0.04, 0.62 - 0.09 * i, e, fontsize=11, color=C[e], weight="bold", va="center", transform=at.transAxes)
     at.text(0.55, 0.62 - 0.09 * i, f"{TABN[e][1]} m", fontsize=11, va="center", ha="left", transform=at.transAxes)
@@ -556,7 +556,7 @@ check("1A_unaligned_paths", "ranking verdict printed: NOT MET (summary page 01 R
 title1(fig, "Without a heading source every estimate drifts sideways off the true path, on all 9 flights")
 corner(fig, "raw, nothing fitted (paths)")
 save("1A_unaligned_paths", fig, "", "TUMs of dsn_tex_r1..r9; frame map (N, E) = (x, −y) for the UKF/FGO (eval/figs_thesis_drift.py); "
-     "cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json", ["9", "1.0"] + [med[e] for e in EST], tag="raw, nothing fitted (paths)")
+     "cruise ATEs rerun_dsn_evo.json, dsn_extra_evo.json", ["9", "1", "1.0"] + [med[e] for e in EST], tag="raw, nothing fitted (paths)")
 fig, axs = plt.subplots(3, 1, figsize=(FW, FH), sharex=True, sharey=True)
 for ax, e in zip(axs, EST):
     ax.axhline(0, color=INK2, lw=0.6, zorder=1); ax.axvline(0, color=INK2, lw=0.8, ls=":", zorder=1)
@@ -865,6 +865,8 @@ for gx, grp in zip(GX, GRP):
             r_ = RNGB[k]; lo_, hi_ = r_.split("–")
             at.text(gx + CX[1], y_, (f"{lo_} m (all 3 flights)" if lo_ == hi_ else f"{lo_} to {hi_} m"), fontsize=9.5, va="center")
             at.text(gx + CX[2], y_, f"{RAWS[k]} m", fontsize=9.5, va="center")
+at.text(0.0, -0.2, "Experiment 1B flights 1-3: textured walls over the textured floor",
+        fontsize=9, ha="left", va="bottom", color=INK2)   # flight set named (user, 2026-11-03; D121)
 at.text(1.0, -0.2, "no pass rule (descriptive comparison)", fontsize=9, ha="right", va="bottom", color=INK2, style="italic")
 fig.subplots_adjust(left=0.065, right=0.99, top=0.85, bottom=0.04)
 s = measured_stretch(fig, axs[0]); check("1B_unaligned_paths", "equal scale (measured stretch)", rd(s, 1), "1.0", "set_aspect(1.0)")
@@ -873,7 +875,7 @@ corner(fig, "raw, nothing fitted (paths)")
 save("1B_unaligned_paths", fig, "", "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, −y) "
      "for the UKF/FGO (eval/figs_thesis_drift.py); windows and cruise ATEs phase4_fwdc_evo.json; closed-loop panel: dataflash XKF1 (core 0) and SIM "
      "of cl_bcpp_tex_r1..r3_half, cruise window closed_loop_<trial>.json mapped to SITL time by the rebuilt clock map",
-     ["3", "1.0"] + [x for k in SUBB for x in RNGB[k].split("–")] + [RAWS[k] for k in SUBB], tag="raw, nothing fitted (paths)")
+     ["3", "1", "1.0"] + [x for k in SUBB for x in RNGB[k].split("–")] + [RAWS[k] for k in SUBB], tag="raw, nothing fitted (paths)")
 
 # (b) heading error WITHOUT heading (v3 style): 3 rows, shared axes, to the wall contact; the y label once; direct labels
 D = {}; ENDD = []

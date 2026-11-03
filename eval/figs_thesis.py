@@ -988,7 +988,7 @@ for e in EST:
     rms = [raw_cell(t, e, "baseline")["rms_3d_m"] for t in _T1A_TR]
     end = [raw_cell(t, e, "baseline")["end_3d_m"] for t in _T1A_TR]
     rowsT9.append([e, "9", rd(med[e], 2), rng(v), rd(float(np.median(rms)), 2), rng(rms, 2), rd(float(np.median(end)), 2), rng(end, 2)])
-save_tab("T9", "T9_1A_fitted_vs_raw", "Experiment 1A (textured floor): fitted cruise ATE and raw world-frame error, per estimator",
+save_tab("T9", "T9_1A_fitted_vs_raw", "Experiment 1A, standard-sensor dataset, textured floor, flights 1-9: fitted cruise ATE and raw world-frame error, per estimator",
          "Companion table to Figure 4.1c (1A drift paths): the registered fitted cruise ATE (evo -a, SE(3)-aligned) next to the raw "
          "world-frame error, nothing fitted (no rotation, translation or scale alignment), median and range over the same 9 flights, "
          "from the user's raw re-scoring ruling (2026-11-02). The raw columns are DESCRIPTIVE and change no registered value or verdict.",
