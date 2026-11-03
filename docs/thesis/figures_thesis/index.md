@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `5fa966d` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `d6d7966` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -20,6 +20,7 @@ Built by `eval/figs_thesis.py` at commit `5fa966d` (run with `/home/makerspace/v
 | Figure 4.1 | F2 | figure | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall | CURRENT | 15/15 | none needed |
 | Figure 4.1b (provisional) | F9 | figure | `F9_heading_error_closed_loop.png`, `F9_heading_error_closed_loop.pdf` | Without a heading source the heading error grows until the wall; with the camera heading it stays near zero | CURRENT | 23/23 | none needed |
 | Figure 4.1c (provisional) | R5 | figure | `R5_drift_unaligned.png`, `R5_drift_unaligned.pdf` | Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor | CURRENT | own generator | none needed |
+| Figure 4.1d (provisional) | R6 | figure | `R6_drift_9flights.png`, `R6_drift_9flights.pdf` | Without a heading source, every one of the 9 flights drifts sideways off the true path | CURRENT | own generator | none needed |
 | Figure 4.2 | R3 | figure | `R3_trajectory_overlay.png`, `R3_trajectory_overlay.pdf` | True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path | CURRENT | own generator | none needed |
 | Table 4.1 | T2 | table | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex`, `T2_accuracy_heading_p1.png`, `T2_accuracy_heading_p2.png` | Position error without and with the camera heading (textured floor) | CURRENT | 28/28 | none needed (table) |
 | Table 4.2 | T3 | table | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding | CURRENT | 11/11 | none needed (table) |
@@ -118,11 +119,24 @@ Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FG
 
 - **Caption:** Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, flight 3, chosen by the same rule as Figure 4.2(a), fixed before plotting: of the 9 textured-floor flights that all three estimators complete, the flight whose mean cruise ATE over EKF3, UKF and FGO is the median (5th of 9). n = 1 flight shown (of 9). Passive estimators, truth flying. (a) Top-down paths from take-off to the end of the cruise window, truth grey. Unlike Figure 4.2, the paths are NOT aligned: each estimate is drawn as estimated, in its own navigation frame with its origin at take-off, so the sideways drift caused by heading error, which the SE(3) alignment of the cruise ATE (and of Figure 4.2) removes, is shown; it reaches tens of metres by the end of the cruise. No fitted alignment is applied to any estimate. EKF3 reports North/East directly. The UKF and FGO trajectories are expressed in the world frame by a fixed axis relabel from the known take-off heading (the vehicle spawns facing North, and both start with yaw 0 along it, so their x is North and their y is West: (North, East) = (x, −y)), the same convention as eval/phase5_analysis.py. The East axis is stretched 1.0× relative to North (equal scale: the drift is large enough not to need stretching). For reference, each estimator's stored cruise ATE after alignment (Figure 4.2): EKF3 4.10 m, UKF 5.17 m, FGO 4.48 m. (b) Along-track error (estimated North − true North) and (c) sideways error (estimated East − true East) against the true distance travelled along the corridor, from take-off to the end of the cruise window (the stop and landing are not drawn). Truth is interpolated to each estimator's own timestamps. (b) and (c) share one y-scale. The along-track error is not a pure scale error: a heading error also shortens the North component of the estimated travel. Dashed: no heading source (all three). No log axes.
 
+The 9-flight view of the same dataset is in Figure 4.1d (provisional).
+
 Companion table: Table 4.4 (provisional), fitted cruise ATE (registered) and raw world-frame error (descriptive) over Experiment 1A flights 1-9 of the standard-sensor dataset, textured floor (this figure shows flight 3 of those 9).
 
 Verdicts: Table A.4, none (descriptive).
 - **Inputs:** see docs/thesis/figures_thesis/index_drift.md
 - **numbers.md rows:** checks: see index_drift.md (built by eval/figs_thesis_drift.py)
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
+
+### Figure 4.1d (provisional) (internal R6, figure): Without a heading source, every one of the 9 flights drifts sideways off the true path
+
+- **Caption:** Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, Experiment 1A, all 9 flights (dsn_tex_r1-r9). Passive estimators, truth flying. Each panel is one estimator; every one of its 9 flights is drawn, from take-off to the end of its own cruise window. Paths are raw: each estimate is drawn exactly as estimated, in its own navigation frame with its origin at take-off, with no fitted alignment (no rotation, translation or scale fit). EKF3 reports North/East directly. The UKF and FGO trajectories are expressed in the world frame by a fixed axis relabel from the known take-off heading (the vehicle spawns facing North, and both start with yaw 0 along it, so their x is North and their y is West: (North, East) = (x, −y)), the same convention as Figure 4.1c and eval/phase5_analysis.py. The grey line is the true path (simulator); the black dot is take-off, at the origin of every panel. The shaded bands beyond East = ±10 m (CLAUDE.md:101), labelled "wall", are the corridor walls. East and North are drawn at equal scale (1.0×); all three panels share the same x- and y-limits. Fitted and raw values: Table 4.4 (provisional).
+
+Verdicts: Table A.4, rows H1.1.
+- **Inputs:** see docs/thesis/figures_thesis/index_drift9.md
+- **numbers.md rows:** checks: see index_drift9.md (built by eval/figs_thesis_drift9.py)
 
 | check | computed | expected | source | match |
 |---|---|---|---|---|
@@ -626,6 +640,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | Figure 4.1 | F2 | `F2_heading_stops_sideways_drift.png`, `F2_heading_stops_sideways_drift.pdf` | The camera heading stops the sideways drift: without it every estimator flies into the west wall |
 | Figure 4.1b (provisional) | F9 | `F9_heading_error_closed_loop.png`, `F9_heading_error_closed_loop.pdf` | Without a heading source the heading error grows until the wall; with the camera heading it stays near zero |
 | Figure 4.1c (provisional) | R5 | `R5_drift_unaligned.png`, `R5_drift_unaligned.pdf` | Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor |
+| Figure 4.1d (provisional) | R6 | `R6_drift_9flights.png`, `R6_drift_9flights.pdf` | Without a heading source, every one of the 9 flights drifts sideways off the true path |
 | Figure 4.2 | R3 | `R3_trajectory_overlay.png`, `R3_trajectory_overlay.pdf` | True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path |
 | Table 4.1 | T2 | `T2_accuracy_heading.md`, `T2_accuracy_heading.tex`, `T2_accuracy_heading_p1.png`, `T2_accuracy_heading_p2.png` | Position error without and with the camera heading (textured floor) |
 | Table 4.2 | T3 | `T3_blank_floor.md`, `T3_blank_floor.tex`, `T3_blank_floor.png` | Blank floor: position error after the loss of flow aiding |
@@ -649,7 +664,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | thesis label | internal code(s) | used in | vocabulary row |
 |---|---|---|---|
 | Experiment 1, corridor comparison | (no single code: the `dsn` / `fwdc` / `fwdplainc` datasets, Phases 3–5, the F tests, the closed-loop "Part 2") | Table 7.1 | §1; §2 row 1 |
-| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Figure 3.1, Figure 4.1c (provisional), Figure 4.2, Table 4.2, Table 4.4 (provisional), Table 7.1, Table 7.2 | §2 row 6 |
+| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Figure 3.1, Figure 4.1c (provisional), Figure 4.1d (provisional), Figure 4.2, Table 4.2, Table 4.4 (provisional), Table 7.1, Table 7.2 | §2 row 6 |
 | Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Figure 3.1, Figure 4.2, Table 4.2, Table 7.1, Table 7.2 | §2 row 7 |
 | Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Figure 3.1, Table 4.3, Table 7.1, Table A.1 | §2 row 8 |
 | Experiment 2, known tags | Experiment T | Figure 5.1, Table 5.2, Table 7.1, Table A.4 | §2 row 2 |
@@ -658,7 +673,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | Experiment 5, tag hold | Experiment H | Table 6.1, Table 7.1, Table A.2, Table A.3 | §2 row 5 |
 | 5S safety tests | `H_safety_*`; safety (a) / (b) | Figure 3.1, Table 7.2, Table A.2, Table A.4 | §2 row 9 |
 | condition A–D (8 / 4 / 2 / 1 tags; kept as letters) | Experiment T conditions A–D; `T_A` … `T_D` | Figure 5.1, Table 5.2, Table 7.1 | §8.1 row 29; §10 row 21 |
-| standard-sensor dataset | `dsn` | Figure 4.1c (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.4 (provisional), Table 7.1 | §2 row 11 |
+| standard-sensor dataset | `dsn` | Figure 4.1c (provisional), Figure 4.1d (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.4 (provisional), Table 7.1 | §2 row 11 |
 | heading-error decomposition of sideways drift | Phase 5 decomposition (`plots/lateral_checks.py` method) | Figure 4.2, Table 4.1 | §5 (under H1.3) |
 | thesis-nav position-lost path (the Copter landing trigger) | `thesis_nav_check` | Table 7.2, Table A.2 | §8.3 |
 | textured-wall camera dataset (upper bound) | `fwdc` | Figure 4.2, Table 4.1, Table 4.2, Table 7.1, Table A.3 | §2 row 13 |
@@ -680,7 +695,7 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | single landing | S-A4 | Table 7.2, Table A.2 | §3 row 35 |
 | forced-invalid test | safety (a) PARAM (the FGO's (a) is a node kill) | Table 7.2, Table A.2, Table A.3 | §4 row 46 |
 | node-kill test | safety (b) KILL | Table 7.2, Table A.2, Table A.3 | §4 row 46 |
-| with / without heading | closed-loop set (b) / set (a) | Figure 4.1, Figure 4.1b (provisional), Figure 4.1c (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.3, Table 7.1, Table A.1, Table A.3 | §4 set letters |
+| with / without heading | closed-loop set (b) / set (a) | Figure 4.1, Figure 4.1b (provisional), Figure 4.1c (provisional), Figure 4.1d (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.3, Table 7.1, Table A.1, Table A.3 | §4 set letters |
 | with / without loop closure | LC / no-LC / `nolc` | Figure 5.2, Table 7.1, Table A.3 | §8.1 row 31 |
 | smoothed UKF | RTS-UKF | Figure 5.1, Figure 5.3, Table 5.1, Table 5.2, Table 7.1 | §4 row 38 |
 | FGO whole-flight batch (hindsight) | FGO batch | Figure 5.1, Figure 5.3, Table 5.1, Table 5.2, Table 7.1 | §4 row 37; §8.1 row 33 |

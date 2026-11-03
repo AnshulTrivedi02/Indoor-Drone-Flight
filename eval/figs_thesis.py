@@ -71,7 +71,8 @@ TNUM = {"F2": "Figure 4.1", "F9": "Figure 4.1b (provisional)", "T2": "Table 4.1"
         # RESTYLE (2026-11-02): ids for the combined-PDF assembly of items built by SEPARATE generators (not recomputed
         # here - see combine_extra_items() near the end), so the thesis_figures_combined.pdf rebuild includes every
         # restyled reader-facing item, not just this script's own.
-        "METHODS_ARCH": "Figure 3.1", "R5": "Figure 4.1c (provisional)", "R3": "Figure 4.2", "TA": "Table A.4"}
+        "METHODS_ARCH": "Figure 3.1", "R5": "Figure 4.1c (provisional)", "R6": "Figure 4.1d (provisional)", "R3": "Figure 4.2",
+        "TA": "Table A.4"}
 
 
 def tkey(fid):
@@ -2252,6 +2253,16 @@ def combine_extra_items():
                       rows="checks: see index_drift.md (built by eval/figs_thesis_drift.py)", checks=[],
                       status="CURRENT", logscale="none needed", uncheck="", foot=[],
                       files=["R5_drift_unaligned.png", "R5_drift_unaligned.pdf"]))
+    # RESTYLE (2026-11-03): R6 - the 9-flight restyled copy of the results-walkthrough's fl_1A_unaligned_paths (page 01),
+    # built by eval/figs_thesis_drift9.py. The walkthrough figure itself is unchanged.
+    r6_title = "Without a heading source, every one of the 9 flights drifts sideways off the true path"
+    r6_prefix = f"{r6_title}.\n\n"
+    extra.append(dict(id="R6", num=TNUM["R6"], kind="figure",
+                      png=os.path.join(OUT, "R6_drift_9flights.png"), pdf=os.path.join(OUT, "R6_drift_9flights.pdf"),
+                      title=r6_title, caption=cap_of("R6", r6_prefix), inputs="see docs/thesis/figures_thesis/index_drift9.md",
+                      rows="checks: see index_drift9.md (built by eval/figs_thesis_drift9.py)", checks=[],
+                      status="CURRENT", logscale="none needed", uncheck="", foot=[],
+                      files=["R6_drift_9flights.png", "R6_drift_9flights.pdf"]))
     r3_title = "True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path"
     r3_prefix = f"{TNUM['R3']}. {r3_title}.\n\n"
     extra.append(dict(id="R3", num=TNUM["R3"], kind="figure",
@@ -2427,9 +2438,18 @@ with PdfPages(PDF) as P:
         fig.text(0.11, y0 - 0.030 - 0.026 * k, f"{e}  {C[e]}", fontsize=10, va="center")
     fig.add_artist(Line2D([0.07, 0.10], [y0 - 0.108] * 2, color=TRUTH, lw=2, transform=fig.transFigure)); fig.text(0.11, y0 - 0.108, f"truth / reference  {TRUTH}", fontsize=10, va="center")
     y = y0 - 0.150; fig.text(0.06, y, "Contents", fontsize=12, weight="bold"); y -= 0.024
+    # RESTYLE (2026-11-03, found while adding R6/Figure 4.1d): the per-item step (and, if that is not enough on its own,
+    # the font size) shrink to fit however many items ITEMS holds, so a future addition to the figure/table set cannot
+    # silently run the list off the bottom of the page the way a fixed 0.0215 step already had (Table 7.2 and later rows
+    # were cut off at 22 items, confirmed against the committed PDF before this fix, which already clipped from Table A.2
+    # on at 21 items) - same shrink-to-fit principle as results-walkthrough's own title1().
+    CONTENTS_BOTTOM = 0.02
+    step = min(0.0215, (y - CONTENTS_BOTTOM) / len(ITEMS))
+    fs = 8.6 if step >= 0.0215 else max(6.0, 8.6 * (step / 0.0215))
+    assert step > 0, f"Contents list ({len(ITEMS)} items) does not fit on the cover page at all - needs a second page"
     for it in ITEMS:
         clabel = f"checks {sum(c[4] for c in it['checks'])}/{len(it['checks'])}" if it["checks"] else "checks: own generator, see index"
-        fig.text(0.07, y, f"{it['num']}  {it['title']}   [{clabel}]", fontsize=8.6); y -= 0.0215
+        fig.text(0.07, y, f"{it['num']}  {it['title']}   [{clabel}]", fontsize=fs); y -= step
     P.savefig(fig); plt.close(fig)
     for it in ITEMS:
         caption_page(P, it)
