@@ -131,14 +131,14 @@ each of the four `##` sections — indented `  - ` / `  · ` sub-items are not c
 | 3.2 Simulation environment | `3.2_simulation.md` | 40 | 13 | 8 | 9 |
 | 3.3 Estimators | `3.3_estimators.md` | 52 | 17 | 16 | 10 |
 | 3.4 How the estimators were run | `3.4_run_modes.md` | 26 | 8 | 6 | 4 |
-| 3.5 Experiments 1–5 and 5S | `3.5_experiments.md` | 40 | 14 | 18 | 8 |
-| 3.6 Metrics and statistics | `3.6_metrics_statistics.md` | 36 | 11 | 9 | 8 |
+| 3.5 Experiments 1–5 and 5S | `3.5_experiments.md` | 41 | 14 | 18 | 8 |
+| 3.6 Metrics and statistics | `3.6_metrics_statistics.md` | 37 | 11 | 9 | 8 |
 | 3.7 Verification process | `3.7_verification.md` | 39 | 10 | 6 | 5 |
 | 3.8 Closed-loop safety framework | `3.8_closed_loop_safety.md` | 32 | 8 | 7 | 4 |
 | 3.9 Extension experiments E2–E6 and the attribution ablation | `3.9_extension_experiments.md` | 48 | 11 | 4 | 1 |
-| **Total** | | **347** | **102** | **82** | **52** |
+| **Total** | | **349** | **102** | **82** | **52** |
 
-Grand total: **583 bullets** (up from 502 at `337c931`/`4c783b5`: +3 Facts in 3.3, +3 Facts in 3.4, +6 Facts in 3.6,
+Grand total: **585 bullets** (583 at the 2026-11-02 merge, +1 Fact in 3.6 for the registered-fit justification and +1 Fact in 3.5 for the flight-set sentence, D122; 583 was up from 502 at `337c931`/`4c783b5`: +3 Facts in 3.3, +3 Facts in 3.4, +6 Facts in 3.6,
 +5 Facts in 3.7, +64 in 3.9 (48 Facts + 11 Appendix + 4 Flags (a) + 1 Flags (b)), +0 net elsewhere: 502 + 3 + 3 + 6 +
 5 + 64 = 583).
 
