@@ -265,13 +265,14 @@ ax.set_ylabel("FGO error on the fifth lap (m)")
 leg = ax.legend(handles=[Patch(facecolor=C["FGO"], edgecolor=C["FGO"], lw=1.4, label="live, with loop closure"),
                          Patch(facecolor=SURF, edgecolor=C["FGO"], lw=1.4, label="hindsight, with loop closure"),
                          Line2D([], [], color=INK, lw=1.6, label="mean of the 3 flights")],
-                frameon=False, loc="upper right", fontsize=9.0, labelspacing=0.5)
+                frameon=False, loc="upper left", fontsize=9.0, labelspacing=0.5)
 fig.tight_layout()
 save("C01", fig, "docs/thesis/tier1/scores/E2_verdicts.json, E2_T_{B,C,D}_r{1,2,3}.json; eval/results/expL/T_A_r{1,2,3}_t245.json", key=True)
 
 C01_CAP = (
     f"Extension E2 (loop closure with fewer tags; tag room, 5 laps of a 6 m square, open loop on simulator truth; the condition with "
-    "8 tags re-uses the Experiment 3 flights): the FGO's horizontal position error on the fifth lap, root-mean-square, in the frame of "
+    "8 tags re-uses the Experiment 3 flights): raw, measured from the start tag, nothing fitted. The FGO's horizontal position error "
+    "on the fifth lap, root-mean-square, in the frame of "
     "the start tag, box = lowest to highest over 3 flights, solid/filled = live (with loop closure), open = hindsight (after "
     f"landing, with loop closure); black line = the mean of the 3 flights in that box (live or hindsight). The mean lap-5 live "
     "error over 3 flights is "
@@ -353,9 +354,10 @@ fig.tight_layout(rect=(0, 0.1, 1, 1))
 save("C02", fig, "docs/thesis/tier1/scores/E3_verdicts.json (runs, references)", pool="C0203")
 
 C0203_CAP = (
-    "Extension E3 (wrong tag IDs; 8-tag room, 5 laps, the FGO with loop closure): outcome of every run, 3 flights (T_A_r1-r3) times 3 "
-    "seeds at each wrong-ID rate (1%, control at rate 0: 3 flights, no seed sweep). One mark per run: live horizontal position error "
-    "over five laps, root-mean-square, start-tag frame, metres; a run that diverged (no finite error) is marked separately. Grey band: "
+    "Extension E3 (wrong tag IDs; 8-tag room, 5 laps, the FGO with loop closure): raw, measured from the start tag, nothing fitted. "
+    "Outcome of every run, 3 flights (T_A_r1-r3) times 3 "
+    "seeds at each wrong-ID rate (1% and 5%; control at rate 0: 3 flights, no seed sweep). One mark per run: live horizontal position "
+    "error over five laps, root-mean-square, start-tag frame, metres; a run that diverged (no finite error) is marked separately. Grey band: "
     f"the stored error without loop closure on the same 3 flights, {VREF} m. At 1% wrong IDs the FGO as built (plain) diverged in "
     f"{ROW3[('a','0.01')]['div']} of {ROW3[('a','0.01')]['n']} runs and the finished runs ended at {ROW3[('a','0.01')]['rng']} m; "
     f"at 5% it diverged in {ROW3[('a','0.05')]['div']} of {ROW3[('a','0.05')]['n']} and finished at "
@@ -385,8 +387,14 @@ guard("C0203", C03_MD)
 with open(os.path.join(OUTD, "C03_table.md"), "w") as f:
     f.write(C03_MD + "\n")
 print("wrote C03_table.md")
-C03_CAP = ("Extension E3 (wrong tag IDs): the outcome of every run as a table, the same data and the same numbers as candidate "
-           "C02's chart (one row per condition instead of one mark per run); see C03_table.md.")
+C03_CAP = ("Extension E3 (wrong tag IDs): raw, measured from the start tag, nothing fitted. The outcome of every run as a table, "
+           "one row per condition (1% and 5% wrong IDs, FGO as built and robust, plus a no-wrong-ID robust control), from the same "
+           "docs/thesis/tier1/scores/E3_verdicts.json runs and references that candidate C02's chart plots as one mark per run. "
+           "Columns: "
+           "runs diverged (no finite error), the live error of the finished runs (root-mean-square over five laps, start-tag frame, "
+           "lowest to highest, metres), the runs counted as collapsed (descriptive, not a registered measure: the run finished with a "
+           "wrong tag map, per the user's collapse-count ruling) and the stored error without loop closure on the same 3 flights, for "
+           "reference. n per row is 9 runs for the 1% and 5% rows (both arms) and 3 for the no-wrong-ID control; see C03_table.md.")
 guard("C0203", C03_CAP)
 write_caption("C03", C03_CAP + "\n\n" + pointer_line(["H-E3.1", "P-E3b.1 (1%)", "P-E3b.1 (5%)", "P-E3b.2"]))
 
@@ -437,18 +445,17 @@ C04_MD = "\n".join([
     "|---|---|---|---|---|",
 ] + ["| " + " | ".join(row) + " |" for row in C04_ROWS] + [
     "",
-    "Pass or fail of each test, counted over the runs (flights for P-E3.6); 1% / 5% = share of tag sightings given a wrong ID; a "
-    "diverged run counts as not met. Source: docs/thesis/tier1/scores/E3_verdicts.json (criteria_a, criteria_b). Primary: H-E3.1. "
-    "This table reproduces the same rows as the Extension E3 section of the appendix verdict register "
-    "(docs/thesis/tables/TA_verdicts.md), already in docs/thesis/figures_thesis/; it is included here because the brief names it "
-    "explicitly as its own candidate -- flagged for the coordinator to rule on whether it duplicates that register or stands as a "
-    "focused Extension-E3-only companion.",
+    "Pass or fail of each test, counted over the runs (flights for P-E3.6, raw per-flight means, nothing fitted); 1% / 5% = share of "
+    "tag sightings given a wrong ID; a diverged run counts as not met. Source: docs/thesis/tier1/scores/E3_verdicts.json "
+    "(criteria_a, criteria_b). Primary: H-E3.1. This table reproduces the same rows as the Extension E3 section of the appendix "
+    "verdict register (docs/thesis/tables/TA_verdicts.md).",
 ])
 guard("C04", C04_MD)
 with open(os.path.join(OUTD, "C04_table.md"), "w") as f:
     f.write(C04_MD + "\n")
 print("wrote C04_table.md")
-C04_CAP = ("Extension E3 (wrong tag IDs): every registered test, its count over the runs (3 flights × 3 seeds at each wrong-ID "
+C04_CAP = ("Extension E3 (wrong tag IDs): raw per-run counts against each registered band, nothing fitted. Every registered test, "
+           "its count over the runs (3 flights × 3 seeds at each wrong-ID "
            "rate; the robust control at rate 0 is 3 flights, no seed sweep), reproduced as a table from docs/thesis/tier1/scores/"
            "E3_verdicts.json; see C04_table.md.")
 guard("C04", C04_CAP)
@@ -537,13 +544,15 @@ save("C06", fig, "eval/figs_cand_c_extract.py cache (bag /ground_truth/pose of T
      "stats.json landmarks_final of the two runs; sim/worlds/room_tags_map.json; scores: docs/thesis/tier1/scores/"
      "E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json")
 
-C05_CAP = ("Extension E3 (wrong tag IDs), main example: grey = true track and the 8 true tags, from the start tag; orange = the "
+C05_CAP = ("Extension E3 (wrong tag IDs), main example: raw, from the start tag, nothing fitted. Grey = true track and the 8 true "
+           "tags; orange = the "
            "FGO's hindsight track (after landing) and its final tag map, equal scale, identical limits in both panels. Left: no "
            "wrong IDs (Experiment 3, flight 1), the final map matches the room. Right: 1% wrong IDs, FGO as built (flight 1, seed 0), "
            "the final map is shrunk inward from the true square.")
 guard("C05", C05_CAP)
 write_caption("C05", C05_CAP + "\n\n" + pointer_line([]))
-C06_CAP = ("Extension E3 (wrong tag IDs), appendix: two more wrong-ID runs, same drawing and equal scale as candidate C05. Left: 5% "
+C06_CAP = ("Extension E3 (wrong tag IDs), appendix: raw, from the start tag, nothing fitted. Two more wrong-ID runs, same drawing "
+           "and equal scale as candidate C05. Left: 5% "
            "wrong IDs, FGO as built (flight 3, seed 0), the final map shrunk, as in C05's right-hand panel. Right: 5% wrong IDs, "
            "robust FGO (flight 2, seed 1), the one robust run that collapsed: the final map folded into a different arrangement from "
            "the true square rather than merely shrinking.")
@@ -600,7 +609,7 @@ ax.set_xticks([0, 1.3])
 ax.set_xticklabels([T("without loop closure"), T("with loop closure")])
 ax.tick_params(axis="x", pad=8)
 ax.grid(axis="x", visible=False)
-ax.set_ylabel("average position error over 5 laps (m)")
+ax.set_ylabel("horizontal RMSE over 5 laps (m)")
 leg = ax.legend(handles=[Patch(facecolor=C["UKF"], edgecolor=C["UKF"], lw=1.4, label="UKF live"),
                          Patch(facecolor=SURF, edgecolor=C["UKF"], lw=1.4, label="UKF hindsight"),
                          Patch(facecolor=C["FGO"], edgecolor=C["FGO"], lw=1.4, label="FGO live"),
@@ -610,8 +619,9 @@ fig.tight_layout()
 save("C07", fig, "docs/thesis/tier1/scores/e5_verdicts.json, e5_T_A_r{1,2,3}.json", key=True)
 
 C07_CAP = ("Extension E5 (a UKF variant carrying each AprilTag as a landmark state, 8-tag room, 5 laps, same flights as Experiment 3): "
-           "average horizontal position error over 5 laps, box = lowest to highest over 3 flights, solid/filled = live, open = "
-           "hindsight (UKF: RTS-smoothed; FGO: the stored Experiment 3 values, its own hindsight after landing -- iSAM2's "
+           "raw, measured from the start tag, nothing fitted. "
+           "Horizontal RMSE over the 5 laps, start-tag frame, box = lowest to highest over 3 flights, solid/filled = live, open = "
+           "hindsight (UKF: RTS-smoothed; FGO: the stored Experiment 3 values, its own hindsight after landing, iSAM2's "
            "full-graph estimate after 5 extra updates, not a whole-flight LM batch, see docs/thesis/tier1/e5_design.md:247). "
            "Without loop closure "
            f"(each tag seen once), UKF live {V5[('UKF','nolc','live')]} m, UKF hindsight {V5[('UKF','nolc','hindsight')]} m, FGO live "
