@@ -89,7 +89,8 @@ KEY_LH = "filled = live (during flight), open = hindsight (after landing)"
 
 # ------------------------------------------------------------------ checks
 DISPF = {"E2": "docs/thesis/tier1/e2_results.md", "E3": "docs/thesis/tier1/e3_results.md", "E5": "docs/thesis/tier1/e5_results.md",
-         "PR": "docs/thesis/tier1/preregistration.md", "NT": "docs/thesis/tier1/numbers_tier1.md", "E5D": "docs/thesis/tier1/e5_design.md"}
+         "PR": "docs/thesis/tier1/preregistration.md", "NT": "docs/thesis/tier1/numbers_tier1.md", "E5D": "docs/thesis/tier1/e5_design.md",
+         "DL": "docs/thesis/tier1/decisions_log.md"}
 _TX = {}
 
 
@@ -318,6 +319,8 @@ check("C0203", "arm (a) runs counted as collapsed (non-diverged)", sum(ROW3[g]["
 check("C0203", "arm (b) collapsed (descriptive): the one robust run E3 results §4 names", sum(ROW3[g]["coll"] for g in GR3 if g[0] == "b"),
       "1", "E3 results §4", [("E3", "**One robust run collapsed.** The exception is T_A_r2 5% s1")])
 check("C0203", "runs per rate and arm", "/".join(str(ROW3[g]["n"]) for g in GR3), "9/9/9/9/3", "E3_verdicts.json")
+check("C0203", "D49 cited in the C03 caption: no per-run collapse flag is stored", "49", "49", "decisions_log.md",
+      [("DL", "D49 | 2026-10-25 | E3 per-run outcome \"collapsed\": no per-run collapse flag is stored")])
 REF3 = [E3V["references"][f"T_A_r{i}"]["nolc live rmse_m"]["value"] for i in (1, 2, 3)]
 VREF = check("C0203", "stored error without loop closure, the 3 flights, lowest–highest (m)", rng(REF3, 4), "0.2625–0.3608",
              "E3_verdicts.json references")
@@ -357,7 +360,8 @@ C0203_CAP = (
     "Extension E3 (wrong tag IDs; 8-tag room, 5 laps, the FGO with loop closure): raw, measured from the start tag, nothing fitted. "
     "Outcome of every run, 3 flights (T_A_r1-r3) times 3 "
     "seeds at each wrong-ID rate (1% and 5%; control at rate 0: 3 flights, no seed sweep). One mark per run: live horizontal position "
-    "error over five laps, root-mean-square, start-tag frame, metres; a run that diverged (no finite error) is marked separately. Grey band: "
+    "error over five laps, root-mean-square, start-tag frame, metres; the estimator diverged on some runs (the FGO's keyframe graph "
+    "threw repeated exceptions), marked separately rather than plotted, regardless of whether the stored error value is finite. Grey band: "
     f"the stored error without loop closure on the same 3 flights, {VREF} m. At 1% wrong IDs the FGO as built (plain) diverged in "
     f"{ROW3[('a','0.01')]['div']} of {ROW3[('a','0.01')]['n']} runs and the finished runs ended at {ROW3[('a','0.01')]['rng']} m; "
     f"at 5% it diverged in {ROW3[('a','0.05')]['div']} of {ROW3[('a','0.05')]['n']} and finished at "
@@ -391,10 +395,13 @@ C03_CAP = ("Extension E3 (wrong tag IDs): raw, measured from the start tag, noth
            "one row per condition (1% and 5% wrong IDs, FGO as built and robust, plus a no-wrong-ID robust control), from the same "
            "docs/thesis/tier1/scores/E3_verdicts.json runs and references that candidate C02's chart plots as one mark per run. "
            "Columns: "
-           "runs diverged (no finite error), the live error of the finished runs (root-mean-square over five laps, start-tag frame, "
-           "lowest to highest, metres), the runs counted as collapsed (descriptive, not a registered measure: the run finished with a "
-           "wrong tag map, per the user's collapse-count ruling) and the stored error without loop closure on the same 3 flights, for "
-           "reference. n per row is 9 runs for the 1% and 5% rows (both arms) and 3 for the no-wrong-ID control; see C03_table.md.")
+           "runs diverged (the estimator's keyframe graph threw repeated exceptions; not plotted regardless of whether the stored "
+           "value is finite), the live error of the finished runs (root-mean-square over five laps, start-tag frame, "
+           "lowest to highest, metres), the runs counted as collapsed (descriptive, not a registered measure, since no per-run "
+           "collapse flag is stored: every non-diverged plain-arm run plus the one robust run named in "
+           "docs/thesis/tier1/e3_results.md, as decisions_log.md D49 records) and the stored error without loop closure on the same "
+           "3 flights, for reference. n per row is 9 runs for the 1% and 5% rows (both arms) and 3 for the no-wrong-ID control; see "
+           "C03_table.md.")
 guard("C0203", C03_CAP)
 write_caption("C03", C03_CAP + "\n\n" + pointer_line(["H-E3.1", "P-E3b.1 (1%)", "P-E3b.1 (5%)", "P-E3b.2"]))
 
@@ -514,7 +521,7 @@ def e3_maps(fid, runs, width):
             ax.plot(v[0], v[1], marker=MK["FGO"], ms=6, mfc=SURF, mec=C["FGO"], mew=1.3, ls="", zorder=5)
         check(fid, f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8",
               "stats.json landmarks_final; room_tags_map.json")
-        ax.set_title(T(lab), loc="left", fontsize=9.0)
+        ax.set_title(T(f"({'ab'[i]})"), loc="left", fontsize=9.0)      # panel label only (a)/(b); the run description is in the caption
         ax.set_aspect(1.0, adjustable="box")
         ax.set_xlabel("from the start tag, x (m)")
     axs[0].set_ylabel("from the start tag, y (m)")
@@ -546,14 +553,14 @@ save("C06", fig, "eval/figs_cand_c_extract.py cache (bag /ground_truth/pose of T
 
 C05_CAP = ("Extension E3 (wrong tag IDs), main example: raw, from the start tag, nothing fitted. Grey = true track and the 8 true "
            "tags; orange = the "
-           "FGO's hindsight track (after landing) and its final tag map, equal scale, identical limits in both panels. Left: no "
-           "wrong IDs (Experiment 3, flight 1), the final map matches the room. Right: 1% wrong IDs, FGO as built (flight 1, seed 0), "
+           "FGO's hindsight track (after landing) and its final tag map, equal scale, identical limits in both panels. (a) No "
+           "wrong IDs (Experiment 3, flight 1), the final map matches the room. (b) 1% wrong IDs, FGO as built (flight 1, seed 0), "
            "the final map is shrunk inward from the true square.")
 guard("C05", C05_CAP)
 write_caption("C05", C05_CAP + "\n\n" + pointer_line([]))
 C06_CAP = ("Extension E3 (wrong tag IDs), appendix: raw, from the start tag, nothing fitted. Two more wrong-ID runs, same drawing "
-           "and equal scale as candidate C05. Left: 5% "
-           "wrong IDs, FGO as built (flight 3, seed 0), the final map shrunk, as in C05's right-hand panel. Right: 5% wrong IDs, "
+           "and equal scale as candidate C05. (a) 5% "
+           "wrong IDs, FGO as built (flight 3, seed 0), the final map shrunk, as in C05 panel (b). (b) 5% wrong IDs, "
            "robust FGO (flight 2, seed 1), the one robust run that collapsed: the final map folded into a different arrangement from "
            "the true square rather than merely shrinking.")
 guard("C06", C06_CAP)
