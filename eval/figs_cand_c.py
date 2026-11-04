@@ -337,12 +337,20 @@ ax.set_ylim(0, 5.7)
 ax.axhspan(min(REF3), max(REF3), color="#dddddd", lw=0, zorder=1)
 for j, (a, r) in enumerate(GR3):
     ns = runs3(a, r)
-    xs = np.linspace(j - 0.32, j + 0.32, len(ns))
-    for x_, n in zip(xs, ns):
-        if DIV3[n]:
-            ax.plot(x_, YDIV, marker="x", color=C["FGO"], ms=8, mew=1.8, ls="none", zorder=4)
-        else:
-            ax.plot(x_, LIVE3[n], marker=MK["FGO"], color=C["FGO"], ms=6, ls="none", zorder=4)
+    live_ns = [n for n in ns if not DIV3[n]]
+    div_ns = [n for n in ns if DIV3[n]]
+    # Live and diverged runs get their own independent, deterministic horizontal spread -- not a shared
+    # linspace over all runs in the group -- so a group with few diverged runs (e.g. 6 of 9 here) doesn't
+    # inherit cramped spacing from sharing index slots with the live runs. The diverged span (+-0.4) is
+    # slightly wider than the live span (+-0.32) since "x" markers need more clearance than squares to stay
+    # visually separate at this marker size, while staying inside the 1.0-unit column pitch so neighbouring
+    # columns (e.g. "5% wrong IDs, FGO as built" at j+1) never overlap.
+    live_xs = np.linspace(j - 0.32, j + 0.32, len(live_ns)) if len(live_ns) > 1 else [j]
+    for x_, n in zip(live_xs, live_ns):
+        ax.plot(x_, LIVE3[n], marker=MK["FGO"], color=C["FGO"], ms=6, ls="none", zorder=4)
+    div_xs = np.linspace(j - 0.4, j + 0.4, len(div_ns)) if len(div_ns) > 1 else [j]
+    for x_, n in zip(div_xs, div_ns):
+        ax.plot(x_, YDIV, marker="x", color=C["FGO"], ms=8, mew=1.8, ls="none", zorder=4)
 ax.set_xticks(range(5))
 ax.set_xticklabels([T(LAB3[g]) for g in GR3], fontsize=9.0)
 ax.set_yticks([0, 1, 2, 3, 4, YDIV])
