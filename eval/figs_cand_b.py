@@ -210,13 +210,15 @@ for j, c in enumerate(TCOND):
     vals = {e: agg["conditions"][c]["mean_rmse_m"][f"{e} live"] for e in EST}
     # Stagger labels by rank of bar HEIGHT, not by fixed estimator identity (a fixed per-estimator offset breaks
     # whenever the relative order of two bars flips between conditions - exactly what happened in condition B, where
-    # EKF3 < UKF but EKF3's label used the larger offset, landing almost on top of UKF's). Each label is pushed just
-    # far enough above the next-lower one's label to guarantee MIN_GAP of clear vertical space between them.
+    # EKF3 < UKF but EKF3's label used the larger offset, landing almost on top of UKF's). The LOWER bar of a close
+    # pair keeps its label right at its own bar (default offset); the TALLER bar's label is the one pushed up, just
+    # far enough to clear the lower one's label by MIN_GAP - so a label never floats far from a short bar, and the
+    # vertical order of the labels always matches the vertical order of the bars.
     yoff = {e: 0.003 for e in EST}
     order = sorted(EST, key=lambda e: vals[e])
     for lo, hi in zip(order[:-1], order[1:]):
         if vals[hi] + yoff[hi] - (vals[lo] + yoff[lo]) < MIN_GAP:
-            yoff[lo] = (vals[hi] + yoff[hi] + MIN_GAP) - vals[lo]
+            yoff[hi] = (vals[lo] + yoff[lo] + MIN_GAP) - vals[hi]
     for e in EST:
         x = j + offs[e]; v = vals[e]
         ax.bar(x, v, width=0.23, color=C[e], zorder=3)
@@ -518,10 +520,15 @@ worstm = {e: max(lo[FLY5[e][1]]["effective"]["drift_m"] for t in FLY5[e][0] for 
 VW = {e: rd_si(worstm[e], 0, 3) for e in EST}
 LK = {e: [bool(lo[FLY5[e][1]]["lockout"]) for t in FLY5[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: f"{sum(LK[e])} / {len(LK[e])}" for e in EST}
+# The 50 mm dashed line is a REGISTERED limit (common brief: no in-plot label on it), cross-checked against its
+# source rather than drawn from a bare literal - same source eval/figs_walkthrough_extra.py's HLIM check uses.
+HLIM = si_str("0.05", 3)
+check("B06/B07 hold limit for the mean (mm) = the registered '<= 0.05 m' (METHODOLOGY.md:10687) x 10^3, exact", HLIM, "50", "METHODOLOGY.md:10687")
+cite("METHODOLOGY.md", 10687, "mean hold error ≤ 0.05 m", "B06/B07 ")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 58)
-ax.axhline(50, color=GRID, ls=(0, (6, 4)), lw=1.8, zorder=1)
+ax.axhline(float(HLIM), color=TRUTH, ls=(0, (6, 4)), lw=1.8, zorder=1)
 for i, e in enumerate(EST):
     ax.bar(i, HVM[e], width=0.62, color=C[e], zorder=3)
     ax.text(i, HVM[e] + 1.2, f"{VH[e]} mm", ha="center", va="bottom", fontsize=9.5)
@@ -541,10 +548,19 @@ for e, x in zip(EST, ("31", "26", "27")):
     check(f"B07 {e}: worst drift over all tag losses (mm)", VW[e], x, "eval/results/expH losses[].effective.drift_m")
 for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12")):
     check(f"B07 {e}: losses with a lockout / losses", VN[e], x, "eval/results/expH losses[].lockout")
+# The "50 to 200 mm for EKF3 and the FGO, twice that for the UKF" claim in the caption, and the dashed reference
+# line's value, both cross-checked against the pre-registered drift bands (not the bare BAND5 literal alone) -
+# Table 6.1's own statement of H5.5, the same source eval/figs_walkthrough_extra.py's DLIM check uses.
+check("B07 pre-registered drift bands (mm): EKF3 / FGO / UKF", f"{BAND5['EKF3']} / {BAND5['FGO']} / {BAND5['UKF']}",
+      "[50, 100, 200, 150] / [50, 100, 200, 150] / [100, 200, 400, 300]",
+      "docs/thesis/tables/T5_H_tag_loss_drift.md (Table 6.1, H5.5 pre-registered drift bands)")
+cite("docs/thesis/tables/T5_H_tag_loss_drift.md", 14, "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm, UKF ≤ 100 / 200 / 400 / 300 mm", "B07 ")
+check("B07 UKF's tightest band is twice EKF3/FGO's tightest (mm)", str(min(BAND5["UKF"])), str(2 * min(BAND5["EKF3"])), "this script (BAND5, checked above)")
+DLIM7 = min(BAND5["EKF3"])
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 60)
-ax.axhline(50, color=GRID, ls=(0, (6, 4)), lw=1.8, zorder=1)
+ax.axhline(DLIM7, color=TRUTH, ls=(0, (6, 4)), lw=1.8, zorder=1)
 for i, e in enumerate(EST):
     wmm = float(rd_si(worstm[e], 12, 3))
     ax.bar(i, wmm, width=0.62, color=C[e], zorder=3)
@@ -556,10 +572,13 @@ ax.grid(axis="x", visible=False)
 ax.set_ylabel("worst drift while the tag\nwas hidden (mm)")
 save(fig, "B07", "B07_5_drift_hidden", "Experiment 5: worst drift while the wall tag was hidden",
      "Experiment 5 (tag hold): how far the drone moved between the last tag sighting before a loss and the first "
-     "one after it, worst case over all tag losses, millimetres, per estimator (EKF3 and UKF loss sets as B06; FGO "
-     "from the FGO-flying hold set). Tag-loss counts shown under each estimator's x-axis label (0 lockouts in any "
-     "of them). Dashed line: the tightest of the registered per-loss limits (50 to 200 mm for EKF3 and the FGO "
-     "depending on the loss, twice that for the UKF; no in-plot label on the line itself).",
+     "one after it, worst case over all tag losses, millimetres, per estimator. Loss sets differ from B06's mean-"
+     "hold bars (EKF3's bar there is the far-spawn set only): EKF3 here is BOTH its near- and far-spawn hold sets "
+     "(6 flights, 24 losses, the same combined set Table 6.1 uses), UKF the same loss set as B06 (3 flights, 12 "
+     "losses), FGO from the FGO-flying hold set (3 flights, 12 losses). Tag-loss counts shown under each "
+     "estimator's x-axis label (0 lockouts in any of them). Dashed line: the tightest of the registered per-loss "
+     "drift bands, 50 mm (EKF3 and FGO; their full bands are 50–200 mm depending on the loss, Table 6.1); the "
+     "UKF's bands are twice these (100–400 mm) and so are never the tightest (no in-plot label on the line itself).",
      "eval/results/expH/{s1_r1..r3,s1far_r1..r3b,s2v2_r1..r3,s3v2_r1..r3}.json (losses[].effective.drift_m, losses[].lockout)",
      "walkthrough extra/ex_5_hold_drift.png (right panel) and summary page 11", "H5.5; H5.7",
      "eval/results/expH/*.json")
@@ -593,6 +612,14 @@ BT5 = {"ua": "0.10", "ub": rd(J5S["ub"]["S-A2"]["bound_s"], 2), "fa": rd(J5S["fa
 for k, exp in (("ua", "0.10"), ("ub", "5.50"), ("fa", "0.75"), ("fb", "0.75")):
     check(f"B08 {SF[k]}: position-lost declaration limit AS DISPLAYED (s)", BT5[k], exp, "METHODOLOGY.md:11299 (UKF (a): within 0.1 s); "
           f"eval/results/expH/{SF[k]}.json S-A2.bound_s (ub/fa/fb only)")
+# "ua"'s 0.10 s above is a literal, not read from the json (see the scorer-artefact note) - ground it against the
+# registered text itself, not just against its own expected string, so it is a real cross-check.
+cite("METHODOLOGY.md", 11299, "within **0.1 s** of TFAIL", "B08 ")
+check("B08 ua: displayed limit (s) = the registered 0.1 s (METHODOLOGY.md:11299), formatted to 2 dp", rd("0.1", 2), BT5["ua"], "METHODOLOGY.md:11299")
+# The caption's "3 degrees / 5 degrees" attitude bound and "1.5 m" landing-displacement bound, cross-checked
+# against their own registered text (neither was checked anywhere in this script before this fix sweep).
+cite("METHODOLOGY.md", 11295, "≤ **3°** max, and |yaw − GT| ≤ **5°**", "B08 ")
+cite("METHODOLOGY.md", 11304, "touchdown ≤ **1.5 m**", "B08 ")
 PF5 = lambda b: "PASS" if b else "FAIL"
 VS5 = {}
 for k, exp in (("ua", "PASS PASS PASS"), ("ub", "PASS FAIL PASS"), ("fa", "PASS PASS PASS"), ("fb", "PASS PASS PASS")):
