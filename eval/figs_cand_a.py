@@ -623,17 +623,6 @@ def _raw_max(k):
     return mx
 
 
-def paths_raw(ax, UN, key, trs, win_of, col, lim, ls="-"):
-    wallband(ax, lim)
-    for tr in trs:
-        tg, ng, eg = UN[(key, tr)][4]; w = tg <= win_of(tr)[1]
-        ax.plot(eg[w], ng[w], color=TRUTH, lw=1.3, zorder=2)
-    for tr in trs:
-        ax.plot(UN[(key, tr)][2], UN[(key, tr)][1], color=col, lw=0.9, ls=ls, zorder=3)
-    ax.plot(0, 0, marker="o", ms=4, color=INK, zorder=5)
-    ax.set_aspect(1.0, adjustable="box")
-
-
 CLJ = {tr: L(f"closed_loop_{tr}.json") for tr in HALF["EKF3"][1]}
 FRC = 0; CLE = {}
 for tr in HALF["EKF3"][1]:
@@ -644,40 +633,89 @@ for tr in HALF["EKF3"][1]:
     wk = K[:, 0] <= s1; wg = g[:, 0] <= s1
     CLE[tr] = (K[wk, 1], K[wk, 2], g[wg, 2], g[wg, 1])
 check("A09 closed-loop EKF3 panel frame check (XKF1 core 0 vs SIM, heading tolerance 10 deg)", f"{FRC}/3", "3/3", "this script")
-PAN = [("EKF3", "EKF3\nno heading"), ("UKF_baseline", "UKF\nno heading"), ("FGO_baseline", "FGO\nno heading"),
-       ("EKF3_cl", "EKF3, with\nheading"),
-       ("UKF_heading", "UKF\nwith heading"), ("FGO_heading", "FGO\nwith heading")]
+# REWORK (2026-11-04, user request): "make them 2 per row where each row is the estimator showing the path with and
+# without heading, I can't read them properly it is too small". Replaced the 1x6 narrow-strip layout above with a
+# 3x2 grid (rows EKF3/UKF/FGO, columns without/with heading) and ROTATED axes (North horizontal, East vertical, as
+# in Figure 4.1/F2) at a TRUE 1:1 equal scale, so each panel is wide rather than a thin vertical strip. Same data,
+# same frame map, same windows as before - only the layout and axis orientation changed.
+ROWEST = ["EKF3", "UKF", "FGO"]
+PAN2 = [[("EKF3", "a"), ("EKF3_cl", "b")],
+        [("UKF_baseline", "c"), ("UKF_heading", "d")],
+        [("FGO_baseline", "e"), ("FGO_heading", "f")]]
+# LIMB (unchanged formula, now used as the Y half-range, East, instead of the old X half-range): max |East| over
+# every plotted ESTIMATE curve (UNB/CLE), plus a margin, floor 10 m (so the wall band is never inverted).
 LIMB = max([float(np.abs(v[2]).max()) for v in UNB.values()] + [float(np.abs(v[1]).max()) for v in CLE.values()] + [10.0]) + 4.0
-fig = plt.figure(figsize=(TEXT_WIDTH_IN, 4.6))
-gs = fig.add_gridspec(1, 6, wspace=0.55)
-axs = [fig.add_subplot(gs[0, i]) for i in range(6)]
-for ax in axs[1:]:
-    ax.sharex(axs[0]); ax.sharey(axs[0])
-for ax, (key, lab) in zip(axs, PAN):
-    if key == "EKF3_cl":
-        wallband(ax, LIMB)
-        for tr in HALF["EKF3"][1]:
-            en, ee, gn, ge = CLE[tr]; ax.plot(ge, gn, color=TRUTH, lw=1.3, zorder=2)
-        for tr in HALF["EKF3"][1]:
-            en, ee, gn, ge = CLE[tr]; ax.plot(ee, en, color=C["EKF3"], lw=0.9, zorder=3)
-        ax.plot(0, 0, marker="o", ms=4, color=INK, zorder=5); ax.set_aspect(1.0, adjustable="box")
-        ax.set_title(lab, loc="left", fontsize=9.0, color=C["EKF3"])
-    else:
-        paths_raw(ax, UNB, key, B_FL, lambda tr: P4E[tr]["window_s"], C[key.split("_")[0]], LIMB)
-        ax.set_title(lab, loc="left", fontsize=9.0, color=C[key.split("_")[0]])
-    ax.set_xlabel("East (m)", fontsize=9)
-for ax in axs[1:]:
-    plt.setp(ax.get_yticklabels(), visible=False)
-axs[0].set_ylabel("North (m)"); axs[0].set_xlim(-LIMB, LIMB); axs[0].set_ylim(-3, 163)
+XLIMB = (-5.0, 165.0)
+fig, axs = plt.subplots(3, 2, figsize=(TEXT_WIDTH_IN, 7.4), sharex=True, sharey=True,
+                         gridspec_kw={"hspace": 0.12, "wspace": 0.10})
+for r, row in enumerate(PAN2):
+    est = ROWEST[r]
+    for c, (key, letter) in enumerate(row):
+        ax = axs[r, c]
+        wallband(ax, LIMB, vertical=False)
+        if key == "EKF3_cl":
+            for tr in HALF["EKF3"][1]:
+                en, ee, gn, ge = CLE[tr]; ax.plot(gn, ge, color=TRUTH, lw=1.3, zorder=2)
+            for tr in HALF["EKF3"][1]:
+                en, ee, gn, ge = CLE[tr]; ax.plot(en, ee, color=C["EKF3"], lw=0.9, zorder=3)
+        else:
+            for tr in B_FL:
+                tg, ng, eg = UNB[(key, tr)][4]; w = tg <= P4E[tr]["window_s"][1]
+                ax.plot(ng[w], eg[w], color=TRUTH, lw=1.3, zorder=2)
+            for tr in B_FL:
+                ax.plot(UNB[(key, tr)][1], UNB[(key, tr)][2], color=C[est], lw=0.9, zorder=3)
+        ax.plot(0, 0, marker="o", ms=4, color=INK, zorder=5)
+        ax.set_aspect(1.0, adjustable="box")
+        # Panel label (a)-(f): drawn with ax.text(), not ax.set_title(loc="left") - save()'s mechanical text-layout
+        # check only scans ax.title (the CENTRE title slot), not the separate _left_title object loc="left" writes
+        # to, so a loc="left" title is invisible to that check. ax.text() is scoped by ax.texts and so IS checked.
+        ax.text(0.03, 0.95, f"({letter})", transform=ax.transAxes, ha="left", va="top", fontsize=9.5, color=INK)
+    # Row label (estimator name, once per row, at the left, outside the data, in the estimator colour) - also
+    # ax.text(), for the same reason as the panel labels above.
+    axs[r, 0].text(-0.14, 0.5, est, transform=axs[r, 0].transAxes, ha="right", va="center", rotation=90,
+                   fontsize=10.5, color=C[est], clip_on=False)
+# Column headers ("without heading" / "with heading"), once each, above the top row only - not repeated on every
+# panel.
+for c, head in enumerate(["without heading", "with heading"]):
+    axs[0, c].text(0.5, 1.14, head, transform=axs[0, c].transAxes, ha="center", va="bottom", fontsize=10,
+                   color=INK, clip_on=False)
+axs[0, 0].set_xlim(*XLIMB); axs[0, 0].set_ylim(-LIMB, LIMB)
+for r in (0, 1):
+    for c in (0, 1):
+        plt.setp(axs[r, c].get_xticklabels(), visible=False)
+for r in range(3):
+    plt.setp(axs[r, 1].get_yticklabels(), visible=False)
+fig.supxlabel("distance along the corridor, North (m)", fontsize=10.5)
+fig.supylabel("sideways, East (m)", x=0.01, fontsize=10.5)
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A09 ")
 check("A09 flights per panel (n)", len(B_FL), 3, "B_FL (fwdc_tex_r1..r3)")
+# Non-reflexive layout checks added for the rework (fix-sweep-style, see docs/handovers/2026-11-04_cand_a.md "A09
+# rework"): a true 1:1 scale on every panel (not just the aspect=1.0 call - measured from the rendered axes box),
+# identical limits on all six, and no plotted curve clipped by the shared x-limits.
+fig.canvas.draw()
+STR6 = [rd(measured_stretch(fig, axs[r, c]), 3) for r in range(3) for c in range(2)]
+check("A09 all six panels at a true 1:1 scale (North vs East), measured stretch factor", " / ".join(STR6),
+      " / ".join(["1.000"] * 6), "this script (measured_stretch(), set_aspect(1.0, adjustable='box'))")
+LIMSET = {(axs[r, c].get_xlim(), axs[r, c].get_ylim()) for r in range(3) for c in range(2)}
+check("A09 all six panels share identical x/y limits (distinct limit-pairs seen)", str(len(LIMSET)), "1", "sharex/sharey")
+NMAXB = max([float(v[1].max()) for v in UNB.values()] + [float(v[4][1].max()) for v in UNB.values()] +
+            [float(v[0].max()) for v in CLE.values()] + [float(v[2].max()) for v in CLE.values()])
+NMINB = min([float(v[1].min()) for v in UNB.values()] + [float(v[4][1].min()) for v in UNB.values()] +
+            [float(v[0].min()) for v in CLE.values()] + [float(v[2].min()) for v in CLE.values()])
+check("A09 North extent of every plotted curve fits inside the shared x-limits (-5, 165 m), no clipping",
+      "ok" if (-5.0 <= NMINB and NMAXB <= 165.0) else f"{rd(NMINB, 1)} to {rd(NMAXB, 1)}", "ok",
+      "UNB/CLE North columns (ng/gn), this script")
 save(fig, "A09", "A09_1B_unaligned_paths", "With the camera heading the UKF and FGO paths stay on the true path",
-     "Experiment 1B flights 1-3 (textured walls over the textured floor), raw position estimate from take-off to the end "
-     "of the cruise window, truth grey; walls at East = ±10 m (grey band). Six panels, equal scale, sharing one "
-     "pair of axes: EKF3/UKF/FGO without the camera heading; EKF3 with heading is a closed-loop Experiment 1C flight "
-     "(flown, not a replay of this recording - it has no offline heading arm); UKF/FGO with the camera heading (offline "
-     "heading arms). Paths are raw: no fitted alignment. The registered fitted score and the raw maximum error per arm "
-     "are in candidate A10 (companion markdown table).",
+     "Experiment 1B flights 1-3 (textured walls over the textured floor, fwdc_tex_r1-r3), raw position estimate from "
+     "take-off to the end of the cruise window; true path grey, take-off marked with a circle. Six panels, one per "
+     "estimator (row, EKF3/UKF/FGO top to bottom) and arm (column, without the camera heading on the left, with it "
+     "on the right); all six share one pair of rotated axes, as in Figure 4.1: distance along the corridor (North) "
+     "horizontal, sideways position (East) vertical, at a true 1:1 scale, with identical limits on every panel. "
+     "Walls at East = ±10 m (grey band, labelled 'wall'). Panel (b), EKF3 with heading, is the closed-loop "
+     "Experiment 1C flight (flown, not a replay of this recording) - EKF3 has no offline heading arm, so this panel "
+     "is not an offline score. Panels (d) and (f) (UKF/FGO with heading) are the offline heading arms. Paths are "
+     "raw: no fitted alignment. The registered fitted score and the raw maximum error per arm are in candidate A10 "
+     "(companion markdown table).",
      "TUMs of fwdc_tex_r1..r3 ({ekf3,ukf_baseline,fgo_baseline,ukf_heading,fgo_heading}/*.tum); frame map (N, E) = (x, "
      "-y) for the UKF/FGO; windows and cruise ATEs phase4_fwdc_evo.json; closed-loop panel: dataflash XKF1 (core 0) and "
      "SIM of cl_bcpp_tex_r1..r3_half, cruise window closed_loop_<trial>.json mapped to SITL time by the rebuilt clock map",
