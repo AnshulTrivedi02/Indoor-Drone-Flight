@@ -1147,7 +1147,11 @@ def cl_yaw_err(tr, est):
     return te - js["cruise_s"][0], err, dclk
 
 
-fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 4.3))
+# SPLIT (2026-11-04, group A candidate-figure brief): panel (b) was a linear ±1° inset drawn on top of panel (a) - an overlapping
+# plot under the no-overlap house rule. Now two STACKED panels sharing one time axis: (a) is the former main axis unchanged (both
+# arms, to the wall contact); (b) is the former inset's content (the 9 with-heading flights only) as its own full-width panel on
+# its own ±1° scale, below (a) rather than drawn on top of it. No pixel of panel (a) or of the with-heading curves/scale changes.
+fig, (ax, axi) = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 5.6), gridspec_kw={"height_ratios": [1.5, 1.0]})
 ax.axhspan(-2.0, 2.0, color=TRUTH, alpha=0.16, lw=0, zorder=1)
 ax.axhline(0, color=INK2, lw=0.6, zorder=2)
 DB3 = []; DCLK = []; INSF9 = []; ENDF9 = {}; WALLF9 = {}; B3F9 = {e: [] for e in EST}
@@ -1172,18 +1176,19 @@ for est in EST:
     ax.annotate(est, (xe, ye), xytext=(lx, ly), fontsize=9, color=INK, ha=ha_,
                 va="center", arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
 P95F9 = max(b["p95_deg"] for e in EST for b in B3F9[e]); MAXF9 = max(b["max_deg"] for e in EST for b in B3F9[e])
-ax.set_xlim(0, 310); ax.set_ylim(-17, 23)
-# LINEAR INSET (user ruling 2026-10-17): the 9 with-heading flights only, same units and time axis, y ±1°; below zero, where no line runs
-axi = ax.inset_axes([0.52, 0.06, 0.46, 0.30])
+ax.set_xlim(0, 310); ax.set_ylim(-17, 23); ax.set_title("(a)", loc="left", fontsize=9.5)
+plt.setp(ax.get_xticklabels(), visible=False)
+# PANEL (b) (2026-11-04 split of the former inset): the 9 with-heading flights only, same units and time axis, its own ±1° scale -
+# a separate full-width panel below (a), not drawn on top of it.
+axi.axhspan(-2.0, 2.0, color=TRUTH, alpha=0.16, lw=0, zorder=1)
 for est, xx, ee in INSF9:
-    axi.plot(xx, ee, color=C[est], lw=0.8, ls="-", alpha=0.9)
-axi.axhline(0, color=INK2, lw=0.5)
-axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1]); axi.tick_params(labelsize=9)
-axi.set_ylabel("heading error (°)", fontsize=9)
-axi.set_title("with heading", fontsize=9, loc="left", pad=2)
-for s_ in ("top", "right"):
-    axi.spines[s_].set_visible(True)
-ax.set_xlabel("time since cruise start (s)"); ax.set_ylabel("heading error, estimate − truth (°)")
+    axi.plot(xx, ee, color=C[est], lw=1.0, ls="-", alpha=0.9, zorder=3)
+axi.axhline(0, color=INK2, lw=0.6, zorder=2)
+axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1])
+axi.set_title("(b)", loc="left", fontsize=9.5)
+axi.set_ylabel("heading error (°)")
+axi.set_xlabel("time since cruise start (s)")
+ax.set_ylabel("heading error, estimate − truth (°)")
 h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
     [Line2D([], [], color=INK2, lw=1.6, ls=(0, (5, 3)), label="no heading"),
      Line2D([], [], color=INK2, lw=1.0, ls="-", label="with heading"),
@@ -1230,8 +1235,8 @@ save(fig, "F9", "F9_heading_error_closed_loop",
      f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
      f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
      f"{TNUM['F2']}. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
-     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), so on the main axis their lines lie on zero (grey band: the ±2.0° heading-error bound); "
-     "the inset (linear, y-axis ±1°, the same time axis) shows them alone. Builds: the final UKF port and the final FGO node "
+     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), so in panel (a) their lines lie on zero (grey band: the ±2.0° heading-error bound); "
+     "panel (b), the same time axis on its own linear ±1° scale, shows them alone. Builds: the final UKF port and the final FGO node "
      "(original FGO priors), as in " + TNUM["F2"] + ". n = 1 flight per estimator without heading; closed-loop run-to-run variability is "
      "unmeasured; no comparison across real-time factors.",
      "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
@@ -2476,7 +2481,8 @@ with open(INDEX, "w") as f:
             f"{TNUM['T4']}); F6 ({TNUM['F6']}) is the time trace only (the per-flight RMSE moved to {TNUM['T6']}); F5 and F7 are unchanged. "
             f"T7 ({TNUM['T7']}, failure behaviour) and T8 ({TNUM['T8']}, hindsight ratio) are new.\n\n")
     f.write(f"**Added 2026-10-17: F9, PROVISIONAL label \"{TNUM['F9']}\"** (heading error against time on the same closed-loop "
-            f"flights as {TNUM['F2']}, with a linear inset of the with-heading flights). By user ruling no figure or table is renumbered "
+            f"flights as {TNUM['F2']}, with a second panel at a linear ±1° scale of the with-heading flights, split from a former "
+            "inset on 2026-11-04). By user ruling no figure or table is renumbered "
             "now: every existing number is unchanged, and the final number is assigned once, after the chapter plan is locked. "
             "The provisional label sorts directly after Figure 4.1. Note: the results-chapter trajectory figure R3 "
             "(`eval/figs_thesis_results.py`, `index_results.md`) also proposes \"Figure 4.2\" provisionally; both are resolved in "
