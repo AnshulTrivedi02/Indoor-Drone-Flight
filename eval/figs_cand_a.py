@@ -466,8 +466,8 @@ for ax, e in zip(axs, EST):
     for tr in A_FL:
         v = UN1[(e, tr)]; ax.plot(v[0], v[3], color=C[e], lw=0.9, zorder=3)
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
-axs[0].set_ylim(0, None); axs[-1].set_xlabel("time since the start of the cruise (s); take-off is before the dotted line at 0")
-fig.supylabel("horizontal error (m)", x=0.01)
+axs[0].set_ylim(0, None); axs[-1].set_xlabel("time since the start of the cruise (s)")
+fig.supylabel("horizontal error (m)", x=0.01, fontsize=10.5)
 assert len({ax.get_ylim() for ax in axs}) == 1
 save(fig, "A07", "A07_1A_unaligned_err", "Without a heading source the raw horizontal error grows to metres-to-tens-of-metres",
      "Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, Experiment "
@@ -587,7 +587,7 @@ PAN = [("EKF3", "EKF3\nno heading"), ("UKF_baseline", "UKF\nno heading"), ("FGO_
        ("UKF_heading", "UKF\nwith heading"), ("FGO_heading", "FGO\nwith heading")]
 LIMB = max([float(np.abs(v[2]).max()) for v in UNB.values()] + [float(np.abs(v[1]).max()) for v in CLE.values()] + [10.0]) + 4.0
 fig = plt.figure(figsize=(TEXT_WIDTH_IN, 4.6))
-gs = fig.add_gridspec(1, 6, wspace=0.1)
+gs = fig.add_gridspec(1, 6, wspace=0.55)
 axs = [fig.add_subplot(gs[0, i]) for i in range(6)]
 for ax in axs[1:]:
     ax.sharex(axs[0]); ax.sharey(axs[0])
@@ -652,9 +652,12 @@ def err_rows_cand(fid, name, title, rows, data, ylab, ylim, caption, inputs, sou
         for tr in B_FL:
             x, y = data[(key, tr)]; ax.plot(x, y, color=col, lw=0.9, zorder=3)
         ax.set_title(lab, loc="left", fontsize=9.5, color=col)
-    axs[0].set_ylim(*ylim); axs[-1].set_xlabel("time since the start of the cruise (s); take-off is before the dotted line at 0")
-    fig.supylabel(ylab, x=0.01)
+    axs[0].set_ylim(*ylim); axs[-1].set_xlabel("time since the start of the cruise (s)")
+    fig.supylabel(ylab, x=0.01, fontsize=10.5)
     assert len({ax.get_ylim() for ax in axs}) == 1
+    # Own check for the "3 flights" the caption states (fix sweep, 2026-11-04) - this function is shared by
+    # A11/A12, so each gets its own row rather than relying on a check registered under a different candidate.
+    check(f"{fid} flights per panel (n)", len(B_FL), 3, "B_FL (fwdc_tex_r1..r3)")
     save(fig, fid, name, title, caption, inputs, source_chart, None)
 
 
@@ -662,16 +665,18 @@ err_rows_cand("A11", "A11_1B_unaligned_err_noheading", "Without the camera headi
               [("EKF3", C["EKF3"], "EKF3, no heading"), ("UKF_baseline", C["UKF"], "UKF, no heading"), ("FGO_baseline", C["FGO"], "FGO, no heading")],
               {k: (v[0], v[3]) for k, v in UNB.items()}, "horizontal error (m)", (0, None),
               "Experiment 1B flights 1-3, WITHOUT the camera heading, no fitted alignment: the raw horizontal distance "
-              "between the estimate and the true position against time since the start of the cruise, one panel per "
-              "estimator, sharing one y-scale, 3 flights (one line each) per panel.",
+              "between the estimate and the true position against time since the start of the cruise (take-off is "
+              "before the dotted line at 0 s), one panel per estimator, sharing one y-scale, 3 flights (one line each) "
+              "per panel.",
               "as candidate A09", "walkthrough fl_1B_unaligned_err_noheading.png (generated, not composed into a numbered walkthrough page since D63)")
 err_rows_cand("A12", "A12_1B_unaligned_err_heading", "With the camera heading the raw error stays close to the true path",
               [("UKF_heading", C["UKF"], "UKF, with heading"), ("FGO_heading", C["FGO"], "FGO, with heading")],
               {k: (v[0], v[3]) for k, v in UNB.items()}, "horizontal error (m)", (0, None),
               "Experiment 1B flights 1-3, WITH the camera heading (offline heading arms; EKF3 has no offline heading "
               "arm), no fitted alignment: the raw horizontal distance between the estimate and the true position against "
-              "time since the start of the cruise, one panel per estimator, sharing one y-scale, 3 flights (one line "
-              "each) per panel. The y-scale here is much finer than candidate A11.",
+              "time since the start of the cruise (take-off is before the dotted line at 0 s), one panel per estimator, "
+              "sharing one y-scale, 3 flights (one line each) per panel. The y-scale here is much finer than candidate "
+              "A11.",
               "as candidate A09", "walkthrough fl_1B_unaligned_err_heading.png (generated, not composed into a numbered walkthrough page since D63)")
 
 
@@ -718,7 +723,7 @@ for ax, e in zip(axs, EST):
     ax.text(4.0, 1.6, e, fontsize=10.5, color=C[e], ha="left", va="bottom")
     ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
 axs[0].set_xlim(-16, 166); axs[0].set_ylim(-LIMC, LIMC); axs[-1].set_xlabel("along the corridor, North (m)")
-fig.supylabel("sideways, East (m)", x=0.01)
+fig.supylabel("sideways, East (m)", x=0.01, fontsize=10.5)
 cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m", label="A13 ")
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A13 ")
 cite(M_, 4948, "[+155, +215] s", label="A13 "); cite(M_, 7513, "[+146, +218] s", label="A13 "); cite(M_, 8995, "[+145, +196] s", label="A13 ")
@@ -750,7 +755,13 @@ for ax, e in zip(axs, EST):
     # the axes); the per-estimator contact times are stated in the caption below instead.
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("heading error, estimate − truth (°)", x=0.01)
+fig.supylabel("heading error, estimate − truth (°)", x=0.01, fontsize=10.5)
+# Own check rows for the contact times this caption states (fix sweep, 2026-11-04): CHK resets every save(), so
+# A13's own check of these same CT[e] values does not carry over to A14's index row - if the user picks A14
+# alone, its row needs to stand on its own.
+for e in EST:
+    check(f"A14 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A14", "A14_1C_head_off", "Without a heading source each estimator's heading error grew until the wall",
      "Experiment 1C, the same no-heading closed-loop flights as Figure 4.1b (F9), textured corridor at half real-time "
      "(RTF 0.5), 1 flight per estimator. Heading error (estimate − truth) against time since cruise start, one panel "
@@ -770,8 +781,9 @@ for ax, e in zip(axs, EST):
     # "with heading, 3 flights" is already stated in the caption.
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-2.6, 2.9); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("heading error, estimate − truth (°)", x=0.01)
+fig.supylabel("heading error, estimate − truth (°)", x=0.01, fontsize=10.5)
 cite(M_, 4958, "95th percentile ≤ 1.0°, maximum ≤ 2.0°", label="A15 ")
+check("A15 flights shown (n, 3 per estimator)", sum(len(HALF[e][1]) for e in EST), 9, "HALF[e][1] for each estimator")
 save(fig, "A15", "A15_1C_head_on", "With the camera heading the heading error stayed inside the ±2.0° band on every flight",
      "Experiment 1C, the same with-heading closed-loop flights as Figure 4.1b (F9), textured corridor at half real-time "
      "(RTF 0.5), 9 flights (3 per estimator). Heading error (estimate − truth) against time since cruise start, one "
@@ -791,8 +803,12 @@ for ax, e in zip(axs, EST):
     # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-11, 11); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("true East (m)", x=0.01)
+fig.supylabel("true East (m)", x=0.01, fontsize=10.5)
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A16 ")
+# Own check rows for the contact times this caption states (fix sweep, 2026-11-04) - same reasoning as A14 above.
+for e in EST:
+    check(f"A16 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A16", "A16_1C_side_off", "Without a heading source the true sideways position runs to the wall",
      "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured "
      "corridor at half real-time (RTF 0.5). True sideways (East) position against time since cruise start, one panel "
@@ -813,9 +829,10 @@ for ax, e in zip(axs, EST):
     # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-0.6, 0.6); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("true East (m)", x=0.01)
+fig.supylabel("true East (m)", x=0.01, fontsize=10.5)
 check("A17 '20 times finer': y half-range of A16 / this candidate", str(round(11 / 0.6, -1)).rstrip("0").rstrip("."), "20",
       "axis limits ±11 m (A16) and ±0.6 m (A17), this script")
+check("A17 flights shown (n, 3 per estimator)", sum(len(HALF[e][1]) for e in EST), 9, "HALF[e][1] for each estimator")
 save(fig, "A17", "A17_1C_side_on", "With the camera heading the true sideways position stays near the centre line",
      "Experiment 1C, the same with-heading closed-loop flights as candidate A15, textured corridor at half real-time "
      f"(RTF 0.5), 9 flights (3 per estimator). True sideways (East) position against time since cruise start, one panel "
