@@ -19,6 +19,8 @@ import re
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 CAPD = os.path.join(ROOT, "docs", "thesis", "figures_thesis", "captions")
+# D124 (2026-11-04): the candidate figures (figures_thesis/candidates/, groups A-D) follow the same caption rule.
+CAND = os.path.join(ROOT, "docs", "thesis", "figures_thesis", "candidates", "captions")
 TA = os.path.join(ROOT, "docs", "thesis", "tables", "TA_verdicts.md")
 
 EXEMPT = {"A1", "A2", "A3"}   # appendix tables: keep their verdict cells (D113)
@@ -42,8 +44,8 @@ def ta_ids():
     return ids
 
 
-def check_file(fid, ids):
-    path = os.path.join(CAPD, f"{fid}.md")
+def check_file(fid, ids, capd=CAPD):
+    path = os.path.join(capd, f"{fid}.md")
     text = open(path, encoding="utf-8").read().rstrip("\n")
     lines = [ln for ln in text.split("\n") if ln.strip()]
     results = []
@@ -77,11 +79,14 @@ def main():
     all_results = []
     for fid in fids:
         all_results += check_file(fid, ids)
+    cfids = sorted(f[:-3] for f in os.listdir(CAND) if f.endswith(".md")) if os.path.isdir(CAND) else []
+    for fid in cfids:
+        all_results += check_file(fid, ids, CAND)
     n_ok = sum(1 for _, _, ok in all_results if ok)
     for label, val, ok in all_results:
         if not ok:
             print("   CHECK FAIL:", label, "->", val)
-    print(f"caption_verdict_check: {n_ok}/{len(all_results)} ({len(fids)} caption files checked, {len(EXEMPT)} exempt: "
+    print(f"caption_verdict_check: {n_ok}/{len(all_results)} ({len(fids)} caption files + {len(cfids)} candidate captions checked, {len(EXEMPT)} exempt: "
           f"{', '.join(sorted(EXEMPT))})")
     return 0 if n_ok == len(all_results) else 1
 
