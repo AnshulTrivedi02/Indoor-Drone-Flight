@@ -290,42 +290,56 @@ def wallband(ax, lim, vertical=True, fs=9.5):
 
 
 # =============================================================================================================== A01/A02
-# =============================================================================================== SETUP: 1A/1B truth paths
+# ======================================================================== SETUP: 1A/1B truth paths (and A21/A22, height)
 # (walkthrough S1/1A_truth/1B_truth: "where the drone really flew", COPIED data path from figs_walkthrough_flights.py
-# truth_page(). Stacked into ONE candidate per flight set, two panels (a) top-down equal-scale geography, (b) height
-# against time - NOT a shared scale, so not a side-by-side pair under the house rule; this is the same stacked-different-
-# scale pattern this group's F9 split used, not an inset, nothing drawn on top of anything else.)
+# truth_page(). SPLIT (fix sweep, 2026-11-04) from one two-panel candidate per flight set into two SEPARATE
+# single-panel candidates: A01/A02 keep the top-down equal-scale geography; A21/A22 (new ids, added below) carry the
+# height-against-time view. The original comment called this "the same stacked-different-scale pattern this group's
+# F9 split used" - re-checked against F9's own commit (c2cad19) and it is NOT the same: F9's two panels SHARE one time
+# axis (both plot heading error vs the same time, one at full scale, one zoomed); these two panels shared NEITHER axis
+# (position in metres vs height against time in seconds), so they fail "stacked only on a shared scale" under the
+# fix-sweep checklist and the user's own "all the plots should be separate" rule. A04-A06 (room_cand(), below) are NOT
+# affected - one row of panels sharing one pair of axes throughout, not stacked at different scales.)
 def truth_cand(fid, name, title, trials, gt_of, source_desc, inputs, flights_n, bag_path):
-    fig, (ax, ax2) = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 5.2), gridspec_kw={"height_ratios": [0.45, 1.0], "hspace": 0.55})
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.3))
     for s_ in (1, -1):
         ax.axhspan(10 * s_, 11 * s_, color=WALL, lw=0)
-    tmax = 0.0
     for tr in trials:
         tg, E_, N_, U_ = gt_of(tr)
         ax.plot(N_, E_, color=TRUTH, lw=0.9, zorder=2)
-        ax2.plot(tg - tg[0], U_, color=TRUTH, lw=0.9, zorder=2); tmax = max(tmax, float((tg - tg[0]).max()))
     ax.set_xlim(-6, 166); ax.set_ylim(-11, 11); ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
-    ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)"); ax.set_title("(a)", loc="left", fontsize=9.5)
+    ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)")
     st = measured_stretch(fig, ax)
-    check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0) of panel (a)")
-    ax2.set_xlim(0, None); ax2.set_ylim(0, None)
-    # x-axis (fix sweep, 2026-11-04): panel (b) was labelled "time from take-off" with a dotted line "marking"
-    # take-off at t=0 - checked against the recorded ground_truth.tum directly: height sits flat at the ground
-    # rest height (0.195 m) for the first ~20 s after t=0, so t=0 is the START OF THE RECORDING (the vehicle is
-    # still on the ground), not the moment of lift-off, which happens visibly later in the climb. The claim was
-    # wrong, and the line sat exactly on the left spine regardless (not usefully visible) - dropped the line and
-    # relabelled accurately.
-    ax2.set_xlabel("time since the start of the recording (s)"); ax2.set_ylabel("height (m)")
-    ax2.set_title("(b)", loc="left", fontsize=9.5)
+    check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
     check(f"{fid} flights shown (n)", len(trials), flights_n, source_desc)
     cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label=f"{fid} ")
     save(fig, fid, name, title,
-         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, from "
-         "the start of the recording (on the ground, before take-off) to landing. (a) seen from above, equal scale "
-         "(no stretch); the grey bands beyond East = ±10 m (CLAUDE.md:101) are the corridor walls; every flight's "
-         "true path lies on the same straight line, so the lines overlap. (b) true height against time since the "
-         "start of the recording (one line per flight; they overlap) - height stays at the ground rest height "
-         "until each flight's own take-off, then climbs. No log axes.",
+         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, seen "
+         "from above, equal scale (no stretch); the grey bands beyond East = ±10 m (CLAUDE.md:101) are the corridor "
+         "walls; every flight's true path lies on the same straight line, so the lines overlap. No log axes. The "
+         "height-against-time view of the same flights is a separate candidate.",
+         inputs, name, None)
+
+
+def height_cand(fid, name, title, trials, gt_of, source_desc, inputs, flights_n, twin_id):
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.6))
+    for tr in trials:
+        tg, E_, N_, U_ = gt_of(tr)
+        ax.plot(tg - tg[0], U_, color=TRUTH, lw=0.9, zorder=2)
+    ax.set_xlim(0, None); ax.set_ylim(0, None)
+    # x-axis (fix sweep, 2026-11-04): this panel was previously labelled "time from take-off" with a dotted line
+    # "marking" take-off at t=0 - checked against the recorded ground_truth.tum directly: height sits flat at the
+    # ground rest height (0.195 m) for the first ~20 s after t=0, so t=0 is the START OF THE RECORDING (the vehicle
+    # is still on the ground), not the moment of lift-off, which happens visibly later in the climb. The claim was
+    # wrong, and the line sat exactly on the left spine regardless (not usefully visible) - dropped the line and
+    # relabelled accurately.
+    ax.set_xlabel("time since the start of the recording (s)"); ax.set_ylabel("height (m)")
+    check(f"{fid} flights shown (n)", len(trials), flights_n, source_desc)
+    save(fig, fid, name, title,
+         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, "
+         "true height against time since the start of the recording (one line per flight; they overlap) - height "
+         "stays at the ground rest height until each flight's own take-off, then climbs, then returns to the ground "
+         f"rest height at landing. No log axes. The top-down path of the same flights is candidate {twin_id}.",
          inputs, name, None)
 
 
@@ -335,6 +349,9 @@ check("1A flights available for the standard-sensor textured dataset (n)", len(A
 truth_cand("A01", "A01_1A_truth", "Where the drone really flew: Experiment 1A, 9 flights up the corridor",
            A_FL, gt_enu("ukf"), "Experiment 1A, the standard-sensor dataset, textured floor (dsn_tex_r1-r9)",
            "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)", 9, "sim/worlds/corridor_textured.sdf")
+height_cand("A21", "A21_1A_height", "Climb, cruise and landing: Experiment 1A, 9 flights up the corridor",
+            A_FL, gt_enu("ukf"), "Experiment 1A, the standard-sensor dataset, textured floor (dsn_tex_r1-r9)",
+            "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)", 9, "A01")
 
 P4E = L("phase4_fwdc_evo.json")["trials"]
 B_FL = [f"fwdc_tex_r{i}" for i in (1, 2, 3)]
@@ -342,6 +359,9 @@ check("1B flights available for the textured-wall camera dataset, textured floor
 truth_cand("A02", "A02_1B_truth", "Where the drone really flew: Experiment 1B, 3 flights with a roof and painted-line walls",
            B_FL, gt_enu("ukf_baseline"), "Experiment 1B, the textured-wall camera dataset, textured floor (fwdc_tex_r1-r3)",
            "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline/ground_truth.tum (ENU)", 3, "sim/worlds/corridor_textured_fwdc.sdf")
+height_cand("A22", "A22_1B_height", "Climb, cruise and landing: Experiment 1B, 3 flights with a roof and painted-line walls",
+            B_FL, gt_enu("ukf_baseline"), "Experiment 1B, the textured-wall camera dataset, textured floor (fwdc_tex_r1-r3)",
+            "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline/ground_truth.tum (ENU)", 3, "A02")
 
 
 # =============================================================================================================== A03-A06
@@ -368,10 +388,18 @@ def room_cand(fid, name, title, groups, getxy, source_desc, inputs, flights_n, p
     st = measured_stretch(fig, axs[0]); check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
     n_total = sum(len(trs) for _, trs in groups)
     check(f"{fid} flights shown (n)", n_total, flights_n, source_desc)
+    sizes = {len(trs) for _, trs in groups}
+    # Per-group count (fix sweep, 2026-11-04): panel titles no longer carry "n = N" (moved here, matching
+    # figs_thesis.py's own restyle precedent of keeping only a short condition tag on a panel, not a number).
+    if len(sizes) != 1:
+        per_group = f"{n_total} flights total, not evenly split across panels"
+    else:
+        gsz = sizes.pop(); word = "flight" if gsz == 1 else "flights"
+        per_group = f"{gsz} {word}" if len(groups) == 1 else f"{gsz} {word} in each panel"
     save(fig, fid, name, title,
          f"Simulator ground truth (truth flying, nothing estimated): {source_desc}, one true path per flight (thin grey "
          f"lines, shaded to tell flights within a panel apart; black dot: take-off). {len(groups)} "
-         f"{'panel' if len(groups) == 1 else 'panels'}, equal scale "
+         f"{'panel' if len(groups) == 1 else 'panels'} ({per_group}), equal scale "
          "(1.0×), sharing one pair of axes. No log axes.",
          inputs, name, None)
 
@@ -380,16 +408,20 @@ def gt_room(tr):
     G = ex_room(tr)["G"]; return G[:, 1], G[:, 2]
 
 
+# Panel titles (fix sweep, 2026-11-04): the "n = 3" / "n = 3" counts were dropped from every group title below
+# (matching figs_thesis.py's own restyle precedent, e.g. FIG 7 L's "(a) with loop closure" - a short condition
+# tag identifying what a panel shows is kept, a number is not); each candidate's own check()/caption already
+# states the per-group and total flight counts.
 TL = {"A": "8 tags", "B": "4 tags", "C": "2 tags", "D": "1 tag"}
 room_cand("A03", "A03_2_truth", "Where the drone really flew: the 12 tag-room flights of Experiments 2 and 3",
-          [(f"{TL[c]}\nn = 3", [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
+          [(TL[c], [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
           "the 12 flights of Experiment 2 (5 laps of the 6 m square, 4 tag counts, 3 flights each)",
           "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}", 12)
 check("A03 laps / square side (m) / tags per condition", "5 / 6 / 8, 4, 2, 1", "5 / 6 / 8, 4, 2, 1",
       "Figure 5.1 caption (eval/figs_thesis.py F5: '5 laps of a 6 m square'; A all 8, B the 4 corners, C 2, D 1 tag)")
 
 O_FL = ["O_r1", "O_r2", "O_r3b"]
-room_cand("A04", "A04_4_truth", "Where the drone really flew: the 3 outdoor-indoor flights of Experiment 4", [("n = 3", O_FL)],
+room_cand("A04", "A04_4_truth", "Where the drone really flew: the 3 outdoor-indoor flights of Experiment 4", [("", O_FL)],
           gt_room, "the 3 flights of Experiment 4 (out along North into the building and back the same way)",
           "bag /ground_truth/pose of O_r1, O_r2, O_r3b", 3, pad=3.0, swap=True)
 
@@ -401,8 +433,8 @@ def sim_xy(tr):
     g = ex_sim(tr)["sim"]; return g[:, 1], g[:, 2]
 
 
-HG = [("EKF3 flying,\nnear start spot\nn = 3", H_FL[0:3]), ("EKF3 flying,\nfar start spot\nn = 3", H_FL[3:6]),
-      ("UKF flying\nn = 3", H_FL[6:9]), ("FGO flying\nn = 3", H_FL[9:12])]
+HG = [("EKF3 flying,\nnear start spot", H_FL[0:3]), ("EKF3 flying,\nfar start spot", H_FL[3:6]),
+      ("UKF flying", H_FL[6:9]), ("FGO flying", H_FL[9:12])]
 room_cand("A05", "A05_5_truth", "Where the drone really flew: the 12 hold flights of Experiment 5", HG, sim_xy,
           "the 12 flights of Experiment 5 (an estimator holds position while the wall tag is hidden), position from the "
           "take-off spot", "dataflash SIM of H_s1_r1..r3, H_s1far_r1, r2, r3b, H_s2v2_r1..r3, H_s3v2_r1..r3", 12, pad=0.3)
@@ -690,6 +722,7 @@ fig.supylabel("sideways, East (m)", x=0.01)
 cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m", label="A13 ")
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A13 ")
 cite(M_, 4948, "[+155, +215] s", label="A13 "); cite(M_, 7513, "[+146, +218] s", label="A13 "); cite(M_, 8995, "[+145, +196] s", label="A13 ")
+cite(M_, 14195, "unchanged at 0.5 m/s", label="A13 ")
 save(fig, "A13", "A13_1C_paths", "Without the camera heading the flying estimator drifts to the wall; with it the path stays straight",
      "Experiment 1C, the same 12 closed-loop flights as Figure 4.1, textured corridor at half real-time (RTF 0.5; the "
      "simulator ran at half real time, the commanded flight speed was unchanged at 0.5 m/s), each estimator flying the "
@@ -712,13 +745,17 @@ for ax, e in zip(axs, EST):
     ax.axhline(0, color=INK2, lw=0.6, zorder=1)
     ax.plot(x[w], y[w], color=C[e], lw=1.1, ls=(0, (5, 3)), zorder=3)
     ax.plot(x[w][-1], y[w][-1], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.set_title(f"{e}, no heading, 1 flight, to +{rd(tc, 1)} s", loc="left", fontsize=9.3, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed from "{e}, no heading, 1 flight, to +N s" to the estimator
+    # name only - matching figs_thesis.py's own restyle precedent (numbers belong in the caption, not drawn on
+    # the axes); the per-estimator contact times are stated in the caption below instead.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[-1].set_xlabel("time since the start of the cruise (s)")
 fig.supylabel("heading error, estimate − truth (°)", x=0.01)
 save(fig, "A14", "A14_1C_head_off", "Without a heading source each estimator's heading error grew until the wall",
      "Experiment 1C, the same no-heading closed-loop flights as Figure 4.1b (F9), textured corridor at half real-time "
-     "(RTF 0.5). Heading error (estimate − truth) against time since cruise start, one panel per estimator, sharing "
-     "one y-scale, drawn to the wall contact (X).",
+     "(RTF 0.5), 1 flight per estimator. Heading error (estimate − truth) against time since cruise start, one panel "
+     "per estimator, sharing one y-scale, drawn to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s "
+     "(the same contact times as candidate A13).",
      "dataflash XKF1 (core 0) / XUKO / XFGO and SIM, bag /imu/time_ref (clock map), of cl_a_tex_half, "
      "cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3; contact from closed_loop_<trial>.json",
      "walkthrough page 08 (fl_1C_head_off.png)", "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
@@ -729,7 +766,9 @@ for ax, e in zip(axs, EST):
     for tr in HALF[e][1]:
         d = ex_cl(e, tr); c0b, c1b = CLJA[tr]["cruise_s"]; x, y = d["yx"], d["ye"]; w = (x >= 0) & (x <= c1b - c0b)
         ax.plot(x[w], y[w], color=C[e], lw=0.9, zorder=3)
-    ax.set_title(f"{e}, with heading, 3 flights", loc="left", fontsize=9.5, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above -
+    # "with heading, 3 flights" is already stated in the caption.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-2.6, 2.9); axs[-1].set_xlabel("time since the start of the cruise (s)")
 fig.supylabel("heading error, estimate − truth (°)", x=0.01)
 cite(M_, 4958, "95th percentile ≤ 1.0°, maximum ≤ 2.0°", label="A15 ")
@@ -749,14 +788,16 @@ for ax, e in zip(axs, EST):
         ax.axhline(yw, color=INK2, lw=0.6, ls=":", zorder=1)
     ax.plot(tt[w], d["sim"][w, 1], color=C[e], lw=1.1, ls=(0, (5, 3)), zorder=3)
     ax.plot(tt[w][-1], d["sim"][w, 1][-1], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.set_title(f"{e}, no heading, 1 flight, to +{rd(tc, 1)} s", loc="left", fontsize=9.3, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-11, 11); axs[-1].set_xlabel("time since the start of the cruise (s)")
 fig.supylabel("true East (m)", x=0.01)
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A16 ")
 save(fig, "A16", "A16_1C_side_off", "Without a heading source the true sideways position runs to the wall",
-     "Experiment 1C, the same no-heading closed-loop flights as candidate A14, textured corridor at half real-time "
-     "(RTF 0.5). True sideways (East) position against time since cruise start, one panel per estimator, sharing one "
-     "y-scale, drawn to the wall contact (X); dotted lines: the walls at East = ±10 m. 0 m is the corridor centre "
+     "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured "
+     "corridor at half real-time (RTF 0.5). True sideways (East) position against time since cruise start, one panel "
+     "per estimator, sharing one y-scale, drawn to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s "
+     "(the same contact times as candidate A13); dotted lines: the walls at East = ±10 m. 0 m is the corridor centre "
      "line.",
      "dataflash SIM of cl_a_tex_half, cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3", "walkthrough page 10 (fl_1C_side_off.png)",
      "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
@@ -769,7 +810,8 @@ for ax, e in zip(axs, EST):
         d = ex_cl(e, tr); c0b, c1b = CLJA[tr]["cruise_s"]; tt = sim_t(d) - c0b; w = (tt >= 0) & (tt <= c1b - c0b)
         ax.plot(tt[w], d["sim"][w, 1], color=C[e], lw=0.9, zorder=3)
     ax.axhline(0, color=INK2, lw=0.6, zorder=1)
-    ax.set_title(f"{e}, with heading, 3 flights", loc="left", fontsize=9.5, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-0.6, 0.6); axs[-1].set_xlabel("time since the start of the cruise (s)")
 fig.supylabel("true East (m)", x=0.01)
 check("A17 '20 times finer': y half-range of A16 / this candidate", str(round(11 / 0.6, -1)).rstrip("0").rstrip("."), "20",
@@ -922,6 +964,12 @@ W += ["", "## Skipped (content already a figure/table in docs/thesis/figures_the
       "- **A08/A10 are rendered tables, not plots** (D113/common-brief rule: 'tables drawn inside a chart become a "
       "separate markdown table candidate'; A08 has no accompanying chart at all in its source page, A10 is the "
       "in-figure table split off A09's paths). Rendered at 160 mm width like a compact figure rather than full "
-      "A4-landscape (RS-3 exempts only DENSE multi-column tables, these are 3-4 columns).", ""]
+      "A4-landscape (RS-3 exempts only DENSE multi-column tables, these are 3-4 columns).",
+      "- **A01/A02 were originally one candidate each with two STACKED panels (top-down path; height against time)** - "
+      "fix sweep, 2026-11-04. Re-checked against the checklist's 'stacked only on a shared scale': the two panels "
+      "shared NEITHER axis (position in metres vs height against time in seconds), unlike the group's own F9 split "
+      "(c2cad19), whose two panels share one time axis. Split into A01/A02 (top-down only) and NEW ids A21/A22 "
+      "(height-against-time only, same flight sets). A04-A06 (room_cand()) are unaffected - one row of panels sharing "
+      "one pair of axes throughout, never stacked at a different scale.", ""]
 open(os.path.join(OUT, "index_a.md"), "w").write("\n".join(W) + "\n")
 print(f"\nTOTAL candidates {len(ITEMS)}; checks {n_ok}/{n_tot}; wrote {os.path.join(OUT, 'index_a.md')}")
