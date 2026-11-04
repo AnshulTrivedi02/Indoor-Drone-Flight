@@ -515,16 +515,23 @@ HK = {"EKF3": 3, "UKF": 0, "FGO": 0}
 VH = {e: rng_si(HV[e], 1, HK[e]) for e in EST}
 for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6")):
     check(f"B06 {e}: mean hold error, range over 3 flights (mm)", VH[e], x, "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json)")
+NFLY6 = "/".join(str(len(HV[e])) for e in EST)
+check("B06 flights per estimator", NFLY6, "3/3/3", "this script (len(HV[e])); S1far r1-r3b, S2v2 r1-r3, S3v2 r1-r3")
 HVM = {e: max(float(rd_si(v, 12, HK[e])) for v in HV[e]) for e in EST}
 worstm = {e: max(lo[FLY5[e][1]]["effective"]["drift_m"] for t in FLY5[e][0] for lo in HJ(t)["losses"]) for e in EST}
 VW = {e: rd_si(worstm[e], 0, 3) for e in EST}
 LK = {e: [bool(lo[FLY5[e][1]]["lockout"]) for t in FLY5[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: f"{sum(LK[e])} / {len(LK[e])}" for e in EST}
+NFLY7 = "/".join(str(len(FLY5[e][0])) for e in EST)
+check("B07 flights per estimator (EKF3: near + far spawn combined)", NFLY7, "6/3/3", "this script (len(FLY5[e][0])); S1+S1F, S2v2, S3v2")
 # The 50 mm dashed line is a REGISTERED limit (common brief: no in-plot label on it), cross-checked against its
 # source rather than drawn from a bare literal - same source eval/figs_walkthrough_extra.py's HLIM check uses.
 HLIM = si_str("0.05", 3)
 check("B06/B07 hold limit for the mean (mm) = the registered '<= 0.05 m' (METHODOLOGY.md:10687) x 10^3, exact", HLIM, "50", "METHODOLOGY.md:10687")
 cite("METHODOLOGY.md", 10687, "mean hold error ≤ 0.05 m", "B06/B07 ")
+# The pre-registration source (not METHODOLOGY.md's own "(primary, EKF3 flying)" label, which only names which
+# flights scored it) states this 50 mm bound for EVERY estimator, confirming one shared line for all three bars.
+cite("docs/tag_hold_design.md", 176, "H-H1 (primary): every estimator holds within tag-fix accuracy", "B06/B07 ")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 58)
@@ -536,10 +543,11 @@ ax.set_xticks(range(3)); ax.set_xticklabels(EST); ax.grid(axis="x", visible=Fals
 ax.set_ylabel("mean hold error per flight (mm)")
 save(fig, "B06", "B06_5_hold_error", "Experiment 5: mean hold error per flight, next to the wall tag",
      "Experiment 5 (tag hold): distance between where the drone was held and where it should be, mean per flight, "
-     "millimetres; each bar shows the highest of an estimator's 3 flights (lowest-highest range labelled). Each "
-     "estimator flew its own flights; EKF3's bar uses the far-spawn hold set (s1far), the same flights candidate A05 "
-     "(fl_5_truth.png) draws, while the near-spawn set (s1) is the one the primary hold-accuracy check was scored "
-     "on (H5.1). Dashed line: the registered 50 mm limit for the mean (no in-plot label on the line itself).",
+     f"millimetres; each bar shows the highest of an estimator's {NFLY6.split('/')[0]} flights (lowest-highest "
+     "range labelled). Each estimator flew its own flights; EKF3's bar uses the far-spawn hold set (s1far), the "
+     "same flights candidate A05 (fl_5_truth.png) draws, while the near-spawn set (s1) is the one the primary "
+     f"hold-accuracy check was scored on (H5.1). Dashed line: the registered {HLIM} mm limit for the mean, "
+     "pre-registered for every estimator (tag_hold_design.md, H-H1).",
      "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s2v2_r1..r3,s3v2_r1..r3}.json; h_comparative_2026-10-11.json",
      "walkthrough extra/ex_5_hold_drift.png (left panel) and summary page 10", "H5.1; H5.2",
      "eval/results/expH/*.json; eval/results/expH/h_comparative_2026-10-11.json")
@@ -570,15 +578,18 @@ ax.set_xticklabels([f"{e}\n({VN[e].split(' / ')[1]} losses)" for e in EST])   # 
                                                                                 # regular weight, off the bars
 ax.grid(axis="x", visible=False)
 ax.set_ylabel("worst drift while the tag\nwas hidden (mm)")
+EF7, UF7, FF7 = NFLY7.split("/")
+EL7, UL7, FL7 = (VN[e].split(" / ")[1] for e in EST)
 save(fig, "B07", "B07_5_drift_hidden", "Experiment 5: worst drift while the wall tag was hidden",
      "Experiment 5 (tag hold): how far the drone moved between the last tag sighting before a loss and the first "
      "one after it, worst case over all tag losses, millimetres, per estimator. Loss sets differ from B06's mean-"
-     "hold bars (EKF3's bar there is the far-spawn set only): EKF3 here is BOTH its near- and far-spawn hold sets "
-     "(6 flights, 24 losses, the same combined set Table 6.1 uses), UKF the same loss set as B06 (3 flights, 12 "
-     "losses), FGO from the FGO-flying hold set (3 flights, 12 losses). Tag-loss counts shown under each "
-     "estimator's x-axis label (0 lockouts in any of them). Dashed line: the tightest of the registered per-loss "
-     "drift bands, 50 mm (EKF3 and FGO; their full bands are 50–200 mm depending on the loss, Table 6.1); the "
-     "UKF's bands are twice these (100–400 mm) and so are never the tightest (no in-plot label on the line itself).",
+     "hold bars (EKF3's bar there is the far-spawn set only): EKF3 here is both its near- and far-spawn hold sets "
+     f"({EF7} flights, {EL7} losses, the same combined set Table 6.1 uses), UKF the same loss set as B06 ({UF7} "
+     f"flights, {UL7} losses), FGO from the FGO-flying hold set ({FF7} flights, {FL7} losses). Tag-loss counts "
+     "shown under each estimator's x-axis label (0 lockouts in any of them). Dashed line: the tightest of the "
+     f"registered per-loss drift bands, {DLIM7} mm (EKF3 and FGO; their full bands are "
+     f"{min(BAND5['EKF3'])}–{max(BAND5['EKF3'])} mm depending on the loss, Table 6.1); the UKF's bands are "
+     f"twice these ({min(BAND5['UKF'])}–{max(BAND5['UKF'])} mm) and so are never the tightest.",
      "eval/results/expH/{s1_r1..r3,s1far_r1..r3b,s2v2_r1..r3,s3v2_r1..r3}.json (losses[].effective.drift_m, losses[].lockout)",
      "walkthrough extra/ex_5_hold_drift.png (right panel) and summary page 11", "H5.5; H5.7",
      "eval/results/expH/*.json")
