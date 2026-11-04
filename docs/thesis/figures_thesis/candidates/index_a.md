@@ -1,6 +1,6 @@
 # Candidate thesis figures, group A: setup and Experiment 1 (1A/1B/1C) (decision D124)
 
-Built by `eval/figs_cand_a.py` at commit `c2cad19` (run with `/home/makerspace/venv-evo/bin/python`). These are CANDIDATES for the user to pick from - not inserted into the thesis figure set in `docs/thesis/figures_thesis/` itself. Stored outputs only: TUM files, eval/results/*.json, and a cache of dataflash/bag reads pre-populated by `eval/figs_walkthrough_flights.py --cache ~/thesis_data/cand_a_cache --extract-only` under `heavy.py` (that invocation writes nothing outside the cache directory). No estimator run, no simulation, no flight.
+Built by `eval/figs_cand_a.py` at commit `b5bac31` (run with `/home/makerspace/venv-evo/bin/python`). These are CANDIDATES for the user to pick from - not inserted into the thesis figure set in `docs/thesis/figures_thesis/` itself. Stored outputs only: TUM files, eval/results/*.json, and a cache of dataflash/bag reads pre-populated by `eval/figs_walkthrough_flights.py --cache ~/thesis_data/cand_a_cache --extract-only` under `heavy.py` (that invocation writes nothing outside the cache directory). No estimator run, no simulation, no flight.
 
 **Checks:** 64/64 EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, sha256 of the source segment used to detect drift - see below).
 

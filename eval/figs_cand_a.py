@@ -27,7 +27,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch, Rectangle
+from matplotlib.patches import Rectangle
 from pymavlink import mavutil
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
@@ -652,10 +652,15 @@ for e in EST:
     check(f"A13 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
           "docs/thesis/numbers.md (contact rows, §15)")
 
-fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 5.9), sharex=True, sharey=True)
-LIMC = 12.5
+fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 4.5), sharex=True, sharey=True, gridspec_kw={"hspace": 0.28})
+# LIMC (fix sweep, 2026-11-04): widened from 12.5 to 17.0 so the grey wall band (East = 10..LIMC m) is thick
+# enough, at this panel's equal-aspect scale, to hold a regular-weight >=9 pt "wall" label with clearance on
+# both sides - at 12.5 the band was only ~2.5 m of a 182 m-wide corridor rendered at 160 mm, a few points
+# tall, so the label overflowed the band edges (the defect this fixes). The figure height/hspace above are
+# tightened in step: the panels no longer need as much allotted cell height as the old figsize guessed.
+LIMC = 17.0
 for ax, e in zip(axs, EST):
-    wallband(ax, LIMC, vertical=False, fs=7.5)
+    wallband(ax, LIMC, vertical=False, fs=9.5)
     for yw in (9.58, -9.58):
         ax.axhline(yw, color=INK2, lw=0.6, ls=":", zorder=1)
     for tr in HALF[e][1]:
@@ -780,16 +785,16 @@ for i, e in enumerate(EST):
 ax.axvline(100, color=INK2, ls=(0, (6, 4)), lw=1.1, zorder=1)
 ax.set_xlim(90, 262); ax.set_ylim(-0.75, 2.75); ax.set_yticks(range(3)); ax.set_yticklabels(EST)
 ax.set_xlabel("time from the start of the cruise until the drone touched the wall (s)"); ax.grid(axis="y", visible=False)
-ax.legend(handles=[Patch(facecolor="#e3e3e3", edgecolor=INK2, lw=0.8, ls=(0, (3, 2)), label="pre-registered window"),
-                    Line2D([], [], color=INK2, ls=(0, (6, 4)), lw=1.1, label="100 s (earliest allowed contact)")],
-          frameon=False, loc="lower right", fontsize=8.5)
+# No in-axes legend (fix sweep, 2026-11-04): the dotted grey bands and the dashed vertical line are data-free
+# graphics, identified in the caption instead - a legend box here overlapped the EKF3 band regardless of corner.
 cite(M_, 4948, "[+155, +215] s", label="A18 "); cite(M_, 7513, "[+146, +218] s", label="A18 "); cite(M_, 8995, "[+145, +196] s", label="A18 ")
 cite(M_, 4948, "no contact before +100 s", label="A18 ")
 save(fig, "A18", "A18_1C_contact_window", "Without a heading source every estimator's wall contact fell near its pre-registered window",
      "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured corridor "
-     "at half real-time (RTF 0.5). Time from the start of the cruise until the drone touched the west wall; the grey "
-     "band is each estimator's pre-registered contact window (EKF3 [+155, +215] s, UKF [+146, +218] s, FGO [+145, "
-     "+196] s), and no contact before +100 s was allowed under the registered rule.",
+     "at half real-time (RTF 0.5). Time from the start of the cruise until the drone touched the west wall (filled "
+     "markers). Dotted grey bands: each estimator's pre-registered contact window (EKF3 [+155, +215] s, UKF [+146, "
+     "+218] s, FGO [+145, +196] s). Dashed vertical line at 100 s: the registered earliest-allowed-contact bound; no "
+     "contact before +100 s was allowed under the registered rule.",
      "eval/results/closed_loop_cl_a_tex_half.json, closed_loop_cl_ukf_a_tex_half_v2.json, closed_loop_cl_fgo_a_tex_half_v3.json",
      "summary page 05 (new_page('05', ...))", "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
 
