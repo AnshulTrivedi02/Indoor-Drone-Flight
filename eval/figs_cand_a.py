@@ -27,7 +27,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch, Rectangle
+from matplotlib.patches import Rectangle
 from pymavlink import mavutil
 from rosbags.rosbag2 import Reader
 from rosbags.typesys import Stores, get_typestore
@@ -254,6 +254,45 @@ def save(fig, fid, name, title, caption, inputs, source_charts, verdict_ids):
     # restyle banned because it also changes the width) while removing the dead vertical space.
     from matplotlib.transforms import Bbox
     fig.canvas.draw()
+    # Mechanical text-layout check (fix sweep, 2026-11-04): after layout, inspect every Text artist's actual
+    # rendered position (not just grep the source for fontsize=, which cannot see rcParams-inherited defaults -
+    # this is exactly how fig.supylabel's 12.6 pt default was missed by the earlier grep-only pass). Scoped to
+    # ax.text()/title/figure-level text (ax.texts, ax.title, fig.texts: covers set_title(), fig.supylabel(),
+    # the direct value/estimator-name labels) - tick labels and any legend are matplotlib-laid-out and excluded,
+    # or this produces constant noise on ordinary adjacent tick labels. Print-only (diagnostic): every WARNING
+    # printed while building the committed candidates was individually triaged (font raised, position moved, or
+    # confirmed a false positive) before the final commit - see the handover for the resolved list.
+    renderer = fig.canvas.get_renderer()
+    scoped = []
+    for ax in fig.axes:
+        scoped += list(ax.texts)
+        if ax.title.get_text().strip():
+            scoped.append(ax.title)
+    scoped += [t for t in fig.texts]
+    boxes = []
+    for t in scoped:
+        if not t.get_visible() or not t.get_text().strip():
+            continue
+        bb = t.get_window_extent(renderer)
+        if bb.width <= 0 or bb.height <= 0:
+            continue
+        sz = t.get_fontsize()
+        if not (9.0 - 1e-6 <= sz <= 11.0 + 1e-6):
+            print(f"   TEXT SIZE WARNING [{fid}]: {sz:.2f} pt {t.get_text()!r}")
+        boxes.append((t, bb))
+    for i in range(len(boxes)):
+        ti, bi = boxes[i]
+        for j in range(i + 1, len(boxes)):
+            tj, bj = boxes[j]
+            if bi.overlaps(bj):
+                print(f"   TEXT OVERLAP WARNING [{fid}]: {ti.get_text()!r} vs {tj.get_text()!r}")
+    for t, bb in boxes:
+        own_ax = t.axes
+        for other_ax in fig.axes:
+            if other_ax is own_ax:
+                continue
+            if bb.overlaps(other_ax.get_window_extent(renderer)):
+                print(f"   TEXT CROSSES AXES WARNING [{fid}]: {t.get_text()!r} overlaps another axes' box")
     tb = fig.get_tightbbox(fig.canvas.get_renderer())
     pad = 0.08
     crop = Bbox([[0, max(tb.y0 - pad, 0)], [TEXT_WIDTH_IN, min(tb.y1 + pad, fig.get_size_inches()[1])]])
@@ -279,7 +318,7 @@ def measured_stretch(fig, ax):
     return (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
 
 
-def wallband(ax, lim, vertical=True, fs=8.5):
+def wallband(ax, lim, vertical=True, fs=9.5):
     for s_ in (1, -1):
         (ax.axvspan if vertical else ax.axhspan)(10 * s_, lim * s_, color="#d9d9d9", lw=0, zorder=0.5)
         c_ = (10 + lim) / 2 * s_
@@ -290,34 +329,56 @@ def wallband(ax, lim, vertical=True, fs=8.5):
 
 
 # =============================================================================================================== A01/A02
-# =============================================================================================== SETUP: 1A/1B truth paths
+# ======================================================================== SETUP: 1A/1B truth paths (and A21/A22, height)
 # (walkthrough S1/1A_truth/1B_truth: "where the drone really flew", COPIED data path from figs_walkthrough_flights.py
-# truth_page(). Stacked into ONE candidate per flight set, two panels (a) top-down equal-scale geography, (b) height
-# against time - NOT a shared scale, so not a side-by-side pair under the house rule; this is the same stacked-different-
-# scale pattern this group's F9 split used, not an inset, nothing drawn on top of anything else.)
+# truth_page(). SPLIT (fix sweep, 2026-11-04) from one two-panel candidate per flight set into two SEPARATE
+# single-panel candidates: A01/A02 keep the top-down equal-scale geography; A21/A22 (new ids, added below) carry the
+# height-against-time view. The original comment called this "the same stacked-different-scale pattern this group's
+# F9 split used" - re-checked against F9's own commit (c2cad19) and it is NOT the same: F9's two panels SHARE one time
+# axis (both plot heading error vs the same time, one at full scale, one zoomed); these two panels shared NEITHER axis
+# (position in metres vs height against time in seconds), so they fail "stacked only on a shared scale" under the
+# fix-sweep checklist and the user's own "all the plots should be separate" rule. A04-A06 (room_cand(), below) are NOT
+# affected - one row of panels sharing one pair of axes throughout, not stacked at different scales.)
 def truth_cand(fid, name, title, trials, gt_of, source_desc, inputs, flights_n, bag_path):
-    fig, (ax, ax2) = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 5.2), gridspec_kw={"height_ratios": [0.45, 1.0], "hspace": 0.55})
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.3))
     for s_ in (1, -1):
         ax.axhspan(10 * s_, 11 * s_, color=WALL, lw=0)
-    tmax = 0.0
     for tr in trials:
         tg, E_, N_, U_ = gt_of(tr)
         ax.plot(N_, E_, color=TRUTH, lw=0.9, zorder=2)
-        ax2.plot(tg - tg[0], U_, color=TRUTH, lw=0.9, zorder=2); tmax = max(tmax, float((tg - tg[0]).max()))
     ax.set_xlim(-6, 166); ax.set_ylim(-11, 11); ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
-    ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)"); ax.set_title("(a)", loc="left", fontsize=9.5)
+    ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)")
     st = measured_stretch(fig, ax)
-    check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0) of panel (a)")
-    ax2.axvline(0, color=INK2, lw=0.7, ls=":", zorder=1); ax2.set_xlim(0, None); ax2.set_ylim(0, None)
-    ax2.set_xlabel("time from take-off (s); the dotted line marks take-off"); ax2.set_ylabel("height (m)")
-    ax2.set_title("(b)", loc="left", fontsize=9.5)
+    check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
     check(f"{fid} flights shown (n)", len(trials), flights_n, source_desc)
     cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label=f"{fid} ")
     save(fig, fid, name, title,
-         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, from "
-         "take-off to landing. (a) seen from above, equal scale (no stretch); the grey bands beyond East = ±10 m "
-         "(CLAUDE.md:101) are the corridor walls; every flight's true path lies on the same straight line, so the lines "
-         "overlap. (b) true height against time since take-off (one line per flight; they overlap). No log axes.",
+         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, seen "
+         "from above, equal scale (no stretch); the grey bands beyond East = ±10 m (CLAUDE.md:101) are the corridor "
+         "walls; every flight's true path lies on the same straight line, so the lines overlap. No log axes. The "
+         "height-against-time view of the same flights is a separate candidate.",
+         inputs, name, None)
+
+
+def height_cand(fid, name, title, trials, gt_of, source_desc, inputs, flights_n, twin_id):
+    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 2.6))
+    for tr in trials:
+        tg, E_, N_, U_ = gt_of(tr)
+        ax.plot(tg - tg[0], U_, color=TRUTH, lw=0.9, zorder=2)
+    ax.set_xlim(0, None); ax.set_ylim(0, None)
+    # x-axis (fix sweep, 2026-11-04): this panel was previously labelled "time from take-off" with a dotted line
+    # "marking" take-off at t=0 - checked against the recorded ground_truth.tum directly: height sits flat at the
+    # ground rest height (0.195 m) for the first ~20 s after t=0, so t=0 is the START OF THE RECORDING (the vehicle
+    # is still on the ground), not the moment of lift-off, which happens visibly later in the climb. The claim was
+    # wrong, and the line sat exactly on the left spine regardless (not usefully visible) - dropped the line and
+    # relabelled accurately.
+    ax.set_xlabel("time since the start of the recording (s)"); ax.set_ylabel("height (m)")
+    check(f"{fid} flights shown (n)", len(trials), flights_n, source_desc)
+    save(fig, fid, name, title,
+         f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, "
+         "true height against time since the start of the recording (one line per flight; they overlap) - height "
+         "stays at the ground rest height until each flight's own take-off, then climbs, then returns to the ground "
+         f"rest height at landing. No log axes. The top-down path of the same flights is candidate {twin_id}.",
          inputs, name, None)
 
 
@@ -327,6 +388,9 @@ check("1A flights available for the standard-sensor textured dataset (n)", len(A
 truth_cand("A01", "A01_1A_truth", "Where the drone really flew: Experiment 1A, 9 flights up the corridor",
            A_FL, gt_enu("ukf"), "Experiment 1A, the standard-sensor dataset, textured floor (dsn_tex_r1-r9)",
            "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)", 9, "sim/worlds/corridor_textured.sdf")
+height_cand("A21", "A21_1A_height", "Climb, cruise and landing: Experiment 1A, 9 flights up the corridor",
+            A_FL, gt_enu("ukf"), "Experiment 1A, the standard-sensor dataset, textured floor (dsn_tex_r1-r9)",
+            "~/thesis_data/trials/dsn_tex_r1..r9/ukf/ground_truth.tum (ENU)", 9, "A01")
 
 P4E = L("phase4_fwdc_evo.json")["trials"]
 B_FL = [f"fwdc_tex_r{i}" for i in (1, 2, 3)]
@@ -334,6 +398,9 @@ check("1B flights available for the textured-wall camera dataset, textured floor
 truth_cand("A02", "A02_1B_truth", "Where the drone really flew: Experiment 1B, 3 flights with a roof and painted-line walls",
            B_FL, gt_enu("ukf_baseline"), "Experiment 1B, the textured-wall camera dataset, textured floor (fwdc_tex_r1-r3)",
            "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline/ground_truth.tum (ENU)", 3, "sim/worlds/corridor_textured_fwdc.sdf")
+height_cand("A22", "A22_1B_height", "Climb, cruise and landing: Experiment 1B, 3 flights with a roof and painted-line walls",
+            B_FL, gt_enu("ukf_baseline"), "Experiment 1B, the textured-wall camera dataset, textured floor (fwdc_tex_r1-r3)",
+            "~/thesis_data/trials/fwdc_tex_r1..r3/ukf_baseline/ground_truth.tum (ENU)", 3, "A02")
 
 
 # =============================================================================================================== A03-A06
@@ -360,10 +427,18 @@ def room_cand(fid, name, title, groups, getxy, source_desc, inputs, flights_n, p
     st = measured_stretch(fig, axs[0]); check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
     n_total = sum(len(trs) for _, trs in groups)
     check(f"{fid} flights shown (n)", n_total, flights_n, source_desc)
+    sizes = {len(trs) for _, trs in groups}
+    # Per-group count (fix sweep, 2026-11-04): panel titles no longer carry "n = N" (moved here, matching
+    # figs_thesis.py's own restyle precedent of keeping only a short condition tag on a panel, not a number).
+    if len(sizes) != 1:
+        per_group = f"{n_total} flights total, not evenly split across panels"
+    else:
+        gsz = sizes.pop(); word = "flight" if gsz == 1 else "flights"
+        per_group = f"{gsz} {word}" if len(groups) == 1 else f"{gsz} {word} in each panel"
     save(fig, fid, name, title,
          f"Simulator ground truth (truth flying, nothing estimated): {source_desc}, one true path per flight (thin grey "
          f"lines, shaded to tell flights within a panel apart; black dot: take-off). {len(groups)} "
-         f"{'panel' if len(groups) == 1 else 'panels'}, equal scale "
+         f"{'panel' if len(groups) == 1 else 'panels'} ({per_group}), equal scale "
          "(1.0×), sharing one pair of axes. No log axes.",
          inputs, name, None)
 
@@ -372,16 +447,25 @@ def gt_room(tr):
     G = ex_room(tr)["G"]; return G[:, 1], G[:, 2]
 
 
+# Panel titles (fix sweep, 2026-11-04): the "n = 3" / "n = 3" counts were dropped from every group title below
+# (matching figs_thesis.py's own restyle precedent, e.g. FIG 7 L's "(a) with loop closure" - a short condition
+# tag identifying what a panel shows is kept, a number is not); each candidate's own check()/caption already
+# states the per-group and total flight counts.
 TL = {"A": "8 tags", "B": "4 tags", "C": "2 tags", "D": "1 tag"}
+# Moved above the room_cand("A03", ...) call and made non-reflexive (fix sweep, 2026-11-04): this used to run
+# AFTER room_cand("A03", ...), whose own save() resets CHK, so the check was silently credited to A04's tally,
+# not A03's (confirmed: A04 showed 3/3, A03 showed 2/2, before this fix). It also compared a literal with the
+# same literal, which cannot fail - replaced with real cite()s against figs_thesis.py's F5 caption.
+cite("eval/figs_thesis.py", 1481, "5 laps of a 6 m square", label="A03 ")
+cite("eval/figs_thesis.py", 1482, "condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag", label="A03 ")
+cite("eval/figs_thesis.py", 489, "8 tags", label="A03 ")
 room_cand("A03", "A03_2_truth", "Where the drone really flew: the 12 tag-room flights of Experiments 2 and 3",
-          [(f"{TL[c]}\nn = 3", [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
+          [(TL[c], [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
           "the 12 flights of Experiment 2 (5 laps of the 6 m square, 4 tag counts, 3 flights each)",
           "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}", 12)
-check("A03 laps / square side (m) / tags per condition", "5 / 6 / 8, 4, 2, 1", "5 / 6 / 8, 4, 2, 1",
-      "Figure 5.1 caption (eval/figs_thesis.py F5: '5 laps of a 6 m square'; A all 8, B the 4 corners, C 2, D 1 tag)")
 
 O_FL = ["O_r1", "O_r2", "O_r3b"]
-room_cand("A04", "A04_4_truth", "Where the drone really flew: the 3 outdoor-indoor flights of Experiment 4", [("n = 3", O_FL)],
+room_cand("A04", "A04_4_truth", "Where the drone really flew: the 3 outdoor-indoor flights of Experiment 4", [("", O_FL)],
           gt_room, "the 3 flights of Experiment 4 (out along North into the building and back the same way)",
           "bag /ground_truth/pose of O_r1, O_r2, O_r3b", 3, pad=3.0, swap=True)
 
@@ -393,8 +477,8 @@ def sim_xy(tr):
     g = ex_sim(tr)["sim"]; return g[:, 1], g[:, 2]
 
 
-HG = [("EKF3 flying,\nnear start spot\nn = 3", H_FL[0:3]), ("EKF3 flying,\nfar start spot\nn = 3", H_FL[3:6]),
-      ("UKF flying\nn = 3", H_FL[6:9]), ("FGO flying\nn = 3", H_FL[9:12])]
+HG = [("EKF3 flying,\nnear start spot", H_FL[0:3]), ("EKF3 flying,\nfar start spot", H_FL[3:6]),
+      ("UKF flying", H_FL[6:9]), ("FGO flying", H_FL[9:12])]
 room_cand("A05", "A05_5_truth", "Where the drone really flew: the 12 hold flights of Experiment 5", HG, sim_xy,
           "the 12 flights of Experiment 5 (an estimator holds position while the wall tag is hidden), position from the "
           "take-off spot", "dataflash SIM of H_s1_r1..r3, H_s1far_r1, r2, r3b, H_s2v2_r1..r3, H_s3v2_r1..r3", 12, pad=0.3)
@@ -420,14 +504,15 @@ for e in EST:
         ok, UN1[(e, tr)] = unaligned(e, tr, *SUB1[e], win); FR1 += ok
 check("A07 frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 deg) on every flight and estimator",
       f"{FR1}/27", "27/27", "this script (to_NE()/frame_ok(), copied)")
+check("A07 flights shown (n)", len(A_FL), 9, "A_FL (dsn_tex_r1..r9)")
 fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 5.6), sharex=True, sharey=True)
 for ax, e in zip(axs, EST):
     ax.axhline(0, color=INK2, lw=0.6, zorder=1); ax.axvline(0, color=INK2, lw=0.8, ls=":", zorder=1)
     for tr in A_FL:
         v = UN1[(e, tr)]; ax.plot(v[0], v[3], color=C[e], lw=0.9, zorder=3)
     ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
-axs[0].set_ylim(0, None); axs[-1].set_xlabel("time since the start of the cruise (s); take-off is before the dotted line at 0")
-fig.supylabel("horizontal error (m)", x=0.01)
+axs[0].set_ylim(0, None); axs[-1].set_xlabel("time since the start of the cruise (s)")
+fig.supylabel("horizontal error (m)", x=0.01, fontsize=10.5)
 assert len({ax.get_ylim() for ax in axs}) == 1
 save(fig, "A07", "A07_1A_unaligned_err", "Without a heading source the raw horizontal error grows to metres-to-tens-of-metres",
      "Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, Experiment "
@@ -521,6 +606,23 @@ check("A09 frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 
 RAWMX = {k: max(float(np.max(UNB[(k, tr)][3])) for tr in B_FL) for k in SUBB}
 
 
+def _raw_max(k):
+    """COPIED from eval/figs_walkthrough_flights.py's own _raw_max() (fix sweep, 2026-11-04): an independent
+    recomputation of RAWMX[k] directly from the raw TUM rows (its own frame-transform code, not routed through
+    unaligned()), used below as a genuine (non-reflexive) cross-check for A10's raw-maximum-error numbers, which
+    have no counterpart in numbers.md (they are this script's own un-fitted curve maxima, not a registered ATE)."""
+    mx = 0.0
+    for tr in B_FL:
+        win = P4E[tr]["window_s"]; a = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/{SUBB[k][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/ground_truth.tum")
+        a = a[(a[:, 0] >= g[0, 0]) & (a[:, 0] <= win[1])]
+        if k.startswith("EKF3"):
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 1]), a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 2]))
+        else:
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 2]), -a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 1]))
+        mx = max(mx, float(e_.max()))
+    return mx
+
+
 def paths_raw(ax, UN, key, trs, win_of, col, lim, ls="-"):
     wallband(ax, lim)
     for tr in trs:
@@ -543,30 +645,32 @@ for tr in HALF["EKF3"][1]:
     CLE[tr] = (K[wk, 1], K[wk, 2], g[wg, 2], g[wg, 1])
 check("A09 closed-loop EKF3 panel frame check (XKF1 core 0 vs SIM, heading tolerance 10 deg)", f"{FRC}/3", "3/3", "this script")
 PAN = [("EKF3", "EKF3\nno heading"), ("UKF_baseline", "UKF\nno heading"), ("FGO_baseline", "FGO\nno heading"),
-       ("EKF3_cl", "EKF3, with\nheading\n(closed-loop)"),
+       ("EKF3_cl", "EKF3, with\nheading"),
        ("UKF_heading", "UKF\nwith heading"), ("FGO_heading", "FGO\nwith heading")]
 LIMB = max([float(np.abs(v[2]).max()) for v in UNB.values()] + [float(np.abs(v[1]).max()) for v in CLE.values()] + [10.0]) + 4.0
 fig = plt.figure(figsize=(TEXT_WIDTH_IN, 4.6))
-gs = fig.add_gridspec(1, 6, wspace=0.1)
+gs = fig.add_gridspec(1, 6, wspace=0.55)
 axs = [fig.add_subplot(gs[0, i]) for i in range(6)]
 for ax in axs[1:]:
     ax.sharex(axs[0]); ax.sharey(axs[0])
 for ax, (key, lab) in zip(axs, PAN):
     if key == "EKF3_cl":
-        wallband(ax, LIMB, fs=7)
+        wallband(ax, LIMB)
         for tr in HALF["EKF3"][1]:
             en, ee, gn, ge = CLE[tr]; ax.plot(ge, gn, color=TRUTH, lw=1.3, zorder=2)
         for tr in HALF["EKF3"][1]:
             en, ee, gn, ge = CLE[tr]; ax.plot(ee, en, color=C["EKF3"], lw=0.9, zorder=3)
         ax.plot(0, 0, marker="o", ms=4, color=INK, zorder=5); ax.set_aspect(1.0, adjustable="box")
-        ax.set_title(lab, loc="left", fontsize=7.6, color=C["EKF3"])
+        ax.set_title(lab, loc="left", fontsize=9.0, color=C["EKF3"])
     else:
         paths_raw(ax, UNB, key, B_FL, lambda tr: P4E[tr]["window_s"], C[key.split("_")[0]], LIMB)
-        ax.set_title(lab, loc="left", fontsize=8.2, color=C[key.split("_")[0]])
+        ax.set_title(lab, loc="left", fontsize=9.0, color=C[key.split("_")[0]])
     ax.set_xlabel("East (m)", fontsize=9)
 for ax in axs[1:]:
     plt.setp(ax.get_yticklabels(), visible=False)
 axs[0].set_ylabel("North (m)"); axs[0].set_xlim(-LIMB, LIMB); axs[0].set_ylim(-3, 163)
+cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A09 ")
+check("A09 flights per panel (n)", len(B_FL), 3, "B_FL (fwdc_tex_r1..r3)")
 save(fig, "A09", "A09_1B_unaligned_paths", "With the camera heading the UKF and FGO paths stay on the true path",
      "Experiment 1B flights 1-3 (textured walls over the textured floor), raw position estimate from take-off to the end "
      "of the cruise window, truth grey; walls at East = ±10 m (grey band). Six panels, equal scale, sharing one "
@@ -580,8 +684,19 @@ save(fig, "A09", "A09_1B_unaligned_paths", "With the camera heading the UKF and 
      "walkthrough page 05 (fl_1B_unaligned_paths.png, plots only)", None)
 
 RNGB = {k: rng([P4E[tr]["est"][k]["ate_a_cruise"]["+0.00"] for tr in B_FL]) for k in SUBB}
+# Made non-reflexive (fix sweep, 2026-11-04): these used to compare RNGB[k] with itself. Each registered cruise
+# ATE range has its own CURRENT row in numbers.md's section 6.4/6.6 (the min/max of the same per-flight values
+# RNGB is computed from) - cited directly instead. The raw-maximum-error numbers (RAWMX) have no numbers.md
+# counterpart (they are this script's own un-fitted curve maxima); cross-checked instead against _raw_max(k),
+# an independent recomputation copied from the walkthrough's own already-approved technique (see its docstring).
+NMD_LINE = {"EKF3": (269, "3.60", "4.09"), "FGO_baseline": (270, "2.26", "4.54"), "UKF_baseline": (271, "1.78", "4.96"),
+            "UKF_heading": (291, "0.13", "0.14"), "FGO_heading": (292, "0.06", "0.06")}
+for k, (ln, lo, hi) in NMD_LINE.items():
+    cite("docs/thesis/numbers.md", ln, lo, label=f"A10 {k} ")
+    cite("docs/thesis/numbers.md", ln, hi, label=f"A10 {k} ")
 for k in SUBB:
-    check(f"A10 {k} registered cruise ATE, lowest-highest over the 3 flights (m)", RNGB[k], RNGB[k], "eval/results/phase4_fwdc_evo.json (reflexive; ported from the walkthrough's own already-checked row)")
+    check(f"A10 {k} raw maximum error vs an independent recomputation from the raw TUM rows (m, 6 dp)",
+          rd(RAWMX[k], 6), rd(_raw_max(k), 6), f"~/thesis_data/trials/fwdc_tex_r1..r3/{SUBB[k][0]} TUM + ground_truth.tum")
 rows_a10 = [
     ["EKF3", "no heading", RNGB["EKF3"], rd(RAWMX["EKF3"], 2)],
     ["EKF3", "with heading", "no offline heading arm", "no offline heading arm"],
@@ -590,15 +705,13 @@ rows_a10 = [
     ["FGO", "no heading", RNGB["FGO_baseline"], rd(RAWMX["FGO_baseline"], 2)],
     ["FGO", "with heading", RNGB["FGO_heading"], rd(RAWMX["FGO_heading"], 2)],
 ]
-for r in rows_a10:
-    check(f"A10 table row cross-check (estimator {r[0]}, {r[1]})", f"{r[2]} | {r[3]}", f"{r[2]} | {r[3]}", "ported from the A09 UNB/RAWMX computation above")
 table_cand("A10", "A10_1B_unaligned_paths_table", "Experiment 1B: registered score and raw maximum error, without and with the camera heading",
            ["estimator", "arm", "registered cruise ATE (fitted), lowest-highest over 3 flights (m)", "raw maximum error, take-off to end of cruise (m)"],
            rows_a10, [0.14, 0.16, 0.42, 0.28],
            "The companion table of candidate A09 (Experiment 1B flights 1-3, textured walls over the textured floor): the "
            "registered cruise ATE (after a best-fit rotation and shift) and the raw (not fitted) maximum horizontal error "
            "of the same flights, from take-off to the end of the cruise window.",
-           "eval/results/phase4_fwdc_evo.json; the A09 raw-curve computation (RAWMX)", "walkthrough page 05 (fl_1B_unaligned_paths.png, in-figure table)", None, fs=8.6)
+           "eval/results/phase4_fwdc_evo.json; the A09 raw-curve computation (RAWMX)", "walkthrough page 05 (fl_1B_unaligned_paths.png, in-figure table)", None)
 
 
 # =============================================================================================================== A11/A12
@@ -612,9 +725,12 @@ def err_rows_cand(fid, name, title, rows, data, ylab, ylim, caption, inputs, sou
         for tr in B_FL:
             x, y = data[(key, tr)]; ax.plot(x, y, color=col, lw=0.9, zorder=3)
         ax.set_title(lab, loc="left", fontsize=9.5, color=col)
-    axs[0].set_ylim(*ylim); axs[-1].set_xlabel("time since the start of the cruise (s); take-off is before the dotted line at 0")
-    fig.supylabel(ylab, x=0.01)
+    axs[0].set_ylim(*ylim); axs[-1].set_xlabel("time since the start of the cruise (s)")
+    fig.supylabel(ylab, x=0.01, fontsize=10.5)
     assert len({ax.get_ylim() for ax in axs}) == 1
+    # Own check for the "3 flights" the caption states (fix sweep, 2026-11-04) - this function is shared by
+    # A11/A12, so each gets its own row rather than relying on a check registered under a different candidate.
+    check(f"{fid} flights per panel (n)", len(B_FL), 3, "B_FL (fwdc_tex_r1..r3)")
     save(fig, fid, name, title, caption, inputs, source_chart, None)
 
 
@@ -622,16 +738,18 @@ err_rows_cand("A11", "A11_1B_unaligned_err_noheading", "Without the camera headi
               [("EKF3", C["EKF3"], "EKF3, no heading"), ("UKF_baseline", C["UKF"], "UKF, no heading"), ("FGO_baseline", C["FGO"], "FGO, no heading")],
               {k: (v[0], v[3]) for k, v in UNB.items()}, "horizontal error (m)", (0, None),
               "Experiment 1B flights 1-3, WITHOUT the camera heading, no fitted alignment: the raw horizontal distance "
-              "between the estimate and the true position against time since the start of the cruise, one panel per "
-              "estimator, sharing one y-scale, 3 flights (one line each) per panel.",
+              "between the estimate and the true position against time since the start of the cruise (take-off is "
+              "before the dotted line at 0 s), one panel per estimator, sharing one y-scale, 3 flights (one line each) "
+              "per panel.",
               "as candidate A09", "walkthrough fl_1B_unaligned_err_noheading.png (generated, not composed into a numbered walkthrough page since D63)")
 err_rows_cand("A12", "A12_1B_unaligned_err_heading", "With the camera heading the raw error stays close to the true path",
               [("UKF_heading", C["UKF"], "UKF, with heading"), ("FGO_heading", C["FGO"], "FGO, with heading")],
               {k: (v[0], v[3]) for k, v in UNB.items()}, "horizontal error (m)", (0, None),
               "Experiment 1B flights 1-3, WITH the camera heading (offline heading arms; EKF3 has no offline heading "
               "arm), no fitted alignment: the raw horizontal distance between the estimate and the true position against "
-              "time since the start of the cruise, one panel per estimator, sharing one y-scale, 3 flights (one line "
-              "each) per panel. The y-scale here is much finer than candidate A11.",
+              "time since the start of the cruise (take-off is before the dotted line at 0 s), one panel per estimator, "
+              "sharing one y-scale, 3 flights (one line each) per panel. The y-scale here is much finer than candidate "
+              "A11.",
               "as candidate A09", "walkthrough fl_1B_unaligned_err_heading.png (generated, not composed into a numbered walkthrough page since D63)")
 
 
@@ -652,10 +770,15 @@ for e in EST:
     check(f"A13 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
           "docs/thesis/numbers.md (contact rows, §15)")
 
-fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 5.9), sharex=True, sharey=True)
-LIMC = 12.5
+fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 4.5), sharex=True, sharey=True, gridspec_kw={"hspace": 0.28})
+# LIMC (fix sweep, 2026-11-04): widened from 12.5 to 17.0 so the grey wall band (East = 10..LIMC m) is thick
+# enough, at this panel's equal-aspect scale, to hold a regular-weight >=9 pt "wall" label with clearance on
+# both sides - at 12.5 the band was only ~2.5 m of a 182 m-wide corridor rendered at 160 mm, a few points
+# tall, so the label overflowed the band edges (the defect this fixes). The figure height/hspace above are
+# tightened in step: the panels no longer need as much allotted cell height as the old figsize guessed.
+LIMC = 17.0
 for ax, e in zip(axs, EST):
-    wallband(ax, LIMC, vertical=False, fs=7.5)
+    wallband(ax, LIMC, vertical=False, fs=9.5)
     for yw in (9.58, -9.58):
         ax.axhline(yw, color=INK2, lw=0.6, ls=":", zorder=1)
     for tr in HALF[e][1]:
@@ -666,13 +789,19 @@ for ax, e in zip(axs, EST):
     w0 = (g0[:, 0] >= 20) & (g0[:, 0] <= c0 + tc)
     ax.plot(g0[w0, 2], g0[w0, 1], color=C[e], lw=1.3, ls=(0, (5, 3)), zorder=4)
     ax.plot(ct["y"], ct["x"], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.text(-3.0, 0.0, e, fontsize=10.5, color=C[e], ha="right", va="center")
+    # Estimator label (fix sweep, 2026-11-04): moved from x=-3 (ha="right", so the text extended leftward
+    # into the left frame spine at this panel's compressed equal-aspect scale - confirmed by pixel inspection
+    # of the rendered PNG) to a small positive x above the flat start of the line, clear of both the spine
+    # and the plotted path.
+    ax.text(4.0, 1.6, e, fontsize=10.5, color=C[e], ha="left", va="bottom")
     ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
 axs[0].set_xlim(-16, 166); axs[0].set_ylim(-LIMC, LIMC); axs[-1].set_xlabel("along the corridor, North (m)")
-fig.supylabel("sideways, East (m)", x=0.01)
+fig.supylabel("sideways, East (m)", x=0.01, fontsize=10.5)
 cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m", label="A13 ")
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A13 ")
 cite(M_, 4948, "[+155, +215] s", label="A13 "); cite(M_, 7513, "[+146, +218] s", label="A13 "); cite(M_, 8995, "[+145, +196] s", label="A13 ")
+cite(M_, 14194, "half real-time (RTF 0.5)", label="A13 ")
+cite(M_, 14195, "unchanged at 0.5 m/s", label="A13 ")
 save(fig, "A13", "A13_1C_paths", "Without the camera heading the flying estimator drifts to the wall; with it the path stays straight",
      "Experiment 1C, the same 12 closed-loop flights as Figure 4.1, textured corridor at half real-time (RTF 0.5; the "
      "simulator ran at half real time, the commanded flight speed was unchanged at 0.5 m/s), each estimator flying the "
@@ -695,13 +824,23 @@ for ax, e in zip(axs, EST):
     ax.axhline(0, color=INK2, lw=0.6, zorder=1)
     ax.plot(x[w], y[w], color=C[e], lw=1.1, ls=(0, (5, 3)), zorder=3)
     ax.plot(x[w][-1], y[w][-1], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.set_title(f"{e}, no heading, 1 flight, to +{rd(tc, 1)} s", loc="left", fontsize=9.3, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed from "{e}, no heading, 1 flight, to +N s" to the estimator
+    # name only - matching figs_thesis.py's own restyle precedent (numbers belong in the caption, not drawn on
+    # the axes); the per-estimator contact times are stated in the caption below instead.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("heading error, estimate − truth (°)", x=0.01)
+fig.supylabel("heading error, estimate − truth (°)", x=0.01, fontsize=10.5)
+# Own check rows for the contact times this caption states (fix sweep, 2026-11-04): CHK resets every save(), so
+# A13's own check of these same CT[e] values does not carry over to A14's index row - if the user picks A14
+# alone, its row needs to stand on its own.
+for e in EST:
+    check(f"A14 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A14", "A14_1C_head_off", "Without a heading source each estimator's heading error grew until the wall",
      "Experiment 1C, the same no-heading closed-loop flights as Figure 4.1b (F9), textured corridor at half real-time "
-     "(RTF 0.5). Heading error (estimate − truth) against time since cruise start, one panel per estimator, sharing "
-     "one y-scale, drawn to the wall contact (X).",
+     "(RTF 0.5), 1 flight per estimator. Heading error (estimate − truth) against time since cruise start, one panel "
+     "per estimator, sharing one y-scale, drawn to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s "
+     "(the same contact times as candidate A13).",
      "dataflash XKF1 (core 0) / XUKO / XFGO and SIM, bag /imu/time_ref (clock map), of cl_a_tex_half, "
      "cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3; contact from closed_loop_<trial>.json",
      "walkthrough page 08 (fl_1C_head_off.png)", "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
@@ -712,10 +851,13 @@ for ax, e in zip(axs, EST):
     for tr in HALF[e][1]:
         d = ex_cl(e, tr); c0b, c1b = CLJA[tr]["cruise_s"]; x, y = d["yx"], d["ye"]; w = (x >= 0) & (x <= c1b - c0b)
         ax.plot(x[w], y[w], color=C[e], lw=0.9, zorder=3)
-    ax.set_title(f"{e}, with heading, 3 flights", loc="left", fontsize=9.5, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above -
+    # "with heading, 3 flights" is already stated in the caption.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-2.6, 2.9); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("heading error, estimate − truth (°)", x=0.01)
+fig.supylabel("heading error, estimate − truth (°)", x=0.01, fontsize=10.5)
 cite(M_, 4958, "95th percentile ≤ 1.0°, maximum ≤ 2.0°", label="A15 ")
+check("A15 flights shown (n, 3 per estimator)", sum(len(HALF[e][1]) for e in EST), 9, "HALF[e][1] for each estimator")
 save(fig, "A15", "A15_1C_head_on", "With the camera heading the heading error stayed inside the ±2.0° band on every flight",
      "Experiment 1C, the same with-heading closed-loop flights as Figure 4.1b (F9), textured corridor at half real-time "
      "(RTF 0.5), 9 flights (3 per estimator). Heading error (estimate − truth) against time since cruise start, one "
@@ -732,14 +874,20 @@ for ax, e in zip(axs, EST):
         ax.axhline(yw, color=INK2, lw=0.6, ls=":", zorder=1)
     ax.plot(tt[w], d["sim"][w, 1], color=C[e], lw=1.1, ls=(0, (5, 3)), zorder=3)
     ax.plot(tt[w][-1], d["sim"][w, 1][-1], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.set_title(f"{e}, no heading, 1 flight, to +{rd(tc, 1)} s", loc="left", fontsize=9.3, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-11, 11); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("true East (m)", x=0.01)
+fig.supylabel("true East (m)", x=0.01, fontsize=10.5)
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A16 ")
+# Own check rows for the contact times this caption states (fix sweep, 2026-11-04) - same reasoning as A14 above.
+for e in EST:
+    check(f"A16 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A16", "A16_1C_side_off", "Without a heading source the true sideways position runs to the wall",
-     "Experiment 1C, the same no-heading closed-loop flights as candidate A14, textured corridor at half real-time "
-     "(RTF 0.5). True sideways (East) position against time since cruise start, one panel per estimator, sharing one "
-     "y-scale, drawn to the wall contact (X); dotted lines: the walls at East = ±10 m. 0 m is the corridor centre "
+     "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured "
+     "corridor at half real-time (RTF 0.5). True sideways (East) position against time since cruise start, one panel "
+     "per estimator, sharing one y-scale, drawn to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +169.9 s "
+     "(the same contact times as candidate A13); dotted lines: the walls at East = ±10 m. 0 m is the corridor centre "
      "line.",
      "dataflash SIM of cl_a_tex_half, cl_ukf_a_tex_half_v2, cl_fgo_a_tex_half_v3", "walkthrough page 10 (fl_1C_side_off.png)",
      "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
@@ -752,11 +900,13 @@ for ax, e in zip(axs, EST):
         d = ex_cl(e, tr); c0b, c1b = CLJA[tr]["cruise_s"]; tt = sim_t(d) - c0b; w = (tt >= 0) & (tt <= c1b - c0b)
         ax.plot(tt[w], d["sim"][w, 1], color=C[e], lw=0.9, zorder=3)
     ax.axhline(0, color=INK2, lw=0.6, zorder=1)
-    ax.set_title(f"{e}, with heading, 3 flights", loc="left", fontsize=9.5, color=C[e])
+    # Panel title (fix sweep, 2026-11-04): trimmed to the estimator name only, same reasoning as A14 above.
+    ax.set_title(e, loc="left", fontsize=9.5, color=C[e])
 axs[0].set_xlim(0, 310); axs[0].set_ylim(-0.6, 0.6); axs[-1].set_xlabel("time since the start of the cruise (s)")
-fig.supylabel("true East (m)", x=0.01)
+fig.supylabel("true East (m)", x=0.01, fontsize=10.5)
 check("A17 '20 times finer': y half-range of A16 / this candidate", str(round(11 / 0.6, -1)).rstrip("0").rstrip("."), "20",
       "axis limits ±11 m (A16) and ±0.6 m (A17), this script")
+check("A17 flights shown (n, 3 per estimator)", sum(len(HALF[e][1]) for e in EST), 9, "HALF[e][1] for each estimator")
 save(fig, "A17", "A17_1C_side_on", "With the camera heading the true sideways position stays near the centre line",
      "Experiment 1C, the same with-heading closed-loop flights as candidate A15, textured corridor at half real-time "
      f"(RTF 0.5), 9 flights (3 per estimator). True sideways (East) position against time since cruise start, one panel "
@@ -780,16 +930,22 @@ for i, e in enumerate(EST):
 ax.axvline(100, color=INK2, ls=(0, (6, 4)), lw=1.1, zorder=1)
 ax.set_xlim(90, 262); ax.set_ylim(-0.75, 2.75); ax.set_yticks(range(3)); ax.set_yticklabels(EST)
 ax.set_xlabel("time from the start of the cruise until the drone touched the wall (s)"); ax.grid(axis="y", visible=False)
-ax.legend(handles=[Patch(facecolor="#e3e3e3", edgecolor=INK2, lw=0.8, ls=(0, (3, 2)), label="pre-registered window"),
-                    Line2D([], [], color=INK2, ls=(0, (6, 4)), lw=1.1, label="100 s (earliest allowed contact)")],
-          frameon=False, loc="lower right", fontsize=8.5)
+# No in-axes legend (fix sweep, 2026-11-04): the dotted grey bands and the dashed vertical line are data-free
+# graphics, identified in the caption instead - a legend box here overlapped the EKF3 band regardless of corner.
 cite(M_, 4948, "[+155, +215] s", label="A18 "); cite(M_, 7513, "[+146, +218] s", label="A18 "); cite(M_, 8995, "[+145, +196] s", label="A18 ")
 cite(M_, 4948, "no contact before +100 s", label="A18 ")
+# Own check rows for the contact-time labels drawn directly on the plot (fix sweep, 2026-11-04) - the strongest
+# case for this fix: these numbers are IN THE FIGURE itself (ax.text above), not just the caption, and A13's own
+# check of CT[e] does not carry over (CHK resets every save()).
+for e in EST:
+    check(f"A18 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A18", "A18_1C_contact_window", "Without a heading source every estimator's wall contact fell near its pre-registered window",
      "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured corridor "
-     "at half real-time (RTF 0.5). Time from the start of the cruise until the drone touched the west wall; the grey "
-     "band is each estimator's pre-registered contact window (EKF3 [+155, +215] s, UKF [+146, +218] s, FGO [+145, "
-     "+196] s), and no contact before +100 s was allowed under the registered rule.",
+     "at half real-time (RTF 0.5). Time from the start of the cruise until the drone touched the west wall (filled "
+     "markers). Dotted grey bands: each estimator's pre-registered contact window (EKF3 [+155, +215] s, UKF [+146, "
+     "+218] s, FGO [+145, +196] s). Dashed vertical line at 100 s: the registered earliest-allowed-contact bound; no "
+     "contact before +100 s was allowed under the registered rule.",
      "eval/results/closed_loop_cl_a_tex_half.json, closed_loop_cl_ukf_a_tex_half_v2.json, closed_loop_cl_fgo_a_tex_half_v3.json",
      "summary page 05 (new_page('05', ...))", "H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO")
 
@@ -807,7 +963,8 @@ for i, e in enumerate(EST):
     ax.bar(i, v, width=0.55, color=C[e], zorder=3)
     ax.text(i, v + 0.015, f"{rd(v, 2)} m", ha="center", va="bottom", fontsize=9.5)
 ax.axhline(6.0, color=INK2, ls=(0, (5, 3)), lw=1.1, zorder=2)
-ax.text(2.45, 6.08, "limit 6.0 m", fontsize=8.5, color=INK2, ha="right", va="bottom")
+ax.text(2.45, 6.08, "limit 6.0 m", fontsize=9.5, color=INK2, ha="right", va="bottom")
+cite(M_, 4953, "≤ 6.0 m", label="A19 ")
 ax.set_xlim(-0.6, 2.6); ax.set_ylim(0, 6.8); ax.set_xticks(range(3)); ax.set_xticklabels(EST); ax.grid(axis="x", visible=False)
 ax.set_ylabel("largest sideways distance from the\ncorridor centre line (m)")
 save(fig, "A19", "A19_1C_cross_track", "With the camera heading the largest sideways drift stayed well inside the 6.0 m limit",
@@ -904,6 +1061,12 @@ W += ["", "## Skipped (content already a figure/table in docs/thesis/figures_the
       "- **A08/A10 are rendered tables, not plots** (D113/common-brief rule: 'tables drawn inside a chart become a "
       "separate markdown table candidate'; A08 has no accompanying chart at all in its source page, A10 is the "
       "in-figure table split off A09's paths). Rendered at 160 mm width like a compact figure rather than full "
-      "A4-landscape (RS-3 exempts only DENSE multi-column tables, these are 3-4 columns).", ""]
+      "A4-landscape (RS-3 exempts only DENSE multi-column tables, these are 3-4 columns).",
+      "- **A01/A02 were originally one candidate each with two STACKED panels (top-down path; height against time)** - "
+      "fix sweep, 2026-11-04. Re-checked against the checklist's 'stacked only on a shared scale': the two panels "
+      "shared NEITHER axis (position in metres vs height against time in seconds), unlike the group's own F9 split "
+      "(c2cad19), whose two panels share one time axis. Split into A01/A02 (top-down only) and NEW ids A21/A22 "
+      "(height-against-time only, same flight sets). A04-A06 (room_cand()) are unaffected - one row of panels sharing "
+      "one pair of axes throughout, never stacked at a different scale.", ""]
 open(os.path.join(OUT, "index_a.md"), "w").write("\n".join(W) + "\n")
 print(f"\nTOTAL candidates {len(ITEMS)}; checks {n_ok}/{n_tot}; wrote {os.path.join(OUT, 'index_a.md')}")
