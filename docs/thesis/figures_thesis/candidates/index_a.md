@@ -2,7 +2,7 @@
 
 Built by `eval/figs_cand_a.py` at commit `48e7197` (run with `/home/makerspace/venv-evo/bin/python`). These are CANDIDATES for the user to pick from - not inserted into the thesis figure set in `docs/thesis/figures_thesis/` itself. Stored outputs only: TUM files, eval/results/*.json, and a cache of dataflash/bag reads pre-populated by `eval/figs_walkthrough_flights.py --cache ~/thesis_data/cand_a_cache --extract-only` under `heavy.py` (that invocation writes nothing outside the cache directory). No estimator run, no simulation, no flight.
 
-**Checks:** 90/90 EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, sha256 of the source segment used to detect drift - see below).
+**Checks:** 93/93 EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, sha256 of the source segment used to detect drift - see below).
 
 **Style:** `eval/thesis_style.py` (160 mm / 6.30 in text width, Okabe-Ito palette, filled = live / open = hindsight, no in-figure titles, no verdict words, no bold text, panel labels (a)/(b)/... only where a figure has more than one panel). No two plots overlap; the F9 (Figure 4.1b) inset was split into its own stacked panel as part of this same group's brief (`eval/figs_thesis.py`, see docs/handovers/2026-11-04_cand_a.md).
 
