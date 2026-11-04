@@ -254,6 +254,45 @@ def save(fig, fid, name, title, caption, inputs, source_charts, verdict_ids):
     # restyle banned because it also changes the width) while removing the dead vertical space.
     from matplotlib.transforms import Bbox
     fig.canvas.draw()
+    # Mechanical text-layout check (fix sweep, 2026-11-04): after layout, inspect every Text artist's actual
+    # rendered position (not just grep the source for fontsize=, which cannot see rcParams-inherited defaults -
+    # this is exactly how fig.supylabel's 12.6 pt default was missed by the earlier grep-only pass). Scoped to
+    # ax.text()/title/figure-level text (ax.texts, ax.title, fig.texts: covers set_title(), fig.supylabel(),
+    # the direct value/estimator-name labels) - tick labels and any legend are matplotlib-laid-out and excluded,
+    # or this produces constant noise on ordinary adjacent tick labels. Print-only (diagnostic): every WARNING
+    # printed while building the committed candidates was individually triaged (font raised, position moved, or
+    # confirmed a false positive) before the final commit - see the handover for the resolved list.
+    renderer = fig.canvas.get_renderer()
+    scoped = []
+    for ax in fig.axes:
+        scoped += list(ax.texts)
+        if ax.title.get_text().strip():
+            scoped.append(ax.title)
+    scoped += [t for t in fig.texts]
+    boxes = []
+    for t in scoped:
+        if not t.get_visible() or not t.get_text().strip():
+            continue
+        bb = t.get_window_extent(renderer)
+        if bb.width <= 0 or bb.height <= 0:
+            continue
+        sz = t.get_fontsize()
+        if not (9.0 - 1e-6 <= sz <= 11.0 + 1e-6):
+            print(f"   TEXT SIZE WARNING [{fid}]: {sz:.2f} pt {t.get_text()!r}")
+        boxes.append((t, bb))
+    for i in range(len(boxes)):
+        ti, bi = boxes[i]
+        for j in range(i + 1, len(boxes)):
+            tj, bj = boxes[j]
+            if bi.overlaps(bj):
+                print(f"   TEXT OVERLAP WARNING [{fid}]: {ti.get_text()!r} vs {tj.get_text()!r}")
+    for t, bb in boxes:
+        own_ax = t.axes
+        for other_ax in fig.axes:
+            if other_ax is own_ax:
+                continue
+            if bb.overlaps(other_ax.get_window_extent(renderer)):
+                print(f"   TEXT CROSSES AXES WARNING [{fid}]: {t.get_text()!r} overlaps another axes' box")
     tb = fig.get_tightbbox(fig.canvas.get_renderer())
     pad = 0.08
     crop = Bbox([[0, max(tb.y0 - pad, 0)], [TEXT_WIDTH_IN, min(tb.y1 + pad, fig.get_size_inches()[1])]])
@@ -413,12 +452,17 @@ def gt_room(tr):
 # tag identifying what a panel shows is kept, a number is not); each candidate's own check()/caption already
 # states the per-group and total flight counts.
 TL = {"A": "8 tags", "B": "4 tags", "C": "2 tags", "D": "1 tag"}
+# Moved above the room_cand("A03", ...) call and made non-reflexive (fix sweep, 2026-11-04): this used to run
+# AFTER room_cand("A03", ...), whose own save() resets CHK, so the check was silently credited to A04's tally,
+# not A03's (confirmed: A04 showed 3/3, A03 showed 2/2, before this fix). It also compared a literal with the
+# same literal, which cannot fail - replaced with real cite()s against figs_thesis.py's F5 caption.
+cite("eval/figs_thesis.py", 1481, "5 laps of a 6 m square", label="A03 ")
+cite("eval/figs_thesis.py", 1482, "condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag", label="A03 ")
+cite("eval/figs_thesis.py", 489, "8 tags", label="A03 ")
 room_cand("A03", "A03_2_truth", "Where the drone really flew: the 12 tag-room flights of Experiments 2 and 3",
           [(TL[c], [f"T_{c}_r{i}" for i in (1, 2, 3)]) for c in "ABCD"], gt_room,
           "the 12 flights of Experiment 2 (5 laps of the 6 m square, 4 tag counts, 3 flights each)",
           "bag /ground_truth/pose of T_{A,B,C,D}_r{1,2,3}", 12)
-check("A03 laps / square side (m) / tags per condition", "5 / 6 / 8, 4, 2, 1", "5 / 6 / 8, 4, 2, 1",
-      "Figure 5.1 caption (eval/figs_thesis.py F5: '5 laps of a 6 m square'; A all 8, B the 4 corners, C 2, D 1 tag)")
 
 O_FL = ["O_r1", "O_r2", "O_r3b"]
 room_cand("A04", "A04_4_truth", "Where the drone really flew: the 3 outdoor-indoor flights of Experiment 4", [("", O_FL)],
@@ -460,6 +504,7 @@ for e in EST:
         ok, UN1[(e, tr)] = unaligned(e, tr, *SUB1[e], win); FR1 += ok
 check("A07 frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 deg) on every flight and estimator",
       f"{FR1}/27", "27/27", "this script (to_NE()/frame_ok(), copied)")
+check("A07 flights shown (n)", len(A_FL), 9, "A_FL (dsn_tex_r1..r9)")
 fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 5.6), sharex=True, sharey=True)
 for ax, e in zip(axs, EST):
     ax.axhline(0, color=INK2, lw=0.6, zorder=1); ax.axvline(0, color=INK2, lw=0.8, ls=":", zorder=1)
@@ -561,6 +606,23 @@ check("A09 frame check (rule of eval/figs_thesis_drift.py, heading tolerance 10 
 RAWMX = {k: max(float(np.max(UNB[(k, tr)][3])) for tr in B_FL) for k in SUBB}
 
 
+def _raw_max(k):
+    """COPIED from eval/figs_walkthrough_flights.py's own _raw_max() (fix sweep, 2026-11-04): an independent
+    recomputation of RAWMX[k] directly from the raw TUM rows (its own frame-transform code, not routed through
+    unaligned()), used below as a genuine (non-reflexive) cross-check for A10's raw-maximum-error numbers, which
+    have no counterpart in numbers.md (they are this script's own un-fitted curve maxima, not a registered ATE)."""
+    mx = 0.0
+    for tr in B_FL:
+        win = P4E[tr]["window_s"]; a = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/{SUBB[k][1]}"); g = np.loadtxt(f"{TD}/{tr}/{SUBB[k][0]}/ground_truth.tum")
+        a = a[(a[:, 0] >= g[0, 0]) & (a[:, 0] <= win[1])]
+        if k.startswith("EKF3"):
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 1]), a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 2]))
+        else:
+            e_ = np.hypot(a[:, 1] - np.interp(a[:, 0], g[:, 0], g[:, 2]), -a[:, 2] - np.interp(a[:, 0], g[:, 0], g[:, 1]))
+        mx = max(mx, float(e_.max()))
+    return mx
+
+
 def paths_raw(ax, UN, key, trs, win_of, col, lim, ls="-"):
     wallband(ax, lim)
     for tr in trs:
@@ -607,6 +669,8 @@ for ax, (key, lab) in zip(axs, PAN):
 for ax in axs[1:]:
     plt.setp(ax.get_yticklabels(), visible=False)
 axs[0].set_ylabel("North (m)"); axs[0].set_xlim(-LIMB, LIMB); axs[0].set_ylim(-3, 163)
+cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A09 ")
+check("A09 flights per panel (n)", len(B_FL), 3, "B_FL (fwdc_tex_r1..r3)")
 save(fig, "A09", "A09_1B_unaligned_paths", "With the camera heading the UKF and FGO paths stay on the true path",
      "Experiment 1B flights 1-3 (textured walls over the textured floor), raw position estimate from take-off to the end "
      "of the cruise window, truth grey; walls at East = ±10 m (grey band). Six panels, equal scale, sharing one "
@@ -620,8 +684,19 @@ save(fig, "A09", "A09_1B_unaligned_paths", "With the camera heading the UKF and 
      "walkthrough page 05 (fl_1B_unaligned_paths.png, plots only)", None)
 
 RNGB = {k: rng([P4E[tr]["est"][k]["ate_a_cruise"]["+0.00"] for tr in B_FL]) for k in SUBB}
+# Made non-reflexive (fix sweep, 2026-11-04): these used to compare RNGB[k] with itself. Each registered cruise
+# ATE range has its own CURRENT row in numbers.md's section 6.4/6.6 (the min/max of the same per-flight values
+# RNGB is computed from) - cited directly instead. The raw-maximum-error numbers (RAWMX) have no numbers.md
+# counterpart (they are this script's own un-fitted curve maxima); cross-checked instead against _raw_max(k),
+# an independent recomputation copied from the walkthrough's own already-approved technique (see its docstring).
+NMD_LINE = {"EKF3": (269, "3.60", "4.09"), "FGO_baseline": (270, "2.26", "4.54"), "UKF_baseline": (271, "1.78", "4.96"),
+            "UKF_heading": (291, "0.13", "0.14"), "FGO_heading": (292, "0.06", "0.06")}
+for k, (ln, lo, hi) in NMD_LINE.items():
+    cite("docs/thesis/numbers.md", ln, lo, label=f"A10 {k} ")
+    cite("docs/thesis/numbers.md", ln, hi, label=f"A10 {k} ")
 for k in SUBB:
-    check(f"A10 {k} registered cruise ATE, lowest-highest over the 3 flights (m)", RNGB[k], RNGB[k], "eval/results/phase4_fwdc_evo.json (reflexive; ported from the walkthrough's own already-checked row)")
+    check(f"A10 {k} raw maximum error vs an independent recomputation from the raw TUM rows (m, 6 dp)",
+          rd(RAWMX[k], 6), rd(_raw_max(k), 6), f"~/thesis_data/trials/fwdc_tex_r1..r3/{SUBB[k][0]} TUM + ground_truth.tum")
 rows_a10 = [
     ["EKF3", "no heading", RNGB["EKF3"], rd(RAWMX["EKF3"], 2)],
     ["EKF3", "with heading", "no offline heading arm", "no offline heading arm"],
@@ -630,15 +705,13 @@ rows_a10 = [
     ["FGO", "no heading", RNGB["FGO_baseline"], rd(RAWMX["FGO_baseline"], 2)],
     ["FGO", "with heading", RNGB["FGO_heading"], rd(RAWMX["FGO_heading"], 2)],
 ]
-for r in rows_a10:
-    check(f"A10 table row cross-check (estimator {r[0]}, {r[1]})", f"{r[2]} | {r[3]}", f"{r[2]} | {r[3]}", "ported from the A09 UNB/RAWMX computation above")
 table_cand("A10", "A10_1B_unaligned_paths_table", "Experiment 1B: registered score and raw maximum error, without and with the camera heading",
            ["estimator", "arm", "registered cruise ATE (fitted), lowest-highest over 3 flights (m)", "raw maximum error, take-off to end of cruise (m)"],
            rows_a10, [0.14, 0.16, 0.42, 0.28],
            "The companion table of candidate A09 (Experiment 1B flights 1-3, textured walls over the textured floor): the "
            "registered cruise ATE (after a best-fit rotation and shift) and the raw (not fitted) maximum horizontal error "
            "of the same flights, from take-off to the end of the cruise window.",
-           "eval/results/phase4_fwdc_evo.json; the A09 raw-curve computation (RAWMX)", "walkthrough page 05 (fl_1B_unaligned_paths.png, in-figure table)", None, fs=8.6)
+           "eval/results/phase4_fwdc_evo.json; the A09 raw-curve computation (RAWMX)", "walkthrough page 05 (fl_1B_unaligned_paths.png, in-figure table)", None)
 
 
 # =============================================================================================================== A11/A12
@@ -727,6 +800,7 @@ fig.supylabel("sideways, East (m)", x=0.01, fontsize=10.5)
 cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m", label="A13 ")
 cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label="A13 ")
 cite(M_, 4948, "[+155, +215] s", label="A13 "); cite(M_, 7513, "[+146, +218] s", label="A13 "); cite(M_, 8995, "[+145, +196] s", label="A13 ")
+cite(M_, 14194, "half real-time (RTF 0.5)", label="A13 ")
 cite(M_, 14195, "unchanged at 0.5 m/s", label="A13 ")
 save(fig, "A13", "A13_1C_paths", "Without the camera heading the flying estimator drifts to the wall; with it the path stays straight",
      "Experiment 1C, the same 12 closed-loop flights as Figure 4.1, textured corridor at half real-time (RTF 0.5; the "
@@ -860,6 +934,12 @@ ax.set_xlabel("time from the start of the cruise until the drone touched the wal
 # graphics, identified in the caption instead - a legend box here overlapped the EKF3 band regardless of corner.
 cite(M_, 4948, "[+155, +215] s", label="A18 "); cite(M_, 7513, "[+146, +218] s", label="A18 "); cite(M_, 8995, "[+145, +196] s", label="A18 ")
 cite(M_, 4948, "no contact before +100 s", label="A18 ")
+# Own check rows for the contact-time labels drawn directly on the plot (fix sweep, 2026-11-04) - the strongest
+# case for this fix: these numbers are IN THE FIGURE itself (ax.text above), not just the caption, and A13's own
+# check of CT[e] does not carry over (CHK resets every save()).
+for e in EST:
+    check(f"A18 {e} no-heading wall contact (s after cruise start)", f"+{rd(CT[e], 1)}", {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}[e],
+          "docs/thesis/numbers.md (contact rows, §15)")
 save(fig, "A18", "A18_1C_contact_window", "Without a heading source every estimator's wall contact fell near its pre-registered window",
      "Experiment 1C, the same no-heading closed-loop flights as candidate A14 (1 flight per estimator), textured corridor "
      "at half real-time (RTF 0.5). Time from the start of the cruise until the drone touched the west wall (filled "
