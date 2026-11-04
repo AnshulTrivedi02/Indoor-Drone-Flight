@@ -1,6 +1,6 @@
 # Group C candidate thesis figures (decision D124): Extension E2, Extension E3 (including the tag maps) and Extension E5
 
-Built by eval/figs_cand_c.py at commit `804880f`, run with /home/makerspace/venv-evo/bin/python. The E3 tag maps (C05, C06) also need eval/figs_cand_c_extract.py, run once under heavy.py to cache /ground_truth/pose from the stored bags to ~/thesis_data/cand_c_cache (deleted once this script finishes). Stored outputs only throughout: no flight, estimator replay or simulation. Rules: 160 mm (6.30 in) wide, Okabe-Ito EKF3/UKF/FGO + grey truth, filled = live / open = hindsight, no titles, no verdict words, no badges or explanatory notes inside axes, no bold in axes, side-by-side panels only on a shared scale, every number in an exact cross-check (parsed rd(), SHA-pinned).
+Built by eval/figs_cand_c.py at commit `36cab63`, run with /home/makerspace/venv-evo/bin/python. The E3 tag maps (C05, C06) also need eval/figs_cand_c_extract.py, run once under heavy.py to cache /ground_truth/pose from the stored bags to ~/thesis_data/cand_c_cache (deleted once this script finishes). Stored outputs only throughout: no flight, estimator replay or simulation. Rules: 160 mm (6.30 in) wide, Okabe-Ito EKF3/UKF/FGO + grey truth, filled = live / open = hindsight, no titles, no verdict words, no badges or explanatory notes inside axes, no bold in axes, side-by-side panels only on a shared scale, every number in an exact cross-check (parsed rd(), SHA-pinned).
 
 **Checks: 82/82 (exact string equality).**
 

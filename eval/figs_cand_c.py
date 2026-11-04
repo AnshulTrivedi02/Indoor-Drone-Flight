@@ -546,7 +546,7 @@ def e3_maps(fid, runs, width):
             ax.plot(x_, y_, marker="D", ms=5.5, color=TRUTH, zorder=4)
         lm = json.load(open(f"{rd_}/stats.json"))["landmarks_final"]
         for v in lm.values():
-            ax.plot(v[0], v[1], marker=MK["FGO"], ms=6, mfc=SURF, mec=C["FGO"], mew=1.3, ls="", zorder=5)
+            ax.plot(v[0], v[1], marker=MK["FGO"], ms=6, mfc="none", mec=C["FGO"], mew=1.3, ls="", zorder=5)
         check(fid, f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8",
               "stats.json landmarks_final; room_tags_map.json")
         ax.set_title(T(f"({'ab'[i]})"), loc="left", fontsize=9.0)      # panel label only (a)/(b); the run description is in the caption
@@ -558,7 +558,7 @@ def e3_maps(fid, runs, width):
     leg = fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.3, label="true track"),
                               Line2D([], [], color=TRUTH, ls="none", marker="D", ms=5.5, label="true tag"),
                               Line2D([], [], color=C["FGO"], lw=0.7, ls=(0, (4, 2)), label="FGO hindsight track"),
-                              Line2D([], [], ls="none", marker=MK["FGO"], mfc=SURF, mec=C["FGO"], mew=1.3, ms=6, label="FGO final tag map")],
+                              Line2D([], [], ls="none", marker=MK["FGO"], mfc="none", mec=C["FGO"], mew=1.3, ms=6, label="FGO final tag map")],
                      loc="lower center", ncol=4, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     return fig
