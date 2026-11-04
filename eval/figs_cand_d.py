@@ -223,7 +223,9 @@ for t in FLT:
     ax.plot([MED4[w][FLT.index(t)] for w in WS], [LW[t][w] for w in WK], color=C["FGO"], lw=1.2, marker=MK["FGO"], ms=5,
             mfc=C["FGO"], mec=C["FGO"], zorder=3, alpha=0.85)
 ax.axvline(33, color=INK2, lw=1.8, ls=(0, (6, 3)), zorder=2)
-ax.text(37, YL[1] * 0.97, T(f"{BUD} ms budget"), ha="left", va="top", fontsize=10, color=INK2)
+# label sits in the gap between the mid and top flight-RMSE bands (~0.058-0.073 m), clear of the dashed line itself
+# (x = 42, 9 ms right of the line at x = 33) and of every plotted point/segment (checked against the loaded data).
+ax.text(42, 0.0655, T(f"{BUD} ms budget"), ha="left", va="center", fontsize=10, color=INK2)
 ax.set_xlabel("FGO median compute time per step (ms)")
 ax.set_ylabel("FGO live horizontal error, RMSE (m)")
 ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.2f}"))
@@ -263,7 +265,10 @@ for i, w in enumerate(WS):
     ax.add_patch(Rectangle((i - 0.18, lo - (hgt - (hi - lo)) / 2), 0.36, hgt, facecolor=C["FGO"], edgecolor=C["FGO"], lw=1.6, zorder=3))
 for i, w in enumerate(WS):
     hi = max(MED4[w])
-    ax.text(i, hi + 14, T(EXP4[w].replace("–", "–\n") + " ms"), ha="center", va="bottom", fontsize=9.5, linespacing=1.05)
+    # clear both the box and the 33 ms budget line: for the two boxes below the line (0.25 s, 0.5 s) this pushes the
+    # label's bottom edge (va="bottom") well above the line instead of letting the two-line label straddle it.
+    ly = max(hi + 14, 33 + 16)
+    ax.text(i, ly, T(EXP4[w].replace("–", "–\n") + " ms"), ha="center", va="bottom", fontsize=9.5, linespacing=1.05)
 ax.axhline(33, color=INK2, lw=1.6, ls=(0, (6, 4)), zorder=1)
 ax.text(5.75, 37, T(f"{BUD2} ms budget"), ha="right", va="bottom", fontsize=10, color=INK2)
 ax.set_xticks(list(range(5))); ax.set_xticklabels([T(w) for w in WK])
@@ -329,6 +334,9 @@ for i, (ax, c) in enumerate(zip(axs, TCOND)):
     if i:
         ax.tick_params(labelleft=False)
 axs[0].set_ylabel("Change in live error from\nits 0.25 s value (m)")
+# evenly spaced ticks at an exact 0.002 m step (not matplotlib's default ~0.0025 autolocator, whose 3 dp labels
+# round unevenly: +0.003, +0.005, +0.008, +0.010) so every printed label is exact and the steps between them equal.
+axs[0].yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.002))
 axs[0].yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:+.3f}".replace("-", "−") if abs(v) > 1e-12 else "0"))
 fig.text(0.5, 0.015, T("FGO window of recent measurements (s), evenly spaced, not to scale"), ha="center", fontsize=10)
 save_fig(fid, fig,
