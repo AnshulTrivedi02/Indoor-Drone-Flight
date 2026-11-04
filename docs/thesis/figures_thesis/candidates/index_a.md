@@ -20,7 +20,7 @@ Built by `eval/figs_cand_a.py` at commit `48e7197` (run with `/home/makerspace/v
 | A06 | Where the drone really flew: the 4 final 5S safety runs | A06_5S_truth | 2/2 | Verdicts: Table A.4, none (descriptive). |
 | A07 | Without a heading source the raw horizontal error grows to metres-to-tens-of-metres | walkthrough page 02 (fl_1A_unaligned_err.png) | 2/2 | Verdicts: Table A.4, rows H1.1. |
 | A08 | The forward-camera heading check, by wall type and floor | summary page 03 / walkthrough page 04 | 8/8 | Verdicts: Table A.4, rows H1.2 heading and yaw rate, textured walls; H1.2 heading, plain walls over blank and transition floors; H1.2 heading, plain walls over the checkerboard floor. |
-| A09 | With the camera heading the UKF and FGO paths stay on the true path | walkthrough page 05 (fl_1B_unaligned_paths.png, plots only) | 4/4 | Verdicts: Table A.4, none (descriptive). |
+| A09 | With the camera heading the UKF and FGO paths stay on the true path | walkthrough page 05 (fl_1B_unaligned_paths.png, plots only) | 7/7 | Verdicts: Table A.4, none (descriptive). |
 | A10 | Experiment 1B: registered score and raw maximum error, without and with the camera heading | walkthrough page 05 (fl_1B_unaligned_paths.png, in-figure table) | 14/14 | Verdicts: Table A.4, none (descriptive). |
 | A11 | Without the camera heading the raw error grows through the cruise | walkthrough fl_1B_unaligned_err_noheading.png (generated, not composed into a numbered walkthrough page since D63) | 1/1 | Verdicts: Table A.4, none (descriptive). |
 | A12 | With the camera heading the raw error stays close to the true path | walkthrough fl_1B_unaligned_err_heading.png (generated, not composed into a numbered walkthrough page since D63) | 1/1 | Verdicts: Table A.4, none (descriptive). |
