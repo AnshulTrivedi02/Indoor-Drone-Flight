@@ -1,8 +1,8 @@
 # Candidate thesis figures, group A: setup and Experiment 1 (1A/1B/1C) (decision D124)
 
-Built by `eval/figs_cand_a.py` at commit `b5bac31` (run with `/home/makerspace/venv-evo/bin/python`). These are CANDIDATES for the user to pick from - not inserted into the thesis figure set in `docs/thesis/figures_thesis/` itself. Stored outputs only: TUM files, eval/results/*.json, and a cache of dataflash/bag reads pre-populated by `eval/figs_walkthrough_flights.py --cache ~/thesis_data/cand_a_cache --extract-only` under `heavy.py` (that invocation writes nothing outside the cache directory). No estimator run, no simulation, no flight.
+Built by `eval/figs_cand_a.py` at commit `e27f528` (run with `/home/makerspace/venv-evo/bin/python`). These are CANDIDATES for the user to pick from - not inserted into the thesis figure set in `docs/thesis/figures_thesis/` itself. Stored outputs only: TUM files, eval/results/*.json, and a cache of dataflash/bag reads pre-populated by `eval/figs_walkthrough_flights.py --cache ~/thesis_data/cand_a_cache --extract-only` under `heavy.py` (that invocation writes nothing outside the cache directory). No estimator run, no simulation, no flight.
 
-**Checks:** 64/64 EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, sha256 of the source segment used to detect drift - see below).
+**Checks:** 65/65 EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, sha256 of the source segment used to detect drift - see below).
 
 **Style:** `eval/thesis_style.py` (160 mm / 6.30 in text width, Okabe-Ito palette, filled = live / open = hindsight, no in-figure titles, no verdict words, no bold text, panel labels (a)/(b)/... only where a figure has more than one panel). No two plots overlap; the F9 (Figure 4.1b) inset was split into its own stacked panel as part of this same group's brief (`eval/figs_thesis.py`, see docs/handovers/2026-11-04_cand_a.md).
 
@@ -28,7 +28,7 @@ Built by `eval/figs_cand_a.py` at commit `b5bac31` (run with `/home/makerspace/v
 | A16 | Without a heading source the true sideways position runs to the wall | walkthrough page 10 (fl_1C_side_off.png) | 1/1 | Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO. |
 | A17 | With the camera heading the true sideways position stays near the centre line | walkthrough page 11 (fl_1C_side_on.png) | 2/2 | Verdicts: Table A.4, rows H1.9 EKF3; H1.9 UKF; H1.9 FGO. |
 | A18 | Without a heading source every estimator's wall contact fell near its pre-registered window | summary page 05 (new_page('05', ...)) | 4/4 | Verdicts: Table A.4, rows H1.8 EKF3, half real-time (RTF 0.5); H1.8 UKF; H1.8 FGO. |
-| A19 | With the camera heading the largest sideways drift stayed well inside the 6.0 m limit | summary page 06 (new_page('06', ...)) | 3/3 | Verdicts: Table A.4, rows H1.9 EKF3; H1.9 UKF; H1.9 FGO. |
+| A19 | With the camera heading the largest sideways drift stayed well inside the 6.0 m limit | summary page 06 (new_page('06', ...)) | 4/4 | Verdicts: Table A.4, rows H1.9 EKF3; H1.9 UKF; H1.9 FGO. |
 | A20 | Five more no-heading flights: every one also reached the west wall | extra/ex_1C_extra.png | 6/6 | Verdicts: Table A.4, none (descriptive). |
 
 ## Skipped (content already a figure/table in docs/thesis/figures_thesis/)

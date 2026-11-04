@@ -279,7 +279,7 @@ def measured_stretch(fig, ax):
     return (bb.height / (y1 - y0)) / (bb.width / (x1 - x0))
 
 
-def wallband(ax, lim, vertical=True, fs=8.5):
+def wallband(ax, lim, vertical=True, fs=9.5):
     for s_ in (1, -1):
         (ax.axvspan if vertical else ax.axhspan)(10 * s_, lim * s_, color="#d9d9d9", lw=0, zorder=0.5)
         c_ = (10 + lim) / 2 * s_
@@ -308,16 +308,24 @@ def truth_cand(fid, name, title, trials, gt_of, source_desc, inputs, flights_n, 
     ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)"); ax.set_title("(a)", loc="left", fontsize=9.5)
     st = measured_stretch(fig, ax)
     check(f"{fid} equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0) of panel (a)")
-    ax2.axvline(0, color=INK2, lw=0.7, ls=":", zorder=1); ax2.set_xlim(0, None); ax2.set_ylim(0, None)
-    ax2.set_xlabel("time from take-off (s); the dotted line marks take-off"); ax2.set_ylabel("height (m)")
+    ax2.set_xlim(0, None); ax2.set_ylim(0, None)
+    # x-axis (fix sweep, 2026-11-04): panel (b) was labelled "time from take-off" with a dotted line "marking"
+    # take-off at t=0 - checked against the recorded ground_truth.tum directly: height sits flat at the ground
+    # rest height (0.195 m) for the first ~20 s after t=0, so t=0 is the START OF THE RECORDING (the vehicle is
+    # still on the ground), not the moment of lift-off, which happens visibly later in the climb. The claim was
+    # wrong, and the line sat exactly on the left spine regardless (not usefully visible) - dropped the line and
+    # relabelled accurately.
+    ax2.set_xlabel("time since the start of the recording (s)"); ax2.set_ylabel("height (m)")
     ax2.set_title("(b)", loc="left", fontsize=9.5)
     check(f"{fid} flights shown (n)", len(trials), flights_n, source_desc)
     cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m", label=f"{fid} ")
     save(fig, fid, name, title,
          f"Simulator ground truth (truth flying, nothing estimated): every one of the {flights_n} flights of {source_desc}, from "
-         "take-off to landing. (a) seen from above, equal scale (no stretch); the grey bands beyond East = ±10 m "
-         "(CLAUDE.md:101) are the corridor walls; every flight's true path lies on the same straight line, so the lines "
-         "overlap. (b) true height against time since take-off (one line per flight; they overlap). No log axes.",
+         "the start of the recording (on the ground, before take-off) to landing. (a) seen from above, equal scale "
+         "(no stretch); the grey bands beyond East = ±10 m (CLAUDE.md:101) are the corridor walls; every flight's "
+         "true path lies on the same straight line, so the lines overlap. (b) true height against time since the "
+         "start of the recording (one line per flight; they overlap) - height stays at the ground rest height "
+         "until each flight's own take-off, then climbs. No log axes.",
          inputs, name, None)
 
 
@@ -543,7 +551,7 @@ for tr in HALF["EKF3"][1]:
     CLE[tr] = (K[wk, 1], K[wk, 2], g[wg, 2], g[wg, 1])
 check("A09 closed-loop EKF3 panel frame check (XKF1 core 0 vs SIM, heading tolerance 10 deg)", f"{FRC}/3", "3/3", "this script")
 PAN = [("EKF3", "EKF3\nno heading"), ("UKF_baseline", "UKF\nno heading"), ("FGO_baseline", "FGO\nno heading"),
-       ("EKF3_cl", "EKF3, with\nheading\n(closed-loop)"),
+       ("EKF3_cl", "EKF3, with\nheading"),
        ("UKF_heading", "UKF\nwith heading"), ("FGO_heading", "FGO\nwith heading")]
 LIMB = max([float(np.abs(v[2]).max()) for v in UNB.values()] + [float(np.abs(v[1]).max()) for v in CLE.values()] + [10.0]) + 4.0
 fig = plt.figure(figsize=(TEXT_WIDTH_IN, 4.6))
@@ -553,16 +561,16 @@ for ax in axs[1:]:
     ax.sharex(axs[0]); ax.sharey(axs[0])
 for ax, (key, lab) in zip(axs, PAN):
     if key == "EKF3_cl":
-        wallband(ax, LIMB, fs=7)
+        wallband(ax, LIMB)
         for tr in HALF["EKF3"][1]:
             en, ee, gn, ge = CLE[tr]; ax.plot(ge, gn, color=TRUTH, lw=1.3, zorder=2)
         for tr in HALF["EKF3"][1]:
             en, ee, gn, ge = CLE[tr]; ax.plot(ee, en, color=C["EKF3"], lw=0.9, zorder=3)
         ax.plot(0, 0, marker="o", ms=4, color=INK, zorder=5); ax.set_aspect(1.0, adjustable="box")
-        ax.set_title(lab, loc="left", fontsize=7.6, color=C["EKF3"])
+        ax.set_title(lab, loc="left", fontsize=9.0, color=C["EKF3"])
     else:
         paths_raw(ax, UNB, key, B_FL, lambda tr: P4E[tr]["window_s"], C[key.split("_")[0]], LIMB)
-        ax.set_title(lab, loc="left", fontsize=8.2, color=C[key.split("_")[0]])
+        ax.set_title(lab, loc="left", fontsize=9.0, color=C[key.split("_")[0]])
     ax.set_xlabel("East (m)", fontsize=9)
 for ax in axs[1:]:
     plt.setp(ax.get_yticklabels(), visible=False)
@@ -671,7 +679,11 @@ for ax, e in zip(axs, EST):
     w0 = (g0[:, 0] >= 20) & (g0[:, 0] <= c0 + tc)
     ax.plot(g0[w0, 2], g0[w0, 1], color=C[e], lw=1.3, ls=(0, (5, 3)), zorder=4)
     ax.plot(ct["y"], ct["x"], marker="X", ms=8, color=C[e], mec=INK, mew=0.8, zorder=6)
-    ax.text(-3.0, 0.0, e, fontsize=10.5, color=C[e], ha="right", va="center")
+    # Estimator label (fix sweep, 2026-11-04): moved from x=-3 (ha="right", so the text extended leftward
+    # into the left frame spine at this panel's compressed equal-aspect scale - confirmed by pixel inspection
+    # of the rendered PNG) to a small positive x above the flat start of the line, clear of both the spine
+    # and the plotted path.
+    ax.text(4.0, 1.6, e, fontsize=10.5, color=C[e], ha="left", va="bottom")
     ax.set_aspect(1.0, adjustable="box"); ax.set_yticks([-10, 0, 10])
 axs[0].set_xlim(-16, 166); axs[0].set_ylim(-LIMC, LIMC); axs[-1].set_xlabel("along the corridor, North (m)")
 fig.supylabel("sideways, East (m)", x=0.01)
@@ -812,7 +824,8 @@ for i, e in enumerate(EST):
     ax.bar(i, v, width=0.55, color=C[e], zorder=3)
     ax.text(i, v + 0.015, f"{rd(v, 2)} m", ha="center", va="bottom", fontsize=9.5)
 ax.axhline(6.0, color=INK2, ls=(0, (5, 3)), lw=1.1, zorder=2)
-ax.text(2.45, 6.08, "limit 6.0 m", fontsize=8.5, color=INK2, ha="right", va="bottom")
+ax.text(2.45, 6.08, "limit 6.0 m", fontsize=9.5, color=INK2, ha="right", va="bottom")
+cite(M_, 4953, "≤ 6.0 m", label="A19 ")
 ax.set_xlim(-0.6, 2.6); ax.set_ylim(0, 6.8); ax.set_xticks(range(3)); ax.set_xticklabels(EST); ax.grid(axis="x", visible=False)
 ax.set_ylabel("largest sideways distance from the\ncorridor centre line (m)")
 save(fig, "A19", "A19_1C_cross_track", "With the camera heading the largest sideways drift stayed well inside the 6.0 m limit",
