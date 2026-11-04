@@ -327,33 +327,61 @@ VREF = check("C0203", "stored error without loop closure, the 3 flights, lowestâ
 check("C0203", "wrong-ID rates (per cent of the eligible detections)", "1% / 5%", "1% / 5%", "E3_verdicts.json")
 check("C0203", "room tag count (caption)", "8", "8", "preregistration.md", [("PR", "The 8 tags sit on a 6 m square")])
 
-# ---- C02: chart, filled FGO squares (every run is live), a categorical "diverged" tick for runs with no finite error.
-# Legend placed BELOW the axes (not on top of the data) -- the "diverged" band and the 5% groups leave no clean empty region
-# inside the axes for a legend, and the brief bans drawing one plot/element over another.
-fig, ax = plt.subplots(figsize=(FW, 4.3))
-YDIV = 5.2
+# ---- C02: chart, filled FGO squares (every run is live) on a numeric axis, plus a genuinely separate categorical
+# "diverged" row for runs with no finite error -- a real broken y-axis (two stacked Axes sharing x, a gap between
+# them, a diagonal break mark at the join), not a sixth tick squeezed onto the numeric scale, so the brief's
+# "visually separated ... by a gap or a break mark" requirement does not rest on the tick label alone. Legend
+# placed BELOW the axes (not on top of the data) -- the 5% groups leave no clean empty region inside the axes for
+# a legend, and the brief bans drawing one plot/element over another.
+fig = plt.figure(figsize=(FW, 4.8))
+# Margins set explicitly (not tight_layout, which doesn't cooperate with a manually-added gridspec + fig.legend
+# combination): left/right/top/bottom carve out room for the y-label, the break mark, the two-line x-tick labels
+# and the two-line legend below the axes, so nothing collides.
+gs = fig.add_gridspec(2, 1, height_ratios=[1, 5], hspace=0.12, left=0.14, right=0.97, top=0.96, bottom=0.28)
+axd = fig.add_subplot(gs[0])
+ax = fig.add_subplot(gs[1], sharex=axd)
 ax.set_xlim(-0.6, 4.6)
-ax.set_ylim(0, 5.7)
+ax.set_ylim(-0.18, 4.55)       # headroom below 0 so the lowest live squares (down to 0.048 m) don't sit on the spine
+axd.set_ylim(0.5, 1.5)         # a single categorical row, its own sub-axes, nothing to do with the numeric scale
 ax.axhspan(min(REF3), max(REF3), color="#dddddd", lw=0, zorder=1)
 for j, (a, r) in enumerate(GR3):
     ns = runs3(a, r)
-    xs = np.linspace(j - 0.32, j + 0.32, len(ns))
-    for x_, n in zip(xs, ns):
-        if DIV3[n]:
-            ax.plot(x_, YDIV, marker="x", color=C["FGO"], ms=8, mew=1.8, ls="none", zorder=4)
-        else:
-            ax.plot(x_, LIVE3[n], marker=MK["FGO"], color=C["FGO"], ms=6, ls="none", zorder=4)
+    live_ns = [n for n in ns if not DIV3[n]]
+    div_ns = [n for n in ns if DIV3[n]]
+    # Live and diverged runs get their own independent, deterministic horizontal spread -- not a shared
+    # linspace over all runs in the group -- so a group with few diverged runs (e.g. 6 of 9 here) doesn't
+    # inherit cramped spacing from sharing index slots with the live runs, and a dense 9-run group (e.g. all 9
+    # "5% wrong IDs, FGO as built" runs sitting within 0.18 m of each other) gets the smaller marker and the
+    # widest span the 1.0-unit column pitch allows, so no two squares touch. Both spans stay under 0.5 so
+    # neighbouring columns (e.g. "5% wrong IDs, FGO as built" at j+1) never overlap.
+    live_xs = np.linspace(j - 0.42, j + 0.42, len(live_ns)) if len(live_ns) > 1 else [j]
+    for x_, n in zip(live_xs, live_ns):
+        ax.plot(x_, LIVE3[n], marker=MK["FGO"], color=C["FGO"], ms=5, ls="none", zorder=4)
+    div_xs = np.linspace(j - 0.4, j + 0.4, len(div_ns)) if len(div_ns) > 1 else [j]
+    for x_, n in zip(div_xs, div_ns):
+        axd.plot(x_, 1.0, marker="x", color=C["FGO"], ms=8, mew=1.8, ls="none", zorder=4)
 ax.set_xticks(range(5))
 ax.set_xticklabels([T(LAB3[g]) for g in GR3], fontsize=9.0)
-ax.set_yticks([0, 1, 2, 3, 4, YDIV])
-ax.set_yticklabels(["0", "1", "2", "3", "4", "diverged"])
-ax.grid(axis="x", visible=False)
+ax.set_yticks([0, 1, 2, 3, 4])
 ax.set_ylabel("live position error over five laps (m)")
-leg = fig.legend(handles=[Line2D([], [], ls="none", marker=MK["FGO"], color=C["FGO"], ms=6, label="finished run (filled: live)"),
+axd.set_yticks([1.0])
+axd.set_yticklabels(["diverged"])
+axd.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+ax.grid(axis="x", visible=False)
+axd.grid(visible=False)
+axd.spines["bottom"].set_visible(False)
+ax.spines["top"].set_visible(False)
+# Break mark: the standard matplotlib broken-axis idiom (a short diagonal stroke drawn as a custom marker, in
+# each Axes' own fraction coordinates, at the shared boundary) -- independent of either Axes' data scale, so it
+# reads as a deliberate break rather than a continuation of the gridlines.
+_d = 0.5
+_bkw = dict(marker=[(-1, -_d), (1, _d)], markersize=12, linestyle="none", color=INK, mec=INK, mew=1.3, clip_on=False)
+axd.plot([0], [0], transform=axd.transAxes, **_bkw)
+ax.plot([0], [1], transform=ax.transAxes, **_bkw)
+leg = fig.legend(handles=[Line2D([], [], ls="none", marker=MK["FGO"], color=C["FGO"], ms=5, label="finished run (filled: live)"),
                           Line2D([], [], ls="none", marker="x", color=C["FGO"], ms=8, mew=1.8, label="diverged run"),
                           Patch(facecolor="#dddddd", edgecolor="none", label="stored error without\nloop closure, 3 flights")],
-                 frameon=False, loc="lower center", ncol=3, fontsize=9.0, bbox_to_anchor=(0.5, 0.0), columnspacing=1.4)
-fig.tight_layout(rect=(0, 0.1, 1, 1))
+                 frameon=False, loc="lower center", ncol=3, fontsize=9.0, bbox_to_anchor=(0.5, 0.01), columnspacing=1.4)
 save("C02", fig, "docs/thesis/tier1/scores/E3_verdicts.json (runs, references)", pool="C0203")
 
 C0203_CAP = (
@@ -518,7 +546,7 @@ def e3_maps(fid, runs, width):
             ax.plot(x_, y_, marker="D", ms=5.5, color=TRUTH, zorder=4)
         lm = json.load(open(f"{rd_}/stats.json"))["landmarks_final"]
         for v in lm.values():
-            ax.plot(v[0], v[1], marker=MK["FGO"], ms=6, mfc=SURF, mec=C["FGO"], mew=1.3, ls="", zorder=5)
+            ax.plot(v[0], v[1], marker=MK["FGO"], ms=6, mfc="none", mec=C["FGO"], mew=1.3, ls="", zorder=5)
         check(fid, f"{os.path.basename(rd_)}: final landmarks drawn = true tags", f"{len(lm)} / {len(TRUEMAP)}", "8 / 8",
               "stats.json landmarks_final; room_tags_map.json")
         ax.set_title(T(f"({'ab'[i]})"), loc="left", fontsize=9.0)      # panel label only (a)/(b); the run description is in the caption
@@ -530,7 +558,7 @@ def e3_maps(fid, runs, width):
     leg = fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.3, label="true track"),
                               Line2D([], [], color=TRUTH, ls="none", marker="D", ms=5.5, label="true tag"),
                               Line2D([], [], color=C["FGO"], lw=0.7, ls=(0, (4, 2)), label="FGO hindsight track"),
-                              Line2D([], [], ls="none", marker=MK["FGO"], mfc=SURF, mec=C["FGO"], mew=1.3, ms=6, label="FGO final tag map")],
+                              Line2D([], [], ls="none", marker=MK["FGO"], mfc="none", mec=C["FGO"], mew=1.3, ms=6, label="FGO final tag map")],
                      loc="lower center", ncol=4, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
     fig.tight_layout(rect=(0, 0.08, 1, 1))
     return fig
