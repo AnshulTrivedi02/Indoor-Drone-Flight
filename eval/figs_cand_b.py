@@ -205,12 +205,24 @@ check("B01 live errors similar (P-T3): largest / smallest ratio by condition (H2
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.6))
 xc = np.arange(4); offs = dict(zip(EST, np.linspace(-0.27, 0.27, 3)))
-YOFF = {"EKF3": 0.0115, "UKF": 0.0025, "FGO": 0.0025}      # stagger EKF3's label above UKF's when their bars are near-equal height
+MIN_GAP = 0.013   # minimum vertical gap (m) between two adjacent value labels, so no two labels ever touch
 for j, c in enumerate(TCOND):
-    for k, e in enumerate(EST):
-        x = j + offs[e]; v = agg["conditions"][c]["mean_rmse_m"][f"{e} live"]
+    vals = {e: agg["conditions"][c]["mean_rmse_m"][f"{e} live"] for e in EST}
+    # Stagger labels by rank of bar HEIGHT, not by fixed estimator identity (a fixed per-estimator offset breaks
+    # whenever the relative order of two bars flips between conditions - exactly what happened in condition B, where
+    # EKF3 < UKF but EKF3's label used the larger offset, landing almost on top of UKF's). The LOWER bar of a close
+    # pair keeps its label right at its own bar (default offset); the TALLER bar's label is the one pushed up, just
+    # far enough to clear the lower one's label by MIN_GAP - so a label never floats far from a short bar, and the
+    # vertical order of the labels always matches the vertical order of the bars.
+    yoff = {e: 0.003 for e in EST}
+    order = sorted(EST, key=lambda e: vals[e])
+    for lo, hi in zip(order[:-1], order[1:]):
+        if vals[hi] + yoff[hi] - (vals[lo] + yoff[lo]) < MIN_GAP:
+            yoff[hi] = (vals[lo] + yoff[lo] + MIN_GAP) - vals[hi]
+    for e in EST:
+        x = j + offs[e]; v = vals[e]
         ax.bar(x, v, width=0.23, color=C[e], zorder=3)
-        ax.text(x, v + YOFF[e], VT[(c, e)], ha="center", va="bottom", fontsize=9.0)
+        ax.text(x, v + yoff[e], VT[(c, e)], ha="center", va="bottom", fontsize=9.0)
 ax.set_xticks(range(4)); ax.set_xticklabels([f"{TAGS[c]}\n(fix every {g} s)" for c, g in zip(TCOND, GAP2.split(" / "))])
 ax.set_xlabel("tags at known places in the room (median time between position fixes)")
 ax.set_ylabel("live horizontal RMSE\nover 5 laps (m)")
@@ -246,7 +258,10 @@ for i, tr in enumerate(T_A_FL):
 ax.set_aspect(1.0, adjustable="box")
 ax.set_xlabel("East (m)"); ax.set_ylabel("North (m)")
 st = measured_stretch(fig, ax); check("B02 equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
-ax.legend(loc="lower right", frameon=False, fontsize=9.0, ncol=3)
+# The track covers the full square (including its bottom edge, y = -3), so no in-axes corner is genuinely empty -
+# the legend goes below the axes instead, in the blank margin outside the data (same placement as B03's).
+fig.legend(loc="lower center", frameon=False, fontsize=9.0, ncol=3, bbox_to_anchor=(0.5, -0.02))
+fig.subplots_adjust(bottom=0.14)
 save(fig, "B02", "B02_3_truth", "Where the drone really flew: the 3 loop-closure flights (simulator truth)",
      "Simulator ground truth (truth flying, nothing estimated): the 3 flights of Experiment 3 (loop closure; the "
      "same flights as Experiment 2's 8-tag condition), 5 laps of a 6 m square each, seen from above, equal scale, "
@@ -390,33 +405,36 @@ for n in TRK4:
           "RTS-UKF (hindsight)": "0.58–0.60", "FGO hindsight (whole-flight batch)": "0.59–0.59"}[n], "eval/results/expO/O_{r1,r2,r3b}.json")
 
 HIND4 = {"EKF3 live": None, "UKF live": "RTS-UKF (hindsight)", "FGO live": "FGO hindsight (whole-flight batch)"}
+ROWLAB4 = {"EKF3 live": "EKF3", "UKF live": "UKF", "FGO live": "FGO"}
 fig, axs = plt.subplots(3, 2, figsize=(TEXT_WIDTH_IN, 5.9), sharex=True, sharey=True)
 for r, n in enumerate(("EKF3 live", "UKF live", "FGO live")):
     for c, nn in enumerate((n, HIND4[n])):
         ax = axs[r, c]
+        if nn is None:
+            # EKF3 has no hindsight track (stated in the caption): leave the cell genuinely blank - no axes, no
+            # shading, no text - rather than drawing an empty shaded/boxed panel with nothing in it.
+            ax.axis("off")
+            continue
         for tr in O_FL:
             ax.axvspan(0, OM4[tr]["markers_bag_s"]["GNSS ON"] - OM4[tr]["markers_bag_s"]["GNSS OFF"], color="#ececec", zorder=0, lw=0)
-        if nn is None:
-            ax.axis("off")
-        else:
-            for tr in O_FL:
-                x, y = OE4[(nn, tr)]; ax.plot(x, y, color=TCOL4[nn], lw=1.1, ls=TLS4[nn], zorder=3)
-            lab_ = {"EKF3 live": "EKF3, live", "UKF live": "UKF, live", "FGO live": "FGO, live",
-                    "RTS-UKF (hindsight)": "UKF, hindsight", "FGO hindsight (whole-flight batch)": "FGO, hindsight"}[nn]
-            ax.text(0.01, 0.97, lab_, transform=ax.transAxes, fontsize=9.5, color=TCOL4[nn], weight="bold", va="top")
-            ax.set_ylabel("error (m)" if c == 0 else "")
+        for tr in O_FL:
+            x, y = OE4[(nn, tr)]; ax.plot(x, y, color=TCOL4[nn], lw=1.1, ls=TLS4[nn], zorder=3)
+        if c == 0:
+            ax.set_ylabel(ROWLAB4[n])   # row header (estimator name), outside the data, in place of an in-axes label
 axs[0, 0].set_ylim(0, ymax4); axs[0, 0].set_xlim(-40, max(TON4) + 30)
-axs[0, 0].set_title("live (during flight), solid", loc="left", fontsize=9.5)
-axs[0, 1].set_title("hindsight (after landing), dashed", loc="left", fontsize=9.5)
+axs[0, 0].set_title("live", loc="left", fontsize=9.5)
+axs[0, 1].set_title("hindsight", loc="left", fontsize=9.5)   # set AFTER axis("off") elsewhere; on an off axis a
+                                                               # loc="left" title still renders (empirically checked)
 fig.supylabel("horizontal error (m)", x=0.01, fontsize=10.5)
 fig.supxlabel("time from GNSS OFF at the entrance (s)", y=0.015, fontsize=10.5)
-fig.subplots_adjust(left=0.08, right=0.99, top=0.90, bottom=0.12, hspace=0.3, wspace=0.12)
+fig.subplots_adjust(left=0.1, right=0.99, top=0.93, bottom=0.12, hspace=0.3, wspace=0.12)
 _yl4 = {ax.get_ylim() for ax in axs.flat}
 check("B04 all six panels share one y-scale (sharey)", str(len(_yl4) == 1), "True", "this script (axis limits)")
 save(fig, "B04", "B04_4_err", "Experiment 4: error against time, all 3 flights, live and hindsight on one y-scale",
      "Experiment 4 (outdoor-indoor: outdoor to indoor to outdoor, open loop on simulator truth), all 3 flights, "
-     "horizontal error against time from GNSS OFF at the entrance (shaded: indoors, GNSS off, 123 s), one shared "
-     f"linear y-scale across all six panels. Indoor horizontal RMSE range over the 3 flights: EKF3 live {RN4['EKF3 live']} m, "
+     "horizontal error against time from GNSS OFF at the entrance (shaded: indoors, GNSS off, 123 s), rows EKF3/UKF/"
+     "FGO, live (solid lines) left and hindsight (dashed lines) right, one shared linear y-scale across all panels. "
+     f"Indoor horizontal RMSE range over the 3 flights: EKF3 live {RN4['EKF3 live']} m, "
      f"UKF live {RN4['UKF live']} m, FGO live {RN4['FGO live']} m, UKF hindsight {RN4['RTS-UKF (hindsight)']} m, FGO "
      f"hindsight {RN4['FGO hindsight (whole-flight batch)']} m. EKF3 resets to GNSS on return with a {JMP4} m jump, "
      "every flight (EKF3 has no hindsight track - its hindsight panel is intentionally blank). World frame, no "
@@ -497,27 +515,39 @@ HK = {"EKF3": 3, "UKF": 0, "FGO": 0}
 VH = {e: rng_si(HV[e], 1, HK[e]) for e in EST}
 for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6")):
     check(f"B06 {e}: mean hold error, range over 3 flights (mm)", VH[e], x, "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json)")
+NFLY6 = "/".join(str(len(HV[e])) for e in EST)
+check("B06 flights per estimator", NFLY6, "3/3/3", "this script (len(HV[e])); S1far r1-r3b, S2v2 r1-r3, S3v2 r1-r3")
 HVM = {e: max(float(rd_si(v, 12, HK[e])) for v in HV[e]) for e in EST}
 worstm = {e: max(lo[FLY5[e][1]]["effective"]["drift_m"] for t in FLY5[e][0] for lo in HJ(t)["losses"]) for e in EST}
 VW = {e: rd_si(worstm[e], 0, 3) for e in EST}
 LK = {e: [bool(lo[FLY5[e][1]]["lockout"]) for t in FLY5[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: f"{sum(LK[e])} / {len(LK[e])}" for e in EST}
+NFLY7 = "/".join(str(len(FLY5[e][0])) for e in EST)
+check("B07 flights per estimator (EKF3: near + far spawn combined)", NFLY7, "6/3/3", "this script (len(FLY5[e][0])); S1+S1F, S2v2, S3v2")
+# The 50 mm dashed line is a REGISTERED limit (common brief: no in-plot label on it), cross-checked against its
+# source rather than drawn from a bare literal - same source eval/figs_walkthrough_extra.py's HLIM check uses.
+HLIM = si_str("0.05", 3)
+check("B06/B07 hold limit for the mean (mm) = the registered '<= 0.05 m' (METHODOLOGY.md:10687) x 10^3, exact", HLIM, "50", "METHODOLOGY.md:10687")
+cite("METHODOLOGY.md", 10687, "mean hold error ≤ 0.05 m", "B06/B07 ")
+# The pre-registration source (not METHODOLOGY.md's own "(primary, EKF3 flying)" label, which only names which
+# flights scored it) states this 50 mm bound for EVERY estimator, confirming one shared line for all three bars.
+cite("docs/tag_hold_design.md", 176, "H-H1 (primary): every estimator holds within tag-fix accuracy", "B06/B07 ")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 58)
-ax.axhline(50, color=GRID, ls=(0, (6, 4)), lw=1.8, zorder=1)
+ax.axhline(float(HLIM), color=TRUTH, ls=(0, (6, 4)), lw=1.8, zorder=1)
 for i, e in enumerate(EST):
     ax.bar(i, HVM[e], width=0.62, color=C[e], zorder=3)
     ax.text(i, HVM[e] + 1.2, f"{VH[e]} mm", ha="center", va="bottom", fontsize=9.5)
-ax.text(2.45, 50.6, "limit for the mean: 50 mm", ha="right", va="bottom", fontsize=9.0, color=INK2)
 ax.set_xticks(range(3)); ax.set_xticklabels(EST); ax.grid(axis="x", visible=False)
 ax.set_ylabel("mean hold error per flight (mm)")
 save(fig, "B06", "B06_5_hold_error", "Experiment 5: mean hold error per flight, next to the wall tag",
      "Experiment 5 (tag hold): distance between where the drone was held and where it should be, mean per flight, "
-     "millimetres; each bar shows the highest of an estimator's 3 flights (lowest-highest range labelled). Each "
-     "estimator flew its own flights; EKF3's bar uses the far-spawn hold set (s1far), the same flights candidate A05 "
-     "(fl_5_truth.png) draws, while the near-spawn set (s1) is the one the primary hold-accuracy check was scored "
-     "on (H5.1). Dashed line: the registered 50 mm limit for the mean.",
+     f"millimetres; each bar shows the highest of an estimator's {NFLY6.split('/')[0]} flights (lowest-highest "
+     "range labelled). Each estimator flew its own flights; EKF3's bar uses the far-spawn hold set (s1far), the "
+     "same flights candidate A05 (fl_5_truth.png) draws, while the near-spawn set (s1) is the one the primary "
+     f"hold-accuracy check was scored on (H5.1). Dashed line: the registered {HLIM} mm limit for the mean, "
+     "pre-registered for every estimator (tag_hold_design.md, H-H1).",
      "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s2v2_r1..r3,s3v2_r1..r3}.json; h_comparative_2026-10-11.json",
      "walkthrough extra/ex_5_hold_drift.png (left panel) and summary page 10", "H5.1; H5.2",
      "eval/results/expH/*.json; eval/results/expH/h_comparative_2026-10-11.json")
@@ -526,24 +556,40 @@ for e, x in zip(EST, ("31", "26", "27")):
     check(f"B07 {e}: worst drift over all tag losses (mm)", VW[e], x, "eval/results/expH losses[].effective.drift_m")
 for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12")):
     check(f"B07 {e}: losses with a lockout / losses", VN[e], x, "eval/results/expH losses[].lockout")
+# The "50 to 200 mm for EKF3 and the FGO, twice that for the UKF" claim in the caption, and the dashed reference
+# line's value, both cross-checked against the pre-registered drift bands (not the bare BAND5 literal alone) -
+# Table 6.1's own statement of H5.5, the same source eval/figs_walkthrough_extra.py's DLIM check uses.
+check("B07 pre-registered drift bands (mm): EKF3 / FGO / UKF", f"{BAND5['EKF3']} / {BAND5['FGO']} / {BAND5['UKF']}",
+      "[50, 100, 200, 150] / [50, 100, 200, 150] / [100, 200, 400, 300]",
+      "docs/thesis/tables/T5_H_tag_loss_drift.md (Table 6.1, H5.5 pre-registered drift bands)")
+cite("docs/thesis/tables/T5_H_tag_loss_drift.md", 14, "EKF3 and FGO ≤ 50 / 100 / 200 / 150 mm, UKF ≤ 100 / 200 / 400 / 300 mm", "B07 ")
+check("B07 UKF's tightest band is twice EKF3/FGO's tightest (mm)", str(min(BAND5["UKF"])), str(2 * min(BAND5["EKF3"])), "this script (BAND5, checked above)")
+DLIM7 = min(BAND5["EKF3"])
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.4))
 ax.set_xlim(-0.5, 2.5); ax.set_ylim(0, 60)
-ax.axhline(50, color=GRID, ls=(0, (6, 4)), lw=1.8, zorder=1)
+ax.axhline(DLIM7, color=TRUTH, ls=(0, (6, 4)), lw=1.8, zorder=1)
 for i, e in enumerate(EST):
     wmm = float(rd_si(worstm[e], 12, 3))
     ax.bar(i, wmm, width=0.62, color=C[e], zorder=3)
     ax.text(i, wmm + 1.2, f"{VW[e]} mm", ha="center", va="bottom", fontsize=9.5)
-    ax.text(i, 2.5, f"{VN[e].split(' / ')[1]}\ntag losses", ha="center", va="bottom", fontsize=9.0, color="white", weight="bold")
-ax.text(2.45, 50.6, "tightest limit: 50 mm", ha="right", va="bottom", fontsize=9.0, color=INK2)
-ax.set_xticks(range(3)); ax.set_xticklabels(EST); ax.grid(axis="x", visible=False)
+ax.set_xticks(range(3))
+ax.set_xticklabels([f"{e}\n({VN[e].split(' / ')[1]} losses)" for e in EST])   # tag-loss count under each label,
+                                                                                # regular weight, off the bars
+ax.grid(axis="x", visible=False)
 ax.set_ylabel("worst drift while the tag\nwas hidden (mm)")
+EF7, UF7, FF7 = NFLY7.split("/")
+EL7, UL7, FL7 = (VN[e].split(" / ")[1] for e in EST)
 save(fig, "B07", "B07_5_drift_hidden", "Experiment 5: worst drift while the wall tag was hidden",
      "Experiment 5 (tag hold): how far the drone moved between the last tag sighting before a loss and the first "
-     "one after it, worst case over all tag losses, millimetres, per estimator (EKF3 and UKF loss sets as B06; FGO "
-     "from the FGO-flying hold set). Tag-loss counts labelled on the bars (0 lockouts in any of them). Dashed line: "
-     "the tightest of the registered per-loss limits (50 to 200 mm for EKF3 and the FGO depending on the loss, "
-     "twice that for the UKF).",
+     "one after it, worst case over all tag losses, millimetres, per estimator. Loss sets differ from B06's mean-"
+     "hold bars (EKF3's bar there is the far-spawn set only): EKF3 here is both its near- and far-spawn hold sets "
+     f"({EF7} flights, {EL7} losses, the same combined set Table 6.1 uses), UKF the same loss set as B06 ({UF7} "
+     f"flights, {UL7} losses), FGO from the FGO-flying hold set ({FF7} flights, {FL7} losses). Tag-loss counts "
+     "shown under each estimator's x-axis label (0 lockouts in any of them). Dashed line: the tightest of the "
+     f"registered per-loss drift bands, {DLIM7} mm (EKF3 and FGO; their full bands are "
+     f"{min(BAND5['EKF3'])}–{max(BAND5['EKF3'])} mm depending on the loss, Table 6.1); the UKF's bands are "
+     f"twice these ({min(BAND5['UKF'])}–{max(BAND5['UKF'])} mm) and so are never the tightest.",
      "eval/results/expH/{s1_r1..r3,s1far_r1..r3b,s2v2_r1..r3,s3v2_r1..r3}.json (losses[].effective.drift_m, losses[].lockout)",
      "walkthrough extra/ex_5_hold_drift.png (right panel) and summary page 11", "H5.5; H5.7",
      "eval/results/expH/*.json")
@@ -577,6 +623,14 @@ BT5 = {"ua": "0.10", "ub": rd(J5S["ub"]["S-A2"]["bound_s"], 2), "fa": rd(J5S["fa
 for k, exp in (("ua", "0.10"), ("ub", "5.50"), ("fa", "0.75"), ("fb", "0.75")):
     check(f"B08 {SF[k]}: position-lost declaration limit AS DISPLAYED (s)", BT5[k], exp, "METHODOLOGY.md:11299 (UKF (a): within 0.1 s); "
           f"eval/results/expH/{SF[k]}.json S-A2.bound_s (ub/fa/fb only)")
+# "ua"'s 0.10 s above is a literal, not read from the json (see the scorer-artefact note) - ground it against the
+# registered text itself, not just against its own expected string, so it is a real cross-check.
+cite("METHODOLOGY.md", 11299, "within **0.1 s** of TFAIL", "B08 ")
+check("B08 ua: displayed limit (s) = the registered 0.1 s (METHODOLOGY.md:11299), formatted to 2 dp", rd("0.1", 2), BT5["ua"], "METHODOLOGY.md:11299")
+# The caption's "3 degrees / 5 degrees" attitude bound and "1.5 m" landing-displacement bound, cross-checked
+# against their own registered text (neither was checked anywhere in this script before this fix sweep).
+cite("METHODOLOGY.md", 11295, "≤ **3°** max, and |yaw − GT| ≤ **5°**", "B08 ")
+cite("METHODOLOGY.md", 11304, "touchdown ≤ **1.5 m**", "B08 ")
 PF5 = lambda b: "PASS" if b else "FAIL"
 VS5 = {}
 for k, exp in (("ua", "PASS PASS PASS"), ("ub", "PASS FAIL PASS"), ("fa", "PASS PASS PASS"), ("fb", "PASS PASS PASS")):
