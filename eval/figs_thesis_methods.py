@@ -674,7 +674,24 @@ def tab_fairness():
         ["21", "robust heading weighting", "Cauchy kernel, k = 2.385, in the robust FGO only (H1.4, H1.7)", "calibrated on the calibration bags, as pre-registered",
          f"{S('M', 8281, 'Cauchy, k = 2.385 chosen')}"],
         ["22", "drift band per estimator (H5.5)", "the UKF's band is 2× the others'", "pre-registered", f"{S('M', 10691, 'UKF:** ≤ 2× those')}"],
+        ["23", "EKF3 tag-fix delay (Exp. 2)", "EKF3 fuses ExternalNav tag fixes with VISO_DELAY_MS 15 ms, up to 12 ms short of the measured "
+         "minimum latency (17.5–26.6 ms), for both position and yaw; the UKF and FGO replay /tags/sent at the capture stamp and are not affected",
+         "ruled deviation from the latency rule, kept with no re-fly; bounded at ≤ 6 mm per fix at 0.5 m/s, ≤ 22 mm at the measured "
+         "1.80 m/s corner maximum, ≤ 0.06° in yaw",
+         f"ruling (user, 2026-10-08) {S('M', 10509, 'RULING (user, 2026-10-08): T `VISO_DELAY_MS` stays 15 ms, no re-fly')}; "
+         f"{S('M', 10512, 'VISP receipt − capture was **17.5–26.6 ms**, so 15 ms is up to **12 ms short**')}; "
+         f"{S('M', 10514, 'the ExternalNav delay applies to **both** position and yaw fusion')}; "
+         f"{S('M', 10528, 'The UKF and FGO replay `/tags/sent` at the capture stamp and are not affected at all')}; "
+         f"{S('N', 542, 'the per-fix bound is ≤ 6 mm nominal, ≤ 22 mm at the measured 1.80 m/s')}; {S('N', 543, '≤ 0.06° in yaw')}"],
     ]
+    # Row 23's numbers, EXACT against the cited lines (methodology and the frozen numbers file).
+    check("Table 3.3 row 23: measured minimum latency (ms)", "17.5–26.6", grab("M", 10512, r"\*\*([\d.]+–[\d.]+) ms\*\*"), "M:10512")
+    check("Table 3.3 row 23: shortfall (ms)", "12", grab("M", 10512, r"up to \*\*(\d+) ms short"), "M:10512")
+    check("Table 3.3 row 23: nominal bound (mm)", "6", grab("N", 542, r"≤ (\d+) mm nominal"), "N:542")
+    check("Table 3.3 row 23: corner bound (mm)", "22", grab("N", 542, r"≤ (\d+) mm at the measured"), "N:542")
+    check("Table 3.3 row 23: corner speed (m/s)", "1.80", grab("N", 542, r"measured ([\d.]+) m/s"), "N:542")
+    check("Table 3.3 row 23: yaw bound (deg)", "0.06", grab("N", 543, r"≤ ([\d.]+)° in yaw"), "N:543")
+    check("Table 3.3 row 23: nominal speed (m/s)", "0.5", grab("M", 10517, r"12 ms × ([\d.]+) m/s"), "M:10517")
     save_tab("Table 3.3", "methods_noise_exceptions", "Documented exceptions to noise and treatment parity, with their rulings",
              "Every documented place where the noise or the treatment differs between estimators, with the ruling that covers it. "
              "Two code differences (5, 6) have no ruling in the record and are reported, not resolved.",

@@ -1,8 +1,8 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `a6f6fd2` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
-**Source checks: 320/320 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 31/31 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
+**Source checks: 326/326 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 38/38 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
 **Proposed numbering** (vocabulary §6: by chapter; Chapter 3 = method, Chapter 8 = towards real flights). File names are descriptive and new; `M1`–`M3` are deliberately not used as ids because they are the F8 mitigation codes.
 
@@ -11,7 +11,7 @@ Built by `eval/figs_thesis_methods.py` at commit `a6f6fd2` (run with `/home/make
 | Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
 | Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 7/7 | Chapter 3 (method), estimators |
 | Table 3.2 | `methods_noise_parity.md`, `methods_noise_parity.tex`, `methods_noise_parity.png` | Noise parity: measurement and process noise per sensor and estimator | 15/15 | Chapter 3 (method), fairness |
-| Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png` | Documented exceptions to noise and treatment parity, with their rulings | 0/0 | Chapter 3 (method), fairness |
+| Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png` | Documented exceptions to noise and treatment parity, with their rulings | 7/7 | Chapter 3 (method), fairness |
 | Table 3.4 | `methods_experiment_matrix.md`, `methods_experiment_matrix.tex`, `methods_experiment_matrix_p1.png`, `methods_experiment_matrix_p2.png` | Experiment matrix | 4/4 | Chapter 3 (method), experiments |
 | Table 8.1 | `realflight_compute.md`, `realflight_compute.tex`, `realflight_compute.png` | Compute and deployability per estimator | 4/4 | Chapter 8 (towards real flights); the offline row may also sit in Chapter 3 |
 | Table 8.2 | `realflight_safety_findings.md`, `realflight_safety_findings.tex`, `realflight_safety_findings_p1.png`, `realflight_safety_findings_p2.png` | Safety findings from the SITL safety bench, with mitigations and status | 1/1 | Chapter 8 (towards real flights) |
@@ -89,6 +89,16 @@ Built by `eval/figs_thesis_methods.py` at commit `a6f6fd2` (run with `/home/make
 
 - **Caption:** Every documented place where the noise or the treatment differs between estimators, with the ruling that covers it. Two code differences (5, 6) have no ruling in the record and are reported, not resolved.
 - **Sources:** in the table's source column (`docs/thesis/tables/methods_noise_exceptions.md`).
+
+| check | computed | expected | source | match |
+|---|---|---|---|---|
+| Table 3.3 row 23: measured minimum latency (ms) | `17.5–26.6` | `17.5–26.6` | M:10512 | yes |
+| Table 3.3 row 23: shortfall (ms) | `12` | `12` | M:10512 | yes |
+| Table 3.3 row 23: nominal bound (mm) | `6` | `6` | N:542 | yes |
+| Table 3.3 row 23: corner bound (mm) | `22` | `22` | N:542 | yes |
+| Table 3.3 row 23: corner speed (m/s) | `1.80` | `1.80` | N:542 | yes |
+| Table 3.3 row 23: yaw bound (deg) | `0.06` | `0.06` | N:543 | yes |
+| Table 3.3 row 23: nominal speed (m/s) | `0.5` | `0.5` | M:10517 | yes |
 
 ### Table 3.4: Experiment matrix
 
@@ -330,6 +340,12 @@ Built by `eval/figs_thesis_methods.py` at commit `a6f6fd2` (run with `/home/make
 | `METHODOLOGY.md` | 8043 | `not copied, per D18` | yes |
 | `METHODOLOGY.md` | 8281 | `Cauchy, k = 2.385 chosen` | yes |
 | `METHODOLOGY.md` | 10691 | `UKF:** ≤ 2× those` | yes |
+| `METHODOLOGY.md` | 10509 | `RULING (user, 2026-10-08): T `VISO_DELAY_MS` stays 15 ms, no re-fly` | yes |
+| `METHODOLOGY.md` | 10512 | `VISP receipt − capture was **17.5–26.6 ms**, so 15 ms is up to **12 ms short**` | yes |
+| `METHODOLOGY.md` | 10514 | `the ExternalNav delay applies to **both** position and yaw fusion` | yes |
+| `METHODOLOGY.md` | 10528 | `The UKF and FGO replay `/tags/sent` at the capture stamp and are not affected at all` | yes |
+| `docs/thesis/numbers.md` | 542 | `the per-fix bound is ≤ 6 mm nominal, ≤ 22 mm at the measured 1.80 m/s` | yes |
+| `docs/thesis/numbers.md` | 543 | `≤ 0.06° in yaw` | yes |
 | `docs/thesis/thesis_vocabulary.md` | 41 | `**1A**` | yes |
 | `METHODOLOGY.md` | 865 | `3 corridor worlds × 3 repeats` | yes |
 | `METHODOLOGY.md` | 5640 | `7 new repeats` | yes |
