@@ -32,6 +32,13 @@ for t in "$@"; do
     H_s3rp_r1|H_s3rp_r2|H_s3rp_r3)
       name="$t"
       cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$PWD/batches/expH/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
+    # H_s3rp_r1b: retry of H_s3rp_r1, which failed before any flight began (run_trial exit 141, SIGPIPE,
+    # "ArduPilot controller has reset" during stack bring-up -- the FGO node itself started and anchored
+    # cleanly; this is the documented transient JSON-lockstep/connection-reset flake, not a config problem).
+    # H_s3rp_r1's trial directory is kept, not deleted.
+    H_s3rp_r1b)
+      name="$t"
+      cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$PWD/batches/expH/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
     *) echo "bad arg $t"; exit 2;;
   esac
   [ -e "$HOME/thesis_data/trials/$name" ] && { echo "$name exists; stopping"; exit 1; }
