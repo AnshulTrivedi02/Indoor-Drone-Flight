@@ -32,9 +32,12 @@ for t in "$@"; do
     H_s3rp_r1|H_s3rp_r2|H_s3rp_r3)
       name="$t"
       cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$PWD/batches/expH/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
-    # H_s3rp_r1b: retry of H_s3rp_r1, which failed before any flight began (run_trial exit 141, SIGPIPE,
-    # "ArduPilot controller has reset" during stack bring-up -- the FGO node itself started and anchored
-    # cleanly; this is the documented transient JSON-lockstep/connection-reset flake, not a config problem).
+    # H_s3rp_r1b: retry of H_s3rp_r1, which failed before any flight began (run_trial exit 141, SIGPIPE).
+    # CORRECTION (D141, docs/thesis/tier1/decisions_log.md): this is NOT the generic transient reset flake
+    # the comment here originally blamed -- it also failed identically (same symptom) and the real cause is
+    # a genuine run_trial.sh harness bug (the FGO_NODE_IMPL=cpp branch's "ls -t *.BIN | head -1" line can
+    # SIGPIPE under set -o pipefail once the glob lists enough files). Left uncorrected in the earlier commit
+    # message per the git safety protocol (no amending); see D141/D142 and open_questions.md OQ-R4.
     # H_s3rp_r1's trial directory is kept, not deleted.
     H_s3rp_r1b)
       name="$t"
