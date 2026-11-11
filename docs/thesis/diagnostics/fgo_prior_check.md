@@ -286,3 +286,121 @@ python3 tools/check_numbers_frozen.py
  only "what the FGO would have estimated along the path the OLD-prior estimator actually flew".
 - §5's gyro-z bias numbers and plot are produced and reported as asked, but given §3, they describe the
  offline replay's own behaviour under each prior, not the flown node's.
+## Gate diagnosis (1 h, pre-registered) — 2026-11-11
+
+**Task:** test ONE hypothesis — that pinning the replay's reconstructed input stream to the live node's own
+actual start reproduces the flown output — against §3's 7/7 gate failure. Scope: do not touch estimator
+source; tape construction and replay invocation only. Reused the prior session's scratch builds/tapes/dumps
+(same session scratchpad) rather than rebuilding.
+
+### Finding 0 — `run_trial.sh` starts every live node before `ros2 bag record`
+
+Read `run_trial.sh` directly: the FGO node is launched (`start_bg ... "$FGO_CPP_NODE_BIN"`, line ~424) and the
+harness waits for `/fgo/pose publishing` as part of "Full stack up" (line ~455) — **all before** "Starting bag
+recording" (line ~461). Every sensor bridge is also up and publishing during that wait window. So for a live node
+that boots cleanly (no FC reboot), **the node's own first received message predates the bag's own first recorded
+message** by however long the readiness wait took. This is a structural property of the harness, not a tape bug,
+and it is the opposite of what the hypothesis as literally stated ("drop bag messages received before the node
+started") would fix — there is nothing *extra* early in the bag to drop; the bag is *missing* data the live node
+actually saw. Confirmed directly from each flight's own evidence (`fgo_node_stats[.json]` vs the already-built
+tape, `tapes/H_s3v2_r{2,3}.tape.f64`):
+
+| flight | flown's own first buffered event (sim s, `t_k.min()`) | bag's earliest message (sim s, any kind) | gap (unrecoverable) |
+|---|---|---|---|
+| `H_s3v2_r2` | 16.858 | 17.590 (RNG) | **0.73 s** |
+| `H_s3v2_r3` | 16.616 | 18.349 (RNG) | **1.73 s** |
+| `cl_fgo_a_tex_half_v3` (Python, `t_imu0`-derived `t_init`) | flown span starts 11.678 | OLD replay span starts 12.098 | **~0.42 s** (consistent direction) |
+
+For these three flights the hypothesis is **not testable as stated**: the data needed to pin the replay to the
+live node's actual start does not exist in any recorded topic (this matches the previous diagnostic's own "For
+the coordinator to rule on" note). No tape construction closes this gap.
+
+**`H_s3v2_r1` is the opposite case and IS fixable.** Its FC rebooted and the node was killed and restarted
+(§2/§3 original doc); `fgo_node_stats_restart.f64`'s own first buffered event is at sim t=**29.511 s**, but the
+whole-bag tape (built on the theory "the restarted node heard from whenever the bag recorder itself started")
+starts at sim t=18.877 s — **10.6 s of bag data the restarted node never subscribed to in time to receive.** Here
+the bag has *extra* early data relative to the live (restarted) node's actual start, which is exactly the
+"drop bag messages received before the node started" case.
+
+### Fix attempted and result — `H_s3v2_r1` only
+
+Trimmed `tapes/H_s3v2_r1.tape.f64` to drop every row with header t < 29.511343333333336 s (the restarted node's
+own first buffered event), via a plain row filter (`trim_tape.py`, scratch, not committed) — no reordering, no
+estimator change. Re-ran the already-built OLD-prior `fgo_cpp_live_replay` (same binary as §1/§3) on the trimmed
+tape with the flight's own settings (`--imu-stamp time_ref --delay 0.10 --arm-source heartbeat --nav-frame enu`),
+through `heavy.py`, output under `~/thesis_data/diagnostics/fgo_prior_check/gate_diag/`. The live adapter's own
+`accel_mean`/`t_init`/`first_range` are recomputed from the (now-trimmed) stream regardless of `init.json`
+(`cfg_.base.accel_mean = Vector3::Constant(NAN); ... cfg_.base.first_range = cfg_.base.t_init = NAN;` in the
+`LiveAdapter` constructor — confirmed in `live_adapter.cpp:25-26`), so reusing the existing `init.json`'s static
+config fields (tag/gnss sigmas, window, `lm_iters`, `kf_dt`) was safe.
+
+**Result: the clock-map settle point moves from 38.981 s (flown) to 39.516 s (trimmed replay) — a ~0.5 s
+residual, versus the whole-bag tape's much larger start mismatch (settled at 27.510 s in the original §3 run,
+~11.5 s early) — and the reproduction residual drops sharply (see the table below).**
+
+### Reproduction-quality methodology correction (applies to all flights, found while building the fix)
+
+Comparing **every** keyframe row (`cpp_gate_check.py`'s own method, used for §3's table) mixes three different
+things: (a) the real, sent-to-the-autopilot, clock-settled state (what actually flew/matters), (b) a pre-settle
+"catch-up" backlog of keyframes the adapter fast-forwards through once the clock map seeds (`flushing_=true`,
+marked `n_unsettled`, never sent), and (c) — only when flown ran longer than the replay had data for —
+`np.interp`'s edge-clamped extrapolation past the replay's last real sample. (b) and (c) are not comparable
+between flown and replay almost by construction (replay's backlog and flown's backlog cover different, both
+individually meaningless pre-initialisation states; extrapolation compares a real value against a stale clamp),
+and they dominate §3's reported `max |Δp|`/`max |Δyaw|` figures. Restricting to **SENT rows only, within the
+replay's own recorded time range** (`sent_only_check.py`, scratch) gives a materially different, and much more
+informative, picture:
+
+| flight | pin | n flown (all / sent) | n replay (all / sent) | max\|Δp\| horiz, SENT (m) | max\|Δyaw\|, SENT+within-range (°) | bit-identical | residual growing or bounded over the flight |
+|---|---|---|---|---|---|---|---|
+| `H_s3v2_r2` | none possible (unrecoverable gap, Finding 0) | 11600 / 11319 | 11296 / 11015 | **0.0487** | **0.100** (at t=42 s) | no | **bounded** — 0.0000–0.0057 m / 0.0000–0.0153° at t=150–160 s; 0.0001–0.0053 m / 0.0006–0.036° in the last 5 s of overlap |
+| `H_s3v2_r3` | none possible | 11589 / 11307 | 11272 / 10991 | **0.0594** | **0.0765** (at t=42 s) | no | **bounded** — 0.0000–0.0060 m / 0.0000–0.0081° at t=150–160 s; same order in the last 5 s of overlap |
+| `H_s3v2_r1` (whole-bag tape, §3's original) | none (wrong-direction fix needed) | 11709 / 11428 | 11678 / 11475 | 0.1527 | 0.0406 (within-range; §3's 0.224° was the tail-extrapolation artefact, (c) above, at t=419.8 s beyond the replay's 411.3 s end) | no | bounded but larger residual than r2/r3 |
+| `H_s3v2_r1` (**trimmed tape, this fix**) | start trimmed to 29.511 s | 11709 / 11428 | 11437 / 11156 | **0.0141** | **0.0305** | no | bounded, and tighter still at the tail (≤0.0007 m / ≤0.0058° in the last 5 s) |
+| `cl_fgo_a_tex_half_v3` (Python) | none possible (Finding 0, same direction as r2/r3) | 5656 | 5652 | 2.8007 (unchanged from §3 — flown span is within the replay span, so no extrapolation artefact here) | 31.29 | no | **growing, not bounded**: ~0 m/° for t<20 s, 0.02 m/0.05° by t=50–100 s, 0.28 m/0.75° by t=150–200 s, ~1.6–2.8 m/30° by flight end (~200 s) |
+
+**For `H_s3v2_r3` specifically, §3's reported 3.886 m / 89.77° is entirely a pre-settle-backlog artefact, not a
+real divergence.** Located directly: every single row with `|Δp| > 0.1 m` or `|Δyaw| > 1°` (36/36 of each) has
+`sent_flown == 0` and occurs before the flight's first SENT keyframe (t < 26.02 s; the 36 rows span t = 17.78–
+18.95 s, i.e. inside the pre-settle fast-forward). None of this reflects a real tag-reanchor or yaw-cap gate
+flip propagating through the flown flight — the actual SENT, post-settle track agrees with the OLD-prior replay
+to ≤6 cm / ≤0.08° throughout, the same order as `H_s3v2_r2`. §3's narrative for r3 ("consistent with a yaw-cap
+or tag-reanchor gate decision flipping on this bag specifically") does not hold up under this decomposition.
+
+### Conclusion
+
+**Start-pinning closes the gate's residual substantially, but only for the one flight where the mismatch
+direction makes it constructible (`H_s3v2_r1`, the restart) — and even there it does not reach the pre-registered
+bit-identical/≤1 mm/≤0.01° standard.** `H_s3v2_r1`'s max |Δp| drops 0.153 m → 0.014 m and its within-range max
+|Δyaw| drops 0.041° → 0.031° once the tape is trimmed to the restarted node's own actual first message, directly
+supporting the hypothesis for that flight. For `H_s3v2_r2`, `H_s3v2_r3` and `cl_fgo_a_tex_half_v3`, the mismatch
+runs the other way: the live node's own first message predates the bag recorder's own start (Finding 0, a
+structural property of `run_trial.sh`'s launch order, not a per-flight accident), so the hypothesis is **not
+testable by any tape construction** — the needed data was never recorded. **All seven flights from §3 still FAIL
+the literal pre-registered standard** (none are bit-identical; keyframe counts differ; residuals are centimetre/
+tenths-of-a-degree at best, not ≤1 mm/≤0.01°), so §3's verdict ("the re-fly does not start for any flight") is
+**unchanged as a gate outcome**. What changes is the *diagnosis underneath two of those failures*: `H_s3v2_r2`'s
+and `H_s3v2_r3`'s real, post-settle tracks were already reproducing the flown flight to within a small, bounded
+(non-growing) few-centimetre/sub-0.1° band for the whole 300+ s flight once the incomparable pre-settle backlog
+and a tail-extrapolation artefact are excluded from the comparison — not the large, "consistent with an
+unbounded gate-trace sensitivity" divergence §3 reported, which measured those two artefacts rather than the
+flown estimator. `cl_fgo_a_tex_half_v3`'s divergence, by contrast, is real and growing, not an artefact, and
+remains unexplained beyond the already-missing ~0.42 s of early data and the Python core's documented
+ill-conditioned gate-trace sensitivity (§3) — consistent with, but not proof of, a flipped gate decision near
+`t_init` on that flight specifically. No `cl_fgo_b_*` (heading) flight was attempted (§2's blocker — the live
+SENT heading stream is genuinely unrecoverable — is unrelated to start-pinning and out of this hour's scope).
+
+**For the coordinator:** if the pre-registered equivalence gate is ever revisited, the two findings above suggest
+different paths for different flights: (1) `H_s3v2_r2`/`H_s3v2_r3`/`cl_fgo_a`'s gap cannot be closed by replay
+construction at all — it would need `run_trial.sh` to start bag recording *before* the live node (or record a
+"first heard" timestamp per node), a harness change, not a diagnostic one; (2) `H_s3v2_r1`'s restart case is
+already close to usable with the trimmed tape, and a harness-level fix (log the restarted node's own first-receipt
+time, as it already logs `t_armed_header`) would let this be done precisely rather than from a fast-forward proxy
+(the first-buffered-event heuristic used here). Neither observation changes the prior-effect numbers in §4, which
+remain not separable from the residual for the reasons stated there.
+
+**Checksum guard / freeze check:** `tools/check_numbers_frozen.py` — PASS, before and after. No file under
+`~/thesis_data/trials/`, `~/thesis_data/batches/` or `eval/results/` was written or modified; all new outputs are
+under `~/thesis_data/diagnostics/fgo_prior_check/gate_diag/` (`H_s3v2_r1_trimmed_OLD.{kf,live,mav}.*`) and the
+session scratchpad (`trim_tape.py`, `sent_only_check.py`, `all_rows_locate.py`, `cl_fgo_a_locate.py`,
+`r1_restart_check.py`, `r3_tape_check.py`, `tapes/H_s3v2_r1_trimmed.tape.f64`), none committed.
