@@ -55,16 +55,33 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **OQ-R1 (H5.1 scope for the FGO re-fly):** the registered H5.1 names EKF3 flying; the re-fly applies its bounds to the FGO-flying hold set, as the S3v2 rows did (numbers.md:646). Reported as such, not as the primary H5.1 verdict. Confirm or rule otherwise.
 - **OQ-R2 (EKF3 half-speed registration timing):** the EKF3 half real-time re-registration commit (`a3f54c7`) and the flight start carry the same timestamp (22:42:01, 2026-09-30). Proposed wording: "registered immediately before the flight". Confirm.
 - **OQ-R3 (D70 panel after the EKF3 heading Replay):** keep the closed-loop picture-only panel, replace it with the scored offline EKF3 heading arm, or show both? Decided after the Replay results.
-- **OQ-R5 (H1.8 FGO re-fly: does S2 gate k/3, and if so which window, not a STOP):** two questions, in order.
-  (1) Does S2 count toward the H1.8 k/3 verdict at all? The pre-registration's section 3.1 rule sentence is "The
-  H1.8 FGO verdict for the set is reported as the count of flights that meet U1, U2 and U3 (k/3)" (S2 absent from
-  that enumeration); `3.5_experiments.md:64` (the FGO bullet) likewise omits S2 (line 63, which does mention S2, is
-  the UKF bullet above it). The brief that commissioned this re-fly, by contrast, listed "S2 valid throughout"
-  alongside U1-U3 for the FGO rule. D142's default follows the pre-registration's explicit formula: S2 does NOT
-  gate k/3. (2) If the coordinator rules that S2 should gate it anyway, which window: arm-to-contact (the window
-  METHODOLOGY already used for this exact cell, `cl_fgo_a_tex_half_v2`/`_v3`, "100% from arming to contact"; 100%
-  on all three new flights) or the scorer's own `--set b --est fgo` arm-to-disarm-or-last-sample window (D140's
-  precedent for an estimator without a `--set a` S2 path; 99.81-99.84% on these three flights and on the original
-  `cl_fgo_a_tex_half_v3` once checked the same way). **Under D142's default (S2 not gating), k/3 = 2/3 either way**;
-  only folding S2 into the count AND using the `--set b` window would give k/3 = 0/3. All readings reported in
-  `docs/thesis/refly_priors/numbers_refly.md` section 1. Confirm or rule otherwise.
+- **OQ-R5 (H1.8 FGO re-fly: S2 gating, S2 window, and the set-level mapping, not a STOP):** three questions.
+  (1) Does S2 gate the H1.8 k/3 count? The pre-registration section 3.1's first bullet defines the FGO rule
+  including "S2, the estimator valid throughout"; its second, count-defining bullet says only "the count of
+  flights that meet U1, U2 and U3 (k/3)" (S2 omitted). Genuinely ambiguous. D142's default, per rule 2 (read
+  ambiguity against the hypothesis), treats S2 as GATING. (2) If S2 gates, which window: the window already
+  established for this exact cell (`cl_fgo_a_tex_half_v2`/`_v3`, "100% from arming to contact", re-derived here
+  and reproducing their reported values exactly) or the scorer's `--set b --est fgo` substitute window (D140's
+  precedent for a different estimator shape, never applied to this cell before; 99.81-99.84% on these flights and
+  on the original `_v3` once checked the same way). D142's default uses the cell's own established window, since
+  switching to an untested substitute is a second, separate choice not compelled by rule 2. **Under that default,
+  k/3 = 2/3 regardless of (1)**, since S2 is 100% on the established window on every flight; k/3 = 0/3 only if the
+  coordinator wants BOTH S2 gating AND the substitute window. (3) H1.8, unlike H1.9 ("a set passes iff all 3
+  flights pass"), has NO registered set-level PASS/NOT MET threshold, only "reported as the count (k/3)"; whether
+  2/3 (or 0/3) maps to a TA_verdicts-style PASS or NOT MET for this set is the coordinator's call, not made here.
+  All readings reported in `docs/thesis/refly_priors/numbers_refly.md` section 1. Confirm or rule otherwise.
+- **OQ-R6 (tier-1 checksum guard verdict on the FGO re-fly's own outputs, not a STOP, but flagged since a
+  guard-fails-with-no-safe-default is a listed STOP condition):** `tools/tier1_checksum_guard.py verify` against
+  the latest pre-existing manifest (`frozen_manifest_20261022T002851.json`, taken 2026-10-22 by a different
+  workstream) reports `"verdict": "DIFFERENT: STOP AND REPORT"`, with 0 changed, 0 missing, 0 errors and 30 added
+  files across the 13253 files its specs cover (`eval/results` is covered in full, not just `expL`/`expT`, so this
+  task's new `eval/results/closed_loop_*` and `*_s2/` outputs are in scope). No prior `verify` run in this project
+  shows an added-only (non-IDENTICAL) outcome being treated as acceptable; the tool's own stated semantics are
+  that ANY difference, including an addition, is "STOP AND REPORT". This re-fly never took its own pre-task
+  snapshot (the brief and pre-registration do not mention this guard), so running `verify` against a three-week-old
+  manifest from an unrelated tier-1 (Experiment 2/3) workstream will show many legitimate additions from the
+  intervening weeks regardless of what this task did; the 0 changed / 0 missing / 0 errors is the part that
+  actually bears on integrity (nothing existing was touched), and that reads clean. Report saved at
+  `docs/thesis/tier1/frozen_manifest_20261022T002851_verify_fgo_refly_priors_20261111.json`. Flagged rather than
+  treated as a self-resolved non-issue, since the coordinator may want a dedicated before/after pair for future
+  tasks that touch `eval/results`.

@@ -8,11 +8,14 @@ section 1). `numbers.md` is unchanged (frozen; `tools/check_numbers_frozen.py` P
 
 **Lead item for the coordinator: a claim comparison, not just a new result.** `numbers.md` reports H1.8 FGO as
 PASS (n=1, `cl_fgo_a_tex_half_v3`). This re-fly reports H1.8 FGO PRIMARY at **k/3 = 2/3** for the corrected priors
-(section 1), using the pre-registration's own explicit k/3 formula ("the count of flights that meet U1, U2 and
-U3"; S2 is reported per flight but does not gate the count, D142). This verdict is the same (2/3) whichever S2
-window is used; S2 would only pull it to 0/3 if folded into the count AND read on the scorer's last-sample window,
-neither of which the registration's own wording supports as primary. OQ-R5 asks the coordinator to confirm this
-reading. Either way this is a verdict comparison the coordinator should see, not a silent match.
+(section 1): r1 and r2 meet U1, U2 and U3; r3 misses U3 alone (203.464 s, outside [+145, +196]). Whether S2 gates
+this count is genuinely ambiguous in the pre-registration (D142; OQ-R5), but it does not change the number: S2 is
+100% on the window already established for this cell (METHODOLOGY's own `cl_fgo_a_tex_half_v2`/`_v3` entries), so
+gating with that window still gives 2/3. Only gating AND substituting a different, untested window (never applied
+to this cell before) would give 0/3; both readings are reported (section 1), and OQ-R5 asks the coordinator to
+rule on the gating and the window. **H1.8 also has no registered set-level PASS/NOT MET threshold** (unlike
+H1.9's explicit "3/3"), so whether 2/3 (or 0/3) maps to a set-level PASS or NOT MET is also the coordinator's
+call, not made here. Either way this is a verdict comparison the coordinator should see, not a silent match.
 
 ## 0. Pre-flight verification (all confirmed before any flight; nothing was running at each check)
 
@@ -56,39 +59,42 @@ Flown serially, `cl_fgo_a_tex_r{1,2,3}_half_rp`. All three completed to a west-w
   original `cl_fgo_a_tex_half_v2` to the watcher's stop and the node/sim teardown, not to a flight event before
   contact; not independently re-traced here, since no verdict depends on the mechanism (rule 4). **U1 PASS on all
   three** (the failsafe is after contact in every case, not a precursor by timing alone).
-- **S2 ("the estimator valid throughout"): does NOT gate the k/3 count (D142/OQ-R5), but is reported per flight.**
-  The pre-registration's section 3.1 rule sentence is "The H1.8 FGO verdict for the set is reported as the count of
-  flights that meet U1, U2 and U3 (k/3)", S2 absent from that enumeration; `3.5_experiments.md:64` (the FGO bullet)
-  likewise omits S2 (line 63, which does mention S2, is the UKF bullet above it, not the FGO one). The brief that
-  commissioned this re-fly listed S2 alongside U1-U3 for the FGO rule; where the two disagree, the registered
-  formula is used (rule 2). S2 is still reported, two windows, for transparency:
+- **S2 ("the estimator valid throughout"): whether it gates the k/3 count is genuinely ambiguous in the
+  pre-registration (D142/OQ-R5); either way, reported per flight.** Section 3.1's first bullet defines the FGO
+  rule including "S2, the estimator valid throughout"; its second, count-defining bullet says only "the count of
+  flights that meet U1, U2 and U3 (k/3)" (S2 omitted). `3.5_experiments.md:64` (the FGO bullet) likewise omits S2
+  (line 63, which does mention S2, is the UKF bullet above it, not the FGO one). Per rule 2 (read ambiguity against
+  the hypothesis), D142 treats S2 as GATING, on the window already established for this cell, not a substitute:
   - **Arm-to-contact** (the window METHODOLOGY's own entries for this exact cell, `cl_fgo_a_tex_half_v2`/`_v3`,
-    report: "`XFGO.OV` 100 % from arming to contact"). Re-derived here, not merely cited, with the dataflash
-    `XFGO`/`ARM` stream and a clock map recomputed from each bag's `/imu/time_ref`
-    (`eval/results/refly_priors_s2/s2_to_contact.py`/`.json`): reproduces exactly "100 %, 0 invalid" for both `_v2`
-    and `_v3`, and gives **100 %, 0 invalid samples** on all three new flights too.
-  - **The scorer's `--set b --est fgo` arm-to-disarm-or-last-sample window** (D140's method for an estimator with
-    no `--set a` S2 path): reads **99.81-99.84 %** on these three flights, because that window extends past
-    contact into the final 0.28-0.36 s of recorded output, after `run_trial.sh`'s cleanup starts stopping the FGO
-    node. The same check on the original `cl_fgo_a_tex_half_v3` (which never had S2 scored by this method at all,
-    confirmed: no `S2` key in its stored json) gives the same pattern, 99.818 %
-    (`eval/results/refly_priors_s2/cl_fgo_a_tex_half_v3_setb_est_fgo.json`). On each flight the first invalid
-    sample follows the EKF failsafe/Land-Mode switch above by about 0.02-0.03 s; the exact mechanism inside the
-    node's shutdown sequence was not traced further (rule 4: no verdict depends on it, since S2 does not gate k/3).
-    The three with-heading flights, which land and disarm normally before the node is stopped, score a clean
-    100 % on this same window (section 2). The artefact is not simply "any watcher-stopped flight": D140's UKF
-    no-heading set is also watcher-stopped and reads 100 % on its own `--set b --est ukf` window
-    (`numbers_extras.md`). It appears specifically on these FGO watcher-stopped flights, identically with old and
-    new priors, and is not attributable to the corrected priors.
+    report: "`XFGO.OV` 100 % from arming to contact", the ONLY window ever actually applied to this cell).
+    Re-derived here, not merely cited, with the dataflash `XFGO`/`ARM` stream and a clock map recomputed from each
+    bag's `/imu/time_ref` (`eval/results/refly_priors_s2/s2_to_contact.py`/`.json`): reproduces exactly "100 %, 0
+    invalid" for both `_v2` and `_v3`, and gives **100 %, 0 invalid samples** on all three new flights too. Gating
+    on this window changes nothing (still 2/3, since S2 is 100 % on every flight).
+  - **Disclosed secondary reading, not primary: the scorer's `--set b --est fgo` arm-to-disarm-or-last-sample
+    window** (D140's method, built for a different estimator shape, never applied to this cell before) reads
+    **99.81-99.84 %** on these three flights, because that window extends past contact into the final 0.28-0.36 s
+    of recorded output, after `run_trial.sh`'s cleanup starts stopping the FGO node. The same check on the
+    original `cl_fgo_a_tex_half_v3` (which never had S2 scored by this method at all, confirmed: no `S2` key in
+    its stored json) gives the same pattern, 99.818 % (`eval/results/refly_priors_s2/cl_fgo_a_tex_half_v3_setb_est_fgo.json`).
+    On each flight the first invalid sample follows the EKF failsafe/Land-Mode switch above by about 0.02-0.03 s;
+    the exact mechanism inside the node's shutdown sequence was not traced further (rule 4). The three
+    with-heading flights, which land and disarm normally before the node is stopped, score a clean 100 % on this
+    same window (section 2). The artefact is not simply "any watcher-stopped flight": D140's UKF no-heading set is
+    also watcher-stopped and reads 100 % on its own `--set b --est ukf` window (`numbers_extras.md`). It appears
+    specifically on these FGO watcher-stopped flights, identically with old and new priors, and is not
+    attributable to the corrected priors. **Using this window instead, AND gating on it, would give k/3 = 0/3.**
 
-**H1.8 FGO verdict (the registered formula: the count of flights that meet U1, U2 and U3):**
+**H1.8 FGO verdict:**
 
-- **PRIMARY k/3 = 2/3.** r1 and r2 meet U1, U2 and U3; r3 meets U1 and U2 but misses U3 (203.464 s is 7.46 s
-  outside the [+145, +196] s window). This result is the same whichever S2 window is used, since S2 does not gate
-  the count.
-- **If the coordinator rules (OQ-R5) that S2 should gate the count after all, and on the scorer's `--set b` window:
-  k/3 = 0/3** (S2 reads below 100 % on every flight on that window). On the arm-to-contact window, folding S2 in
-  changes nothing (still 2/3), since S2 is 100 % on all three flights there.
+- **PRIMARY k/3 = 2/3** (S2 gating, per rule 2, on the cell's own established arm-to-contact window; equally,
+  the registered formula's literal U1/U2/U3-only count, if S2 is read as not gating at all, gives the same 2/3).
+  r1 and r2 meet U1, U2, U3 (and S2); r3 meets U1, U2 (and S2) but misses U3 alone (203.464 s is 7.46 s outside the
+  [+145, +196] s window).
+- **k/3 = 0/3 only if the coordinator separately rules for BOTH S2 gating AND the `--set b` substitute window**
+  (OQ-R5); this combination was never applied to this cell before the re-fly.
+- **H1.8 has no registered set-level PASS/NOT MET threshold** (unlike H1.9's explicit "a set passes iff all 3
+  flights pass"); mapping 2/3 (or 0/3) to a set-level verdict is the coordinator's call, not made here.
 - Spread of the three contact times (descriptive, no criterion): 166.7-203.5 s (range 36.7 s).
 
 S2: PRIMARY (arm to contact) in `eval/results/refly_priors_s2/s2_to_contact.json`; diagnostic (`--set b`) window
@@ -172,7 +178,7 @@ step 2 (recompute with `s3rp_r*`) could not run, since no `s3rp_r*` score files 
 
 | criterion | original (OLD priors) value and verdict | corrected (NEW) priors value and verdict | verdict changed? |
 |---|---|---|---|
-| **H1.8 FGO** (no heading) | `cl_fgo_a_tex_half_v3` (n=1): contact +169.9 s west, U1/U2/U3 PASS (the registered k/3 formula; S2 100 % arm-to-contact also holds, re-derived here, METHODOLOGY's own stated value). Published verdict: PASS | n=3: PRIMARY k/3 = 2/3 (the same registered formula; S2 does not gate it, D142). r1, r2 PASS; r3 MISS on U3 alone (window edge, 203.5 s vs the 196 s bound). S2 is 100 % arm-to-contact on all three (same as the original), 99.81-99.84 % on the scorer's `--set b` window (same as the original once checked the same way) | **Yes, k/3 = 2/3 against the original's single-flight PASS.** This is a genuine 3-flight spread around the registered window's edge (166.7 to 203.5 s). It does not depend on which S2 window is used (S2 is 100 % arm-to-contact on every flight checked, old priors and new) or on whether S2 gates the count at all (OQ-R5). Not tested: whether a 3-flight re-fly of the original (old-priors) build would show a similar spread; this report does not claim that it would or would not |
+| **H1.8 FGO** (no heading) | `cl_fgo_a_tex_half_v3` (n=1): contact +169.9 s west, U1/U2/U3 PASS, S2 100 % arm-to-contact (re-derived here; METHODOLOGY's own stated value). Published format: PASS (n=1; no registered set-level threshold exists even for n=1) | n=3: PRIMARY k/3 = 2/3. r1, r2 PASS U1/U2/U3 (and S2); r3 MISS on U3 alone (window edge, 203.5 s vs the 196 s bound). k/3 = 0/3 only if S2 is BOTH made to gate AND read on the scorer's substitute window (never applied to this cell before); on the cell's own established arm-to-contact window, S2 is 100 % on all three, so gating or not makes no difference (D142/OQ-R5) | **The format changed (n=1 PASS to a k/3 count; H1.8 has no registered set-level threshold to map either to), and the count itself (2/3) differs from a single PASS.** This is a genuine 3-flight spread around the registered window's edge (166.7 to 203.5 s). It does not depend on which S2 window is used, or on whether S2 gates at all, as long as the window used is the one established for this cell. Not tested: whether a 3-flight re-fly of the original (old-priors) build would show a similar spread; this report does not claim that it would or would not. Whether this counts as "the verdict changed" is itself the coordinator's call (OQ-R5) |
 | **H1.9 FGO** (with heading) | `cl_fgo_b_tex_r{1,2,3}_half_v3`: 3/3, ALL B criteria and S2 PASS (numbers.md row; confirmed from stored jsons, section 2 table) | `cl_fgo_b_tex_r{1,2,3}_half_rp`: 3/3, ALL B criteria and S2 PASS | **No** |
 | **H5.1** (FGO-flying bounds) | `H_s3v2_r*`: mean 8.1-9.0 mm, max 18-28 mm (H-H1 PASS, numbers.md section 17.1) | **not available** (hold set not flown, section 4) | N/A, blocked |
 | **H5.5** (FGO drift bands) | `H_s3v2_r*`: 13/20/17; 7/25/27; 22/15/9; 17/11/18 mm (every band PASSES, numbers.md section 17.1) | **not available** | N/A, blocked |
@@ -187,17 +193,28 @@ of their directories, score files or `numbers.md` rows were renamed, edited or d
 
 ## 6. Checksum guard
 
-`python3 tools/check_numbers_frozen.py`: **PASS** (run after all scoring above, re-run after the S2-window
-correction in section 1, before this document's final commit).
+`python3 tools/check_numbers_frozen.py`: **PASS** (run after all scoring above, re-run after every subsequent
+correction, before this document's final commit).
 
-The standing decision rules (rule 7) also call for `tools/tier1_checksum_guard.py` before and after every
-experiment. That guard's default coverage is tier-1 Experiment 2/3 result data (`~/thesis_data/trials/T_*`, the
-`final*_L`/`final*_room_T` batches, `eval/results/expL`/`expT`), none of which this FGO re-fly touches, so no
-before-snapshot was taken for this task specifically. As substitute evidence: `verify` against the latest existing
-manifest (`docs/thesis/tier1/frozen_manifest_20261022T002851.json`) reports **0 changed, 0 missing, 0 errors**
-across 13253 covered files; the only differences are 30 ADDED files (new `eval/results/closed_loop_*` and
-`eval/results/*_s2/` outputs from this and the preceding closed-loop-extras work), confirming nothing the guard
-already covers was disturbed.
+**`tools/tier1_checksum_guard.py` (standing rule 7): disclosed as `"DIFFERENT: STOP AND REPORT"`, not resolved as
+clean.** Its default coverage includes the whole `eval/results` tree (not only `expL`/`expT`, which is all the
+tool's own summary text names but not what its code actually globs), so this task's new output files are in
+scope. `verify` against the latest pre-existing manifest (`docs/thesis/tier1/frozen_manifest_20261022T002851.json`,
+taken 2026-10-22 by a different, unrelated tier-1 workstream) gives, verbatim:
+
+```
+"verdict": "DIFFERENT: STOP AND REPORT"
+```
+
+with **0 changed, 0 missing, 0 errors, 30 added** across 13253 covered files (report saved:
+`docs/thesis/tier1/frozen_manifest_20261022T002851_verify_fgo_refly_priors_20261111.json`). No prior `verify` run
+in this repository shows an added-only outcome being accepted as a non-issue; every one on record is `IDENTICAL`
+(0/0/0/0). This re-fly never took its own before-snapshot (neither the brief nor the pre-registration mentions this
+guard), so this `verify` call is not a genuine before/after pair for this task: a three-week-old manifest from an
+unrelated workstream will show many legitimate additions from the intervening weeks regardless of what this task
+did. The part that bears on integrity, 0 changed / 0 missing / 0 errors, reads clean; the formal "STOP AND REPORT"
+verdict is reported as-is rather than waved away, and flagged for the coordinator as **OQ-R6** (non-STOP here, but
+disclosed since the standing rules list "a guard... fails with no safe default" as a STOP condition).
 
 ## 7. Summary
 
@@ -210,9 +227,9 @@ already covers was disturbed.
 - Hold re-fly: **blocked after two failed runs**, root cause identified as a harness bug (D141), not flown past
   `H_s3rp_r1b`. `H5.1`, `H5.5`, `H5.6/H5.7`, `H-H2`, `P-H3`, `H-H4a/b` for the corrected-prior FGO hold set are
   **not available**.
-- No frozen material was touched. `check_numbers_frozen.py` PASSES. The tier-1 checksum guard (`tools/tier1_checksum_guard.py`,
-  scoped to Experiment 2/3 result data, which this task does not touch) reports 0 changed/missing/errors, 30 added
-  files, against the latest existing manifest (section 6).
+- No frozen material was touched. `check_numbers_frozen.py` PASSES. `tools/tier1_checksum_guard.py` formally
+  returns `"DIFFERENT: STOP AND REPORT"` against the latest pre-existing manifest (0 changed, 0 missing, 0 errors,
+  30 added); disclosed, not resolved, as OQ-R6, since this re-fly never took its own before-snapshot (section 6).
 - **Corrections to this document's own history, disclosed rather than silently fixed (git safety protocol: no
   amending commits):** commit `f29e2ee`'s message attributed `H_s3rp_r1b`'s retry to a generic transient flake;
   D141 identifies the actual cause (the harness bug above). Commit `aecd390`'s message said "D140's own flights
