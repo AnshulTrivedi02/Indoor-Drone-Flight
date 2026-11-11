@@ -38,7 +38,16 @@ if INIT_YAW_SIGMA:
     assert os.environ.get("UKF_OUT_ROOT"), "INIT_YAW_SIGMA_RAD needs UKF_OUT_ROOT (never into a trial directory)"
     assert not FV["F_YAW0_DEG"], "INIT_YAW_SIGMA_RAD and F_YAW0_DEG are exclusive"
     assert float(INIT_YAW_SIGMA) > 0, INIT_YAW_SIGMA
-OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN) + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
+# FWD_SIGMA_PSI_DEG (OFF by default; D139/pre-registration section 9, EKF3 heading Replay stage 2): override the
+# forward-camera heading measurement sigma (deg) used by a heading/heading_yawrate arm's update_heading() call --
+# an ADDITIVE measurement-noise setting, not a change to the estimator model. Only into a scratch / sensitivity
+# UKF_OUT_ROOT, never a trial directory; output dir suffix _fwdsig<value>. Unset = current behaviour, unchanged.
+FWD_SIGMA_PSI_DEG = os.environ.get("FWD_SIGMA_PSI_DEG") or None
+if FWD_SIGMA_PSI_DEG:
+    assert os.environ.get("UKF_OUT_ROOT"), "FWD_SIGMA_PSI_DEG needs UKF_OUT_ROOT (never into a trial directory)"
+    assert ARM not in (None, "baseline"), "FWD_SIGMA_PSI_DEG only applies to a forward-camera heading arm"
+    assert float(FWD_SIGMA_PSI_DEG) > 0, FWD_SIGMA_PSI_DEG
+OUTDIR = os.path.expanduser((os.path.join(os.environ["UKF_OUT_ROOT"], TRIAL) if os.environ.get("UKF_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/ukf" +("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + apin.outdir_suffix(APIN) + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else "") + (f"_fwdsig{FWD_SIGMA_PSI_DEG}" if FWD_SIGMA_PSI_DEG else ""))
 os.makedirs(OUTDIR, exist_ok=True)
 
 ts = get_typestore(Stores.ROS2_JAZZY)
@@ -117,6 +126,8 @@ omega = np.zeros(3); t_prev = t_init; t_yaw = t_init
 gyro_avg = FlowFrameGyroAverager(t_init)     # interval-avg gyro for h_flow derotation (FINDING 4)
 fwd_avg = FlowFrameGyroAverager(t_init)      # same, over the forward-frame interval (Phase 4 h_yawrate)
 sig_fwd = FWD_SIGMA.get(fwd_dataset(TRIAL) or "", {}) if ARM not in (None, "baseline") else {}
+if FWD_SIGMA_PSI_DEG:
+    sig_fwd = {**sig_fwd, "psi": np.radians(float(FWD_SIGMA_PSI_DEG))}
 fwd_n = {"psi_valid": 0, "psi_fused": 0, "omega_valid": 0, "omega_fused": 0}
 nis_psi, nis_om = [], []
 S_psi = []                       # heading innovation covariance per tested measurement (Phase 5b)

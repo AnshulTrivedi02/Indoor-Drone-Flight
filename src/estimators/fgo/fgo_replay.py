@@ -54,7 +54,16 @@ if INIT_YAW_SIGMA:
     assert os.environ.get("FGO_OUT_ROOT"), "INIT_YAW_SIGMA_RAD needs FGO_OUT_ROOT (never into a trial directory)"
     assert not FV["F_YAW0_DEG"], "INIT_YAW_SIGMA_RAD and F_YAW0_DEG are exclusive"
     assert float(INIT_YAW_SIGMA) > 0, INIT_YAW_SIGMA
-OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
+# FWD_SIGMA_PSI_DEG (OFF by default; D139/pre-registration section 9, EKF3 heading Replay stage 2): override the
+# forward-camera heading measurement sigma (deg) passed into FGO(..., fwd_sigma=...) for a heading/heading_yawrate
+# arm -- an ADDITIVE measurement-noise setting, not a change to the estimator model. Only into a scratch /
+# sensitivity FGO_OUT_ROOT, never a trial directory; output dir suffix _fwdsig<value>. Unset = unchanged behaviour.
+FWD_SIGMA_PSI_DEG = os.environ.get("FWD_SIGMA_PSI_DEG") or None
+if FWD_SIGMA_PSI_DEG:
+    assert os.environ.get("FGO_OUT_ROOT"), "FWD_SIGMA_PSI_DEG needs FGO_OUT_ROOT (never into a trial directory)"
+    assert ARM not in (None, "baseline"), "FWD_SIGMA_PSI_DEG only applies to a forward-camera heading arm"
+    assert float(FWD_SIGMA_PSI_DEG) > 0, FWD_SIGMA_PSI_DEG
+OUTDIR = os.path.expanduser((os.path.join(os.environ["FGO_OUT_ROOT"], TRIAL) if os.environ.get("FGO_OUT_ROOT") else f"~/thesis_data/trials/{TRIAL}") + "/fgo" + ("" if ARM is None else f"_{ARM}") + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "") + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else "") + (f"_fwdsig{FWD_SIGMA_PSI_DEG}" if FWD_SIGMA_PSI_DEG else ""))
 if EVENTS:
     OUTDIR = os.path.join(os.path.dirname(OUTDIR), "fgo_bin" + (f"_{FV['F_TAG']}" if FV["F_TAG"] else "")
                           + (f"_iy{INIT_YAW_SIGMA}" if INIT_YAW_SIGMA else ""))
@@ -125,6 +134,8 @@ t_init = t_imu0 + 0.5
 WINDOW = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
 LM_ITERS = int(sys.argv[3]) if len(sys.argv) > 3 else 2
 sig_fwd = FWD_SIGMA[fwd_dataset(TRIAL)] if ARM not in (None, "baseline") else None
+if FWD_SIGMA_PSI_DEG and sig_fwd is not None:
+    sig_fwd = {**sig_fwd, "psi": np.radians(float(FWD_SIGMA_PSI_DEG))}
 fgo = FGO(window=WINDOW, kf_dt=1.0/30.0, lm_maxiter=LM_ITERS, fwd_sigma=sig_fwd,
           fwd_gate=(float("inf") if FV["F_ROBUST"] else FWD_CHI2_GATE), fwd_robust=FV["F_ROBUST"],
           log_cov=bool(os.environ.get("FGO_COV_LOG")),   # diagnostic covariance log (Phase 5b)
