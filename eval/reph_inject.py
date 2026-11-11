@@ -56,14 +56,21 @@ and the fix are recorded in docs/thesis/ekf3_heading_replay/preregistration.md
   log being reconstructed, needing no timestamp arithmetic at all), that count is used
   directly: insert immediately after the (count)-th RFRF of the file being written to
   (stripping never changes the RFRF sequence or count, so the index is stable across
-  strip). Records sharing one "rfrf_count_before" (the live template's 0.5%
-  "double-delivery" rows, where end_frame() found frame_types already 0 and wrote no
-  RFRF of its own) are emitted in the ORDER GIVEN (file order from roundtrip_extract,
-  not re-sorted by timeStamp_ms) -- this reproduces their relative order exactly, though
-  not byte-identically if other content (e.g. VISP) was originally interleaved between
-  them; see the unit tests' test_double_delivery_gap_not_byte_identical for exactly what
-  is and is not claimed there. Verified byte-identical against cl_bcpp_tex_r1_half in
-  full (2404 records; see the pre-registration for the exact check and numbers).
+  strip). Records sharing one "rfrf_count_before" are emitted in the ORDER GIVEN (file
+  order from roundtrip_extract, not re-sorted by timeStamp_ms) -- the unit tests cover
+  this with a SYNTHETIC "double-delivery" case (two REPH, no RFRF between them, because
+  a source reading of end_frame() -- AP_DAL.cpp:178-183, "writes RFRF only if
+  frame_types != 0" -- shows this is a real possible ArduPilot behaviour, not merely
+  hypothesised): it reproduces their relative order exactly, though NOT byte-identically
+  if other content (e.g. VISP) was originally interleaved between them; see
+  test_double_delivery_gap_not_byte_identical. **That synthetic case does not actually
+  occur in the real template** (checked: 0/2404 REPH rows share an rfrf_count_before in
+  cl_bcpp_tex_r1_half). Measured against the real template in full (2404 records):
+  **99.997% byte-identical (928/31,150,080 bytes differing, NOT byte-identical)** --
+  the residual's real cause (an REPH sharing its end_frame() flush with a PRECEDING
+  OF/ROFH flow-injection record, a different mechanism from the synthetic
+  double-delivery case above) is in the pre-registration's "Injector" section, not
+  repeated here.
 
   MODE 2 -- FROM A CAPTURE TIMESTAMP (approximate; for arm (ii), injecting a brand-new
   measurement that was never written by any live run, so there is no "rfrf_count_before"

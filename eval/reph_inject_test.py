@@ -258,18 +258,25 @@ def test_double_delivery_gap_reinjects_both_in_time_order():
 
 
 def test_double_delivery_gap_not_byte_identical():
-    """DOCUMENTED LIMITATION (not a silent gap): when two REPH rows originally shared
-    one inter-frame gap with other content (VISP) interleaved between them (REPH, VISP,
-    REPH, VISP, next RFRH), this tool's placement rule reinjects both immediately after
-    the preceding RFRF, so the reconstructed gap is (REPH, REPH, VISP, VISP, next RFRH)
-    -- same gap, same relative order of the two REPH rows, but NOT byte-identical to
-    the original interleaving. Confirmed against the live template
-    (cl_bcpp_tex_r1_half): 12/2404 REPH rows (0.5%) are this double-delivery case, so
-    this is the ONLY known source of round-trip byte divergence. Stated here and in
-    docs/thesis/ekf3_heading_replay/preregistration.md ("Round-trip check") so the
-    coordinator's later round-trip run expects it rather than treating it as a failure.
-    It cannot affect arm (ii) (which only ever injects into gaps with zero pre-existing
-    REPH/VISP content)."""
+    """DOCUMENTED LIMITATION (not a silent gap), on a SYNTHETIC case: when two REPH rows
+    originally shared one inter-frame gap with other content (VISP) interleaved between
+    them (REPH, VISP, REPH, VISP, next RFRH), this tool's placement rule reinjects both
+    immediately after the preceding RFRF, so the reconstructed gap is
+    (REPH, REPH, VISP, VISP, next RFRH) -- same gap, same relative order of the two REPH
+    rows, but NOT byte-identical to the original interleaving. This case is built here
+    from source (end_frame(), AP_DAL.cpp:178-183, writes RFRF only if frame_types != 0,
+    so two REPH writes with no frame activity between them really can land with no RFRF
+    between them) -- it is a real possible ArduPilot behaviour, NOT merely hypothesised,
+    but **checked and confirmed absent from the real template**: 0/2404 REPH rows in
+    cl_bcpp_tex_r1_half share an rfrf_count_before value. The template's actual
+    928/31,150,080-byte (99.997%, not 100%) residual has a DIFFERENT, now-understood
+    cause (an REPH sharing its end_frame() flush with a preceding OF/ROFH flow-injection
+    record, not with another REPH) -- see
+    docs/thesis/ekf3_heading_replay/preregistration.md ("Injector" / "round-trip check")
+    for that mechanism, not repeated here. This test exists so the coordinator's later
+    round-trip run has a reproducible, understood example of ONE possible divergence
+    source, not a claim that it is the only one seen. It cannot affect arm (ii), which
+    only ever injects into gaps with zero pre-existing REPH/VISP content."""
     data, inserted, _ = build_with_double_delivery()
     original, reinjected, n_removed = _roundtrip(data)
     assert n_removed == 2

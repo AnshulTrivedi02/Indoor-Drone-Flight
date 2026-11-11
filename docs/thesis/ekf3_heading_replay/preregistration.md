@@ -313,34 +313,73 @@ its exact target (bypassing the separate, still-open `timeStamp_ms + placement_l
 arithmetic entirely) and running it over all 2404 rows reproduces the SAME **99.997%
 byte-identical** result (928 bytes differing, in the same clusters) as Mode 1 — the
 mechanism arm (ii) will actually use is therefore validated, not just Mode 1's trivial
-positional restore. (Script: a one-off validation, not the shipped CLI — Mode 2's public
-`inject()` takes one shared `placement_latency_ms` per call, not a per-record arrival
-time; giving it one would be a reasonable follow-up, listed in §9, not done in this
-stage.)
+positional restore. (Script: `eval/reph_inject_validate.py`, committed — see §11 — not
+the shipped CLI; Mode 2's public `inject()` takes one shared `placement_latency_ms` per
+call, not a per-record arrival time; giving it one would be a reasonable follow-up,
+listed in §9, not done in this stage.)
 
-**The 928-byte residual is now fully explained, not left open.** All 12 clusters sit
+**The 928-byte residual is now fully explained, not left open.** 11/12 clusters sit
 immediately after an `OF`/`ROFH` pair (ArduPilot's optical-flow DAL replay record, in
-`docs/partC_onboard_feasibility.md:343`'s own list of `R*` Replay-input record types) —
-e.g. `['ROFH', 'OF', 'REPH', 'VISP', 'REVH', ...]` instead of the usual
-`['...', 'RFRF', 'REPH', 'VISP', ...]`. Mechanism, read from the same `end_frame()`
-docstring already cited in §8.1 ("Must be called on all events and injections of data
-(eg flow)…"): `ROFH`'s own write ALSO calls `end_frame()` first, exactly as
-`writeExtNavData()` does. For these 12/2404 (0.5%) rows, the flow injection's call
+`docs/partC_onboard_feasibility.md:343`'s own list of `R*` Replay-input record types;
+one of the 11 has `PL` directly before `OF` too) — e.g.
+`['ROFH', 'OF', 'REPH', 'VISP', 'REVH', ...]` instead of the usual
+`['...', 'RFRF', 'REPH', 'VISP', ...]`; the 12th sits after `['REV2', 'REV3', 'REPH', ...]`
+(ArduPilot event records) instead. Exact context for all 12, reproducibly, from
+`eval/reph_inject_validate.py`'s own output (§11), not just this prose. Mechanism, read
+from the same `end_frame()` docstring already cited in §8.1 ("Must be called on all
+events and injections of data (eg flow)…"): `ROFH`'s write, and `log_event2()`'s (the
+`REV2`/`REV3` path, `AP_DAL.cpp:185-192`), both call `end_frame()` first, exactly as
+`writeExtNavData()` does. For these 12/2404 (0.5%) rows, the EARLIER call's `end_frame()`
 flushed the pending `RFRF` a moment before the `REPH` write's own `end_frame()` call
 found `frame_types` already 0 — the SAME "shared flush" mechanism the unit tests'
-double-delivery case covers, except here `REPH` shares its flush with a PRECEDING `OF`,
-not another `REPH`. **This tool reinserts the new `REPH` immediately after the shared
-`RFRF` — i.e. BEFORE the `OF`/`ROFH` pair that originally came first.** For these 12
-rows only, a reinjected `REPH` would therefore be processed by Replay's DAL message
-dispatch one flow-sample-ordering-step EARLIER than the original live run processed it.
-**This is `ROFH`, an `R*` Replay-input record — so it COULD affect Replay's DAL
-processing order, unlike a residual confined to non-replayed telemetry** — it is
-flagged as a genuine, bounded (12/2404, 0.5%), understood-cause limitation of the
-current splice tool, not fixed in this stage (fixing it means tracking relative order
-against every record type sharing a flush gap, not just other `REPH` rows — a larger
-change than Stage 1's scope), and it is exactly what §8.3's Replay-level field
-comparison is for: to show whether this specific, now-named mechanism moves any logged
-EKF3 field or not.
+double-delivery case covers, except here `REPH` shares its flush with a PRECEDING `OF`
+or `REV2`/`REV3`, not another `REPH`. **This tool reinserts the new `REPH` immediately
+after the shared `RFRF` — i.e. BEFORE the record that originally came first in that
+gap.**
+
+**A source-level argument this is likely harmless to `XKF1`, checked, not just asserted
+— but not treated as proof; the Replay-level comparison in §8.3 is still the actual
+gate.** Read directly (`~/ardupilot_diag/libraries/AP_DAL/AP_DAL.cpp`, the SAME tree the
+pinned `Replay` binary was built from — confirmed byte-identical to stock `~/ardupilot`
+for every file cited in this section except `AP_DAL.cpp` itself, whose only diff from
+stock is two added shadow-UKF hook calls, `ukf_update_hook`/`ukf_flow_hook`, at
+`UpdateFilter()`/`writeOptFlowMeas()` call sites — unrelated to `REPH`/`RFRF`/`end_frame()`
+mechanics): `AP_DAL::handle_message(const log_ROFH&, ...)` and
+`AP_DAL::handle_message(const log_REPH&, ...)` (the Replay-time dispatch targets for
+these two record types) both do nothing but call the corresponding
+`ekf3.writeOptFlowMeas(...)`/`ekf3.writeExtNavData(...)`, which push a time-stamped
+element into EKF3's OWN internal buffered-measurement queue (`storedExtNav.push(...)`
+for ext-nav). **Fusion happens later, keyed by each buffered element's own stored
+timestamp, not by the order these two push-calls were made in** — so swapping which of
+a `ROFH`/`REV2`-`REV3` pair and an adjacent `REPH` gets WRITTEN TO THE BUFFER first,
+within the same small gap, should not change which element is fused when, provided both
+land before the buffer actually needs them (true here: they are a few RFRH-frames apart
+at most). This is a source-grounded argument for why the residual is UNLIKELY to move
+any `XKF1` field, not a substitute for actually checking: **it is exactly what §8.3's
+Replay-level field comparison settles**, and the comparison is pointed at this named
+mechanism specifically, not left to find it blindly. Not fixed in this stage (fixing the
+splice tool itself would mean tracking relative order against every record type sharing
+a flush gap, not just other `REPH` rows — a larger change than Stage 1's scope).
+
+**Checked separately: does any of this generalise to the logs arm (ii) actually
+targets, which (unlike `cl_bcpp_tex_r1_half`) have ZERO prior `REPH` history?** All of
+§8.1/8.2 so far validates placement by reconstructing EXISTING rows in a log that
+already has ext-nav traffic — not the same thing as placing a BRAND-NEW row into a log
+that has never had any. `eval/reph_inject_validate.py --generalization-trial
+fwdc_tex_r1` (one of the actual 18 Phase-4 bags, 0 `REPH` rows) injects 20 evenly-spaced
+synthetic records (Mode 2, `placement_latency_ms=0`) and checks each one's immediate
+neighbours. **Result: 20/20 land immediately after `RFRF` and immediately before
+either `RFRH` or another `end_frame()`-calling record** (`ROFH`, `REV2`, `REV3`, …,
+enumerated from `AP_DAL.cpp`'s own `end_frame();` call sites, not assumed) — the same
+"`RFRH`, `RFRF`, `REPH`, …" pattern found throughout `cl_bcpp_tex_r1_half`, not
+something different on a zero-history log. The same log also shows the "other content
+lands between an `RFRF` and the next `RFRH`" phenomenon is not specific to ext-nav
+logs either: 13,634/138,318 (9.9%) of `fwdc_tex_r1`'s own `RFRF` records are not
+immediately followed by `RFRH`. **This is evidence of correct generalisation, not
+proof** — it checks placement sanity (neighbours look right), not that the resulting
+`XKF1` is correct (no ground truth exists for a synthetic measurement); that is, again,
+what §8.3's Replay-level comparison on the ACTUAL target logs would need to confirm,
+and this document does not claim it already has.
 
 ### 8.3 The round-trip check (specified; NOT run by this document)
 
@@ -525,13 +564,16 @@ written/run) step-5 script, not assumed solved.
 | Mode 2 (timestamp + required latency) placement, and its refusals | PASS |
 | refusals: OUT==IN, existing OUT, OUT under `trials/`, duplicate target, bad REPH format | PASS |
 
-Plus two full-scale validations (not unit tests, direct, read-only runs against the real
-template, outputs in scratch only — §8.2): Mode 1 (positional) and Mode 2 driven by each
-record's own `VISP.TimeUS` both reproduce `cl_bcpp_tex_r1_half`'s all 2404 `REPH` rows to
-**99.997% byte-identical** (928/31,150,080 bytes differing, the SAME 12 clusters, now
-explained as the `OF`/`ROFH`-shared-flush mechanism, §8.2) — independent confirmation
-that Mode 2's actual search-and-cut mechanism, not just Mode 1's trivial position
-restore, is correct.
+Plus `eval/reph_inject_validate.py` (committed, not scratch, so these numbers are
+re-runnable, not just prose claims): two full-scale validations, read-only against the
+real template, writing JSON under `~/thesis_data/ekf3_heading_replay/`, never
+`trials/`. Mode 1 (positional) and Mode 2 driven by each record's own `VISP.TimeUS`
+both reproduce `cl_bcpp_tex_r1_half`'s all 2404 `REPH` rows to **99.997% byte-identical**
+(928/31,150,080 bytes differing, the SAME 12 clusters, now explained as the
+`OF`/`ROFH`/`REV2`/`REV3`-shared-flush mechanism, §8.2) — independent confirmation that
+Mode 2's actual search-and-cut mechanism, not just Mode 1's trivial position restore,
+is correct. The script also confirms the `VISP.TimeUS`-equals-preceding-`RFRH.time_us`
+claim directly: 2404/2404, 0 exceptions.
 
 `eval/ekf3_heading_replay_run.py` (the Replay driver, §9): written, syntax-checked, NOT
 run (no Replay was invoked in this stage).
