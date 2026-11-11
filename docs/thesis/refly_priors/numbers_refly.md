@@ -177,11 +177,20 @@ time) and stands in for `H_s3rp_r1` in the registered 3-flight hold set. **All t
 normally.** Pre-flight verification was re-checked immediately before flying (fresh, not reused from section 0):
 `fgo_cpp_node` md5 `4c07374b5c18ce1eda556d5bb9ad0768`, `arducopter` md5 `5f94ea1aa7e223f90343c1948d443d32` (both
 match); `run_trial.sh:433` confirmed to read `sed -n 1p` (the fix is in the tree the flights ran); `BUILD_LOCK`
-absent. The S3v2 reproduction check was **re-run with the exact scoring command this task uses (including
-`--profile`, which section 0's original check omitted)**: `eval/h_score.py H_s3v2_r{1,2,3} --profile
-batches/expH/s1_far_profile.json --sigma 0.02` reproduces `eval/results/expH/s3v2_r{1,2,3}.json` EXACTLY on all
-three (not just r1); confirmed `h_score.py` writes nothing into the trial directories (no new/changed files under
-`~/thesis_data/trials/H_s3v2_r*/`).
+absent. The S3v2 reproduction check was **re-run with the exact scoring command this task uses (`--profile` is a
+required argument of `h_score.py`; section 0's row does not record which value its own earlier check used)**:
+`eval/h_score.py H_s3v2_r{1,2,3} --profile batches/expH/s1_far_profile.json --sigma 0.02` reproduces
+`eval/results/expH/s3v2_r{1,2,3}.json` EXACTLY on all three (not just r1); confirmed `h_score.py` writes nothing
+into the trial directories (no new/changed files under `~/thesis_data/trials/H_s3v2_r*/`).
+
+**A commit by another agent (`7f2f1ae`, "Per-flight closed-loop with-heading values...", committed 2026-11-12
+00:08:53 +1100 = 2026-11-11 13:08:53 UTC) landed between `H_s3rp_r2` starting (12:55:45 UTC) and `H_s3rp_r3`
+finishing — checked, not assumed, since another agent is working in this same checkout.** It touched only
+`docs/thesis/numbers_cl_heading_perflight.md` and a new standalone script `eval/cl_heading_perflight.py` — neither
+is loaded by `run_trial.sh`, `closed_loop_run.sh`, `fly_trial.py`, any `.parm` file, or any world/profile this hold
+set uses. All three hold flights' `metadata.yaml` record `git_commit: 25ae937...` (this agent's own launcher-case
+commit, made before any flight), confirming the flown configuration is identical across all three regardless of
+the foreign commit's timing. Not a STOP.
 
 **IMU-gap results (`eval/imu_gap_check.py <trial> --write`):**
 
@@ -194,6 +203,17 @@ three (not just r1); confirmed `h_score.py` writes nothing into the trial direct
 3/3 usable (none "unusable"); no `<name>b` re-fly was needed. This is a different, closed-loop-flight check than the
 original `H_s3v2_r*` flights ran: no `imu_gaps.json` exists for any `H_s3v2_r*` trial (confirmed; the check was never
 run on them), so there is no prior verdict to compare against.
+
+**Node restart check (report-only, as for `H_s3v2_r1`).** `H_s3rp_r1c` has a 0-byte `fgo_node_stats.f64` and a
+946160-byte `fgo_node_stats_restart.f64` (`H_s3rp_r2`/`r3` have neither restart file). `logs/fgo_node.log` shows the
+first instance sent 0 keyframes before a `SIGINT/SIGTERM` at wall-clock +14.1 s; `logs/fgo_node_restart.log` shows
+the restarted instance anchoring immediately after and sending 11546 keyframes for the rest of the flight. This is
+the same pattern the pre-registration already documents for the original `H_s3v2_r1` ("the node restarted 10.6 s
+into the bag, a one-time restart before its first keyframe"): the restart happened before any keyframe was sent, so
+`h_score.py`'s keyframe lookup (which reads `fgo_node_stats_restart.f64` in preference when both files exist, same
+as it did for `H_s3v2_r1`) reads the complete, undisturbed flight. No vehicle-side data is affected (the EKF3/XKF1
+and XFGO MAVLink tracks used for the scored metrics come from `ardupilot.bin`, not from these files, and are
+continuous throughout). Disclosed for parity with `H_s3v2_r1`, not treated as a flight defect.
 
 **Scoring.** `eval/h_score.py <trial> --profile batches/expH/s1_far_profile.json --sigma 0.02 --json
 eval/results/expH/s3rp_r<k>.json`, with the mapping **`H_s3rp_r1c` -> `s3rp_r1.json`, `H_s3rp_r2` -> `s3rp_r2.json`,
@@ -272,15 +292,32 @@ PASS/FAIL set threshold in either flight).
 **30 s-loss yaw wander.** No script computing this was found committed anywhere in the repository history for the
 original S3v2 figures (`-0.23/+0.52/+0.52 deg`): `eval/h_score.py` has no "wander" field (confirmed by reading it and
 by `git show 55edd75 -- eval/h_score.py`, the commit that added the XFGO track, which added no such field), so the
-original number was evidently computed ad hoc and never persisted. Re-derived here with a new script
-(`eval/results/refly_priors_s2/yaw_wander_30s.py`, same clock map and XFGO `OV==1` track `h_score.py` itself builds,
-signed wrapped yaw at the loss's `t_off` minus yaw at `t_on` for the duration-closest-to-30-s loss) which gives:
+original number was evidently computed ad hoc and never persisted.
+
+A first re-derivation (the FGO's own XFGO yaw at `t_off` minus at `t_on`, i.e. how much the FGO's own output moved)
+gave <0.02 deg on all three `H_s3v2_r*` flights — 25-60x too small to be the quantity behind -0.23/+0.52/+0.52 deg,
+and for good reason: a hovering estimate with no absolute yaw reference barely moves on its own. METHODOLOGY's own
+wording for this band (`METHODOLOGY.md:10970`, "FGO yaw wander: <= 3 deg **at the end of** the 30 s loss"; also
+lines 10856/10934, "the FGO's yaw wandered up to 2.6 deg") describes a yaw ERROR, not the FGO's raw output, so the
+quantity is against ground truth, not the FGO's own track in isolation.
+
+**Corrected definition, verified against the stored S3v2 figures:** the change in the yaw ERROR (ground truth minus
+FGO, both from the bag: `/ground_truth/pose` and the XFGO `OV==1` MAVLink track) over the loss, wrapped:
+`wander = wrap(GT-FGO)|t_off - wrap(GT-FGO)|t_on`. Applied to `H_s3v2_r1/r2/r3` (`eval/results/refly_priors_s2/yaw_wander_30s.py`):
+**-0.228 / +0.512 / +0.515 deg**, against the stored -0.23/+0.52/+0.52 deg — matching to within 0.01-0.02 deg (the
+residual is consistent with nearest-sample lookup versus whatever interpolation the original ad hoc computation
+used; same sign, same order of magnitude, on all three). This confirms the definition.
+
+Applied to the corrected-prior flights with the same script:
 
 | flight | yaw wander (deg) |
 |---|---|
-| r1 | +0.009 |
-| r2 | -0.004 |
-| r3 | +0.001 |
+| `s3rp_r1` (`H_s3rp_r1c`) | -0.160 |
+| `s3rp_r2` (`H_s3rp_r2`) | +0.488 |
+| `s3rp_r3` (`H_s3rp_r3`) | +0.680 |
+
+All well inside the <= 3 deg band. **H5.5's yaw-wander part: PASS, 3/3** (unrounded values checked against the
+band).
 
 **Could not exactly reproduce the original -0.23/+0.52/+0.52 deg figures**; both the original and this re-derivation
 are far inside the <= 3 deg band, so **PASS either way**, and per standing rule 4 ("spend no machine time on checks
@@ -330,7 +367,7 @@ H-H4 (5 s): ratio range narrowed from 3.2-7.7 (original) to 2.1-5.1 (new); still
 | **H5.6 redefined primary (re-lock)** | `H_s3v2_r*`: 0.002-0.032 s, PASS | `s3rp_r*`: 0.003-0.030 s, PASS (section 4.2) | **No** |
 | **H5.6 jump as worded** | `H_s3v2_r*`: fails in 4 of 12 losses | `s3rp_r*`: fails in 8 of 12 losses (section 4.2) | descriptive only (no set threshold either way); fail count roughly doubled |
 | **H5.7 lockout** | `H_s3v2_r*`: no lockout, PASS | `s3rp_r*`: no lockout, PASS | **No** |
-| **30 s-loss yaw wander** | `H_s3v2_r*`: -0.23 / +0.52 / +0.52 deg (<=3 deg, PASS); method not persisted anywhere in the repo | `s3rp_r*`: +0.009 / -0.004 / +0.001 deg via a best-effort re-derivation (section 4.2); PASS; exact original method not reproducible | **No** (PASS both; the exact original figures could not be reproduced, flagged not resolved) |
+| **30 s-loss yaw wander** | `H_s3v2_r*`: -0.23 / +0.52 / +0.52 deg (<=3 deg, PASS); method not persisted anywhere in the repo, re-derived and verified here (reproduces -0.228/+0.512/+0.515 deg, section 4.2) | `s3rp_r*`: -0.160 / +0.488 / +0.680 deg (section 4.2); PASS | **No** (PASS both; same sign pattern, r3's magnitude is the most changed of the three) |
 | **H-H2** | FAIL (0/3): FGO highest in all three runs, 8.3-8.6 mm against EKF3 7.8-7.9 mm (`h_comparative_2026-10-11.json`) | FAIL (0/3 FGO lowest; `lowest_hold`=UKF all 3); FGO 7.3-8.3 mm, highest in only 1 of 3 runs, below EKF3 (7.8-7.9 mm) in the other 2 (section 4.3) | **No** (FAIL both); underlying pattern changed: FGO moved from "clearly worst" to "mixed with EKF3" |
 | **P-H3** | FAIL (0/3): UKF 2.40-2.58x, FGO 2.10-2.37x EKF3's hold gyro activity | FAIL (0/3): ratios 2.402/2.577/2.499, numerically unchanged (driven by UKF/EKF3, not FGO; section 4.3) | **No** |
 | **H-H4 (15 s)** | FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20-30, FGO 7-30 mm | FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20-30 (unchanged), FGO 7-24 mm (narrower; section 4.3) | **No** |
@@ -366,13 +403,16 @@ disclosed since the standing rules list "a guard... fails with no safe default" 
 
 **D145 (after this hold-flight continuation): take the before-snapshot.** Per D145's own instruction ("future runs
 take their own before-snapshot"), this agent took `tools/tier1_checksum_guard.py snapshot` immediately before the
-first hold flight (`H_s3rp_r1c`), to a scratch path (not committed, per the tool's own recommendation that the
-snapshot be taken immediately before the first run; a scratch path was used since this continuation flies, not
-registers, the set). `verify` against that snapshot, run after all three hold flights and all scoring, gives a
-genuine before/after pair:
+first hold flight (`H_s3rp_r1c`), saved durably at
+`docs/thesis/tier1/frozen_manifest_20261111T223000_refly_priors_hold.json` (taken from a scratch copy; copied into
+`docs/thesis/tier1/` after the fact so the evidence is not left in `/tmp`, since that directory is not itself
+checksum-guard-covered, matching the previous agent's own practice of saving `verify` reports there). `verify`
+against that snapshot, run after all three hold flights and all scoring (report:
+`docs/thesis/tier1/frozen_manifest_20261111T223000_refly_priors_hold_verify_20261112.json`), gives a genuine
+before/after pair:
 
 ```
-verify: 13683 files against <scratch>/before_snapshot.json: DIFFERENT: STOP AND REPORT
+verify: 13683 files against frozen_manifest_20261111T223000_refly_priors_hold.json: DIFFERENT: STOP AND REPORT
   ADDED  eval/results/refly_priors_s2/yaw_wander_30s.py
   ADDED  eval/results/expH/s3rp_r1.json
   ADDED  eval/results/expH/s3rp_r2.json
@@ -402,9 +442,13 @@ this continuation and reads clean on the part the guard exists to check.
   primary PASS (12/12, 2.8-30.3 ms). H5.7 no lockout. H5.6 jump as worded: fails 8/12 (vs 4/12 originally,
   descriptive only).** Comparatives H-H2, P-H3, H-H4 (15 s), H-H4 (5 s): **all FAIL, unchanged from the original
   (0/3 each)**, though H-H2's underlying pattern changed (FGO moved from clearly-worst to mixed with EKF3; section
-  4.3). The 30 s-loss yaw wander could not be exactly reproduced from the original method (none was found persisted
-  anywhere in the repository) but PASSes comfortably either way. **No verdict changed** across H5.1, H5.5, H5.6,
-  H5.7, H-H2, P-H3, H-H4a, H-H4b.
+  4.3). The 30 s-loss yaw wander's original method was not persisted anywhere in the repository, but was
+  re-derived and verified (reproduces the stored S3v2 figures to within 0.01-0.02 deg; section 4.2); the
+  corrected-prior flights PASS the same <= 3 deg band. **No verdict changed** across H5.1, H5.5, H5.6, H5.7, H-H2,
+  P-H3, H-H4a, H-H4b. One hold flight (`H_s3rp_r1c`) had an FGO node restart before its first keyframe, the same
+  pattern already documented for the original `H_s3v2_r1`; disclosed, not a flight defect (section 4). A commit by
+  another agent (`7f2f1ae`) landed inside the hold-flight window but touched only unrelated documents/scripts, not
+  anything the flights load; all three flights' `metadata.yaml` confirm the same `git_commit` (section 4).
 - No frozen material was touched. `check_numbers_frozen.py` PASSES. `tools/tier1_checksum_guard.py` formally
   returns `"DIFFERENT: STOP AND REPORT"` against the latest pre-existing (stale, unrelated-workstream) manifest
   (0 changed, 0 missing, 0 errors, 30 added); disclosed, not resolved, as OQ-R6. **This continuation separately took

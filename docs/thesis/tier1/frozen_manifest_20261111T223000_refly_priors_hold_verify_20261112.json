@@ -1,0 +1,17 @@
+{
+ "manifest": "/tmp/claude-1000/-home-makerspace-thesis-ws/3eb7b0fe-468e-4e2e-8ced-a1893d7c2d5c/scratchpad/before_snapshot.json",
+ "verified_local": "2026-11-12T00:11:13+1100",
+ "changed": [],
+ "missing": [],
+ "added": [
+  "/home/makerspace/thesis_ws/eval/results/refly_priors_s2/yaw_wander_30s.py",
+  "/home/makerspace/thesis_ws/eval/results/expH/s3rp_r3.json",
+  "/home/makerspace/thesis_ws/eval/results/expH/s3rp_r1.json",
+  "/home/makerspace/thesis_ws/eval/results/expH/h_comparative_refly_priors.json",
+  "/home/makerspace/thesis_ws/eval/results/expH/s3rp_r2.json"
+ ],
+ "errors": [],
+ "unmatched_specs_now": [],
+ "n_files_checked": 13683,
+ "verdict": "DIFFERENT: STOP AND REPORT"
+}
