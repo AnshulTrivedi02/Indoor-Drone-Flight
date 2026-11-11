@@ -578,3 +578,84 @@ respectively), not a cost reason.
    purpose, given the cost estimate in Section 5.3.
 5. **Whether a covariance path that survives `reanchor()` is worth building**, to bring the room
    experiments (T, O, L, H, S2v2, S3v2) into scope for a later stage.
+
+## 9. Stage-2 addendum (dated 2026-11-12; see `docs/thesis/diagnostics/fgo_gate_count_results.md` for the full write-up)
+
+Item 1 above was done, item 2 and 4 were resolved (set 1A + 1B only, no F-test arms, per D137), and
+items 3/5 remain open (not built in stage 2 either).
+
+### 9.1 Independent FLOW_MAX sign-chain re-derivation, step by step with file:line
+
+Re-traced at `~/ardupilot` pinned commit `7bac20cbcc`, reading each file directly rather than
+trusting this design note's own Section 3.1/3.2 citations a second time:
+
+1. **`flow_bridge.py` (this repo, current HEAD):** `flow_rate_x = msg.flow_x_rad`,
+   `flow_rate_y = msg.flow_y_rad`, both UNFLIPPED (confirmed by reading the file directly; its own
+   comment records the 2026-09-29 lateral-sign fix, commit `2236590`).
+2. **`AP_OpticalFlow_MAV::handle_msg` (`AP_OpticalFlow_MAV.cpp:118-121`):** `flow_sum.x +=
+   packet.flow_rate_x; flow_sum.y += packet.flow_rate_y;`, unflipped, summed verbatim.
+3. **`AP_OpticalFlow_MAV::update` (`AP_OpticalFlow_MAV.cpp:61-68,79-80`):**
+   `flow_scale_factor_{x,y} = 1 + 0.001*FLOW_{FX,FY}SCALER`; `dt_used = 1.0` (since
+   `flow_sum_is_rads` is true once any `flow_rate_x/y` extension field is non-zero, always true
+   here); then `_applyYaw(...)`. `OpticalFlow_backend::_applyYaw` (`AP_OpticalFlow_Backend.cpp:
+   38-45`) is a no-op when `FLOW_ORIENT_YAW == 0`. Confirmed LIVE, from a PARM dump of three
+   trials spanning both run sets (`fwdc_tex_r1`, `fwdplainc_blank_r1`, `dsn_tex_r1`):
+   `FLOW_FXSCALER = FLOW_FYSCALER = FLOW_ORIENT_YAW = 0.0` in all three, so
+   `state.flowRate = (flow_x_rad, flow_y_rad)` exactly, unscaled, unrotated: this is
+   `rawFlowRates` as read by EKF3's measurement-ingestion path.
+4. **`AP_NavEKF3_Measurements.cpp:221`:** `ofDataNew.flowRadXY = - rawFlowRates.toftype();`, a
+   negation of BOTH axes.
+5. **`AP_NavEKF3_OptFlowFusion.cpp:668`:** `if (really_fuse && (flowTestRatio[obsIndex]) < 1.0f &&
+   (ofDataDelayed.flowRadXY.x < frontend->_maxFlowRate) && (ofDataDelayed.flowRadXY.y <
+   frontend->_maxFlowRate))`, fusion of EITHER axis requires BOTH `flowRadXY.x < FLOW_MAX` AND
+   `flowRadXY.y < FLOW_MAX`; `_maxFlowRate` is `FLOW_MAX`, confirmed at `AP_NavEKF3.cpp:305-312`
+   (`AP_GROUPINFO("FLOW_MAX", 20, NavEKF3, _maxFlowRate, 2.5f)`) - the parameter name this design
+   note already cited is correct (not `EK3_MAX_FLOW`).
+6. **`fgo_replay.py:111`:** `ev.append((tt, "flow", (np.array([m.flow_x_rad, m.flow_y_rad]), ...)))`:
+   the flow array handed into the event stream is `[flow_x_rad, flow_y_rad]` directly off the bag,
+   with NO negation and NO axis swap (also checked the `FGO_EVENTS` dataflash-replay path at line
+   90-91, out of scope for this run set regardless since it is unused by the plain
+   `fgo_replay.py <trial> 0.25 [2 [<arm>]]` invocation).
+
+One real wrinkle, read and accounted for: `fgo_replay.py:203-205` can REPLACE the flow value via
+`measurement_models.GroundProximityFlow.replace()` before `keyframe()` sees it, but only
+pre-takeoff below 0.5 m height, substituting a synthetic rotation-only value. The gate-count
+diagnostic reads `flow_xy` off exactly what `keyframe()` receives, i.e. after this replacement,
+consistent with asking "would THIS, the factor actually added, have failed the gate". Reported
+per run as `n_flow_gp_replaced`.
+
+**Result: the re-derivation confirms this design note's Section 3.1/3.2 rule exactly, with no sign
+disagreement found:**
+
+```
+flowRadXY.x = -rawFlowRates.x = -flow_rate_x = -flow_x_rad
+flowRadXY.y = -rawFlowRates.y = -flow_rate_y = -flow_y_rad
+reject (fuse neither axis) iff flowRadXY.x >= FLOW_MAX OR flowRadXY.y >= FLOW_MAX
+                            iff flow_x_rad <= -FLOW_MAX OR flow_y_rad <= -FLOW_MAX
+```
+
+So **"EKF3 one-sided reject rule: `flow_x_rad <= -2.5 OR flow_y_rad <= -2.5`"** (Section 3.1 above)
+stands as independently re-derived, item 1 of Section 8's list is closed, and
+`eval/fgo_gate_count.py`'s `flow_max_onesided_reject()` was not changed.
+
+### 9.2 Corrections to Section 5.1 (run set) and Section 5.3 (cost estimate)
+
+- **Section 5.1's claim "All 18 trials ... have stored `fgo_baseline/`, `fgo_heading/` and
+  `fgo_heading_yawrate/` directories" is WRONG for the 9 `fwdplainc_*` trials.** Running set 1B hit
+  `measurement_models.py:230-232`'s own `ValueError` on all 9 `fwdplainc_*` x `heading_yawrate`
+  combinations ("yaw-rate arm not defined for fwdplainc, failed Phase 3 validation"); confirmed
+  directly that no `fwdplainc_*` trial directory has a stored `fgo_heading_yawrate/` output at
+  all, consistent with CLAUDE.md's Sensor Status table ("Yaw rate: textured walls only"). Set 1B's
+  achievable size is 45, not 54: `fwdc_*` 9 trials x 3 arms = 27, `fwdplainc_*` 9 trials x 2 arms
+  (`baseline`, `heading`) = 18.
+- **Section 5.3's bag-cache estimate (1.5-2 GB) was far too low.** The actual decompressed cache
+  (`~/thesis_data/diagnostics/fgo_gate_count/bagcache/`) reached 56 GB across the 33 trials
+  actually touched, because the estimate was anchored to a `dsn_*` bag (76 MB, no camera frames),
+  while the `fwdc_*`/`fwdplainc_*` bags also carry recorded forward-camera frames (CLAUDE.md:
+  "`run_trial.sh` enables forward-camera recording for all four suffixes"). Removed after both
+  run sets completed; see the results file Section 9 for the full account, including a checksum-
+  guard coverage bug found and corrected in the same stage.
+
+Full results, per-set/per-run tables, and all further caveats: see
+`docs/thesis/diagnostics/fgo_gate_count_results.md` and
+`docs/thesis/diagnostics/numbers_fgo_gate_count.md`.

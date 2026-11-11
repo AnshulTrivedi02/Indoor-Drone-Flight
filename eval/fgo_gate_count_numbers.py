@@ -91,6 +91,15 @@ def render(per_set):
          "been rejected by this gate, evaluated against the as-built factor and the IMU-only predictive "
          "covariance\" -- see the conditioning and fusion-order caveats in the results file. A rejection would "
          "change later states; this is not a replay of a gated FGO.", "",
+         "**dagger (floor-level, not per-row): transition and blank are, in every one of the 60 runs checked, in "
+         "`numbers.md`'s own documented \"Diverging (unaided) FGO results\" category (km-scale ATE once flow "
+         "aiding is lost) -- only textured stays bounded.** Low rejection counts on transition/blank reflect a "
+         "hugely inflated `P_pred` at least as much as flow-factor quality; see the results file Section 6a "
+         "before reading those rows as \"the sensor is fine on this floor\". `1B all achievable` sums flow/range "
+         "factors across baseline/heading/heading_yawrate for the SAME trial, which share the same underlying "
+         "flow/range measurements (Section 4 of the results file: the factor count is identical per arm) -- it "
+         "is a sum of three passes over the same measurements under three different trajectories/covariances, "
+         "not a count of 3x as many distinct factors.", "",
          "## Set 1A (`dsn_*`, no forward-camera arm, 15 runs)", "",
          "| group | n runs | n flow factors | reject axis-0 (x) | reject axis-1 (y) | reject joint (naive 9) | "
          "reject joint (chi2(2)=11.83) | FLOW_MAX one-sided | FLOW_MAX two-sided |",
@@ -108,7 +117,7 @@ def render(per_set):
     for k in present_1a:
         L.append(near_row(SET_LABEL_1A[k], per_set[k]))
 
-    L += ["", "## Set 1B (Phase 4 forward-camera arms, 18 trials x 3 arms = 54 runs)", "",
+    L += ["", "## Set 1B (Phase 4 forward-camera arms, 18 trials x up to 3 arms = 54 registered, 45 achievable)", "",
           "| wall | floor | arm | n runs | n flow factors | reject axis-0 (x) | reject axis-1 (y) | "
           "reject joint (naive 9) | reject joint (chi2(2)=11.83) | FLOW_MAX one-sided | FLOW_MAX two-sided |",
           "|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -127,7 +136,7 @@ def render(per_set):
                              f"{s['flow_max_onesided_reject']} ({pctstr(p['flow_max_onesided_pct'])}) | "
                              f"{s['flow_max_twosided_reject']} ({pctstr(p['flow_max_twosided_pct'])}) |")
     if "1B_all" in per_set:
-        L.append(flow_row("1B_all", "**all 1B (n=54)**", per_set["1B_all"]))
+        L.append(flow_row("1B_all", "**all 1B achievable (n=45)**", per_set["1B_all"]))
 
     L += ["", "| wall | floor | arm | n runs | n range factors | reject (NIS>25) | n flow factors GP-replaced | "
           "byte-identical to stored |", "|---|---|---|---|---|---|---|---|"]
@@ -143,7 +152,7 @@ def render(per_set):
                     L.append(f"| {wlabel} | {flabel} | {alabel} | {s['n_runs']} | {s['n_range_factors']} | "
                              f"{s['range_reject_25']} ({pctstr(p['range_reject25_pct'])}) | {s['n_flow_gp_replaced']} | {bi} |")
     if "1B_all" in per_set:
-        L.append(range_row("1B_all", "**all 1B (n=54)**", per_set["1B_all"]))
+        L.append(range_row("1B_all", "**all 1B achievable (n=45)**", per_set["1B_all"]))
 
     L += ["", "**Set 1B near-threshold counts** (within +/-0.1% of the stated gate; see the Section 6 "
           "conditioning caveat in the results file):", "",
@@ -159,7 +168,7 @@ def render(per_set):
                              f"{nt['flow_axis1_near9']} | {nt['flow_joint_near9']} | "
                              f"{nt['flow_joint_near11_83']} | {nt['range_near25']} |")
     if "1B_all" in per_set:
-        L.append(near_row("**all 1B (n=54)**", per_set["1B_all"]))
+        L.append(near_row("**all 1B achievable (n=45)**", per_set["1B_all"]))
 
     L.append("")
     L.append(f"*Checks (EXACT, string equality after one `rd()` rounding, both against `rd()` of the JSON value "
@@ -338,15 +347,15 @@ def do_checks(per_set, runs):
                     near_cols(f"1B {key}", near_row_line, s)
     if "1B_all" in per_set:
         s = per_set["1B_all"]
-        flow_row_line = next((l for l in lines if l.startswith("| **all 1B (n=54)**") and str(s["n_flow_factors"]) in l), None)
+        flow_row_line = next((l for l in lines if l.startswith("| **all 1B achievable (n=45)**") and str(s["n_flow_factors"]) in l), None)
         check("1B_all flow row present", flow_row_line is not None, True)
         if flow_row_line is not None:
             flow_cols("1B_all", flow_row_line, s, 3)
-        range_row_line = next((l for l in lines if l.startswith("| **all 1B (n=54)**") and str(s["n_range_factors"]) in l), None)
+        range_row_line = next((l for l in lines if l.startswith("| **all 1B achievable (n=45)**") and str(s["n_range_factors"]) in l), None)
         check("1B_all range row present", range_row_line is not None, True)
         if range_row_line is not None:
             range_cols("1B_all", range_row_line, s, 3)
-        near_row_line = next((l for l in lines if l.startswith("| **all 1B (n=54)**")
+        near_row_line = next((l for l in lines if l.startswith("| **all 1B achievable (n=45)**")
                               and len(cells(l)) == 6 and all(x.isdigit() for x in cells(l)[1:])), None)
         check("1B_all near row present", near_row_line is not None, True)
         if near_row_line is not None:
@@ -367,6 +376,22 @@ def do_checks(per_set, runs):
         check(f"appendix {trial}/{armlabel} n_range", c[9] == str(r["n_range_factors"]), True)
         bi_want = "PASS" if r.get("instrumented_vs_stored_byte_identical") is True else str(r.get("instrumented_vs_stored_byte_identical"))
         check(f"appendix {trial}/{armlabel} byte-identical", c[12] == bi_want, True)
+        # per-run reject/pct columns, reusing the same flow_cols/range_cols helpers used for the
+        # per-set tables (the appendix row's column layout matches: n_flow at 2, ax0 at 3, ..., fm2 at
+        # 8, n_range at 9, range-reject at 10, gp-replaced at 11). flow_cols/range_cols expect the
+        # per-SET object's shape (top-level reject_* keys, a "pct" dict); per_run.json's records are
+        # shaped differently (reject_* nested under "flow"/"range", the pct dict is "_pct"), so adapt.
+        s_shaped = {
+            "reject_axis_9": r["flow"]["reject_axis_9"], "reject_joint_9": r["flow"]["reject_joint_9"],
+            "reject_joint_11_83": r["flow"]["reject_joint_11_83"],
+            "flow_max_onesided_reject": r["flow"]["flow_max_onesided_reject"],
+            "flow_max_twosided_reject": r["flow"]["flow_max_twosided_reject"],
+            "range_reject_25": r["range"]["reject_25"], "n_flow_factors": r["n_flow_factors"],
+            "n_range_factors": r["n_range_factors"], "n_flow_gp_replaced": r["n_flow_gp_replaced"],
+            "pct": r["_pct"],
+        }
+        flow_cols(f"appendix {trial}/{armlabel}", row, s_shaped, 3)
+        range_cols(f"appendix {trial}/{armlabel}", row, s_shaped, 10)
 
 
 def main():

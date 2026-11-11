@@ -37,8 +37,10 @@ run correctly, both in `eval/fgo_gate_count.py` only (never `fgo_core.py`, `fact
    or any of the 54 set-1B runs were produced by code and a window matching current HEAD. Fixed:
    `cmd_run` now also runs the instrumented replay into a scratch directory, `cmp`s its TUM output
    against the trial's own stored TUM, and records `instrumented_vs_stored_byte_identical` in every
-   run's summary JSON. A run whose output is NOT byte-identical to its stored counterpart is
-   excluded from every aggregated count below and reported separately (Section 4).
+   run's summary JSON. `eval/fgo_gate_count_aggregate.py`'s `load_runs()` now ASSERTS every loaded
+   run is byte-identical before building any sum, so a run whose output is NOT byte-identical to its
+   stored counterpart would refuse to aggregate, not silently enter a count. In this run set the
+   assert never fires: all 60 runs that actually produced a summary are byte-identical (Section 3).
 
 A third bug, in the new aggregation script written for this stage (`eval/fgo_gate_count_aggregate.py`,
 not in anything from stage 1), was found and fixed before any count was quoted: its `_pct()` helper
@@ -52,8 +54,9 @@ rounding rule (`eval/figs_thesis.py:86-96`, "round the full-precision file value
 
 All three fixes were exercised: the stage-1 proof (`dsn_trans_r1`, Section 6 of the design note)
 stands unchanged; a fresh 1B byte-identity proof was run before set 1B started (Section 2 below);
-every one of the 69 set 1A/1B runs now carries its own per-run byte-identity result (Section 3); and
-every percentage in `numbers_fgo_gate_count.md` passes the double-check described in Section 4.
+every one of the 60 registered runs that actually produced a summary now carries its own per-run
+byte-identity result (the other 9 are N/A, Section 3, and carry no such field); and every percentage
+in `numbers_fgo_gate_count.md` passes the double-check described in Section 4.
 
 ## 1. FLOW_MAX one-sided sign chain: independently re-derived
 
@@ -165,8 +168,10 @@ mistaken for a bug in the byte-identity check itself.)
 
 ## 3. Per-run byte-identity: all 69 registered runs; 60 actually ran; 9 are N/A
 
-Every one of the 15 set-1A and 54 set-1B runs carries its own `instrumented_vs_stored_byte_identical`
-field (Section 0, fix 2), checked against `~/thesis_data/trials/<trial>/fgo[_<arm>]/fgo_traj.tum`.
+Every one of the 60 runs that actually produced a summary carries its own
+`instrumented_vs_stored_byte_identical` field (Section 0, fix 2), checked against
+`~/thesis_data/trials/<trial>/fgo[_<arm>]/fgo_traj.tum`; the 9 N/A combinations carry no such field,
+since no replay and no summary were ever produced for them (see immediately below).
 
 **60/69 jobs ran and wrote a summary. The other 9 are NOT failures of this diagnostic; they are a
 registered-run-set error, found and confirmed during this stage: the `heading_yawrate` arm does not
@@ -217,34 +222,53 @@ stored JSON percentage field directly (the brief's literal ask) and against an i
 from-scratch decimal recomputation that calls neither `rd()` nor the stored field (catching a bug
 in either one, which the first check alone cannot).
 
+**The joint threshold used, stated explicitly (D137 requires this).** Two joint thresholds are
+reported in every table, per the design note Section 2.4: **11.83**, the chi-square(2) quantile at
+the same p = 0.9973 confidence the per-axis gate of 9 implies (chi-square(1) at 9 is the 3-sigma
+point), is the threshold intended as the fair "same confidence" joint comparison; **9**, the naive
+reuse of the per-axis constant with no degrees-of-freedom adjustment, is reported alongside it as
+the secondary column, per the brief's "reported both ways" instruction. Neither is privileged as
+"the" EKF3 joint gate; EKF3 itself has no joint flow test to compare against (Section 8).
+
+**Read Section 6a before this one.** Only the set-1A/1B TEXTURED groups are a flight that stayed on
+its commanded trajectory throughout, per the checked ATE bands (Section 6a): textured 118.6-133.9 m
+(n=24 runs), transition 654-860 m (n=18, ALL in `numbers.md`'s documented runaway/† category), blank
+8533-16293 m (n=18, ALL in the same † category). The bullets below report what the stored counts
+say; the "blank is worse than textured" READING specifically should be taken with Section 6a's
+caveat that blank's (and transition's) own `P_pred` is itself orders of magnitude larger, which
+mechanically suppresses rejections regardless of how degraded the sensor stream is.
+
 **Headline pattern, read from the table, not re-derived here:**
 
-- **Flow rejection (gate 9, either axis or joint) is under 1% in every set-1A group, but blank is
-  one to two orders of magnitude higher than textured in relative terms**: textured joint-9 ≈
-  0.006% (5/89490), transition ≈ 0.33% (53/16058), blank ≈ 0.73% (10/1366), rising monotonically
-  with sensing degradation (n=9/3/3 trials respectively, not independently re-verified here against
-  a null hypothesis), though all three stay under 1% in absolute terms. The joint gate
-  (9 vs 11.83) agrees exactly on textured and blank; on transition they differ (0.33% vs 0.23%),
-  i.e. some transition-trial flow factors fall in the narrow discriminating band `[9, 11.83)`
-  (design note Section 2.4), the only floor condition in set 1A where the two thresholds give a
-  different answer.
+- **Flow rejection (gate 9 or 11.83, either axis or joint) is under 1% in every set-1A group**:
+  textured joint-9 ~= 0.006% (5/89490), transition ~= 0.33% (53/16058), blank ~= 0.73% (10/1366).
+  Textured is the only one of these three not flagged † in Section 6a, so only its figure is read
+  as a relatively direct measurement of flow-factor extremity; transition's and blank's own figures
+  are each confounded, to different degrees, by the runaway-`P_pred` effect Section 6a describes
+  (no attempt was made here to separate "worse sensor" from "worse covariance" on either floor).
+  The joint gate (9 vs 11.83) agrees exactly on textured and blank; on transition they differ
+  (0.33% vs 0.23%), i.e. some transition-trial flow factors fall in the narrow discriminating band
+  `[9, 11.83)` (design note Section 2.4), the only floor condition in set 1A where the two
+  thresholds give a different answer.
 - **Direct answer to the FLOW_MAX sidedness question (the user's literal ask): in this entire run
   set, the one-sided and two-sided counts are IDENTICAL in every single group, with no exception.**
-  0/0 in all four set-1A groups; in set 1B, every group is 0/0 except `fwdc` transition
-  (`baseline`/`heading`/`heading_yawrate`, 1/1 each, 3/3 total; `1B_all` 3/3). On this data,
-  sidedness never changes the count: every flow factor extreme enough to trip the two-sided
-  `abs(...) >= 2.5` rule in this project's recorded flights also trips the one-sided
-  `<= -2.5` rule, i.e. none of the handful of FLOW_MAX hits here is a large POSITIVE excursion.
-  This is a property of what was actually flown, not a proof that the two rules are equivalent in
-  general (design note Section 3.1 already establishes they are not, by construction).
-  FLOW_MAX overall is rare: expected at this project's commanded cruise speed, derived (not
-  assumed) from `METHODOLOGY.md`'s own measured `∂flow/∂v = 0.571` rad/s per m/s (the translational
-  flow sensitivity, "Lateral-vs-forward asymmetry" finding) times the standard 0.5 m/s commanded
-  forward speed, giving an expected cruise flow magnitude of about 0.29 rad/s, well inside both
-  the 2.5 rad/s FLOW_MAX bound and the 4.2 rad/s vector-length clamp already in the FGO's own
-  `keyframe()`. A near-zero FLOW_MAX count is therefore consistent with the flown envelope, not
-  evidence the check never applies; the 3 hits in `fwdc` transition are presumably transient
-  excursions above this cruise baseline (not characterised further here).
+  0/0 in all four set-1A groups; in set 1B, every group is 0/0 except `fwdc` transition, where the
+  per-arm count is 1/1 (checked against `per_run.json`: this is ONE flow sample, in trial
+  `fwdc_trans_r1`, counted once in each of its three replayed arms, since the raw flow input is
+  identical across arms; it is not three independent extreme samples). On this data, sidedness
+  never changes the count: the one flow factor extreme enough to trip the two-sided
+  `abs(...) >= 2.5` rule in this project's recorded flights also trips the one-sided `<= -2.5` rule,
+  i.e. it is not a large POSITIVE excursion. This is a property of what was actually flown, not a
+  proof that the two rules are equivalent in general (design note Section 3.1 already establishes
+  they are not, by construction). FLOW_MAX overall is rare: expected at this project's commanded
+  cruise speed, derived (not assumed) from `METHODOLOGY.md`'s own measured `∂flow/∂v = 0.571` rad/s
+  per m/s (the translational flow sensitivity, "Lateral-vs-forward asymmetry" finding) times the
+  standard 0.5 m/s commanded forward speed, giving an expected cruise flow magnitude of about
+  0.29 rad/s, well inside both the 2.5 rad/s FLOW_MAX bound and the 4.2 rad/s vector-length clamp
+  already in the FGO's own `keyframe()`. A near-zero FLOW_MAX count is therefore consistent with
+  the flown envelope, not evidence the check never applies; this one sample is presumably a
+  transient excursion above the cruise baseline (not characterised further here), and it falls in
+  `fwdc_trans_r1`, itself one of the † runaway trials (Section 6a).
 - **The NUMBER of flow (and range) factors counted is identical across `baseline`/`heading`/
   `heading_yawrate` for the same wall/floor** (e.g. `fwdc` transition: 16168 flow factors in all
   three arms; `fwdc` blank: 1770 in all three), confirming the forward-camera factors are additive
@@ -256,12 +280,12 @@ in either one, which the first check alone cannot).
   read with that caveat, not as a statistically-established effect**: `fwdc` transition joint-9 goes
   69 (baseline) -> 51 (heading) -> 103 (heading+yawrate); `fwdplainc` blank axis-0 goes 8 (baseline)
   -> 61 (heading), a 7.6x jump; `fwdc` blank axis-0 goes 9 (baseline) -> 24 (heading) -> 47
-  (heading+yawrate), a >5x jump base to heading+yawrate. This is consistent with Section 1's
-  mechanism (the arm changes the FGO's own trajectory and therefore `P_pred` and the linearisation
-  point the SAME flow factor is gated against), not with a different measurement stream being
-  gated, but the size of the swing on blank floor specifically is large enough that "the forward
-  factors are additive so gating is unaffected" would be an overstatement; the trajectory THEY
-  PRODUCE clearly is not gating-neutral on the degraded floor.
+  (heading+yawrate), a >5x jump base to heading+yawrate. The mechanism is that the arm changes the
+  FGO's own trajectory and therefore `P_pred` and the linearisation point the SAME flow factor is
+  gated against, not a different measurement stream being gated; BOTH `fwdc` transition and
+  `fwdplainc`/`fwdc` blank are themselves in Section 6a's † runaway category, so these swings are
+  swings in an already-diverged `P_pred`, which this diagnostic has not decomposed into "arm changed
+  the degree of divergence" versus any other contributor.
 - **`n_flow_gp_replaced` (the ground-proximity pre-takeoff substitution, Section 1) dominates the
   set-1A blank group: 83.1% of its counted flow factors (1135/1366) are the synthetic
   rotation-only pre-takeoff value, not a raw degraded-floor measurement**, against 5.0% on
@@ -269,7 +293,8 @@ in either one, which the first check alone cannot).
   few flow factors overall (1366, against textured's 89490) that the fixed-size pre-takeoff window
   is a much larger share of what little got counted. **Any reading of "blank floor's flow factors
   are gated the same way as textured" must account for this: the large majority of what is being
-  gated on blank is not even a measurement of the degraded floor.**
+  gated on blank is not even a measurement of the degraded floor** (and, per Section 6a, most of
+  what remains is gated against an already-diverged covariance besides).
 
 ## 5. "Would have been rejected", what this does and does not mean
 
@@ -298,40 +323,63 @@ decisions this conditioning could plausibly flip, not a hand-wave that "numbers 
 the flight". See the per-set `near_threshold` block in `per_set.json` / the near-threshold table in
 `numbers_fgo_gate_count.md`.
 
-## 6a. Diverged runs: blank-floor low rejection rates are partly a covariance artefact, not evidence of good fit
+## 6a. Diverged runs: blank-AND-transition low rejection rates are partly a covariance artefact, not evidence of good fit
 
-Checked, not assumed: `grep -h "ATE =" ~/thesis_data/diagnostics/fgo_gate_count/job_*.log` over all 60 completed
-runs. Every one of the 1A-blank and 1B-blank runs (`dsn_blank_r1..r3`; `fwdc_blank_r1..r3` all 3 arms;
-`fwdplainc_blank_r1..r3`, 2 arms) shows an own-logged `ATE` of 650 m to 16293 m against a true along-track of
-about 151 m. This is `numbers.md`'s own, independently documented "Diverging (unaided) FGO results" category
-(section header "Diverging (unaided) FGO results: evidence of divergence, not precise values", ruling
-2026-10-08): a km-scale dead-reckoning runaway once flow aiding is effectively lost, already known to this
-project and not something this diagnostic is reporting as new. (By contrast, every textured and most
-transition runs print a smaller, bounded `ATE`, about 118 m to 150 m; this diagnostic has not established what
-that print represents relative to the thesis's own windowed `evo -a (cruise)` metric and does not claim either
-figure is comparable to it, so textured/transition runs are NOT described as diverged here.)
+Checked, not assumed, and grouped strictly by floor tag: `grep -h "ATE =" ~/thesis_data/diagnostics/fgo_gate_count/job_*.log`
+over all 60 completed runs, split by `tex`/`trans`/`blank` in the trial name. The three floors are
+cleanly separated, with no overlap:
 
-**Why this matters for Section 4's blank-floor numbers specifically.** Section 6's conditioning finding is
-that the unobservable horizontal-position variance inside `P_pred` grows without bound over a flight; on a
-genuinely diverged run, that growth is far more extreme, so `P_pred` (and therefore `S = A P Aᵀ + I`) is
-enormous for most of the flight. A large `S` mechanically drives `nis = bᵀ S⁻¹ b` towards zero regardless of
-how large the raw residual `b` is. **So the near-zero flow rejection rate this diagnostic reports on the
-1A/1B blank groups (Section 4) is, in substantial part, a predictable consequence of the trajectory having
-already diverged and inflated `P_pred`, not evidence that the gated-against factors are well-matched to the
-model.** This compounds, rather than contradicts, the separate `n_flow_gp_replaced` finding in Section 4 (83.1%
-of 1A-blank's counted flow factors are pre-takeoff synthetic values): between the two effects, only a small
-minority of 1A-blank's already-tiny flow-factor count (1366, against textured's 89490) is both a real,
-airborne, post-divergence measurement AND gated against a covariance that has not yet blown out. No attempt
-was made here to isolate that minority (it would need a per-factor timeline, not built in this stage); flagged
-as a limitation, not resolved.
+| floor | n runs | own-logged `ATE` range | `numbers.md` † category? |
+|---|---|---|---|
+| textured | 24 | 118.6 m - 133.9 m | no |
+| transition | 18 | 654.1 m - 859.8 m | **yes, all 18** |
+| blank | 18 | 8533.1 m - 16293.3 m | **yes, all 18** |
 
-**No-divide-and-conquer limitation (NaN NIS).** A NaN NIS (which could arise from a genuinely singular or
-near-singular `S` on a sufficiently diverged run, not observed directly but not ruled out either) would be
-counted as ACCEPTED by every comparison in this diagnostic's code (`nan > GATE_C` evaluates to `False` in
-Python, the same as a comfortably-accepted value), not flagged or excluded. This was not checked for
-(`np.isnan(nis).any()` was not run over the stored per-keyframe values, since they were not retained, Section
-8 item below), so a silent NaN-as-accepted count cannot currently be ruled out on the most severely diverged
-runs. Listed as a limitation, not a finding either way.
+against a true along-track of about 151 m in every case. **Both transition and blank are, in full, in
+`numbers.md`'s own, independently documented "Diverging (unaided) FGO results" category** (section
+header "Diverging (unaided) FGO results: evidence of divergence, not precise values", ruling
+2026-10-08, which explicitly covers "runaway on BLANK OR TRANSITION floors"), consistent with the
+stage-1 design note's own characterisation of `dsn_trans_r1` at 695 m in Section 6.3. **An earlier
+draft of this section wrongly described only blank as diverged and transition as "smaller, bounded";
+that was not checked by floor at the time and is corrected here.** Only textured stays in the
+100-150 m band, well short of the † criterion. This diagnostic has not established what this
+own-logged `ATE` print represents relative to the thesis's own windowed `evo -a (cruise)` metric, and
+does not claim either figure, textured's included, is numerically comparable to that metric; the
+only claim made here is the floor-conditioned SPLIT within this diagnostic's own replays, and that
+split exactly matches `numbers.md`'s pre-existing †/non-† boundary.
+
+**Why this matters for Section 4's transition- and blank-floor numbers.** Section 6's conditioning
+finding is that the unobservable horizontal-position variance inside `P_pred` grows without bound
+over a flight; on a genuinely diverged run that growth is far more extreme, so `P_pred` (and
+therefore `S = A P Aᵀ + I`) is far larger than on a non-diverged run for most of the flight. In the
+NIS ratio `nis = bᵀ S⁻¹ b`, BOTH the residual `b` (which should itself grow as the linearisation
+point drifts from the true state) and `S` grow on a diverged run; this diagnostic has not measured
+which effect dominates, so no claim is made about the NET direction of the resulting NIS. **The
+claim that IS supported: a near-zero rejection rate on a diverged run cannot, by itself, be read as
+"the gated-against factors are well-matched to the model"**, because the gate's own reference
+covariance is itself a product of the same divergence, not an independent check on it. This
+compounds, rather than contradicts, the separate `n_flow_gp_replaced` finding in Section 4 (83.1% of
+1A-blank's counted flow factors are pre-takeoff synthetic values, from BEFORE the divergence even
+begins): between the two effects, only a minority of 1A-blank's already-tiny flow-factor count
+(1366, against textured's 89490) is both a real, airborne measurement AND gated against a covariance
+that has not been affected by the divergence this section describes. No attempt was made here to
+isolate that minority, or to determine whether `b` or `S` dominates the net NIS effect on these
+floors (either would need a per-keyframe timeline, not built in this stage); flagged as a limitation,
+not resolved, and not something Section 4's stated percentages should be read past without this
+caveat.
+
+**Limitation: a NaN NIS would be silently counted as accepted.** `S = A P Aᵀ + I` cannot itself be
+singular from a finite, positive-semi-definite `P` (`A P Aᵀ` is PSD, so `S >= I`, strictly positive
+definite, and `S⁻¹` exists), so a NaN or infinite NIS, if one ever occurred, would have to come from
+a non-finite `A`, `b` or `P` upstream (for instance an overflowed linearisation on a sufficiently
+diverged trajectory), not from an ill-conditioned-to-singular `S`. Whether that upstream
+non-finiteness occurs anywhere in this run set was NOT checked (`np.isnan`/`np.isinf` over the
+stored per-keyframe NIS values was not run, since the per-keyframe values were not retained by this
+stage's instrumentation, only the aggregate counts). Every comparison in this diagnostic's own code
+(`eval/fgo_gate_count.py`'s `nis > GATE_C`) would evaluate `False` for a NaN input in Python,
+counting it as accepted rather than flagging or excluding it. So a silent NaN-as-accepted count
+cannot currently be ruled out on the most severely diverged runs; listed as a limitation, not a
+finding either way.
 
 ## 7. Fusion-order caveat (restated from the design note, not re-measured here)
 
@@ -394,24 +442,34 @@ this section got the first one wrong (corrected here):**
   cycle over the whole flight (yaw/mag, then height, then flow, within one cycle, Section 7 above);
   this diagnostic gates against a pure IMU-only predictive covariance with no memory of any prior
   correction (design note Section 2.1). Section 7's one-sided bias (now stated with direction, see
-  below) is exactly this effect, not a trajectory difference.
-- **The two counts are also not over the same window.** EKF3's 7.5% is 236/3153 AIRBORNE `XKF5`
-  rows only (its own ~1 Hz-ish logging cadence of a filter running faster internally). This
+  above) is exactly this effect, not a trajectory difference.
+- **The two counts are also not over the same window, and the mismatch pushes in a known direction.**
+  EKF3's 7.5% is 236/3153 AIRBORNE `XKF5` rows only, logged at roughly 10 Hz (3153 rows over a
+  flight of about 300 s; `XKF5` is not logged at EKF3's own ~80 Hz internal predict rate). This
   diagnostic's 10018 flow factors cover the WHOLE replay at the FGO's ~30 Hz keyframe cadence,
   including the pre-arm/ground period, of which 584 (5.8%) are the pre-takeoff
   `GroundProximityFlow`-substituted synthetic value (Section 1), not a raw measurement at all, and
-  are not "airborne" in EKF3's sense.
+  are not "airborne" in EKF3's sense. Those 584 synthetic factors sit in THIS diagnostic's own
+  denominator, not EKF3's, so including them can only ever push this diagnostic's percentage DOWN
+  relative to an airborne-only comparison, the same direction as the 7.5%-vs-0.02% gap.
 
 A numeric gap between 7.5% and 0.02% is therefore not attributable to "the FGO's factors are more/
 less often extreme" alone, and specifically not to a different flown trajectory (that explanation is
-ruled out directly above); it reflects at minimum the covariance-propagation difference (Section 7,
-which biases this diagnostic's count DOWN, the same direction as the gap) and the window mismatch.
+ruled out directly above); the covariance-propagation difference (Section 7, which biases this
+diagnostic's count DOWN) and the window mismatch (which also biases it DOWN) are candidate
+contributors, not a quantified decomposition of the gap, which this diagnostic has not attempted.
 Reported for completeness, not as a comparison this diagnostic is positioned to adjudicate.
 
-No other trial in set 1A, and no trial in set 1B, has a published EKF3 or UKF rejection rate in this
-project's own documents to compare against; this section is not extended to the other 67 runs for
-that reason, not because they were not checked for one (`METHODOLOGY.md` and `numbers.md` were both
-searched for "NI>=100", "XKF5 NI", "rejection rate" and "% rejected"; no other hit exists).
+**No other published EKF3 or UKF flow-rejection rate was found, on a search wider than the two
+METHODOLOGY/numbers.md documents checked in an earlier draft of this section.** Also checked: the
+stored per-trial `ekf3/of.npy` arrays (continuous flow values, not a rejection flag or count, across
+all 33 trial directories, confirmed by inspecting `dsn_tex_r1`'s own array directly rather than
+assumed), every stored `ukf*/metrics.txt` and `ukf*/fwd_stats.json` (the latter's `gate: 9.0` /
+`psi_fused` / `omega_fused` fields are the forward-camera HEADING/yaw-rate fusion gate, not the
+downward-flow gate), and `docs/thesis/ekf3_heading_replay/` (the D139 EKF3-heading-Replay
+innovation-extraction documents, which cover the forward-camera heading innovation, not downward
+flow). None of these hold a flow rejection count or rate. This section is therefore not extended to
+the other 59 runs for that reason, not because they were not checked for one.
 
 ## 9. Checksum guard and cleanup
 
@@ -430,7 +488,12 @@ in isolation) and is corrected here rather than left standing.
    proof and the full run set both started after this): `find <33 dirs> -newer checksum_before.json`
    and `-cnewer` both return ZERO files. Any write to any of the 33 trial directories during this
    stage's whole run would have updated at least one file's mtime or ctime; neither check found one.
-   This is real, if indirect, evidence, not the intended per-file hash comparison.
+   **Checked that this zero is not vacuous (a wrong path would also return zero)**: the same 33
+   directories, with `stderr` NOT suppressed this time, give `find <33 dirs> -type f | wc -l` = 3045
+   (exactly matching item 2's full snapshot's own file count below) and
+   `find <33 dirs> -type f ! -newer checksum_before.json | wc -l` = 3045 too, i.e. every one of the
+   3045 files that exist is accounted for and none is newer than the marker. This is real, if
+   indirect, evidence, not the intended per-file hash comparison.
 2. **A full, correctly-covered snapshot taken now** (single `--paths` call, all 33 directories as
    space-separated arguments to it): 3045 files, 8874.6 MB, written to
    `~/thesis_data/diagnostics/fgo_gate_count/checksum_after_full33.json`. `verify` against itself
@@ -467,10 +530,13 @@ ok: frozen commit 669f099 has the frozen content
 trials touched by the full run set, far more than the design note's Section 5.3 estimate of 1.5-2
 GB, because the `fwdc_*`/`fwdplainc_*` bags also carry recorded forward-camera frames (CLAUDE.md:
 "`run_trial.sh` enables forward-camera recording for all four suffixes"), unlike the `dsn_*` bags
-the original estimate was anchored to. **Removed in full after both run sets completed and the
-checksum verify above passed** (`rm -rf
+the original estimate was anchored to. **Removed in full after both run sets completed** (`rm -rf
 ~/thesis_data/diagnostics/fgo_gate_count/bagcache`, confirmed by `ls` returning "No such file or
-directory" immediately after). `~/thesis_data/diagnostics/fgo_gate_count/runs/` (161 MB, the
+directory" immediately after; this removal happened before the checksum-coverage bug above was
+found, so the later corrected 33-directory snapshot was taken on a machine with the cache already
+gone, which does not affect it either way since `bagcache/` sits under this diagnostic's own
+directory, never under any of the 33 trial directories the snapshot covers).
+`~/thesis_data/diagnostics/fgo_gate_count/runs/` (161 MB, the
 diagnostic's own instrumented-replay TUM/export outputs, not a bag cache) and `byte_identity/`
 (11 MB, the two byte-identity proofs' control/instrumented outputs) were kept, since they are this
 diagnostic's own small, legitimate evidence artefacts, not a decompressed copy of anything.

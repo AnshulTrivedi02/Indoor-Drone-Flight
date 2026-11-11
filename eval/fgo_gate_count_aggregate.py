@@ -82,6 +82,13 @@ def load_runs():
             "range_reject25_pct": _pct(d["range"]["reject_25"], range_n),
         }
         runs.append(d)
+    # D134's acceptance condition is enforced here, not just reported: a run whose output is not
+    # byte-identical to its stored counterpart must not reach any aggregated count. In practice every
+    # run in this stage's own summaries is byte-identical (checked explicitly below, not assumed), so
+    # this assert has never fired; it exists so a future non-identical run is refused here rather than
+    # silently entering a sum.
+    not_identical = [r["_path"] for r in runs if r.get("instrumented_vs_stored_byte_identical") is not True]
+    assert not not_identical, f"run(s) not byte-identical to stored, refusing to aggregate: {not_identical}"
     return runs
 
 

@@ -4,6 +4,8 @@ DIAGNOSTIC. No verdict.
 
 Read-only extraction from `eval/results/fgo_gate_count/per_set.json` (written by `eval/fgo_gate_count_aggregate.py`, itself reading the stored per-run `~/thesis_data/diagnostics/fgo_gate_count/*_gate_summary.json` files written by `eval/fgo_gate_count.py --run ...`; see `docs/thesis/diagnostics/fgo_gate_count.md` for the method and `docs/thesis/diagnostics/fgo_gate_count_results.md` for the discussion). Nothing here is re-run or re-scored; percentages are `rd()`-rounded once from the stored counts. "Reject" means "would have been rejected by this gate, evaluated against the as-built factor and the IMU-only predictive covariance" -- see the conditioning and fusion-order caveats in the results file. A rejection would change later states; this is not a replay of a gated FGO.
 
+**dagger (floor-level, not per-row): transition and blank are, in every one of the 60 runs checked, in `numbers.md`'s own documented "Diverging (unaided) FGO results" category (km-scale ATE once flow aiding is lost) -- only textured stays bounded.** Low rejection counts on transition/blank reflect a hugely inflated `P_pred` at least as much as flow-factor quality; see the results file Section 6a before reading those rows as "the sensor is fine on this floor". `1B all achievable` sums flow/range factors across baseline/heading/heading_yawrate for the SAME trial, which share the same underlying flow/range measurements (Section 4 of the results file: the factor count is identical per arm) -- it is a sum of three passes over the same measurements under three different trajectories/covariances, not a count of 3x as many distinct factors.
+
 ## Set 1A (`dsn_*`, no forward-camera arm, 15 runs)
 
 | group | n runs | n flow factors | reject axis-0 (x) | reject axis-1 (y) | reject joint (naive 9) | reject joint (chi2(2)=11.83) | FLOW_MAX one-sided | FLOW_MAX two-sided |
@@ -29,7 +31,7 @@ Read-only extraction from `eval/results/fgo_gate_count/per_set.json` (written by
 | 1A transition (n=3) | 0 | 0 | 0 | 0 | 0 |
 | 1A all (n=15) | 0 | 0 | 0 | 0 | 0 |
 
-## Set 1B (Phase 4 forward-camera arms, 18 trials x 3 arms = 54 runs)
+## Set 1B (Phase 4 forward-camera arms, 18 trials x up to 3 arms = 54 registered, 45 achievable)
 
 | wall | floor | arm | n runs | n flow factors | reject axis-0 (x) | reject axis-1 (y) | reject joint (naive 9) | reject joint (chi2(2)=11.83) | FLOW_MAX one-sided | FLOW_MAX two-sided |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -48,7 +50,7 @@ Read-only extraction from `eval/results/fgo_gate_count/per_set.json` (written by
 | plain walls | transition | heading | 3 | 16072 | 16 (0.10%) | 19 (0.12%) | 26 (0.16%) | 24 (0.15%) | 0 (0.00%) | 0 (0.00%) |
 | plain walls | blank | baseline | 3 | 1634 | 8 (0.49%) | 7 (0.43%) | 9 (0.55%) | 9 (0.55%) | 0 (0.00%) | 0 (0.00%) |
 | plain walls | blank | heading | 3 | 1634 | 61 (3.73%) | 8 (0.49%) | 62 (3.79%) | 38 (2.33%) | 0 (0.00%) | 0 (0.00%) |
-| **all 1B (n=54)** | 45 | 238263 | 321 (0.13%) | 202 (0.08%) | 431 (0.18%) | 344 (0.14%) | 3 (0.00%) | 3 (0.00%) |
+| **all 1B achievable (n=45)** | 45 | 238263 | 321 (0.13%) | 202 (0.08%) | 431 (0.18%) | 344 (0.14%) | 3 (0.00%) | 3 (0.00%) |
 
 | wall | floor | arm | n runs | n range factors | reject (NIS>25) | n flow factors GP-replaced | byte-identical to stored |
 |---|---|---|---|---|---|---|---|
@@ -67,7 +69,7 @@ Read-only extraction from `eval/results/fgo_gate_count/per_set.json` (written by
 | plain walls | transition | heading | 3 | 30125 | 19 (0.06%) | 1362 | PASS |
 | plain walls | blank | baseline | 3 | 30209 | 22 (0.07%) | 1364 | PASS |
 | plain walls | blank | heading | 3 | 30209 | 26 (0.09%) | 1364 | PASS |
-| **all 1B (n=54)** | 45 | 453767 | 483 (0.11%) | 22307 | PASS |
+| **all 1B achievable (n=45)** | 45 | 453767 | 483 (0.11%) | 22307 | PASS |
 
 **Set 1B near-threshold counts** (within +/-0.1% of the stated gate; see the Section 6 conditioning caveat in the results file):
 
@@ -88,7 +90,7 @@ Read-only extraction from `eval/results/fgo_gate_count/per_set.json` (written by
 | plain walls | transition | heading | 0 | 0 | 0 | 0 | 0 |
 | plain walls | blank | baseline | 0 | 0 | 0 | 0 | 0 |
 | plain walls | blank | heading | 0 | 0 | 0 | 0 | 0 |
-| **all 1B (n=54)** | 0 | 0 | 1 | 0 | 0 |
+| **all 1B achievable (n=45)** | 0 | 0 | 1 | 0 | 0 |
 
 *Checks (EXACT, string equality after one `rd()` rounding, both against `rd()` of the JSON value directly and against an independently-recomputed decimal rounding, per the brief): {{N_OK}}/{{N_TOT}} against `eval/results/fgo_gate_count/per_set.json`.*
 
