@@ -8,7 +8,8 @@
 # One case per registered name, one argument per flight:
 #   cl_fgo_a_tex_r{1,2,3}_half_rp   corridor_textured_half_fwdc, FGO (Python node), no heading
 #   cl_fgo_b_tex_r{1,2,3}_half_rp   corridor_textured_half_fwdc, FGO (Python node) + heading (C++ heading node)
-#   H_s3rp_r{1,2,3}                 room_wall_tag_far, FGO (C++ node), far-spawn hold profile
+#   H_s3rp_r1 / r1b / r1c, r2, r3   room_wall_tag_far, FGO (C++ node), far-spawn hold profile (r1, r1b failed
+#                                   before take-off on the pipefail/SIGPIPE bug, D141/D143; r1c is the flown case)
 #
 # Breach handling (mirrors tools/run_cl_extras.sh's exp_contact=1 pattern, applied only to the no-heading cases):
 # the registered criterion for the no-heading corridor cases itself expects a west-wall contact inside a window
@@ -40,6 +41,13 @@ for t in "$@"; do
     # message per the git safety protocol (no amending); see D141/D142 and open_questions.md OQ-R4.
     # H_s3rp_r1's trial directory is kept, not deleted.
     H_s3rp_r1b)
+      name="$t"
+      cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$PWD/batches/expH/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
+    # H_s3rp_r1c: second retry of H_s3rp_r1/H_s3rp_r1b, after the run_trial.sh SIGPIPE harness bug was fixed
+    # (D143/AMENDMENT 2, commit 1446ba1: "ls -t ... | head -1" -> "ls -t ... | sed -n 1p" in run_trial.sh).
+    # Identical command to H_s3rp_r1/r2/r3 -- only the trial name is new. H_s3rp_r1 and H_s3rp_r1b are kept,
+    # not deleted. This flight stands in for H_s3rp_r1 in the registered set (3 hold flights total: r1c, r2, r3).
+    H_s3rp_r1c)
       name="$t"
       cmd=(env H=1 FGO=1 FGO_NODE_IMPL=cpp HPROFILE="$PWD/batches/expH/s1_far_profile.json" sim/tools/closed_loop_run.sh room_wall_tag_far);;
     *) echo "bad arg $t"; exit 2;;
