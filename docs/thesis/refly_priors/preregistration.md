@@ -184,3 +184,57 @@ committed), must reproduce the stored estimator output of every original flight:
 - No change to any registered criterion, window, band or scorer.
 - No regeneration of thesis tables, figures or captions.
 - The FGO safety tests (5S) are not re-flown: the v4 re-tests already used the corrected node.
+
+---
+
+## AMENDMENT 1 (2026-11-11, user ruling; written after the gate result and before any FGO re-fly flight)
+
+**Ruling (user, 2026-11-11, option 1 of the gate report):** the equivalence gate was **not attainable with the recorded
+data**. It is recorded as **NOT ATTAINABLE**, not passed. The re-fly goes ahead as registered in §1 to §4, after the
+closed-loop extras. Decision D138.
+
+**Why the gate is not attainable** (diagnosis: `docs/thesis/diagnostics/fgo_prior_check.md`, branch `fgo-prior-check`
+`6b7e86c` and its pre-registered 1 h gate diagnosis on branch `fgo-gate-diag` `d69066c`):
+- **Recording starts after the node.** `run_trial.sh` starts the FGO node and waits for it ("Full stack up") before
+  `ros2 bag record` begins. The live node's first 0.4 to 1.7 s of input was never recorded on `H_s3v2_r2`, `H_s3v2_r3`
+  and `cl_fgo_a_tex_half_v3`, so no replay can start where the live node started.
+- **The heading input was not recorded on the with-heading corridor flights.** `cl_fgo_b_tex_r{1,2,3}_half_v3` flew the
+  Python node, which subscribes to `/forward_camera/heading_sent`; that topic is added to the bag only for the C++ node.
+  No replay of these three flights is possible.
+- `H_s3v2_r1`: the node restarted 10.6 s into the bag (a one-time restart before its first keyframe).
+
+**Gate numbers** (old-prior replay at the registration commit against the stored flown output; standard: bit-identical,
+or the same keyframe count and ≤ 1 mm, ≤ 0.01°):
+
+| flight | node | keyframes flown / replay | max \|Δp\| | max \|Δyaw\| | note |
+|---|---|---|---|---|---|
+| `cl_fgo_a_tex_half_v3` | Python | 5656 / 5652 | 2.80 m | 31.3° | replay start 0.42 s later than the flown node |
+| `cl_fgo_b_tex_r{1,2,3}_half_v3` | Python | not replayable | | | heading input not recorded |
+| `H_s3v2_r1` | C++ | 11428 / 11156 sent | 0.014 m | 0.031° | input trimmed to the restart (untrimmed 0.153 m, 0.041°) |
+| `H_s3v2_r2` | C++ | 11319 / 11015 sent | 0.049 m | 0.100° | first 0.73 s of the node's input not recorded |
+| `H_s3v2_r3` | C++ | 11307 / 10991 sent | 0.059 m | 0.077° | first 1.73 s not recorded; the earlier 3.9 m / 89.8° was 36 unsent start-up rows |
+
+For the C++ holds, comparing only the states the node sent, within the replay's time range, the flown and replayed
+tracks agree to within a few cm and under 0.1° for the whole flight.
+
+**What the gate was meant to show is established by source and binary identity** (§2 above):
+- the C++ source of the flown node (`f642cd37`, merge `61fec8c`) equals `0b25c91`; the installed corrected node
+  `4c07374b` rebuilds from fwd-camera with `.text` and `.data` identical (`.rodata` differing only in embedded build
+  paths); between them the source differs only in the two prior constants and the compiled-out `FGO_CPP_FORCED_GATE`
+  switch;
+- the Python node files are byte-identical to `0b25c91` apart from the two prior constants in `fgo_core.py` and
+  default-off `geom=None` paths;
+- the replays that could be constructed agree with the flown output to the cm level (C++ holds).
+
+**Descriptive finding (closed-loop start-condition sensitivity; no verdict).** The no-heading corridor replay
+(`cl_fgo_a_tex_half_v3`, Python node, old priors) diverged from the flown output by 1.6 to 2.8 m and about 30° by the
+end of the flight, from a start-time difference under 2 s (0.42 s). The divergence was ≈ 0 before t = 20 s and grew
+monotonically. With no heading source, the FGO's estimate along a 200 s flight is sensitive to its start condition.
+This is consistent with, but not proof of, the documented conditioning of the gate covariance
+(`docs/handovers/2026-10-09_fgo_gate_conditioning.md`).
+
+**Prior effect** (diagnostic only; not separable from the replay mismatch above): old against new priors, max
+0.16 m / 0.35° (`cl_fgo_a_tex_half_v3`) and 0.001 to 0.022 m / 0.0015 to 0.0045° (`H_s3v2_r1` to `r3`).
+
+**For future flights:** recording should start before the node, so that every input the node receives is in the bag. The
+re-fly keeps the current harness unchanged, so that its configuration matches the original sets.
