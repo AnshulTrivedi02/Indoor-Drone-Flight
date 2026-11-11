@@ -1,0 +1,26 @@
+{
+ "trial": "cl_fgo_a_tex_r2_half_rp",
+ "set": "a",
+ "cruise_s": [
+  30.238,
+  223.019
+ ],
+ "cruise_len_s": 192.781,
+ "clock_map": {
+  "offset_ms_start": 0.7426519455064635,
+  "rate_ppm": 222.30255357855924
+ },
+ "contact": {
+  "t_rel_cruise_s": 193.88400000000001,
+  "x": -9.581710418822132,
+  "y": 95.92709905993468,
+  "wall": "west"
+ },
+ "completed": false,
+ "watcher_breach": "wall contact: |x| = 9.582 m >= 9.58\nt=224.122 x=-9.582 y=95.927 z=2.341",
+ "a_primary": {
+  "no_contact_before_100s": true,
+  "contact_if_any_west_in_155_215": true,
+  "pass": true
+ }
+}

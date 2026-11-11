@@ -37,3 +37,18 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **OQ-R1 (H5.1 scope for the FGO re-fly):** the registered H5.1 names EKF3 flying; the re-fly applies its bounds to the FGO-flying hold set, as the S3v2 rows did (numbers.md:646). Reported as such, not as the primary H5.1 verdict. Confirm or rule otherwise.
 - **OQ-R2 (EKF3 half-speed registration timing):** the EKF3 half real-time re-registration commit (`a3f54c7`) and the flight start carry the same timestamp (22:42:01, 2026-09-30). Proposed wording: "registered immediately before the flight". Confirm.
 - **OQ-R3 (D70 panel after the EKF3 heading Replay):** keep the closed-loop picture-only panel, replace it with the scored offline EKF3 heading arm, or show both? Decided after the Replay results.
+- **OQ-R4 (FGO prior re-fly hold set, STOP, blocking H5.1/H5.5/H-H2/P-H3/H-H4 for the new FGO priors):** `H_s3rp_r1`
+  and its retry `H_s3rp_r1b` both failed before any flight began, root cause identified (D141): `run_trial.sh`'s
+  `ls -t "$AP_TREE/ArduCopter/logs/"*.BIN | head -1 | xargs -r basename > fgo_node_boot.txt` line, only reached by the
+  `FGO_NODE_IMPL=cpp` branch, can SIGPIPE `ls` once the glob's output (now 6480 bytes for 108 files) needs more than
+  one stdio write and `head -1` exits after the first; `set -euo pipefail` turns that into a 141 exit via the `ERR`
+  trap. The 6 Python-node corridor re-fly flights are unaffected (no such line on that branch). Candidate fixes,
+  either outside this agent's remit per D141:
+  (a) one-line `run_trial.sh` patch, `head -1` → `sed -n 1p` (reads all input, so `ls` never gets SIGPIPE; no
+      behaviour change otherwise) — contradicts D138's "the re-fly flies ... with the current harness unchanged";
+  (b) move the already-copied `.BIN` files older than the re-fly out of `~/ardupilot_ukf/ArduCopter/logs/` into a
+      subdirectory (not delete) so the glob's output shrinks back under one write — changes SITL's own working
+      directory outside the registered configuration, though it touches nothing under `~/thesis_data`.
+  Also worth checking (not yet done): whether the same `| head` pattern recurs elsewhere in `run_trial.sh` or
+  `sim/tools/closed_loop_run.sh` under `set -e`, since the same latent bug could sit at another end-of-trial step.
+  Meanwhile: `H_s3rp_r1`/`H_s3rp_r1b` are kept; `H_s3rp_r2`/`H_s3rp_r3` and the hold-set scoring are not flown/run.

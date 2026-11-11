@@ -1,0 +1,100 @@
+{
+ "trial": "cl_fgo_b_tex_r3_half_rp",
+ "set": "b",
+ "cruise_s": [
+  30.122,
+  331.06
+ ],
+ "cruise_len_s": 300.938,
+ "clock_map": {
+  "offset_ms_start": 3.6076722825964334,
+  "rate_ppm": 191.48395985376433
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 0.29000000000008375,
+   "max_deg": 0.7399999999999031,
+   "mean_deg": 0.1736490528415205,
+   "diag_y_le_140": {
+    "p95": 0.28000000000008435,
+    "max": 0.3100000000000825
+   },
+   "diag_y_gt_140": {
+    "p95": 0.7099999999999049,
+    "max": 0.7399999999999031
+   },
+   "pass": true
+  }
+ },
+ "S2": {
+  "fgo_output_valid_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.3176603858407059,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.3176603858407059,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.29973217392992585,
+   "max_deg": 0.7263522348403343,
+   "mean_deg": 0.18206558442895077,
+   "diag_y_le_140": {
+    "p95": 0.2871203899384274,
+    "max": 0.32054025650031387
+   },
+   "diag_y_gt_140": {
+    "p95": 0.7028291378020457,
+    "max": 0.7263522348403343
+   },
+   "pass": true,
+   "estimator": "fgo"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.19585146370789397,
+   "rms_mps": 0.010189340660338471,
+   "t_rel_cruise_of_max_s": 0.5000000000000782,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.002054270612801871,
+    "pitch": 0.001637475788809217,
+    "yaw": 0.0029352169399367457
+   },
+   "window_s": [
+    35.285,
+    326.06
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.002054270612801871,
+     "pitch": 0.001637475788809217,
+     "yaw": 0.0029352169399367457
+    },
+    "window_s": [
+     35.285,
+     326.06
+    ],
+    "pass": true
+   }
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2280,
+  "sent_q_ge_50": 2193,
+  "VISP_cruise": 2280,
+  "VISP_ignored": 87
+ }
+}

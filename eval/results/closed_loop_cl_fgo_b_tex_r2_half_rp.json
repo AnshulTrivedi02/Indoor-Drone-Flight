@@ -1,0 +1,100 @@
+{
+ "trial": "cl_fgo_b_tex_r2_half_rp",
+ "set": "b",
+ "cruise_s": [
+  30.287,
+  331.167
+ ],
+ "cruise_len_s": 300.88,
+ "clock_map": {
+  "offset_ms_start": 3.5437803885128405,
+  "rate_ppm": 192.0222375531559
+ },
+ "contact": null,
+ "completed": true,
+ "watcher_breach": null,
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 0.2600000000001365,
+   "max_deg": 0.3200000000007943,
+   "mean_deg": 0.19471742021306193,
+   "diag_y_le_140": {
+    "p95": 0.2600000000006454,
+    "max": 0.3200000000007943
+   },
+   "diag_y_gt_140": {
+    "p95": 0.25000000000090045,
+    "max": 0.26000000000089984
+   },
+   "pass": true
+  }
+ },
+ "S2": {
+  "fgo_output_valid_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": true,
+   "no_breach": true,
+   "max_abs_x_flight": 0.04058805940451805,
+   "pass": true
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 0.03782221314651817,
+   "pass": true
+  },
+  "B3": {
+   "p95_deg": 0.26392954766767274,
+   "max_deg": 0.3317911853798385,
+   "mean_deg": 0.20320813560355477,
+   "diag_y_le_140": {
+    "p95": 0.264711852670491,
+    "max": 0.3317911853798385
+   },
+   "diag_y_gt_140": {
+    "p95": 0.2543714857110708,
+    "max": 0.2644296002397404
+   },
+   "pass": true,
+   "estimator": "fgo"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.0076019517100402514,
+   "rms_mps": 0.001336009884605414,
+   "t_rel_cruise_of_max_s": 1.4600000000002282,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.0019927481423051667,
+    "pitch": 0.001713809004815244,
+    "yaw": 0.0028651126044497545
+   },
+   "window_s": [
+    35.287,
+    326.167
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.0019927481423051667,
+     "pitch": 0.001713809004815244,
+     "yaw": 0.0028651126044497545
+    },
+    "window_s": [
+     35.287,
+     326.167
+    ],
+    "pass": true
+   }
+  },
+  "pass": true
+ },
+ "diag_heading": {
+  "sent_cruise": 2279,
+  "sent_q_ge_50": 2196,
+  "VISP_cruise": 2279,
+  "VISP_ignored": 83
+ }
+}
