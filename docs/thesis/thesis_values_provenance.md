@@ -112,3 +112,14 @@ were read from a stored file at an earlier commit (`git show <commit>:<path>`).*
 - **Earlier-commit sources: three.** Rows 26, 35 and 37 are historical values read from a results file at the
   first-final-re-run commit `425e824`. The current file holds the restated value. That is the expected state for a
   "was/before" value, and it is stated rather than assumed.
+
+## Update 2026-11-11: rows 2 and 42 resolved in the thesis-facing text (commit `6bb231b`, 2026-10-16)
+
+- **Row 2 (class C):** `docs/thesis/world_images/index.md:24` no longer quotes the measured crossing y = 80.01 m. It
+  cites the design value, the texture boundary y = 80 m, with its source `sim/worlds/corridor_transition.sdf`. The
+  measured value stays only in the content-frozen `numbers.md` row (L50), which no thesis-facing text cites.
+- **Row 42 (class N):** `docs/thesis/pending_items.md:17` now reads "all 203 inputs (verified in
+  `docs/handovers/2026-10-16_phase5_provenance_rounding.md`; the earlier '126' was inaccurate)". `numbers.md:1336-1337`
+  supersedes the "126 inputs" text with the 203-file table.
+- The class counts in the table above are left as recorded on 2026-10-16. As of this update, no thesis-facing value has
+  a CLAUDE.md-only source or no source.

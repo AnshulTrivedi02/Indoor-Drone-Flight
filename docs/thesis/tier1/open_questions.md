@@ -32,3 +32,8 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **ON-5 (numbering):** Table 4.4 and Figure 4.1c are provisional labels, joining Figure 4.1b and Figure 4.2; final numbers are assigned once the chapter plan is locked (standing ruling).
 - **ON-1 to ON-5 (user, 2026-11-03):** "agree with your recommendations. ON-2 in the final layout pass." ON-1: claims_applied.md / claims_update.md stay as dated snapshots. ON-2: R3 legend spacing is tightened in the final layout pass. ON-3: caption check accepted as is. ON-4: information only. ON-5: provisional numbering as standing.
 - **Fitted-vs-raw tables (user, 2026-11-03, item 1):** both survive; they cover different flight sets (decision D121). Table 4.4 (T9): Experiment 1A flights 1-9; walkthrough page 05 table: Experiment 1B flights 1-3. Each header and caption now names its flight set.
+
+## 2026-11-11 (FGO prior re-fly, closed-loop extras, EKF3 heading Replay, gating count)
+- **OQ-R1 (H5.1 scope for the FGO re-fly):** the registered H5.1 names EKF3 flying; the re-fly applies its bounds to the FGO-flying hold set, as the S3v2 rows did (numbers.md:646). Reported as such, not as the primary H5.1 verdict. Confirm or rule otherwise.
+- **OQ-R2 (EKF3 half-speed registration timing):** the EKF3 half real-time re-registration commit (`a3f54c7`) and the flight start carry the same timestamp (22:42:01, 2026-09-30). Proposed wording: "registered immediately before the flight". Confirm.
+- **OQ-R3 (D70 panel after the EKF3 heading Replay):** keep the closed-loop picture-only panel, replace it with the scored offline EKF3 heading arm, or show both? Decided after the Replay results.
