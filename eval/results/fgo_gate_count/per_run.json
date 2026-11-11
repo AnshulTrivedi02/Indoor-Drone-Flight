@@ -1,0 +1,2732 @@
+[
+  {
+    "flow": {
+      "n": 501,
+      "reject_axis_9": [
+        3,
+        4
+      ],
+      "reject_joint_9": 5,
+      "reject_joint_11_83": 5,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10047,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_blank_r1",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 501,
+    "n_range_factors": 10047,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 436,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_blank_r1/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_blank_r1/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_blank_r1_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.5988023952095808,
+      "flow_reject_axis1_pct": 0.7984031936127745,
+      "flow_reject_joint9_pct": 0.998003992015968,
+      "flow_reject_joint11_83_pct": 0.998003992015968,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 427,
+      "reject_axis_9": [
+        2,
+        3
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 9966,
+      "reject_25": 10,
+      "near_gate25": 0
+    },
+    "trial": "dsn_blank_r2",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 427,
+    "n_range_factors": 9966,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 355,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_blank_r2/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_blank_r2/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_blank_r2_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.468384074941452,
+      "flow_reject_axis1_pct": 0.702576112412178,
+      "flow_reject_joint9_pct": 0.702576112412178,
+      "flow_reject_joint11_83_pct": 0.702576112412178,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.10034115994380895
+    }
+  },
+  {
+    "flow": {
+      "n": 438,
+      "reject_axis_9": [
+        2,
+        1
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 9982,
+      "reject_25": 12,
+      "near_gate25": 0
+    },
+    "trial": "dsn_blank_r3",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 438,
+    "n_range_factors": 9982,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 344,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_blank_r3/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_blank_r3/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_blank_r3_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.45662100456621,
+      "flow_reject_axis1_pct": 0.228310502283105,
+      "flow_reject_joint9_pct": 0.45662100456621,
+      "flow_reject_joint11_83_pct": 0.45662100456621,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.12021638950110199
+    }
+  },
+  {
+    "flow": {
+      "n": 10018,
+      "reject_axis_9": [
+        2,
+        2
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10196,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r1",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 10018,
+    "n_range_factors": 10196,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 584,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r1/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r1/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r1_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.019964064683569576,
+      "flow_reject_axis1_pct": 0.019964064683569576,
+      "flow_reject_joint9_pct": 0.019964064683569576,
+      "flow_reject_joint11_83_pct": 0.019964064683569576,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9952,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10143,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r2",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9952,
+    "n_range_factors": 10143,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 533,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r2/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r2/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r2_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9903,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10062,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r3",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9903,
+    "n_range_factors": 10062,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 457,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r3/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r3/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r3_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9853,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10019,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r4",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9853,
+    "n_range_factors": 10019,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 424,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r4/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r4/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r4_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 10084,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10242,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r5",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 10084,
+    "n_range_factors": 10242,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 607,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r5/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r5/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r5_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9900,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10077,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r6",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9900,
+    "n_range_factors": 10077,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 489,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r6/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r6/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r6_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 10051,
+      "reject_axis_9": [
+        0,
+        2
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10210,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r7",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 10051,
+    "n_range_factors": 10210,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 578,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r7/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r7/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r7_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.019898517560441746,
+      "flow_reject_joint9_pct": 0.019898517560441746,
+      "flow_reject_joint11_83_pct": 0.019898517560441746,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9943,
+      "reject_axis_9": [
+        0,
+        1
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10125,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r8",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9943,
+    "n_range_factors": 10125,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 472,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r8/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r8/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r8_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.010057326762546516,
+      "flow_reject_joint9_pct": 0.010057326762546516,
+      "flow_reject_joint11_83_pct": 0.010057326762546516,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9786,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 9951,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "dsn_tex_r9",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9786,
+    "n_range_factors": 9951,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 344,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_tex_r9/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_tex_r9/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_tex_r9_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5340,
+      "reject_axis_9": [
+        10,
+        3
+      ],
+      "reject_joint_9": 22,
+      "reject_joint_11_83": 9,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10030,
+      "reject_25": 37,
+      "near_gate25": 0
+    },
+    "trial": "dsn_trans_r1",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5340,
+    "n_range_factors": 10030,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 419,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_trans_r1/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_trans_r1/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_trans_r1_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.18726591760299627,
+      "flow_reject_axis1_pct": 0.056179775280898875,
+      "flow_reject_joint9_pct": 0.41198501872659177,
+      "flow_reject_joint11_83_pct": 0.16853932584269662,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.36889332003988035
+    }
+  },
+  {
+    "flow": {
+      "n": 5338,
+      "reject_axis_9": [
+        16,
+        6
+      ],
+      "reject_joint_9": 18,
+      "reject_joint_11_83": 15,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10040,
+      "reject_25": 32,
+      "near_gate25": 0
+    },
+    "trial": "dsn_trans_r2",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5338,
+    "n_range_factors": 10040,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 435,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_trans_r2/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_trans_r2/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_trans_r2_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.29973772948669913,
+      "flow_reject_axis1_pct": 0.11240164855751218,
+      "flow_reject_joint9_pct": 0.3372049456725365,
+      "flow_reject_joint11_83_pct": 0.28100412139378045,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.3187250996015936
+    }
+  },
+  {
+    "flow": {
+      "n": 5380,
+      "reject_axis_9": [
+        11,
+        10
+      ],
+      "reject_joint_9": 13,
+      "reject_joint_11_83": 13,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10084,
+      "reject_25": 18,
+      "near_gate25": 0
+    },
+    "trial": "dsn_trans_r3",
+    "arm": null,
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5380,
+    "n_range_factors": 10084,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 472,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/dsn_trans_r3/fgo/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/dsn_trans_r3/fgo/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1A",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/dsn_trans_r3_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.20446096654275092,
+      "flow_reject_axis1_pct": 0.18587360594795538,
+      "flow_reject_joint9_pct": 0.241635687732342,
+      "flow_reject_joint11_83_pct": 0.241635687732342,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.17850059500198334
+    }
+  },
+  {
+    "flow": {
+      "n": 708,
+      "reject_axis_9": [
+        6,
+        7
+      ],
+      "reject_joint_9": 7,
+      "reject_joint_11_83": 7,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10220,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 708,
+    "n_range_factors": 10220,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 626,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.847457627118644,
+      "flow_reject_axis1_pct": 0.9887005649717514,
+      "flow_reject_joint9_pct": 0.9887005649717514,
+      "flow_reject_joint11_83_pct": 0.9887005649717514,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 708,
+      "reject_axis_9": [
+        2,
+        3
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10220,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 708,
+    "n_range_factors": 10220,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 626,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.2824858757062147,
+      "flow_reject_axis1_pct": 0.423728813559322,
+      "flow_reject_joint9_pct": 0.423728813559322,
+      "flow_reject_joint11_83_pct": 0.423728813559322,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 708,
+      "reject_axis_9": [
+        41,
+        4
+      ],
+      "reject_joint_9": 43,
+      "reject_joint_11_83": 31,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 1,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10220,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r1",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 708,
+    "n_range_factors": 10220,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 626,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r1_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 5.790960451977401,
+      "flow_reject_axis1_pct": 0.5649717514124294,
+      "flow_reject_joint9_pct": 6.073446327683616,
+      "flow_reject_joint11_83_pct": 4.378531073446328,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 558,
+      "reject_axis_9": [
+        2,
+        1
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10051,
+      "reject_25": 8,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 558,
+    "n_range_factors": 10051,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 487,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.35842293906810035,
+      "flow_reject_axis1_pct": 0.17921146953405018,
+      "flow_reject_joint9_pct": 0.35842293906810035,
+      "flow_reject_joint11_83_pct": 0.35842293906810035,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.07959407024176698
+    }
+  },
+  {
+    "flow": {
+      "n": 558,
+      "reject_axis_9": [
+        2,
+        2
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10051,
+      "reject_25": 10,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 558,
+    "n_range_factors": 10051,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 487,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.35842293906810035,
+      "flow_reject_axis1_pct": 0.35842293906810035,
+      "flow_reject_joint9_pct": 0.5376344086021505,
+      "flow_reject_joint11_83_pct": 0.5376344086021505,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.09949258780220874
+    }
+  },
+  {
+    "flow": {
+      "n": 558,
+      "reject_axis_9": [
+        2,
+        2
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10051,
+      "reject_25": 13,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r2",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 558,
+    "n_range_factors": 10051,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 487,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r2_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.35842293906810035,
+      "flow_reject_axis1_pct": 0.35842293906810035,
+      "flow_reject_joint9_pct": 0.5376344086021505,
+      "flow_reject_joint11_83_pct": 0.35842293906810035,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.12934036414287137
+    }
+  },
+  {
+    "flow": {
+      "n": 504,
+      "reject_axis_9": [
+        1,
+        1
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10025,
+      "reject_25": 27,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 504,
+    "n_range_factors": 10025,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 433,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.1984126984126984,
+      "flow_reject_axis1_pct": 0.1984126984126984,
+      "flow_reject_joint9_pct": 0.1984126984126984,
+      "flow_reject_joint11_83_pct": 0.1984126984126984,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.26932668329177056
+    }
+  },
+  {
+    "flow": {
+      "n": 504,
+      "reject_axis_9": [
+        20,
+        3
+      ],
+      "reject_joint_9": 21,
+      "reject_joint_11_83": 5,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10025,
+      "reject_25": 15,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 504,
+    "n_range_factors": 10025,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 433,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 3.9682539682539684,
+      "flow_reject_axis1_pct": 0.5952380952380952,
+      "flow_reject_joint9_pct": 4.166666666666667,
+      "flow_reject_joint11_83_pct": 0.9920634920634921,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.14962593516209477
+    }
+  },
+  {
+    "flow": {
+      "n": 504,
+      "reject_axis_9": [
+        4,
+        2
+      ],
+      "reject_joint_9": 4,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10025,
+      "reject_25": 20,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_blank_r3",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 504,
+    "n_range_factors": 10025,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 433,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_blank_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_blank_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_blank_r3_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.7936507936507936,
+      "flow_reject_axis1_pct": 0.3968253968253968,
+      "flow_reject_joint9_pct": 0.7936507936507936,
+      "flow_reject_joint11_83_pct": 0.5952380952380952,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.19950124688279303
+    }
+  },
+  {
+    "flow": {
+      "n": 9960,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10117,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9960,
+    "n_range_factors": 10117,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 505,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9960,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10117,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9960,
+    "n_range_factors": 10117,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 505,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9960,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10117,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r1",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9960,
+    "n_range_factors": 10117,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 505,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r1_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9978,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10160,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9978,
+    "n_range_factors": 10160,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 577,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9978,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10160,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9978,
+    "n_range_factors": 10160,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 577,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9978,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10160,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r2",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9978,
+    "n_range_factors": 10160,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 577,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r2_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9927,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10083,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9927,
+    "n_range_factors": 10083,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 504,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9927,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10083,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9927,
+    "n_range_factors": 10083,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 504,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9927,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10083,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_tex_r3",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9927,
+    "n_range_factors": 10083,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 504,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_tex_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_tex_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_tex_r3_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5492,
+      "reject_axis_9": [
+        9,
+        0
+      ],
+      "reject_joint_9": 13,
+      "reject_joint_11_83": 9,
+      "flow_max_onesided_reject": 1,
+      "flow_max_twosided_reject": 1,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10198,
+      "reject_25": 17,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5492,
+    "n_range_factors": 10198,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 593,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.1638747268754552,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.23670793882010197,
+      "flow_reject_joint11_83_pct": 0.1638747268754552,
+      "flow_max_onesided_pct": 0.01820830298616169,
+      "flow_max_twosided_pct": 0.01820830298616169,
+      "range_reject25_pct": 0.1666993528142773
+    }
+  },
+  {
+    "flow": {
+      "n": 5492,
+      "reject_axis_9": [
+        6,
+        24
+      ],
+      "reject_joint_9": 34,
+      "reject_joint_11_83": 29,
+      "flow_max_onesided_reject": 1,
+      "flow_max_twosided_reject": 1,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10198,
+      "reject_25": 20,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5492,
+    "n_range_factors": 10198,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 593,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.10924981791697014,
+      "flow_reject_axis1_pct": 0.43699927166788055,
+      "flow_reject_joint9_pct": 0.6190823015294975,
+      "flow_reject_joint11_83_pct": 0.528040786598689,
+      "flow_max_onesided_pct": 0.01820830298616169,
+      "flow_max_twosided_pct": 0.01820830298616169,
+      "range_reject25_pct": 0.19611688566385566
+    }
+  },
+  {
+    "flow": {
+      "n": 5492,
+      "reject_axis_9": [
+        6,
+        9
+      ],
+      "reject_joint_9": 14,
+      "reject_joint_11_83": 11,
+      "flow_max_onesided_reject": 1,
+      "flow_max_twosided_reject": 1,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10198,
+      "reject_25": 16,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r1",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5492,
+    "n_range_factors": 10198,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 593,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r1/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r1_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.10924981791697014,
+      "flow_reject_axis1_pct": 0.1638747268754552,
+      "flow_reject_joint9_pct": 0.25491624180626365,
+      "flow_reject_joint11_83_pct": 0.20029133284777859,
+      "flow_max_onesided_pct": 0.01820830298616169,
+      "flow_max_twosided_pct": 0.01820830298616169,
+      "range_reject25_pct": 0.15689350853108452
+    }
+  },
+  {
+    "flow": {
+      "n": 5350,
+      "reject_axis_9": [
+        41,
+        20
+      ],
+      "reject_joint_9": 41,
+      "reject_joint_11_83": 39,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10032,
+      "reject_25": 61,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5350,
+    "n_range_factors": 10032,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 456,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.7663551401869159,
+      "flow_reject_axis1_pct": 0.37383177570093457,
+      "flow_reject_joint9_pct": 0.7663551401869159,
+      "flow_reject_joint11_83_pct": 0.7289719626168224,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.6080542264752791
+    }
+  },
+  {
+    "flow": {
+      "n": 5350,
+      "reject_axis_9": [
+        2,
+        2
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10032,
+      "reject_25": 14,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5350,
+    "n_range_factors": 10032,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 456,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.037383177570093455,
+      "flow_reject_axis1_pct": 0.037383177570093455,
+      "flow_reject_joint9_pct": 0.056074766355140186,
+      "flow_reject_joint11_83_pct": 0.037383177570093455,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.13955342902711323
+    }
+  },
+  {
+    "flow": {
+      "n": 5350,
+      "reject_axis_9": [
+        53,
+        29
+      ],
+      "reject_joint_9": 54,
+      "reject_joint_11_83": 54,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10032,
+      "reject_25": 53,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r2",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5350,
+    "n_range_factors": 10032,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 456,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r2/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r2_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.9906542056074766,
+      "flow_reject_axis1_pct": 0.5420560747663551,
+      "flow_reject_joint9_pct": 1.0093457943925233,
+      "flow_reject_joint11_83_pct": 1.0093457943925233,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.5283094098883573
+    }
+  },
+  {
+    "flow": {
+      "n": 5326,
+      "reject_axis_9": [
+        15,
+        3
+      ],
+      "reject_joint_9": 15,
+      "reject_joint_11_83": 15,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10003,
+      "reject_25": 30,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5326,
+    "n_range_factors": 10003,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 446,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.2816372512204281,
+      "flow_reject_axis1_pct": 0.05632745024408562,
+      "flow_reject_joint9_pct": 0.2816372512204281,
+      "flow_reject_joint11_83_pct": 0.2816372512204281,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.29991002699190245
+    }
+  },
+  {
+    "flow": {
+      "n": 5326,
+      "reject_axis_9": [
+        3,
+        6
+      ],
+      "reject_joint_9": 14,
+      "reject_joint_11_83": 5,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10003,
+      "reject_25": 14,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5326,
+    "n_range_factors": 10003,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 446,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.05632745024408562,
+      "flow_reject_axis1_pct": 0.11265490048817124,
+      "flow_reject_joint9_pct": 0.26286143447239957,
+      "flow_reject_joint11_83_pct": 0.0938790837401427,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.13995801259622112
+    }
+  },
+  {
+    "flow": {
+      "n": 5326,
+      "reject_axis_9": [
+        4,
+        33
+      ],
+      "reject_joint_9": 35,
+      "reject_joint_11_83": 28,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10003,
+      "reject_25": 14,
+      "near_gate25": 0
+    },
+    "trial": "fwdc_trans_r3",
+    "arm": "heading_yawrate",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5326,
+    "n_range_factors": 10003,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 446,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdc_trans_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdc_trans_r3/fgo_heading_yawrate/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdc_trans_r3_heading_yawrate_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.07510326699211416,
+      "flow_reject_axis1_pct": 0.6196019526849418,
+      "flow_reject_joint9_pct": 0.6571535861809988,
+      "flow_reject_joint11_83_pct": 0.5257228689447991,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.13995801259622112
+    }
+  },
+  {
+    "flow": {
+      "n": 584,
+      "reject_axis_9": [
+        3,
+        2
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10128,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 584,
+    "n_range_factors": 10128,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 505,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.5136986301369864,
+      "flow_reject_axis1_pct": 0.3424657534246575,
+      "flow_reject_joint9_pct": 0.5136986301369864,
+      "flow_reject_joint11_83_pct": 0.5136986301369864,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 584,
+      "reject_axis_9": [
+        43,
+        4
+      ],
+      "reject_joint_9": 44,
+      "reject_joint_11_83": 28,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10128,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 584,
+    "n_range_factors": 10128,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 505,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 7.363013698630137,
+      "flow_reject_axis1_pct": 0.684931506849315,
+      "flow_reject_joint9_pct": 7.534246575342466,
+      "flow_reject_joint11_83_pct": 4.794520547945205,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 487,
+      "reject_axis_9": [
+        5,
+        4
+      ],
+      "reject_joint_9": 5,
+      "reject_joint_11_83": 5,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10003,
+      "reject_25": 7,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 487,
+    "n_range_factors": 10003,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 391,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 1.0266940451745379,
+      "flow_reject_axis1_pct": 0.8213552361396304,
+      "flow_reject_joint9_pct": 1.0266940451745379,
+      "flow_reject_joint11_83_pct": 1.0266940451745379,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.06997900629811056
+    }
+  },
+  {
+    "flow": {
+      "n": 487,
+      "reject_axis_9": [
+        16,
+        4
+      ],
+      "reject_joint_9": 16,
+      "reject_joint_11_83": 8,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10003,
+      "reject_25": 10,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 487,
+    "n_range_factors": 10003,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 391,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 3.2854209445585214,
+      "flow_reject_axis1_pct": 0.8213552361396304,
+      "flow_reject_joint9_pct": 3.2854209445585214,
+      "flow_reject_joint11_83_pct": 1.6427104722792607,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.09997000899730081
+    }
+  },
+  {
+    "flow": {
+      "n": 563,
+      "reject_axis_9": [
+        0,
+        1
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10078,
+      "reject_25": 15,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 563,
+    "n_range_factors": 10078,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 468,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.17761989342806395,
+      "flow_reject_joint9_pct": 0.17761989342806395,
+      "flow_reject_joint11_83_pct": 0.17761989342806395,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.1488390553681286
+    }
+  },
+  {
+    "flow": {
+      "n": 563,
+      "reject_axis_9": [
+        2,
+        0
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10078,
+      "reject_25": 16,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_blank_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 563,
+    "n_range_factors": 10078,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 468,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_blank_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_blank_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "blank",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_blank_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.3552397868561279,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.3552397868561279,
+      "flow_reject_joint11_83_pct": 0.3552397868561279,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.15876165905933717
+    }
+  },
+  {
+    "flow": {
+      "n": 9939,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10095,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9939,
+    "n_range_factors": 10095,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 543,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9939,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 0,
+      "reject_joint_11_83": 0,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10095,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9939,
+    "n_range_factors": 10095,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 543,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.0,
+      "flow_reject_joint11_83_pct": 0.0,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9869,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10043,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9869,
+    "n_range_factors": 10043,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 448,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.01013273887931908,
+      "flow_reject_joint11_83_pct": 0.01013273887931908,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9869,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10043,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9869,
+    "n_range_factors": 10043,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 448,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.01013273887931908,
+      "flow_reject_joint11_83_pct": 0.01013273887931908,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9913,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10078,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9913,
+    "n_range_factors": 10078,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 496,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.010087763542822556,
+      "flow_reject_joint11_83_pct": 0.010087763542822556,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 9913,
+      "reject_axis_9": [
+        0,
+        0
+      ],
+      "reject_joint_9": 1,
+      "reject_joint_11_83": 1,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10078,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_tex_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 9913,
+    "n_range_factors": 10078,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 496,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_tex_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_tex_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "textured",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_tex_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.0,
+      "flow_reject_axis1_pct": 0.0,
+      "flow_reject_joint9_pct": 0.010087763542822556,
+      "flow_reject_joint11_83_pct": 0.010087763542822556,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5379,
+      "reject_axis_9": [
+        3,
+        4
+      ],
+      "reject_joint_9": 5,
+      "reject_joint_11_83": 5,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10027,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r1",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5379,
+    "n_range_factors": 10027,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 468,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r1/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r1_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.05577244841048522,
+      "flow_reject_axis1_pct": 0.07436326454731362,
+      "flow_reject_joint9_pct": 0.09295408068414203,
+      "flow_reject_joint11_83_pct": 0.09295408068414203,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5379,
+      "reject_axis_9": [
+        2,
+        4
+      ],
+      "reject_joint_9": 4,
+      "reject_joint_11_83": 4,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10027,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r1",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5379,
+    "n_range_factors": 10027,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 468,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r1/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r1/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r1_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.03718163227365681,
+      "flow_reject_axis1_pct": 0.07436326454731362,
+      "flow_reject_joint9_pct": 0.07436326454731362,
+      "flow_reject_joint11_83_pct": 0.07436326454731362,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5340,
+      "reject_axis_9": [
+        1,
+        2
+      ],
+      "reject_joint_9": 2,
+      "reject_joint_11_83": 2,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10055,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r2",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5340,
+    "n_range_factors": 10055,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 437,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r2/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r2_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.018726591760299626,
+      "flow_reject_axis1_pct": 0.03745318352059925,
+      "flow_reject_joint9_pct": 0.03745318352059925,
+      "flow_reject_joint11_83_pct": 0.03745318352059925,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5340,
+      "reject_axis_9": [
+        2,
+        3
+      ],
+      "reject_joint_9": 3,
+      "reject_joint_11_83": 3,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10055,
+      "reject_25": 0,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r2",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5340,
+    "n_range_factors": 10055,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 437,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r2/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r2/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r2_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.03745318352059925,
+      "flow_reject_axis1_pct": 0.056179775280898875,
+      "flow_reject_joint9_pct": 0.056179775280898875,
+      "flow_reject_joint11_83_pct": 0.056179775280898875,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.0
+    }
+  },
+  {
+    "flow": {
+      "n": 5353,
+      "reject_axis_9": [
+        13,
+        11
+      ],
+      "reject_joint_9": 13,
+      "reject_joint_11_83": 13,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10043,
+      "reject_25": 84,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r3",
+    "arm": "baseline",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5353,
+    "n_range_factors": 10043,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 457,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r3/fgo_baseline/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_baseline/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r3_baseline_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.24285447412665795,
+      "flow_reject_axis1_pct": 0.20549224733794133,
+      "flow_reject_joint9_pct": 0.24285447412665795,
+      "flow_reject_joint11_83_pct": 0.24285447412665795,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.8364034651000697
+    }
+  },
+  {
+    "flow": {
+      "n": 5353,
+      "reject_axis_9": [
+        12,
+        12
+      ],
+      "reject_joint_9": 19,
+      "reject_joint_11_83": 17,
+      "flow_max_onesided_reject": 0,
+      "flow_max_twosided_reject": 0,
+      "near_gate9_axis0": 0,
+      "near_gate9_axis1": 0,
+      "near_gate_joint9": 0,
+      "near_gate_joint11_83": 0
+    },
+    "range": {
+      "n": 10043,
+      "reject_25": 19,
+      "near_gate25": 0
+    },
+    "trial": "fwdplainc_trans_r3",
+    "arm": "heading",
+    "window": 0.25,
+    "lm_iters": 2,
+    "n_flow_factors": 5353,
+    "n_range_factors": 10043,
+    "n_gate_errors": 0,
+    "n_flow_gp_replaced": 457,
+    "instrumented_tum": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/runs/fwdplainc_trans_r3/fgo_heading/fgo_traj.tum",
+    "stored_tum": "/home/makerspace/thesis_data/trials/fwdplainc_trans_r3/fgo_heading/fgo_traj.tum",
+    "instrumented_vs_stored_byte_identical": true,
+    "_set": "1B",
+    "_wall": "fwdplainc",
+    "_floor": "transition",
+    "_path": "/home/makerspace/thesis_data/diagnostics/fgo_gate_count/fwdplainc_trans_r3_heading_gate_summary.json",
+    "_pct": {
+      "flow_reject_axis0_pct": 0.22417336073229965,
+      "flow_reject_axis1_pct": 0.22417336073229965,
+      "flow_reject_joint9_pct": 0.3549411544928078,
+      "flow_reject_joint11_83_pct": 0.3175789277040912,
+      "flow_max_onesided_pct": 0.0,
+      "flow_max_twosided_pct": 0.0,
+      "range_reject25_pct": 0.1891864980583491
+    }
+  }
+]
