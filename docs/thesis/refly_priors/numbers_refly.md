@@ -7,9 +7,11 @@ set stopped after two failed runs), D142 (S2 window correction, see section 1). 
 `tools/check_numbers_frozen.py` PASSES, section 6).
 
 **Lead item for the coordinator: a claim comparison, not just a new result.** `numbers.md` reports H1.8 FGO as
-PASS (n=1, `cl_fgo_a_tex_half_v3`). This re-fly reports H1.8 FGO at k/3 = 2/3 for the corrected priors (section 1),
-using the same S2 window METHODOLOGY already used for that exact cell. That is a verdict comparison the coordinator
-should see, not a silent match.
+PASS (n=1, `cl_fgo_a_tex_half_v3`). This re-fly reports H1.8 FGO PRIMARY at k/3 = 2/3 for the corrected priors
+(section 1), using the arm-to-contact S2 window METHODOLOGY already used for that exact cell (D142). An alternative
+S2 window (the scorer's own `--set b --est fgo` path, with no `--set a` equivalent) gives k/3 = 0/3 instead; both
+are reported, and OQ-R5 asks the coordinator to confirm which is primary. Either way this is a verdict comparison
+the coordinator should see, not a silent match.
 
 ## 0. Pre-flight verification (all confirmed before any flight; nothing was running at each check)
 
@@ -33,7 +35,7 @@ Flown serially, `cl_fgo_a_tex_r{1,2,3}_half_rp`. All three completed to a west-w
 `tools/run_cl_extras.sh`'s `exp_contact=1` pattern, as instructed). IMU-gap check (`eval/imu_gap_check.py <trial>
 --write`): **3/3 "ok"** (usable; no re-fly needed).
 
-| flight | contact t_rel_cruise_s (unrounded) | wall | U1 | U2 | U3 (window [+145,+196] incl.) | S2 (arm to contact, PRIMARY) |
+| flight | contact t_rel_cruise_s (3 dp; verdict on the unrounded scorer value) | wall | U1 | U2 | U3 (window [+145,+196] incl.) | S2 (arm to contact, PRIMARY) |
 |---|---|---|---|---|---|---|
 | `cl_fgo_a_tex_r1_half_rp` | 166.728 | west | PASS | PASS | PASS | 100 % (0/4312 invalid) |
 | `cl_fgo_a_tex_r2_half_rp` | 193.884 | west | PASS | PASS | PASS (margin 2.12 s to the edge) | 100 % (0/4991 invalid) |
@@ -42,42 +44,54 @@ Flown serially, `cl_fgo_a_tex_r{1,2,3}_half_rp`. All three completed to a west-w
 - **U2** (`no_contact_before_100s`): true on all three (scorer's `a_primary`).
 - **U1** ("no crash, failsafe or loss of control before contact"): `fly_trial.log` shows `Armed.` then `Reached`
   >=1.8 m then `Cruising forward...` on all three (no failsafe/crash line before cruise). The dataflash `ERR`/`MSG`
-  stream (`eval/results/closed_loop_extras_s2/failsafe_check.py`, re-used unmodified, D140's method) shows, on every
-  flight, one early `COMPASS` ECode 0 (resolved, about 3.3 s after boot, well before arming, benign, the same
-  pattern D140 noted for the UKF set) and one `EKFCHECK`/`FAILSAFE_EKFINAV` to "EKF Failsafe: changed to Land Mode"
-  event. Checked against the contact time via the scorer's own clock map, recomputed directly from each bag's
-  `/imu/time_ref` (not inferred from the stored json's `offset_ms_start` alone, which is not the map's intercept):
-  the failsafe occurs **after** contact on all three (r1 +0.157 s, r2 +0.151 s, r3 +0.130 s). It is a consequence of
-  reaching the wall (the flow sensor's ground-plane assumption breaks down against the nearby wall surface), not a
-  precursor. **U1 PASS on all three.**
-- **S2 ("the estimator valid throughout"), PRIMARY window: arming to CONTACT.** This is the registered metric
-  already used for this exact cell, not a new one chosen after seeing a result (rule 2; D142): METHODOLOGY reports
-  `cl_fgo_a_tex_half_v2` and `_v3` (the original old-priors no-heading flights) as "`XFGO.OV` 100 % from arming to
-  contact". Re-derived here (not merely cited) with the dataflash `XFGO`/`ARM` stream and the scorer's own clock-map
-  method applied to each bag's `/imu/time_ref`: it reproduces exactly "100 %, 0 invalid" for both `_v2` and `_v3`,
-  then applied the same way to the three new flights, also giving **100 %, 0 invalid samples, on all three**.
+  stream (`eval/results/closed_loop_extras_s2/failsafe_check.py`, re-used unmodified, D140's method; output saved to
+  `eval/results/refly_priors_s2/failsafe_check_output.txt`) shows, on every flight, one early `COMPASS` ECode 0
+  (resolved, about 3.3 s after boot, well before arming, benign, the same pattern D140 noted for the UKF set) and
+  one `EKFCHECK`/`FAILSAFE_EKFINAV` to "EKF Failsafe: changed to Land Mode" event. Checked against the contact time
+  via a clock map recomputed directly from each bag's `/imu/time_ref` with the scorer's own method (not inferred
+  from the stored json's `offset_ms_start` alone, which is not the map's intercept; script and output saved,
+  `eval/results/refly_priors_s2/s2_to_contact.py`/`.json`): the failsafe occurs **after** contact on all three
+  (r1 +0.157 s, r2 +0.151 s, r3 +0.130 s). METHODOLOGY attributes the matching post-contact LAND event on the
+  original `cl_fgo_a_tex_half_v2` to the watcher's stop and the node/sim teardown, not to a flight event before
+  contact; not independently re-traced here, since no verdict depends on the mechanism (rule 4). **U1 PASS on all
+  three** (the failsafe is after contact in every case, not a precursor by timing alone).
+- **S2 ("the estimator valid throughout"), PRIMARY window: arming to CONTACT.** The registered wording
+  (`3.5_experiments.md:64`, `M:7362-7364`) only says "the estimator is valid throughout" and does not state an
+  endpoint for a flight with no clean disarm; `closed_loop_score.py` has no `--set a` S2 code path at all (checked
+  in its source). METHODOLOGY reports `cl_fgo_a_tex_half_v2` and `_v3` (the original old-priors no-heading flights)
+  as "`XFGO.OV` 100 % from arming to contact", which is the window this cell's original PASS used. Re-derived here
+  (not merely cited), with the dataflash `XFGO`/`ARM` stream and the clock map above
+  (`eval/results/refly_priors_s2/s2_to_contact.py`/`.json`): it reproduces exactly "100 %, 0 invalid" for both `_v2`
+  and `_v3`, then applied the same way to the three new flights, also giving **100 %, 0 invalid samples, on all
+  three**. Kept as primary for like-for-like continuity with the original verdict (D142), not as a new reading
+  chosen after seeing this re-fly's result; logged as **OQ-R5** for the coordinator, since the registered wording
+  itself leaves the endpoint open.
 - **Diagnostic only, not primary (kept for transparency): the `--set b --est fgo` arm-to-disarm-or-last-sample
   window (D140's method for an estimator with no `--set a` S2 path) reads 99.81-99.84 % on these three flights**,
   because that window (used for a flight with no clean disarm) extends past contact into the final 0.28-0.36 s of
   recorded output, after `run_trial.sh`'s cleanup starts stopping the FGO node. The same check on the ORIGINAL
   old-priors flight `cl_fgo_a_tex_half_v3` (which never had S2 scored by this method at all, confirmed: no `S2` key
   in its stored json) gives the same pattern, 99.818 % (`eval/results/refly_priors_s2/cl_fgo_a_tex_half_v3_setb_est_fgo.json`).
-  This is consistent with the invalid samples being a late-window artefact rather than a mid-flight fault (on each
-  flight the first invalid sample follows the EKF failsafe/Land-Mode switch above by about 0.02-0.03 s), but the
+  On each flight the first invalid sample follows the EKF failsafe/Land-Mode switch above by about 0.02-0.03 s; the
   exact mechanism inside the node's shutdown sequence was not traced further, since the PRIMARY S2 reading above does
   not depend on it (rule 4). The three with-heading flights, which land and disarm normally before the node is
-  stopped, score a clean 100 % on this same diagnostic window (section 2), so the artefact is specific to a
-  watcher-killed flight's scoring window, not to the corrected priors.
+  stopped, score a clean 100 % on this same diagnostic window (section 2). The artefact is not simply "any
+  watcher-stopped flight": D140's UKF no-heading set is also watcher-stopped and reads 100 % on its own
+  `--set b --est ukf` window (`numbers_extras.md`). It appears specifically on these FGO watcher-stopped flights,
+  identically with old and new priors, and is not attributable to the corrected priors.
 
-**H1.8 FGO verdict (U1 AND U2 AND U3 AND S2, each flight; S2 by the registered arm-to-contact window):**
+**H1.8 FGO verdict (U1 AND U2 AND U3 AND S2, each flight; S2 by the arm-to-contact window, D142/OQ-R5):**
 
-- **k/3 = 2/3.** r1 and r2 meet U1, U2, U3 and S2; r3 meets U1, U2 and S2 but misses U3 (203.464 s is 7.46 s outside
-  the [+145, +196] s window).
+- **PRIMARY k/3 = 2/3.** r1 and r2 meet U1, U2, U3 and S2; r3 meets U1, U2 and S2 but misses U3 (203.464 s is
+  7.46 s outside the [+145, +196] s window).
+- **If the coordinator rules for the scorer's `--set b` window instead (OQ-R5): k/3 = 0/3**, since that window
+  reads below 100 % on every flight (section above).
 - Spread of the three contact times (descriptive, no criterion): 166.7-203.5 s (range 36.7 s).
 
-S2 (diagnostic window) scores: `eval/results/refly_priors_s2/cl_fgo_a_tex_r{1,2,3}_half_rp_setb_est_fgo.json`.
-U1 checks: `eval/results/closed_loop_extras_s2/failsafe_check.py` output above (not re-saved to a new file; the
-script only prints, consistent with its original D140 usage).
+S2: PRIMARY (arm to contact) in `eval/results/refly_priors_s2/s2_to_contact.json`; diagnostic (`--set b`) window
+in `eval/results/refly_priors_s2/cl_fgo_a_tex_r{1,2,3}_half_rp_setb_est_fgo.json`. U1 checks: saved to
+`eval/results/refly_priors_s2/failsafe_check_output.txt` (D140 itself saved its own `failsafe_check_output.txt`;
+an earlier draft of this document wrongly said D140 only printed and did not save it, corrected here).
 
 ## 2. Corridor flights: set 1C with heading (H1.9 FGO)
 
@@ -181,3 +195,11 @@ correction in section 1, before this document's final commit).
   `H_s3rp_r1b`. `H5.1`, `H5.5`, `H5.6/H5.7`, `H-H2`, `P-H3`, `H-H4a/b` for the corrected-prior FGO hold set are
   **not available**.
 - No frozen material was touched. `check_numbers_frozen.py` PASSES.
+- **Corrections to this document's own history, disclosed rather than silently fixed (git safety protocol: no
+  amending commits):** commit `f29e2ee`'s message attributed `H_s3rp_r1b`'s retry to a generic transient flake;
+  D141 identifies the actual cause (the harness bug above). Commit `aecd390`'s message said "D140's own flights
+  disarmed normally"; D140's UKF no-heading set did NOT disarm normally either (it is also watcher-stopped) and
+  reads 100 % on its own window regardless, corrected in section 1 above. Section 1's S2 window itself was also
+  corrected once between commits `31314e9` and `aecd390` (strict `--set b` reading as primary, 0/3) and then again
+  in this version (arm-to-contact as primary, per D142, 2/3); the full history is in the three commits' messages
+  and D141/D142.

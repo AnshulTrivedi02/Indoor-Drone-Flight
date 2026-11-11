@@ -1,0 +1,15 @@
+cl_fgo_a_tex_r1_half_rp ERR ERR {TimeUS : 3353000, Subsys : 3, ECode : 0}
+cl_fgo_a_tex_r1_half_rp ERR ERR {TimeUS : 197160544, Subsys : 16, ECode : 2}
+cl_fgo_a_tex_r1_half_rp ERR ERR {TimeUS : 197160544, Subsys : 17, ECode : 1}
+cl_fgo_a_tex_r1_half_rp MSG MSG {TimeUS : 197160544, ID : 61, Seq : 0, Message : EKF Failsafe: changed to Land Mode}
+cl_fgo_a_tex_r1_half_rp total flagged: 4
+cl_fgo_a_tex_r2_half_rp ERR ERR {TimeUS : 3272000, Subsys : 3, ECode : 0}
+cl_fgo_a_tex_r2_half_rp ERR ERR {TimeUS : 224224996, Subsys : 16, ECode : 2}
+cl_fgo_a_tex_r2_half_rp ERR ERR {TimeUS : 224224996, Subsys : 17, ECode : 1}
+cl_fgo_a_tex_r2_half_rp MSG MSG {TimeUS : 224224996, ID : 58, Seq : 0, Message : EKF Failsafe: changed to Land Mode}
+cl_fgo_a_tex_r2_half_rp total flagged: 4
+cl_fgo_a_tex_r3_half_rp ERR ERR {TimeUS : 3338000, Subsys : 3, ECode : 0}
+cl_fgo_a_tex_r3_half_rp ERR ERR {TimeUS : 233823384, Subsys : 16, ECode : 2}
+cl_fgo_a_tex_r3_half_rp ERR ERR {TimeUS : 233823384, Subsys : 17, ECode : 1}
+cl_fgo_a_tex_r3_half_rp MSG MSG {TimeUS : 233823384, ID : 61, Seq : 0, Message : EKF Failsafe: changed to Land Mode}
+cl_fgo_a_tex_r3_half_rp total flagged: 4

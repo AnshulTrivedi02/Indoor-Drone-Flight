@@ -55,3 +55,13 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
 - **OQ-R1 (H5.1 scope for the FGO re-fly):** the registered H5.1 names EKF3 flying; the re-fly applies its bounds to the FGO-flying hold set, as the S3v2 rows did (numbers.md:646). Reported as such, not as the primary H5.1 verdict. Confirm or rule otherwise.
 - **OQ-R2 (EKF3 half-speed registration timing):** the EKF3 half real-time re-registration commit (`a3f54c7`) and the flight start carry the same timestamp (22:42:01, 2026-09-30). Proposed wording: "registered immediately before the flight". Confirm.
 - **OQ-R3 (D70 panel after the EKF3 heading Replay):** keep the closed-loop picture-only panel, replace it with the scored offline EKF3 heading arm, or show both? Decided after the Replay results.
+- **OQ-R5 (H1.8 FGO re-fly: which S2 window, not a STOP):** the registered wording ("the estimator is valid
+  throughout") does not state an endpoint for a watcher-killed flight; `closed_loop_score.py` has no `--set a` S2
+  path at all. D142's default is arm-to-contact, the window METHODOLOGY already used for this exact cell
+  (`cl_fgo_a_tex_half_v2`/`_v3`, "100% from arming to contact"), giving k/3 = 2/3 for the corrected-prior re-fly
+  (`cl_fgo_a_tex_r{1,2,3}_half_rp`). The alternative is the scorer's own `--set b --est fgo` arm-to-disarm-or-last-
+  sample window (D140's precedent for an estimator without a `--set a` S2 path), which reads 99.81-99.84% on these
+  three flights and on the original `cl_fgo_a_tex_half_v3` once checked the same way (`eval/results/refly_priors_s2/`),
+  giving k/3 = 0/3. Both readings are reported in `docs/thesis/refly_priors/numbers_refly.md` section 1; D142's
+  default (arm-to-contact, 2/3) is used as primary meanwhile, since it is the window the original PASS used.
+  Confirm or rule otherwise.
