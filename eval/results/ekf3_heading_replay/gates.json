@@ -221,5 +221,69 @@
   "bug_found_and_fixed": "eval/reph_inject.py's _walk() silently dropped a log's trailing <3-byte remainder (found against fwdplainc_tex_r1/fwdplainc_trans_r1, which end mid-header) -- AssertionError on first attempt, both bags. First fix attempt (keying a new trailing-entry check on the loop variable `i`) introduced a SECOND bug: it double-appended an identical skip entry on any log whose LAST record is itself truncated (the pre-existing 'i + f.length > n' branch already appends its own entry and breaks without advancing `i`) -- found against fwdc_tex_r1 (+16 bytes on strip()). Fixed by keying on out[-1][1] ('covered_end') instead of `i`. Both regressions added to eval/reph_inject_test.py (12/12 pass). Verified the fix changed NOTHING already computed: reinjected.bin == reinjected_v2.bin (the round-trip template) and arms/fwdc_tex_r1/heading/injected.bin == a fresh fixed-code reinjection, both exact byte-for-byte matches -- neither bug was present in the code when the round-trip Replay compare, arm (i) (18 bags), or fwdc_tex_r1's arm (ii) were run; the two originally-failing bags were simply re-run once fixed, and the other 16 bags never exercised the new code paths at all.",
   "input_count_note": "Every arm (ii) record set = measurement_models.forward_events(trial, 'heading')'s full valid output (matches the preregistration's own definition of the input, section 5), NOT the stored fgo_heading/fwd_stats.json 'psi_valid' count, which is smaller for every bag checked (e.g. fwdc_tex_r1: 9654 vs 9539, a 1.2% difference). Partially characterised, not fully: only 1 of fwdc_tex_r1's 9654 valid frames falls before its first IMU sample (10.696 s) and 13 fall after t=348s (near landing); that accounts for 14 of the 115-frame gap, not all of it. The remaining ~101 frames' exclusion from fgo_heading's own count is NOT verified here -- stated as an open item, not asserted as explained.",
   "evo_ape_a_nan_on_fwdplainc_blank": "fwdplainc_blank_r1/r2/r3's arm (ii) result_evo_a_cruise is NaN: evo_ape reports 'Degenerate covariance rank, Umeyama alignment is not possible' because the replayed EKF3 position estimate is EXACTLY (0,0) for every sample in the pinned cruise window (checked directly: est range x=[0,0], y=[0,0]). This is a known characteristic of this no-flow-signal floor condition, not specific to arm (ii) or to this tool -- arm (i)'s baseline on the same bag also spends most of the flight in const_pos_mode (horiz_pos_rel true only 6.3% of samples) and its own evo -a (cruise) number (43.45 m) reflects a frozen-near-origin estimate against a moving ground truth, not a meaningful ATE. Phase 4's own scoring already anticipates this by computing SEPARATE 'failure metrics' (final displacement ratio, divergence onset) for transition/blank bags alongside evo -a (cruise); the same failure metrics (eval/three_way_eval.failure_metrics()) are used for arm (i)/(ii) in the final scoring step, not a substitute number for the NaN."
+ },
+ "sigma_option_byte_identity_proof": {
+  "preregistration_item": "section 0 item 2 / section 9 (D139): additive FWD_SIGMA_PSI_DEG, default path must be shown byte-identical on one bag per estimator BEFORE any arm (iii)/(iv) run",
+  "bag": "fwdc_blank_r1",
+  "ukf": {
+   "command": "/home/makerspace/venv-evo/bin/python <worktree>/src/estimators/ukf_replay.py fwdc_blank_r1 heading",
+   "env": {
+    "UKF_OUT_ROOT": "<scratch>",
+    "UKF_BAG_ROOT": "<sha256-verified decompressed bag copy>",
+    "FWD_SIGMA_PSI_DEG": "UNSET (default-path proof)"
+   },
+   "stored_output_provenance": "~/thesis_data/batches/final_phase4 (jobs=batches/phase4_replays.jobs, commit 938fdb6), DONE 2026-10-09T20:52:27+1100 (fwdc_tex_r1)/2026-10-09T20:56 (fwdc_blank_r1); exact stored command (from that commit's jobs file): 'cd ~/thesis_ws && ~/venv-evo/bin/python src/estimators/ukf_replay.py fwdc_blank_r1 heading'",
+   "compared_files": [
+    "ukf_traj.tum",
+    "ground_truth.tum",
+    "bgz_series.txt",
+    "fwd_stats.json",
+    "metrics.txt"
+   ],
+   "compared_files_result": "all byte-identical",
+   "npz_compared_arrays": [
+    "S_psi",
+    "nis_omega",
+    "nis_psi"
+   ],
+   "npz_compared_result": "all np.array_equal",
+   "npz_excluded_fields": [
+    "t_flow_ns",
+    "t_fwd_ns",
+    "t_predict_ns",
+    "t_range_ns (declared wall-clock timing, not part of the model)"
+   ],
+   "note": "The stored fwdc_blank_r1 UKF_heading result itself diverges wildly (cross_track -26005 m, ATE 8043 m) -- this is EXISTING behaviour, confirmed identical before and after the code change, not something this session's edit introduced.",
+   "verdict": "PASS (byte-identical)"
+  },
+  "fgo": {
+   "command": "/home/makerspace/venv-fgo/bin/python <worktree>/src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading",
+   "env": {
+    "FGO_OUT_ROOT": "<scratch>",
+    "FGO_BAG_ROOT": "<sha256-verified decompressed bag copy>",
+    "FWD_SIGMA_PSI_DEG": "UNSET (default-path proof)"
+   },
+   "stored_output_provenance": "~/thesis_data/batches/final2_phase4 (jobs=final_rerun2/final2_phase4.fgo.jobs, commit 2cc08a2), DONE 2026-10-10T13:48/13:49+1100; exact stored command: 'cd ~/thesis_ws && ~/venv-fgo/bin/python src/estimators/fgo/fgo_replay.py fwdc_blank_r1 0.25 2 heading'",
+   "compared_files": [
+    "fgo_traj.tum",
+    "ground_truth.tum",
+    "bgz_series.txt",
+    "fwd_stats.json"
+   ],
+   "compared_files_result": "all byte-identical",
+   "metrics_txt_result": "all fields identical except step_median_ms/step_p99_ms (declared wall-clock timing)",
+   "npz_compared_arrays": [
+    "cov_log",
+    "fwd_S",
+    "fwd_log"
+   ],
+   "npz_compared_result": "all np.array_equal",
+   "npz_excluded_fields": [
+    "t_keyframe_ns (declared wall-clock timing)"
+   ],
+   "note": "The stored fwdc_blank_r1 FGO_heading result also diverges wildly (along_pN -16915 m, ATE 9648 m) -- same existing-behaviour confirmation as the UKF case.",
+   "verdict": "PASS (byte-identical)"
+  },
+  "overall_verdict": "PASS -- the default path is proven byte-identical for both estimators; the additive FWD_SIGMA_PSI_DEG option may now be exercised (arms iii/iv)."
  }
 }
