@@ -189,6 +189,33 @@ def test_zero_records_byte_identical_synthetic():
         assert open(out_path, "rb").read() == data
 
 
+def test_inject_zero_records_byte_identical():
+    """The brief's literal "the injector with zero records leaves the log byte-identical"
+    -- inject() called with an EMPTY records list, not strip() on an already-zero-REPH
+    log (that is test_zero_records_byte_identical_synthetic, a different check: it
+    exercises strip's removal-count-zero path, not inject's zero-length-input path,
+    which used to raise instead (an early bug, fixed) because it fell through to Mode 2
+    and demanded --placement-latency-ms for nothing to place."""
+    data, _, _ = build_with_reph()  # a log that DOES have REPH rows, to make the check non-trivial
+    with tempfile.TemporaryDirectory() as d:
+        in_path = os.path.join(d, "in.bin")
+        open(in_path, "wb").write(data)
+        out_path = os.path.join(d, "out.bin")
+        n = R.inject(in_path, out_path, [])
+        assert n == 0
+        assert open(out_path, "rb").read() == data
+
+    real = os.path.expanduser("~/thesis_data/trials/fwdc_tex_r1/ardupilot.bin")
+    if os.path.exists(real):
+        with tempfile.TemporaryDirectory() as d:
+            out_path = os.path.join(d, "out.bin")
+            n = R.inject(real, out_path, [])
+            assert n == 0
+            assert open(out_path, "rb").read() == open(real, "rb").read()
+    else:
+        print("SKIP  (real fwdc_tex_r1 sub-check): not present on this machine")
+
+
 def test_zero_records_real_log_if_present():
     """Same check against a real recorded trial known to have zero REPH rows, if this
     machine has it (eval/results/... does not pin a trial dir; skip, don't fail, if
@@ -379,6 +406,7 @@ def main():
     check("pymavlink parses synthetic REPH rows", test_pymavlink_parses_reph)
     check("round trip (strip + reinject original records) byte-identical", test_roundtrip_byte_identical)
     check("zero records: synthetic log byte-identical after strip", test_zero_records_byte_identical_synthetic)
+    check("inject() with an EMPTY records list is byte-identical (the brief's own wording)", test_inject_zero_records_byte_identical)
     check("zero records: real fwdc_tex_r1 byte-identical after strip (skips if absent)", test_zero_records_real_log_if_present)
     check("double-delivery gap: both reinjected in the same gap, time-ordered", test_double_delivery_gap_reinjects_both_in_time_order)
     check("double-delivery gap: documented non-byte-identical case", test_double_delivery_gap_not_byte_identical)

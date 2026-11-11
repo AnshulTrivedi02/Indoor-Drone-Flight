@@ -311,6 +311,15 @@ def inject(in_path, out_path, records, placement_latency_ms=None):
     records are sorted by (timeStamp_ms + placement_latency_ms); ties are refused."""
     _refuse_output_path(out_path, in_path)
     data, recs, reph_ty, reph_f, rfrh_f = load(in_path)
+    if len(records) == 0:
+        # Zero records: a verbatim copy, byte-identical, per the brief's explicit
+        # "injector with zero records leaves the log byte-identical" requirement --
+        # handled here, before any mode logic, rather than falling into Mode 2 (which
+        # would otherwise raise for lack of placement_latency_ms on an empty list).
+        with open(out_path, "wb") as fh:
+            fh.write(data)
+        print(f"inject (zero records): {in_path} -> {out_path}: byte-identical copy ({len(data)} bytes)")
+        return 0
     has_count = ["rfrf_count_before" in r for r in records]
     if any(has_count) and not all(has_count):
         raise RephInjectError("refusing: some records have rfrf_count_before and some do not (modes cannot mix)")

@@ -50,10 +50,17 @@ throughout (137,879 / 138,318 in a 30.8 MB log) — i.e. it is a genuine DAL-ena
 Replay input, just one that happens to carry zero `REPH` rows because no ext-nav source
 was ever wired into that flight.
 
-**The "Phase 5 trigger" is also met.** Phase 5 (`METHODOLOGY.md:3392-3539`) found and
-accepted (2026-09-29) that the UKF/FGO heading arms show a real effect relative to their
-own no-heading baselines (see `numbers.md` 1B rows and METHODOLOGY "Phase 5 — result").
-That is the condition the 2026-09-29 ruling itself set for reconsidering option 1.
+**The "Phase 5 trigger" is also met — checked against the actual Phase 5 verdict, not
+assumed.** Phase 5's pre-registered prediction (a) — "the heading-driven [lateral
+velocity error] share falls" — is accepted **PASS in 12/12 estimator × world × dataset
+cells** (`METHODOLOGY.md:3440,3516-3519`, "Phase 5 — accepted (user, 2026-09-29)"): the
+heading part of lateral velocity error falls from 0.02-0.31 m/s to ≤ 0.004 m/s in every
+cell, with heading-driven cross-track error falling from 18-93 m to ≤ 1.1 m
+(`METHODOLOGY.md:3441-3442`). (Part (b), about the OTHER, residual error component
+staying unchanged, was scored FAIL in 10/12 cells — not relevant to this trigger, which
+is about the heading arm having "a clear effect", not about the residual's behaviour.)
+This is a real, accepted, measured effect of adding camera heading to the UKF/FGO — the
+condition the 2026-09-29 ruling itself set for reconsidering option 1.
 
 ### 2.2 `docs/thesis/tier1/decisions_log.md` D70 (line 96)
 
@@ -93,7 +100,7 @@ Per estimator/arm, already computed and stored under each bag's own trial direct
 | arm | estimator | heading source | heading σ | status this document |
 |---|---|---|---|---|
 | (i) | EKF3 | none (Replay, no injection) | — | NEW; must reproduce the dataset's stored EKF3 `evo -a (cruise)` score to ≤ 1 mm (METHODOLOGY D8, `~line 7105`) |
-| (ii) | EKF3 | camera heading via injected `REPH` (ExternalNav) | the measurement's own σ (0.148°/0.126°), **then EKF3's own 5° floor applies** (`AP_VisualOdom_MAV.cpp:43`, `angErr = MAX(angErr, radians(5))`) | NEW; gated by the round-trip check (§6) |
+| (ii) | EKF3 | camera heading via injected `REPH` (ExternalNav) | the measurement's own σ (0.148°/0.126°), **then EKF3's own 5° floor applies unconditionally** (`AP_NavEKF3_Measurements.cpp:1118`, `NavEKF3_core::writeExtNavData()`: `yawAngErr = MAX(angErr, radians(5.0f))`) | NEW; gated by the round-trip check (§8) |
 | (iii) | UKF | camera heading, σ fixed at 5° | 5° (`radians(5)`, NOT the 0.148°/0.126° values) | NEW; offline replay, same gates as Phase 4 |
 | (iv) | FGO | camera heading, σ fixed at 5° | 5° | NEW; offline replay, same gates as Phase 4 |
 | reference | UKF/FGO | baseline / 0.148°/0.126° heading / (fwdc) heading+yaw-rate | as stored | existing, not re-run |
@@ -111,11 +118,44 @@ for an external yaw-rate measurement at all. Arm (ii) is heading-only, matching 
 brief's "Established facts" line 15.
 
 **No floor-removed EKF3 build.** Per the user's instruction, EKF3's 5° `angErr` floor
-(`AP_VisualOdom_MAV.cpp:43`) is left exactly as the pinned `7bac20cbcc` build has it.
-Arm (ii) injects `angErr` = the measurement's own σ (0.148° fwdc / 0.126° fwdplainc,
+(`AP_NavEKF3_Measurements.cpp:1118`) is left exactly as the pinned `7bac20cbcc` build has
+it. Arm (ii) injects `angErr` = the measurement's own σ (0.148° fwdc / 0.126° fwdplainc,
 radians) and lets that floor bind, which it always will (both values are well under 5°)
 — the floor is the whole point of comparing (ii) against (iii)/(iv) at the SAME nominal
 5°, not a confound to engineer around.
+
+**Resolves the 2026-09-29 ruling's open item 3 (whether injected `REPH` records bypass
+the yaw noise clamp).** Read directly, not assumed: `AP_VisualOdom_MAV.cpp`'s
+`angErr = constrain_float(angErr, _frontend.get_yaw_noise(), 1.5f)` (the
+`VISO_YAW_M_NSE`-floored clamp, default 0.2 rad ≈ 11.46°, the ≥ 0.05 rad floor the
+2026-09-29 ruling worried about) runs inside `AP_VisualOdom_MAV::handle_vision_position_estimate()`,
+which only live MAVLink `ODOMETRY`/`VISION_POSITION_ESTIMATE` traffic reaches
+(`GCS_Common.cpp:4562-4581`). **Replay's `REPH` path never touches `AP_VisualOdom` at
+all**: `Tools/Replay/LogReader.cpp:119-120` dispatches `REPH` straight to
+`AP_DAL::handle_message()` (`AP_DAL.cpp:498-502`), which calls
+`ekf3.writeExtNavData()` — i.e. `NavEKF3_core::writeExtNavData()`
+(`AP_NavEKF3_Measurements.cpp`) — directly. **So arm (ii) is governed by the
+unconditional 5° floor only; the 0.2 rad (11.46°) `VISO_YAW_M_NSE` floor the ruling
+flagged does not apply to it at all.** This is a materially looser floor than the live
+path the ruling considered (option 2) would have imposed — part of why option 1
+(Replay) is the fairer route, independent of the latency confound the ruling also cited.
+
+**A second clamp, found while reading the same function, affects WHEN the measurement
+is fused, not just how much it is trusted.** `NavEKF3_core::writeExtNavData()` computes
+the fusion time as `timeStamp_ms - delay_ms - localFilterTimeStep_ms/2`, then
+**clamps it up to `imuDataDelayed.time_ms`** (the oldest IMU sample still in EKF3's
+delay buffer) — i.e. a measurement timestamped before the current delayed-fusion
+horizon is NOT dropped, it is silently fused as if it arrived exactly at the horizon.
+`docs/h_backends_tag_input.md:303` reports the SAME mechanism for tags: "100% clamped to
+arrival − 60". **Consequence for Mode 2 (§8.4): if `timeStamp_ms - delay_ms` is chosen
+to fall behind this horizon, EKF3's own clamp — not this tool's splice position —
+decides the effective fusion time, and the exact byte-stream placement this document
+spent most of §8 validating matters less than feared, PROVIDED the splice still lands
+the `REPH` record in a plausible position in the Replay message STREAM (so DAL message
+processing order relative to IMU/flow stays sane).** Whether arm (ii)'s chosen
+`timeStamp_ms`/`delay_ms`/`placement_latency_ms` combination falls behind or ahead of
+this horizon is not checked in this stage — it is listed as part of the open "TS and D"
+item in §8.4, now with the exact mechanism that makes it matter.
 
 ## 5. Heading measurements and injection cadence
 
@@ -158,9 +198,12 @@ numbers.md's 1B rows):
    extraction `phase4_eval.py` already does for the UKF/FGO's χ² gate, adapted to read
    EKF3's own innovation log fields instead; this adaptation is a small, reviewed script
    change, not a new metric).
-4. Timing (DIAGNOSTIC only, as Phase 4 already labels it): Replay step time is not a
-   deployability figure (Python on the workstation), consistent with how Phase 4 treats
-   UKF/FGO step time.
+4. Timing (DIAGNOSTIC only, as Phase 4 already labels it): arms (i)/(ii) run through the
+   compiled `Replay` C++ binary (not Python), so their wall time is not comparable to
+   the UKF/FGO's Python step-time figures at all — arms (iii)/(iv)'s Python step time is
+   the one Phase 4 already labels "says nothing directly about flight-controller
+   feasibility"; arms (i)/(ii)'s Replay wall time is reported (§12) only as a batch-cost
+   figure, not as any kind of deployability comparison to (iii)/(iv).
 
 No new metric is introduced. Item 3's EKF3-side field adaptation is the one place the
 scorer needs a small, reviewed extension; it is listed in "Scripts" (§9) as not yet run.
@@ -243,30 +286,61 @@ log", run without Replay:
 - **Mode 1 (positional, exact)** — used for the round-trip check and the unit tests.
   Each extracted `REPH` carries `rfrf_count_before` (how many `RFRF` precede it in file
   order); reinjection places it immediately after the same-numbered `RFRF` in the
-  stripped file. Verified **99.997% byte-identical** (928 / 31,150,080 bytes) against
-  `cl_bcpp_tex_r1_half` in full.
-  - **Residual 928 bytes, ~12 clusters, NOT YET FULLY EXPLAINED.** This count is
-    suspiciously close to the already-noted "2392/2404 (99.5%) immediately preceded by
-    `RFRF`" finding from the initial format survey — i.e. the same ~12 rows whose
-    immediate predecessor is something other than `RFRF` (plausibly a thread-interleaving
-    artefact between the MAVLink-RX thread calling `writeExtNavData` and the main
-    logging thread, not pinned down further in this stage). **Checked: zero `REPH` rows
-    share an `rfrf_count_before` value** (no "two REPH in one RFRF-delimited span" case
-    in this real log), so the residual is NOT the double-delivery mechanism the unit
-    tests separately cover — it is some other, smaller discrepancy, left open.
-  - **What this means for the gate (§8.3): the round-trip check's PASS criterion is
-    Replayed `XKF1`/`XKF4`/`XKFS` field-for-field identity, not raw file
-    byte-identity.** 928 bytes out of 31 MB, confined to ~12 of 2404 rows, may or may not
-    move any logged EKF3 field — that is exactly what Replaying both the original and
-    the reinjected log and diffing their `XKF1`/`XKF4`/`XKFS` streams will show. This
-    document does NOT claim the mechanics are perfect; it claims they are good enough to
-    gate on the field-level outcome, which is the thing arm (ii) actually depends on.
-- **Mode 2 (from a capture timestamp, approximate)** — for arm (ii), which injects
-  brand-new measurements that were never written by any live run, so there is no
+  stripped file. Verified **99.997% byte-identical** (928 / 31,150,080 bytes differing)
+  against `cl_bcpp_tex_r1_half` in full — NOT byte-identical, that specific figure is
+  the measured result, not rounded up.
+- **Mode 2 (from a capture timestamp, approximate for arm (ii); exact when fed each
+  record's true arrival time, see below)** — for arm (ii), which injects brand-new
+  measurements that were never written by any live run, so there is no
   `rfrf_count_before` to recover. Requires an explicit `placement_latency_ms` (no
   default): target = first `RFRH` after `(timeStamp_ms + placement_latency_ms) * 1000`,
   cut = the `RFRF` immediately before that `RFRH`. **`placement_latency_ms` is an OPEN
-  ITEM** (§8.4) — it is NOT claimed exact and the round-trip check does not validate it.
+  ITEM for arm (ii)** (§8.4) — but the search-and-cut MECHANISM itself (not the still-open
+  question of how arm (ii) computes its input to it) has now been validated independently
+  of Mode 1, below.
+
+**Mode 1 alone is a weaker check than it looks: it trivially restores a stored position
+index, so it cannot show that a genuinely TIME-DERIVED placement (the only kind arm (ii)
+can use, since a synthetic measurement has no stored position) gets the same answer.**
+Checked directly, not left as a gap: every one of the 2404 `REPH` rows is immediately
+followed by a `VISP` record (confirmed earlier, §8.1), and `VISP.TimeUS` turns out to
+equal — **exactly, 2404/2404, 0 exceptions** — the `time_us` of the `RFRH` record
+immediately preceding that `REPH` in file order. `VISP.TimeUS` is therefore a genuine,
+independently-logged arrival-time field, sourced from the SAME original payload bundle
+as the brief's "the original REPH payload" (not a quantity this tool's own bookkeeping
+derived). Feeding Mode 2's actual search-and-cut code each record's own `VISP.TimeUS` as
+its exact target (bypassing the separate, still-open `timeStamp_ms + placement_latency_ms`
+arithmetic entirely) and running it over all 2404 rows reproduces the SAME **99.997%
+byte-identical** result (928 bytes differing, in the same clusters) as Mode 1 — the
+mechanism arm (ii) will actually use is therefore validated, not just Mode 1's trivial
+positional restore. (Script: a one-off validation, not the shipped CLI — Mode 2's public
+`inject()` takes one shared `placement_latency_ms` per call, not a per-record arrival
+time; giving it one would be a reasonable follow-up, listed in §9, not done in this
+stage.)
+
+**The 928-byte residual is now fully explained, not left open.** All 12 clusters sit
+immediately after an `OF`/`ROFH` pair (ArduPilot's optical-flow DAL replay record, in
+`docs/partC_onboard_feasibility.md:343`'s own list of `R*` Replay-input record types) —
+e.g. `['ROFH', 'OF', 'REPH', 'VISP', 'REVH', ...]` instead of the usual
+`['...', 'RFRF', 'REPH', 'VISP', ...]`. Mechanism, read from the same `end_frame()`
+docstring already cited in §8.1 ("Must be called on all events and injections of data
+(eg flow)…"): `ROFH`'s own write ALSO calls `end_frame()` first, exactly as
+`writeExtNavData()` does. For these 12/2404 (0.5%) rows, the flow injection's call
+flushed the pending `RFRF` a moment before the `REPH` write's own `end_frame()` call
+found `frame_types` already 0 — the SAME "shared flush" mechanism the unit tests'
+double-delivery case covers, except here `REPH` shares its flush with a PRECEDING `OF`,
+not another `REPH`. **This tool reinserts the new `REPH` immediately after the shared
+`RFRF` — i.e. BEFORE the `OF`/`ROFH` pair that originally came first.** For these 12
+rows only, a reinjected `REPH` would therefore be processed by Replay's DAL message
+dispatch one flow-sample-ordering-step EARLIER than the original live run processed it.
+**This is `ROFH`, an `R*` Replay-input record — so it COULD affect Replay's DAL
+processing order, unlike a residual confined to non-replayed telemetry** — it is
+flagged as a genuine, bounded (12/2404, 0.5%), understood-cause limitation of the
+current splice tool, not fixed in this stage (fixing it means tracking relative order
+against every record type sharing a flush gap, not just other `REPH` rows — a larger
+change than Stage 1's scope), and it is exactly what §8.3's Replay-level field
+comparison is for: to show whether this specific, now-named mechanism moves any logged
+EKF3 field or not.
 
 ### 8.3 The round-trip check (specified; NOT run by this document)
 
@@ -278,15 +352,17 @@ Per the brief, as a gate before any arm (ii) run:
    scratch) — mechanics check, already run in this document, 99.997% byte-identical
    (§8.1/8.2); this step alone needs no Replay and has been done.
 5. **Not yet run (needs Replay): Replay BOTH the untouched original and the
-   reinjected copy, with identical params**, through `heavy.py`, one at a time
-   (`~/ardupilot_diag/build/sitl/tool/Replay`, the D8-verified binary — name its exact
-   commit/hash when run, per the advisor's note, since the ≤ 1 mm reproduction claim is
-   tied to that specific build). **PASS requires `XKF1` (both logged EKF3 cores, `C==100`
-   plus `101` if present) and the yaw-fusion-relevant fields of `XKF4`/`XKFS` to be
-   field-for-field identical** between the two Replay outputs. **STOP RULE: if this
-   check fails, arm (ii) is not run; the discrepancy is diagnosed (the ~12-row residual
-   in §8.2 is the first thing to check) and this document is revised before any further
-   attempt.**
+   reinjected copy, with identical params**, through `heavy.py`, one at a time, using
+   `eval/ekf3_heading_replay_run.py` (§9) — `~/ardupilot_diag/build/sitl/tool/Replay`,
+   the D8-verified binary, SHA-256 `415e69650ac7f5c7d658b3e3c8a021b2e66cea8f7617c62ce1c91c61df08eda2`
+   (recorded here, and by the driver script itself in its `manifest.json`, since the
+   ≤ 1 mm reproduction claim is tied to this specific build, not just its name). **PASS
+   requires `XKF1` (both logged EKF3 cores, `C==100` plus `101` if present) and the
+   yaw-fusion-relevant fields of `XKF4`/`XKFS` to be field-for-field identical** between
+   the two Replay outputs. **STOP RULE: if this check fails, arm (ii) is not run; the
+   discrepancy is diagnosed (the 12-row `OF`/`ROFH`-shared-flush mechanism in §8.2 is
+   the first thing to check, now that it is named) and this document is revised before
+   any further attempt.**
 6. **A second check, independently runnable now and already run by this document's unit
    tests**: `reph_inject.py strip` on a log with zero `REPH` records (checked on a real
    zero-`REPH` log, `fwdc_tex_r1`, 30,789,632 bytes) is byte-identical to the input.
@@ -319,11 +395,14 @@ written/run) step-5 script, not assumed solved.
   early/late in the flight) is the existing, already-used tool for this — the SAME
   function `eval/d8_ekf3_retime.py` uses. Not yet wired into a reph_inject caller; listed
   in §9 as a script to write, not run.
-- **`D` (delay_ms).** The live template's `D` is a constant 25 ms throughout. Advisor's
-  suggested default for arm (ii) — `D = 0`, folding the whole known delay into `TS`
-  via the clock map, with EKF3's own extra −6 ms (`AP_NavEKF3_Measurements.cpp:232-236`,
-  already documented for flow) accounted for separately — is a reasonable starting
-  point but is marked PROPOSAL, not decided.
+- **`D` (delay_ms).** The live template's `D` is a constant 25 ms throughout. One
+  candidate for arm (ii), marked PROPOSAL and NOT decided: `D = 0`, folding the whole
+  known delay into `TS` via the clock map, with EKF3's own extra −6 ms
+  (`AP_NavEKF3_Measurements.cpp:232-236`, already documented for flow) accounted for
+  separately. §5's new finding on EKF3's `imuDataDelayed.time_ms` clamp bears directly
+  on this choice: whichever `TS`/`D`/`placement_latency_ms` combination is picked, check
+  whether `TS - D - localFilterTimeStep_ms/2` falls behind that horizon before assuming
+  the chosen values are "just a detail".
 - **`extNavIntervalMin_ms` — checked, NOT a problem.** `AP_NavEKF3.h:518`:
   `extNavIntervalMin_ms = 20` (ms, fixed constant). The forward camera's 30 Hz cadence
   (33.3 ms) is already above this floor, so arm (ii), injecting every valid frame, is
@@ -343,15 +422,31 @@ written/run) step-5 script, not assumed solved.
 
 ## 9. Scripts (NOT run; task 3)
 
-- **Replay driver for arms (i)/(ii)** — to be written: wraps
-  `~/ardupilot_diag/build/sitl/tool/Replay` via `heavy.py` (one job at a time, per the
-  brief), `--parm EK3_SRC1_YAW=6` for arm (ii) (plus whatever `--parm` the injected
-  `REPH` needs, e.g. `VISO_TYPE`-equivalent — EKF3 reads `REPH` through the DAL path
-  directly in Replay, bypassing live `AP_VisualOdom`, so the exact param set needs
-  confirming against `Tools/Replay/LogReader.cpp:119-120`'s dispatch before the first
-  run), writing outputs under `~/thesis_data/ekf3_heading_replay/<bag>/{baseline,heading}/`.
-  Scores via §6's metrics. NOT written in this stage beyond this specification (the
-  injector itself, which this driver calls, IS written and tested).
+- **Replay driver for arms (i)/(ii) — written, NOT run: `eval/ekf3_heading_replay_run.py`.**
+  Wraps `~/ardupilot_diag/build/sitl/tool/Replay` via `heavy.py` (one job at a time, per
+  the brief), `--parm EK3_SRC1_YAW=6` for arm (ii) (confirmed this is the only `--parm`
+  REPH-via-Replay itself needs, since EKF3 reads it through the DAL path directly,
+  bypassing live `AP_VisualOdom` entirely — §4's new finding; whether any OTHER param,
+  e.g. for arming checks under Replay, is also needed is not separately re-derived
+  here), writing outputs under `~/thesis_data/ekf3_heading_replay/<bag>/{baseline,heading}/`.
+  Scores via the SAME `three_way_eval.cruise_window`/`crop`/`write_tum`/`evo_ape_a`/
+  `ekf3_tums` functions `eval/d8_ekf3_retime.py` already uses for its own baseline
+  arm — not a reimplementation. Records the Replay binary's path and SHA-256 in its own
+  `manifest.json` (§8.3). Refuses to write under `~/thesis_data/trials/`, refuses arm
+  (ii) without an explicit `--require-roundtrip-ok` gate file recording
+  `{"round_trip_check": "PASS"}` (this document's §8.3 stop rule, enforced in code, not
+  left to convention), and refuses arm (ii) records that lack `rfrf_count_before`
+  without the caller choosing a `placement_latency_ms` explicitly (no silent default).
+  **Not run** — per task 4, the only code exercised in this stage is the injector's own
+  tests and the read-only validations in §8.1/§8.2.
+- **Mode 2, per-record arrival time** — to be written: the shipped `inject()` CLI takes
+  one shared `placement_latency_ms` per call; §8.2's Mode-2-mechanism validation used a
+  bespoke per-record-target script instead (not the public API) because each record's
+  true arrival time differs. A proper per-record `inject()` input (e.g. an optional
+  `"arrival_us"` field per record, alongside `"timeStamp_ms"`) would let the SAME public
+  API serve both the validation and arm (ii)'s eventual real injection. Not written in
+  this stage — the validation's informal script already exists in this session's
+  scratch output, not committed.
 - **UKF/FGO 5° arm job list** — per the brief's instruction to "reuse the existing
   replay CLIs with a heading-sigma argument; check they accept one". **Checked: they do
   NOT.** `src/estimators/ukf_replay.py:119` and `src/estimators/fgo/fgo_replay.py:127`
@@ -398,25 +493,31 @@ written/run) step-5 script, not assumed solved.
 - Replay runs, when run, go through `heavy.py` one job at a time (the brief's
   instruction; also `heavy.py`'s own flight/build-lock protocol, unconditionally
   required regardless).
-- **Checksum guard.** `tools/tier1_checksum_guard.py` (built for a different experiment,
-  Tier-1, but directly reusable) should be pointed at the 18 bags' trial directories
-  (`--paths ~/thesis_data/trials/fwdc_*/ardupilot.bin ~/thesis_data/trials/fwdplainc_*/ardupilot.bin`
-  at minimum, or the whole trial directories) BEFORE the round-trip Replay runs (step 5
-  of §8.3) and verified unchanged AFTER — this project's standing practice (CLAUDE.md
-  "Commit to git before any multi-file change"; the tool's own docstring: "Taken
-  IMMEDIATELY BEFORE the first… run"). Not run in this stage (no Replay was run), but the
-  tool exists and needs no modification to be pointed at this document's inputs.
+- **Checksum guard.** `tools/tier1_checksum_guard.py`'s DEFAULT snapshot specs are
+  scoped to a different experiment (Tier-1's `T_*` trial glob, its own batch folders,
+  `eval/results/expL`/`expT`) and do NOT cover the 18 `fwdc_*`/`fwdplainc_*` bags or
+  `cl_bcpp_tex_r1_half` at all — checked by reading `default_specs()`, not assumed. So
+  this document does NOT claim "run it with defaults"; it proposes the tool's `--paths`
+  option (documented in the tool's own help as "TEST ONLY", but not code-enforced to
+  only that use) pointed explicitly at
+  `~/thesis_data/trials/{fwdc,fwdplainc}_*/ardupilot.bin` and
+  `~/thesis_data/trials/cl_bcpp_tex_r1_half/ardupilot.bin`, with `--out` under
+  `~/thesis_data/ekf3_heading_replay/` — snapshotted BEFORE the round-trip Replay runs
+  (§8.3 step 5) and verified unchanged AFTER. This is a deliberate repurposing of an
+  existing escape hatch for a new, reviewed one-off use, not an unmodified default run
+  — flagged for the coordinator's sign-off, not silently assumed covered.
 
 ## 11. Injector and its tests (task 2; built and run in this stage)
 
 `eval/reph_inject.py` (`strip`, `inject` [Mode 1/Mode 2], `roundtrip-extract`) and
-`eval/reph_inject_test.py` (9 checks, all passing, no Replay):
+`eval/reph_inject_test.py` (10 checks, all passing, no Replay):
 
 | check | result |
 |---|---|
 | pymavlink (independent reader) parses synthetic REPH rows matching what was written | PASS |
 | round trip (strip + reinject original records) byte-identical, single-REPH-per-gap | PASS |
 | zero records: synthetic log byte-identical after strip | PASS |
+| `inject()` with an EMPTY records list is byte-identical (the brief's exact wording; fixed a bug this check first caught — `inject([])` used to fall into Mode 2 and raise for a missing `--placement-latency-ms` that zero records never needed) | PASS |
 | zero records: real `fwdc_tex_r1` (30,789,632 bytes) byte-identical after strip | PASS |
 | double-delivery gap: both reinjected in the same gap, correct relative order | PASS |
 | double-delivery gap: documented non-byte-identical case (see §8.2) | PASS |
@@ -424,23 +525,32 @@ written/run) step-5 script, not assumed solved.
 | Mode 2 (timestamp + required latency) placement, and its refusals | PASS |
 | refusals: OUT==IN, existing OUT, OUT under `trials/`, duplicate target, bad REPH format | PASS |
 
-Plus the full-scale (not a unit test, a direct validation run, read-only on the real
-template, outputs in scratch only) check against `cl_bcpp_tex_r1_half`'s all 2404 `REPH`
-rows: **99.997% byte-identical** (§8.1/8.2).
+Plus two full-scale validations (not unit tests, direct, read-only runs against the real
+template, outputs in scratch only — §8.2): Mode 1 (positional) and Mode 2 driven by each
+record's own `VISP.TimeUS` both reproduce `cl_bcpp_tex_r1_half`'s all 2404 `REPH` rows to
+**99.997% byte-identical** (928/31,150,080 bytes differing, the SAME 12 clusters, now
+explained as the `OF`/`ROFH`-shared-flush mechanism, §8.2) — independent confirmation
+that Mode 2's actual search-and-cut mechanism, not just Mode 1's trivial position
+restore, is correct.
+
+`eval/ekf3_heading_replay_run.py` (the Replay driver, §9): written, syntax-checked, NOT
+run (no Replay was invoked in this stage).
 
 ## 12. Estimated runtime for the full run set (sourced from existing logs, not timed
-fresh — per the advisor's note)
+fresh for this run set)
 
 | job set | n | per-job wall time (source) | serial total | notes |
 |---|---|---|---|---|
 | EKF3 Replay, arms (i)+(ii) | 36 (18 bags × 2) | ~4-6 s (D8: `dsn_tex_r1` baseline 5.24 s, retimed 3.67 s, from `~/thesis_data/d8/dsn_tex_r1/{baseline,retimed}/replay.log` file-mtime spans) | ~2.5-4 min | Must run one at a time (heavy.py) regardless — already cheap |
 | Round-trip check Replays | 2 (original + reinjected) | ~5 s each | ~10 s | One-off, before any arm (ii) run |
-| UKF 5° heading arm | 18 | 45-313 s (`~/thesis_data/batches/phase4_replays/jobs.log`, existing UKF Phase-4 `heading` jobs, n=45 across all arms/datasets — range quoted, not averaged past what the log shows) | ~14-78 min serial; ~4-20 min at 4-way parallel | Textured bags slower than blank, consistent with existing Phase 4 figures |
-| FGO 5° heading arm | 18 | 40-362 s (`~/thesis_data/batches/final2_phase4/jobs.log`, existing FGO Phase-4 jobs, 6-way parallel observed) | ~12-108 min serial; ~2-18 min at 6-way parallel | Same pattern |
+| UKF 5° heading arm | 18 | 45-313 s (`~/thesis_data/batches/phase4_replays/jobs.log`, existing UKF Phase-4 `heading` jobs, n=45 across all arms/datasets — range quoted, not averaged past what the log shows) | ~14-78 min serial; ~4-20 min at 4-way parallel (standing decision rule 6's cap) | Textured bags slower than blank, consistent with existing Phase 4 figures |
+| FGO 5° heading arm | 18 | 40-362 s (`~/thesis_data/batches/final2_phase4/jobs.log`, existing FGO Phase-4 jobs; that batch itself ran 6-way, a DIFFERENT experiment's own decision, not reused here) | ~12-108 min serial; ~3-27 min at 4-way parallel (this run set's own cap, below) | Same pattern |
 
-**Total, if UKF/FGO run at up to 4-6 parallel (standing decision rule 6: non-timing
-experiments may run up to 4 in parallel; this is not primarily a timing experiment) and
-Replay runs serially (heavy.py): roughly 10-40 minutes of machine time**, dominated by
-whichever of the UKF/FGO parallel batches is slower. This is a rough bound built from
-existing, cited job logs for similar-sized bags on the same machine, not a fresh
-measurement of this run set.
+**This is a non-timing experiment, so standing decision rule 6 caps parallelism at 4,
+not the 6 the cited FGO batch happened to use for itself.** **Total, at 4-way parallel
+for the UKF/FGO 5° arms and serial Replay (heavy.py, one job at a time, per the brief,
+regardless of rule 6): roughly 10-55 minutes of machine time**, dominated by whichever
+of the UKF/FGO 4-way batches is slower. This is a rough bound built from existing,
+cited job logs for similar-sized bags on the same machine — the per-job times are
+sourced, not timed fresh for this run set; the parallelism cap and the arithmetic
+combining them are this document's own, not independently sourced.
