@@ -238,3 +238,24 @@ This is consistent with, but not proof of, the documented conditioning of the ga
 
 **For future flights:** recording should start before the node, so that every input the node receives is in the bag. The
 re-fly keeps the current harness unchanged, so that its configuration matches the original sets.
+
+---
+
+## AMENDMENT 2 (2026-11-11, coordinator, standing decision rules; after the corridor flights and the two failed hold launches, before any further hold flight)
+
+**Harness bug fixed (decision D143).** `H_s3rp_r1` and its retry `H_s3rp_r1b` both stopped before take-off with
+`run_trial` exit 141. The cause is a harness bug, not an estimator result. `run_trial.sh:431`, in the
+`FGO_NODE_IMPL=cpp` branch only, recorded the node's boot log name with `ls -t … *.BIN | head -1 | xargs` under
+`set -euo pipefail`. With 108 `.BIN` files in the SITL log directory, `ls` can take SIGPIPE after `head` exits, and
+`pipefail` turns that into exit 141. The original S3v2 flights had far fewer files.
+- **Fix:** `head -1` is replaced by `sed -n 1p`, which reads all of `ls`'s output. The same first line goes into the
+  same file (`fgo_node_boot.txt`). The line only records the boot log name for the in-flight restart check. It changes
+  nothing the vehicle, the estimator or the scorers see.
+- This is the one change to the harness since §2 and AMENDMENT 1. Rule 3 applies: a harness bug is fixed without
+  changing the error model. The pre-registered stop on a failed run is meant for failures of the flight. Two launch
+  failures with no take-off are not flight results; they are disclosed and kept (`H_s3rp_r1`, `H_s3rp_r1b`).
+- **Hold flights continue:** `H_s3rp_r1c`, `H_s3rp_r2` and `H_s3rp_r3`, with every other setting as registered.
+
+**H1.8 set result (decision D144).** As registered in §3.1, H1.8 for the FGO is reported as the count of flights meeting
+U1, U2 and U3 (k/3), with the spread descriptive. No set-level PASS/NOT MET threshold is added. S2 is read as gating
+(rule 2); it is 100 % on all three flights, so k/3 is the same either way.

@@ -85,3 +85,4 @@ digest. Each one says what is being done meanwhile. STOP items, if any, are list
   `docs/thesis/tier1/frozen_manifest_20261022T002851_verify_fgo_refly_priors_20261111.json`. Flagged rather than
   treated as a self-resolved non-issue, since the coordinator may want a dedicated before/after pair for future
   tasks that touch `eval/results`.
+- **OQ-R4, OQ-R5, OQ-R6 resolved (coordinator, 2026-11-11, standing rules):** D143 (harness fix, hold flights continue; pre-registration AMENDMENT 2), D144 (H1.8 reported as k/3 = 2/3, no set threshold), D145 (checksum guard added-only accepted).

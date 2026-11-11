@@ -428,7 +428,9 @@ if [ -n "${FGO_NODE:-}" ] && [ "$FGO_NODE_IMPL" = cpp ]; then
     # boot, LOG_DISARMED 1); fly_trial compares it before arming and, if the FC has rebooted since, stops this node
     # and runs fgo_node_restart.sh (same parameters, stats "_restart"), whose PID replaces this one in fgo_node.pid
     echo "$FGO_PID" > "$LOG_DIR/fgo_node.pid"
-    ls -t "$AP_TREE/ArduCopter/logs/"*.BIN 2>/dev/null | head -1 | xargs -r basename > "$LOG_DIR/fgo_node_boot.txt"
+    # sed -n 1p reads all of ls's output (head -1 exits early: with many .BIN files ls then took SIGPIPE, which
+    # set -o pipefail turned into exit 141 before take-off; D143, 2026-11-11). Same first line, same file.
+    ls -t "$AP_TREE/ArduCopter/logs/"*.BIN 2>/dev/null | sed -n 1p | xargs -r basename > "$LOG_DIR/fgo_node_boot.txt"
     {
         echo '#!/usr/bin/env bash'
         printf 'setsid nohup env OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 %q' "$FGO_CPP_NODE_BIN"
