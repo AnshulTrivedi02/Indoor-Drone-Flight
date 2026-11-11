@@ -325,6 +325,17 @@ the flight". See the per-set `near_threshold` block in `per_set.json` / the near
 
 ## 6a. Diverged runs: blank-AND-transition low rejection rates are partly a covariance artefact, not evidence of good fit
 
+> **Coordinator correction (2026-11-12): the "own-logged `ATE`" in the table below is NOT a trajectory error.** It is
+> the `ATE =` print of `src/estimators/fgo/fgo_replay.py:309`, the `ate_apparatus` quantity also written to each run's
+> `metrics.txt`. That quantity is axis-swapped (TUM column 1 is read as East when it is North), a known, traced
+> artefact that no thesis value derives from (METHODOLOGY "FINDING (2026-10-17): axis mislabel", lines 14341-14353).
+> So "textured 118.6-133.9 m" is the swap artefact: about the 151 m along-track distance appearing as cross-track,
+> not a 120 m error (the textured FGO's registered evo -a (cruise) is a few metres). The transition and blank runs'
+> classification as diverging does NOT rest on this print: it is numbers.md's own, independent "Diverging (unaided)
+> FGO results" category for blank and transition floors. The floor split, and the caveat that a diverged `P_pred`
+> suppresses rejections, stand; the metre values in the table should not be quoted.
+
+
 Checked, not assumed, and grouped strictly by floor tag: `grep -h "ATE =" ~/thesis_data/diagnostics/fgo_gate_count/job_*.log`
 over all 60 completed runs, split by `tex`/`trans`/`blank` in the trial name. The three floors are
 cleanly separated, with no overlap:
