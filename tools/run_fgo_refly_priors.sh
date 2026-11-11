@@ -47,6 +47,10 @@ for t in "$@"; do
     else
       echo "refly_priors: $name BREACHED - stopping"; exit 1
     fi
+  else
+    if ! grep -q "run_trial exit 0" "$r/result.txt"; then
+      echo "refly_priors: $name run_trial failed (no breach) - stopping"; exit 1
+    fi
   fi
   if ! grep -q "watcher exit 0" "$r/result.txt"; then
     echo "refly_priors: $name watcher exit nonzero - stopping"; exit 1
