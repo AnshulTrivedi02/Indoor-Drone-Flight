@@ -372,7 +372,15 @@ def _run_fgo_replay(trial, out_root, instrumented, arm=None, window=1.0, lm_iter
 
 
 def cmd_run(args):
-    g = _run_fgo_replay(args.trial, args.out_root, instrumented=True, arm=args.arm,
+    # STAGE 2 FIX (over stage 1's cmd_run): the replay output goes to a per-trial-and-arm scratch
+    # directory (never the trial directory -- _assert_safe_out_root enforces this), and the summary
+    # JSON filename and its "arm" field disambiguate arms of the same trial, which the stage-1 version
+    # did not (three arms of one trial would have silently overwritten one summary). Also added: a
+    # per-run byte-identity check of the instrumented TUM against the STORED trial's TUM, since D134's
+    # "accepted only if its output is byte-identical to the stored run's" reads as a per-run condition,
+    # not something the single dsn_trans_r1 proof in Section 6 can stand in for across 69 different runs.
+    replay_root = os.path.join(_assert_safe_out_root(args.out_root), "runs")
+    g = _run_fgo_replay(args.trial, replay_root, instrumented=True, arm=args.arm,
                         window=args.window, lm_iters=args.lm_iters)
     fgo = g.get("fgo")
     assert fgo is not None and hasattr(fgo, "gate_log"), "instrumented run did not produce a gate_log"
@@ -380,16 +388,43 @@ def cmd_run(args):
     n_range_checked = sum(1 for e in fgo.gate_log if "range" in e)
     assert n_flow_checked == fgo.n_flow, (n_flow_checked, fgo.n_flow)
     assert n_range_checked == fgo.n_range, (n_range_checked, fgo.n_range)
+
+    sub = "" if args.arm is None else f"_{args.arm}"
+    inst_tum = os.path.join(replay_root, args.trial, f"fgo{sub}", "fgo_traj.tum")
+    stored_tum = os.path.expanduser(f"~/thesis_data/trials/{args.trial}/fgo{sub}/fgo_traj.tum")
+
+    def _cmp(a, b):
+        if not (os.path.exists(a) and os.path.exists(b)):
+            return None
+        with open(a, "rb") as fa, open(b, "rb") as fb:
+            return fa.read() == fb.read()
+
+    vs_stored = _cmp(inst_tum, stored_tum)
+
     summary = _summarise(fgo.gate_log)
     summary["trial"] = args.trial
+    summary["arm"] = args.arm
+    summary["window"] = args.window
+    summary["lm_iters"] = args.lm_iters
     summary["n_flow_factors"] = fgo.n_flow
     summary["n_range_factors"] = fgo.n_range
     summary["n_gate_errors"] = len(fgo.gate_errors)
-    out_path = os.path.join(_assert_safe_out_root(args.out_root), f"{args.trial}_gate_summary.json")
+    summary["n_flow_gp_replaced"] = getattr(g.get("gp"), "n_replaced", None)  # ground-proximity flow
+    # replacement (measurement_models.GroundProximityFlow.replace): a small number of near-ground,
+    # pre-takeoff flow factors use a synthetic rotation-only flow_xy, not the raw bag sensor value --
+    # see docs/thesis/diagnostics/fgo_gate_count_results.md Section on limitations.
+    summary["instrumented_tum"] = inst_tum
+    summary["stored_tum"] = stored_tum
+    summary["instrumented_vs_stored_byte_identical"] = vs_stored
+    out_path = os.path.join(_assert_safe_out_root(args.out_root),
+                            f"{args.trial}{sub}_gate_summary.json")
     with open(out_path, "w") as fh:
         json.dump(summary, fh, indent=2)
     print(json.dumps(summary, indent=2))
     print(f"wrote {out_path}")
+    if vs_stored is not True:
+        print(f"STOP-WORTHY: instrumented TUM vs stored TUM byte-identical = {vs_stored} for "
+              f"trial={args.trial} arm={args.arm} (expected True per D134)")
 
 
 def _summarise(gate_log):
