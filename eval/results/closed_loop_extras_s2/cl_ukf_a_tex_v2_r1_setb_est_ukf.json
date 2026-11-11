@@ -1,0 +1,94 @@
+{
+ "trial": "cl_ukf_a_tex_v2_r1",
+ "set": "b",
+ "cruise_s": [
+  29.62,
+  206.813
+ ],
+ "cruise_len_s": 177.19299999999998,
+ "clock_map": {
+  "offset_ms_start": 0.8787048509758845,
+  "rate_ppm": 226.8148634321818
+ },
+ "contact": {
+  "t_rel_cruise_s": 177.14499999999998,
+  "x": -9.58482530049286,
+  "y": 89.42382334048918,
+  "wall": "west"
+ },
+ "completed": false,
+ "watcher_breach": "wall contact: |x| = 9.585 m >= 9.58\nt=206.765 x=-9.585 y=89.424 z=2.349",
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 13.229000000000017,
+   "max_deg": 17.320000000000043,
+   "mean_deg": 5.177579006772059,
+   "diag_y_le_140": {
+    "p95": 13.229000000000017,
+    "max": 17.320000000000043
+   },
+   "diag_y_gt_140": null,
+   "pass": false
+  }
+ },
+ "S2": {
+  "horiz_pos_rel_pct": 100.0,
+  "healthy_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": false,
+   "no_breach": false,
+   "max_abs_x_flight": 9.601815214729196,
+   "pass": false
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 9.601815214729196,
+   "pass": false
+  },
+  "B3": {
+   "p95_deg": 14.981232295721773,
+   "max_deg": 18.96236068577584,
+   "mean_deg": 6.142607106915161,
+   "diag_y_le_140": {
+    "p95": 14.981232295721773,
+    "max": 18.96236068577584
+   },
+   "diag_y_gt_140": null,
+   "pass": false,
+   "estimator": "ukf"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.14552967556848984,
+   "rms_mps": 0.06852740810129217,
+   "t_rel_cruise_of_max_s": 175.2500000000274,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.001745401481585203,
+    "pitch": 0.0020641628733999357,
+    "yaw": 0.0019217368369960754
+   },
+   "window_s": [
+    34.635999999999996,
+    201.665
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.001745401481585203,
+     "pitch": 0.0020641628733999357,
+     "yaw": 0.0019217368369960754
+    },
+    "window_s": [
+     34.635999999999996,
+     201.665
+    ],
+    "pass": true
+   }
+  },
+  "pass": false
+ }
+}

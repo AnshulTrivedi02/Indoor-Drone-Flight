@@ -4,13 +4,15 @@ Registration: `docs/thesis/closed_loop_extras/preregistration.md`, committed at 
 `docs/thesis/tier1/decisions_log.md`). `numbers.md` stays frozen (`tools/check_numbers_frozen.py`: PASS,
 confirmed after this work, not touched by it). This file adds the new values only.
 
-**Builds, verified before flying** (md5 of the glob, binary name never typed on a command line): EKF3
-`~/ardupilot/build/sitl/bin/arduc*` = `43a2165a1bb6fdde385f6367c6c105b8` (matches the registered
-`43a2165a1bb6…`); UKF `~/ardupilot_ukf/build/sitl/bin/arduc*` = `5f94ea1aa7e223f90343c1948d443d32` (matches
-the registered `5f94ea1aa7e2…`, port `abb0357d`). Every EKF3 flight's `~/thesis_data/closed_loop/<name>/launch.txt`
-records `ARDUPILOT_TREE=` (empty), and each `result.txt` shows `ardupilot.bin copied from
-/home/makerspace/ardupilot/ArduCopter/logs/...` (the EKF3 tree, not `ardupilot_ukf`), confirming the EKF3
-build flew for every EKF3-labelled flight.
+**Builds, verified before the first flight and again after the last** (md5 of the glob, binary name never
+typed on a command line): EKF3 `~/ardupilot/build/sitl/bin/arduc*` = `43a2165a1bb6fdde385f6367c6c105b8`
+(matches the registered `43a2165a1bb6…`); UKF `~/ardupilot_ukf/build/sitl/bin/arduc*` =
+`5f94ea1aa7e223f90343c1948d443d32` (matches the registered `5f94ea1aa7e2…`, port `abb0357d`). Both md5s are
+unchanged from the pre-flight check; `stat` confirms neither binary's mtime moved during this session
+(EKF3 2026-07-22, UKF 2026-10-09, both predating this work). `grep -H ARDUPILOT_TREE
+~/thesis_data/closed_loop/cl_{a_tex,ukf_a_tex}*/launch.txt` shows every EKF3-labelled flight's
+`ARDUPILOT_TREE=` empty and every UKF-labelled flight's `ARDUPILOT_TREE=/home/makerspace/ardupilot_ukf`,
+confirming which build flew which flight.
 
 **D136 derotation disclosure.** Both the offline UKF and this flown port remove the UKF's own gyro bias from
 the flow derotation when the UKF is flying; they differ only in gyro source and timing (offline: frame-averaged
@@ -23,16 +25,22 @@ not built into `abb0357d` and are not flown here.
 **Scorer disclosure.** The pre-registration (section 4) states that `--set a --est ukf` "adds S2". At the
 registration commit, `--est` only changes behaviour inside the `--set b` branch of
 `eval/closed_loop_score.py`; for `--set a`, the output is `a_primary` only, identically whether `--est ukf`
-is passed or not. **Verified, not assumed**: all nine `--set a` jsons stored under `eval/results/` were
-produced by the exact registered call (five of the nine UKF-labelled flights, the two half-speed `_r2`/`_r3`
-and both already included `--est ukf`; for the three full-speed flights, the stored json omitted `--est`, so
-each was re-run to a scratch file with `--est ukf` added and `diff`'d against the stored json: all three are
-byte-identical).
+is passed or not. **Verified, not assumed, for every UKF-labelled flight's stored `--set a` json**: the two
+half-speed new flights (`cl_ukf_a_tex_half_v2_r2`, `_r3`) were themselves scored with `--set a --est ukf`, so
+nothing further is needed there. The three full-speed new flights (`cl_ukf_a_tex_v2_r1..r3`) were scored
+with plain `--set a` (no `--est`); each was separately re-run to a scratch file with `--est ukf` added, and
+`diff`'d byte-for-byte against the stored json: all three are identical, confirming `--est` made no
+difference for these too.
 
 Because of this, **U1 and S2 are additionally scored here for the five new UKF flights**, using
-`eval/closed_loop_score.py <trial> --set b --est ukf` (to a scratch path, not `eval/results/closed_loop_<trial>.json`,
-which stays the registered `--set a` output) for S2, plus `logs/fly_trial.log` and the dataflash `ERR`/`MSG`
-stream for U1:
+`eval/closed_loop_score.py <trial> --set b --est ukf`, saved to `eval/results/closed_loop_extras_s2/<trial>_setb_est_ukf.json`
+(a non-registered path; the registered `--set a` output under `eval/results/closed_loop_<trial>.json` is
+unchanged) for S2, plus `logs/fly_trial.log` and the dataflash `ERR`/`MSG` stream (via
+`eval/results/closed_loop_extras_s2/failsafe_check.py`, output in `failsafe_check_output.txt` in the same
+directory) for U1. **Read only the `S2` key from these five files.** Their top-level `"pass": false` and
+`B.B3.pass: false` are the with-heading set's B3 (yaw-error bound), which fails by design on these no-heading
+flights and is not part of this registration; it is not evidence of a problem with the flight or the
+estimator here.
 - **S2** ("the estimator is valid throughout"): the scorer's `S2` block, `XUKS` `horiz_pos_rel`/healthy from
   arming to disarm (or to the flight's last sample, since every flight here ends in a watcher stop, not a
   normal disarm). **100 % / 100 % on all five** (PASS on all five).
@@ -66,6 +74,12 @@ re-derived.
 **IMU-gap rule**, run on every new flight before scoring (`eval/imu_gap_check.py <trial> --write`, writing
 `imu_gaps.json` into each new trial directory): **9/9 "ok"** (usable). No re-flies were needed; no `...b`
 flights exist.
+
+**Cruise-start timing, descriptive only.** `cruise_s[0]` (from the registered scorer's own `cruise_bounds`)
+is 36.2-36.8 s for `cl_a_tex_r2`, `cl_a_tex_r3` and `cl_a_tex_half_r2`, against 29.6-31.1 s for every other
+flight in this set, including the other EKF3 flights and all UKF flights. Take-off itself (`fly_trial.log`)
+is consistently about 28.0 s wall-clock-gated in every flight. No verdict is affected: every window margin
+above is at least 19 s. Recorded here rather than left for a later reader to notice.
 
 **Not part of this flying session**: `docs/thesis/tier1/decisions_log.md` and
 `docs/thesis/refly_priors/preregistration.md` carry uncommitted changes from a different, concurrent piece of

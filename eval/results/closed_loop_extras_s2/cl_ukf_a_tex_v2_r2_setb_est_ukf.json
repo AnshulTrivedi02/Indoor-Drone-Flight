@@ -1,0 +1,94 @@
+{
+ "trial": "cl_ukf_a_tex_v2_r2",
+ "set": "b",
+ "cruise_s": [
+  30.354,
+  168.687
+ ],
+ "cruise_len_s": 138.33300000000003,
+ "clock_map": {
+  "offset_ms_start": -0.9708672148771081,
+  "rate_ppm": 240.3773690876681
+ },
+ "contact": {
+  "t_rel_cruise_s": 138.262,
+  "x": -9.5803268770222,
+  "y": 69.45251961223758,
+  "wall": "west"
+ },
+ "completed": false,
+ "watcher_breach": "wall contact: |x| = 9.580 m >= 9.58\nt=168.616 x=-9.580 y=69.453 z=2.418",
+ "diag_B3_other_estimator": {
+  "ekf3": {
+   "p95_deg": 8.889000000000006,
+   "max_deg": 9.729999999999954,
+   "mean_deg": 3.650477223427332,
+   "diag_y_le_140": {
+    "p95": 8.889000000000006,
+    "max": 9.729999999999954
+   },
+   "diag_y_gt_140": null,
+   "pass": false
+  }
+ },
+ "S2": {
+  "horiz_pos_rel_pct": 100.0,
+  "healthy_pct": 100.0,
+  "pass": true
+ },
+ "B": {
+  "B1": {
+   "completed": false,
+   "no_breach": false,
+   "max_abs_x_flight": 9.592290815617178,
+   "pass": false
+  },
+  "B2": {
+   "max_abs_x_cruise_m": 9.592290815617178,
+   "pass": false
+  },
+  "B3": {
+   "p95_deg": 15.871215973267741,
+   "max_deg": 20.063282705874826,
+   "mean_deg": 7.8224969757056755,
+   "diag_y_le_140": {
+    "p95": 15.871215973267741,
+    "max": 20.063282705874826
+   },
+   "diag_y_gt_140": null,
+   "pass": false,
+   "estimator": "ukf"
+  },
+  "B4": {
+   "max_abs_lat_speed_mps": 0.1507866666136337,
+   "rms_mps": 0.08016240178343277,
+   "t_rel_cruise_of_max_s": 136.54000000002134,
+   "pass": true
+  },
+  "B5": {
+   "gyro_rms": {
+    "roll": 0.0017566321255787388,
+    "pitch": 0.001397505660932103,
+    "yaw": 0.0022783256926232885
+   },
+   "window_s": [
+    35.379999999999995,
+    163.548
+   ],
+   "pass": true,
+   "as_first_scored": {
+    "gyro_rms": {
+     "roll": 0.0017566321255787388,
+     "pitch": 0.001397505660932103,
+     "yaw": 0.0022783256926232885
+    },
+    "window_s": [
+     35.379999999999995,
+     163.548
+    ],
+    "pass": true
+   }
+  },
+  "pass": false
+ }
+}

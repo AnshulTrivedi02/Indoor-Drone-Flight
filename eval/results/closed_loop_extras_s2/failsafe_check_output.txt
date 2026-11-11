@@ -1,0 +1,10 @@
+cl_ukf_a_tex_v2_r1 ERR ERR {TimeUS : 2629974, Subsys : 3, ECode : 0}
+cl_ukf_a_tex_v2_r1 total flagged: 1
+cl_ukf_a_tex_v2_r2 ERR ERR {TimeUS : 3329000, Subsys : 3, ECode : 0}
+cl_ukf_a_tex_v2_r2 total flagged: 1
+cl_ukf_a_tex_v2_r3 ERR ERR {TimeUS : 3336000, Subsys : 3, ECode : 0}
+cl_ukf_a_tex_v2_r3 total flagged: 1
+cl_ukf_a_tex_half_v2_r2 ERR ERR {TimeUS : 3327000, Subsys : 3, ECode : 0}
+cl_ukf_a_tex_half_v2_r2 total flagged: 1
+cl_ukf_a_tex_half_v2_r3 ERR ERR {TimeUS : 3338000, Subsys : 3, ECode : 0}
+cl_ukf_a_tex_half_v2_r3 total flagged: 1
