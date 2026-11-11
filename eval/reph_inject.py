@@ -190,6 +190,25 @@ def _walk(data):
             name = f"FMT({D._cstr(nm)})"
         out.append((i, i + f.length, name, data[i + 2]))
         i += f.length
+    covered_end = out[-1][1] if out else 0
+    if covered_end < n:
+        # BUGFIX (found 2026-11-12 against real fwdplainc_tex_r1/fwdplainc_trans_r1 logs, both of
+        # which end mid-header -- 2 and 1 trailing bytes respectively, "\xa3\x95" / "\xa3", i.e. the
+        # log was truncated exactly while writing a new record's 3-byte header, presumably at
+        # disarm/shutdown). The main loop's `while i + 3 <= n` condition stops BEFORE even looking at
+        # a final run of fewer than 3 bytes, so they were silently dropped by every caller of
+        # _walk() -- never copied through by strip()/inject() either, which both reconstruct the
+        # file purely from this record list. Treat a trailing <3-byte remainder the same as any
+        # other unparseable run: one final (covered_end, n, None, None) entry, copied through
+        # verbatim by strip()/inject() like any other skip. Deliberately keyed on out[-1][1]
+        # ("covered_end"), NOT the loop variable `i` -- the i+f.length > n branch above already
+        # appends its own (i, n, ...) entry and `break`s WITHOUT advancing i, so using `i < n` here
+        # double-appended an identical entry on every log whose last record is truncated that way
+        # (e.g. a trailing XKF1 row with no room for the next record's header): found and fixed in
+        # the same session, against fwdc_tex_r1, which has exactly this shape. Exercised by
+        # reph_inject_test.py's test_trailing_stray_bytes_at_eof and
+        # test_truncated_final_record_no_duplicate_tail_entry.
+        out.append((covered_end, n, None, None))
     assert out[-1][1] == n if out else n == 0
     return out, fmts
 

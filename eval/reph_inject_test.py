@@ -231,6 +231,72 @@ def test_zero_records_real_log_if_present():
         assert byte_identical
 
 
+def test_trailing_stray_bytes_at_eof():
+    """BUGFIX regression (found 2026-11-12, EKF3 heading Replay stage 2, against the real
+    fwdplainc_tex_r1/fwdplainc_trans_r1 arm-(ii) target logs): a log can end mid-header --
+    fwdplainc_tex_r1 ends with 2 stray bytes ("\\xa3\\x95"), fwdplainc_trans_r1 with 1
+    ("\\xa3") -- fewer than the 3 bytes _walk()'s main loop needs to even inspect them. The
+    old code silently dropped that trailing remainder from its record list (out[-1][1] < n),
+    which strip()/inject() then failed to copy through at all: `inject()` on either real log
+    previously raised AssertionError inside `load()` before any REPH logic ran. Reproduced
+    here with a tiny synthetic log carrying the same 1- and 2-byte trailing remainders, and
+    checked against both real logs directly (skipped, not failed, if absent on this machine)."""
+    base = frame_sequence(2)
+    for n_trailing, tail in ((1, b"\xa3"), (2, b"\xa3\x95")):
+        data = fmt_header() + base + tail
+        with tempfile.TemporaryDirectory() as d:
+            in_path = os.path.join(d, "in.bin")
+            open(in_path, "wb").write(data)
+            out_path = os.path.join(d, "out.bin")
+            n_removed, byte_identical = R.strip(in_path, out_path)
+            assert n_removed == 0, n_removed
+            assert byte_identical, f"{n_trailing}-byte trailing remainder not preserved"
+    for real in ("fwdplainc_tex_r1", "fwdplainc_trans_r1"):
+        p = os.path.expanduser(f"~/thesis_data/trials/{real}/ardupilot.bin")
+        if not os.path.exists(p):
+            print(f"SKIP  test_trailing_stray_bytes_at_eof: {real} not present on this machine")
+            continue
+        with tempfile.TemporaryDirectory() as d:
+            out_path = os.path.join(d, "out.bin")
+            n_removed, byte_identical = R.strip(p, out_path)
+            assert n_removed == 0, n_removed
+            assert byte_identical, f"{real}: trailing remainder not preserved"
+
+
+def test_truncated_final_record_no_duplicate_tail_entry():
+    """BUGFIX regression, round 2 (found immediately after the fix above, against the real
+    fwdc_tex_r1 log): a log whose LAST record is itself truncated (not enough bytes left for
+    its declared length -- _walk()'s existing "i + f.length > n" branch, which appends its own
+    (i, n, None, None) entry and `break`s WITHOUT advancing `i`) was double-counted by the
+    first attempt at this fix, which keyed the new trailing-remainder check on the loop
+    variable `i` rather than on what `out` actually covers: `i < n` was still true after that
+    `break` (i never advanced past the truncated record's start), so an IDENTICAL second
+    (i, n, None, None) entry was appended, inflating strip()'s output by (n - i) bytes
+    (reproduced: 16 extra bytes on fwdc_tex_r1, whose last record is an XKF1 row with no room
+    left for a full next record). Fixed by keying on `out[-1][1]` ("covered_end") instead.
+    Reproduced here with a tiny synthetic log carrying a truncated final record, and checked
+    against fwdc_tex_r1 directly (skipped, not failed, if absent)."""
+    good = fmt_header() + frame_sequence(2)
+    data = good + good[:10]          # a truncated RFRH-shaped tail: declared length 12, only 10 bytes follow
+    with tempfile.TemporaryDirectory() as d:
+        in_path = os.path.join(d, "in.bin")
+        open(in_path, "wb").write(data)
+        out_path = os.path.join(d, "out.bin")
+        n_removed, byte_identical = R.strip(in_path, out_path)
+        assert n_removed == 0, n_removed
+        assert byte_identical, f"expected byte-identical, got {os.path.getsize(out_path)} vs {len(data)} bytes"
+    real = os.path.expanduser("~/thesis_data/trials/fwdc_tex_r1/ardupilot.bin")
+    if not os.path.exists(real):
+        print("SKIP  test_truncated_final_record_no_duplicate_tail_entry: fwdc_tex_r1 not present on this machine")
+        return
+    with tempfile.TemporaryDirectory() as d:
+        out_path = os.path.join(d, "out.bin")
+        n_removed, byte_identical = R.strip(real, out_path)
+        assert n_removed == 0, n_removed
+        assert byte_identical, (f"fwdc_tex_r1: expected byte-identical, got "
+                                 f"{os.path.getsize(out_path)} vs {os.path.getsize(real)} bytes")
+
+
 def test_double_delivery_gap_reinjects_both_in_time_order():
     """Two REPH rows sharing one inter-frame gap: both reinjected records must land in
     that SAME gap (immediately after the RFRF before frame 10's RFRH, before frame 10's
@@ -415,6 +481,8 @@ def main():
     check("zero records: synthetic log byte-identical after strip", test_zero_records_byte_identical_synthetic)
     check("inject() with an EMPTY records list is byte-identical (the brief's own wording)", test_inject_zero_records_byte_identical)
     check("zero records: real fwdc_tex_r1 byte-identical after strip (skips if absent)", test_zero_records_real_log_if_present)
+    check("trailing stray bytes at EOF preserved (bugfix regression)", test_trailing_stray_bytes_at_eof)
+    check("truncated final record: no duplicate tail entry (bugfix round 2 regression)", test_truncated_final_record_no_duplicate_tail_entry)
     check("double-delivery gap: both reinjected in the same gap, time-ordered", test_double_delivery_gap_reinjects_both_in_time_order)
     check("double-delivery gap: documented non-byte-identical case", test_double_delivery_gap_not_byte_identical)
     check("insertion past the last RFRH appends at EOF, prefix untouched", test_eof_append)

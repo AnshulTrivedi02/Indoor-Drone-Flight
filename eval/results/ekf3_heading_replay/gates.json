@@ -1,0 +1,225 @@
+{
+ "written_local": "2026-11-12T00:51:57",
+ "timebox_deadline_aedt": "2026-11-13T18:00:00+11:00",
+ "order_deviation_disclosed": "arm (i) (step 3) was run to completion before the sign check (step 2); arm (i) carries no injection and is unaffected by the sign check's outcome, so no rerun is needed. The sigma-option code edits (step 5) to ukf_replay.py/fgo_replay.py were ALSO prepared before arm (ii) completed (while waiting on the slow per-frame sign-check job); the edited scripts are not RUN with FWD_SIGMA_PSI_DEG set, and the default-path byte-identity proof is not claimed, until after arm (ii) and its own gate, per the pre-registration's section 0 item 7 order.",
+ "round_trip_check": {
+  "replay_binary": "/home/makerspace/ardupilot_diag/build/sitl/tool/Replay",
+  "replay_binary_sha256": "415e69650ac7f5c7d658b3e3c8a021b2e66cea8f7617c62ce1c91c61df08eda2",
+  "sha256_matches_preregistration_record": true,
+  "template": "cl_bcpp_tex_r1_half",
+  "template_EK3_SRC1_POSXY": 0.0,
+  "template_EK3_SRC1_VELXY": 5.0,
+  "template_EK3_SRC1_YAW": 6.0,
+  "mode1_mechanics_byte_diff": {
+   "bytes_differing": 928,
+   "total_bytes": 31150080,
+   "pct_byte_identical": 99.997
+  },
+  "zero_record_strip_byte_identical_real_log": {
+   "log": "fwdc_tex_r1",
+   "bytes": 30789632,
+   "byte_identical": true
+  },
+  "unit_tests": "10/10 PASS (eval/reph_inject_test.py, re-run this session)",
+  "replay_level_compare_original_vs_reinjected": {
+   "parm": [
+    [
+     "EK3_SRC1_YAW",
+     "6"
+    ]
+   ],
+   "fields": {
+    "XKF1_core100": {
+     "n_a": 3435,
+     "n_b": 3435,
+     "field_for_field_identical": true
+    },
+    "XKF1_core101": {
+     "n_a": 3435,
+     "n_b": 3435,
+     "field_for_field_identical": true,
+     "note": "core 101 reported, not scored -- eval/d8_ekf3_retime.py's own convention scores core 100 only"
+    },
+    "XKF4": {
+     "n_a": 13740,
+     "n_b": 13740,
+     "field_for_field_identical": true
+    },
+    "XKFS": {
+     "n_a": 13740,
+     "n_b": 13740,
+     "field_for_field_identical": true
+    }
+   },
+   "round_trip_check": "PASS"
+  },
+  "replay_level_compare_original_vs_stripped_DIAGNOSTIC_non_vacuity": {
+   "parm": [
+    [
+     "EK3_SRC1_YAW",
+     "6"
+    ]
+   ],
+   "fields": {
+    "XKF1_core100": {
+     "n_a": 3435,
+     "n_b": 3435,
+     "field_for_field_identical": false
+    },
+    "XKF1_core101": {
+     "n_a": 3435,
+     "n_b": 3435,
+     "field_for_field_identical": false,
+     "note": "core 101 reported, not scored -- eval/d8_ekf3_retime.py's own convention scores core 100 only"
+    },
+    "XKF4": {
+     "n_a": 13740,
+     "n_b": 13740,
+     "field_for_field_identical": false
+    },
+    "XKFS": {
+     "n_a": 13740,
+     "n_b": 13740,
+     "field_for_field_identical": true
+    }
+   },
+   "round_trip_check": "FAIL",
+   "note": "REPH removal changes XKF1/XKF4 (XKFS does not change -- XKFS's logged field is MAG_FUSION (0=not fusing compass/1=fuse yaw via compass/2=fuse mag, per CLAUDE.md's established definition), which tracks COMPASS/mag fusion only; EK3_SRC1_YAW stays 6 (ExternalNav) throughout BOTH compared runs, in --parm identically, so MAG_FUSION has no reason to move either way -- this is not evidence about ext-nav yaw fusion specifically). max |delta Yaw| 40.41 deg, mean 12.61 deg; max position delta 32.4 m, mean 8.7 m (a knock-on of the yaw divergence propagating into flow dead-reckoning, not direct REPH position fusion -- EK3_SRC1_POSXY stays 0/None in the template). This shows the PASS above is not vacuous: Replay is sensitive to REPH content under this config."
+  },
+  "verdict": "PASS"
+ },
+ "arm_i_reproduction": {
+  "n_bags": 18,
+  "n_pass_le_1mm": 18,
+  "per_bag": {
+   "fwdc_tex_r1": {
+    "result_evo_a_cruise": 4.092895,
+    "stored_ekf3_evo_a_cruise": 4.092895,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_tex_r2": {
+    "result_evo_a_cruise": 3.603274,
+    "stored_ekf3_evo_a_cruise": 3.603274,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_tex_r3": {
+    "result_evo_a_cruise": 4.075574,
+    "stored_ekf3_evo_a_cruise": 4.075574,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_trans_r1": {
+    "result_evo_a_cruise": 41.481515,
+    "stored_ekf3_evo_a_cruise": 41.481515,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_trans_r2": {
+    "result_evo_a_cruise": 41.489457,
+    "stored_ekf3_evo_a_cruise": 41.489457,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_trans_r3": {
+    "result_evo_a_cruise": 41.465825,
+    "stored_ekf3_evo_a_cruise": 41.465825,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_blank_r1": {
+    "result_evo_a_cruise": 43.573453,
+    "stored_ekf3_evo_a_cruise": 43.573453,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_blank_r2": {
+    "result_evo_a_cruise": 43.54297,
+    "stored_ekf3_evo_a_cruise": 43.54297,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdc_blank_r3": {
+    "result_evo_a_cruise": 43.61236,
+    "stored_ekf3_evo_a_cruise": 43.61236,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_tex_r1": {
+    "result_evo_a_cruise": 4.075241,
+    "stored_ekf3_evo_a_cruise": 4.075241,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_tex_r2": {
+    "result_evo_a_cruise": 4.056744,
+    "stored_ekf3_evo_a_cruise": 4.056744,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_tex_r3": {
+    "result_evo_a_cruise": 4.082146,
+    "stored_ekf3_evo_a_cruise": 4.082146,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_trans_r1": {
+    "result_evo_a_cruise": 41.478765,
+    "stored_ekf3_evo_a_cruise": 41.478765,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_trans_r2": {
+    "result_evo_a_cruise": 41.440278,
+    "stored_ekf3_evo_a_cruise": 41.440278,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_trans_r3": {
+    "result_evo_a_cruise": 41.440708,
+    "stored_ekf3_evo_a_cruise": 41.440708,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_blank_r1": {
+    "result_evo_a_cruise": 43.452781,
+    "stored_ekf3_evo_a_cruise": 43.452781,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_blank_r2": {
+    "result_evo_a_cruise": 43.510757,
+    "stored_ekf3_evo_a_cruise": 43.510757,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   },
+   "fwdplainc_blank_r3": {
+    "result_evo_a_cruise": 43.540103,
+    "stored_ekf3_evo_a_cruise": 43.540103,
+    "reproduction_diff_m": 0.0,
+    "pass_le_1mm": true
+   }
+  },
+  "note": "Every reproduction_diff_m is exactly 0.0, independently confirmed NOT vacuous on fwdc_tex_r1: the freshly Replayed core-100 XKF1 rows (3446/3446) are bit-identical to the ORIGINAL live flight's own core-0 XKF1 rows -- ArduPilot Replay deterministically reproduces EKF3's computation from the DAL log given identical params, which is the whole point of the tool; this is independent re-computation, not a read of cached/stored data twice.",
+  "verdict": "PASS"
+ },
+ "sign_check": {
+  "bag": "fwdc_tex_r1",
+  "tool": "eval/heading_bridge_offline.py",
+  "frames_matched_stored_phase3": "10238/10238 (psi, support, validity all identical)",
+  "node_convention_err_abs_p95_deg": 0.4064533269546499,
+  "opposite_sign_err_abs_p95_deg": 0.43221189501536267,
+  "node_convention_offset_deg_TEST_ONLY": -0.0192835567759712,
+  "selected": "node convention (offset - psi)",
+  "note": "Node convention wins on every summary stat (mean/sd/p95). The TEST-ONLY offset (-0.0193 deg, derived from on-ground frames vs dataflash SIM.Yaw, never used operationally) is also independent evidence for arm (ii)'s OFFSET=0 choice: it is within 0.02 deg of 0, consistent with the corridor-axis-is-ArduPilot-yaw-zero spawn geometry, not assumed.",
+  "verdict": "PASS"
+ },
+ "arm_ii_injection": {
+  "n_bags": 18,
+  "all_succeeded": true,
+  "bug_found_and_fixed": "eval/reph_inject.py's _walk() silently dropped a log's trailing <3-byte remainder (found against fwdplainc_tex_r1/fwdplainc_trans_r1, which end mid-header) -- AssertionError on first attempt, both bags. First fix attempt (keying a new trailing-entry check on the loop variable `i`) introduced a SECOND bug: it double-appended an identical skip entry on any log whose LAST record is itself truncated (the pre-existing 'i + f.length > n' branch already appends its own entry and breaks without advancing `i`) -- found against fwdc_tex_r1 (+16 bytes on strip()). Fixed by keying on out[-1][1] ('covered_end') instead of `i`. Both regressions added to eval/reph_inject_test.py (12/12 pass). Verified the fix changed NOTHING already computed: reinjected.bin == reinjected_v2.bin (the round-trip template) and arms/fwdc_tex_r1/heading/injected.bin == a fresh fixed-code reinjection, both exact byte-for-byte matches -- neither bug was present in the code when the round-trip Replay compare, arm (i) (18 bags), or fwdc_tex_r1's arm (ii) were run; the two originally-failing bags were simply re-run once fixed, and the other 16 bags never exercised the new code paths at all.",
+  "input_count_note": "Every arm (ii) record set = measurement_models.forward_events(trial, 'heading')'s full valid output (matches the preregistration's own definition of the input, section 5), NOT the stored fgo_heading/fwd_stats.json 'psi_valid' count, which is smaller for every bag checked (e.g. fwdc_tex_r1: 9654 vs 9539, a 1.2% difference). Partially characterised, not fully: only 1 of fwdc_tex_r1's 9654 valid frames falls before its first IMU sample (10.696 s) and 13 fall after t=348s (near landing); that accounts for 14 of the 115-frame gap, not all of it. The remaining ~101 frames' exclusion from fgo_heading's own count is NOT verified here -- stated as an open item, not asserted as explained.",
+  "evo_ape_a_nan_on_fwdplainc_blank": "fwdplainc_blank_r1/r2/r3's arm (ii) result_evo_a_cruise is NaN: evo_ape reports 'Degenerate covariance rank, Umeyama alignment is not possible' because the replayed EKF3 position estimate is EXACTLY (0,0) for every sample in the pinned cruise window (checked directly: est range x=[0,0], y=[0,0]). This is a known characteristic of this no-flow-signal floor condition, not specific to arm (ii) or to this tool -- arm (i)'s baseline on the same bag also spends most of the flight in const_pos_mode (horiz_pos_rel true only 6.3% of samples) and its own evo -a (cruise) number (43.45 m) reflects a frozen-near-origin estimate against a moving ground truth, not a meaningful ATE. Phase 4's own scoring already anticipates this by computing SEPARATE 'failure metrics' (final displacement ratio, divergence onset) for transition/blank bags alongside evo -a (cruise); the same failure metrics (eval/three_way_eval.failure_metrics()) are used for arm (i)/(ii) in the final scoring step, not a substitute number for the NaN."
+ }
+}
