@@ -1,0 +1,229 @@
+{
+ "gate": "h_comparative_2026-10-11.json reproduced exactly",
+ "new": {
+  "EKF3 (S1 far, flying)": [
+   {
+    "file": "s1far_r1",
+    "flying_key": "EKF3",
+    "hold_mean_mm": 7.756177984355887,
+    "gyro_hp_rms_rad_s": 0.009292292931553418,
+    "loss_durations_s": [
+     5.12,
+     15.18,
+     30.13,
+     7.26
+    ],
+    "jump_5s_mm": 4.186589732908369,
+    "jump_5s_eff_mm": 4.186589732908369,
+    "jump_15s_mm": 4.9399159793235565,
+    "jump_15s_eff_mm": 4.9399159793235565
+   },
+   {
+    "file": "s1far_r2",
+    "flying_key": "EKF3",
+    "hold_mean_mm": 7.925686131005364,
+    "gyro_hp_rms_rad_s": 0.009037146965569908,
+    "loss_durations_s": [
+     5.12,
+     15.25,
+     30.13,
+     7.19
+    ],
+    "jump_5s_mm": 4.457996717846584,
+    "jump_5s_eff_mm": 4.457996717846584,
+    "jump_15s_mm": 4.510228504482782,
+    "jump_15s_eff_mm": 4.510228504482782
+   },
+   {
+    "file": "s1far_r3b",
+    "flying_key": "EKF3",
+    "hold_mean_mm": 7.840027331498302,
+    "gyro_hp_rms_rad_s": 0.009005723318077752,
+    "loss_durations_s": [
+     5.12,
+     15.12,
+     30.14,
+     7.43
+    ],
+    "jump_5s_mm": 4.929091455893121,
+    "jump_5s_eff_mm": 4.929091455893121,
+    "jump_15s_mm": 7.274524235238378,
+    "jump_15s_eff_mm": 7.274524235238378
+   }
+  ],
+  "sets": {
+   "re-flown (S2v2 jitter-corrected UKF, S3rp corrected-prior FGO)": {
+    "UKF": [
+     {
+      "file": "s2v2_r1",
+      "flying_key": "UKF_port",
+      "hold_mean_mm": 6.399353561172662,
+      "gyro_hp_rms_rad_s": 0.02231828761821859,
+      "loss_durations_s": [
+       5.33,
+       15.25,
+       30.14,
+       7.69
+      ],
+      "jump_5s_mm": 16.452834632645608,
+      "jump_5s_eff_mm": 16.452834632645608,
+      "jump_15s_mm": 29.62690873417827,
+      "jump_15s_eff_mm": 29.62690873417827
+     },
+     {
+      "file": "s2v2_r2",
+      "flying_key": "UKF_port",
+      "hold_mean_mm": 7.113177865278859,
+      "gyro_hp_rms_rad_s": 0.02328623691063683,
+      "loss_durations_s": [
+       5.18,
+       15.12,
+       30.14,
+       7.19
+      ],
+      "jump_5s_mm": 6.602939451139808,
+      "jump_5s_eff_mm": 6.602939451139808,
+      "jump_15s_mm": 20.370527826445297,
+      "jump_15s_eff_mm": 20.370527826445297
+     },
+     {
+      "file": "s2v2_r3",
+      "flying_key": "UKF_port",
+      "hold_mean_mm": 6.729244358963897,
+      "gyro_hp_rms_rad_s": 0.022505274486710462,
+      "loss_durations_s": [
+       5.12,
+       15.6,
+       30.14,
+       7.87
+      ],
+      "jump_5s_mm": 15.656995456130199,
+      "jump_5s_eff_mm": 15.656995456130199,
+      "jump_15s_mm": 25.619927667777805,
+      "jump_15s_eff_mm": 25.619927667777805
+     }
+    ],
+    "FGO": [
+     {
+      "file": "s3rp_r1",
+      "flying_key": "FGO_flying",
+      "hold_mean_mm": 7.308168140370087,
+      "gyro_hp_rms_rad_s": 0.01999695185343985,
+      "loss_durations_s": [
+       5.15,
+       15.12,
+       30.13,
+       7.59
+      ],
+      "jump_5s_mm": 21.498959020461584,
+      "jump_5s_eff_mm": 21.498959020461584,
+      "jump_15s_mm": 24.03167147477159,
+      "jump_15s_eff_mm": 24.03167147477159
+     },
+     {
+      "file": "s3rp_r2",
+      "flying_key": "FGO_flying",
+      "hold_mean_mm": 8.340186767119762,
+      "gyro_hp_rms_rad_s": 0.019474337732661988,
+      "loss_durations_s": [
+       5.12,
+       15.15,
+       30.13,
+       7.19
+      ],
+      "jump_5s_mm": 9.55822624702547,
+      "jump_5s_eff_mm": 9.55822624702547,
+      "jump_15s_mm": 7.091373996352318,
+      "jump_15s_eff_mm": 7.091373996352318
+     },
+     {
+      "file": "s3rp_r3",
+      "flying_key": "FGO_flying",
+      "hold_mean_mm": 7.487777412629619,
+      "gyro_hp_rms_rad_s": 0.020374705685660216,
+      "loss_durations_s": [
+       5.12,
+       15.12,
+       30.34,
+       7.19
+      ],
+      "jump_5s_mm": 16.814613030397688,
+      "jump_5s_eff_mm": 16.814613030397688,
+      "jump_15s_mm": 7.820953862747289,
+      "jump_15s_eff_mm": 7.820953862747289
+     }
+    ],
+    "criteria": {
+     "runs": [
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.4018062907200646,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 5.135196040698867,
+       "hh4b": false
+      },
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.576724379868302,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 2.1440630964938285,
+       "hh4b": false
+      },
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.498996881409205,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 3.4113006790114393,
+       "hh4b": false
+      }
+     ],
+     "H-H2": "FAIL (0/3 FGO lowest)",
+     "P-H3": "FAIL (0/3 within 1.5x)",
+     "H-H4 (15 s)": "FAIL (0/3 EKF3 largest)",
+     "H-H4 (5 s)": "FAIL (0/3 within 1.5x)"
+    },
+    "criteria_effective_jump": {
+     "runs": [
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.4018062907200646,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 5.135196040698867,
+       "hh4b": false
+      },
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.576724379868302,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 2.1440630964938285,
+       "hh4b": false
+      },
+      {
+       "hh2": false,
+       "lowest_hold": "UKF",
+       "ph3_ratio": 2.498996881409205,
+       "ph3": false,
+       "hh4a": false,
+       "hh4b_ratio": 3.4113006790114393,
+       "hh4b": false
+      }
+     ],
+     "H-H2": "FAIL (0/3 FGO lowest)",
+     "P-H3": "FAIL (0/3 within 1.5x)",
+     "H-H4 (15 s)": "FAIL (0/3 EKF3 largest)",
+     "H-H4 (5 s)": "FAIL (0/3 within 1.5x)"
+    }
+   }
+  }
+ }
+}
