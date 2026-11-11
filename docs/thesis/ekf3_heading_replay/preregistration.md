@@ -1,12 +1,42 @@
-# EKF3 + camera heading via ArduPilot Replay — pre-registration (DRAFT, not registered)
+# EKF3 + camera heading via ArduPilot Replay: pre-registration
 
-**Status: DRAFT.** Written under the Stage-1 brief (2026-11-11). This document is NOT a
-registered pre-registration — it is reviewed and (if accepted) committed as final by the
-coordinator before any Replay or estimator run. Nothing in "Your tasks (stage 1)" of the
+**Status: REGISTERED** by the coordinator's commit of this file to `fwd-camera`, before any Replay or estimator run
+for it. Drafted under the Stage-1 brief (2026-11-11); the coordinator's rulings on the draft's open items are in
+§0 below and take precedence over any "PROPOSAL" or "not decided" wording later in the document. User approval
+2026-11-11 (D131, D132); time-box: if the round-trip check has not passed by **2026-11-13 18:00**, the work stops, is
+logged as future work, and the current thesis wording stays. Nothing in "Your tasks (stage 1)" of the
 brief was run to produce a thesis result; the one exception is the injector's own unit
 tests and a read-only, scratch-only validation of the round-trip mechanics against a
 real log (see "Round-trip check" below) — both diagnostic, neither a flight nor an
 estimator replay.
+
+## 0. Coordinator rulings on the draft's open items (decision D139, 2026-11-11; binding)
+
+1. **Injection timing (§8.4: `TS`, `D`, `placement_latency_ms`).** Arm (ii) receives each heading at its **capture
+   time**, as the offline UKF and FGO arms do (they fuse each forward measurement at its capture stamp; no live bridge
+   latency is modelled for any arm):
+   - `TS` = the Phase 3 capture stamp mapped to the SITL `TimeUS` clock with `eval/input_timing.py`'s `clock_map()`
+     (offset and rate), the tool already used for this mapping;
+   - `D` (`delay_ms`) = 0, and `placement_latency_ms` = 0 (the record is placed at the first frame boundary at or after
+     `TS`);
+   - DIAGNOSTIC, reported per bag: the share of injected records whose `TS − D − localFilterTimeStep_ms/2` falls behind
+     EKF3's `imuDataDelayed.time_ms` horizon (and is therefore clamped to it).
+2. **Heading σ for arms (iii)/(iv).** The replays have no heading-σ argument. An **additive** option is approved (an
+   environment variable or CLI flag in `ukf_replay.py` / `fgo_replay.py`, or their heading arm, that sets the forward
+   heading σ; default unset = the current value). Before any arm (iii)/(iv) run, the default path must be shown
+   byte-identical to the stored output on one bag per estimator; if not, STOP. This is a measurement-noise setting of
+   the new arm, not a change to any estimator model.
+3. **H2** is accepted as a **descriptive comparison**, like H1 and H3: no numeric bound and no verdict, reported in a
+   Phase-5-style table. No hypothesis in this document carries a PASS/FAIL verdict.
+4. **EKF3-side acceptance and innovation fields (metric 3).** A small read-only extraction script for EKF3's own
+   ExternalNav yaw fusion test ratio and innovations is approved; its output is descriptive.
+5. **Checksum guard.** `tools/tier1_checksum_guard.py` snapshot/verify over the 18 bags' directories (its `--paths`
+   option) before and after the runs; any difference stops the work.
+6. **Yaw frame and sign check (§8.4), now a gate step:** before any arm (ii) Replay, `eval/heading_bridge_offline.py`'s
+   convention check must select the "node convention" (smaller error against dataflash `SIM.Yaw`) on the bag that
+   supplies the measurements; otherwise STOP.
+7. **Order:** round-trip check (§8.3) → sign check (item 6) → arm (i) reproduction (≤ 1 mm, all 18 bags) → arm (ii) →
+   default-path byte-identity (item 2) → arms (iii)/(iv). Any gate failing stops the steps after it.
 
 ## 1. Purpose
 
