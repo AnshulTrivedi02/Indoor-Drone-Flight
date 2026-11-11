@@ -1,0 +1,119 @@
+{
+ "derivation": {
+  "maxTimeDelay_ms_dominant_term": 60,
+  "imu_buffer_length": 6,
+  "horizon_lag_ms": 60,
+  "local_filter_time_step_ms": 12.5,
+  "ext_nav_interval_min_ms": 20
+ },
+ "per_bag": {
+  "fwdc_tex_r1": {
+   "n_records": 9654,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_tex_r2": {
+   "n_records": 9776,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_tex_r3": {
+   "n_records": 9633,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_trans_r1": {
+   "n_records": 9595,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_trans_r2": {
+   "n_records": 9430,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_trans_r3": {
+   "n_records": 9423,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_blank_r1": {
+   "n_records": 9557,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_blank_r2": {
+   "n_records": 9431,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdc_blank_r3": {
+   "n_records": 9363,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_tex_r1": {
+   "n_records": 6395,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_tex_r2": {
+   "n_records": 6260,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_tex_r3": {
+   "n_records": 6324,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_trans_r1": {
+   "n_records": 8536,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_trans_r2": {
+   "n_records": 8556,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_trans_r3": {
+   "n_records": 8547,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_blank_r1": {
+   "n_records": 8773,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_blank_r2": {
+   "n_records": 8773,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  },
+  "fwdplainc_blank_r3": {
+   "n_records": 8773,
+   "n_clamped": 0,
+   "clamped_share": 0.0,
+   "n_short_gap_lt_20ms": 0
+  }
+ }
+}
