@@ -1405,8 +1405,8 @@ CAP3 = (f"{RULE} Chosen: (a) standard sensors, no heading, standard-sensor datas
         "The alignment removes a constant heading offset, so the "
         "metres-scale sideways drift of the unaligned estimates (Table 4.1, heading-error decomposition) is not shown; an error along "
         "the corridor (for example EKF3's distance-scale error) lies along the path and barely shows top-down. Dashed: no heading "
-        "source; solid: with the camera heading (offline heading arms, UKF and FGO only; EKF3 has no offline heading arm and is shown as the "
-        f"no-heading baseline). The lateral (East) axis is stretched {rd(STRETCH, 1)}× relative to the along-corridor axis, the same in both "
+        "source; solid: with the camera heading (offline heading arms, UKF and FGO only); EKF3 is drawn as the no-heading baseline. EKF3's own offline heading "
+        f"arm (offline Replay, 5° floor; a separate, later run, D131) is reported in Table 4.1b and is not drawn here. The lateral (East) axis is stretched {rd(STRETCH, 1)}× relative to the along-corridor axis, the same in both "
         "panels; no log axes. Passive estimators, truth flying (Experiment 1A/1B offline). "
         f"Cruise ATE (m): (a) EKF3 {rd(ATE3[('a', 'EKF3')], 2)}, UKF {rd(ATE3[('a', 'UKF')], 2)}, FGO {rd(ATE3[('a', 'FGO')], 2)} (all no heading); "
         f"(b) EKF3 {rd(ATE3[('b', 'EKF3')], 2)} (no heading), UKF {rd(ATE3[('b', 'UKF_baseline')], 2)} (no heading) / {rd(ATE3[('b', 'UKF_heading')], 2)} "
@@ -1416,7 +1416,8 @@ ITEMS.append(dict(num="Figure 4.2", name="R3_trajectory_overlay", kind="figure",
                   inputs=f"~/thesis_data/trials/{TRA}/{{ekf3,ukf,fgo}}/*.tum; ~/thesis_data/trials/{TRB}/{{ekf3,ukf_baseline,fgo_baseline,ukf_heading,"
                          "fgo_heading}/*.tum; windows and cruise ATEs: eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, phase4_fwdc_evo.json",
                   notes=(), files=["R3_trajectory_overlay.png", "R3_trajectory_overlay.pdf"]))
-write_caption("R3", f"Figure 4.2. True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path.\n\n{CAP3}")
+write_caption("R3", f"Figure 4.2. True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path.\n\n{CAP3}"
+              "\n\nVerdicts: Table A.4, none (descriptive).")   # D113 pointer kept at generation (it was stripped on re-runs)
 print(f"wrote R3_trajectory_overlay (stretch {rd(STRETCH, 2)})")
 
 # ---------------------------------------------------------------------- RAW (DESCRIPTIVE) lookup (raw-tables stage 2, 2026-11-02;
@@ -1610,7 +1611,7 @@ save_tab("Table 7.5", "R4_information_vs_estimator", "Spread between estimators 
                 "with heading and on the blank floor; 3 elsewhere). 'Per flight' ranges are the range over flights of the per-flight spread or ratio. "
                 "Ratios use the stored full-precision values, not the displayed ones.",
                 "Experiment 1A's information contrast (a compass, EKF3 only) compares different flights of the same world and is descriptive. Experiment "
-                "1B's contrast is paired (the same bags with and without the heading arm); EKF3 has no offline heading arm (by ruling). The plain-wall "
+                "1B's contrast is paired (the same bags with and without the heading arm); EKF3's offline heading arm (offline Replay, 5° floor, Table 4.1b; a separate, later run, D131) is not part of this contrast. The plain-wall "
                 "camera dataset is omitted: on its checkerboard floor the heading failed validation (H1.2), so no heading benefit is claimed there "
                 "(restatement ruling 4).",
                 "Blank floor: the +60 s and end-of-cruise values are runaway magnitudes (†, not reproducible across builds), so no ratio is formed from "

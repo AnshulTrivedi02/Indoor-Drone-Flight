@@ -1573,6 +1573,14 @@ for bag in _EHB:
             _eh_mismatch2.append((bag, arm, v))
 check("1B EKF3 + heading (T2B): every cell's nan/non-nan status matches the expected degenerate-alignment pattern (EXACT, via rd(json))",
       str(not _eh_mismatch2), "True", "eval/results/ekf3_heading_replay/scored.json (rd() of evo_a_cruise directly)")
+# The textured-floor note's ranges (fwdc tex only; the fwdplainc tex heading failed validation, no benefit claimed), EXACT from the json
+def _eh_rng(arm, n=2):
+    vs = [_EHJ[f"fwdc_tex_r{r}"][_EHARM[arm]]["evo_a_cruise"] for r in (1, 2, 3)]
+    lo, hi = rd(min(vs), n), rd(max(vs), n)
+    return lo if lo == hi else f"{lo}-{hi}"
+for _arm, _exp in (("EKF3 (ii)", "0.13-0.16"), ("EKF3 (i)", "3.6-4.1"), ("UKF (iii)", "0.13-0.14"), ("FGO (iv)", "0.05-0.06")):
+    check(f"1B EKF3 + heading (T2B) note: fwdc tex {_arm} range (m)", _eh_rng(_arm, 1 if _arm == "EKF3 (i)" else 2), _exp,
+          "eval/results/ekf3_heading_replay/scored.json (rd() of evo_a_cruise, fwdc_tex_r1-r3)")
 save_tab("T2B", "T2B_ekf3_heading_replay", "Experiment 1B accuracy with the camera heading: EKF3 (via Replay) and matched 5° UKF/FGO arms (DESCRIPTIVE)",
          "A SEPARATE Replay run of EKF3 with the camera heading, at a shared 5° heading sigma so it can be set beside the UKF and FGO under "
          "the SAME sigma; the UKF/FGO columns here are NOT the stored 0.148°/0.126° arms quoted in " + TNUM["T2"] + "/numbers.md §6.6. DESCRIPTIVE "
@@ -1592,14 +1600,16 @@ save_tab("T2B", "T2B_ekf3_heading_replay", "Experiment 1B accuracy with the came
                 "FWD_SIGMA_PSI_DEG option is what lets arms (iii)/(iv) run at 5°).",
                 "Every EKF3 (ii) value carries the unconditional 5° angErr floor; this is a standing caveat on every number in that column, "
                 "not a per-row exception.",
-                "fwdc/fwdplainc tex: EKF3 (ii) collapses from 3.6-4.1 m (no heading) to 0.13-0.16 m (fwdc) / 0.30-0.36 m (fwdplainc) with "
-                "heading, both inside the UKF/FGO's own 5° range on the same bags (fwdc 0.13-0.14 m, fwdplainc 0.27-0.36 m).",
+                "fwdc tex (textured walls, textured floor): EKF3 (ii) 0.13-0.16 m with the heading against 3.6-4.1 m without; on the same "
+                "bags the matched 5° arms give UKF 0.13-0.14 m and FGO 0.05-0.06 m.",
+                "fwdplainc tex (plain walls over the checkerboard floor): values shown for completeness only; the heading failed Phase 3 "
+                "validation on this floor (H1.2), so no heading benefit is claimed there (restatement ruling 4).",
                 "fwdc/fwdplainc trans, blank: all four arms are in the runaway category (position frozen once flow aiding is lost, or "
                 "diverging once never gained); the metre-scale values are evidence of that category, from numbers_ekf3_heading.md's own "
                 "per-bag table, not a precise ranking between arms.",
                 "OQ-R3 (both pictures of EKF3 + heading, labelled): the D70 closed-loop panel (EKF3 flown with the camera heading in Experiment "
-                "1C, raw from take-off, labelled 'closed loop, picture only, not scored' - a different trajectory, no score printed) is in "
-                f"{TNUM['R3']} (a separate generator, out of this table's own scope); this table is the scored offline arm, labelled "
+                "1C, raw from take-off, labelled 'closed loop, picture only, not scored' - a different trajectory, no score printed) is candidate "
+                f"figure A20 (docs/thesis/figures_thesis/candidates/), not yet in the numbered set; this table is the scored offline arm, labelled "
                 "'offline Replay, 5° floor'.", OCASE_KEY], order=21)
 
 # =============================================================================================== TABLE T3 blank floor (was F4)
