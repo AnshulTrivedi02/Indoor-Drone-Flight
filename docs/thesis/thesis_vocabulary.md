@@ -27,7 +27,7 @@ There are four categories, each counted separately. Nothing has been moved betwe
 
 | category | what it holds | count |
 |---|---|---|
-| **Vocabulary terms** (the ≤ 50 target) | experiment and sub-study names, dataset and condition names, criterion names, and label and build names (§2–§4) | **47 rows; 53 distinct names** (rows 10, 35, 44 and 46 each bundle two or three names: +2, +1, +2, +1). The ≤ 50 target is met by rows, not by distinct names |
+| **Vocabulary terms** (the ≤ 50 target) | experiment and sub-study names, dataset and condition names, criterion names, and label and build names (§2–§4) | **47 rows; 53 distinct names** (rows 10, 35, 44 and 46 each bundle two or three names: +2, +1, +2, +1). The ≤ 50 target is met by rows, not by distinct names. §10 (appended 2026-11-12, not inserted here, so no existing line citation into §2–§4 moves) adds 2 more rows (48–49; 49 rows, 55 distinct names in total) |
 | Methodological labels | as worded, post hoc, descriptive, confirmatory, exploratory, withdrawn, PENDING. These are defined in `docs/thesis/methodology_definitions_draft.md` and are not repeated here | 7 |
 | Numbered hypothesis labels | H1.1 … H5.7, plus the comparison labels C1.a and X1.b and the validation check V3 (§5) | 32 + 3 |
 | Abbreviations | §7 (front matter) | 34 |
@@ -109,10 +109,10 @@ expands the letters "ds", "dsn", "c" or "f4" (glossary.md:112). The thesis names
 | 31 | **re-lock time** | P-H6 | from the first returning tag detection (M:10695; redefined M:10948) |
 | 32 | **lockout criterion** | P-H7 | no estimator locks out the returning tag (M:10700) |
 | 33 | **attitude criterion** | S-A1 | \|roll/pitch − GT\| ≤ 3°, \|yaw − GT\| ≤ 5° (M:11295) |
-| 34 | **position-lost declaration** | S-A2 | "position lost" and LAND within the bound: 0.75 s, UKF (b) 5.5 s (M:11297, M:11300) |
+| 34 | **position-lost declaration** | S-A2 | "position lost" and LAND within the bound: UKF (a) 0.1 s (numbers.md erratum E3, numbers.md:1439-1444, corrected from the 0.75 s wrongly carried over from the FGO's scoring flag), FGO (a) 0.75 s, UKF (b) 5.5 s (M:11297, M:11299, M:11300) |
 | 35 | **safe landing** / **single landing** | S-A3 / S-A4 | ≤ 1.5 m drift to touchdown with no watcher breach (M:11301); a single landing, for (b) runs only (M:11307) |
 
-## 4. Labels and build names (vocabulary terms 36–47)
+## 4. Labels and build names (vocabulary terms 36–47; §10 appends rows 48–49)
 
 | # | thesis name | repo code(s) | source / note |
 |---|---|---|---|
@@ -120,11 +120,11 @@ expands the letters "ds", "dsn", "c" or "f4" (glossary.md:112). The thesis names
 | 37 | **hindsight** | hindsight; FGO batch; RTS-UKF | the full-trajectory estimate after the flight (M:7938). In Experiments 2 and 4 this is the FGO whole-flight batch and the smoothed UKF (M:10146). In Experiment 3 it is iSAM2's full estimate (M:10557, a deviation) |
 | 38 | **smoothed UKF** | RTS-UKF | "the unscented RTS smoother over the UKF's predict nodes" (M:10146) |
 | 39 | **passive estimator** (write who flies: "passive, EKF3 flying" or "passive, truth flying") | shadow | three meanings (glossary_flags.md:93; glossary:3596) |
-| 40 | **final build** (UKF: "final UKF port"; FGO: "final FGO node") | UKF `_v2`; FGO `_v3` / S3v2 | UKF v2 = jitter-corrected port `abb0357d` (numbers.md:458); FGO v3 = noise fix + gated yaw cap, node `f642cd37` (numbers.md:458; `tools/run_fgo_refly.sh:2`) |
+| 40 | **final build** (UKF: "final UKF port"; FGO: "final FGO node") | UKF `_v2`; FGO `_v3` / S3v2 | UKF v2 = jitter-corrected port `abb0357d` (numbers.md:458); FGO v3 = noise fix + gated yaw cap, node `f642cd37` (numbers.md:458; `tools/run_fgo_refly.sh:2`). **"Final FGO" now means the corrected-prior re-fly** (the Python node at HEAD for the corridor set, the C++ node `4c07374b` for the hold set; `refly_priors/numbers_refly.md:16-23`); `_v3` (node `f642cd37`) is "superseded: original priors" (row 42) |
 | 41 | **ablation build** | FGO `_v2`, S3 | FGO noise fix only, yaw cap ungated (numbers.md:458, 466) |
-| 42 | **earlier build** | UKF v1 / "old UKF (jitter)"; "original FGO" | numbers.md:458 |
-| 43 | **corrected-priors node** | FGO v4 (`4c07374b`) | flown only in the v4 safety re-tests (T7:9; M:13686) |
-| 44 | **initial-uncertainty correction** (original priors / corrected priors) | D18 model correction; OLD / NEW priors | FGO initial yaw σ 1e-3 rad → 1°, roll/pitch 2° → 5° (numbers.md:30-31; glossary:3549, 3534) |
+| 42 | **earlier build** / **superseded: earlier build** (UKF) / **superseded: original priors** (FGO) | UKF v1 / "old UKF (jitter)"; "original FGO" | numbers.md:458. **Two distinct superseded labels, not interchangeable:** the UKF full-speed old port (`cl_ukf_a_tex`) is "superseded: earlier build" (a different build); every original-prior FGO row (corridor H1.8/H1.9, hold H5.1/H5.5–H5.7, comparatives H5.2–H5.4) is "superseded: original priors" (same node, old priors) (`refly_priors/numbers_refly.md:376`; decision D129/D149) |
+| 43 | **corrected-priors node** | FGO v4 (`4c07374b`) | flown in the v4 safety re-tests (T7:9; M:13686) and, from the corrected-prior re-fly onward, in the hold set too (the corridor set re-flies on the Python node at HEAD instead; decision D127, `refly_priors/numbers_refly.md:16-23`) |
+| 44 | **initial-uncertainty correction** (original priors / corrected priors) | D18 model correction; OLD / NEW priors | FGO initial yaw σ 1e-3 rad → 1°, roll/pitch 2° → 5° (numbers.md:30-31; glossary:3549, 3534). The corrected priors now also govern the FGO corridor (H1.8) and hold re-fly, not only the v4 safety re-tests (`refly_priors/numbers_refly.md:16-23`) |
 | 45 | **half real-time (RTF 0.5)** (always so written, never "half speed"). One-line explanation, used wherever it first appears: **"the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s"** (ruling 2026-10-16, captions) | `_half`; "half speed"; `corridor_textured_half_fwdc` | "half SIM speed, not half velocity" (glossary.md:134; M:7795, M:7829-7830) |
 | 46 | **forced-invalid test** / **node-kill test** | safety (a) PARAM / (b) KILL | UKF (a): `AHRS_UKF_TFAIL` set in flight; (b): SIGKILL of the aiding bridges; FGO (a)/(b): node SIGKILL without / with the watcher watching the node (M:11289-11293). Note that the FGO's (a) is also a kill |
 | 47 | **runaway magnitude** (marker †) | † | "evidence of divergence, not precise values" (numbers.md:682-690) |
@@ -539,4 +539,19 @@ REGISTERED, "registered comparison without a decision rule", and the units "bags
 phrase (the "rule text …" checks in `docs/thesis/figures_thesis/index.md`). The Experiment 5 comparatives are written only in
 the design draft (`docs/tag_hold_design.md` §e, lines 180–187); METHODOLOGY has their verdicts (M:12236, M:13549) but no
 pre-registration line of its own.
+
+## 10. Additions for the 2026-11-12 regeneration (appended, not inserted into §4)
+
+Two new vocabulary terms (rows 48–49), raised by the FGO prior re-fly, the closed-loop extras and the EKF3 heading
+Replay (`docs/thesis/tier1/decisions_log.md` D127-D150). **Appended here rather than inserted into §4's table**, so
+that every existing `thesis_vocabulary.md:<line>` citation elsewhere in the thesis (fact sheets, handovers,
+`thesis_values_provenance.md`, etc.) keeps pointing at the same content; §4's own line range (36–47) and §0's row
+count (47 rows; 53 distinct names) are therefore both unchanged by this addition.
+
+| # | thesis name | repo code(s) | source / note |
+|---|---|---|---|
+| 48 | **REPORTED k/3 (no set rule)** | n = 3 no-heading closed-loop cells (Exp 1C, set (a)) | the verdict category for a cell with n = 3 flights and no registered set-level PASS/FAIL threshold: report the count of flights meeting the registered criteria (k/3) and the spread, descriptive, never collapsed to a single PASS/MISS. Applies to EKF3 full (3/3) and half (**1/3**, never "a miss") real time, UKF full (2/3, final port) and half (3/3) real time, and the FGO half-speed re-fly on the corrected priors (2/3) (decisions D133, D144, D149; `closed_loop_extras/numbers_extras.md:148-155`; `refly_priors/numbers_refly.md:97`). The ORIGINAL n = 1 flight in each of these cells is kept, labelled **"as recorded (n = 1; flight 1 of the n = 3 cell)"** |
+| 49 | **EKF3 + heading (5° floor)** | `ekf3_heading_replay` arm (ii); matched arms (iii)/(iv) | the reopened (D131/D132) offline EKF3 forward-camera heading arm, via ArduPilot Replay: every value carries EKF3's own unconditional 5° `angErr` floor (`AP_NavEKF3_Measurements.cpp:1118`); the matched 5° UKF/FGO arms (iii)/(iv) are a SEPARATE run from the stored 0.148°/0.126° heading-sigma arms (numbers.md:374); transition and blank arms carry †; `fwdplainc_blank` EKF3 (ii) is "undefined (degenerate alignment)"; `fwdplainc_tex` heading failed Phase 3 validation, no heading benefit claimed (`ekf3_heading_replay/numbers_ekf3_heading.md:5-7, 35-37`) |
+
+With these two appended, the total is **49 rows; 55 distinct names**, still within the ≤ 50-row target (§0).
 

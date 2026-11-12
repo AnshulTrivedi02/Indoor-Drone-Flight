@@ -127,7 +127,7 @@ each of the four `##` sections — indented `  - ` / `  · ` sub-items are not c
 
 | section | file | facts | appendix candidates | (a) flags | (b) flags |
 |---|---|---|---|---|---|
-| 3.1 Approach and fairness principles | `3.1_approach_fairness.md` | 34 | 10 | 8 | 3 |
+| 3.1 Approach and fairness principles | `3.1_approach_fairness.md` | 35 | 10 | 8 | 3 |
 | 3.2 Simulation environment | `3.2_simulation.md` | 40 | 13 | 8 | 9 |
 | 3.3 Estimators | `3.3_estimators.md` | 52 | 17 | 16 | 10 |
 | 3.4 How the estimators were run | `3.4_run_modes.md` | 26 | 8 | 6 | 4 |
@@ -136,15 +136,36 @@ each of the four `##` sections — indented `  - ` / `  · ` sub-items are not c
 | 3.7 Verification process | `3.7_verification.md` | 39 | 10 | 6 | 5 |
 | 3.8 Closed-loop safety framework | `3.8_closed_loop_safety.md` | 32 | 8 | 7 | 4 |
 | 3.9 Extension experiments E2–E6 and the attribution ablation | `3.9_extension_experiments.md` | 48 | 11 | 4 | 1 |
-| **Total** | | **349** | **102** | **82** | **52** |
+| **Total** | | **350** | **102** | **82** | **52** |
 
-Grand total: **585 bullets** (583 at the 2026-11-02 merge, +1 Fact in 3.6 for the registered-fit justification and +1 Fact in 3.5 for the flight-set sentence, D122; 583 was up from 502 at `337c931`/`4c783b5`: +3 Facts in 3.3, +3 Facts in 3.4, +6 Facts in 3.6,
+Grand total: **586 bullets** (585 at the 2026-11-02 merge (see "2026-11-12 regeneration" below for the +1 Fact in
+3.1, the only count change this pass made); 585 was up from 583 at the 2026-11-02 merge itself, +1 Fact in 3.6 for the
+registered-fit justification and +1 Fact in 3.5 for the flight-set sentence, D122; 583 was up from 502 at
+`337c931`/`4c783b5`: +3 Facts in 3.3, +3 Facts in 3.4, +6 Facts in 3.6,
 +5 Facts in 3.7, +64 in 3.9 (48 Facts + 11 Appendix + 4 Flags (a) + 1 Flags (b)), +0 net elsewhere: 502 + 3 + 3 + 6 +
 5 + 64 = 583).
 
+## 2026-11-12 regeneration (post-lock results: FGO prior re-fly, closed-loop extras, EKF3 heading Replay, FGO gating count)
+
+Updated 3.1, 3.3, 3.4, 3.5, 3.8 and `thesis_vocabulary.md` to reflect five new source packs (decisions D127-D150,
+`tier1/decisions_log.md`): the FGO prior re-fly (`refly_priors/numbers_refly.md`), the closed-loop extras
+(`closed_loop_extras/numbers_extras.md`), the EKF3 heading Replay (`ekf3_heading_replay/numbers_ekf3_heading.md`),
+the FGO gating count (`diagnostics/numbers_fgo_gate_count.md`), and `numbers.md` erratum E3 (the UKF (a) S-A2 bound
+is 0.1 s, not 0.75 s). Every existing fact was extended in place (no deletion), except one genuinely new top-level
+Fact in **3.1** (the EKF3 + heading Replay reopening), which is the only bullet-count change this pass made:
+**Facts 34 → 35, total bullets 585 → 586.** `check_factsheets.py` returns **0 failures on all nine sheets after this
+pass** (586 bullets, 1648 citations, 764 numeric tokens, 0 failures). Two new vocabulary terms (rows 48-49) are
+**appended** to `thesis_vocabulary.md` §10, not inserted into §4's table, specifically so that no existing
+`thesis_vocabulary.md:<line>` citation anywhere in the thesis (including outside this pack's scope) is disturbed.
+One pre-existing, unrelated citation error was also fixed while editing the bullet that touches it: 3.8's
+`thesis_vocabulary.md:107` (the S-A2 position-lost-declaration row) was already wrong before this pass: the row
+is, and was, at line 112, corrected to `:112` in the same edit that added the erratum E3 note there.
+
 ## Numbers needed but not in numbers.md or numbers_tier1.md
 
-78 `[NOT IN numbers ...]` brackets across the nine sheets (grep-counted: `grep -o "NOT IN numbers"
+93 `[NOT IN numbers ...]` brackets across the nine sheets (78 before the 2026-11-12 regeneration pass, which added 15
+for the new FGO prior re-fly, closed-loop extras, EKF3 heading Replay and FGO gating-count values in 3.1/3.3/3.4/3.5/3.8;
+grep-counted: `grep -o "NOT IN numbers"
 docs/thesis/methodology_factsheets/3.*.md | wc -l`; `check_factsheets.py` resolves every citation inside every one of
 them, and none is a checker failure — a NOT-IN tag only means the value is not in `numbers.md`/`numbers_tier1.md`
 itself, not that it is uncited). Grouped by kind below, not one row per bracket (several brackets share a group).

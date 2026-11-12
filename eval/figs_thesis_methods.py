@@ -138,6 +138,9 @@ ALIAS = {
     "E3M": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_Measurements.cpp"), "AP_NavEKF3_Measurements.cpp"),
     "E3F": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_OptFlowFusion.cpp"), "AP_NavEKF3_OptFlowFusion.cpp"),
     "E3P": (os.path.join(AP_PIN, "libraries/AP_NavEKF3/AP_NavEKF3_PosVelFusion.cpp"), "AP_NavEKF3_PosVelFusion.cpp"),
+    "FGN": ("docs/thesis/diagnostics/numbers_fgo_gate_count.md", "numbers_fgo_gate_count.md"),
+    "FGR": ("docs/thesis/diagnostics/fgo_gate_count_results.md", "fgo_gate_count_results.md"),
+    "DL": ("docs/thesis/tier1/decisions_log.md", "decisions_log.md"),
 }
 _LINES = {}; SRC = []
 
@@ -617,25 +620,39 @@ def tab_fairness():
               "EXACT-cross-checked against numbers.md and fgo_core.py (index_methods.md)."], "Chapter 3 (method), fairness", fs=7.0)
 
     # ---- Table 3.3: documented exceptions with their rulings
+    # Row 5's gating-count addendum (D134/D137/D148): values read and EXACT-checked against the diagnostic's own
+    # numbers file before the row text is built, so the printed sentence always carries the checked string.
+    _gc_joint = re.search(r"\(([\d.]+%)\)", cell("FGN", 13, 6)).group(1)       # textured joint, chi2(2)=11.83
+    _gc_one = re.search(r"\(([\d.]+%)\)", cell("FGN", 13, 7)).group(1)        # textured FLOW_MAX one-sided
+    _gc_two = re.search(r"\(([\d.]+%)\)", cell("FGN", 13, 8)).group(1)        # textured FLOW_MAX two-sided
+    _gc_chi2 = grab("FGN", 11, r"chi2\(2\)=([\d.]+)")
     ex = [
         ["1", "flow/range fusion rate", "EKF3 fuses flow at 15.1 Hz and range at 16 Hz; the UKF and FGO at 30 Hz with the same σ",
          "recorded as EKF3 design (design features are not copied); results state that the UKF and FGO fuse ~2× the information per second",
          f"{S('M', 12338, 'EKF3 fuses flow at 15.1 Hz')}; ruling {S('M', 12359, '15 Hz flow fusion is recorded as EKF3 design')}"],
         ["2", "forward heading offline (1B)", "only the UKF and FGO receive the camera heading; EKF3 none",
-         "EKF3 is the fixed no-yaw-source baseline (VISO_YAW_M_NSE floor; LOG_REPLAY=0)",
-         f"ruling {S('M', 2884, 'RULING — EKF3 in the offline forward-camera comparison')}-2888"],
+         "EKF3 is the fixed no-yaw-source baseline for the registered Phase 4 comparison (VISO_YAW_M_NSE floor; LOG_REPLAY=0). "
+         "REOPENED (D131/D132): EKF3 + camera heading is now also evaluated offline via ArduPilot Replay, as a separate, descriptive arm; "
+         "every value carries EKF3's own unconditional 5° angErr floor, and the matched 5° UKF/FGO arm is a separate run from the stored "
+         "0.148°/0.126° heading-sigma arms. The existing Phase 4 (1B) results above are unchanged",
+         f"ruling {S('M', 2884, 'RULING — EKF3 in the offline forward-camera comparison')}-2888; reopened {S('DL', 157, 'REOPENED')}, {S('DL', 158, 'REOPENED')}"],
         ["3", "closed-loop heading σ (1C)", "all three at 5°; the camera's own σ (0.148°) is not usable by EKF3",
          "5° is ArduPilot's floor (VISO_YAW_M_NSE 0.05); ruled that the UKF port applies the same 5°",
          f"{S('M', 4896, 'VISO_YAW_M_NSE = 0.05')}; ruling {S('M', 7553, 'Ruling D17')}"],
         ["4", "GTSAM integrationCovariance", "FGO only, 1e-8 (no EKF3 counterpart)",
          "documented asymmetry (a conditioning floor); no separate ruling found", f"{S('M', 9528, 'documented asymmetry')}; {S('FC', 31, 'setIntegrationCovariance')}"],
         ["5", "FGO flow/range gating (design deviation)", "EKF3 gates flow per axis at 3σ (FLOW_I_GATE 300) and range height at 5σ (HGT_I_GATE 500, range as the height source); the UKF gates both at 3σ / 5σ; NEITHER FGO core gates flow or range innovations (only a 4.2 rad/s flow clamp)",
-         "DESIGN DEVIATION, documented, not corrected or re-run (results frozen); it leaves the FGO less defended, not more. The design called for matched gates",
+         "DESIGN DEVIATION, documented, not corrected or re-run (results frozen); it leaves the FGO less defended, not more. The design called for matched gates. "
+         f"A read-only gating-count diagnostic found that {_gc_joint} of textured flow factors would have been rejected by the joint test (chi2(2)={_gc_chi2} gate, against the stored, ungated FGO's own trajectory), and that the FLOW_MAX one-sided ({_gc_one}) and two-sided ({_gc_two}) counts are identical on the textured dsn_* bags; transition and blank are not read as a direct measure (both are in numbers.md's own diverging/† category, where an inflated predictive covariance confounds a low rejection count with a well-fit sensor)",
          f"EKF3 {S('E3F', 665, '_flowInnovGate')}, {S('E3P', 1022, '_hgtInnovGate')}; UKF {S('UC', 295, "p['FLOW_GATE']")}, {S('UC', 231, "p['RNG_GATE']")}; "
-         f"FGO {S('FC', 184, '< 4.2')}, {S('CC', 144, 'std::abs(flow->xy[0]) < 4.2')}; design {S('FD', 446, 'matched NIS gate')}; ruling {S('M', 14302, 'FGO gating documented')}"],
+         f"FGO {S('FC', 184, '< 4.2')}, {S('CC', 144, 'std::abs(flow->xy[0]) < 4.2')}; design {S('FD', 446, 'matched NIS gate')}; ruling {S('M', 14302, 'FGO gating documented')}; "
+         f"gating count (D134, D137, D148): {S('FGN', 11, 'chi2(2)=11.83') and S('FGN', 13, '0.01%') and ALIAS['FGN'][1] + ':11, 13'}"],
         ["6", "FLOW_MAX sidedness", "the UKF rejects |flow| ≥ 2.5 rad/s on either axis (two-sided); EKF3's fusion test is signed (flow < 2.5 rad/s per axis, one-sided)",
-         "NO RULING FOUND; at 0.5 m/s and 2 m the flow is ~0.25 rad/s, far from the limit (not counted)",
-         f"{S('UC', 293, "abs(flow_xy[0]) >= p['FLOW_MAX']")}; {S('UK', 874, 'fabs(e.fr.x) < FLOW_MAX')}; EKF3 {S('E3F', 668, 'flowRadXY.x < frontend->_maxFlowRate')}"],
+         "NO RULING FOUND; at 0.5 m/s and 2 m the flow is ~0.25 rad/s, far from the limit. Now counted, read-only (row 5): the one-sided and "
+         "two-sided counts are identical in every run-set-1A/1B group, with no exception (0/0 in every set-1A group; 0/0 in every set-1B group "
+         "except one, which reads 1/1 on a single extreme sample), so sidedness does not change the count on this data",
+         f"{S('UC', 293, "abs(flow_xy[0]) >= p['FLOW_MAX']")}; {S('UK', 874, 'fabs(e.fr.x) < FLOW_MAX')}; EKF3 {S('E3F', 668, 'flowRadXY.x < frontend->_maxFlowRate')}; "
+         f"gating count {S('FGR', 254, 'IDENTICAL in every single group, with no exception')}"],
         ["7", "ground-proximity flow rule", "EKF3's rule (flow zeroed and still fused below 0.5 m before take-off) applied to the UKF and FGO",
          "a sensor-validity rule, shared (not tuning)", f"ruling {S('M', 7038, 'Ruling D15')}; {S('M', 7060, 'This is a sensor-model')}"],
         ["8", "EKF3's pre-arm yaw-bias learning", "EKF3 learns gyro-z bias on the ground; not given to the UKF or FGO",
@@ -644,9 +661,12 @@ def tab_fairness():
         ["9", "EKF3 range median-of-3, tilt cut, floor", "EKF3 only", "EKF3 design, not copied", f"{S('M', 8871, 'Under D18 they are not copied')}"],
         ["10", "UKF offline predict period and process noise", "offline UKF steps 15.00 ms; its process noise is scaled to EKF3's per-second densities",
          "ruled: same per-second densities as the FGO and the UKF port", f"{S('M', 9567, 'D27 RULED')}; {S('N', 186, 'UKF predict dt')}"],
-        ["11", "FGO initial uncertainty", "corrected to yaw 1°, roll/pitch 5° (the UKF's); flown FGO results used 1e-3 rad / 2°; EKF3 keeps 0.1 rad",
+        ["11", "FGO initial uncertainty", "corrected to yaw 1°, roll/pitch 5° (the UKF's); the ORIGINAL flown FGO corridor and hold results "
+         "used 1e-3 rad / 2° (now superseded: original priors); a re-fly on the corrected priors is the current FGO corridor (H1.8) and "
+         "hold row; EKF3 keeps 0.1 rad",
          "a model correction (the initial-uncertainty correction); EKF3's 0.1 rad is its design",
-         f"ruling {S('M', 12857, 'FGO initial yaw sigma, a MODEL CORRECTION under D18')}-12862; {S('N', 36, 'Flown FGO results')}"],
+         f"ruling {S('M', 12857, 'FGO initial yaw sigma, a MODEL CORRECTION under D18')}-12862; {S('N', 36, 'Flown FGO results')}; "
+         f"re-fly {S('DL', 153, 'corrected priors')}"],
         ["12", "FGO biasAccOmegaInt", "was diag(0.2², 0.043633²): extra IMU white noise (gyro ~26×, accel ~5× looser); set to 0",
          "a model correction (a sensor-noise error)", f"ruling {S('M', 12046, 'setBiasAccOmegaInit')}; {S('M', 12052, 'gyro ~26×, accelerometer ~5× looser')}; "
          f"{S('FC', 35, 'setBiasAccOmegaInit(np.zeros((6, 6)))')}"],
@@ -692,6 +712,12 @@ def tab_fairness():
     check("Table 3.3 row 23: corner speed (m/s)", "1.80", grab("N", 542, r"measured ([\d.]+) m/s"), "N:542")
     check("Table 3.3 row 23: yaw bound (deg)", "0.06", grab("N", 543, r"≤ ([\d.]+)° in yaw"), "N:543")
     check("Table 3.3 row 23: nominal speed (m/s)", "0.5", grab("M", 10517, r"12 ms × ([\d.]+) m/s"), "M:10517")
+    # Row 5's gating-count addendum, EXACT against the diagnostic's own numbers file (D134/D137/D148).
+    check("Table 3.3 row 5: gating count, textured joint flow-rejection rate (chi2(2)=11.83)", "0.01%", _gc_joint, "FGN:13")
+    check("Table 3.3 row 5: gating count, textured FLOW_MAX one-sided rate", "0.00%", _gc_one, "FGN:13")
+    check("Table 3.3 row 5: gating count, textured FLOW_MAX two-sided rate", "0.00%", _gc_two, "FGN:13")
+    check("Table 3.3 row 5: gating count, FLOW_MAX one-sided == two-sided (textured)", _gc_one, _gc_two, "FGN:13")
+    check("Table 3.3 row 5: gating count, joint chi2(2) threshold", "11.83", _gc_chi2, "FGN:11")
     save_tab("Table 3.3", "methods_noise_exceptions", "Documented exceptions to noise and treatment parity, with their rulings",
              "Every documented place where the noise or the treatment differs between estimators, with the ruling that covers it. "
              "Two code differences (5, 6) have no ruling in the record and are reported, not resolved.",
