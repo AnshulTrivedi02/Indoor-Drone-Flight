@@ -15,7 +15,7 @@ carries the same string for every row transcribed from R1.
 
 | # | old ID (fwd-camera HEAD) | status | new ID(s) |
 |---|---|---|---|
-| 1 | `H1.8 EKF3, real time (RTF 1.0)` | kept, labelled | **unchanged ID.** Result text gained "(as recorded, n = 1; flight 1 of the n = 3 cell)" (exact wording; the D149(b) citation moved to the Notes cell, per advisor review). New sibling row added (see #19). |
+| 1 | `H1.8 EKF3, real time (RTF 1.0)` | kept, labelled | **unchanged ID.** Result text gained "; as recorded (n = 1; flight 1 of the n = 3 cell)", D149(b)'s exact wording (the D149(b) citation itself moved to the Notes cell). New sibling row added (see #19). |
 | 2 | `H1.8 EKF3, half real-time (RTF 0.5)` | kept, labelled | **unchanged ID.** Same treatment as #1. New sibling row added (see #20). Verdict word unchanged (NOT MET; the record still reads "MISS" in its own Result text, as recorded -- the *new* n = 3 row never uses the word "miss" anywhere, per D149(a)). |
 | 3 | `H1.8 UKF (real time; half real-time, final UKF port)` | **split** | **`H1.8 UKF, half real-time (final UKF port, abb0357d)`** (kept, labelled "as recorded"; this is the half-speed `+165.9 s` value only -- the real-time `+163.0 s` value is a DIFFERENT, superseded port). The real-time value moved to the superseded appendix as `H1.8 UKF, full real time` (#24). New sibling rows added (see #21, #22). |
 | 4 | `H1.8 FGO (half real-time, final FGO node)` | **removed from the main table** | No "as recorded" row survives for FGO (D149(b) lists EKF3 full/half and UKF half only for that treatment). Moved wholesale to the superseded appendix as `H1.8 FGO, half real-time` (#25). Replaced in the main table by the new n = 3 row (#23). |
@@ -72,6 +72,24 @@ which the checker does not scan):
 resolve, because those ID strings are still an exact or prefix match in the main table (the EKF3 row kept its exact
 ID; the only surviving `H1.8 UKF`-prefixed main-table ID is `H1.8 UKF, half real-time (final UKF port, abb0357d)`,
 which the checker evidently matches on prefix). Only the FGO pointer fails.
+
+## 2a. Headline value transitions (do not read "0 verdict-word changes" as "nothing changed" -- every substantive
+change in this regeneration sits in a RENAMED or MOVED row, not a same-ID row; see the mechanical diff in the report)
+
+| old (as recorded, now superseded or n = 1) | new (current, counted) |
+|---|---|
+| H1.8 EKF3 full: PASS (n = 1, +186.2 s) | kept as recorded, PLUS new: k/3 = 3/3 |
+| H1.8 EKF3 half: NOT MET (n = 1, +242.1 s, after window) | kept as recorded, PLUS new: k/3 = 1/3 |
+| H1.8 UKF full: PASS (n = 1, old port, +163.0 s) | superseded (earlier build); new final-port k/3 = 2/3 (177.1 PASS, 138.3 before window, 162.8 PASS) |
+| H1.8 UKF half: PASS (n = 1, final port, +165.9 s) | kept as recorded, PLUS new: k/3 = 3/3 |
+| H1.8 FGO: PASS (n = 1, original priors, +169.9 s) | superseded (original priors); new corrected-priors PRIMARY k/3 = 2/3 (166.7 PASS, 193.9 PASS, 203.5 after window by 7.46 s) |
+| H1.9 FGO: PASS 3/3 (original priors; flight 3 lateral speed 0.246 m/s, 0.004 m/s inside the band) | PASS 3/3 (corrected priors; lateral speeds 0.119/0.008/0.196 m/s, all comfortably inside) |
+| H5.5 S2/S3 directional (FGO): NOT MET, 9 of 12 losses, range 7-27 mm | NOT MET, 6 of 12 losses, range 1-28 mm (a NEW result, computed in this stage, not in numbers_refly.md) |
+| H5.6 jump as worded (FGO): fails 4 of 12 | fails 8 of 12 (descriptive; no set threshold either way) |
+| H5.2 (FGO): FAIL 0/3, FGO highest in all 3 runs (8.3-8.6 mm) | FAIL 0/3, FGO highest in only 1 of 3 runs (r2; 7.3-8.3 mm) |
+| H5.4a (FGO): FAIL 0/3, FGO jump 7-30 mm | FAIL 0/3, FGO jump narrowed to 7.1-24.0 mm |
+| H5.4b (FGO): FAIL 0/3, ratio range 3.2-7.7 | FAIL 0/3, ratio range narrowed to 2.1-5.1 |
+| H5.1 (FGO-flying): PASS, mean 8.1-9.0 / max 18-28 mm | PASS, mean 7.1-8.7 / max 15.0-25.5 mm |
 
 ## 3. Category totals, old -> new (D149(e): must reconcile between TA_verdicts and R1 -- they do, see below)
 

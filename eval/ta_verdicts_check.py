@@ -428,7 +428,8 @@ CAPTION = (
     "transcribed from docs/thesis/tier1/scores/{E2,E3,E4,e5,e6}_verdicts.json. The attribution ablation (labelled "
     "EXPLORATORY, per its own pre-registration) is transcribed from docs/thesis/ablation/ablation_results.json. No "
     "number, pass rule, verdict or data selection is changed from its source; every number and verdict word is "
-    "cross-checked character-for-character against that source by eval/ta_verdicts_check.py."
+    "cross-checked character-for-character against that source by eval/ta_verdicts_check.py. A superseded appendix "
+    "(2026-11-12 regeneration, D129, D149(b)) follows the main table below; its rows are not counted in it."
 )
 
 m_lines = [f"# {TITLE}", "", CAPTION, "", "| " + " | ".join(HEADER) + " |", "|" + "---|" * len(HEADER)]
@@ -440,14 +441,14 @@ for row in ROWS:
 # superseded table (UKF full, old port; every original-prior FGO row: H1.8/H1.9 corridor, H5.1/H5.2-H5.4b/H5.5/H5.6
 # hold). NOT counted in the row total above, NOT counted in any verdict category -- provenance only, per D129 (no existing
 # output renamed/edited/deleted).
-SUP_ROWS = parse_md_table(R1_MD, r"^\| id \| reason \|", 5)
+SUP_ROWS = parse_md_table(R1_MD, r"^\| id \| reason \|", 6)
 check("R1 superseded table row count parsed", len(SUP_ROWS), 13, "docs/thesis/tables/R1_hypothesis_scorecard.md (superseded appendix)")
 m_lines += ["", "## Superseded appendix (not counted above; D129, D149(b))", "",
             f"Transcribed, unmodified, from docs/thesis/tables/R1_hypothesis_scorecard.md's own superseded appendix. "
             f"{len(SUP_ROWS)} rows; none counted in Table A.4's row total or in any verdict category above.", "",
-            "| id | reason | value (superseded) | build / flight(s) | source |", "|---|---|---|---|---|"]
-for _id, _reason, _val, _build, _src in SUP_ROWS:
-    m_lines.append("| " + " | ".join(md(c) for c in (_id, _reason, _val, _build, _src)) + " |")
+            "| id | reason | verdict (as recorded) | value (superseded) | build / flight(s) | source |", "|---|---|---|---|---|---|"]
+for _id, _reason, _verdict, _val, _build, _src in SUP_ROWS:
+    m_lines.append("| " + " | ".join(md(c) for c in (_id, _reason, _verdict, _val, _build, _src)) + " |")
 m_lines += ["",
             "*Verdicts (the project's own vocabulary; never softened or strengthened): PASS = the record says PASS, MET, "
             "TRUE or an accepted-as-worded verdict; FAIL AS WORDED = a failure the record itself labels 'as worded' (kept "
@@ -455,8 +456,11 @@ m_lines += ["",
             "as FAIL/NOT met/FALSE/MISS without that label (Experiments 1\u20135 use this word; the tier-1 extension "
             "experiments and the ablation use their own sources' literal word 'FAIL' instead \u2014 kept as worded per "
             "experiment, never harmonised into NOT MET); WITHDRAWN = no longer made; DESCRIPTIVE = no comparative test was "
-            "registered, values are reported regardless; EXPLORATORY = the whole row group (the ablation) is explicitly "
-            "pre-registered as exploratory, not a thesis hypothesis test, so every verdict in it is descriptive at n = 3.*",
+            "registered, values are reported regardless; REPORTED k/3 (no set rule) = the n = 3 closed-loop cells (H1.8, "
+            "2026-11-12 regeneration, D149(a)) are reported as the count of flights meeting the registered per-flight "
+            "criteria, with the spread descriptive and no set-level PASS/NOT MET threshold invented; EXPLORATORY = the "
+            "whole row group (the ablation) is explicitly pre-registered as exploratory, not a thesis hypothesis test, "
+            "so every verdict in it is descriptive at n = 3.*",
             "",
             "*Where a source carries more than one wording or more than one run of the same test (a superseded build, an "
             "earlier score before a correction), this table quotes the most recent/final/restated one, as "
@@ -530,8 +534,8 @@ def table_page(title, rows, fs=6.6, header=None, widths=None):
 
 
 figs = table_page(TITLE, ROWS)
-SUP_WIDTHS = [14, 18, 38, 20, 22]
-SUP_HEADER_T = ["id", "reason", "value (superseded)", "build / flight(s)", "source"]
+SUP_WIDTHS = [12, 16, 10, 34, 18, 18]
+SUP_HEADER_T = ["id", "reason", "verdict (as recorded)", "value (superseded)", "build / flight(s)", "source"]
 SUP_TITLE = "Table A.4 superseded appendix (not counted in the main table above; D129, D149(b))"
 sup_figs = table_page(SUP_TITLE, SUP_ROWS, header=SUP_HEADER_T, widths=SUP_WIDTHS)
 for f in figs + sup_figs:
