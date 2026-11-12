@@ -80,9 +80,13 @@ def parse_md_table(path, start_marker_regex, ncol):
 
 
 R1_ROWS = parse_md_table(R1_MD, r"^\| label \(part\)", 7)
-check("R1 table row count parsed", len(R1_ROWS), 48, "docs/thesis/tables/R1_hypothesis_scorecard.md")
+check("R1 table row count parsed", len(R1_ROWS), 56, "docs/thesis/tables/R1_hypothesis_scorecard.md")
 
-_LABEL_RE = re.compile(r"^(H\d+\.\d+[a-z]?|C1\.a|X1\.b|V3)\b")
+# 2026-11-12 regeneration (D149): "H1.8 n = 3" / "H5.1 (FGO-flying)" still carry an "H<n>." prefix (matched via \b, whatever
+# follows), so they fall under their existing Experiment n. "1B-H1"/"1B-H2"/"1B-H3" (the EKF3+heading Replay study, D149(d))
+# are their own group, "Experiment 1B" -- parallel to how "Extension E2"-"Extension E6" are kept distinct from the thesis's
+# own Experiment 2/3 (see this file's own module docstring).
+_LABEL_RE = re.compile(r"^(H\d+\.\d+[a-z]?|C1\.a|X1\.b|V3|1B-H\d+)\b")
 
 
 def r1_experiment(label):
@@ -93,6 +97,8 @@ def r1_experiment(label):
         return "Experiment 1"
     if tok == "V3":
         return "Experiment 3"
+    if tok.startswith("1B-H"):
+        return "Experiment 1B"
     n = tok[1]  # 'H1.1' -> '1'
     return f"Experiment {n}"
 
@@ -103,10 +109,10 @@ for label, name, pred, outcome, verdict, changed, osrc in R1_ROWS:
 
 # cross-check: re-parsing R1 and re-deriving the experiment column is deterministic and lossless (every cell is used
 # unmodified), so the only thing to prove is that no row was dropped or mutated in transcription.
-check("every R1 row carried through unmodified (prediction+outcome+verdict+changed, 48/48)",
+check("every R1 row carried through unmodified (prediction+outcome+verdict+changed, 56/56)",
       sum(1 for (e, lab, rule, res, v, note), (l2, n2, p2, o2, v2, c2, s2) in zip(ROWS, R1_ROWS)
           if rule == f"{p2} *(name: {n2})*" and res == f"{o2} [{s2}]" and v == v2 and note == c2),
-      48)
+      56)
 
 # =====================================================================================================================
 # 2. Experiment 5S: the safety tests (no hypothesis label in R1 -- "the criteria families without hypothesis labels
@@ -365,6 +371,40 @@ ROWS.append(("EXPLORATORY", "P3 (descriptive)",
              "(confounded with gate removal) [ablation/preregistration.md \u00a77]"))
 
 # =====================================================================================================================
+# 9. 2026-11-12 regeneration (D149/D150): quote verification for the new pre-registration/numbers sources this stage
+#    adds (extends this script's quote verification to accept these files as sources, per the common brief). The new
+#    rows above are TRANSCRIBED from R1_hypothesis_scorecard.md, already cross-checked at source by
+#    eval/figs_thesis_results.py (227/227); these are a second, independent check at the TA_verdicts layer, each quote
+#    verified verbatim against the actual file text (must_contain(), defined above but previously unused).
+# =====================================================================================================================
+PEX_T = R(os.path.join(ROOT, "docs", "thesis", "closed_loop_extras", "preregistration.md"))
+PRP_T = R(os.path.join(ROOT, "docs", "thesis", "refly_priors", "preregistration.md"))
+PEH_T = R(os.path.join(ROOT, "docs", "thesis", "ekf3_heading_replay", "preregistration.md"))
+NEX_T = R(os.path.join(ROOT, "docs", "thesis", "closed_loop_extras", "numbers_extras.md"))
+NRP_T = R(os.path.join(ROOT, "docs", "thesis", "refly_priors", "numbers_refly.md"))
+NEH_T = R(os.path.join(ROOT, "docs", "thesis", "ekf3_heading_replay", "numbers_ekf3_heading.md"))
+
+must_contain("closed_loop_extras/preregistration.md: applied per flight, k/3, spread descriptive", PEX_T,
+             "**Applied per flight.** Each cell is reported as k/3, counting flight 1 where it exists")
+must_contain("closed_loop_extras/preregistration.md: no cross-speed comparison", PEX_T, "**No comparison across speeds is claimed** (D21).")
+must_contain("refly_priors/preregistration.md: H1.8 FGO applied per flight, k/3", PRP_T,
+             "Applied per flight, to each of the 3 flights.")
+must_contain("refly_priors/preregistration.md: H5.1 bounds applied to the FGO-flying set", PRP_T,
+             "the re-fly applies the same bounds to the FGO-flying set,")
+must_contain("ekf3_heading_replay/preregistration.md: H1 descriptive quote", PEH_T,
+             "Arm (ii)'s yaw error (mean/RMS/drift) is smaller than arm (i)'s")
+must_contain("ekf3_heading_replay/preregistration.md: no verdict is carried", PEH_T,
+             "No hypothesis in this document carries a PASS/FAIL verdict.")
+must_contain("numbers_extras.md: EKF3 full real time k/3 = 3/3", NEX_T, "**k/3 = 3/3.** Spread (descriptive): 174.9-186.2 s")
+must_contain("numbers_extras.md: EKF3 half real time k/3 = 1/3, not a miss", NEX_T, "**k/3 = 1/3.** Spread (descriptive): 178.9-268.3 s")
+must_contain("numbers_refly.md: H1.8 FGO PRIMARY k/3 = 2/3", NRP_T, "**PRIMARY k/3 = 2/3**")
+must_contain("numbers_refly.md: H1.9 FGO k/3 = 3/3", NRP_T, "**H1.9 FGO verdict: k/3 = 3/3**")
+must_contain("numbers_ekf3h.md: fwdplainc_blank EKF3 (ii) undefined", NEH_T, "undefined (Umeyama degenerate)")
+must_contain("numbers_ekf3h.md: fwdplainc_tex no heading benefit claimed", NEH_T, "no heading benefit is claimed.")
+must_contain("numbers_ekf3h.md: 5 deg floor caveat on every EKF3+heading number", NEH_T,
+             "applies unconditionally to every EKF3+heading number on this page.")
+
+# =====================================================================================================================
 # Markdown table
 # =====================================================================================================================
 HEADER = ["Experiment", "ID", "Registered rule (quoted, with its source)", "Result", "Verdict", "Notes"]
@@ -378,7 +418,8 @@ TITLE = "Table A.4. Verdict register: every registered hypothesis/check across E
 CAPTION = (
     "ONE row per pre-registered hypothesis, check or prediction, gathered from the tables and verdict files that already "
     "scored it, so that no PASS/FAIL/verdict text needs to live on or near a figure. Experiments 1\u20135 (H1.x\u2013H5.x, "
-    "C1.a, X1.b, V3) are TRANSCRIBED from docs/thesis/tables/R1_hypothesis_scorecard.md's own 48-part table (parsed "
+    "C1.a, X1.b, V3; plus 1B-H1/1B-H2/1B-H3, the EKF3+heading Replay study, 2026-11-12 regeneration D149(d), grouped here as "
+    "'Experiment 1B') are TRANSCRIBED from docs/thesis/tables/R1_hypothesis_scorecard.md's own 56-part table (parsed "
     "programmatically, not retyped); Experiment 5S (the hold safety tests, which carry no hypothesis label in R1) is "
     "transcribed from the final-build score files eval/results/expH/safety_*.json, the same ones "
     "docs/thesis/tables/T7_failure_behaviour.md and eval/figs_thesis.py's own checks use. The tier-1 extension experiments "
@@ -392,6 +433,20 @@ CAPTION = (
 m_lines = [f"# {TITLE}", "", CAPTION, "", "| " + " | ".join(HEADER) + " |", "|" + "---|" * len(HEADER)]
 for row in ROWS:
     m_lines.append("| " + " | ".join(md(c) for c in row) + " |")
+
+# =====================================================================================================================
+# Superseded appendix (2026-11-12 regeneration, D149(b)): transcribed, unmodified, from R1_hypothesis_scorecard.md's own
+# superseded table (UKF full, old port; every original-prior FGO row: H1.8/H1.9 corridor, H5.1/H5.2-H5.4b/H5.5/H5.6
+# hold). NOT counted in the row total above, NOT counted in any verdict category -- provenance only, per D129 (no existing
+# output renamed/edited/deleted).
+SUP_ROWS = parse_md_table(R1_MD, r"^\| id \| reason \|", 5)
+check("R1 superseded table row count parsed", len(SUP_ROWS), 12, "docs/thesis/tables/R1_hypothesis_scorecard.md (superseded appendix)")
+m_lines += ["", "## Superseded appendix (not counted above; D129, D149(b))", "",
+            f"Transcribed, unmodified, from docs/thesis/tables/R1_hypothesis_scorecard.md's own superseded appendix. "
+            f"{len(SUP_ROWS)} rows; none counted in Table A.4's row total or in any verdict category above.", "",
+            "| id | reason | value (superseded) | build / flight(s) | source |", "|---|---|---|---|---|"]
+for _id, _reason, _val, _build, _src in SUP_ROWS:
+    m_lines.append("| " + " | ".join(md(c) for c in (_id, _reason, _val, _build, _src)) + " |")
 m_lines += ["",
             "*Verdicts (the project's own vocabulary; never softened or strengthened): PASS = the record says PASS, MET, "
             "TRUE or an accepted-as-worded verdict; FAIL AS WORDED = a failure the record itself labels 'as worded' (kept "
@@ -420,6 +475,9 @@ TA_TEXT = open(os.path.join(TAB, "TA_verdicts.md")).read()
 for row in ROWS:
     line = "| " + " | ".join(md(c) for c in row) + " |"
     check(f"row written verbatim: {row[0]} / {row[1]}", line in TA_TEXT, True, line[:160])
+for row in SUP_ROWS:
+    line = "| " + " | ".join(md(c) for c in row) + " |"
+    check(f"superseded row written verbatim: {row[0]}", line in TA_TEXT, True, line[:160])
 
 # =====================================================================================================================
 # Render the table page(s) (standalone matplotlib; does not import/execute figs_thesis.py)
