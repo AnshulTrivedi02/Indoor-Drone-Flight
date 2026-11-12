@@ -15,8 +15,8 @@ carries the same string for every row transcribed from R1.
 
 | # | old ID (fwd-camera HEAD) | status | new ID(s) |
 |---|---|---|---|
-| 1 | `H1.8 EKF3, real time (RTF 1.0)` | kept, labelled | **unchanged ID.** Result text gained " -- as recorded (n = 1; flight 1 of the n = 3 cell, D149(b))". New sibling row added (see #19). |
-| 2 | `H1.8 EKF3, half real-time (RTF 0.5)` | kept, labelled | **unchanged ID.** Same treatment as #1. New sibling row added (see #20). Verdict word unchanged (NOT MET; the record still reads "MISS" in its own text, as recorded -- the *new* n = 3 row never uses the word "miss", per D149(a)). |
+| 1 | `H1.8 EKF3, real time (RTF 1.0)` | kept, labelled | **unchanged ID.** Result text gained "(as recorded, n = 1; flight 1 of the n = 3 cell)" (exact wording; the D149(b) citation moved to the Notes cell, per advisor review). New sibling row added (see #19). |
+| 2 | `H1.8 EKF3, half real-time (RTF 0.5)` | kept, labelled | **unchanged ID.** Same treatment as #1. New sibling row added (see #20). Verdict word unchanged (NOT MET; the record still reads "MISS" in its own Result text, as recorded -- the *new* n = 3 row never uses the word "miss" anywhere, per D149(a)). |
 | 3 | `H1.8 UKF (real time; half real-time, final UKF port)` | **split** | **`H1.8 UKF, half real-time (final UKF port, abb0357d)`** (kept, labelled "as recorded"; this is the half-speed `+165.9 s` value only -- the real-time `+163.0 s` value is a DIFFERENT, superseded port). The real-time value moved to the superseded appendix as `H1.8 UKF, full real time` (#24). New sibling rows added (see #21, #22). |
 | 4 | `H1.8 FGO (half real-time, final FGO node)` | **removed from the main table** | No "as recorded" row survives for FGO (D149(b) lists EKF3 full/half and UKF half only for that treatment). Moved wholesale to the superseded appendix as `H1.8 FGO, half real-time` (#25). Replaced in the main table by the new n = 3 row (#23). |
 | 5 | `H1.9 EKF3` | unchanged | unchanged (not part of this re-fly). |
@@ -43,7 +43,7 @@ carries the same string for every row transcribed from R1.
 | 24 | -- | superseded appendix | `H1.8 UKF, full real time` -- reason "superseded: earlier build" (`cl_ukf_a_tex`, pre-jitter-correction port). |
 | 25 | -- | superseded appendix | `H1.8 FGO, half real-time` -- reason "superseded: original priors" (`cl_fgo_a_tex_half_v3`). |
 | 26 | -- | superseded appendix | `H1.9 FGO, half real-time` -- reason "superseded: original priors". |
-| 27-37 | -- | superseded appendix | `H5.1 (FGO-flying)`, `H5.2`, `H5.3`, `H5.4a`, `H5.4b`, `H5.5, drift band (FGO)`, `H5.5, S2/S3 directional prediction (FGO)`, `H5.6, redefined primary (FGO)`, `H5.6, jump as worded (FGO)`, `H5.7 (FGO)` -- each reason "superseded: original priors" (`H5.7 (FGO)`'s says "(identical conclusion)" -- D149(b) lists H5.7 among the hold rows to supersede, and the original and corrected-prior conclusions do not differ: no lockout in any loss, in both). 13 rows total. |
+| 27-37 | -- | superseded appendix | `H5.1 (FGO-flying)`, `H5.2 (original priors)`, `H5.3 (original priors)`, `H5.4a (original priors)`, `H5.4b (original priors)`, `H5.5, drift band (FGO)`, `H5.5, S2/S3 directional prediction (FGO)`, `H5.6, redefined primary (FGO)`, `H5.6, jump as worded (FGO)`, `H5.7 (FGO)` -- each reason the bare "superseded: original priors" (D149(b)'s own label; the clarifying remark, e.g. H5.7's "identical conclusion on corrected priors", moved into the value cell per advisor review). H5.2/H5.3/H5.4a/H5.4b carry the "(original priors)" suffix because they would otherwise duplicate the main table's own ID string (H5.2 etc.), which could be ambiguous for stage 3's caption pointers. D149(b) lists H5.7 among the hold rows to supersede, and the original and corrected-prior conclusions do not differ (no lockout in any loss, in both). 13 rows total. |
 
 **Important for stage 3 (captions):** the superseded appendix lives in a **separate markdown table**, under its own
 `id` column, in both `R1_hypothesis_scorecard.md` and `TA_verdicts.md`. `eval/caption_verdict_check.py` only scans the
@@ -75,9 +75,15 @@ which the checker evidently matches on prefix). Only the FGO pointer fails.
 
 ## 3. Category totals, old -> new (D149(e): must reconcile between TA_verdicts and R1 -- they do, see below)
 
+**Labels, not just parts: 35 -> 38 (+3), not +5.** `H1.8 n = 3` and `H5.1 (FGO-flying)` are new PARTS of the existing
+`H1.8`/`H5.1` labels, not new labels (an advisor-review correction to a first-pass bug: `LABELS` was computed from the
+raw `label (part)` string, counting every distinct part string as its own label; fixed to extract the canonical
+label prefix, the same regex `ta_verdicts_check.py`'s own `_LABEL_RE` uses). Only `1B-H1`, `1B-H2` and `1B-H3` are
+genuinely new labels (+3).
+
 **R1 (Table 7.3), caption counts:**
 
-| category | old (48 parts, 35 labels) | new (56 parts, 40 labels) | delta |
+| category | old (48 parts, 35 labels) | new (56 parts, 38 labels) | delta |
 |---|---|---|---|
 | PASS | 24 | 24 | 0 |
 | FAIL AS WORDED | 4 | 4 | 0 |
@@ -121,6 +127,19 @@ H5.5/H5.6 FGO-flying parts) kept their verdict word while their underlying FGO v
 priors) and their original-prior values moved to the appendix -- a real content change that the category counts, by
 construction, cannot show. Read the row-ID map in section 1, not the totals alone, for what changed.
 
+**Row order note for stage 3:** the three `1B-H1`/`1B-H2`/`1B-H3` rows sit immediately after the `H1.9` rows in both
+`R1_hypothesis_scorecard.md` and `TA_verdicts.md` (i.e. "Experiment 1B" appears right after "Experiment 1", before
+"Experiment 2"), not at the end of the table. A first-pass draft had appended them after `H5.7`, which put
+"Experiment 1B" after "Experiment 5" in TA_verdicts.md; corrected per advisor review.
+
+## 4a. New values for the coordinator to confirm (not already in a numbers file)
+
+- **The H5.5 S2/S3 directional prediction's corrected-prior FGO count (6 of 12, effective-drift range 1-28 mm)** is
+  computed IN THIS STAGE by the registered, unmodified `_h5d()` method (the same method that already produced the
+  stored original-prior count, 9 of 12, 7-27 mm) from `eval/results/expH/s3rp_r*.json`. It does not appear anywhere
+  in `numbers_refly.md`, which reports H5.5's FGO drift band values but not this directional comparison. The row's
+  own Notes cell says so; flagged here too per the common brief's instruction to list such new values explicitly.
+
 ## 4. What this stage did NOT touch (explicitly out of scope, per the common brief)
 
 - T1 / Table 3.3, `limitations.md`, the methods fact sheets, `methods_noise_exceptions` row 23 (the FGO gating count)
@@ -139,16 +158,25 @@ construction, cannot show. Read the row-ID map in section 1, not the totals alon
 ## 5. Discipline / checks run
 
 - Snapshot sha256 of every R1/R2/R3/R4/TA_verdicts/index_results.md output taken before any generator run.
-- `eval/figs_thesis_results.py`: **123/123 numeric, 251/251 source checks** (was 77/77, 185/185 before this stage).
-  Includes a second, independent cross-check (direct from the stored JSON result files, via `rd()`/`jcheck()`/
-  `scheck()`, not just the numbers_extras.md/numbers_refly.md text) for every headline new number: the 15 H1.8 n = 3
-  contact times, the 3 H1.9 FGO B4 lateral speeds, the H5.1 (FGO-flying) mean/max hold-error range, the H5.2/H5.4a
-  FGO values (from `h_comparative_refly_priors.json`), and the H5.6 re-lock ms range -- an advisor review found the
-  first pass had only the text-level check, and one genuine formatting bug this second check caught: the H1.9 FGO
-  `cl_fgo_b_tex_r2_half_rp` lateral speed displayed as `numbers_refly.md`'s own "0.0076" (4 dp), which is NOT
-  `rd(0.0076019517100402514, 3)` ("0.008", the thesis's own 3 dp convention for this quantity) -- fixed to "0.008".
-- `eval/ta_verdicts_check.py`: **183/183 checks** (was 154/154 before the quote-verification extension, then 167,
-  180, now 183 after adding the superseded appendix's own rendered page). New section: quote verification against
+- `eval/figs_thesis_results.py`: **175/175 numeric, 251/251 source checks** (was 77/77, 185/185 before this stage).
+  Round 1 of the advisor review found that the first pass's `jcheck()`s only tied the JSON to R1's DISPLAYED string,
+  never to `numbers_extras.md`/`numbers_refly.md`'s own text (the `found()` checks confirm presence of a substring,
+  which can coincide by chance, e.g. "166.7" is a prefix of "166.728" regardless of whether it was ever actually
+  rounded there). Round 2 added `check()` (ties both: `rd(json) == expected` AND `expected` occurs inline at the
+  cited line) for every headline new number at THAT FILE's own displayed precision: all 15 H1.8 n = 3 contact times,
+  all 3 H1.9 FGO B4 lateral speeds, all 12 H5.1 (FGO-flying) window mean/max values, all 3 H5.2 FGO hold means, the
+  H5.4a FGO 15 s jump range (the third per-run value, 7.8 mm, has no document line at all -- only the range is
+  quoted in `numbers_refly.md`, so that one stays a disclosed JSON-only `jcheck()`), and the H5.6 re-lock range.
+  Corrected one of my own misreadings during round 1: "0.0076" (`numbers_refly.md`'s own 4 dp display for
+  `cl_fgo_b_tex_r2_half_rp`'s B4) and "0.008" (`rd(0.0076019517100402514, 3)`, the thesis's 3 dp house convention for
+  this quantity) are the SAME value at different precision, not a disagreement -- `numbers_refly.md` has no bug.
+  "0.008" is kept in R1's displayed text (house convention); both precisions are now `check()`-verified against the
+  source JSON (round 2, `rd(,4)` against the file's own "0.0076", `rd(,3)` against R1's displayed "0.008").
+- `eval/ta_verdicts_check.py`: **183/183 checks**. Confirmed TRUE pre-regeneration baseline **146/146**, by
+  temporarily restoring both the script and `R1_hypothesis_scorecard.md` to `fwd-camera` HEAD and re-running, then
+  restoring both and regenerating again (an earlier draft of this handover misstated this as 154, not re-derived
+  from a clean run; corrected here per advisor review). Rose through 167 and 180 during this stage's two rounds, to
+  183 after adding the superseded appendix's own rendered page (round 2). New section: quote verification against
   the new pre-registration and numbers files, using the previously-unused `must_contain()` helper -- extends the
   quote-verification pattern the common brief asked for.
 - `tools/check_numbers_frozen.py`: PASS.
