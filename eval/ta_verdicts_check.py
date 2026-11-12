@@ -80,9 +80,13 @@ def parse_md_table(path, start_marker_regex, ncol):
 
 
 R1_ROWS = parse_md_table(R1_MD, r"^\| label \(part\)", 7)
-check("R1 table row count parsed", len(R1_ROWS), 48, "docs/thesis/tables/R1_hypothesis_scorecard.md")
+check("R1 table row count parsed", len(R1_ROWS), 56, "docs/thesis/tables/R1_hypothesis_scorecard.md")
 
-_LABEL_RE = re.compile(r"^(H\d+\.\d+[a-z]?|C1\.a|X1\.b|V3)\b")
+# 2026-11-12 regeneration (D149): "H1.8 n = 3" / "H5.1 (FGO-flying)" still carry an "H<n>." prefix (matched via \b, whatever
+# follows), so they fall under their existing Experiment n. "1B-H1"/"1B-H2"/"1B-H3" (the EKF3+heading Replay study, D149(d))
+# are their own group, "Experiment 1B" -- parallel to how "Extension E2"-"Extension E6" are kept distinct from the thesis's
+# own Experiment 2/3 (see this file's own module docstring).
+_LABEL_RE = re.compile(r"^(H\d+\.\d+[a-z]?|C1\.a|X1\.b|V3|1B-H\d+)\b")
 
 
 def r1_experiment(label):
@@ -93,6 +97,8 @@ def r1_experiment(label):
         return "Experiment 1"
     if tok == "V3":
         return "Experiment 3"
+    if tok.startswith("1B-H"):
+        return "Experiment 1B"
     n = tok[1]  # 'H1.1' -> '1'
     return f"Experiment {n}"
 
@@ -103,10 +109,10 @@ for label, name, pred, outcome, verdict, changed, osrc in R1_ROWS:
 
 # cross-check: re-parsing R1 and re-deriving the experiment column is deterministic and lossless (every cell is used
 # unmodified), so the only thing to prove is that no row was dropped or mutated in transcription.
-check("every R1 row carried through unmodified (prediction+outcome+verdict+changed, 48/48)",
+check("every R1 row carried through unmodified (prediction+outcome+verdict+changed, 56/56)",
       sum(1 for (e, lab, rule, res, v, note), (l2, n2, p2, o2, v2, c2, s2) in zip(ROWS, R1_ROWS)
           if rule == f"{p2} *(name: {n2})*" and res == f"{o2} [{s2}]" and v == v2 and note == c2),
-      48)
+      56)
 
 # =====================================================================================================================
 # 2. Experiment 5S: the safety tests (no hypothesis label in R1 -- "the criteria families without hypothesis labels
@@ -166,7 +172,8 @@ ROWS.append(("Experiment 5S", "S-A (FGO forced-invalid test, corrected-priors no
              "\u201cFGO: within 0.75 s of the kill\u201d [M:11298]; safe landing as above. For the FGO the forced-invalid test "
              "is also a node kill (without the safety watcher watching the node)",
              result, "PASS",
-             "flew the corrected initial priors; the flown FGO hold/closed-loop corridor results used the ORIGINAL priors (T7)"))
+             "flew the corrected initial priors, as do the current FGO corridor and hold rows after the 2026-11-12 "
+             "regeneration (D149(c)); the original-prior sets are listed in the superseded appendix (D149(b))"))
 
 # -- S-A (FGO node-kill test, corrected-priors node, re-test v4) --
 d = HJ("safety_fgo_b_v4")
@@ -365,6 +372,40 @@ ROWS.append(("EXPLORATORY", "P3 (descriptive)",
              "(confounded with gate removal) [ablation/preregistration.md \u00a77]"))
 
 # =====================================================================================================================
+# 9. 2026-11-12 regeneration (D149/D150): quote verification for the new pre-registration/numbers sources this stage
+#    adds (extends this script's quote verification to accept these files as sources, per the common brief). The new
+#    rows above are TRANSCRIBED from R1_hypothesis_scorecard.md, already cross-checked at source by
+#    eval/figs_thesis_results.py (227/227); these are a second, independent check at the TA_verdicts layer, each quote
+#    verified verbatim against the actual file text (must_contain(), defined above but previously unused).
+# =====================================================================================================================
+PEX_T = R(os.path.join(ROOT, "docs", "thesis", "closed_loop_extras", "preregistration.md"))
+PRP_T = R(os.path.join(ROOT, "docs", "thesis", "refly_priors", "preregistration.md"))
+PEH_T = R(os.path.join(ROOT, "docs", "thesis", "ekf3_heading_replay", "preregistration.md"))
+NEX_T = R(os.path.join(ROOT, "docs", "thesis", "closed_loop_extras", "numbers_extras.md"))
+NRP_T = R(os.path.join(ROOT, "docs", "thesis", "refly_priors", "numbers_refly.md"))
+NEH_T = R(os.path.join(ROOT, "docs", "thesis", "ekf3_heading_replay", "numbers_ekf3_heading.md"))
+
+must_contain("closed_loop_extras/preregistration.md: applied per flight, k/3, spread descriptive", PEX_T,
+             "**Applied per flight.** Each cell is reported as k/3, counting flight 1 where it exists")
+must_contain("closed_loop_extras/preregistration.md: no cross-speed comparison", PEX_T, "**No comparison across speeds is claimed** (D21).")
+must_contain("refly_priors/preregistration.md: H1.8 FGO applied per flight, k/3", PRP_T,
+             "Applied per flight, to each of the 3 flights.")
+must_contain("refly_priors/preregistration.md: H5.1 bounds applied to the FGO-flying set", PRP_T,
+             "the re-fly applies the same bounds to the FGO-flying set,")
+must_contain("ekf3_heading_replay/preregistration.md: H1 descriptive quote", PEH_T,
+             "Arm (ii)'s yaw error (mean/RMS/drift) is smaller than arm (i)'s")
+must_contain("ekf3_heading_replay/preregistration.md: no verdict is carried", PEH_T,
+             "No hypothesis in this document carries a PASS/FAIL verdict.")
+must_contain("numbers_extras.md: EKF3 full real time k/3 = 3/3", NEX_T, "**k/3 = 3/3.** Spread (descriptive): 174.9-186.2 s")
+must_contain("numbers_extras.md: EKF3 half real time k/3 = 1/3, not a miss", NEX_T, "**k/3 = 1/3.** Spread (descriptive): 178.9-268.3 s")
+must_contain("numbers_refly.md: H1.8 FGO PRIMARY k/3 = 2/3", NRP_T, "**PRIMARY k/3 = 2/3**")
+must_contain("numbers_refly.md: H1.9 FGO k/3 = 3/3", NRP_T, "**H1.9 FGO verdict: k/3 = 3/3**")
+must_contain("numbers_ekf3h.md: fwdplainc_blank EKF3 (ii) undefined", NEH_T, "undefined (Umeyama degenerate)")
+must_contain("numbers_ekf3h.md: fwdplainc_tex no heading benefit claimed", NEH_T, "no heading benefit is claimed.")
+must_contain("numbers_ekf3h.md: 5 deg floor caveat on every EKF3+heading number", NEH_T,
+             "applies unconditionally to every EKF3+heading number on this page.")
+
+# =====================================================================================================================
 # Markdown table
 # =====================================================================================================================
 HEADER = ["Experiment", "ID", "Registered rule (quoted, with its source)", "Result", "Verdict", "Notes"]
@@ -378,7 +419,8 @@ TITLE = "Table A.4. Verdict register: every registered hypothesis/check across E
 CAPTION = (
     "ONE row per pre-registered hypothesis, check or prediction, gathered from the tables and verdict files that already "
     "scored it, so that no PASS/FAIL/verdict text needs to live on or near a figure. Experiments 1\u20135 (H1.x\u2013H5.x, "
-    "C1.a, X1.b, V3) are TRANSCRIBED from docs/thesis/tables/R1_hypothesis_scorecard.md's own 48-part table (parsed "
+    "C1.a, X1.b, V3; plus 1B-H1/1B-H2/1B-H3, the EKF3+heading Replay study, 2026-11-12 regeneration D149(d), grouped here as "
+    "'Experiment 1B') are TRANSCRIBED from docs/thesis/tables/R1_hypothesis_scorecard.md's own 56-part table (parsed "
     "programmatically, not retyped); Experiment 5S (the hold safety tests, which carry no hypothesis label in R1) is "
     "transcribed from the final-build score files eval/results/expH/safety_*.json, the same ones "
     "docs/thesis/tables/T7_failure_behaviour.md and eval/figs_thesis.py's own checks use. The tier-1 extension experiments "
@@ -386,12 +428,27 @@ CAPTION = (
     "transcribed from docs/thesis/tier1/scores/{E2,E3,E4,e5,e6}_verdicts.json. The attribution ablation (labelled "
     "EXPLORATORY, per its own pre-registration) is transcribed from docs/thesis/ablation/ablation_results.json. No "
     "number, pass rule, verdict or data selection is changed from its source; every number and verdict word is "
-    "cross-checked character-for-character against that source by eval/ta_verdicts_check.py."
+    "cross-checked character-for-character against that source by eval/ta_verdicts_check.py. A superseded appendix "
+    "(2026-11-12 regeneration, D129, D149(b)) follows the main table below; its rows are not counted in it."
 )
 
 m_lines = [f"# {TITLE}", "", CAPTION, "", "| " + " | ".join(HEADER) + " |", "|" + "---|" * len(HEADER)]
 for row in ROWS:
     m_lines.append("| " + " | ".join(md(c) for c in row) + " |")
+
+# =====================================================================================================================
+# Superseded appendix (2026-11-12 regeneration, D149(b)): transcribed, unmodified, from R1_hypothesis_scorecard.md's own
+# superseded table (UKF full, old port; every original-prior FGO row: H1.8/H1.9 corridor, H5.1/H5.2-H5.4b/H5.5/H5.6
+# hold). NOT counted in the row total above, NOT counted in any verdict category -- provenance only, per D129 (no existing
+# output renamed/edited/deleted).
+SUP_ROWS = parse_md_table(R1_MD, r"^\| id \| reason \|", 6)
+check("R1 superseded table row count parsed", len(SUP_ROWS), 13, "docs/thesis/tables/R1_hypothesis_scorecard.md (superseded appendix)")
+m_lines += ["", "## Superseded appendix (not counted above; D129, D149(b))", "",
+            f"Transcribed, unmodified, from docs/thesis/tables/R1_hypothesis_scorecard.md's own superseded appendix. "
+            f"{len(SUP_ROWS)} rows; none counted in Table A.4's row total or in any verdict category above.", "",
+            "| id | reason | verdict (as recorded) | value (superseded) | build / flight(s) | source |", "|---|---|---|---|---|---|"]
+for _id, _reason, _verdict, _val, _build, _src in SUP_ROWS:
+    m_lines.append("| " + " | ".join(md(c) for c in (_id, _reason, _verdict, _val, _build, _src)) + " |")
 m_lines += ["",
             "*Verdicts (the project's own vocabulary; never softened or strengthened): PASS = the record says PASS, MET, "
             "TRUE or an accepted-as-worded verdict; FAIL AS WORDED = a failure the record itself labels 'as worded' (kept "
@@ -399,8 +456,11 @@ m_lines += ["",
             "as FAIL/NOT met/FALSE/MISS without that label (Experiments 1\u20135 use this word; the tier-1 extension "
             "experiments and the ablation use their own sources' literal word 'FAIL' instead \u2014 kept as worded per "
             "experiment, never harmonised into NOT MET); WITHDRAWN = no longer made; DESCRIPTIVE = no comparative test was "
-            "registered, values are reported regardless; EXPLORATORY = the whole row group (the ablation) is explicitly "
-            "pre-registered as exploratory, not a thesis hypothesis test, so every verdict in it is descriptive at n = 3.*",
+            "registered, values are reported regardless; REPORTED k/3 (no set rule) = the n = 3 closed-loop cells (H1.8, "
+            "2026-11-12 regeneration, D149(a)) are reported as the count of flights meeting the registered per-flight "
+            "criteria, with the spread descriptive and no set-level PASS/NOT MET threshold invented; EXPLORATORY = the "
+            "whole row group (the ablation) is explicitly pre-registered as exploratory, not a thesis hypothesis test, "
+            "so every verdict in it is descriptive at n = 3.*",
             "",
             "*Where a source carries more than one wording or more than one run of the same test (a superseded build, an "
             "earlier score before a correction), this table quotes the most recent/final/restated one, as "
@@ -420,6 +480,9 @@ TA_TEXT = open(os.path.join(TAB, "TA_verdicts.md")).read()
 for row in ROWS:
     line = "| " + " | ".join(md(c) for c in row) + " |"
     check(f"row written verbatim: {row[0]} / {row[1]}", line in TA_TEXT, True, line[:160])
+for row in SUP_ROWS:
+    line = "| " + " | ".join(md(c) for c in row) + " |"
+    check(f"superseded row written verbatim: {row[0]}", line in TA_TEXT, True, line[:160])
 
 # =====================================================================================================================
 # Render the table page(s) (standalone matplotlib; does not import/execute figs_thesis.py)
@@ -435,7 +498,9 @@ WIDTHS = [9, 16, 34, 26, 7, 20]
 BOLD_WORDS = ("FAIL", "WITHDRAWN", "NOT MET")
 
 
-def table_page(title, rows, fs=6.6):
+def table_page(title, rows, fs=6.6, header=None, widths=None):
+    header = HEADER if header is None else header
+    widths = WIDTHS if widths is None else widths
     figs = []
     lh = fs * 1.34 / 72 / 8.27
 
@@ -445,41 +510,48 @@ def table_page(title, rows, fs=6.6):
         nlt = ttl.count("\n") + 1
         fig.text(0.02, 0.985, ttl, fontsize=11, weight="bold", va="top")
         x = 0.02; y = 0.985 - nlt * 0.028 - 0.012
-        for h, w in zip(HEADER, WIDTHS):
-            fig.text(x, y, h, fontsize=fs + 0.6, weight="bold", va="top"); x += w / sum(WIDTHS) * 0.96
+        for h, w in zip(header, widths):
+            fig.text(x, y, h, fontsize=fs + 0.6, weight="bold", va="top"); x += w / sum(widths) * 0.96
         return fig, y - 2.2 * lh
 
     k = 1; fig, y = newpage(k)
     for row in rows:
         cells = [[(ln, any(b in para for b in BOLD_WORDS)) for para in str(c).split("\n")
                   for ln in (textwrap.wrap(para, max(8, int(w * 1.9))) or [""])]
-                 for c, w in zip(row, WIDTHS)]
+                 for c, w in zip(row, widths)]
         n = max(len(c) for c in cells)
         if y - n * lh < 0.04:
             figs.append(fig); k += 1; fig, y = newpage(k)
         fig.add_artist(Line2D([0.02, 0.98], [y + 0.45 * lh, y + 0.45 * lh], color=GRID, lw=0.5, transform=fig.transFigure))
         x = 0.02
-        for c, w in zip(cells, WIDTHS):
+        for c, w in zip(cells, widths):
             for i, (ln, bold) in enumerate(c):
                 fig.text(x, y - i * lh, ln, fontsize=fs, va="top", weight="bold" if bold else "normal", color=INK)
-            x += w / sum(WIDTHS) * 0.96
+            x += w / sum(widths) * 0.96
         y -= (n + 0.5) * lh
     figs.append(fig)
     return figs
 
 
 figs = table_page(TITLE, ROWS)
-for f in figs:
+SUP_WIDTHS = [12, 16, 10, 34, 18, 18]
+SUP_HEADER_T = ["id", "reason", "verdict (as recorded)", "value (superseded)", "build / flight(s)", "source"]
+SUP_TITLE = "Table A.4 superseded appendix (not counted in the main table above; D129, D149(b))"
+sup_figs = table_page(SUP_TITLE, SUP_ROWS, header=SUP_HEADER_T, widths=SUP_WIDTHS)
+for f in figs + sup_figs:
     f.text(0.02, 0.02, "docs/thesis/figures_thesis/tables_extra/TA_verdicts (eval/ta_verdicts_check.py)", fontsize=6, color=INK2)
 with PdfPages(os.path.join(OUTF, "TA_verdicts.pdf")) as pdf:
-    for f in figs:
+    for f in figs + sup_figs:
         pdf.savefig(f)
+check("superseded appendix page(s) appended to TA_verdicts.pdf", len(sup_figs) >= 1, True)
 figs[0].savefig(os.path.join(OUTF, "TA_verdicts.png"), dpi=150)
-for f in figs:
+sup_figs[0].savefig(os.path.join(OUTF, "TA_verdicts_superseded.png"), dpi=150)
+for f in figs + sup_figs:
     plt.close(f)
 check("PDF page count", len(figs) >= 1, True, f"{len(figs)} pages")
 check("PDF file written", os.path.exists(os.path.join(OUTF, "TA_verdicts.pdf")), True)
 check("PNG file written", os.path.exists(os.path.join(OUTF, "TA_verdicts.png")), True)
+check("superseded PNG file written", os.path.exists(os.path.join(OUTF, "TA_verdicts_superseded.png")), True)
 
 # =====================================================================================================================
 # Tally
