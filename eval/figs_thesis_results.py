@@ -253,10 +253,11 @@ _1B_ROWS = [
  ("1B-H1", "EKF3 + camera heading via Replay: yaw error vs no heading (descriptive)", "",
   "Arm (ii)'s yaw error (mean/RMS/drift) is smaller than arm (i)'s", ("prereg_ekf3h", 249, 249),
   ["Arm (ii)'s yaw error (mean/RMS/drift) is smaller than arm (i)'s"],
-  "Smaller on all 18 bags, with the 5° floor caveat throughout: arm (i) end-of-cruise drift magnitude 7.1-8.3 deg/min "
-  "(no yaw source); arm (ii) 0.006-0.019 deg/min on fwdc (textured walls); 0.654-0.794 deg/min on fwdplainc_tex (checkerboard "
-  "floor, where the heading measurement itself FAILED Phase 3 validation -- no heading benefit is claimed there); transition/"
-  "blank bags " + RWY + " (position frozen on arm (i) and, on fwdplainc_blank, undefined on arm (ii) by Umeyama degeneracy)",
+  "Smaller on all 18 bags, with the 5° floor caveat throughout: arm (i) end-of-cruise drift magnitude 7.1–8.3 deg/min "
+  "(no yaw source); arm (ii) 0.006–0.019 deg/min on fwdc (textured walls); 0.654–0.794 deg/min on fwdplainc_tex (checkerboard "
+  "floor, where the heading measurement itself FAILED Phase 3 validation -- no heading benefit is claimed there); on "
+  "transition/blank, arm (i)'s position is frozen (not runaway -- the † marker below applies to arm (iii)/(iv)'s "
+  "position only) and arm (ii)'s evo -a (cruise) is undefined (degenerate alignment) on fwdplainc_blank",
   [("numbers_ekf3h", 43, 43, ["-8.102", "-0.006"]), ("numbers_ekf3h", 52, 52, ["-0.794"]),
    ("numbers_ekf3h", 35, 37, ["undefined (Umeyama degenerate)"])],
   "DESCRIPTIVE", "D149(d); D139 item 3 (no hypothesis in this document carries a verdict); OQ-R3 (user, 2026-11-12, 'both, labelled')"),
@@ -264,10 +265,13 @@ _1B_ROWS = [
   "Arms (iii)/(iv) at 5° show a SMALLER yaw-error improvement over their own no-heading baselines than the existing "
   "0.148°/0.126° arms show over the SAME baselines (a looser σ should help less)", ("prereg_ekf3h", 254, 256),
   ["Arms (iii)/(iv) at 5° show a", "0.148°/0.126° arms show over the SAME baselines (a looser σ should help less)"],
-  "Mixed, read via evo -a (cruise) m (not a verdict): on fwdc_tex the 5° arms (0.126-0.136 m UKF, 0.055-0.063 m FGO) are close "
-  "to the stored 0.148° arms (0.13/0.06 m, numbers.md:291-292) despite the much looser σ; on fwdplainc_tex the 5° arms "
-  "(0.291-0.355 m UKF, 0.271-0.335 m FGO) are clearly worse than the stored 0.126° arms (0.19/0.15 m, numbers.md:294-295), "
-  "consistent with the prediction there. Transition/blank " + RWY + " (both arms runaway; not a yaw-accuracy comparison)",
+  "Read via evo -a (cruise) m (not a verdict; a different metric to H2's own yaw-error-improvement wording -- the 5° arms "
+  "here are a SEPARATE run from the stored 0.148°/0.126° arms, not a re-run of them): on fwdc_tex the 5° arms (0.126–0.136 m "
+  "UKF, 0.055–0.063 m FGO) are close to the stored 0.148° arms (0.13/0.06 m, numbers.md:291-292) despite the much looser σ; "
+  "on fwdplainc_tex the 5° arms (0.291–0.355 m UKF, 0.271–0.335 m FGO) are clearly worse than the stored 0.126° arms "
+  "(0.19/0.15 m, numbers.md:294-295) -- but fwdplainc_tex is also where no heading benefit is claimed at all (Phase 3 "
+  "validation failed there), so this is reported, not read as confirming H2. Transition/blank " + RWY + " (both arms "
+  "runaway; not a yaw-accuracy comparison)",
   [("numbers_ekf3h", 20, 22, ["0.126", "0.055", "0.133", "0.063", "0.136", "0.063"]),
    ("numbers_ekf3h", 29, 31, ["0.355", "0.335", "0.291", "0.271", "0.309", "0.287"]),
    ("numbers.md", 291, 295, ["0.13 / 0.13 / 0.14", "0.06 / 0.06 / 0.06", "0.19 / 0.15 / 0.25", "0.15 / 0.09 / 0.22"])],
@@ -283,7 +287,7 @@ _1B_ROWS = [
   "the open question this exercise was testing (no numeric bound proposed)",
   [("numbers_ekf3h", 43, 48, ["-0.006", "-0.006", "-0.006", "-0.007", "-0.008", "-0.008", "-0.015", "-0.015", "-0.015"]),
    ("numbers_ekf3h", 46, 48, ["-0.01 / -0.012", "-0.31 / -0.015", "-0.06 / -0.017", "-0.34 / -0.019", "-0.09 / -0.019", "-0.48 / -0.021"])],
-  "DESCRIPTIVE", "D149(d); no numeric bound proposed (prereg_ekf3h:266)"),
+  "DESCRIPTIVE", "D149(d); no numeric bound proposed (ekf3_heading_replay/preregistration.md:266)"),
 ]
 
 R1 = [
@@ -411,29 +415,40 @@ R1 = [
   [("numbers.md", 471, None, ["+165.9 (PRIMARY PASS; west wall"])], "PASS",
   "value only: half real-time +198.0 s (earlier build) → +165.9 s (final UKF port; correction 17 flight pair); verdict unchanged"),
  ("H1.8 n = 3", "closed loop without heading: contact prediction, n = 3 (2026-11-12 regeneration, D149(a))", "EKF3, full real time (RTF 1.0)",
-  "(as above)", ("M", 4948, None), ["PRIMARY: no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s."],
+  ("PRIMARY: no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s.",
+   "Applied per flight. Each cell is reported as k/3, counting flight 1 where it exists [closed_loop_extras/preregistration.md:72]"),
+  ("M", 4948, None), ["PRIMARY: no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s."],
   "k/3 = 3/3: 174.9, 181.4, 186.2 s, all west wall, all PASS. Spread (descriptive, no criterion): 174.9–186.2 s",
   [("numbers_extras", 95, 99, ["186.2", "174.9", "181.4", "**k/3 = 3/3.**", "174.9-186.2 s"])],
-  "REPORTED k/3 (no set rule)", "new category (D149(a)); registered window applied per flight; D133"),
+  "REPORTED k/3 (no set rule)", "new category (D149(a)); D133"),
  ("H1.8 n = 3", "closed loop without heading: contact prediction, n = 3 (2026-11-12 regeneration, D149(a))", "EKF3, half real-time (RTF 0.5)",
-  "(as above)", ("M", 4948, None), ["inside [+155, +215] s."],
-  "k/3 = 1/3: 178.9 (PASS), 242.1 (MISS, after window), 268.3 (MISS, after window) s, all west wall. Spread: 178.9–268.3 s. "
-  "Written as 1/3 with its spread; not a miss (D149(a))",
+  ("PRIMARY: no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s.",
+   "Applied per flight. Each cell is reported as k/3, counting flight 1 where it exists [closed_loop_extras/preregistration.md:72]"),
+  ("M", 4948, None), ["PRIMARY: no contact before +100 s; contact, if any, on the west wall inside [+155, +215] s."],
+  "k/3 = 1/3: 178.9 (PASS), 242.1 (after window), 268.3 (after window) s, all west wall. Spread: 178.9–268.3 s",
   [("numbers_extras", 107, 111, ["242.1", "178.9", "268.3", "**k/3 = 1/3.**", "178.9-268.3 s"])],
   "REPORTED k/3 (no set rule)", "new category (D149(a)); no comparison across real-time factors is claimed (D21)"),
  ("H1.8 n = 3", "closed loop without heading: contact prediction, n = 3 (2026-11-12 regeneration, D149(a))", "UKF, full real time (final port, abb0357d)",
-  "(as above)", ("M", 7513, None), ["U3: contact on the WEST wall inside [+146, +218] s."],
-  "k/3 = 2/3: 177.1 (PASS), 138.3 (MISS, before window), 162.8 (PASS) s, all west wall. Spread: 138.3–177.1 s. "
+  ("U3: contact on the WEST wall inside [+146, +218] s.",
+   "Applied per flight. Each cell is reported as k/3, counting flight 1 where it exists [closed_loop_extras/preregistration.md:72]"),
+  ("M", 7513, None), ["U3: contact on the WEST wall inside [+146, +218] s."],
+  "k/3 = 2/3: 177.1 (PASS), 138.3 (before window), 162.8 (PASS) s, all west wall. Spread: 138.3–177.1 s. "
   "No flight 1 exists on this port (the earlier, pre-jitter-correction `cl_ukf_a_tex` port is superseded)",
   [("numbers_extras", 120, 124, ["177.1", "138.3", "162.8", "**k/3 = 2/3.**", "138.3-177.1 s", "No flight 1 exists on this port"])],
   "REPORTED k/3 (no set rule)", "new category (D149(a)); 3 new flights in total (D133)"),
  ("H1.8 n = 3", "closed loop without heading: contact prediction, n = 3 (2026-11-12 regeneration, D149(a))", "UKF, half real-time (final port, abb0357d)",
-  "(as above)", ("M", 7513, None), ["U3: contact on the WEST wall inside [+146, +218] s."],
-  "k/3 = 3/3: 165.9, 163.7, 152.9 s, all west wall, all PASS. Spread: 152.9–165.9 s. Includes the existing flight 1",
+  ("U3: contact on the WEST wall inside [+146, +218] s.",
+   "Applied per flight. Each cell is reported as k/3, counting flight 1 where it exists [closed_loop_extras/preregistration.md:72]"),
+  ("M", 7513, None), ["U3: contact on the WEST wall inside [+146, +218] s."],
+  "k/3 = 3/3: 165.9, 163.7, 152.9 s, all west wall, all PASS. Spread: 152.9–165.9 s. Includes the existing flight 1 "
+  "(which carries neither U1 nor S2 in its own stored result; still counted, as registered)",
   [("numbers_extras", 139, 143, ["165.9", "163.7", "152.9", "**k/3 = 3/3.**", "152.9-165.9 s"])],
   "REPORTED k/3 (no set rule)", "new category (D149(a))"),
  ("H1.8 n = 3", "closed loop without heading: contact prediction, n = 3 (2026-11-12 regeneration, D149(a))", "FGO, half real-time (corrected priors, 4c07374b/HEAD)",
-  "(as above)", ("M", 8995, None), ["U3: west-wall contact inside [+145, +196] s."],
+  ("U3: west-wall contact inside [+145, +196] s.",
+   "Applied per flight, to each of the 3 flights. The H1.8 FGO verdict for the set is reported as the count of flights "
+   "that meet U1, U2 and U3 (k/3) [refly_priors/preregistration.md:133-134]"),
+  ("M", 8995, None), ["U3: west-wall contact inside [+145, +196] s."],
   "PRIMARY k/3 = 2/3: 166.7 (PASS), 193.9 (PASS), 203.5 (MISS, 7.46 s outside) s, all west wall. S2 100% (arm-to-contact window) "
   "on all three; gating or not on this window makes no difference. k/3 = 0/3 only if S2 is BOTH made to gate AND read on the scorer's "
   "substitute window (never applied to this cell before). H1.8 has no registered set-level PASS/NOT MET threshold (OQ-R5). "
@@ -454,7 +469,7 @@ R1 = [
   "yes: the earlier-build half real-time set was 2/3 (flight 3 lateral speed 0.296 m/s); the re-flown final port 3/3 (correction 17 flight pair, 0.019 m/s)"),
  ("H1.9", "closed loop with heading: criteria pass", "FGO (corrected priors, 4c07374b/HEAD, half real-time)",
   "(as above)", ("M", 7361, 7362), ["S2 is the estimator valid throughout"],
-  "3/3, all five criteria and estimator validity PASS (corrected priors); per-flight max lateral speed 0.119 / 0.0076 / 0.196 m/s, "
+  "3/3, all five criteria and estimator validity PASS (corrected priors); per-flight max lateral speed 0.119 / 0.008 / 0.196 m/s, "
   "comfortably inside the 0.25 m/s band",
   [("numbers_refly", 119, 121, ["0.218", "0.119", "100.0 %", "0.041", "0.0076", "100.0 %", "0.318", "0.196", "100.0 %"]),
    ("numbers_refly", 127, None, ["**H1.9 FGO verdict: k/3 = 3/3** (all B1-B5 and S2 met on every flight)."])],
@@ -536,14 +551,15 @@ R1 = [
   "separate row below (D150, OQ-R1) -- this is the primary H5.1 verdict, EKF3 flying only"),
  ("H5.1 (FGO-flying)", "H5.1 bounds applied to the FGO-flying set (as for S3v2)", "corrected priors, 2026-11-12 regeneration",
   ("H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights.",
-   "(the SAME bounds, applied here to the FGO-flying set, not the primary H5.1 verdict, exactly as the original S3v2 rows did)"),
+   "The registered H5.1 names EKF3 flying; the re-fly applies the same bounds to the FGO-flying set, exactly as the "
+   "original S3v2 rows did [refly_priors/preregistration.md:150-151]"),
   ("M", 10687, 10688),
   ["H-H1 (primary, EKF3 flying): mean hold error ≤ 0.05 m and max ≤ 0.15 m in every pre-loss hold window, 3/3 flights."],
   "PASS: hold error mean 7.1–8.7 mm, max 15.0–25.5 mm, every window inside the 50/150 mm bounds, 3/3",
   [("numbers_refly", 228, 235, ["7.396", "7.220", "8.719", "7.961", "7.119", "7.857", "mean 7.1-8.7 mm, max 15.0-25.5 mm",
                                 "**H5.1 (FGO-flying): PASS, 3/3**"])],
-  "PASS", "D150 (OQ-R1): reported as “H5.1 bounds applied to the FGO-flying set (as for S3v2)”, not the primary H5.1 verdict "
-  "(prereg_refly:149-152); corrected priors replace the superseded original-prior reading (numbers.md:646, 8.1-9.0/18-28 mm)"),
+  "PASS", "D150 (OQ-R1): reported as “H5.1 bounds applied to the FGO-flying set (as for S3v2)”, not the primary H5.1 "
+  "verdict; corrected priors replace the superseded original-prior reading (numbers.md:646, 8.1–9.0/18–28 mm)"),
  ("H5.2", "FGO holds tightest", "",
   ("H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights.",
    "(design draft §e; no METHODOLOGY pre-registration line)"), ("tag_hold_design.md", 180, None), ["H-H2: the FGO's hold error is lowest. FGO < EKF3 and FGO < UKF mean hold error in 3/3 flights."],
@@ -553,16 +569,16 @@ R1 = [
    ("numbers_refly", 342, 348, ["7.308/8.340/7.488", "highest in only 1 of 3 runs (r2,", "below* EKF3 in the other two"])],
   "NOT MET", "2026-11-12 regeneration (D149(c)): corrected priors; the H-H2 verdict category is unchanged (FAIL 0/3 both), but the "
   "underlying pattern changed from 'clearly the worst of the three' to 'mixed with EKF3, still above UKF' (numbers_refly.md §4.3); "
-  "original-prior row (FGO highest in all three, 8.3-8.6 mm) superseded (D149(b))"),
+  "original-prior row (FGO highest in all three, 8.3–8.6 mm) superseded (D149(b))"),
  ("H5.3", "smoothness similar", "",
   "P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators.", ("tag_hold_design.md", 183, None),
   ["P-H3 (smoothness, prediction): gyro activity in the hold windows within 1.5× across estimators."],
   "FAIL (0/3): ratios 2.402/2.577/2.499 (driven by max(UKF)/min(EKF3) in every run; numerically unchanged, since FGO's own gyro "
-  "activity, ~2.0-2.3x EKF3's, is never the extremal value)",
+  "activity, ~2.0–2.3x EKF3's, is never the extremal value)",
   [("numbers_refly", 338, 338, ["FAIL (0/3); ratios 2.402 / 2.577 / 2.499"]),
    ("numbers_refly", 350, 351, ["P-H3's ratios are driven by max(UKF)/min(EKF3) in every run"])],
   "NOT MET", "2026-11-12 regeneration (D149(c)): re-derived on the corrected priors, numerically unchanged (not driven by the FGO); "
-  "superseded original-prior reading: UKF 2.40-2.58x, FGO 2.10-2.37x EKF3's (D149(b))"),
+  "superseded original-prior reading: UKF 2.40–2.58x, FGO 2.10–2.37x EKF3's (D149(b))"),
  ("H5.4a", "after a 15 s loss, EKF3 jumps most", "",
   "After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's in 3/3 flights.",
   ("tag_hold_design.md", 185, 186), ["After the 15 s occlusion, EKF3's re-lock jump (largest estimate step) is larger than the UKF's and the FGO's in 3/3 flights."],
@@ -570,8 +586,8 @@ R1 = [
   "unchanged) largest in all 3; FGO (corrected priors) narrowed to 7.1–24.0 mm, which does not change which estimator is largest",
   [("numbers_refly", 339, 339, ["FAIL (0/3 EKF3 largest)"]),
    ("numbers_refly", 353, 355, ["EKF3 (4.9/4.5/7.3 mm) is strictly smallest", "7.1-24.0 mm (new), but this does not change which estimator is largest or the FAIL verdict."])],
-  "NOT MET", "2026-11-12 regeneration (D149(c)): corrected priors narrow the FGO's own 15 s jump from 7.2-30.1 mm (original) to "
-  "7.1-24.0 mm (new); verdict and extremal estimators unchanged; original-prior reading superseded (D149(b))"),
+  "NOT MET", "2026-11-12 regeneration (D149(c)): corrected priors narrow the FGO's own 15 s jump from 7.2–30.1 mm (original) to "
+  "7.1–24.0 mm (new); verdict and extremal estimators unchanged; original-prior reading superseded (D149(b))"),
  ("H5.4b", "after a 5 s loss, jumps similar", "",
   "After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other.", ("tag_hold_design.md", 187, None),
   ["After the 5 s occlusion (no timeout), the jumps are within 1.5× of each other."],
@@ -579,7 +595,7 @@ R1 = [
   [("numbers_refly", 340, 340, ["FAIL (0/3); ratios 5.135 / 2.144 / 3.411"]),
    ("numbers_refly", 357, 357, ["ratio range narrowed from 3.2-7.7 (original) to 2.1-5.1 (new); still FAIL"])],
   "NOT MET", "2026-11-12 regeneration (D149(c)): corrected priors; original-prior reading (EKF3 4-5 against UKF 7-16, FGO 11-34 mm, "
-  "max/min 3.2-7.7) superseded (D149(b))"),
+  "max/min 3.2–7.7) superseded (D149(b))"),
  ("H5.5", "drift band", "",
   "P-H5 (drift during loss, per estimator): EKF3 and FGO: drift at the end of the 5 / 15 / 30 s hover losses ≤ 0.05 / 0.10 / 0.20 m. "
   "UKF: ≤ 2× those. Loss during the move (12 s): ≤ 0.15 m for EKF3 and FGO, 0.30 m for the UKF.", ("M", 10689, 10692),
@@ -626,7 +642,7 @@ R1 = [
    ("numbers_refly", 268, 272, ["14.5 ms", "24.7 ms", "25.3 ms", "Range 2.8-30.3 ms", "**H5.6 redefined primary: PASS, 12/12**"])],
   "PASS", "a redefinition registered before the S2/S3 flights (correction 20), not a re-scoring of S1; 2026-11-12 regeneration "
   "(D149(c)): FGO citation now the corrected-prior re-fly (numbers_refly.md §4.2, same ~2-32 ms range as the superseded "
-  "original-prior reading, numbers.md:646, 0.002-0.032 s; D149(b))"),
+  "original-prior reading, numbers.md:646, 0.002–0.032 s; D149(b))"),
  ("H5.6", "re-lock time", "jump criterion, kept as worded (UKF-flying hold set, final port; FGO-flying hold set, corrected priors)",
   "Jump criterion: kept as worded (the largest single estimate step in the 2 s after re-lock ≤ the accumulated drift at re-lock; "
   "UKF/FGO converge without reset).", ("M", 10957, 10958),
@@ -661,11 +677,24 @@ def vfound(tab, label, text, doc, a, b=None):
     return ok
 
 
+# 2026-11-12 regeneration: the "applied per flight, k/3" framing embedded in the new H1.8 n = 3 rows' after-quote is
+# itself verified verbatim here (the per-row loop below only checks the citation attached to pq, not pafter).
+vfound("R1", "H1.8 n = 3 (EKF3/UKF rows): applied per flight, k/3 framing",
+       "Applied per flight. Each cell is reported as k/3, counting flight 1 where it exists", "prereg_extras", 72, 72)
+vfound("R1", "H1.8 n = 3 FGO row: applied per flight, k/3 framing",
+       "Applied per flight, to each of the 3 flights. The H1.8 FGO verdict for the set is reported as the count of "
+       "flights that meet U1, U2 and U3 (k/3)", "prereg_refly", 133, 134)
+vfound("R1", "H5.1 (FGO-flying) row: not the primary H5.1 verdict framing",
+       "The registered H5.1 names EKF3 flying; the re-fly applies the same bounds to the FGO-flying set, exactly as "
+       "the original S3v2 rows did", "prereg_refly", 150, 151)
+
 for lab, name, part, pred, (pd, pa, pb), pfr, out, osrc, verdict, chg in R1:
     assert verdict in CATS
     pq, pafter = pred if isinstance(pred, tuple) else (pred, "")
     found("R1", f"{lab} {part} prediction quote", pfr, pd, pa, pb)
-    if lab.startswith("H5."):
+    # 2026-11-12 regeneration: "H1.8 n = 3" and "H5.1 (FGO-flying)" carry a genuine verbatim quote (not "(as above)")
+    # and are checked the same strict way as H5.x; so are the new "1B-" DESCRIPTIVE rows (advisor review).
+    if lab.startswith("H5.") or lab.startswith("H1.8 n") or lab.startswith("1B-"):
         vfound("R1", f"{lab} {part} prediction quote, verbatim", pq, pd, pa, pb)
     for od, oa, ob, ofr in osrc:
         found("R1", f"{lab} {part} outcome", ofr, od, oa, ob)
@@ -734,6 +763,50 @@ jcheck("R1", "H5.5 directional (corrected priors): FGO node effective drift rang
 jcheck("R1", "H5.5 directional (corrected priors): matched losses with the UKF / FGO drift strictly above flying EKF3 (effective, full precision)",
        f"{H5D2['n_ukf']} / {H5D2['n_fgo']}", "4 of 12 / 6 of 12", _HJ2)
 jcheck("R1", "H5.5 directional (corrected priors): prediction holds (both exceed flying EKF3 in every matched loss)", H5D2["holds"], False, _HJ2)
+
+# ------------------------------------------------------------------------------------------------------------------- D149/D150:
+# every NEW displayed number from closed_loop_extras / refly_priors, re-derived HERE directly from its own stored result file
+# (rd() applied once, the thesis's own rounding rule) and checked against the displayed string -- the "twice" cross-check the
+# common brief requires (the numbers_extras.md / numbers_refly.md citations above are the first check; this is the second).
+def _contact(trial):
+    return L(f"closed_loop_{trial}.json")["contact"]["t_rel_cruise_s"]
+
+
+for _trial, _disp in (("cl_a_tex", "186.2"), ("cl_a_tex_r2", "174.9"), ("cl_a_tex_r3", "181.4")):
+    jcheck("R1", f"H1.8 n=3 EKF3 full: {_trial} contact (s)", rd(_contact(_trial), 1), _disp, f"eval/results/closed_loop_{_trial}.json")
+for _trial, _disp in (("cl_a_tex_half", "242.1"), ("cl_a_tex_half_r2", "178.9"), ("cl_a_tex_half_r3", "268.3")):
+    jcheck("R1", f"H1.8 n=3 EKF3 half: {_trial} contact (s)", rd(_contact(_trial), 1), _disp, f"eval/results/closed_loop_{_trial}.json")
+for _trial, _disp in (("cl_ukf_a_tex_v2_r1", "177.1"), ("cl_ukf_a_tex_v2_r2", "138.3"), ("cl_ukf_a_tex_v2_r3", "162.8")):
+    jcheck("R1", f"H1.8 n=3 UKF full: {_trial} contact (s)", rd(_contact(_trial), 1), _disp, f"eval/results/closed_loop_{_trial}.json")
+for _trial, _disp in (("cl_ukf_a_tex_half_v2", "165.9"), ("cl_ukf_a_tex_half_v2_r2", "163.7"), ("cl_ukf_a_tex_half_v2_r3", "152.9")):
+    jcheck("R1", f"H1.8 n=3 UKF half: {_trial} contact (s)", rd(_contact(_trial), 1), _disp, f"eval/results/closed_loop_{_trial}.json")
+for _trial, _disp in (("cl_fgo_a_tex_r1_half_rp", "166.7"), ("cl_fgo_a_tex_r2_half_rp", "193.9"), ("cl_fgo_a_tex_r3_half_rp", "203.5")):
+    jcheck("R1", f"H1.8 n=3 FGO: {_trial} contact (s)", rd(_contact(_trial), 1), _disp, f"eval/results/closed_loop_{_trial}.json")
+
+for _trial, _disp in (("cl_fgo_b_tex_r1_half_rp", "0.119"), ("cl_fgo_b_tex_r2_half_rp", "0.008"), ("cl_fgo_b_tex_r3_half_rp", "0.196")):
+    _b4 = L(f"closed_loop_{_trial}.json")["B"]["B4"]["max_abs_lat_speed_mps"]
+    jcheck("R1", f"H1.9 FGO (corrected priors): {_trial} B4 max lat speed (m/s)", rd(_b4, 3), _disp, f"eval/results/closed_loop_{_trial}.json")
+
+_s3rp_hw = [w for r in (1, 2, 3) for w in L(f"expH/s3rp_r{r}.json")["hold_windows_vehicle"]]
+jcheck("R1", "H5.1 (FGO-flying, corrected priors): mean hold error range (mm)",
+       f"{rd(min(w['mean_m'] for w in _s3rp_hw) * 1e3, 1)}–{rd(max(w['mean_m'] for w in _s3rp_hw) * 1e3, 1)}", "7.1–8.7",
+       "eval/results/expH/s3rp_r{1,2,3}.json:hold_windows_vehicle")
+jcheck("R1", "H5.1 (FGO-flying, corrected priors): max hold error range (mm)",
+       f"{rd(min(w['max_m'] for w in _s3rp_hw) * 1e3, 1)}–{rd(max(w['max_m'] for w in _s3rp_hw) * 1e3, 1)}", "15.0–25.5",
+       "eval/results/expH/s3rp_r{1,2,3}.json:hold_windows_vehicle")
+
+_hcrp = L("expH/h_comparative_refly_priors.json")
+_fgo_new = _hcrp["new"]["sets"]["re-flown (S2v2 jitter-corrected UKF, S3rp corrected-prior FGO)"]["FGO"]
+_h52 = " / ".join(rd(f["hold_mean_mm"], 3) for f in _fgo_new)
+jcheck("R1", "H5.2 (corrected priors): FGO hold mean per run (mm)", _h52, "7.308 / 8.340 / 7.488", "eval/results/expH/h_comparative_refly_priors.json")
+_jump15 = " / ".join(rd(f["jump_15s_mm"], 1) for f in _fgo_new)
+jcheck("R1", "H5.4a (corrected priors): FGO 15 s jump per run (mm), range 7.1–24.0 (numbers_refly.md:354)", _jump15, "24.0 / 7.1 / 7.8",
+       "eval/results/expH/h_comparative_refly_priors.json")
+
+_s3rp_relocks_ms = [l["FGO_flying"]["effective"]["relock_after_first_fix_s"] * 1e3 for r in (1, 2, 3) for l in L(f"expH/s3rp_r{r}.json")["losses"]]
+jcheck("R1", "H5.6 redefined primary (corrected priors): FGO re-lock range, 12 losses (ms)",
+       f"{rd(min(_s3rp_relocks_ms), 1)}–{rd(max(_s3rp_relocks_ms), 1)}", "2.8–30.3", "eval/results/expH/s3rp_r{1,2,3}.json:losses[*].FGO_flying.effective.relock_after_first_fix_s")
+
 _cnt_txt = ", ".join(f"{c} {CNT[c]}" for c in CATS)
 (lambda *a_, **k_: save_tab(*a_, bold=False, **k_))(  # Table 7.3: no bolding anywhere (ruling 2026-10-18)
     "Table 7.3", "R1_hypothesis_scorecard", "Hypothesis scorecard: every pre-registered hypothesis, comparison and check, with its restated verdict",
@@ -808,7 +881,7 @@ SUP = [
   "H_s3v2_r{1,2,3}", [("numbers.md", 646, None, ["8.1–9.0 / 18–28 (H-H1 PASS)"])]),
  ("H5.2", "superseded: original priors", "FAIL (0/3): FGO highest in all three runs (8.3–8.6 against EKF3 7.8–7.9 mm)",
   "h_comparative_2026-10-11.json", [("numbers.md", 675, None, ["the FGO is now the HIGHEST in all three runs (8.3–8.6 against EKF3 7.8–7.9 mm)"])]),
- ("H5.3", "superseded: original priors (numerically unchanged)", "FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's",
+ ("H5.3", "superseded: original priors", "FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's (numerically unchanged by the prior correction)",
   "h_comparative_2026-10-11.json", [("numbers.md", 676, None, ["FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's"])]),
  ("H5.4a", "superseded: original priors", "FAIL (0/3): EKF3 strictly the smallest (5/5/7 against UKF 20–30, FGO 7–30 mm)",
   "h_comparative_2026-10-11.json", [("numbers.md", 677, None, ["FAIL (0/3): EKF3 strictly the smallest in all three (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm)"])]),
@@ -823,6 +896,8 @@ SUP = [
   [("numbers.md", 646, None, ["0.002–0.032 s, PASS"])]),
  ("H5.6, jump as worded (FGO)", "superseded: original priors", "fails in 4 of 12 losses", "H_s3v2_r{1,2,3}",
   [("numbers.md", 646, None, ["jump AS WORDED fails in 4 of 12 losses"])]),
+ ("H5.7 (FGO)", "superseded: original priors (identical conclusion)", "PASS: no lockout in any loss", "H_s3v2_r{1,2,3}",
+  [("numbers.md", 629, None, ["No lockout in any loss (P-H7 PASS)."])]),
 ]
 _SUP_LINES = ["", "## Table 7.3 superseded appendix (not counted in the verdict totals above; D129, D149(b))", "",
               "The values below are listed for provenance only. None of their source trial directories, score files or "
@@ -842,6 +917,35 @@ _r1_after = open(_R1_PATH).read()
 for _ln in _SUP_LINES:
     if _ln.startswith("|") and _ln != "|---|---|---|---|---|":
         jcheck("R1 (superseded)", f"row written verbatim: {_ln[:60]}", _ln in _r1_after, True, "R1_hypothesis_scorecard.md (self-check)")
+
+# Render the superseded appendix as its own PNG page(s) and append it to R1's .tex (advisor review: a reader of only the
+# rendered artefacts, not the .md, must still be able to see it -- D149(b) says it moves to "an appendix section", not
+# that it is dropped from every rendered form).
+_SUP_HEADER = ["id", "reason", "value (superseded)", "build / flight(s)", "source"]
+_SUP_ROWS_T = [[_id, _reason, _val, _build, "; ".join(cite(_od, _oa, _ob) for _od, _oa, _ob, _ in _osrc)] for _id, _reason, _val, _build, _osrc in SUP]
+_sup_figs = table_page("Table 7.3 superseded appendix (not counted in the main table; D129, D149(b))",
+                        _SUP_HEADER, _SUP_ROWS_T, [18, 24, 46, 26, 18], fs=7.0, bold=False)
+for _k, _f in enumerate(_sup_figs):
+    _f.savefig(os.path.join(TAB, f"R1_hypothesis_scorecard_sup_p{_k + 1}.png"), dpi=150, bbox_inches="tight", pad_inches=0.25)
+    plt.close(_f)
+for _k in range(len(_sup_figs)):
+    jcheck("R1 (superseded)", f"superseded appendix PNG page {_k + 1} written",
+           os.path.exists(os.path.join(TAB, f"R1_hypothesis_scorecard_sup_p{_k + 1}.png")), True, "figure file existence")
+_sup_spec = "".join(f"p{{\\dimexpr {rd(w / sum([18, 24, 46, 26, 18]) * 0.999, 3)}\\linewidth-2\\tabcolsep\\relax}}" for w in [18, 24, 46, 26, 18])
+_sup_tex = ["", "% Table 7.3 superseded appendix (D129, D149(b)): not counted in the main table above.",
+            r"\begin{table}[htbp]", r"\centering", r"\scriptsize",
+            r"\caption{Table 7.3 superseded appendix (not counted in the main table; D129, D149(b)).}",
+            r"\label{tab:R1_hypothesis_scorecard_superseded}", f"\\begin{{tabular}}{{{_sup_spec}}}", r"\toprule",
+            " & ".join(tex(h) for h in _SUP_HEADER) + r" \\", r"\midrule"]
+_sup_tex += [" & ".join(tex(c) for c in r) + r" \\" for r in _SUP_ROWS_T]
+_sup_tex += [r"\bottomrule", r"\end{tabular}", r"\end{table}", ""]
+_sup_tex_txt = "\n".join(_sup_tex)
+tex_selfcheck(_sup_tex_txt, len(_SUP_HEADER))
+_R1_TEX_PATH = os.path.join(TAB, "R1_hypothesis_scorecard.tex")
+open(_R1_TEX_PATH, "a").write(_sup_tex_txt)
+_r1_tex_after = open(_R1_TEX_PATH).read()
+jcheck("R1 (superseded)", "superseded appendix appended to R1_hypothesis_scorecard.tex", r"\label{tab:R1_hypothesis_scorecard_superseded}" in _r1_tex_after, True,
+       "R1_hypothesis_scorecard.tex (self-check)")
 
 # =============================================================================================== 1B EKF3 + HEADING REPLAY (2026-11-12 regeneration, D149(d), OQ-R3)
 # DESCRIPTIVE only: "No hypothesis in this document carries a PASS/FAIL verdict" (D139 item 3, binding coordinator ruling). Every

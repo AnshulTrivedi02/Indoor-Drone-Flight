@@ -43,7 +43,7 @@ carries the same string for every row transcribed from R1.
 | 24 | -- | superseded appendix | `H1.8 UKF, full real time` -- reason "superseded: earlier build" (`cl_ukf_a_tex`, pre-jitter-correction port). |
 | 25 | -- | superseded appendix | `H1.8 FGO, half real-time` -- reason "superseded: original priors" (`cl_fgo_a_tex_half_v3`). |
 | 26 | -- | superseded appendix | `H1.9 FGO, half real-time` -- reason "superseded: original priors". |
-| 27-36 | -- | superseded appendix | `H5.1 (FGO-flying)`, `H5.2`, `H5.3`, `H5.4a`, `H5.4b`, `H5.5, drift band (FGO)`, `H5.5, S2/S3 directional prediction (FGO)`, `H5.6, redefined primary (FGO)`, `H5.6, jump as worded (FGO)` -- each "superseded: original priors" (`H5.3`'s row says "(numerically unchanged)"). |
+| 27-37 | -- | superseded appendix | `H5.1 (FGO-flying)`, `H5.2`, `H5.3`, `H5.4a`, `H5.4b`, `H5.5, drift band (FGO)`, `H5.5, S2/S3 directional prediction (FGO)`, `H5.6, redefined primary (FGO)`, `H5.6, jump as worded (FGO)`, `H5.7 (FGO)` -- each reason "superseded: original priors" (`H5.7 (FGO)`'s says "(identical conclusion)" -- D149(b) lists H5.7 among the hold rows to supersede, and the original and corrected-prior conclusions do not differ: no lockout in any loss, in both). 13 rows total. |
 
 **Important for stage 3 (captions):** the superseded appendix lives in a **separate markdown table**, under its own
 `id` column, in both `R1_hypothesis_scorecard.md` and `TA_verdicts.md`. `eval/caption_verdict_check.py` only scans the
@@ -87,7 +87,16 @@ which the checker evidently matches on prefix). Only the FGO pointer fails.
 | REPORTED k/3 (no set rule) | -- | 5 | **+5** (new category; the five n = 3 cells) |
 | **total** | **48** | **56** | **+8** |
 
-Superseded appendix: **12 rows**, not counted in any category above.
+**PASS's net 0 is not "nothing changed in PASS" -- it is a −1/+1 that happens to cancel:** `H1.8 FGO (half real-time,
+final FGO node)`'s single-flight PASS (n = 1) **left** the counted PASS total when it moved to the superseded
+appendix (D149(b); it is replaced in the main table by the new `H1.8 n = 3 FGO ...` row, counted under REPORTED k/3,
+PRIMARY k/3 = 2/3 -- a different category, and a genuinely different-shaped result, not a renamed PASS). Separately,
+the new `H5.1 (FGO-flying) corrected priors` row **added** one PASS. The two are unrelated changes that happen to be
+the same size. **This is the headline change for the coordinator to read from this table: H1.8 FGO went from a single
+PASS (n = 1) to a 3-flight spread, PRIMARY k/3 = 2/3, with one flight (r3) missing U3 by 7.46 s.**
+
+Superseded appendix: **13 rows**, not counted in any category above (H5.7 (FGO) added after the first pass --
+D149(b) lists it and it was missing).
 
 **TA_verdicts (Table A.4), main table (computed from the generated file, not hand-counted):**
 
@@ -102,11 +111,15 @@ Superseded appendix: **12 rows**, not counted in any category above.
 | REPORTED k/3 (no set rule) | -- | 5 | **+5** |
 | **total** | **88** | **96** | **+8** |
 
-Superseded appendix: **12 rows**, not counted. **Reconciliation: TA_verdicts' delta (+8: +3 DESCRIPTIVE, +5 REPORTED
-k/3) exactly matches R1's delta** (R1's 8 new parts are the only thing TA_verdicts' Experiments 1-5 section
-transcribes) -- no existing category count moved in either table, confirming no verdict WORD changed anywhere in
-this regeneration, only values, citations and row identities (consistent with `numbers_refly.md` §5's own "No" for
-every comparative criterion, and `numbers_extras.md`'s unchanged n = 1 verdicts).
+Superseded appendix: **13 rows**, not counted.
+
+**Reconciliation: TA_verdicts' delta (+8: +3 DESCRIPTIVE, +5 REPORTED k/3) exactly matches R1's delta**, since R1's 8
+new parts are the only thing TA_verdicts' Experiments 1-5 section transcribes -- the two tables agree, as D149(e)
+requires. **This is a weaker claim than "no verdict word changed anywhere":** PASS's net-0 column hides the
+H1.8-FGO-out / H5.1-FGO-flying-in pair described above, and several EXISTING rows (H5.2, H5.3, H5.4a, H5.4b, the
+H5.5/H5.6 FGO-flying parts) kept their verdict word while their underlying FGO values were replaced (corrected
+priors) and their original-prior values moved to the appendix -- a real content change that the category counts, by
+construction, cannot show. Read the row-ID map in section 1, not the totals alone, for what changed.
 
 ## 4. What this stage did NOT touch (explicitly out of scope, per the common brief)
 
@@ -126,20 +139,51 @@ every comparative criterion, and `numbers_extras.md`'s unchanged n = 1 verdicts)
 ## 5. Discipline / checks run
 
 - Snapshot sha256 of every R1/R2/R3/R4/TA_verdicts/index_results.md output taken before any generator run.
-- `eval/figs_thesis_results.py`: 97/97 numeric, 239/239 source checks (was 77/77, 185/185).
-- `eval/ta_verdicts_check.py`: 180/180 checks (new section added: quote verification against the new pre-registration
-  and numbers files, using the previously-unused `must_contain()` helper -- extends the quote-verification pattern
-  the common brief asked for).
+- `eval/figs_thesis_results.py`: **123/123 numeric, 251/251 source checks** (was 77/77, 185/185 before this stage).
+  Includes a second, independent cross-check (direct from the stored JSON result files, via `rd()`/`jcheck()`/
+  `scheck()`, not just the numbers_extras.md/numbers_refly.md text) for every headline new number: the 15 H1.8 n = 3
+  contact times, the 3 H1.9 FGO B4 lateral speeds, the H5.1 (FGO-flying) mean/max hold-error range, the H5.2/H5.4a
+  FGO values (from `h_comparative_refly_priors.json`), and the H5.6 re-lock ms range -- an advisor review found the
+  first pass had only the text-level check, and one genuine formatting bug this second check caught: the H1.9 FGO
+  `cl_fgo_b_tex_r2_half_rp` lateral speed displayed as `numbers_refly.md`'s own "0.0076" (4 dp), which is NOT
+  `rd(0.0076019517100402514, 3)` ("0.008", the thesis's own 3 dp convention for this quantity) -- fixed to "0.008".
+- `eval/ta_verdicts_check.py`: **183/183 checks** (was 154/154 before the quote-verification extension, then 167,
+  180, now 183 after adding the superseded appendix's own rendered page). New section: quote verification against
+  the new pre-registration and numbers files, using the previously-unused `must_contain()` helper -- extends the
+  quote-verification pattern the common brief asked for.
 - `tools/check_numbers_frozen.py`: PASS.
-- `eval/caption_verdict_check.py`: 137/143 (6 failures, all `H1.8 FGO`; see section 2).
+- `eval/caption_verdict_check.py`: **137/143** (6 failures, all the bare string `H1.8 FGO`; see section 2). Confirmed
+  143/143 on the pre-regeneration tree (section 2).
+- **Advisor review (before handback) found several issues, now fixed**, in addition to the numeric cross-check above:
+  "(as above)" in the five new H1.8 n = 3 rows and the H5.1 (FGO-flying) row read, in the rendered table, as "same as
+  the row immediately above", but the row immediately above is a DIFFERENT estimator's criterion (the new rows are
+  not adjacent to their own base-criterion sibling) -- replaced with the genuine verbatim quote plus a verbatim-quoted
+  "applied per flight, k/3" framing from the pre-registration (`closed_loop_extras/preregistration.md:72`,
+  `refly_priors/preregistration.md:133-134,150-151`), each checked with `vfound()`, not fragment-based `found()`. The
+  superseded appendix was missing H5.7 (FGO) (D149(b) lists it); added, with the 12 -> 13 row-count check updated in
+  both scripts. The appendix was markdown-only in the first pass; it now also renders as a PNG page (both tables) and
+  is appended to R1's `.tex` and TA's `.pdf` (`table_page()` generalised to take header/widths rather than only its
+  module-level defaults, in `ta_verdicts_check.py`). A stale 5S note ("the flown FGO hold/closed-loop corridor results
+  used the ORIGINAL priors (T7)") that this regeneration makes false was reworded. Smaller presentation fixes: the
+  EKF3 half n = 3 row no longer echoes "not a miss (D149(a))" as prose (states "after the window" instead); the
+  fwdplainc_blank EKF3 (ii) wording now says "undefined (degenerate alignment)" (the common brief's own wording,
+  alongside the source's "Umeyama degenerate" in the citation); 1B-H1 no longer attaches the transition/blank runaway
+  marker (†) to EKF3's own merely-frozen (not runaway) position; 1B-H2 discloses the 5° arms are a separate run from
+  the stored 0.148°/0.126° arms and no longer reads the fwdplainc_tex result as "consistent with the prediction"
+  (no heading benefit is claimed on that floor/wall combination at all); the H5.3 superseded row's reason cell is now
+  the bare "superseded: original priors" (D149(b)'s own label), with "(numerically unchanged)" moved into the value
+  cell; two internal doc-key leaks (`prereg_refly:149-152`, `prereg_ekf3h:266`) in Notes cells were replaced with the
+  real relative paths; ASCII-hyphen numeric ranges in this stage's own prose (not inside a verbatim source quote,
+  which keeps the source's own characters) were converted to en dash, matching R1's house style.
 - Reverted stamp-only diffs: `R2_corrections_by_discovery.{md,tex}`, `R4_information_vs_estimator.{md,tex}`,
   `R3_trajectory_overlay.pdf` (each differed only in the embedded `commit <hash>` stamp / PDF `CreationDate`; `git
-  checkout --` to HEAD). Re-ran `eval/add_caption_verdict_pointers.py` after each `figs_thesis_results.py` run (it
-  strips F3's caption's... actually R3's own "Verdicts: Table A.4, none (descriptive)." pointer line every time R1/R3
-  are regenerated in the same process, the same gotcha flagged for `figs_thesis_methods.py`'s Figure 3.1); its own
-  side effect on `captions/R6.md` (a duplicated pointer line, an idempotency bug in that script, unrelated to this
-  task) was reverted, not left in.
+  checkout --` to HEAD) -- after every `figs_thesis_results.py` run, since it regenerates all of R1-R4 in one process.
+  Re-ran `eval/add_caption_verdict_pointers.py` after each such run (it strips R3's own "Verdicts: Table A.4, none
+  (descriptive)." pointer line every time R1/R3 are regenerated in the same process, the same gotcha flagged for
+  `figs_thesis_methods.py`'s Figure 3.1); its own side effect on `captions/R6.md` (a duplicated pointer line, an
+  idempotency bug in that script, unrelated to this task) was reverted, not left in.
 - Final `git status`: only `eval/ta_verdicts_check.py`, `eval/figs_thesis_results.py`,
-  `docs/thesis/tables/R1_hypothesis_scorecard.*`, `docs/thesis/tables/TA_verdicts.*`,
-  `docs/thesis/figures_thesis/index_results.md` and `docs/thesis/figures_thesis/tables_extra/TA_verdicts.{pdf,png}`
-  changed.
+  `docs/thesis/tables/R1_hypothesis_scorecard.*` (now including the new `R1_hypothesis_scorecard_sup_p1.png`),
+  `docs/thesis/tables/TA_verdicts.*`, `docs/thesis/figures_thesis/index_results.md` and
+  `docs/thesis/figures_thesis/tables_extra/TA_verdicts.{pdf,png}` (now including the new
+  `TA_verdicts_superseded.png`) changed.

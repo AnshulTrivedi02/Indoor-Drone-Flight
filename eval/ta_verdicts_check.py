@@ -172,7 +172,8 @@ ROWS.append(("Experiment 5S", "S-A (FGO forced-invalid test, corrected-priors no
              "\u201cFGO: within 0.75 s of the kill\u201d [M:11298]; safe landing as above. For the FGO the forced-invalid test "
              "is also a node kill (without the safety watcher watching the node)",
              result, "PASS",
-             "flew the corrected initial priors; the flown FGO hold/closed-loop corridor results used the ORIGINAL priors (T7)"))
+             "flew the corrected initial priors, as do the current FGO corridor and hold rows after the 2026-11-12 "
+             "regeneration (D149(c)); the original-prior sets are listed in the superseded appendix (D149(b))"))
 
 # -- S-A (FGO node-kill test, corrected-priors node, re-test v4) --
 d = HJ("safety_fgo_b_v4")
@@ -440,7 +441,7 @@ for row in ROWS:
 # hold). NOT counted in the row total above, NOT counted in any verdict category -- provenance only, per D129 (no existing
 # output renamed/edited/deleted).
 SUP_ROWS = parse_md_table(R1_MD, r"^\| id \| reason \|", 5)
-check("R1 superseded table row count parsed", len(SUP_ROWS), 12, "docs/thesis/tables/R1_hypothesis_scorecard.md (superseded appendix)")
+check("R1 superseded table row count parsed", len(SUP_ROWS), 13, "docs/thesis/tables/R1_hypothesis_scorecard.md (superseded appendix)")
 m_lines += ["", "## Superseded appendix (not counted above; D129, D149(b))", "",
             f"Transcribed, unmodified, from docs/thesis/tables/R1_hypothesis_scorecard.md's own superseded appendix. "
             f"{len(SUP_ROWS)} rows; none counted in Table A.4's row total or in any verdict category above.", "",
@@ -493,7 +494,9 @@ WIDTHS = [9, 16, 34, 26, 7, 20]
 BOLD_WORDS = ("FAIL", "WITHDRAWN", "NOT MET")
 
 
-def table_page(title, rows, fs=6.6):
+def table_page(title, rows, fs=6.6, header=None, widths=None):
+    header = HEADER if header is None else header
+    widths = WIDTHS if widths is None else widths
     figs = []
     lh = fs * 1.34 / 72 / 8.27
 
@@ -503,41 +506,48 @@ def table_page(title, rows, fs=6.6):
         nlt = ttl.count("\n") + 1
         fig.text(0.02, 0.985, ttl, fontsize=11, weight="bold", va="top")
         x = 0.02; y = 0.985 - nlt * 0.028 - 0.012
-        for h, w in zip(HEADER, WIDTHS):
-            fig.text(x, y, h, fontsize=fs + 0.6, weight="bold", va="top"); x += w / sum(WIDTHS) * 0.96
+        for h, w in zip(header, widths):
+            fig.text(x, y, h, fontsize=fs + 0.6, weight="bold", va="top"); x += w / sum(widths) * 0.96
         return fig, y - 2.2 * lh
 
     k = 1; fig, y = newpage(k)
     for row in rows:
         cells = [[(ln, any(b in para for b in BOLD_WORDS)) for para in str(c).split("\n")
                   for ln in (textwrap.wrap(para, max(8, int(w * 1.9))) or [""])]
-                 for c, w in zip(row, WIDTHS)]
+                 for c, w in zip(row, widths)]
         n = max(len(c) for c in cells)
         if y - n * lh < 0.04:
             figs.append(fig); k += 1; fig, y = newpage(k)
         fig.add_artist(Line2D([0.02, 0.98], [y + 0.45 * lh, y + 0.45 * lh], color=GRID, lw=0.5, transform=fig.transFigure))
         x = 0.02
-        for c, w in zip(cells, WIDTHS):
+        for c, w in zip(cells, widths):
             for i, (ln, bold) in enumerate(c):
                 fig.text(x, y - i * lh, ln, fontsize=fs, va="top", weight="bold" if bold else "normal", color=INK)
-            x += w / sum(WIDTHS) * 0.96
+            x += w / sum(widths) * 0.96
         y -= (n + 0.5) * lh
     figs.append(fig)
     return figs
 
 
 figs = table_page(TITLE, ROWS)
-for f in figs:
+SUP_WIDTHS = [14, 18, 38, 20, 22]
+SUP_HEADER_T = ["id", "reason", "value (superseded)", "build / flight(s)", "source"]
+SUP_TITLE = "Table A.4 superseded appendix (not counted in the main table above; D129, D149(b))"
+sup_figs = table_page(SUP_TITLE, SUP_ROWS, header=SUP_HEADER_T, widths=SUP_WIDTHS)
+for f in figs + sup_figs:
     f.text(0.02, 0.02, "docs/thesis/figures_thesis/tables_extra/TA_verdicts (eval/ta_verdicts_check.py)", fontsize=6, color=INK2)
 with PdfPages(os.path.join(OUTF, "TA_verdicts.pdf")) as pdf:
-    for f in figs:
+    for f in figs + sup_figs:
         pdf.savefig(f)
+check("superseded appendix page(s) appended to TA_verdicts.pdf", len(sup_figs) >= 1, True)
 figs[0].savefig(os.path.join(OUTF, "TA_verdicts.png"), dpi=150)
-for f in figs:
+sup_figs[0].savefig(os.path.join(OUTF, "TA_verdicts_superseded.png"), dpi=150)
+for f in figs + sup_figs:
     plt.close(f)
 check("PDF page count", len(figs) >= 1, True, f"{len(figs)} pages")
 check("PDF file written", os.path.exists(os.path.join(OUTF, "TA_verdicts.pdf")), True)
 check("PNG file written", os.path.exists(os.path.join(OUTF, "TA_verdicts.png")), True)
+check("superseded PNG file written", os.path.exists(os.path.join(OUTF, "TA_verdicts_superseded.png")), True)
 
 # =====================================================================================================================
 # Tally
