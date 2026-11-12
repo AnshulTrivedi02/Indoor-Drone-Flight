@@ -1,8 +1,8 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
-**Source checks: 326/326 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 38/38 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
+**Source checks: 327/332 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 43/43 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
 **Proposed numbering** (vocabulary §6: by chapter; Chapter 3 = method, Chapter 8 = towards real flights). File names are descriptive and new; `M1`–`M3` are deliberately not used as ids because they are the F8 mitigation codes.
 
@@ -11,7 +11,7 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
 | Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 7/7 | Chapter 3 (method), estimators |
 | Table 3.2 | `methods_noise_parity.md`, `methods_noise_parity.tex`, `methods_noise_parity.png` | Noise parity: measurement and process noise per sensor and estimator | 15/15 | Chapter 3 (method), fairness |
-| Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png` | Documented exceptions to noise and treatment parity, with their rulings | 7/7 | Chapter 3 (method), fairness |
+| Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png`, `methods_noise_exceptions_p3.png` | Documented exceptions to noise and treatment parity, with their rulings | 12/12 | Chapter 3 (method), fairness |
 | Table 3.4 | `methods_experiment_matrix.md`, `methods_experiment_matrix.tex`, `methods_experiment_matrix_p1.png`, `methods_experiment_matrix_p2.png` | Experiment matrix | 4/4 | Chapter 3 (method), experiments |
 | Table 8.1 | `realflight_compute.md`, `realflight_compute.tex`, `realflight_compute.png` | Compute and deployability per estimator | 4/4 | Chapter 8 (towards real flights); the offline row may also sit in Chapter 3 |
 | Table 8.2 | `realflight_safety_findings.md`, `realflight_safety_findings.tex`, `realflight_safety_findings_p1.png`, `realflight_safety_findings_p2.png` | Safety findings from the SITL safety bench, with mitigations and status | 1/1 | Chapter 8 (towards real flights) |
@@ -99,6 +99,11 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | Table 3.3 row 23: corner speed (m/s) | `1.80` | `1.80` | N:542 | yes |
 | Table 3.3 row 23: yaw bound (deg) | `0.06` | `0.06` | N:543 | yes |
 | Table 3.3 row 23: nominal speed (m/s) | `0.5` | `0.5` | M:10517 | yes |
+| Table 3.3 row 5: gating count, textured joint flow-rejection rate (chi2(2)=11.83) | `0.01%` | `0.01%` | FGN:13 | yes |
+| Table 3.3 row 5: gating count, textured FLOW_MAX one-sided rate | `0.00%` | `0.00%` | FGN:13 | yes |
+| Table 3.3 row 5: gating count, textured FLOW_MAX two-sided rate | `0.00%` | `0.00%` | FGN:13 | yes |
+| Table 3.3 row 5: gating count, FLOW_MAX one-sided == two-sided (textured) | `0.00%` | `0.00%` | FGN:13 | yes |
+| Table 3.3 row 5: gating count, joint chi2(2) threshold | `11.83` | `11.83` | FGN:11 | yes |
 
 ### Table 3.4: Experiment matrix
 
@@ -167,7 +172,7 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `src/estimators/ukf_replay.py` | 7 | `Ground truth is used ONLY for evaluation` | yes |
 | `src/estimators/fgo_cpp/src/fgo_cpp_node.cpp` | 4 | `Subscriptions (as fgo_node.py)` | yes |
 | `run_trial.sh` | 166 | `SERIAL3_ARG=(--serial3=udpclient:127.0.0.1:14558)` | yes |
-| `run_trial.sh` | 446 | `mavlink_out:=udp:127.0.0.1:14558` | yes |
+| `run_trial.sh` | 446 | `mavlink_out:=udp:127.0.0.1:14558` | **NO** |
 | `~/ardupilot_ukf/libraries/GCS_MAVLink/GCS_Common.cpp` | 4063 | `MAV_FRAME_LOCAL_NED && f.estimator_type == MAV_ESTIMATOR_TYPE_NAIVE` | yes |
 | `~/ardupilot_ukf/libraries/AP_NavUKF/AP_NavFGO.h` | 2 | `the thesis FGO (GTSAM fixed-lag smoother, run OUTSIDE ArduPilot` | yes |
 | `~/ardupilot_ukf/libraries/AP_AHRS/AP_AHRS.h` | 499 | `UKF = 12` | yes |
@@ -182,15 +187,15 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `~/ardupilot_ukf/libraries/AP_AHRS/AP_AHRS.cpp` | 528 | `SHADOW unless AHRS_EKF_TYPE = 12` | yes |
 | `closedloop_heading.parm` | 10 | `EK3_SRC1_YAW 6` | yes |
 | `closedloop_ukf_heading.parm` | 1 | `the UKF fuses the ExtNav` | yes |
-| `run_trial.sh` | 447 | `heading:=` | yes |
+| `run_trial.sh` | 447 | `heading:=` | **NO** |
 | `METHODOLOGY.md` | 2884 | `RULING — EKF3 in the offline forward-camera comparison` | yes |
 | `METHODOLOGY.md` | 2888 | `Only the UKF and FGO get forward-camera arms` | yes |
 | `src/estimators/measurement_models.py` | 219 | `def forward_events(trial, arm)` | yes |
 | `h_extnav.parm` | 7 | `EK3_SRC1_YAW 6` | yes |
 | `h_ukf_tag.parm` | 7 | `AHRS_UKF_EXTPOS 1` | yes |
 | `sim/tools/closed_loop_run.sh` | 72 | `TAG_BRIDGE_FWD=1` | yes |
-| `src/estimators/ukf_replay.py` | 58 | `/imu/data_raw` | yes |
-| `src/estimators/fgo/fgo_replay.py` | 92 | `want = [` | yes |
+| `src/estimators/ukf_replay.py` | 58 | `/imu/data_raw` | **NO** |
+| `src/estimators/fgo/fgo_replay.py` | 92 | `want = [` | **NO** |
 | `sim/tools/wall_watch.py` | 5 | `/ground_truth/pose` | yes |
 | `sim/tools/wall_watch.py` | 53 | `Box and tilt breaches always stop` | yes |
 | `fly_trial.py` | 493 | `safety watcher lost in flight` | yes |
@@ -277,7 +282,7 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `h_extnav.parm` | 8 | `VISO_POS_M_NSE 0.02` | yes |
 | `METHODOLOGY.md` | 10730 | `ROOM_TAG_SIGMA_POS=0.02` | yes |
 | `run_trial.sh` | 423 | `tag_sigma_pos:=${TAG_SIGMA_POS:-0.02}` | yes |
-| `run_trial.sh` | 449 | `tag_sigma_pos_m:=${TAG_SIGMA_POS:-0.02}` | yes |
+| `run_trial.sh` | 449 | `tag_sigma_pos_m:=${TAG_SIGMA_POS:-0.02}` | **NO** |
 | `src/estimators/measurement_models.py` | 355 | `max(VISO_YAW_M_NSE 0.05 rad, angErr, 5 deg) = 5 deg` | yes |
 | `h_extnav.parm` | 9 | `VISO_YAW_M_NSE 0.05` | yes |
 | `src/estimators/fgo_cpp/src/fgo_cpp_node.cpp` | 66 | `tag_sigma_yaw_deg` | yes |
@@ -299,6 +304,8 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `docs/thesis/numbers.md` | 37 | `used the OLD priors` | yes |
 | `METHODOLOGY.md` | 12338 | `EKF3 fuses flow at 15.1 Hz` | yes |
 | `METHODOLOGY.md` | 12359 | `15 Hz flow fusion is recorded as EKF3 design` | yes |
+| `docs/thesis/tier1/decisions_log.md` | 157 | `REOPENED` | yes |
+| `docs/thesis/tier1/decisions_log.md` | 158 | `REOPENED` | yes |
 | `METHODOLOGY.md` | 4896 | `VISO_YAW_M_NSE = 0.05` | yes |
 | `METHODOLOGY.md` | 7553 | `Ruling D17` | yes |
 | `METHODOLOGY.md` | 9528 | `documented asymmetry` | yes |
@@ -308,9 +315,12 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `src/estimators/fgo/fgo_core.py` | 184 | `< 4.2` | yes |
 | `FGO_DESIGN.md` | 446 | `matched NIS gate` | yes |
 | `METHODOLOGY.md` | 14302 | `FGO gating documented` | yes |
+| `docs/thesis/diagnostics/numbers_fgo_gate_count.md` | 11 | `chi2(2)=11.83` | yes |
+| `docs/thesis/diagnostics/numbers_fgo_gate_count.md` | 13 | `0.01%` | yes |
 | `src/estimators/ukf_core.py` | 293 | `abs(flow_xy[0]) >= p['FLOW_MAX']` | yes |
 | `~/ardupilot_ukf/libraries/AP_NavUKF/AP_NavUKF.cpp` | 874 | `fabs(e.fr.x) < FLOW_MAX` | yes |
 | `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3_OptFlowFusion.cpp` | 668 | `flowRadXY.x < frontend->_maxFlowRate` | yes |
+| `docs/thesis/diagnostics/fgo_gate_count_results.md` | 254 | `IDENTICAL in every single group, with no exception` | yes |
 | `METHODOLOGY.md` | 7038 | `Ruling D15` | yes |
 | `METHODOLOGY.md` | 7060 | `This is a sensor-model` | yes |
 | `METHODOLOGY.md` | 7785 | `D18: no. PRINCIPLE` | yes |
@@ -318,6 +328,7 @@ Built by `eval/figs_thesis_methods.py` at commit `f51e921` (run with `/home/make
 | `METHODOLOGY.md` | 8871 | `Under D18 they are not copied` | yes |
 | `METHODOLOGY.md` | 12857 | `FGO initial yaw sigma, a MODEL CORRECTION under D18` | yes |
 | `docs/thesis/numbers.md` | 36 | `Flown FGO results` | yes |
+| `docs/thesis/tier1/decisions_log.md` | 153 | `corrected priors` | yes |
 | `METHODOLOGY.md` | 12046 | `setBiasAccOmegaInit` | yes |
 | `METHODOLOGY.md` | 12052 | `gyro ~26×, accelerometer ~5× looser` | yes |
 | `src/estimators/fgo/fgo_core.py` | 35 | `setBiasAccOmegaInit(np.zeros((6, 6)))` | yes |
