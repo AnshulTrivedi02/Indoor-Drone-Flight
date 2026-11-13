@@ -175,14 +175,18 @@ TP = DATA["UKF"][1]; kt = TP[0] <= WIN[1]
 STRETCH = 1.0
 from thesis_style import TEXT_WIDTH_IN, write_caption
 # LAYOUT FIX (2026-11-02): panel (a) previously used set_aspect(..., adjustable="box"), which shrinks the axes BOX
-# (in figure fraction coords) to hit the 1:1 data aspect, leaving it narrower than (b)/(c) and misaligning the left/
-# right edges across all three panels. Fixed by: (1) giving row 0 enough figure height that a FULL-width, 1:1-aspect
-# box for panel (a) naturally fits the data range (no shrink needed; left/right edges then match (b)/(c) because none
-# of the three panels' boxes are aspect-adjusted any more); (2) fig.align_ylabels() plus larger hspace so (b)'s and
-# (c)'s rotated y-labels ("along-track error (m)" / "sideways error (m)") no longer collide at the shared left edge.
-fig = plt.figure(figsize=(TEXT_WIDTH_IN, 7.0))
-gs = fig.add_gridspec(3, 1, height_ratios=[1.9, 1.0, 1.0], hspace=0.75)
-ax0 = fig.add_subplot(gs[0]); ax1 = fig.add_subplot(gs[1]); ax2 = fig.add_subplot(gs[2], sharex=ax1, sharey=ax1)
+# (in figure fraction coords) to hit the 1:1 data aspect, leaving it narrower than (b) and misaligning the left/right
+# edges between the two panels. Fixed by: (1) giving row 0 enough figure height that a FULL-width, 1:1-aspect box for
+# panel (a) naturally fits the data range (no shrink needed; left/right edges then match (b) because neither panel's
+# box is aspect-adjusted any more); (2) fig.align_ylabels() so both y-labels sit at the same x-position.
+# RESTYLE (2026-11-13): panel (c) (sideways error vs distance) removed - with true East = 0 throughout, it is the same
+# curve as panel (a) (estimated East), just not drawn through the origin; see the analysis in caption_detail_b.md for
+# the full reasoning. Panel (b) (along-track error vs distance) is kept: it is NOT available from Figure 4.1d (which
+# plots positions only, not an explicit error-vs-distance decomposition) or from Table 4.4 (which gives only an
+# aggregate 3D RMS/end-of-cruise number per estimator, not a distance-resolved along-track curve).
+fig = plt.figure(figsize=(TEXT_WIDTH_IN, 5.4))
+gs = fig.add_gridspec(2, 1, height_ratios=[1.9, 1.0], hspace=0.55)
+ax0 = fig.add_subplot(gs[0]); ax1 = fig.add_subplot(gs[1])
 # --- top: paths
 ax0.plot(TP[1][kt], TP[2][kt], color=TRUTH, lw=3.2, solid_capstyle="round", zorder=2, label="truth (simulator)")
 for key in EST:
@@ -194,27 +198,25 @@ ax0.set_xlim(-2, 162); ax0.set_ylim(YL0, YL1); ax0.grid(True, color=GRID, lw=0.6
 ax0.set_xlabel("North, along the corridor (m)"); ax0.set_ylabel("East (m)")
 ax0.set_title("(a)", loc="left", fontsize=9.5)
 ax0.legend(loc="upper left", bbox_to_anchor=(0.0, 1.0), fontsize=9.0, frameon=True, framealpha=0.95, edgecolor=GRID)
-# --- bottom: errors, same y-limits (shared y)
-for ax, idx, ttl, yl in ((ax1, 1, "(b)", "along-track error (m)"), (ax2, 2, "(c)", "sideways error (m)")):
-    ax.axhline(0, color=TRUTH, lw=1.6, zorder=1)
-    for key in EST:
-        ax.plot(ERR[key][0], ERR[key][idx], color=C[key], lw=1.3, ls=(0, (5, 3)), label=LBL[key])
-    ax.set_ylabel(yl); ax.set_title(ttl, loc="left", fontsize=9.5); ax.grid(True, color=GRID, lw=0.6)
-lo = min(min(ERR[k][1].min(), ERR[k][2].min()) for k in EST); hi = max(max(ERR[k][1].max(), ERR[k][2].max()) for k in EST)
+# --- bottom: along-track error only (panel (c), sideways error, removed - see above)
+ax1.axhline(0, color=TRUTH, lw=1.6, zorder=1)
+for key in EST:
+    ax1.plot(ERR[key][0], ERR[key][1], color=C[key], lw=1.3, ls=(0, (5, 3)), label=LBL[key])
+ax1.set_ylabel("along-track error (m)"); ax1.set_title("(b)", loc="left", fontsize=9.5)
+ax1.grid(True, color=GRID, lw=0.6)
+lo = min(ERR[k][1].min() for k in EST); hi = max(ERR[k][1].max() for k in EST)
 pad = 0.06 * (hi - lo); ax1.set_ylim(lo - pad, hi + pad); ax1.set_xlim(-2, 162)
-assert ax1.get_ylim() == ax2.get_ylim()
-ax2.set_xlabel("true distance travelled along the corridor, North (m)")
+ax1.set_xlabel("true distance travelled along the corridor, North (m)")
 # RESTYLE (2026-11-02): one shared legend for the figure (panel (a)'s, which also names the truth line) - not repeated
-# on (b)/(c), which use the same three estimator colours. fig.align_ylabels() puts all three y-labels at the same
-# x-position so (b)'s and (c)'s no longer encroach on each other at the shared left edge.
-fig.align_ylabels([ax0, ax1, ax2])
+# on (b), which uses the same three estimator colours. fig.align_ylabels() puts both y-labels at the same x-position.
+fig.align_ylabels([ax0, ax1])
 # RESTYLE: bbox_inches="tight" defeats the RS-1 text-width figsize; tight_layout() fits the declared canvas instead.
 try:
     fig.tight_layout()
 except Exception:
     pass
-# Now that the column layout (left/right margins, shared by all three single-column panels) is final, give panel (a)
-# the exact y-range that makes its FULL-width box (same width as (b)/(c), confirmed below) show a true 1:1 aspect,
+# Now that the column layout (left/right margins, shared by both single-column panels) is final, give panel (a)
+# the exact y-range that makes its FULL-width box (same width as (b), confirmed below) show a true 1:1 aspect,
 # instead of shrinking the box as set_aspect(adjustable="box") would. The data (YL0..YL1) stays fully inside; any
 # extra range is symmetric padding, not a change to what's plotted.
 fig.canvas.draw()
@@ -239,24 +241,16 @@ for ext in ("png", "pdf"):
 plt.close(fig)
 
 # =============================================================================================== caption + index
-CAP = (f"Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, flight {ra}, chosen by "
-       "the same rule as Figure 4.2(a), fixed before plotting: of the 9 textured-floor flights that all three estimators complete, the "
-       "flight whose mean cruise ATE over EKF3, UKF and FGO is the median (5th of 9). n = 1 flight shown (of 9). Passive estimators, "
-       "truth flying. (a) Top-down paths from take-off to the end of the cruise window, truth grey. Unlike Figure 4.2, the paths are "
-       "NOT aligned: each estimate is drawn as estimated, in its own navigation frame with its origin at take-off, so the sideways "
-       "drift caused by heading error, which the SE(3) alignment of the cruise ATE (and of Figure 4.2) removes, is shown; it reaches "
-       "tens of metres by the end of the cruise. No fitted alignment is applied to any estimate. EKF3 reports North/East directly. The "
-       "UKF and FGO trajectories are expressed in the world frame by a fixed axis relabel from the known take-off heading (the vehicle "
-       "spawns facing North, and both start with yaw 0 along it, so their x is North and their y is West: (North, East) = (x, −y)), "
-       "the same convention as eval/phase5_analysis.py. The "
-       f"East axis is stretched {rd(STRETCH, 1)}× relative to North (equal scale: the drift is large enough not to need stretching). For reference, "
-       f"each estimator's stored cruise ATE after alignment (Figure 4.2): EKF3 {rd(ev[TR]['est']['EKF3']['ate_a_cruise']['+0.00'], 2)} m, "
-       f"UKF {rd(ev[TR]['est']['UKF']['ate_a_cruise']['+0.00'], 2)} m, FGO {rd(ev[TR]['est']['FGO']['ate_a_cruise']['+0.00'], 2)} m. "
-       "(b) Along-track error (estimated North − true North) and (c) sideways error "
-       "(estimated East − true East) against the true distance travelled along the corridor, from take-off to the end of the cruise "
-       "window (the stop and landing are not drawn). Truth is interpolated to each estimator's own timestamps. (b) and (c) share one "
-       "y-scale. The along-track error is not a pure scale error: a heading error also shortens the North component of the "
-       "estimated travel. Dashed: no heading source (all three). No log axes.\n\nThe 9-flight view of the same dataset is in Figure 4.1d (provisional).\n\nCompanion table: Table 4.4 (provisional), fitted cruise ATE (registered) and raw world-frame error (descriptive) over Experiment 1A flights 1-9 of the standard-sensor dataset, textured floor (this figure shows flight 3 of those 9).")
+# RESTYLE (2026-11-13, caption brief): a plain 2-4 sentence caption - what is plotted, estimators and colours, flights
+# shown, line styles. Panel (c) (sideways error) is removed (see the script's own layout-block comment for the
+# analysis). Every number below is unchanged from the previous (longer) caption; the selection rule, the frame
+# derivation, the "for reference" cross-figure ATE comparison and the rest of the provenance detail it replaces are
+# moved verbatim to caption_detail_b.md.
+CAP = (f"Top-down paths (a) and along-track error (b) for EKF3 (blue), UKF (green) and FGO (orange) against truth (grey), "
+       f"flight {ra} of the standard-sensor dataset, textured floor, no heading source (dashed, all three). Paths are "
+       "unaligned: each estimate is drawn in its own navigation frame, origin at take-off, so the sideways drift from "
+       "heading error is visible; panel (b) shows the along-track error (estimated minus true North) against the true "
+       "distance travelled. The 9-flight view of the same dataset is Figure 4.1d; the companion table is Table 4.4.")
 TITLE = "Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor"
 n_ok = sum(1 for c in CHK if c[-1])
 W = [f"# Figure 4.1c (provisional): offline standard-sensor drift, unaligned (internal id R5)\n",
@@ -289,9 +283,13 @@ for lab, a, b, s, ok in CHK:
     W.append(f"| {lab} | {a} | {b} | {s} | {'OK' if ok else 'FAIL'} |")
 W += ["", "## Notes\n",
       "- RESTYLE (2026-11-02): the figure's reader-facing image now carries data, axis labels, estimator-name legend entries and "
-      "(a)/(b)/(c) panel labels only; the flight number, the three cruise ATEs, the stretch factor and the selection rule are stated "
+      "(a)/(b) panel labels only; the flight number, the three cruise ATEs, the stretch factor and the selection rule are stated "
       "once, in the caption, not drawn on the image (house rule: no explanatory notes/badges inside axes). All are in the table above "
       "(\"5th of 9\" follows from 9 by the median rule).",
+      "- RESTYLE (2026-11-13): panel (c) (sideways error vs distance) is removed - with true East = 0 throughout, it is the "
+      "same curve as panel (a) (estimated East), just not drawn through the origin. Panel (b) (along-track error vs distance) "
+      "is kept: it is not available from Figure 4.1d (positions only, no error-vs-distance decomposition) or from Table 4.4 "
+      "(an aggregate 3D RMS/end-of-cruise number per estimator, not a distance-resolved along-track curve).",
       "- The unaligned end-of-cruise errors are deliberately not printed: they have no stored source row in numbers.md.",
       "- Finding (not a blocker): `ukf_replay.py:239-289` (and the FGO's `metrics.txt`) read the UKF/FGO TUM column 1 as East, but it is "
       "along the take-off heading (North); the stored `metrics.txt` fields `along_pN`, `cross_track`, `ate_apparatus` for these "
