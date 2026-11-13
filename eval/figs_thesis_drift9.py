@@ -335,6 +335,6 @@ W += ["", "## Notes\n",
       "instead of three side by side, since a true 1:1 aspect over the full symmetric East range needed to show both "
       "corridor walls would make a single row too short and three stacked rows too tall for one page."]
 open(INDEX, "w").write("\n".join(W) + "\n")
-write_caption("R6", f"{TITLE}.\n\n{CAP}")
+write_caption("R6", f"{TITLE}.\n\n{CAP}\n\nVerdicts: Table A.4, rows H1.1.")   # pointer kept at generation (a re-run once dropped it)
 print(f"cross-checks {n_ok}/{len(CHK)}; frame {n_pass10}/{len(FR)} (10 deg), {n_pass2}/{len(FR)} (2 deg); "
       "wrote R6_drift_9flights + index_drift9.md")

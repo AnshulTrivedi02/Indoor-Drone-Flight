@@ -190,6 +190,8 @@ def check_coverage():
 
 def pngs(base):
     p = os.path.join(T, base)
+    if base.endswith("methods_architecture"):           # Figure 3.1: two panels, each legible at page width
+        return [p + "_a.png", p + "_b.png"]
     one = p + ".png"
     pages = sorted(glob.glob(p + "_p[0-9]*.png"), key=lambda s: int(re.search(r"_p(\d+)\.png$", s).group(1)))
     pages = [q for q in pages if "_sup_" not in q]
@@ -357,7 +359,16 @@ def main():
         title = re.sub(r"^(Figure|Table) [0-9A]\.[0-9]+[a-z]?(\s*\(provisional\))?\.\s*", "", first).strip()
         body = rest[0].strip() if rest else ""
         files = []
-        if kind == "fig":
+        if kind == "fig" and base.endswith("methods_architecture"):
+            parts = []
+            for ab in ("a", "b"):
+                dst = f"figures/fig_{slug(num)}{ab}.pdf"
+                shutil.copy2(os.path.join(T, base + f"_{ab}.pdf"), os.path.join(OUT, dst)); files.append(dst); parts.append(dst)
+            figtex += ["\\begin{figure}[p]", "\\centering", f"\\includegraphics[width=\\linewidth]{{{parts[0]}}}",
+                       f"\\caption[{ltx(title)}]{{{ltx(title)} {ltx(' '.join(body.split()))}}}", f"\\label{{fig:{slug(num)}}}",
+                       "\\end{figure}", "\\begin{figure}[p]", "\\centering", f"\\includegraphics[width=\\linewidth]{{{parts[1]}}}",
+                       f"\\caption*{{{ltx(num)} (continued): panel (b).}}", "\\end{figure}", ""]
+        elif kind == "fig":
             dst = f"figures/fig_{slug(num)}.pdf"
             shutil.copy2(os.path.join(T, base + ".pdf"), os.path.join(OUT, dst)); files.append(dst)
             figtex += ["\\begin{figure}[htbp]", "\\centering", f"\\includegraphics[width=\\linewidth]{{{dst}}}",
@@ -391,6 +402,7 @@ def main():
             "- Table A.4 is converted from `tables/TA_verdicts.md` (longtable).",
             "- Labels: `tab:<n>` and `fig:<n>`, with `.` replaced by `-` (e.g. `tab:4-3b`, `fig:4-1b`, `tab:A-4`).",
             "- Figure 4.1c was dropped from the numbered set (it repeated Figure 4.1d; its only unique panel, along-track error, is cited nowhere). Its files remain in the repository; Figure 4.1d keeps its provisional number.",
+            "- Figure 3.1 has two panels, `figures/fig_3-1a.pdf` and `fig_3-1b.pdf` (each legible at page width); `figures.tex` places them as two floats, the second with a continued caption (needs the `caption` package for `\\caption*`).",
             "- The `.tex` files need `booktabs` (and `longtable` for Table A.4, `graphicx` for figures and Tables A.1-A.3); "
             "they were checked for balanced braces only (no TeX on the build machine)."]
     open(os.path.join(OUT, "index.md"), "w", encoding="utf-8").write("\n".join(idx) + "\n")

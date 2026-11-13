@@ -2486,7 +2486,8 @@ def combine_extra_items():
     ma_title = "System architecture: sensors, bridges, the three estimators and where each one runs"
     ma_prefix = f"{TNUM['METHODS_ARCH']}. {ma_title}.\n\n"
     extra.append(dict(id="METHODS_ARCH", num=TNUM["METHODS_ARCH"], kind="figure",
-                      png=os.path.join(OUT, "methods_architecture.png"), pdf=os.path.join(OUT, "methods_architecture.pdf"),
+                      png=[os.path.join(OUT, "methods_architecture_a.png"), os.path.join(OUT, "methods_architecture_b.png")],
+                      pdf=os.path.join(OUT, "methods_architecture.pdf"),   # two panels, each legible at page width
                       title=ma_title, caption=cap_of("methods_architecture", ma_prefix), inputs="see docs/thesis/figures_thesis/index_methods.md",
                       rows="checks: see index_methods.md (built by eval/figs_thesis_methods.py)", checks=[],
                       status="CURRENT", logscale="none needed", uncheck="", foot=[],

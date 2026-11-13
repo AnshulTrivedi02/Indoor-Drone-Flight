@@ -1,6 +1,6 @@
 # Thesis figures and tables: index (revision 2026-10-16; thesis numbering and names 2026-10-17)
 
-Built by `eval/figs_thesis.py` at commit `a192eb5` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
+Built by `eval/figs_thesis.py` at commit `12f1cd5` (run with `/home/makerspace/venv-evo/bin/python`; plotting and tabulating only, no number recomputed). Combined PDF for the supervisor (in thesis order: chapter by chapter, figures before tables, then the appendix): `docs/thesis/figures_thesis/thesis_figures_combined.pdf`. Figures are here as `.pdf` and `.png`; tables are in `docs/thesis/tables/` as LaTeX (`.tex`, booktabs; NOT compiled on the build machine, which has no TeX: checked for ASCII, balanced braces and the column count of every row), markdown (`.md`) and a rendered page (`.png`). The frozen pack (`docs/thesis/final_results_pack.pdf`, `eval/figs_final_pack.py`) is untouched.
 
 **Thesis numbering and names (2026-10-17).** Captions, titles, headers, cells and notes use the thesis vocabulary (`docs/thesis/thesis_vocabulary.md`): experiments 1–5 (1A/1B/1C, 5S), hypotheses H1.1–H5.7 (with C1.a and V3), criteria named in words, and the numbering by chapter of its §6 (Figure n.m, Table n.m, appendix Table A.m). **The output file names keep the internal ids** (F2, T1 … T8, A1 … A3), as §6 specifies ("The repository files keep their names. Only the printed captions take the new numbers."); the LaTeX `\label{tab:Tn}` keys also keep them. The appendix mapping at the end of this index leads from every thesis number and name back to the internal id or code and the output file. The Inputs, numbers.md rows and the check sources below are the data statement: they keep the record's own codes so each value can be found in the record.
 
@@ -46,7 +46,7 @@ Built by `eval/figs_thesis.py` at commit `a192eb5` (run with `/home/makerspace/v
 
 ### Figure 3.1 (internal METHODS_ARCH, figure): System architecture: sensors, bridges, the three estimators and where each one runs
 
-- **Caption:** Sensors (left) reach ArduPilot's flight controller through MAVLink bridges (flow, range, and the external-navigation (ExtNav) path for the camera heading or a tag) and reach the UKF and FGO through recorded ROS 2 topics. Which estimator flies is set by AHRS_EKF_TYPE: simulator truth in Experiments 1A, 1B, 2, 3 and 4 (open loop; EKF3 runs live but passively, the UKF and FGO are replayed offline), and EKF3, the UKF port or the FGO in Experiments 1C, 5 and 5S (closed loop; the others run in shadow). The FGO runs outside ArduPilot as a node whose state an in-firmware output predictor (AP_NavFGO) propagates. In simulation every process ran on one desktop; the companion computer (Pi) is planned and its timing is estimated. Two safety watchers: the simulation watcher used in Experiments 1C, 5 and 5S, and the real-hardware watcher, tested only on the SITL bench.
+- **Caption:** Panel (a) shows the sensors and the relays that carry their measurements to the flight controller and to the recorded data used offline. Panel (b) shows the flight controller, where each of the three estimators runs (outlined in its own colour, as in every other figure: EKF3 blue, UKF green, FGO orange), the safety watchers, and the offline replay and evaluation. In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs passively alongside it and the UKF and FGO are replayed offline against the same recording; in the closed-loop experiments one estimator flies while the other two run in shadow. The FGO runs as a separate process whose state the flight controller reads.
 
 Verdicts: Table A.4, none (descriptive).
 - **Inputs:** see docs/thesis/figures_thesis/index_methods.md
@@ -120,6 +120,8 @@ Verdicts: Table A.4, rows H1.8 n = 3 EKF3, half real-time (RTF 0.5); H1.8 n = 3 
 ### Figure 4.1d (provisional) (internal R6, figure): Without a heading source, every one of the 9 flights drifts sideways off the true path
 
 - **Caption:** Raw (unaligned) top-down paths for all 9 flights of the standard-sensor dataset, textured floor, no heading source: one panel per estimator, EKF3 (blue), UKF (green) and FGO (orange), truth in grey, each estimate drawn in its own navigation frame with its origin at take-off (black dot). The shaded bands are the corridor walls; East and North are drawn at equal scale (1.0×). Fitted and raw values are in Table 4.4 (provisional).
+
+Verdicts: Table A.4, rows H1.1.
 - **Inputs:** see docs/thesis/figures_thesis/index_drift9.md
 - **numbers.md rows:** checks: see index_drift9.md (built by eval/figs_thesis_drift9.py)
 
@@ -682,14 +684,14 @@ Generated from the item list and the printed text of each item (no hand-typed "u
 | thesis label | internal code(s) | used in | vocabulary row |
 |---|---|---|---|
 | Experiment 1, corridor comparison | (no single code: the `dsn` / `fwdc` / `fwdplainc` datasets, Phases 3–5, the F tests, the closed-loop "Part 2") | Table 7.1 | §1; §2 row 1 |
-| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Figure 3.1, Table 4.2, Table 4.4 (provisional), Table 7.1, Table 7.2 | §2 row 6 |
-| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Figure 3.1, Table 4.1b, Table 4.2, Table 7.1, Table 7.2, Table A.4 | §2 row 7 |
-| Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Figure 3.1, Table 4.1b, Table 4.3, Table 7.1, Table A.1 | §2 row 8 |
+| Experiment 1A, standard-sensor comparison | `dsn_*` batch | Table 4.2, Table 4.4 (provisional), Table 7.1, Table 7.2 | §2 row 6 |
+| Experiment 1B, camera-heading studies | Phase 3, 4, 5; F1–F3c; plan step 2 | Table 4.1b, Table 4.2, Table 7.1, Table 7.2, Table A.4 | §2 row 7 |
+| Experiment 1C, closed-loop corridor flights | `cl_*`; "Part 2" | Table 4.1b, Table 4.3, Table 7.1, Table A.1 | §2 row 8 |
 | Experiment 2, known tags | Experiment T | Figure 5.1, Table 5.2, Table 7.1, Table A.4 | §2 row 2 |
 | Experiment 3, loop closure | Experiment L | Figure 5.2, Table 5.2, Table 7.1, Table A.3, Table A.4 | §2 row 3 |
 | Experiment 4, outdoor–indoor | Experiment O | Figure 5.3, Table 5.1, Table 5.2, Table 7.1, Table 7.2, Table A.3 | §2 row 4 |
 | Experiment 5, tag hold | Experiment H | Table 6.1, Table 7.1, Table A.2, Table A.3 | §2 row 5 |
-| 5S safety tests | `H_safety_*`; safety (a) / (b) | Figure 3.1, Table 7.2, Table A.2, Table A.4 | §2 row 9 |
+| 5S safety tests | `H_safety_*`; safety (a) / (b) | Table 7.2, Table A.2, Table A.4 | §2 row 9 |
 | condition A–D (8 / 4 / 2 / 1 tags; kept as letters) | Experiment T conditions A–D; `T_A` … `T_D` | Figure 5.1, Table 5.2, Table 7.1 | §8.1 row 29; §10 row 21 |
 | standard-sensor dataset | `dsn` | Figure 4.1d (provisional), Figure 4.2, Table 4.1, Table 4.2, Table 4.4 (provisional), Table 7.1 | §2 row 11 |
 | heading-error decomposition of sideways drift | Phase 5 decomposition (`plots/lateral_checks.py` method) | Table 4.1 | §5 (under H1.3) |
