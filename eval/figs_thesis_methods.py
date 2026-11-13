@@ -296,7 +296,7 @@ def fig_architecture():
          S("GT", 48, "'/ground_truth/pose'"), S("UR", 7, "Ground truth is used ONLY for evaluation"))
     cite("FGO node (Python or C++): subscriptions; ODOMETRY LOCAL_NED / ESTIMATOR_TYPE_NAIVE on SITL SERIAL3 (14558) -> AP_NavFGO",
          S("CN", 4, "Subscriptions (as fgo_node.py)"), S("RT", 166, "SERIAL3_ARG=(--serial3=udpclient:127.0.0.1:14558)"),
-         S("RT", 446, "mavlink_out:=udp:127.0.0.1:14558"), S("GC", 4063, "MAV_FRAME_LOCAL_NED && f.estimator_type == MAV_ESTIMATOR_TYPE_NAIVE"),
+         S("RT", 448, "mavlink_out:=udp:127.0.0.1:14558"), S("GC", 4063, "MAV_FRAME_LOCAL_NED && f.estimator_type == MAV_ESTIMATOR_TYPE_NAIVE"),
          S("FGH", 2, "the thesis FGO (GTSAM fixed-lag smoother, run OUTSIDE ArduPilot"))
     cite("AHRS_EKF_TYPE selects the flying estimator: 12 = thesis UKF, 13 = thesis FGO; 3 = EKF3; 10 = simulator truth",
          S("AH", 499, "UKF = 12"), S("AH", 500, "FGO = 13"), S("CRP", 11, "AHRS_EKF_TYPE 10"), S("CLP", 4, "AHRS_EKF_TYPE 3"),
@@ -306,14 +306,14 @@ def fig_architecture():
          S("US", 2, "it never drives the vehicle"), S("AC", 528, "SHADOW unless AHRS_EKF_TYPE = 12"))
     cite("Camera heading to EKF3 via ExtNav only in closed loop (1C with heading: EK3_SRC1_YAW 6; UKF port AHRS_UKF_EXTYAW 1); "
          "the FGO node takes /forward_camera/heading_sent", S("CLH", 10, "EK3_SRC1_YAW 6"), S("CLUH", 1, "the UKF fuses the ExtNav"),
-         S("RT", 447, "heading:="))
+         S("RT", 449, "heading:="))
     cite("Offline 1B: EKF3 gets no heading (ruling 2026-09-29); the UKF/FGO arms read the frozen Phase 3 heading",
          S("M", 2884, "RULING — EKF3 in the offline forward-camera comparison"), S("M", 2888, "Only the UKF and FGO get forward-camera arms"),
          S("MM", 219, "def forward_events(trial, arm)"))
     cite("Experiment 5: EKF3 flies on the wall tag (ExtNav position + yaw); UKF-flying uses AHRS_UKF_EXTPOS/EXTYAW; FGO node takes /tags/sent",
          S("HX", 7, "EK3_SRC1_YAW 6"), S("HU", 7, "AHRS_UKF_EXTPOS 1"), S("CLR", 72, "TAG_BRIDGE_FWD=1"))
-    cite("Offline replay reads the bag topics (ground truth for scoring only)", S("UR", 58, "/imu/data_raw"),
-         S("FR", 92, "want = ["))
+    cite("Offline replay reads the bag topics (ground truth for scoring only)", S("UR", 67, "/imu/data_raw"),
+         S("FR", 101, "want = ["))
     cite("SITL safety watcher wall_watch.py: ground truth + process liveness -> heartbeat file -> fly_trial LAND / stop",
          S("WW", 5, "/ground_truth/pose"), S("WW", 53, "Box and tilt breaches always stop"), S("FT", 493, "safety watcher lost in flight"),
          S("CLR", 117, "wall_watch.py"), S("HS", 14, "WATCH_DEP_LOSS=land"))
@@ -323,148 +323,514 @@ def fig_architecture():
     cite("Companion: in SITL every process ran on the desktop; Pi timing is an ESTIMATE; closed-loop real flights are future work",
          S("M", 13651, "Pi timing, ESTIMATED"), S("M", 12954, "closed-loop real flights are FUTURE WORK"))
 
-    # ---- drawing (white rounded panel on a transparent figure: legible on light and dark pages)
-    W, H = 100.0, 66.0
-    fig = plt.figure(figsize=(16.5, 11.2)); fig.patch.set_alpha(0.0)
-    ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, W); ax.set_ylim(0, H); ax.axis("off"); ax.patch.set_alpha(0.0)
-    ax.add_patch(FancyBboxPatch((0.4, 0.4), W - 0.8, H - 0.8, boxstyle="round,pad=0,rounding_size=1.2", fc="white", ec="#555555", lw=1.0))
-    FS = 7.3
+    # ---- drawing (RESTYLE 2026-11-13: redrawn at the reader-facing text width, 160 mm, as two stacked panels -
+    # (a) the sensors and the relays that carry their measurements, (b) the flight controller (where each estimator
+    # runs), the companion FGO node, the safety watchers and the offline replay. Every box and edge from the
+    # previous full-page version is kept; an edge that used to cross directly between two regions now crosses the
+    # panel break through a small labelled stub at each end (e.g. "flow -> (b)" / "from (a): flow"). File, script
+    # and ROS-topic names are replaced throughout with plain descriptions - see the restyle report for the full
+    # old -> new table. The cite()/S() calls above are UNCHANGED: they verify the real source files for the index
+    # and are independent of what the diagram itself draws.
+    from thesis_style import TEXT_WIDTH_IN
+    FIG_W_MM = TEXT_WIDTH_IN * 25.4                 # exactly 160 mm (RS-1 text width)
+    PT_MM = 0.3528                                   # 1 pt in mm, for sizing boxes from font size
+    FS_PANEL, FS_REGION, FS_TITLE, FS_BODY, FS_EDGE, FS_LEGEND = 11.0, 9.6, 9.0, 8.0, 8.0, 8.0
+    FS_FLOOR = 8.0   # RS-1 floor, hard-coded (not derived from the declared sizes - that would be circular)
     GREY, DARK, PURPLE, RED = "#f2f2f2", "#333333", "#7B3294", "#C0392B"
+    MARGIN, GAP, PAD = 4.0, 2.4, 1.8                 # mm
 
-    def box(x, y, w, h, title, body="", fc="white", ec=DARK, lw=1.0, ls="-", tc=INK, tfs=FS + 0.6, bfs=FS):
-        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=0.5", fc=fc, ec=ec, lw=lw, ls=ls))
-        ax.text(x + 0.5, y + h - 0.45, title, fontsize=tfs, weight="bold", va="top", ha="left", color=tc)
-        if body:
-            ax.text(x + 0.5, y + h - 1.75, body, fontsize=bfs, va="top", ha="left", color=INK, linespacing=1.18)
+    def mm(fs):
+        return fs * PT_MM
 
-    def region(x, y, w, h, label, fc, ec="#888888", ls="-"):
-        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=0.8", fc=fc, ec=ec, lw=1.1, ls=ls))
-        ax.text(x + 0.6, y + h - 0.35, label, fontsize=FS + 1.4, weight="bold", va="top", color="#222222")
+    # a region's frame must clear: its own header offset (mm(FS_REGION)*1.9, where the first box starts) plus the
+    # full stacked column height passed in, plus a small bottom margin - "+5.0" alone (an earlier, under-measured
+    # constant) let the last box in every region touch or cross the frame's own bottom edge.
+    REGION_PAD = mm(FS_REGION) * 1.9 + 2.0
 
-    def arrow(p, q, color=DARK, ls="-", lw=1.1, text=None, tpos=0.5, toff=(0, 0.45), tha="center", conn="arc3", tfs=FS - 0.4, tc=None):
-        ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=9, color=color, lw=lw, ls=ls, connectionstyle=conn,
-                                     shrinkA=0, shrinkB=0))
+    def wrap_for(text, width_mm, fs, bold=False):
+        # 0.60 for bold (box/region titles) vs 0.52 for regular weight - measured conservatively so a line that
+        # passes this count never visually overflows its box at render time (checked against DejaVu Sans Bold).
+        factor = 0.60 if bold else 0.52
+        n = max(8, int((width_mm - 2 * PAD) / (factor * mm(fs))))
+        out = []
+        for para in str(text).split("\n"):
+            out += textwrap.wrap(para, n) or [""]
+        return out
+
+    def box_lines(title, body, w, tfs=FS_TITLE, bfs=FS_BODY):
+        return wrap_for(title, w, tfs, bold=True), (wrap_for(body, w, bfs) if body else [])
+
+    def box_height(title, body, w, tfs=FS_TITLE, bfs=FS_BODY):
+        tl, bl = box_lines(title, body, w, tfs, bfs)
+        lh_t, lh_b = mm(tfs) * 1.22, mm(bfs) * 1.28
+        return PAD + len(tl) * lh_t + (1.4 if bl else 0.0) + len(bl) * lh_b + PAD
+
+    def draw_box(ax, x, y_top, w, title, body="", ec=DARK, fc="white", lw=1.1, ls="-", tfs=FS_TITLE, bfs=FS_BODY):
+        tl, bl = box_lines(title, body, w, tfs, bfs)
+        lh_t, lh_b = mm(tfs) * 1.22, mm(bfs) * 1.28
+        h = box_height(title, body, w, tfs, bfs)
+        ax.add_patch(FancyBboxPatch((x, y_top - h), w, h, boxstyle="round,pad=0,rounding_size=1.0", fc=fc, ec=ec, lw=lw, ls=ls))
+        ty = y_top - PAD   # va="top": the text's own top edge goes here, matching box_height's PAD budget exactly
+        for i, ln in enumerate(tl):
+            ax.text(x + PAD, ty - i * lh_t, ln, fontsize=tfs, weight="bold", va="top", ha="left", color=INK)
+        by = y_top - PAD - len(tl) * lh_t - (1.4 if bl else 0.0)
+        for i, ln in enumerate(bl):
+            ax.text(x + PAD, by - i * lh_b, ln, fontsize=bfs, va="top", ha="left", color=INK)
+        return y_top - h
+
+    def draw_column(ax, x, y_top, w, items, **kw):
+        """items: (title, body, overrides-dict-or-None). Returns the column's final bottom y."""
+        y = y_top
+        for title, body, ov in items:
+            o = dict(kw)
+            if ov:
+                o.update(ov)
+            y = draw_box(ax, x, y, w, title, body, **o) - GAP
+        return y + GAP
+
+    def column_height(items, w, **kw):
+        tfs = kw.get("tfs", FS_TITLE); bfs = kw.get("bfs", FS_BODY)
+        hs = [box_height(t, b, w, tfs, bfs) for t, b, _ in items]
+        return sum(hs) + GAP * max(0, len(hs) - 1)
+
+    def region(ax, x, y_top, w, h, label, fc, ec="#888888", ls="-"):
+        ax.add_patch(FancyBboxPatch((x, y_top - h), w, h, boxstyle="round,pad=0,rounding_size=1.6", fc=fc, ec=ec, lw=1.1, ls=ls))
+        ax.text(x + 2.4, y_top - 2.6, label, fontsize=FS_REGION, weight="bold", va="top", color="#222222")
+
+    def arrow(ax, p, q, color=DARK, ls="-", lw=1.0, text=None, tpos=0.5, toff=(0, 1.3), tha="center", conn="arc3", tc=None):
+        ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=7.0, color=color, lw=lw, ls=ls,
+                                      connectionstyle=conn, shrinkA=0, shrinkB=0))
         if text:
             tx = p[0] + (q[0] - p[0]) * tpos + toff[0]; ty = p[1] + (q[1] - p[1]) * tpos + toff[1]
-            ax.text(tx, ty, text, fontsize=tfs, ha=tha, va="bottom", color=tc or color, linespacing=1.1)
+            ax.text(tx, ty, text, fontsize=FS_EDGE, ha=tha, va="bottom", color=tc or color, linespacing=1.05)
 
-    # RESTYLE (2026-11-02): no in-figure title (house rule); the title is metadata only (index/caption page), as for
-    # every other figure in the set.
+    def elbow2(ax, x_src, y_src, lane_x, x_tgt, y_tgt, color=DARK, lw=1.0, ls="-", text=None, tc=None):
+        """Like elbow(), but for connecting two DIFFERENT box edges (e.g. one box's right edge to another box's
+        left edge, on opposite sides of the lane) rather than two points on the same edge. The label, if given, is
+        placed on the final, horizontal, approach segment (clear of the vertical lane and of either diagonal),
+        just above it - this is how "FGO state" and the two LAND edges are labelled without being crossed by their
+        own line, the failure an earlier (purely diagonal) version of these three edges had."""
+        ax.plot([x_src, lane_x], [y_src, y_src], color=color, lw=lw, ls=ls, solid_capstyle="butt")
+        ax.plot([lane_x, lane_x], [y_src, y_tgt], color=color, lw=lw, ls=ls, solid_capstyle="butt")
+        arrow(ax, (lane_x, y_tgt), (x_tgt, y_tgt), color=color, lw=lw, ls=ls, conn="arc3,rad=0")
+        if text:
+            ax.text(0.5 * (lane_x + x_tgt), y_tgt + 0.6, text, fontsize=FS_EDGE, ha="center", va="bottom",
+                    color=tc or color, linespacing=0.95)
 
-    # regions
-    region(1.2, 17.6, 15.6, 45.0, "Sensors (Gazebo + SITL)", "#f7f7f7")
-    region(18.0, 17.6, 28.0, 45.0, "Measurement nodes and MAVLink bridges", "#f7f7f7")
-    region(47.4, 17.6, 27.0, 45.0, "FLIGHT CONTROLLER (ArduPilot SITL; thesis fork)", "#eaf2fb")
-    region(75.8, 44.0, 23.0, 18.6, "COMPANION (SITL: same desktop;\nreal: Pi, planned, timing ESTIMATED)", "#fdf0e6", ls="--")
-    region(75.8, 17.6, 23.0, 25.4, "SAFETY WATCHERS", "#fbeaea")
-    region(1.2, 1.2, 73.2, 12.8, "OFFLINE replay (workstation, Python; on the recorded bags)", "#eef7f2", ls="--")
+    def elbow(ax, box_x, y_src, lane_x, y_tgt, color=DARK, lw=1.0, ls="-"):
+        """A 3-segment orthogonal connector: (box_x, y_src) -> (lane_x, y_src) -> (lane_x, y_tgt) -> (box_x, y_tgt),
+        arrowhead at the end. Used for the internal relay-to-relay edges routed through a gutter lane, so the line
+        actually touches both boxes at their own edge (box_x) instead of floating in the gutter between them at a
+        fixed lane x the whole way - a defect an earlier draft of this figure had (confirmed from the code: both
+        endpoints used the same x, which is never equal to a box's own edge)."""
+        ax.plot([box_x, lane_x], [y_src, y_src], color=color, lw=lw, ls=ls, solid_capstyle="butt")
+        ax.plot([lane_x, lane_x], [y_src, y_tgt], color=color, lw=lw, ls=ls, solid_capstyle="butt")
+        arrow(ax, (lane_x, y_tgt), (box_x, y_tgt), color=color, lw=lw, ls=ls, conn="arc3,rad=0")
 
-    # sensors
-    sy = {"imu": 52.5, "dcam": 46.0, "lidar": 39.5, "fcam": 33.0, "tag": 26.5, "gt": 19.8}
-    box(2.0, sy["imu"], 14.0, 5.0, "IMU", "SITL inertial sensor; the FC's\nown INS feeds EKF3 and the\nUKF port (DAL frames)")
-    box(2.0, sy["dcam"], 14.0, 5.0, "Downward camera", "30 Hz, rigid mount\n(z −0.25 m)")
-    box(2.0, sy["lidar"], 14.0, 5.0, "Downward LiDAR", "single beam, 30 Hz\n(z −0.12 m)")
-    box(2.0, sy["fcam"], 14.0, 5.0, "Forward camera", "60°, 640×480, 30 Hz\n(forward-camera vehicle)")
-    box(2.0, sy["tag"], 14.0, 5.0, "AprilTags", "floor tags (downward camera,\nExp. 2/3); wall tag\n(forward camera, Exp. 5)")
-    box(2.0, sy["gt"], 14.0, 5.6, "Ground truth / mocap", "Gazebo pose (simulation);\nmocap MCP1 packets\n(real; watcher bench only)")
+    def panel_label_lines(text):
+        return wrap_for(text, FIG_W_MM - 2 * MARGIN + 2 * PAD, FS_PANEL, bold=True)   # wrap_for subtracts 2*PAD internally
 
-    # nodes and bridges
-    nx, bx = 18.8, 32.6
-    box(bx, 57.2, 12.6, 4.4, "attitude_bridge", "ATTITUDE (UDP 14551) →\n/attitude/angular_rates", bfs=FS - 0.3)
-    box(bx, sy["imu"], 12.6, 4.2, "imu_bridge", "HIGHRES_IMU, SERIAL2\n(14556) → /imu/data_raw", bfs=FS - 0.3)
-    box(nx, sy["dcam"], 12.6, 4.4, "flow_tracker", "Shi-Tomasi + LK + RANSAC\n→ /optical_flow/measurement", bfs=FS - 0.3)
-    box(bx, sy["dcam"], 12.6, 4.4, "flow_bridge", "OPTICAL_FLOW (msg 100)\nUDP 14553 → FC", bfs=FS - 0.3)
-    box(bx, sy["lidar"], 12.6, 4.4, "lidar_bridge", "DISTANCE_SENSOR\nUDP 14552 → RNGFND1", bfs=FS - 0.3)
-    box(nx, sy["fcam"] - 0.6, 12.6, 5.6, "heading_bridge", "vanishing-point heading\n(C++ in closed loop)\n→ /forward_camera/\nheading_sent", ec=PURPLE, bfs=FS - 0.3)
-    box(nx, sy["tag"] - 0.4, 12.6, 5.4, "tag bridges", "tag_bridge (floor),\ntag_bridge_fwd (wall)\n→ /tags/sent", ec=PURPLE, bfs=FS - 0.3)
-    box(bx, 29.0, 12.6, 6.2, "ExtNav sender", "ODOMETRY on SERIAL1\n(UDP 14557; heading OR\ntag, never both):\nyaw (heading); pos + yaw (tag)", ec=PURPLE, bfs=FS - 0.3)
-    box(nx, sy["gt"] + 0.4, 12.6, 4.4, "ground_truth_pub", "→ /ground_truth/pose\n(scoring, SITL watcher)", bfs=FS - 0.3)
+    def panel_label_height(text):
+        return len(panel_label_lines(text)) * mm(FS_PANEL) * 1.25 + mm(FS_PANEL) * 0.3
 
-    # sensor -> node edges
-    arrow((16.0, sy["imu"] + 2.5), (bx, sy["imu"] + 2.1))
-    arrow((16.0, sy["dcam"] + 2.5), (nx, sy["dcam"] + 2.2))
-    arrow((nx + 12.6, sy["dcam"] + 2.2), (bx, sy["dcam"] + 2.2))
-    arrow((16.0, sy["lidar"] + 2.5), (bx, sy["lidar"] + 2.2))
-    arrow((16.0, sy["fcam"] + 2.5), (nx, sy["fcam"] + 2.2), color=PURPLE)
-    arrow((16.0, sy["tag"] + 2.5), (nx, sy["tag"] + 2.2), color=PURPLE)
-    arrow((16.0, sy["gt"] + 2.6), (nx, sy["gt"] + 2.6))
-    arrow((nx + 12.6, sy["fcam"] + 2.2), (bx, 32.6), color=PURPLE)
-    arrow((nx + 12.6, sy["tag"] + 2.2), (bx, 30.4), color=PURPLE)
-    arrow((bx + 6.3, 57.2), (nx + 6.3, sy["dcam"] + 4.4), color=DARK, conn="arc3,rad=0.25", text="rates", tpos=0.55, toff=(-2.2, 0))
+    def panel_label(ax, x, y_top, text):
+        lines = panel_label_lines(text)
+        lh = mm(FS_PANEL) * 1.25
+        for i, ln in enumerate(lines):
+            ax.text(x, y_top - i * lh, ln, fontsize=FS_PANEL, weight="bold", va="top", ha="left", color=INK)
+        return y_top - len(lines) * lh - mm(FS_PANEL) * 0.3
 
-    # flight controller internals
-    fx = 48.2; fw = 25.4
-    box(fx, 51.5, fw, 6.6, "EKF3 (2 lanes)", "24 states, quaternion; fuses flow, range,\nExtNav (heading or tag) when configured.\nFLYING at AHRS_EKF_TYPE 3; otherwise passive\n(EKF3's logged state)", ec=C["EKF3"], lw=1.6)
-    box(fx, 43.6, fw, 6.9, "AP_NavUKF (thesis UKF port)", "15 states, Euler; same DAL IMU, flow, range and\nExtNav inputs as EKF3. FLYING at AHRS_EKF_TYPE 12;\notherwise SHADOW (logged only)", ec=C["UKF"], lw=1.6)
-    box(fx, 35.7, fw, 6.9, "AP_NavFGO (FGO interface)", "receives the node's state (SERIAL3) and runs an\noutput predictor on the IMU. FLYING at\nAHRS_EKF_TYPE 13; otherwise SHADOW (logged only)", ec=C["FGO"], lw=1.6)
-    box(fx, 26.8, fw, 7.8, "AP_AHRS: AHRS_EKF_TYPE picks who FLIES", "10 = simulator truth (Exp. 1A, 1B, 2, 3, 4: open loop)\n3 = EKF3   12 = UKF port   13 = FGO\n(Exp. 1C, 5, 5S: closed loop)", fc="#ffffff", ec=DARK, lw=1.4)
-    box(fx, 18.4, fw, 7.2, "Position controller + motors", "GUIDED mission from fly_trial.py (UDP 14550);\nLAND from fly_trial or the FC's own\nfailsafes. Vehicle: Gazebo iris model", ec=DARK)
-    # MAVLink inputs into the FC (drawn to its left edge)
-    arrow((bx + 12.6, sy["dcam"] + 2.2), (fx, 54.0), text="flow", tpos=0.5, toff=(0, 0.2))
-    arrow((bx + 12.6, sy["lidar"] + 2.2), (fx, 52.6), text="range", tpos=0.45, toff=(0, 0.25))
-    arrow((bx + 12.6, 32.1), (fx, 46.0), color=PURPLE, lw=1.6, text="ExtNav", tpos=0.42, toff=(0.4, 0.2), tha="left")
-    arrow((fx, 57.6), (bx + 12.6, 59.4), text="ATTITUDE", tpos=0.5, toff=(0, 0.35))
-    ax.text(fx + 0.2, 61.0, "flow, range and ExtNav fan out to EKF3 and the UKF port (AP_AHRS)", fontsize=FS - 0.6, color=INK2)
-    for yy in (51.5, 43.6, 35.7):   # estimators -> AHRS selector
-        arrow((fx + fw - 1.2, yy), (fx + fw - 1.2, yy - 0.95), lw=1.8)
-    arrow((fx + fw / 2, 26.8), (fx + fw / 2, 25.6), lw=2.4)
+    # =============================================================== panel (a): sensors and the measurement relays
+    # The first 6 relays are row-aligned with the 6 sensors (same reading order), so their connecting arrows are
+    # near-horizontal and cross no other box. The 3 relays with no direct sensor of their own (the rate relay, the
+    # flow relay, and the external-navigation sender) sit below, fed by internal edges routed through the gutter
+    # between the two columns, which is empty space.
+    SENS_X, SENS_W = MARGIN, 72.0
+    GUTTER = 12.0                                     # wide enough for 4 separated internal-routing lanes, see below
+    STUB_W = 11.0                                     # right-hand lane for the cross-panel stub labels
+    REL_X = SENS_X + SENS_W + GUTTER
+    REL_W = FIG_W_MM - MARGIN - STUB_W - REL_X
+    sensors = [
+        ("IMU", "FC's own inertial sensor; read directly by EKF3 and the UKF. Relay below: same samples, on to "
+         "the FGO node and the offline replay.", None),
+        ("Downward camera", "30 Hz, rigid mount, facing down (height −0.25 m).", None),
+        ("Downward LiDAR", "Single beam, 30 Hz, facing down (height −0.12 m).", None),
+        ("Forward camera", "60°, 640×480, 30 Hz (forward-camera vehicle only).", None),
+        ("AprilTags", "Floor tags (downward camera, Exp. 2/3); wall tag (forward camera, Exp. 5).", None),
+        ("Ground truth / motion capture", "Simulator pose (simulation); motion-capture packets (real; watcher "
+         "bench only).", None),
+    ]
+    relays = [
+        ("IMU relay", "Accelerometer + gyroscope samples, for the UKF (offline) and FGO only - EKF3 and the UKF "
+         "port read the IMU directly.", None),
+        ("Optical-flow tracker", "Shi-Tomasi + Lucas-Kanade + RANSAC; estimates flow, removes rotation using the "
+         "rate relay below.", None),
+        ("Range relay", "Sends the downward range to the flight controller.", None),
+        ("Heading relay", "Vanishing-point heading from the forward camera (C++ in closed loop).", {"ec": PURPLE}),
+        ("Tag relays", "Position and heading from a detected floor or wall tag.", {"ec": PURPLE}),
+        ("Ground-truth relay", "Simulator pose, for scoring and for the closed-loop safety watcher (read live, "
+         "not from the recording).", None),
+        ("Flow relay", "Sends the optical-flow tracker's measurement to the flight controller.", None),
+        ("External-navigation sender", "Heading or a tag reading (never both): yaw only (heading), or position + "
+         "yaw (tag), as one update for the flight controller.", {"ec": PURPLE}),
+        ("Rate relay", "Body angular rates, fed back from the flight controller's own attitude estimate (panel b).", None),
+    ]
+    LABEL_A = "(a) Sensors and the relays that carry their measurements"
+    LABEL_B = "(b) The flight controller: where each estimator runs, and what happens downstream"
+    h_sens = column_height(sensors, SENS_W); h_rel = column_height(relays, REL_W)
+    NOTE_H = box_height("Recorded", "Every relay's output above is written to the flight log, for the offline "
+                         "replay and evaluation in panel (b).", REL_W + SENS_W + GUTTER)
+    # mm(FS_REGION)*1.9: the gap between a region's own top edge and where its first box starts (sy_top below) -
+    # previously missing from this budget, which (along with "+5.0" on the region frame itself, also fixed) let
+    # the last box in each column sit flush with, or past, the region's bottom edge.
+    H_A = panel_label_height(LABEL_A) + mm(FS_REGION) * 1.9 + max(h_sens, h_rel) + GAP + NOTE_H + 2 * MARGIN
 
-    # companion
-    cx = 76.6
-    box(cx, 44.8, 21.4, 14.6, "FGO node (fgo_node.py or C++ fgo_cpp_node)", "GTSAM batch fixed-lag smoother, 0.25 s,\nLM ≤ 2 iterations, 30 Hz keyframes.\nIn: /imu/data_raw, /imu/time_ref, flow, range,\n/attitude/angular_rates, and only when set:\n/forward_camera/heading_sent (1C) or\n/tags/sent (Exp. 5).\nOut: ODOMETRY LOCAL_NED / NAIVE on\nSERIAL3 (UDP 14558) → AP_NavFGO.\nReal flights: on a Pi (planned; Pi timing\nESTIMATED, not flown)", ec=C["FGO"], lw=1.6, bfs=FS - 0.3)
-    arrow((cx, 47.0), (fx + fw, 39.6), color=C["FGO"], lw=1.6, text="FGO state\n(SERIAL3)", tpos=0.3, toff=(-1.6, 0.3))
+    # =============================================================== panel (b): flight controller and downstream
+    STUB_B = 18.0                                      # left-hand lane for the incoming cross-panel stub labels
+    GUTTER_B = 28.0                                     # wide enough for 3 orthogonally-routed, labelled edges (see draw_panel_b)
+    FC_X, FC_W = MARGIN + STUB_B, 96.0 - STUB_B - (GUTTER_B - 6.0)
+    RC_X, RC_W = FC_X + FC_W + GUTTER_B, FIG_W_MM - MARGIN - (FC_X + FC_W + GUTTER_B)
+    fc_items = [
+        ("EKF3", "Fixed baseline. 24 states, quaternion; fuses flow, range, heading or tag when configured. "
+         "FLYING at AHRS_EKF_TYPE 3; otherwise passive (own state still logged).", {"ec": C["EKF3"], "lw": 1.5}),
+        ("UKF (flight-controller port)", "15 states, Euler; same inputs as EKF3. FLYING at AHRS_EKF_TYPE 12; "
+         "otherwise shadow (logged only).", {"ec": C["UKF"], "lw": 1.5}),
+        ("FGO interface", "Receives the FGO node's state; predicts forward on the IMU between updates. FLYING at "
+         "AHRS_EKF_TYPE 13; otherwise shadow.", {"ec": C["FGO"], "lw": 1.5}),
+        ("Estimator selector", "AHRS_EKF_TYPE picks who flies: 10 = simulator truth (Exp. 1A, 1B, 2, 3, 4: open "
+         "loop); 3 = EKF3, 12 = UKF, 13 = FGO (Exp. 1C, 5, 5S: closed loop).", {"lw": 1.3}),
+        ("Position controller and motors", "Mission and LAND from the flight script, or the FC's own failsafes. "
+         "Vehicle: the Gazebo iris model.", None),
+    ]
+    rc_items = [
+        ("FGO node", "GTSAM batch fixed-lag smoother, 0.25 s window, LM ≤ 2 iterations, 30 Hz keyframes. In: IMU, "
+         "flow, range, rates (panel a), plus heading (1C) or tags (Exp. 5) when set. Out: state, to the flight "
+         "controller. Runs separately - simulation: this desktop; real flights: a planned companion computer, "
+         "timing estimated.", {"ec": C["FGO"], "lw": 1.4}),
+        ("Closed-loop safety watcher", "Reads ground truth live (not the recording) and bridge/node liveness; "
+         "writes a heartbeat the flight script won't arm without. LANDs on loss; box or tilt breach stops the "
+         "run. Exp. 1C, 5, 5S.", {"ec": RED, "lw": 1.3}),
+        ("Real-hardware safety watcher", "Mocap + FC telemetry + liveness beacons; one LAND command + a heartbeat "
+         "gating the FC's own failsafe (Land, 3 s); also arming checks for heading and speed. Tested on the "
+         "ground only so far.", {"ec": RED, "lw": 1.3, "ls": (0, (3, 2))}),
+    ]
+    off_w = (FIG_W_MM - 2 * MARGIN - 3 * GAP) / 4.0
+    offline_items = [
+        ("Recorded data", "The recordings above, plus the flight controller's own logged state from the same flight.", None),
+        ("UKF replay", "The UKF run again on the recording (+ a smoother pass for the hindsight track).", {"ec": C["UKF"]}),
+        ("FGO replay", "The FGO run again on the recording: live and whole-flight hindsight versions.", {"ec": C["FGO"]}),
+        ("Evaluation", "Cruise-window ATE vs. the simulator pose (EKF3 from its own logged state); 1B heading: "
+         "the frozen validation outputs.", None),
+    ]
+    h_fc = column_height(fc_items, FC_W); h_rc = column_height(rc_items, RC_W)
+    h_off = max(box_height(t, b, off_w) for t, b, _ in offline_items)
+    LEGEND_H = 44.0
+    OFFLINE_TITLE_H = mm(FS_REGION) * 1.8   # the offline row's own title line, previously missing from the H_B budget
+    H_B = panel_label_height(LABEL_B) + mm(FS_REGION) * 1.9 + max(h_fc, h_rc) + GAP + OFFLINE_TITLE_H + h_off + GAP + LEGEND_H + 2 * MARGIN
 
-    # safety watchers
-    box(cx, 31.0, 21.4, 10.3, "wall_watch.py (SITL; Exp. 1C, 5, 5S)", "reads /ground_truth/pose and the\nliveness of the bridges / node (pgrep);\nwrites a heartbeat file. fly_trial.py\nrefuses to arm without it and LANDs on\nloss; box or tilt breach stops the run", ec=RED, lw=1.4, bfs=FS - 0.3)
-    box(cx, 18.4, 21.4, 11.8, "realflight/watcher (real hardware)", "mocap (MCP1) + FC telemetry + UDP\nliveness beacons; sends ONE LAND and a\nHEARTBEAT that gates the FC's GCS\nfailsafe (FS_GCS 5 = Land, 3 s);\nyaw (F7) and velocity (M2) arming checks.\nTested only on the SITL bench", ec=RED, lw=1.4, ls="--", bfs=FS - 0.3)
-    arrow((cx, 33.5), (fx + fw, 22.6), color=RED, lw=1.4, text="LAND\n(via fly_trial)", tpos=0.35, toff=(-2.4, 0.3))
-    arrow((cx, 21.0), (fx + fw, 20.0), color=RED, lw=1.4, ls=(0, (2, 1.5)), text="LAND / HEARTBEAT", tpos=0.45, toff=(-0.4, -1.4))
+    PANEL_GAP = 8.0
+    H = H_A + PANEL_GAP + H_B
+    fig = plt.figure(figsize=(FIG_W_MM / 25.4, H / 25.4)); fig.patch.set_facecolor("white")
+    ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, FIG_W_MM); ax.set_ylim(0, H); ax.axis("off")
+    ax.patch.set_facecolor("white")
 
-    # ROS 2 bus (recorded in the bag)
-    by = 15.6
-    ax.add_patch(FancyBboxPatch((18.6, by - 0.65), 80.2, 1.3, boxstyle="round,pad=0,rounding_size=0.4", fc="#e6e6e6", ec="#777777", lw=0.9))
-    ax.text(19.2, by, "ROS 2 topics, recorded in every bag: /imu/data_raw, /imu/time_ref, /optical_flow/measurement, /downward_lidar/range, "
-            "/attitude/angular_rates, /forward_camera/heading_sent, /tags/sent, /ground_truth/pose", fontsize=FS - 0.5, va="center")
-    arrow((98.4, by + 0.65), (98.4, 44.8), color="#777777", lw=0.9, text="topics", tpos=0.04, toff=(-0.3, 0), tha="right")
+    def draw_panel_a(ax):
+        # ---------------------------------------------------------------- panel (a)
+        # No outer frame is drawn around the whole figure (the previous version's enclosing box left a blank band at
+        # the top where an in-figure title used to sit - the "empty title box" - once the title was removed; this
+        # version has no such enclosing frame at all, only the tight region frames below).
+        y = panel_label(ax, MARGIN, H - 1.0, LABEL_A)
+        top_a = y
+        region(ax, SENS_X - 2.0, top_a, SENS_W + 4.0, h_sens + REGION_PAD, "Sensors", "#f7f7f7")
+        region(ax, REL_X - 2.0, top_a, REL_W + 4.0, h_rel + REGION_PAD, "Measurement relays", "#f7f7f7")
+        sy_top = top_a - mm(FS_REGION) * 1.9
+        bottoms_s = []
+        ys = sy_top
+        for title, body, ov in sensors:
+            o = dict(ov) if ov else {}
+            ys2 = draw_box(ax, SENS_X, ys, SENS_W, title, body, **o)
+            bottoms_s.append((title, ys, ys2)); ys = ys2 - GAP
+        bottoms_r = []
+        yr = sy_top
+        for title, body, ov in relays:
+            o = dict(ov) if ov else {}
+            yr2 = draw_box(ax, REL_X, yr, REL_W, title, body, **o)
+            bottoms_r.append((title, yr, yr2)); yr = yr2 - GAP
+        pos_s = {t: (top, bot) for t, top, bot in bottoms_s}
+        pos_r = {t: (top, bot) for t, top, bot in bottoms_r}
 
-    # offline row
-    box(2.0, 2.0, 12.8, 9.4, "rosbag2 + dataflash", "bag: the ROS 2 topics;\n.BIN: EKF3's logged state\nfrom the same flight,\nscored offline", bfs=FS - 0.3)
-    box(16.2, 2.0, 18.0, 9.4, "UKF (ukf_core.py)", "15-state UKF; ukf_replay.py,\nroom_ukf_replay.py (+ RTS\nsmoother for hindsight)", ec=C["UKF"], lw=1.5, bfs=FS - 0.3)
-    box(35.4, 2.0, 18.4, 9.4, "FGO (fgo_core.py, GTSAM)", "fixed-lag 0.25 s live; whole-\nflight batch for hindsight;\nroom_/lc_fgo_replay.py (Exp. 2–4)", ec=C["FGO"], lw=1.5, bfs=FS - 0.3)
-    box(55.0, 2.0, 18.6, 9.4, "Evaluation", "three_way_eval.py: cruise ATE\nagainst ground truth (EKF3 from\nits logged state). 1B heading:\nthe heading-measurement\nvalidation outputs (frozen)", bfs=FS - 0.3)
-    arrow((14.8, 6.7), (16.2, 6.7), ls="--"); arrow((34.2, 6.7), (35.4, 6.7), ls="--"); arrow((53.8, 6.7), (55.0, 6.7), ls="--")
-    arrow((19.0, by - 0.65), (8.4, 11.4), color="#777777", ls="--", lw=0.9, text="recorded", tpos=0.02, toff=(1.0, -0.9), tha="left")
-    ax.text(16.6, 0.15, "", fontsize=1)
+        def mid(d, k):
+            top, bot = d[k]; return 0.5 * (top + bot)
 
-    # legend
-    lx, ly = 75.4, 14.6
-    leg = [Line2D([], [], color=DARK, lw=1.2, label="live data path (simulated flights)"),
-           Line2D([], [], color=PURPLE, lw=1.6, label="camera heading / tag via ExtNav: 1C with\nheading, Exp. 5 (and passive EKF3 in Exp. 2).\nOffline 1B: heading to the UKF and FGO only;\nEKF3 receives none (ruling 2026-09-29)"),
-           Line2D([], [], color=DARK, lw=1.2, ls="--", label="offline replay on recorded data\n(passive estimators)"),
-           Line2D([], [], color=RED, lw=1.4, label="safety action (LAND); dashed red =\nreal hardware, tested on the SITL bench only"),
-           Line2D([], [], color=DARK, lw=2.4, label="FLYING: the estimator AHRS_EKF_TYPE\nselects drives the vehicle; the others are\npassive (SHADOW, logged only)")]
-    ax.legend(handles=leg, loc="lower left", bbox_to_anchor=(lx / W, 0.9 / H), fontsize=FS - 0.3, frameon=True, framealpha=1.0,
-              edgecolor="#888888", handlelength=2.6, borderpad=0.5, labelspacing=0.45)
+        # sensor -> relay edges: the first 6 relays are row-aligned with the 6 sensors, so every one of these is a
+        # short, near-horizontal line that crosses no other box.
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "IMU")), (REL_X, mid(pos_r, "IMU relay")))
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "Downward camera")), (REL_X, mid(pos_r, "Optical-flow tracker")))
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "Downward LiDAR")), (REL_X, mid(pos_r, "Range relay")))
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "Forward camera")), (REL_X, mid(pos_r, "Heading relay")), color=PURPLE)
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "AprilTags")), (REL_X, mid(pos_r, "Tag relays")), color=PURPLE)
+        arrow(ax, (SENS_X + SENS_W, mid(pos_s, "Ground truth / motion capture")), (REL_X, mid(pos_r, "Ground-truth relay")))
+        # relay -> relay edges for the 3 relays with no sensor of their own: routed through the empty gutter between
+        # the two columns, on 4 separated vertical lanes so no two lines coincide. Each label is a short, UNROTATED
+        # word placed in the gap just beside its own arrowhead (never along the line itself), so a label can never
+        # reach into a neighbouring lane's line or another label - the failure mode an earlier draft had with rotated
+        # labels spaced too closely together in a narrow gutter.
+        g1, g2, g3, g4 = REL_X - 2.0, REL_X - 4.4, REL_X - 6.8, REL_X - 9.2
+        y_tracker_out = mid(pos_r, "Optical-flow tracker") - 2.0   # flow leaves here
+        y_tracker_in = mid(pos_r, "Optical-flow tracker") + 2.0    # rates arrives here (distinct point, same box)
+        elbow(ax, REL_X, y_tracker_out, g1, mid(pos_r, "Flow relay"))
+        elbow(ax, REL_X, pos_r["Heading relay"][1], g2, mid(pos_r, "External-navigation sender"), color=PURPLE)
+        elbow(ax, REL_X, pos_r["Tag relays"][1], g3, mid(pos_r, "External-navigation sender") + 1.0, color=PURPLE)
+        # the heading/tag lines are not separately labelled: purple colour plus the adjacent "Heading relay"/"Tag
+        # relays" boxes they leave already identify them, and the gutter is too narrow for a horizontal label there
+        # without reaching into the sensor or relay column's own frame (the failure an earlier, rotated-label draft had).
+        elbow(ax, REL_X, mid(pos_r, "Rate relay"), g4, y_tracker_in)
+        # "rates" labels the one internal edge whose purpose isn't already obvious from box adjacency (the rate
+        # relay is far below the tracker it feeds, not next to it). Centred in the gutter's clear width, just
+        # below the tracker. "flow" (tracker -> flow relay, g1) is NOT labelled here: at this y the Downward
+        # LiDAR -> Range relay sensor edge (a different row's arrow) also crosses the gutter, and Flow relay's own
+        # body text ("Sends the optical-flow tracker's measurement...") already names the connection.
+        gutter_mid = 0.5 * ((SENS_X + SENS_W + 2.0) + (REL_X - 2.0))
+        ax.text(gutter_mid, pos_r["Optical-flow tracker"][1] - 0.8, "rates", fontsize=FS_EDGE, ha="center", va="top", color=DARK)
+        # cross-panel stubs, in a dedicated lane to the right of the relay column: outgoing (5), one incoming (attitude).
+        stub_x0, stub_x1 = REL_X + REL_W + 0.8, FIG_W_MM - MARGIN
+        ax.text(0.5 * (stub_x0 + stub_x1), pos_r["IMU relay"][0] + 1.5, "to (b)", fontsize=FS_EDGE, style="italic",
+                ha="center", va="bottom", color=INK2)
+        for key, label, colour in (("IMU relay", "IMU", DARK), ("Optical-flow tracker", "", DARK), ("Range relay", "range", DARK),
+                                    ("Heading relay", "", PURPLE), ("Tag relays", "", PURPLE),
+                                    ("Ground-truth relay", "ground\ntruth", DARK), ("Flow relay", "flow", DARK),
+                                    ("External-navigation sender", "ExtNav", PURPLE)):
+            if not label:
+                continue
+            yk = mid(pos_r, key)
+            arrow(ax, (REL_X + REL_W, yk), (stub_x1, yk), color=colour, ls=":", lw=0.8)
+            ax.text(stub_x0, yk + 0.7, label, fontsize=FS_EDGE, color=colour, ha="left", va="bottom", linespacing=0.95)
+        # Rate relay carries BOTH directions: it receives the flight controller's own attitude (incoming) and its
+        # republished rates are a direct input to the FGO node (outgoing) as well as feeding the tracker
+        # internally above - the FGO node's own body text ("In: IMU, flow, range, rates") names this input, so the
+        # stub is required for the connection table to balance, not just for symmetry with the other 5 relays.
+        yk_in, yk_out = mid(pos_r, "Rate relay") - 5.5, mid(pos_r, "Rate relay") + 3.5
+        arrow(ax, (stub_x1, yk_in), (REL_X + REL_W, yk_in), color=DARK, ls=":", lw=0.8)
+        ax.text(stub_x0, yk_in + 0.7, "from (b):\nattitude", fontsize=FS_EDGE, color=DARK, ha="left", va="bottom", linespacing=0.95)
+        arrow(ax, (REL_X + REL_W, yk_out), (stub_x1, yk_out), color=DARK, ls=":", lw=0.8)
+        ax.text(stub_x0, yk_out + 0.7, "rates", fontsize=FS_EDGE, color=DARK, ha="left", va="bottom", linespacing=0.95)
+        bottom_a_content = min(ys, yr)
+        draw_box(ax, SENS_X, bottom_a_content - 1.5, REL_W + SENS_W + GUTTER, "Recorded",
+                 "Every relay's output above is written to the flight log, for the offline replay and evaluation in panel (b).",
+                 ec="#888888", fc="#f5f5f5")
+
+    def draw_panel_b(ax):
+        # ---------------------------------------------------------------- panel (b)
+        y = panel_label(ax, MARGIN, H - H_A - PANEL_GAP - 1.0, LABEL_B)
+        top_fc = y
+        region(ax, FC_X - 2.0, top_fc, FC_W + 4.0, h_fc + REGION_PAD, "Flight controller", "#eaf2fb")
+        region(ax, RC_X - 2.0, top_fc, RC_W + 4.0, h_rc + REGION_PAD, "Companion and safety", "#fdf0e6")
+        fc_top = top_fc - mm(FS_REGION) * 1.9
+        yf = fc_top
+        pos_fc = {}
+        for title, body, ov in fc_items:
+            o = dict(ov) if ov else {}
+            yf2 = draw_box(ax, FC_X, yf, FC_W, title, body, **o)
+            pos_fc[title] = (yf, yf2); yf = yf2 - GAP
+        yc = fc_top
+        pos_rc = {}
+        for title, body, ov in rc_items:
+            o = dict(ov) if ov else {}
+            yc2 = draw_box(ax, RC_X, yc, RC_W, title, body, **o)
+            pos_rc[title] = (yc, yc2); yc = yc2 - GAP
+        bottom_fc_block = min(yf, yc)
+
+        def midb(d, k):
+            top, bot = d[k]; return 0.5 * (top + bot)
+
+        # incoming stubs from panel (a), in a dedicated lane to the left of the flight-controller box (width STUB_B).
+        # Flow, range AND ExtNav all fan out to BOTH EKF3 and the UKF port (one combined label per box, matching the
+        # original single "flow, range and ExtNav fan out to EKF3 and the UKF port" note). ExtNav does NOT go to the
+        # estimator selector, which only reads the AHRS_EKF_TYPE setting, not sensor data - a routing bug in an
+        # earlier draft of this figure, fixed.
+        stub_b_x = MARGIN + 1.0
+        y_ekf3_in = midb(pos_fc, "EKF3") + 3.0
+        y_ekf3_out = midb(pos_fc, "EKF3") - 6.0
+        y_ukf_in = midb(pos_fc, "UKF (flight-controller port)")
+        arrow(ax, (stub_b_x, y_ekf3_in), (FC_X, y_ekf3_in), color=DARK, ls=":", lw=0.9)
+        ax.text(MARGIN, y_ekf3_in + 0.6, "from (a):\nflow, range,\nExtNav", fontsize=FS_EDGE, ha="left", va="bottom",
+                color=DARK, linespacing=0.95)
+        arrow(ax, (stub_b_x, y_ukf_in), (FC_X, y_ukf_in), color=DARK, ls=":", lw=0.9)
+        ax.text(MARGIN, y_ukf_in + 0.6, "from (a):\nflow, range,\nExtNav", fontsize=FS_EDGE, ha="left", va="bottom",
+                color=DARK, linespacing=0.95)
+        arrow(ax, (FC_X, y_ekf3_out), (stub_b_x, y_ekf3_out), color=DARK, ls=":", lw=0.9)
+        ax.text(MARGIN, y_ekf3_out - 0.6, "attitude\n→ (a)", fontsize=FS_EDGE, ha="left", va="top", color=DARK, linespacing=0.95)
+        # internal: estimators -> selector -> position controller
+        for key in ("EKF3", "UKF (flight-controller port)", "FGO interface"):
+            arrow(ax, (FC_X + FC_W - 1.5, pos_fc[key][1]), (FC_X + FC_W - 1.5, pos_fc[key][1] - GAP + 0.3), lw=1.6)
+        arrow(ax, (FC_X + FC_W / 2, pos_fc["Estimator selector"][1]), (FC_X + FC_W / 2, pos_fc["Position controller and motors"][0]),
+              lw=2.2)
+        # FGO node <-> FGO interface, and the two safety-watcher edges: each label sits in the gutter between the two
+        # columns (width GUTTER_B), anchored at the FC-side (target) end rather than the line's midpoint, so it never
+        # reaches back into either box's own text.
+        gx = FC_X + FC_W + 1.4
+        # These 3 edges each cross the full GUTTER_B gutter between very different rows (FGO node near the top of
+        # the companion column to FGO interface in the middle of the flight-controller column, etc.), so a label
+        # placed anywhere directly on a straight diagonal sits in the line's own path - the failure an earlier
+        # draft had ("FGO state" and "land" both crossed by their own arrow). Each is instead routed as an
+        # orthogonal elbow2() (horizontal - vertical - horizontal), with its label on the final, purely horizontal,
+        # approach segment, which no diagonal crosses. Three separate lane x's, ordered so none of the three
+        # horizontal label segments overlaps another lane's vertical run.
+        lane_fgo, lane_land1, lane_land2 = FC_X + FC_W + 10.0, FC_X + FC_W + 18.0, FC_X + FC_W + 24.0
+        y_fgo = pos_fc["FGO interface"][0] + 2.5
+        elbow2(ax, RC_X, midb(pos_rc, "FGO node"), lane_fgo, FC_X + FC_W, y_fgo, color=C["FGO"], lw=1.5,
+               text="FGO\nstate")
+        # the FGO node's own inputs: a stub arriving at its top, from the gutter (the only edge into the companion
+        # panel other than the "FGO state" edge going the other way, above/below it)
+        y_fgo_in = pos_rc["FGO node"][0] - 9.0
+        arrow(ax, (gx, y_fgo_in), (RC_X, y_fgo_in), color=C["FGO"], ls=":", lw=0.9)
+        ax.text(gx, y_fgo_in + 0.6, "from\n(a)", fontsize=FS_EDGE, ha="left", va="bottom", color=C["FGO"], linespacing=0.95)
+        # ground truth's own stub: the closed-loop safety watcher is the one box in panel (b) that reads it live
+        # (every other panel-b consumer of ground truth is the OFFLINE evaluation, via "Recorded data" below).
+        # Pinned at least 12 mm below y_fgo (not just below this box's own top) - the two labels collided when each
+        # was positioned independently of the other, a defect found by review.
+        y_gt_in = min(pos_rc["Closed-loop safety watcher"][0] - 2.5, y_fgo - 12.0)
+        arrow(ax, (gx, y_gt_in), (RC_X, y_gt_in), color=DARK, ls=":", lw=0.9)
+        ax.text(gx, y_gt_in + 0.6, "from\n(a)", fontsize=FS_EDGE, ha="left", va="bottom", color=DARK, linespacing=0.95)
+        y_land1 = pos_fc["Position controller and motors"][0] + 6.5
+        elbow2(ax, RC_X, midb(pos_rc, "Closed-loop safety watcher"), lane_land1, FC_X + FC_W, y_land1, color=RED,
+               lw=1.3, text="land (via\nthe flight\nscript)")
+        y_land2 = pos_fc["Position controller and motors"][0] - 2.0
+        elbow2(ax, RC_X, midb(pos_rc, "Real-hardware safety watcher"), lane_land2, FC_X + FC_W, y_land2, color=RED,
+               lw=1.3, ls=(0, (3, 2)), text="land /\nheartbeat")
+
+        # offline replay row - its own title sits in the OFFLINE_TITLE_H band reserved above the boxes, not jammed
+        # into the same gap that separates it from the flight-controller/companion row above (that gap overlapped the
+        # "Real-hardware safety watcher" box's own border in an earlier draft of this figure).
+        title_top = bottom_fc_block - GAP
+        off_top = title_top - OFFLINE_TITLE_H
+        xo = MARGIN
+        pos_off = {}
+        for title, body, ov in offline_items:
+            o = dict(ov) if ov else {}
+            bot = draw_box(ax, xo, off_top, off_w, title, body, **o)
+            pos_off[title] = (off_top, bot); xo += off_w + GAP
+        # a left-to-right chain for the offline row, in reading order: recorded data -> UKF replay -> FGO replay -> evaluation
+        xo = MARGIN
+        for _ in range(3):
+            x1 = xo + off_w; x2 = xo + off_w + GAP
+            yband = 0.5 * (pos_off["Recorded data"][0] + pos_off["Recorded data"][1])
+            arrow(ax, (x1, yband), (x2, yband), ls="--")
+            xo += off_w + GAP
+        bottom_off = min(b for _, b in pos_off.values())
+        ax.text(MARGIN, title_top, "Offline replay and evaluation (workstation, after the flight)", fontsize=FS_REGION,
+                weight="bold", va="top", color="#222222")
+
+        # legend
+        leg_y = bottom_off - 6.0
+        leg = [Line2D([], [], color=DARK, lw=1.2, label="live data path (simulated flights)"),
+               Line2D([], [], color=PURPLE, lw=1.6, label="camera heading or a tag via external navigation (closed-loop\n"
+                      "heading runs, Exp. 5; passive EKF3 when a tag is present). Offline,\nonly the UKF and FGO get heading; EKF3 gets none."),
+               Line2D([], [], color=DARK, lw=1.2, ls="--", label="offline replay on recorded data (passive estimators)"),
+               Line2D([], [], color=RED, lw=1.3, label="safety action (land); dashed = real hardware (ground-tested only)"),
+               Line2D([], [], color=DARK, lw=2.2, label="flying: the selected estimator drives the vehicle;\nothers are shadow (logged only)")]
+        # bbox_transform=ax.transData (not the legend default, axes-fraction) - this must work identically whether
+        # ax spans the whole combined figure (ylim (0, H)) or stands alone as just this panel (ylim (0, H_B)), so
+        # it is anchored in the same absolute data coordinates draw_panel_b() uses everywhere else.
+        leg_obj = ax.legend(handles=leg, loc="upper left", bbox_to_anchor=(MARGIN, leg_y), bbox_transform=ax.transData,
+                            fontsize=FS_LEGEND, frameon=True, framealpha=1.0, edgecolor="#888888", handlelength=2.4,
+                            borderpad=0.6, labelspacing=0.9)
+        # Measure the legend's ACTUAL rendered extent (not a guessed constant) and fail loudly if LEGEND_H left too
+        # little room - this is how the "legend runs off the bottom of the canvas" failure mode (found by review,
+        # LEGEND_H=44 was too small) is now caught mechanically instead of by eye.
+        fig_local = ax.get_figure(); fig_local.canvas.draw()
+        bbox_data = leg_obj.get_window_extent(fig_local.canvas.get_renderer()).transformed(ax.transData.inverted())
+        assert bbox_data.y0 >= -0.5, (f"legend bottom at y={bbox_data.y0:.2f} is below this panel's own y=0 - "
+                                       f"LEGEND_H is too small by about {-bbox_data.y0:.1f} mm")
+
+    def assert_no_text_overlap(fig_):
+        """Mechanical check (plain assert, no check()): no two distinct Text labels overlap on the rendered page.
+        Found real collisions by eye through several rounds of this figure's redesign (stub labels, gutter edge
+        labels); this makes that failure mode a hard build error instead of something only caught by re-reading
+        crops. Deliberately NOT extended to "does an arrow/box path cross a text" - the legend and box titles are
+        expected to sit on/near their own box border, so that check would need a bigger exemption list than it's
+        worth for this figure; text-vs-text overlap already catches everything found in review."""
+        fig_.canvas.draw()
+        renderer = fig_.canvas.get_renderer()
+        boxes = []
+        for t in fig_.findobj(matplotlib.text.Text):
+            if not t.get_text().strip():
+                continue
+            bb = t.get_window_extent(renderer)
+            if bb.width <= 0 or bb.height <= 0:
+                continue
+            boxes.append((t, bb))
+        for i, (t1, b1) in enumerate(boxes):
+            for t2, b2 in boxes[i + 1:]:
+                if b1.overlaps(b2):
+                    raise AssertionError(f"text overlap: {t1.get_text()!r} crosses {t2.get_text()!r}")
+
+    draw_panel_a(ax)
+    draw_panel_b(ax)
+    # ---- font-size floor self-check (plain assert: must NOT use check(), which would leak into Table 3.1's count)
+    sizes = [t.get_fontsize() for t in fig.findobj(matplotlib.text.Text) if t.get_text().strip()]
+    assert sizes and min(sizes) >= FS_FLOOR - 1e-6, f"a text object is smaller than the declared floor {FS_FLOOR} pt: min {min(sizes) if sizes else None}"
+    assert_no_text_overlap(fig)
+
     base = os.path.join(OUTF, "methods_architecture")
-    fig.savefig(base + ".png", dpi=170, transparent=True); fig.savefig(base + ".pdf", transparent=True); plt.close(fig)
+    fig.savefig(base + ".png", dpi=300, facecolor="white"); fig.savefig(base + ".pdf", facecolor="white"); plt.close(fig)
+    print(f"methods_architecture: {FIG_W_MM:.1f} x {H:.1f} mm, smallest font {min(sizes):.1f} pt (floor {FS_FLOOR:.1f} pt)")
+
+    # Split per-panel files (RESTYLE 2026-11-13, advisor-flagged): the combined file above is kept, unchanged, for
+    # eval/figs_thesis.py's combine_extra_items() and build_thesis_assets.py, which both still reference
+    # "methods_architecture.png"/".pdf" as a single file. But that combined file is 160 x 460 mm - taller than any
+    # single printed page - and figs_thesis.py's own caption_page() scales a whole combined-PDF image down to fit
+    # an A4-landscape page, which would shrink an image this tall far below 8 pt. These two new files are each
+    # independently sized to ~H_A / ~H_B mm (both close to a single portrait page height) at the SAME 160 mm
+    # native width, so each is legible on its own without depending on any downstream scaling. draw_panel_a()/
+    # draw_panel_b() use only the absolute data coordinates already computed above (shared with the combined
+    # figure), so reusing them on a new, independently-sized axes with a matching ylim window reproduces exactly
+    # the same content at the correct physical scale - no coordinate math is duplicated or re-derived.
+    # NOT yet wired into eval/figs_thesis.py or build_thesis_assets.py - that is a follow-up for whoever owns
+    # those files (out of this generator's own scope), noted in the restyle report.
+    fig_a = plt.figure(figsize=(FIG_W_MM / 25.4, H_A / 25.4)); fig_a.patch.set_facecolor("white")
+    ax_a = fig_a.add_axes([0, 0, 1, 1]); ax_a.set_xlim(0, FIG_W_MM); ax_a.set_ylim(H - H_A, H); ax_a.axis("off")
+    ax_a.patch.set_facecolor("white")
+    draw_panel_a(ax_a)
+    sizes_a = [t.get_fontsize() for t in fig_a.findobj(matplotlib.text.Text) if t.get_text().strip()]
+    assert sizes_a and min(sizes_a) >= FS_FLOOR - 1e-6, f"panel (a): text below the floor: min {min(sizes_a) if sizes_a else None}"
+    assert_no_text_overlap(fig_a)
+    base_a = os.path.join(OUTF, "methods_architecture_a")
+    fig_a.savefig(base_a + ".png", dpi=300, facecolor="white"); fig_a.savefig(base_a + ".pdf", facecolor="white"); plt.close(fig_a)
+    print(f"methods_architecture_a: {FIG_W_MM:.1f} x {H_A:.1f} mm, smallest font {min(sizes_a):.1f} pt")
+
+    fig_b = plt.figure(figsize=(FIG_W_MM / 25.4, H_B / 25.4)); fig_b.patch.set_facecolor("white")
+    ax_b = fig_b.add_axes([0, 0, 1, 1]); ax_b.set_xlim(0, FIG_W_MM); ax_b.set_ylim(0, H_B); ax_b.axis("off")
+    ax_b.patch.set_facecolor("white")
+    draw_panel_b(ax_b)
+    sizes_b = [t.get_fontsize() for t in fig_b.findobj(matplotlib.text.Text) if t.get_text().strip()]
+    assert sizes_b and min(sizes_b) >= FS_FLOOR - 1e-6, f"panel (b): text below the floor: min {min(sizes_b) if sizes_b else None}"
+    assert_no_text_overlap(fig_b)
+    base_b = os.path.join(OUTF, "methods_architecture_b")
+    fig_b.savefig(base_b + ".png", dpi=300, facecolor="white"); fig_b.savefig(base_b + ".pdf", facecolor="white"); plt.close(fig_b)
+    print(f"methods_architecture_b: {FIG_W_MM:.1f} x {H_B:.1f} mm, smallest font {min(sizes_b):.1f} pt")
+    # RESTYLE (2026-11-13, caption plain-language pass): the caption is now 4 plain sentences with no dates, D-numbers,
+    # commit hashes, file names or line citations, and no new numbers (none at all, so the "only numbers already
+    # present may appear" rule is trivially satisfied). Everything removed from the previous, longer caption -
+    # experiment-id enumeration, AHRS_EKF_TYPE and AP_NavFGO, the companion/Pi detail, the two watchers' scope -
+    # is preserved verbatim in docs/thesis/figures_thesis/caption_detail_c.md.
+    plain_caption = ("Panel (a) shows the sensors and the relays that carry their measurements to the flight "
+                      "controller and to the recorded data used offline. Panel (b) shows the flight controller, "
+                      "where each of the three estimators runs (outlined in its own colour, as in every other "
+                      "figure: EKF3 blue, UKF green, FGO orange), the safety watchers, and the offline replay and "
+                      "evaluation. In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs "
+                      "passively alongside it and the UKF and FGO are replayed offline against the same "
+                      "recording; in the closed-loop experiments one estimator flies while the other two run in "
+                      "shadow. The FGO runs as a separate process whose state the flight controller reads.")
     ITEMS.append(dict(num="Figure 3.1", name="methods_architecture", kind="figure",
                       title="System architecture: sensors, bridges, the three estimators and where each one runs",
-                      caption=("Sensors (left) reach ArduPilot's flight controller through MAVLink bridges (flow, range, and the "
-                               "external-navigation (ExtNav) path for the camera heading or a tag) and reach the UKF and FGO through "
-                               "recorded ROS 2 topics. Which estimator flies is set by AHRS_EKF_TYPE: simulator truth in Experiments "
-                               "1A, 1B, 2, 3 and 4 (open loop; EKF3 runs live but passively, the UKF and FGO are replayed offline), and "
-                               "EKF3, the UKF port or the FGO in Experiments 1C, 5 and 5S (closed loop; the others run in shadow). The "
-                               "FGO runs outside ArduPilot as a node whose state an in-firmware output predictor (AP_NavFGO) "
-                               "propagates. In simulation every process ran on one desktop; the companion computer (Pi) is planned "
-                               "and its timing is estimated. Two safety watchers: the simulation watcher used in Experiments 1C, 5 "
-                               "and 5S, and the real-hardware watcher, tested only on the SITL bench."),
-                      files=["methods_architecture.png", "methods_architecture.pdf"], checks=[], sources=srcs,
-                      chapter="Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to"))
-    # RESTYLE (2026-11-02): the RS-3 sizing rationale is process text for the coordinator, not for a reader - it lives
-    # in the handover (docs/handovers/2026-11-02_figs_restyle.md), not in this reader-facing caption.
+                      caption=plain_caption, files=["methods_architecture.png", "methods_architecture.pdf",
+                      "methods_architecture_a.png", "methods_architecture_a.pdf", "methods_architecture_b.png",
+                      "methods_architecture_b.pdf"], checks=[],
+                      sources=srcs, chapter="Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to"))
     from thesis_style import write_caption
     write_caption("methods_architecture", "Figure 3.1. System architecture: sensors, bridges, the three estimators and where each "
-                  "one runs.\n\n" + ITEMS[-1]["caption"])
+                  "one runs.\n\n" + ITEMS[-1]["caption"] + "\n\nVerdicts: Table A.4, none (descriptive).")
     print("wrote methods_architecture.png/.pdf")
 
 
