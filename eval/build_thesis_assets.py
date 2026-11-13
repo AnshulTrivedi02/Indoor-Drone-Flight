@@ -417,6 +417,15 @@ def main():
                  "They are appended to `thesis_complete.pdf` after the numbered items, as Part II, at their original quality. Their "
                  "captions are the candidate drafts and have not been through the plain-words caption pass.\n")
     print(f"Part II: {ncap} candidate captions, {ncand} candidate files; candidates PDF appended")
+    # Simulation worlds: the screenshots, schematics, onboard views and their combined PDF, copied as committed
+    WI = os.path.join(T, "world_images")
+    shutil.copytree(WI, os.path.join(OUT, "world_images"))
+    nwi = sum(len(f) for _, _, f in os.walk(os.path.join(OUT, "world_images")))
+    with open(os.path.join(OUT, "index.md"), "a", encoding="utf-8") as fh:
+        fh.write(f"\n## Simulation worlds\n\n`world_images/` ({nwi} files): `worlds_combined.pdf` (every world in one document), "
+                 "`renders/` (world renders), `schematics/` (top-down schematics), `onboard/` (onboard camera views); "
+                 "`world_images/index.md` and `shots_table.md` say what each shot shows.\n")
+    print(f"world images: {nwi} files")
     # brace balance check on every .tex
     bad = []
     for f in glob.glob(os.path.join(OUT, "**", "*.tex"), recursive=True):
