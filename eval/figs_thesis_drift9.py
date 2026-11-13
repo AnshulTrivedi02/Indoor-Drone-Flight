@@ -179,62 +179,78 @@ LW_FL = 0.9                # one thin line per flight, same weight as eval/figs_
 mins = [UN[(e, tr)][2].min() for e in EST for tr in A_FL]
 maxs = [UN[(e, tr)][2].max() for e in EST for tr in A_FL]
 LIM1 = max(abs(min(mins)), abs(max(maxs)), 10.0) + 4.0           # same formula as figs_walkthrough_flights.py:524
-YL0, YL1 = -3.0, 163.0                                           # same panel y-range as fl_1A_unaligned_paths
+NL0, NL1 = -2.0, 162.0                                           # North (along-corridor) range, same as Figures 4.1c/4.2
 
-# Fixed margins, as absolute inches, converted to figure-fraction below: left/right are independent of figure height
-# (width is fixed at TEXT_WIDTH_IN), top/bottom are not, so the figure HEIGHT is solved analytically (not iterated) from
-# them so that the three already-equal, already-aligned panel boxes show a true 1:1 aspect by construction - the same
-# layout-fix principle the restyle already applied to R3/R5 (figs_thesis_results.py / figs_thesis_drift.py), but solved in
-# closed form here because gridspec's fixed-fraction wspace makes the per-panel box width independent of figure height.
-# set_aspect(adjustable="box") is NOT used: it would shrink each panel independently and risks misaligning the three
-# shared columns, exactly the bug that technique caused in the pre-fix R3/R5 (see the restyle handover).
-LEFT_IN, RIGHT_IN, TOP_IN, BOTTOM_IN = 0.60, 0.10, 0.28, 0.48
-WSPACE = 0.14
-left_f, right_f = LEFT_IN / TEXT_WIDTH_IN, 1 - RIGHT_IN / TEXT_WIDTH_IN
-PANEL_W = TEXT_WIDTH_IN * (right_f - left_f) / (3 + 2 * WSPACE)                 # one panel's box width, inches
-PANEL_H = PANEL_W * (YL1 - YL0) / (2 * LIM1)                                    # box height for a true 1:1 aspect
-FIGH = TOP_IN + BOTTOM_IN + PANEL_H
-top_f, bottom_f = 1 - TOP_IN / FIGH, BOTTOM_IN / FIGH
-
-fig = plt.figure(figsize=(TEXT_WIDTH_IN, FIGH))
-gs = fig.add_gridspec(1, 3, wspace=WSPACE)
-axs = [fig.add_subplot(gs[0, 0])]
-axs += [fig.add_subplot(gs[0, i], sharex=axs[0], sharey=axs[0]) for i in range(1, 3)]
+# RESTYLE (axis convention, 2026-11-13): North (along the corridor) on the horizontal axis, increasing to the right;
+# East on the vertical axis, positive up - the same orientation as Figures 4.1c (R5) and 4.2 (R3); the pre-restyle
+# layout had this the other way round (East horizontal, North vertical, three panels side by side). A true 1:1 aspect
+# over the full symmetric East range (+-LIM1, needed so both corridor walls stay in frame even though the drift is
+# one-sided) makes a single wide row of 3 panels too short to be legible and three stacked rows too tall for one page
+# (about 12 in). A 2x2 grid with the fourth cell given to the legend instead fits both constraints.
+fig, axs2 = plt.subplots(2, 2, figsize=(TEXT_WIDTH_IN, 5.6), sharex=True, sharey=True)
+axs = [axs2[0, 0], axs2[0, 1], axs2[1, 0]]           # (a) EKF3 top-left, (b) UKF top-right, (c) FGO bottom-left
+axleg = axs2[1, 1]                                    # fourth cell: legend only, no data
 LINE_END = {}
 for ax, e in zip(axs, EST):
     for s in (1, -1):
-        ax.axvspan(10 * s, LIM1 * s, color=WALLC, lw=0, zorder=0.5)
+        ax.axhspan(10 * s, 1.0e4 * s, color=WALLC, lw=0, zorder=0.5)   # drawn well past LIM1 so the final ylim (set
+        # below, after tight_layout() measures the panel box) never leaves a white strip above/below the wall band
     for s in (1, -1):
-        cx = (10 + LIM1) / 2 * s
-        t_ = ax.text(cx, 12.0, "wall", ha="center", va="center", fontsize=9.5, color=INK2, zorder=4)
+        cy = (10 + LIM1) / 2 * s
+        t_ = ax.text(10.0, cy, "wall", ha="center", va="center", fontsize=9.5, color=INK2, zorder=4)
         t_.set_path_effects([patheffects.withStroke(linewidth=2.5, foreground="#ffffff")])
     for tr in A_FL:
         t_rel, nE, eE, err, gt_ = UN[(e, tr)]
         tg, ng, eg = gt_
         w = tg <= ev[tr]["window_s"][1]
-        ax.plot(eg[w], ng[w], color=TRUTH, lw=2.2, zorder=2, solid_capstyle="round")
+        ax.plot(ng[w], eg[w], color=TRUTH, lw=2.2, zorder=2, solid_capstyle="round")
     for tr in A_FL:
         t_rel, nE, eE, err, gt_ = UN[(e, tr)]
-        ln = ax.plot(eE, nE, color=C[e], lw=LW_FL, zorder=3)[0]
-        LINE_END[(e, tr)] = ln.get_xydata()[-1]           # (East, North), as DRAWN
+        ln = ax.plot(nE, eE, color=C[e], lw=LW_FL, zorder=3)[0]
+        LINE_END[(e, tr)] = ln.get_xydata()[-1]           # (North, East), as DRAWN
     ax.plot(0, 0, marker="o", ms=5, color=INK, zorder=5)
-    ax.set_xlabel("sideways, East (m)")
-axs[0].set_xlim(-LIM1, LIM1); axs[0].set_ylim(YL0, YL1)
+axs[0].set_xlim(NL0, NL1); axs[0].set_ylim(-LIM1, LIM1)
 for ax, letter, e in zip(axs, "abc", EST):
     ax.set_title(f"({letter}) {e}", loc="left", color=C[e], fontsize=10.5)
-axs[0].set_ylabel("along the corridor, North (m)")
-for ax in axs[1:]:
-    plt.setp(ax.get_yticklabels(), visible=False)
-fig.subplots_adjust(left=left_f, right=right_f, top=top_f, bottom=bottom_f, wspace=WSPACE)
+axs2[0, 0].set_ylabel("East (m)"); axs2[1, 0].set_ylabel("East (m)")
+axs2[1, 0].set_xlabel("North, along the corridor (m)"); axs2[0, 1].set_xlabel("North, along the corridor (m)")
+# Set tick-label visibility explicitly (matplotlib's own sharex/sharey "label_outer" default would otherwise hide (b)'s
+# x tick labels too, since it is in the top row and the cell below it, (d), is blank rather than holding a panel).
+axs2[0, 0].tick_params(labelbottom=False, labelleft=True)      # (a): (c) is below it in the same column
+axs2[0, 1].tick_params(labelbottom=True, labelleft=False)      # (b): nothing below it; (a) is to its left in the same row
+axs2[1, 0].tick_params(labelbottom=True, labelleft=True)       # (c): bottom-left, both axes labelled
+axleg.axis("off")
+axleg.plot([], [], color=TRUTH, lw=2.2, solid_capstyle="round", label="truth (simulator)")
+axleg.plot([], [], marker="o", ms=5, ls="", color=INK, label="take-off")
+axleg.legend(loc="center", frameon=False, fontsize=9.5)
+try:
+    fig.tight_layout()
+except Exception:
+    pass
+# Panel geometry fixed by tight_layout(); now give the shared y-range the value that makes the already-equal, already
+# full-width boxes show a true 1:1 aspect, the same technique already used by R3/R5 (figs_thesis_results.py /
+# figs_thesis_drift.py) - set_aspect(adjustable="box") is not used, since it would shrink each panel's box
+# independently and risk misaligning the shared rows/columns, the bug that technique caused in the pre-fix R3/R5.
 fig.canvas.draw()
 bb0 = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+bb1 = axs[1].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+bb2 = axs[2].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+assert abs(bb0.width - bb1.width) < 0.01 and abs(bb0.width - bb2.width) < 0.01 and abs(bb0.height - bb1.height) < 0.01 \
+    and abs(bb0.height - bb2.height) < 0.01, f"panel boxes are not equal size: {bb0.width:.4f}x{bb0.height:.4f}, " \
+    f"{bb1.width:.4f}x{bb1.height:.4f}, {bb2.width:.4f}x{bb2.height:.4f}"
 x0, x1 = axs[0].get_xlim()
-st_meas = (bb0.height / (YL1 - YL0)) / (bb0.width / (x1 - x0))
-assert abs(st_meas - 1.0) < 0.01, f"equal-scale analytic solve did not converge: FIGH={FIGH:.4f} st_meas={st_meas:.4f}"
+needed_yr = bb0.height * (x1 - x0) / (STRETCH * bb0.width)
+assert needed_yr >= 2 * LIM1, f"panel too short for a 1:1 aspect over the full data range: needed {needed_yr:.2f}, have {2 * LIM1:.2f}"
+axs[0].set_ylim(-needed_yr / 2, needed_yr / 2)
+fig.canvas.draw()
+bb0 = axs[0].get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+x0, x1 = axs[0].get_xlim(); y0, y1 = axs[0].get_ylim()
+st_meas = (bb0.height / (y1 - y0)) / (bb0.width / (x1 - x0))
+assert abs(st_meas - 1.0) < 0.01, f"equal-scale geometry did not converge: st_meas={st_meas:.4f}"
 
 check("equal scale (measured stretch) vs declared", rd(st_meas, 1), rd(STRETCH, 1), "panel geometry (axs[0] box, this script)")
-check("x-axis symmetric about 0 (left and right limits, m)", f"{-axs[0].get_xlim()[0]:.6f}", f"{axs[0].get_xlim()[1]:.6f}",
-      "LIM1 (same formula as figs_walkthrough_flights.py:524)")
+check("East axis symmetric about 0 (bottom and top limits, m)", f"{-axs[0].get_ylim()[0]:.6f}", f"{axs[0].get_ylim()[1]:.6f}",
+      "LIM1 (same formula as figs_walkthrough_flights.py:524), equal-scale geometry (this script)")
 for ext in ("png", "pdf"):
     fig.savefig(os.path.join(OUTF, f"R6_drift_9flights.{ext}"), dpi=170 if ext == "png" else None)
 plt.close(fig)
@@ -242,27 +258,23 @@ plt.close(fig)
 # data-identity check: the DRAWN line's end point vs the independent (non-`unaligned()`) TUM recomputation, 6 dp
 for e in EST:
     for tr in A_FL:
-        de, dn = LINE_END[(e, tr)]
+        dn, de = LINE_END[(e, tr)]
         ine, iee = END_INDEP[(e, tr)][0], END_INDEP[(e, tr)][1]
         check(f"{tr} {e}: drawn path end point, North (m), 6 dp vs independent TUM recomputation", rd(dn, 6), rd(ine, 6),
               "independent recomputation from the TUM rows (this script, not via figs_walkthrough_flights.py:unaligned())")
         check(f"{tr} {e}: drawn path end point, East (m), 6 dp vs independent TUM recomputation", rd(de, 6), rd(iee, 6),
               "independent recomputation from the TUM rows (this script, not via figs_walkthrough_flights.py:unaligned())")
 
-WSRC = cite(CLAUDEMD, "CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m")
+WSRC = cite(CLAUDEMD, "CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m")   # CHK entry kept; not quoted in CAP
 
 # =============================================================================================== caption + index
-CAP = ("Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, Experiment "
-       "1A, all 9 flights (dsn_tex_r1-r9). Passive estimators, truth flying. Each panel is one estimator; every one of its 9 "
-       "flights is drawn, from take-off to the end of its own cruise window. Paths are raw: each estimate is drawn exactly as "
-       "estimated, in its own navigation frame with its origin at take-off, with no fitted alignment (no rotation, "
-       "translation or scale fit). EKF3 reports North/East directly. The UKF and FGO trajectories are expressed in the world "
-       "frame by a fixed axis relabel from the known take-off heading (the vehicle spawns facing North, and both start with "
-       "yaw 0 along it, so their x is North and their y is West: (North, East) = (x, −y)), the same convention as Figure "
-       "4.1c and eval/phase5_analysis.py. The grey line is the true path (simulator); the black dot is take-off, at the "
-       f"origin of every panel. The shaded bands beyond East = ±10 m ({WSRC}), labelled \"wall\", are the corridor walls. "
-       f"East and North are drawn at equal scale ({rd(STRETCH, 1)}×); all three panels share the same x- and y-limits. "
-       "Fitted and raw values: Table 4.4 (provisional).")
+# RESTYLE (2026-11-13, caption brief): a plain 2-4 sentence caption - what is plotted, estimators and colours, flights
+# shown, line styles. Every number below is unchanged from the previous (longer) caption; the frame derivation, the
+# per-trial file-name list and the rest of the provenance detail it replaces are moved verbatim to caption_detail_b.md.
+CAP = ("Raw (unaligned) top-down paths for all 9 flights of the standard-sensor dataset, textured floor, no heading source: "
+       "one panel per estimator, EKF3 (blue), UKF (green) and FGO (orange), truth in grey, each estimate drawn in its own "
+       "navigation frame with its origin at take-off (black dot). The shaded bands are the corridor walls; East and North "
+       f"are drawn at equal scale ({rd(STRETCH, 1)}×). Fitted and raw values are in Table 4.4 (provisional).")
 TITLE = "Without a heading source, every one of the 9 flights drifts sideways off the true path"
 n_ok = sum(1 for c in CHK if c[-1])
 W = [f"# Figure 4.1d (provisional): offline standard-sensor drift, unaligned, all 9 flights (internal id R6)\n",
@@ -316,7 +328,12 @@ W += ["", "## Notes\n",
       "the same population as Table 4.4's medians). This figure is the panorama of which H1.1's sample is a subset; it is "
       "not itself H1.1 evidence. Table 4.4 (T9, `eval/figs_thesis.py`) states the same distinction in its own notes.",
       "- Line weight, wall-band colour and the end-point frame-check formula are the same as "
-      "`eval/figs_walkthrough_flights.py`'s own `fl_1A_unaligned_paths`; only the drawn elements differ (restyle rules)."]
+      "`eval/figs_walkthrough_flights.py`'s own `fl_1A_unaligned_paths`; only the drawn elements differ (restyle rules).",
+      "- RESTYLE (axis convention, 2026-11-13): North is now the horizontal axis (increasing right) and East the vertical "
+      "axis (positive up), the same orientation as Figures 4.1c and 4.2 - the pre-restyle layout had this the other way "
+      "round (East horizontal, North vertical). The three estimator panels are now a 2x2 grid (fourth cell: legend only) "
+      "instead of three side by side, since a true 1:1 aspect over the full symmetric East range needed to show both "
+      "corridor walls would make a single row too short and three stacked rows too tall for one page."]
 open(INDEX, "w").write("\n".join(W) + "\n")
 write_caption("R6", f"{TITLE}.\n\n{CAP}")
 print(f"cross-checks {n_ok}/{len(CHK)}; frame {n_pass10}/{len(FR)} (10 deg), {n_pass2}/{len(FR)} (2 deg); "
