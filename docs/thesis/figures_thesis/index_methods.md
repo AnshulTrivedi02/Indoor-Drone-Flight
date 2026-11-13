@@ -1,14 +1,14 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `d8d39d4` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
-**Source checks: 327/332 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 43/43 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
+**Source checks: 331/332 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 43/43 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
 **Proposed numbering** (vocabulary §6: by chapter; Chapter 3 = method, Chapter 8 = towards real flights). File names are descriptive and new; `M1`–`M3` are deliberately not used as ids because they are the F8 mitigation codes.
 
 | proposed no. | files | title | checks | proposed place |
 |---|---|---|---|---|
-| Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
+| Figure 3.1 | `methods_architecture.png`, `methods_architecture.pdf`, `methods_architecture_a.png`, `methods_architecture_a.pdf`, `methods_architecture_b.png`, `methods_architecture_b.pdf` | System architecture: sensors, bridges, the three estimators and where each one runs | 0/0 | Chapter 3 (method): the architecture the estimators, experiments and safety tables refer to |
 | Table 3.1 | `methods_estimator_design.md`, `methods_estimator_design.tex`, `methods_estimator_design.png` | Estimator design: EKF3, the UKF and the FGO | 7/7 | Chapter 3 (method), estimators |
 | Table 3.2 | `methods_noise_parity.md`, `methods_noise_parity.tex`, `methods_noise_parity.png` | Noise parity: measurement and process noise per sensor and estimator | 15/15 | Chapter 3 (method), fairness |
 | Table 3.3 | `methods_noise_exceptions.md`, `methods_noise_exceptions.tex`, `methods_noise_exceptions_p1.png`, `methods_noise_exceptions_p2.png`, `methods_noise_exceptions_p3.png` | Documented exceptions to noise and treatment parity, with their rulings | 12/12 | Chapter 3 (method), fairness |
@@ -20,7 +20,7 @@ Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/make
 
 ### Figure 3.1: System architecture: sensors, bridges, the three estimators and where each one runs
 
-- **Caption:** Sensors (left) reach ArduPilot's flight controller through MAVLink bridges (flow, range, and the external-navigation (ExtNav) path for the camera heading or a tag) and reach the UKF and FGO through recorded ROS 2 topics. Which estimator flies is set by AHRS_EKF_TYPE: simulator truth in Experiments 1A, 1B, 2, 3 and 4 (open loop; EKF3 runs live but passively, the UKF and FGO are replayed offline), and EKF3, the UKF port or the FGO in Experiments 1C, 5 and 5S (closed loop; the others run in shadow). The FGO runs outside ArduPilot as a node whose state an in-firmware output predictor (AP_NavFGO) propagates. In simulation every process ran on one desktop; the companion computer (Pi) is planned and its timing is estimated. Two safety watchers: the simulation watcher used in Experiments 1C, 5 and 5S, and the real-hardware watcher, tested only on the SITL bench.
+- **Caption:** Panel (a) shows the sensors and the relays that carry their measurements to the flight controller and to the recorded data used offline. Panel (b) shows the flight controller, where each of the three estimators runs (outlined in its own colour, as in every other figure: EKF3 blue, UKF green, FGO orange), the safety watchers, and the offline replay and evaluation. In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs passively alongside it and the UKF and FGO are replayed offline against the same recording; in the closed-loop experiments one estimator flies while the other two run in shadow. The FGO runs as a separate process whose state the flight controller reads.
 - **Edges and boxes, with their sources** (every edge is derived from these lines):
 
 | what the diagram shows | source (file:line) |
@@ -35,13 +35,13 @@ Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/make
 | ExtNav reaches EKF3 and (rulings D17 and H) the UKF port by the same call | AP_AHRS.cpp:2827; AP_AHRS.cpp:2830 |
 | Tag bridges: floor tags (tag_bridge, Experiments 2/3) and the wall tag (tag_bridge_fwd, Experiment 5) -> ODOMETRY on SERIAL1 14557 (ExtNav position + yaw); /tags/sent | tag_bridge.py:11; tag_bridge_fwd.py:2; tag_bridge_fwd.py:12; run_trial.sh:142 |
 | Ground truth: Gazebo dynamic_pose -> ground_truth_pub -> /ground_truth/pose (evaluation and the SITL watcher only) | ground_truth_pub.py:48; ukf_replay.py:7 |
-| FGO node (Python or C++): subscriptions; ODOMETRY LOCAL_NED / ESTIMATOR_TYPE_NAIVE on SITL SERIAL3 (14558) -> AP_NavFGO | CN:4; run_trial.sh:166; run_trial.sh:446; GCS_Common.cpp:4063; AP_NavFGO.h:2 |
+| FGO node (Python or C++): subscriptions; ODOMETRY LOCAL_NED / ESTIMATOR_TYPE_NAIVE on SITL SERIAL3 (14558) -> AP_NavFGO | CN:4; run_trial.sh:166; run_trial.sh:448; GCS_Common.cpp:4063; AP_NavFGO.h:2 |
 | AHRS_EKF_TYPE selects the flying estimator: 12 = thesis UKF, 13 = thesis FGO; 3 = EKF3; 10 = simulator truth | AP_AHRS.h:499; AP_AHRS.h:500; consolidated_rerun.parm:11; closedloop.parm:4; closedloop_ukf.parm:4; closedloop_fgo.parm:4 |
 | SHADOW: EKF3 flies and the UKF port / the FGO node + output predictor run in shadow (logged only) | closed_loop_run.sh:20; closed_loop_run.sh:39; ukf_shadow.parm:2; AP_AHRS.cpp:528 |
-| Camera heading to EKF3 via ExtNav only in closed loop (1C with heading: EK3_SRC1_YAW 6; UKF port AHRS_UKF_EXTYAW 1); the FGO node takes /forward_camera/heading_sent | closedloop_heading.parm:10; closedloop_ukf_heading.parm:1; run_trial.sh:447 |
+| Camera heading to EKF3 via ExtNav only in closed loop (1C with heading: EK3_SRC1_YAW 6; UKF port AHRS_UKF_EXTYAW 1); the FGO node takes /forward_camera/heading_sent | closedloop_heading.parm:10; closedloop_ukf_heading.parm:1; run_trial.sh:449 |
 | Offline 1B: EKF3 gets no heading (ruling 2026-09-29); the UKF/FGO arms read the frozen Phase 3 heading | M:2884; M:2888; MM:219 |
 | Experiment 5: EKF3 flies on the wall tag (ExtNav position + yaw); UKF-flying uses AHRS_UKF_EXTPOS/EXTYAW; FGO node takes /tags/sent | h_extnav.parm:7; h_ukf_tag.parm:7; closed_loop_run.sh:72 |
-| Offline replay reads the bag topics (ground truth for scoring only) | ukf_replay.py:58; fgo_replay.py:92 |
+| Offline replay reads the bag topics (ground truth for scoring only) | ukf_replay.py:67; fgo_replay.py:101 |
 | SITL safety watcher wall_watch.py: ground truth + process liveness -> heartbeat file -> fly_trial LAND / stop | wall_watch.py:5; wall_watch.py:53; fly_trial.py:493; closed_loop_run.sh:117; run_h_safety.sh:14 |
 | Real-hardware watcher realflight/watcher: mocap (MCP1) + FC telemetry + beacons -> ONE LAND + HEARTBEAT gating FS_GCS; SITL bench only | mocap_watch.py:3; mocap_watch.py:14; liveness.py:4; watcher_fc.parm:14; mcp1.py:1 |
 | Companion: in SITL every process ran on the desktop; Pi timing is an ESTIMATE; closed-loop real flights are future work | M:13651; M:12954 |
@@ -172,7 +172,7 @@ Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/make
 | `src/estimators/ukf_replay.py` | 7 | `Ground truth is used ONLY for evaluation` | yes |
 | `src/estimators/fgo_cpp/src/fgo_cpp_node.cpp` | 4 | `Subscriptions (as fgo_node.py)` | yes |
 | `run_trial.sh` | 166 | `SERIAL3_ARG=(--serial3=udpclient:127.0.0.1:14558)` | yes |
-| `run_trial.sh` | 446 | `mavlink_out:=udp:127.0.0.1:14558` | **NO** |
+| `run_trial.sh` | 448 | `mavlink_out:=udp:127.0.0.1:14558` | yes |
 | `~/ardupilot_ukf/libraries/GCS_MAVLink/GCS_Common.cpp` | 4063 | `MAV_FRAME_LOCAL_NED && f.estimator_type == MAV_ESTIMATOR_TYPE_NAIVE` | yes |
 | `~/ardupilot_ukf/libraries/AP_NavUKF/AP_NavFGO.h` | 2 | `the thesis FGO (GTSAM fixed-lag smoother, run OUTSIDE ArduPilot` | yes |
 | `~/ardupilot_ukf/libraries/AP_AHRS/AP_AHRS.h` | 499 | `UKF = 12` | yes |
@@ -187,15 +187,15 @@ Built by `eval/figs_thesis_methods.py` at commit `e8381ef` (run with `/home/make
 | `~/ardupilot_ukf/libraries/AP_AHRS/AP_AHRS.cpp` | 528 | `SHADOW unless AHRS_EKF_TYPE = 12` | yes |
 | `closedloop_heading.parm` | 10 | `EK3_SRC1_YAW 6` | yes |
 | `closedloop_ukf_heading.parm` | 1 | `the UKF fuses the ExtNav` | yes |
-| `run_trial.sh` | 447 | `heading:=` | **NO** |
+| `run_trial.sh` | 449 | `heading:=` | yes |
 | `METHODOLOGY.md` | 2884 | `RULING — EKF3 in the offline forward-camera comparison` | yes |
 | `METHODOLOGY.md` | 2888 | `Only the UKF and FGO get forward-camera arms` | yes |
 | `src/estimators/measurement_models.py` | 219 | `def forward_events(trial, arm)` | yes |
 | `h_extnav.parm` | 7 | `EK3_SRC1_YAW 6` | yes |
 | `h_ukf_tag.parm` | 7 | `AHRS_UKF_EXTPOS 1` | yes |
 | `sim/tools/closed_loop_run.sh` | 72 | `TAG_BRIDGE_FWD=1` | yes |
-| `src/estimators/ukf_replay.py` | 58 | `/imu/data_raw` | **NO** |
-| `src/estimators/fgo/fgo_replay.py` | 92 | `want = [` | **NO** |
+| `src/estimators/ukf_replay.py` | 67 | `/imu/data_raw` | yes |
+| `src/estimators/fgo/fgo_replay.py` | 101 | `want = [` | yes |
 | `sim/tools/wall_watch.py` | 5 | `/ground_truth/pose` | yes |
 | `sim/tools/wall_watch.py` | 53 | `Box and tilt breaches always stop` | yes |
 | `fly_trial.py` | 493 | `safety watcher lost in flight` | yes |
