@@ -30,6 +30,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 T = os.path.join(ROOT, "docs", "thesis"); FT = os.path.join(T, "figures_thesis"); TB = os.path.join(T, "tables")
 OUT = os.path.join(T, "thesis_assets")
 DATE = sys.argv[sys.argv.index("--date") + 1] if "--date" in sys.argv else "2026-11-13"
+TAG = sys.argv[sys.argv.index("--tag") + 1] if "--tag" in sys.argv else DATE
 A4 = (8.27, 11.69)
 
 
@@ -64,6 +65,56 @@ def ltx(s):
     for k, v in EXTRA_UNI.items():
         s = s.replace("\x00%d\x00" % ord(k), v)
     return s
+
+
+REF_TOK = (r"D\d{1,3}(?:\([a-z]\))?(?:\s*(?:item|items)\s*\d+(?:\s*(?:--|[-–])\s*\d+)?)?",
+           r"[\w\\./-]+\.(?:md|py|parm|json|conf|cpp|h|jobs):\d+(?:(?:--|[-–])\d+)?", r"\bM:\d+(?:(?:--|[-–])\d+)?",
+           r"\b20\d\d-\d\d-\d\d(?:[ T]\d\d:\d\d(?::\d\d)?)?\b", r"\bcommit\s+[0-9a-f]{7,}\b", r"`?[0-9a-f]{7}`?(?=\))")
+_REF = re.compile("|".join(REF_TOK))
+_PAREN = re.compile(r"\s*[\(\[]\s*(?:(?:" + "|".join(REF_TOK) + r"|ruling|rulings|user|item|items|\d+|ruled|and|,|;|\s)+)[\)\]]")
+
+
+def clean_refs(t):
+    """Remove decision numbers, METHODOLOGY line citations, dates and commit hashes from caption/note text. Parentheticals
+    that hold only such references are dropped whole; inline references are removed and the punctuation tidied."""
+    t2 = _PAREN.sub("", t)
+    t2 = _REF.sub("", t2)
+    t2 = re.sub(r"\(\s*[,;]?\s*\)|\[\s*[,;]?\s*\]", "", t2)
+    t2 = re.sub(r"\s+([,;.:])", r"\1", t2)
+    t2 = re.sub(r"([,;])\s*([,;])", r"\1", t2)
+    t2 = re.sub(r"\(\s*[,;]\s*", "(", t2); t2 = re.sub(r"\s*[,;]\s*\)", ")", t2)
+    t2 = re.sub(r"\bsince\s*[,;]\s*", "since ", t2)
+    t2 = re.sub(r"\s{2,}", " ", t2)
+    return t2
+
+
+def _nums(t):
+    return re.findall(r"\d+(?:\.\d+)?", t)
+
+
+CLEAN_LOG = []
+
+
+def clean_line(line, where):
+    new = clean_refs(line)
+    if new != line:
+        refnums = [n for m in _REF.finditer(line) for n in _nums(m.group(0))]
+        paren = [n for m in _PAREN.finditer(line) for n in _nums(m.group(0))]
+        before, after = _nums(line), _nums(new)
+        rem = list(before)
+        for n in after:
+            if n in rem:
+                rem.remove(n)
+            else:
+                raise SystemExit(f"clean_refs introduced number {n} in {where}")
+        allowed = list(refnums + paren)
+        for n in rem:
+            if n in allowed:
+                allowed.remove(n)
+            else:
+                raise SystemExit(f"clean_refs would remove a non-reference number {n} in {where}: {line[:200]}")
+        CLEAN_LOG.append((where, len(rem)))
+    return new
 
 
 # (number, kind, internal id, base path (no extension), source generator)
@@ -227,8 +278,15 @@ def relabel_tex(src, num):
         s = s.replace("\\end{table}", f"\\label{{{lab}}}\n\\end{{table}}", 1)
     pre = "\\caption{" + ltx(num) + ". "
     s, nc = re.subn(r"\\caption\{", lambda m: pre, s, count=1)
-    head = f"% {num}: exported by eval/build_thesis_assets.py ({DATE}) from {os.path.relpath(src, ROOT)}; label {lab}.\n"
-    return head + s
+    out = []
+    for ln in s.splitlines():
+        if ln.lstrip().startswith("\\caption{") or ln.lstrip().startswith("\\textit{Note.}"):
+            ln = clean_line(ln, num)
+        elif ln.startswith("%"):
+            ln = re.sub(r"\s*\(commit [0-9a-f]{7,}\)", "", ln)
+        out.append(ln)
+    head = f"% {num}: exported by eval/build_thesis_assets.py from {os.path.relpath(src, ROOT)}; label {lab}.\n"
+    return head + "\n".join(out) + "\n"
 
 
 def _cells(line):
@@ -261,7 +319,7 @@ def md_to_longtable(base, num, cap_first):
         colspec = "".join(f"p{{\\dimexpr {1 / nc:.3f}\\linewidth-2\\tabcolsep\\relax}}" for _ in range(nc))
         hrow = " & ".join("\\textbf{" + ltx(h) + "}" for h in hdr) + " \\\\"
         if bi == 0:
-            cap = f"\\caption{{{ltx(num)}. {ltx(cap_first)}}}\\label{{tab:{slug(num)}}}\\\\"
+            cap = f"\\caption{{{ltx(num)}. {ltx(clean_line(cap_first, num))}}}\\label{{tab:{slug(num)}}}\\\\"
         else:
             cap = f"\\multicolumn{{{nc}}}{{p{{\\linewidth}}}}{{\\textit{{{ltx(num)} (continued). {ltx(lt)}}}}}\\\\"
         L += [f"\\begin{{longtable}}{{{colspec}}}", cap, "\\toprule", hrow, "\\midrule", "\\endfirsthead",
@@ -281,7 +339,7 @@ def image_table(base, num, cap):
          "% in a table environment. Copy the PDFs from figures/ alongside (named below).", "\\begin{table}[p]", "\\centering"]
     for k, p in enumerate(pages, 1):
         L.append(f"\\includegraphics[width=\\linewidth]{{figures/tab_{slug(num)}_p{k}.pdf}}\\par\\medskip")
-    L += [f"\\caption{{{ltx(num)}. {ltx(cap)}}}", f"\\label{{{lab}}}", "\\end{table}"]
+    L += [f"\\caption{{{ltx(num)}. {ltx(clean_line(cap, num))}}}", f"\\label{{{lab}}}", "\\end{table}"]
     return "\n".join(L) + "\n", pages
 
 
@@ -321,6 +379,10 @@ def main():
             open(os.path.join(OUT, dst), "w", encoding="utf-8").write(s); files.append(dst)
             for k, p in enumerate(pages, 1):
                 d2 = f"figures/tab_{slug(num)}_p{k}.pdf"; shutil.copy2(p, os.path.join(OUT, d2)); files.append(d2)
+        if kind in ("tab", "app"):
+            os.makedirs(os.path.join(OUT, "tables_png"), exist_ok=True)
+            for k, png in enumerate(pngs(base), 1):
+                d3 = f"tables_png/tab_{slug(num)}_p{k}.png"; shutil.copy2(png, os.path.join(OUT, d3)); files.append(d3)
         srcs = sorted(os.path.relpath(f, T) for f in glob.glob(os.path.join(T, base) + "*") if not f.endswith(".png"))
         idx.append(f"| {num} | {title.replace('|', '/')} | " + ", ".join(f"`{f}`" for f in files) + f" | `{gen}` | "
                    + ", ".join(f"`{s}`" for s in srcs[:4]) + " |")
@@ -333,6 +395,28 @@ def main():
             "they were checked for balanced braces only (no TeX on the build machine)."]
     open(os.path.join(OUT, "index.md"), "w", encoding="utf-8").write("\n".join(idx) + "\n")
     build_pdf(os.path.join(OUT, "thesis_complete.pdf"))
+    # Part II: every candidate figure (not yet numbered), its own PDF/table and caption, and the candidates PDF appended
+    CD = os.path.join(FT, "candidates"); cdst = os.path.join(OUT, "candidates")
+    os.makedirs(os.path.join(cdst, "captions"))
+    ncand = 0
+    for f in sorted(glob.glob(os.path.join(CD, "[A-D][0-9][0-9]_*.pdf")) + glob.glob(os.path.join(CD, "[A-D][0-9][0-9]_*.md"))):
+        shutil.copy2(f, cdst); ncand += 1
+    for f in sorted(glob.glob(os.path.join(CD, "captions", "*.md"))):
+        shutil.copy2(f, os.path.join(cdst, "captions"))
+    for f in sorted(glob.glob(os.path.join(CD, "index_*.md"))):
+        shutil.copy2(f, cdst)
+    ncap = len(glob.glob(os.path.join(cdst, "captions", "*.md")))
+    cpdf = os.path.join(CD, "thesis_figures_candidates.pdf")
+    tmp = os.path.join(OUT, "_part1.pdf"); os.replace(os.path.join(OUT, "thesis_complete.pdf"), tmp)
+    import subprocess
+    subprocess.run(["pdfunite", tmp, cpdf, os.path.join(OUT, "thesis_complete.pdf")], check=True)
+    os.remove(tmp)
+    with open(os.path.join(OUT, "index.md"), "a", encoding="utf-8") as fh:
+        fh.write(f"\n## Part II: candidate figures (not yet numbered)\n\n{ncap} candidates (`candidates/`: each candidate's own PDF or "
+                 "table and its caption under `candidates/captions/`; the indexes `candidates/index_*.md` give titles and sources). "
+                 "They are appended to `thesis_complete.pdf` after the numbered items, as Part II, at their original quality. Their "
+                 "captions are the candidate drafts and have not been through the plain-words caption pass.\n")
+    print(f"Part II: {ncap} candidate captions, {ncand} candidate files; candidates PDF appended")
     # brace balance check on every .tex
     bad = []
     for f in glob.glob(os.path.join(OUT, "**", "*.tex"), recursive=True):
@@ -340,7 +424,8 @@ def main():
         if s.count("{") != s.count("}"):
             bad.append(os.path.relpath(f, OUT))
     print("tex brace balance:", "PASS" if not bad else f"FAIL {bad}")
-    z = os.path.join(T, f"thesis_assets_{DATE}.zip")
+    print(f"caption/note reference cleaning: {len(CLEAN_LOG)} lines changed; every removed number was a reference (checked)")
+    z = os.path.join(T, f"thesis_assets_{TAG}.zip")
     with zipfile.ZipFile(z, "w", zipfile.ZIP_DEFLATED) as zf:
         for f in sorted(glob.glob(os.path.join(OUT, "**", "*"), recursive=True)):
             if os.path.isfile(f):
