@@ -193,7 +193,8 @@ axleg = axs2[1, 1]                                    # fourth cell: legend only
 LINE_END = {}
 for ax, e in zip(axs, EST):
     for s in (1, -1):
-        ax.axhspan(10 * s, LIM1 * s, color=WALLC, lw=0, zorder=0.5)
+        ax.axhspan(10 * s, 1.0e4 * s, color=WALLC, lw=0, zorder=0.5)   # drawn well past LIM1 so the final ylim (set
+        # below, after tight_layout() measures the panel box) never leaves a white strip above/below the wall band
     for s in (1, -1):
         cy = (10 + LIM1) / 2 * s
         t_ = ax.text(10.0, cy, "wall", ha="center", va="center", fontsize=9.5, color=INK2, zorder=4)
@@ -273,7 +274,7 @@ WSRC = cite(CLAUDEMD, "CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m"
 CAP = ("Raw (unaligned) top-down paths for all 9 flights of the standard-sensor dataset, textured floor, no heading source: "
        "one panel per estimator, EKF3 (blue), UKF (green) and FGO (orange), truth in grey, each estimate drawn in its own "
        "navigation frame with its origin at take-off (black dot). The shaded bands are the corridor walls; East and North "
-       f"are drawn at equal scale ({rd(STRETCH, 1)}×). Fitted and raw values are in Table 4.4.")
+       f"are drawn at equal scale ({rd(STRETCH, 1)}×). Fitted and raw values are in Table 4.4 (provisional).")
 TITLE = "Without a heading source, every one of the 9 flights drifts sideways off the true path"
 n_ok = sum(1 for c in CHK if c[-1])
 W = [f"# Figure 4.1d (provisional): offline standard-sensor drift, unaligned, all 9 flights (internal id R6)\n",

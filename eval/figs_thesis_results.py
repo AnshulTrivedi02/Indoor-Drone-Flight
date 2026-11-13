@@ -1347,7 +1347,7 @@ fig, axs = plt.subplots(2, 1, figsize=(TEXT_WIDTH_IN, 7.6))
 lat = max(np.abs(PATHS[k][0][1]).max() for k in PATHS) * 1.08; lat = max(lat, 2.0)
 # RESTYLE (2026-11-13): short panel labels (not verdict text) state what the dashing/alignment mean, since (a) and
 # (b) are different flights with different ATEs (not "identical" curves) - the caption gives the numbers.
-TT = {"a": "(a) no heading, aligned by best fit (the U-shape is from the alignment)",
+TT = {"a": "(a) no heading (dashed), aligned by best fit (the U-shape is from the alignment)",
       "b": "(b) no heading (dashed) / with heading (solid), aligned by best fit"}
 LBL = {"EKF3": "EKF3 (no heading)", "UKF": "UKF (no heading)", "FGO": "FGO (no heading)", "UKF_baseline": "UKF, no heading",
        "FGO_baseline": "FGO, no heading", "UKF_heading": "UKF, with heading", "FGO_heading": "FGO, with heading"}

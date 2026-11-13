@@ -2,12 +2,12 @@
 
 Material removed from the Figure 4.2 (R3), Figure 4.1c (R5) and Figure 4.1d (R6) captions when they were shortened to
 plain 2-4 sentence captions, kept here verbatim per the restyle brief ("Everything removed ... goes VERBATIM into a
-block in your own file"). Each block is the full previous caption body exactly as it last rendered in
-`docs/thesis/figures_thesis/captions/<id>.md`, before this stage's edit.
+block in your own file"). Each of the three sections below holds ONLY the removed text, exactly as it last rendered
+in `docs/thesis/figures_thesis/captions/<id>.md` before this stage's edit (verified against the `d8d39d4` commit).
+Stage B's own commentary (what changed and why, the task 5 recommendation) is kept separately, after the three
+blocks, so it is not mixed into material the coordinator merges.
 
 ## Figure 4.2: caption detail
-
-Previous caption body (verbatim, from `captions/R3.md` before this stage):
 
 > Flights chosen by a rule fixed before plotting: (a) of the 9 textured-floor flights of the standard-sensor dataset
 > that all three estimators complete (flights 1–9; flight 10 is unusable for the UKF and FGO), the flight whose mean
@@ -32,21 +32,7 @@ Previous caption body (verbatim, from `captions/R3.md` before this stage):
 > FGO 4.48 (all no heading); (b) EKF3 4.08 (no heading), UKF 4.96 (no heading) / 0.14 (with heading), FGO 4.54 (no
 > heading) / 0.06 (with heading).
 
-Notes on what changed beyond wording: the "D131" decision-number citation is dropped per the binding rule (no
-D-numbers on a caption), not merely shortened. The full selection rule, the per-flight ATE ranking table, the
-alignment-method explanation (why a yaw-only best-fit is used instead of the registered 3D fit) and the
-"Table 4.1/4.1b" cross-references remain fully available in `docs/thesis/figures_thesis/index_results.md`'s own
-Caption/Cross-checks sections, which were not shortened.
-
-Panel-title change (task 4): the short caption no longer states that panels (a) and (b) use different flights with
-different ATEs (4.10/5.17/4.48 m vs 4.08/4.96/4.54 m) — do not read the two panels' dashed curves as literally
-identical data; they are two different flights (standard-sensor dataset flight 3 vs textured-wall camera dataset
-flight 3) that happen to produce a visually similar heading-error signature. This is why the new panel titles say
-"no heading, aligned by best fit" rather than calling the two panels' curves the same.
-
 ## Figure 4.1c: caption detail
-
-Previous caption body (verbatim, from `captions/R5.md` before this stage):
 
 > Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor, flight 3,
 > chosen by the same rule as Figure 4.2(a), fixed before plotting: of the 9 textured-floor flights that all three
@@ -73,51 +59,7 @@ Previous caption body (verbatim, from `captions/R5.md` before this stage):
 > over Experiment 1A flights 1-9 of the standard-sensor dataset, textured floor (this figure shows flight 3 of those
 > 9).
 
-Notes on what changed beyond wording: the frame-derivation paragraph (axis relabel, take-off heading, the
-`eval/phase5_analysis.py` cross-reference) and the "for reference" comparison against Figure 4.2's aligned ATEs are
-dropped from the caption; the full frame derivation and its PASS/FAIL table remain in
-`docs/thesis/figures_thesis/index_drift.md`'s own "Frame check" section, unchanged by this stage.
-
-### Task 5 analysis — does Figure 4.1c carry information Figure 4.1d does not?
-
-Investigated before implementing the restyle, per the brief's instruction. Checked what else in the thesis cites
-Figure 4.1c (`grep` across `docs/thesis/` and `eval/`): `docs/thesis/tier1/open_questions.md` (numbering-only
-reference), `docs/thesis/methodology_factsheets/3.6_metrics_statistics.md` and
-`docs/thesis/raw_corridor/raw_corridor_numbers.md` (both cite it as the place the frame-relabel convention was first
-derived and verified, not as a reader-facing content dependency), `docs/thesis/tier1/decisions_log.md` (D111,
-historical), and `docs/thesis/tables/T9_1A_fitted_vs_raw.md`'s own caption ("Companion table to Figure 4.1c") — a
-dangling reference if Figure 4.1c is dropped entirely (see below; T9 is out of this stage's scope and was not
-edited).
-
-Comparing content panel by panel:
-- Panel (a) (unaligned top-down path, one flight): the same information, for the same flight, is visible in Figure
-  4.1d's own per-estimator panel (which shows all 9 flights, including flight 3) — redundant with 4.1d.
-- Panel (c) (sideways error vs distance): confirmed redundant with panel (a) by construction, since true East is
-  zero throughout the corridor — the two panels plot the same curve, one drawn through the origin (sideways error)
-  and one not (estimated East). This is the task's stated premise and it holds.
-- Panel (b) (along-track error, estimated minus true North, vs distance travelled): this is the one piece of content
-  not available anywhere else in the figure set. Figure 4.1d plots positions only (North, East), not an explicit
-  along-track-error-vs-distance curve — a heading error both drifts an estimate sideways (visible in any position
-  plot) AND shortens its along-corridor progress (only visible in a curve like panel (b)). Table 4.4 (the companion
-  table) gives only an aggregate per-estimator 3D RMS and end-of-cruise number across all 9 flights, median and
-  range — not a distance-resolved along-track curve for any single flight.
-
-**Recommendation: drop panel (c) only; keep Figure 4.1c with panels (a) and (b).** Panel (b)'s along-track-error
-curve is genuinely unique content, not reproduced by Figure 4.1d or by any table. This is implemented: the restyled
-`R5_drift_unaligned.png`/`.pdf` has two panels, (a) position and (b) along-track error; the layout, assertions and
-caption were updated accordingly, and the cross-check/frame-check totals (9/9, 3/3) are unchanged, so the figure is
-ready either way the coordinator decides.
-
-**Dangling reference if the whole figure were dropped instead** (reported, not edited, per the brief): `docs/thesis/
-tables/T9_1A_fitted_vs_raw.md`'s caption says "Companion table to Figure 4.1c (1A drift paths)" — this is a different
-generator (`eval/figs_thesis.py`'s T9), out of this stage's scope, and would need its own pointer updated (e.g. to
-Figure 4.1d, which is the companion relationship the table's numbers actually match) if Figure 4.1c is dropped
-entirely. `docs/thesis/tier1/open_questions.md`'s ON-5 numbering note would also need updating to drop "Figure 4.1c"
-from its list of provisional figure numbers.
-
 ## Figure 4.1d: caption detail
-
-Previous caption body (verbatim, from `captions/R6.md` before this stage):
 
 > Offline standard-sensor dataset (IMU, downward flow, downward LiDAR; no heading source), textured floor,
 > Experiment 1A, all 9 flights (dsn_tex_r1-r9). Passive estimators, truth flying. Each panel is one estimator; every
@@ -131,17 +73,48 @@ Previous caption body (verbatim, from `captions/R6.md` before this stage):
 > the corridor walls. East and North are drawn at equal scale (1.0×); all three panels share the same x- and
 > y-limits. Fitted and raw values: Table 4.4 (provisional).
 
-Notes on what changed beyond wording: the per-trial file-name list ("dsn_tex_r1-r9"), the "CLAUDE.md:101" line
+## Stage B notes (not part of the removed-text blocks above — coordinator reading only)
+
+**R3 (Figure 4.2).** Beyond wording, the "D131" decision-number citation is dropped per the binding rule (no
+D-numbers on a caption), not merely shortened. The full selection rule, the per-flight ATE ranking table, the
+alignment-method explanation (why a yaw-only best-fit is used instead of the registered 3D fit) and the
+"Table 4.1/4.1b" cross-references remain fully available in `docs/thesis/figures_thesis/index_results.md`'s own
+Caption/Cross-checks sections, which were not shortened. Panel-title change (task 4): the short caption no longer
+states that panels (a) and (b) use different flights with different ATEs (4.10/5.17/4.48 m vs 4.08/4.96/4.54 m) — do
+not read the two panels' dashed curves as literally identical data; they are two different flights (standard-sensor
+dataset flight 3 vs textured-wall camera dataset flight 3) that happen to produce a visually similar heading-error
+signature. This is why the new panel titles say "no heading (dashed), aligned by best fit" rather than calling the
+two panels' curves the same.
+
+**R5 (Figure 4.1c).** Beyond wording, the frame-derivation paragraph (axis relabel, take-off heading, the
+`eval/phase5_analysis.py` cross-reference) and the "for reference" comparison against Figure 4.2's aligned ATEs are
+dropped from the caption; the full frame derivation and its PASS/FAIL table remain in
+`docs/thesis/figures_thesis/index_drift.md`'s own "Frame check" section, unchanged by this stage.
+
+**R6 (Figure 4.1d).** Beyond wording, the per-trial file-name list ("dsn_tex_r1-r9"), the "CLAUDE.md:101" line
 citation and the frame-relabel derivation paragraph are dropped from the caption per the binding rule (no file names
 or line citations on a caption) — the full derivation and the file list remain in
 `docs/thesis/figures_thesis/index_drift9.md`'s own "Inputs" and "Frame check" sections, unchanged by this stage. The
 "same convention as Figure 4.1c" cross-reference is also dropped so this caption stands alone if Figure 4.1c is
-dropped (see the task 5 analysis above); the frame convention itself is unchanged and is still fully documented in
+dropped (see the task 5 note below); the frame convention itself is unchanged and is still fully documented in
 `index_drift9.md`.
 
-Axis-convention change (task 3): the figure's layout changed from three panels side by side (East horizontal, North
-vertical — the pre-restyle orientation) to a 2x2 grid, North horizontal (increasing right) and East vertical
-(positive up), matching Figures 4.1c and 4.2. The fourth grid cell holds only the truth/take-off legend. This was
-necessary, not cosmetic: a true 1:1 aspect over the full ±LIM1 East range (needed to keep both corridor walls in
-frame) makes a single row of 3 panels too short to be legible and three stacked rows too tall for one page; the 2x2
-grid is the layout that fits both the equal-scale requirement and the page.
+Axis-convention change (task 3, R6/Figure 4.1d): the figure's layout changed from three panels side by side (East
+horizontal, North vertical — the pre-restyle orientation) to a 2x2 grid, North horizontal (increasing right) and
+East vertical (positive up), matching Figures 4.1c and 4.2. The fourth grid cell holds only the truth/take-off
+legend. This was necessary, not cosmetic: a true 1:1 aspect over the full ±LIM1 East range (needed to keep both
+corridor walls in frame) makes a single row of 3 panels too short to be legible and three stacked rows too tall for
+one page; the 2x2 grid is the layout that fits both the equal-scale requirement and the page.
+
+### Task 5 — does Figure 4.1c carry information Figure 4.1d does not?
+
+See the handback report for the full analysis and the recommendation (kept out of this file since it is Stage B's
+own reasoning, not removed caption text, and the brief's merge is of the removed-text blocks above only). Short
+version: panel (b) (along-track error vs distance) is the only content not duplicated by Figure 4.1d or Table 4.4,
+but a check of every place in the thesis that discusses along-track/distance-scale error (`limitations.md`,
+`headline_claims_before_after.md`, `numbers.md` §6.5, `glossary.md`) found none of it sourced from or citing this
+figure's panel (b) — that prose is all backed by a separate, already-registered distance-scale computation
+(`scale_check.json`), not by reading values off this plot. Panel (b) is therefore unique but uncited, which does not
+meet the bar for overriding the user's stated default; the recommendation is that the default stands (drop the
+whole figure, keep only Figure 4.1d) unless the user wants the sideways-drift-vs-along-track-foreshortening
+distinction kept as an illustration in its own right.

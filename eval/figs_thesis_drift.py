@@ -250,7 +250,8 @@ CAP = (f"Top-down paths (a) and along-track error (b) for EKF3 (blue), UKF (gree
        f"flight {ra} of the standard-sensor dataset, textured floor, no heading source (dashed, all three). Paths are "
        "unaligned: each estimate is drawn in its own navigation frame, origin at take-off, so the sideways drift from "
        "heading error is visible; panel (b) shows the along-track error (estimated minus true North) against the true "
-       "distance travelled. The 9-flight view of the same dataset is Figure 4.1d; the companion table is Table 4.4.")
+       "distance travelled. The 9-flight view of the same dataset is Figure 4.1d (provisional); the companion table is "
+       "Table 4.4 (provisional).")
 TITLE = "Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor"
 n_ok = sum(1 for c in CHK if c[-1])
 W = [f"# Figure 4.1c (provisional): offline standard-sensor drift, unaligned (internal id R5)\n",
