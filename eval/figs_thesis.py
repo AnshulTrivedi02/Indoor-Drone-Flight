@@ -525,7 +525,6 @@ HALF_NH3 = {"EKF3": ["cl_a_tex_half", "cl_a_tex_half_r2", "cl_a_tex_half_r3"],
             "UKF": ["cl_ukf_a_tex_half_v2", "cl_ukf_a_tex_half_v2_r2", "cl_ukf_a_tex_half_v2_r3"],
             "FGO": [f"cl_fgo_a_tex_r{i}_half_rp" for i in (1, 2, 3)]}
 FULL_NH3 = {"EKF3": ["cl_a_tex", "cl_a_tex_r2", "cl_a_tex_r3"], "UKF": [f"cl_ukf_a_tex_v2_r{i}" for i in (1, 2, 3)]}
-AS_RECORDED_FLIGHT1 = {"EKF3": True, "UKF": True, "FGO": False}       # D149(b): EKF3/UKF flight 1 = the old n = 1 row
 
 
 def nh3(trs, win):
@@ -829,13 +828,33 @@ def ob_safe(tag):
                   "the as-worded verdicts per run, as tabulated", "iii")
 
 
-def ob_cl(tag, with_contact=True):
-    """1C closed loop: per-estimator criteria only; the cross-estimator comparison is descriptive."""
+def ob_cl(tag, with_contact=True, clean=False):
+    """1C closed loop: per-estimator criteria only; the cross-estimator comparison is descriptive.
+
+    `clean=True` (task 8, T4/T4F restyle): returns a footnote text for direct use in a table footnote, with (a) the
+    n-statement corrected to n = 3 per estimator without heading (the no-heading cells became a k/3 count over the
+    SAME 3 flights each estimator flies with heading, not a single flight, in the regeneration that added the n = 3
+    no-heading cells - this function's own "n" text was never updated to match, which is the bug task 8 asks fixed),
+    and (b) no METHODOLOGY line citations spliced into the printed text (the cite() calls below still run, for their
+    own check() side effects, so the check count this figure/table reports from ob_cl() is unchanged either way)."""
     check("closed loop, half real-time, with heading: flights passing all five criteria (+ estimator validity)", " / ".join(f"{passh[e]}/3" for e in EST), "3/3 / 3/3 / 3/3", "numbers.md §15")
     check("closed loop, half real-time, with heading: max cross-track range EKF3 / final UKF port / final FGO node (m)", " / ".join(rng(B2h[e]) for e in EST), "0.24–0.33 / 0.22–0.25 / 0.04–0.32",
           "numbers.md §15 B2 row (EKF3 half) and re-flown rows")
     src = ", ".join([cite(M_, 4948, "[+155, +215] s"), cite(M_, 7513, "[+146, +218] s"), cite(M_, 8995, "[+145, +196] s"),
                      cite(M_, 4951, "B1."), cite(M_, 4966, "B5."), cite(M_, 7362, "S2 is the estimator valid throughout")])
+    desc_cite = cite(M_, 9355, 'DESCRIPTIVE; separate flights, n = 3 each, no ordering claim')
+    if clean:
+        return obasis(tag, "Experiment 1C closed loop, EKF3, final UKF port and final FGO node",
+                      "without heading: wall-contact time after cruise start against each estimator's own contact window, s; with heading: "
+                      "pass/fail of the five closed-loop criteria and the estimator-validity criterion, with max |cross-track| in cruise (m), "
+                      "heading error p95 and max (°) and max lateral speed (m/s)",
+                      "3 flights per estimator without heading and 3 flights per estimator with heading (each estimator flew its own "
+                      "flights: separate, unpaired flights)",
+                      "per-estimator criteria only (H1.8 contact window and H1.9 the five criteria); no comparative test between the "
+                      "estimators was pre-registered, and the comparison across the with-heading sets is descriptive: separate flights, "
+                      "n = 3 each, no ordering claim",
+                      f"with heading {' / '.join(f'{passh[e]}/3' for e in EST)} flights pass (EKF3 / UKF / FGO); max cross-track "
+                      f"{' / '.join(rng(B2h[e]) for e in EST)} m", "iii")
     return obasis(tag, "Experiment 1C closed loop, EKF3, final UKF port and final FGO node",
                   "without heading: wall-contact time after cruise start against each estimator's own contact window, s; with heading: "
                   "pass/fail of the five closed-loop criteria and the estimator-validity criterion, with max |cross-track| in cruise (m), "
@@ -844,7 +863,7 @@ def ob_cl(tag, with_contact=True):
                   "flights: separate, unpaired flights)",
                   f"per-estimator criteria only (H1.8 contact window and H1.9 the five criteria; {src}); no comparative test "
                   f"between the estimators was pre-registered, and the comparison across the with-heading sets is 'DESCRIPTIVE; separate "
-                  f"flights, n = 3 each, no ordering claim' ({cite(M_, 9355, 'DESCRIPTIVE; separate flights, n = 3 each, no ordering claim')})",
+                  f"flights, n = 3 each, no ordering claim' ({desc_cite})",
                   f"with heading {' / '.join(f'{passh[e]}/3' for e in EST)} flights pass (EKF3 / UKF / FGO); max cross-track "
                   f"{' / '.join(rng(B2h[e]) for e in EST)} m", "iii")
 
@@ -960,7 +979,7 @@ CELLS = {
             ("", f"hold {rng(hF, 1)} mm", "bands PASS; comparatives FAIL"),
             ("", f"{passh['FGO']}/3 pass; max cross-track ≤ {rd(max(B2h['FGO']), 2)} m", "final FGO node, corrected priors")]}
 T1MK = ["[a, b]", "[c]", "[d]", "[e]", "[f, g]", "[h]", "[i]", "[j]"]      # ordering footnotes per row (2026-10-17)
-T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h", t1=True), ob_h5("i"), ob_cl("j")]
+T1FN = [ob_h11("a"), ob_ukf1a("b"), ob_c1a("c"), ob_blank("d"), ob_h23("e"), ob_h42("f"), ob_h43("g"), ob_l("h", t1=True), ob_h5("i"), ob_cl("j", clean=True)]
 rowsT1 = [[f"{col} {T1MK[j]}"] + [(f"{CELLS[e][j][0]}: " if CELLS[e][j][0] else "") + CELLS[e][j][1] + (f" ({CELLS[e][j][2]})" if CELLS[e][j][2] else "") for e in EST]
           for j, col in enumerate(COLS)]
 # RAW (DESCRIPTIVE) companion rows for 1A and 1B (raw-tables stage 2; RAW_NOTE above). T1 is a matrix (experiment x
@@ -1081,7 +1100,7 @@ for est in EST:
     PATHD[est] = float(math.hypot(g[ww, 2][-1] - ct["y"], g[ww, 1][-1] - ct["x"]))
     ax.plot(ct["y"], ct["x"], marker="X", ms=10, color=C[est], mec=INK, mew=1.0, zorder=6)
 ax.set_xlim(-2, 165); ax.set_ylim(-10.6, 10.6); ax.set_yticks([-10, -5, 0, 5, 10])
-ax.set_xlabel("distance along the corridor, true North y (m)"); ax.set_ylabel("true East x (m)")
+ax.set_xlabel("North, along the corridor (m)"); ax.set_ylabel("East (m)")
 ax.set_aspect(3.0, adjustable="box")
 fig.canvas.draw()
 axbb = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
@@ -1100,8 +1119,8 @@ h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
      Line2D([], [], color=INK2, lw=1.0, ls="-", label="with heading"),
      Line2D([], [], color=INK2, ls="", marker="X", ms=8, mec=INK, label="wall contact")]
 ax.legend(handles=h, loc="upper left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=2, fontsize=9.0)
-F2_WSRC = cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m")
-F2_GSRC = cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m")
+cite("docs/thesis/numbers.md", 428, "\\|x\\| ≥ 9.58 m")       # side-effect check only; no longer placed in the caption (caption restyle, task 7)
+cite("CLAUDE.md", 101, "5 m tall and 0.2 m thick at x = ±10 m")  # side-effect check only; no longer placed in the caption (caption restyle, task 7)
 check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(CT2[e], 1)}" for e in EST), "+242.1 / +165.9 / +166.7", "numbers.md §15 contact rows")
 check("with heading, max cross-track per estimator EKF3 / final UKF port / final FGO node (m)", " / ".join(rng(B2h[e]) for e in EST),
       "0.24–0.33 / 0.22–0.25 / 0.04–0.32", "numbers.md §15 B2 row (EKF3 half) and re-flown rows")
@@ -1118,16 +1137,12 @@ ob_cl("a")   # D113 (2026-11-02): runs the underlying numeric cross-checks only;
              # Table A.4, docs/thesis/tables/TA_verdicts.md).
 save(fig, "F2", "F2_heading_stops_sideways_drift",
      "The camera heading stops the sideways drift: without it every estimator flies into the west wall",
-     f"Textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}), each estimator flying the vehicle (closed loop); "
-     f"true paths from the simulator, top-down, with the lateral (East) axis stretched {rd(STRETCH, 1)}×. Walls at x = ±10 m ({F2_GSRC}, labelled "
-     f"'wall'); the dotted line is the 9.58 m contact threshold ({F2_WSRC}). Colour = the "
-     "flying estimator. Dashed: without a heading source (one flight of each estimator's own n = 3 no-heading cell, "
-     f"Table 4.3), drawn up to the wall contact (X): EKF3 +242.1 s, UKF +165.9 s, FGO +166.7 s (corrected priors). Solid: with the camera "
-     f"heading (3 flights each); all 9 stay within "
-     f"{rd(_B2ALL_MAX, 2)} m of the centreline, so they overlap on the centreline at this scale. Heading-error statistics are in "
-     f"{TNUM['T4']}; the heading error over time, the cause of this drift, is in {TNUM['F9']}. Builds: the final UKF port (jitter-corrected) and "
-     "the final FGO node (corrected priors, 4c07374b/HEAD); earlier builds, including the original-priors final FGO node, "
-     "are in Table A.1. Closed-loop run-to-run variability is descriptive (the spread, Table 4.3); no comparison across real-time factors.",
+     f"Each estimator flying the vehicle through the textured corridor at half real time; true paths from the simulator, top-down, with "
+     f"the lateral (East) axis stretched {rd(STRETCH, 1)}x, between walls at x = ±10 m (the dotted line marks the 9.58 m contact threshold). "
+     f"Colour shows the flying estimator; dashed lines show one flight from each estimator's no-heading flights, run to wall contact at "
+     f"+{rd(CT2['EKF3'], 1)} s (EKF3), +{rd(CT2['UKF'], 1)} s (UKF) and +{rd(CT2['FGO'], 1)} s (FGO). Solid lines show three flights per "
+     f"estimator with the camera heading, all staying within {rd(_B2ALL_MAX, 2)} m of the centreline, so they overlap on the centreline at "
+     f"this scale. Heading-error statistics and the heading error over time are given in {TNUM['T4']} and {TNUM['F9']}.",
      "paths: dataflash SIM of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_r1_half_rp, "
      "cl_fgo_b_tex_r1–r3_half_rp; contact and B2: eval/results/closed_loop_<trial>.json",
      "§15 (contact rows, B2 row, re-flown B1/B2/B4 rows); numbers_refly.md §1-2; claim 14", foot=[],
@@ -1221,7 +1236,12 @@ for est in EST:
     ax.annotate(est, (xe, ye), xytext=(lx, ly), fontsize=9, color=INK, ha=ha_,
                 va="center", arrowprops=dict(arrowstyle="-", color=C[est], lw=0.9, shrinkA=2, shrinkB=6))
 P95F9 = max(b["p95_deg"] for e in EST for b in B3F9[e]); MAXF9 = max(b["max_deg"] for e in EST for b in B3F9[e])
-ax.set_xlim(0, 310); ax.set_ylim(-17, 23); ax.set_title("(a)", loc="left", fontsize=9.5)
+ax.set_xlim(0, 310); ax.set_ylim(-17, 23)
+# LAYOUT FIX (restyle, task 1): the panel label used to be an above-axes set_title(), which left the legend (then
+# loc="lower left", inside the axes) the only place to put the panel marker. Moved to a minimal direct label inside
+# the axes (bottom-left corner, clear of every line at this early time/low value) so the space above the axes is
+# free for the legend (below).
+ax.text(0.012, 0.025, "(a)", transform=ax.transAxes, ha="left", va="bottom", fontsize=9.5, color=INK)
 plt.setp(ax.get_xticklabels(), visible=False)
 # PANEL (b) (2026-11-04 split of the former inset): the 9 with-heading flights only, same units and time axis, its own ±1° scale -
 # a separate full-width panel below (a), not drawn on top of it.
@@ -1230,7 +1250,7 @@ for est, xx, ee in INSF9:
     axi.plot(xx, ee, color=C[est], lw=1.0, ls="-", alpha=0.9, zorder=3)
 axi.axhline(0, color=INK2, lw=0.6, zorder=2)
 axi.set_xlim(0, 310); axi.set_ylim(-1.0, 1.0); axi.set_yticks([-1, -0.5, 0, 0.5, 1])
-axi.set_title("(b)", loc="left", fontsize=9.5)
+axi.text(0.012, 0.025, "(b)", transform=axi.transAxes, ha="left", va="bottom", fontsize=9.5, color=INK)
 axi.set_ylabel("heading error (°)")
 axi.set_xlabel("time since cruise start (s)")
 ax.set_ylabel("heading error, estimate − truth (°)")
@@ -1239,8 +1259,13 @@ h = [Line2D([], [], color=C[e], lw=1.6, label=e) for e in EST] + \
      Line2D([], [], color=INK2, lw=1.0, ls="-", label="with heading"),
      Line2D([], [], color=INK2, ls="", marker="X", ms=8, mec=INK, label="wall contact"),
      Patch(color=TRUTH, alpha=0.3, label="heading-error bound (±2.0°)")]
-ax.legend(handles=h, loc="lower left", frameon=True, framealpha=0.95, edgecolor=GRID, ncol=1, fontsize=9.0,
-          handlelength=1.4, labelspacing=0.3, borderpad=0.35)
+# LAYOUT FIX (restyle, task 1): the legend used to sit inside the axes at "lower left", which covered the
+# with-heading lines (they stay near zero for the whole flight) for roughly the first 120 s. Moved outside the
+# axes, above panel (a) (an axes-anchored legend via bbox_to_anchor, which tight_layout() still reserves room
+# for, unlike a figure-level fig.legend()); 4 columns so it stays inside the 160 mm text width at this font size.
+ax.legend(handles=h, loc="lower left", bbox_to_anchor=(0.0, 1.02, 1.0, 0.2), mode="expand", frameon=True,
+          framealpha=0.95, edgecolor=GRID, ncol=4, fontsize=9.0, handlelength=1.4, labelspacing=0.3,
+          borderpad=0.35, columnspacing=1.0)
 check("no-heading wall contact EKF3 / final UKF port / final FGO node (s)", " / ".join(f"+{rd(ENDF9[e][2], 1)}" for e in EST), "+242.1 / +165.9 / +166.7", "numbers.md §15 contact rows")
 # ruling 2026-10-17 (F9 caption): EKF3's no-heading contact fell AFTER its pre-registered window; the window and the outcome are
 # checked by string equality against numbers.md:470, read at build time
@@ -1270,21 +1295,13 @@ print(f"F9 curve vs B3 max |Δ| {max(DB3):.2e} deg; clock max |Δ| {max(DCLK):.2
 ob_cl("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F9", "F9_heading_error_closed_loop",
      "Without a heading source the heading error grows until the wall; with the camera heading it stays near zero",
-     f"Heading error of the flying estimator (its own current yaw minus the simulator's true yaw; EKF3 from its logged state, the UKF and "
-     f"the FGO from their current-time outputs, the values the controller received) against time since cruise start, on the same closed-loop "
-     f"flights as {TNUM['F2']}: textured corridor at half real-time (RTF 0.5; {RTFX[0].lower() + RTFX[1:-1]}). Colour = the flying "
-     f"estimator. Dashed (here: without heading, not hindsight): without a heading source (one flight of each estimator's own n = 3 "
-     f"no-heading cell, {TNUM['T4']}), drawn to the wall contact (X): "
-     f"EKF3 +{rd(ENDF9['EKF3'][2], 1)} s, UKF +{rd(ENDF9['UKF'][2], 1)} s, "
-     f"FGO +{rd(ENDF9['FGO'][2], 1)} s (corrected priors). Solid: with the camera heading "
-     f"(3 flights each). Mechanism: the controller flies the commanded path in the estimator's frame, so a heading error turns the "
-     f"forward motion by that angle and adds a sideways velocity of the flight speed times its sine; a positive error (estimate "
-     f"clockwise of truth) turns the vehicle west, and integrated over the cruise this is the westward drift into the wall in "
-     f"{TNUM['F2']}. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
-     f"{rd(MAXF9, 2)}° ({TNUM['T4']}), so in panel (a) their lines lie on zero (grey band: the ±2.0° heading-error bound); "
-     "panel (b), the same time axis on its own linear ±1° scale, shows them alone. Builds: the final UKF port and the final FGO node "
-     "(corrected priors, 4c07374b/HEAD), as in " + TNUM["F2"] + "; earlier builds, including the original-priors final FGO node, are in "
-     "Table A.1. Closed-loop run-to-run variability is descriptive (the spread, " + TNUM["T4"] + "); no comparison across real-time factors.",
+     f"Heading error of the flying estimator (current yaw minus the simulator's true yaw) against time since cruise start, on the same "
+     f"closed-loop flights as {TNUM['F2']}: textured corridor at half real time. Colour shows the flying estimator; dashed lines show "
+     f"one flight from each estimator's no-heading flights, run to wall contact at +{rd(ENDF9['EKF3'][2], 1)} s (EKF3), "
+     f"+{rd(ENDF9['UKF'][2], 1)} s (UKF) and +{rd(ENDF9['FGO'][2], 1)} s (FGO); solid lines show three flights per estimator with the "
+     f"camera heading. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
+     f"{rd(MAXF9, 2)}°, so in panel (a) their lines lie on zero against the grey ±2.0° heading-error band; panel (b) shows the same "
+     "with-heading flights alone, on its own linear ±1° scale.",
      "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
      "cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_r1_half_rp, cl_fgo_b_tex_r1–r3_half_rp; cruise window, contact, B3 and "
      f"clock_map: eval/results/closed_loop_<trial>.json; heading-error bound: {B3SRC}",
@@ -1334,9 +1351,10 @@ for e in EST:
     k, n, ts, spread = NH3[e]
     verdicts = ["PASS" if a <= t <= b else ("before window" if t < a else "after window") for t in ts]
     per_flight = " / ".join(f"+{rd(t, 1)} s ({v})" for t, v in zip(ts, verdicts))
-    rec_note = (f"; flight 1 as recorded (n = 1; flight 1 of this n = 3 cell): "
-                f"{'PASS' if a <= ts[0] <= b else 'MISS'}") if AS_RECORDED_FLIGHT1[e] else ""
-    nh_cell = f"k/3 = {k}/{n} (window [+{a}, +{b}] s); flights {per_flight}; spread {spread} s{rec_note}"
+    # task 8: the "flight 1 as recorded (n = 1; ...)" aside is removed - flight 1's own outcome is already carried by
+    # `per_flight` above (every flight in the n = 3 cell, including flight 1, already gets its own window verdict
+    # there); no value is lost by dropping the extra restatement.
+    nh_cell = f"k/3 = {k}/{n} (window [+{a}, +{b}] s); flights {per_flight}; spread {spread} s"
     rowsT4.append([HBUILD[e] + (" (unmodified)" if e == "EKF3" else ""),
                    nh_cell,
                    f"{passh[e]}/3 PASS",
@@ -1351,7 +1369,7 @@ save_tab("T4", "T4_closed_loop", "Closed loop at half real-time (RTF 0.5): the f
          "lateral-speed and oscillation bounds) and the estimator-validity criterion, with the per-flight cross-track, heading-error "
          "and lateral-speed values shown (flights 1 / 2 / 3). This table is half real-time (RTF 0.5) only; the matching full "
          "real-time (RTF 1.0) no-heading n = 3 cells are a separate companion table (" + TNUM.get("T4F", "Table 4.3b") + "), kept out "
-         "of this table so its own title stays accurate and no cross-speed comparison is drawn (D21, D98). No ordering between the "
+         "of this table so its own title stays accurate and no cross-speed comparison is drawn. No ordering between the "
          "estimators is claimed [a].",
          ["flying estimator (build)", "no heading: n = 3 cell (k/3, window, per-flight contact, spread)",
           "with heading: flights passing all five criteria", "max |cross-track| in cruise (m)",
@@ -1362,13 +1380,13 @@ save_tab("T4", "T4_closed_loop", "Closed loop at half real-time (RTF 0.5): the f
          "closed_loop_cl_fgo_a_tex_r{1,2,3}_half_rp.json, closed_loop_cl_fgo_b_tex_r{1,2,3}_half_rp.json",
          "§15 (contact rows, B1–B5 counts, B2, B3, B4 re-flown rows); numbers_extras.md; numbers_refly.md §1-2; claim 14",
          notes=["Contact windows are pre-registered per estimator (EKF3 [+155, +215] s, UKF [+146, +218] s, FGO [+145, +196] s). " + RTFX + " "
-                "No comparison across real-time factors is claimed (D21); closed-loop run-to-run variability over the n = 3 cells is "
+                "No comparison across real-time factors is claimed; closed-loop run-to-run variability over the n = 3 cells is "
                 "descriptive (the spread), not a registered criterion. Bounds: heading-error bound max ≤ 2°; lateral-speed bound ≤ 0.25 m/s. "
                 f"The corrected FGO priors remove the former near-miss on this bound: the largest with-heading lateral speed over all 9 "
                 f"flights is now {rd(_B4MAXV, 3)} m/s ({_B4MAXE}, flight {_B4MAXI}), comfortably inside the bound. Heading error mean per flight: " +
                 "; ".join(f"{e} " + " / ".join(f"{rd(x['mean_deg'], 2)}" for x in B3h[e]) for e in EST) + " °. The with-heading FGO flights used "
-                "the corrected initial priors (4c07374b/HEAD); every earlier build, including the original-priors final FGO node, is in "
-                "Table A.1 (superseded).", OCASE_KEY, ob_cl("a")], order=40)
+                "the corrected initial priors; every earlier build, including the original-priors final FGO node, is in "
+                "Table A.1 (superseded).", OCASE_KEY, ob_cl("a", clean=True)], order=40)
 
 # -------------------------------------------------------------------------------- TABLE T4F (new, companion to T4): full real-time
 # (RTF 1.0) no-heading n = 3 cells (D149(a)/D21: kept OUT of T4 so T4's own "half real-time" title stays accurate and no
@@ -1385,20 +1403,21 @@ for e in ("EKF3", "UKF"):
     a, b = WIN[e]; k, n, ts, spread = FNH3[e]
     verdicts = ["PASS" if a <= t <= b else ("before window" if t < a else "after window") for t in ts]
     per_flight = " / ".join(f"+{rd(t, 1)} s ({v})" for t, v in zip(ts, verdicts))
-    rec_note = f"; flight 1 as recorded (n = 1; flight 1 of this n = 3 cell): PASS" if AS_RECORDED_FLIGHT1[e] else ""
+    # task 8: "flight 1 as recorded (n = 1; ...)" aside removed, same reasoning as rowsT4 above - `per_flight`
+    # already carries flight 1's own window verdict.
     rowsT4F.append([HBUILD[e] + (" (unmodified)" if e == "EKF3" else ""), f"k/3 = {k}/{n} (window [+{a}, +{b}] s); flights {per_flight}; "
-                     f"spread {spread} s{rec_note}"])
+                     f"spread {spread} s"])
 save_tab("T4F", "T4F_closed_loop_full_speed", "Closed loop at full real-time (RTF 1.0): the no-heading n = 3 cells, companion to " + TNUM["T4"],
          "No-heading n = 3 cells at full real-time (RTF 1.0), reported the same way as " + TNUM["T4"] + "'s half real-time cells "
-         "(REPORTED k/3, no set-level rule), kept as a separate table so neither table's title implies a cross-speed comparison "
-         "(D21, D98). The FGO has no full real-time no-heading cell: none was pre-registered or flown at this real-time factor.",
+         "(REPORTED k/3, no set-level rule), kept as a separate table so neither table's title implies a cross-speed comparison. "
+         "The FGO has no full real-time no-heading cell: none was pre-registered or flown at this real-time factor.",
          ["flying estimator (build)", "no heading: n = 3 cell (k/3, window, per-flight contact, spread)"], rowsT4F, [26, 90],
          "eval/results/closed_loop_cl_a_tex.json, closed_loop_cl_a_tex_r{2,3}.json, closed_loop_cl_ukf_a_tex_v2_r{1,2,3}.json",
          "numbers_extras.md (EKF3, UKF full real-time tables); claim 14",
-         notes=["EKF3's full real-time flight 1 (`cl_a_tex`) is the same pre-existing single flight already reported (as recorded) "
-                "elsewhere; the UKF full real-time port (`abb0357d`, `_v2`) has no flight 1 of its own (the earlier, pre-jitter-"
-                "correction UKF port's full real-time flight, `cl_ukf_a_tex`, +163.0 s, is a DIFFERENT build and is superseded, "
-                "Table A.1) - this cell is 3 new flights in total, as pre-registered.", OCASE_KEY], order=41)
+         notes=["EKF3's full real-time flight 1 is the same pre-existing single flight already reported elsewhere; the UKF full "
+                "real-time port has no flight 1 of its own (an earlier, pre-jitter-correction build's full real-time flight, "
+                "+163.0 s, is a different build and is superseded, Table A.1) - this cell is 3 new flights in total, as "
+                "pre-registered.", OCASE_KEY], order=41)
 
 # =============================================================================================== TABLE T2 accuracy without / with heading (was F3)
 dec = L("phase5_analysis.json")["decomposition"]
@@ -1692,15 +1711,11 @@ check("F5 caption: live errors, condition A / condition D, 2 dp (m) = former lit
 ob_h23("a"); ob_h24("b")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F5", "F5_T_tags_known_positions",
      f"Fewer tags, larger live errors; the FGO's hindsight batch stays at {F5B} m",
-     "Experiment 2 (known tags; the tag room, 5 laps of a 6 m square, open loop on simulator truth): horizontal RMSE in the world frame, "
-     "no alignment, against the tags sent (condition A all 8, B the 4 corners, C 2 diagonal, D 1 tag; median gap between fixes 4.3 / 10.1 / 22.0 / 46.3 s). Solid, "
-     "filled = live; dashed, open = hindsight (the FGO whole-flight batch and the smoothed UKF); small marks = each of 3 flights, line = "
-     f"their mean. Live errors grow from {F5A} m to {F5D} m as tags thin out (in condition D the FGO live {rd_si(mrD['FGO live'], 3)} m "
-     f"against EKF3 {rd_si(mrD['EKF3 live'], 3)} m is descriptive, 3 flights); the live max/min ratio, condition A to D: " + P3S + ". The FGO whole-flight batch stays at " + rng_si([agg["conditions"][c]["mean_rmse_m"]["FGO hindsight (whole-flight batch)"] for c in TCOND], 3) + " m; "
-     f"its hindsight gain over FGO live, median per gap, condition A to D: {', '.join(rd_si(h1['median_gain_m'][c], 3) for c in TCOND)} m; "
-     "the smoothed UKF's gain over UKF live, same conditions: "
-     f"{', '.join(rd_si(p2['median_gain_m'][c], 3, sign=True) for c in TCOND)} m, and the ratio of the batch to the smoothed "
-     "UKF is 1.31–3.89. Same tag fixes for every estimator.",
+     "Experiment 2 (known tags): horizontal RMSE in the world frame, with no alignment, against which tags are available (condition A "
+     "all 8, B the four corners, C two diagonal, D one tag). Colour and marker show the estimator; solid filled lines are live, dashed "
+     "open lines are hindsight (the FGO whole-flight batch and the smoothed UKF); small marks show each of three flights, with a line "
+     f"through their mean. Live errors grow from {F5A} m in condition A to {F5D} m in condition D as tags thin out, while the FGO's "
+     f"hindsight batch stays at {F5B} m across all four conditions.",
      "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
      "§16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18", foot=[],
      verdict="Verdicts: Table A.4, rows H2.1; H2.2; H2.3; H2.4.")
@@ -1772,13 +1787,11 @@ check("flight 1 bag has no tag topics", len(tag_topics), 0, "O design: no tags i
 ob_h41("a"); ob_h42("b"); ob_h43("c"); ob_ret("d")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F6", "F6_O_outdoor_indoor",
      "Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m",
-     "Experiment 4 (outdoor–indoor: outdoor → indoor → outdoor, open loop on simulator truth), flight 1: horizontal error against time in the world "
-     "frame, no alignment. Indoor sensor set, the same for all three estimators: IMU (accelerometer and gyro), downward optical flow and "
-     "the downward LiDAR rangefinder only; no GNSS (switched off at the entrance), no compass, no forward-camera heading (descoped) and no "
-     f"tags (none in the world). Route events (dotted): GNSS OFF at the entrance (0 s); the far end, 30 m inside, reached at ~{rd(t_far, 0)} s "
-     f"and held 3 s; the return in reverse at the same heading (no yaw turn) from {rd(t_back, 0)} s; GNSS ON on re-crossing the entrance at "
-     f"{rd(t_on, 0)} s. EKF3 resets to GNSS on return with a 4.10 m jump (every flight). Solid = live, dashed = hindsight. The per-flight "
-     "indoor RMSE of all three flights is in Table 5.1.",
+     "Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle "
+     "flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted lines): GNSS OFF at the entrance "
+     f"(0 s); the far end reached at about {rd(t_far, 0)} s; the return starting at {rd(t_back, 0)} s; GNSS ON on re-crossing the "
+     "entrance at " + f"{rd(t_on, 0)} s. Solid lines are live, dashed lines are hindsight; EKF3 resets to GNSS on return with a 4.10 m "
+     "jump, in every flight. The per-flight indoor RMSE of all three flights is in Table 5.1.",
      "eval/results/expO/O_r1.json (markers_bag_s, max_step_after_return_m), O_r2.json, O_r3b.json; curves: O_r1 room_ukf/, room_fgo/ TUMs, "
      "dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map); design: METHODOLOGY 'Experiment O: pre-registration', "
      "sim/worlds/outdoor_indoor.sdf, fly_trial.py outback(), o_gnss.parm", "§16.2 table and bullets; claims 19–22",
@@ -1837,20 +1850,16 @@ assert F7_GROW == "2.9 to 4.5", f"F7 title range changed: {F7_GROW}"
 ob_l("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F7", "F7_L_loop_closure",
      f"Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows {F7_GROW} times over five laps",
-     "Experiment 3 (loop closure): the keyframe FGO with AprilTags at UNKNOWN positions (each tag a landmark), flights 1–3, horizontal RMSE per 6 m lap in "
-     f"the first tag's frame, one shared linear axis. Left: with loop closure the live error falls after lap 1 (lap 5 ÷ lap 1 {rng(lc5)}; "
-     f"overall {rng_si([t['rmse_m'] for t in LL[('lc', 'live')]], 3)} m live, {rng_si([t['rmse_m'] for t in LL[('lc', 'hindsight')]], 3)} m "
-     f"hindsight). Right: without re-identification it grows {rng(nl5, 1)}× over five laps (overall "
-     f"{rng_si([t['rmse_m'] for t in LL[('nolc', 'live')]], 3)} m live). The thesis's EKF3 and UKF, as configured, have no landmark states, so they have "
-     "no loop closure; loop closure is not specific to the FGO: in an extension experiment (pre-registered), a UKF variant with each tag in "
-     f"its state bounded its live drift in {E5V['criteria']['H-E5.1']['count']} flights, with a higher "
-     f"error than the FGO's in {E5V['criteria']['S-E5.5']['count']} flights (UKF ÷ FGO live {rng(E5R, 2)}, "
-     "descriptive). With 4 and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each (extension experiment). "
-     "The result assumes correct tag IDs: with wrong IDs in 1% of the eligible detections (extension experiment), the FGO as built lost its "
-     f"loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in {_h31['count']} runs "
-     f"({_h31['divergence']['total']}). One estimator, so one colour, with live solid/filled and hindsight dashed/open. The estimator validation "
-     "check (V3) is not re-scorable on the "
-     "corrected FGO (its labels were never recorded).",
+     "Experiment 3 (loop closure): the keyframe FGO with AprilTags at unknown positions, each tag treated as a landmark, flights 1 to 3, "
+     "horizontal RMSE per 6 m lap in the first tag's frame, on one shared linear axis. One estimator (the FGO) is plotted, so one colour; "
+     f"live is solid and filled, hindsight is dashed and open. Left: with loop closure the live error falls after lap 1 (lap 5 over lap 1, "
+     f"{rng(lc5)}); right: without re-identification it grows {rng(nl5, 1)} times over five laps. The thesis's EKF3 and UKF, as configured, "
+     "have no landmark states, so they have no loop closure; loop closure is not specific to the FGO: in an extension experiment, a UKF "
+     f"variant with each tag in its state bounded its live drift in {E5V['criteria']['H-E5.1']['count']} flights, with a higher error than "
+     f"the FGO's in {E5V['criteria']['S-E5.5']['count']} flights (UKF ÷ FGO live {rng(E5R, 2)}, descriptive); with 4 and with 2 tags, the "
+     "FGO's loop closure also bounded live drift in 3/3 flights in each. With wrong tag IDs in 1% of the eligible detections, the FGO as "
+     f"built lost its loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in "
+     f"{_h31['count']} runs ({_h31['divergence']['total']}).",
      "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[],
      verdict="Verdicts: Table A.4, rows V3; H3.1; H3.2; H3.3; H3.4; Extension E2 H-E2.1; Extension E3 H-E3.1; Extension E5 H-E5.1; Extension E5 S-E5.5.")
 
@@ -2252,13 +2261,12 @@ figs = table_page("Table A.1. Closed loop (Experiment 1C): every flown build, pa
                          "mission completion and the cross-track, heading-error, lateral-speed and oscillation bounds. Robust heading weighting "
                          "(FGO): the robust-weighting test (H1.4) 'NOT met (lockout tie)', see Table A.3."] + A1FN, bold=False)
 save_table(figs, "A1", "A1_closed_loop_builds", "Closed loop: every flown build against the five closed-loop criteria and the contact window",
-           "Pass/fail of every closed-loop corridor set, computed from the closed-loop score files, with the build ablations "
-           "labelled: the UKF earlier build (pre-jitter fix, superseded) against the final UKF port (CURRENT); the FGO earlier build (original, "
-           "hard-gated and robust, superseded), the ablation build (noise fix only, superseded) and the final FGO node, superseded on the "
-           "original priors and then CURRENT once re-flown on the corrected priors (4c07374b/HEAD, 2026-11-12 regeneration, last row); no "
-           "ordering between builds or estimators is claimed [a].",
+           "Pass/fail of every closed-loop corridor set flown, against the five closed-loop criteria and the contact window, with the "
+           "build ablations labelled: the UKF earlier build (superseded) against the final UKF port (CURRENT); the FGO earlier build "
+           "(original, superseded), the ablation build (superseded) and the final FGO node, superseded on the original priors and then "
+           "CURRENT once re-flown on the corrected priors. No ordering between builds or estimators is claimed [a].",
            "eval/results/closed_loop_<trial>.json", "§15 (contacts, B1–B5 counts, B2, B3, re-flown sets); claim 14", CHK_A,
-           verdict="Verdict rows: as Figure 4.1/4.1b (H1.8, H1.9, per build; docs/thesis/tables/TA_verdicts.md).")
+           verdict="Verdict rows: as Figure 4.1/4.1b (H1.8, H1.9, per build; Table A.4).")
 figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safety tests (all runs, as-worded verdicts)",
                   ["hold set", "build", "hold error (window means)", "tag-loss drift (effective, all losses)", "lockouts", "drift band (H5.5)"],
                   rowsH, [26, 34, 20, 26, 10, 18], fs=8.0, notes=[H5A2NOTE], bold=False) + \
@@ -2287,13 +2295,12 @@ figs = table_page("Table A.2. Experiment 5 (tag hold): hold sets and the 5S safe
 save_table(figs, "A2", "A2_H_and_safety", "Experiment 5 hold sets and the 5S safety tests (all runs)",
            "Experiment 5 hold sets (EKF3-flying, near and far spawn; UKF-flying, earlier and final builds; FGO-flying, ablation and final "
            "builds) with hold error, drift, lockouts and the drift bands (H5.5), and every 5S safety-test run with its as-worded verdict; "
-           "the final runs are the re-tests of the final UKF port and of the FGO corrected-priors node (corrected priors). " + PRIORS + " The comparative criteria page "
-           "gives this build-ablation record's own final-build sets (superseded: original priors for the FGO column) beside the "
-           "superseded earlier builds; the verdict category is identical in both and in the corrected-priors re-fly (all FAIL), though "
-           "the FGO hold value narrows under the corrected priors (current numbers: Table 7.1 footnote [i]) [a]; the safety verdicts "
-           "are per run [b].",
+           "the final runs are the re-tests of the final UKF port and of the FGO corrected-priors node. The comparative criteria page "
+           "gives this build-ablation record's own final-build sets beside the superseded earlier builds; the verdict category is "
+           "identical in both and in the corrected-priors re-fly (all FAIL), though the FGO hold value narrows under the corrected "
+           "priors [a]; the safety verdicts are per run [b].",
            "eval/results/expH/s1*_r*.json, s2*_r*.json, s3*_r*.json, safety_*.json", "§15 safety rows, §17, §17.1; METHODOLOGY 2d and 'Band C … FGO safety re-tests'", CHK_HS,
-           verdict="Verdict rows (docs/thesis/tables/TA_verdicts.md, Experiment 5 and 5S): H5.1-H5.7 and the five 5S safety rows.")
+           verdict="Verdict rows (Table A.4, Experiment 5 and 5S): H5.1-H5.7 and the five 5S safety rows.")
 rowsF = [("H1.4 robust-weighting test (k = 2.385)", "robust FGO better than the hard-gated UKF on the heading", "NOT met (lockout tie)",
           f"robust FGO lower worst-case yaw on {dec1['robust_lower_yaw_max_on']}/6 bags, but lockouts robust FGO {dec1['lockout_total']['FGO_robust']} = hard-gated UKF "
           f"{dec1['lockout_total']['UKF_hard']}; hard-gated FGO plain-wall yaw max {rng([f1[b]['FGO_hard']['yaw_max_deg'] for b in bagsF])}° (= hard-gated UKF to 0.01°)"),
@@ -2308,13 +2315,13 @@ figs2 = table_page("Table A.3 (cont.). Build ablations: earlier build against th
                           "jointly and are not attributed individually, apart from the traced plain-wall case and the Experiment 4 partial attribution.", OCASE_KEY, A3FN[2]], bold=False)
 save_table(figs + figs2, "A3", "A3_F1_cost_ablations", "The robust-weighting test (H1.4), the Experiment 3 compute cost and the build ablations",
            "Pass/fail table for the robust-weighting test (H1.4), the Experiment 3 compute cost (diagnostic; linear values, no plot) and the "
-           "build ablations: the UKF earlier build against the final UKF port; the FGO ablation build (noise fix only) against the final FGO "
-           "node and the corrected-priors node; the note on the original priors flown by the FGO. H1.4 NOT met [a]; ablations descriptive [b]. " + PRIORS,
+           "build ablations: the UKF earlier build against the final UKF port; the FGO ablation build against the final FGO node and the "
+           "corrected-priors node. H1.4 NOT met [a]; ablations descriptive [b].",
            "eval/results/f1_test.json; ~/thesis_data/trials/T_A_r{1,2,3}/lc_fgo_{lc,nolc}_t245/stats.json; closed_loop_*, expH/*",
            "§15.2 F1 row; §16.3 cost bullets; §15, §17.1", CHK_F,
-           verdict="Verdict rows (docs/thesis/tables/TA_verdicts.md): H1.4 (robust-weighting test). The Experiment 3 compute cost and the "
+           verdict="Verdict rows (Table A.4): H1.4 (robust-weighting test). The Experiment 3 compute cost and the "
                    "build ablations on this page (earlier build vs final build) have no pre-registered hypothesis id and so no row of their "
-                   "own - do not confuse with the separate EXPLORATORY attribution-ablation rows in TA_verdicts.md, which score a different "
+                   "own - do not confuse with the separate EXPLORATORY attribution-ablation rows in Table A.4, which score a different "
                    "study (which correction caused which change).")
 
 # =============================================================================================== TABLE T7 failure behaviour (new)
