@@ -1048,9 +1048,9 @@ for e in EST:
     end = [raw_cell(t, e, "baseline")["end_3d_m"] for t in _T1A_TR]
     rowsT9.append([e, "9", rd(med[e], 2), rng(v), rd(float(np.median(rms)), 2), rng(rms, 2), rd(float(np.median(end)), 2), rng(end, 2)])
 save_tab("T9", "T9_1A_fitted_vs_raw", "Experiment 1A, standard-sensor dataset, textured floor, flights 1-9: fitted cruise ATE and raw world-frame error, per estimator",
-         "Companion table to Figure 4.1c (1A drift paths): the registered fitted cruise ATE (evo -a, SE(3)-aligned) next to the raw "
+         "Companion table to Figure 4.1d (the 9-flight drift paths): the registered fitted cruise ATE (evo -a, SE(3)-aligned) next to the raw "
          "world-frame error, nothing fitted (no rotation, translation or scale alignment), median and range over the same 9 flights, "
-         "from the user's raw re-scoring ruling (2026-11-02). The raw columns are DESCRIPTIVE and change no registered value or verdict.",
+         "from the raw re-scoring ruling. The raw columns are DESCRIPTIVE and change no registered value or verdict.",
          ["estimator", "n (flights)", "fitted cruise ATE median, registered (m)", "fitted cruise ATE range, registered (m)",
           "raw world-frame error, nothing fitted, DESCRIPTIVE: RMS median (m)", "raw RMS range, nothing fitted, DESCRIPTIVE (m)",
           "raw end-of-cruise median, nothing fitted, DESCRIPTIVE (m)", "raw end-of-cruise range, nothing fitted, DESCRIPTIVE (m)"],
@@ -2491,14 +2491,8 @@ def combine_extra_items():
                       rows="checks: see index_methods.md (built by eval/figs_thesis_methods.py)", checks=[],
                       status="CURRENT", logscale="none needed", uncheck="", foot=[],
                       files=["methods_architecture.png", "methods_architecture.pdf"]))
-    r5_title = "Without a heading source, all three estimates drift sideways: the unaligned paths and their errors along the corridor"
-    r5_prefix = f"{r5_title}.\n\n"
-    extra.append(dict(id="R5", num=TNUM["R5"], kind="figure",
-                      png=os.path.join(OUT, "R5_drift_unaligned.png"), pdf=os.path.join(OUT, "R5_drift_unaligned.pdf"),
-                      title=r5_title, caption=cap_of("R5", r5_prefix), inputs="see docs/thesis/figures_thesis/index_drift.md",
-                      rows="checks: see index_drift.md (built by eval/figs_thesis_drift.py)", checks=[],
-                      status="CURRENT", logscale="none needed", uncheck="", foot=[],
-                      files=["R5_drift_unaligned.png", "R5_drift_unaligned.pdf"]))
+    # Figure 4.1c (R5) dropped from the numbered set (user 2026-11-13; it repeated 4.1d, its only unique panel uncited);
+    # its files stay in docs/thesis/figures_thesis/ and its own generator is unchanged.
     # RESTYLE (2026-11-03): R6 - the 9-flight restyled copy of the results-walkthrough's fl_1A_unaligned_paths (page 01),
     # built by eval/figs_thesis_drift9.py. The walkthrough figure itself is unchanged.
     r6_title = "Without a heading source, every one of the 9 flights drifts sideways off the true path"

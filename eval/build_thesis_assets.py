@@ -126,7 +126,6 @@ ITEMS = [
     ("Table 3.4", "tab", "methods_experiment_matrix", "tables/methods_experiment_matrix", "eval/figs_thesis_methods.py"),
     ("Figure 4.1", "fig", "F2", "figures_thesis/F2_heading_stops_sideways_drift", "eval/figs_thesis.py"),
     ("Figure 4.1b", "fig", "F9", "figures_thesis/F9_heading_error_closed_loop", "eval/figs_thesis.py"),
-    ("Figure 4.1c", "fig", "R5", "figures_thesis/R5_drift_unaligned", "eval/figs_thesis_drift.py"),
     ("Figure 4.1d", "fig", "R6", "figures_thesis/R6_drift_9flights", "eval/figs_thesis_drift9.py"),
     ("Figure 4.2", "fig", "R3", "figures_thesis/R3_trajectory_overlay", "eval/figs_thesis_results.py"),
     ("Table 4.1", "tab", "T2", "tables/T2_accuracy_heading", "eval/figs_thesis.py"),
@@ -182,7 +181,7 @@ def check_coverage():
     for name, s in index_numbers():
         allidx |= s
     missing = sorted(allidx - set(mine)); extra = sorted(set(mine) - allidx)
-    ok = not dup and not missing and not extra and len(mine) == 33
+    ok = not dup and not missing and not extra and len(mine) == len(allidx)
     print(f"coverage: {len(mine)} items; indexes list {len(allidx)} distinct; duplicates {sorted(dup)}; missing {missing}; "
           f"not in any index {extra}: {'PASS' if ok else 'FAIL'}")
     if not ok:
@@ -391,6 +390,7 @@ def main():
             "(`figures/tab_A-*_p*.pdf`) in a table environment.",
             "- Table A.4 is converted from `tables/TA_verdicts.md` (longtable).",
             "- Labels: `tab:<n>` and `fig:<n>`, with `.` replaced by `-` (e.g. `tab:4-3b`, `fig:4-1b`, `tab:A-4`).",
+            "- Figure 4.1c was dropped from the numbered set (it repeated Figure 4.1d; its only unique panel, along-track error, is cited nowhere). Its files remain in the repository; Figure 4.1d keeps its provisional number.",
             "- The `.tex` files need `booktabs` (and `longtable` for Table A.4, `graphicx` for figures and Tables A.1-A.3); "
             "they were checked for balanced braces only (no TeX on the build machine)."]
     open(os.path.join(OUT, "index.md"), "w", encoding="utf-8").write("\n".join(idx) + "\n")
