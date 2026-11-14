@@ -1,0 +1,509 @@
+{
+ "O_r1": {
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.236462168560312,
+   "OUTBACK OUT START": 40.2385740435648,
+   "GNSS OFF": 80.2750274568328,
+   "OUTBACK BACK START": 143.2603263561111,
+   "GNSS ON": 203.35801555707562,
+   "OUTBACK END": 243.28144510615607
+  },
+  "indoor_s": 123.08298810024282,
+  "checks_vs_stored": "PASS (markers; indoor_rmse_m, indoor_max_m, err_at_return_m for all 6 tracks, float equality)",
+  "item1": {
+   "UKF live": {
+    "hindsight": "RTS-UKF (hindsight)",
+    "n_live_samples_indoor": 8204,
+    "first_above_t_since_off_s": 93.2345645431672,
+    "first_above_live_err_m": 0.4215150543129268,
+    "first_above_hind_err_m": 0.42135805567222767,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 93.2345645431672,
+    "frac_indoor_live_below": 0.7574551888850031
+   },
+   "FGO live": {
+    "hindsight": "FGO hindsight (whole-flight batch)",
+    "n_live_samples_indoor": 3693,
+    "first_above_t_since_off_s": 92.8335015431672,
+    "first_above_live_err_m": 0.44762644446548955,
+    "first_above_hind_err_m": 0.4473877245752978,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 92.8335015431672,
+    "frac_indoor_live_below": 0.7542336632613559
+   }
+  },
+  "axis": {
+   "u_EN": [
+    -5.4844153971479615e-05,
+    0.9999999984960594
+   ],
+   "n_EN": [
+    -0.9999999984960594,
+    -5.4844153971479615e-05
+   ],
+   "true_out_start_EN": [
+    -0.0004574374720395429,
+    0.008287381780453936
+   ],
+   "true_far_end_EN": [
+    -0.0031999972003559393,
+    50.014706035224386
+   ],
+   "outward_leg_length_m": 50.006418728650615
+  },
+  "item2": {
+   "EKF3 live": {
+    "min_err_m": 0.0445892272788382,
+    "t_since_off_s": 91.39212980021027,
+    "t_bag_s": 171.66715725704307,
+    "t_since_far_end_s": 28.406830900931965
+   },
+   "UKF live": {
+    "min_err_m": 0.028847475380140264,
+    "t_since_off_s": 85.01281354316718,
+    "t_bag_s": 165.287841,
+    "t_since_far_end_s": 22.02751464388888
+   },
+   "FGO live": {
+    "min_err_m": 0.09225515157276941,
+    "t_since_off_s": 83.8668345431672,
+    "t_bag_s": 164.141862,
+    "t_since_far_end_s": 20.881535643888895
+   }
+  },
+  "item5": {
+   "EKF3 live": {
+    "far_end": {
+     "t_since_off_s": 62.98590402704674,
+     "err_m": 2.1478127301565006,
+     "along_m": -0.14769244825228298,
+     "cross_m": -2.1427287426437274
+    },
+    "return_leg_min": {
+     "t_since_off_s": 91.39212980021027,
+     "err_m": 0.0445892272788382,
+     "along_m": 0.04418556686045575,
+     "cross_m": -0.005986223395771564
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.09849837512736,
+     "err_m": 3.5335616802406946,
+     "along_m": 0.4351249439379748,
+     "cross_m": 3.5066685659224217
+    }
+   },
+   "UKF live": {
+    "far_end": {
+     "t_since_off_s": 62.98812454316719,
+     "err_m": 0.8642173357558182,
+     "along_m": -0.12981469051578268,
+     "cross_m": -0.8544119320018747
+    },
+    "return_leg_min": {
+     "t_since_off_s": 85.01281354316718,
+     "err_m": 0.028847475380140264,
+     "along_m": 0.027975013531486015,
+     "cross_m": -0.007040983860297708
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.0759175431672,
+     "err_m": 2.5053689350268726,
+     "along_m": 0.5340801879448093,
+     "cross_m": 2.4477810060220917
+    }
+   },
+   "FGO live": {
+    "far_end": {
+     "t_since_off_s": 63.00016854316719,
+     "err_m": 0.7955498291629376,
+     "along_m": 0.04146084918224055,
+     "cross_m": -0.7944687084248608
+    },
+    "return_leg_min": {
+     "t_since_off_s": 83.8668345431672,
+     "err_m": 0.09225515157276941,
+     "along_m": 0.09198996627425944,
+     "cross_m": -0.006989928223899562
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.06683454316719,
+     "err_m": 2.503056602266983,
+     "along_m": 0.2656730634542227,
+     "cross_m": 2.488917471011681
+    }
+   }
+  },
+  "item3": {
+   "RTS-UKF (hindsight)": {
+    "peak_err_m": 1.0336069939648773,
+    "t_since_off_s": 60.57261054316719,
+    "t_bag_s": 140.847638
+   },
+   "FGO hindsight (whole-flight batch)": {
+    "peak_err_m": 1.0613221554362615,
+    "t_since_off_s": 60.666834543167184,
+    "t_bag_s": 140.941862
+   }
+  },
+  "item4_gnss_samples": {
+   "n_total": 641,
+   "t_first": 10.630322471176502,
+   "t_last": 261.68333053378933,
+   "n_before_off": 349,
+   "n_after_on": 292,
+   "n_in_indoor": 0,
+   "last_before_off": 80.24502112120777,
+   "first_after_on": 203.47103942126319,
+   "hindsight_track_span": {
+    "RTS-UKF (hindsight)": [
+     31.849433,
+     261.653357
+    ],
+    "FGO hindsight (whole-flight batch)": [
+     31.808529,
+     261.641862
+    ]
+   }
+  }
+ },
+ "O_r2": {
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.250505800257553,
+   "OUTBACK OUT START": 40.25261424584939,
+   "GNSS OFF": 80.28905393186434,
+   "OUTBACK BACK START": 143.2743312354452,
+   "GNSS ON": 203.3719998307837,
+   "OUTBACK END": 243.2954156913635
+  },
+  "indoor_s": 123.08294589891935,
+  "checks_vs_stored": "PASS (markers; indoor_rmse_m, indoor_max_m, err_at_return_m for all 6 tracks, float equality)",
+  "item1": {
+   "UKF live": {
+    "hindsight": "RTS-UKF (hindsight)",
+    "n_live_samples_indoor": 8204,
+    "first_above_t_since_off_s": 93.23153806813565,
+    "first_above_live_err_m": 0.42631854581911893,
+    "first_above_hind_err_m": 0.4262394062535661,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 93.23153806813565,
+    "frac_indoor_live_below": 0.7574553754714652
+   },
+   "FGO live": {
+    "hindsight": "FGO hindsight (whole-flight batch)",
+    "n_live_samples_indoor": 3693,
+    "first_above_t_since_off_s": 93.00368406813567,
+    "first_above_live_err_m": 0.4457655029368087,
+    "first_above_hind_err_m": 0.44388247818354865,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 93.00368406813567,
+    "frac_indoor_live_below": 0.7555880249760625
+   }
+  },
+  "axis": {
+   "u_EN": [
+    -6.383780314379373e-05,
+    0.9999999979623675
+   ],
+   "n_EN": [
+    -0.9999999979623675,
+    -6.383780314379373e-05
+   ],
+   "true_out_start_EN": [
+    0.00029544291008486373,
+    0.007297908587921941
+   ],
+   "true_far_end_EN": [
+    -0.0028969890252783957,
+    50.01578459894833
+   ],
+   "outward_leg_length_m": 50.008486792259326
+  },
+  "item2": {
+   "EKF3 live": {
+    "min_err_m": 0.03259533498140422,
+    "t_since_off_s": 91.39209646427346,
+    "t_bag_s": 171.6811503961378,
+    "t_since_far_end_s": 28.406819160692606
+   },
+   "UKF live": {
+    "min_err_m": 0.017547385319992358,
+    "t_since_off_s": 84.87475906813566,
+    "t_bag_s": 165.163813,
+    "t_since_far_end_s": 21.8894817645548
+   },
+   "FGO live": {
+    "min_err_m": 0.0667852153141193,
+    "t_since_off_s": 84.47035006813564,
+    "t_bag_s": 164.759404,
+    "t_since_far_end_s": 21.485072764554786
+   }
+  },
+  "item5": {
+   "EKF3 live": {
+    "far_end": {
+     "t_since_off_s": 62.98588043072013,
+     "err_m": 2.1418180208903705,
+     "along_m": -0.14816462531534225,
+     "cross_m": -2.136687080135018
+    },
+    "return_leg_min": {
+     "t_since_off_s": 91.39209646427346,
+     "err_m": 0.03259533498140422,
+     "along_m": 0.03242157442854317,
+     "cross_m": -0.0033611566646601786
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.09845416806425,
+     "err_m": 3.540909055299994,
+     "along_m": 0.4113761843798094,
+     "cross_m": 3.516931414291528
+    }
+   },
+   "UKF live": {
+    "far_end": {
+     "t_since_off_s": 62.98510106813566,
+     "err_m": 0.836041170387008,
+     "along_m": -0.13281282235608347,
+     "cross_m": -0.825424492488495
+    },
+    "return_leg_min": {
+     "t_since_off_s": 84.87475906813566,
+     "err_m": 0.017547385319992358,
+     "along_m": 0.017546029347831452,
+     "cross_m": 0.00021814145255008585
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.08789106813566,
+     "err_m": 2.4925689858538953,
+     "along_m": 0.5117058955910899,
+     "cross_m": 2.4394788840361046
+    }
+   },
+   "FGO live": {
+    "far_end": {
+     "t_since_off_s": 62.970350068135645,
+     "err_m": 0.8548397618924239,
+     "along_m": 0.035586164126958836,
+     "cross_m": -0.8540987316669105
+    },
+    "return_leg_min": {
+     "t_since_off_s": 84.47035006813564,
+     "err_m": 0.0667852153141193,
+     "along_m": 0.06667119268535657,
+     "cross_m": -0.0039009038010864366
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.07035006813567,
+     "err_m": 2.5776089191629676,
+     "along_m": 0.24323593031389967,
+     "cross_m": 2.5661067831157798
+    }
+   }
+  },
+  "item3": {
+   "RTS-UKF (hindsight)": {
+    "peak_err_m": 1.0471236217169706,
+    "t_since_off_s": 60.584591068135666,
+    "t_bag_s": 140.873645
+   },
+   "FGO hindsight (whole-flight batch)": {
+    "peak_err_m": 1.0643297473633127,
+    "t_since_off_s": 60.67035006813566,
+    "t_bag_s": 140.959404
+   }
+  },
+  "item4_gnss_samples": {
+   "n_total": 641,
+   "t_first": 10.644372825208453,
+   "t_last": 261.69729480956335,
+   "n_before_off": 349,
+   "n_after_on": 292,
+   "n_in_indoor": 0,
+   "last_before_off": 80.25904760652757,
+   "first_after_on": 203.48502365621889,
+   "hindsight_track_span": {
+    "RTS-UKF (hindsight)": [
+     31.860448,
+     261.649345
+    ],
+    "FGO hindsight (whole-flight batch)": [
+     31.826071,
+     261.626071
+    ]
+   }
+  }
+ },
+ "O_r3b": {
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.09715347929394,
+   "OUTBACK OUT START": 40.09929194523616,
+   "GNSS OFF": 80.13585179670966,
+   "OUTBACK BACK START": 143.12131814444098,
+   "GNSS ON": 203.21916711705478,
+   "OUTBACK END": 243.14270280386313
+  },
+  "indoor_s": 123.08331532034512,
+  "checks_vs_stored": "PASS (markers; indoor_rmse_m, indoor_max_m, err_at_return_m for all 6 tracks, float equality)",
+  "item1": {
+   "UKF live": {
+    "hindsight": "RTS-UKF (hindsight)",
+    "n_live_samples_indoor": 8203,
+    "first_above_t_since_off_s": 93.10868320329035,
+    "first_above_live_err_m": 0.44364764645287047,
+    "first_above_hind_err_m": 0.4434800247524594,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 93.10868320329035,
+    "frac_indoor_live_below": 0.7563560809010144
+   },
+   "FGO live": {
+    "hindsight": "FGO hindsight (whole-flight batch)",
+    "n_live_samples_indoor": 3693,
+    "first_above_t_since_off_s": 92.90254220329035,
+    "first_above_live_err_m": 0.4467565354266306,
+    "first_above_hind_err_m": 0.44495246035978386,
+    "live_above_at_first_indoor_sample": false,
+    "n_changes": 1,
+    "last_below_to_above_t_since_off_s": 92.90254220329035,
+    "frac_indoor_live_below": 0.7547732993559043
+   }
+  },
+  "axis": {
+   "u_EN": [
+    -6.002117971924726e-05,
+    0.999999998198729
+   ],
+   "n_EN": [
+    -0.999999998198729,
+    -6.002117971924726e-05
+   ],
+   "true_out_start_EN": [
+    1.4718542441538688e-05,
+    0.005833508424168661
+   ],
+   "true_far_end_EN": [
+    -0.00298679975617842,
+    50.01348592800665
+   ],
+   "outward_leg_length_m": 50.00765250965982
+  },
+  "item2": {
+   "EKF3 live": {
+    "min_err_m": 0.02575521177134385,
+    "t_since_off_s": 91.35739529092604,
+    "t_bag_s": 171.4932470876357,
+    "t_since_far_end_s": 28.371928943194717
+   },
+   "UKF live": {
+    "min_err_m": 0.00141240673761606,
+    "t_since_off_s": 83.32660120329035,
+    "t_bag_s": 163.462453,
+    "t_since_far_end_s": 20.341134855559034
+   },
+   "FGO live": {
+    "min_err_m": 0.0943790731408179,
+    "t_since_off_s": 84.86920920329035,
+    "t_bag_s": 165.005061,
+    "t_since_far_end_s": 21.883742855559035
+   }
+  },
+  "item5": {
+   "EKF3 live": {
+    "far_end": {
+     "t_since_off_s": 62.95109399889313,
+     "err_m": 2.1510510763982706,
+     "along_m": -0.14369894187065302,
+     "cross_m": -2.1462458730023015
+    },
+    "return_leg_min": {
+     "t_since_off_s": 91.35739529092604,
+     "err_m": 0.02575521177134385,
+     "along_m": 0.02546064153845292,
+     "cross_m": -0.0038841557431666496
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.063847158035,
+     "err_m": 3.5322747514525763,
+     "along_m": 0.4036590587811709,
+     "cross_m": 3.5091344066611723
+    }
+   },
+   "UKF live": {
+    "far_end": {
+     "t_since_off_s": 62.98227120329034,
+     "err_m": 0.6941085459721924,
+     "along_m": -0.13538359270225642,
+     "cross_m": -0.6807774646818597
+    },
+    "return_leg_min": {
+     "t_since_off_s": 83.32660120329035,
+     "err_m": 0.00141240673761606,
+     "along_m": -0.0013917992678145242,
+     "cross_m": 0.00024039049601470467
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.08506320329033,
+     "err_m": 2.3685468110463,
+     "along_m": 0.48329309655816977,
+     "cross_m": 2.3187155450673145
+    }
+   },
+   "FGO live": {
+    "far_end": {
+     "t_since_off_s": 62.96920920329035,
+     "err_m": 0.9227378423267293,
+     "along_m": 0.041429699938100056,
+     "cross_m": -0.9218073039550222
+    },
+    "return_leg_min": {
+     "t_since_off_s": 84.86920920329035,
+     "err_m": 0.0943790731408179,
+     "along_m": 0.09432060568350455,
+     "cross_m": -0.0033215644531914305
+    },
+    "gnss_on": {
+     "t_since_off_s": 123.06920920329034,
+     "err_m": 2.6643559233521916,
+     "along_m": 0.2852790114938909,
+     "cross_m": 2.649039141255368
+    }
+   }
+  },
+  "item3": {
+   "RTS-UKF (hindsight)": {
+    "peak_err_m": 1.0764374043501057,
+    "t_since_off_s": 60.581760203290344,
+    "t_bag_s": 140.717612
+   },
+   "FGO hindsight (whole-flight batch)": {
+    "peak_err_m": 1.0608122217751432,
+    "t_since_off_s": 60.669209203290336,
+    "t_bag_s": 140.805061
+   }
+  },
+  "item4_gnss_samples": {
+   "n_total": 641,
+   "t_first": 10.655996943042057,
+   "t_last": 261.70967243819166,
+   "n_before_off": 348,
+   "n_after_on": 293,
+   "n_in_indoor": 0,
+   "last_before_off": 80.07083789668103,
+   "first_after_on": 203.29718379708913,
+   "hindsight_track_span": {
+    "RTS-UKF (hindsight)": [
+     31.674403,
+     261.64335
+    ],
+    "FGO hindsight (whole-flight batch)": [
+     31.638394,
+     261.638394
+    ]
+   }
+  }
+ }
+}
