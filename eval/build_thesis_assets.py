@@ -429,14 +429,25 @@ def main():
                  "They are appended to `thesis_complete.pdf` after the numbered items, as Part II, at their original quality. Their "
                  "captions are the candidate drafts and have not been through the plain-words caption pass.\n")
     print(f"Part II: {ncap} candidate captions, {ncand} candidate files; candidates PDF appended")
-    # Simulation worlds: the screenshots, schematics, onboard views and their combined PDF, copied as committed
+    # Simulation worlds: the screenshots and their combined PDF, copied as committed. The reader-facing world
+    # schematics and onboard camera frames live in world_images/thesis/ (world-figs restyle, 2026-11-14) and replace
+    # the older per-world schematics/ and onboard/ folders in this bundle; those two folders stay in the source
+    # world_images/ directory (not deleted there) but are left out of the copy below. renders/ is unchanged.
     WI = os.path.join(T, "world_images")
-    shutil.copytree(WI, os.path.join(OUT, "world_images"))
-    nwi = sum(len(f) for _, _, f in os.walk(os.path.join(OUT, "world_images")))
+
+    def _skip_superseded_world_subsets(dirpath, names):
+        return [n for n in names if n in ("schematics", "onboard")] if os.path.abspath(dirpath) == os.path.abspath(WI) else []
+
+    dst_wi = os.path.join(OUT, "world_images")
+    shutil.copytree(WI, dst_wi, ignore=_skip_superseded_world_subsets)
+    nwi = sum(len(f) for _, _, f in os.walk(dst_wi))
     with open(os.path.join(OUT, "index.md"), "a", encoding="utf-8") as fh:
-        fh.write(f"\n## Simulation worlds\n\n`world_images/` ({nwi} files): `worlds_combined.pdf` (every world in one document), "
-                 "`renders/` (world renders), `schematics/` (top-down schematics), `onboard/` (onboard camera views); "
-                 "`world_images/index.md` and `shots_table.md` say what each shot shows.\n")
+        fh.write(f"\n## Simulation worlds\n\n`world_images/` ({nwi} files): `renders/` (world renders), `thesis/` "
+                 "(the reader-facing world schematics and onboard camera frames: four world drawings and the "
+                 "onboard camera frames, each with a one-line caption in `thesis/captions/`); `world_images/index.md` "
+                 "describes the full set and `thesis/index.md` describes the reader-facing set on its own. "
+                 "`worlds_combined.pdf` and `shots_table.md` are the earlier, larger per-world set (one page per "
+                 "world) and are now stale against `thesis/` (not rebuilt here).\n")
     print(f"world images: {nwi} files")
     # brace balance check on every .tex
     bad = []

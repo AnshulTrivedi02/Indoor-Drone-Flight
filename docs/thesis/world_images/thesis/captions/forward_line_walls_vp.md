@@ -1,0 +1,1 @@
+The same forward camera view with the measured vanishing point marked: the already-computed heading measurement for this exact frame, drawn from the stored measurement output rather than recomputed here. A filled marker means the measurement passed the project's reliability check for a heading reading.

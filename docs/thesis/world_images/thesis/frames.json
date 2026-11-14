@@ -1,0 +1,61 @@
+[
+ {
+  "description": "downward, checkerboard floor, a floor tag in view, level cruise flight",
+  "trial": "tagchar_h20",
+  "kind": "cruise",
+  "file": "downward_checker_tag.png",
+  "t": 36.796,
+  "gt_x": -3.0039924576114934,
+  "gt_y": 0.5218925228581329,
+  "gt_z": 2.259950914618829,
+  "speed": 0.4994623354855129
+ },
+ {
+  "description": "forward, line-textured walls, checkerboard floor",
+  "trial": "fwdc_tex_r1",
+  "raw": "forward_line_walls_raw.png",
+  "vp": "forward_line_walls_vp.png",
+  "requested_y": 40.0,
+  "gt_y": 39.999928839660534,
+  "gt_x": -0.00674252364724323,
+  "frame_index": 3013,
+  "t": 110.023,
+  "vp_u": 326.9961830794465,
+  "vp_v": 241.3455918600002,
+  "support": 1609.3495341322875,
+  "heading_deg": 0.7230212655843826,
+  "valid": true
+ },
+ {
+  "description": "forward, plain walls, blank floor",
+  "trial": "fwdplainc_blank_r1",
+  "raw": "forward_plain_walls_blank_raw.png",
+  "vp": "forward_plain_walls_blank_vp.png",
+  "requested_y": 40.0,
+  "gt_y": 40.00349177315056,
+  "gt_x": -0.006793706061370474,
+  "frame_index": 3016,
+  "t": 109.759,
+  "vp_u": 319.858972899486,
+  "vp_v": 239.3252658484626,
+  "support": 975.3049565678592,
+  "heading_deg": -0.014575233677407583,
+  "valid": true
+ },
+ {
+  "description": "forward, plain walls, checkerboard floor",
+  "trial": "fwdplainc_tex_r1",
+  "raw": "forward_plain_walls_checker_raw.png",
+  "vp": "forward_plain_walls_checker_vp.png",
+  "requested_y": 40.0,
+  "gt_y": 40.00049590209946,
+  "gt_x": -0.009147614797145003,
+  "frame_index": 3051,
+  "t": 109.891,
+  "vp_u": 374.5623513578146,
+  "vp_v": 253.17982975736768,
+  "support": 492.44115115591796,
+  "heading_deg": 5.6209487248378,
+  "valid": true
+ }
+]

@@ -1,0 +1,1 @@
+Plan view of the room used for the known-tag and loop-closure flights: 8 floor tags, each shown with its id, inside a 10 m square room. The flight path is a 6 m square lap starting and finishing at the spawn point, with the direction of travel marked by the arrows.
