@@ -454,7 +454,7 @@ build columns) and the worlds PDF (the appendix world table), as rows 15, 16 and
 | hindsight | hindsight; FGO batch | M:7938; M:10476; M:10557 |
 | smoothed UKF | RTS-UKF | M:10146 |
 | passive estimator | shadow | glossary:3596 |
-| final build | UKF v2; FGO v3; S2v2; S3v2 | numbers.md:458; M:12504; M:12565 |
+| final build | UKF v2; FGO v3; S2v2; S3v2 - FGO v3/S3v2 (original priors) superseded by FGO v4/S3rp (corrected priors) | numbers.md:458; M:12504; M:12565; refly_priors/numbers_refly.md:16-23 |
 | ablation build | FGO v2; S3 | numbers.md:458, 466, 629 |
 | earlier build | UKF v1 (old UKF); original FGO | numbers.md:458 |
 | corrected-priors node | FGO v4 `4c07374b` | M:13686 |

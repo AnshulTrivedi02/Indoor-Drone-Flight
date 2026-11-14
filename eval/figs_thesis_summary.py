@@ -674,7 +674,7 @@ num("FGO whole-flight batch printed as a single value (all 3 flights round to it
 h41 = sum(OI[TRK[4]][i] < OI["EKF3 live"][i] and OI[TRK[4]][i] < OI["UKF live"][i] for i in range(3))
 num("primary: FGO hindsight below EKF3 and UKF live, flights of 3", f"{h41}/3", "3/3", [("R1", "PASS 3/3: FGO whole-flight batch 0.59 m")], [(558, "PASS 3/3")])
 r42 = [max(OI[f"{e} live"][i] for e in EST) / min(OI[f"{e} live"][i] for e in EST) for i in range(3)]
-num("live errors similar (≤ 1.5× every flight): verdict", "PASS" if max(r42) <= 1.5 else "FAIL", "FAIL", [("T1", "H4.2 FAILS")], [(559, "H-O2 FAIL")])
+num("live errors similar (≤ 1.5× every flight): verdict", "PASS" if max(r42) <= 1.5 else "FAIL", "FAIL", [("T1", "H4.2 NOT MET")], [(559, "H-O2 FAIL")])
 r43 = [max(OI[TRK[3]][i], OI[TRK[4]][i]) / min(OI[TRK[3]][i], OI[TRK[4]][i]) for i in range(3)]
 num("two hindsight errors within 1.5× (every flight): verdict", "PASS" if max(r43) <= 1.5 else "FAIL", "PASS", [("T1", "H4.3 PASS")], [(560, "P-O3 PASS")])
 rule(M_, 10358, "PASS iff in 3/3", "primary rule: in 3 of 3 flights")
@@ -1675,7 +1675,7 @@ HYP = {"01": "H1.1 (confirmatory EKF3 − FGO test, flights 4–10; Table 7.1 [a
              "(original priors). Heading-error p95/max and lateral-speed values (Table 4.3) are not printed",
        "07": "H2.1 primary PASS, H2.3 FAIL as worded (Figure 5.1, Table 7.3); H2.2 and H2.4 (both FAIL) not shown",
        "08": "H3.1–H3.4 PASS 3/3 (Figure 5.2, Table 7.3); V3 (not re-scorable) not shown",
-       "09": "H4.1 primary PASS 3/3, H4.2 FAIL as worded, H4.3 PASS (Table 5.1, Table 7.3); EKF3's 4.10 m return jump (Table 7.2) not shown",
+       "09": "H4.1 primary PASS 3/3, H4.2 NOT MET, H4.3 PASS (Table 5.1, Table 7.3); EKF3's 4.10 m return jump (Table 7.2) not shown",
        "10": "H5.1 (recorded PASS for EKF3 flying, S1 near spawn, mean 8 mm, max 16–25 mm, numbers.md:606; and for the final FGO node, "
              "numbers.md:646; the UKF set has no recorded verdict, its windows are inside both bounds: max 17–21 mm, numbers.md:644; the rule "
              "is re-checked here on every stored hold window of S1, S1 far, S2v2 and S3v2). Values = Table 7.1: EKF3 = the EKF3-flying hold set at the FAR spawn (S1 far, the "
