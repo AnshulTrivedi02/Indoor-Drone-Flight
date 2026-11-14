@@ -186,7 +186,12 @@ for ax, c in zip(axs, "BCD"):
         rmse = float(np.sqrt(np.mean(e[w] ** 2)))
         check(f"E01 {tr} {mode} live: PLOTTED-window RMSE vs stored E2 rmse_m (6 dp)", rd(rmse, 6),
               rd(S["tracks"][f"{mode} live"]["rmse_m"], 6), f"docs/thesis/tier1/scores/E2_{tr}.json tracks.'{mode} live'.rmse_m")
+        d0 = float(math.hypot(x[0, 1] - np.interp(x[0, 0], Gt, Gx), x[0, 2] - np.interp(x[0, 0], Gt, Gy)))
+        check(f"E01 {tr} {mode} live: start point within 0.5 m of ground truth (measured {rd(d0, 3)} m)", str(d0 <= 0.5), "True",
+              f"this script ({tr} live.tum row 0 vs ground truth)")
         XY1[(c, mode)] = x
+    check(f"E01 {tr}: 2 live tracks plotted (lc, nolc)", str(len(XY1[(c, 'lc')]) > 0 and len(XY1[(c, 'nolc')]) > 0), "True",
+          f"this script ({tr} track row counts)")
     wg = (Gt >= min(XY1[(c, "lc")][0, 0], XY1[(c, "nolc")][0, 0])) & (Gt <= max(XY1[(c, "lc")][-1, 0], XY1[(c, "nolc")][-1, 0]))
     ax.plot(Gx[wg], Gy[wg], color=TRUTH, lw=1.0, zorder=2)
     for t_ in TMAP:
@@ -234,6 +239,9 @@ e_clean = np.hypot(x_clean[:, 1] - np.interp(x_clean[:, 0], _Gt3, _Gx3), x_clean
 wc = (x_clean[:, 0] >= b0c) & (x_clean[:, 0] <= b1c)
 check("E02 clean T_A_r1 lc live: PLOTTED-window RMSE vs stored expL rmse_m (6 dp)", rd(float(np.sqrt(np.mean(e_clean[wc] ** 2))), 6),
       rd(S_clean["tracks"]["lc live"]["rmse_m"], 6), "eval/results/expL/T_A_r1_t245.json tracks.'lc live'.rmse_m")
+_d0_clean = float(math.hypot(x_clean[0, 1] - np.interp(x_clean[0, 0], _Gt3, _Gx3), x_clean[0, 2] - np.interp(x_clean[0, 0], _Gt3, _Gy3)))
+check(f"E02 clean T_A_r1 lc live: start point within 0.5 m of ground truth (measured {rd(_d0_clean, 3)} m)", str(_d0_clean <= 0.5),
+      "True", "this script (T_A_r1 clean live.tum row 0 vs ground truth)")
 
 S_s0 = L1("E3a_T_A_r1_0.01_s0.json"); b0s, b1s = S_s0["lap_bounds_s"][0], S_s0["lap_bounds_s"][-1]
 x_s0 = np.loadtxt(f"{T1}/T_A_r1/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_s0/live.tum", ndmin=2)
@@ -241,6 +249,9 @@ e_s0 = np.hypot(x_s0[:, 1] - np.interp(x_s0[:, 0], _Gt3, _Gx3), x_s0[:, 2] - np.
 ws0 = (x_s0[:, 0] >= b0s) & (x_s0[:, 0] <= b1s)
 check("E02 collapse (1% s0) T_A_r1 lc live: PLOTTED-window RMSE vs stored E3a rmse_m (6 dp)", rd(float(np.sqrt(np.mean(e_s0[ws0] ** 2))), 6),
       rd(S_s0["tracks"]["lc live"]["rmse_m"], 6), "docs/thesis/tier1/scores/E3a_T_A_r1_0.01_s0.json tracks.'lc live'.rmse_m")
+_d0_s0 = float(math.hypot(x_s0[0, 1] - np.interp(x_s0[0, 0], _Gt3, _Gx3), x_s0[0, 2] - np.interp(x_s0[0, 0], _Gt3, _Gy3)))
+check(f"E02 collapse (1% s0) T_A_r1 lc live: start point within 0.5 m of ground truth (measured {rd(_d0_s0, 3)} m)", str(_d0_s0 <= 0.5),
+      "True", "this script (T_A_r1 collapse s0 live.tum row 0 vs ground truth)")
 
 V3 = json.load(open(os.path.join(SC1, "E3_verdicts.json")))
 rs1 = V3["runs"]["E3a_T_A_r1_0.01_s1"]["run_status"]
@@ -254,13 +265,16 @@ check("E02 diverged (1% s1) T_A_r1: loaded live.tum row count vs stored run_stat
 check("E02 diverged (1% s1) T_A_r1: loaded live.tum non-finite count vs stored run_status (0, the excursion is large but finite)",
       str(int((~np.isfinite(x_s1[:, 1:3])).any(axis=1).sum())), str(nf_s1["rows_nonfinite"]),
       "docs/thesis/tier1/scores/E3_verdicts.json runs.'E3a_T_A_r1_0.01_s1'.run_status.nonfinite.'live.tum'.rows_nonfinite")
+_d0_s1 = float(math.hypot(x_s1[0, 1] - np.interp(x_s1[0, 0], _Gt3, _Gx3), x_s1[0, 2] - np.interp(x_s1[0, 0], _Gt3, _Gy3)))
+check(f"E02 diverged (1% s1) T_A_r1: start point within 0.5 m of ground truth (measured {rd(_d0_s1, 3)} m)", str(_d0_s1 <= 0.5),
+      "True", "this script (T_A_r1 diverged s1 live.tum row 0 vs ground truth, before the onset)")
 mask_s1 = np.isfinite(x_s1[:, 1]) & np.isfinite(x_s1[:, 2]) & (x_s1[:, 0] <= onset + 3.0) & (np.abs(x_s1[:, 1]) < 50) & (np.abs(x_s1[:, 2]) < 50)
 
 fig, axs = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 3.4), sharex=True, sharey=True)
 for ax, (xx, mm, lab, cap) in zip(axs, (
         (x_clean, np.ones(len(x_clean), bool), "(a) no wrong IDs", "no wrong IDs (clean reference)"),
         (x_s0, np.ones(len(x_s0), bool), "(b) 1% wrong IDs", "1% wrong IDs, seed 0 (non-diverged)"),
-        (x_s1, mask_s1, "(c) 1% wrong IDs, seed 1", "1% wrong IDs, seed 1 (diverged)"))):
+        (x_s1, mask_s1, "(c) 1% wrong IDs", "1% wrong IDs, seed 1 (diverged)"))):
     wg = (_Gt3 >= xx[mm, 0].min()) & (_Gt3 <= min(xx[mm, 0].max(), _Gt3.max()))
     ax.plot(_Gx3[wg], _Gy3[wg], color=TRUTH, lw=1.0, zorder=2)
     for t_ in TMAP:
@@ -310,7 +324,14 @@ for mode in ("lc", "nolc"):
         wu = (xu[:, 0] >= b0e) & (xu[:, 0] <= b1e)
         check(f"E03 UKF {mode} {kind}: PLOTTED-window RMSE vs stored e5 rmse_m (6 dp)", rd(float(np.sqrt(np.mean(eu[wu] ** 2))), 6),
               rd(S_ukf5["tracks"][f"{mode} {kind}"]["rmse_m"], 6), f"docs/thesis/tier1/scores/e5_T_A_r1.json tracks.'{mode} {kind}'.rmse_m")
+        if kind == "live":
+            d0f = float(math.hypot(xf[0, 1] - np.interp(xf[0, 0], _Gt3, _Gx3), xf[0, 2] - np.interp(xf[0, 0], _Gt3, _Gy3)))
+            d0u = float(math.hypot(xu[0, 1] - np.interp(xu[0, 0], _Gt3, _Gx3), xu[0, 2] - np.interp(xu[0, 0], _Gt3, _Gy3)))
+            check(f"E03 FGO {mode} live: start point within 0.5 m of ground truth (measured {rd(d0f, 3)} m)", str(d0f <= 0.5), "True", "this script")
+            check(f"E03 UKF {mode} live: start point within 0.5 m of ground truth (measured {rd(d0u, 3)} m)", str(d0u <= 0.5), "True", "this script")
         TR5[(mode, kind, "FGO")] = xf; TR5[(mode, kind, "UKF")] = xu
+check("E03 4 tracks plotted per panel (UKF/FGO x live/hindsight)",
+      str(all(len(TR5[(m, k, e)]) > 0 for m in ("lc", "nolc") for k in ("live", "hindsight") for e in ("UKF", "FGO"))), "True", "this script")
 
 fig, axs = plt.subplots(1, 2, figsize=(TEXT_WIDTH_IN, 4.9), sharex=True, sharey=True)
 for ax, mode, lab in ((axs[0], "lc", "(a) with loop closure"), (axs[1], "nolc", "(b) without loop closure")):
@@ -378,6 +399,10 @@ for n, Tk in TRK4.items():
     rmse4 = float(np.sqrt(np.mean(e[wi] ** 2)))
     check(f"E04 O_r1 {n}: PLOTTED indoor-window RMSE vs stored indoor_rmse_m (6 dp)", rd(rmse4, 6), rd(o4["tracks"][n]["indoor_rmse_m"], 6),
           f"eval/results/expO/O_r1.json tracks.'{n}'.indoor_rmse_m")
+    d0 = float(math.hypot(Tk[0, 1] - np.interp(Tk[0, 0], G4[:, 0], G4[:, 1]), Tk[0, 2] - np.interp(Tk[0, 0], G4[:, 0], G4[:, 2])))
+    check(f"E04 O_r1 {n}: start point within 2.0 m of ground truth (outdoor, GPS-aided; measured {rd(d0, 3)} m)", str(d0 <= 2.0), "True",
+          "this script (first plotted sample vs ground truth)")
+check("E04 3 tracks plotted (EKF3, UKF, FGO)", str(len(TRK4) == 3), "True", "this script")
 
 # This flight is almost due north-south (East range < 5 m against a North range of about 65 m). An honest
 # equal-scale plot is therefore inherently tall and narrow if cropped tightly to the flight; instead the x-axis is
@@ -409,8 +434,10 @@ save(fig, "E04", "E04_exp4_outdoor_indoor_paths", "Experiment 4 (outdoor-indoor)
      "Experiment 4 (outdoor to indoor to outdoor, open loop on simulator truth), one flight: the live path of "
      "EKF3 (blue), UKF (teal) and FGO (orange) against the true path in grey, world frame, no alignment, equal "
      "scale. The downward triangle marks where GNSS was switched off at the building entrance; the upward "
-     "triangle marks where it came back on, outdoors again. EKF3's path visibly separates from the true path "
-     "indoors and snaps back once GNSS returns; the UKF and FGO stay closer to the true path throughout.",
+     "triangle marks where it came back on, outdoors again - the drone goes by the same entrance on the way in "
+     "and the way out, so the two markers sit almost on top of each other. EKF3's path visibly separates from "
+     "the true path indoors and snaps back once GNSS returns; the UKF and FGO stay closer to the true path "
+     "throughout.",
      "eval/results/expO/O_r1.json (markers_bag_s, tracks.*.indoor_rmse_m); ~/thesis_data/trials/O_r1/room_ukf/ukf_live.tum, "
      "room_fgo/fgo_live.tum, gnss.npz; dataflash ardupilot.bin (XKF1); bag /ground_truth/pose and /imu/time_ref of O_r1",
      "NEW spatial-path view (B04 draws the same data as error against time, not a path)", None,
@@ -439,7 +466,8 @@ def gt_W(tr):
 HOLD = {"EKF3": ("H_s1far_r1", "xkf1", "EKF3"), "UKF": ("H_s2v2_r1", "xuko", "UKF_port"), "FGO": ("H_s3rp_r2", "xfgo", "FGO_flying")}
 HOLD_JSON = {"EKF3": "s1far_r1", "UKF": "s2v2_r1", "FGO": "s3rp_r2"}
 fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 6.2), sharex=False)
-for ax, e in zip(axs, EST):
+PAN5 = {}
+for e in EST:
     tr, cachekey, jkey = HOLD[e]
     Gt, GE, GN = gt_W(tr)
     TRc = cached(f"room_{tr}")["TR"]; to_bag5 = clock_map(TRc)
@@ -452,11 +480,24 @@ for ax, e in zip(axs, EST):
     check(f"E05 {e} ({tr}): PLOTTED drift at first loss t_off vs stored losses[0].{jkey}.drift_end_m (6 dp)", rd(drift, 6),
           rd(lo0[jkey]["drift_end_m"], 6), f"eval/results/expH/{HOLD_JSON[e]}.json losses[0].'{jkey}'.drift_end_m")
     err5 = np.hypot(XE - np.interp(t5, Gt, GE), XN - np.interp(t5, Gt, GN))
+    check(f"E05 {e} ({tr}): track sample count > 1000 (not an empty or truncated track)", str(len(t5) > 1000), "True",
+          f"this script ({cachekey}_{tr}.npz)")
     # Plot from shortly before the first pre-loss hold window starts (hold_windows_vehicle[0].t0), not from takeoff:
     # the climb/approach segment before the drone first reaches the hold point has its own large transient error
     # that is unrelated to tag loss and would otherwise swamp the y-scale needed to see the loss-window effect.
     t_start5 = hj["hold_windows_vehicle"][0]["t0"] - 15.0
     w5 = (t5 >= t_start5) & (t5 <= Gt.max())
+    # start-point agreement: the estimator's own first PLOTTED sample against ground truth at that instant.
+    i0 = np.flatnonzero(w5)[0]
+    d0 = float(math.hypot(XE[i0] - np.interp(t5[i0], Gt, GE), XN[i0] - np.interp(t5[i0], Gt, GN)))
+    check(f"E05 {e} ({tr}): first plotted sample within 0.5 m of ground truth (measured {rd(d0, 3)} m)", str(d0 <= 0.5), "True",
+          f"this script ({cachekey}_{tr}.npz vs room_{tr}.npz, t = {rd(float(t5[i0]), 1)} s)")
+    PAN5[e] = (t5, w5, err5)
+Y5MAX = max(60.0, max(float(np.nanmax(PAN5[e][2][PAN5[e][1]])) for e in EST) * 1e3 * 1.1)
+for ax, e in zip(axs, EST):
+    t5, w5, err5 = PAN5[e]
+    tr, _, jkey = HOLD[e]
+    hj = L(os.path.join("expH", f"{HOLD_JSON[e]}.json"))
     for lo in hj["losses"]:
         ax.axvspan(lo["t_on"], lo["t_off"], color="#ececec", zorder=0, lw=0)
     ax.plot(t5[w5], err5[w5] * 1e3, color=C[e], lw=0.9, zorder=3)
@@ -464,20 +505,25 @@ for ax, e in zip(axs, EST):
     # hold target; this is a different quantity, the estimator's own distance from ground truth.
     ax.set_ylabel(f"{e}\nestimate error (mm)")
     ax.set_xlim(t5[w5].min(), t5[w5].max())
-    ax.set_ylim(0, max(60.0, float(np.nanmax(err5[w5])) * 1e3 * 1.1))
-axs[-1].set_xlabel("time (s, bag clock)")
+    ax.set_ylim(0, Y5MAX)
+axs[-1].set_xlabel("time (s, each flight's own clock)")
+_yl5 = {ax.get_ylim() for ax in axs}
+check("E05 all three panels share one y-scale", str(len(_yl5) == 1), "True", "this script (axis limits)")
 # "occluder in place", not "tag hidden": eval/h_score.py notes the occluder's render lag means ON/OFF is not
 # exactly the estimator's own detection-loss window (see losses[].effective in the stored json).
 fig.legend(handles=[Line2D([], [], color="#ececec", lw=8, label="occluder in place over the wall tag")],
            loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, -0.02))
 fig.subplots_adjust(bottom=0.12, hspace=0.35)
 save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each flying estimator's own distance from ground truth over time, occluder intervals shaded",
-     "Experiment 5 (tag hold), one flight per flying estimator: EKF3 in blue, UKF in teal, FGO in orange. The "
-     "distance between each estimator's own live position estimate and the drone's true position, millimetres, "
-     "against time; shaded bands mark when the occluder covered the wall tag. The line moves away from its "
-     "settled level during a shaded band and returns to it once the occluder is removed, though not always in the "
-     "same direction. Each panel starts shortly before that flight's first steady hold period, leaving out the "
-     "initial climb and approach to the hold point.",
+     "Experiment 5 (tag hold), one flight per flying estimator: EKF3 in blue, UKF in teal, FGO in orange, each on "
+     "its own flight's clock, one shared y-scale across all three. The distance between each estimator's own live "
+     "position estimate and the drone's true position, millimetres, against time; shaded bands mark when the "
+     "occluder covered the wall tag. This is each estimator's own error against ground truth, not the registered "
+     "hold error (ground truth's own distance from the hold target), because the lateral moves built into the "
+     "hold profile are far larger than this millimetre-scale effect and would hide it if positions were plotted "
+     "directly. The line moves away from its settled level during a shaded band and returns to it once the "
+     "occluder is removed, though not always in the same direction. Each panel starts shortly before that "
+     "flight's first steady hold period, leaving out the initial climb and approach to the hold point.",
      "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json (losses[].t_on/t_off, losses[0].<estimator>.drift_end_m, "
      "hold_windows_vehicle[0].t0); dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO "
      "node); bag /ground_truth/pose and /imu/time_ref of H_s1far_r1, H_s2v2_r1, H_s3rp_r2",
@@ -495,7 +541,7 @@ save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each 
 # in the tested set, stated here rather than invented. W = 1 s is the middle of the five tested windows
 # (0.25/0.5/1/2/5 s), not the longest; W = 5 s is the longest.
 W5 = ("0.25", "1", "5")
-E6 = {}
+E6 = {}; RMSE_W6 = {}
 for w in W5:
     sc = L1(f"E4_T_D_r1_w{w}.json")
     x = np.loadtxt(f"{T1}/T_D_r1/room_fgo_w{w}/fgo_live.tum", ndmin=2)
@@ -508,11 +554,14 @@ for w in W5:
     rmse6 = float(np.sqrt(np.mean(e6[ww] ** 2)))
     check(f"E06 W={w}s: PLOTTED-window RMSE (world frame) vs stored E4 'FGO live' rmse (6 dp)", rd(rmse6, 6),
           rd(sc["tracks"]["FGO live"]["horiz_err_m"]["rmse"], 6), f"docs/thesis/tier1/scores/E4_T_D_r1_w{w}.json tracks.'FGO live'.horiz_err_m.rmse")
-    E6[w] = (x, Gt6, Gx6, Gy6, w0, w1)
+    d0_6 = float(math.hypot(x[0, 1] - np.interp(x[0, 0], Gt6, Gx6), x[0, 2] - np.interp(x[0, 0], Gt6, Gy6)))
+    check(f"E06 W={w}s: start point within 0.5 m of ground truth (measured {rd(d0_6, 3)} m)", str(d0_6 <= 0.5), "True", "this script")
+    E6[w] = (x, Gt6, Gx6, Gy6, w0, w1); RMSE_W6[w] = rd(sc["tracks"]["FGO live"]["horiz_err_m"]["rmse"], 4)
 check("E06 the three plotted windows are distinguishable (not all equal to 4 dp, unlike T_A_r1)",
       str(len({rd(np.sqrt(np.mean(np.hypot(E6[w][0][:, 1] - np.interp(E6[w][0][:, 0], E6[w][1], E6[w][2]),
       E6[w][0][:, 2] - np.interp(E6[w][0][:, 0], E6[w][1], E6[w][3]))[(E6[w][0][:, 0] >= E6[w][4]) & (E6[w][0][:, 0] <= E6[w][5])] ** 2)), 4) for w in W5}) == 1),
       "False", "this script (distinct 4 dp RMSE across the three plotted windows)")
+check("E06 3 tracks plotted (W = 0.25, 1, 5 s)", str(len(E6) == 3), "True", "this script")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 5.0))
 _, Gt6, Gx6, Gy6, w0, w1 = E6["0.25"]
@@ -527,12 +576,11 @@ ax.set_aspect(1.0, adjustable="box")
 st6 = measured_stretch(fig, ax); check("E06 equal scale (measured stretch)", rd(st6, 1), "1.0", "set_aspect(1.0)")
 ax.legend(loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
 save(fig, "E06", "E06_e4_window_sweep_paths", "Extension E4 (live window sweep): the FGO's live path at three window lengths",
-     "Extension E4 (how far back the live FGO's fixed-lag window reaches), the FGO in orange against the true path "
-     "in grey, world frame, no alignment, equal scale: the live path at the registered window (solid, W = 0.25 s, "
-     "also the shortest tested), the middle window tested (dashed, W = 1 s) and the longest tested (dotted, "
-     "W = 5 s). The three paths sit close together throughout; the live window length does not visibly change "
-     "where the FGO thinks it is, consistent with the result that live accuracy barely moves with window length, "
-     "at a much higher cost per step.",
+     "Extension E4 (how far back the live FGO's fixed-lag window reaches), one flight with 1 known tag: the FGO "
+     "in orange against the true path in grey, world frame, no alignment, equal scale. Solid is the registered "
+     "window (W = 0.25 s, also the shortest tested), dashed is the middle window tested (W = 1 s) and dotted is "
+     "the longest tested (W = 5 s). The three paths mostly overlap, but separate visibly along the bottom edge "
+     "and near two corners of the square.",
      "docs/thesis/tier1/scores/E4_T_D_r1_w{0.25,1,5}.json (window_s, tracks.'FGO live'.horiz_err_m.rmse); "
      "~/thesis_data/tier1/T_D_r1/room_fgo_w{0.25,1,5}/fgo_live.tum; bag /ground_truth/pose of T_D_r1",
      "NEW (not drawn by any existing figure or candidate)", None,
@@ -581,10 +629,10 @@ W += ["", "## Skipped or time-boxed (not in any candidate's caption - process no
       "candidates B06/B07 use.** `H_s3rp_r1` (the first repeat of that set) has no stored bag, only `ardupilot.bin` "
       "- but `H_s3rp_r2` and `H_s3rp_r3` do have full stored bags, so E05 uses `s3rp_r2` rather than falling back "
       "to the superseded set. Flagged here because B06/B07 (an earlier group) still plot the superseded set; the "
-      "coordinator may want to re-fly B06/B07's FGO bar onto s3rp as a separate, later fix.",
-      "- **E06 uses flight T_D_r1 (condition D, 1 tag), not T_A_r1.** On T_A, the live RMSE is identical to 4 dp "
+      "coordinator may want to redraw B06/B07's FGO bar onto s3rp as a separate, later fix.",
+      f"- **E06 uses flight T_D_r1 (condition D, 1 tag), not T_A_r1.** On T_A, the live RMSE is identical to 4 dp "
       "across all five tested windows (e4_results.md), so three plotted paths would be visually and numerically "
-      "indistinguishable there; T_D has the largest spread across windows (0.0931 / 0.0863 / 0.0887 m) of the "
-      "four tested conditions.", ""]
+      f"indistinguishable there; T_D has the largest spread across windows ({RMSE_W6['0.25']} / {RMSE_W6['1']} / "
+      f"{RMSE_W6['5']} m) of the four tested conditions.", ""]
 open(os.path.join(OUT, "index_e.md"), "w").write("\n".join(W) + "\n")
 print(f"\nTOTAL candidates {len(ITEMS)}; checks {n_ok}/{n_tot}; wrote {os.path.join(OUT, 'index_e.md')}")
