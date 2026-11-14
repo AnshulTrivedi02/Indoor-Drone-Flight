@@ -1,0 +1,97 @@
+{
+ "O_r1": {
+  "t_off_marker_bag_s": 80.2750274568328,
+  "t_off_ss_change_bag_s": 84.64868692401876,
+  "t_on_marker_bag_s": 203.35801555707562,
+  "ss_change_minus_off_marker_s": 4.373659467185959,
+  "checks": "PASS (markers, source_set_changes, 3 live indoor_rmse_m)",
+  "ekf3_err_at_off_marker_m": 0.031087874966924414,
+  "ekf3_err_at_off_marker_sample_dt_s": -0.02779086784470053,
+  "ekf3_err_at_off_ss_change_m": 0.09769395919937934,
+  "ekf3_err_at_off_ss_change_sample_dt_s": 0.0,
+  "indoor_rmse_full_m": {
+   "EKF3 live": 1.4226897349785146,
+   "UKF live": 0.8380727245736178,
+   "FGO live": 0.8290678406861414
+  },
+  "live_max_over_min_full": 1.7160112419763964,
+  "live_largest_full": "EKF3 live",
+  "live_smallest_full": "FGO live",
+  "indoor_rmse_from_ss_change_m": {
+   "EKF3 live": 1.4481724746539366,
+   "UKF live": 0.8533805062586649,
+   "FGO live": 0.8442875934156212
+  },
+  "live_max_over_min_from_ss_change": 1.7152596886983251,
+  "live_largest_from_ss_change": "EKF3 live",
+  "live_smallest_from_ss_change": "FGO live"
+ },
+ "O_r2": {
+  "t_off_marker_bag_s": 80.28905393186434,
+  "t_off_ss_change_bag_s": 84.66270789861531,
+  "t_on_marker_bag_s": 203.3719998307837,
+  "ss_change_minus_off_marker_s": 4.373653966750965,
+  "checks": "PASS (markers, source_set_changes, 3 live indoor_rmse_m)",
+  "ekf3_err_at_off_marker_m": 0.03134063750659848,
+  "ekf3_err_at_off_marker_sample_dt_s": -0.027794859159456564,
+  "ekf3_err_at_off_ss_change_m": 0.0969096288342656,
+  "ekf3_err_at_off_ss_change_sample_dt_s": 0.0,
+  "indoor_rmse_full_m": {
+   "EKF3 live": 1.42247558762901,
+   "UKF live": 0.829623718663581,
+   "FGO live": 0.8587789742890028
+  },
+  "live_max_over_min_full": 1.7146033263374372,
+  "live_largest_full": "EKF3 live",
+  "live_smallest_full": "UKF live",
+  "indoor_rmse_from_ss_change_m": {
+   "EKF3 live": 1.447956914339454,
+   "UKF live": 0.8447764716582664,
+   "FGO live": 0.8745343549745357
+  },
+  "live_max_over_min_from_ss_change": 1.7140118870701566,
+  "live_largest_from_ss_change": "EKF3 live",
+  "live_smallest_from_ss_change": "UKF live"
+ },
+ "O_r3b": {
+  "t_off_marker_bag_s": 80.13585179670966,
+  "t_off_ss_change_bag_s": 84.47457441939683,
+  "t_on_marker_bag_s": 203.21916711705478,
+  "ss_change_minus_off_marker_s": 4.338722622687172,
+  "checks": "PASS (markers, source_set_changes, 3 live indoor_rmse_m)",
+  "ekf3_err_at_off_marker_m": 0.03153557873605118,
+  "ekf3_err_at_off_marker_sample_dt_s": 0.0372479636471752,
+  "ekf3_err_at_off_ss_change_m": 0.1007724863015956,
+  "ekf3_err_at_off_ss_change_sample_dt_s": 0.0,
+  "indoor_rmse_full_m": {
+   "EKF3 live": 1.4261968179253368,
+   "UKF live": 0.7740564881904621,
+   "FGO live": 0.8946165868233533
+  },
+  "live_max_over_min_full": 1.8424970782938659,
+  "live_largest_full": "EKF3 live",
+  "live_smallest_full": "UKF live",
+  "indoor_rmse_from_ss_change_m": {
+   "EKF3 live": 1.4517187266735447,
+   "UKF live": 0.7880492643734074,
+   "FGO live": 0.910901735358561
+  },
+  "live_max_over_min_from_ss_change": 1.8421674789936302,
+  "live_largest_from_ss_change": "EKF3 live",
+  "live_smallest_from_ss_change": "UKF live"
+ },
+ "summary": {
+  "full": {
+   "ratio_min": 1.7146033263374372,
+   "ratio_max": 1.8424970782938659,
+   "H-O2_pass_every_flight_le_1.5": false,
+   "ekf3_largest_every_flight": true
+  },
+  "from_ss_change": {
+   "ratio_min": 1.7140118870701566,
+   "ratio_max": 1.8421674789936302,
+   "H-O2_pass_every_flight_le_1.5": false,
+   "ekf3_largest_every_flight": true
+  }
+ }
+}
