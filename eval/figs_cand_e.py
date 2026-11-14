@@ -209,13 +209,11 @@ fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.0, label="true path"), tag_
 fig.subplots_adjust(bottom=0.32, wspace=0.08)
 save(fig, "E01", "E01_e2_fewer_tags_paths",
      "Extension E2 (loop closure with fewer tags): the FGO's live path, with and without loop closure, by tag count",
-     "Extension E2 (fewer known tags; one flight per condition, flight 1 of 3, in each condition's own tag "
-     "sightings): the FGO's live path with loop closure (solid) and without it (dotted) against the true path "
-     "(grey) and that condition's true tags (grey diamonds), raw, in tag 0's frame, equal scale. (a) 4 tags, "
-     "(b) 2 tags, (c) 1 tag (the known-map, one-tag case: the only tag is tag 0 itself, so loop closure there is "
-     "a repeated return to the origin). With loop closure the live path stays close to the square on every lap; "
-     "without it, the path drifts further from the square each lap, most visibly in (c). Flights 2 and 3 of each "
-     "condition are not shown (time-boxed); their per-lap numbers are in the Extension E2 results.",
+     "Extension E2 (fewer known tags), one flight per condition: the FGO's live path in orange, solid with loop "
+     "closure and dotted without it, against the true path in grey and that condition's true tags as grey "
+     "diamonds, raw, in tag 0's frame, equal scale. (a) 4 tags, (b) 2 tags, (c) 1 tag, the known-map case where "
+     "the only tag is tag 0 itself. With loop closure the live path stays close to the square on every lap; "
+     "without it, the path drifts further away each lap, most visibly in (c).",
      "docs/thesis/tier1/scores/E2_T_{B,C,D}_r1.json (lap_bounds_s, tracks.'{lc,nolc} live'.rmse_m, per_lap_rmse_m); "
      "~/thesis_data/tier1/T_{B,C,D}_r1/lc_fgo_{lc,nolc}_t245_tags<ids>/live.tum; sim/worlds/room_tags_map.json; "
      "bag /ground_truth/pose of T_B_r1, T_C_r1, T_D_r1",
@@ -250,9 +248,13 @@ onset = rs1["live divergence onset t_s (headline; |x| or |y| > 10 m or non-finit
 check("E02 diverged (1% s1) T_A_r1: stored live-divergence onset (s)", rd(onset, 3), "49.699",
       "docs/thesis/tier1/scores/E3_verdicts.json runs.'E3a_T_A_r1_0.01_s1'.run_status")
 x_s1 = np.loadtxt(f"{T1}/T_A_r1/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_s1/live.tum", ndmin=2)
+nf_s1 = rs1["nonfinite"]["live.tum"]
+check("E02 diverged (1% s1) T_A_r1: loaded live.tum row count vs stored run_status row count", str(len(x_s1)), str(nf_s1["rows"]),
+      "docs/thesis/tier1/scores/E3_verdicts.json runs.'E3a_T_A_r1_0.01_s1'.run_status.nonfinite.'live.tum'.rows")
+check("E02 diverged (1% s1) T_A_r1: loaded live.tum non-finite count vs stored run_status (0, the excursion is large but finite)",
+      str(int((~np.isfinite(x_s1[:, 1:3])).any(axis=1).sum())), str(nf_s1["rows_nonfinite"]),
+      "docs/thesis/tier1/scores/E3_verdicts.json runs.'E3a_T_A_r1_0.01_s1'.run_status.nonfinite.'live.tum'.rows_nonfinite")
 mask_s1 = np.isfinite(x_s1[:, 1]) & np.isfinite(x_s1[:, 2]) & (x_s1[:, 0] <= onset + 3.0) & (np.abs(x_s1[:, 1]) < 50) & (np.abs(x_s1[:, 2]) < 50)
-check("E02 diverged (1% s1) T_A_r1: rows plotted / total in live.tum", f"{int(mask_s1.sum())} / {len(x_s1)}",
-      f"{int(mask_s1.sum())} / {len(x_s1)}", "~/thesis_data/tier1/T_A_r1/lc_fgo_lc_t245_tags..._mis0.01_s1/live.tum (this script's own mask)")
 
 fig, axs = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 3.4), sharex=True, sharey=True)
 for ax, (xx, mm, lab, cap) in zip(axs, (
@@ -275,13 +277,11 @@ fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.0, label="true path"), tag_
            loc="lower center", ncol=3, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, -0.02))
 fig.subplots_adjust(bottom=0.30, wspace=0.08)
 save(fig, "E02", "E02_e3_wrong_ids_paths", "Extension E3 (wrong tag IDs): the FGO's live path, clean reference and two 1% runs",
-     "Extension E3 (wrong tag IDs), flight T_A_r1, live path (not the hindsight re-solve C05/C06 already show), "
-     "against the true path (grey) and the 8 true tags (grey diamonds), raw, in tag 0's frame, equal scale. "
-     "(a) no wrong IDs: the live path stays on the square. (b) 1% wrong IDs, seed 0: the live path does not "
-     "diverge, but is visibly pulled inward, off the square, consistent with the shrunk landmark map C05 shows "
-     "for this same run. (c) 1% wrong IDs, seed 1: the solver diverges; the path is plotted only up to shortly "
-     "after its recorded onset (about 49.7 s in), after which the live estimate leaves the room entirely and is "
-     "not shown.",
+     "Extension E3 (wrong tag IDs), one flight, the FGO's live path in orange against the true path in grey and "
+     "the 8 true tags as grey diamonds, raw, in tag 0's frame, equal scale. (a) no wrong IDs: the live path stays "
+     "on the square. (b) 1% wrong IDs, one seed: the live path does not diverge, but is pulled inward, off the "
+     "square. (c) 1% wrong IDs, a different seed: the solver diverges; the path is drawn only up to shortly after "
+     "the divergence, after which the live estimate leaves the room and is not shown.",
      "eval/results/expL/T_A_r1_t245.json (tracks.'lc live'.rmse_m); docs/thesis/tier1/scores/E3a_T_A_r1_0.01_{s0,s1}.json, "
      "E3_verdicts.json (run_status); ~/thesis_data/trials/T_A_r1/lc_fgo_lc_t245/live.tum; "
      "~/thesis_data/tier1/T_A_r1/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_{s0,s1}/live.tum; "
@@ -294,7 +294,7 @@ save(fig, "E02", "E02_e3_wrong_ids_paths", "Extension E3 (wrong tag IDs): the FG
 # =============================================================================================================== E03
 # ============================================================= UKF with landmark states (Extension E5) vs FGO paths
 S_fgo5 = L(os.path.join("expL", "T_A_r1_t245.json")); S_ukf5 = L1("e5_T_A_r1.json")
-check("E04 FGO and UKF score the same lap_bounds_s (T_A_r1)", str(S_fgo5["lap_bounds_s"] == S_ukf5["lap_bounds_s"]), "True",
+check("E03 FGO and UKF score the same lap_bounds_s (T_A_r1)", str(S_fgo5["lap_bounds_s"] == S_ukf5["lap_bounds_s"]), "True",
       "eval/results/expL/T_A_r1_t245.json; docs/thesis/tier1/scores/e5_T_A_r1.json")
 b0e, b1e = S_fgo5["lap_bounds_s"][0], S_fgo5["lap_bounds_s"][-1]
 TR5 = {}
@@ -303,12 +303,12 @@ for mode in ("lc", "nolc"):
         xf = np.loadtxt(f"{TD}/T_A_r1/lc_fgo_{mode}_t245/{fgo_f}", ndmin=2)
         ef = np.hypot(xf[:, 1] - np.interp(xf[:, 0], _Gt3, _Gx3), xf[:, 2] - np.interp(xf[:, 0], _Gt3, _Gy3))
         wf = (xf[:, 0] >= b0e) & (xf[:, 0] <= b1e)
-        check(f"E04 FGO {mode} {kind}: PLOTTED-window RMSE vs stored expL rmse_m (6 dp)", rd(float(np.sqrt(np.mean(ef[wf] ** 2))), 6),
+        check(f"E03 FGO {mode} {kind}: PLOTTED-window RMSE vs stored expL rmse_m (6 dp)", rd(float(np.sqrt(np.mean(ef[wf] ** 2))), 6),
               rd(S_fgo5["tracks"][f"{mode} {kind}"]["rmse_m"], 6), f"eval/results/expL/T_A_r1_t245.json tracks.'{mode} {kind}'.rmse_m")
         xu = np.loadtxt(f"{T1}/T_A_r1/lc_ukf_{mode}_t245/{ukf_f}", ndmin=2)
         eu = np.hypot(xu[:, 1] - np.interp(xu[:, 0], _Gt3, _Gx3), xu[:, 2] - np.interp(xu[:, 0], _Gt3, _Gy3))
         wu = (xu[:, 0] >= b0e) & (xu[:, 0] <= b1e)
-        check(f"E04 UKF {mode} {kind}: PLOTTED-window RMSE vs stored e5 rmse_m (6 dp)", rd(float(np.sqrt(np.mean(eu[wu] ** 2))), 6),
+        check(f"E03 UKF {mode} {kind}: PLOTTED-window RMSE vs stored e5 rmse_m (6 dp)", rd(float(np.sqrt(np.mean(eu[wu] ** 2))), 6),
               rd(S_ukf5["tracks"][f"{mode} {kind}"]["rmse_m"], 6), f"docs/thesis/tier1/scores/e5_T_A_r1.json tracks.'{mode} {kind}'.rmse_m")
         TR5[(mode, kind, "FGO")] = xf; TR5[(mode, kind, "UKF")] = xu
 
@@ -334,9 +334,9 @@ _xmin = min(TR5[(m, k, e)][:, 1].min() for m in ("lc", "nolc") for k in ("live",
 _ymin = min(TR5[(m, k, e)][:, 2].min() for m in ("lc", "nolc") for k in ("live", "hindsight") for e in ("UKF", "FGO"))
 LIM4 = (math.floor(min(_xmin, _ymin) - 0.5), math.ceil(max(_xmax, _ymax) + 0.5))
 axs[0].set_xlim(*LIM4); axs[0].set_ylim(*LIM4)
-check("E04 axis limits contain every plotted track (no clipping)",
+check("E03 axis limits contain every plotted track (no clipping)",
       str(_xmin >= LIM4[0] and _xmax <= LIM4[1] and _ymin >= LIM4[0] and _ymax <= LIM4[1]), "True", "this script (data bounds vs set_xlim/set_ylim)")
-st = measured_stretch(fig, axs[0]); check("E04 equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
+st = measured_stretch(fig, axs[0]); check("E03 equal scale (measured stretch)", rd(st, 1), "1.0", "set_aspect(1.0)")
 fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.0, label="true path"), tag_legend_handle(),
                      Line2D([], [], color=C["UKF"], ls="-", lw=1.2, label="UKF live"),
                      Line2D([], [], color=C["UKF"], ls=(0, (4, 2)), lw=1.2, label="UKF RTS (hindsight)"),
@@ -345,12 +345,11 @@ fig.legend(handles=[Line2D([], [], color=TRUTH, lw=1.0, label="true path"), tag_
            loc="lower center", ncol=3, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, -0.02))
 fig.subplots_adjust(bottom=0.24, wspace=0.08)
 save(fig, "E03", "E03_e5_ukf_vs_fgo_paths", "Extension E5 (UKF with tag landmark states): UKF and FGO paths, with and without loop closure",
-     "Extension E5 (a UKF carrying its own tag-landmark states, like the FGO's loop closure) against the FGO, "
-     "flight T_A_r1, raw, in tag 0's frame, equal scale, from the lap-1 start to the lap-5 end. Live (solid) and "
-     "hindsight (dashed; the UKF's RTS smoother, the FGO's iSAM2 re-solve) tracks, against the true path (grey) "
-     "and the 8 true tags (grey diamonds). (a) with loop closure: both live tracks stay near the square; the FGO "
-     "live track sits visibly closer to it than the UKF's. (b) without loop closure: both live tracks drift away "
-     "from the square lap on lap, the UKF's by more than the FGO's.",
+     "Extension E5, a UKF carrying its own tag-landmark states (teal) against the FGO (orange), one flight, raw, "
+     "in tag 0's frame, equal scale. Live paths are solid and hindsight paths are dashed, against the true path "
+     "in grey and the 8 true tags as grey diamonds. (a) with loop closure: both live paths stay near the square, "
+     "the FGO's visibly closer to it than the UKF's. (b) without loop closure: both live paths drift away from "
+     "the square lap on lap, the UKF's by more.",
      "eval/results/expL/T_A_r1_t245.json (lap_bounds_s, tracks.*.rmse_m); docs/thesis/tier1/scores/e5_T_A_r1.json "
      "(tracks.*.rmse_m); ~/thesis_data/trials/T_A_r1/lc_fgo_{lc,nolc}_t245/{live,hindsight}.tum; "
      "~/thesis_data/tier1/T_A_r1/lc_ukf_{lc,nolc}_t245/{live,hindsight}.tum; sim/worlds/room_tags_map.json; "
@@ -385,7 +384,7 @@ for n, Tk in TRK4.items():
 # widened (symmetrically, centred on the flight) to match the figure's own physical aspect ratio, so the equal-
 # scale axes box fills the whole figure (no narrow box with a legend stranded in blank canvas beside it) and the
 # legend sits in the resulting blank margin alongside the flight line, inside the axes.
-FIGW4, FIGH4 = 4.4, 8.2
+FIGW4, FIGH4 = TEXT_WIDTH_IN, 8.2
 ylo4, yhi4 = -18.0, 54.0
 xmid4 = float(np.nanmean(G4[:, 1])); xr4 = (yhi4 - ylo4) * (FIGW4 / FIGH4)
 xlo4, xhi4 = xmid4 - xr4 / 2, xmid4 + xr4 / 2
@@ -407,13 +406,11 @@ check("E04 widened x-axis still contains every plotted track (no clipping)", str
 st4 = measured_stretch(fig, ax); check("E04 equal scale (measured stretch)", rd(st4, 1), "1.0", "set_aspect(1.0)")
 ax.legend(loc="center left", frameon=False, fontsize=9.0, bbox_to_anchor=(0.02, 0.32))
 save(fig, "E04", "E04_exp4_outdoor_indoor_paths", "Experiment 4 (outdoor-indoor): each estimator's live path over the true path, dropout and return marked",
-     "Experiment 4 (outdoor to indoor to outdoor, open loop on simulator truth), flight 1 of 3 (O_r1): the live "
-     "path of EKF3, UKF and FGO against the true path (grey), world frame, no alignment, equal scale. Downward "
-     "triangle: where GNSS was switched off at the building entrance; upward triangle: where it came back on, "
-     "outdoors again, on the true path. EKF3's path visibly separates from the true path indoors and snaps back "
-     "near the true path once GNSS returns, consistent with its reset-on-return behaviour; the UKF and FGO stay "
-     "closer to the true path throughout. Flights 2 and 3 are not shown (time-boxed); their error-against-time "
-     "curves for all three flights are already candidate B04.",
+     "Experiment 4 (outdoor to indoor to outdoor, open loop on simulator truth), one flight: the live path of "
+     "EKF3 (blue), UKF (teal) and FGO (orange) against the true path in grey, world frame, no alignment, equal "
+     "scale. The downward triangle marks where GNSS was switched off at the building entrance; the upward "
+     "triangle marks where it came back on, outdoors again. EKF3's path visibly separates from the true path "
+     "indoors and snaps back once GNSS returns; the UKF and FGO stay closer to the true path throughout.",
      "eval/results/expO/O_r1.json (markers_bag_s, tracks.*.indoor_rmse_m); ~/thesis_data/trials/O_r1/room_ukf/ukf_live.tum, "
      "room_fgo/fgo_live.tum, gnss.npz; dataflash ardupilot.bin (XKF1); bag /ground_truth/pose and /imu/time_ref of O_r1",
      "NEW spatial-path view (B04 draws the same data as error against time, not a path)", None,
@@ -427,11 +424,10 @@ save(fig, "E04", "E04_exp4_outdoor_indoor_paths", "Experiment 4 (outdoor-indoor)
 # natively in W. Ground truth is read from each flight's own bag and shifted into W (translation only - the wall
 # tag's yaw convention already matches the world axes, confirmed in eval/h_score.py, so no rotation is needed).
 # One flight per estimator (time-boxed): EKF3 flying = H_s1far_r1 (the far-spawn set, matching candidate B06's
-# choice for EKF3); UKF flying = H_s2v2_r1; FGO flying = H_s3v2_r1 (the ORIGINAL-priors FGO node - the same set
-# candidates B06/B07 use. eval/figs_thesis.py marks this set "superseded: original priors", with s3rp_r* as the
-# current corrected-priors set, but s3rp_r*'s own trial directories have no stored bag or dataflash to read from,
-# only a safety-watcher log - so this candidate follows B06/B07's own choice and flags it here, as the common
-# brief asks, rather than silently using a different, unavailable set).
+# choice for EKF3); UKF flying = H_s2v2_r1; FGO flying = H_s3rp_r2, the CORRECTED-priors FGO node (eval/figs_thesis.py's
+# current set for the H5.x rows), NOT the original-priors set (s3v2) candidates B06/B07 still use. The first repeat
+# of the corrected-priors set, H_s3rp_r1, has no stored bag (only ardupilot.bin), but H_s3rp_r2 and H_s3rp_r3 do, so
+# this candidate uses s3rp_r2 rather than falling back to the superseded set - flagged in index_e.md.
 TAG_W = (0.0, 4.998)   # eval/h_score.py: N_W = world y - 4.998, E_W = world x (translation only)
 
 
@@ -440,8 +436,8 @@ def gt_W(tr):
     return G[:, 0], G[:, 1], G[:, 2] - TAG_W[1]   # t, E_W (=world x), N_W
 
 
-HOLD = {"EKF3": ("H_s1far_r1", "xkf1", "EKF3"), "UKF": ("H_s2v2_r1", "xuko", "UKF_port"), "FGO": ("H_s3v2_r1", "xfgo", "FGO_flying")}
-HOLD_JSON = {"EKF3": "s1far_r1", "UKF": "s2v2_r1", "FGO": "s3v2_r1"}
+HOLD = {"EKF3": ("H_s1far_r1", "xkf1", "EKF3"), "UKF": ("H_s2v2_r1", "xuko", "UKF_port"), "FGO": ("H_s3rp_r2", "xfgo", "FGO_flying")}
+HOLD_JSON = {"EKF3": "s1far_r1", "UKF": "s2v2_r1", "FGO": "s3rp_r2"}
 fig, axs = plt.subplots(3, 1, figsize=(TEXT_WIDTH_IN, 6.2), sharex=False)
 for ax, e in zip(axs, EST):
     tr, cachekey, jkey = HOLD[e]
@@ -458,58 +454,65 @@ for ax, e in zip(axs, EST):
     err5 = np.hypot(XE - np.interp(t5, Gt, GE), XN - np.interp(t5, Gt, GN))
     # Plot from shortly before the first pre-loss hold window starts (hold_windows_vehicle[0].t0), not from takeoff:
     # the climb/approach segment before the drone first reaches the hold point has its own large transient error
-    # that is not a "hold" error at all and would otherwise swamp the y-scale needed to see the loss-window effect.
+    # that is unrelated to tag loss and would otherwise swamp the y-scale needed to see the loss-window effect.
     t_start5 = hj["hold_windows_vehicle"][0]["t0"] - 15.0
     w5 = (t5 >= t_start5) & (t5 <= Gt.max())
     for lo in hj["losses"]:
         ax.axvspan(lo["t_on"], lo["t_off"], color="#ececec", zorder=0, lw=0)
     ax.plot(t5[w5], err5[w5] * 1e3, color=C[e], lw=0.9, zorder=3)
-    ax.set_ylabel(f"{e}\nhold error (mm)")
+    # "estimate error", not "hold error" - the registered "hold error" (B06) is ground truth's distance from the
+    # hold target; this is a different quantity, the estimator's own distance from ground truth.
+    ax.set_ylabel(f"{e}\nestimate error (mm)")
     ax.set_xlim(t5[w5].min(), t5[w5].max())
     ax.set_ylim(0, max(60.0, float(np.nanmax(err5[w5])) * 1e3 * 1.1))
 axs[-1].set_xlabel("time (s, bag clock)")
-fig.legend(handles=[Line2D([], [], color="#ececec", lw=8, label="wall tag hidden (occluded)")],
+# "occluder in place", not "tag hidden": eval/h_score.py notes the occluder's render lag means ON/OFF is not
+# exactly the estimator's own detection-loss window (see losses[].effective in the stored json).
+fig.legend(handles=[Line2D([], [], color="#ececec", lw=8, label="occluder in place over the wall tag")],
            loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, -0.02))
 fig.subplots_adjust(bottom=0.12, hspace=0.35)
-save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each flying estimator's hold error over time, wall-tag-hidden intervals shaded",
-     "Experiment 5 (tag hold), one flight per flying estimator (EKF3: far-spawn set, matching B06's choice; UKF: "
-     "the final UKF port; FGO: the ORIGINAL-priors node, the same set B06/B07 use - the corrected-priors re-fly, "
-     "s3rp, has no stored bag or dataflash to draw a path from). Horizontal distance between the estimator's own "
-     "live navigation state and ground truth, millimetres, against time; shaded bands mark the intervals the wall "
-     "tag was hidden from each flight's own forward camera (occluded). Error rises during a shaded interval as the "
-     "estimator dead-reckons without the tag, and falls back once the tag returns. Each panel starts shortly before "
-     "that flight's own first steady hold window, cutting off the initial climb and approach to the hold point, "
-     "whose own transient error is unrelated to tag loss and would otherwise dominate the scale. Only the first "
-     "loss of each flight is cross-checked against the stored per-loss drift; the other shaded intervals on each "
-     "flight's own timeline are read directly from its own stored result file.",
-     "eval/results/expH/{s1far_r1,s2v2_r1,s3v2_r1}.json (losses[].t_on/t_off, losses[0].<estimator>.drift_end_m); "
-     "dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO node); "
-     "bag /ground_truth/pose and /imu/time_ref of H_s1far_r1, H_s2v2_r1, H_s3v2_r1",
+save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each flying estimator's own distance from ground truth over time, occluder intervals shaded",
+     "Experiment 5 (tag hold), one flight per flying estimator: EKF3 in blue, UKF in teal, FGO in orange. The "
+     "distance between each estimator's own live position estimate and the drone's true position, millimetres, "
+     "against time; shaded bands mark when the occluder covered the wall tag. The line moves away from its "
+     "settled level during a shaded band and returns to it once the occluder is removed, though not always in the "
+     "same direction. Each panel starts shortly before that flight's first steady hold period, leaving out the "
+     "initial climb and approach to the hold point.",
+     "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json (losses[].t_on/t_off, losses[0].<estimator>.drift_end_m, "
+     "hold_windows_vehicle[0].t0); dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO "
+     "node); bag /ground_truth/pose and /imu/time_ref of H_s1far_r1, H_s2v2_r1, H_s3rp_r2",
      "NEW (B06/B07 draw aggregate bars over all losses/flights, not a per-flight time series)", None,
-     "eval/results/expH/{s1far_r1,s2v2_r1,s3v2_r1}.json")
+     "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json")
 
 
 # =============================================================================================================== E06
 # ============================================================== E4 extension (window sweep): FGO live paths, by W
-# Lowest-value item (per the common brief's own time-box priority): the live RMSE barely moves with window length
-# (e4_results.md, T_A_r1's own row changes by <0.1 mm across all five windows), so the paths below are expected,
-# and shown, to look almost identical. The "shortest" window IS the registered window (0.25 s); there is no
-# separate "shortest" distinct from "registered" in the tested set, stated here rather than invented.
+# Lowest-value item (per the common brief's own time-box priority). Flight T_D_r1 (condition D, 1 tag), not T_A_r1:
+# on T_A, live RMSE is identical to 4 dp across all five windows (e4_results.md), so three near-identical paths
+# would not show anything; on T_D the windows differ at the millimetre level (0.0931 / 0.0863 / 0.0887 m, the
+# largest spread of the four conditions), giving three paths that are not simply on top of each other. The
+# "shortest" window IS the registered window (0.25 s); there is no separate "shortest" distinct from "registered"
+# in the tested set, stated here rather than invented. W = 1 s is the middle of the five tested windows
+# (0.25/0.5/1/2/5 s), not the longest; W = 5 s is the longest.
 W5 = ("0.25", "1", "5")
 E6 = {}
 for w in W5:
-    sc = L1(f"E4_T_A_r1_w{w}.json")
-    x = np.loadtxt(f"{T1}/T_A_r1/room_fgo_w{w}/fgo_live.tum", ndmin=2)
+    sc = L1(f"E4_T_D_r1_w{w}.json")
+    x = np.loadtxt(f"{T1}/T_D_r1/room_fgo_w{w}/fgo_live.tum", ndmin=2)
     # world frame, no alignment (eval/tag_score.py's own convention) - world-frame ground truth, NOT the tag-0-
-    # shifted arrays used above, to avoid a silent frame mismatch with the stored score.
-    Gt6, Gx6, Gy6 = cached("room_T_A_r1")["G"][:, 0], cached("room_T_A_r1")["G"][:, 1], cached("room_T_A_r1")["G"][:, 2]
+    # shifted arrays used elsewhere in this file, to avoid a silent frame mismatch with the stored score.
+    Gt6, Gx6, Gy6 = cached("room_T_D_r1")["G"][:, 0], cached("room_T_D_r1")["G"][:, 1], cached("room_T_D_r1")["G"][:, 2]
     e6 = np.hypot(x[:, 1] - np.interp(x[:, 0], Gt6, Gx6), x[:, 2] - np.interp(x[:, 0], Gt6, Gy6))
     w0, w1 = sc["window_s"]
     ww = (x[:, 0] >= w0) & (x[:, 0] <= w1)
     rmse6 = float(np.sqrt(np.mean(e6[ww] ** 2)))
-    check(f"E06 W={w}s: PLOTTED-window RMSE (world frame) vs stored E4 'FGO live' rmse", rd(rmse6, 4),
-          rd(sc["tracks"]["FGO live"]["horiz_err_m"]["rmse"], 4), f"docs/thesis/tier1/scores/E4_T_A_r1_w{w}.json tracks.'FGO live'.horiz_err_m.rmse")
+    check(f"E06 W={w}s: PLOTTED-window RMSE (world frame) vs stored E4 'FGO live' rmse (6 dp)", rd(rmse6, 6),
+          rd(sc["tracks"]["FGO live"]["horiz_err_m"]["rmse"], 6), f"docs/thesis/tier1/scores/E4_T_D_r1_w{w}.json tracks.'FGO live'.horiz_err_m.rmse")
     E6[w] = (x, Gt6, Gx6, Gy6, w0, w1)
+check("E06 the three plotted windows are distinguishable (not all equal to 4 dp, unlike T_A_r1)",
+      str(len({rd(np.sqrt(np.mean(np.hypot(E6[w][0][:, 1] - np.interp(E6[w][0][:, 0], E6[w][1], E6[w][2]),
+      E6[w][0][:, 2] - np.interp(E6[w][0][:, 0], E6[w][1], E6[w][3]))[(E6[w][0][:, 0] >= E6[w][4]) & (E6[w][0][:, 0] <= E6[w][5])] ** 2)), 4) for w in W5}) == 1),
+      "False", "this script (distinct 4 dp RMSE across the three plotted windows)")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 5.0))
 _, Gt6, Gx6, Gy6, w0, w1 = E6["0.25"]
@@ -524,16 +527,16 @@ ax.set_aspect(1.0, adjustable="box")
 st6 = measured_stretch(fig, ax); check("E06 equal scale (measured stretch)", rd(st6, 1), "1.0", "set_aspect(1.0)")
 ax.legend(loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
 save(fig, "E06", "E06_e4_window_sweep_paths", "Extension E4 (live window sweep): the FGO's live path at three window lengths",
-     "Extension E4 (how far back the live FGO's fixed-lag window reaches), flight T_A_r1, condition A (8 tags), "
-     "world frame, no alignment, equal scale: the FGO's live path at the registered window (W = 0.25 s, also the "
-     "shortest tested - there is no separate, shorter window in the tested set) and at the two longest windows "
-     "tested, W = 1 s and W = 5 s. The three paths lie on top of each other throughout; the live window length "
-     "does not visibly change where the FGO thinks it is, consistent with the Extension E4 result that live "
-     "accuracy barely moves with window length, at a much higher cost per step.",
-     "docs/thesis/tier1/scores/E4_T_A_r1_w{0.25,1,5}.json (window_s, tracks.'FGO live'.horiz_err_m.rmse); "
-     "~/thesis_data/tier1/T_A_r1/room_fgo_w{0.25,1,5}/fgo_live.tum; bag /ground_truth/pose of T_A_r1",
+     "Extension E4 (how far back the live FGO's fixed-lag window reaches), the FGO in orange against the true path "
+     "in grey, world frame, no alignment, equal scale: the live path at the registered window (solid, W = 0.25 s, "
+     "also the shortest tested), the middle window tested (dashed, W = 1 s) and the longest tested (dotted, "
+     "W = 5 s). The three paths sit close together throughout; the live window length does not visibly change "
+     "where the FGO thinks it is, consistent with the result that live accuracy barely moves with window length, "
+     "at a much higher cost per step.",
+     "docs/thesis/tier1/scores/E4_T_D_r1_w{0.25,1,5}.json (window_s, tracks.'FGO live'.horiz_err_m.rmse); "
+     "~/thesis_data/tier1/T_D_r1/room_fgo_w{0.25,1,5}/fgo_live.tum; bag /ground_truth/pose of T_D_r1",
      "NEW (not drawn by any existing figure or candidate)", None,
-     "docs/thesis/tier1/scores/E4_T_A_r1_w{0.25,1,5}.json")
+     "docs/thesis/tier1/scores/E4_T_D_r1_w{0.25,1,5}.json")
 
 
 # =============================================================================================================== index
@@ -549,32 +552,39 @@ W = ["# Candidate thesis figures, group E: extension-experiment and Experiment 4
      f"**Checks:** {n_ok}/{n_tot} EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, "
      "sha256 of the source segment used to detect drift).", "",
      "**Style:** `eval/thesis_style.py` (160 mm / 6.30 in text width, Okabe-Ito palette, no in-figure titles, no "
-     "verdict words, no bold text, equal-scale top-down axes labelled East/North except E05, which uses the "
-     "wall-tag navigation frame and says so). No two plots overlap.", "",
+     "verdict words, no bold text, equal-scale top-down axes labelled East/North for every spatial-path candidate; "
+     "E05 is a time series, not a spatial path, and is labelled accordingly). No two plots overlap.", "",
      "## Candidates", "", "| id | proposed title | source chart(s) | data files | checks | verdict pointer |", "|---|---|---|---|---|---|"]
 for it in ITEMS:
     ok = sum(c[4] for c in it["checks"]); tot = len(it["checks"])
     vp = it["caption"].split("\n")[-1]
     W.append(f"| {it['id']} | {it['title']} | {it['source']} | {it['data_files']} | {ok}/{tot} | {vp} |")
-W += ["", "## Skipped or time-boxed (stated in each candidate's own caption)", "",
-      "- E01 (Extension E2): only flight 1 of 3 per condition B/C/D; flights 2 and 3 not plotted.",
-      "- E02 (Extension E3): only flight T_A_r1; one non-diverged (1% seed 0) and one diverged (1% seed 1) run shown "
-      "of the 6 diverged and 12 non-diverged arm (a) runs.",
-      "- E03 (Extension E5): only flight T_A_r1 of 3.",
-      "- E04 (Experiment 4): only flight O_r1 of 3; flights O_r2/O_r3b not plotted (their error-against-time curves "
-      "are already candidate B04).",
-      "- E05 (Experiment 5): only the first loss of each flight is cross-checked against the stored per-loss drift; "
-      "the FGO flight uses the original-priors set (s3v2), the same set candidates B06/B07 use, because the "
-      "corrected-priors re-fly (s3rp) has no stored bag or dataflash for this flight.",
+W += ["", "## Skipped or time-boxed (not in any candidate's caption - process notes belong here, not on the figure)", "",
+      "- E01 (Extension E2): only flight 1 of 3 per condition B/C/D is plotted; flights 2 and 3 are not. Their "
+      "per-lap numbers are already in the Extension E2 results.",
+      "- E02 (Extension E3): only flight T_A_r1 is plotted; one non-diverged (1% seed 0) and one diverged "
+      "(1% seed 1) run of the 6 diverged and 12 non-diverged arm (a) runs are shown.",
+      "- E03 (Extension E5): only flight T_A_r1 of 3 is plotted.",
+      "- E04 (Experiment 4): only flight O_r1 of 3 is plotted; flights O_r2/O_r3b are not - their error-against-"
+      "time curves for all three flights are already candidate B04.",
+      "- E05 (Experiment 5): only the first loss of each flight is cross-checked against the stored per-loss "
+      "drift; the later shaded intervals on each flight's own timeline are read directly from its own stored "
+      "result file, not independently re-checked.",
       "- E06 (Extension E4, window sweep): lowest-value item per the common brief's time-box priority; only one "
-      "tag count (condition A) and three of the five tested windows.", "",
+      "tag count (condition D) and three of the five tested windows are plotted.", "",
       "## Judgement calls for the coordinator", "",
-      "- **E02 vs C05/C06**: both groups draw Extension E3 paths for T_A_r1's 1% seed 0 run. C05 draws its HINDSIGHT "
-      "track plus the final landmark map (a non-diverged, already-settled view); E02 draws its LIVE track (the same "
-      "run, different track) alongside a genuinely diverged run's live excursion, which no existing candidate shows. "
-      "Kept as complementary, not flagged as a duplicate to drop.",
-      "- **E05's FGO flight**: uses the superseded original-priors hold set (s3v2), matching B06/B07's own choice, "
-      "because the current corrected-priors set (s3rp_r1) has no stored bag or dataflash under its trial directory "
-      "(only a safety-watcher log) - flagged in E05's own caption as well as here.", ""]
+      "- **E02 vs C05/C06**: both groups draw Extension E3 paths for T_A_r1's 1% seed 0 run. C05 draws its "
+      "hindsight track plus the final landmark map (a non-diverged, already-settled view); E02 draws its live "
+      "track (the same run, different track) alongside a genuinely diverged run's live excursion, which no "
+      "existing candidate shows. Kept as complementary, not flagged as a duplicate to drop.",
+      "- **E05's FGO flight uses the corrected-priors hold set (s3rp_r2), not the original-priors set (s3v2) "
+      "candidates B06/B07 use.** `H_s3rp_r1` (the first repeat of that set) has no stored bag, only `ardupilot.bin` "
+      "- but `H_s3rp_r2` and `H_s3rp_r3` do have full stored bags, so E05 uses `s3rp_r2` rather than falling back "
+      "to the superseded set. Flagged here because B06/B07 (an earlier group) still plot the superseded set; the "
+      "coordinator may want to re-fly B06/B07's FGO bar onto s3rp as a separate, later fix.",
+      "- **E06 uses flight T_D_r1 (condition D, 1 tag), not T_A_r1.** On T_A, the live RMSE is identical to 4 dp "
+      "across all five tested windows (e4_results.md), so three plotted paths would be visually and numerically "
+      "indistinguishable there; T_D has the largest spread across windows (0.0931 / 0.0863 / 0.0887 m) of the "
+      "four tested conditions.", ""]
 open(os.path.join(OUT, "index_e.md"), "w").write("\n".join(W) + "\n")
 print(f"\nTOTAL candidates {len(ITEMS)}; checks {n_ok}/{n_tot}; wrote {os.path.join(OUT, 'index_e.md')}")

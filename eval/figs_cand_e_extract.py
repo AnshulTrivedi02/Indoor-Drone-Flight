@@ -39,10 +39,12 @@ os.makedirs(CACHE, exist_ok=True)
 tempfile.tempdir = CACHE
 
 ROOM_ONLY = ["T_B_r1", "T_C_r1", "T_D_r1", "T_A_r1"]          # ground truth only, no time_ref/dataflash needed
-ROOM_WITH_TR = ["O_r1", "H_s1far_r1", "H_s2v2_r1", "H_s3v2_r1"]  # ground truth + /imu/time_ref (dataflash clock map)
+ROOM_WITH_TR = ["O_r1", "H_s1far_r1", "H_s2v2_r1", "H_s3rp_r2"]  # ground truth + /imu/time_ref (dataflash clock map)
+# H_s3rp_r2 (corrected priors, the CURRENT FGO-flying hold set) replaces H_s3v2_r1 (superseded original priors):
+# H_s3rp_r1 has no stored bag, but H_s3rp_r2 and H_s3rp_r3 do.
 XKF1_TRIALS = ["O_r1", "H_s1far_r1"]
 XUKO_TRIALS = ["H_s2v2_r1"]
-XFGO_TRIALS = ["H_s3v2_r1"]
+XFGO_TRIALS = ["H_s3rp_r2"]
 
 
 def _bag_open(tr):
