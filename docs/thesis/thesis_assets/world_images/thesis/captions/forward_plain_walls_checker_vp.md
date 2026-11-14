@@ -1,1 +1,1 @@
-The same view with the measured vanishing point marked: the already-computed heading measurement for this exact frame. With plain walls over a checkerboard floor the measurement is known to read well away from the true heading, so this marker shows what was measured, not the true heading.
+Vanishing-point variant: the same plain-wall, checkerboard-floor view with the stored measurement's vanishing point marked; with this combination the heading measurement is known to be unreliable, so the marker shows what was measured, not the true heading.

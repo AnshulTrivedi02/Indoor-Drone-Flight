@@ -1,1 +1,1 @@
-Forward camera view with plain walls over a checkerboard floor, read directly from the camera with no added marker or text. One of the three panels in the wall and floor comparison figure.
+Forward camera view with plain walls over the checkerboard floor, as recorded with no overlay (panel (b) of the three-panel figure).

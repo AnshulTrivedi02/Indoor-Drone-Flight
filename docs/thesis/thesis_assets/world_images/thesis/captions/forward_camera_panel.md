@@ -1,1 +1,1 @@
-Forward camera views at the same position along the corridor (about 40 m from the start), for the three wall and floor combinations used to test heading from the vanishing point: (a) line-textured walls, (b) plain walls over a checkerboard floor, (c) plain walls over a blank floor. Frames are shown exactly as read from the camera, with no added marker or text.
+Forward camera at the same point about 40 m along the corridor, as recorded with no overlay: (a) line-textured walls, (b) plain walls over the checkerboard floor, (c) plain walls over the blank floor.

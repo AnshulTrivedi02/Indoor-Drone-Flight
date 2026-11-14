@@ -1,1 +1,1 @@
-Downward camera view over the checkerboard floor with a floor tag in view, during level forward flight, read directly from the camera with no added marker or text. No frame over a blank floor is available in any stored flight.
+Downward camera view over the checkerboard floor with a floor tag in view during forward flight, as recorded with no overlay.

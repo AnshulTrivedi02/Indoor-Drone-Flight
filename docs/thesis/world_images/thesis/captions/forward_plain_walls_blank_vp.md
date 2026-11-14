@@ -1,1 +1,1 @@
-The same view with the measured vanishing point marked: the already-computed heading measurement for this exact frame, a measurement that passed the project's reliability check.
+Vanishing-point variant: the same plain-wall, blank-floor view with the stored heading measurement's vanishing point marked (filled marker: a usable heading reading).

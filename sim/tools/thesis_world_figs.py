@@ -264,8 +264,8 @@ def fig_corridor(S):
     sx, sy, syaw = S["spawn"]
     route_arrows(ax, [(sy, sx), (sy + S["flight"][0] * S["flight"][2], sx)])
     ax.plot(sy, sx, marker="o", color=INK, ms=7, zorder=11)
-    scale_bar(ax, 2, -14.0, 20, label_above=True)
-    ax.set_xlim(floor_lo - 3, floor_hi + 3); ax.set_ylim(-15.5, 12.5)
+    scale_bar(ax, 2, -14.0, 20, label_above=False)
+    ax.set_xlim(floor_lo - 3, floor_hi + 3); ax.set_ylim(-20.5, 12.5)
     ax.set_aspect("equal")
     ax.set_xlabel("distance along the corridor (m)"); ax.set_ylabel("corridor width (m)")
     H = [Patch(fc="#e2e2e2", ec="#b0b0b0", hatch="++", label="checker floor (textured condition)"),
@@ -324,8 +324,7 @@ def fig_room(S, out_name, with_wall_tag=False, WT=None):
          Line2D([0], [0], marker="o", color=INK, lw=0, label="spawn point")]
     if with_wall_tag:
         H += [Patch(fc=TAG, label="wall tag (on the wall, 1.5 m up)"),
-              Line2D([0], [0], marker="s", mfc="white", mec=ROUTE, color=ROUTE, lw=2, label="hold point (for the "
-                     "hold flights) and its side-to-side steps")]
+              Line2D([0], [0], marker="s", mfc="white", mec=ROUTE, color=ROUTE, lw=2, label="hold point and its side steps")]
     fig_legend(fig, H, ncol=2)
     return savefig(fig, out_name, height_in=7.3, rect=(0.0, 0.14, 1.0, 1.0))
 
@@ -345,7 +344,10 @@ def fig_outdoor_indoor(S):
     ax.add_patch(Rectangle((y1 - 0.1, x_lo), 0.2, x_hi - x_lo, fc=WALL, ec=WALL, zorder=4))  # north (far) wall
     ax.add_patch(Rectangle((y0 - 0.1, x_lo), 0.2, (-half_gap) - x_lo, fc=WALL, ec=WALL, zorder=4))
     ax.add_patch(Rectangle((y0 - 0.1, half_gap), 0.2, x_hi - half_gap, fc=WALL, ec=WALL, zorder=4))
-    ax.axvline(entrance_y, color=REF, ls=":", lw=1.5, zorder=5)
+    ax.axvline(entrance_y, color=REF, ls=":", lw=1.5, zorder=3)
+    ax.annotate("entrance (%g m gap)" % (2 * half_gap), xy=(entrance_y, half_gap), xytext=(entrance_y + 4, 7.6),
+                fontsize=8.5, color=INK, ha="left", va="center", zorder=12,
+                arrowprops=dict(arrowstyle="-|>", color=INK, lw=1.0))
     # legs
     route_arrows(ax, [(sy, sx), (sy + al, sx)], lw=1.6)
     route_arrows(ax, [(sy + al, sx + 0.6), (sy + al + out, sx + 0.6)], lw=2.0)
@@ -377,12 +379,7 @@ def main():
     check("corridor spawn yaw rad", S["spawn"][2], math.radians(90))
     f1 = fig_corridor(S)
     write_caption(os.path.join(CAP, "corridor_family.md"),
-        "Plan view of the corridor used for the degraded-sensing flights, drawn from its geometry: 20 m wide and "
-        "160 m long. One drawing stands in for the three floor conditions (fully checkered, fully blank, and the "
-        "transition shown here, checkered up to the marked boundary and blank beyond it) and the two wall finishes "
-        "(plain, or marked with horizontal lines in the version with a forward-facing camera, at the same wall "
-        "position either way). A plain ceiling is only present in the forward-camera version. The spawn point and "
-        "planned straight flight line are shown; actual flown paths vary trial to trial and are not shown here.")
+        'Plan view of the 20 m by 160 m corridor, showing the checkered and blank floors with the texture boundary of the transition condition, the plain or line-marked walls (drawn thicker than their true 0.2 m), the roof used with the forward camera, the spawn point and the planned flight line.')
 
     # ---- 2/3. Room(s)
     Sr = source_room("room_tags")
@@ -409,9 +406,7 @@ def main():
         "fly_trial.py's laps() direction order (N, E, S, W) changed: %r" % laps_dirs
     f2 = fig_room(Sr, "room_tags_lap")
     write_caption(os.path.join(CAP, "room_tags_lap.md"),
-        "Plan view of the room used for the known-tag and loop-closure flights: 8 floor tags, each shown with its "
-        "id, inside a 10 m square room. The flight path is a 6 m square lap starting and finishing at the spawn "
-        "point, with the direction of travel marked by the arrows.")
+        'Plan view of the 10 m square tag room with the 8 floor tags and their ids, the 6 m square lap path and its direction, and the spawn point.')
 
     Srw = source_room("room_wall_tag")
     assert Srw["tags"] == Sr["tags"] or {k: v for k, v in Srw["tags"].items() if k != 10} == Sr["tags"], \
@@ -431,11 +426,7 @@ def main():
     Srw["side"] = side
     f3 = fig_room(Sr, "room_tags_wall_tag", with_wall_tag=True, WT=WT)
     write_caption(os.path.join(CAP, "room_tags_wall_tag.md"),
-        "The same room as the floor-tag figure, with a wall tag added on the north wall, 1.5 m up, and the hold "
-        "point in front of it where the drone stays in place for the hold flights, stepping a short distance from "
-        "side to side; the lap flights in the other figure still start at the spawn point shown here. The occluder "
-        "panel and the safety-monitor boundary used in some of these flights are left out of this drawing for "
-        "clarity.")
+        'The same tag room with the wall tag on the north wall, 1.5 m up, and the hold point in front of it with its side steps.')
 
     # ---- 4. Outdoor to indoor
     So = source_outdoor_indoor()
@@ -452,11 +443,7 @@ def main():
     check("entrance coincides with the GNSS gate", So["bldg_south_y"], So["outback"][4])
     f4 = fig_outdoor_indoor(So)
     write_caption(os.path.join(CAP, "outdoor_to_indoor.md"),
-        "Plan view of the outdoor-to-indoor flight: the drone flies outdoors with satellite positioning, crosses "
-        "the entrance into the building where satellite positioning is switched off, continues indoors, and "
-        "returns the same way. The entrance and the point where satellite positioning switches off and on again "
-        "coincide, marked once as the GNSS gate. The out and back legs are drawn a little apart, side by side, so "
-        "both are visible; they were flown along the same line.")
+        'Plan view of the outdoor-to-indoor flight: the outdoor align leg, then the out and back legs through the entrance, where GNSS is switched off going in and on coming out (the two legs are drawn slightly apart but were flown on one line).')
 
     print("%d/%d geometry checks passed" % (sum(c[3] for c in CHECKS), len(CHECKS)))
     for lab, d, s, ok in CHECKS:
