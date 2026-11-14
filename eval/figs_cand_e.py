@@ -273,8 +273,8 @@ mask_s1 = np.isfinite(x_s1[:, 1]) & np.isfinite(x_s1[:, 2]) & (x_s1[:, 0] <= ons
 fig, axs = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 3.4), sharex=True, sharey=True)
 for ax, (xx, mm, lab, cap) in zip(axs, (
         (x_clean, np.ones(len(x_clean), bool), "(a) no wrong IDs", "no wrong IDs (clean reference)"),
-        (x_s0, np.ones(len(x_s0), bool), "(b) 1% wrong IDs", "1% wrong IDs, seed 0 (non-diverged)"),
-        (x_s1, mask_s1, "(c) 1% wrong IDs", "1% wrong IDs, seed 1 (diverged)"))):
+        (x_s0, np.ones(len(x_s0), bool), "(b) 1% wrong, no divergence", "1% wrong IDs, seed 0 (non-diverged)"),
+        (x_s1, mask_s1, "(c) 1% wrong, diverged", "1% wrong IDs, seed 1 (diverged)"))):
     wg = (_Gt3 >= xx[mm, 0].min()) & (_Gt3 <= min(xx[mm, 0].max(), _Gt3.max()))
     ax.plot(_Gx3[wg], _Gy3[wg], color=TRUTH, lw=1.0, zorder=2)
     for t_ in TMAP:
@@ -409,33 +409,28 @@ check("E04 3 tracks plotted (EKF3, UKF, FGO)", str(len(TRK4) == 3), "True", "thi
 # widened (symmetrically, centred on the flight) to match the figure's own physical aspect ratio, so the equal-
 # scale axes box fills the whole figure (no narrow box with a legend stranded in blank canvas beside it) and the
 # legend sits in the resulting blank margin alongside the flight line, inside the axes.
-FIGW4, FIGH4 = TEXT_WIDTH_IN, 8.2
-ylo4, yhi4 = -18.0, 54.0
-xmid4 = float(np.nanmean(G4[:, 1])); xr4 = (yhi4 - ylo4) * (FIGW4 / FIGH4)
-xlo4, xhi4 = xmid4 - xr4 / 2, xmid4 + xr4 / 2
-fig, ax = plt.subplots(figsize=(FIGW4, FIGH4))
+# North runs horizontally; the East (sideways) axis is stretched so the drift is readable (the route is about
+# 65 m long but the sideways errors are a few metres). Stated in the caption.
+fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 3.6))
 wg4 = (G4[:, 0] >= min(t4.min(), TRK4["UKF live"][0, 0]) - 10) & (G4[:, 0] <= max(t4.max(), TRK4["UKF live"][-1, 0]) + 10)
-ax.plot(G4[wg4, 1], G4[wg4, 2], color=TRUTH, lw=1.2, zorder=2, label="true path")
-for e, ls in (("EKF3", "-"), ("UKF", "-"), ("FGO", "-")):
+ax.plot(G4[wg4, 2], G4[wg4, 1], color=TRUTH, lw=1.6, zorder=2, label="true path")
+for e in ("EKF3", "UKF", "FGO"):
     Tk = TRK4[f"{e} live"]
-    ax.plot(Tk[:, 1], Tk[:, 2], color=C[e], lw=0.9, ls=ls, alpha=0.9, zorder=3, label=f"{e} live")
-for lbl, t_m, mk, col in (("GNSS OFF (dropout)", toff4, "v", INK), ("GNSS ON (return)", ton4, "^", INK)):
-    gx, gy = np.interp(t_m, G4[:, 0], G4[:, 1]), np.interp(t_m, G4[:, 0], G4[:, 2])
-    ax.plot(gx, gy, marker=mk, ms=9, color=col, mec=SURF, mew=1.0, zorder=6, ls="", label=lbl)
-ax.set_xlabel("East (m)"); ax.set_ylabel("North (m)")
-ax.set_xlim(xlo4, xhi4); ax.set_ylim(ylo4, yhi4)
-ax.set_aspect(1.0, adjustable="box")
+    ax.plot(Tk[:, 2], Tk[:, 1], color=C[e], lw=1.0, alpha=0.9, zorder=3, label=f"{e} live")
+gx_off, gy_off = np.interp(toff4, G4[:, 0], G4[:, 1]), np.interp(toff4, G4[:, 0], G4[:, 2])
+ax.axvline(gy_off, color=INK, ls=":", lw=1.2, zorder=1, label="entrance: GNSS off going in, on coming out")
+ax.set_xlabel("North (m)"); ax.set_ylabel("East (m)")
 _xmaxd4 = max(TRK4[f"{e} live"][:, 1].max() for e in EST); _xmind4 = min(TRK4[f"{e} live"][:, 1].min() for e in EST)
-check("E04 widened x-axis still contains every plotted track (no clipping)", str(xlo4 <= _xmind4 and _xmaxd4 <= xhi4), "True",
-      "this script (data bounds vs the widened set_xlim)")
-st4 = measured_stretch(fig, ax); check("E04 equal scale (measured stretch)", rd(st4, 1), "1.0", "set_aspect(1.0)")
-ax.legend(loc="center left", frameon=False, fontsize=9.0, bbox_to_anchor=(0.02, 0.32))
+ax.set_xlim(-18.0, 54.0); ax.set_ylim(min(_xmind4, -1.0) - 0.5, max(_xmaxd4, 1.0) + 0.5)
+check("E04 axes contain every plotted track (no clipping)",
+      str(all(TRK4[f"{e} live"][:, 2].min() >= -18.0 and TRK4[f"{e} live"][:, 2].max() <= 54.0 for e in EST)), "True",
+      "this script (data bounds vs set_xlim)")
+ax.legend(loc="upper center", ncol=3, frameon=False, fontsize=8.5, bbox_to_anchor=(0.5, -0.22))
 save(fig, "E04", "E04_exp4_outdoor_indoor_paths", "Experiment 4 (outdoor-indoor): each estimator's live path over the true path, dropout and return marked",
      "Experiment 4 (outdoor to indoor to outdoor, open loop on simulator truth), one flight: the live path of "
-     "EKF3 (blue), UKF (teal) and FGO (orange) against the true path in grey, world frame, no alignment, equal "
-     "scale. The downward triangle marks where GNSS was switched off at the building entrance; the upward "
-     "triangle marks where it came back on, outdoors again - the drone goes by the same entrance on the way in "
-     "and the way out, so the two markers sit almost on top of each other. EKF3's path visibly separates from "
+     "EKF3 (blue), UKF (teal) and FGO (orange) against the true path in grey, world frame, no alignment, with the "
+     "sideways (East) axis stretched so the drift can be seen. The dotted line is the building entrance, where GNSS "
+     "was switched off going in and back on coming out. EKF3's path visibly separates from "
      "the true path indoors and snaps back once GNSS returns; the UKF and FGO stay closer to the true path "
      "throughout.",
      "eval/results/expO/O_r1.json (markers_bag_s, tracks.*.indoor_rmse_m); ~/thesis_data/trials/O_r1/room_ukf/ukf_live.tum, "
@@ -583,10 +578,10 @@ for w, ls in (("0.25", "-"), ("1", (0, (4, 2))), ("5", (0, (1, 1)))):
     x6 = E6[w][0]
     ax.plot(x6[:, 1], x6[:, 2], color=C["FGO"], lw=0.9, ls=ls, alpha=0.85, zorder=3, label=f"FGO live, W = {w} s")
 ax.set_xlabel("East (m)"); ax.set_ylabel("North (m)")
-ax.set_xlim(-4.5, 4.5); ax.set_ylim(-4.5, 4.5)   # a little blank margin above the square, for the legend below
+ax.set_xlim(-4.5, 4.5); ax.set_ylim(-4.5, 4.5)
 ax.set_aspect(1.0, adjustable="box")
 st6 = measured_stretch(fig, ax); check("E06 equal scale (measured stretch)", rd(st6, 1), "1.0", "set_aspect(1.0)")
-ax.legend(loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
+ax.legend(loc="upper center", ncol=2, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, -0.12))
 _E06_SEP_SENT = ("The paths lie almost on top of each other at every instant; the spread visible near the corners "
                  "is between laps, not between windows." if SEP6_SMALL else
                  "The paths separate visibly at some instants, most noticeably near the corners.")
