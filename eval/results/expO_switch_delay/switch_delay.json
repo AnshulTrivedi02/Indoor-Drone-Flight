@@ -1,0 +1,578 @@
+{
+ "O_r1": {
+  "clock_map": {
+   "rate_kk": 0.00021118750044951066,
+   "offset_c0_s": -0.0019224519532773498,
+   "note": "bag = sitl + kk*sitl + c0 (o_score.py)"
+  },
+  "markers_sitl_s": {
+   "OUTBACK ALIGN START": 30.232,
+   "OUTBACK OUT START": 40.232,
+   "GNSS OFF": 80.26,
+   "OUTBACK BACK START": 143.232,
+   "GNSS ON": 203.317,
+   "OUTBACK END": 243.232
+  },
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.236462168560312,
+   "OUTBACK OUT START": 40.2385740435648,
+   "GNSS OFF": 80.2750274568328,
+   "OUTBACK BACK START": 143.2603263561111,
+   "GNSS ON": 203.35801555707562,
+   "OUTBACK END": 243.28144510615607
+  },
+  "parm_SIM_GPS1_ENABLE_sitl_s": [
+   [
+    3.237,
+    1.0
+   ],
+   [
+    80.230216,
+    0.0
+   ],
+   [
+    80.231216,
+    0.0
+   ],
+   [
+    203.287515,
+    1.0
+   ],
+   [
+    203.288514,
+    1.0
+   ]
+  ],
+  "gps0_status_changes_sitl_s": [
+   [
+    10.792228,
+    1,
+    6
+   ],
+   [
+    80.592094,
+    6,
+    1
+   ],
+   [
+    203.592463,
+    1,
+    6
+   ]
+  ],
+  "lua_msgs_sitl_s": [
+   [
+    5.146569,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    14.771228,
+    "O-switch: source set 1 (GPS)"
+   ],
+   [
+    84.593749,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    207.572795,
+    "O-switch: source set 1 (GPS)"
+   ]
+  ],
+  "ev_85_86_sitl_s": [
+   [
+    5.146569,
+    86
+   ],
+   [
+    14.771228,
+    85
+   ],
+   [
+    84.593749,
+    86
+   ],
+   [
+    207.572795,
+    85
+   ]
+  ],
+  "xkfs_ss_changes_sitl_s": [
+   [
+    5.232536,
+    1
+   ],
+   [
+    14.832228,
+    0
+   ],
+   [
+    84.632736,
+    1
+   ],
+   [
+    207.632784,
+    0
+   ]
+  ],
+  "xkfs_ss_changes_bag_s_stored": [
+   [
+    5.231718594245574,
+    1
+   ],
+   [
+    14.833437929204141,
+    0
+   ],
+   [
+    84.64868692401876,
+    1
+   ],
+   [
+    207.67471099671104,
+    0
+   ]
+  ],
+  "checks": "PASS (markers, source_set_changes)",
+  "delays": {
+   "OFF": {
+    "marker_sitl_s": 80.26,
+    "parm_set_sitl_s": 80.230216,
+    "gps_status_change_sitl_s": 80.592094,
+    "ev_sitl_s": 84.593749,
+    "ss_change_sitl_s": 84.632736,
+    "ss_minus_marker_sitl_s": 4.372735999999989,
+    "ss_minus_marker_bag_s": 4.373659467185959,
+    "ss_minus_parm_sitl_s": 4.4025199999999955,
+    "ss_minus_gps_status_sitl_s": 4.040641999999991,
+    "marker_minus_parm_sitl_s": 0.029784000000006472,
+    "gps_status_minus_parm_sitl_s": 0.36187800000000436,
+    "bag_over_sitl_delay_ratio": 1.0002111875004505
+   },
+   "ON": {
+    "marker_sitl_s": 203.317,
+    "parm_set_sitl_s": 203.287515,
+    "gps_status_change_sitl_s": 203.592463,
+    "ev_sitl_s": 207.572795,
+    "ss_change_sitl_s": 207.632784,
+    "ss_minus_marker_sitl_s": 4.315783999999979,
+    "ss_minus_marker_bag_s": 4.316695439635424,
+    "ss_minus_parm_sitl_s": 4.345268999999973,
+    "ss_minus_gps_status_sitl_s": 4.040320999999977,
+    "marker_minus_parm_sitl_s": 0.029484999999993988,
+    "gps_status_minus_parm_sitl_s": 0.304947999999996,
+    "bag_over_sitl_delay_ratio": 1.0002111875004507
+   }
+  },
+  "ekf3_err_on_to_switch": {
+   "err_at_on_m": 3.5335616802406946,
+   "t_on_sample_since_on_s": 0.015510274884547925,
+   "err_last_before_switch_m": 4.100525844968557,
+   "t_last_before_since_on_s": 4.21669132447559,
+   "err_first_after_switch_m": 0.08221060545020233,
+   "t_first_after_since_on_s": 4.316695439635424,
+   "fit_rate_m_per_s": 0.13496157574189538,
+   "fit_intercept_m": 3.5292127867856746,
+   "n_samples": 43,
+   "err_max_in_window_m": 4.100525844968557,
+   "err_min_in_window_m": 3.5335616802406946,
+   "err_10s_after_on_m_stored": 0.03323874759591374,
+   "max_step_after_return_m_stored": 4.095349815487083
+  },
+  "xkf4_reset_offsets_near_switch_sitl": [
+   [
+    207.132868,
+    -0.008917553350329399,
+    0.0011001192033290863
+   ],
+   [
+    208.632616,
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "O_r2": {
+  "clock_map": {
+   "rate_kk": 0.0002108445591827512,
+   "offset_c0_s": -0.0018714042794882486,
+   "note": "bag = sitl + kk*sitl + c0 (o_score.py)"
+  },
+  "markers_sitl_s": {
+   "OUTBACK ALIGN START": 30.246,
+   "OUTBACK OUT START": 40.246,
+   "GNSS OFF": 80.274,
+   "OUTBACK BACK START": 143.246,
+   "GNSS ON": 203.331,
+   "OUTBACK END": 243.246
+  },
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.250505800257553,
+   "OUTBACK OUT START": 40.25261424584939,
+   "GNSS OFF": 80.28905393186434,
+   "OUTBACK BACK START": 143.2743312354452,
+   "GNSS ON": 203.3719998307837,
+   "OUTBACK END": 243.2954156913635
+  },
+  "parm_SIM_GPS1_ENABLE_sitl_s": [
+   [
+    3.251,
+    1.0
+   ],
+   [
+    80.244211,
+    0.0
+   ],
+   [
+    80.245211,
+    0.0
+   ],
+   [
+    203.301512,
+    1.0
+   ],
+   [
+    203.302512,
+    1.0
+   ]
+  ],
+  "gps0_status_changes_sitl_s": [
+   [
+    10.806228,
+    1,
+    6
+   ],
+   [
+    80.60609,
+    6,
+    1
+   ],
+   [
+    203.606461,
+    1,
+    6
+   ]
+  ],
+  "lua_msgs_sitl_s": [
+   [
+    5.156565,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    14.781228,
+    "O-switch: source set 1 (GPS)"
+   ],
+   [
+    84.627738,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    207.604789,
+    "O-switch: source set 1 (GPS)"
+   ]
+  ],
+  "ev_85_86_sitl_s": [
+   [
+    5.156565,
+    86
+   ],
+   [
+    14.781228,
+    85
+   ],
+   [
+    84.627738,
+    86
+   ],
+   [
+    207.604789,
+    85
+   ]
+  ],
+  "xkfs_ss_changes_sitl_s": [
+   [
+    5.246531,
+    1
+   ],
+   [
+    14.846228,
+    0
+   ],
+   [
+    84.646732,
+    1
+   ],
+   [
+    207.646782,
+    0
+   ]
+  ],
+  "xkfs_ss_changes_bag_s_stored": [
+   [
+    5.245765798236445,
+    1
+   ],
+   [
+    14.847486842118698,
+    0
+   ],
+   [
+    84.66270789861531,
+    1
+   ],
+   [
+    207.68869178993702,
+    0
+   ]
+  ],
+  "checks": "PASS (markers, source_set_changes)",
+  "delays": {
+   "OFF": {
+    "marker_sitl_s": 80.274,
+    "parm_set_sitl_s": 80.244211,
+    "gps_status_change_sitl_s": 80.60609,
+    "ev_sitl_s": 84.627738,
+    "ss_change_sitl_s": 84.646732,
+    "ss_minus_marker_sitl_s": 4.372731999999999,
+    "ss_minus_marker_bag_s": 4.373653966750965,
+    "ss_minus_parm_sitl_s": 4.402520999999993,
+    "ss_minus_gps_status_sitl_s": 4.040642000000005,
+    "marker_minus_parm_sitl_s": 0.029788999999993848,
+    "gps_status_minus_parm_sitl_s": 0.3618789999999876,
+    "bag_over_sitl_delay_ratio": 1.000210844559183
+   },
+   "ON": {
+    "marker_sitl_s": 203.331,
+    "parm_set_sitl_s": 203.301512,
+    "gps_status_change_sitl_s": 203.606461,
+    "ev_sitl_s": 207.604789,
+    "ss_change_sitl_s": 207.646782,
+    "ss_minus_marker_sitl_s": 4.315782000000013,
+    "ss_minus_marker_bag_s": 4.3166919591533315,
+    "ss_minus_parm_sitl_s": 4.345269999999999,
+    "ss_minus_gps_status_sitl_s": 4.040321000000006,
+    "marker_minus_parm_sitl_s": 0.029487999999986414,
+    "gps_status_minus_parm_sitl_s": 0.3049489999999935,
+    "bag_over_sitl_delay_ratio": 1.0002108445591826
+   }
+  },
+  "ekf3_err_on_to_switch": {
+   "err_at_on_m": 3.540909055299994,
+   "t_on_sample_since_on_s": 0.015508269144902442,
+   "err_last_before_switch_m": 4.109425407343826,
+   "t_last_before_since_on_s": 4.2166878782817605,
+   "err_first_after_switch_m": 0.08207994095196289,
+   "t_first_after_since_on_s": 4.3166919591533315,
+   "fit_rate_m_per_s": 0.13534185817551286,
+   "fit_intercept_m": 3.5369547166300515,
+   "n_samples": 43,
+   "err_max_in_window_m": 4.109425407343826,
+   "err_min_in_window_m": 3.540909055299994,
+   "err_10s_after_on_m_stored": 0.03383550485798497,
+   "max_step_after_return_m_stored": 4.103690657848556
+  },
+  "xkf4_reset_offsets_near_switch_sitl": [
+   [
+    207.146866,
+    0.00031849369406700134,
+    0.001349254627712071
+   ],
+   [
+    208.646614,
+    0.0,
+    0.0
+   ]
+  ]
+ },
+ "O_r3b": {
+  "clock_map": {
+   "rate_kk": 0.0002138465942216041,
+   "offset_c0_s": -0.0022818062659696646,
+   "note": "bag = sitl + kk*sitl + c0 (o_score.py)"
+  },
+  "markers_sitl_s": {
+   "OUTBACK ALIGN START": 30.093,
+   "OUTBACK OUT START": 40.093,
+   "GNSS OFF": 80.121,
+   "OUTBACK BACK START": 143.093,
+   "GNSS ON": 203.178,
+   "OUTBACK END": 243.093
+  },
+  "markers_bag_s": {
+   "OUTBACK ALIGN START": 30.09715347929394,
+   "OUTBACK OUT START": 40.09929194523616,
+   "GNSS OFF": 80.13585179670966,
+   "OUTBACK BACK START": 143.12131814444098,
+   "GNSS ON": 203.21916711705478,
+   "OUTBACK END": 243.14270280386313
+  },
+  "parm_SIM_GPS1_ENABLE_sitl_s": [
+   [
+    3.263,
+    1.0
+   ],
+   [
+    80.091263,
+    0.0
+   ],
+   [
+    80.092262,
+    0.0
+   ],
+   [
+    203.148538,
+    1.0
+   ],
+   [
+    203.149538,
+    1.0
+   ]
+  ],
+  "gps0_status_changes_sitl_s": [
+   [
+    10.818228,
+    1,
+    6
+   ],
+   [
+    80.418153,
+    6,
+    1
+   ],
+   [
+    203.418493,
+    1,
+    6
+   ]
+  ],
+  "lua_msgs_sitl_s": [
+   [
+    5.16956,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    14.792228,
+    "O-switch: source set 1 (GPS)"
+   ],
+   [
+    84.371824,
+    "O-switch: source set 2 (flow)"
+   ],
+   [
+    207.401823,
+    "O-switch: source set 1 (GPS)"
+   ]
+  ],
+  "ev_85_86_sitl_s": [
+   [
+    5.16956,
+    86
+   ],
+   [
+    14.792228,
+    85
+   ],
+   [
+    84.371824,
+    86
+   ],
+   [
+    207.401823,
+    85
+   ]
+  ],
+  "xkfs_ss_changes_sitl_s": [
+   [
+    5.258527,
+    1
+   ],
+   [
+    14.858228,
+    0
+   ],
+   [
+    84.458795,
+    1
+   ],
+   [
+    207.458814,
+    0
+   ]
+  ],
+  "xkfs_ss_changes_bag_s_stored": [
+   [
+    5.2573697118236025,
+    1
+   ],
+   [
+    14.859123575187999,
+    0
+   ],
+   [
+    84.47457441939683,
+    1
+   ],
+   [
+    207.50089655454917,
+    0
+   ]
+  ],
+  "checks": "PASS (markers, source_set_changes)",
+  "delays": {
+   "OFF": {
+    "marker_sitl_s": 80.121,
+    "parm_set_sitl_s": 80.091263,
+    "gps_status_change_sitl_s": 80.418153,
+    "ev_sitl_s": 84.371824,
+    "ss_change_sitl_s": 84.458795,
+    "ss_minus_marker_sitl_s": 4.337795,
+    "ss_minus_marker_bag_s": 4.338722622687172,
+    "ss_minus_parm_sitl_s": 4.367531999999997,
+    "ss_minus_gps_status_sitl_s": 4.040641999999991,
+    "marker_minus_parm_sitl_s": 0.029736999999997238,
+    "gps_status_minus_parm_sitl_s": 0.3268900000000059,
+    "bag_over_sitl_delay_ratio": 1.0002138465942194
+   },
+   "ON": {
+    "marker_sitl_s": 203.178,
+    "parm_set_sitl_s": 203.148538,
+    "gps_status_change_sitl_s": 203.418493,
+    "ev_sitl_s": 207.401823,
+    "ss_change_sitl_s": 207.458814,
+    "ss_minus_marker_sitl_s": 4.280813999999992,
+    "ss_minus_marker_bag_s": 4.281729437494391,
+    "ss_minus_parm_sitl_s": 4.310275999999988,
+    "ss_minus_gps_status_sitl_s": 4.040320999999977,
+    "marker_minus_parm_sitl_s": 0.029461999999995214,
+    "gps_status_minus_parm_sitl_s": 0.26995500000001016,
+    "bag_over_sitl_delay_ratio": 1.0002138465942223
+   }
+  },
+  "ekf3_err_on_to_switch": {
+   "err_at_on_m": 3.5322747514525763,
+   "t_on_sample_since_on_s": -0.01946816231011894,
+   "err_last_before_switch_m": 4.101200195496692,
+   "t_last_before_since_on_s": 4.181724056256542,
+   "err_first_after_switch_m": 0.08455896097198702,
+   "t_first_after_since_on_s": 4.281729437494391,
+   "fit_rate_m_per_s": 0.13564635609539255,
+   "fit_intercept_m": 3.5325338049936326,
+   "n_samples": 42,
+   "err_max_in_window_m": 4.101200195496692,
+   "err_min_in_window_m": 3.5455363139646447,
+   "err_10s_after_on_m_stored": 0.03497115358928204,
+   "max_step_after_return_m_stored": 4.097477742239563
+  },
+  "xkf4_reset_offsets_near_switch_sitl": [
+   [
+    206.958898,
+    -0.0031488665845245123,
+    0.0009097502334043384
+   ],
+   [
+    208.458646,
+    0.0,
+    0.0
+   ]
+  ]
+ }
+}
