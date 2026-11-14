@@ -13,6 +13,13 @@ Built by eval/figs_cand_c.py at commit `36cab63`, run with /home/makerspace/venv
 | C05 | Wrong tag IDs: tag maps, clean reference + main collapse example | flights/fl_E3_maps.png (walkthrough wt_16m_E3_maps.png) | bags T_A_r1 (ground truth); tier1 run dirs; tier1/scores/E3a_T_A_r1_0.01_s0.json | 6/6 | none (descriptive: one run per panel, not the 9-run H-E3.1 population) |
 | C06 | Wrong tag IDs: tag maps, appendix (two more runs) | flights/fl_E3_maps_app.png (walkthrough wt_A2_E3_maps_app.png) | bags T_A_r2, T_A_r3 (ground truth); tier1 run dirs; tier1/scores/E3a_T_A_r3_0.05_s0.json, E3b_T_A_r2_0.05_s1.json | 6/6 | none (descriptive, as C05) |
 | C07 | A UKF with landmark states against the FGO | walkthrough extra/ex_E5_ukf_landmarks.png (p18); summary page 18 (same data) | tier1/scores/e5_verdicts.json, e5_T_A_r{1,2,3}.json | 23/23 | H-E5.1; S-E5.5; S-E5.6 |
+| C08 | E6 mapping flights: the figure-of-eight route | (new; E6 mapping flights, docs/thesis/tier1/e6_results.md) | tier1/e6/fig8_3c_profile.json; scores/e6_route_E6M_fig8_{r1b,r2,r3}.json; sim/worlds/room_tags_map.json, room_tags.sdf; bags E6M_fig8_{r1b,r2,r3} (ground truth) | 18/18 | none (descriptive) |
+| C09 | E6 mapping flights: the tag maps they produced | (new; E6 mapping flights, docs/thesis/tier1/e6_results.md) | tier1/e6/maps/E6M_fig8_{r1b,r2,r3}/map_fgo.json, map_ukf.json, map_errors.json; sim/worlds/room_tags_map.json | 82/82 (shared with C10) | Extension E6 P1 |
+| C10 | E6 mapping flights: per-flight map position RMS (table) | (new; same source as C09) | tier1/e6/maps/E6M_fig8_{r1b,r2,r3}/map_errors.json; tier1/numbers_tier1.md | 13/13 (shared with C09) | Extension E6 P1 |
+
+- C08/C09/C10 (Extension E6, map reuse) added by eval/figs_cand_e6route.py, continuing group C after C07; no figure here was rebuilt or renumbered.
+- C08 is descriptive (no Table A.4 row of its own, same convention as C05/C06); C09 and the C10 table both point at Extension E6's P1 row (the map-position-RMS comparison).
+- The "Checks: 82/82" line above this table is eval/figs_cand_c.py's own total (C01-C07 only, unchanged by this script, which does not re-run it); eval/figs_cand_e6route.py's own C08-C10 totals are in the table row above, per candidate id.
 
 Notes for the coordinator:
 - C02 and C03 share one dataset (the per-run outcome of Extension E3); C02 is the chart, C03 the table candidate, as the brief asks for both.
