@@ -710,7 +710,7 @@ def ob_h42(tag):
                   f"{len(OFL)} flights (every estimator on the same flights, open loop on simulator truth, paired)",
                   "H4.2 'live indoor errors are similar': in every flight the largest live indoor RMSE is ≤ 1.5 × the smallest "
                   f"({cite(M_, 10360, 'live indoor errors are similar')}, {cite(M_, 10361, 'is ≤ 1.5 × the smallest')}); no ordering test was registered",
-                  f"max ÷ min {rng(ho2)}: H4.2 FAILS; EKF3 largest in {ne} of {len(OFL)} flights; UKF {rng(OI['UKF live'])} m and "
+                  f"max ÷ min {rng(ho2)}: H4.2 NOT MET; EKF3 largest in {ne} of {len(OFL)} flights; UKF {rng(OI['UKF live'])} m and "
                   f"FGO {rng(OI['FGO live'])} m (both descriptive)", "ii")
 
 
@@ -739,7 +739,11 @@ def ob_ret(tag):
     return obasis(tag, "Experiment 4, the jump on the return to GNSS", "largest position step in the 10 s after GNSS returns, m",
                   f"{len(OFL)} flights (same flights for every estimator)",
                   f"none: EKF3's jump is 'Reported regardless' ({cite(M_, 10365, 'Reported regardless')}); no comparative test was pre-registered",
-                  f"EKF3 {rng(st['EKF3'])}, UKF {rng(st['UKF'])}, FGO {rng(st['FGO'])} m", "iii")
+                  f"EKF3 {rng(st['EKF3'])}, UKF {rng(st['UKF'])}, FGO {rng(st['FGO'])} m. EKF3's jump is measured once the simulation's "
+                  "GNSS switching script moves EKF3 off its indoor source set, about 4.3 s after GNSS returns (the script waits for 40 "
+                  "consecutive GPS-status checks, 100 ms apart, about 4.0 s, plus about 0.3 s of simulated GPS latency). The UKF and FGO "
+                  "replays take every GNSS sample as it is recorded, with no gate and no reset on return, so they carry no equivalent "
+                  "delay", "iii")
 
 
 def ob_l(tag, t1=False):
@@ -958,7 +962,7 @@ CELLS = {
              ("N/A", "no offline heading arm", "the fixed no-heading baseline"),
              (BLANK_ST, "position invalid from take-off", "origin output, unscored"),
              ("", f"1 tag: {rd_si(mrD['EKF3 live'], 3)} m live", "no live ordering claimed"),
-             ("", f"indoor {rng(OI['EKF3 live'])} m", "no live ordering claimed; 4.10 m jump"),
+             ("", f"indoor {rng(OI['EKF3 live'])} m", "no live ordering claimed; 4.10 m jump, about 4.3 s after GNSS returns (the switching script's delay)"),
              ("N/A", "no landmark states", "the thesis EKF3 as configured has no loop closure; EKF3 with landmark states not tested"),
              ("", f"hold {rng(hE, 1)} mm", "bands PASS; comparatives FAIL"),
              ("", f"{passh['EKF3']}/3 pass; max cross-track ≤ {rd(max(B2h['EKF3']), 2)} m", "no ordering claimed")],
@@ -1012,9 +1016,13 @@ save_tab("T1", "T1_scorecard", "Scorecard of the restated verdicts by experiment
          notes=["Statuses (not orderings): '" + BLANK_ST + "' = the blank-floor status (ruling 2026-10-18; the blank floor is ruled 'not accuracy comparisons'); PASSED = met "
                 "its pre-registered criteria with no comparison (Experiment 3, the FGO: H3.1–H3.4); N/A = not run (Experiment 3: the thesis EKF3 has no landmark states). Ordering labels (BEST / "
                 "BEHIND / TIED) are printed only where a pre-registered decision rule was met (ruling 2026-10-17); none is printed here.",
+                "Experiment 4's EKF3 jump: the 4.10 m figure is measured once the simulation's GNSS switching script moves EKF3 off its "
+                "indoor source set, about 4.3 s after GNSS returns (the script waits for 40 consecutive GPS-status checks, 100 ms apart, "
+                "about 4.0 s, plus about 0.3 s of simulated GPS latency). The UKF and FGO replays take every GNSS sample as it is recorded, "
+                "with no gate and no reset on return, so they carry no equivalent delay.",
                 "Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians "
                 "descriptive [b]; with the camera heading, C1.a registered with no decision rule [c]; blank floor, no comparative test [d]; "
-                "Experiment 2 live, H2.3 FAIL [e]; Experiment 4 live, H4.2 FAIL [f] (H4.3, the FGO whole-flight batch "
+                "Experiment 2 live, H2.3 FAIL [e]; Experiment 4 live, H4.2 NOT MET [f] (H4.3, the FGO whole-flight batch "
                 "within 1.5× of the smoothed UKF, PASSES [g], and H4.1, the batch below both filters' live tracks, PASSES (hindsight against "
                 "live, not like with like); neither concerns the live key numbers); Experiment 3, one thesis estimator [h], the UKF cell an extension variant [k]; Experiment 5, H5.2 / H5.3 / "
                 "H5.4a–b FAIL on the final-build hold sets, identical to the original-build verdicts, all drift bands PASS [i]; "
@@ -1786,12 +1794,13 @@ check("flight 1 curve indoor RMSE recomputed vs json, max |Δ| <= 0.05 m", "ok" 
 check("flight 1 bag has no tag topics", len(tag_topics), 0, "O design: no tags in outdoor_indoor.sdf")
 ob_h41("a"); ob_h42("b"); ob_h43("c"); ob_ret("d")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F6", "F6_O_outdoor_indoor",
-     "Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m",
+     "Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the error near 1 m",
      "Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle "
      "flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted lines): GNSS OFF at the entrance "
      f"(0 s); the far end reached at about {rd(t_far, 0)} s; the return starting at {rd(t_back, 0)} s; GNSS ON on re-crossing the "
      "entrance at " + f"{rd(t_on, 0)} s. Solid lines are live, dashed lines are hindsight; EKF3 resets to GNSS on return with a 4.10 m "
-     "jump, in every flight. The per-flight indoor RMSE of all three flights is in Table 5.1.",
+     "jump, about 4.3 s after GNSS returns once the simulation's GNSS switching script moves EKF3 off its indoor source set (the UKF "
+     "and FGO carry no such delay), in every flight. The per-flight indoor RMSE of all three flights is in Table 5.1.",
      "eval/results/expO/O_r1.json (markers_bag_s, max_step_after_return_m), O_r2.json, O_r3b.json; curves: O_r1 room_ukf/, room_fgo/ TUMs, "
      "dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map); design: METHODOLOGY 'Experiment O: pre-registration', "
      "sim/worlds/outdoor_indoor.sdf, fly_trial.py outback(), o_gnss.parm", "§16.2 table and bullets; claims 19–22",
@@ -1809,7 +1818,7 @@ check("H4.1: FGO whole-flight batch below both filters' live tracks, flights", f
 rowsT6 = [[TSHORT[n], "live" if TSTY[n][1] == "live" else "hindsight"] + [f"{rd(v, 2)}" for v in OI[n]] + [rng(OI[n])] for n in TRK]
 rowsT6.append(["live max ÷ min (H4.2)", "—"] + [f"{rd(v, 2)}" for v in ho2] + [rng(ho2)])
 save_tab("T6", "T6_O_indoor_rmse", "Experiment 4 (outdoor–indoor): indoor horizontal RMSE per flight (123 s, GNSS off)",
-         "Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; "
+         "Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 NOT MET) [a]; "
          "the two hindsight tracks agree at 0.58–0.60 m (H4.3 PASS) [b].",
          ["track", "kind", "flight 1 (m)", "flight 2 (m)", "flight 3 (m)", "range (m)"], rowsT6, [36, 14, 14, 14, 14, 18],
          "eval/results/expO/O_r1.json, O_r2.json, O_r3b.json (tracks.*.indoor_rmse_m)", "§16.2 table and bullets; claims 19–22",
@@ -2149,7 +2158,8 @@ check("Experiment 5 comparative verdicts, final-build sets (primary) / supersede
 check("Experiment 5 hold UKF / FGO / EKF3, final-build sets (mm)", f"{HCR['H-H2'][1]} / {HCR['H-H2'][2]} / {HCR['H-H2'][3]}",
       "6.4–7.1 / 8.3–8.6 / 7.8–7.9", "numbers.md §17.2 criteria table (re-flown)")
 check("Experiment 5 hold UKF, superseded builds (mm)", HCO["H-H2"][1], "5.5–6.1", "numbers.md §17.2 criteria table (earlier sets)")
-check("Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm)",
+check("Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm) - original priors; the FGO figure "
+      "(7-30) is superseded by the corrected-prior re-fly (7-24, numbers_refly.md §4.3)",
       HCR["H-H4 (15 s)"][0].split("EKF3 jump ")[1].replace(" mm against UKF ", " / ").replace(", FGO ", " / ").replace(" mm", ""),
       "5 / 5 / 7 / 20–30 / 7–30", "numbers.md:677 ('5 / 5 / 7 against UKF 20–30, FGO 7–30 mm')")
 check("H5.3 max/min, final-build / superseded", f"{rng([r['ph3_ratio'] for r in _HSET['re']['criteria']['runs']])} / "
@@ -2381,7 +2391,7 @@ check("end of cruise UKF / FGO (m, nearest 1000 m; numbers.md km × 10^3, digits
 rowsT7 = [
     ["EKF3", f"position flagged INVALID from take-off on all {len(EK_INV)} blank flights ({rng(EK_INV, 0)} s of cruise; {max(nvalid)} valid "
              "airborne flow frames); outputs the origin, not scored: a DECLARED failure",
-     f"resets to GNSS on return: {rng(stepO['EKF3'])} m jump (every flight)", "not run (EKF3 has no thesis-nav position-lost path)",
+     f"resets to GNSS on return: {rng(stepO['EKF3'])} m jump (every flight, the switching script's delay) [b]", "not run (EKF3 has no thesis-nav position-lost path)",
      f"reference KILL only (no criteria): drift {rd(HJ('safety_ekf3_ref')['S-A3']['horiz_disp_m'], 2)} m against a ≤ 0.5 m prediction "
      "(the prediction was wrong); no breach"],
     ["UKF", f"no invalid period recorded; position runs away: +60 s {rng(BLANK['UKF'][:, 2], 0)} m, end of cruise {BLK['UKF']} m †",
@@ -2390,7 +2400,8 @@ rowsT7 = [
      f"largest step in 10 s after return {rng(stepO['FGO'])} m", sa("FGO (a) KILL"), sa("FGO (b) KILL")]]
 save_tab("T7", "T7_failure_behaviour", "Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests",
          "How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the "
-         "return to GNSS EKF3 jumps 4.1 m [b]; in the hold safety tests (5S) the final run of each test (the latest on the final build: the "
+         "return to GNSS EKF3 jumps 4.1 m, about 4.3 s after GNSS returns once the simulation's GNSS switching script moves EKF3 off its indoor source set "
+         "(the UKF and FGO carry no such delay) [b]; in the hold safety tests (5S) the final run of each test (the latest on the final build: the "
          "final UKF port's re-test, the FGO corrected-priors node) passes as worded except the UKF node-kill test's position-lost "
          "declaration, which fails as worded in both final-port runs (a relay-drain timing fault in the bound) [c]. " + PRIORS,
          ["estimator", "blank floor: position validity", "Experiment 4: return to GNSS", "forced-invalid test (FGO: node kill), as worded",

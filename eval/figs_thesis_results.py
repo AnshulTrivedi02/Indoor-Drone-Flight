@@ -598,7 +598,7 @@ R1 = [
  ("H4.2", "live indoor errors similar", "",
   "H-O2 … live indoor errors are similar. In every flight, the largest live indoor RMSE of EKF3, UKF and FGO is ≤ 1.5 × the smallest",
   ("M", 10360, 10361), ["live indoor errors are similar. In every flight, the largest live indoor RMSE of EKF3, UKF and FGO is ≤ 1.5 × the smallest."],
-  "FAIL: live max ÷ min 1.71–1.84×", [("numbers.md", 559, None, ["H-O2 FAIL: the live ratio is 1.71–1.84×"])], "NOT MET",
+  "live max ÷ min 1.71–1.84× against the 1.5× limit", [("numbers.md", 559, None, ["H-O2 FAIL: the live ratio is 1.71–1.84×"])], "NOT MET",
   "ratio only: ~2.2× → 1.71–1.84× (first final re-run); verdict unchanged (claims row 19)"),
  ("H4.3", "FGO batch ≈ smoothed UKF", "",
   "P-O3 (prediction; the fair comparison): FGO batch and RTS-UKF indoor RMSE are within 1.5× of each other in every flight",
@@ -816,7 +816,8 @@ check("R1", "H5.5 directional: final UKF port end-of-loss drift per loss, r1 / r
 check("R1", "H5.5 directional: final FGO node end-of-loss drift per loss, r1 / r2 / r3 (mm)", H5D["l_fgo"], "13 / 20 / 17; 7 / 25 / 27; 22 / 15 / 9; 17 / 11 / 18", "numbers.md", 646)
 check("R1", "H5.5 directional: flying EKF3 effective drift range, all 12 losses (mm)", H5D["r_ekf"], "3–31", "M", 10932)
 check("R1", "H5.5 directional: final UKF port effective drift range, all 12 losses (mm)", H5D["r_ukf"], "2–26", "numbers.md", 644)
-jcheck("R1", "H5.5 directional: final FGO node effective drift range, all 12 losses (mm)", H5D["r_fgo"], "7–27", _HJ)
+jcheck("R1", "H5.5 directional (original priors, superseded by the corrected-prior re-fly below): final FGO node effective drift range, "
+      "all 12 losses (mm)", H5D["r_fgo"], "7–27", _HJ)
 jcheck("R1", "H5.5 directional: matched losses with the UKF / FGO drift strictly above flying EKF3 (effective, full precision)",
        f"{H5D['n_ukf']} / {H5D['n_fgo']}", "4 of 12 / 9 of 12", _HJ)
 jcheck("R1", "H5.5 directional: same count, end-of-loss metric (drift_end_m)", f"{H5D['nend_ukf']} / {H5D['nend_fgo']}", "4 of 12 / 9 of 12", _HJ)

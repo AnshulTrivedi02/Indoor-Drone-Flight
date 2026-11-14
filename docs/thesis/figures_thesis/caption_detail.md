@@ -160,10 +160,22 @@ the independent recomputation and the stored value agree). In the figure's own x
 OFF), that jump sits at x = 127.40 s (O_r1), 127.40 s (O_r2) and 127.37 s (O_r3b) — matching the "~127 s" peak read
 off the plot; the plotted peak is the last sample of accumulating error immediately before this jump corrects it.
 
-**So the ~4 s gap between the GNSS ON line (123 s) and the EKF3 error peak (127 s) is EKF3's own source-set switch
-latency**, not a plotting artefact or a different event: for about 4.3 s after GNSS is physically available again,
-EKF3 is still running on its indoor (GPS-denied) source set, during which its error keeps rising, before it
-validates and switches sets and the logged position jumps back near truth.
+**So the ~4 s gap between the GNSS ON line (123 s) and the EKF3 error peak (127 s) is the harness's own GNSS
+source-switching script, not an EKF3-internal gate.** `sim/scripts/o_source_switch.lua` runs inside SITL,
+polling the GPS fix status every 100 ms (`return update, 100`, line 25) and accumulating a one-sided vote
+(`VMAX = 20`, line 6; incremented on a bad fix at line 12, decremented on a good fix at line 14) that must reach
+40 consecutive same-direction polls before the script calls `ahrs:set_posvelyaw_source_set()` and switches EKF3's
+active source set (lines 16-23). A full swing from -20 to +20 (or the reverse) is 40 x 100 ms = 4.0 s, and this is
+the dominant component of the measured gap, not any threshold inside EKF3 itself.
+
+Breaking the measured marker-to-source-set-change delay (`eval/results/expO_switch_delay/switch_delay.json`, from
+`eval/o_switch_delay.py`, commit a833b53; ON side 4.28/4.32/4.32 s, OFF side 4.34/4.37/4.37 s per flight,
+numbers.md wording) into its parts: the GNSS ON/OFF marker to the simulated GPS reporting a changed fix status is
+about 0.24-0.33 s (the simulated GPS's own latency); that status change to the script's own vote completing is
+about 3.95-4.02 s, matching the script's 40 x 100 ms vote timer almost exactly; and the vote completing to the
+first changed `XKFS.SS` dataflash record is a further 0.02-0.09 s (0.04-0.06 s at the GNSS ON event this figure
+plots). The dominant ~4.0 s component times out with the harness script's own 40-vote timer, not with any
+EKF3-internal threshold.
 
 **Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact
 phrasing is the SUPERSEDED, pre-correction wording (recorded, as superseded, in `numbers.md`'s own correction
@@ -171,26 +183,28 @@ table, next to a note that it was corrected by ruling because the OFF/ON deltas 
 `numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s
 (4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 /
 4.32 / 4.28 s) reproduces the CURRENT corrected numbers.md value exactly, not the old transposed one; no new
-discrepancy was found. (Source trace, not re-derived here: `AP_NavEKF3_Control.cpp`'s source-set selection is a
-discrete state machine gated on GPS-fix-quality timers, separate from `AP_AHRS::active_EKF_type()`, which is why
-the logged position only moves once the source-set field itself has already changed, not on the raw GNSS-available
-instant.)
+discrepancy was found.
 
 **Why the FGO's live track drops at the line instead:** recomputed directly from each flight's `room_fgo/
 fgo_live.tum` against `room_ukf/ground_truth.tum` (world frame, no alignment, same as the plotted curve): FGO error
 is still 2.42–2.66 m at x = 123.08 s (the GNSS ON line) and has fallen to 0.003–0.013 m by x = 124.08 s, in all
 three flights — essentially one sample after the line, not 4+ seconds after it. The FGO ingests each GNSS fix
 directly as a factor-graph measurement with no analogous discrete "source set" state machine to switch, so it
-starts correcting on the same sample the fix becomes available, instead of waiting out EKF3's internal switch
-delay.
+starts correcting on the same sample the fix becomes available, instead of waiting out the switch delay the
+harness's switching script imposes on EKF3. The UKF replay takes the same approach: every GNSS sample after GNSS
+ON is used as it is recorded, with no gate and no reset on return (`src/estimators/room_ukf_replay.py:108-109,
+179-191`; the FGO replay likewise, `src/estimators/fgo/room_fgo_replay.py:103-104, 137-147, 168`), so neither the
+UKF nor the FGO carries anything equivalent to this delay.
 
-(Source trace, confirmed by reading `~/ardupilot/libraries/AP_NavEKF3/AP_NavEKF3_Control.cpp` and
-`AP_NavEKF3_VehicleStatus.cpp` directly, not assumed: EKF3's GPS source only becomes usable once
-`readyToUseGPS()` returns true, which itself requires the quality flag `gpsGoodToAlign` to be true; that flag is
-set/cleared in `AP_NavEKF3_VehicleStatus.cpp`/`AP_NavEKF3_Measurements.cpp` by GPS quality checks, not on the raw
-fix-available instant, so a multi-second gate between "GPS physically returns" and "EKF3 accepts it" is consistent
-with ArduPilot's own source code, though the exact 4.3 s was not traced sample-by-sample through that gate here -
-it is measured, from the dataflash, not derived from the gate's internal thresholds.)
+(Mechanism, confirmed from the stored data and the harness script, not re-derived: the script's own "O-switch:
+source set 1 (GPS)" log line fires at essentially the same instant as the `XKFS.SS` change in every flight - at
+most 0.06 s apart at the GNSS ON event this figure plots (`ev_sitl_s` vs `ss_change_sitl_s`,
+`switch_delay.json`) - not ~4 s before it, so the ~4 s gap sits BETWEEN the GPS fix becoming good and the script's
+own vote completing, not between the script firing and EKF3 accepting the switch. EKF3's own GPS-validation
+machinery (`readyToUseGPS()`/`gpsGoodToAlign`, `AP_NavEKF3_Control.cpp`/`AP_NavEKF3_VehicleStatus.cpp`) is a
+separate, faster gate and is not the source of this delay in this harness: here it is the script's own
+`ahrs:set_posvelyaw_source_set()` call that moves EKF3 between source sets, not a GPS-quality timer EKF3
+evaluates on its own schedule.)
 
 
 Material removed from the Figure 4.2 (R3), Figure 4.1c (R5) and Figure 4.1d (R6) captions when they were shortened to
