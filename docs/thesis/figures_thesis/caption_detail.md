@@ -348,3 +348,100 @@ Scope: `eval/figs_thesis_methods.py`, `fig_architecture()`. The previous (2026-1
 The 2026-11-13 pass replaced this with 4 plain sentences (no experiment-id enumeration, no `AHRS_EKF_TYPE` or
 `AP_NavFGO` named, no file/script names). Nothing beyond the quote above was removed from the caption body.
 
+## Second shortening (2026-11-14): brief, what-is-plotted-and-how-to-read-it captions
+
+Scope: the 9 reader-facing figure captions whose last line is the exact `Verdicts: Table A.4, ...` pointer form
+(F2, F9, F5, F6, F7, methods_architecture, R3, R5, R6 - A1/A2/A3 are the appendix-table captions and are out of
+scope, per the brief). No number, verdict or stored result changed anywhere; only caption wording. Each section
+below quotes the FULL caption body as it read immediately before this pass (title and the `Verdicts:` pointer line
+are unchanged throughout and are not repeated here). R5 and R6 are not sectioned below: both were already a plain
+2-3 sentence caption with no number beyond an axis-scale factor, so neither was edited this pass.
+
+## Figure 4.1: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Each estimator flying the vehicle through the textured corridor at half real time; true paths from the simulator, top-down, with the lateral (East) axis stretched 3.0x, between walls at x = ±10 m (the dotted line marks the 9.58 m contact threshold). Colour shows the flying estimator; dashed lines show one flight from each estimator's no-heading flights, run to wall contact at +242.1 s (EKF3), +165.9 s (UKF) and +166.7 s (FGO). Solid lines show three flights per estimator with the camera heading, all staying within 0.33 m of the centreline, so they overlap on the centreline at this scale. Heading-error statistics and the heading error over time are given in Table 4.3 and Figure 4.1b (provisional).
+
+Kept (axis-reading values): the 3.0x East-axis stretch, the walls at x = ±10 m, the 9.58 m contact-threshold
+dotted line. Dropped as a result rather than a plotted reference: the per-estimator wall-contact times (this is a
+top-down position plot, not a time series - the X marker's position, not its time, is what the plot shows) and the
+0.33 m centreline figure. The Table 4.3 / Figure 4.1b pointer is kept, shortened.
+
+## Figure 4.1b (provisional): caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Heading error of the flying estimator (current yaw minus the simulator's true yaw) against time since cruise start, on the same closed-loop flights as Figure 4.1: textured corridor at half real time. Colour shows the flying estimator; dashed lines show one flight from each estimator's no-heading flights, run to wall contact at +242.1 s (EKF3), +165.9 s (UKF) and +166.7 s (FGO); solid lines show three flights per estimator with the camera heading. With the camera heading all 9 flights stay within a heading error p95 of 0.40° and a maximum of 0.73°, so in panel (a) their lines lie on zero against the grey ±2.0° heading-error band; panel (b) shows the same with-heading flights alone, on its own linear ±1° scale.
+
+Kept: the per-estimator wall-contact times (this figure's x-axis IS time, so these are event times marked on the
+plot, unlike Figure 4.1) and the grey ±2.0° band / linear ±1° panel-(b) scale (both drawn reference values).
+Dropped as a result rather than a plotted reference: "textured corridor at half real time", and the heading-error
+p95 (0.40°) and maximum (0.73°) figures - the caption already states where the with-heading lines sit relative to
+the grey band without restating these two numbers.
+
+## Figure 5.1: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Experiment 2 (known tags): horizontal RMSE in the world frame, with no alignment, against which tags are available (condition A all 8, B the four corners, C two diagonal, D one tag). Colour and marker show the estimator; solid filled lines are live, dashed open lines are hindsight (the FGO whole-flight batch and the smoothed UKF); small marks show each of three flights, with a line through their mean. Live errors grow from 0.02–0.04 m in condition A to 0.08–0.13 m in condition D as tags thin out, while the FGO's hindsight batch stays at 0.01–0.03 m across all four conditions.
+
+Dropped as a result rather than a plotted reference: the three live/hindsight error ranges (0.02 to 0.04 m, 0.08
+to 0.13 m, 0.01 to 0.03 m). The hindsight-batch figure (0.01 to 0.03 m) is still stated in the title, which is
+unchanged. The condition labels (A to D) are kept, since they are the x-axis categories. "With no alignment" is
+dropped as provenance detail, not a plot-reading item.
+
+## Figure 5.3: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted lines): GNSS OFF at the entrance (0 s); the far end reached at about 60 s; the return starting at 63 s; GNSS ON on re-crossing the entrance at 123 s. Solid lines are live, dashed lines are hindsight; EKF3 resets to GNSS on return with a 4.10 m jump, about 4.3 s after GNSS returns once the simulation's GNSS switching script moves EKF3 off its indoor source set (the UKF and FGO carry no such delay), in every flight. The per-flight indoor RMSE of all three flights is in Table 5.1.
+
+Kept (binding rule, D113/freeze-audit check E): the 4.10 m jump and the qualifier that it is measured about 4.3 s
+after GNSS returns because of the simulation's GNSS switching script, worded shorter ("about 4.3 s after GNSS
+returns once the simulation's GNSS switching script moves EKF3 off its indoor source set, with no such delay for
+the UKF or FGO") but not dropped. Kept: the four route-event times (0 s, about 60 s, 63 s, 123 s) - dotted-line
+markers on the plot. Dropped as provenance, not a plot-reading item: "with no alignment" and the Table 5.1 pointer
+to the per-flight RMSE table.
+
+## Figure 5.2: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Experiment 3 (loop closure): the keyframe FGO with AprilTags at unknown positions, each tag treated as a landmark, flights 1 to 3, horizontal RMSE per 6 m lap in the first tag's frame, on one shared linear axis. One estimator (the FGO) is plotted, so one colour; live is solid and filled, hindsight is dashed and open. Left: with loop closure the live error falls after lap 1 (lap 5 over lap 1, 0.16–0.43); right: without re-identification it grows 2.9–4.5 times over five laps. The thesis's EKF3 and UKF, as configured, have no landmark states, so they have no loop closure; loop closure is not specific to the FGO: in an extension experiment, a UKF variant with each tag in its state bounded its live drift in 3/3 flights, with a higher error than the FGO's in 3/3 flights (UKF ÷ FGO live 1.76–2.08, descriptive); with 4 and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each. With wrong tag IDs in 1% of the eligible detections, the FGO as built lost its loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in 0/9 runs (6 of 9 runs diverged).
+
+**F7 stays longer than the other 8 captions in this pass, flagged rather than forced short.** Three clauses are
+asserted character-for-character by `docs/thesis/tier1/check_claims_applied.py` (claims C1-C3) against
+`captions/F7.md`: "The thesis's EKF3 and UKF, as configured, have no landmark states"; "loop closure also bounded
+live drift in 3/3 flights in each"; "its live error with loop closure was below the no-loop-closure error on the
+same flight in 0/9 runs (6 of 9 runs diverged)". These are claim-wording checks, not provenance of a caption
+number, so the brief's "move the check's target to caption_detail only if the check's purpose is provenance" escape
+does not apply; the three clauses are kept verbatim in the new caption's third sentence. Dropped as a result rather
+than a plotted reference (the 2.9 to 4.5 times growth figure is still stated in the title, unchanged): the
+lap5/lap1 ratio with loop closure (0.16 to 0.43); the lap5/lap1 ratio without loop closure (2.9 to 4.5, restated
+from the title); the UKF-landmark-state extension experiment's own flight counts and its UKF/FGO live-error ratio
+(1.76 to 2.08).
+
+## Figure 3.1: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs passively alongside it and the UKF and FGO are replayed offline against the same recording; in the closed-loop experiments one estimator flies while the other two run in shadow. The FGO runs as a separate process whose state the flight controller reads.
+
+Kept: the two-panel description and the EKF3 blue / UKF green / FGO orange colour key (how to read panel (b)). The
+open-loop/closed-loop experiment-structure sentence and the FGO-as-separate-process sentence are not needed to read
+the diagram itself, so both are dropped from the body (the first is design detail covered in the methods chapter
+text; the second is an implementation note).
+
+## Figure 4.2: caption detail (second shortening)
+
+Removed from the caption body (kept verbatim; nothing is lost):
+
+> Cruise ATE (m): (a) EKF3 4.10, UKF 5.17, FGO 4.48; (b) EKF3 4.08, UKF 4.96/0.14, FGO 4.54/0.06.
+
+Kept: the colour/estimator key, the alignment method (best-fit rotation and shift, no scale), which flight each
+panel shows and its heading condition, and the East-axis 3.0× stretch (now also stated on the axis label itself).
+Dropped as a result rather than a plotted reference: the six per-arm cruise-ATE values - none of this file's own
+`check()` calls reads the caption text back (they check the computed ATE strings against `numbers.md` directly), so
+removing them from the caption breaks no cross-check.
+

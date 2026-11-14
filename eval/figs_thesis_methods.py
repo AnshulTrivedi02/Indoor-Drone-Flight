@@ -814,14 +814,13 @@ def fig_architecture():
     # present may appear" rule is trivially satisfied). Everything removed from the previous, longer caption -
     # experiment-id enumeration, AHRS_EKF_TYPE and AP_NavFGO, the companion/Pi detail, the two watchers' scope -
     # is preserved verbatim in docs/thesis/figures_thesis/caption_detail_c.md.
+    # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the open-loop/closed-loop experiment-structure
+    # sentence and the "FGO runs as a separate process" sentence are dropped from the body (neither is needed to
+    # read the diagram) and kept verbatim in caption_detail.md.
     plain_caption = ("Panel (a) shows the sensors and the relays that carry their measurements to the flight "
                       "controller and to the recorded data used offline. Panel (b) shows the flight controller, "
-                      "where each of the three estimators runs (outlined in its own colour, as in every other "
-                      "figure: EKF3 blue, UKF green, FGO orange), the safety watchers, and the offline replay and "
-                      "evaluation. In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs "
-                      "passively alongside it and the UKF and FGO are replayed offline against the same "
-                      "recording; in the closed-loop experiments one estimator flies while the other two run in "
-                      "shadow. The FGO runs as a separate process whose state the flight controller reads.")
+                      "where each of the three estimators runs, outlined in its own colour (EKF3 blue, UKF green, "
+                      "FGO orange), alongside the safety watchers and the offline replay and evaluation.")
     ITEMS.append(dict(num="Figure 3.1", name="methods_architecture", kind="figure",
                       title="System architecture: sensors, bridges, the three estimators and where each one runs",
                       caption=plain_caption, files=["methods_architecture.png", "methods_architecture.pdf",

@@ -1414,14 +1414,14 @@ plt.close(fig)
 # shown, line styles. Every number below is unchanged from the previous (longer) caption; the selection rule, the
 # per-flight ATE ranking, the alignment-method explanation and the provenance detail it replaces are moved verbatim
 # to caption_detail_b.md.
+# CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the per-panel cruise-ATE list is a result, not a
+# plotted reference, so it is dropped from the body (kept verbatim in caption_detail.md). The East-axis stretch
+# stays (also now stated on the axis label itself).
 CAP3 = (f"True and estimated top-down paths for EKF3 (blue), UKF (green) and FGO (orange) against truth (grey), each path "
         "aligned to its own ground-truth file by a best-fit rotation and shift (no scale) over the cruise window. "
         f"Panel (a) is flight {ra} of the standard-sensor dataset, no heading source (dashed); panel (b) is flight {rb} of "
         "the textured-wall camera dataset, shown both without heading (dashed) and with the camera heading (solid, UKF and "
-        f"FGO only). Cruise ATE (m): (a) EKF3 {rd(ATE3[('a', 'EKF3')], 2)}, UKF {rd(ATE3[('a', 'UKF')], 2)}, FGO "
-        f"{rd(ATE3[('a', 'FGO')], 2)}; (b) EKF3 {rd(ATE3[('b', 'EKF3')], 2)}, UKF {rd(ATE3[('b', 'UKF_baseline')], 2)}/"
-        f"{rd(ATE3[('b', 'UKF_heading')], 2)}, FGO {rd(ATE3[('b', 'FGO_baseline')], 2)}/{rd(ATE3[('b', 'FGO_heading')], 2)}. "
-        f"The East axis is stretched {rd(STRETCH, 1)}× relative to North.")
+        f"FGO only). The East axis is stretched {rd(STRETCH, 1)}× relative to North.")
 ITEMS.append(dict(num="Figure 4.2", name="R3_trajectory_overlay", kind="figure",
                   title="True and estimated paths, top-down: with the camera heading the UKF and FGO paths lie on the true path", caption=CAP3,
                   inputs=f"~/thesis_data/trials/{TRA}/{{ekf3,ukf,fgo}}/*.tum; ~/thesis_data/trials/{TRB}/{{ekf3,ukf_baseline,fgo_baseline,ukf_heading,"
