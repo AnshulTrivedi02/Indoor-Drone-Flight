@@ -1145,12 +1145,13 @@ ob_cl("a")   # D113 (2026-11-02): runs the underlying numeric cross-checks only;
              # Table A.4, docs/thesis/tables/TA_verdicts.md).
 save(fig, "F2", "F2_heading_stops_sideways_drift",
      "The camera heading stops the sideways drift: without it every estimator flies into the west wall",
-     f"Each estimator flying the vehicle through the textured corridor at half real time; true paths from the simulator, top-down, with "
-     f"the lateral (East) axis stretched {rd(STRETCH, 1)}x, between walls at x = ±10 m (the dotted line marks the 9.58 m contact threshold). "
-     f"Colour shows the flying estimator; dashed lines show one flight from each estimator's no-heading flights, run to wall contact at "
-     f"+{rd(CT2['EKF3'], 1)} s (EKF3), +{rd(CT2['UKF'], 1)} s (UKF) and +{rd(CT2['FGO'], 1)} s (FGO). Solid lines show three flights per "
-     f"estimator with the camera heading, all staying within {rd(_B2ALL_MAX, 2)} m of the centreline, so they overlap on the centreline at "
-     f"this scale. Heading-error statistics and the heading error over time are given in {TNUM['T4']} and {TNUM['F9']}.",
+     # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences, what is plotted and how to read it only; the
+     # removed sentences (contact times, the 0.33 m centreline figure) are kept verbatim in caption_detail.md.
+     f"Each estimator's flown path through the textured corridor, top-down, with the lateral (East) axis stretched "
+     f"{rd(STRETCH, 1)}x and walls at x = ±10 m; the dotted line marks the 9.58 m contact threshold. Colour shows the "
+     f"flying estimator: dashed lines are one no-heading flight each, run to wall contact (marked by X); solid lines "
+     f"are three with-heading flights per estimator, which overlap near the centreline at this scale. Heading-error "
+     f"detail is in {TNUM['T4']} and {TNUM['F9']}.",
      "paths: dataflash SIM of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_r1_half_rp, "
      "cl_fgo_b_tex_r1–r3_half_rp; contact and B2: eval/results/closed_loop_<trial>.json",
      "§15 (contact rows, B2 row, re-flown B1/B2/B4 rows); numbers_refly.md §1-2; claim 14", foot=[],
@@ -1303,13 +1304,14 @@ print(f"F9 curve vs B3 max |Δ| {max(DB3):.2e} deg; clock max |Δ| {max(DCLK):.2
 ob_cl("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F9", "F9_heading_error_closed_loop",
      "Without a heading source the heading error grows until the wall; with the camera heading it stays near zero",
+     # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the contact-time event markers and the grey band
+     # stay (both are read directly off the plot). Dropped: "textured corridor at half real time" and the p95/max
+     # degree figures (a result, not a plotted reference); both kept verbatim in caption_detail.md.
      f"Heading error of the flying estimator (current yaw minus the simulator's true yaw) against time since cruise start, on the same "
-     f"closed-loop flights as {TNUM['F2']}: textured corridor at half real time. Colour shows the flying estimator; dashed lines show "
-     f"one flight from each estimator's no-heading flights, run to wall contact at +{rd(ENDF9['EKF3'][2], 1)} s (EKF3), "
-     f"+{rd(ENDF9['UKF'][2], 1)} s (UKF) and +{rd(ENDF9['FGO'][2], 1)} s (FGO); solid lines show three flights per estimator with the "
-     f"camera heading. With the camera heading all 9 flights stay within a heading error p95 of {rd(P95F9, 2)}° and a maximum of "
-     f"{rd(MAXF9, 2)}°, so in panel (a) their lines lie on zero against the grey ±2.0° heading-error band; panel (b) shows the same "
-     "with-heading flights alone, on its own linear ±1° scale.",
+     f"closed-loop flights as {TNUM['F2']}. Colour shows the flying estimator; dashed lines are one no-heading flight each, ending at "
+     f"wall contact at +{rd(ENDF9['EKF3'][2], 1)} s (EKF3), +{rd(ENDF9['UKF'][2], 1)} s (UKF) and +{rd(ENDF9['FGO'][2], 1)} s (FGO); "
+     f"solid lines are three with-heading flights per estimator. With the camera heading, in panel (a) all 9 flights' lines sit on zero "
+     "against the grey ±2.0° heading-error band; panel (b) shows the same with-heading flights alone, on a linear ±1° scale.",
      "curves: dataflash XKF1 (core 0) / XUKO / XFGO and SIM, and bag /imu/time_ref (clock map), of cl_a_tex_half, cl_bcpp_tex_r1–r3_half, "
      "cl_ukf_a_tex_half_v2, cl_ukf_b_tex_r1–r3_half_v2, cl_fgo_a_tex_r1_half_rp, cl_fgo_b_tex_r1–r3_half_rp; cruise window, contact, B3 and "
      f"clock_map: eval/results/closed_loop_<trial>.json; heading-error bound: {B3SRC}",
@@ -1719,11 +1721,14 @@ check("F5 caption: live errors, condition A / condition D, 2 dp (m) = former lit
 ob_h23("a"); ob_h24("b")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F5", "F5_T_tags_known_positions",
      f"Fewer tags, larger live errors; the FGO's hindsight batch stays at {F5B} m",
-     "Experiment 2 (known tags): horizontal RMSE in the world frame, with no alignment, against which tags are available (condition A "
-     "all 8, B the four corners, C two diagonal, D one tag). Colour and marker show the estimator; solid filled lines are live, dashed "
-     "open lines are hindsight (the FGO whole-flight batch and the smoothed UKF); small marks show each of three flights, with a line "
-     f"through their mean. Live errors grow from {F5A} m in condition A to {F5D} m in condition D as tags thin out, while the FGO's "
-     f"hindsight batch stays at {F5B} m across all four conditions.",
+     # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the live/hindsight error ranges (a result, not a
+     # plotted reference) are dropped from the body (the title still states the hindsight-batch figure); the removed
+     # sentence is kept verbatim in caption_detail.md.
+     "Experiment 2 (known tags): horizontal RMSE in the world frame against which tags are available (condition A "
+     "all 8, B the four corners, C two diagonal, D one tag). Colour and marker show the estimator; solid filled lines "
+     "are live, dashed open lines are hindsight (the FGO whole-flight batch and the smoothed UKF); small marks show "
+     "each of three flights, with a line through their mean. Live errors grow as tags thin out from condition A to "
+     "D, while the FGO's hindsight batch stays flat across all four conditions.",
      "eval/results/expT/T_{A,B,C,D}_r{1,2,3}.json (tracks.*.horiz_err_m.rmse), expT/t_aggregate.json",
      "§16.1 table and bullets (H-T1, P-T2, P-T3, P-T4, condition D); claims 17, 18", foot=[],
      verdict="Verdicts: Table A.4, rows H2.1; H2.2; H2.3; H2.4.")
@@ -1795,12 +1800,16 @@ check("flight 1 bag has no tag topics", len(tag_topics), 0, "O design: no tags i
 ob_h41("a"); ob_h42("b"); ob_h43("c"); ob_ret("d")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F6", "F6_O_outdoor_indoor",
      "Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the error near 1 m",
-     "Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle "
-     "flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted lines): GNSS OFF at the entrance "
-     f"(0 s); the far end reached at about {rd(t_far, 0)} s; the return starting at {rd(t_back, 0)} s; GNSS ON on re-crossing the "
-     "entrance at " + f"{rd(t_on, 0)} s. Solid lines are live, dashed lines are hindsight; EKF3 resets to GNSS on return with a 4.10 m "
-     "jump, about 4.3 s after GNSS returns once the simulation's GNSS switching script moves EKF3 off its indoor source set (the UKF "
-     "and FGO carry no such delay), in every flight. The per-flight indoor RMSE of all three flights is in Table 5.1.",
+     # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the route-event times stay (dotted-line markers
+     # on the plot), and the switching-script qualifier on the 4.10 m / 4.3 s jump is KEPT, shortened but not
+     # dropped (eval/freeze_audit.py check E). Dropped: "with no alignment" and the Table 5.1 pointer (moved
+     # verbatim to caption_detail.md).
+     "Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, as the vehicle "
+     "flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted lines): GNSS "
+     f"OFF at the entrance (0 s); the far end reached at about {rd(t_far, 0)} s; the return starting at "
+     f"{rd(t_back, 0)} s; GNSS ON at {rd(t_on, 0)} s. Solid lines are live, dashed lines are hindsight; EKF3 resets "
+     "to GNSS on return with a 4.10 m jump, about 4.3 s after GNSS returns once the simulation's GNSS switching "
+     "script moves EKF3 off its indoor source set, with no such delay for the UKF or FGO.",
      "eval/results/expO/O_r1.json (markers_bag_s, max_step_after_return_m), O_r2.json, O_r3b.json; curves: O_r1 room_ukf/, room_fgo/ TUMs, "
      "dataflash XKF1 about EKF3's origin (gnss.npz), bag /imu/time_ref (clock map); design: METHODOLOGY 'Experiment O: pre-registration', "
      "sim/worlds/outdoor_indoor.sdf, fly_trial.py outback(), o_gnss.parm", "§16.2 table and bullets; claims 19–22",
@@ -1859,16 +1868,18 @@ assert F7_GROW == "2.9 to 4.5", f"F7 title range changed: {F7_GROW}"
 ob_l("a")   # D113 (2026-11-02): side-effect checks only; see the F2 note above.
 save(fig, "F7", "F7_L_loop_closure",
      f"Re-identifying tags at unknown positions keeps the FGO's error flat; without it the error grows {F7_GROW} times over five laps",
+     # CAPTION (second shortening, 2026-11-14): 1-3 plain sentences; the 3 clauses docs/thesis/tier1/check_claims_applied.py
+     # asserts character-for-character (C1-C3: the no-landmark-states clause, the 3/3-in-each clause, the 0/9-runs
+     # clause) are KEPT verbatim in sentence 3 below - this is why F7 stays longer than the other captions in this
+     # stage (see caption_detail.md). Everything else removed (the lap-ratio numbers; the extension UKF-variant
+     # drift-count detail) is kept verbatim in caption_detail.md.
      "Experiment 3 (loop closure): the keyframe FGO with AprilTags at unknown positions, each tag treated as a landmark, flights 1 to 3, "
-     "horizontal RMSE per 6 m lap in the first tag's frame, on one shared linear axis. One estimator (the FGO) is plotted, so one colour; "
-     f"live is solid and filled, hindsight is dashed and open. Left: with loop closure the live error falls after lap 1 (lap 5 over lap 1, "
-     f"{rng(lc5)}); right: without re-identification it grows {rng(nl5, 1)} times over five laps. The thesis's EKF3 and UKF, as configured, "
-     "have no landmark states, so they have no loop closure; loop closure is not specific to the FGO: in an extension experiment, a UKF "
-     f"variant with each tag in its state bounded its live drift in {E5V['criteria']['H-E5.1']['count']} flights, with a higher error than "
-     f"the FGO's in {E5V['criteria']['S-E5.5']['count']} flights (UKF ÷ FGO live {rng(E5R, 2)}, descriptive); with 4 and with 2 tags, the "
-     "FGO's loop closure also bounded live drift in 3/3 flights in each. With wrong tag IDs in 1% of the eligible detections, the FGO as "
-     f"built lost its loop-closure advantage: its live error with loop closure was below the no-loop-closure error on the same flight in "
-     f"{_h31['count']} runs ({_h31['divergence']['total']}).",
+     "horizontal RMSE per 6 m lap in the first tag's frame, on one shared linear axis; live is solid and filled, hindsight is dashed and "
+     "open. Left: with loop closure the live error falls after lap 1; right: without re-identification it grows over five laps. "
+     "The thesis's EKF3 and UKF, as configured, have no landmark states, so only the FGO shows loop closure here; in extension tests "
+     f"with 4 tags and with 2 tags, the FGO's loop closure also bounded live drift in 3/3 flights in each, but with 1% wrong tag IDs its "
+     f"live error with loop closure was below the no-loop-closure error on the same flight in {_h31['count']} runs "
+     f"({_h31['divergence']['total']}).",
      "eval/results/expL/T_A_r*_t245.json (per_lap_rmse_m, rmse_m)", "§16.3 table and bullets; claims 23, 24", foot=[],
      verdict="Verdicts: Table A.4, rows V3; H3.1; H3.2; H3.3; H3.4; Extension E2 H-E2.1; Extension E3 H-E3.1; Extension E5 H-E5.1; Extension E5 S-E5.5.")
 

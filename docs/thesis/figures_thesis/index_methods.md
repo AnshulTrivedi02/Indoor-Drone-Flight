@@ -1,6 +1,6 @@
 # Methodology figure and tables: index (2026-10-17)
 
-Built by `eval/figs_thesis_methods.py` at commit `d8d39d4` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
+Built by `eval/figs_thesis_methods.py` at commit `0ea33f4` (run with `/home/makerspace/venv-evo/bin/python`). Drawing and tabulating only: no simulation, no estimator result recomputed, numbers.md not edited. **Not yet in the combined PDF**: integration with `eval/figs_thesis.py` and `index.md` comes later. ArduPilot trees cited: thesis fork `~/ardupilot_ukf` (f30f6ffa2f, branch ukf-jitter-fix; files read with git show at this revision); pinned `~/ardupilot` (7bac20cbcc; files read with git show at this revision).
 
 **Source checks: 331/332 citations verified** (the needle occurs verbatim on the cited line). **Cross-checks: 43/43 EXACT** (computed string = stored string, `rd()` of `eval/figs_thesis.py`, loaded by AST).
 
@@ -20,7 +20,7 @@ Built by `eval/figs_thesis_methods.py` at commit `d8d39d4` (run with `/home/make
 
 ### Figure 3.1: System architecture: sensors, bridges, the three estimators and where each one runs
 
-- **Caption:** Panel (a) shows the sensors and the relays that carry their measurements to the flight controller and to the recorded data used offline. Panel (b) shows the flight controller, where each of the three estimators runs (outlined in its own colour, as in every other figure: EKF3 blue, UKF green, FGO orange), the safety watchers, and the offline replay and evaluation. In the open-loop experiments the vehicle flies on simulator truth, EKF3 runs passively alongside it and the UKF and FGO are replayed offline against the same recording; in the closed-loop experiments one estimator flies while the other two run in shadow. The FGO runs as a separate process whose state the flight controller reads.
+- **Caption:** Panel (a) shows the sensors and the relays that carry their measurements to the flight controller and to the recorded data used offline. Panel (b) shows the flight controller, where each of the three estimators runs, outlined in its own colour (EKF3 blue, UKF green, FGO orange), alongside the safety watchers and the offline replay and evaluation.
 - **Edges and boxes, with their sources** (every edge is derived from these lines):
 
 | what the diagram shows | source (file:line) |
