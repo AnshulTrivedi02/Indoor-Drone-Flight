@@ -169,12 +169,12 @@ active source set (lines 16-23). A full swing from -20 to +20 (or the reverse) i
 the dominant component of the measured gap, not any threshold inside EKF3 itself.
 
 Breaking the measured marker-to-source-set-change delay (`eval/results/expO_switch_delay/switch_delay.json`, from
-`eval/o_switch_delay.py`, commit a833b53; ON side 4.28/4.32/4.32 s, OFF side 4.34/4.37/4.37 s per flight,
+`eval/o_switch_delay.py`, commit a833b53; ON side 4.32/4.32/4.28 s and OFF side 4.37/4.37/4.34 s, O_r1/O_r2/O_r3b,
 numbers.md wording) into its parts: the GNSS ON/OFF marker to the simulated GPS reporting a changed fix status is
-about 0.24-0.33 s (the simulated GPS's own latency); that status change to the script's own vote completing is
-about 3.95-4.02 s, matching the script's 40 x 100 ms vote timer almost exactly; and the vote completing to the
-first changed `XKFS.SS` dataflash record is a further 0.02-0.09 s (0.04-0.06 s at the GNSS ON event this figure
-plots). The dominant ~4.0 s component times out with the harness script's own 40-vote timer, not with any
+about 0.24 to 0.33 s (the simulated GPS's own latency); that status change to the script's own vote completing is
+about 3.95 to 4.02 s, matching the script's 40 x 100 ms vote timer almost exactly; and the vote completing to the
+first changed `XKFS.SS` dataflash record is a further 0.02 to 0.09 s (0.04 to 0.06 s at the GNSS ON event this
+figure plots). The dominant ~4.0 s component times out with the harness script's own 40-vote timer, not with any
 EKF3-internal threshold.
 
 **Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact

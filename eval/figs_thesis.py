@@ -2158,8 +2158,8 @@ check("Experiment 5 comparative verdicts, final-build sets (primary) / supersede
 check("Experiment 5 hold UKF / FGO / EKF3, final-build sets (mm)", f"{HCR['H-H2'][1]} / {HCR['H-H2'][2]} / {HCR['H-H2'][3]}",
       "6.4–7.1 / 8.3–8.6 / 7.8–7.9", "numbers.md §17.2 criteria table (re-flown)")
 check("Experiment 5 hold UKF, superseded builds (mm)", HCO["H-H2"][1], "5.5–6.1", "numbers.md §17.2 criteria table (earlier sets)")
-check("Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm) - original priors; the FGO figure "
-      "(7-30) is superseded by the corrected-prior re-fly (7-24, numbers_refly.md §4.3)",
+check("Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm; original priors; the FGO "
+      "figure 7–30 is superseded by the corrected-prior re-fly, 7–24, numbers_refly.md §4.3)",
       HCR["H-H4 (15 s)"][0].split("EKF3 jump ")[1].replace(" mm against UKF ", " / ").replace(", FGO ", " / ").replace(" mm", ""),
       "5 / 5 / 7 / 20–30 / 7–30", "numbers.md:677 ('5 / 5 / 7 against UKF 20–30, FGO 7–30 mm')")
 check("H5.3 max/min, final-build / superseded", f"{rng([r['ph3_ratio'] for r in _HSET['re']['criteria']['runs']])} / "
