@@ -1,0 +1,1 @@
+Plan view of the outdoor-to-indoor flight: the outdoor align leg, then the out and back legs through the entrance, where GNSS is switched off going in and on coming out (the two legs are drawn slightly apart but were flown on one line).

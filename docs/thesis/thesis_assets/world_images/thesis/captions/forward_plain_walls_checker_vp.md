@@ -1,0 +1,1 @@
+Vanishing-point variant: the same plain-wall, checkerboard-floor view with the stored measurement's vanishing point marked; with this combination the heading measurement is known to be unreliable, so the marker shows what was measured, not the true heading.

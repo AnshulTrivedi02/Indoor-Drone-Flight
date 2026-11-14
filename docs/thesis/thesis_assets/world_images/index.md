@@ -1,8 +1,15 @@
-# Simulation worlds: documentation images (2026-10-16)
+# Simulation worlds: documentation images (2026-10-16, reader-facing set added 2026-11-14)
 
 This folder documents every Gazebo world used by a reported result, plus the superseded and record-only ones. It is documentation only: it changes no result, and nothing under `sim/worlds/`, `~/thesis_data` or `eval/results` was modified.
 
-**Combined PDF:** `worlds_combined.pdf`. It has one page per world (24 pages). Each page carries the schematic, a top-down render, an angled render, the onboard frames (or a note that none exist) and a two-line caption.
+**The reader-facing set is `thesis/`.** It replaces the detailed per-world schematics and onboard camera views
+below with four world drawings (one for the family of corridor worlds, one for the room used for the known-tag
+flights, one for that same room with a wall tag added, and one for the outdoor-to-indoor flight) and a small set of
+onboard camera frames with no added text, each with its own plain-language one-line caption in `thesis/captions/`
+and described in `thesis/index.md`. It was built straight from the same world files and render pipeline as the rest
+of this folder; nothing under `sim/worlds/`, trial data or any result was changed to produce it.
+
+**Combined PDF:** `worlds_combined.pdf`. It has one page per world (24 pages). Each page carries the schematic, a top-down render, an angled render, the onboard frames (or a note that none exist) and a two-line caption. **This PDF is now stale**: it still shows the earlier, more detailed per-world schematics and onboard views rather than the `thesis/` set, and has not been rebuilt.
 
 | folder | what | generator |
 |---|---|---|

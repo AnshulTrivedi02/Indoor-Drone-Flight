@@ -1,0 +1,1 @@
+Plan view of the 20 m by 160 m corridor, showing the checkered and blank floors with the texture boundary of the transition condition, the plain or line-marked walls (drawn thicker than their true 0.2 m), the roof used with the forward camera, the spawn point and the planned flight line.

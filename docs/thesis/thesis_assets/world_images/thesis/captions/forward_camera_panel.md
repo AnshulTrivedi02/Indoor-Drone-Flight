@@ -1,0 +1,1 @@
+Forward camera at the same point about 40 m along the corridor, as recorded with no overlay: (a) line-textured walls, (b) plain walls over the checkerboard floor, (c) plain walls over the blank floor.
