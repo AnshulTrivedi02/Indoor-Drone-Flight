@@ -1,6 +1,6 @@
 # Freeze audit of the thesis outputs
 
-Audited commit: `259371cb3d029d1b7ca3ce94f2a38088e9c6116f` (branch `freeze-audit`, built from `fwd-camera`). Run date (UTC): 2026-11-14 11:29 UTC. This report and `eval/freeze_audit.py` are the only two files this audit writes or touches; no table, figure, caption or numbers file was edited.
+Audited commit: `f9ba4053abeb68be4c0c9b5f971a0a3d6d14eda8` (branch `freeze-audit`, built from `fwd-camera`). Run date (UTC): 2026-11-14 12:48 UTC. This report and `eval/freeze_audit.py` are the only two files this audit writes or touches; no table, figure, caption or numbers file was edited.
 
 Re-run: `python3 eval/freeze_audit.py --write-report` (safe to re-run after fixes land; it reads only, from the working tree at run time).
 
@@ -11,7 +11,7 @@ Re-run: `python3 eval/freeze_audit.py --write-report` (safe to re-run after fixe
 - B(ii) (verdict labels vs TA_verdicts.md): **FAIL** - H4.2 checked 25 occurrence(s), 4 not reading NOT MET; 2 other unambiguous mismatch(es); 150 non-standard bare-word label(s).
 - C (numeric cells vs cited source): **FAIL** - 1065 `numbers*.md:LINE` citations found; 429 matched on the cited line, 73 matched elsewhere in the file (cite drift), 3 not found, 560 unresolved (non-numeric/no-token cites excluded from scope per the request).
 - D (style checks): **FAIL** - see per-file counts below.
-- E (4.3 s delay / 4.10 m jump): **FAIL** - 45 statement(s) found, 33 qualified, 12 unqualified.
+- E (4.3 s delay / 4.10 m jump): **FAIL** - 48 statement(s) found, 36 qualified, 12 unqualified.
 - F (coverage matrix): **FAIL**
 
 ## Scope notes
@@ -654,11 +654,11 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 | docs/thesis/tables/methods_estimator_design.md | 1 | 0 |
 | docs/thesis/tables/methods_experiment_matrix.md | 3 | 1 |
 | docs/thesis/tables/methods_experiment_matrix.tex | 0 | 1 |
-| docs/thesis/tables/realflight_compute.md | 4 | 3 |
-| docs/thesis/tables/realflight_compute.tex | 0 | 3 |
+| docs/thesis/tables/realflight_compute.md | 4 | 1 |
+| docs/thesis/tables/realflight_compute.tex | 0 | 1 |
 | docs/thesis/thesis_assets/index.md | 1 | 0 |
 | docs/thesis/thesis_assets/tables_tex/tab_3-4.tex | 0 | 1 |
-| docs/thesis/thesis_assets/tables_tex/tab_8-1.tex | 0 | 3 |
+| docs/thesis/thesis_assets/tables_tex/tab_8-1.tex | 0 | 1 |
 | docs/thesis/writing_pack/ablation/ablation_numbers.md | 15 | 0 |
 | docs/thesis/writing_pack/ablation/preregistration.md | 11 | 0 |
 | docs/thesis/writing_pack/methodology_definitions_draft.md | 1 | 1 |
@@ -761,13 +761,9 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 **docs/thesis/tables/realflight_compute.md**
 - L8 [dash_prose]: `| C++ FGO node on the workstation (DIAGNOSTIC) | — | — | replay median / p99: 0.53 / 0.92 ms (standard-sensor bag), 0.91 / 1.68 ms (with hea`
 - L12 [dash_prose]: `| companion computer (Pi), C++ FGO node | — | — | ESTIMATED p99 ~3.4 ms (Pi 5), ~8.7 ms (Pi 4) against the 33 ms keyframe; worst spike ~25 m`
-- L13 [rtf_bare]: `| closed-loop real-time factor (Exp. 1C) | flew at full real time and at half real-time   | flew at full real time (old UKF) and at half rea`
-- L13 [rtf_bare]: `| closed-loop real-time factor (Exp. 1C) | flew at full real time and at half real-time   | flew at full real time (old UKF) and at half rea`
 - L17 [rtf_bare]: `*Half real-time (RTF 0.5): the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s. Nothing was flashed to `
 
 **docs/thesis/tables/realflight_compute.tex**
-- L19 [rtf_bare]: `closed-loop real-time factor (Exp. 1C) & flew at full real time and at half real-time   & flew at full real time (old UKF) and at half real-`
-- L19 [rtf_bare]: `closed-loop real-time factor (Exp. 1C) & flew at full real time and at half real-time   & flew at full real time (old UKF) and at half real-`
 - L24 [rtf_bare]: `\textit{Note.} Half real-time (RTF 0.5): the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s. Nothing w`
 
 **docs/thesis/figures_thesis/index.md**
@@ -811,8 +807,6 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L29 [rtf_bare]: `\textit{Note.} 'Truth flying' = AHRS\_EKF\_TYPE 10: the simulator's state flies the vehicle, so the path does not depend on any estimator; E`
 
 **docs/thesis/thesis_assets/tables_tex/tab_8-1.tex**
-- L20 [rtf_bare]: `closed-loop real-time factor (Exp. 1C) & flew at full real time and at half real-time   & flew at full real time (old UKF) and at half real-`
-- L20 [rtf_bare]: `closed-loop real-time factor (Exp. 1C) & flew at full real time and at half real-time   & flew at full real time (old UKF) and at half real-`
 - L25 [rtf_bare]: `\textit{Note.} Half real-time (RTF 0.5): the simulator ran at half real time; the commanded flight speed was unchanged at 0.5 m/s. Nothing w`
 
 **docs/thesis/thesis_assets/index.md**
@@ -1233,11 +1227,11 @@ Source checked: `eval/results/expO_switch_delay/switch_delay.json` (loaded OK) a
 | docs/thesis/tables/T7_failure_behaviour.tex:14 | 4.10 m | yes | EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur |
 | docs/thesis/tables/T7_failure_behaviour.tex:25 | 4.3 s | yes | \textit{Note.} [b] Ordering basis, Experiment 4, the jump on the return to GNSS. Metric: largest position step in the 10 s after GNSS returns, m. n = 3 flights (same flights for every estimator). Rule |
 | docs/thesis/figures_thesis/captions/F6.md:1 | 4.1 m | yes | Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the error near 1 m. |
-| docs/thesis/figures_thesis/captions/F6.md:3 | 4.10 m | yes | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro |
+| docs/thesis/figures_thesis/captions/F6.md:3 | 4.10 m | yes | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted  |
 | docs/thesis/figures_thesis/index.md:32 | 4.1 m | yes | / Figure 5.3 / F6 / figure / `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` / Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switc |
 | docs/thesis/figures_thesis/index.md:325 | 4.1 m | yes | ### Figure 5.3 (internal F6, figure): Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the erro |
-| docs/thesis/figures_thesis/index.md:327 | 4.10 m | yes | - **Caption:** Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and ba |
-| docs/thesis/figures_thesis/index.md:335 | 4.10 m | **NO** | / Experiment 4 EKF3 reset jump (m) / `4.10–4.10` / `4.10–4.10` / numbers.md §16.2 ('4.10 m, every flight') / yes / |
+| docs/thesis/figures_thesis/index.md:327 | 4.10 m | yes | - **Caption:** Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route  |
+| docs/thesis/figures_thesis/index.md:335 | 4.3 s | yes | / Experiment 4 EKF3 reset jump (m), about 4.3 s after GNSS returns (the switching script's delay) / `4.10–4.10` / `4.10–4.10` / numbers.md §16.2 ('4.10 m, every flight') / yes / |
 | docs/thesis/figures_thesis/index.md:506 | 4.1 m | yes | - **Caption:** How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m,  |
 | docs/thesis/figures_thesis/index.md:671 | 4.1 m | yes | / Figure 5.3 / F6 / `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` / Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching scri |
 | docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:21 | 4.10 m | yes | Experiment 4: outdoor--indoor (GNSS outside only) [f, g] & indoor 1.42--1.43 m (no live ordering claimed; 4.10 m jump, about 4.3 s after GNSS returns (the switching script's delay)) & indoor 0.77--0.8 |
@@ -1247,13 +1241,16 @@ Source checked: `eval/results/expO_switch_delay/switch_delay.json` (loaded OK) a
 | docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:26 | 4.3 s | yes | \textit{Note.} [b] Ordering basis, Experiment 4, the jump on the return to GNSS. Metric: largest position step in the 10 s after GNSS returns, m. n = 3 flights (same flights for every estimator). Rule |
 | docs/thesis/thesis_assets/index.md:24 | 4.1 m | yes | / Figure 5.3 / Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the error near 1 m. / `figures/ |
 | docs/thesis/writing_pack/figures_thesis/captions/F6.md:1 | 4.1 m | yes | Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return, about 4.3 s after GNSS returns (the switching script's delay); hindsight keeps the error near 1 m. |
-| docs/thesis/writing_pack/figures_thesis/captions/F6.md:3 | 4.10 m | yes | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro |
+| docs/thesis/writing_pack/figures_thesis/captions/F6.md:3 | 4.10 m | yes | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Route events (dotted  |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149 | 4.3 s | **NO** | **Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.** |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:164 | o_source_switch | yes | source-switching script, not an EKF3-internal gate.** `sim/scripts/o_source_switch.lua` runs inside SITL, |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:180 | 4.3 s | **NO** | **Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:183 | 4.3 s | **NO** | `numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:184 | 4.3 s | **NO** | (4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 / |
 | docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:193 | switch delay | yes | starts correcting on the same sample the fix becomes available, instead of waiting out the switch delay the |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:398 | 4.10 m | yes | > Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors.  |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:400 | 4.10 m | **NO** | Kept (binding rule, D113/freeze-audit check E): the 4.10 m jump and the qualifier that it is measured about 4.3 s |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:401 | 4.3 s | yes | after GNSS returns because of the simulation's GNSS switching script, worded shorter ("about 4.3 s after GNSS |
 | docs/thesis/writing_pack/new_2026-11-11/numbers_o_window_check.md:32 | switch delay | yes | Related: the switch delay itself is explained in `eval/results/expO_switch_delay/switch_delay.json` (`eval/o_switch_delay.py`, commit `a833b53`): about 0.3 s of simulated GPS latency plus the harness  |
 | docs/thesis/writing_pack/numbers.md:526 | 4.3 s | **NO** | / A: all 8 (4.3 s) / 0.039 m / 0.037 m / **0.020 m** / 0.014 m / **0.010 m** / |
 | docs/thesis/writing_pack/numbers.md:552 | 3.54 m | **NO** | / EKF3 live / 1.42–1.43 m / 3.53–3.54 m / **4.10 m (reset jump, every flight)** / |
@@ -1421,11 +1418,11 @@ Scanned 59 candidate caption/index files (not thesis-numbered; reported here sep
 111. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:193` cites `numbers.md:466`, but no matching numeric token (24.7) was found anywhere in that file.
 112. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:120` cites `numbers_tier1.md:68`, but no matching numeric token (0.95–1.86, 0.95–2.43) was found anywhere in that file.
 113. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:123` cites `numbers_tier1.md:559`, but no matching numeric token (6.34–14.62) was found anywhere in that file.
-114. `docs/thesis/figures_thesis/index.md:335` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4 EKF3 reset jump (m) | `4.10–4.10` | `4.10–4.10` | numbers.md §16.2 ('4.10 m, every flight') | yes |`
-115. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.**`
-116. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:180` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact`
-117. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:183` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: ``numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s`
-118. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:184` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `(4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 /`
+114. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.**`
+115. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:180` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact`
+116. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:183` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: ``numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s`
+117. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:184` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `(4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 /`
+118. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:400` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Kept (binding rule, D113/freeze-audit check E): the 4.10 m jump and the qualifier that it is measured about 4.3 s`
 119. `docs/thesis/writing_pack/numbers.md:526` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.020 m** | 0.014 m | **0.010 m** |`
 120. `docs/thesis/writing_pack/numbers.md:552` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 live | 1.42–1.43 m | 3.53–3.54 m | **4.10 m (reset jump, every flight)** |`
 121. `docs/thesis/writing_pack/numbers.md:565` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; tra`
@@ -1444,15 +1441,15 @@ Scanned 59 candidate caption/index files (not thesis-numbered; reported here sep
 - `figures_thesis/captions/A1.md`: `d50edf685118e05d`
 - `figures_thesis/captions/A2.md`: `03c5f378deb431ea`
 - `figures_thesis/captions/A3.md`: `0bccf450a603f384`
-- `figures_thesis/captions/F2.md`: `72a214b80742b42e`
-- `figures_thesis/captions/F5.md`: `f0cef05bb82c66eb`
-- `figures_thesis/captions/F6.md`: `0d8d4f787ac207be`
-- `figures_thesis/captions/F7.md`: `320417e2aba87549`
-- `figures_thesis/captions/F9.md`: `6521b25e3cbb5071`
-- `figures_thesis/captions/R3.md`: `9a4d58f4e4f0198a`
+- `figures_thesis/captions/F2.md`: `d26115ffb991aa35`
+- `figures_thesis/captions/F5.md`: `888039339e8c1caa`
+- `figures_thesis/captions/F6.md`: `ce47bd13a2d33973`
+- `figures_thesis/captions/F7.md`: `a5554faf8896a592`
+- `figures_thesis/captions/F9.md`: `4b5fa47a98bd168b`
+- `figures_thesis/captions/R3.md`: `dafa3c91e3e4cea9`
 - `figures_thesis/captions/R5.md`: `a90812e4ed4710c4`
 - `figures_thesis/captions/R6.md`: `b067a2841ef6197d`
-- `figures_thesis/captions/methods_architecture.md`: `ee893e34de6e9b34`
+- `figures_thesis/captions/methods_architecture.md`: `dd372bb5c529a377`
 - `limitations.md`: `1ebe09d23bf602f7`
 - `methodology_definitions_draft.md`: `d3765c1ee5df735f`
 - `methodology_factsheets/3.1_approach_fairness.md`: `c9337e1c428c353a`
@@ -1465,7 +1462,7 @@ Scanned 59 candidate caption/index files (not thesis-numbered; reported here sep
 - `methodology_factsheets/3.8_closed_loop_safety.md`: `38af3ce728560e31`
 - `methodology_factsheets/3.9_extension_experiments.md`: `e77c0aa440424d25`
 - `methodology_factsheets/README.md`: `e401908be6a519b1`
-- `new_2026-11-11/caption_detail.md`: `142ba6aca2d00e12`
+- `new_2026-11-11/caption_detail.md`: `189a35c98d0b7215`
 - `new_2026-11-11/digest_2026-11-12.md`: `23a6cba747548bca`
 - `new_2026-11-11/ekf3_heading_preregistration.md`: `1f63e88ad945cf6d`
 - `new_2026-11-11/ekf3_heading_results.md`: `47d39e448d8a8bd1`
@@ -1482,7 +1479,7 @@ Scanned 59 candidate caption/index files (not thesis-numbered; reported here sep
 - `raw_corridor/raw_corridor_numbers.md`: `c0996189f20ed65f`
 - `tables/R1_hypothesis_scorecard.md`: `f387b59b33644ef6`
 - `tables/R2_corrections_by_discovery.md`: `fdf8ee7ec1908291`
-- `tables/R4_information_vs_estimator.md`: `0a7917a968714b48`
+- `tables/R4_information_vs_estimator.md`: `208cc39790eec38c`
 - `tables/T1_scorecard.md`: `1857ab0938cdd64d`
 - `tables/T2B_ekf3_heading_replay.md`: `b469d0d1d297a917`
 - `tables/T2_accuracy_heading.md`: `a96b3202b9008373`
