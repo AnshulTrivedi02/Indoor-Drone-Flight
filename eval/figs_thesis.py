@@ -1787,7 +1787,7 @@ _ek = np.hypot(_k[_w, 1] - np.interp(_k[_w, 0], G[:, 0], G[:, 1]), _k[_w, 2] - n
 ax.annotate("EKF3 reset", (_k[_w, 0][_i] - toff + 0.5, _ek[_i] - 0.6), xytext=(t_on + 8, 2.4), fontsize=9.0,
             arrowprops=dict(arrowstyle="-", color=INK2, lw=0.7))
 jumps = [L(f"expO/{t}.json")["tracks"]["EKF3 live"]["max_step_after_return_m"] for t in OFL]
-check("Experiment 4 EKF3 reset jump (m)", rng(jumps), "4.10–4.10", "numbers.md §16.2 ('4.10 m, every flight')")
+check("Experiment 4 EKF3 reset jump (m), about 4.3 s after GNSS returns (the switching script's delay)", rng(jumps), "4.10–4.10", "numbers.md §16.2 ('4.10 m, every flight')")
 check("Experiment 4 indoor duration (s)", f"{rd(t_on, 0)}", "123", "numbers.md §16.2 heading ('123 s, GNSS off')")
 dO = max(abs(rm_ind[n] - o["tracks"][n]["indoor_rmse_m"]) for n in TRK)
 check("flight 1 curve indoor RMSE recomputed vs json, max |Δ| <= 0.05 m", "ok" if dO <= 0.05 else f"{rd(dO, 3)}", "ok", "curve source vs scorer")
