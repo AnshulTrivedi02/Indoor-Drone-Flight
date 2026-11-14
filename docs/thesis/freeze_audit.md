@@ -1,22 +1,22 @@
 # Freeze audit of the thesis outputs
 
-Audited commit: `6184f2bfd96f01ce4645e7692d137291c09a261c` (branch `freeze-audit`, built from `fwd-camera`). Run date (UTC): 2026-11-14 10:05 UTC. This report and `eval/freeze_audit.py` are the only two files this audit writes or touches; no table, figure, caption or numbers file was edited.
+Audited commit: `8a4eb6845c6bc95e59936a863385e8f99a48913b` (branch `freeze-audit`, built from `fwd-camera`). Run date (UTC): 2026-11-14 10:07 UTC. This report and `eval/freeze_audit.py` are the only two files this audit writes or touches; no table, figure, caption or numbers file was edited.
 
 Re-run: `python3 eval/freeze_audit.py --write-report` (safe to re-run after fixes land; it reads only, from the working tree at run time).
 
 ## Summary
 
 - A (supersession map): **PASS** - 181 entries harvested (13 TA appendix rows, 12 refly §5 rows, 3 numbers_extras rows, 11 numbers.md superseded sections / 153 escaped rows).
-- B(i) (superseded values presented as current): **FAIL** - 31 hit(s) across 155 thesis-facing files scanned.
+- B(i) (superseded values presented as current): **FAIL** - 32 hit(s) across 155 thesis-facing files scanned.
 - B(ii) (verdict labels vs TA_verdicts.md): **FAIL** - H4.2 checked 15 occurrence(s), 14 not reading NOT MET; 2 other unambiguous mismatch(es); 160 non-standard bare-word label(s).
-- C (numeric cells vs cited source): **FAIL** - 1060 `numbers*.md:LINE` citations found; 427 matched on the cited line, 68 matched elsewhere in the file (cite drift), 3 not found, 562 unresolved (non-numeric/no-token cites excluded from scope per the request).
+- C (numeric cells vs cited source): **FAIL** - 1062 `numbers*.md:LINE` citations found; 429 matched on the cited line, 69 matched elsewhere in the file (cite drift), 3 not found, 561 unresolved (non-numeric/no-token cites excluded from scope per the request).
 - D (style checks): **FAIL** - see per-file counts below.
 - E (4.3 s delay / 4.10 m jump): **FAIL** - 36 statement(s) found, 0 qualified, 36 unqualified.
 - F (coverage matrix): **FAIL**
 
 ## Scope notes
 
-- Writing pack read from: `/home/makerspace/thesis_ws/docs/thesis/writing_pack` (untracked; read from the working tree, not a commit - sha256 of each file recorded below for re-run comparability).
+- Writing pack read from: `docs/thesis/writing_pack` (untracked; read from the working tree, not a commit - sha256 of each file recorded below for re-run comparability).
 - `tables_png` images are not text-scannable; their `.md`/`.tex` sources are scanned instead, per the request's own distinction between 'tables_tex/*.tex' and 'tables_png sources'.
 - Candidate figure captions/index files (`figures_thesis/candidates/`) are scanned but reported in their own section below; they are not thesis-numbered and are out of the main B/C/D counts.
 - Section A's treatment of `numbers.md`'s own internal `### Superseded by ...` correction-trail sections is at SECTION granularity (quantity + superseded value harvested per escaped row; 'current value' is reported as unresolved for these rows rather than guessed, since matching each row to its exact live counterpart across dozens of embedded historical tables was not completed inside the time box). The TA_verdicts.md appendix (13 rows) and numbers_refly.md §5 (12 rows) ARE resolved to a current value each. These section-granularity facts are still used to drive the B(i) 'superseded value presented as current' scan below, since that only needs the superseded value, not its resolved current counterpart.
@@ -72,7 +72,8 @@ Re-run: `python3 eval/freeze_audit.py --write-report` (safe to re-run after fixe
 
 | file:line | quantity | matched value | origin (where it was superseded) | context |
 |---|---|---|---|---|
-| docs/thesis/tables/R4_information_vs_estimator.md:14 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / Experiment 5: tag hold (each estimator flying) / mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory) / EKF3 7 |
+| docs/thesis/tables/R4_information_vs_estimator.md:14 | H5.2 (original priors) | 7.8–7.9 | TA_verdicts.md:114 | / Experiment 5: tag hold (each estimator flying) / mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory) / EKF3 7 |
+| docs/thesis/tables/R4_information_vs_estimator.md:14 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | / Experiment 5: tag hold (each estimator flying) / mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory) / EKF3 7 |
 | docs/thesis/tables/T1_scorecard.md:42 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
 | docs/thesis/tables/T1_scorecard.md:42 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
 | docs/thesis/tables/T5_H_tag_loss_drift.md:22 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
@@ -82,27 +83,27 @@ Re-run: `python3 eval/freeze_audit.py --write-report` (safe to re-run after fixe
 | docs/thesis/figures_thesis/index.md:608 | H5.4b (original priors) | 3.2–7.7 | TA_verdicts.md:117 | / H5.3 / H5.4b max/min, final-build sets, corrected priors / `2.40–2.58 / 2.1–5.1` / `2.40–2.58 / 2.1–5.1` / numbers_refly.md §4.3 (ratios 2.1-5.1, narrowed fro |
 | docs/thesis/figures_thesis/index.md:601 | H-H4 (15 s) | 20-30 | refly_priors/numbers_refly.md:373 | / Experiment 5 H5.4a 15 s re-lock jump, EKF3 per flight / UKF / FGO, final-build sets (mm) / `5 / 5 / 7 / 20–30 / 7–30` / `5 / 5 / 7 / 20–30 / 7–30` / numbers.m |
 | docs/thesis/figures_thesis/index_results.md:125 | H5.5, S2/S3 directional prediction (FGO) | 7–27 | TA_verdicts.md:119 | / R1 / H5.5 directional: final FGO node effective drift range, all 12 losses (mm) / 7–27 / 7–27 / eval/results/expH/s1_r*.json, s2v2_r*.json, s3v2_r*.json (new  |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365 | H5.1 (FGO-flying) | 8.1–9.0 | TA_verdicts.md:113 | / **H5.1** (FGO-flying bounds) / `H_s3v2_r*`: mean 8.1-9.0 mm, max 18-28 mm (H-H1 PASS, numbers.md section 17.1) / `s3rp_r*`: mean 7.1-8.7 mm, max 15.0-25.5 mm  |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345 | H5.2 (original priors) | 8.3–8.6 | TA_verdicts.md:114 | all 3 originally (8.3-8.6 against EKF3 7.8-7.9 mm); with the corrected priors it is highest in only 1 of 3 runs (r2, |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272 | H5.6, redefined primary (FGO) | 0.002–0.032 | TA_verdicts.md:120 | Range 2.8-30.3 ms, all << 100 ms. **H5.6 redefined primary: PASS, 12/12** (original S3v2: 0.002-0.032 s, i.e. the |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367 | H5.6, redefined primary (FGO) | 0.002–0.032 | TA_verdicts.md:120 | / **H5.6 redefined primary (re-lock)** / `H_s3v2_r*`: 0.002-0.032 s, PASS / `s3rp_r*`: 0.003-0.030 s, PASS (section 4.2) / **No** / |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365 | H5.1** (FGO-flying bounds) | 8.1-9.0 | refly_priors/numbers_refly.md:365 | / **H5.1** (FGO-flying bounds) / `H_s3v2_r*`: mean 8.1-9.0 mm, max 18-28 mm (H-H1 PASS, numbers.md section 17.1) / `s3rp_r*`: mean 7.1-8.7 mm, max 15.0-25.5 mm  |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272 | H5.6 redefined primary (re-lock) | 0.002-0.032 | refly_priors/numbers_refly.md:367 | Range 2.8-30.3 ms, all << 100 ms. **H5.6 redefined primary: PASS, 12/12** (original S3v2: 0.002-0.032 s, i.e. the |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367 | H5.6 redefined primary (re-lock) | 0.002-0.032 | refly_priors/numbers_refly.md:367 | / **H5.6 redefined primary (re-lock)** / `H_s3v2_r*`: 0.002-0.032 s, PASS / `s3rp_r*`: 0.003-0.030 s, PASS (section 4.2) / **No** / |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | all 3 originally (8.3-8.6 against EKF3 7.8-7.9 mm); with the corrected priors it is highest in only 1 of 3 runs (r2, |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / **H-H2** / FAIL (0/3): FGO highest in all three runs, 8.3-8.6 mm against EKF3 7.8-7.9 mm (`h_comparative_2026-10-11.json`) / FAIL (0/3 FGO lowest; `lowest_hol |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:372 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | / **P-H3** / FAIL (0/3): UKF 2.40-2.58x, FGO 2.10-2.37x EKF3's hold gyro activity / FAIL (0/3): ratios 2.402/2.577/2.499, numerically unchanged (driven by UKF/E |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:373 | H-H4 (15 s) | 20-30 | refly_priors/numbers_refly.md:373 | / **H-H4 (15 s)** / FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20-30, FGO 7-30 mm / FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20- |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:374 | H-H4 (5 s) | 7-16 | refly_priors/numbers_refly.md:374 | / **H-H4 (5 s)** / FAIL (0/3): EKF3 4-5 mm against UKF 7-16, FGO 11-34 mm (max/min 3.2-7.7) / FAIL (0/3): ratios 2.1-5.1 (narrower than 3.2-7.7; section 4.3) /  |
-| ../../../docs/thesis/writing_pack/numbers.md:675 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 / **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) / **FAIL** (0/3): UKF low |
-| ../../../docs/thesis/writing_pack/numbers.md:676 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | / **P-H3**: hold gyro activity within 1.5× across estimators / **FAIL** (0/3): UKF 2.33–2.43×, FGO 2.13–2.37× EKF3's (max/min 2.37–2.43) / **FAIL** (0/3): UKF 2 |
-| ../../../docs/thesis/writing_pack/numbers.md:677 | H-H4 (15 s) | 20-30 | refly_priors/numbers_refly.md:373 | / **H-H4 (15 s)**: EKF3's re-lock jump larger than the UKF's and the FGO's, 3/3 / **FAIL** (0/3): EKF3 smallest or tied (5 / 5 / 7 mm) / **FAIL** (0/3): EKF3 st |
-| ../../../docs/thesis/writing_pack/numbers.md:678 | H-H4 (5 s) | 7-16 | refly_priors/numbers_refly.md:374 | / **H-H4 (5 s)**: jumps within 1.5× of each other / **FAIL** (0/3): EKF3 4–5 against UKF 6–17 (effective; 7–17 as scored), FGO 12–26 mm (max/min 3.4–5.9, the sa |
-| ../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / Experiment 5: tag hold (each estimator flying) / mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory) / EKF3 7 |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:42 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:42 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365 | H5.1 (FGO-flying) | 8.1–9.0 | TA_verdicts.md:113 | / **H5.1** (FGO-flying bounds) / `H_s3v2_r*`: mean 8.1-9.0 mm, max 18-28 mm (H-H1 PASS, numbers.md section 17.1) / `s3rp_r*`: mean 7.1-8.7 mm, max 15.0-25.5 mm  |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345 | H5.2 (original priors) | 8.3–8.6 | TA_verdicts.md:114 | all 3 originally (8.3-8.6 against EKF3 7.8-7.9 mm); with the corrected priors it is highest in only 1 of 3 runs (r2, |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272 | H5.6, redefined primary (FGO) | 0.002–0.032 | TA_verdicts.md:120 | Range 2.8-30.3 ms, all << 100 ms. **H5.6 redefined primary: PASS, 12/12** (original S3v2: 0.002-0.032 s, i.e. the |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367 | H5.6, redefined primary (FGO) | 0.002–0.032 | TA_verdicts.md:120 | / **H5.6 redefined primary (re-lock)** / `H_s3v2_r*`: 0.002-0.032 s, PASS / `s3rp_r*`: 0.003-0.030 s, PASS (section 4.2) / **No** / |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365 | H5.1** (FGO-flying bounds) | 8.1-9.0 | refly_priors/numbers_refly.md:365 | / **H5.1** (FGO-flying bounds) / `H_s3v2_r*`: mean 8.1-9.0 mm, max 18-28 mm (H-H1 PASS, numbers.md section 17.1) / `s3rp_r*`: mean 7.1-8.7 mm, max 15.0-25.5 mm  |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272 | H5.6 redefined primary (re-lock) | 0.002-0.032 | refly_priors/numbers_refly.md:367 | Range 2.8-30.3 ms, all << 100 ms. **H5.6 redefined primary: PASS, 12/12** (original S3v2: 0.002-0.032 s, i.e. the |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367 | H5.6 redefined primary (re-lock) | 0.002-0.032 | refly_priors/numbers_refly.md:367 | / **H5.6 redefined primary (re-lock)** / `H_s3v2_r*`: 0.002-0.032 s, PASS / `s3rp_r*`: 0.003-0.030 s, PASS (section 4.2) / **No** / |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | all 3 originally (8.3-8.6 against EKF3 7.8-7.9 mm); with the corrected priors it is highest in only 1 of 3 runs (r2, |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / **H-H2** / FAIL (0/3): FGO highest in all three runs, 8.3-8.6 mm against EKF3 7.8-7.9 mm (`h_comparative_2026-10-11.json`) / FAIL (0/3 FGO lowest; `lowest_hol |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:372 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | / **P-H3** / FAIL (0/3): UKF 2.40-2.58x, FGO 2.10-2.37x EKF3's hold gyro activity / FAIL (0/3): ratios 2.402/2.577/2.499, numerically unchanged (driven by UKF/E |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:373 | H-H4 (15 s) | 20-30 | refly_priors/numbers_refly.md:373 | / **H-H4 (15 s)** / FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20-30, FGO 7-30 mm / FAIL (0/3): EKF3 strictly smallest (5/5/7 mm) against UKF 20- |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:374 | H-H4 (5 s) | 7-16 | refly_priors/numbers_refly.md:374 | / **H-H4 (5 s)** / FAIL (0/3): EKF3 4-5 mm against UKF 7-16, FGO 11-34 mm (max/min 3.2-7.7) / FAIL (0/3): ratios 2.1-5.1 (narrower than 3.2-7.7; section 4.3) /  |
+| docs/thesis/writing_pack/numbers.md:675 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 / **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) / **FAIL** (0/3): UKF low |
+| docs/thesis/writing_pack/numbers.md:676 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | / **P-H3**: hold gyro activity within 1.5× across estimators / **FAIL** (0/3): UKF 2.33–2.43×, FGO 2.13–2.37× EKF3's (max/min 2.37–2.43) / **FAIL** (0/3): UKF 2 |
+| docs/thesis/writing_pack/numbers.md:677 | H-H4 (15 s) | 20-30 | refly_priors/numbers_refly.md:373 | / **H-H4 (15 s)**: EKF3's re-lock jump larger than the UKF's and the FGO's, 3/3 / **FAIL** (0/3): EKF3 smallest or tied (5 / 5 / 7 mm) / **FAIL** (0/3): EKF3 st |
+| docs/thesis/writing_pack/numbers.md:678 | H-H4 (5 s) | 7-16 | refly_priors/numbers_refly.md:374 | / **H-H4 (5 s)**: jumps within 1.5× of each other / **FAIL** (0/3): EKF3 4–5 against UKF 6–17 (effective; 7–17 as scored), FGO 12–26 mm (max/min 3.4–5.9, the sa |
+| docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14 | H-H2 | 8.3-8.6 | refly_priors/numbers_refly.md:371 | / Experiment 5: tag hold (each estimator flying) / mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory) / EKF3 7 |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:42 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:42 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | H-H2 | 7.8-7.9 | refly_priors/numbers_refly.md:371 | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | P-H3 | 2.40-2.58 | refly_priors/numbers_refly.md:372 | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
 
 ## B(ii). Verdict labels against TA_verdicts.md
 
@@ -120,13 +121,13 @@ H4.2 belongs to Experiment 4, not the E2-E6 tier-1 extensions, so TA_verdicts.md
 | docs/thesis/figures_thesis/index.md:353 | FAIL **MISMATCH** | - **Caption:** Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; the two hinds |
 | docs/thesis/thesis_assets/tables_tex/tab_5-1.tex:9 | FAIL **MISMATCH** | \caption{Table 5.1. Experiment 4 (outdoor--indoor): indoor horizontal RMSE per flight (123 s, GNSS off). Indoors without GNSS the live errors are 0.8--1.4 m and |
 | docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:29 | FAIL **MISMATCH** | \textit{Note.} Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with th |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121 | FAIL **MISMATCH** | · Verdicts: H4.1 PASS 3/3, H4.2 FAIL, H4.3 PASS (numbers.md:558-560). |
-| ../../../docs/thesis/writing_pack/numbers.md:559 | FAIL **MISMATCH** | - **H-O2 FAIL:** the live ratio is 1.71–1.84× (was about 2.2×). |
-| ../../../docs/thesis/writing_pack/numbers.md:1118 | FAIL **MISMATCH** | / §16.2 / - **H-O2 FAIL:** the live ratio is about 2.2×. / |
-| ../../../docs/thesis/writing_pack/numbers.md:1275 | FAIL **MISMATCH** | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
-| ../../../docs/thesis/writing_pack/numbers.md:1275 | FAIL **MISMATCH** | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | FAIL **MISMATCH** | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3 | FAIL **MISMATCH** | Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; the two hindsight tracks agr |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121 | FAIL **MISMATCH** | · Verdicts: H4.1 PASS 3/3, H4.2 FAIL, H4.3 PASS (numbers.md:558-560). |
+| docs/thesis/writing_pack/numbers.md:559 | FAIL **MISMATCH** | - **H-O2 FAIL:** the live ratio is 1.71–1.84× (was about 2.2×). |
+| docs/thesis/writing_pack/numbers.md:1118 | FAIL **MISMATCH** | / §16.2 / - **H-O2 FAIL:** the live ratio is about 2.2×. / |
+| docs/thesis/writing_pack/numbers.md:1275 | FAIL **MISMATCH** | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
+| docs/thesis/writing_pack/numbers.md:1275 | FAIL **MISMATCH** | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | FAIL **MISMATCH** | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3 | FAIL **MISMATCH** | Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; the two hindsight tracks agr |
 
 ### Other unambiguous mismatches (base ID has exactly one TA verdict)
 
@@ -135,7 +136,7 @@ H4.2 belongs to Experiment 4, not the E2-E6 tier-1 extensions, so TA_verdicts.md
 | file:line | id | found | TA verdict | text |
 |---|---|---|---|---|
 | docs/thesis/figures_thesis/index.md:283 | H2.2 | PASS | NOT MET | / H2.2 gain A–D (m), PASS / `+0.020 / +0.032 / +0.037 / +0.029 False` / `+0.020 / +0.032 / +0.037 / +0.029 False` / numbers.md §16.1 / yes / |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/README.md:228 | H1.1 | WITHDRAWN | NOT MET | - **H1.1 verdict.** "EKF3 lower" is WITHDRAWN and replaced by "no ordering claimed" (3.5, 3.6). |
+| docs/thesis/writing_pack/methodology_factsheets/README.md:228 | H1.1 | WITHDRAWN | NOT MET | - **H1.1 verdict.** "EKF3 lower" is WITHDRAWN and replaced by "no ordering claimed" (3.5, 3.6). |
 
 ### Extension-experiment (E2-E6) ID/verdict-word occurrences, TA FAIL-literal convention
 
@@ -144,11 +145,11 @@ Not counted as mismatches (see TA_verdicts.md's own legend: E2-E6 and the ablati
 | file:line | id | found | TA verdict | text |
 |---|---|---|---|---|
 | docs/thesis/thesis_assets/candidates/C04_table.md:11 | H-E3.3 | PASS | FAIL | / P-E3.5c / 5%: as H-E3.3 / 9 of 9 / PASS /  / |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md:87 | H-E3.3 | PASS | FAIL | / P-E3.5c 5%: the H-E3.3 criterion / **PASS** / 9/9 / 0 of 3 per flight / `criteria_a.P-E3.5c …` / |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:159 | H-E2.2 | DESCRIPTIVE | PASS | Verdicts: H-E2.1 (PRIMARY) per condition, H-E2.2, H-E2.3, P-E2.4, P-E2.5. Known-map comparison (DESCRIPTIVE). |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:159 | H-E2.3 | DESCRIPTIVE | PASS | Verdicts: H-E2.1 (PRIMARY) per condition, H-E2.2, H-E2.3, P-E2.4, P-E2.5. Known-map comparison (DESCRIPTIVE). |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:273 | H-E3.3 | PASS | FAIL | / P-E3.5c 5%: H-E3.3 criterion / **PASS** / 9/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
-| ../../../docs/thesis/writing_pack/tier1/preregistration.md:596 | H-E4.3 | NOT MET | FAIL | with either run missing makes H-E4.3 NOT RUN or NOT MET (§0.5). |
+| docs/thesis/writing_pack/tier1/e3_results.md:87 | H-E3.3 | PASS | FAIL | / P-E3.5c 5%: the H-E3.3 criterion / **PASS** / 9/9 / 0 of 3 per flight / `criteria_a.P-E3.5c …` / |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:159 | H-E2.2 | DESCRIPTIVE | PASS | Verdicts: H-E2.1 (PRIMARY) per condition, H-E2.2, H-E2.3, P-E2.4, P-E2.5. Known-map comparison (DESCRIPTIVE). |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:159 | H-E2.3 | DESCRIPTIVE | PASS | Verdicts: H-E2.1 (PRIMARY) per condition, H-E2.2, H-E2.3, P-E2.4, P-E2.5. Known-map comparison (DESCRIPTIVE). |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:273 | H-E3.3 | PASS | FAIL | / P-E3.5c 5%: H-E3.3 criterion / **PASS** / 9/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
+| docs/thesis/writing_pack/tier1/preregistration.md:596 | H-E4.3 | NOT MET | FAIL | with either run missing makes H-E4.3 NOT RUN or NOT MET (§0.5). |
 
 ### Non-standard bare-word labels (FAIL / MET / MISS without the project's full wording)
 
@@ -222,10 +223,10 @@ Not counted as mismatches (see TA_verdicts.md's own legend: E2-E6 and the ablati
 | docs/thesis/figures_thesis/index.md:610 | H5.4b | FAIL | / Experiment 5 comparative verdicts H5.2; H5.3; H5.4a; H5.4b (final builds, corrected priors) / `FAIL; FAIL; FAIL; FAIL` / `FAIL; FAIL; FAIL; FAIL` / numbers_re |
 | docs/thesis/figures_thesis/index_results.md:36 | H-E3.1 | FAIL | *Note.* Experiment 3 scope (claims C2 and C3, user ruling 2026-10-24; the H3.1–H3.4 verdicts are unchanged): H3.1–H3.4 were scored with all 8 tags and correct t |
 | docs/thesis/figures_thesis/index_results.md:95 | H-E3.1 | FAIL | / R1 / extension E3: H-E3.1 at 1% wrong ids; diverged runs / FAIL 0/9; 6 of 9 runs diverged / FAIL 0/9; 6 of 9 runs diverged / docs/thesis/tier1/scores/E3_verdi |
-| docs/thesis/figures_thesis/index_results.md:313 | H1.2 | MET | / R1 / H1.2 heading and yaw rate, textured walls prediction quote / METHODOLOGY.md:2727-2730 / found / |
-| docs/thesis/figures_thesis/index_results.md:357 | H1.8 | MET | / R1 / H1.8 n = 3 EKF3, full real time (RTF 1.0) prediction quote / METHODOLOGY.md:4948 / found / |
-| docs/thesis/figures_thesis/index_results.md:360 | H1.8 | MET | / R1 / H1.8 n = 3 EKF3, half real-time (RTF 0.5) prediction quote / METHODOLOGY.md:4948 / found / |
-| docs/thesis/figures_thesis/index_results.md:375 | H1.9 | MET | / R1 / H1.9 UKF (final UKF port, half real-time) prediction quote / METHODOLOGY.md:7361-7362 / found / |
+| docs/thesis/figures_thesis/index_results.md:314 | H1.2 | MET | / R1 / H1.2 heading and yaw rate, textured walls prediction quote / METHODOLOGY.md:2727-2730 / found / |
+| docs/thesis/figures_thesis/index_results.md:358 | H1.8 | MET | / R1 / H1.8 n = 3 EKF3, full real time (RTF 1.0) prediction quote / METHODOLOGY.md:4948 / found / |
+| docs/thesis/figures_thesis/index_results.md:361 | H1.8 | MET | / R1 / H1.8 n = 3 EKF3, half real-time (RTF 0.5) prediction quote / METHODOLOGY.md:4948 / found / |
+| docs/thesis/figures_thesis/index_results.md:376 | H1.9 | MET | / R1 / H1.9 UKF (final UKF port, half real-time) prediction quote / METHODOLOGY.md:7361-7362 / found / |
 | docs/thesis/thesis_assets/tables_tex/tab_5-1.tex:9 | H4.2 | FAIL | \caption{Table 5.1. Experiment 4 (outdoor--indoor): indoor horizontal RMSE per flight (123 s, GNSS off). Indoors without GNSS the live errors are 0.8--1.4 m and |
 | docs/thesis/thesis_assets/tables_tex/tab_5-2.tex:9 | H2.4 | FAIL | \caption{Table 5.2. Hindsight: the FGO whole-flight batch against the smoothed UKF. With tags at known positions (Experiment 2) the FGO whole-flight batch is be |
 | docs/thesis/thesis_assets/tables_tex/tab_5-2.tex:15 | H2.4 | FAIL | Experiment 2, condition A: 8 tags (mean of 3) & 0.010 & 0.014 & FGO whole-flight batch & 1.31 & H2.4 FAIL \\ |
@@ -253,69 +254,69 @@ Not counted as mismatches (see TA_verdicts.md's own legend: E2-E6 and the ablati
 | docs/thesis/thesis_assets/candidates/C04_table.md:7 | H-E3.3 | FAIL | / H-E3.3 / 1%: lap-5 live error at most 1.5 × lap 1 / 3 of 9 / FAIL /  / |
 | docs/thesis/thesis_assets/candidates/C04_table.md:9 | H-E3.1 | FAIL | / P-E3.5a / 5%: as H-E3.1 / 0 of 9 / FAIL /  / |
 | docs/thesis/thesis_assets/candidates/C04_table.md:10 | H-E3.2 | FAIL | / P-E3.5b / 5%: as H-E3.2 / 0 of 9 / FAIL /  / |
-| ../../../docs/thesis/writing_pack/limitations.md:11 | H-E3.1 | FAIL | / 3 / The FGO as configured (plain least squares, tag readings ungated) is not robust to wrong tag IDs: at 1% wrong IDs, 6 of 9 runs diverged and the remaining  |
-| ../../../docs/thesis/writing_pack/limitations.md:11 | H-E3.1 | FAIL | / 3 / The FGO as configured (plain least squares, tag readings ungated) is not robust to wrong tag IDs: at 1% wrong IDs, 6 of 9 runs diverged and the remaining  |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:70 | H-E4.3 | FAIL | - Extension experiment E4 (pre-registered; claim C4) on the 12 Experiment 2 flights: the median step time rose strictly with the window on every flight (P-E4.1  |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:101 | H-E3.1 | FAIL | · The result assumes correct re-identification (claim C2). In an extension experiment (pre-registered), with wrong ids in 1% of the eligible detections, the key |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121 | H4.2 | FAIL | · Verdicts: H4.1 PASS 3/3, H4.2 FAIL, H4.3 PASS (numbers.md:558-560). |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:198 | H1.3 | FAIL | - **H1.3 verdict count.** The vocabulary cites "part (b) FAIL as worded, 10/12" (thesis_vocabulary.md:150 [corrected from :145, which is blank at this commit])  |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:36 | H-E3.1 | FAIL | - **H-E3.1 (PRIMARY) at 1%: FAIL, 0/9** — 6 of 9 runs diverged (2 of 3 on every flight), and the 3 non-diverged runs' LC live is far above the stored no-LC live |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:37 | H-E3.2 | FAIL | - H-E3.2, H-E3.3, P-E3.4 at 1%: **FAIL** (H-E3.3 **3/9**, the other two **0/9**) (`numbers_tier1.md:268-270`). |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:37 | H-E3.3 | FAIL | - H-E3.2, H-E3.3, P-E3.4 at 1%: **FAIL** (H-E3.3 **3/9**, the other two **0/9**) (`numbers_tier1.md:268-270`). |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:16 | H5.4b | FAIL | / H5.2, H5.3, H5.4a, H5.4b (comparatives, with the FGO on corrected priors) / all FAIL (0/3), unchanged / all FAIL / same / |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:157 | H5.2 | FAIL | - `Experiment 5 · H5.2` col 4: `FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); FGO highest in all three (8.3–8.6 against EKF3 7.8–7.9 mm) [numbers.md:675]` → `FAIL (0 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:158 | H-H2 | FAIL | - `Experiment 5 · H5.2` col 6: `wording only (tie → FGO highest) on the final-build sets; verdict identical to the original-build verdict` → `2026-11-12 regener |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:159 | H5.3 | FAIL | - `Experiment 5 · H5.3` col 4: `FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's [numbers.md:676]` → `FAIL (0/3): ratios 2.402/2.577/2.499 (driven by max(UKF)/ |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:161 | H5.4a | FAIL | - `Experiment 5 · H5.4a` col 4: `FAIL (0/3): EKF3 strictly the smallest (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm) [numbers.md:677]` → `FAIL (0/3 EKF3 largest): |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:163 | H5.4b | FAIL | - `Experiment 5 · H5.4b` col 4: `FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7) [numbers.md:678]` → `FAIL (0/3): ratio range narrowed fro |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:215 | H5.2 | FAIL | - `H5.2 · FGO holds tightest` col 4: `FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); FGO highest in all three (8.3–8.6 against EKF3 7.8–7.9 mm)` → `FAIL (0/3 FGO lowe |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:216 | H-H2 | FAIL | - `H5.2 · FGO holds tightest` col 6: `wording only (tie → FGO highest) on the final-build sets; verdict identical to the original-build verdict` → `2026-11-12 r |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:218 | H5.3 | FAIL | - `H5.3 · smoothness similar` col 4: `FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's` → `FAIL (0/3): ratios 2.402/2.577/2.499 (driven by max(UKF)/min(EKF3) i |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:221 | H5.4a | FAIL | - `H5.4a · after a 15 s loss, EKF3 jumps most` col 4: `FAIL (0/3): EKF3 strictly the smallest (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm)` → `FAIL (0/3 EKF3 larg |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:224 | H5.4b | FAIL | - `H5.4b · after a 5 s loss, jumps similar` col 4: `FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7)` → `FAIL (0/3): ratio range narrowed f |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:337 | H-H2 | FAIL | / H-H2 (FGO holds tightest) / FAIL (0/3 FGO lowest); `lowest_hold` = UKF on all 3 runs / |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371 | H-H2 | FAIL | / **H-H2** / FAIL (0/3): FGO highest in all three runs, 8.3-8.6 mm against EKF3 7.8-7.9 mm (`h_comparative_2026-10-11.json`) / FAIL (0/3 FGO lowest; `lowest_hol |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:443 | H-H2 | FAIL | descriptive only).** Comparatives H-H2, P-H3, H-H4 (15 s), H-H4 (5 s): **all FAIL, unchanged from the original |
-| ../../../docs/thesis/writing_pack/numbers.md:559 | H-O2 | FAIL | - **H-O2 FAIL:** the live ratio is 1.71–1.84× (was about 2.2×). |
-| ../../../docs/thesis/writing_pack/numbers.md:675 | H-H2 | FAIL | / **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 / **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) / **FAIL** (0/3): UKF low |
-| ../../../docs/thesis/writing_pack/numbers.md:1118 | H-O2 | FAIL | / §16.2 / - **H-O2 FAIL:** the live ratio is about 2.2×. / |
-| ../../../docs/thesis/writing_pack/numbers.md:1275 | H-O2 | FAIL | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
-| ../../../docs/thesis/writing_pack/numbers.md:1275 | H-O2 | FAIL | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.1 | MET | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.5 | MET | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.6 | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.6c | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H4.3 | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H2.3 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H4.2 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.2 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.3 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.4a | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:42 | H5.4b | FAIL | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:46 | H-E3.1 | FAIL | *[k] Extensions to Experiment 3 (extension experiments, pre-registered 2026-10-21, signed off with amendments 2026-10-22; condition A unless stated, n = 3 fligh |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.2 | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.3 | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.4a | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | H5.4b | FAIL | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
-| ../../../docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3 | H4.2 | FAIL | Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; the two hindsight tracks agr |
-| ../../../docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:3 | H2.4 | FAIL | With tags at known positions (Experiment 2) the FGO whole-flight batch is below the smoothed UKF in every condition, by 1.3–3.9× (largest with 1 tag; H2.4 FAIL  |
-| ../../../docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:7 | H2.4 | FAIL | / Experiment 2, condition A: 8 tags (mean of 3) / 0.010 / 0.014 / FGO whole-flight batch / 1.31 / H2.4 FAIL / |
-| ../../../docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:8 | H2.4 | FAIL | / Experiment 2, condition B: 4 tags (mean of 3) / 0.015 / 0.031 / FGO whole-flight batch / 2.14 / H2.4 FAIL / |
-| ../../../docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:9 | H2.4 | FAIL | / Experiment 2, condition C: 2 tags (mean of 3) / 0.019 / 0.039 / FGO whole-flight batch / 2.06 / H2.4 FAIL / |
-| ../../../docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:10 | H2.4 | FAIL | / Experiment 2, condition D: 1 tag (mean of 3) / 0.028 / 0.109 / FGO whole-flight batch / 3.89 / H2.4 FAIL / |
-| ../../../docs/thesis/writing_pack/thesis_vocabulary.md:155 | H1.5 | MET | / H1.5 / hindsight heading correction / F2 / M:7926 / MET (numbers.md:502) / |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md:82 | H-E3.2 | FAIL | / H-E3.2 1%: LC hindsight < stored no-LC hindsight / **FAIL** / 0/9 / 2 of 3 per flight (6 of 9) / `criteria_a.H-E3.2 …` / |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md:83 | H-E3.3 | FAIL | / H-E3.3 1%: LC live lap-5 ≤ 1.5 × lap-1 / **FAIL** / 3/9 / 2 of 3 per flight (6 of 9); the 3 non-diverged runs pass / `criteria_a.H-E3.3 …` / |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md:85 | H-E3.1 | FAIL | / P-E3.5a 5%: the H-E3.1 criterion / **FAIL** / 0/9 / 0 of 3 per flight / `criteria_a.P-E3.5a …` / |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md:86 | H-E3.2 | FAIL | / P-E3.5b 5%: the H-E3.2 criterion / **FAIL** / 0/9 / 0 of 3 per flight / `criteria_a.P-E3.5b …` / |
-| ../../../docs/thesis/writing_pack/tier1/e4_results.md:16 | H-E4.3 | FAIL | - **H-E4.3 FAIL 7/12** (band ≥ 10/12). Live RMSE at 5 s was lower than at 0.25 s on all three D flights, two C flights, |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:267 | H-E3.1 | FAIL | / H-E3.1 (PRIMARY) 1%: LC live < stored no-LC live / **FAIL** / 0/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged ( |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:268 | H-E3.2 | FAIL | / H-E3.2 1%: LC hindsight < stored no-LC hindsight / **FAIL** / 0/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged ( |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:269 | H-E3.3 | FAIL | / H-E3.3 1%: LC live lap5 <= 1.5 x lap1 / **FAIL** / 3/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged (total 6 of  |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:271 | H-E3.1 | FAIL | / P-E3.5a 5%: H-E3.1 criterion / **FAIL** / 0/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:272 | H-E3.2 | FAIL | / P-E3.5b 5%: H-E3.2 criterion / **FAIL** / 0/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md:521 | H-E4.3 | FAIL | / H-E4.3 / FAIL (7/12) / — / CURRENT / `json:scores/E4_verdicts.json:H-E4.3.verdict` / |
-| ../../../docs/thesis/writing_pack/tier1/preregistration.md:409 | H-E3.1 | FAIL | > pre-registration's "insufficient data". A genuinely diverged run counts against the criterion, so H-E3.1 is FAIL, |
+| docs/thesis/writing_pack/limitations.md:11 | H-E3.1 | FAIL | / 3 / The FGO as configured (plain least squares, tag readings ungated) is not robust to wrong tag IDs: at 1% wrong IDs, 6 of 9 runs diverged and the remaining  |
+| docs/thesis/writing_pack/limitations.md:11 | H-E3.1 | FAIL | / 3 / The FGO as configured (plain least squares, tag readings ungated) is not robust to wrong tag IDs: at 1% wrong IDs, 6 of 9 runs diverged and the remaining  |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:70 | H-E4.3 | FAIL | - Extension experiment E4 (pre-registered; claim C4) on the 12 Experiment 2 flights: the median step time rose strictly with the window on every flight (P-E4.1  |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:101 | H-E3.1 | FAIL | · The result assumes correct re-identification (claim C2). In an extension experiment (pre-registered), with wrong ids in 1% of the eligible detections, the key |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121 | H4.2 | FAIL | · Verdicts: H4.1 PASS 3/3, H4.2 FAIL, H4.3 PASS (numbers.md:558-560). |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:198 | H1.3 | FAIL | - **H1.3 verdict count.** The vocabulary cites "part (b) FAIL as worded, 10/12" (thesis_vocabulary.md:150 [corrected from :145, which is blank at this commit])  |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:36 | H-E3.1 | FAIL | - **H-E3.1 (PRIMARY) at 1%: FAIL, 0/9** — 6 of 9 runs diverged (2 of 3 on every flight), and the 3 non-diverged runs' LC live is far above the stored no-LC live |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:37 | H-E3.2 | FAIL | - H-E3.2, H-E3.3, P-E3.4 at 1%: **FAIL** (H-E3.3 **3/9**, the other two **0/9**) (`numbers_tier1.md:268-270`). |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:37 | H-E3.3 | FAIL | - H-E3.2, H-E3.3, P-E3.4 at 1%: **FAIL** (H-E3.3 **3/9**, the other two **0/9**) (`numbers_tier1.md:268-270`). |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:16 | H5.4b | FAIL | / H5.2, H5.3, H5.4a, H5.4b (comparatives, with the FGO on corrected priors) / all FAIL (0/3), unchanged / all FAIL / same / |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:157 | H5.2 | FAIL | - `Experiment 5 · H5.2` col 4: `FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); FGO highest in all three (8.3–8.6 against EKF3 7.8–7.9 mm) [numbers.md:675]` → `FAIL (0 |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:158 | H-H2 | FAIL | - `Experiment 5 · H5.2` col 6: `wording only (tie → FGO highest) on the final-build sets; verdict identical to the original-build verdict` → `2026-11-12 regener |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:159 | H5.3 | FAIL | - `Experiment 5 · H5.3` col 4: `FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's [numbers.md:676]` → `FAIL (0/3): ratios 2.402/2.577/2.499 (driven by max(UKF)/ |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:161 | H5.4a | FAIL | - `Experiment 5 · H5.4a` col 4: `FAIL (0/3): EKF3 strictly the smallest (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm) [numbers.md:677]` → `FAIL (0/3 EKF3 largest): |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:163 | H5.4b | FAIL | - `Experiment 5 · H5.4b` col 4: `FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7) [numbers.md:678]` → `FAIL (0/3): ratio range narrowed fro |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:215 | H5.2 | FAIL | - `H5.2 · FGO holds tightest` col 4: `FAIL (0/3): UKF lowest 3/3 (6.4–7.1 mm); FGO highest in all three (8.3–8.6 against EKF3 7.8–7.9 mm)` → `FAIL (0/3 FGO lowe |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:216 | H-H2 | FAIL | - `H5.2 · FGO holds tightest` col 6: `wording only (tie → FGO highest) on the final-build sets; verdict identical to the original-build verdict` → `2026-11-12 r |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:218 | H5.3 | FAIL | - `H5.3 · smoothness similar` col 4: `FAIL (0/3): UKF 2.40–2.58×, FGO 2.10–2.37× EKF3's` → `FAIL (0/3): ratios 2.402/2.577/2.499 (driven by max(UKF)/min(EKF3) i |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:221 | H5.4a | FAIL | - `H5.4a · after a 15 s loss, EKF3 jumps most` col 4: `FAIL (0/3): EKF3 strictly the smallest (5 / 5 / 7 against UKF 20–30, FGO 7–30 mm)` → `FAIL (0/3 EKF3 larg |
+| docs/thesis/writing_pack/new_2026-11-11/digest_2026-11-12.md:224 | H5.4b | FAIL | - `H5.4b · after a 5 s loss, jumps similar` col 4: `FAIL (0/3): EKF3 4–5 against UKF 7–16, FGO 11–34 mm (max/min 3.2–7.7)` → `FAIL (0/3): ratio range narrowed f |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:337 | H-H2 | FAIL | / H-H2 (FGO holds tightest) / FAIL (0/3 FGO lowest); `lowest_hold` = UKF on all 3 runs / |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371 | H-H2 | FAIL | / **H-H2** / FAIL (0/3): FGO highest in all three runs, 8.3-8.6 mm against EKF3 7.8-7.9 mm (`h_comparative_2026-10-11.json`) / FAIL (0/3 FGO lowest; `lowest_hol |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:443 | H-H2 | FAIL | descriptive only).** Comparatives H-H2, P-H3, H-H4 (15 s), H-H4 (5 s): **all FAIL, unchanged from the original |
+| docs/thesis/writing_pack/numbers.md:559 | H-O2 | FAIL | - **H-O2 FAIL:** the live ratio is 1.71–1.84× (was about 2.2×). |
+| docs/thesis/writing_pack/numbers.md:675 | H-H2 | FAIL | / **H-H2**: FGO < EKF3 and FGO < UKF mean hold error, 3/3 / **FAIL** (0/3): UKF lowest 3/3 (5.5–6.1 mm); FGO and EKF3 tie (7.8–7.9 mm) / **FAIL** (0/3): UKF low |
+| docs/thesis/writing_pack/numbers.md:1118 | H-O2 | FAIL | / §16.2 / - **H-O2 FAIL:** the live ratio is about 2.2×. / |
+| docs/thesis/writing_pack/numbers.md:1275 | H-O2 | FAIL | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
+| docs/thesis/writing_pack/numbers.md:1275 | H-O2 | FAIL | / §16.2 H-O2 / - **H-O2 FAIL:** the live ratio is 1.72–1.84× (was about 2.2×). / |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.1 | MET | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.5 | MET | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.6 | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H1.6c | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md:23 | H4.3 | FAIL | / SITL flight (a defect exposed by a flown result) / 14 / FGO noise model: biasAccOmegaInt → 0 / MODEL / FGO hover-tilt trace (H safety tests, 2026-10-09). / fi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H2.3 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H4.2 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.2 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.3 | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:20 | H5.4a | FAIL | *Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met [a], the UKF medians descriptive [b]; with the camera headi |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:42 | H5.4b | FAIL | *[i] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:46 | H-E3.1 | FAIL | *[k] Extensions to Experiment 3 (extension experiments, pre-registered 2026-10-21, signed off with amendments 2026-10-22; condition A unless stated, n = 3 fligh |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.2 | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.3 | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:3 | H5.4a | FAIL | Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none locks out; each cel |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22 | H5.4b | FAIL | *[a] Ordering basis, Experiment 5 comparative hypotheses, final-build sets (H5.2, H5.3, H5.4a, H5.4b). Metric: H5.2 mean hold error, mm; H5.3 hold gyro activity |
+| docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3 | H4.2 | FAIL | Indoors without GNSS the live errors are 0.8–1.4 m and not similar across estimators (EKF3 largest in every flight, H4.2 FAIL) [a]; the two hindsight tracks agr |
+| docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:3 | H2.4 | FAIL | With tags at known positions (Experiment 2) the FGO whole-flight batch is below the smoothed UKF in every condition, by 1.3–3.9× (largest with 1 tag; H2.4 FAIL  |
+| docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:7 | H2.4 | FAIL | / Experiment 2, condition A: 8 tags (mean of 3) / 0.010 / 0.014 / FGO whole-flight batch / 1.31 / H2.4 FAIL / |
+| docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:8 | H2.4 | FAIL | / Experiment 2, condition B: 4 tags (mean of 3) / 0.015 / 0.031 / FGO whole-flight batch / 2.14 / H2.4 FAIL / |
+| docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:9 | H2.4 | FAIL | / Experiment 2, condition C: 2 tags (mean of 3) / 0.019 / 0.039 / FGO whole-flight batch / 2.06 / H2.4 FAIL / |
+| docs/thesis/writing_pack/tables/T8_hindsight_ratio.md:10 | H2.4 | FAIL | / Experiment 2, condition D: 1 tag (mean of 3) / 0.028 / 0.109 / FGO whole-flight batch / 3.89 / H2.4 FAIL / |
+| docs/thesis/writing_pack/thesis_vocabulary.md:155 | H1.5 | MET | / H1.5 / hindsight heading correction / F2 / M:7926 / MET (numbers.md:502) / |
+| docs/thesis/writing_pack/tier1/e3_results.md:82 | H-E3.2 | FAIL | / H-E3.2 1%: LC hindsight < stored no-LC hindsight / **FAIL** / 0/9 / 2 of 3 per flight (6 of 9) / `criteria_a.H-E3.2 …` / |
+| docs/thesis/writing_pack/tier1/e3_results.md:83 | H-E3.3 | FAIL | / H-E3.3 1%: LC live lap-5 ≤ 1.5 × lap-1 / **FAIL** / 3/9 / 2 of 3 per flight (6 of 9); the 3 non-diverged runs pass / `criteria_a.H-E3.3 …` / |
+| docs/thesis/writing_pack/tier1/e3_results.md:85 | H-E3.1 | FAIL | / P-E3.5a 5%: the H-E3.1 criterion / **FAIL** / 0/9 / 0 of 3 per flight / `criteria_a.P-E3.5a …` / |
+| docs/thesis/writing_pack/tier1/e3_results.md:86 | H-E3.2 | FAIL | / P-E3.5b 5%: the H-E3.2 criterion / **FAIL** / 0/9 / 0 of 3 per flight / `criteria_a.P-E3.5b …` / |
+| docs/thesis/writing_pack/tier1/e4_results.md:16 | H-E4.3 | FAIL | - **H-E4.3 FAIL 7/12** (band ≥ 10/12). Live RMSE at 5 s was lower than at 0.25 s on all three D flights, two C flights, |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:267 | H-E3.1 | FAIL | / H-E3.1 (PRIMARY) 1%: LC live < stored no-LC live / **FAIL** / 0/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged ( |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:268 | H-E3.2 | FAIL | / H-E3.2 1%: LC hindsight < stored no-LC hindsight / **FAIL** / 0/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged ( |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:269 | H-E3.3 | FAIL | / H-E3.3 1%: LC live lap5 <= 1.5 x lap1 / **FAIL** / 3/9 / T_A_r1: 2 of 3 runs diverged; T_A_r2: 2 of 3 runs diverged; T_A_r3: 2 of 3 runs diverged (total 6 of  |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:271 | H-E3.1 | FAIL | / P-E3.5a 5%: H-E3.1 criterion / **FAIL** / 0/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:272 | H-E3.2 | FAIL | / P-E3.5b 5%: H-E3.2 criterion / **FAIL** / 0/9 / T_A_r1: 0 of 3 runs diverged; T_A_r2: 0 of 3 runs diverged; T_A_r3: 0 of 3 runs diverged (total 0 of 9 runs di |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md:521 | H-E4.3 | FAIL | / H-E4.3 / FAIL (7/12) / — / CURRENT / `json:scores/E4_verdicts.json:H-E4.3.verdict` / |
+| docs/thesis/writing_pack/tier1/preregistration.md:409 | H-E3.1 | FAIL | > pre-registration's "insufficient data". A genuinely diverged run counts against the criterion, so H-E3.1 is FAIL, |
 
 ### Subprocess checks (run read-only, not modified)
 
@@ -337,7 +338,7 @@ ok: frozen commit 669f099 has the frozen content
 
 ## C. Numeric table cells against their cited source
 
-1060 `numbers*.md:LINE[-LINE]` citations found across the thesis-facing scan set. Only this citation form is resolved automatically (M:/C:/P:/json:/code: citations are provenance to a different document and are counted as unresolved, not guessed at). A citing line is scored a match if at least one numeric token on that line also appears verbatim within the cited `numbers*.md` line window (+/-1 line).
+1062 `numbers*.md:LINE[-LINE]` citations found across the thesis-facing scan set. Only this citation form is resolved automatically (M:/C:/P:/json:/code: citations are provenance to a different document and are counted as unresolved, not guessed at). A citing line is scored a match if at least one numeric token on that line also appears verbatim within the cited `numbers*.md` line window (+/-1 line).
 
 ### Mismatches: cite drift (value found elsewhere in the file, not at the cited line)
 
@@ -345,14 +346,15 @@ ok: frozen commit 669f099 has the frozen content
 |---|---|---|
 | docs/thesis/tables/R4_information_vs_estimator.md:9 | numbers.md:248-249 | numbers.md:1448 |
 | docs/thesis/tables/R4_information_vs_estimator.md:14 | numbers.md:621-623 | numbers.md:675 |
+| docs/thesis/tables/R4_information_vs_estimator.md:14 | numbers_refly.md:247 | numbers_refly.md:345 |
 | docs/thesis/tables/R4_information_vs_estimator.tex:14 | numbers.md:248-249 | numbers.md:127 |
 | docs/thesis/tables/R4_information_vs_estimator.tex:19 | numbers.md:621-623 | numbers.md:79 |
-| docs/thesis/figures_thesis/index_results.md:352 | numbers.md:470 | numbers.md:60 |
-| docs/thesis/figures_thesis/index_results.md:354 | numbers.md:470 | numbers.md:36 |
-| docs/thesis/figures_thesis/index_results.md:359 | numbers_extras.md:95-99 | numbers_extras.md:88 |
-| docs/thesis/figures_thesis/index_results.md:362 | numbers_extras.md:107-111 | numbers_extras.md:101 |
-| docs/thesis/figures_thesis/index_results.md:506 | numbers.md:291-295 | numbers.md:38 |
-| docs/thesis/figures_thesis/index_results.md:562 | numbers.md:263 | numbers.md:134 |
+| docs/thesis/figures_thesis/index_results.md:353 | numbers.md:470 | numbers.md:60 |
+| docs/thesis/figures_thesis/index_results.md:355 | numbers.md:470 | numbers.md:36 |
+| docs/thesis/figures_thesis/index_results.md:360 | numbers_extras.md:95-99 | numbers_extras.md:88 |
+| docs/thesis/figures_thesis/index_results.md:363 | numbers_extras.md:107-111 | numbers_extras.md:101 |
+| docs/thesis/figures_thesis/index_results.md:507 | numbers.md:291-295 | numbers.md:38 |
+| docs/thesis/figures_thesis/index_results.md:563 | numbers.md:263 | numbers.md:134 |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:14 | numbers.md:330 | numbers.md:36 |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:39 | numbers.md:477 | numbers.md:52 |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:50 | numbers.md:577 | numbers.md:114 |
@@ -365,62 +367,62 @@ ok: frozen commit 669f099 has the frozen content
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:68 | numbers.md:629 | numbers.md:565 |
 | docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:15 | numbers.md:248-249 | numbers.md:127 |
 | docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:20 | numbers.md:621-623 | numbers.md:79 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:19 | numbers.md:28 | numbers.md:72 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:36 | numbers_ekf3_heading.md:5 | numbers_ekf3_heading.md:7 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:60 | numbers.md:28 | numbers.md:48 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:64 | numbers.md:211-237 | numbers.md:843 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:7 | numbers.md:411 | numbers.md:60 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:38 | numbers.md:520 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:41 | numbers.md:58 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:77 | numbers.md:82 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30 | numbers_ekf3_heading.md:5 | numbers_ekf3_heading.md:7 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30 | numbers.md:301 | numbers.md:176 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:33 | numbers.md:402 | numbers.md:54 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:64 | numbers.md:451 | numbers.md:565 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:68 | numbers.md:209 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:149 | numbers_tier1.md:576 | numbers_tier1.md:192 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:156 | numbers_tier1.md:614-615 | numbers_tier1.md:192 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:207 | numbers.md:227 | numbers.md:222 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:209 | numbers.md:440 | numbers.md:445 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:93 | numbers_extras.md:99 | numbers_extras.md:111 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:125 | numbers.md:120 | numbers.md:118 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:128 | numbers.md:133 | numbers.md:121 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:11 | numbers.md:58 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35 | numbers.md:369-370 | numbers.md:176 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35 | numbers.md:371 | numbers.md:176 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:60 | numbers_extras.md:99 | numbers_extras.md:111 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:65 | numbers_refly.md:97 | numbers_refly.md:18 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers.md:470-473 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers_extras.md:148-155 | numbers_extras.md:88 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers_refly.md:97 | numbers_refly.md:298 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:89 | numbers.md:520 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:91 | numbers.md:542 | numbers.md:54 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:100 | numbers_tier1.md:560 | numbers_tier1.md:248 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:102 | numbers_tier1.md:163 | numbers_tier1.md:157 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115 | numbers.md:546 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115 | numbers.md:548 | numbers.md:36 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:128 | numbers.md:606 | numbers.md:54 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135 | numbers.md:626 | numbers.md:54 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135 | numbers.md:629 | numbers.md:54 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:154 | numbers.md:312-319 | numbers.md:203 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:173 | numbers.md:736-738 | numbers.md:318 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:53 | numbers_tier1.md:35-36 | numbers_tier1.md:46 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:78 | numbers_tier1.md:560 | numbers_tier1.md:248 |
-| ../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:9 | numbers.md:248-249 | numbers.md:1448 |
-| ../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14 | numbers.md:621-623 | numbers.md:675 |
-| ../../../docs/thesis/writing_pack/thesis_vocabulary.md:343 | numbers.md:598-662 | numbers.md:134 |
-| ../../../docs/thesis/writing_pack/thesis_vocabulary.md:403 | numbers.md:501 | numbers.md:509 |
-| ../../../docs/thesis/writing_pack/units.md:104 | numbers.md:480 | numbers.md:134 |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:19 | numbers.md:28 | numbers.md:72 |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:36 | numbers_ekf3_heading.md:5 | numbers_ekf3_heading.md:7 |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:60 | numbers.md:28 | numbers.md:48 |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:64 | numbers.md:211-237 | numbers.md:843 |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:7 | numbers.md:411 | numbers.md:60 |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:38 | numbers.md:520 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:41 | numbers.md:58 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:77 | numbers.md:82 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30 | numbers_ekf3_heading.md:5 | numbers_ekf3_heading.md:7 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30 | numbers.md:301 | numbers.md:176 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:33 | numbers.md:402 | numbers.md:54 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:64 | numbers.md:451 | numbers.md:565 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:68 | numbers.md:209 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:149 | numbers_tier1.md:576 | numbers_tier1.md:192 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:156 | numbers_tier1.md:614-615 | numbers_tier1.md:192 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:207 | numbers.md:227 | numbers.md:222 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:209 | numbers.md:440 | numbers.md:445 |
+| docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:93 | numbers_extras.md:99 | numbers_extras.md:111 |
+| docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:125 | numbers.md:120 | numbers.md:118 |
+| docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:128 | numbers.md:133 | numbers.md:121 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:11 | numbers.md:58 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35 | numbers.md:369-370 | numbers.md:176 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35 | numbers.md:371 | numbers.md:176 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:60 | numbers_extras.md:99 | numbers_extras.md:111 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:65 | numbers_refly.md:97 | numbers_refly.md:18 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers.md:470-473 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers_extras.md:148-155 | numbers_extras.md:88 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79 | numbers_refly.md:97 | numbers_refly.md:298 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:89 | numbers.md:520 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:91 | numbers.md:542 | numbers.md:54 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:100 | numbers_tier1.md:560 | numbers_tier1.md:248 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:102 | numbers_tier1.md:163 | numbers_tier1.md:157 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115 | numbers.md:546 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115 | numbers.md:548 | numbers.md:36 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:128 | numbers.md:606 | numbers.md:54 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135 | numbers.md:626 | numbers.md:54 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135 | numbers.md:629 | numbers.md:54 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:154 | numbers.md:312-319 | numbers.md:203 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:173 | numbers.md:736-738 | numbers.md:318 |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:53 | numbers_tier1.md:35-36 | numbers_tier1.md:46 |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:78 | numbers_tier1.md:560 | numbers_tier1.md:248 |
+| docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:9 | numbers.md:248-249 | numbers.md:1448 |
+| docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14 | numbers.md:621-623 | numbers.md:675 |
+| docs/thesis/writing_pack/thesis_vocabulary.md:343 | numbers.md:598-662 | numbers.md:134 |
+| docs/thesis/writing_pack/thesis_vocabulary.md:403 | numbers.md:501 | numbers.md:509 |
+| docs/thesis/writing_pack/units.md:104 | numbers.md:480 | numbers.md:134 |
 
 ### Mismatches: value not found anywhere in the cited file
 
 | file:line | cite | tokens on citing line |
 |---|---|---|
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:193 | numbers.md:466 | 24.7 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:120 | numbers_tier1.md:68 | 0.95–1.86, 0.95–2.43 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:123 | numbers_tier1.md:559 | 6.34–14.62 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:193 | numbers.md:466 | 24.7 |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:120 | numbers_tier1.md:68 | 0.95–1.86, 0.95–2.43 |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:123 | numbers_tier1.md:559 | 6.34–14.62 |
 
-### Unresolved (562)
+### Unresolved (561)
 
 Citing lines where no comparable numeric token could be extracted, or the target file could not be resolved - listed rather than guessed, per the request.
 
@@ -455,108 +457,107 @@ Citing lines where no comparable numeric token could be extracted, or the target
 | docs/thesis/figures_thesis/index_results.md:134 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/figures_thesis/index_results.md:214 | numbers_refly.md:287 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/figures_thesis/index_results.md:277 | numbers.md:248 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:298 | numbers.md:621 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:299 | numbers.md:622 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:300 | numbers.md:623 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:301 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:302 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:312 | numbers.md:227 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:314 | numbers.md:330 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:318 | numbers.md:330 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:320 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:324 | numbers.md:263 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:328 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:330 | numbers.md:509 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:332 | numbers.md:501 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:334 | numbers.md:510 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:336 | numbers.md:511 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:338 | numbers.md:512 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:340 | numbers.md:512 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:342 | numbers.md:513 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:344 | numbers.md:513 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:346 | numbers.md:497 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:348 | numbers.md:498 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:350 | numbers.md:499 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:356 | numbers.md:471 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:365 | numbers_extras.md:120-124 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:368 | numbers_extras.md:139-143 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:371 | numbers_refly.md:51-53 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:372 | numbers_refly.md:95-99 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:374 | numbers.md:477 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:376 | numbers.md:478 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:378 | numbers_refly.md:119-121 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:379 | numbers_refly.md:127 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:382 | numbers_ekf3_heading.md:43-43 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:383 | numbers_ekf3_heading.md:52-52 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:384 | numbers_ekf3_heading.md:35-37 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:387 | numbers_ekf3_heading.md:20-22 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:388 | numbers_ekf3_heading.md:29-31 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:389 | numbers.md:291-295 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:392 | numbers_ekf3_heading.md:43-48 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:393 | numbers_ekf3_heading.md:46-48 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:395 | numbers.md:533-534 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:397 | numbers.md:535 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:399 | numbers.md:536 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:401 | numbers.md:537 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:403 | numbers.md:576 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:405 | numbers.md:573 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:406 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:408 | numbers.md:573-574 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:409 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:411 | numbers.md:573-574 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:412 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:414 | numbers.md:574 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:415 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:417 | numbers.md:558 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:418 | numbers.md:552-556 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:420 | numbers.md:559 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:422 | numbers.md:560 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:425 | numbers.md:606 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:428 | numbers_refly.md:228-235 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:431 | numbers_refly.md:337-337 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:432 | numbers_refly.md:342-348 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:435 | numbers_refly.md:338-338 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:436 | numbers_refly.md:350-351 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:439 | numbers_refly.md:339-339 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:440 | numbers_refly.md:353-355 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:443 | numbers_refly.md:340-340 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:444 | numbers_refly.md:357-357 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:447 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:448 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:449 | numbers_refly.md:245-259 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:452 | numbers_refly.md:245-248 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:453 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:457 | numbers.md:617 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:460 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:461 | numbers_refly.md:268-272 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:464 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:465 | numbers_refly.md:282-287 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:468 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:469 | numbers_refly.md:275 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:473 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:474 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:480 | numbers_extras.md:127-131 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:481 | numbers.md:473 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:482 | numbers.md:480 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:483 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:484 | numbers.md:675 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:485 | numbers.md:676 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:486 | numbers.md:677 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:487 | numbers.md:678 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:488 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:299 | numbers.md:621 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:300 | numbers.md:622 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:301 | numbers.md:623 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:302 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:313 | numbers.md:227 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:315 | numbers.md:330 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:319 | numbers.md:330 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:321 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:325 | numbers.md:263 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:329 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:331 | numbers.md:509 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:333 | numbers.md:501 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:335 | numbers.md:510 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:337 | numbers.md:511 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:339 | numbers.md:512 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:341 | numbers.md:512 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:343 | numbers.md:513 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:345 | numbers.md:513 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:347 | numbers.md:497 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:349 | numbers.md:498 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:351 | numbers.md:499 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:357 | numbers.md:471 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:366 | numbers_extras.md:120-124 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:369 | numbers_extras.md:139-143 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:372 | numbers_refly.md:51-53 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:373 | numbers_refly.md:95-99 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:375 | numbers.md:477 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:377 | numbers.md:478 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:379 | numbers_refly.md:119-121 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:380 | numbers_refly.md:127 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:383 | numbers_ekf3_heading.md:43-43 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:384 | numbers_ekf3_heading.md:52-52 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:385 | numbers_ekf3_heading.md:35-37 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:388 | numbers_ekf3_heading.md:20-22 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:389 | numbers_ekf3_heading.md:29-31 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:390 | numbers.md:291-295 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:393 | numbers_ekf3_heading.md:43-48 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:394 | numbers_ekf3_heading.md:46-48 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:396 | numbers.md:533-534 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:398 | numbers.md:535 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:400 | numbers.md:536 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:402 | numbers.md:537 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:404 | numbers.md:576 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:406 | numbers.md:573 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:407 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:409 | numbers.md:573-574 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:410 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:412 | numbers.md:573-574 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:413 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:415 | numbers.md:574 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:416 | numbers.md:577 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:418 | numbers.md:558 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:419 | numbers.md:552-556 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:421 | numbers.md:559 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:423 | numbers.md:560 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:426 | numbers.md:606 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:429 | numbers_refly.md:228-235 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:432 | numbers_refly.md:337-337 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:433 | numbers_refly.md:342-348 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:436 | numbers_refly.md:338-338 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:437 | numbers_refly.md:350-351 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:440 | numbers_refly.md:339-339 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:441 | numbers_refly.md:353-355 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:444 | numbers_refly.md:340-340 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:445 | numbers_refly.md:357-357 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:448 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:449 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:450 | numbers_refly.md:245-259 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:453 | numbers_refly.md:245-248 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:454 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:458 | numbers.md:617 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:461 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:462 | numbers_refly.md:268-272 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:465 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:466 | numbers_refly.md:282-287 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:469 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:470 | numbers_refly.md:275 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:474 | numbers.md:644 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:475 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:481 | numbers_extras.md:127-131 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:482 | numbers.md:473 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:483 | numbers.md:480 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:484 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:485 | numbers.md:675 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:486 | numbers.md:676 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:487 | numbers.md:677 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:488 | numbers.md:678 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/figures_thesis/index_results.md:489 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/figures_thesis/index_results.md:490 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/figures_thesis/index_results.md:491 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:492 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:497 | numbers_ekf3_heading.md:5-5 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:498 | numbers_ekf3_heading.md:43-45 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:499 | numbers_ekf3_heading.md:52-54 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:500 | numbers_ekf3_heading.md:35-37 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:501 | numbers_ekf3_heading.md:173-173 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:502 | numbers_ekf3_heading.md:174-174 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:504 | numbers_ekf3_heading.md:20-22 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:505 | numbers_ekf3_heading.md:29-31 | no decimal value token on citing line (after stripping citations/code spans) |
-| docs/thesis/figures_thesis/index_results.md:533 | numbers.md:1014 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:492 | numbers.md:646 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:493 | numbers.md:629 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:498 | numbers_ekf3_heading.md:5-5 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:499 | numbers_ekf3_heading.md:43-45 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:500 | numbers_ekf3_heading.md:52-54 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:501 | numbers_ekf3_heading.md:35-37 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:502 | numbers_ekf3_heading.md:173-173 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:503 | numbers_ekf3_heading.md:174-174 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:505 | numbers_ekf3_heading.md:20-22 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:506 | numbers_ekf3_heading.md:29-31 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/figures_thesis/index_results.md:534 | numbers.md:1014 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:15 | numbers.md:330 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:20 | numbers.md:509 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:21 | numbers.md:501 | no decimal value token on citing line (after stripping citations/code spans) |
@@ -577,55 +578,56 @@ Citing lines where no comparable numeric token could be extracted, or the target
 | docs/thesis/thesis_assets/tables_tex/tab_7-4.tex:14 | numbers.md:497 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/thesis_assets/tables_tex/tab_7-4.tex:21 | numbers.md:230 | no decimal value token on citing line (after stripping citations/code spans) |
 | docs/thesis/thesis_assets/tables_tex/tab_7-4.tex:32 | numbers.md:479 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/ablation/ablation_numbers.md:204 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/ablation/ablation_numbers.md:205 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/ablation/preregistration.md:225 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/ablation/preregistration.md:225 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_definitions_draft.md:64 | numbers.md:467 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_definitions_draft.md:100 | numbers.md:236 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_definitions_draft.md:148 | numbers.md:480-481 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_definitions_draft.md:165 | numbers.md:33 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:8 | numbers.md:407-408 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:9 | numbers.md:462 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:11 | numbers.md:57 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:15 | numbers.md:237 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:22 | numbers.md:158-160 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:28 | numbers.md:693 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:30 | numbers.md:120 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:31 | numbers.md:115-116 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:32 | numbers.md:110 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:35 | numbers.md:402-405 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:37 | numbers.md:157 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:39 | numbers.md:231 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:41 | numbers.md:487 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:48 | numbers.md:151-157 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:50 | numbers.md:117-120 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:50 | numbers.md:21-24 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:54 | numbers.md:134-135 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers.md:296 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers.md:464 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers_refly.md:376 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers_refly.md:16-23 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:71 | numbers.md:132-133 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:13 | numbers.md:407-408 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:13 | numbers.md:409-410 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:16 | numbers.md:57 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:33 | numbers.md:49 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:37 | numbers.md:73 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:39 | numbers.md:546 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:54 | numbers.md:96-100 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:56 | numbers.md:75-76 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:60 | numbers.md:73-74 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:73 | numbers.md:96 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:78 | numbers.md:58 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:9 | numbers.md:411 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:22 | numbers.md:231 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:39 | numbers.md:542 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:40 | numbers.md:538-539 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:42 | numbers.md:600 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:43 | numbers.md:602 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:57 | numbers.md:700 | no decimal value token on citing line (after stripping citations/code spans) |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:69 | numbers.md:444 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/ablation/ablation_numbers.md:204 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/ablation/ablation_numbers.md:205 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/ablation/preregistration.md:225 | numbers.md:301 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/ablation/preregistration.md:225 | numbers.md:299 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_definitions_draft.md:64 | numbers.md:467 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_definitions_draft.md:100 | numbers.md:236 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_definitions_draft.md:148 | numbers.md:480-481 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_definitions_draft.md:165 | numbers.md:33 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:8 | numbers.md:407-408 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:9 | numbers.md:462 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:11 | numbers.md:57 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:15 | numbers.md:237 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:22 | numbers.md:158-160 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:28 | numbers.md:693 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:30 | numbers.md:120 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:31 | numbers.md:115-116 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:32 | numbers.md:110 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:35 | numbers.md:402-405 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:37 | numbers.md:157 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:39 | numbers.md:231 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:41 | numbers.md:487 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:48 | numbers.md:151-157 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:50 | numbers.md:117-120 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:50 | numbers.md:21-24 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:54 | numbers.md:134-135 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers.md:296 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers.md:464 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers_refly.md:376 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:61 | numbers_refly.md:16-23 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:71 | numbers.md:132-133 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:13 | numbers.md:407-408 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:13 | numbers.md:409-410 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:16 | numbers.md:57 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:33 | numbers.md:49 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:37 | numbers.md:73 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:39 | numbers.md:546 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:54 | numbers.md:96-100 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:56 | numbers.md:75-76 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:60 | numbers.md:73-74 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:73 | numbers.md:96 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:78 | numbers.md:58 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:9 | numbers.md:411 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:22 | numbers.md:231 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:39 | numbers.md:542 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:40 | numbers.md:538-539 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:42 | numbers.md:600 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:43 | numbers.md:602 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:57 | numbers.md:700 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:69 | numbers.md:444 | no decimal value token on citing line (after stripping citations/code spans) |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:75 | numbers.md:157 | no decimal value token on citing line (after stripping citations/code spans) |
 
 ## D. Style checks
 
@@ -633,42 +635,6 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 
 | file | prose en/em dashes (not a digit-range) | bare `RTF 0.5` (not wrapped as 'half real-time (RTF 0.5)') |
 |---|---|---|
-| ../../../docs/thesis/writing_pack/ablation/ablation_numbers.md | 15 | 0 |
-| ../../../docs/thesis/writing_pack/ablation/preregistration.md | 11 | 0 |
-| ../../../docs/thesis/writing_pack/methodology_definitions_draft.md | 1 | 1 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md | 1 | 1 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md | 3 | 1 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md | 3 | 1 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md | 4 | 1 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.6_metrics_statistics.md | 2 | 0 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.7_verification.md | 3 | 0 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md | 26 | 0 |
-| ../../../docs/thesis/writing_pack/methodology_factsheets/README.md | 18 | 1 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md | 12 | 1 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/ekf3_heading_preregistration.md | 93 | 0 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/extras_preregistration.md | 1 | 0 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_cl_heading_perflight.md | 17 | 0 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md | 7 | 0 |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/refly_preregistration.md | 0 | 2 |
-| ../../../docs/thesis/writing_pack/numbers.md | 239 | 0 |
-| ../../../docs/thesis/writing_pack/raw_corridor/raw_corridor_numbers.md | 13 | 0 |
-| ../../../docs/thesis/writing_pack/tables/R1_hypothesis_scorecard.md | 3 | 0 |
-| ../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md | 9 | 0 |
-| ../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md | 5 | 0 |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md | 4 | 0 |
-| ../../../docs/thesis/writing_pack/tables/T2_accuracy_heading.md | 1 | 0 |
-| ../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md | 2 | 0 |
-| ../../../docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md | 2 | 0 |
-| ../../../docs/thesis/writing_pack/tables/TA_verdicts.md | 7 | 0 |
-| ../../../docs/thesis/writing_pack/tables/methods_estimator_design.md | 1 | 0 |
-| ../../../docs/thesis/writing_pack/tables/methods_experiment_matrix.md | 3 | 1 |
-| ../../../docs/thesis/writing_pack/thesis_vocabulary.md | 26 | 1 |
-| ../../../docs/thesis/writing_pack/tier1/e3_results.md | 60 | 0 |
-| ../../../docs/thesis/writing_pack/tier1/e4_results.md | 2 | 0 |
-| ../../../docs/thesis/writing_pack/tier1/e5_results.md | 1 | 0 |
-| ../../../docs/thesis/writing_pack/tier1/e6_preregistration.md | 8 | 0 |
-| ../../../docs/thesis/writing_pack/tier1/numbers_tier1.md | 14 | 0 |
-| ../../../docs/thesis/writing_pack/tier1/preregistration.md | 4 | 0 |
 | docs/thesis/figures_thesis/index.md | 19 | 0 |
 | docs/thesis/figures_thesis/index_drift.md | 1 | 0 |
 | docs/thesis/figures_thesis/index_drift9.md | 1 | 0 |
@@ -690,6 +656,42 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 | docs/thesis/thesis_assets/index.md | 1 | 0 |
 | docs/thesis/thesis_assets/tables_tex/tab_3-4.tex | 0 | 1 |
 | docs/thesis/thesis_assets/tables_tex/tab_8-1.tex | 0 | 3 |
+| docs/thesis/writing_pack/ablation/ablation_numbers.md | 15 | 0 |
+| docs/thesis/writing_pack/ablation/preregistration.md | 11 | 0 |
+| docs/thesis/writing_pack/methodology_definitions_draft.md | 1 | 1 |
+| docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md | 1 | 1 |
+| docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md | 3 | 1 |
+| docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md | 3 | 1 |
+| docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md | 4 | 1 |
+| docs/thesis/writing_pack/methodology_factsheets/3.6_metrics_statistics.md | 2 | 0 |
+| docs/thesis/writing_pack/methodology_factsheets/3.7_verification.md | 3 | 0 |
+| docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md | 26 | 0 |
+| docs/thesis/writing_pack/methodology_factsheets/README.md | 18 | 1 |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md | 12 | 1 |
+| docs/thesis/writing_pack/new_2026-11-11/ekf3_heading_preregistration.md | 93 | 0 |
+| docs/thesis/writing_pack/new_2026-11-11/extras_preregistration.md | 1 | 0 |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_cl_heading_perflight.md | 17 | 0 |
+| docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md | 7 | 0 |
+| docs/thesis/writing_pack/new_2026-11-11/refly_preregistration.md | 0 | 2 |
+| docs/thesis/writing_pack/numbers.md | 239 | 0 |
+| docs/thesis/writing_pack/raw_corridor/raw_corridor_numbers.md | 13 | 0 |
+| docs/thesis/writing_pack/tables/R1_hypothesis_scorecard.md | 3 | 0 |
+| docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md | 9 | 0 |
+| docs/thesis/writing_pack/tables/R4_information_vs_estimator.md | 5 | 0 |
+| docs/thesis/writing_pack/tables/T1_scorecard.md | 4 | 0 |
+| docs/thesis/writing_pack/tables/T2_accuracy_heading.md | 1 | 0 |
+| docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md | 2 | 0 |
+| docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md | 2 | 0 |
+| docs/thesis/writing_pack/tables/TA_verdicts.md | 7 | 0 |
+| docs/thesis/writing_pack/tables/methods_estimator_design.md | 1 | 0 |
+| docs/thesis/writing_pack/tables/methods_experiment_matrix.md | 3 | 1 |
+| docs/thesis/writing_pack/thesis_vocabulary.md | 26 | 1 |
+| docs/thesis/writing_pack/tier1/e3_results.md | 60 | 0 |
+| docs/thesis/writing_pack/tier1/e4_results.md | 2 | 0 |
+| docs/thesis/writing_pack/tier1/e5_results.md | 1 | 0 |
+| docs/thesis/writing_pack/tier1/e6_preregistration.md | 8 | 0 |
+| docs/thesis/writing_pack/tier1/numbers_tier1.md | 14 | 0 |
+| docs/thesis/writing_pack/tier1/preregistration.md | 4 | 0 |
 
 ### Sample detail (up to 40 lines per file)
 
@@ -813,7 +815,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 **docs/thesis/thesis_assets/index.md**
 - L25 [dash_prose]: `| Table 5.1 | Experiment 4 (outdoor–indoor): indoor horizontal RMSE per flight (123 s, GNSS off) |  ,   |   |  ,   |`
 
-**../../../docs/thesis/writing_pack/ablation/ablation_numbers.md**
+**docs/thesis/writing_pack/ablation/ablation_numbers.md**
 - L113 [dash_prose]: `| fwdc_tex_r1, baseline | 16.4 / 18.2 | 6.2 / 6.6 | 6.2 / 7.0 | 6.2 / 6.8 | 51.9 / 55.1 | 100.6 / 106.1 | — | — |`
 - L114 [dash_prose]: `| fwdc_tex_r2, baseline | 17.0 / 18.6 | 6.2 / 6.6 | 6.2 / 6.8 | 6.3 / 7.0 | 51.8 / 55.5 | 102.3 / 109.1 | — | — |`
 - L115 [dash_prose]: `| fwdc_tex_r3, baseline | 17.1 / 18.5 | 6.1 / 6.5 | 6.2 / 7.0 | 6.1 / 6.8 | 51.3 / 55.3 | 100.8 / 106.2 | — | — |`
@@ -824,7 +826,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L141 [dash_prose]: `| P2 | PASS | 3/3 | — (R(r3) on  : 1.01, 0.97, 0.98; pass needs ≥ 0.5 on each) |`
 - L176 [dash_prose]: `(r3) keeps the FGO–UKF gap essentially whole (R = 1.01, 0.97, 0.98, each above its ≈ 0.91 threshold), and so do the`
 
-**../../../docs/thesis/writing_pack/ablation/preregistration.md**
+**docs/thesis/writing_pack/ablation/preregistration.md**
 - L103 [dash_prose]: `| r0 (thesis config; identity gate + serial timing) |   | 0.25 | 2 | heading, baseline | — |   |`
 - L104 [dash_prose]: `| r1 one keyframe × 1 iteration |   | 0.01 | 1 | heading, baseline | — | same |`
 - L105 [dash_prose]: `| r2 one keyframe × cap 2 (kept, Q2) |   | 0.01 | 2 | heading, baseline | — | same |`
@@ -837,43 +839,43 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L250 [dash_prose]: `| P1 fails (a control rung moves beyond its band) | the variant changes the FGO generally, not only its heading handling. The P2 reading is `
 - L252 [dash_prose]: `| headings fused differ markedly between rungs | part of any change acts through the gate's linearisation point, not through the window. Rep`
 
-**../../../docs/thesis/writing_pack/methodology_definitions_draft.md**
+**docs/thesis/writing_pack/methodology_definitions_draft.md**
 - L1 [dash_prose]: `# Methodology chapter: conventions for reporting results — DRAFT FOR THE USER`
 - L206 [rtf_bare]: `## Half real-time (RTF 0.5)`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md**
 - L39 [dash_prose]: `- **Outdoor–indoor world (Experiment 4).**  : corridor checker floor outside and inside, and a building with an entrance and a plain roof. W`
 - L44 [rtf_bare]: `- **Half real-time (RTF 0.5).** The closed-loop corridor flights also ran in  , a copy of the textured-wall world with   0.5 (sim/worlds/cor`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md**
 - L64 [dash_prose]: `- **FGO, solver:** a GTSAM 4.2.1    . It solves with Levenberg–Marquardt, capped at 2 iterations and warm-started (numbers.md:451; src/estim`
 - L136 [dash_prose]: `Mahalanobis residual of every tag landmark factor only — not the gauge prior, not any IMU, flow or range factor`
 - L152 [dash_prose]: `place of the surveyed one, treating the supplied map exactly as fixed, known landmarks — same tag noise, no map`
 - L202 [rtf_bare]: `- **Closed-loop   for the Python heading node** was replaced by 38 for the C++ node (closedloop_heading.parm:16-19), and 25 at RTF 0.5 (clos`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md**
 - L69 [rtf_bare]: `25 at RTF 0.5 (numbers.md:464); 38 at RTF 1.0  .`
 - L148 [dash_prose]: `METHODOLOGY.md:1985-2005) is superseded by "Ruling 2 — IMU timing rule EXTENDED" (receipt bunch added, ≥ 10 s`
 - L161 [dash_prose]: `flies (METHODOLOGY.md:8070); a non-active estimator logs (docs/partC_onboard_feasibility.md:28) — glossary_flags.md:93;`
 - L164 [dash_prose]: `(METHODOLOGY.md:10476) — glossary_flags.md:94; glossary.md:3482, 3507.`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md**
 - L9 [dash_prose]: `- **Numbering.** Five experiments: 1 corridor comparison (1A standard-sensor comparison, 1B camera-heading studies, 1C closed-loop corridor `
 - L48 [dash_prose]: `- **H1.7a–c (robust-weighting replication; plan step 2(a)), operative M:9692-9750.**`
 - L79 [rtf_bare]: `· **Verdicts (original n = 1 flights, as recorded):** EKF3 PASS at RTF 1.0 and MISS at RTF 0.5 (numbers.md:464) (contact after its window); `
 - L90 [dash_prose]: `· Conditions A–D are the number of tags sent (8 / 4 / 2 / 1) × 3 repeats, interleaved: n = 12 flights (M:10115-10126).`
 - L113 [dash_prose]: `- **Exp 4 (outdoor–indoor), operative M:10290-10363.**`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.6_metrics_statistics.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.6_metrics_statistics.md**
 - L133 [dash_prose]: `crashed run or a failed gate; **NOT RUN** for a run the lock cut off; no early decisions — a criterion with a`
 - L139 [dash_prose]: `fraction of the stored FGO–UKF gap a rung ρ keeps, per bag; R = 1 unchanged, R ≤ 0 the FGO is no better than the`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.7_verification.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.7_verification.md**
 - L51 [dash_prose]: `directly traced plain-wall case and the ruled outdoor–indoor partial attribution (numbers.md:35-36,`
 - L110 [dash_prose]: `s then  s a manifest of result data — every   file, every other trial's`
 - L111 [dash_prose]: `outputs except its recorded bag,  , and   — never code and never documents`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md**
+**docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md**
 - L10 [dash_prose]: `- **Recordings.**  ,  ,   (9 existing Experiment 2 flights, not new flights); condition A is not re-run — the stored Experiment 3 result IS `
 - L36 [dash_prose]: `- **H-E3.1 (PRIMARY) at 1%: FAIL, 0/9** — 6 of 9 runs diverged (2 of 3 on every flight), and the 3 non-diverged runs' LC live is far above t`
 - L39 [dash_prose]: `- P-E3.6 (dose–response): **FAIL, 0/3** — every flight has 2 diverged 1% runs, so seed means are not computed ( ).`
@@ -898,7 +900,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L138 [dash_prose]: `"inside the band" — this is the pre-registration's own "weak test" caveat, already stated against P1 above, not a`
 - L150 [dash_prose]: `- **"NOT MET" means two different things across the main experiments and the tier-1 extensions, and E3 shows the collision directly.** The m`
 
-**../../../docs/thesis/writing_pack/methodology_factsheets/README.md**
+**docs/thesis/writing_pack/methodology_factsheets/README.md**
 - L24 [dash_prose]: `145 when this pack was created — see Flags (a) below).`
 - L33 [dash_prose]: `correct facts, without either source disagreeing with the other, belongs in Appendix candidates instead — see the`
 - L46 [dash_prose]: `bullet states) is run in **strict** mode — numbers.md/numbers_tier1.md or a   tag only, no other`
@@ -919,7 +921,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L202 [dash_prose]: `- the time-sync cost (M:3891); the old roll gains (M:4569-4576, corrected — see above); the room_tags world geometry`
 - L271 [dash_prose]: `summary pages — the extension pages print the registered word, not a paraphrase (3.6, 3.9).`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md**
+**docs/thesis/writing_pack/new_2026-11-11/caption_detail.md**
 - L11 [rtf_bare]: `- Full condition statement dropped from the compressed caption: "Textured corridor at half real-time (RTF 0.5; the`
 - L151 [dash_prose]: `(O_r1), 123.08 s (O_r2) and 123.08 s (O_r3b) — matching the "~123 s" read off the plot. EKF3's own source-set`
 - L155 [dash_prose]: `window — i.e. the actual position jump, independently recomputed here from each flight's  , using`
@@ -934,7 +936,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L302 [dash_prose]: `### Task 5 — does Figure 4.1c carry information Figure 4.1d does not?`
 - L309 [dash_prose]: `figure's panel (b) — that prose is all backed by a separate, already-registered distance-scale computation`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/ekf3_heading_preregistration.md**
+**docs/thesis/writing_pack/new_2026-11-11/ekf3_heading_preregistration.md**
 - L10 [dash_prose]: `real log (see "Round-trip check" below) — both diagnostic, neither a flight nor an`
 - L59 [dash_prose]: `### 2.1 METHODOLOGY "RULING — EKF3 in the offline forward-camera comparison (user,`
 - L74 [dash_prose]: `) — which includes all 18  /  Phase-4 bags — has`
@@ -976,10 +978,10 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L277 [dash_prose]: `template, which surfaced two wrong placement rules before the correct one — recorded`
 - L285 [dash_prose]: `original — a stronger, directly-runnable proxy for "does the mechanics preserve the`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/extras_preregistration.md**
+**docs/thesis/writing_pack/new_2026-11-11/extras_preregistration.md**
 - L83 [dash_prose]: `-   gets, per cell: the contact times, k/3, the spread (min–max), and the existing n = 1 verdict for`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/numbers_cl_heading_perflight.md**
+**docs/thesis/writing_pack/new_2026-11-11/numbers_cl_heading_perflight.md**
 - L9 [dash_prose]: `| EKF3, full speed (RTF 1.0), Python heading node | 1 ( ) | 0.27 | 0.36 | 0.54 | 0.033 | all pass | — |`
 - L10 [dash_prose]: `| EKF3, full speed (RTF 1.0), Python heading node | 2 ( ) | 0.31 | 0.28 | 0.31 | 0.019 | all pass | — |`
 - L11 [dash_prose]: `| EKF3, full speed (RTF 1.0), Python heading node | 3 ( ) | 0.29 | 0.28 | 0.34 | 0.017 | all pass | — |`
@@ -997,7 +999,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L23 [dash_prose]: `| original FGO, robust weighting, half real time | 3 ( ) | 0.05 | 0.30 | 1.15 | 0.040 | all pass | — |`
 - L27 [dash_prose]: `*Checks (EXACT): 25/25 — every value against its score file; the half real-time EKF3 row against Table 4.3; the per-set min–max against numb`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md**
+**docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md**
 - L188 [dash_prose]: `finishing — checked, not assumed, since another agent is working in this same checkout.** It touched only`
 - L189 [dash_prose]: `and a new standalone script   — neither`
 - L287 [dash_prose]: `**Fails in 8 of 12 losses** (r1: all 4; r2: 15 s and move; r3: 15 s and move) — descriptive, as worded, no set-level`
@@ -1006,11 +1008,11 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L423 [dash_prose]: `**0 changed, 0 missing, 0 errors, 5 added** — exactly this task's own five new output files, nothing else.`
 - L456 [dash_prose]: `(exactly this task's own five new output files) — a genuine before/after pair, reading clean (section 6).`
 
-**../../../docs/thesis/writing_pack/new_2026-11-11/refly_preregistration.md**
+**docs/thesis/writing_pack/new_2026-11-11/refly_preregistration.md**
 - L23 [rtf_bare]: `| 1C without heading |   (RTF 0.5) | FGO, Python node | 3 |   |   (n = 1) |`
 - L24 [rtf_bare]: `| 1C with heading |   (RTF 0.5) | FGO, Python node; C++ heading node | 3 |   |   |`
 
-**../../../docs/thesis/writing_pack/numbers.md**
+**docs/thesis/writing_pack/numbers.md**
 - L57 [dash_prose]: `| Flow RANSAC seed | 42 | — | CURRENT |`
 - L75 [dash_prose]: `| RTF, old machine | 0.05 – 0.17 | — | CURRENT (historical) |`
 - L76 [dash_prose]: `| RTF, new machine (pre-fix) | ≈0.86 | — | CURRENT (historical) |`
@@ -1052,7 +1054,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L253 [dash_prose]: `|   transition displacement ratio, UKF / FGO (mean of 3) †| 6.8 / 17.7 (per flight FGO 18.0 / 18.1 / 17.0; was 45.9 / 50.0 before the final `
 - L259 [dash_prose]: `| Heading share of EKF3 lateral drift (pinned window),   / r1 / r2 | 0.906 / 0.904 / 0.899 | — | CURRENT (correction (iii)) |`
 
-**../../../docs/thesis/writing_pack/raw_corridor/raw_corridor_numbers.md**
+**docs/thesis/writing_pack/raw_corridor/raw_corridor_numbers.md**
 - L3 [dash_prose]: `Generated by   from   (generated by  ). **DESCRIPTIVE ONLY — nothing fitted** (no rotation, translation or scale alignment); these values do`
 - L5 [dash_prose]: `**Stage 1b (D111, binding):** Stage 1 withheld raw values per CELL on a 2° heading-of-first-5m check; 69/154 cells were withheld. D111 ruled`
 - L7 [dash_prose]: `**Frame convention** (identical to Figure 4.1c / R5,  , re-derived for this scope — not imported, since that script is scoped to one flight)`
@@ -1062,12 +1064,12 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L27 [dash_prose]: `**Early heading offset column (DESCRIPTIVE, never a gate):**   over the first 5 m of true cruise travel from the window start (same quantity`
 - L33 [dash_prose]: `**RC-7 (Stage 1 handover) still applies:** EKF3 on the transition floor sits pinned near the origin for ~140 s of the ~300 s cruise after lo`
 
-**../../../docs/thesis/writing_pack/tables/R1_hypothesis_scorecard.md**
+**docs/thesis/writing_pack/tables/R1_hypothesis_scorecard.md**
 - L39 [dash_prose]: `| H2.1 | FGO hindsight gain grows with the gap (primary) | “H-T1 … the FGO's hindsight gain grows with the gap. PASS iff both: (i) the per-c`
 - L41 [dash_prose]: `| H2.3 | live errors similar | “P-T3 (prediction): live errors are similar. In every condition, the largest live horizontal RMSE among EKF3,`
 - L42 [dash_prose]: `| H2.4 | FGO hindsight ≈ smoothed UKF | “P-T4 (prediction): FGO hindsight ≈ RTS-UKF. In every condition, the larger of their horizontal RMSE`
 
-**../../../docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md**
+**docs/thesis/writing_pack/tables/R2_corrections_by_discovery.md**
 - L7 [dash_prose]: `| fairness (input-equivalence) audit | 1 | UKF/FGO IMU dejitter (sensor-time reconstruction) | DATA | Fairness audit OI-2 (2026-09-24): an i`
 - L9 [dash_prose]: `| offline cross-check against ground truth (distance scale) | 3 | EKF3 flow sensor position FLOW_POS_Z 0.13 → 0.25 | CONFIG | Distance-scale`
 - L10 [dash_prose]: `| offline cross-check against ground truth (distance scale) | 4 | UKF process dt = the accumulated IMU interval | MODEL | Distance-scale che`
@@ -1078,31 +1080,31 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L22 [dash_prose]: `| SITL flight (a defect exposed by a flown result) | 5 | lateral optical-flow sign | MODEL / bridge | Closed-loop smoke test (2026-09-29): t`
 - L24 [dash_prose]: `| SITL flight (a defect exposed by a flown result) | 16 | offline UKF bias-corrected flow derotation | MODEL | H S1 input-path diagnostic (2`
 
-**../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md**
+**docs/thesis/writing_pack/tables/R4_information_vs_estimator.md**
 - L3 [dash_prose]: `For each condition: the primary metric of each estimator, the best–worst spread across the estimators (max − min and max ÷ min), and the cha`
 - L10 [dash_prose]: `| Experiment 2: known tags, live | horizontal RMSE (m); n = 3 flights per condition (mean); 4 conditions | 1 tag: EKF3 0.096, UKF 0.131, FGO`
 - L11 [dash_prose]: `| Experiment 2: known tags, hindsight | horizontal RMSE (m); n = 3 flights per condition (mean) | 1 tag: FGO batch 0.028, smoothed UKF 0.109`
 - L12 [dash_prose]: `| Experiment 4: outdoor–indoor, live | indoor horizontal RMSE (m), GNSS off for 123 s; n = 3 flights | EKF3 1.42–1.43, UKF 0.77–0.84, FGO 0.`
 - L13 [dash_prose]: `| Experiment 4: outdoor–indoor, hindsight | indoor horizontal RMSE (m); n = 3 flights | FGO batch 0.59–0.59, smoothed UKF 0.58–0.60 | - | ma`
 
-**../../../docs/thesis/writing_pack/tables/T1_scorecard.md**
+**docs/thesis/writing_pack/tables/T1_scorecard.md**
 - L3 [dash_prose]: `Each cell gives the key number and the verdict it rests on, with a status (PASSED, N/A, or on the blank floor 'no estimator bounds position `
 - L13 [dash_prose]: `| Experiment 4: outdoor–indoor (GNSS outside only)   | indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) | indoor 0.77–0.84 m (no l`
 - L20 [dash_prose]: `*Why no ordering label, by row (the footnote letters): standard sensors, H1.1 test run, rule not met  , the UKF medians descriptive  ; with `
 - L24 [dash_prose]: `*Ordering footnotes  –  (one per comparison; the letters in the experiment column): each footnote states the rule, the result and why no ord`
 
-**../../../docs/thesis/writing_pack/tables/T2_accuracy_heading.md**
+**docs/thesis/writing_pack/tables/T2_accuracy_heading.md**
 - L7 [dash_prose]: `| EKF3 | 4.10 (3.11–4.12) | RMS 14.58 (7.84–14.64); end 37.39 (22.54–37.56) | 4.09 / 3.60 / 4.08 | RMS 14.54 / 11.16 / 14.45; end 37.30 / 29`
 
-**../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md**
+**docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md**
 - L3 [dash_prose]: `Holding on a wall tag, every flying estimator drifts at most about 30 mm while the tag is hidden, inside every pre-registered band, and none`
 - L14 [dash_prose]: `*Drift = the EFFECTIVE metric (last fix → first returning fix); the end-of-loss metric differs by ≤ 5 mm (unrounded 5.1 mm). Pre-registered `
 
-**../../../docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md**
+**docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md**
 - L1 [dash_prose]: `# Table 5.1. Experiment 4 (outdoor–indoor): indoor horizontal RMSE per flight (123 s, GNSS off)`
 - L12 [dash_prose]: `| live max ÷ min (H4.2) | — | 1.72 | 1.71 | 1.84 | 1.71–1.84 |`
 
-**../../../docs/thesis/writing_pack/tables/TA_verdicts.md**
+**docs/thesis/writing_pack/tables/TA_verdicts.md**
 - L3 [dash_prose]: `ONE row per pre-registered hypothesis, check or prediction, gathered from the tables and verdict files that already scored it, so that no PA`
 - L39 [dash_prose]: `| Experiment 2 | H2.1 | “H-T1 … the FGO's hindsight gain grows with the gap. PASS iff both: (i) the per-condition medians of Δ_FGO increase `
 - L41 [dash_prose]: `| Experiment 2 | H2.3 | “P-T3 (prediction): live errors are similar. In every condition, the largest live horizontal RMSE among EKF3, UKF an`
@@ -1111,15 +1113,15 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L101 [dash_prose]: `| EXPLORATORY | P2 (with heading) | the one-keyframe converged FGO (r3: cap 100; convergence not confirmed, iteration counts not logged) ret`
 - L124 [dash_prose]: `*Verdicts (the project's own vocabulary; never softened or strengthened): PASS = the record says PASS, MET, TRUE or an accepted-as-worded ve`
 
-**../../../docs/thesis/writing_pack/tables/methods_estimator_design.md**
+**docs/thesis/writing_pack/tables/methods_estimator_design.md**
 - L10 [dash_prose]: `| filter or smoother | extended Kalman filter | unscented Kalman filter (an RTS smoother over its predict nodes gives the hindsight track in`
 
-**../../../docs/thesis/writing_pack/tables/methods_experiment_matrix.md**
+**docs/thesis/writing_pack/tables/methods_experiment_matrix.md**
 - L11 [dash_prose]: `| 1B: robust-weighting replication | corridor with ceiling, textured floor; plain and textured walls | as 1B offline fusion | UKF hard-gated`
 - L15 [dash_prose]: `| 4 outdoor–indoor | outdoor–indoor world (GNSS outside only) | IMU, flow, LiDAR; GNSS outdoors only | EKF3 live, passive (truth flying); UK`
 - L21 [rtf_bare]: `*'Truth flying' = AHRS_EKF_TYPE 10: the simulator's state flies the vehicle, so the path does not depend on any estimator; EKF3 then runs li`
 
-**../../../docs/thesis/writing_pack/thesis_vocabulary.md**
+**docs/thesis/writing_pack/thesis_vocabulary.md**
 - L42 [dash_prose]: `| **2** | **Known tags** | Experiment T | AprilTag fixes at known positions; 4 tag densities (conditions A–D) × 3 |`
 - L44 [dash_prose]: `| **4** | **Outdoor–indoor** | Experiment O | GNSS outside only; 123 s indoors on IMU, flow and LiDAR |`
 - L74 [dash_prose]: `| 4 | Experiment 4, outdoor–indoor | Experiment O |`
@@ -1141,7 +1143,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L501 [dash_prose]: `| 18 | adopted | **"Expand the dataset abbreviations at first use … do not invent an expansion"** (1089) | adopted. Terms 11–16 are descript`
 - L504 [dash_prose]: `| 21 | adopted | Experiment T conditions **"condition A–D (never 'T1…')"** (1125) | adopted unchanged | — |`
 
-**../../../docs/thesis/writing_pack/tier1/e3_results.md**
+**docs/thesis/writing_pack/tier1/e3_results.md**
 - L88 [dash_prose]: `| P-E3.6 dose–response: seed-mean LC live clean ≤ 1% ≤ 5%, per flight | **FAIL** | 0/3 | each flight has 2 diverged 1% runs (seed means not `
 - L108 [dash_prose]: `| T_A_r1 | 1% | 1 | **diverged**: onset 49.699 s, 1st exception 52.432 s, fail fraction 0.90 | diverged | diverged | diverged | diverged → d`
 - L109 [dash_prose]: `| T_A_r1 | 1% | 2 | **diverged**: onset 59.699 s, 1st exception 63.832 s, fail fraction 0.86 | diverged | diverged | diverged | diverged → d`
@@ -1164,14 +1166,14 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L203 [dash_prose]: `| (b)/(a) at 5%: median (min–max) of 9 pairs | 0.04 (0.03–0.08) | NOT LIKE FOR LIKE |   |`
 - L331 [dash_prose]: `| original (scored) | — | 19 | 3, 6 | OK | 3.7618 | 3.5648 | 1.224 | 3088.4 |`
 
-**../../../docs/thesis/writing_pack/tier1/e4_results.md**
+**docs/thesis/writing_pack/tier1/e4_results.md**
 - L53 [dash_prose]: `| W (s) | cap | runs completed | status OK / FAILED-ESTIMATOR | driver wall min–max (s) | mean (s) |`
 - L119 [dash_prose]: `| W (s) | F(W) pooled, 12 flights | F A | F B | F C | F D | median f_i | f_i min–max | flights |`
 
-**../../../docs/thesis/writing_pack/tier1/e5_results.md**
+**docs/thesis/writing_pack/tier1/e5_results.md**
 - L132 [dash_prose]: `| 36 judges | 36 | 0.9–1.0 | 33 | — |`
 
-**../../../docs/thesis/writing_pack/tier1/e6_preregistration.md**
+**docs/thesis/writing_pack/tier1/e6_preregistration.md**
 - L189 [dash_prose]: `- Arms (i)–(iii) use the thesis estimators on   (one fix per frame). Arm (iv) uses the separate`
 - L226 [dash_prose]: `(i)–(iv).`
 - L237 [dash_prose]: `| **Idle** | no  , no  , no  /  of another job, no plot job (  for  ,  ,  ); recorded before every job | all clear | — |`
@@ -1179,7 +1181,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L273 [dash_prose]: `| — | handover to Stage 2 (a fresh agent) | — | — |`
 - L315 [dash_prose]: `arms (i)–(iii) use the thesis estimators on one fix per frame (§4).`
 
-**../../../docs/thesis/writing_pack/tier1/numbers_tier1.md**
+**docs/thesis/writing_pack/tier1/numbers_tier1.md**
 - L261 [dash_prose]: `| T_A_r1 P-E3.6 | not satisfied (diverged: E3a_T_A_r1_0.01_s1, E3a_T_A_r1_0.01_s2); seed means not computed | — | CURRENT |   |`
 - L262 [dash_prose]: `| T_A_r2 P-E3.6 | not satisfied (diverged: E3a_T_A_r2_0.01_s1, E3a_T_A_r2_0.01_s2); seed means not computed | — | CURRENT |   |`
 - L263 [dash_prose]: `| T_A_r3 P-E3.6 | not satisfied (diverged: E3a_T_A_r3_0.01_s1, E3a_T_A_r3_0.01_s2); seed means not computed | — | CURRENT |   |`
@@ -1195,7 +1197,7 @@ Counts are per-file after stripping code spans, bracketed `[...]` citations, and
 - L520 [dash_prose]: `| P-E4.2 | PASS (0.25 s 12/12, 1 s 12/12, 2 s 12/12, 5 s 12/12) | — | CURRENT |   |`
 - L521 [dash_prose]: `| H-E4.3 | FAIL (7/12) | — | CURRENT |   |`
 
-**../../../docs/thesis/writing_pack/tier1/preregistration.md**
+**docs/thesis/writing_pack/tier1/preregistration.md**
 - L375 [dash_prose]: `| P-E3.6 (dose–response) | per flight, the seed-mean LC live overall satisfies clean ≤ 1% ≤ 5% | 3/3 flights | The nesting (§2.1 item 4) mea`
 - L592 [dash_prose]: `| — | live RMSE at every W; f_i(W) and F(W) | **DESCRIPTIVE ONLY** | Defined above. |`
 - L823 [dash_prose]: `| snapshot, G0-L, G0-UKF | 1 + 2 + 12 | 521 s; 63 s | 0.5 h | — |`
@@ -1235,24 +1237,24 @@ Source checked: `eval/results/expO_switch_delay/switch_delay.json` (loaded OK) a
 | docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:9 | 4.1 m | **NO** | \caption{Table 7.2. Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests. How each estimator fails: EKF3 declares its blank-floor position invalid while the UK |
 | docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:15 | 4.10 m | **NO** | EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur |
 | docs/thesis/thesis_assets/index.md:24 | 4.1 m | **NO** | / Figure 5.3 / Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m. / `figures/fig_5-3.pdf` / `eval/figs_thesis.py` / `figures_thesis/F6_O_out |
-| ../../../docs/thesis/writing_pack/figures_thesis/captions/F6.md:1 | 4.1 m | **NO** | Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m. |
-| ../../../docs/thesis/writing_pack/figures_thesis/captions/F6.md:3 | 4.10 m | **NO** | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149 | 4.3 s | **NO** | **Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.** |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:164 | 4.3 s | **NO** | latency**, not a plotting artefact or a different event: for about 4.3 s after GNSS is physically available again, |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:168 | 4.3 s | **NO** | **Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:171 | 4.3 s | **NO** | `numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:172 | 4.3 s | **NO** | (4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 / |
-| ../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:192 | 4.3 s | **NO** | with ArduPilot's own source code, though the exact 4.3 s was not traced sample-by-sample through that gate here - |
-| ../../../docs/thesis/writing_pack/numbers.md:526 | 4.3 s | **NO** | / A: all 8 (4.3 s) / 0.039 m / 0.037 m / **0.020 m** / 0.014 m / **0.010 m** / |
-| ../../../docs/thesis/writing_pack/numbers.md:552 | 3.54 m | **NO** | / EKF3 live / 1.42–1.43 m / 3.53–3.54 m / **4.10 m (reset jump, every flight)** / |
-| ../../../docs/thesis/writing_pack/numbers.md:565 | 4.3 s | **NO** | - EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; tra |
-| ../../../docs/thesis/writing_pack/numbers.md:1105 | 4.3 s | **NO** | / §16.1 / ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.018 m** ¦ 0.014 m ¦ **0.011 m** ¦ / |
-| ../../../docs/thesis/writing_pack/numbers.md:1271 | 4.3 s | **NO** | / §16.1 table / ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.020 m** ¦ 0.014 m ¦ **0.011 m** ¦ / |
-| ../../../docs/thesis/writing_pack/numbers.md:1307 | 4.3 s | **NO** | / §16.2 bullet / - EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment. / "Switched source set" = the time of the `XKFS.SS` change after the GNSS |
-| ../../../docs/thesis/writing_pack/tables/T1_scorecard.md:13 | 4.10 m | **NO** | / Experiment 4: outdoor–indoor (GNSS outside only) [f, g] / indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) / indoor 0.77–0.84 m (no live ordering claimed) / indoor 0.83–0.89 m (batch 0.59, |
-| ../../../docs/thesis/writing_pack/tables/T7_failure_behaviour.md:3 | 4.1 m | **NO** | How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold |
-| ../../../docs/thesis/writing_pack/tables/T7_failure_behaviour.md:7 | 4.10 m | **NO** | / EKF3 / position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure / resets to GNSS on retu |
-| ../../../docs/thesis/writing_pack/tier1/preregistration.md:65 | 4.3 s | **NO** | / A / all 8 (`all`) / 4.3 s / |
+| docs/thesis/writing_pack/figures_thesis/captions/F6.md:1 | 4.1 m | **NO** | Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m. |
+| docs/thesis/writing_pack/figures_thesis/captions/F6.md:3 | 4.10 m | **NO** | Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149 | 4.3 s | **NO** | **Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.** |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:164 | 4.3 s | **NO** | latency**, not a plotting artefact or a different event: for about 4.3 s after GNSS is physically available again, |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:168 | 4.3 s | **NO** | **Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:171 | 4.3 s | **NO** | `numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:172 | 4.3 s | **NO** | (4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 / |
+| docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:192 | 4.3 s | **NO** | with ArduPilot's own source code, though the exact 4.3 s was not traced sample-by-sample through that gate here - |
+| docs/thesis/writing_pack/numbers.md:526 | 4.3 s | **NO** | / A: all 8 (4.3 s) / 0.039 m / 0.037 m / **0.020 m** / 0.014 m / **0.010 m** / |
+| docs/thesis/writing_pack/numbers.md:552 | 3.54 m | **NO** | / EKF3 live / 1.42–1.43 m / 3.53–3.54 m / **4.10 m (reset jump, every flight)** / |
+| docs/thesis/writing_pack/numbers.md:565 | 4.3 s | **NO** | - EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; tra |
+| docs/thesis/writing_pack/numbers.md:1105 | 4.3 s | **NO** | / §16.1 / ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.018 m** ¦ 0.014 m ¦ **0.011 m** ¦ / |
+| docs/thesis/writing_pack/numbers.md:1271 | 4.3 s | **NO** | / §16.1 table / ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.020 m** ¦ 0.014 m ¦ **0.011 m** ¦ / |
+| docs/thesis/writing_pack/numbers.md:1307 | 4.3 s | **NO** | / §16.2 bullet / - EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment. / "Switched source set" = the time of the `XKFS.SS` change after the GNSS |
+| docs/thesis/writing_pack/tables/T1_scorecard.md:13 | 4.10 m | **NO** | / Experiment 4: outdoor–indoor (GNSS outside only) [f, g] / indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) / indoor 0.77–0.84 m (no live ordering claimed) / indoor 0.83–0.89 m (batch 0.59, |
+| docs/thesis/writing_pack/tables/T7_failure_behaviour.md:3 | 4.1 m | **NO** | How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold |
+| docs/thesis/writing_pack/tables/T7_failure_behaviour.md:7 | 4.10 m | **NO** | / EKF3 / position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure / resets to GNSS on retu |
+| docs/thesis/writing_pack/tier1/preregistration.md:65 | 4.3 s | **NO** | / A / all 8 (`all`) / 4.3 s / |
 
 ## F. Coverage matrix
 
@@ -1294,161 +1296,163 @@ Scanned 59 candidate caption/index files (not thesis-numbered; reported here sep
 
 ## Numbered fix list
 
-1. `docs/thesis/tables/R4_information_vs_estimator.md:14` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-2. `docs/thesis/tables/T1_scorecard.md:42` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-3. `docs/thesis/tables/T1_scorecard.md:42` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-4. `docs/thesis/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-5. `docs/thesis/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-6. `docs/thesis/figures_thesis/index.md:411` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
-7. `docs/thesis/figures_thesis/index.md:479` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
-8. `docs/thesis/figures_thesis/index.md:608` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
-9. `docs/thesis/figures_thesis/index.md:601` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
-10. `docs/thesis/figures_thesis/index_results.md:125` presents the superseded value `7–27` for 'H5.5, S2/S3 directional prediction (FGO)' (superseded at TA_verdicts.md:119) without marking it superseded.
-11. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365` presents the superseded value `8.1–9.0` for 'H5.1 (FGO-flying)' (superseded at TA_verdicts.md:113) without marking it superseded.
-12. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345` presents the superseded value `8.3–8.6` for 'H5.2 (original priors)' (superseded at TA_verdicts.md:114) without marking it superseded.
-13. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272` presents the superseded value `0.002–0.032` for 'H5.6, redefined primary (FGO)' (superseded at TA_verdicts.md:120) without marking it superseded.
-14. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367` presents the superseded value `0.002–0.032` for 'H5.6, redefined primary (FGO)' (superseded at TA_verdicts.md:120) without marking it superseded.
-15. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365` presents the superseded value `8.1-9.0` for 'H5.1** (FGO-flying bounds)' (superseded at refly_priors/numbers_refly.md:365) without marking it superseded.
-16. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272` presents the superseded value `0.002-0.032` for 'H5.6 redefined primary (re-lock)' (superseded at refly_priors/numbers_refly.md:367) without marking it superseded.
-17. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367` presents the superseded value `0.002-0.032` for 'H5.6 redefined primary (re-lock)' (superseded at refly_priors/numbers_refly.md:367) without marking it superseded.
-18. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-19. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-20. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:372` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-21. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:373` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
-22. `../../../docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:374` presents the superseded value `7-16` for 'H-H4 (5 s)' (superseded at refly_priors/numbers_refly.md:374) without marking it superseded.
-23. `../../../docs/thesis/writing_pack/numbers.md:675` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-24. `../../../docs/thesis/writing_pack/numbers.md:676` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-25. `../../../docs/thesis/writing_pack/numbers.md:677` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
-26. `../../../docs/thesis/writing_pack/numbers.md:678` presents the superseded value `7-16` for 'H-H4 (5 s)' (superseded at refly_priors/numbers_refly.md:374) without marking it superseded.
-27. `../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-28. `../../../docs/thesis/writing_pack/tables/T1_scorecard.md:42` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-29. `../../../docs/thesis/writing_pack/tables/T1_scorecard.md:42` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-30. `../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
-31. `../../../docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
-32. `docs/thesis/tables/T1_scorecard.md:20` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-33. `docs/thesis/tables/T1_scorecard.tex:28` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-34. `docs/thesis/tables/T6_O_indoor_rmse.md:3` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-35. `docs/thesis/tables/T6_O_indoor_rmse.tex:8` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-36. `docs/thesis/figures_thesis/index.md:353` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-37. `docs/thesis/thesis_assets/tables_tex/tab_5-1.tex:9` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-38. `docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:29` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-39. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-40. `../../../docs/thesis/writing_pack/numbers.md:559` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-41. `../../../docs/thesis/writing_pack/numbers.md:1118` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-42. `../../../docs/thesis/writing_pack/numbers.md:1275` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-43. `../../../docs/thesis/writing_pack/numbers.md:1275` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-44. `../../../docs/thesis/writing_pack/tables/T1_scorecard.md:20` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-45. `../../../docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
-46. `docs/thesis/figures_thesis/index.md:283` labels H2.2 'PASS' - TA_verdicts.md's unique verdict for this ID is NOT MET.
-47. `../../../docs/thesis/writing_pack/methodology_factsheets/README.md:228` labels H1.1 'WITHDRAWN' - TA_verdicts.md's unique verdict for this ID is NOT MET.
-48. `docs/thesis/tables/R4_information_vs_estimator.md:9` cites `numbers.md:248-249` but the value is actually at `numbers.md:1448` (cite drift).
-49. `docs/thesis/tables/R4_information_vs_estimator.md:14` cites `numbers.md:621-623` but the value is actually at `numbers.md:675` (cite drift).
-50. `docs/thesis/tables/R4_information_vs_estimator.tex:14` cites `numbers.md:248-249` but the value is actually at `numbers.md:127` (cite drift).
-51. `docs/thesis/tables/R4_information_vs_estimator.tex:19` cites `numbers.md:621-623` but the value is actually at `numbers.md:79` (cite drift).
-52. `docs/thesis/figures_thesis/index_results.md:352` cites `numbers.md:470` but the value is actually at `numbers.md:60` (cite drift).
-53. `docs/thesis/figures_thesis/index_results.md:354` cites `numbers.md:470` but the value is actually at `numbers.md:36` (cite drift).
-54. `docs/thesis/figures_thesis/index_results.md:359` cites `numbers_extras.md:95-99` but the value is actually at `numbers_extras.md:88` (cite drift).
-55. `docs/thesis/figures_thesis/index_results.md:362` cites `numbers_extras.md:107-111` but the value is actually at `numbers_extras.md:101` (cite drift).
-56. `docs/thesis/figures_thesis/index_results.md:506` cites `numbers.md:291-295` but the value is actually at `numbers.md:38` (cite drift).
-57. `docs/thesis/figures_thesis/index_results.md:562` cites `numbers.md:263` but the value is actually at `numbers.md:134` (cite drift).
-58. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:14` cites `numbers.md:330` but the value is actually at `numbers.md:36` (cite drift).
-59. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:39` cites `numbers.md:477` but the value is actually at `numbers.md:52` (cite drift).
-60. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:50` cites `numbers.md:577` but the value is actually at `numbers.md:114` (cite drift).
-61. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:52` cites `numbers.md:577` but the value is actually at `numbers.md:67` (cite drift).
-62. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:54` cites `numbers.md:558` but the value is actually at `numbers.md:89` (cite drift).
-63. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:57` cites `numbers.md:606` but the value is actually at `numbers.md:54` (cite drift).
-64. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:63` cites `numbers.md:646` but the value is actually at `numbers.md:54` (cite drift).
-65. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:63` cites `numbers.md:629` but the value is actually at `numbers.md:54` (cite drift).
-66. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:67` cites `numbers.md:644` but the value is actually at `numbers.md:565` (cite drift).
-67. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:68` cites `numbers.md:629` but the value is actually at `numbers.md:565` (cite drift).
-68. `docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:15` cites `numbers.md:248-249` but the value is actually at `numbers.md:127` (cite drift).
-69. `docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:20` cites `numbers.md:621-623` but the value is actually at `numbers.md:79` (cite drift).
-70. `../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:19` cites `numbers.md:28` but the value is actually at `numbers.md:72` (cite drift).
-71. `../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:36` cites `numbers_ekf3_heading.md:5` but the value is actually at `numbers_ekf3_heading.md:7` (cite drift).
-72. `../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:60` cites `numbers.md:28` but the value is actually at `numbers.md:48` (cite drift).
-73. `../../../docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:64` cites `numbers.md:211-237` but the value is actually at `numbers.md:843` (cite drift).
-74. `../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:7` cites `numbers.md:411` but the value is actually at `numbers.md:60` (cite drift).
-75. `../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:38` cites `numbers.md:520` but the value is actually at `numbers.md:36` (cite drift).
-76. `../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:41` cites `numbers.md:58` but the value is actually at `numbers.md:36` (cite drift).
-77. `../../../docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:77` cites `numbers.md:82` but the value is actually at `numbers.md:36` (cite drift).
-78. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30` cites `numbers_ekf3_heading.md:5` but the value is actually at `numbers_ekf3_heading.md:7` (cite drift).
-79. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30` cites `numbers.md:301` but the value is actually at `numbers.md:176` (cite drift).
-80. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:33` cites `numbers.md:402` but the value is actually at `numbers.md:54` (cite drift).
-81. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:64` cites `numbers.md:451` but the value is actually at `numbers.md:565` (cite drift).
-82. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:68` cites `numbers.md:209` but the value is actually at `numbers.md:36` (cite drift).
-83. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:149` cites `numbers_tier1.md:576` but the value is actually at `numbers_tier1.md:192` (cite drift).
-84. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:156` cites `numbers_tier1.md:614-615` but the value is actually at `numbers_tier1.md:192` (cite drift).
-85. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:207` cites `numbers.md:227` but the value is actually at `numbers.md:222` (cite drift).
-86. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:209` cites `numbers.md:440` but the value is actually at `numbers.md:445` (cite drift).
-87. `../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:93` cites `numbers_extras.md:99` but the value is actually at `numbers_extras.md:111` (cite drift).
-88. `../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:125` cites `numbers.md:120` but the value is actually at `numbers.md:118` (cite drift).
-89. `../../../docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:128` cites `numbers.md:133` but the value is actually at `numbers.md:121` (cite drift).
-90. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:11` cites `numbers.md:58` but the value is actually at `numbers.md:36` (cite drift).
-91. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35` cites `numbers.md:369-370` but the value is actually at `numbers.md:176` (cite drift).
-92. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35` cites `numbers.md:371` but the value is actually at `numbers.md:176` (cite drift).
-93. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:60` cites `numbers_extras.md:99` but the value is actually at `numbers_extras.md:111` (cite drift).
-94. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:65` cites `numbers_refly.md:97` but the value is actually at `numbers_refly.md:18` (cite drift).
-95. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers.md:470-473` but the value is actually at `numbers.md:36` (cite drift).
-96. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers_extras.md:148-155` but the value is actually at `numbers_extras.md:88` (cite drift).
-97. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers_refly.md:97` but the value is actually at `numbers_refly.md:298` (cite drift).
-98. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:89` cites `numbers.md:520` but the value is actually at `numbers.md:36` (cite drift).
-99. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:91` cites `numbers.md:542` but the value is actually at `numbers.md:54` (cite drift).
-100. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:100` cites `numbers_tier1.md:560` but the value is actually at `numbers_tier1.md:248` (cite drift).
-101. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:102` cites `numbers_tier1.md:163` but the value is actually at `numbers_tier1.md:157` (cite drift).
-102. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115` cites `numbers.md:546` but the value is actually at `numbers.md:36` (cite drift).
-103. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115` cites `numbers.md:548` but the value is actually at `numbers.md:36` (cite drift).
-104. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:128` cites `numbers.md:606` but the value is actually at `numbers.md:54` (cite drift).
-105. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135` cites `numbers.md:626` but the value is actually at `numbers.md:54` (cite drift).
-106. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135` cites `numbers.md:629` but the value is actually at `numbers.md:54` (cite drift).
-107. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:154` cites `numbers.md:312-319` but the value is actually at `numbers.md:203` (cite drift).
-108. `../../../docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:173` cites `numbers.md:736-738` but the value is actually at `numbers.md:318` (cite drift).
-109. `../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:53` cites `numbers_tier1.md:35-36` but the value is actually at `numbers_tier1.md:46` (cite drift).
-110. `../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:78` cites `numbers_tier1.md:560` but the value is actually at `numbers_tier1.md:248` (cite drift).
-111. `../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:9` cites `numbers.md:248-249` but the value is actually at `numbers.md:1448` (cite drift).
-112. `../../../docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14` cites `numbers.md:621-623` but the value is actually at `numbers.md:675` (cite drift).
-113. `../../../docs/thesis/writing_pack/thesis_vocabulary.md:343` cites `numbers.md:598-662` but the value is actually at `numbers.md:134` (cite drift).
-114. `../../../docs/thesis/writing_pack/thesis_vocabulary.md:403` cites `numbers.md:501` but the value is actually at `numbers.md:509` (cite drift).
-115. `../../../docs/thesis/writing_pack/units.md:104` cites `numbers.md:480` but the value is actually at `numbers.md:134` (cite drift).
-116. `../../../docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:193` cites `numbers.md:466`, but no matching numeric token (24.7) was found anywhere in that file.
-117. `../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:120` cites `numbers_tier1.md:68`, but no matching numeric token (0.95–1.86, 0.95–2.43) was found anywhere in that file.
-118. `../../../docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:123` cites `numbers_tier1.md:559`, but no matching numeric token (6.34–14.62) was found anywhere in that file.
-119. `docs/thesis/tables/T1_scorecard.md:13` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4: outdoor–indoor (GNSS outside only) [f, g] | indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) | indoor 0.77–0.84 m (no live ordering claimed) | indoor 0.83–0.89 m (batch 0.59,`
-120. `docs/thesis/tables/T1_scorecard.tex:20` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4: outdoor--indoor (GNSS outside only) [f, g] & indoor 1.42--1.43 m (no live ordering claimed; 4.10 m jump) & indoor 0.77--0.84 m (no live ordering claimed) & indoor 0.83--0.89 m (batch 0.5`
-121. `docs/thesis/tables/T7_failure_behaviour.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold`
-122. `docs/thesis/tables/T7_failure_behaviour.md:7` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 | position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure | resets to GNSS on retu`
-123. `docs/thesis/tables/T7_failure_behaviour.tex:8` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `\caption{Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests. How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the F`
-124. `docs/thesis/tables/T7_failure_behaviour.tex:14` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur`
-125. `docs/thesis/figures_thesis/captions/F6.md:1` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m.`
-126. `docs/thesis/figures_thesis/captions/F6.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro`
-127. `docs/thesis/figures_thesis/index.md:32` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | F6 | figure | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m | CURR`
-128. `docs/thesis/figures_thesis/index.md:325` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `### Figure 5.3 (internal F6, figure): Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m`
-129. `docs/thesis/figures_thesis/index.md:327` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- **Caption:** Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and ba`
-130. `docs/thesis/figures_thesis/index.md:335` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4 EKF3 reset jump (m) | `4.10–4.10` | `4.10–4.10` | numbers.md §16.2 ('4.10 m, every flight') | yes |`
-131. `docs/thesis/figures_thesis/index.md:506` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- **Caption:** How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [`
-132. `docs/thesis/figures_thesis/index.md:671` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | F6 | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m |`
-133. `docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:21` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4: outdoor--indoor (GNSS outside only) [f, g] & indoor 1.42--1.43 m (no live ordering claimed; 4.10 m jump) & indoor 0.77--0.84 m (no live ordering claimed) & indoor 0.83--0.89 m (batch 0.5`
-134. `docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:9` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `\caption{Table 7.2. Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests. How each estimator fails: EKF3 declares its blank-floor position invalid while the UK`
-135. `docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:15` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur`
-136. `docs/thesis/thesis_assets/index.md:24` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m. | `figures/fig_5-3.pdf` | `eval/figs_thesis.py` | `figures_thesis/F6_O_out`
-137. `../../../docs/thesis/writing_pack/figures_thesis/captions/F6.md:1` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m.`
-138. `../../../docs/thesis/writing_pack/figures_thesis/captions/F6.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro`
-139. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.**`
-140. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:164` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `latency**, not a plotting artefact or a different event: for about 4.3 s after GNSS is physically available again,`
-141. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:168` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact`
-142. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:171` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: ``numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s`
-143. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:172` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `(4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 /`
-144. `../../../docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:192` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `with ArduPilot's own source code, though the exact 4.3 s was not traced sample-by-sample through that gate here -`
-145. `../../../docs/thesis/writing_pack/numbers.md:526` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.020 m** | 0.014 m | **0.010 m** |`
-146. `../../../docs/thesis/writing_pack/numbers.md:552` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 live | 1.42–1.43 m | 3.53–3.54 m | **4.10 m (reset jump, every flight)** |`
-147. `../../../docs/thesis/writing_pack/numbers.md:565` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; tra`
-148. `../../../docs/thesis/writing_pack/numbers.md:1105` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.1 | ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.018 m** ¦ 0.014 m ¦ **0.011 m** ¦ |`
-149. `../../../docs/thesis/writing_pack/numbers.md:1271` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.1 table | ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.020 m** ¦ 0.014 m ¦ **0.011 m** ¦ |`
-150. `../../../docs/thesis/writing_pack/numbers.md:1307` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.2 bullet | - EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment. | "Switched source set" = the time of the `XKFS.SS` change after the GNSS`
-151. `../../../docs/thesis/writing_pack/tables/T1_scorecard.md:13` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4: outdoor–indoor (GNSS outside only) [f, g] | indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) | indoor 0.77–0.84 m (no live ordering claimed) | indoor 0.83–0.89 m (batch 0.59,`
-152. `../../../docs/thesis/writing_pack/tables/T7_failure_behaviour.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold`
-153. `../../../docs/thesis/writing_pack/tables/T7_failure_behaviour.md:7` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 | position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure | resets to GNSS on retu`
-154. `../../../docs/thesis/writing_pack/tier1/preregistration.md:65` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| A | all 8 (`all`) | 4.3 s |`
-155. Experiment E4: no figure caption/index file's text names 'Experiment E4' / 'Extension E4' (textual-mention proxy)
+1. `docs/thesis/tables/R4_information_vs_estimator.md:14` presents the superseded value `7.8–7.9` for 'H5.2 (original priors)' (superseded at TA_verdicts.md:114) without marking it superseded.
+2. `docs/thesis/tables/R4_information_vs_estimator.md:14` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+3. `docs/thesis/tables/T1_scorecard.md:42` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+4. `docs/thesis/tables/T1_scorecard.md:42` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+5. `docs/thesis/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+6. `docs/thesis/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+7. `docs/thesis/figures_thesis/index.md:411` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
+8. `docs/thesis/figures_thesis/index.md:479` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
+9. `docs/thesis/figures_thesis/index.md:608` presents the superseded value `3.2–7.7` for 'H5.4b (original priors)' (superseded at TA_verdicts.md:117) without marking it superseded.
+10. `docs/thesis/figures_thesis/index.md:601` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
+11. `docs/thesis/figures_thesis/index_results.md:125` presents the superseded value `7–27` for 'H5.5, S2/S3 directional prediction (FGO)' (superseded at TA_verdicts.md:119) without marking it superseded.
+12. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365` presents the superseded value `8.1–9.0` for 'H5.1 (FGO-flying)' (superseded at TA_verdicts.md:113) without marking it superseded.
+13. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345` presents the superseded value `8.3–8.6` for 'H5.2 (original priors)' (superseded at TA_verdicts.md:114) without marking it superseded.
+14. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272` presents the superseded value `0.002–0.032` for 'H5.6, redefined primary (FGO)' (superseded at TA_verdicts.md:120) without marking it superseded.
+15. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367` presents the superseded value `0.002–0.032` for 'H5.6, redefined primary (FGO)' (superseded at TA_verdicts.md:120) without marking it superseded.
+16. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:365` presents the superseded value `8.1-9.0` for 'H5.1** (FGO-flying bounds)' (superseded at refly_priors/numbers_refly.md:365) without marking it superseded.
+17. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:272` presents the superseded value `0.002-0.032` for 'H5.6 redefined primary (re-lock)' (superseded at refly_priors/numbers_refly.md:367) without marking it superseded.
+18. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:367` presents the superseded value `0.002-0.032` for 'H5.6 redefined primary (re-lock)' (superseded at refly_priors/numbers_refly.md:367) without marking it superseded.
+19. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:345` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+20. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:371` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+21. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:372` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+22. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:373` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
+23. `docs/thesis/writing_pack/new_2026-11-11/numbers_refly.md:374` presents the superseded value `7-16` for 'H-H4 (5 s)' (superseded at refly_priors/numbers_refly.md:374) without marking it superseded.
+24. `docs/thesis/writing_pack/numbers.md:675` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+25. `docs/thesis/writing_pack/numbers.md:676` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+26. `docs/thesis/writing_pack/numbers.md:677` presents the superseded value `20-30` for 'H-H4 (15 s)' (superseded at refly_priors/numbers_refly.md:373) without marking it superseded.
+27. `docs/thesis/writing_pack/numbers.md:678` presents the superseded value `7-16` for 'H-H4 (5 s)' (superseded at refly_priors/numbers_refly.md:374) without marking it superseded.
+28. `docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14` presents the superseded value `8.3-8.6` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+29. `docs/thesis/writing_pack/tables/T1_scorecard.md:42` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+30. `docs/thesis/writing_pack/tables/T1_scorecard.md:42` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+31. `docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `7.8-7.9` for 'H-H2' (superseded at refly_priors/numbers_refly.md:371) without marking it superseded.
+32. `docs/thesis/writing_pack/tables/T5_H_tag_loss_drift.md:22` presents the superseded value `2.40-2.58` for 'P-H3' (superseded at refly_priors/numbers_refly.md:372) without marking it superseded.
+33. `docs/thesis/tables/T1_scorecard.md:20` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+34. `docs/thesis/tables/T1_scorecard.tex:28` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+35. `docs/thesis/tables/T6_O_indoor_rmse.md:3` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+36. `docs/thesis/tables/T6_O_indoor_rmse.tex:8` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+37. `docs/thesis/figures_thesis/index.md:353` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+38. `docs/thesis/thesis_assets/tables_tex/tab_5-1.tex:9` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+39. `docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:29` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+40. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:121` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+41. `docs/thesis/writing_pack/numbers.md:559` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+42. `docs/thesis/writing_pack/numbers.md:1118` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+43. `docs/thesis/writing_pack/numbers.md:1275` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+44. `docs/thesis/writing_pack/numbers.md:1275` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+45. `docs/thesis/writing_pack/tables/T1_scorecard.md:20` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+46. `docs/thesis/writing_pack/tables/T6_O_indoor_rmse.md:3` labels an H4.2 occurrence 'FAIL' - TA_verdicts.md requires NOT MET.
+47. `docs/thesis/figures_thesis/index.md:283` labels H2.2 'PASS' - TA_verdicts.md's unique verdict for this ID is NOT MET.
+48. `docs/thesis/writing_pack/methodology_factsheets/README.md:228` labels H1.1 'WITHDRAWN' - TA_verdicts.md's unique verdict for this ID is NOT MET.
+49. `docs/thesis/tables/R4_information_vs_estimator.md:9` cites `numbers.md:248-249` but the value is actually at `numbers.md:1448` (cite drift).
+50. `docs/thesis/tables/R4_information_vs_estimator.md:14` cites `numbers.md:621-623` but the value is actually at `numbers.md:675` (cite drift).
+51. `docs/thesis/tables/R4_information_vs_estimator.md:14` cites `numbers_refly.md:247` but the value is actually at `numbers_refly.md:345` (cite drift).
+52. `docs/thesis/tables/R4_information_vs_estimator.tex:14` cites `numbers.md:248-249` but the value is actually at `numbers.md:127` (cite drift).
+53. `docs/thesis/tables/R4_information_vs_estimator.tex:19` cites `numbers.md:621-623` but the value is actually at `numbers.md:79` (cite drift).
+54. `docs/thesis/figures_thesis/index_results.md:353` cites `numbers.md:470` but the value is actually at `numbers.md:60` (cite drift).
+55. `docs/thesis/figures_thesis/index_results.md:355` cites `numbers.md:470` but the value is actually at `numbers.md:36` (cite drift).
+56. `docs/thesis/figures_thesis/index_results.md:360` cites `numbers_extras.md:95-99` but the value is actually at `numbers_extras.md:88` (cite drift).
+57. `docs/thesis/figures_thesis/index_results.md:363` cites `numbers_extras.md:107-111` but the value is actually at `numbers_extras.md:101` (cite drift).
+58. `docs/thesis/figures_thesis/index_results.md:507` cites `numbers.md:291-295` but the value is actually at `numbers.md:38` (cite drift).
+59. `docs/thesis/figures_thesis/index_results.md:563` cites `numbers.md:263` but the value is actually at `numbers.md:134` (cite drift).
+60. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:14` cites `numbers.md:330` but the value is actually at `numbers.md:36` (cite drift).
+61. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:39` cites `numbers.md:477` but the value is actually at `numbers.md:52` (cite drift).
+62. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:50` cites `numbers.md:577` but the value is actually at `numbers.md:114` (cite drift).
+63. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:52` cites `numbers.md:577` but the value is actually at `numbers.md:67` (cite drift).
+64. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:54` cites `numbers.md:558` but the value is actually at `numbers.md:89` (cite drift).
+65. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:57` cites `numbers.md:606` but the value is actually at `numbers.md:54` (cite drift).
+66. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:63` cites `numbers.md:646` but the value is actually at `numbers.md:54` (cite drift).
+67. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:63` cites `numbers.md:629` but the value is actually at `numbers.md:54` (cite drift).
+68. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:67` cites `numbers.md:644` but the value is actually at `numbers.md:565` (cite drift).
+69. `docs/thesis/thesis_assets/tables_tex/tab_7-3.tex:68` cites `numbers.md:629` but the value is actually at `numbers.md:565` (cite drift).
+70. `docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:15` cites `numbers.md:248-249` but the value is actually at `numbers.md:127` (cite drift).
+71. `docs/thesis/thesis_assets/tables_tex/tab_7-5.tex:20` cites `numbers.md:621-623` but the value is actually at `numbers.md:79` (cite drift).
+72. `docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:19` cites `numbers.md:28` but the value is actually at `numbers.md:72` (cite drift).
+73. `docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:36` cites `numbers_ekf3_heading.md:5` but the value is actually at `numbers_ekf3_heading.md:7` (cite drift).
+74. `docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:60` cites `numbers.md:28` but the value is actually at `numbers.md:48` (cite drift).
+75. `docs/thesis/writing_pack/methodology_factsheets/3.1_approach_fairness.md:64` cites `numbers.md:211-237` but the value is actually at `numbers.md:843` (cite drift).
+76. `docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:7` cites `numbers.md:411` but the value is actually at `numbers.md:60` (cite drift).
+77. `docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:38` cites `numbers.md:520` but the value is actually at `numbers.md:36` (cite drift).
+78. `docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:41` cites `numbers.md:58` but the value is actually at `numbers.md:36` (cite drift).
+79. `docs/thesis/writing_pack/methodology_factsheets/3.2_simulation.md:77` cites `numbers.md:82` but the value is actually at `numbers.md:36` (cite drift).
+80. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30` cites `numbers_ekf3_heading.md:5` but the value is actually at `numbers_ekf3_heading.md:7` (cite drift).
+81. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:30` cites `numbers.md:301` but the value is actually at `numbers.md:176` (cite drift).
+82. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:33` cites `numbers.md:402` but the value is actually at `numbers.md:54` (cite drift).
+83. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:64` cites `numbers.md:451` but the value is actually at `numbers.md:565` (cite drift).
+84. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:68` cites `numbers.md:209` but the value is actually at `numbers.md:36` (cite drift).
+85. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:149` cites `numbers_tier1.md:576` but the value is actually at `numbers_tier1.md:192` (cite drift).
+86. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:156` cites `numbers_tier1.md:614-615` but the value is actually at `numbers_tier1.md:192` (cite drift).
+87. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:207` cites `numbers.md:227` but the value is actually at `numbers.md:222` (cite drift).
+88. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:209` cites `numbers.md:440` but the value is actually at `numbers.md:445` (cite drift).
+89. `docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:93` cites `numbers_extras.md:99` but the value is actually at `numbers_extras.md:111` (cite drift).
+90. `docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:125` cites `numbers.md:120` but the value is actually at `numbers.md:118` (cite drift).
+91. `docs/thesis/writing_pack/methodology_factsheets/3.4_run_modes.md:128` cites `numbers.md:133` but the value is actually at `numbers.md:121` (cite drift).
+92. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:11` cites `numbers.md:58` but the value is actually at `numbers.md:36` (cite drift).
+93. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35` cites `numbers.md:369-370` but the value is actually at `numbers.md:176` (cite drift).
+94. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:35` cites `numbers.md:371` but the value is actually at `numbers.md:176` (cite drift).
+95. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:60` cites `numbers_extras.md:99` but the value is actually at `numbers_extras.md:111` (cite drift).
+96. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:65` cites `numbers_refly.md:97` but the value is actually at `numbers_refly.md:18` (cite drift).
+97. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers.md:470-473` but the value is actually at `numbers.md:36` (cite drift).
+98. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers_extras.md:148-155` but the value is actually at `numbers_extras.md:88` (cite drift).
+99. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:79` cites `numbers_refly.md:97` but the value is actually at `numbers_refly.md:298` (cite drift).
+100. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:89` cites `numbers.md:520` but the value is actually at `numbers.md:36` (cite drift).
+101. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:91` cites `numbers.md:542` but the value is actually at `numbers.md:54` (cite drift).
+102. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:100` cites `numbers_tier1.md:560` but the value is actually at `numbers_tier1.md:248` (cite drift).
+103. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:102` cites `numbers_tier1.md:163` but the value is actually at `numbers_tier1.md:157` (cite drift).
+104. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115` cites `numbers.md:546` but the value is actually at `numbers.md:36` (cite drift).
+105. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:115` cites `numbers.md:548` but the value is actually at `numbers.md:36` (cite drift).
+106. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:128` cites `numbers.md:606` but the value is actually at `numbers.md:54` (cite drift).
+107. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135` cites `numbers.md:626` but the value is actually at `numbers.md:54` (cite drift).
+108. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:135` cites `numbers.md:629` but the value is actually at `numbers.md:54` (cite drift).
+109. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:154` cites `numbers.md:312-319` but the value is actually at `numbers.md:203` (cite drift).
+110. `docs/thesis/writing_pack/methodology_factsheets/3.5_experiments.md:173` cites `numbers.md:736-738` but the value is actually at `numbers.md:318` (cite drift).
+111. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:53` cites `numbers_tier1.md:35-36` but the value is actually at `numbers_tier1.md:46` (cite drift).
+112. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:78` cites `numbers_tier1.md:560` but the value is actually at `numbers_tier1.md:248` (cite drift).
+113. `docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:9` cites `numbers.md:248-249` but the value is actually at `numbers.md:1448` (cite drift).
+114. `docs/thesis/writing_pack/tables/R4_information_vs_estimator.md:14` cites `numbers.md:621-623` but the value is actually at `numbers.md:675` (cite drift).
+115. `docs/thesis/writing_pack/thesis_vocabulary.md:343` cites `numbers.md:598-662` but the value is actually at `numbers.md:134` (cite drift).
+116. `docs/thesis/writing_pack/thesis_vocabulary.md:403` cites `numbers.md:501` but the value is actually at `numbers.md:509` (cite drift).
+117. `docs/thesis/writing_pack/units.md:104` cites `numbers.md:480` but the value is actually at `numbers.md:134` (cite drift).
+118. `docs/thesis/writing_pack/methodology_factsheets/3.3_estimators.md:193` cites `numbers.md:466`, but no matching numeric token (24.7) was found anywhere in that file.
+119. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:120` cites `numbers_tier1.md:68`, but no matching numeric token (0.95–1.86, 0.95–2.43) was found anywhere in that file.
+120. `docs/thesis/writing_pack/methodology_factsheets/3.9_extension_experiments.md:123` cites `numbers_tier1.md:559`, but no matching numeric token (6.34–14.62) was found anywhere in that file.
+121. `docs/thesis/tables/T1_scorecard.md:13` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4: outdoor–indoor (GNSS outside only) [f, g] | indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) | indoor 0.77–0.84 m (no live ordering claimed) | indoor 0.83–0.89 m (batch 0.59,`
+122. `docs/thesis/tables/T1_scorecard.tex:20` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4: outdoor--indoor (GNSS outside only) [f, g] & indoor 1.42--1.43 m (no live ordering claimed; 4.10 m jump) & indoor 0.77--0.84 m (no live ordering claimed) & indoor 0.83--0.89 m (batch 0.5`
+123. `docs/thesis/tables/T7_failure_behaviour.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold`
+124. `docs/thesis/tables/T7_failure_behaviour.md:7` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 | position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure | resets to GNSS on retu`
+125. `docs/thesis/tables/T7_failure_behaviour.tex:8` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `\caption{Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests. How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the F`
+126. `docs/thesis/tables/T7_failure_behaviour.tex:14` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur`
+127. `docs/thesis/figures_thesis/captions/F6.md:1` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m.`
+128. `docs/thesis/figures_thesis/captions/F6.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro`
+129. `docs/thesis/figures_thesis/index.md:32` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | F6 | figure | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m | CURR`
+130. `docs/thesis/figures_thesis/index.md:325` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `### Figure 5.3 (internal F6, figure): Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m`
+131. `docs/thesis/figures_thesis/index.md:327` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- **Caption:** Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and ba`
+132. `docs/thesis/figures_thesis/index.md:335` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4 EKF3 reset jump (m) | `4.10–4.10` | `4.10–4.10` | numbers.md §16.2 ('4.10 m, every flight') | yes |`
+133. `docs/thesis/figures_thesis/index.md:506` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- **Caption:** How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [`
+134. `docs/thesis/figures_thesis/index.md:671` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | F6 | `F6_O_outdoor_indoor.png`, `F6_O_outdoor_indoor.pdf` | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m |`
+135. `docs/thesis/thesis_assets/tables_tex/tab_7-1.tex:21` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4: outdoor--indoor (GNSS outside only) [f, g] & indoor 1.42--1.43 m (no live ordering claimed; 4.10 m jump) & indoor 0.77--0.84 m (no live ordering claimed) & indoor 0.83--0.89 m (batch 0.5`
+136. `docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:9` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `\caption{Table 7.2. Failure behaviour: blank-floor validity, the Experiment 4 return jump and the 5S safety tests. How each estimator fails: EKF3 declares its blank-floor position invalid while the UK`
+137. `docs/thesis/thesis_assets/tables_tex/tab_7-2.tex:15` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `EKF3 & position flagged INVALID from take-off on all 14 blank flights (301--310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure & resets to GNSS on retur`
+138. `docs/thesis/thesis_assets/index.md:24` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Figure 5.3 | Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m. | `figures/fig_5-3.pdf` | `eval/figs_thesis.py` | `figures_thesis/F6_O_out`
+139. `docs/thesis/writing_pack/figures_thesis/captions/F6.md:1` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Figure 5.3. Indoors without GNSS the live tracks drift and EKF3 jumps 4.1 m on return; hindsight keeps the error near 1 m.`
+140. `docs/thesis/writing_pack/figures_thesis/captions/F6.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `Experiment 4 (outdoor-indoor), flight 1: horizontal error against time in the world frame, with no alignment, as the vehicle flies outdoors, through a GNSS-denied indoor section, and back outdoors. Ro`
+141. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:149` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Finding: yes, EKF3's reset happens AFTER GNSS returns, by about 4.3 s, consistently across all three flights.**`
+142. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:164` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `latency**, not a plotting artefact or a different event: for about 4.3 s after GNSS is physically available again,`
+143. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:168` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `**Reconciling with the quoted `numbers.md` line "EKF3 switched sets at OFF + 4.3 s and ON + 4.4 s":** that exact`
+144. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:171` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: ``numbers.md` line states the corrected values directly: "OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s`
+145. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:172` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `(4.32 / 4.32 / 4.28)" — i.e. ON + 4.3 s, not ON + 4.4 s. This investigation's own independent measurement (4.32 /`
+146. `docs/thesis/writing_pack/new_2026-11-11/caption_detail.md:192` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `with ArduPilot's own source code, though the exact 4.3 s was not traced sample-by-sample through that gate here -`
+147. `docs/thesis/writing_pack/numbers.md:526` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| A: all 8 (4.3 s) | 0.039 m | 0.037 m | **0.020 m** | 0.014 m | **0.010 m** |`
+148. `docs/thesis/writing_pack/numbers.md:552` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 live | 1.42–1.43 m | 3.53–3.54 m | **4.10 m (reset jump, every flight)** |`
+149. `docs/thesis/writing_pack/numbers.md:565` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `- EKF3 switched source set (`XKFS.SS`) at OFF + 4.3–4.4 s (4.37 / 4.37 / 4.34) and ON + 4.3 s (4.32 / 4.32 / 4.28), O_r1 / O_r2 / O_r3b (json:expO/O_*.json:ekf3.source_set_changes − markers_bag_s; tra`
+150. `docs/thesis/writing_pack/numbers.md:1105` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.1 | ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.018 m** ¦ 0.014 m ¦ **0.011 m** ¦ |`
+151. `docs/thesis/writing_pack/numbers.md:1271` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.1 table | ¦ A: all 8 (4.3 s) ¦ 0.039 m ¦ 0.037 m ¦ **0.020 m** ¦ 0.014 m ¦ **0.011 m** ¦ |`
+152. `docs/thesis/writing_pack/numbers.md:1307` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| §16.2 bullet | - EKF3 switched source set at OFF + 4.3 s and ON + 4.4 s; `posTimeout` was set for 92% of the indoor segment. | "Switched source set" = the time of the `XKFS.SS` change after the GNSS`
+153. `docs/thesis/writing_pack/tables/T1_scorecard.md:13` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| Experiment 4: outdoor–indoor (GNSS outside only) [f, g] | indoor 1.42–1.43 m (no live ordering claimed; 4.10 m jump) | indoor 0.77–0.84 m (no live ordering claimed) | indoor 0.83–0.89 m (batch 0.59,`
+154. `docs/thesis/writing_pack/tables/T7_failure_behaviour.md:3` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `How each estimator fails: EKF3 declares its blank-floor position invalid while the UKF and the FGO run away with no invalid period recorded [a]; on the return to GNSS EKF3 jumps 4.1 m [b]; in the hold`
+155. `docs/thesis/writing_pack/tables/T7_failure_behaviour.md:7` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| EKF3 | position flagged INVALID from take-off on all 14 blank flights (301–310 s of cruise; 0 valid airborne flow frames); outputs the origin, not scored: a DECLARED failure | resets to GNSS on retu`
+156. `docs/thesis/writing_pack/tier1/preregistration.md:65` states the switching delay/jump without qualifying it as coming from the harness's source-switch script: `| A | all 8 (`all`) | 4.3 s |`
+157. Experiment E4: no figure caption/index file's text names 'Experiment E4' / 'Extension E4' (textual-mention proxy)
 
 ## Writing-pack files read (sha256, for re-run comparability)
 
