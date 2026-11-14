@@ -272,9 +272,9 @@ mask_s1 = np.isfinite(x_s1[:, 1]) & np.isfinite(x_s1[:, 2]) & (x_s1[:, 0] <= ons
 
 fig, axs = plt.subplots(1, 3, figsize=(TEXT_WIDTH_IN, 3.4), sharex=True, sharey=True)
 for ax, (xx, mm, lab, cap) in zip(axs, (
-        (x_clean, np.ones(len(x_clean), bool), "(a) no wrong IDs", "no wrong IDs (clean reference)"),
-        (x_s0, np.ones(len(x_s0), bool), "(b) 1% wrong, no divergence", "1% wrong IDs, seed 0 (non-diverged)"),
-        (x_s1, mask_s1, "(c) 1% wrong, diverged", "1% wrong IDs, seed 1 (diverged)"))):
+        (x_clean, np.ones(len(x_clean), bool), "(a) no wrong IDs\n\n", "no wrong IDs (clean reference)"),
+        (x_s0, np.ones(len(x_s0), bool), "(b) 1% wrong,\nno solver failure\n(map collapsed)", "1% wrong IDs, seed 0 (non-diverged)"),
+        (x_s1, mask_s1, "(c) 1% wrong,\ndiverged\n(solver failure)", "1% wrong IDs, seed 1 (diverged)"))):
     wg = (_Gt3 >= xx[mm, 0].min()) & (_Gt3 <= min(xx[mm, 0].max(), _Gt3.max()))
     ax.plot(_Gx3[wg], _Gy3[wg], color=TRUTH, lw=1.0, zorder=2)
     for t_ in TMAP:
@@ -295,7 +295,8 @@ save(fig, "E02", "E02_e3_wrong_ids_paths", "Extension E3 (wrong tag IDs): the FG
      "the 8 true tags as grey diamonds, raw, in tag 0's frame, equal scale. (a) no wrong IDs: the live path stays "
      "on the square. (b) 1% wrong IDs, one seed: the live path does not diverge, but is pulled inward, off the "
      "square. (c) 1% wrong IDs, a different seed: the solver diverges; the path is drawn only up to shortly after "
-     "the divergence, after which the live estimate leaves the room and is not shown.",
+     "the divergence, after which the live estimate leaves the room and is not shown. A run counts as diverged "
+     "only on a solver failure (a keyframe the solver could not solve, or a non-finite estimate), not when its error is large.",
      "eval/results/expL/T_A_r1_t245.json (tracks.'lc live'.rmse_m); docs/thesis/tier1/scores/E3a_T_A_r1_0.01_{s0,s1}.json, "
      "E3_verdicts.json (run_status); ~/thesis_data/trials/T_A_r1/lc_fgo_lc_t245/live.tum; "
      "~/thesis_data/tier1/T_A_r1/lc_fgo_lc_t245_tags0-1-2-3-4-5-6-7_mis0.01_{s0,s1}/live.tum; "
@@ -480,8 +481,10 @@ for e in EST:
     # Plot from shortly before the first pre-loss hold window starts (hold_windows_vehicle[0].t0), not from takeoff:
     # the climb/approach segment before the drone first reaches the hold point has its own large transient error
     # that is unrelated to tag loss and would otherwise swamp the y-scale needed to see the loss-window effect.
-    t_start5 = hj["hold_windows_vehicle"][0]["t0"] - 15.0
-    w5 = (t5 >= t_start5) & (t5 <= Gt.max())
+    # Scored span only: from the first hold window start to the last tag-loss window end (stored values).
+    t_start5 = hj["hold_windows_vehicle"][0]["t0"]
+    t_end5 = hj["losses"][-1]["t_off"]
+    w5 = (t5 >= t_start5) & (t5 <= t_end5)
     # start-point agreement: the estimator's own first PLOTTED sample against ground truth at that instant.
     i0 = np.flatnonzero(w5)[0]
     d0 = float(math.hypot(XE[i0] - np.interp(t5[i0], Gt, GE), XN[i0] - np.interp(t5[i0], Gt, GN)))
@@ -499,7 +502,7 @@ for ax, e in zip(axs, EST):
     # "estimate error", not "hold error" - the registered "hold error" (B06) is ground truth's distance from the
     # hold target; this is a different quantity, the estimator's own distance from ground truth.
     ax.set_ylabel(f"{e}\nestimate error (mm)")
-    ax.set_xlim(t5[w5].min(), t5[w5].max())
+    ax.set_xlim(hj["hold_windows_vehicle"][0]["t0"], hj["losses"][-1]["t_off"])
     ax.set_ylim(0, Y5MAX)
 axs[-1].set_xlabel("time (s, each flight's own clock)")
 _yl5 = {ax.get_ylim() for ax in axs}
@@ -514,10 +517,11 @@ save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each 
      "its own flight's clock, one shared y-scale across all three. The distance between each estimator's own live "
      "position estimate and the drone's true position, millimetres, against time; shaded bands mark when the "
      "occluder covered the wall tag. This is each estimator's own error against ground truth, not the registered "
-     "hold error (ground truth's own distance from the hold target). Each panel starts shortly before that "
-     "flight's first steady hold period, leaving out the initial climb and approach to the hold point.",
+     "hold error (ground truth's own distance from the hold target). Each panel shows only that flight's scored "
+     "span, from the start of its first hold window to the end of its last tag-loss window, so take-off, the "
+     "approach to the hold point and the landing are left out.",
      "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json (losses[].t_on/t_off, losses[0].<estimator>.drift_end_m, "
-     "hold_windows_vehicle[0].t0); dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO "
+     "hold_windows_vehicle[0].t0, losses[-1].t_off); dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO "
      "node); bag /ground_truth/pose and /imu/time_ref of H_s1far_r1, H_s2v2_r1, H_s3rp_r2",
      "NEW (B06/B07 draw aggregate bars over all losses/flights, not a per-flight time series)", None,
      "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json")

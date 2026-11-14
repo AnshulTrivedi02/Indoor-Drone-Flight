@@ -1576,14 +1576,16 @@ rowsR4.append(["Experiment 4: outdoor–indoor, hindsight", "indoor horizontal R
                "live ÷ hindsight, best live vs best hindsight per flight: " + rng([min(OJ[t][e]['indoor_rmse_m'] for e in LIVE) / min(OJ[t][e]['indoor_rmse_m'] for e in HIND) for t in OFL], 2) + "×",
                "expO/O_*.json; numbers.md:552-556, 560"])
 # --- Experiment 5 tag hold
-HC = L("expH/h_comparative_2026-10-11.json"); HE = HC["EKF3 (S1 far, flying)"]
+# FGO = the corrected-prior hold set (s3rp_r*; 2026-11-14 restatement); s3v2 (original priors) is superseded (appendix).
+HC = L("expH/h_comparative_refly_priors.json")["new"]; HE = HC["EKF3 (S1 far, flying)"]
 HS = {("re" if k.startswith("re-flown") else "old"): v for k, v in HC["sets"].items()}
 hold = {"EKF3": [x["hold_mean_mm"] for x in HE], "UKF": [x["hold_mean_mm"] for x in HS["re"]["UKF"]], "FGO": [x["hold_mean_mm"] for x in HS["re"]["FGO"]]}
-for i, (ln, exp_) in enumerate(((667, "7.8 / 6.4 / 8.3"), (668, "7.9 / 7.1 / 8.3"), (669, "7.8 / 6.7 / 8.6"))):
-    check("R4", f"H run {i + 1} hold mean EKF3/UKF/FGO (mm)", f"{rd(hold['EKF3'][i], 1)} / {rd(hold['UKF'][i], 1)} / {rd(hold['FGO'][i], 1)}",
-          exp_, "numbers.md", ln)
+for i, (ln, exp_) in enumerate(((667, "7.8 / 6.4"), (668, "7.9 / 7.1"), (669, "7.8 / 6.7"))):
+    check("R4", f"H run {i + 1} hold mean EKF3/UKF (mm)", f"{rd(hold['EKF3'][i], 1)} / {rd(hold['UKF'][i], 1)}", exp_, "numbers.md", ln)
+check("R4", "H FGO hold mean r1/r2/r3 (mm), corrected priors", "/".join(rd(x, 3) for x in hold["FGO"]), "7.308/8.340/7.488",
+      "numbers_refly", 343)
 FLYF = {"EKF3": (["s1far_r1", "s1far_r2", "s1far_r3b"], "EKF3"), "UKF": (["s2v2_r1", "s2v2_r2", "s2v2_r3"], "UKF_port"),
-        "FGO": (["s3v2_r1", "s3v2_r2", "s3v2_r3"], "FGO_flying")}
+        "FGO": (["s3rp_r1", "s3rp_r2", "s3rp_r3"], "FGO_flying")}
 d30 = {e: [L(f"expH/{f}.json")["losses"][2][k]["drift_end_m"] * 1000 for f in FLYF[e][0]] for e, (_, k) in FLYF.items()}
 assert all(abs(L(f"expH/{f}.json")["losses"][2]["duration_s"] - 30) < 2 for e in FLYF for f in FLYF[e][0])
 for e, f, ln, idx in (("EKF3", "s1far_r1", 621, 0), ("EKF3", "s1far_r2", 622, 1), ("EKF3", "s1far_r3b", 623, 2)):
@@ -1591,7 +1593,8 @@ for e, f, ln, idx in (("EKF3", "s1far_r1", 621, 0), ("EKF3", "s1far_r2", 622, 1)
     got = " / ".join(rd(L(f"expH/{f}.json")["losses"][j]["EKF3"]["drift_end_m"] * 1000, 0) for j in range(4))
     check("R4", f"H {f} EKF3 end-of-loss drift 5/15/30/move (mm)", got, exp_, "numbers.md", ln)
 check("R4", "H UKF-flying hold set 30 s end-of-loss drift r1/r2/r3 (mm)", " / ".join(rd(x, 0) for x in d30["UKF"]), "6 / 10 / 10", "numbers.md", 644)
-check("R4", "H FGO-flying hold set 30 s end-of-loss drift r1/r2/r3 (mm)", " / ".join(rd(x, 0) for x in d30["FGO"]), "22 / 15 / 9", "numbers.md", 646)
+check("R4", "H FGO-flying hold set (corrected priors) 30 s end-of-loss drift r1/r2/r3 (mm)", " | ".join(rd(x, 3) for x in d30["FGO"]),
+      "8.583 | 11.635 | 28.157", "numbers_refly", 247)
 spHold = [sp([hold[e][i] for e in EST]) for i in range(3)]
 rowsR4.append(["Experiment 5: tag hold (each estimator flying)", "mean hold error (mm), tag visible; n = 3 flights per estimator (paired by run index, not trajectory)",
                "EKF3 " + rng(hold['EKF3'], 1) + ", UKF " + rng(hold['UKF'], 1) + ", FGO " + rng(hold['FGO'], 1),
@@ -1599,7 +1602,7 @@ rowsR4.append(["Experiment 5: tag hold (each estimator flying)", "mean hold erro
                "the tag: visible (hold error) against hidden for 30 s (drift at the end of the loss); different statistics, not like-for-like",
                "30 s loss drift: " + ", ".join(f"{e} {rng(d30[e], 0)} mm" for e in EST) + "; ÷ the same run's hold error: "
                + ", ".join(f"{e} {rng([d30[e][i] / hold[e][i] for i in range(3)], 1)}×" for e in EST),
-               "expH/h_comparative_2026-10-11.json; expH/s1far_r*.json, s2v2_r*.json, s3v2_r*.json; numbers.md:621-623, 644, 646, 667-669"])
+               "expH/h_comparative_refly_priors.json; expH/s1far_r*.json, s2v2_r*.json, s3rp_r*.json; numbers.md:621-623, 644, 667-669; numbers_refly.md:247, 343"])
 # RAW (DESCRIPTIVE) column (raw-tables stage 2): only the 1A and 1B rows (above) are in D106's raw-corridor scope; every other
 # row gets "-" (out of scope, not a withheld value - Experiment 2/4/5 and the blank floor are not evo -a (cruise) rows at all,
 # see docs/handovers/2026-11-02_raw_tables_stage2.md, RT-2).
@@ -1616,7 +1619,7 @@ save_tab("Table 7.5", "R4_information_vs_estimator", "Spread between estimators 
           "information added (contrast)", "effect of the information", "source"],
          rowsR4, [22, 26, 40, 30, 30, 32, 40, 30],
          "eval/results/rerun_dsn_evo.json, dsn_extra_evo.json, rerun_ds_evo.json, phase4_fwdc_evo.json, blank_behaviour.json, expT/t_aggregate.json, "
-         "expO/O_*.json, expH/h_comparative_2026-10-11.json, expH/s1far_r*.json, s2v2_r*.json, s3v2_r*.json, raw_corridor_errors.json (raw column)",
+         "expO/O_*.json, expH/h_comparative_refly_priors.json, expH/s1far_r*.json, s2v2_r*.json, s3rp_r*.json, raw_corridor_errors.json (raw column)",
          notes=["Spread = max − min and max ÷ min of the stated metric over the estimators that have a value in that condition (2 in Experiment 1B "
                 "with heading and on the blank floor; 3 elsewhere). 'Per flight' ranges are the range over flights of the per-flight spread or ratio. "
                 "Ratios use the stored full-precision values, not the displayed ones.",

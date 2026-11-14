@@ -505,25 +505,25 @@ save(fig, "B05", "B05_4_indoor_rmse_boxes", "Experiment 4: indoor horizontal err
 # consolidated pair of candidates, not three.
 HJ = lambda t: L(f"expH/{t}.json")
 S1 = ["s1_r1", "s1_r2", "s1_r3"]; S1F = ["s1far_r1", "s1far_r2", "s1far_r3b"]
-S2V = [f"s2v2_r{i}" for i in (1, 2, 3)]; S3V = [f"s3v2_r{i}" for i in (1, 2, 3)]
+S2V = [f"s2v2_r{i}" for i in (1, 2, 3)]; S3V = [f"s3rp_r{i}" for i in (1, 2, 3)]   # corrected-prior FGO hold set (current; s3v2 superseded)
 FLY5 = {"EKF3": (S1 + S1F, "EKF3"), "UKF": (S2V, "UKF_port"), "FGO": (S3V, "FGO_flying")}
 BAND5 = {"EKF3": [50, 100, 200, 150], "FGO": [50, 100, 200, 150], "UKF": [100, 200, 400, 300]}
-_hc = [v for k, v in L("expH/h_comparative_2026-10-11.json")["sets"].items() if k.startswith("re-flown")][0]
+_hc = [v for k, v in L("expH/h_comparative_refly_priors.json")["new"]["sets"].items() if k.startswith("re-flown")][0]
 HV = {"EKF3": [float(np.mean([w["mean_m"] for w in HJ(t)["hold_windows_vehicle"]])) for t in S1F],
       "UKF": [r["hold_mean_mm"] for r in _hc["UKF"]], "FGO": [r["hold_mean_mm"] for r in _hc["FGO"]]}
 HK = {"EKF3": 3, "UKF": 0, "FGO": 0}
 VH = {e: rng_si(HV[e], 1, HK[e]) for e in EST}
-for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6")):
-    check(f"B06 {e}: mean hold error, range over 3 flights (mm)", VH[e], x, "eval/results/expH (hold_windows_vehicle; h_comparative_2026-10-11.json)")
+for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "7.3–8.3")):
+    check(f"B06 {e}: mean hold error, range over 3 flights (mm)", VH[e], x, "eval/results/expH (hold_windows_vehicle; h_comparative_refly_priors.json; numbers_refly.md:343)")
 NFLY6 = "/".join(str(len(HV[e])) for e in EST)
-check("B06 flights per estimator", NFLY6, "3/3/3", "this script (len(HV[e])); S1far r1-r3b, S2v2 r1-r3, S3v2 r1-r3")
+check("B06 flights per estimator", NFLY6, "3/3/3", "this script (len(HV[e])); S1far r1-r3b, S2v2 r1-r3, S3rp r1-r3")
 HVM = {e: max(float(rd_si(v, 12, HK[e])) for v in HV[e]) for e in EST}
 worstm = {e: max(lo[FLY5[e][1]]["effective"]["drift_m"] for t in FLY5[e][0] for lo in HJ(t)["losses"]) for e in EST}
 VW = {e: rd_si(worstm[e], 0, 3) for e in EST}
 LK = {e: [bool(lo[FLY5[e][1]]["lockout"]) for t in FLY5[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: f"{sum(LK[e])} / {len(LK[e])}" for e in EST}
 NFLY7 = "/".join(str(len(FLY5[e][0])) for e in EST)
-check("B07 flights per estimator (EKF3: near + far spawn combined)", NFLY7, "6/3/3", "this script (len(FLY5[e][0])); S1+S1F, S2v2, S3v2")
+check("B07 flights per estimator (EKF3: near + far spawn combined)", NFLY7, "6/3/3", "this script (len(FLY5[e][0])); S1+S1F, S2v2, S3rp")
 # The 50 mm dashed line is a REGISTERED limit (common brief: no in-plot label on it), cross-checked against its
 # source rather than drawn from a bare literal - same source eval/figs_walkthrough_extra.py's HLIM check uses.
 HLIM = si_str("0.05", 3)
@@ -547,13 +547,14 @@ save(fig, "B06", "B06_5_hold_error", "Experiment 5: mean hold error per flight, 
      "range labelled). Each estimator flew its own flights; EKF3's bar uses the far-spawn hold set (s1far), the "
      "same flights candidate A05 (fl_5_truth.png) draws, while the near-spawn set (s1) is the one the primary "
      f"hold-accuracy check was scored on (H5.1). Dashed line: the registered {HLIM} mm limit for the mean, "
-     "pre-registered for every estimator (tag_hold_design.md, H-H1).",
-     "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s2v2_r1..r3,s3v2_r1..r3}.json; h_comparative_2026-10-11.json",
+     "pre-registered for every estimator (tag_hold_design.md, H-H1). The FGO bar is the FGO-flying hold set "
+     "flown with the corrected priors.",
+     "eval/results/expH/{s1far_r1,s1far_r2,s1far_r3b,s2v2_r1..r3,s3rp_r1..r3}.json; h_comparative_refly_priors.json",
      "walkthrough extra/ex_5_hold_drift.png (left panel) and summary page 10", "H5.1; H5.2",
-     "eval/results/expH/*.json; eval/results/expH/h_comparative_2026-10-11.json")
+     "eval/results/expH/*.json; eval/results/expH/h_comparative_refly_priors.json")
 
-for e, x in zip(EST, ("31", "26", "27")):
-    check(f"B07 {e}: worst drift over all tag losses (mm)", VW[e], x, "eval/results/expH losses[].effective.drift_m")
+for e, x in zip(EST, ("31", "26", "28")):
+    check(f"B07 {e}: worst drift over all tag losses (mm)", VW[e], x, "eval/results/expH losses[].effective.drift_m (FGO: numbers_refly.md:256, 28.290)")
 for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12")):
     check(f"B07 {e}: losses with a lockout / losses", VN[e], x, "eval/results/expH losses[].lockout")
 # The "50 to 200 mm for EKF3 and the FGO, twice that for the UKF" claim in the caption, and the dashed reference
@@ -585,12 +586,12 @@ save(fig, "B07", "B07_5_drift_hidden", "Experiment 5: worst drift while the wall
      "one after it, worst case over all tag losses, millimetres, per estimator. Loss sets differ from B06's mean-"
      "hold bars (EKF3's bar there is the far-spawn set only): EKF3 here is both its near- and far-spawn hold sets "
      f"({EF7} flights, {EL7} losses, the same combined set Table 6.1 uses), UKF the same loss set as B06 ({UF7} "
-     f"flights, {UL7} losses), FGO from the FGO-flying hold set ({FF7} flights, {FL7} losses). Tag-loss counts "
+     f"flights, {UL7} losses), FGO from the FGO-flying hold set flown with the corrected priors ({FF7} flights, {FL7} losses). Tag-loss counts "
      "shown under each estimator's x-axis label (0 lockouts in any of them). Dashed line: the tightest of the "
      f"registered per-loss drift bands, {DLIM7} mm (EKF3 and FGO; their full bands are "
      f"{min(BAND5['EKF3'])}–{max(BAND5['EKF3'])} mm depending on the loss, Table 6.1); the UKF's bands are "
      f"twice these ({min(BAND5['UKF'])}–{max(BAND5['UKF'])} mm) and so are never the tightest.",
-     "eval/results/expH/{s1_r1..r3,s1far_r1..r3b,s2v2_r1..r3,s3v2_r1..r3}.json (losses[].effective.drift_m, losses[].lockout)",
+     "eval/results/expH/{s1_r1..r3,s1far_r1..r3b,s2v2_r1..r3,s3rp_r1..r3}.json (losses[].effective.drift_m, losses[].lockout)",
      "walkthrough extra/ex_5_hold_drift.png (right panel) and summary page 11", "H5.5; H5.7",
      "eval/results/expH/*.json")
 
