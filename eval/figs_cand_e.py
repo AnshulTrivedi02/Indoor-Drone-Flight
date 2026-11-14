@@ -519,10 +519,7 @@ save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each 
      "its own flight's clock, one shared y-scale across all three. The distance between each estimator's own live "
      "position estimate and the drone's true position, millimetres, against time; shaded bands mark when the "
      "occluder covered the wall tag. This is each estimator's own error against ground truth, not the registered "
-     "hold error (ground truth's own distance from the hold target), because the lateral moves built into the "
-     "hold profile are far larger than this millimetre-scale effect and would hide it if positions were plotted "
-     "directly. The line moves away from its settled level during a shaded band and returns to it once the "
-     "occluder is removed, though not always in the same direction. Each panel starts shortly before that "
+     "hold error (ground truth's own distance from the hold target). Each panel starts shortly before that "
      "flight's first steady hold period, leaving out the initial climb and approach to the hold point.",
      "eval/results/expH/{s1far_r1,s2v2_r1,s3rp_r2}.json (losses[].t_on/t_off, losses[0].<estimator>.drift_end_m, "
      "hold_windows_vehicle[0].t0); dataflash ardupilot.bin (XKF1 for EKF3, XUKO for the UKF port, XFGO for the FGO "
@@ -533,7 +530,7 @@ save(fig, "E05", "E05_exp5_tag_hold_timeseries", "Experiment 5 (tag hold): each 
 
 # =============================================================================================================== E06
 # ============================================================== E4 extension (window sweep): FGO live paths, by W
-# Lowest-value item (per the common brief's own time-box priority). Flight T_D_r1 (condition D, 1 tag), not T_A_r1:
+# Lowest-value item (this group's own time box). Flight T_D_r1 (condition D, 1 tag), not T_A_r1:
 # on T_A, live RMSE is identical to 4 dp across all five windows (e4_results.md), so three near-identical paths
 # would not show anything; on T_D the windows differ at the millimetre level (0.0931 / 0.0863 / 0.0887 m, the
 # largest spread of the four conditions), giving three paths that are not simply on top of each other. The
@@ -562,6 +559,21 @@ check("E06 the three plotted windows are distinguishable (not all equal to 4 dp,
       E6[w][0][:, 2] - np.interp(E6[w][0][:, 0], E6[w][1], E6[w][3]))[(E6[w][0][:, 0] >= E6[w][4]) & (E6[w][0][:, 0] <= E6[w][5])] ** 2)), 4) for w in W5}) == 1),
       "False", "this script (distinct 4 dp RMSE across the three plotted windows)")
 check("E06 3 tracks plotted (W = 0.25, 1, 5 s)", str(len(E6) == 3), "True", "this script")
+# Separation between the shortest (0.25 s) and longest (5 s) live tracks AT THE SAME INSTANT, over the scored
+# window - to word the caption from a measured number rather than a visual impression of the plotted PNG. Both
+# room_fgo_w* replays share one keyframe clock (same bag, same gap rule), confirmed row-for-row identical
+# timestamps, so no interpolation is needed.
+x025, x5 = E6["0.25"][0], E6["5"][0]
+check("E06 W=0.25s and W=5s live tracks share one keyframe clock (row-for-row identical timestamps)",
+      str(len(x025) == len(x5) and bool(np.array_equal(x025[:, 0], x5[:, 0]))), "True", "this script")
+w6c = (x025[:, 0] >= w0) & (x025[:, 0] <= w1)
+SEP6 = np.hypot(x025[w6c, 1] - x5[w6c, 1], x025[w6c, 2] - x5[w6c, 2])
+SEP6_MAX = float(SEP6.max())
+# The caption's wording is picked from this measured value, not the other way around (D113: a newly derived
+# number does not itself go in the caption). Threshold 0.05 m is a judgement call, not derived from data.
+SEP6_SMALL = SEP6_MAX < 0.05
+check(f"E06 same-instant separation small (< 0.05 m; measured max {rd(SEP6_MAX, 4)} m over the scored window)",
+      str(SEP6_SMALL), str(SEP6_SMALL), "this script (direct pairwise comparison, identical timestamps)")
 
 fig, ax = plt.subplots(figsize=(TEXT_WIDTH_IN, 5.0))
 _, Gt6, Gx6, Gy6, w0, w1 = E6["0.25"]
@@ -575,12 +587,14 @@ ax.set_xlim(-4.5, 4.5); ax.set_ylim(-4.5, 4.5)   # a little blank margin above t
 ax.set_aspect(1.0, adjustable="box")
 st6 = measured_stretch(fig, ax); check("E06 equal scale (measured stretch)", rd(st6, 1), "1.0", "set_aspect(1.0)")
 ax.legend(loc="lower center", ncol=1, frameon=False, fontsize=9.0, bbox_to_anchor=(0.5, 0.0))
+_E06_SEP_SENT = ("The paths lie almost on top of each other at every instant; the spread visible near the corners "
+                 "is between laps, not between windows." if SEP6_SMALL else
+                 "The paths separate visibly at some instants, most noticeably near the corners.")
 save(fig, "E06", "E06_e4_window_sweep_paths", "Extension E4 (live window sweep): the FGO's live path at three window lengths",
      "Extension E4 (how far back the live FGO's fixed-lag window reaches), one flight with 1 known tag: the FGO "
      "in orange against the true path in grey, world frame, no alignment, equal scale. Solid is the registered "
      "window (W = 0.25 s, also the shortest tested), dashed is the middle window tested (W = 1 s) and dotted is "
-     "the longest tested (W = 5 s). The three paths mostly overlap, but separate visibly along the bottom edge "
-     "and near two corners of the square.",
+     f"the longest tested (W = 5 s). {_E06_SEP_SENT}",
      "docs/thesis/tier1/scores/E4_T_D_r1_w{0.25,1,5}.json (window_s, tracks.'FGO live'.horiz_err_m.rmse); "
      "~/thesis_data/tier1/T_D_r1/room_fgo_w{0.25,1,5}/fgo_live.tum; bag /ground_truth/pose of T_D_r1",
      "NEW (not drawn by any existing figure or candidate)", None,
@@ -597,8 +611,10 @@ W = ["# Candidate thesis figures, group E: extension-experiment and Experiment 4
      "`sim/worlds/room_tags_map.json`, `gnss.npz`, and a cache of bag/dataflash reads pre-populated ONCE by "
      "`eval/figs_cand_e_extract.py` under `heavy.py`, written to `~/thesis_data/cand_e_cache/` and deleted at the "
      "end of this group's work. No estimator is run, no replay, no simulation, no flight.", "",
-     f"**Checks:** {n_ok}/{n_tot} EXACT (string equality after one rounding by `rd()`, parsed from `eval/figs_thesis.py`, "
-     "sha256 of the source segment used to detect drift).", "",
+     f"**Checks:** {n_ok}/{n_tot}. Most are EXACT (string equality after one rounding by `rd()`, parsed from "
+     "`eval/figs_thesis.py`, sha256 of the source segment used to detect drift). The start-point-agreement checks "
+     "(every plotted track's first sample against ground truth at that instant) compare against a stated tolerance "
+     "instead, since there is no stored start-point value to match exactly.", "",
      "**Style:** `eval/thesis_style.py` (160 mm / 6.30 in text width, Okabe-Ito palette, no in-figure titles, no "
      "verdict words, no bold text, equal-scale top-down axes labelled East/North for every spatial-path candidate; "
      "E05 is a time series, not a spatial path, and is labelled accordingly). No two plots overlap.", "",
@@ -618,13 +634,21 @@ W += ["", "## Skipped or time-boxed (not in any candidate's caption - process no
       "- E05 (Experiment 5): only the first loss of each flight is cross-checked against the stored per-loss "
       "drift; the later shaded intervals on each flight's own timeline are read directly from its own stored "
       "result file, not independently re-checked.",
-      "- E06 (Extension E4, window sweep): lowest-value item per the common brief's time-box priority; only one "
+      "- E06 (Extension E4, window sweep): lowest-value item per this group's own time box; only one "
       "tag count (condition D) and three of the five tested windows are plotted.", "",
       "## Judgement calls for the coordinator", "",
       "- **E02 vs C05/C06**: both groups draw Extension E3 paths for T_A_r1's 1% seed 0 run. C05 draws its "
       "hindsight track plus the final landmark map (a non-diverged, already-settled view); E02 draws its live "
       "track (the same run, different track) alongside a genuinely diverged run's live excursion, which no "
       "existing candidate shows. Kept as complementary, not flagged as a duplicate to drop.",
+      "- **E05 plots each estimator's own distance from ground truth, not overlaid estimated-vs-true positions** "
+      "as the brief's item 6 literally asks for. Reasoning (not independently checked against the stored hold "
+      "profile, so stated as reasoning, not a verified number): the lateral moves built into the Experiment 5 "
+      "hold profile are metres in scale, while a tag-loss drift is millimetres (B07: 26-31 mm worst case), so "
+      "overlaying raw positions on one set of axes would not show the loss effect at all. Flagged as a deviation "
+      "from the literal item 6 wording, not a silent reinterpretation.",
+      "- **E05's EKF3 flight is the far-spawn hold set**, matching candidate B06's own choice for EKF3, not the "
+      "near-spawn set the primary H5.1 hold-accuracy check was actually scored on.",
       "- **E05's FGO flight uses the corrected-priors hold set (s3rp_r2), not the original-priors set (s3v2) "
       "candidates B06/B07 use.** `H_s3rp_r1` (the first repeat of that set) has no stored bag, only `ardupilot.bin` "
       "- but `H_s3rp_r2` and `H_s3rp_r3` do have full stored bags, so E05 uses `s3rp_r2` rather than falling back "
