@@ -208,7 +208,7 @@ VAL = L("fwd_validation.json")["aggregate"]
 WIN = {"EKF3": (155, 215), "UKF": (146, 218), "FGO": (145, 196)}
 HALF = {"EKF3": ("cl_a_tex_half", [f"cl_bcpp_tex_r{i}_half" for i in (1, 2, 3)]),
         "UKF": ("cl_ukf_a_tex_half_v2", [f"cl_ukf_b_tex_r{i}_half_v2" for i in (1, 2, 3)]),
-        "FGO": ("cl_fgo_a_tex_half_v3", [f"cl_fgo_b_tex_r{i}_half_v3" for i in (1, 2, 3)])}
+        "FGO": ("cl_fgo_a_tex_r1_half_rp", [f"cl_fgo_b_tex_r{i}_half_rp" for i in (1, 2, 3)])}
 agg = L("expT/t_aggregate.json"); TCOND = "ABCD"
 TRK = ("EKF3 live", "UKF live", "FGO live", "RTS-UKF (hindsight)", "FGO hindsight (whole-flight batch)")
 OFL = ("O_r1", "O_r2", "O_r3b")
@@ -216,8 +216,9 @@ OI = {n: [L(f"expO/{t}.json")["tracks"][n]["indoor_rmse_m"] for t in OFL] for n 
 LL = {(m, k): [L(f"expL/T_A_r{r}_t245.json")["tracks"][f"{m} {k}"] for r in (1, 2, 3)] for m in ("lc", "nolc") for k in ("live", "hindsight")}
 HJ = lambda t: L(f"expH/{t}.json")
 S1 = ["s1_r1", "s1_r2", "s1_r3"]; S1F = ["s1far_r1", "s1far_r2", "s1far_r3b"]
-S2V = ["s2v2_r1", "s2v2_r2", "s2v2_r3"]; S3V = ["s3v2_r1", "s3v2_r2", "s3v2_r3"]
-FLY = {"EKF3": (S1 + S1F, "EKF3"), "UKF": (S2V, "UKF_port"), "FGO": (S3V, "FGO_flying")}
+S2V = ["s2v2_r1", "s2v2_r2", "s2v2_r3"]; S3V = ["s3v2_r1", "s3v2_r2", "s3v2_r3"]  # superseded, original priors - kept for Table A.2 historical reference only, not used below
+S3RP = ["s3rp_r1", "s3rp_r2", "s3rp_r3"]  # corrected priors - matches Table 6.1 (T5) and figs_thesis.py
+FLY = {"EKF3": (S1 + S1F, "EKF3"), "UKF": (S2V, "UKF_port"), "FGO": (S3RP, "FGO_flying")}
 BAND = {"EKF3": [50, 100, 200, 150], "FGO": [50, 100, 200, 150], "UKF": [100, 200, 400, 300]}
 
 
@@ -496,7 +497,11 @@ finish(fig, meta)
 fig, meta = new_page("05", "1C_no_heading", "Experiment 1C: an estimator flies the drone, without the camera heading",
                      "With each estimator steering the drone and no heading measurement, does the drone drift into the wall at the "
                      "time predicted beforehand?")
-CT = {}; EXP_CT = {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+169.9"}; NMC = {"EKF3": 470, "UKF": 471, "FGO": 473}
+CT = {}; EXP_CT = {"EKF3": "+242.1", "UKF": "+165.9", "FGO": "+166.7"}; NMC = {"EKF3": 470, "UKF": 471}
+# FGO's current flight 1 (the corrected-priors re-fly, `cl_fgo_a_tex_r1_half_rp`, matching Table 4.3) is not itself a line
+# of the frozen numbers.md (it is recorded in the writing pack's refly_priors/numbers_refly.md instead), so FGO is checked
+# against Table 4.3 only, not NMC - unlike EKF3/UKF, whose single-flight figures are unchanged and still on those lines.
+T4WORD = {"EKF3": "after window", "UKF": "PASS", "FGO": "PASS"}
 WTXT = {"EKF3": ("[+155, +215]", 4948), "UKF": ("[+146, +218]", 7513), "FGO": ("[+145, +196]", 8995)}
 VCT = {}
 for e in EST:
@@ -504,8 +509,8 @@ for e in EST:
     inwin = WIN[e][0] <= t <= WIN[e][1] and js["contact"]["wall"] == "west" and t >= 100
     verdict = "PASS" if inwin else "MISS"
     VCT[e] = num(f"{e}: wall contact after cruise start (s) and verdict against its window", f"{rd(t, 1, sign=True)} {verdict}",
-                 f"{EXP_CT[e]} {'MISS' if e == 'EKF3' else 'PASS'}", [("T4", f"{EXP_CT[e]} s; window {WTXT[e][0]} s: {'MISS' if e == 'EKF3' else 'PASS'}")],
-                 [(NMC[e], EXP_CT[e])]).split(" ")[0]
+                 f"{EXP_CT[e]} {'MISS' if e == 'EKF3' else 'PASS'}", [("T4", f"{EXP_CT[e]} s ({T4WORD[e]})")],
+                 [(NMC[e], EXP_CT[e])] if e in NMC else []).split(" ")[0]
     rule(M_, WTXT[e][1], f"{WTXT[e][0]} s", f"{e} predicted contact window")
     num(f"{e}: stored pass flag agrees", str(js["a_primary"]["pass"] == (e != "EKF3")), "True", [("T4", "window")])
 rule(M_, 4948, "no contact before +100 s", "no wall contact before 100 s after cruise start")
@@ -540,7 +545,7 @@ fig, meta = new_page("06", "1C_with_heading", "Experiment 1C: an estimator flies
 B2h = {e: [L(f"closed_loop_{t}.json")["B"]["B2"]["max_abs_x_cruise_m"] for t in HALF[e][1]] for e in EST}
 passh = {e: sum(L(f"closed_loop_{t}.json")["B"]["pass"] and L(f"closed_loop_{t}.json").get("S2", {}).get("pass", True) for t in HALF[e][1]) for e in EST}
 VX = {e: num(f"{e}: largest sideways distance over its 3 flights (m)", rd(max(B2h[e]), 2), x, [("T1", f"max cross-track ≤ {x} m")])
-      for e, x in zip(EST, ("0.33", "0.25", "0.39"))}
+      for e, x in zip(EST, ("0.33", "0.25", "0.32"))}
 VP = {e: num(f"{e}: flights passing all five checks", f"{passh[e]}/{len(HALF[e][1])}", "3/3", [("T4", "3/3 PASS")], [(477 if e == "EKF3" else 478 if e == "UKF" else 480, "3/3")]) for e in EST}
 rule(M_, 4951, "lands with no wall contact", "check 1: complete the mission with no wall contact")
 rule(M_, 4953, "**≤ 6.0 m**", "check 2: sideways distance at most 6.0 m")
@@ -707,24 +712,29 @@ finish(fig, meta)
 fig, meta = new_page("10", "5_hold", "Experiment 5: holding the drone still next to a wall tag",
                      "Whether each estimator, flying the drone, can hold it in place next to a printed tag on the wall that a "
                      "camera sees.")
-_hc = [v for k, v in L("expH/h_comparative_2026-10-11.json")["sets"].items() if k.startswith("re-flown")][0]
+# corrected priors (expH/h_comparative_refly_priors.json), not the original-priors "re-flown" set in
+# h_comparative_2026-10-11.json this used before - matches figs_thesis.py's own switch (see its line ~578).
+_hc = L("expH/h_comparative_refly_priors.json")["new"]["sets"]["re-flown (S2v2 jitter-corrected UKF, S3rp corrected-prior FGO)"]
 hE = [np.mean([w["mean_m"] for w in HJ(t)["hold_windows_vehicle"]]) for t in S1F]          # m (stored in m)
 hU = [r["hold_mean_mm"] for r in _hc["UKF"]]; hF = [r["hold_mean_mm"] for r in _hc["FGO"]]
 HV = {"EKF3": hE, "UKF": hU, "FGO": hF}; HK = {"EKF3": 3, "UKF": 0, "FGO": 0}      # HK: decimal shift to mm (EKF3 stored in m)
 HVM = {e: [float(rd_si(v, 12, HK[e])) for v in HV[e]] for e in EST}                  # millimetres, for drawing only
+# FGO's current value (7.3-8.3 mm, corrected priors) is not itself on numbers.md:675 - that frozen line keeps the
+# original-priors figure (8.3-8.6 mm) as its own historical record, so FGO is checked against Table 7.1 (T1) only.
+NMH = {"EKF3": 675, "UKF": 675}
 VH = {e: num(f"{e}: mean hold error, range over 3 flights (mm)", rng_si(HV[e], 1, HK[e]), x,
-             [("T1", f"hold {x} mm")], [(675, x)])
-      for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "8.3–8.6"))}
-HWIN = {"EKF3 (first hold flights, near spawn)": S1, "EKF3 (far spawn, plotted)": S1F, "UKF": S2V, "FGO": S3V}
+             [("T1", f"hold {x} mm")], [(NMH[e], x)] if e in NMH else [])
+      for e, x in zip(EST, ("7.8–7.9", "6.4–7.1", "7.3–8.3"))}
+HWIN = {"EKF3 (first hold flights, near spawn)": S1, "EKF3 (far spawn, plotted)": S1F, "UKF": S2V, "FGO": S3RP}
 for nm_, trs in HWIN.items():
     ws = [w for t in trs for w in HJ(t)["hold_windows_vehicle"]]
     ok_ = all(w["mean_m"] <= 0.05 and w["max_m"] <= 0.15 for w in ws)
     num(f"hold rule (every window mean ≤ 0.05 m and max ≤ 0.15 m), {nm_}", str(ok_), "True",
-        [("T1", "hold 7.8–7.9 mm" if "far" in nm_ else "hold 6.4–7.1 mm" if nm_ == "UKF" else "hold 8.3–8.6 mm" if nm_ == "FGO" else "hold 7.8–7.9 mm")])
+        [("T1", "hold 7.8–7.9 mm" if "far" in nm_ else "hold 6.4–7.1 mm" if nm_ == "UKF" else "hold 7.3–8.3 mm" if nm_ == "FGO" else "hold 7.8–7.9 mm")])
 num("window max hold error range, EKF3 first hold flights / UKF (mm)",
     f"{rng_si([w['max_m'] for t in S1 for w in HJ(t)['hold_windows_vehicle']], 0, 3)} / {rng_si([w['max_m'] for t in S2V for w in HJ(t)['hold_windows_vehicle']], 0, 3)}",
     "16–25 / 17–21", [("R1", "max 16–25 mm (EKF3 flying)")], [(606, "16–25 mm"), (644, "6.1–7.4 / 17–21")])
-disp("hold accuracy verdict as recorded: EKF3 first hold flights / FGO", "PASS / PASS", [("R1", "PASS: hold error mean 8 mm"), ("R1", "also PASS on the FGO-flying hold set")],
+disp("hold accuracy verdict as recorded: EKF3 first hold flights / FGO", "PASS / PASS", [("R1", "PASS: hold error mean 8 mm"), ("R1", "PASS: hold error mean 7.1–8.7 mm")],
      [(606, "H-H1 PASS"), (646, "H-H1 PASS")])
 num("comparative predictions (FGO tightest and the other three): verdict", "; ".join(_hc["criteria"][k].split()[0] for k in ("H-H2", "P-H3", "H-H4 (15 s)", "H-H4 (5 s)")),
     "FAIL; FAIL; FAIL; FAIL", [("T1", "comparatives FAIL")], [(675, "**FAIL** (0/3)")])
@@ -759,7 +769,7 @@ worst = {e: max(max(DR[(e, li)]) for li in range(4)) for e in EST}
 wli = {e: max(range(4), key=lambda li: max(DR[(e, li)])) for e in EST}
 worstm = {e: max(lo[FLY[e][1]]["effective"]["drift_m"] for t in FLY[e][0] for lo in HJ(t)["losses"]) for e in EST}   # m, as stored
 VW = {e: num(f"{e}: worst drift over all tag losses (mm)", rd_si(worstm[e], 0, 3), x, [("T5", f"{x} / {BAND[e][wli[e]]}")])
-      for e, x in zip(EST, ("31", "26", "27"))}
+      for e, x in zip(EST, ("31", "26", "28"))}
 LK = {e: [bool(lo[FLY[e][1]]["lockout"]) for t in FLY[e][0] for lo in HJ(t)["losses"]] for e in EST}
 VN = {e: num(f"{e}: losses with a lockout / losses", f"{sum(LK[e])} / {len(LK[e])}", x, [("T5", x)]) for e, x in zip(EST, ("0 / 24", "0 / 12", "0 / 12"))}
 inband = all(v <= BAND[e][li] for (e, li), d in DR.items() for v in d)
@@ -771,11 +781,11 @@ rule(M_, 10691, "≤ 2× those", "UKF limits twice those")
 rule(M_, 10700, "no estimator locks out the returning tag in any loss", "no lockout")
 _e1 = [lo["EKF3"]["effective"]["drift_m"] for t in S1 for lo in HJ(t)["losses"]]
 _u2 = [lo["UKF_port"]["effective"]["drift_m"] for t in S2V for lo in HJ(t)["losses"]]
-_f3 = [lo["FGO_flying"]["effective"]["drift_m"] for t in S3V for lo in HJ(t)["losses"]]
+_f3 = [lo["FGO_flying"]["effective"]["drift_m"] for t in S3RP for lo in HJ(t)["losses"]]
 _nu = sum(u > e for u, e in zip(_u2, _e1)); _nf = sum(f > e for f, e in zip(_f3, _e1))
 num("directional prediction: matched losses with UKF / FGO drift strictly above flying EKF3 (effective, full precision); holds",
-    f"{_nu} of {len(_e1)} / {_nf} of {len(_e1)}; {_nu == len(_e1) and _nf == len(_e1)}", "4 of 12 / 9 of 12; False",
-    [("R1", "the final UKF port drifted more in 4 of 12 and the final FGO node in 9 of 12")])
+    f"{_nu} of {len(_e1)} / {_nf} of {len(_e1)}; {_nu == len(_e1) and _nf == len(_e1)}", "4 of 12 / 6 of 12; False",
+    [("R1", "the final UKF port drifted more in 4 of 12 and the corrected-priors FGO node in 6 of 12")])
 disp("directional prediction verdict", "NOT MET", [("R1", "NOT borne out (the predicted o")])
 ax = AX(0.11, 0.80, 0.135)
 for i, e in enumerate(EST):

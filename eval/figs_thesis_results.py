@@ -1536,7 +1536,7 @@ rowsR4.append(["Blank floor (no flow aiding; 1A and 1B flights pooled)", f"posit
                f"UKF and FGO only (EKF3 flags its position invalid): FGO ÷ UKF per flight {rng(r30, 2)}",
                "the camera heading (same bags, UKF and FGO heading arms)",
                f"with ÷ without, per flight: UKF {rng(h30['UKF'], 2)}, FGO {rng(h30['FGO'], 2)} (the heading holds yaw, not position)",
-               "blank_behaviour.json (+30s along/cross); numbers.md:248-249"])
+               "blank_behaviour.json (+30s along/cross); numbers.md:248-249, 1448, 1455"])
 # --- Experiment 2 known tags (live; hindsight)
 for k, ln in zip("ABCD", (526, 527, 528, 529)):
     for e, j in zip(LIVE, (1, 2, 3)):
@@ -1603,7 +1603,7 @@ rowsR4.append(["Experiment 5: tag hold (each estimator flying)", "mean hold erro
                "the tag: visible (hold error) against hidden for 30 s (drift at the end of the loss); different statistics, not like-for-like",
                "30 s loss drift: " + ", ".join(f"{e} {rng(d30[e], 0)} mm" for e in EST) + "; ÷ the same run's hold error: "
                + ", ".join(f"{e} {rng([d30[e][i] / hold[e][i] for i in range(3)], 1)}×" for e in EST),
-               "expH/h_comparative_refly_priors.json; expH/s1far_r*.json, s2v2_r*.json, s3rp_r*.json; numbers.md:621-623, 644, 667-669; numbers_refly.md:247, 343"])
+               "expH/h_comparative_refly_priors.json; expH/s1far_r*.json, s2v2_r*.json, s3rp_r*.json; numbers.md:621-623, 644, 667-669; numbers_refly.md:345, 343"])
 # RAW (DESCRIPTIVE) column (raw-tables stage 2): only the 1A and 1B rows (above) are in D106's raw-corridor scope; every other
 # row gets "-" (out of scope, not a withheld value - Experiment 2/4/5 and the blank floor are not evo -a (cruise) rows at all,
 # see docs/handovers/2026-11-02_raw_tables_stage2.md, RT-2).

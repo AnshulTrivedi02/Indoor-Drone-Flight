@@ -1195,8 +1195,8 @@ def tab_compute():
          f"{S('M', 13674, 'A Pi 5 is RECOMMENDED')}; {S('M', 13655, '43–52 MB qemu peak')}]"],
         ["closed-loop real-time factor (Exp. 1C)", f"flew at full real time and at half real-time [{S('N', 470, 'EKF3 full / half')}]",
          f"flew at full real time (old UKF) and at half real-time (final port) [{S('N', 471, 'UKF full (old UKF, jitter) / half')}]",
-         f"half real-time only (RTF 0.5): at full speed the Python node's step (42–49 ms median) exceeded the {kf} ms keyframe period around "
-         f"lift-off; at RTF 0.5 it has {kf_half} ms of wall time per keyframe. The flights show its behaviour given sufficient compute, "
+         f"half real-time (RTF 0.5): at full speed the Python node's step (42–49 ms median) exceeded the {kf} ms keyframe period around "
+         f"lift-off; at half real-time (RTF 0.5) it has {kf_half} ms of wall time per keyframe. The flights show its behaviour given sufficient compute, "
          f"not real-time feasibility "
          f"[{S('M', 7771, 'the FGO step is 42–49 ms')}; {S('M', 7795, 'All FGO closed-loop flights fly at half')}; {S('M', 7803, 'given sufficient compute')}; "
          f"{S('HALF', 44, '<real_time_factor>0.5</real_time_factor>')}]"],
