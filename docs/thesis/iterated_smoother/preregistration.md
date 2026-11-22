@@ -87,3 +87,29 @@ track labelled "IPLS-UKF (hindsight, exploratory)".
 Reading, fixed now: if E-2 holds, the FGO batch's hindsight advantage over the RTS-UKF is attributed to re-linearising
 over the whole trajectory rather than to the factor-graph formulation. If E-2 fails while E-1 holds, re-linearisation
 narrows but does not close the gap. These are exploratory statements; no registered verdict changes.
+
+## AMENDMENT 1 (2026-11-22, decision D153): the G3(b) cost check and the cost definition. Recorded after the stage 1 gates and BEFORE any Experiment 2 IPLS result was scored (no IPLS track has been compared with ground truth or with the RTS-UKF)
+
+**What happened (stage 1, commits 789ee43 / 81cd26b; handover `docs/handovers/2026-11-22_ipls_stage1_d152.md`):**
+- G1 and G2 PASS exactly on `T_A_r1` (max difference 0.0 m, 17272/17272 rows). G3(a) PASS (linear case reproduced to
+  4.99e-10, one iteration).
+- G3(b), the short nonlinear toy, was run by the stage-1 test to a 1e-6 m tolerance (a test setting, not the
+  pre-registered stopping rule). Its cost trace was 1.3510 → 0.4420 → 0.4435: a rise of 0.0015 at iteration 2, where
+  the trajectory moved 1.9e-8 m. Under the pre-registered 1 mm stopping rule the toy stops after iteration 1
+  (1.351 → 0.442), with no increase. The real flight `T_A_r1`, run under the 1 mm rule, converged in 2 iterations with a
+  monotonically decreasing cost (45242.78 → 44748.36 → 44287.78).
+- Cause: IPLS's fixed point is not in general the minimum of the MAP objective evaluated with the exact nonlinear
+  models (unscented statistical linear regression propagates E[f(x)], not f(E[x])), so once converged it can sit a
+  hair above that minimum. A cost-monotonicity check is therefore not a property IPLS guarantees at sub-millimetre
+  changes.
+
+**Rulings (D153):**
+1. **Cost definition, fixed as implemented:** the MAP objective (sum of squared whitened residuals of the prior, every
+   process step and every accepted measurement) evaluated at the smoothed means with the exact nonlinear models.
+2. **The cost-increase test (G3(b) and the §2 non-convergence clause) applies to the iterations the pre-registered
+   stopping rule actually takes (1 mm, at most 10).** Under this reading G3(b) PASSES. Both readings and both traces
+   are reported; this reading is chosen because the 1 mm rule is the one every real run uses, and the gate exists to
+   catch a smoother whose cost grows while the trajectory is still moving.
+3. Every real run still reports its full per-iteration cost and max-change trace, and any cost increase within the
+   iterations taken labels that run non-converged, exactly as §2.
+4. Nothing else changes: method, gates G1/G2, stopping rule, runs, predictions E-1 to E-3 and their rules stand.
